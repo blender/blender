@@ -137,8 +137,9 @@ static void bake_progress_update(void *bjv, float progress)
 static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE))
+  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
 
   /* running render */
   switch (event->type) {
@@ -154,8 +155,9 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
  * note: this wont check for the escape key being pressed, but doing so isnt threadsafe */
 static int bake_break(void *UNUSED(rjv))
 {
-  if (G.is_break)
+  if (G.is_break) {
     return 1;
+  }
   return 0;
 }
 
@@ -163,8 +165,9 @@ static void bake_update_image(ScrArea *sa, Image *image)
 {
   if (sa && sa->spacetype == SPACE_IMAGE) { /* in case the user changed while baking */
     SpaceImage *sima = sa->spacedata.first;
-    if (sima)
+    if (sima) {
       sima->image = image;
+    }
   }
 }
 
@@ -185,8 +188,9 @@ static bool write_internal_bake_pixels(Image *image,
 
   ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
-  if (!ibuf)
+  if (!ibuf) {
     return false;
+  }
 
   if (margin > 0 || !is_clear) {
     mask_buffer = MEM_callocN(sizeof(char) * num_pixels, "Bake Mask");
@@ -202,14 +206,17 @@ static bool write_internal_bake_pixels(Image *image,
 
     from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
 
-    if (is_float)
+    if (is_float) {
       to_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
-    else
+    }
+    else {
       to_colorspace = IMB_colormanagement_get_rect_colorspace(ibuf);
+    }
 
-    if (from_colorspace != to_colorspace)
+    if (from_colorspace != to_colorspace) {
       IMB_colormanagement_transform(
           buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, false);
+    }
   }
 
   /* populates the ImBuf */
@@ -266,13 +273,15 @@ static bool write_internal_bake_pixels(Image *image,
   }
 
   /* margins */
-  if (margin > 0)
+  if (margin > 0) {
     RE_bake_margin(ibuf, mask_buffer, margin);
+  }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID | IB_BITMAPDIRTY;
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     ibuf->userflags |= IB_RECT_INVALID;
+  }
 
   /* force mipmap recalc */
   if (ibuf->mipmap[0]) {
@@ -282,8 +291,9 @@ static bool write_internal_bake_pixels(Image *image,
 
   BKE_image_release_ibuf(image, ibuf, NULL);
 
-  if (mask_buffer)
+  if (mask_buffer) {
     MEM_freeN(mask_buffer);
+  }
 
   return true;
 }
@@ -319,8 +329,9 @@ static bool write_external_bake_pixels(const char *filepath,
   /* create a new ImBuf */
   ibuf = IMB_allocImBuf(width, height, im_format->planes, (is_float ? IB_rectfloat : IB_rect));
 
-  if (!ibuf)
+  if (!ibuf) {
     return false;
+  }
 
   /* populates the ImBuf */
   if (is_float) {
@@ -366,8 +377,9 @@ static bool write_external_bake_pixels(const char *filepath,
     RE_bake_mask_fill(pixel_array, num_pixels, mask_buffer);
     RE_bake_margin(ibuf, mask_buffer, margin);
 
-    if (mask_buffer)
+    if (mask_buffer) {
       MEM_freeN(mask_buffer);
+    }
   }
 
   if ((ok = BKE_imbuf_write(ibuf, filepath, im_format))) {
@@ -570,14 +582,16 @@ static bool bake_objects_check(Main *bmain,
   if (is_selected_to_active) {
     int tot_objects = 0;
 
-    if (!bake_object_check(view_layer, ob, reports))
+    if (!bake_object_check(view_layer, ob, reports)) {
       return false;
+    }
 
     for (link = selected_objects->first; link; link = link->next) {
       Object *ob_iter = (Object *)link->ptr.data;
 
-      if (ob_iter == ob)
+      if (ob_iter == ob) {
         continue;
+      }
 
       if (ELEM(ob_iter->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL) == false) {
         BKE_reportf(reports,
@@ -602,8 +616,9 @@ static bool bake_objects_check(Main *bmain,
     }
 
     for (link = selected_objects->first; link; link = link->next) {
-      if (!bake_object_check(view_layer, link->ptr.data, reports))
+      if (!bake_object_check(view_layer, link->ptr.data, reports)) {
         return false;
+      }
     }
   }
   return true;
@@ -847,8 +862,9 @@ static int bake(Render *re,
     for (link = selected_objects->first; link; link = link->next) {
       Object *ob_iter = link->ptr.data;
 
-      if (ob_iter == ob_low)
+      if (ob_iter == ob_low) {
         continue;
+      }
 
       tot_highpoly++;
     }
@@ -890,8 +906,9 @@ static int bake(Render *re,
   me_low = bake_mesh_new_from_object(depsgraph, bmain, scene, ob_low_eval);
 
   /* populate the pixel array with the face data */
-  if ((is_selected_to_active && (ob_cage == NULL) && is_cage) == false)
+  if ((is_selected_to_active && (ob_cage == NULL) && is_cage) == false) {
     RE_bake_pixels_populate(me_low, pixel_array_low, num_pixels, &bake_images, uv_layer);
+  }
   /* else populate the pixel array with the 'cage' mesh (the smooth version of the mesh)  */
 
   if (is_selected_to_active) {
@@ -939,8 +956,9 @@ static int bake(Render *re,
     for (link = selected_objects->first; link; link = link->next) {
       Object *ob_iter = link->ptr.data;
 
-      if (ob_iter == ob_low)
+      if (ob_iter == ob_low) {
         continue;
+      }
 
       /* initialize highpoly_data */
       highpoly[i].ob = ob_iter;
@@ -1082,8 +1100,9 @@ static int bake(Render *re,
                                           ob_low_eval->obmat);
           BKE_id_free(bmain, me_nores);
 
-          if (md)
+          if (md) {
             md->mode = mode;
+          }
         }
         break;
       }
@@ -1193,43 +1212,53 @@ static int bake(Render *re,
     }
   }
 
-  if (is_save_internal)
+  if (is_save_internal) {
     refresh_images(&bake_images);
+  }
 
 cleanup:
 
   if (highpoly) {
     int i;
     for (i = 0; i < tot_highpoly; i++) {
-      if (highpoly[i].me)
+      if (highpoly[i].me) {
         BKE_id_free(bmain, highpoly[i].me);
+      }
     }
     MEM_freeN(highpoly);
   }
 
-  if (mmd_low)
+  if (mmd_low) {
     mmd_low->flags = mmd_flags_low;
+  }
 
-  if (pixel_array_low)
+  if (pixel_array_low) {
     MEM_freeN(pixel_array_low);
+  }
 
-  if (pixel_array_high)
+  if (pixel_array_high) {
     MEM_freeN(pixel_array_high);
+  }
 
-  if (bake_images.data)
+  if (bake_images.data) {
     MEM_freeN(bake_images.data);
+  }
 
-  if (bake_images.lookup)
+  if (bake_images.lookup) {
     MEM_freeN(bake_images.lookup);
+  }
 
-  if (result)
+  if (result) {
     MEM_freeN(result);
+  }
 
-  if (me_low)
+  if (me_low) {
     BKE_id_free(bmain, me_low);
+  }
 
-  if (me_cage)
+  if (me_cage) {
     BKE_id_free(bmain, me_cage);
+  }
 
   DEG_graph_free(depsgraph);
 
@@ -1492,8 +1521,9 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
                          bkr->sa,
                          bkr->uv_layer);
 
-      if (bkr->result == OPERATOR_CANCELLED)
+      if (bkr->result == OPERATOR_CANCELLED) {
         return;
+      }
     }
   }
 
@@ -1613,8 +1643,9 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
   bake_set_props(op, scene);
 
   /* only one render job at a time */
-  if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE))
+  if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE)) {
     return OPERATOR_CANCELLED;
+  }
 
   bkr = MEM_mallocN(sizeof(BakeAPIRender), "render bake");
 

@@ -139,20 +139,23 @@ bool graphop_visible_keyframes_poll(bContext *C)
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
+  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
     return 0;
+  }
 
   /* try to init Anim-Context stuff ourselves and check */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return 0;
+  }
 
   /* loop over the visible (selection doesn't matter) F-Curves, and see if they're suitable
    * stopping on the first successful match
    */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-  if (items == 0)
+  if (items == 0) {
     return 0;
+  }
 
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->data;
@@ -162,8 +165,9 @@ bool graphop_visible_keyframes_poll(bContext *C)
      * - F-Curve modifiers do not interfere with the result too much
      *   (i.e. the modifier-control drawing check returns false)
      */
-    if (fcu->bezt == NULL)
+    if (fcu->bezt == NULL) {
       continue;
+    }
     if (fcurve_are_keyframes_usable(fcu)) {
       found = 1;
       break;
@@ -188,20 +192,23 @@ bool graphop_editable_keyframes_poll(bContext *C)
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
+  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
     return 0;
+  }
 
   /* try to init Anim-Context stuff ourselves and check */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return 0;
+  }
 
   /* loop over the editable F-Curves, and see if they're suitable
    * stopping on the first successful match
    */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-  if (items == 0)
+  if (items == 0) {
     return 0;
+  }
 
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->data;
@@ -212,8 +219,9 @@ bool graphop_editable_keyframes_poll(bContext *C)
      * - F-Curve modifiers do not interfere with the result too much
      *   (i.e. the modifier-control drawing check returns false)
      */
-    if (fcu->bezt == NULL)
+    if (fcu->bezt == NULL) {
       continue;
+    }
     if (fcurve_is_keyframable(fcu)) {
       found = 1;
       break;
@@ -235,17 +243,20 @@ bool graphop_active_fcurve_poll(bContext *C)
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
+  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
     return 0;
+  }
 
   /* try to init Anim-Context stuff ourselves and check */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return 0;
+  }
 
   /* try to get the Active F-Curve */
   ale = get_active_fcurve_channel(&ac);
-  if (ale == NULL)
+  if (ale == NULL) {
     return 0;
+  }
 
   /* Do we have a suitable F-Curves?
    * - For most cases, NLA Control Curves are sufficiently similar to NLA
@@ -277,20 +288,23 @@ bool graphop_selected_fcurve_poll(bContext *C)
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
+  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
     return 0;
+  }
 
   /* try to init Anim-Context stuff ourselves and check */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return 0;
+  }
 
   /* Get the editable + selected F-Curves, and as long as we got some, we can return.
    * NOTE: curve-visible flag isn't included,
    * otherwise selecting a curve via list to edit is too cumbersome. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-  if (items == 0)
+  if (items == 0) {
     return 0;
+  }
 
   /* cleanup and return findings */
   ANIM_animdata_freelist(&anim_data);

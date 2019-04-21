@@ -110,8 +110,9 @@ void EDBM_select_mirrored(
 
   EDBM_verts_mirror_cache_begin(em, axis, true, true, use_topology);
 
-  if (!extend)
+  if (!extend) {
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+  }
 
   if (bm->selectmode & SCE_SELECT_VERTEX) {
     BMVert *v;
@@ -241,19 +242,22 @@ bool EDBM_backbuf_check(unsigned int index)
   /* odd logic, if selbuf is NULL we assume no zbuf-selection is enabled
    * and just ignore the depth buffer, this is error prone since its possible
    * code doesn't set the depth buffer by accident, but leave for now. - Campbell */
-  if (selbuf == NULL)
+  if (selbuf == NULL) {
     return true;
+  }
 
-  if (index > 0 && index <= bm_vertoffs)
+  if (index > 0 && index <= bm_vertoffs) {
     return BLI_BITMAP_TEST_BOOL(selbuf, index);
+  }
 
   return false;
 }
 
 void EDBM_backbuf_free(void)
 {
-  if (selbuf)
+  if (selbuf) {
     MEM_freeN(selbuf);
+  }
   selbuf = NULL;
 }
 
@@ -1423,10 +1427,12 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   /* detecting these options based on shift/ctrl here is weak, but it's done
    * to make this work when clicking buttons or menus */
-  if (!RNA_struct_property_is_set(op->ptr, "use_extend"))
+  if (!RNA_struct_property_is_set(op->ptr, "use_extend")) {
     RNA_boolean_set(op->ptr, "use_extend", event->shift);
-  if (!RNA_struct_property_is_set(op->ptr, "use_expand"))
+  }
+  if (!RNA_struct_property_is_set(op->ptr, "use_expand")) {
     RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+  }
 
   return edbm_select_mode_exec(C, op);
 }
@@ -2204,8 +2210,9 @@ static void edbm_strip_selections(BMEditMesh *em)
     ese = em->bm->selected.first;
     while (ese) {
       nextese = ese->next;
-      if (ese->htype == BM_VERT)
+      if (ese->htype == BM_VERT) {
         BLI_freelinkN(&(em->bm->selected), ese);
+      }
       ese = nextese;
     }
   }
@@ -2213,8 +2220,9 @@ static void edbm_strip_selections(BMEditMesh *em)
     ese = em->bm->selected.first;
     while (ese) {
       nextese = ese->next;
-      if (ese->htype == BM_EDGE)
+      if (ese->htype == BM_EDGE) {
         BLI_freelinkN(&(em->bm->selected), ese);
+      }
       ese = nextese;
     }
   }
@@ -2222,8 +2230,9 @@ static void edbm_strip_selections(BMEditMesh *em)
     ese = em->bm->selected.first;
     while (ese) {
       nextese = ese->next;
-      if (ese->htype == BM_FACE)
+      if (ese->htype == BM_FACE) {
         BLI_freelinkN(&(em->bm->selected), ese);
+      }
       ese = nextese;
     }
   }
@@ -2575,8 +2584,9 @@ bool EDBM_deselect_by_material(BMEditMesh *em, const short index, const bool sel
   bool changed = false;
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
       continue;
+    }
     if (efa->mat_nr == index) {
       changed = true;
       BM_face_select_set(em->bm, efa, select);
@@ -2587,10 +2597,12 @@ bool EDBM_deselect_by_material(BMEditMesh *em, const short index, const bool sel
 
 void EDBM_select_toggle_all(BMEditMesh *em) /* exported for UV */
 {
-  if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel)
+  if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel) {
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-  else
+  }
+  else {
     EDBM_flag_enable_all(em, BM_ELEM_SELECT);
+  }
 }
 
 void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
@@ -2602,22 +2614,25 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 
   if (em->bm->selectmode & SCE_SELECT_VERTEX) {
     BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
+      if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
         continue;
+      }
       BM_vert_select_set(em->bm, eve, !BM_elem_flag_test(eve, BM_ELEM_SELECT));
     }
   }
   else if (em->selectmode & SCE_SELECT_EDGE) {
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-      if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
+      if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
         continue;
+      }
       BM_edge_select_set(em->bm, eed, !BM_elem_flag_test(eed, BM_ELEM_SELECT));
     }
   }
   else {
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+      if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
         continue;
+      }
       BM_face_select_set(em->bm, efa, !BM_elem_flag_test(efa, BM_ELEM_SELECT));
     }
   }
@@ -2674,8 +2689,9 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   bool changed = false;
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
       continue;
+    }
 
     ok = true;
     BM_ITER_ELEM (eed, &eiter, efa, BM_EDGES_OF_FACE) {
@@ -4601,8 +4617,9 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
           totsel += BM_elem_flag_test(l2->f, BM_ELEM_SELECT) != 0;
         }
 
-        if ((tot != totsel && totsel > 0) || (totsel == 1 && tot == 1))
+        if ((tot != totsel && totsel > 0) || (totsel == 1 && tot == 1)) {
           BM_elem_flag_enable(l1->e, BM_ELEM_TAG);
+        }
       }
     }
 
@@ -4670,8 +4687,9 @@ static int loop_find_region(BMLoop *l, int flag, GSet *visit_face_set, BMFace **
     BLI_array_append(region, f);
 
     BM_ITER_ELEM (l1, &liter1, f, BM_LOOPS_OF_FACE) {
-      if (BM_elem_flag_test(l1->e, flag))
+      if (BM_elem_flag_test(l1->e, flag)) {
         continue;
+      }
 
       BM_ITER_ELEM (l2, &liter2, l1->e, BM_LOOPS_OF_EDGE) {
         /* avoids finding same region twice
@@ -4701,10 +4719,12 @@ static int verg_radial(const void *va, const void *vb)
   const int a = BM_edge_face_count(e_a);
   const int b = BM_edge_face_count(e_b);
 
-  if (a > b)
+  if (a > b) {
     return -1;
-  if (a < b)
+  }
+  if (a < b) {
     return 1;
+  }
   return 0;
 }
 
@@ -4747,12 +4767,14 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 
     e = edges[i];
 
-    if (!BM_elem_flag_test(e, BM_ELEM_TAG))
+    if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
       continue;
+    }
 
     BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
-      if (BLI_gset_haskey(visit_face_set, l->f))
+      if (BLI_gset_haskey(visit_face_set, l->f)) {
         continue;
+      }
 
       c = loop_find_region(l, BM_ELEM_SELECT, visit_face_set, &region_out);
 

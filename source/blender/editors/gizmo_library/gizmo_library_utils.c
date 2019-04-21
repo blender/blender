@@ -68,9 +68,10 @@ float gizmo_offset_from_value(GizmoCommonData *data,
                               const bool constrained,
                               const bool inverted)
 {
-  if (constrained)
+  if (constrained) {
     return gizmo_offset_from_value_constr(
         data->range_fac, data->min, data->range, value, inverted);
+  }
 
   return value;
 }

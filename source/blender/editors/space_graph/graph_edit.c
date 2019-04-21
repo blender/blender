@@ -94,14 +94,18 @@ void get_graph_keyframe_extents(bAnimContext *ac,
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* set large values initial values that will be easy to override */
-  if (xmin)
+  if (xmin) {
     *xmin = 999999999.0f;
-  if (xmax)
+  }
+  if (xmax) {
     *xmax = -999999999.0f;
-  if (ymin)
+  }
+  if (ymin) {
     *ymin = 999999999.0f;
-  if (ymax)
+  }
+  if (ymax) {
     *ymax = -999999999.0f;
+  }
 
   /* check if any channels to set range with */
   if (anim_data.first) {
@@ -132,14 +136,18 @@ void get_graph_keyframe_extents(bAnimContext *ac,
         tymax *= unitFac;
 
         /* try to set cur using these values, if they're more extreme than previously set values */
-        if ((xmin) && (txmin < *xmin))
+        if ((xmin) && (txmin < *xmin)) {
           *xmin = txmin;
-        if ((xmax) && (txmax > *xmax))
+        }
+        if ((xmax) && (txmax > *xmax)) {
           *xmax = txmax;
-        if ((ymin) && (tymin < *ymin))
+        }
+        if ((ymin) && (tymin < *ymin)) {
           *ymin = tymin;
-        if ((ymax) && (tymax > *ymax))
+        }
+        if ((ymax) && (tymax > *ymax)) {
           *ymax = tymax;
+        }
 
         foundBounds = true;
       }
@@ -157,14 +165,18 @@ void get_graph_keyframe_extents(bAnimContext *ac,
       }
     }
     else {
-      if (xmin)
+      if (xmin) {
         *xmin = (float)PSFRA;
-      if (xmax)
+      }
+      if (xmax) {
         *xmax = (float)PEFRA;
-      if (ymin)
+      }
+      if (ymin) {
         *ymin = -5;
-      if (ymax)
+      }
+      if (ymax) {
         *ymax = 5;
+      }
     }
 
     /* free memory */
@@ -173,22 +185,28 @@ void get_graph_keyframe_extents(bAnimContext *ac,
   else {
     /* set default range */
     if (ac->scene) {
-      if (xmin)
+      if (xmin) {
         *xmin = (float)PSFRA;
-      if (xmax)
+      }
+      if (xmax) {
         *xmax = (float)PEFRA;
+      }
     }
     else {
-      if (xmin)
+      if (xmin) {
         *xmin = -5;
-      if (xmax)
+      }
+      if (xmax) {
         *xmax = 100;
+      }
     }
 
-    if (ymin)
+    if (ymin) {
       *ymin = -5;
-    if (ymax)
+    }
+    if (ymax) {
       *ymax = 5;
+    }
   }
 }
 
@@ -201,12 +219,15 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   float min, max;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
-  if (ac.scene == NULL)
+  }
+  if (ac.scene == NULL) {
     return OPERATOR_CANCELLED;
-  else
+  }
+  else {
     scene = ac.scene;
+  }
 
   /* set the range directly */
   get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, false, false);
@@ -248,8 +269,9 @@ static int graphkeys_viewall(bContext *C,
   rctf cur_new;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* set the horizontal range, with an extra offset so that the extreme keys will be in view */
   get_graph_keyframe_extents(&ac,
@@ -444,8 +466,9 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op)
   int start, end;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Ghost curves are snapshots of the visible portions of the curves,
    * so set range to be the visible range. */
@@ -489,8 +512,9 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceGraph *sipo;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
   sipo = (SpaceGraph *)ac.sl;
 
   /* if no ghost curves, don't do anything */
@@ -579,21 +603,26 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
             ANIMFILTER_NODUPLIS);
-  if (mode & GRAPHKEYS_INSERTKEY_SEL)
+  if (mode & GRAPHKEYS_INSERTKEY_SEL) {
     filter |= ANIMFILTER_SEL;
-  else if (mode & GRAPHKEYS_INSERTKEY_ACTIVE)
+  }
+  else if (mode & GRAPHKEYS_INSERTKEY_ACTIVE) {
     filter |= ANIMFILTER_ACTIVE;
+  }
 
   num_items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
   if (num_items == 0) {
-    if (mode & GRAPHKEYS_INSERTKEY_ACTIVE)
+    if (mode & GRAPHKEYS_INSERTKEY_ACTIVE) {
       BKE_report(reports,
                  RPT_ERROR,
                  "No active F-Curve to add a keyframe to. Select an editable F-Curve first");
-    else if (mode & GRAPHKEYS_INSERTKEY_SEL)
+    }
+    else if (mode & GRAPHKEYS_INSERTKEY_SEL) {
       BKE_report(reports, RPT_ERROR, "No selected F-Curves to add keyframes to");
-    else
+    }
+    else {
       BKE_report(reports, RPT_ERROR, "No channels to add keyframes to");
+    }
 
     return;
   }
@@ -615,18 +644,23 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       float x, y;
 
       /* perform time remapping for x-coordinate (if necessary) */
-      if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS))
+      if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS)) {
         x = sipo->cursorTime;
-      else if (adt)
+      }
+      else if (adt) {
         x = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
-      else
+      }
+      else {
         x = (float)CFRA;
+      }
 
       /* normalise units of cursor's value */
-      if (sipo)
+      if (sipo) {
         y = (sipo->cursorVal / unit_scale) - offset;
-      else
+      }
+      else {
         y = 0.0f;
+      }
 
       /* insert keyframe directly into the F-Curve */
       insert_vert_fcurve(fcu, x, y, ts->keyframe_type, 0);
@@ -669,10 +703,12 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
         /* adjust current frame for NLA-mapping */
-        if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS))
+        if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS)) {
           cfra = sipo->cursorTime;
-        else if (adt)
+        }
+        else if (adt) {
           cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        }
 
         const float curval = evaluate_fcurve_only_curve(fcu, cfra);
         insert_vert_fcurve(fcu, cfra, curval, ts->keyframe_type, 0);
@@ -696,8 +732,9 @@ static int graphkeys_insertkey_exec(bContext *C, wmOperator *op)
   eGraphKeys_InsertKey_Types mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* which channels to affect? */
   mode = RNA_enum_get(op->ptr, "type");
@@ -741,14 +778,16 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
   float frame, val;
 
   /* get animation context */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get active F-Curve 'anim-list-element' */
   ale = get_active_fcurve_channel(&ac);
   if (ELEM(NULL, ale, ale->data)) {
-    if (ale)
+    if (ale) {
       MEM_freeN(ale);
+    }
     return OPERATOR_CANCELLED;
   }
   fcu = ale->data;
@@ -797,12 +836,15 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
   }
   else {
     /* warn about why this can't happen */
-    if (fcu->fpt)
+    if (fcu->fpt) {
       BKE_report(op->reports, RPT_ERROR, "Keyframes cannot be added to sampled F-Curves");
-    else if (fcu->flag & FCURVE_PROTECTED)
+    }
+    else if (fcu->flag & FCURVE_PROTECTED) {
       BKE_report(op->reports, RPT_ERROR, "Active F-Curve is not editable");
-    else
+    }
+    else {
       BKE_report(op->reports, RPT_ERROR, "Remove F-Modifiers from F-Curve to add keyframes");
+    }
   }
 
   /* free temp data */
@@ -824,8 +866,9 @@ static int graphkeys_click_insert_invoke(bContext *C, wmOperator *op, const wmEv
   float x, y;
 
   /* get animation context */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* store mouse coordinates in View2D space, into the operator's properties */
   ar = ac.ar;
@@ -919,8 +962,9 @@ static short paste_graph_keys(bAnimContext *ac,
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
             ANIMFILTER_NODUPLIS);
 
-  if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0)
+  if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0) {
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  }
 
   /* paste keyframes */
   ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode, flip);
@@ -938,8 +982,9 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* copy keyframes */
   if (copy_graph_keys(&ac)) {
@@ -975,8 +1020,9 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* ac.reports by default will be the global reports list, which won't show warnings */
   ac.reports = op->reports;
@@ -1060,8 +1106,9 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* duplicate keyframes */
   duplicate_graph_keys(&ac);
@@ -1140,12 +1187,14 @@ static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* delete keyframes */
-  if (!delete_graph_keys(&ac))
+  if (!delete_graph_keys(&ac)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* set notifier that keyframes have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
@@ -1202,8 +1251,9 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
   bool clean_chan;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get cleaning threshold */
   thresh = RNA_float_get(op->ptr, "threshold");
@@ -1283,8 +1333,9 @@ static int graphkeys_bake_exec(bContext *C, wmOperator *UNUSED(op))
   int start, end;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* for now, init start/end from preview-range extents */
   // TODO: add properties for this
@@ -1346,8 +1397,9 @@ static float fcurve_samplingcb_sound(FCurve *UNUSED(fcu), void *data, float eval
   tSoundBakeInfo *sbi = (tSoundBakeInfo *)data;
 
   int position = evaltime - sbi->cfra;
-  if ((position < 0) || (position >= sbi->length))
+  if ((position < 0) || (position >= sbi->length)) {
     return 0.0f;
+  }
 
   return sbi->samples[position];
 }
@@ -1368,8 +1420,9 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
   char path[FILE_MAX];
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   RNA_string_get(op->ptr, "filepath", path);
 
@@ -1447,8 +1500,9 @@ static int graphkeys_sound_bake_invoke(bContext *C, wmOperator *op, const wmEven
   bAnimContext ac;
 
   /* verify editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   return WM_operator_filesel(C, op, event);
 }
@@ -1588,8 +1642,9 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* sample keyframes */
   sample_graph_keys(&ac);
@@ -1690,8 +1745,9 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
         for (fcm = fcu->modifiers.first; fcm; fcm = fcn) {
           fcn = fcm->next;
 
-          if (fcm->type == FMODIFIER_TYPE_CYCLES)
+          if (fcm->type == FMODIFIER_TYPE_CYCLES) {
             remove_fmodifier(&fcu->modifiers, fcm);
+          }
         }
       }
     }
@@ -1711,8 +1767,9 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get handle setting mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -1782,8 +1839,9 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get handle setting mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -1852,8 +1910,9 @@ static int graphkeys_easing_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get handle setting mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -1932,8 +1991,9 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get handle setting mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -2001,8 +2061,9 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
   int groups = 0, failed = 0;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* The process is done in two passes:
    * 1) Sets of three related rotation curves are identified from the selected channels,
@@ -2023,8 +2084,9 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
      * - only rotation curves
      * - for pchan curves, make sure we're only using the euler curves
      */
-    if (strstr(fcu->rna_path, "rotation_euler") == NULL)
+    if (strstr(fcu->rna_path, "rotation_euler") == NULL) {
       continue;
+    }
     else if (ELEM(fcu->array_index, 0, 1, 2) == 0) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
@@ -2099,8 +2161,9 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
       unsigned int i;
 
       /* skip if not enough vets to do a decent analysis of... */
-      if (fcu->totvert <= 2)
+      if (fcu->totvert <= 2) {
         continue;
+      }
 
       /* prev follows bezt, bezt = "current" point to be fixed */
       /* our method depends on determining a "difference" from the previous vert */
@@ -2178,8 +2241,9 @@ void GRAPH_OT_euler_filter(wmOperatorType *ot)
 static bool graphkeys_framejump_poll(bContext *C)
 {
   /* prevent changes during render */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return 0;
+  }
 
   return graphop_visible_keyframes_poll(C);
 }
@@ -2194,8 +2258,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
   KeyframeEditData ked;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* init edit data */
   memset(&ked, 0, sizeof(KeyframeEditData));
@@ -2219,8 +2284,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
       ANIM_fcurve_keyframes_loop(&current_ked, ale->key_data, NULL, bezt_calc_average, NULL);
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
     }
-    else
+    else {
       ANIM_fcurve_keyframes_loop(&current_ked, ale->key_data, NULL, bezt_calc_average, NULL);
+    }
 
     ked.f1 += current_ked.f1;
     ked.i1 += current_ked.i1;
@@ -2368,8 +2434,9 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
     }
-    else
+    else {
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+    }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
@@ -2386,8 +2453,9 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get snapping mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -2477,10 +2545,12 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
     marker = ED_markers_get_first_selected(ac->markers);
 
     /* store marker's time (if available) */
-    if (marker)
+    if (marker) {
       ked.f1 = (float)marker->frame;
-    else
+    }
+    else {
       return;
+    }
   }
   else if (mode == GRAPHKEYS_MIRROR_VALUE) {
     cursor_value = (sipo) ? sipo->cursorVal : 0.0f;
@@ -2523,8 +2593,9 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
     }
-    else
+    else {
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+    }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
@@ -2541,8 +2612,9 @@ static int graphkeys_mirror_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get mirroring mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -2585,8 +2657,9 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
   int filter;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
@@ -2652,8 +2725,9 @@ static const EnumPropertyItem *graph_fmodifier_itemf(bContext *C,
     int index;
 
     /* check if modifier is valid for this context */
-    if (fmi == NULL)
+    if (fmi == NULL) {
       continue;
+    }
 
     index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
     if (index != -1) { /* Not all types are implemented yet... */
@@ -2676,19 +2750,22 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
   short type;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get type of modifier to add */
   type = RNA_enum_get(op->ptr, "type");
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-  if (RNA_boolean_get(op->ptr, "only_active"))
+  if (RNA_boolean_get(op->ptr, "only_active")) {
     filter |=
         ANIMFILTER_ACTIVE;  // FIXME: enforce in this case only a single channel to get handled?
-  else
+  }
+  else {
     filter |= (ANIMFILTER_SEL | ANIMFILTER_CURVE_VISIBLE);
+  }
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* add f-modifier to each curve */
@@ -2753,8 +2830,9 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* clear buffer first */
   ANIM_fmodifiers_copybuf_free();
@@ -2778,8 +2856,9 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
     return OPERATOR_CANCELLED;
   }
-  else
+  else {
     return OPERATOR_FINISHED;
+  }
 }
 
 void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
@@ -2820,8 +2899,9 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* filter data */
   if (RNA_boolean_get(op->ptr, "only_active")) {
@@ -2906,8 +2986,9 @@ static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* clear buffer first */
   ANIM_driver_vars_copybuf_free();
@@ -2926,10 +3007,12 @@ static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
   }
 
   /* successful or not? */
-  if (ok)
+  if (ok) {
     return OPERATOR_FINISHED;
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
@@ -2961,8 +3044,9 @@ static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
@@ -3028,8 +3112,9 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
   unsigned int deleted = 0;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* NOTE: we might need a scene update to evaluate the driver flags */
 
@@ -3081,8 +3166,9 @@ static bool graph_driver_delete_invalid_poll(bContext *C)
   ScrArea *sa = CTX_wm_area(C);
 
   /* firstly, check if in Graph Editor */
-  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH))
+  if ((sa == NULL) || (sa->spacetype != SPACE_GRAPH)) {
     return 0;
+  }
 
   /* try to init Anim-Context stuff ourselves and check */
   return ANIM_animdata_get_context(C, &ac) != 0;

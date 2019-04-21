@@ -81,8 +81,9 @@ void clip_graph_tracking_values_iterate_track(
 
       if (marker->flag & MARKER_DISABLED) {
         if (open) {
-          if (segment_end)
+          if (segment_end) {
             segment_end(userdata, coord);
+          }
 
           open = false;
         }
@@ -119,8 +120,9 @@ void clip_graph_tracking_values_iterate_track(
     }
 
     if (open) {
-      if (segment_end)
+      if (segment_end) {
         segment_end(userdata, coord);
+      }
     }
   }
 }
@@ -145,11 +147,13 @@ void clip_graph_tracking_values_iterate(
   MovieTrackingTrack *track;
 
   for (track = tracksbase->first; track; track = track->next) {
-    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
+    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0) {
       continue;
+    }
 
-    if (selected_only && !TRACK_SELECTED(track))
+    if (selected_only && !TRACK_SELECTED(track)) {
       continue;
+    }
 
     clip_graph_tracking_values_iterate_track(
         sc, track, userdata, func, segment_start, segment_end);
@@ -170,20 +174,24 @@ void clip_graph_tracking_iterate(SpaceClip *sc,
   for (track = tracksbase->first; track; track = track->next) {
     int i;
 
-    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
+    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0) {
       continue;
+    }
 
-    if (selected_only && !TRACK_SELECTED(track))
+    if (selected_only && !TRACK_SELECTED(track)) {
       continue;
+    }
 
     for (i = 0; i < track->markersnr; i++) {
       MovieTrackingMarker *marker = &track->markers[i];
 
-      if (marker->flag & MARKER_DISABLED)
+      if (marker->flag & MARKER_DISABLED) {
         continue;
+      }
 
-      if (func)
+      if (func) {
         func(userdata, marker);
+      }
     }
   }
 }

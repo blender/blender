@@ -49,49 +49,50 @@ static int txtfmt_ini_find_keyword(const char *string)
   /* clang-format off */
 
   /* Language Directives */
-  if      (STR_LITERAL_STARTSWITH(string, "deprecated", len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "statistics", len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "declare",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "default",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "version",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "warning",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "include",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "fclose",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ifndef",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "append",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "elseif",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "debug",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "error",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "fopen",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ifdef",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "local",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "macro",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "range",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "render",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "break",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "switch",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "undef",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "while",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "write",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "case",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "else",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "read",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "end",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "for",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "if",         len)) i = len;
+  if      (STR_LITERAL_STARTSWITH(string, "deprecated", len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "statistics", len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "declare",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "default",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "version",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "warning",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "include",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "fclose",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ifndef",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "append",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "elseif",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "debug",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "error",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "fopen",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ifdef",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "local",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "macro",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "range",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "render",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "break",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "switch",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "undef",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "while",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "write",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "case",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "else",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "read",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "end",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "for",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "if",         len)) { i = len;
 
-  else if (STR_LITERAL_STARTSWITH(string, "I",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "S",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "A",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Q",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "U",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "F",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "C",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "N",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "P",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "T",          len)) i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "I",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "S",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "A",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Q",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "U",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "F",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "C",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "N",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "P",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "T",          len)) { i = len;
 
-  else                                                        i = 0;
+  } else {                                                        i = 0;
+}
 
   /* clang-format on */
 
@@ -110,200 +111,201 @@ static int txtfmt_ini_find_reserved(const char *string)
    * list is from...
    * http://www.povray.org/documentation/view/3.7.0/212/
    */
-  if      (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Create_Continue_Trace_Log",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSoundEnabled",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSoundEnabled",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "HideWhenMainMinimized",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias_Confidence",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "RenderCompleteSound",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSound",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSound",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "UseExtensions",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ReadWriteSourceDir",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionLeft",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionTop",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionRight",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionBottom",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Pre_Scene_Command",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Pre_Frame_Command",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Post_Scene_Command",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Post_Frame_Command",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "User_Abort_Command",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Fatal_Error_Command",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionX",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NormalPositionY",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Pre_Scene_Return",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Pre_Frame_Return",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Post_Scene_Return",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Post_Frame_Return",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "User_Abort_Return",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Fatal_Error_Return",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias_Threshold",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias_Gamma",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "input_file_name",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Subset_Start_Frame",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Subset_End_Frame",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "UseToolbar",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "UseTooltips",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Frame_Step",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Cyclic_Animation",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Field_Render",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Odd_Field",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "final_clock",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "final_frame",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "frame_number",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "initial_clock",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "initial_frame",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "image_height",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "image_width",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Start_Column",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Start_Row",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "End_Column",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "End_Row",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Test_Abort_Count",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Test_Abort",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Continue_Trace",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Bounding_Method",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Create_Ini",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Display_Gamma",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Version",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Pause_When_Done",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Verbose",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Preview_Start_Size",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Preview_End_Size",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Output_to_File",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Input_File_Name",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Output_File_Name",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Output_File_Type",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Output_Alpha",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Bits_Per_Color",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Compression",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Dither_Method",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Include_Header",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Library_Path",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Debug_Console",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Fatal_Console",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Render_Console",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Statistic_Console",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Warning_Console",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Warning_Level",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "All_Console",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Debug_File",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Fatal_File",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Render_File",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Statistic_File",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Warning_File",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "All_File",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Quality",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Bounding_Threshold",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Bounding",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Light_Buffer",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Vista_Buffer",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Remove_Bounds",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Split_Unions",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Glare_Desaturation",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Sampling_Method",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Stochastic_Seed",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Jitter_Amount",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Jitter",                       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "CheckNewVersion",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "RunCount",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "CommandLine",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "TextColour",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "WarningColour",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ErrorColour",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "BackgroundColour",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "DropToEditor",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastRenderName",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastRenderPath",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastQueuePath",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SecondaryINISection",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "BetaVersionNo64",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastBitmapName",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastBitmapPath",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastINIPath",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SecondaryINIFile",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "BackgroundFile",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SaveSettingsOnExit",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "TileBackground",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "HideNewUserHelp",              len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SendSystemInfo",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ItsAboutTime",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "LastPath",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Band0Width",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Band1Width",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Band2Width",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Band3Width",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Band4Width",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ShowCmd",                      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Transparency",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Use8BitMode",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "MakeActive",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "KeepAboveMain",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "AutoClose",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "PreserveBitmap",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "FontSize",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "FontWeight",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "KeepMessages",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "AlertSound",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Completion",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Priority",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "DutyCycle",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "AlertOnCompletion",            len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "AutoRender",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "PreventSleep",                 len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NoShelloutWait",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SystemNoActive",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "NoShellOuts",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "VideoSource",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SceneFile",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "OutputFile",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "IniOutputFile",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "CurrentDirectory",             len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "SourceFile",                   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Rendering",                    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "RenderwinClose",               len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Append_File",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Warning Level",                len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "clock_on",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "clock",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Height",                       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Width",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Flags",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "Font",                         len)) i = len;
+  if      (STR_LITERAL_STARTSWITH(string, "RenderCompleteSoundEnabled",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Create_Continue_Trace_Log",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSoundEnabled",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSoundEnabled",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "HideWhenMainMinimized",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias_Confidence",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "RenderCompleteSound",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ParseErrorSound",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "RenderErrorSound",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "UseExtensions",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ReadWriteSourceDir",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionLeft",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionTop",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionRight",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionBottom",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Pre_Scene_Command",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Pre_Frame_Command",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Post_Scene_Command",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Post_Frame_Command",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "User_Abort_Command",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Fatal_Error_Command",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionX",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NormalPositionY",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Pre_Scene_Return",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Pre_Frame_Return",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Post_Scene_Return",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Post_Frame_Return",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "User_Abort_Return",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Fatal_Error_Return",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias_Threshold",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias_Gamma",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "input_file_name",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Subset_Start_Frame",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Subset_End_Frame",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "UseToolbar",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "UseTooltips",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Frame_Step",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Cyclic_Animation",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Field_Render",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Odd_Field",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "final_clock",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "final_frame",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "frame_number",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "initial_clock",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "initial_frame",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "image_height",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "image_width",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Start_Column",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Start_Row",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "End_Column",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "End_Row",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Test_Abort_Count",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Test_Abort",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Continue_Trace",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Bounding_Method",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Create_Ini",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Display_Gamma",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Version",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Pause_When_Done",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Verbose",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Preview_Start_Size",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Preview_End_Size",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Output_to_File",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Input_File_Name",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Output_File_Name",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Output_File_Type",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Output_Alpha",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Bits_Per_Color",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Compression",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Dither_Method",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Include_Header",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Library_Path",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Debug_Console",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Fatal_Console",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Render_Console",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Statistic_Console",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Warning_Console",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Warning_Level",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "All_Console",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Debug_File",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Fatal_File",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Render_File",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Statistic_File",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Warning_File",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "All_File",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Quality",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Bounding_Threshold",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Bounding",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Light_Buffer",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Vista_Buffer",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Remove_Bounds",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Split_Unions",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Glare_Desaturation",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Sampling_Method",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Stochastic_Seed",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Jitter_Amount",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Jitter",                       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Antialias_Depth",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "CheckNewVersion",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "RunCount",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "CommandLine",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "TextColour",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "WarningColour",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ErrorColour",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "BackgroundColour",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "DropToEditor",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastRenderName",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastRenderPath",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastQueuePath",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SecondaryINISection",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "BetaVersionNo64",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastBitmapName",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastBitmapPath",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastINIPath",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SecondaryINIFile",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "BackgroundFile",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SaveSettingsOnExit",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "TileBackground",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "HideNewUserHelp",              len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SendSystemInfo",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ItsAboutTime",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "LastPath",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Band0Width",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Band1Width",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Band2Width",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Band3Width",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Band4Width",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ShowCmd",                      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Transparency",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Use8BitMode",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "MakeActive",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "KeepAboveMain",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "AutoClose",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "PreserveBitmap",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "FontSize",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "FontWeight",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "KeepMessages",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "AlertSound",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Completion",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Priority",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "DutyCycle",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "AlertOnCompletion",            len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "AutoRender",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "PreventSleep",                 len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NoShelloutWait",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SystemNoActive",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "NoShellOuts",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "VideoSource",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SceneFile",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "OutputFile",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "IniOutputFile",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "CurrentDirectory",             len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "SourceFile",                   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Rendering",                    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "RenderwinClose",               len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Append_File",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Warning Level",                len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "clock_delta",                  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "clock_on",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "clock",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Height",                       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Width",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Flags",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "Font",                         len)) { i = len;
   /* Filetypes */
-  else if (STR_LITERAL_STARTSWITH(string, "df3",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "exr",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "gif",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "hdr",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "iff",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "jpeg",                         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "pgm",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "png",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ppm",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sys",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "tga",                          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "tiff",                         len)) i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "df3",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "exr",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "gif",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "hdr",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "iff",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "jpeg",                         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "pgm",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "png",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ppm",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sys",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "tga",                          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "tiff",                         len)) { i = len;
   /* Encodings */
-  else if (STR_LITERAL_STARTSWITH(string, "ascii",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "utf8",                         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "uint8",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "uint16be",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "uint16le",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sint8",                        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sint16be",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sint16le",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sint32be",                     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sint32le",                     len)) i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ascii",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "utf8",                         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "uint8",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "uint16be",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "uint16le",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sint8",                        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sint16be",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sint16le",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sint32be",                     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sint32le",                     len)) { i = len;
 
-  else                                                                          i = 0;
+  } else {                                                                          i = 0;
+}
 
   /* clang-format on */
 
@@ -319,21 +321,22 @@ static int txtfmt_ini_find_bool(const char *string)
   /* clang-format off */
 
   /* Built-in Constants */
-  if      (STR_LITERAL_STARTSWITH(string, "false",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "no",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "off",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "true",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "yes",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "on",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "pi",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "tau",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%o",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%s",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%n",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%k",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%h",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "%w",      len)) i = len;
-  else                                                     i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "false",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "no",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "off",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "true",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "yes",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "on",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "pi",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "tau",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%o",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%s",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%n",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%k",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%h",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "%w",      len)) { i = len;
+  } else {                                                     i = 0;
+}
 
   /* clang-format on */
 
@@ -344,12 +347,15 @@ static int txtfmt_ini_find_bool(const char *string)
 static char txtfmt_pov_ini_format_identifier(const char *str)
 {
   char fmt;
-  if ((txtfmt_ini_find_keyword(str)) != -1)
+  if ((txtfmt_ini_find_keyword(str)) != -1) {
     fmt = FMT_TYPE_KEYWORD;
-  else if ((txtfmt_ini_find_reserved(str)) != -1)
+  }
+  else if ((txtfmt_ini_find_reserved(str)) != -1) {
     fmt = FMT_TYPE_RESERVED;
-  else
+  }
+  else {
     fmt = FMT_TYPE_DEFAULT;
+  }
   return fmt;
 }
 
@@ -395,8 +401,9 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
       *fmt = prev;
       fmt++;
       str++;
-      if (*str == '\0')
+      if (*str == '\0') {
         break;
+      }
       *fmt = prev;
       fmt++;
       str += BLI_str_utf8_size_safe(str);
@@ -420,8 +427,9 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
-        if (*str == find)
+        if (*str == find) {
           cont = 0;
+        }
         *fmt = FMT_TYPE_STRING;
       }
 
@@ -475,8 +483,9 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_ini_format_identifier()' */
-        if      ((i = txtfmt_ini_find_keyword(str))  != -1) prev = FMT_TYPE_KEYWORD;
-        else if ((i = txtfmt_ini_find_reserved(str)) != -1) prev = FMT_TYPE_RESERVED;
+        if      ((i = txtfmt_ini_find_keyword(str))  != -1) { prev = FMT_TYPE_KEYWORD;
+        } else if ((i = txtfmt_ini_find_reserved(str)) != -1) { prev = FMT_TYPE_RESERVED;
+}
 
         /* clang-format on */
 

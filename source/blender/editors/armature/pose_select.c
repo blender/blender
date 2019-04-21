@@ -71,8 +71,9 @@ static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode)
   /* select pchan only if selectable, but deselect works always */
   switch (select_mode) {
     case SEL_SELECT:
-      if (!(pchan->bone->flag & BONE_UNSELECTABLE))
+      if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
         pchan->bone->flag |= BONE_SELECTED;
+      }
       break;
     case SEL_DESELECT:
       pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
@@ -110,8 +111,9 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 
   /* sanity checks */
   // XXX: actually, we can probably still get away with no object - at most we have no updates
-  if (ELEM(NULL, ob, ob->pose, pchan, pchan->bone))
+  if (ELEM(NULL, ob, ob->pose, pchan, pchan->bone)) {
     return;
+  }
 
   arm = ob->data;
 
@@ -147,8 +149,9 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
   Object *ob = base->object;
   Bone *nearBone;
 
-  if (!ob || !ob->pose)
+  if (!ob || !ob->pose) {
     return 0;
+  }
 
   Object *ob_act = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
@@ -346,16 +349,20 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
   Bone *curBone;
 
   /* stop when unconnected child is encountered, or when unselectable bone is encountered */
-  if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE))
+  if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE)) {
     return;
+  }
 
-  if (extend)
+  if (extend) {
     bone->flag &= ~BONE_SELECTED;
-  else
+  }
+  else {
     bone->flag |= BONE_SELECTED;
+  }
 
-  for (curBone = bone->childbase.first; curBone; curBone = curBone->next)
+  for (curBone = bone->childbase.first; curBone; curBone = curBone->next) {
     selectconnected_posebonechildren(ob, curBone, extend);
+  }
 }
 
 /* within active object context */
@@ -370,30 +377,37 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   Base *base = NULL;
   bone = get_nearest_bone(C, event->mval, !extend, &base);
 
-  if (!bone)
+  if (!bone) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Select parents */
   for (curBone = bone; curBone; curBone = next) {
     /* ignore bone if cannot be selected */
     if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
-      if (extend)
+      if (extend) {
         curBone->flag &= ~BONE_SELECTED;
-      else
+      }
+      else {
         curBone->flag |= BONE_SELECTED;
+      }
 
-      if (curBone->flag & BONE_CONNECTED)
+      if (curBone->flag & BONE_CONNECTED) {
         next = curBone->parent;
-      else
+      }
+      else {
         next = NULL;
+      }
     }
-    else
+    else {
       next = NULL;
+    }
   }
 
   /* Select children */
-  for (curBone = bone->childbase.first; curBone; curBone = next)
+  for (curBone = bone->childbase.first; curBone; curBone = next) {
     selectconnected_posebonechildren(base->object, curBone, extend);
+  }
 
   ED_pose_bone_select_tag_update(base->object);
 
@@ -557,16 +571,18 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
             }
           }
 
-          if (cti->flush_constraint_targets)
+          if (cti->flush_constraint_targets) {
             cti->flush_constraint_targets(con, &targets, 1);
+          }
         }
       }
     }
   }
   CTX_DATA_END;
 
-  if (!found)
+  if (!found) {
     return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -828,12 +844,14 @@ static bool pose_select_same_layer(bContext *C, bool extend)
     }
 
     /* Keep track of layers to use later? */
-    if (pchan->bone->flag & BONE_SELECTED)
+    if (pchan->bone->flag & BONE_SELECTED) {
       *layers |= pchan->bone->layer;
+    }
 
     /* Deselect all bones before selecting new ones? */
-    if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
+    if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
       pchan->bone->flag &= ~BONE_SELECTED;
+    }
   }
   CTX_DATA_END;
 
@@ -912,8 +930,9 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
   /* if not extending selection, deselect all selected first */
   if (extend == false) {
     CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
-      if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0)
+      if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
         pchan->bone->flag &= ~BONE_SELECTED;
+      }
     }
     CTX_DATA_END;
   }
@@ -977,8 +996,9 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   /* sanity check */
-  if (ob->pose == NULL)
+  if (ob->pose == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* selection types */
   switch (type) {
@@ -1000,10 +1020,12 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
   }
 
   /* report done status */
-  if (changed)
+  if (changed) {
     return OPERATOR_FINISHED;
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void POSE_OT_select_grouped(wmOperatorType *ot)

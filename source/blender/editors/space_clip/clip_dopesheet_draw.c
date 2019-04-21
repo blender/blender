@@ -59,10 +59,12 @@ static void track_channel_color(MovieTrackingTrack *track, float default_color[3
     interp_v3_v3v3(color, track->color, bg, 0.5);
   }
   else {
-    if (default_color)
+    if (default_color) {
       copy_v3_v3(color, default_color);
-    else
+    }
+    else {
       UI_GetThemeColor3fv(TH_HEADER, color);
+    }
   }
 }
 
@@ -297,8 +299,9 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
   uiStyle *style = UI_style_get();
   int fontid = style->widget.uifont_id;
 
-  if (!clip)
+  if (!clip) {
     return;
+  }
 
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;

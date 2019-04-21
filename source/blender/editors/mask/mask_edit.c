@@ -374,8 +374,9 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
   MaskLayer *mask_layer;
   bool ok = false;
 
-  if (mask == NULL)
+  if (mask == NULL) {
     return ok;
+  }
 
   INIT_MINMAX2(min, max);
   for (mask_layer = mask->masklayers.first; mask_layer != NULL; mask_layer = mask_layer->next) {

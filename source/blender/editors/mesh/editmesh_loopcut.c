@@ -545,8 +545,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case RETKEY:
       case PADENTER:
       case LEFTMOUSE: /* confirm */  // XXX hardcoded
-        if (event->val == KM_PRESS)
+        if (event->val == KM_PRESS) {
           return loopcut_finish(lcd, C, op);
+        }
 
         ED_region_tag_redraw(lcd->ar);
         handled = true;
@@ -573,8 +574,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case MOUSEPAN:
         if (event->alt == 0) {
           cuts += 0.02f * (event->y - event->prevy);
-          if (cuts < 1 && lcd->cuts >= 1)
+          if (cuts < 1 && lcd->cuts >= 1) {
             cuts = 1;
+          }
         }
         else {
           smoothness += 0.002f * (event->y - event->prevy);
@@ -584,8 +586,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case PADPLUSKEY:
       case PAGEUPKEY:
       case WHEELUPMOUSE: /* change number of cuts */
-        if (event->val == KM_RELEASE)
+        if (event->val == KM_RELEASE) {
           break;
+        }
         if (event->alt == 0) {
           cuts += 1;
         }
@@ -597,8 +600,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case PADMINUS:
       case PAGEDOWNKEY:
       case WHEELDOWNMOUSE: /* change number of cuts */
-        if (event->val == KM_RELEASE)
+        if (event->val == KM_RELEASE) {
           break;
+        }
         if (event->alt == 0) {
           cuts = max_ff(cuts - 1, 1);
         }

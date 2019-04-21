@@ -93,8 +93,9 @@ bool paint_convert_bb_to_rect(rcti *rect,
   BLI_rcti_init_minmax(rect);
 
   /* return zero if the bounding box has non-positive volume */
-  if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2])
+  if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2]) {
     return 0;
+  }
 
   ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);
 
@@ -195,8 +196,9 @@ void paint_get_tex_pixel_col(const MTex *mtex,
     rgba[3] = 1.0f;
   }
 
-  if (convert_to_linear)
+  if (convert_to_linear) {
     IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, colorspace);
+  }
 
   linearrgb_to_srgb_v3_v3(rgba, rgba);
 
@@ -382,8 +384,9 @@ static int imapaint_pick_face(ViewContext *vc,
                               unsigned int *r_index,
                               unsigned int totpoly)
 {
-  if (totpoly == 0)
+  if (totpoly == 0) {
     return 0;
+  }
 
   /* sample only on the exact position */
   *r_index = ED_view3d_select_id_sample(vc, mval[0], mval[1]);
@@ -410,18 +413,24 @@ static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
 /* Uses symm to selectively flip any axis of a coordinate. */
 void flip_v3_v3(float out[3], const float in[3], const char symm)
 {
-  if (symm & PAINT_SYMM_X)
+  if (symm & PAINT_SYMM_X) {
     out[0] = -in[0];
-  else
+  }
+  else {
     out[0] = in[0];
-  if (symm & PAINT_SYMM_Y)
+  }
+  if (symm & PAINT_SYMM_Y) {
     out[1] = -in[1];
-  else
+  }
+  else {
     out[1] = in[1];
-  if (symm & PAINT_SYMM_Z)
+  }
+  if (symm & PAINT_SYMM_Z) {
     out[2] = -in[2];
-  else
+  }
+  else {
     out[2] = in[2];
+  }
 }
 
 void flip_qt_qt(float out[4], const float in[4], const char symm)
@@ -501,10 +510,12 @@ void paint_sample_color(
         if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
           Image *image;
 
-          if (use_material)
+          if (use_material) {
             image = imapaint_face_image(ob_eval, me_eval, faceindex);
-          else
+          }
+          else {
             image = imapaint->canvas;
+          }
 
           if (image) {
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
@@ -517,10 +528,12 @@ void paint_sample_color(
               u = fmodf(uv[0], 1.0f);
               v = fmodf(uv[1], 1.0f);
 
-              if (u < 0.0f)
+              if (u < 0.0f) {
                 u += 1.0f;
-              if (v < 0.0f)
+              }
+              if (v < 0.0f) {
                 v += 1.0f;
+              }
 
               u = u * ibuf->x;
               v = v * ibuf->y;
@@ -563,8 +576,9 @@ void paint_sample_color(
           x + ar->winrct.xmin, y + ar->winrct.ymin, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
       glReadBuffer(GL_BACK);
     }
-    else
+    else {
       return;
+    }
   }
   else {
     glReadBuffer(GL_FRONT);

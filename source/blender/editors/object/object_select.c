@@ -387,10 +387,12 @@ static bool objects_selectable_poll(bContext *C)
    * still allowed then for inspection of scene */
   Object *obact = CTX_data_active_object(C);
 
-  if (CTX_data_edit_object(C))
+  if (CTX_data_edit_object(C)) {
     return 0;
-  if (obact && obact->mode)
+  }
+  if (obact && obact->mode) {
     return 0;
+  }
 
   return 1;
 }
@@ -658,8 +660,9 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   else if (nr == OBJECT_SELECT_LINKED_OBDATA) {
-    if (ob->data == NULL)
+    if (ob->data == NULL) {
       return OPERATOR_CANCELLED;
+    }
 
     changed = object_select_all_by_obdata(C, ob->data);
   }
@@ -667,20 +670,23 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
     Material *mat = NULL;
 
     mat = give_current_material(ob, ob->actcol);
-    if (mat == NULL)
+    if (mat == NULL) {
       return OPERATOR_CANCELLED;
+    }
 
     changed = object_select_all_by_material(C, mat);
   }
   else if (nr == OBJECT_SELECT_LINKED_DUPGROUP) {
-    if (ob->instance_collection == NULL)
+    if (ob->instance_collection == NULL) {
       return OPERATOR_CANCELLED;
+    }
 
     changed = object_select_all_by_instance_collection(C, ob);
   }
   else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-    if (BLI_listbase_is_empty(&ob->particlesystem))
+    if (BLI_listbase_is_empty(&ob->particlesystem)) {
       return OPERATOR_CANCELLED;
+    }
 
     changed = object_select_all_by_particle(C, ob);
   }
@@ -689,13 +695,15 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
     changed = object_select_all_by_library(C, ob->id.lib);
   }
   else if (nr == OBJECT_SELECT_LINKED_LIBRARY_OBDATA) {
-    if (ob->data == NULL)
+    if (ob->data == NULL) {
       return OPERATOR_CANCELLED;
+    }
 
     changed = object_select_all_by_library_obdata(C, ((ID *)ob->data)->lib);
   }
-  else
+  else {
     return OPERATOR_CANCELLED;
+  }
 
   if (changed) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
@@ -830,8 +838,9 @@ static bool select_grouped_collection(bContext *C, Object *ob)
     }
   }
 
-  if (!collection_count)
+  if (!collection_count) {
     return 0;
+  }
   else if (collection_count == 1) {
     collection = ob_collections[0];
     CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
@@ -1175,8 +1184,9 @@ static int object_select_same_collection_exec(bContext *C, wmOperator *op)
   char collection_name[MAX_ID_NAME];
 
   /* passthrough if no objects are visible */
-  if (CTX_DATA_COUNT(C, visible_bases) == 0)
+  if (CTX_DATA_COUNT(C, visible_bases) == 0) {
     return OPERATOR_PASS_THROUGH;
+  }
 
   RNA_string_get(op->ptr, "collection", collection_name);
 
@@ -1252,8 +1262,9 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (extend == false)
+    if (extend == false) {
       ED_object_base_select(primbase, BA_DESELECT);
+    }
   }
   CTX_DATA_END;
 

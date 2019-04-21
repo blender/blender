@@ -122,10 +122,12 @@ static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
   void **p;
 
-  if (BLI_edgehash_ensure_p(edgehash, v1, v2, &p))
+  if (BLI_edgehash_ensure_p(edgehash, v1, v2, &p)) {
     *p = (void *)((intptr_t)*p + (intptr_t)1);
-  else
+  }
+  else {
     *p = (void *)((intptr_t)1);
+  }
 }
 
 static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
@@ -147,12 +149,15 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
   t2 = cotangent_tri_weight_v3(v2, v3, v1);
   t3 = cotangent_tri_weight_v3(v3, v1, v2);
 
-  if (angle_v3v3v3(v2, v1, v3) > DEG2RADF(90.0f))
+  if (angle_v3v3v3(v2, v1, v3) > DEG2RADF(90.0f)) {
     obtuse = 1;
-  else if (angle_v3v3v3(v1, v2, v3) > DEG2RADF(90.0f))
+  }
+  else if (angle_v3v3v3(v1, v2, v3) > DEG2RADF(90.0f)) {
     obtuse = 2;
-  else if (angle_v3v3v3(v1, v3, v2) > DEG2RADF(90.0f))
+  }
+  else if (angle_v3v3v3(v1, v3, v2) > DEG2RADF(90.0f)) {
     obtuse = 3;
+  }
 
   if (obtuse > 0) {
     area = area_tri_v3(v1, v2, v3);
@@ -228,10 +233,12 @@ static LaplacianSystem *laplacian_system_construct_begin(int totvert, int totfac
   sys->storeweights = 0;
 
   /* create linear solver */
-  if (lsq)
+  if (lsq) {
     sys->context = EIG_linear_least_squares_solver_new(0, totvert, 1);
-  else
+  }
+  else {
     sys->context = EIG_linear_solver_new(0, totvert, 1);
+  }
 
   return sys;
 }
@@ -267,28 +274,35 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
     laplacian_increase_edge_count(sys->edgehash, (*face)[2], (*face)[0]);
   }
 
-  if (sys->areaweights)
-    for (a = 0, face = sys->faces; a < sys->totface; a++, face++)
+  if (sys->areaweights) {
+    for (a = 0, face = sys->faces; a < sys->totface; a++, face++) {
       laplacian_triangle_area(sys, (*face)[0], (*face)[1], (*face)[2]);
+    }
+  }
 
   for (a = 0; a < totvert; a++) {
     if (sys->areaweights) {
-      if (sys->varea[a] != 0.0f)
+      if (sys->varea[a] != 0.0f) {
         sys->varea[a] = 0.5f / sys->varea[a];
+      }
     }
-    else
+    else {
       sys->varea[a] = 1.0f;
+    }
 
     /* for heat weighting */
-    if (sys->heat.H)
+    if (sys->heat.H) {
       EIG_linear_solver_matrix_add(sys->context, a, a, sys->heat.H[a]);
+    }
   }
 
-  if (sys->storeweights)
+  if (sys->storeweights) {
     sys->fweights = MEM_callocN(sizeof(float) * 3 * totface, "LaplacianFWeight");
+  }
 
-  for (a = 0, face = sys->faces; a < totface; a++, face++)
+  for (a = 0, face = sys->faces; a < totface; a++, face++) {
     laplacian_triangle_weights(sys, a, (*face)[0], (*face)[1], (*face)[2]);
+  }
 
   MEM_freeN(sys->faces);
   sys->faces = NULL;
@@ -304,16 +318,21 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
 
 static void laplacian_system_delete(LaplacianSystem *sys)
 {
-  if (sys->verts)
+  if (sys->verts) {
     MEM_freeN(sys->verts);
-  if (sys->varea)
+  }
+  if (sys->varea) {
     MEM_freeN(sys->varea);
-  if (sys->vpinned)
+  }
+  if (sys->vpinned) {
     MEM_freeN(sys->vpinned);
-  if (sys->faces)
+  }
+  if (sys->faces) {
     MEM_freeN(sys->faces);
-  if (sys->fweights)
+  }
+  if (sys->fweights) {
     MEM_freeN(sys->fweights);
+  }
 
   EIG_linear_solver_delete(sys->context);
   MEM_freeN(sys);
@@ -450,8 +469,9 @@ static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
   int visible;
 
   lt = sys->heat.vltree[vertex];
-  if (lt == NULL)
+  if (lt == NULL) {
     return 1;
+  }
 
   data.sys = sys;
   copy_v3_v3(data.start, sys->heat.verts[vertex]);
@@ -496,9 +516,11 @@ static int heat_source_closest(LaplacianSystem *sys, int vertex, int source)
 
   dist = heat_source_distance(sys, vertex, source);
 
-  if (dist <= sys->heat.mindist[vertex] * (1.0f + DISTANCE_EPSILON))
-    if (heat_ray_source_visible(sys, vertex, source))
+  if (dist <= sys->heat.mindist[vertex] * (1.0f + DISTANCE_EPSILON)) {
+    if (heat_ray_source_visible(sys, vertex, source)) {
       return 1;
+    }
+  }
 
   return 0;
 }
@@ -514,16 +536,19 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
   for (j = 0; j < sys->heat.numsource; j++) {
     dist = heat_source_distance(sys, vertex, j);
 
-    if (dist < mindist)
+    if (dist < mindist) {
       mindist = dist;
+    }
   }
 
   sys->heat.mindist[vertex] = mindist;
 
   /* count number of sources with approximately this minimum distance */
-  for (j = 0; j < sys->heat.numsource; j++)
-    if (heat_source_closest(sys, vertex, j))
+  for (j = 0; j < sys->heat.numsource; j++) {
+    if (heat_source_closest(sys, vertex, j)) {
       numclosest++;
+    }
+  }
 
   sys->heat.p[vertex] = (numclosest > 0) ? 1.0f / numclosest : 0.0f;
 
@@ -532,8 +557,9 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
     mindist = max_ff(mindist, 1e-4f);
     h = numclosest * C_WEIGHT / (mindist * mindist);
   }
-  else
+  else {
     h = 0.0f;
+  }
 
   sys->heat.H[vertex] = h;
 }
@@ -557,8 +583,9 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
     add_v3_v3(sys->heat.vnors[v3], fnor);
   }
 
-  for (a = 0; a < sys->totvert; a++)
+  for (a = 0; a < sys->totvert; a++) {
     normalize_v3(sys->heat.vnors[a]);
+  }
 }
 
 static void heat_laplacian_create(LaplacianSystem *sys)
@@ -575,8 +602,9 @@ static void heat_laplacian_create(LaplacianSystem *sys)
   sys->heat.p = MEM_callocN(sizeof(float) * totvert, "HeatP");
 
   /* add verts and faces to laplacian */
-  for (a = 0; a < totvert; a++)
+  for (a = 0; a < totvert; a++) {
     laplacian_add_vertex(sys, sys->heat.verts[a], 0);
+  }
 
   for (a = 0, lt = mlooptri; a < tottri; a++, lt++) {
     int vtri[3];
@@ -589,8 +617,9 @@ static void heat_laplacian_create(LaplacianSystem *sys)
   /* for distance computation in set_H */
   heat_calc_vnormals(sys);
 
-  for (a = 0; a < totvert; a++)
+  for (a = 0; a < totvert; a++) {
     heat_set_H(sys, a);
+  }
 }
 
 static void heat_system_free(LaplacianSystem *sys)
@@ -616,8 +645,9 @@ static float heat_limit_weight(float weight)
     t = (weight - WEIGHT_LIMIT_END) / (WEIGHT_LIMIT_START - WEIGHT_LIMIT_END);
     return t * WEIGHT_LIMIT_START;
   }
-  else
+  else {
     return weight;
+  }
 }
 
 void heat_bone_weighting(Object *ob,
@@ -695,14 +725,16 @@ void heat_bone_weighting(Object *ob,
 
   if (dgroupflip) {
     vertsflipped = MEM_callocN(sizeof(int) * me->totvert, "vertsflipped");
-    for (a = 0; a < me->totvert; a++)
+    for (a = 0; a < me->totvert; a++) {
       vertsflipped[a] = mesh_get_x_mirror_vert(ob, NULL, a, use_topology);
+    }
   }
 
   /* compute weights per bone */
   for (j = 0; j < numsource; j++) {
-    if (!selected[j])
+    if (!selected[j]) {
       continue;
+    }
 
     firstsegment = (j == 0 || dgrouplist[j - 1] != dgrouplist[j]);
     lastsegment = (j == numsource - 1 || dgrouplist[j] != dgrouplist[j + 1]);
@@ -711,55 +743,66 @@ void heat_bone_weighting(Object *ob,
     /* clear weights */
     if (bbone && firstsegment) {
       for (a = 0; a < me->totvert; a++) {
-        if (mask && !mask[a])
+        if (mask && !mask[a]) {
           continue;
+        }
 
         ED_vgroup_vert_remove(ob, dgrouplist[j], a);
-        if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0)
+        if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
           ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+        }
       }
     }
 
     /* fill right hand side */
     laplacian_begin_solve(sys, -1);
 
-    for (a = 0; a < me->totvert; a++)
-      if (heat_source_closest(sys, a, j))
+    for (a = 0; a < me->totvert; a++) {
+      if (heat_source_closest(sys, a, j)) {
         laplacian_add_right_hand_side(sys, a, sys->heat.H[a] * sys->heat.p[a]);
+      }
+    }
 
     /* solve */
     if (laplacian_system_solve(sys)) {
       /* load solution into vertex groups */
       for (a = 0; a < me->totvert; a++) {
-        if (mask && !mask[a])
+        if (mask && !mask[a]) {
           continue;
+        }
 
         solution = laplacian_system_get_solution(sys, a);
 
         if (bbone) {
-          if (solution > 0.0f)
+          if (solution > 0.0f) {
             ED_vgroup_vert_add(ob, dgrouplist[j], a, solution, WEIGHT_ADD);
+          }
         }
         else {
           weight = heat_limit_weight(solution);
-          if (weight > 0.0f)
+          if (weight > 0.0f) {
             ED_vgroup_vert_add(ob, dgrouplist[j], a, weight, WEIGHT_REPLACE);
-          else
+          }
+          else {
             ED_vgroup_vert_remove(ob, dgrouplist[j], a);
+          }
         }
 
         /* do same for mirror */
         if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
           if (bbone) {
-            if (solution > 0.0f)
+            if (solution > 0.0f) {
               ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a], solution, WEIGHT_ADD);
+            }
           }
           else {
             weight = heat_limit_weight(solution);
-            if (weight > 0.0f)
+            if (weight > 0.0f) {
               ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a], weight, WEIGHT_REPLACE);
-            else
+            }
+            else {
               ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+            }
           }
         }
       }
@@ -772,29 +815,34 @@ void heat_bone_weighting(Object *ob,
     /* remove too small vertex weights */
     if (bbone && lastsegment) {
       for (a = 0; a < me->totvert; a++) {
-        if (mask && !mask[a])
+        if (mask && !mask[a]) {
           continue;
+        }
 
         weight = ED_vgroup_vert_weight(ob, dgrouplist[j], a);
         weight = heat_limit_weight(weight);
-        if (weight <= 0.0f)
+        if (weight <= 0.0f) {
           ED_vgroup_vert_remove(ob, dgrouplist[j], a);
+        }
 
         if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
           weight = ED_vgroup_vert_weight(ob, dgroupflip[j], vertsflipped[a]);
           weight = heat_limit_weight(weight);
-          if (weight <= 0.0f)
+          if (weight <= 0.0f) {
             ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+          }
         }
       }
     }
   }
 
   /* free */
-  if (vertsflipped)
+  if (vertsflipped) {
     MEM_freeN(vertsflipped);
-  if (mask)
+  }
+  if (mask) {
     MEM_freeN(mask);
+  }
 
   heat_system_free(sys);
 
@@ -964,8 +1012,9 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
   float end[3], vec_normal[3];
 
   /* happens binding when a cage has no faces */
-  if (UNLIKELY(mdb->bvhtree == NULL))
+  if (UNLIKELY(mdb->bvhtree == NULL)) {
     return NULL;
+  }
 
   /* setup isec */
   memset(&isect_mdef, 0, sizeof(isect_mdef));
@@ -1037,8 +1086,9 @@ static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
     normalize_v3(dir);
 
     isect = meshdeform_ray_tree_intersect(mdb, start, outside);
-    if (isect && !isect->facing)
+    if (isect && !isect->facing) {
       return 1;
+    }
   }
 
   return 0;
@@ -1054,12 +1104,15 @@ BLI_INLINE int meshdeform_index(MeshDeformBind *mdb, int x, int y, int z, int n)
   y += MESHDEFORM_OFFSET[n][1];
   z += MESHDEFORM_OFFSET[n][2];
 
-  if (x < 0 || x >= mdb->size)
+  if (x < 0 || x >= mdb->size) {
     return -1;
-  if (y < 0 || y >= mdb->size)
+  }
+  if (y < 0 || y >= mdb->size) {
     return -1;
-  if (z < 0 || z >= mdb->size)
+  }
+  if (z < 0 || z >= mdb->size) {
     return -1;
+  }
 
   return x + y * size + z * size * size;
 }
@@ -1087,8 +1140,9 @@ static void meshdeform_add_intersections(MeshDeformBind *mdb, int x, int y, int 
 
   /* check each outgoing edge for intersection */
   for (i = 1; i <= 6; i++) {
-    if (meshdeform_index(mdb, x, y, z, i) == -1)
+    if (meshdeform_index(mdb, x, y, z, i) == -1) {
       continue;
+    }
 
     meshdeform_cell_center(mdb, x, y, z, i, ncenter);
 
@@ -1134,9 +1188,11 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
   }
 
   /* other cells are interior */
-  for (a = 0; a < size * size * size; a++)
-    if (tag[a] == MESHDEFORM_TAG_UNTYPED)
+  for (a = 0; a < size * size * size; a++) {
+    if (tag[a] == MESHDEFORM_TAG_UNTYPED) {
       tag[a] = MESHDEFORM_TAG_INTERIOR;
+    }
+  }
 
 #if 0
   {
@@ -1230,8 +1286,9 @@ static float meshdeform_interp_w(MeshDeformBind *mdb,
     totweight += weight;
   }
 
-  if (totweight > 0.0f)
+  if (totweight > 0.0f) {
     result /= totweight;
+  }
 
   return result;
 }
@@ -1241,12 +1298,15 @@ static void meshdeform_check_semibound(MeshDeformBind *mdb, int x, int y, int z)
   int i, a;
 
   a = meshdeform_index(mdb, x, y, z, 0);
-  if (mdb->tag[a] != MESHDEFORM_TAG_EXTERIOR)
+  if (mdb->tag[a] != MESHDEFORM_TAG_EXTERIOR) {
     return;
+  }
 
-  for (i = 1; i <= 6; i++)
-    if (mdb->boundisect[a][i - 1])
+  for (i = 1; i <= 6; i++) {
+    if (mdb->boundisect[a][i - 1]) {
       mdb->semibound[a] = 1;
+    }
+  }
 }
 
 static float meshdeform_boundary_total_weight(MeshDeformBind *mdb, int x, int y, int z)
@@ -1258,15 +1318,19 @@ static float meshdeform_boundary_total_weight(MeshDeformBind *mdb, int x, int y,
 
   /* count weight for neighbor cells */
   for (i = 1; i <= 6; i++) {
-    if (meshdeform_index(mdb, x, y, z, i) == -1)
+    if (meshdeform_index(mdb, x, y, z, i) == -1) {
       continue;
+    }
 
-    if (mdb->boundisect[a][i - 1])
+    if (mdb->boundisect[a][i - 1]) {
       weight = 1.0f / mdb->boundisect[a][i - 1]->len;
-    else if (!mdb->semibound[a])
+    }
+    else if (!mdb->semibound[a]) {
       weight = 1.0f / mdb->width[0];
-    else
+    }
+    else {
       weight = 0.0f;
+    }
 
     totweight += weight;
   }
@@ -1282,16 +1346,18 @@ static void meshdeform_matrix_add_cell(
   int i, a, acenter;
 
   acenter = meshdeform_index(mdb, x, y, z, 0);
-  if (mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR)
+  if (mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR) {
     return;
+  }
 
   EIG_linear_solver_matrix_add(context, mdb->varidx[acenter], mdb->varidx[acenter], 1.0f);
 
   totweight = meshdeform_boundary_total_weight(mdb, x, y, z);
   for (i = 1; i <= 6; i++) {
     a = meshdeform_index(mdb, x, y, z, i);
-    if (a == -1 || mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR)
+    if (a == -1 || mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR) {
       continue;
+    }
 
     isect = mdb->boundisect[acenter][i - 1];
     if (!isect) {
@@ -1309,14 +1375,16 @@ static void meshdeform_matrix_add_rhs(
   int i, a, acenter;
 
   acenter = meshdeform_index(mdb, x, y, z, 0);
-  if (mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR)
+  if (mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR) {
     return;
+  }
 
   totweight = meshdeform_boundary_total_weight(mdb, x, y, z);
   for (i = 1; i <= 6; i++) {
     a = meshdeform_index(mdb, x, y, z, i);
-    if (a == -1)
+    if (a == -1) {
       continue;
+    }
 
     isect = mdb->boundisect[acenter][i - 1];
 
@@ -1336,8 +1404,9 @@ static void meshdeform_matrix_add_semibound_phi(
   int i, a;
 
   a = meshdeform_index(mdb, x, y, z, 0);
-  if (!mdb->semibound[a])
+  if (!mdb->semibound[a]) {
     return;
+  }
 
   mdb->phi[a] = 0.0f;
 
@@ -1360,8 +1429,9 @@ static void meshdeform_matrix_add_exterior_phi(
   int i, a, acenter;
 
   acenter = meshdeform_index(mdb, x, y, z, 0);
-  if (mdb->tag[acenter] != MESHDEFORM_TAG_EXTERIOR || mdb->semibound[acenter])
+  if (mdb->tag[acenter] != MESHDEFORM_TAG_EXTERIOR || mdb->semibound[acenter]) {
     return;
+  }
 
   phi = 0.0f;
   totweight = 0.0f;
@@ -1374,8 +1444,9 @@ static void meshdeform_matrix_add_exterior_phi(
     }
   }
 
-  if (totweight != 0.0f)
+  if (totweight != 0.0f) {
     mdb->phi[acenter] = phi / totweight;
+  }
 }
 
 static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind *mdb)
@@ -1387,8 +1458,9 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
   /* setup variable indices */
   mdb->varidx = MEM_callocN(sizeof(int) * mdb->size3, "MeshDeformDSvaridx");
-  for (a = 0, totvar = 0; a < mdb->size3; a++)
+  for (a = 0, totvar = 0; a < mdb->size3; a++) {
     mdb->varidx[a] = (mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR) ? -1 : totvar++;
+  }
 
   if (totvar == 0) {
     MEM_freeN(mdb->varidx);
@@ -1401,33 +1473,46 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
   context = EIG_linear_solver_new(totvar, totvar, 1);
 
   /* build matrix */
-  for (z = 0; z < mdb->size; z++)
-    for (y = 0; y < mdb->size; y++)
-      for (x = 0; x < mdb->size; x++)
+  for (z = 0; z < mdb->size; z++) {
+    for (y = 0; y < mdb->size; y++) {
+      for (x = 0; x < mdb->size; x++) {
         meshdeform_matrix_add_cell(mdb, context, x, y, z);
+      }
+    }
+  }
 
   /* solve for each cage vert */
   for (a = 0; a < mdb->totcagevert; a++) {
     /* fill in right hand side and solve */
-    for (z = 0; z < mdb->size; z++)
-      for (y = 0; y < mdb->size; y++)
-        for (x = 0; x < mdb->size; x++)
+    for (z = 0; z < mdb->size; z++) {
+      for (y = 0; y < mdb->size; y++) {
+        for (x = 0; x < mdb->size; x++) {
           meshdeform_matrix_add_rhs(mdb, context, x, y, z, a);
+        }
+      }
+    }
 
     if (EIG_linear_solver_solve(context)) {
-      for (z = 0; z < mdb->size; z++)
-        for (y = 0; y < mdb->size; y++)
-          for (x = 0; x < mdb->size; x++)
+      for (z = 0; z < mdb->size; z++) {
+        for (y = 0; y < mdb->size; y++) {
+          for (x = 0; x < mdb->size; x++) {
             meshdeform_matrix_add_semibound_phi(mdb, x, y, z, a);
+          }
+        }
+      }
 
-      for (z = 0; z < mdb->size; z++)
-        for (y = 0; y < mdb->size; y++)
-          for (x = 0; x < mdb->size; x++)
+      for (z = 0; z < mdb->size; z++) {
+        for (y = 0; y < mdb->size; y++) {
+          for (x = 0; x < mdb->size; x++) {
             meshdeform_matrix_add_exterior_phi(mdb, x, y, z, a);
+          }
+        }
+      }
 
       for (b = 0; b < mdb->size3; b++) {
-        if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
+        if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR) {
           mdb->phi[b] = EIG_linear_solver_variable_get(context, 0, mdb->varidx[b]);
+        }
         mdb->totalphi[b] += mdb->phi[b];
       }
 
@@ -1499,8 +1584,9 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* compute bounding box of the cage mesh */
   INIT_MINMAX(mdb->min, mdb->max);
 
-  for (a = 0; a < mdb->totcagevert; a++)
+  for (a = 0; a < mdb->totcagevert; a++) {
     minmax_v3v3_v3(mdb->min, mdb->max, mdb->cagecos[a]);
+  }
 
   /* allocate memory */
   mdb->size = (2 << (mmd->gridsize - 1)) + 2;
@@ -1513,10 +1599,12 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   mdb->bvhtree = BKE_bvhtree_from_mesh_get(&mdb->bvhdata, mdb->cagemesh, BVHTREE_FROM_LOOPTRI, 4);
   mdb->inside = MEM_callocN(sizeof(int) * mdb->totvert, "MDefInside");
 
-  if (mmd->flag & MOD_MDEF_DYNAMIC_BIND)
+  if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
     mdb->dyngrid = MEM_callocN(sizeof(MDefBindInfluence *) * mdb->size3, "MDefDynGrid");
-  else
+  }
+  else {
     mdb->weights = MEM_callocN(sizeof(float) * mdb->totvert * mdb->totcagevert, "MDefWeights");
+  }
 
   mdb->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
   BLI_memarena_use_calloc(mdb->memarena);
@@ -1534,9 +1622,11 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* make bounding box equal size in all directions, add padding, and compute
    * width of the cells */
   maxwidth = -1.0f;
-  for (a = 0; a < 3; a++)
-    if (mdb->max[a] - mdb->min[a] > maxwidth)
+  for (a = 0; a < 3; a++) {
+    if (mdb->max[a] - mdb->min[a] > maxwidth) {
       maxwidth = mdb->max[a] - mdb->min[a];
+    }
+  }
 
   for (a = 0; a < 3; a++) {
     center[a] = (mdb->min[a] + mdb->max[a]) * 0.5f;
@@ -1557,8 +1647,9 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   for (a = 0; a < mdb->totvert; a++) {
     copy_v3_v3(vec, mdb->vertexcos[a]);
     mdb->inside[a] = meshdeform_inside_cage(mdb, vec);
-    if (mdb->inside[a])
+    if (mdb->inside[a]) {
       totinside++;
+    }
   }
 
   /* free temporary MDefBoundIsects */
@@ -1566,22 +1657,29 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   mdb->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
 
   /* start with all cells untyped */
-  for (a = 0; a < mdb->size3; a++)
+  for (a = 0; a < mdb->size3; a++) {
     mdb->tag[a] = MESHDEFORM_TAG_UNTYPED;
+  }
 
   /* detect intersections and tag boundary cells */
-  for (z = 0; z < mdb->size; z++)
-    for (y = 0; y < mdb->size; y++)
-      for (x = 0; x < mdb->size; x++)
+  for (z = 0; z < mdb->size; z++) {
+    for (y = 0; y < mdb->size; y++) {
+      for (x = 0; x < mdb->size; x++) {
         meshdeform_add_intersections(mdb, x, y, z);
+      }
+    }
+  }
 
   /* compute exterior and interior tags */
   meshdeform_bind_floodfill(mdb);
 
-  for (z = 0; z < mdb->size; z++)
-    for (y = 0; y < mdb->size; y++)
-      for (x = 0; x < mdb->size; x++)
+  for (z = 0; z < mdb->size; z++) {
+    for (y = 0; y < mdb->size; y++) {
+      for (x = 0; x < mdb->size; x++) {
         meshdeform_check_semibound(mdb, x, y, z);
+      }
+    }
+  }
 
   /* solve */
   meshdeform_matrix_solve(mmd, mdb);
@@ -1589,9 +1687,11 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* assign results */
   if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
     mmd->totinfluence = 0;
-    for (a = 0; a < mdb->size3; a++)
-      for (inf = mdb->dyngrid[a]; inf; inf = inf->next)
+    for (a = 0; a < mdb->size3; a++) {
+      for (inf = mdb->dyngrid[a]; inf; inf = inf->next) {
         mmd->totinfluence++;
+      }
+    }
 
     /* convert MDefBindInfluences to smaller MDefInfluences */
     mmd->dyngrid = MEM_callocN(sizeof(MDefCell) * mdb->size3, "MDefDynGrid");
@@ -1612,8 +1712,9 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
 
       if (totweight > 0.0f) {
         mdinf = mmd->dyninfluences + cell->offset;
-        for (b = 0; b < cell->totinfluence; b++, mdinf++)
+        for (b = 0; b < cell->totinfluence; b++, mdinf++) {
           mdinf->weight /= totweight;
+        }
       }
 
       offset += cell->totinfluence;
@@ -1666,10 +1767,12 @@ void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
   copy_m4_m4(mdb.cagemat, cagemat);
 
   mvert = mdb.cagemesh->mvert;
-  for (a = 0; a < mdb.totcagevert; a++)
+  for (a = 0; a < mdb.totcagevert; a++) {
     copy_v3_v3(mdb.cagecos[a], mvert[a].co);
-  for (a = 0; a < mdb.totvert; a++)
+  }
+  for (a = 0; a < mdb.totvert; a++) {
     mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a * 3);
+  }
 
   /* solve */
   harmonic_coordinates_bind(mmd_orig, &mdb);
@@ -1681,8 +1784,9 @@ void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
   copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->obmat);
 
   /* transform bindcagecos to world space */
-  for (a = 0; a < mdb.totcagevert; a++)
+  for (a = 0; a < mdb.totcagevert; a++) {
     mul_m4_v3(mmd_orig->object->obmat, mmd_orig->bindcagecos + a * 3);
+  }
 
   /* free */
   MEM_freeN(mdb.vertexcos);

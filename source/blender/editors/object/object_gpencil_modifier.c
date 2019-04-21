@@ -109,8 +109,9 @@ static bool UNUSED_FUNCTION(gpencil_object_has_modifier)(const Object *ob,
   GpencilModifierData *md;
 
   for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
-    if ((md != exclude) && (md->type == type))
+    if ((md != exclude) && (md->type == type)) {
       return true;
+    }
   }
 
   return false;
@@ -163,8 +164,9 @@ void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)
   GpencilModifierData *md = ob->greasepencil_modifiers.first;
   bool sort_depsgraph = false;
 
-  if (!md)
+  if (!md) {
     return;
+  }
 
   while (md) {
     GpencilModifierData *next_md;
@@ -257,8 +259,9 @@ int ED_object_gpencil_modifier_apply(Main *bmain,
     return 0;
   }
 
-  if (md != ob->greasepencil_modifiers.first)
+  if (md != ob->greasepencil_modifiers.first) {
     BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected");
+  }
 
   if (!gpencil_modifier_apply_obdata(reports, bmain, depsgraph, ob, md)) {
     return 0;
@@ -300,8 +303,9 @@ static int gpencil_modifier_add_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (!ED_object_gpencil_modifier_add(op->reports, bmain, scene, ob, NULL, type))
+  if (!ED_object_gpencil_modifier_add(op->reports, bmain, scene, ob, NULL, type)) {
     return OPERATOR_CANCELLED;
+  }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
@@ -319,16 +323,18 @@ static const EnumPropertyItem *gpencil_modifier_add_itemf(bContext *C,
   const GpencilModifierTypeInfo *mti;
   int totitem = 0, a;
 
-  if (!ob)
+  if (!ob) {
     return rna_enum_object_greasepencil_modifier_type_items;
+  }
 
   for (a = 0; rna_enum_object_greasepencil_modifier_type_items[a].identifier; a++) {
     md_item = &rna_enum_object_greasepencil_modifier_type_items[a];
     if (md_item->identifier[0]) {
       mti = BKE_gpencil_modifierType_getInfo(md_item->value);
 
-      if (mti->flags & eGpencilModifierTypeFlag_NoUserAdd)
+      if (mti->flags & eGpencilModifierTypeFlag_NoUserAdd) {
         continue;
+      }
     }
     else {
       group_item = md_item;
@@ -386,12 +392,15 @@ static int gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, 
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
   Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
 
-  if (!ob || ID_IS_LINKED(ob))
+  if (!ob || ID_IS_LINKED(ob)) {
     return 0;
-  if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0)
+  }
+  if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
     return 0;
-  if (ptr.id.data && ID_IS_LINKED(ptr.id.data))
+  }
+  if (ptr.id.data && ID_IS_LINKED(ptr.id.data)) {
     return 0;
+  }
 
   if (ID_IS_STATIC_OVERRIDE(ob)) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from static override");
@@ -443,8 +452,9 @@ static GpencilModifierData *gpencil_edit_modifier_property_get(wmOperator *op,
 
   md = BKE_gpencil_modifiers_findByName(ob, modifier_name);
 
-  if (md && type != 0 && md->type != type)
+  if (md && type != 0 && md->type != type) {
     md = NULL;
+  }
 
   return md;
 }
@@ -457,8 +467,9 @@ static int gpencil_modifier_remove_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_remove(op->reports, bmain, ob, md))
+  if (!md || !ED_object_gpencil_modifier_remove(op->reports, bmain, ob, md)) {
     return OPERATOR_CANCELLED;
+  }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
@@ -469,10 +480,12 @@ static int gpencil_modifier_remove_invoke(bContext *C,
                                           wmOperator *op,
                                           const wmEvent *UNUSED(event))
 {
-  if (gpencil_edit_modifier_invoke_properties(C, op))
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
     return gpencil_modifier_remove_exec(C, op);
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void OBJECT_OT_gpencil_modifier_remove(wmOperatorType *ot)
@@ -497,8 +510,9 @@ static int gpencil_modifier_move_up_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_move_up(op->reports, ob, md))
+  if (!md || !ED_object_gpencil_modifier_move_up(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
+  }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -510,10 +524,12 @@ static int gpencil_modifier_move_up_invoke(bContext *C,
                                            wmOperator *op,
                                            const wmEvent *UNUSED(event))
 {
-  if (gpencil_edit_modifier_invoke_properties(C, op))
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
     return gpencil_modifier_move_up_exec(C, op);
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void OBJECT_OT_gpencil_modifier_move_up(wmOperatorType *ot)
@@ -538,8 +554,9 @@ static int gpencil_modifier_move_down_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_move_down(op->reports, ob, md))
+  if (!md || !ED_object_gpencil_modifier_move_down(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
+  }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -551,10 +568,12 @@ static int gpencil_modifier_move_down_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent *UNUSED(event))
 {
-  if (gpencil_edit_modifier_invoke_properties(C, op))
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
     return gpencil_modifier_move_down_exec(C, op);
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot)
@@ -594,10 +613,12 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
 
 static int gpencil_modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (gpencil_edit_modifier_invoke_properties(C, op))
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
     return gpencil_modifier_apply_exec(C, op);
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 static const EnumPropertyItem gpencil_modifier_apply_as_items[] = {
@@ -639,8 +660,9 @@ static int gpencil_modifier_copy_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_copy(op->reports, ob, md))
+  if (!md || !ED_object_gpencil_modifier_copy(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
+  }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -650,10 +672,12 @@ static int gpencil_modifier_copy_exec(bContext *C, wmOperator *op)
 
 static int gpencil_modifier_copy_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (gpencil_edit_modifier_invoke_properties(C, op))
+  if (gpencil_edit_modifier_invoke_properties(C, op)) {
     return gpencil_modifier_copy_exec(C, op);
-  else
+  }
+  else {
     return OPERATOR_CANCELLED;
+  }
 }
 
 void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot)

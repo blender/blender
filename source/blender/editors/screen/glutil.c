@@ -172,12 +172,15 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   nsubparts_x = (img_w + (offset_x - 1)) / (offset_x);
   nsubparts_y = (img_h + (offset_y - 1)) / (offset_y);
 
-  if (format == GL_RGBA)
+  if (format == GL_RGBA) {
     components = 4;
-  else if (format == GL_RGB)
+  }
+  else if (format == GL_RGB) {
     components = 3;
-  else if (format == GL_RED)
+  }
+  else if (format == GL_RED) {
     components = 1;
+  }
   else {
     BLI_assert(!"Incompatible format passed to glaDrawPixelsTexScaled");
     return;
@@ -215,8 +218,9 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
       float rast_x = x + subpart_x * offset_x * xzoom;
       float rast_y = y + subpart_y * offset_y * yzoom;
       /* check if we already got these because we always get 2 more when doing seamless */
-      if (subpart_w <= seamless || subpart_h <= seamless)
+      if (subpart_w <= seamless || subpart_h <= seamless) {
         continue;
+      }
 
       if (use_clipping) {
         if (rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX < clip_min_x ||
@@ -242,7 +246,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                 subpart_x * offset_x * components]);
 
         /* add an extra border of pixels so linear looks ok at edges of full image */
-        if (subpart_w < tex_w)
+        if (subpart_w < tex_w) {
           glTexSubImage2D(GL_TEXTURE_2D,
                           0,
                           subpart_w,
@@ -253,7 +257,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                           GL_FLOAT,
                           &f_rect[((size_t)subpart_y) * offset_y * img_w * components +
                                   (subpart_x * offset_x + subpart_w - 1) * components]);
-        if (subpart_h < tex_h)
+        }
+        if (subpart_h < tex_h) {
           glTexSubImage2D(
               GL_TEXTURE_2D,
               0,
@@ -265,7 +270,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
               GL_FLOAT,
               &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
                       subpart_x * offset_x * components]);
-        if (subpart_w < tex_w && subpart_h < tex_h)
+        }
+        if (subpart_w < tex_w && subpart_h < tex_h) {
           glTexSubImage2D(
               GL_TEXTURE_2D,
               0,
@@ -277,6 +283,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
               GL_FLOAT,
               &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
                       (subpart_x * offset_x + subpart_w - 1) * components]);
+        }
       }
       else {
         glTexSubImage2D(GL_TEXTURE_2D,
@@ -290,7 +297,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                         &uc_rect[((size_t)subpart_y) * offset_y * img_w * components +
                                  subpart_x * offset_x * components]);
 
-        if (subpart_w < tex_w)
+        if (subpart_w < tex_w) {
           glTexSubImage2D(GL_TEXTURE_2D,
                           0,
                           subpart_w,
@@ -301,7 +308,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                           GL_UNSIGNED_BYTE,
                           &uc_rect[((size_t)subpart_y) * offset_y * img_w * components +
                                    (subpart_x * offset_x + subpart_w - 1) * components]);
-        if (subpart_h < tex_h)
+        }
+        if (subpart_h < tex_h) {
           glTexSubImage2D(
               GL_TEXTURE_2D,
               0,
@@ -313,7 +321,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
               GL_UNSIGNED_BYTE,
               &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
                        subpart_x * offset_x * components]);
-        if (subpart_w < tex_w && subpart_h < tex_h)
+        }
+        if (subpart_w < tex_w && subpart_h < tex_h) {
           glTexSubImage2D(
               GL_TEXTURE_2D,
               0,
@@ -325,6 +334,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
               GL_UNSIGNED_BYTE,
               &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components +
                        (subpart_x * offset_x + subpart_w - 1) * components]);
+        }
       }
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
@@ -552,8 +562,9 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
   bool need_fallback = true;
 
   /* Early out */
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL)
+  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
     return;
+  }
 
   /* Single channel images could not be transformed using GLSL yet */
   force_fallback |= ibuf->channels == 1;
@@ -589,12 +600,15 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
       if (ibuf->rect_float) {
         int format = 0;
 
-        if (ibuf->channels == 3)
+        if (ibuf->channels == 3) {
           format = GL_RGB;
-        else if (ibuf->channels == 4)
+        }
+        else if (ibuf->channels == 4) {
           format = GL_RGBA;
-        else
+        }
+        else {
           BLI_assert(!"Incompatible number of channels for GLSL display");
+        }
 
         if (format != 0) {
           immDrawPixelsTex_clipping(&state,

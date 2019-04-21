@@ -230,8 +230,9 @@ static bool delete_orientation_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  if (ED_operator_areaactive(C) == 0)
+  if (ED_operator_areaactive(C) == 0) {
     return 0;
+  }
 
   return ((scene->orientation_slots[SCE_ORIENT_DEFAULT].type >= V3D_ORIENT_CUSTOM) &&
           (scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom != -1));
@@ -403,8 +404,9 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
   // in other words, 2D deltas are no longer good enough!
   // disable until individual 'transformers' behave better
 
-  if (event->type == NDOF_MOTION)
+  if (event->type == NDOF_MOTION) {
     return OPERATOR_PASS_THROUGH;
+  }
 #endif
 
   /* XXX insert keys are called here, and require context */

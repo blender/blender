@@ -75,11 +75,13 @@ static int return_editmesh_indexar(BMEditMesh *em, int *r_tot, int **r_indexar, 
   int *index, nr, totvert = 0;
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
+    if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       totvert++;
+    }
   }
-  if (totvert == 0)
+  if (totvert == 0) {
     return 0;
+  }
 
   *r_indexar = index = MEM_mallocN(4 * totvert, "hook indexar");
   *r_tot = totvert;
@@ -144,14 +146,16 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
   BMIter iter;
   int index = 0, nr = 0;
 
-  if (hmd->indexar == NULL)
+  if (hmd->indexar == NULL) {
     return;
+  }
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (nr == hmd->indexar[index]) {
       BM_vert_select_set(em->bm, eve, true);
-      if (index < hmd->totindex - 1)
+      if (index < hmd->totindex - 1) {
         index++;
+      }
     }
 
     nr++;
@@ -173,14 +177,16 @@ static int return_editlattice_indexar(Lattice *editlatt,
   bp = editlatt->def;
   while (a--) {
     if (bp->f1 & SELECT) {
-      if (bp->hide == 0)
+      if (bp->hide == 0) {
         totvert++;
+      }
     }
     bp++;
   }
 
-  if (totvert == 0)
+  if (totvert == 0) {
     return 0;
+  }
 
   *r_indexar = index = MEM_mallocN(4 * totvert, "hook indexar");
   *r_tot = totvert;
@@ -219,8 +225,9 @@ static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
   while (a--) {
     if (hmd->indexar[index] == nr) {
       bp->f1 |= SELECT;
-      if (index < hmd->totindex - 1)
+      if (index < hmd->totindex - 1) {
         index++;
+      }
     }
     nr++;
     bp++;
@@ -240,12 +247,15 @@ static int return_editcurve_indexar(Object *obedit, int *r_tot, int **r_indexar,
       bezt = nu->bezt;
       a = nu->pntsu;
       while (a--) {
-        if (bezt->f1 & SELECT)
+        if (bezt->f1 & SELECT) {
           totvert++;
-        if (bezt->f2 & SELECT)
+        }
+        if (bezt->f2 & SELECT) {
           totvert++;
-        if (bezt->f3 & SELECT)
+        }
+        if (bezt->f3 & SELECT) {
           totvert++;
+        }
         bezt++;
       }
     }
@@ -253,14 +263,16 @@ static int return_editcurve_indexar(Object *obedit, int *r_tot, int **r_indexar,
       bp = nu->bp;
       a = nu->pntsu * nu->pntsv;
       while (a--) {
-        if (bp->f1 & SELECT)
+        if (bp->f1 & SELECT) {
           totvert++;
+        }
         bp++;
       }
     }
   }
-  if (totvert == 0)
+  if (totvert == 0) {
     return 0;
+  }
 
   *r_indexar = index = MEM_mallocN(sizeof(*index) * totvert, "hook indexar");
   *r_tot = totvert;
@@ -376,20 +388,23 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bezt->f1 |= SELECT;
-          if (index < hmd->totindex - 1)
+          if (index < hmd->totindex - 1) {
             index++;
+          }
         }
         nr++;
         if (nr == hmd->indexar[index]) {
           bezt->f2 |= SELECT;
-          if (index < hmd->totindex - 1)
+          if (index < hmd->totindex - 1) {
             index++;
+          }
         }
         nr++;
         if (nr == hmd->indexar[index]) {
           bezt->f3 |= SELECT;
-          if (index < hmd->totindex - 1)
+          if (index < hmd->totindex - 1) {
             index++;
+          }
         }
         nr++;
 
@@ -402,8 +417,9 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bp->f1 |= SELECT;
-          if (index < hmd->totindex - 1)
+          if (index < hmd->totindex - 1) {
             index++;
+          }
         }
         nr++;
         bp++;
@@ -439,17 +455,22 @@ static void object_hook_from_context(
 
 static void object_hook_select(Object *ob, HookModifierData *hmd)
 {
-  if (hmd->indexar == NULL)
+  if (hmd->indexar == NULL) {
     return;
+  }
 
-  if (ob->type == OB_MESH)
+  if (ob->type == OB_MESH) {
     select_editbmesh_hook(ob, hmd);
-  else if (ob->type == OB_LATTICE)
+  }
+  else if (ob->type == OB_LATTICE) {
     select_editlattice_hook(ob, hmd);
-  else if (ob->type == OB_CURVE)
+  }
+  else if (ob->type == OB_CURVE) {
     select_editcurve_hook(ob, hmd);
-  else if (ob->type == OB_SURF)
+  }
+  else if (ob->type == OB_SURF) {
     select_editcurve_hook(ob, hmd);
+  }
 }
 
 /* special poll operators for hook operators */
@@ -459,12 +480,15 @@ static bool hook_op_edit_poll(bContext *C)
   Object *obedit = CTX_data_edit_object(C);
 
   if (obedit) {
-    if (ED_operator_editmesh(C))
+    if (ED_operator_editmesh(C)) {
       return 1;
-    if (ED_operator_editsurfcurve(C))
+    }
+    if (ED_operator_editsurfcurve(C)) {
       return 1;
-    if (ED_operator_editlattice(C))
+    }
+    if (ED_operator_editlattice(C)) {
       return 1;
+    }
     //if (ED_operator_editmball(C)) return 1;
   }
 
@@ -715,8 +739,9 @@ static const EnumPropertyItem *hook_mod_itemf(bContext *C,
   ModifierData *md = NULL;
   int a, totitem = 0;
 
-  if (!ob)
+  if (!ob) {
     return DummyRNA_NULL_items;
+  }
 
   for (a = 0, md = ob->modifiers.first; md; md = md->next, a++) {
     if (md->type == eModifierType_Hook) {
@@ -880,8 +905,9 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
     return OPERATOR_CANCELLED;
   }
-  if (hmd->indexar)
+  if (hmd->indexar) {
     MEM_freeN(hmd->indexar);
+  }
 
   copy_v3_v3(hmd->cent, cent);
   hmd->indexar = indexar;

@@ -93,10 +93,12 @@ static int bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap)
   if (!(data->is_weight_paint) || !(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
         segments = bone->segments;
-      else
+      }
+      else {
         segments = 1;
+      }
 
       if (data->list != NULL) {
         hbone = (Bone ***)&data->list;
@@ -165,10 +167,12 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   if (!data->is_weight_paint || !(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
       if (data->heat && data->armob->pose &&
-          BKE_pose_channel_find_name(data->armob->pose, bone->name))
+          BKE_pose_channel_find_name(data->armob->pose, bone->name)) {
         segments = bone->segments;
-      else
+      }
+      else {
         segments = 1;
+      }
 
       if (!data->is_weight_paint || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))) {
         if (!(defgroup = defgroup_find_name(ob, bone->name))) {
@@ -231,8 +235,9 @@ static void envelope_bone_weighting(Object *ob,
 
     /* for each skinnable bone */
     for (j = 0; j < numbones; ++j) {
-      if (!selected[j])
+      if (!selected[j]) {
         continue;
+      }
 
       bone = bonelist[j];
       dgroup = dgrouplist[j];
@@ -246,17 +251,21 @@ static void envelope_bone_weighting(Object *ob,
                                     bone->dist * scale);
 
       /* add the vert to the deform group if (weight != 0.0) */
-      if (distance != 0.0f)
+      if (distance != 0.0f) {
         ED_vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
-      else
+      }
+      else {
         ED_vgroup_vert_remove(ob, dgroup, i);
+      }
 
       /* do same for mirror */
       if (dgroupflip && dgroupflip[j] && iflip != -1) {
-        if (distance != 0.0f)
+        if (distance != 0.0f) {
           ED_vgroup_vert_add(ob, dgroupflip[j], iflip, distance, WEIGHT_REPLACE);
-        else
+        }
+        else {
           ED_vgroup_vert_remove(ob, dgroupflip[j], iflip);
+        }
       }
     }
   }
@@ -308,11 +317,13 @@ static void add_verts_to_dgroups(ReportList *reports,
   /* count the number of skinnable bones */
   numbones = bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable_cb);
 
-  if (numbones == 0)
+  if (numbones == 0) {
     return;
+  }
 
-  if (BKE_object_defgroup_data_create(ob->data) == NULL)
+  if (BKE_object_defgroup_data_create(ob->data) == NULL) {
     return;
+  }
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
@@ -377,11 +388,13 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     /* set selected */
     if (wpmode) {
-      if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))
+      if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)) {
         selected[j] = 1;
+      }
     }
-    else
+    else {
       selected[j] = 1;
+    }
 
     /* find flipped group */
     if (dgroup && mirror) {
@@ -415,8 +428,9 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* transform verts to global space */
   for (i = 0; i < mesh->totvert; i++) {
-    if (!vertsfilled)
+    if (!vertsfilled) {
       copy_v3_v3(verts[i], mesh->mvert[i].co);
+    }
     mul_m4_v3(ob->obmat, verts[i]);
   }
 

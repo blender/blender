@@ -65,8 +65,9 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 
   BLI_assert((flag & ~(SELECT | ME_HIDE)) == 0);
 
-  if (me == NULL)
+  if (me == NULL) {
     return;
+  }
 
   /* note, call #BKE_mesh_flush_hidden_from_verts_ex first when changing hidden flags */
 
@@ -139,8 +140,9 @@ void paintface_hide(bContext *C, Object *ob, const bool unselected)
   int a;
 
   me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0)
+  if (me == NULL || me->totpoly == 0) {
     return;
+  }
 
   mpoly = me->mpoly;
   a = me->totpoly;
@@ -170,8 +172,9 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
   int a;
 
   me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0)
+  if (me == NULL || me->totpoly == 0) {
     return;
+  }
 
   mpoly = me->mpoly;
   a = me->totpoly;
@@ -227,8 +230,9 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
     /* expand selection */
     mp = me->mpoly;
     for (a = 0; a < me->totpoly; a++, mp++) {
-      if (mp->flag & ME_HIDE)
+      if (mp->flag & ME_HIDE) {
         continue;
+      }
 
       if (!BLI_BITMAP_TEST(poly_tag, a)) {
         mark = false;
@@ -269,8 +273,9 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   unsigned int index = (unsigned int)-1;
 
   me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0)
+  if (me == NULL || me->totpoly == 0) {
     return;
+  }
 
   if (mval) {
     if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
@@ -364,8 +369,9 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   mvert = me->mvert;
   mp = me->mpoly;
   for (a = me->totpoly; a > 0; a--, mp++) {
-    if (mp->flag & ME_HIDE || !(mp->flag & ME_FACE_SEL))
+    if (mp->flag & ME_HIDE || !(mp->flag & ME_FACE_SEL)) {
       continue;
+    }
 
     ml = me->mloop + mp->totloop;
     for (b = 0; b < mp->totloop; b++, ml++) {
@@ -399,8 +405,9 @@ bool paintface_mouse_select(
   }
 
   mpoly_sel = me->mpoly + index;
-  if (mpoly_sel->flag & ME_HIDE)
+  if (mpoly_sel->flag & ME_HIDE) {
     return false;
+  }
 
   /* clear flags */
   if (!extend && !deselect && !toggle) {
@@ -416,10 +423,12 @@ bool paintface_mouse_select(
     mpoly_sel->flag &= ~ME_FACE_SEL;
   }
   else if (toggle) {
-    if (mpoly_sel->flag & ME_FACE_SEL)
+    if (mpoly_sel->flag & ME_FACE_SEL) {
       mpoly_sel->flag &= ~ME_FACE_SEL;
-    else
+    }
+    else {
       mpoly_sel->flag |= ME_FACE_SEL;
+    }
   }
   else {
     mpoly_sel->flag |= ME_FACE_SEL;
@@ -512,15 +521,17 @@ void paintvert_flush_flags(Object *ob)
   int totvert;
   int i;
 
-  if (me == NULL)
+  if (me == NULL) {
     return;
+  }
 
   /* we could call this directly in all areas that change selection,
    * since this could become slow for realtime updates (circle-select for eg) */
   BKE_mesh_flush_select_from_verts(me);
 
-  if (me_eval == NULL)
+  if (me_eval == NULL) {
     return;
+  }
 
   index_array = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
 

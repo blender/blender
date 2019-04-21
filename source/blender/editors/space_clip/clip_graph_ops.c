@@ -200,16 +200,20 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
         }
 
         if (userdata.coord == 0) {
-          if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_X) != 0)
+          if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_X) != 0) {
             userdata.marker->flag &= ~MARKER_GRAPH_SEL_X;
-          else
+          }
+          else {
             userdata.marker->flag |= MARKER_GRAPH_SEL_X;
+          }
         }
         else {
-          if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_Y) != 0)
+          if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_Y) != 0) {
             userdata.marker->flag &= ~MARKER_GRAPH_SEL_Y;
-          else
+          }
+          else {
             userdata.marker->flag |= MARKER_GRAPH_SEL_Y;
+          }
         }
 
         return true;
@@ -281,8 +285,9 @@ static int mouse_select(bContext *C, float co[2], bool extend)
     sel = mouse_select_curve(C, co, extend);
   }
 
-  if (sel)
+  if (sel) {
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -360,10 +365,12 @@ static void box_select_cb(void *userdata,
   if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
     int flag = 0;
 
-    if (coord == 0)
+    if (coord == 0) {
       flag = MARKER_GRAPH_SEL_X;
-    else
+    }
+    else {
       flag = MARKER_GRAPH_SEL_Y;
+    }
 
     if (data->select) {
       marker->flag |= flag;
@@ -444,8 +451,9 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
   int a;
 
-  if (!act_track)
+  if (!act_track) {
     return OPERATOR_CANCELLED;
+  }
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
@@ -507,8 +515,9 @@ static int delete_curve_exec(bContext *C, wmOperator *UNUSED(op))
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
-  if (!act_track)
+  if (!act_track) {
     return OPERATOR_CANCELLED;
+  }
 
   clip_delete_track(C, clip, act_track);
 
@@ -546,10 +555,12 @@ static int delete_knot_exec(bContext *C, wmOperator *UNUSED(op))
     while (a < act_track->markersnr) {
       MovieTrackingMarker *marker = &act_track->markers[a];
 
-      if (marker->flag & MARKER_GRAPH_SEL)
+      if (marker->flag & MARKER_GRAPH_SEL) {
         clip_delete_marker(C, clip, act_track, marker);
-      else
+      }
+      else {
         a++;
+      }
     }
   }
 
@@ -586,11 +597,13 @@ static void view_all_cb(void *userdata,
 {
   ViewAllUserData *data = (ViewAllUserData *)userdata;
 
-  if (val < data->min)
+  if (val < data->min) {
     data->min = val;
+  }
 
-  if (val > data->max)
+  if (val > data->max) {
     data->max = val;
+  }
 }
 
 static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -700,19 +713,23 @@ static int graph_disable_markers_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
   int a;
 
-  if (!act_track || (act_track->flag & TRACK_LOCKED))
+  if (!act_track || (act_track->flag & TRACK_LOCKED)) {
     return OPERATOR_CANCELLED;
+  }
 
   for (a = 0; a < act_track->markersnr; a++) {
     marker = &act_track->markers[a];
 
     if (marker->flag & MARKER_GRAPH_SEL) {
-      if (action == 0)
+      if (action == 0) {
         marker->flag |= MARKER_DISABLED;
-      else if (action == 1)
+      }
+      else if (action == 1) {
         marker->flag &= ~MARKER_DISABLED;
-      else
+      }
+      else {
         marker->flag ^= MARKER_DISABLED;
+      }
     }
   }
 

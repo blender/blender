@@ -151,16 +151,18 @@ void ED_region_do_listen(
   /* generic notes first */
   switch (note->category) {
     case NC_WM:
-      if (note->data == ND_FILEREAD)
+      if (note->data == ND_FILEREAD) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_WINDOW:
       ED_region_tag_redraw(ar);
       break;
   }
 
-  if (ar->type && ar->type->listener)
+  if (ar->type && ar->type->listener) {
     ar->type->listener(win, sa, ar, note, scene);
+  }
 }
 
 /* only exported for WM */
@@ -335,8 +337,9 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 {
   AZone *az;
 
-  if (!sa)
+  if (!sa) {
     return;
+  }
 
   GPU_line_width(1.0f);
   GPU_blend(true);
@@ -529,8 +532,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
   ARegionType *at = ar->type;
 
   /* see BKE_spacedata_draw_locks() */
-  if (at->do_lock)
+  if (at->do_lock) {
     return;
+  }
 
   ar->do_draw |= RGN_DRAWING;
 
@@ -657,8 +661,9 @@ void ED_region_tag_redraw(ARegion *ar)
 
 void ED_region_tag_redraw_overlay(ARegion *ar)
 {
-  if (ar)
+  if (ar) {
     ar->do_draw_overlay = RGN_DRAW;
+  }
 }
 
 void ED_region_tag_redraw_no_rebuild(ARegion *ar)
@@ -701,18 +706,22 @@ void ED_area_tag_redraw(ScrArea *sa)
 {
   ARegion *ar;
 
-  if (sa)
-    for (ar = sa->regionbase.first; ar; ar = ar->next)
+  if (sa) {
+    for (ar = sa->regionbase.first; ar; ar = ar->next) {
       ED_region_tag_redraw(ar);
+    }
+  }
 }
 
 void ED_area_tag_redraw_no_rebuild(ScrArea *sa)
 {
   ARegion *ar;
 
-  if (sa)
-    for (ar = sa->regionbase.first; ar; ar = ar->next)
+  if (sa) {
+    for (ar = sa->regionbase.first; ar; ar = ar->next) {
       ED_region_tag_redraw_no_rebuild(ar);
+    }
+  }
 }
 
 void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
@@ -730,8 +739,9 @@ void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
 
 void ED_area_tag_refresh(ScrArea *sa)
 {
-  if (sa)
+  if (sa) {
     sa->do_refresh = true;
+  }
 }
 
 /* *************************************************************** */
@@ -742,14 +752,16 @@ void ED_area_status_text(ScrArea *sa, const char *str)
   ARegion *ar;
 
   /* happens when running transform operators in background mode */
-  if (sa == NULL)
+  if (sa == NULL) {
     return;
+  }
 
   for (ar = sa->regionbase.first; ar; ar = ar->next) {
     if (ar->regiontype == RGN_TYPE_HEADER) {
       if (str) {
-        if (ar->headerstr == NULL)
+        if (ar->headerstr == NULL) {
           ar->headerstr = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
+        }
         BLI_strncpy(ar->headerstr, str, UI_MAX_DRAW_STR);
         BLI_str_rstrip(ar->headerstr);
       }
@@ -768,12 +780,14 @@ void ED_workspace_status_text(bContext *C, const char *str)
   WorkSpace *workspace = CTX_wm_workspace(C);
 
   /* Can be NULL when running operators in background mode. */
-  if (workspace == NULL)
+  if (workspace == NULL) {
     return;
+  }
 
   if (str) {
-    if (workspace->status_text == NULL)
+    if (workspace->status_text == NULL) {
       workspace->status_text = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
+    }
     BLI_strncpy(workspace->status_text, str, UI_MAX_DRAW_STR);
   }
   else if (workspace->status_text) {
@@ -866,8 +880,9 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
 {
   AZone *az;
 
-  if (ED_area_is_global(sa) || (ar->regiontype != RGN_TYPE_WINDOW))
+  if (ED_area_is_global(sa) || (ar->regiontype != RGN_TYPE_WINDOW)) {
     return;
+  }
 
   az = (AZone *)MEM_callocN(sizeof(AZone), "fullscreen action zone");
   BLI_addtail(&(sa->actionzones), az);
@@ -928,8 +943,9 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
   const float tab_size_y = 0.4f * U.widget_unit;
 
   for (azt = sa->actionzones.first; azt; azt = azt->next) {
-    if (azt->edge == az->edge)
+    if (azt->edge == az->edge) {
       tot++;
+    }
   }
 
   switch (az->edge) {
@@ -1057,14 +1073,18 @@ static void region_azones_add(const bScreen *screen, ScrArea *sa, ARegion *ar, c
   }
 
   /* edge code (t b l r) is along which area edge azone will be drawn */
-  if (alignment == RGN_ALIGN_TOP)
+  if (alignment == RGN_ALIGN_TOP) {
     region_azone_edge_initialize(sa, ar, AE_BOTTOM_TO_TOPLEFT, is_fullscreen);
-  else if (alignment == RGN_ALIGN_BOTTOM)
+  }
+  else if (alignment == RGN_ALIGN_BOTTOM) {
     region_azone_edge_initialize(sa, ar, AE_TOP_TO_BOTTOMRIGHT, is_fullscreen);
-  else if (alignment == RGN_ALIGN_RIGHT)
+  }
+  else if (alignment == RGN_ALIGN_RIGHT) {
     region_azone_edge_initialize(sa, ar, AE_LEFT_TO_TOPRIGHT, is_fullscreen);
-  else if (alignment == RGN_ALIGN_LEFT)
+  }
+  else if (alignment == RGN_ALIGN_LEFT) {
     region_azone_edge_initialize(sa, ar, AE_RIGHT_TO_TOPLEFT, is_fullscreen);
+  }
 
   if (is_fullscreen) {
     fullscreen_azone_initialize(sa, ar);
@@ -1191,8 +1211,9 @@ static void region_rect_recursive(
 {
   rcti *remainder_prev = remainder;
 
-  if (ar == NULL)
+  if (ar == NULL) {
     return;
+  }
 
   int prev_winx = ar->winx;
   int prev_winy = ar->winy;
@@ -1201,9 +1222,11 @@ static void region_rect_recursive(
   BLI_rcti_init(&ar->winrct, 0, 0, 0, 0);
 
   /* for test; allow split of previously defined region */
-  if (ar->alignment & RGN_SPLIT_PREV)
-    if (ar->prev)
+  if (ar->alignment & RGN_SPLIT_PREV) {
+    if (ar->prev) {
       remainder = &ar->prev->winrct;
+    }
+  }
 
   int alignment = ar->alignment & ~RGN_SPLIT_PREV;
 
@@ -1304,8 +1327,9 @@ static void region_rect_recursive(
     else {
       int fac = rct_fits(winrct, 'v', prefsizey);
 
-      if (fac < 0)
+      if (fac < 0) {
         prefsizey += fac;
+      }
 
       ar->winrct = *winrct;
 
@@ -1328,8 +1352,9 @@ static void region_rect_recursive(
     else {
       int fac = rct_fits(winrct, 'h', prefsizex);
 
-      if (fac < 0)
+      if (fac < 0) {
         prefsizex += fac;
+      }
 
       ar->winrct = *winrct;
 
@@ -1383,8 +1408,9 @@ static void region_rect_recursive(
       if (count != 4) {
         /* let's stop adding regions */
         BLI_rcti_init(remainder, 0, 0, 0, 0);
-        if (G.debug & G_DEBUG)
+        if (G.debug & G_DEBUG) {
           printf("region quadsplit failed\n");
+        }
       }
       else {
         quad = 1;
@@ -1419,10 +1445,12 @@ static void region_rect_recursive(
 
   /* if region opened normally, we store this for hide/reveal usage */
   /* prevent rounding errors for UI_DPI_FAC mult and divide */
-  if (ar->winx > 1)
+  if (ar->winx > 1) {
     ar->sizex = (ar->winx + 0.5f) / UI_DPI_FAC;
-  if (ar->winy > 1)
+  }
+  if (ar->winy > 1) {
     ar->sizey = (ar->winy + 0.5f) / UI_DPI_FAC;
+  }
 
   /* exception for multiple overlapping regions on same spot */
   if (ar->overlap && (alignment != RGN_ALIGN_FLOAT)) {
@@ -1516,8 +1544,9 @@ static void region_subwindow(ARegion *ar)
 {
   bool hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) != 0;
 
-  if ((ar->alignment & RGN_SPLIT_PREV) && ar->prev)
+  if ((ar->alignment & RGN_SPLIT_PREV) && ar->prev) {
     hidden = hidden || (ar->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
+  }
 
   ar->visible = !hidden;
 }
@@ -1690,8 +1719,9 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
     sa->type = BKE_spacetype_from_id(sa->spacetype);
   }
 
-  for (ar = sa->regionbase.first; ar; ar = ar->next)
+  for (ar = sa->regionbase.first; ar; ar = ar->next) {
     ar->type = BKE_regiontype_from_id_or_first(sa->type, ar->regiontype);
+  }
 
   /* area sizes */
   area_calc_totrct(sa, &window_rect);
@@ -1705,8 +1735,9 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
   /* default area handlers */
   ed_default_handlers(wm, sa, NULL, &sa->handlers, sa->type->keymapflag);
   /* checks spacedata, adds own handlers */
-  if (sa->type->init)
+  if (sa->type->init) {
     sa->type->init(wm, sa);
+  }
 
   /* clear all azones, add the area triangle widgets */
   area_azone_initialize(win, screen, sa);
@@ -1787,8 +1818,9 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* for use after changing visibility of regions */
 void ED_region_visibility_change_update(bContext *C, ScrArea *sa, ARegion *ar)
 {
-  if (ar->flag & RGN_FLAG_HIDDEN)
+  if (ar->flag & RGN_FLAG_HIDDEN) {
     WM_event_remove_handlers(C, &ar->handlers);
+  }
 
   ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
   ED_area_tag_redraw(sa);
@@ -1842,8 +1874,9 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
   /* regions */
   if (do_free) {
     st = BKE_spacetype_from_id(spacetype);
-    for (ar = sa_dst->regionbase.first; ar; ar = ar->next)
+    for (ar = sa_dst->regionbase.first; ar; ar = ar->next) {
       BKE_area_region_free(st, ar);
+    }
     BLI_freelistN(&sa_dst->regionbase);
   }
   st = BKE_spacetype_from_id(sa_src->spacetype);
@@ -1940,9 +1973,11 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
      * (e.g. with properties editor) until space-data is properly created */
 
     /* check previously stored space */
-    for (sl = sa->spacedata.first; sl; sl = sl->next)
-      if (sl->spacetype == type)
+    for (sl = sa->spacedata.first; sl; sl = sl->next) {
+      if (sl->spacetype == type) {
         break;
+      }
+    }
 
     /* old spacedata... happened during work on 2.50, remove */
     if (sl && BLI_listbase_is_empty(&sl->regionbase)) {
@@ -1973,8 +2008,9 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
         BLI_addhead(&sa->spacedata, sl);
 
         /* swap regions */
-        if (slold)
+        if (slold) {
           slold->regionbase = sa->regionbase;
+        }
         sa->regionbase = sl->regionbase;
         BLI_listbase_clear(&sl->regionbase);
       }
@@ -2269,8 +2305,9 @@ void ED_region_panels_layout_ex(
 
   BLI_SMALLSTACK_DECLARE(pt_stack, PanelType *);
 
-  if (contextnr != -1)
+  if (contextnr != -1) {
     is_context_new = UI_view2d_tab_set(v2d, contextnr);
+  }
 
   /* before setting the view */
   if (vertical) {
@@ -2560,15 +2597,17 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 
       /* for view2d */
       xco = uiLayoutGetWidth(layout);
-      if (xco > maxco)
+      if (xco > maxco) {
         maxco = xco;
+      }
     }
 
     UI_block_layout_resolve(block, &xco, &yco);
 
     /* for view2d */
-    if (xco > maxco)
+    if (xco > maxco) {
       maxco = xco;
+    }
 
     int new_sizex = (maxco + UI_HEADER_OFFSET) / UI_DPI_FAC;
 
@@ -2909,8 +2948,9 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
           do_newline = true;
         }
 
-        if (do_newline)
+        if (do_newline) {
           ofs_y += vertical_offset;
+        }
       } /* Strip */
       else if (i == 1 || i == 2) {
         len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
@@ -3042,8 +3082,9 @@ void ED_region_image_metadata_draw(
   rctf rect;
   uiStyle *style = UI_style_get_dpi();
 
-  if (!ibuf->metadata)
+  if (!ibuf->metadata) {
     return;
+  }
 
   /* find window pixel coordinates of origin */
   GPU_matrix_push();
@@ -3145,8 +3186,9 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 
   /* gridsize adapted to zoom level */
   gridsize = 0.5f * (zoomx + zoomy);
-  if (gridsize <= 0.0f)
+  if (gridsize <= 0.0f) {
     return;
+  }
 
   if (gridsize < 1.0f) {
     while (gridsize < 1.0f) {
@@ -3222,8 +3264,9 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
   ARegion *arn = ar;
 
   /* allow function to be called without area */
-  while (arn->prev)
+  while (arn->prev) {
     arn = arn->prev;
+  }
 
   *rect = ar->winrct;
 

@@ -501,8 +501,9 @@ static void gp_stroke_path_animation(bContext *C,
   PropertyRNA *prop = NULL;
   int nbr_gaps = 0, i;
 
-  if (gtd->mode == GP_STROKECONVERT_TIMING_NONE)
+  if (gtd->mode == GP_STROKECONVERT_TIMING_NONE) {
     return;
+  }
 
   /* gap_duration and gap_randomness are in frames, but we need seconds!!! */
   gtd->gap_duration = FRA2TIME(gtd->gap_duration);
@@ -1214,10 +1215,12 @@ static void gp_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2
   int i;
 
   /* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero [#35686] */
-  if (IS_EQF(delta, minmax_weights[1]))
+  if (IS_EQF(delta, minmax_weights[1])) {
     fac = 1.0f;
-  else
+  }
+  else {
     fac = 1.0f / (minmax_weights[1] - delta);
+  }
 
   for (nu = cu->nurb.first; nu; nu = nu->next) {
     if (nu->bezt) {
@@ -1285,12 +1288,14 @@ static void gp_layer_to_curve(bContext *C,
   rctf subrect, *subrect_ptr = NULL;
 
   /* error checking */
-  if (ELEM(NULL, gpd, gpl, gpf))
+  if (ELEM(NULL, gpd, gpl, gpf)) {
     return;
+  }
 
   /* only convert if there are any strokes on this layer's frame to convert */
-  if (BLI_listbase_is_empty(&gpf->strokes))
+  if (BLI_listbase_is_empty(&gpf->strokes)) {
     return;
+  }
 
   /* initialize camera framing */
   if (gp_camera_view_subrect(C, &subrect)) {
@@ -1413,8 +1418,9 @@ static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOpe
   bool valid = true;
 
   if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) ||
-      !(gps = gpf->strokes.first))
+      !(gps = gpf->strokes.first)) {
     return false;
+  }
 
   do {
     base_time = cur_time = gps->inittime;
@@ -1580,13 +1586,15 @@ static bool gp_convert_poll_property(const bContext *UNUSED(C),
   }
 
   /* Never show this prop */
-  if (STREQ(prop_id, "use_timing_data"))
+  if (STREQ(prop_id, "use_timing_data")) {
     return false;
+  }
 
   if (link_strokes) {
     /* Only show when link_stroke is true */
-    if (STREQ(prop_id, "timing_mode"))
+    if (STREQ(prop_id, "timing_mode")) {
       return true;
+    }
 
     if (timing_mode != GP_STROKECONVERT_TIMING_NONE) {
       /* Only show when link_stroke is true and stroke timing is enabled */
@@ -1595,25 +1603,30 @@ static bool gp_convert_poll_property(const bContext *UNUSED(C),
       }
 
       /* Only show if we have valid timing data! */
-      if (valid_timing && STREQ(prop_id, "use_realtime"))
+      if (valid_timing && STREQ(prop_id, "use_realtime")) {
         return true;
+      }
 
       /* Only show if realtime or valid_timing is false! */
-      if ((!realtime || !valid_timing) && STREQ(prop_id, "end_frame"))
+      if ((!realtime || !valid_timing) && STREQ(prop_id, "end_frame")) {
         return true;
+      }
 
       if (valid_timing && timing_mode == GP_STROKECONVERT_TIMING_CUSTOMGAP) {
         /* Only show for custom gaps! */
-        if (STREQ(prop_id, "gap_duration"))
+        if (STREQ(prop_id, "gap_duration")) {
           return true;
+        }
 
         /* Only show randomness for non-null custom gaps! */
-        if (STREQ(prop_id, "gap_randomness") && (gap_duration > 0.0f))
+        if (STREQ(prop_id, "gap_randomness") && (gap_duration > 0.0f)) {
           return true;
+        }
 
         /* Only show seed for randomize action! */
-        if (STREQ(prop_id, "seed") && (gap_duration > 0.0f) && (gap_randomness > 0.0f))
+        if (STREQ(prop_id, "seed") && (gap_duration > 0.0f) && (gap_randomness > 0.0f)) {
           return true;
+        }
       }
     }
   }

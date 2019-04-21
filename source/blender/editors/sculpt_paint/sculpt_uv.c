@@ -144,8 +144,9 @@ static Brush *uv_sculpt_brush(bContext *C)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
 
-  if (!settings->uvsculpt)
+  if (!settings->uvsculpt) {
     return NULL;
+  }
   return BKE_paint_brush(&settings->uvsculpt->paint);
 }
 
@@ -335,8 +336,9 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
         MLoopUV *luv;
         BMLoop *l;
 
-        if (element->separate && element != sculptdata->uv[i].element)
+        if (element->separate && element != sculptdata->uv[i].element) {
           break;
+        }
 
         l = element->l;
         luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -408,8 +410,9 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
         MLoopUV *luv;
         BMLoop *l;
 
-        if (element->separate && element != sculptdata->uv[i].element)
+        if (element->separate && element != sculptdata->uv[i].element) {
           break;
+        }
 
         l = element->l;
         luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -487,8 +490,9 @@ static void uv_sculpt_stroke_apply(bContext *C,
           MLoopUV *luv;
           BMLoop *l;
 
-          if (element->separate && element != sculptdata->uv[i].element)
+          if (element->separate && element != sculptdata->uv[i].element) {
             break;
+          }
 
           l = element->l;
           luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -532,8 +536,9 @@ static void uv_sculpt_stroke_apply(bContext *C,
         MLoopUV *luv;
         BMLoop *l;
 
-        if (element->separate && element != sculptdata->uv[uvindex].element)
+        if (element->separate && element != sculptdata->uv[uvindex].element) {
           break;
+        }
 
         l = element->l;
         luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -708,8 +713,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         if (element->separate) {
           if (do_island_optimization && (element->island != island_index)) {
             /* skip this uv if not on the active island */
-            for (; element->next && !(element->next->separate); element = element->next)
+            for (; element->next && !(element->next->separate); element = element->next) {
               ;
+            }
             continue;
           }
 
@@ -737,8 +743,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         char *flag;
 
         /* Skip edge if not found(unlikely) or not on valid island */
-        if (itmp1 == -1 || itmp2 == -1)
+        if (itmp1 == -1 || itmp2 == -1) {
           continue;
+        }
 
         offset1 = uniqueUv[itmp1];
         offset2 = uniqueUv[itmp2];
@@ -905,8 +912,9 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *ev
       uv_sculpt_stroke_apply(C, op, event, obedit);
       break;
     case TIMER:
-      if (event->customdata == data->timer)
+      if (event->customdata == data->timer) {
         uv_sculpt_stroke_apply(C, op, event, obedit);
+      }
       break;
     default:
       return OPERATOR_RUNNING_MODAL;

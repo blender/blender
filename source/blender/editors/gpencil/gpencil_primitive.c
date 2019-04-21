@@ -129,8 +129,9 @@ static void gp_session_validatebuffer(tGPDprimitive *p)
   gpd->runtime.sbuffer_sflag = 0;
   gpd->runtime.sbuffer_sflag |= GP_STROKE_3DSPACE;
 
-  if (ELEM(p->type, GP_STROKE_BOX, GP_STROKE_CIRCLE))
+  if (ELEM(p->type, GP_STROKE_BOX, GP_STROKE_CIRCLE)) {
     gpd->runtime.sbuffer_sflag |= GP_STROKE_CYCLIC;
+  }
 }
 
 static void gp_init_colors(tGPDprimitive *p)
@@ -174,16 +175,20 @@ static void gpencil_primitive_to_square(tGPDprimitive *tgpi, const float x, cons
   float w = fabsf(x);
   float h = fabsf(y);
   if ((x > 0 && y > 0) || (x < 0 && y < 0)) {
-    if (w > h)
+    if (w > h) {
       tgpi->end[1] = tgpi->origin[1] + x;
-    else
+    }
+    else {
       tgpi->end[0] = tgpi->origin[0] + y;
+    }
   }
   else {
-    if (w > h)
+    if (w > h) {
       tgpi->end[1] = tgpi->origin[1] - x;
-    else
+    }
+    else {
       tgpi->end[0] = tgpi->origin[0] - y;
+    }
   }
 }
 
@@ -289,8 +294,9 @@ static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi)
   tgpi->point_count += (tgpi->type == GP_STROKE_BOX) ? (MAX_EDGES * 4 + 1) : (MAX_EDGES + 1);
   bGPDstroke *gpsf = tgpi->gpf->strokes.first;
   gpsf->points = MEM_reallocN(gpsf->points, sizeof(bGPDspoint) * tgpi->point_count);
-  if (gpsf->dvert != NULL)
+  if (gpsf->dvert != NULL) {
     gpsf->dvert = MEM_reallocN(gpsf->dvert, sizeof(MDeformVert) * tgpi->point_count);
+  }
   tgpi->points = MEM_reallocN(tgpi->points, sizeof(tGPspoint) * tgpi->point_count);
 }
 
@@ -675,13 +681,16 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) &&
                          (tgpi->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 
-  if (tgpi->type == GP_STROKE_BOX)
+  if (tgpi->type == GP_STROKE_BOX) {
     gps->totpoints = (tgpi->tot_edges * 4 + tgpi->tot_stored_edges);
-  else
+  }
+  else {
     gps->totpoints = (tgpi->tot_edges + tgpi->tot_stored_edges);
+  }
 
-  if (tgpi->tot_stored_edges)
+  if (tgpi->tot_stored_edges) {
     gps->totpoints--;
+  }
 
   tgpi->gpd->runtime.tot_cp_points = 0;
 
@@ -778,8 +787,9 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
           /* find first valid contact point */
           for (i = 0; i < gps->totpoints; i++) {
-            if (depth_arr[i] != FLT_MAX)
+            if (depth_arr[i] != FLT_MAX) {
               break;
+            }
           }
           first_valid = i;
 
@@ -789,8 +799,9 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
           }
           else {
             for (i = gps->totpoints - 1; i >= 0; i--) {
-              if (depth_arr[i] != FLT_MAX)
+              if (depth_arr[i] != FLT_MAX) {
                 break;
+              }
             }
             last_valid = i;
           }
@@ -1325,16 +1336,18 @@ static void gpencil_primitive_edit_event_handling(
           float dy = (tgpi->mval[1] - tgpi->mvalo[1]);
           tgpi->cp1[0] += dx;
           tgpi->cp1[1] += dy;
-          if (event->shift)
+          if (event->shift) {
             copy_v2_v2(tgpi->cp2, tgpi->cp1);
+          }
         }
         else if (tgpi->sel_cp == SELECT_CP2) {
           float dx = (tgpi->mval[0] - tgpi->mvalo[0]);
           float dy = (tgpi->mval[1] - tgpi->mvalo[1]);
           tgpi->cp2[0] += dx;
           tgpi->cp2[1] += dy;
-          if (event->shift)
+          if (event->shift) {
             copy_v2_v2(tgpi->cp1, tgpi->cp2);
+          }
         }
         /* update screen */
         gpencil_primitive_update(C, op, tgpi);
@@ -1344,12 +1357,15 @@ static void gpencil_primitive_edit_event_handling(
     case LEFTMOUSE: {
       if ((event->val == KM_PRESS)) {
         /* find nearest cp based on stroke end points */
-        if (move == MOVE_ENDS)
+        if (move == MOVE_ENDS) {
           tgpi->sel_cp = (a < b) ? SELECT_START : SELECT_END;
-        else if (move == MOVE_CP)
+        }
+        else if (move == MOVE_CP) {
           tgpi->sel_cp = (c < d) ? SELECT_CP1 : SELECT_CP2;
-        else
+        }
+        else {
           tgpi->sel_cp = SELECT_NONE;
+        }
         break;
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS)) {

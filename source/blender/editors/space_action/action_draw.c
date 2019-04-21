@@ -210,8 +210,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
       /* determine if any need to draw channel */
       if (ale->datatype != ALE_NONE) {
         /* determine if channel is selected */
-        if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT))
+        if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT)) {
           sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
+        }
 
         if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
           switch (ale->type) {
@@ -407,8 +408,9 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
   const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
   float yoffs = 0.f;
 
-  if (!(saction->cache_display & TIME_CACHE_DISPLAY) || (!ob))
+  if (!(saction->cache_display & TIME_CACHE_DISPLAY) || (!ob)) {
     return;
+  }
 
   BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
@@ -421,34 +423,41 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 
     switch (pid->type) {
       case PTCACHE_TYPE_SOFTBODY:
-        if (!(saction->cache_display & TIME_CACHE_SOFTBODY))
+        if (!(saction->cache_display & TIME_CACHE_SOFTBODY)) {
           continue;
+        }
         break;
       case PTCACHE_TYPE_PARTICLES:
-        if (!(saction->cache_display & TIME_CACHE_PARTICLES))
+        if (!(saction->cache_display & TIME_CACHE_PARTICLES)) {
           continue;
+        }
         break;
       case PTCACHE_TYPE_CLOTH:
-        if (!(saction->cache_display & TIME_CACHE_CLOTH))
+        if (!(saction->cache_display & TIME_CACHE_CLOTH)) {
           continue;
+        }
         break;
       case PTCACHE_TYPE_SMOKE_DOMAIN:
       case PTCACHE_TYPE_SMOKE_HIGHRES:
-        if (!(saction->cache_display & TIME_CACHE_SMOKE))
+        if (!(saction->cache_display & TIME_CACHE_SMOKE)) {
           continue;
+        }
         break;
       case PTCACHE_TYPE_DYNAMICPAINT:
-        if (!(saction->cache_display & TIME_CACHE_DYNAMICPAINT))
+        if (!(saction->cache_display & TIME_CACHE_DYNAMICPAINT)) {
           continue;
+        }
         break;
       case PTCACHE_TYPE_RIGIDBODY:
-        if (!(saction->cache_display & TIME_CACHE_RIGIDBODY))
+        if (!(saction->cache_display & TIME_CACHE_RIGIDBODY)) {
           continue;
+        }
         break;
     }
 
-    if (pid->cache->cached_frames == NULL)
+    if (pid->cache->cached_frames == NULL) {
       continue;
+    }
 
     GPU_matrix_push();
     GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HEIGHT_TEXT + yoffs);

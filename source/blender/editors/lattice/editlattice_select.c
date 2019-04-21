@@ -582,8 +582,9 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const flo
   } *data = userData;
   float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
-  if ((bp->f1 & SELECT) && data->select)
+  if ((bp->f1 & SELECT) && data->select) {
     dist_test += 5.0f;
+  }
 
   if (dist_test < data->dist) {
     data->dist = dist_test;

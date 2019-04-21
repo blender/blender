@@ -159,16 +159,21 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        if (v1 == 0)
+        if (v1 == 0) {
           v1 = nr;
-        else if (v2 == 0)
+        }
+        else if (v2 == 0) {
           v2 = nr;
-        else if (v3 == 0)
+        }
+        else if (v3 == 0) {
           v3 = nr;
-        else if (v4 == 0)
+        }
+        else if (v4 == 0) {
           v4 = nr;
-        else
+        }
+        else {
           break;
+        }
       }
       nr++;
     }
@@ -183,16 +188,21 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         a = nu->pntsu;
         while (a--) {
           if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-            if (v1 == 0)
+            if (v1 == 0) {
               v1 = nr;
-            else if (v2 == 0)
+            }
+            else if (v2 == 0) {
               v2 = nr;
-            else if (v3 == 0)
+            }
+            else if (v3 == 0) {
               v3 = nr;
-            else if (v4 == 0)
+            }
+            else if (v4 == 0) {
               v4 = nr;
-            else
+            }
+            else {
               break;
+            }
           }
           nr++;
           bezt++;
@@ -203,16 +213,21 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         a = nu->pntsu * nu->pntsv;
         while (a--) {
           if (bp->f1 & SELECT) {
-            if (v1 == 0)
+            if (v1 == 0) {
               v1 = nr;
-            else if (v2 == 0)
+            }
+            else if (v2 == 0) {
               v2 = nr;
-            else if (v3 == 0)
+            }
+            else if (v3 == 0) {
               v3 = nr;
-            else if (v4 == 0)
+            }
+            else if (v4 == 0) {
               v4 = nr;
-            else
+            }
+            else {
               break;
+            }
           }
           nr++;
           bp++;
@@ -228,16 +243,21 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
     bp = lt->editlatt->latt->def;
     while (a--) {
       if (bp->f1 & SELECT) {
-        if (v1 == 0)
+        if (v1 == 0) {
           v1 = nr;
-        else if (v2 == 0)
+        }
+        else if (v2 == 0) {
           v2 = nr;
-        else if (v3 == 0)
+        }
+        else if (v3 == 0) {
           v3 = nr;
-        else if (v4 == 0)
+        }
+        else if (v4 == 0) {
           v4 = nr;
-        else
+        }
+        else {
           break;
+        }
       }
       nr++;
       bp++;
@@ -316,8 +336,9 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   Object *ob = ED_object_active_context(C);
 
   /* sanity checks */
-  if (!scene || ID_IS_LINKED(scene) || !ob)
+  if (!scene || ID_IS_LINKED(scene) || !ob) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Get object to work on - use a menu if we need to... */
   if (ob->instance_collection && ID_IS_LINKED(ob->instance_collection)) {
@@ -411,8 +432,9 @@ static const EnumPropertyItem *proxy_collection_object_itemf(bContext *C,
   int i = 0;
   Object *ob = ED_object_active_context(C);
 
-  if (!ob || !ob->instance_collection)
+  if (!ob || !ob->instance_collection) {
     return DummyRNA_DEFAULT_items;
+  }
 
   /* find the object to affect */
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob->instance_collection, object) {
@@ -529,8 +551,9 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 
 void ED_object_parent_clear(Object *ob, const int type)
 {
-  if (ob->parent == NULL)
+  if (ob->parent == NULL) {
     return;
+  }
 
   switch (type) {
     case CLEAR_PARENT_ALL: {
@@ -664,8 +687,9 @@ bool ED_object_parent_set(ReportList *reports,
 
   /* preconditions */
   if (partype == PAR_FOLLOW || partype == PAR_PATH_CONST) {
-    if (par->type != OB_CURVE)
+    if (par->type != OB_CURVE) {
       return 0;
+    }
     else {
       Curve *cu = par->data;
       Curve *cu_eval = parent_eval->data;
@@ -687,13 +711,15 @@ bool ED_object_parent_set(ReportList *reports,
         FCurve *fcu = verify_fcurve(bmain, act, NULL, NULL, "eval_time", 0, 1);
 
         /* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
-        if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first)
+        if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
           add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
+        }
       }
 
       /* fall back on regular parenting now (for follow only) */
-      if (partype == PAR_FOLLOW)
+      if (partype == PAR_FOLLOW) {
         partype = PAR_OBJECT;
+      }
     }
   }
   else if (ELEM(partype, PAR_BONE, PAR_BONE_RELATIVE)) {
@@ -730,10 +756,12 @@ bool ED_object_parent_set(ReportList *reports,
       }
 
       /* handle types */
-      if (pchan)
+      if (pchan) {
         BLI_strncpy(ob->parsubstr, pchan->name, sizeof(ob->parsubstr));
-      else
+      }
+      else {
         ob->parsubstr[0] = 0;
+      }
 
       if (partype == PAR_PATH_CONST) {
         /* don't do anything here, since this is not technically "parenting" */
@@ -955,8 +983,9 @@ static int parent_set_exec(bContext *C, wmOperator *op)
     BLI_kdtree_3d_free(tree);
   }
 
-  if (!ok)
+  if (!ok) {
     return OPERATOR_CANCELLED;
+  }
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -1052,10 +1081,12 @@ static bool parent_set_poll_property(const bContext *UNUSED(C),
   /* Only show XMirror for PAR_ARMATURE_ENVELOPE and PAR_ARMATURE_AUTO! */
   if (STREQ(prop_id, "xmirror")) {
     const int type = RNA_enum_get(op->ptr, "type");
-    if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO))
+    if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO)) {
       return true;
-    else
+    }
+    else {
       return false;
+    }
   }
 
   return true;
@@ -1184,12 +1215,14 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
       if (ELEM(con->type,
                CONSTRAINT_TYPE_TRACKTO,
                CONSTRAINT_TYPE_LOCKTRACK,
-               CONSTRAINT_TYPE_DAMPTRACK))
+               CONSTRAINT_TYPE_DAMPTRACK)) {
         BKE_constraint_remove(&ob->constraints, con);
+      }
     }
 
-    if (type == CLEAR_TRACK_KEEP_TRANSFORM)
+    if (type == CLEAR_TRACK_KEEP_TRANSFORM) {
       BKE_object_apply_mat4(ob, ob->obmat, true, true);
+    }
   }
   CTX_DATA_END;
 
@@ -1544,20 +1577,24 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
               break;
             }
 
-            if (cu_dst->vfont)
+            if (cu_dst->vfont) {
               id_us_min(&cu_dst->vfont->id);
+            }
             cu_dst->vfont = cu_src->vfont;
             id_us_plus((ID *)cu_dst->vfont);
-            if (cu_dst->vfontb)
+            if (cu_dst->vfontb) {
               id_us_min(&cu_dst->vfontb->id);
+            }
             cu_dst->vfontb = cu_src->vfontb;
             id_us_plus((ID *)cu_dst->vfontb);
-            if (cu_dst->vfonti)
+            if (cu_dst->vfonti) {
               id_us_min(&cu_dst->vfonti->id);
+            }
             cu_dst->vfonti = cu_src->vfonti;
             id_us_plus((ID *)cu_dst->vfonti);
-            if (cu_dst->vfontbi)
+            if (cu_dst->vfontbi) {
               id_us_min(&cu_dst->vfontbi->id);
+            }
             cu_dst->vfontbi = cu_src->vfontbi;
             id_us_plus((ID *)cu_dst->vfontbi);
 
@@ -1829,8 +1866,9 @@ static void single_obdata_users(
           case OB_MESH:
             /* Needed to remap texcomesh below. */
             me = ob->data = ID_NEW_SET(ob->data, BKE_mesh_copy(bmain, ob->data));
-            if (me->key) /* We do not need to set me->key->id.newid here... */
+            if (me->key) { /* We do not need to set me->key->id.newid here... */
               BKE_animdata_copy_id_action(bmain, (ID *)me->key, false);
+            }
             break;
           case OB_MBALL:
             ob->data = ID_NEW_SET(ob->data, BKE_mball_copy(bmain, ob->data));
@@ -1841,13 +1879,15 @@ static void single_obdata_users(
             ob->data = cu = ID_NEW_SET(ob->data, BKE_curve_copy(bmain, ob->data));
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
-            if (cu->key) /* We do not need to set cu->key->id.newid here... */
+            if (cu->key) { /* We do not need to set cu->key->id.newid here... */
               BKE_animdata_copy_id_action(bmain, (ID *)cu->key, false);
+            }
             break;
           case OB_LATTICE:
             ob->data = lat = ID_NEW_SET(ob->data, BKE_lattice_copy(bmain, ob->data));
-            if (lat->key) /* We do not need to set lat->key->id.newid here... */
+            if (lat->key) { /* We do not need to set lat->key->id.newid here... */
               BKE_animdata_copy_id_action(bmain, (ID *)lat->key, false);
+            }
             break;
           case OB_ARMATURE:
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1944,25 +1984,35 @@ static void single_mat_users_expand(Main *bmain)
   MetaBall *mb;
   bGPdata *gpd;
 
-  for (ob = bmain->objects.first; ob; ob = ob->id.next)
-    if (ob->id.tag & LIB_TAG_NEW)
+  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+    if (ob->id.tag & LIB_TAG_NEW) {
       new_id_matar(bmain, ob->mat, ob->totcol);
+    }
+  }
 
-  for (me = bmain->meshes.first; me; me = me->id.next)
-    if (me->id.tag & LIB_TAG_NEW)
+  for (me = bmain->meshes.first; me; me = me->id.next) {
+    if (me->id.tag & LIB_TAG_NEW) {
       new_id_matar(bmain, me->mat, me->totcol);
+    }
+  }
 
-  for (cu = bmain->curves.first; cu; cu = cu->id.next)
-    if (cu->id.tag & LIB_TAG_NEW)
+  for (cu = bmain->curves.first; cu; cu = cu->id.next) {
+    if (cu->id.tag & LIB_TAG_NEW) {
       new_id_matar(bmain, cu->mat, cu->totcol);
+    }
+  }
 
-  for (mb = bmain->metaballs.first; mb; mb = mb->id.next)
-    if (mb->id.tag & LIB_TAG_NEW)
+  for (mb = bmain->metaballs.first; mb; mb = mb->id.next) {
+    if (mb->id.tag & LIB_TAG_NEW) {
       new_id_matar(bmain, mb->mat, mb->totcol);
+    }
+  }
 
-  for (gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next)
-    if (gpd->id.tag & LIB_TAG_NEW)
+  for (gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
+    if (gpd->id.tag & LIB_TAG_NEW) {
       new_id_matar(bmain, gpd->mat, gpd->totcol);
+    }
+  }
 }
 
 /* used for copying scenes */
@@ -2592,8 +2642,9 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
 
   RNA_string_get(op->ptr, "name", name);
   ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
-  if (base == NULL || ma == NULL)
+  if (base == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   assign_material(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 

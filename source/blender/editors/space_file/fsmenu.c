@@ -351,8 +351,9 @@ void fsmenu_remove_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx
 
   fsm_head = ED_fsmenu_get_category(fsmenu, category);
 
-  for (fsm_iter = fsm_head; fsm_iter && idx; fsm_prev = fsm_iter, fsm_iter = fsm_iter->next)
+  for (fsm_iter = fsm_head; fsm_iter && idx; fsm_prev = fsm_iter, fsm_iter = fsm_iter->next) {
     idx--;
+  }
 
   if (fsm_iter) {
     /* you should only be able to remove entries that were
@@ -382,8 +383,9 @@ void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
   int nwritten = 0;
 
   FILE *fp = BLI_fopen(filename, "w");
-  if (!fp)
+  if (!fp) {
     return;
+  }
 
   fprintf(fp, "[Bookmarks]\n");
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsm_iter;
@@ -419,8 +421,9 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
   FILE *fp;
 
   fp = BLI_fopen(filename, "r");
-  if (!fp)
+  if (!fp) {
     return;
+  }
 
   name[0] = '\0';
 
@@ -533,8 +536,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       char defPath[FILE_MAX];
 
       result = CFURLEnumeratorGetNextURL(volEnum, &cfURL, NULL);
-      if (result != kCFURLEnumeratorSuccess)
+      if (result != kCFURLEnumeratorSuccess) {
         continue;
+      }
 
       CFURLGetFileSystemRepresentation(cfURL, false, (UInt8 *)defPath, FILE_MAX);
 
@@ -564,14 +568,16 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                                                     kLSSharedFileListDoNotMountVolumes,
                                                 &cfURL,
                                                 NULL);
-        if (err != noErr || !cfURL)
+        if (err != noErr || !cfURL) {
           continue;
+        }
 
         CFStringRef pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 
         if (pathString == NULL ||
-            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
+            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8)) {
           continue;
+        }
 
         /* Add end slash for consistency with other platforms */
         BLI_add_slash(line);
@@ -677,8 +683,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #    endif
 
       /* fallback */
-      if (!found)
+      if (!found) {
         fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", NULL, FS_INSERT_SORTED);
+      }
     }
   }
 #  endif

@@ -97,12 +97,15 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
     width *= sc->zoom;
     height *= sc->zoom;
 
-    if ((width < 4) && (height < 4) && sc->zoom < oldzoom)
+    if ((width < 4) && (height < 4) && sc->zoom < oldzoom) {
       sc->zoom = oldzoom;
-    else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom)
+    }
+    else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom) {
       sc->zoom = oldzoom;
-    else if (BLI_rcti_size_y(&ar->winrct) <= sc->zoom)
+    }
+    else if (BLI_rcti_size_y(&ar->winrct) <= sc->zoom) {
       sc->zoom = oldzoom;
+    }
   }
 
   if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
@@ -216,8 +219,9 @@ static int open_exec(bContext *C, wmOperator *op)
   clip = BKE_movieclip_file_add_exists(bmain, str);
 
   if (!clip) {
-    if (op->customdata)
+    if (op->customdata) {
       MEM_freeN(op->customdata);
+    }
 
     BKE_reportf(op->reports,
                 RPT_ERROR,
@@ -228,8 +232,9 @@ static int open_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!op->customdata)
+  if (!op->customdata) {
     open_init(C, op);
+  }
 
   /* hook into UI */
   pprop = op->customdata;
@@ -261,8 +266,9 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
   char path[FILE_MAX];
   MovieClip *clip = NULL;
 
-  if (sc)
+  if (sc) {
     clip = ED_space_clip_get_clip(sc);
+  }
 
   if (clip) {
     BLI_strncpy(path, clip->name, sizeof(path));
@@ -274,11 +280,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
     BLI_strncpy(path, U.textudir, sizeof(path));
   }
 
-  if (RNA_struct_property_is_set(op->ptr, "files"))
+  if (RNA_struct_property_is_set(op->ptr, "files")) {
     return open_exec(C, op);
+  }
 
-  if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
+  if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
     RNA_boolean_set(op->ptr, "relative_path", (U.flag & USER_RELPATHS) != 0);
+  }
 
   open_init(C, op);
 
@@ -318,8 +326,9 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
   MovieClip *clip = CTX_data_edit_movieclip(C);
 
-  if (!clip)
+  if (!clip) {
     return OPERATOR_CANCELLED;
+  }
 
   WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_CLIP_PREFETCH);
   BKE_movieclip_reload(CTX_data_main(C), clip);
@@ -360,10 +369,12 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   vpd->x = event->x;
   vpd->y = event->y;
 
-  if (sc->flag & SC_LOCK_SELECTION)
+  if (sc->flag & SC_LOCK_SELECTION) {
     vpd->vec = &sc->xlockof;
-  else
+  }
+  else {
     vpd->vec = &sc->xof;
+  }
 
   copy_v2_v2(&vpd->xof, vpd->vec);
   copy_v2_v2(&vpd->xorig, &vpd->xof);
@@ -569,8 +580,9 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     delta = event->prevx - event->x + event->prevy - event->y;
 
-    if (U.uiflag & USER_ZOOM_INVERT)
+    if (U.uiflag & USER_ZOOM_INVERT) {
       delta *= -1;
+    }
 
     factor = 1.0f + delta / 300.0f;
     RNA_float_set(op->ptr, "factor", factor);
@@ -879,8 +891,9 @@ static int view_all_exec(bContext *C, wmOperator *op)
       /* find the zoom value that will fit the image in the image space */
       sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
     }
-    else
+    else {
       sclip_zoom_set(C, 1.0f, NULL);
+    }
   }
 
   sc->xof = sc->yof = 0.0f;
@@ -941,8 +954,9 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 static bool change_frame_poll(bContext *C)
 {
   /* prevent changes during render */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return 0;
+  }
 
   return ED_space_clip_poll(C);
 }
@@ -995,8 +1009,9 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ARegion *ar = CTX_wm_region(C);
 
   if (ar->regiontype == RGN_TYPE_WINDOW) {
-    if (event->mval[1] > 16)
+    if (event->mval[1] > 16) {
       return OPERATOR_PASS_THROUGH;
+    }
   }
 
   RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
@@ -1022,8 +1037,9 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     case LEFTMOUSE:
     case RIGHTMOUSE:
-      if (event->val == KM_RELEASE)
+      if (event->val == KM_RELEASE) {
         return OPERATOR_FINISHED;
+      }
       break;
   }
 
@@ -1079,17 +1095,21 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
        MCLIP_PROXY_UNDISTORTED_SIZE_100}};
   int size_nr = undistort ? 1 : 0;
 
-  if (size_flag & size_flags[size_nr][0])
+  if (size_flag & size_flags[size_nr][0]) {
     build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_25;
+  }
 
-  if (size_flag & size_flags[size_nr][1])
+  if (size_flag & size_flags[size_nr][1]) {
     build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_50;
+  }
 
-  if (size_flag & size_flags[size_nr][2])
+  if (size_flag & size_flags[size_nr][2]) {
     build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_75;
+  }
 
-  if (size_flag & size_flags[size_nr][3])
+  if (size_flag & size_flags[size_nr][3]) {
     build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_100;
+  }
 
   return build_count;
 }
@@ -1110,12 +1130,14 @@ static void do_movie_proxy(void *pjv,
   struct MovieDistortion *distortion = NULL;
   int cfra, sfra = SFRA, efra = EFRA;
 
-  if (pj->index_context)
+  if (pj->index_context) {
     IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
+  }
 
   if (!build_undistort_count) {
-    if (*stop)
+    if (*stop) {
       pj->stop = 1;
+    }
 
     return;
   }
@@ -1138,18 +1160,21 @@ static void do_movie_proxy(void *pjv,
     BKE_movieclip_build_proxy_frame(
         clip, pj->clip_flag, distortion, cfra, build_undistort_sizes, build_undistort_count, 1);
 
-    if (*stop || G.is_break)
+    if (*stop || G.is_break) {
       break;
+    }
 
     *do_update = true;
     *progress = ((float)cfra - sfra) / (efra - sfra);
   }
 
-  if (distortion)
+  if (distortion) {
     BKE_tracking_distortion_free(distortion);
+  }
 
-  if (*stop)
+  if (*stop) {
     pj->stop = 1;
+  }
 }
 
 /* *****
@@ -1371,11 +1396,13 @@ static void proxy_endjob(void *pjv)
 {
   ProxyJob *pj = pjv;
 
-  if (pj->clip->anim)
+  if (pj->clip->anim) {
     IMB_close_anim_proxies(pj->clip->anim);
+  }
 
-  if (pj->index_context)
+  if (pj->index_context) {
     IMB_anim_index_rebuild_finish(pj->index_context, pj->stop);
+  }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
     /* Timecode might have changed, so do a full reload to deal with this. */
@@ -1398,8 +1425,9 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
-  if ((clip->flag & MCLIP_USE_PROXY) == 0)
+  if ((clip->flag & MCLIP_USE_PROXY) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
@@ -1491,8 +1519,9 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 
 static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-  if (event->type != NDOF_MOTION)
+  if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
+  }
   else {
     SpaceClip *sc = CTX_wm_space_clip(C);
     ARegion *ar = CTX_wm_region(C);
@@ -1534,8 +1563,9 @@ void CLIP_OT_view_ndof(wmOperatorType *ot)
 static int clip_prefetch_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_CLIP_PREFETCH))
+  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_CLIP_PREFETCH)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
 
   /* running render */
   switch (event->type) {
@@ -1577,8 +1607,9 @@ static int clip_set_scene_frames_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   int clip_length;
 
-  if (ELEM(NULL, scene, clip))
+  if (ELEM(NULL, scene, clip)) {
     return OPERATOR_CANCELLED;
+  }
 
   clip_length = BKE_movieclip_get_duration(clip);
 

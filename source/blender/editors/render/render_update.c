@@ -81,16 +81,19 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
   /* don't do this render engine update if we're updating the scene from
    * other threads doing e.g. rendering or baking jobs */
-  if (!BLI_thread_is_main())
+  if (!BLI_thread_is_main()) {
     return;
+  }
 
   /* don't call this recursively for frame updates */
-  if (recursive_check)
+  if (recursive_check) {
     return;
+  }
 
   /* Do not call if no WM available, see T42688. */
-  if (BLI_listbase_is_empty(&bmain->wm))
+  if (BLI_listbase_is_empty(&bmain->wm)) {
     return;
+  }
 
   recursive_check = true;
 
@@ -160,12 +163,14 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *sa)
   ARegion *ar;
   wmWindowManager *wm = bmain->wm.first;
 
-  if (sa->spacetype != SPACE_VIEW3D)
+  if (sa->spacetype != SPACE_VIEW3D) {
     return;
+  }
 
   for (ar = sa->regionbase.first; ar; ar = ar->next) {
-    if (ar->regiontype != RGN_TYPE_WINDOW || !(ar->regiondata))
+    if (ar->regiontype != RGN_TYPE_WINDOW || !(ar->regiondata)) {
       continue;
+    }
     ED_view3d_stop_render_preview(wm, ar);
   }
 }
@@ -237,8 +242,9 @@ static void texture_changed(Main *bmain, Tex *tex)
     /* find compositing nodes */
     if (scene->use_nodes && scene->nodetree) {
       for (node = scene->nodetree->nodes.first; node; node = node->next) {
-        if (node->id == &tex->id)
+        if (node->id == &tex->id) {
           ED_node_tag_update_id(&scene->id);
+        }
       }
     }
   }
@@ -258,9 +264,11 @@ static void image_changed(Main *bmain, Image *ima)
   BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
 
   /* textures */
-  for (tex = bmain->textures.first; tex; tex = tex->id.next)
-    if (tex->ima == ima)
+  for (tex = bmain->textures.first; tex; tex = tex->id.next) {
+    if (tex->ima == ima) {
       texture_changed(bmain, tex);
+    }
+  }
 }
 
 static void scene_changed(Main *bmain, Scene *scene)

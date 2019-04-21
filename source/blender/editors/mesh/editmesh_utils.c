@@ -626,10 +626,12 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm,
 
         if (fabsf(uvdiff[0]) < limit[0] && fabsf(uvdiff[1]) < limit[1] &&
             (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
-          if (lastv)
+          if (lastv) {
             lastv->next = next;
-          else
+          }
+          else {
             vlist = next;
+          }
           iterv->next = newvlist;
           newvlist = iterv;
         }
@@ -776,10 +778,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         if (fabsf(uvdiff[0]) < STD_UV_CONNECT_LIMIT && fabsf(uvdiff[1]) < STD_UV_CONNECT_LIMIT &&
             (!use_winding ||
              winding[BM_elem_index_get(iterv->l->f)] == winding[BM_elem_index_get(v->l->f)])) {
-          if (lastv)
+          if (lastv) {
             lastv->next = next;
-          else
+          }
+          else {
             vlist = next;
+          }
           iterv->next = newvlist;
           newvlist = iterv;
         }
@@ -833,8 +837,9 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
             UvElement *element, *initelement = element_map->vert[BM_elem_index_get(l->v)];
 
             for (element = initelement; element; element = element->next) {
-              if (element->separate)
+              if (element->separate) {
                 initelement = element;
+              }
 
               if (element->l->f == efa) {
                 /* found the uv corresponding to our face and vertex.
@@ -848,8 +853,9 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                 islandbufsize++;
 
                 for (element = initelement; element; element = element->next) {
-                  if (element->separate && element != initelement)
+                  if (element->separate && element != initelement) {
                     break;
+                  }
 
                   if (island_number[BM_elem_index_get(element->l->f)] == INVALID_ISLAND) {
                     stack[stacksize++] = element->l->f;
@@ -871,8 +877,9 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     /* remap */
     for (i = 0; i < bm->totvert; i++) {
       /* important since we may do selection only. Some of these may be NULL */
-      if (element_map->vert[i])
+      if (element_map->vert[i]) {
         element_map->vert[i] = &islandbuf[map[element_map->vert[i] - element_map->buf]];
+      }
     }
 
     element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands,
@@ -880,10 +887,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     j = 0;
     for (i = 0; i < totuv; i++) {
       UvElement *element = element_map->buf[i].next;
-      if (element == NULL)
+      if (element == NULL) {
         islandbuf[map[i]].next = NULL;
-      else
+      }
+      else {
         islandbuf[map[i]].next = &islandbuf[map[element - element_map->buf]];
+      }
 
       if (islandbuf[i].island != j) {
         j++;
@@ -907,10 +916,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 void BM_uv_vert_map_free(UvVertMap *vmap)
 {
   if (vmap) {
-    if (vmap->vert)
+    if (vmap->vert) {
       MEM_freeN(vmap->vert);
-    if (vmap->buf)
+    }
+    if (vmap->buf) {
       MEM_freeN(vmap->buf);
+    }
     MEM_freeN(vmap);
   }
 }
@@ -918,12 +929,15 @@ void BM_uv_vert_map_free(UvVertMap *vmap)
 void BM_uv_element_map_free(UvElementMap *element_map)
 {
   if (element_map) {
-    if (element_map->vert)
+    if (element_map->vert) {
       MEM_freeN(element_map->vert);
-    if (element_map->buf)
+    }
+    if (element_map->buf) {
       MEM_freeN(element_map->buf);
-    if (element_map->islandIndices)
+    }
+    if (element_map->islandIndices) {
       MEM_freeN(element_map->islandIndices);
+    }
     MEM_freeN(element_map);
   }
 }
@@ -1243,12 +1257,15 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
   char hflag_swap = swap ? BM_ELEM_SELECT : 0;
   bool changed = true;
 
-  if (em->selectmode & SCE_SELECT_VERTEX)
+  if (em->selectmode & SCE_SELECT_VERTEX) {
     itermode = BM_VERTS_OF_MESH;
-  else if (em->selectmode & SCE_SELECT_EDGE)
+  }
+  else if (em->selectmode & SCE_SELECT_EDGE) {
     itermode = BM_EDGES_OF_MESH;
-  else
+  }
+  else {
     itermode = BM_FACES_OF_MESH;
+  }
 
   BM_ITER_MESH (ele, &iter, em->bm, itermode) {
     if (!BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) {

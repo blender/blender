@@ -84,8 +84,9 @@ static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Scene *scene = CTX_data_scene(C);
 
-  if (!scene || !ob)
+  if (!scene || !ob) {
     return OPERATOR_CANCELLED;
+  }
 
   object_add_particle_system(bmain, scene, ob, NULL);
 
@@ -118,8 +119,9 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int mode_orig;
 
-  if (!scene || !ob)
+  if (!scene || !ob) {
     return OPERATOR_CANCELLED;
+  }
 
   mode_orig = ob->mode;
   object_remove_particle_system(bmain, scene, ob);
@@ -177,15 +179,18 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
   psys = ptr.data;
 
   /* add or copy particle setting */
-  if (psys->part)
+  if (psys->part) {
     part = BKE_particlesettings_copy(bmain, psys->part);
-  else
+  }
+  else {
     part = BKE_particlesettings_add(bmain, "ParticleSettings");
+  }
 
   ob = ptr.id.data;
 
-  if (psys->part)
+  if (psys->part) {
     id_us_min(&psys->part->id);
+  }
 
   psys->part = part;
 
@@ -225,12 +230,14 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
   ParticleTarget *pt;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   pt = psys->targets.first;
-  for (; pt; pt = pt->next)
+  for (; pt; pt = pt->next) {
     pt->flag &= ~PTARGET_CURRENT;
+  }
 
   pt = MEM_callocN(sizeof(ParticleTarget), "keyed particle target");
 
@@ -270,8 +277,9 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
   ParticleTarget *pt;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   pt = psys->targets.first;
   for (; pt; pt = pt->next) {
@@ -283,8 +291,9 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
   }
   pt = psys->targets.last;
 
-  if (pt)
+  if (pt) {
     pt->flag |= PTARGET_CURRENT;
+  }
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -317,8 +326,9 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ptr.id.data;
   ParticleTarget *pt;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   pt = psys->targets.first;
   for (; pt; pt = pt->next) {
@@ -356,8 +366,9 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ptr.id.data;
   ParticleTarget *pt;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
   pt = psys->targets.first;
   for (; pt; pt = pt->next) {
     if (pt->flag & PTARGET_CURRENT && pt->next) {
@@ -392,8 +403,9 @@ static int dupliob_refresh_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = ptr.data;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   psys_check_group_weights(psys->part);
   DEG_id_tag_update(&psys->part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
@@ -423,8 +435,9 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part;
   ParticleDupliWeight *dw;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   part = psys->part;
   for (dw = part->instance_weights.first; dw; dw = dw->next) {
@@ -462,8 +475,9 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part;
   ParticleDupliWeight *dw;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
   part = psys->part;
   for (dw = part->instance_weights.first; dw; dw = dw->next) {
     if (dw->flag & PART_DUPLIW_CURRENT) {
@@ -502,8 +516,9 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part;
   ParticleDupliWeight *dw;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   part = psys->part;
   for (dw = part->instance_weights.first; dw; dw = dw->next) {
@@ -515,8 +530,9 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
   }
   dw = part->instance_weights.last;
 
-  if (dw)
+  if (dw) {
     dw->flag |= PART_DUPLIW_CURRENT;
+  }
 
   DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
   WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
@@ -547,8 +563,9 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part;
   ParticleDupliWeight *dw;
 
-  if (!psys)
+  if (!psys) {
     return OPERATOR_CANCELLED;
+  }
 
   part = psys->part;
   for (dw = part->instance_weights.first; dw; dw = dw->next) {
@@ -593,11 +610,13 @@ static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Part
   int i, k;
   float hairmat[4][4];
 
-  if (!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR)
+  if (!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR) {
     return;
+  }
 
-  if (!psys->part || psys->part->type != PART_HAIR)
+  if (!psys->part || psys->part->type != PART_HAIR) {
     return;
+  }
 
   edit = psys->edit;
   point = edit ? edit->points : NULL;
@@ -639,8 +658,9 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
   ParticleSystem *psys = NULL;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
-  if (!ob)
+  if (!ob) {
     return OPERATOR_CANCELLED;
+  }
 
   if (all) {
     for (psys = ob->particlesystem.first; psys; psys = psys->next) {
@@ -705,12 +725,15 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   float from_ob_imat[4][4], to_ob_imat[4][4];
   float from_imat[4][4], to_imat[4][4];
 
-  if (!target_psmd->mesh_final)
+  if (!target_psmd->mesh_final) {
     return false;
-  if (!psys->part || psys->part->type != PART_HAIR)
+  }
+  if (!psys->part || psys->part->type != PART_HAIR) {
     return false;
-  if (!target_psys->part || target_psys->part->type != PART_HAIR)
+  }
+  if (!target_psys->part || target_psys->part->type != PART_HAIR) {
     return false;
+  }
 
   edit_point = target_edit ? target_edit->points : NULL;
 
@@ -740,8 +763,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   mvert = mesh->mvert;
 
   /* convert to global coordinates */
-  for (i = 0; i < numverts; i++)
+  for (i = 0; i < numverts; i++) {
     mul_m4_v3(to_mat, mvert[i].co);
+  }
 
   if (mesh->totface != 0) {
     mface = mesh->mface;
@@ -761,10 +785,12 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     float from_co[3];
     BVHTreeNearest nearest;
 
-    if (from_global)
+    if (from_global) {
       mul_v3_m4v3(from_co, from_ob_imat, pa->hair[0].co);
-    else
+    }
+    else {
       mul_v3_m4v3(from_co, from_ob_imat, pa->hair[0].world_co);
+    }
     mul_m4_v3(from_mat, from_co);
 
     nearest.index = -1;
@@ -773,8 +799,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
 
     if (nearest.index == -1) {
-      if (G.debug & G_DEBUG)
+      if (G.debug & G_DEBUG) {
         printf("No nearest point found for hair root!");
+      }
       continue;
     }
 
@@ -790,8 +817,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
         copy_v3_v3(v[3], mvert[mf->v4].co);
         interp_weights_poly_v3(tpa->fuv, v, 4, nearest.co);
       }
-      else
+      else {
         interp_weights_poly_v3(tpa->fuv, v, 3, nearest.co);
+      }
       tpa->foffset = 0.0f;
 
       tpa->num = nearest.index;
@@ -815,8 +843,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       float hairmat[4][4], imat[4][4];
       float offset[3];
 
-      if (to_global)
+      if (to_global) {
         copy_m4_m4(imat, target_ob->obmat);
+      }
       else {
         /* note: using target_dm here, which is in target_ob object space and has full modifiers */
         psys_mat_hair_to_object(target_ob, target_mesh, target_psys->part->from, tpa, hairmat);
@@ -832,10 +861,12 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
              k++, key++, tkey++, ekey++) {
           float co_orig[3];
 
-          if (from_global)
+          if (from_global) {
             mul_v3_m4v3(co_orig, from_ob_imat, key->co);
-          else
+          }
+          else {
             mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
+          }
           mul_m4_v3(from_mat, co_orig);
 
           add_v3_v3v3(tkey->co, co_orig, offset);
@@ -851,10 +882,12 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
         for (k = 0, key = pa->hair, tkey = tpa->hair; k < tpa->totkey; k++, key++, tkey++) {
           float co_orig[3];
 
-          if (from_global)
+          if (from_global) {
             mul_v3_m4v3(co_orig, from_ob_imat, key->co);
-          else
+          }
+          else {
             mul_v3_m4v3(co_orig, from_ob_imat, key->world_co);
+          }
           mul_m4_v3(from_mat, co_orig);
 
           add_v3_v3v3(tkey->co, co_orig, offset);
@@ -879,8 +912,9 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
 {
   bool ok;
 
-  if (!psys)
+  if (!psys) {
     return false;
+  }
 
   ok = remap_hair_emitter(depsgraph,
                           scene,
@@ -907,8 +941,9 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
   const bool all = RNA_boolean_get(op->ptr, "all");
   bool any_connected = false;
 
-  if (!ob)
+  if (!ob) {
     return OPERATOR_CANCELLED;
+  }
 
   if (all) {
     for (psys = ob->particlesystem.first; psys; psys = psys->next) {
@@ -966,8 +1001,9 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   KEY_K;
   POINT_P;
 
-  if (!edit_from)
+  if (!edit_from) {
     return;
+  }
 
   edit = MEM_dupallocN(edit_from);
   edit->psys = psys;
@@ -1015,10 +1051,12 @@ static void remove_particle_systems_from_object(Object *ob_to)
 {
   ModifierData *md, *md_next;
 
-  if (ob_to->type != OB_MESH)
+  if (ob_to->type != OB_MESH) {
     return;
-  if (!ob_to->data || ID_IS_LINKED(ob_to->data))
+  }
+  if (!ob_to->data || ID_IS_LINKED(ob_to->data)) {
     return;
+  }
 
   for (md = ob_to->modifiers.first; md; md = md_next) {
     md_next = md->next;
@@ -1056,10 +1094,12 @@ static bool copy_particle_systems_to_object(const bContext *C,
   CustomData_MeshMasks cdmask = {0};
   int i, totpsys;
 
-  if (ob_to->type != OB_MESH)
+  if (ob_to->type != OB_MESH) {
     return false;
-  if (!ob_to->data || ID_IS_LINKED(ob_to->data))
+  }
+  if (!ob_to->data || ID_IS_LINKED(ob_to->data)) {
     return false;
+  }
 
 /* For remapping we need a valid DM.
  * Because the modifiers are appended at the end it's safe to use
@@ -1081,8 +1121,9 @@ static bool copy_particle_systems_to_object(const bContext *C,
     psys = BKE_object_copy_particlesystem(psys_from, 0);
     tmp_psys[i] = psys;
 
-    if (psys_start == NULL)
+    if (psys_start == NULL) {
       psys_start = psys;
+    }
 
     psys_emitter_customdata_mask(psys, &cdmask);
   }
@@ -1181,12 +1222,14 @@ static bool copy_particle_systems_to_object(const bContext *C,
 static bool copy_particle_systems_poll(bContext *C)
 {
   Object *ob;
-  if (!ED_operator_object_active_editable(C))
+  if (!ED_operator_object_active_editable(C)) {
     return false;
+  }
 
   ob = ED_object_active_context(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem))
+  if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
+  }
 
   return true;
 }
@@ -1212,13 +1255,16 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
         remove_particle_systems_from_object(ob_to);
         changed = true;
       }
-      if (copy_particle_systems_to_object(C, scene, ob_from, psys_from, ob_to, space, false))
+      if (copy_particle_systems_to_object(C, scene, ob_from, psys_from, ob_to, space, false)) {
         changed = true;
-      else
+      }
+      else {
         fail++;
+      }
 
-      if (changed)
+      if (changed) {
         changed_tot++;
+      }
     }
   }
   CTX_DATA_END;

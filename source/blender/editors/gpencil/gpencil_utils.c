@@ -106,8 +106,9 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
       {
         if (ob && (ob->type == OB_GPENCIL)) {
           /* GP Object */
-          if (r_ptr)
+          if (r_ptr) {
             RNA_id_pointer_create(&ob->id, r_ptr);
+          }
           return (bGPdata **)&ob->data;
         }
         else {
@@ -122,15 +123,17 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
       {
         if (ob && (ob->type == OB_GPENCIL)) {
           /* GP Object */
-          if (r_ptr)
+          if (r_ptr) {
             RNA_id_pointer_create(&ob->id, r_ptr);
+          }
           return (bGPdata **)&ob->data;
         }
         else {
           /* Annotations */
           /* XXX: */
-          if (r_ptr)
+          if (r_ptr) {
             RNA_id_pointer_create(&scene->id, r_ptr);
+          }
           return &scene->gpd;
         }
 
@@ -144,8 +147,9 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
         if (snode && snode->nodetree) {
           /* for now, as long as there's an active node tree,
            * default to using that in the Nodes Editor */
-          if (r_ptr)
+          if (r_ptr) {
             RNA_id_pointer_create(&snode->nodetree->id, r_ptr);
+          }
           return &snode->nodetree->gpd;
         }
 
@@ -159,8 +163,9 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
         /* For now, Grease Pencil data is associated with the space
          * (actually preview region only). */
         /* XXX our convention for everything else is to link to data though... */
-        if (r_ptr)
+        if (r_ptr) {
           RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, r_ptr);
+        }
         return &sseq->gpd;
       }
       case SPACE_IMAGE: /* Image/UV Editor */
@@ -169,8 +174,9 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
 
         /* for now, Grease Pencil data is associated with the space... */
         /* XXX our convention for everything else is to link to data though... */
-        if (r_ptr)
+        if (r_ptr) {
           RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, r_ptr);
+        }
         return &sima->gpd;
       }
       case SPACE_CLIP: /* Nodes Editor */
@@ -182,16 +188,19 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
           if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
             MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
 
-            if (!track)
+            if (!track) {
               return NULL;
+            }
 
-            if (r_ptr)
+            if (r_ptr) {
               RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, r_ptr);
+            }
             return &track->gpd;
           }
           else {
-            if (r_ptr)
+            if (r_ptr) {
               RNA_id_pointer_create(&clip->id, r_ptr);
+            }
             return &clip->gpd;
           }
         }
@@ -358,10 +367,12 @@ const EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C,
     item_tmp.name = gpl->info;
     item_tmp.value = i;
 
-    if (gpl->flag & GP_LAYER_ACTIVE)
+    if (gpl->flag & GP_LAYER_ACTIVE) {
       item_tmp.icon = ICON_GREASEPENCIL;
-    else
+    }
+    else {
       item_tmp.icon = ICON_NONE;
+    }
 
     RNA_enum_item_add(&item, &totitem, &item_tmp);
   }
@@ -408,10 +419,12 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
     item_tmp.name = gpl->info;
     item_tmp.value = tot - i - 1;
 
-    if (gpl->flag & GP_LAYER_ACTIVE)
+    if (gpl->flag & GP_LAYER_ACTIVE) {
       item_tmp.icon = ICON_GREASEPENCIL;
-    else
+    }
+    else {
       item_tmp.icon = ICON_NONE;
+    }
 
     RNA_enum_item_add(&item, &totitem, &item_tmp);
   }
@@ -458,8 +471,9 @@ bool gp_stroke_inside_circle(
 bool ED_gpencil_stroke_can_use_direct(const ScrArea *sa, const bGPDstroke *gps)
 {
   /* sanity check */
-  if (ELEM(NULL, sa, gps))
+  if (ELEM(NULL, sa, gps)) {
     return false;
+  }
 
   /* filter stroke types by flags + spacetype */
   if (gps->flag & GP_STROKE_3DSPACE) {
@@ -494,10 +508,12 @@ bool ED_gpencil_stroke_color_use(Object *ob, const bGPDlayer *gpl, const bGPDstr
   MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
   if (gp_style != NULL) {
-    if (gp_style->flag & GP_STYLE_COLOR_HIDE)
+    if (gp_style->flag & GP_STYLE_COLOR_HIDE) {
       return false;
-    if (((gpl->flag & GP_LAYER_UNLOCK_COLOR) == 0) && (gp_style->flag & GP_STYLE_COLOR_LOCKED))
+    }
+    if (((gpl->flag & GP_LAYER_UNLOCK_COLOR) == 0) && (gp_style->flag & GP_STYLE_COLOR_LOCKED)) {
       return false;
+    }
   }
 
   return true;
@@ -1400,8 +1416,9 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const int def_nr = ob->actdef - 1;
-  if (!BLI_findlink(&ob->defbase, def_nr))
+  if (!BLI_findlink(&ob->defbase, def_nr)) {
     return;
+  }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = gpl->actframe;
@@ -1412,14 +1429,16 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           if (gps->flag & GP_STROKE_SELECT) {
             /* verify the weight array is created */
@@ -1454,8 +1473,9 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const int def_nr = ob->actdef - 1;
-  if (!BLI_findlink(&ob->defbase, def_nr))
+  if (!BLI_findlink(&ob->defbase, def_nr)) {
     return;
+  }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = gpl->actframe;
@@ -1466,14 +1486,16 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           for (int i = 0; i < gps->totpoints; i++) {
             bGPDspoint *pt = &gps->points[i];
@@ -1507,8 +1529,9 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const int def_nr = ob->actdef - 1;
-  if (!BLI_findlink(&ob->defbase, def_nr))
+  if (!BLI_findlink(&ob->defbase, def_nr)) {
     return;
+  }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = gpl->actframe;
@@ -1519,14 +1542,16 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           for (int i = 0; i < gps->totpoints; i++) {
             bGPDspoint *pt = &gps->points[i];
@@ -1558,8 +1583,9 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const int def_nr = ob->actdef - 1;
-  if (!BLI_findlink(&ob->defbase, def_nr))
+  if (!BLI_findlink(&ob->defbase, def_nr)) {
     return;
+  }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = gpl->actframe;
@@ -1570,14 +1596,16 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           for (int i = 0; i < gps->totpoints; i++) {
             bGPDspoint *pt = &gps->points[i];
@@ -2494,15 +2522,18 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
             break;
         }
 
-        if (pt->flag & GP_SPOINT_SELECT)
+        if (pt->flag & GP_SPOINT_SELECT) {
           selected = true;
+        }
       }
 
       /* Change status of stroke */
-      if (selected)
+      if (selected) {
         gps->flag |= GP_STROKE_SELECT;
-      else
+      }
+      else {
         gps->flag &= ~GP_STROKE_SELECT;
+      }
     }
     CTX_DATA_END;
   }

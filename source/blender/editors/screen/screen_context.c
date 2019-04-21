@@ -276,8 +276,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
              * We need to make sure that these mirrored copies are not selected, otherwise some
              * bones will be operated on twice.
              */
-            if (arm->flag & ARM_MIRROR_EDIT)
+            if (arm->flag & ARM_MIRROR_EDIT) {
               flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+            }
 
             /* if we're filtering for editable too, use the check for that instead,
              * as it has selection check too */
@@ -286,16 +287,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
               if (EBONE_EDITABLE(ebone)) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-                if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+                if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
                   CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+                }
               }
             }
             else {
               /* only include bones if visible */
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-              if ((flipbone) && EBONE_VISIBLE(arm, flipbone) == 0)
+              if ((flipbone) && EBONE_VISIBLE(arm, flipbone) == 0) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+              }
             }
           }
         }
@@ -330,8 +333,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
              * We need to make sure that these mirrored copies are not selected, otherwise some
              * bones will be operated on twice.
              */
-            if (arm->flag & ARM_MIRROR_EDIT)
+            if (arm->flag & ARM_MIRROR_EDIT) {
               flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+            }
 
             /* if we're filtering for editable too, use the check for that instead,
              * as it has selection check too */
@@ -340,16 +344,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
               if (EBONE_EDITABLE(ebone)) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-                if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+                if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
                   CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+                }
               }
             }
             else {
               /* only include bones if selected */
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-              if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+              if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+              }
             }
           }
         }
@@ -451,57 +457,66 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "active_base")) {
-    if (view_layer->basact)
+    if (view_layer->basact) {
       CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, view_layer->basact);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "active_object")) {
-    if (obact)
+    if (obact) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "object")) {
-    if (obact)
+    if (obact) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "edit_object")) {
     /* convenience for now, 1 object per scene in editmode */
-    if (obedit)
+    if (obedit) {
       CTX_data_id_pointer_set(result, &obedit->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "sculpt_object")) {
-    if (obact && (obact->mode & OB_MODE_SCULPT))
+    if (obact && (obact->mode & OB_MODE_SCULPT)) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "vertex_paint_object")) {
-    if (obact && (obact->mode & OB_MODE_VERTEX_PAINT))
+    if (obact && (obact->mode & OB_MODE_VERTEX_PAINT)) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "weight_paint_object")) {
-    if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT))
+    if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT)) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "image_paint_object")) {
-    if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT))
+    if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
   else if (CTX_data_equals(member, "particle_edit_object")) {
-    if (obact && (obact->mode & OB_MODE_PARTICLE_EDIT))
+    if (obact && (obact->mode & OB_MODE_PARTICLE_EDIT)) {
       CTX_data_id_pointer_set(result, &obact->id);
+    }
 
     return 1;
   }
@@ -730,8 +745,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
       for (ale = anim_data.first; ale; ale = ale->next) {
-        if (ale->type == ANIMTYPE_FCURVE)
+        if (ale->type == ANIMTYPE_FCURVE) {
           CTX_data_list_add(result, ale->id, &RNA_FCurve, ale->data);
+        }
       }
 
       ANIM_animdata_freelist(&anim_data);

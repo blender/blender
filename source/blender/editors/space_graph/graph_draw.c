@@ -185,8 +185,9 @@ static void draw_fcurve_selected_keyframe_vertices(
          * - only draw those with correct selection state for the current drawing color
          * -
          */
-        if ((bezt->f2 & SELECT) == sel)
+        if ((bezt->f2 & SELECT) == sel) {
           immVertex2fv(pos, bezt->vec[1]);
+        }
       }
       else {
         /* no check for selection here, as curve is not editable... */
@@ -360,8 +361,9 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
        * check that keyframe is selected
        */
       if (sipo->flag & SIPO_SELVHANDLESONLY) {
-        if (BEZT_ISSEL_ANY(bezt) == 0)
+        if (BEZT_ISSEL_ANY(bezt) == 0) {
           continue;
+        }
       }
 
       /* draw handle with appropriate set of colors if selection is ok */
@@ -464,8 +466,9 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *ar, FCurve *fcu)
   /* draw */
   if (first && last) {
     /* anti-aliased lines for more consistent appearance */
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0)
+    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
       GPU_line_smooth(true);
+    }
     GPU_blend(true);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -479,8 +482,9 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *ar, FCurve *fcu)
     immUnbindProgram();
 
     GPU_blend(false);
-    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0)
+    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
       GPU_line_smooth(false);
+    }
   }
 }
 
@@ -502,8 +506,9 @@ static void draw_fcurve_curve(
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
    * happen best just bail out in this case. */
   UI_view2d_grid_size(grid, &dx, &dy);
-  if (dx <= 0.0f)
+  if (dx <= 0.0f) {
     return;
+  }
 
   /* disable any drivers */
   FCurve fcurve_for_draw = *fcu_;
@@ -540,13 +545,15 @@ static void draw_fcurve_curve(
      * This one still amounts to 10 sample-frames for each 1-frame interval
      * which should be quite a decent approximation in many situations.
      */
-    if (samplefreq < 0.1f)
+    if (samplefreq < 0.1f) {
       samplefreq = 0.1f;
+    }
   }
   else {
     /* "Higher Precision" but slower - especially on larger windows (e.g. T40372) */
-    if (samplefreq < 0.00001f)
+    if (samplefreq < 0.00001f) {
       samplefreq = 0.00001f;
+    }
   }
 
   /* the start/end times are simply the horizontal extents of the 'cur' rect */
@@ -613,8 +620,9 @@ static void draw_fcurve_curve_samples(
     else {
       /* extrapolate linear doesn't use the handle, use the next points center instead */
       fac = (prevfpt->vec[0] - fpt->vec[0]) / (prevfpt->vec[0] - v[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v[1] = prevfpt->vec[1] - fac * (prevfpt->vec[1] - fpt->vec[1]);
     }
 
@@ -647,8 +655,9 @@ static void draw_fcurve_curve_samples(
       /* extrapolate linear doesn't use the handle, use the previous points center instead */
       fpt = prevfpt - 1;
       fac = (prevfpt->vec[0] - fpt->vec[0]) / (prevfpt->vec[0] - v[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v[1] = prevfpt->vec[1] - fac * (prevfpt->vec[1] - fpt->vec[1]);
     }
 
@@ -716,15 +725,17 @@ static void draw_fcurve_curve_bezts(
     else if (prevbezt->ipo == BEZT_IPO_LIN) {
       /* extrapolate linear dosnt use the handle, use the next points center instead */
       fac = (prevbezt->vec[1][0] - bezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[1][1] - bezt->vec[1][1]);
     }
     else {
       /* based on angle of handle 1 (relative to keyframe) */
       fac = (prevbezt->vec[0][0] - prevbezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[0][1] - prevbezt->vec[1][1]);
     }
 
@@ -782,8 +793,9 @@ static void draw_fcurve_curve_bezts(
       else {
         /* clamp resolution to max of 32 */
         /* NOTE: higher values will crash */
-        if (resol > 32)
+        if (resol > 32) {
           resol = 32;
+        }
 
         v1[0] = prevbezt->vec[1][0];
         v1[1] = prevbezt->vec[1][1];
@@ -833,15 +845,17 @@ static void draw_fcurve_curve_bezts(
       /* extrapolate linear dosnt use the handle, use the previous points center instead */
       bezt = prevbezt - 1;
       fac = (prevbezt->vec[1][0] - bezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[1][1] - bezt->vec[1][1]);
     }
     else {
       /* based on angle of handle 1 (relative to keyframe) */
       fac = (prevbezt->vec[2][0] - prevbezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
-      if (fac)
+      if (fac) {
         fac = 1.0f / fac;
+      }
       v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[2][1] - prevbezt->vec[1][1]);
     }
 
@@ -1197,8 +1211,9 @@ void graph_draw_curves(
     }
 
     /* undo mapping of keyframes for drawing if scaled F-Curve */
-    if (adt)
+    if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
+    }
   }
 
   /* free list of curves */

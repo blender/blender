@@ -281,10 +281,12 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
     case EDGE_MODE_TAG_FREESTYLE: {
       FreestyleEdge *fed;
       fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
-      if (!val)
+      if (!val) {
         fed->flag &= ~FREESTYLE_EDGE_MARK;
-      else
+      }
+      else {
         fed->flag |= FREESTYLE_EDGE_MARK;
+      }
       break;
     }
 #endif
@@ -396,8 +398,9 @@ static void mouse_mesh_shortest_path_edge(Scene *UNUSED(scene),
   if (op_params->edge_mode != EDGE_MODE_SELECT) {
     if (op_params->track_active) {
       /* simple rules - last edge is _always_ active and selected */
-      if (e_act)
+      if (e_act) {
         BM_edge_select_set(bm, e_act, false);
+      }
       BM_edge_select_set(bm, e_dst_last, true);
       BM_select_history_store(bm, e_dst_last);
     }
@@ -408,10 +411,12 @@ static void mouse_mesh_shortest_path_edge(Scene *UNUSED(scene),
   if (op_params->track_active) {
     /* even if this is selected it may not be in the selection list */
     if (op_params->edge_mode == EDGE_MODE_SELECT) {
-      if (edgetag_test_cb(e_dst_last, &user_data) == 0)
+      if (edgetag_test_cb(e_dst_last, &user_data) == 0) {
         BM_select_history_remove(bm, e_dst_last);
-      else
+      }
+      else {
         BM_select_history_store(bm, e_dst_last);
+      }
     }
   }
 
@@ -777,12 +782,15 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
       if ((em->selectmode & SCE_SELECT_VERTEX) && (bm->totvertsel >= 2)) {
         BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
           if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-            if (ele_src == NULL)
+            if (ele_src == NULL) {
               ele_src = ele;
-            else if (ele_dst == NULL)
+            }
+            else if (ele_dst == NULL) {
               ele_dst = ele;
-            else
+            }
+            else {
               break;
+            }
           }
         }
       }
@@ -791,12 +799,15 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
         ele_src = NULL;
         BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-            if (ele_src == NULL)
+            if (ele_src == NULL) {
               ele_src = ele;
-            else if (ele_dst == NULL)
+            }
+            else if (ele_dst == NULL) {
               ele_dst = ele;
-            else
+            }
+            else {
               break;
+            }
           }
         }
       }
@@ -805,12 +816,15 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
         ele_src = NULL;
         BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
           if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-            if (ele_src == NULL)
+            if (ele_src == NULL) {
               ele_src = ele;
-            else if (ele_dst == NULL)
+            }
+            else if (ele_dst == NULL) {
               ele_dst = ele;
-            else
+            }
+            else {
               break;
+            }
           }
         }
       }

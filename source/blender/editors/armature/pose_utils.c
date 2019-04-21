@@ -91,14 +91,18 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
     BLI_addtail(pfLinks, pfl);
 
     /* set pchan's transform flags */
-    if (transFlags & ACT_TRANS_LOC)
+    if (transFlags & ACT_TRANS_LOC) {
       pchan->flag |= POSE_LOC;
-    if (transFlags & ACT_TRANS_ROT)
+    }
+    if (transFlags & ACT_TRANS_ROT) {
       pchan->flag |= POSE_ROT;
-    if (transFlags & ACT_TRANS_SCALE)
+    }
+    if (transFlags & ACT_TRANS_SCALE) {
       pchan->flag |= POSE_SIZE;
-    if (transFlags & ACT_TRANS_BBONE)
+    }
+    if (transFlags & ACT_TRANS_BBONE) {
       pchan->flag |= POSE_BBONE_SHAPE;
+    }
 
     /* store current transforms */
     copy_v3_v3(pfl->oldloc, pchan->loc);
@@ -121,8 +125,9 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
     pfl->scaleOut = pchan->scaleOut;
 
     /* make copy of custom properties */
-    if (pchan->prop && (transFlags & ACT_TRANS_PROP))
+    if (pchan->prop && (transFlags & ACT_TRANS_PROP)) {
       pfl->oldprops = IDP_CopyProperty(pchan->prop);
+    }
   }
 }
 
@@ -222,10 +227,12 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
    * - note: code copied from transform_generics.c -> recalcData()
    */
   /* FIXME: shouldn't this use the builtin stuff? */
-  if ((arm->flag & ARM_DELAYDEFORM) == 0)
+  if ((arm->flag & ARM_DELAYDEFORM) == 0) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY); /* sets recalc flags */
-  else
+  }
+  else {
     BKE_pose_where_is(depsgraph, scene, ob);
+  }
 
   /* otherwise animation doesn't get updated */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -262,8 +269,9 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
     pchan->scaleOut = pfl->scaleOut;
 
     /* just overwrite values of properties from the stored copies (there should be some) */
-    if (pfl->oldprops)
+    if (pfl->oldprops) {
       IDP_SyncGroupValues(pfl->pchan->prop, pfl->oldprops);
+    }
   }
 }
 
@@ -353,8 +361,9 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
     FCurve *fcu = (FCurve *)ld->data;
 
     /* check if paths match */
-    if (STREQ(path, fcu->rna_path))
+    if (STREQ(path, fcu->rna_path)) {
       return ld;
+    }
   }
 
   /* none found */

@@ -215,8 +215,9 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
   }
 
   /* current frame */
-  if (saction->flag & SACTION_DRAWTIME)
+  if (saction->flag & SACTION_DRAWTIME) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+  }
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* markers */
@@ -224,8 +225,9 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 
   marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
                 DRAW_MARKERS_MARGIN;
-  if (saction->flag & SACTION_SHOW_MARKER_LINES)
+  if (saction->flag & SACTION_SHOW_MARKER_LINES) {
     marker_flag |= DRAW_MARKERS_LINES;
+  }
   ED_markers_draw(C, marker_flag);
 
   /* caches */
@@ -336,22 +338,26 @@ static void action_channel_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(ar);
           break;
         case ND_MODIFIER:
-          if (wmn->action == NA_RENAME)
+          if (wmn->action == NA_RENAME) {
             ED_region_tag_redraw(ar);
+          }
           break;
       }
       break;
     case NC_GPENCIL:
-      if (ELEM(wmn->action, NA_RENAME, NA_SELECTED))
+      if (ELEM(wmn->action, NA_RENAME, NA_SELECTED)) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME)
+      if (wmn->action == NA_RENAME) {
         ED_region_tag_redraw(ar);
+      }
       break;
     default:
-      if (wmn->data == ND_KEYS)
+      if (wmn->data == ND_KEYS) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -443,8 +449,9 @@ static void action_main_region_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME)
+      if (wmn->action == NA_RENAME) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
@@ -452,8 +459,9 @@ static void action_main_region_listener(wmWindow *UNUSED(win),
       }
       break;
     default:
-      if (wmn->data == ND_KEYS)
+      if (wmn->data == ND_KEYS) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -661,8 +669,9 @@ static void action_header_region_listener(
   switch (wmn->category) {
     case NC_SCREEN:
       if (saction->mode == SACTCONT_TIMELINE) {
-        if (wmn->data == ND_ANIMPLAY)
+        if (wmn->data == ND_ANIMPLAY) {
           ED_region_tag_redraw(ar);
+        }
       }
       break;
     case NC_SCENE:
@@ -687,8 +696,9 @@ static void action_header_region_listener(
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME)
+      if (wmn->action == NA_RENAME) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
@@ -754,8 +764,9 @@ static void action_region_listener(wmWindow *UNUSED(win),
       }
       break;
     default:
-      if (wmn->data == ND_KEYS)
+      if (wmn->data == ND_KEYS) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -781,8 +792,9 @@ static void action_refresh(const bContext *C, ScrArea *sa)
      *   or else they don't update [#28962]
      */
     ED_area_tag_redraw(sa);
-    for (ar = sa->regionbase.first; ar; ar = ar->next)
+    for (ar = sa->regionbase.first; ar; ar = ar->next) {
       ED_region_tag_redraw(ar);
+    }
   }
 
   /* region updates? */

@@ -1118,8 +1118,9 @@ static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   MEM_SAFE_FREE(data->dial);
 
-  if (!cancel)
+  if (!cancel) {
     return;
+  }
 
   wmGizmoProperty *gz_prop;
 

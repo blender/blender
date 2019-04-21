@@ -48,31 +48,33 @@ static int txtfmt_lua_find_keyword(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "and",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "break",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "do",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "else",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "elseif",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "end",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "for",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "function", len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "if",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "in",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "local",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "not",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "or",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "repeat",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "return",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "then",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "until",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "while",    len)) i = len;
-  else                                                      i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "do",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "else",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "elseif",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "end",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "for",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "function", len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "if",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "in",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "local",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "not",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "or",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "repeat",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "return",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "then",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "until",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
+  } else {                                                      i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -94,41 +96,43 @@ static int txtfmt_lua_find_specialvar(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "assert",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "collectgarbage",   len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "dofile",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "error",            len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "_G",               len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "getfenv",          len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "getmetatable",     len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "__index",          len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "ipairs",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "load",             len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "loadfile",         len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "loadstring",       len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "next",             len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "pairs",            len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "pcall",            len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "print",            len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "rawequal",         len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "rawget",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "rawset",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "select",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "setfenv",          len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "setmetatable",     len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "tonumber",         len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "tostring",         len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "type",             len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "unpack",           len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "_VERSION",         len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len))   i = len;
-  else                                                i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "assert",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "collectgarbage",   len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "dofile",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "error",            len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "_G",               len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "getfenv",          len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "getmetatable",     len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "__index",          len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "ipairs",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "load",             len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "loadfile",         len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "loadstring",       len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "next",             len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "pairs",            len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "pcall",            len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "print",            len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "rawequal",         len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "rawget",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "rawset",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "select",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "setfenv",          len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "setmetatable",     len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "tonumber",         len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "tostring",         len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "type",             len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "unpack",           len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "_VERSION",         len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len)) {   i = len;
+  } else {                                                i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -136,20 +140,25 @@ static int txtfmt_lua_find_bool(const char *string)
 {
   int i, len;
 
-  if (STR_LITERAL_STARTSWITH(string, "nil", len))
+  if (STR_LITERAL_STARTSWITH(string, "nil", len)) {
     i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "true", len))
+  }
+  else if (STR_LITERAL_STARTSWITH(string, "true", len)) {
     i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "false", len))
+  }
+  else if (STR_LITERAL_STARTSWITH(string, "false", len)) {
     i = len;
-  else
+  }
+  else {
     i = 0;
+  }
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -160,9 +169,10 @@ static char txtfmt_lua_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_lua_find_specialvar(str))  != -1) fmt = FMT_TYPE_SPECIAL;
-  else if ((txtfmt_lua_find_keyword(str))     != -1) fmt = FMT_TYPE_KEYWORD;
-  else                                               fmt = FMT_TYPE_DEFAULT;
+  if      ((txtfmt_lua_find_specialvar(str))  != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if ((txtfmt_lua_find_keyword(str))     != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else {                                               fmt = FMT_TYPE_DEFAULT;
+}
 
   /* clang-format on */
 
@@ -211,8 +221,9 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
       *fmt = prev;
       fmt++;
       str++;
-      if (*str == '\0')
+      if (*str == '\0') {
         break;
+      }
       *fmt = prev;
       fmt++;
       str += BLI_str_utf8_size_safe(str);
@@ -236,8 +247,9 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
-        if (*str == find)
+        if (*str == find) {
           cont = 0;
+        }
         *fmt = FMT_TYPE_STRING;
       }
 
@@ -304,8 +316,9 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const bool do_
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_osl_format_identifier()' */
-        if      ((i = txtfmt_lua_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
-        else if ((i = txtfmt_lua_find_keyword(str))      != -1) prev = FMT_TYPE_KEYWORD;
+        if      ((i = txtfmt_lua_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
+        } else if ((i = txtfmt_lua_find_keyword(str))      != -1) { prev = FMT_TYPE_KEYWORD;
+}
 
         /* clang-format on */
 

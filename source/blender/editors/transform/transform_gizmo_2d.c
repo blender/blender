@@ -231,8 +231,9 @@ void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgro
     PointerRNA *ptr = WM_gizmo_operator_set(axis, 0, ot_translate, NULL);
     bool constraint[3] = {0};
     constraint[(axis_idx + 1) % 2] = 1;
-    if (RNA_struct_find_property(ptr, "constraint_axis"))
+    if (RNA_struct_find_property(ptr, "constraint_axis")) {
       RNA_boolean_set_array(ptr, "constraint_axis", constraint);
+    }
     RNA_boolean_set(ptr, "release_confirm", 1);
   }
   MAN2D_ITER_AXES_END;
@@ -385,8 +386,9 @@ bool ED_widgetgroup_gizmo2d_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzg
 
     /* check if there's a selected poly */
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+      if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
         continue;
+      }
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {

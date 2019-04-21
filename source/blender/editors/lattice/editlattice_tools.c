@@ -57,8 +57,9 @@ static bool make_regular_poll(bContext *C)
 {
   Object *ob;
 
-  if (ED_operator_editlattice(C))
+  if (ED_operator_editlattice(C)) {
     return 1;
+  }
 
   ob = CTX_data_active_object(C);
   return (ob && ob->type == OB_LATTICE);

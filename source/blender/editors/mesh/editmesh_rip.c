@@ -542,8 +542,9 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
     ese.ele = NULL;
 
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_SELECT))
+      if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
         break;
+      }
     }
   }
 
@@ -812,8 +813,9 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
       BM_vert_select_set(bm, v_rip, true);
     }
     else {
-      if (fill_uloop_pairs)
+      if (fill_uloop_pairs) {
         MEM_freeN(fill_uloop_pairs);
+      }
       return OPERATOR_CANCELLED;
     }
   }
@@ -942,8 +944,9 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
         if (BM_edge_is_manifold(l->e)) {
           l = l->radial_next;
 
-          if (totedge_manifold != 3)
+          if (totedge_manifold != 3) {
             l = BM_loop_other_edge_loop(l, v);
+          }
 
           if (l) {
             BLI_assert(!BM_elem_flag_test(l->e, BM_ELEM_TAG));

@@ -297,8 +297,9 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     /* current frame */
-    if (sipo->flag & SIPO_DRAWTIME)
+    if (sipo->flag & SIPO_DRAWTIME) {
       cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+    }
     ANIM_draw_cfra(C, v2d, cfra_flag);
   }
 
@@ -434,8 +435,9 @@ static void graph_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(ar);
           break;
         case ND_SEQUENCER:
-          if (wmn->action == NA_SELECTED)
+          if (wmn->action == NA_SELECTED) {
             ED_region_tag_redraw(ar);
+          }
           break;
       }
       break;
@@ -447,8 +449,9 @@ static void graph_region_listener(wmWindow *UNUSED(win),
           ED_region_tag_redraw(ar);
           break;
         case ND_MODIFIER:
-          if (wmn->action == NA_RENAME)
+          if (wmn->action == NA_RENAME) {
             ED_region_tag_redraw(ar);
+          }
           break;
       }
       break;
@@ -461,8 +464,9 @@ static void graph_region_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_ID:
-      if (wmn->action == NA_RENAME)
+      if (wmn->action == NA_RENAME) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_LAYER)) {
@@ -470,8 +474,9 @@ static void graph_region_listener(wmWindow *UNUSED(win),
       }
       break;
     default:
-      if (wmn->data == ND_KEYS)
+      if (wmn->data == ND_KEYS) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -564,10 +569,12 @@ static void graph_listener(wmWindow *UNUSED(win),
     case NC_ANIMATION:
       /* for selection changes of animation data, we can just redraw...
        * otherwise autocolor might need to be done again */
-      if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED))
+      if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED)) {
         ED_area_tag_redraw(sa);
-      else
+      }
+      else {
         ED_area_tag_refresh(sa);
+      }
       break;
     case NC_SCENE:
       switch (wmn->data) {
@@ -607,8 +614,9 @@ static void graph_listener(wmWindow *UNUSED(win),
       }
       break;
     case NC_SPACE:
-      if (wmn->data == ND_SPACE_GRAPH)
+      if (wmn->data == ND_SPACE_GRAPH) {
         ED_area_tag_redraw(sa);
+      }
       break;
     case NC_WINDOW:
       if (sipo->runtime.flag &
@@ -636,8 +644,9 @@ static void graph_refresh_fcurve_colors(const bContext *C)
   int filter;
   int i;
 
-  if (ANIM_animdata_get_context(C, &ac) == false)
+  if (ANIM_animdata_get_context(C, &ac) == false) {
     return;
+  }
 
   UI_SetTheme(SPACE_GRAPH, RGN_TYPE_WINDOW);
 

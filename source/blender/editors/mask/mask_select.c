@@ -57,8 +57,9 @@ bool ED_mask_spline_select_check(MaskSpline *spline)
   for (i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
 
-    if (MASKPOINT_ISSEL_ANY(point))
+    if (MASKPOINT_ISSEL_ANY(point)) {
       return true;
+    }
   }
 
   return false;
@@ -99,10 +100,12 @@ void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 {
   int i;
 
-  if (do_select)
+  if (do_select) {
     spline->flag |= SELECT;
-  else
+  }
+  else {
     spline->flag &= ~SELECT;
+  }
 
   for (i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
@@ -131,10 +134,12 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
   MaskLayer *masklay;
 
   if (action == SEL_TOGGLE) {
-    if (ED_mask_select_check(mask))
+    if (ED_mask_select_check(mask)) {
       action = SEL_DESELECT;
-    else
+    }
+    else {
       action = SEL_SELECT;
+    }
   }
 
   for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -265,8 +270,9 @@ static int select_exec(bContext *C, wmOperator *op)
   point = ED_mask_point_find_nearest(
       C, mask, co, threshold, &masklay, &spline, &which_handle, NULL);
 
-  if (extend == false && deselect == false && toggle == false)
+  if (extend == false && deselect == false && toggle == false) {
     ED_mask_select_toggle_all(mask, SEL_DESELECT);
+  }
 
   if (point) {
     if (which_handle != MASK_WHICH_HANDLE_NONE) {
@@ -333,12 +339,14 @@ static int select_exec(bContext *C, wmOperator *op)
         masklay->act_spline = spline;
         masklay->act_point = point;
 
-        if (uw)
+        if (uw) {
           uw->flag |= SELECT;
+        }
       }
       else if (deselect) {
-        if (uw)
+        if (uw) {
           uw->flag &= ~SELECT;
+        }
       }
       else {
         masklay->act_spline = spline;

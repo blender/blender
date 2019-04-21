@@ -250,8 +250,9 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
     ED_gpencil_parent_location(tgpw.depsgraph, ob, gpd, gpl, tgpw.diff_mat);
 
     /* do not draw layer if hidden */
-    if (gpl->flag & GP_LAYER_HIDE)
+    if (gpl->flag & GP_LAYER_HIDE) {
       continue;
+    }
 
     /* if active layer and no keyframe, create a new one */
     if (gpl == tgpf->gpl) {
@@ -262,8 +263,9 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 
     /* get frame to draw */
     bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
       /* check if stroke can be drawn */
@@ -960,8 +962,9 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 
     if (found_depth == false) {
       /* eeh... not much we can do.. :/, ignore depth in this case */
-      for (i = totpoints - 1; i >= 0; i--)
+      for (i = totpoints - 1; i >= 0; i--) {
         tgpf->depth_arr[i] = 0.9999f;
+      }
     }
     else {
       if (interp_depth) {
@@ -1347,8 +1350,9 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   /* try to initialize context data needed */
   if (!gpencil_fill_init(C, op)) {
     gpencil_fill_exit(C, op);
-    if (op->customdata)
+    if (op->customdata) {
       MEM_freeN(op->customdata);
+    }
     return OPERATOR_CANCELLED;
   }
   else {

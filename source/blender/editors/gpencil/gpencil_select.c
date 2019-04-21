@@ -74,8 +74,9 @@ static bool gpencil_select_poll(bContext *C)
   /* we just need some visible strokes, and to be in editmode or other modes only to catch event */
   if (GPENCIL_ANY_MODE(gpd)) {
     /* TODO: include a check for visible strokes? */
-    if (gpd->layers.first)
+    if (gpd->layers.first) {
       return true;
+    }
   }
 
   return false;
@@ -309,8 +310,9 @@ static void gp_select_same_layer(bContext *C)
     bGPDstroke *gps;
     bool found = false;
 
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     /* Search for a selected stroke */
     for (gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -1388,17 +1390,21 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
     /* entire stroke's points */
     for (i = 0, pt = hit_stroke->points; i < hit_stroke->totpoints; i++, pt++) {
-      if (deselect == false)
+      if (deselect == false) {
         pt->flag |= GP_SPOINT_SELECT;
-      else
+      }
+      else {
         pt->flag &= ~GP_SPOINT_SELECT;
+      }
     }
 
     /* stroke too... */
-    if (deselect == false)
+    if (deselect == false) {
       hit_stroke->flag |= GP_STROKE_SELECT;
-    else
+    }
+    else {
       hit_stroke->flag &= ~GP_STROKE_SELECT;
+    }
   }
   else {
     /* just the point (and the stroke) */

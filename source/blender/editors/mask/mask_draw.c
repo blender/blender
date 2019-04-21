@@ -203,11 +203,13 @@ static void draw_spline_points(const bContext *C,
   float(*feather_points)[2], (*fp)[2];
   float min[2], max[2];
 
-  if (!spline->tot_point)
+  if (!spline->tot_point) {
     return;
+  }
 
-  if (sc)
+  if (sc) {
     undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
+  }
 
   /* TODO, add this to sequence editor */
   float handle_size = 2.0f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
@@ -233,8 +235,9 @@ static void draw_spline_points(const bContext *C,
 
       copy_v2_v2(feather_point, *fp);
 
-      if (undistort)
+      if (undistort) {
         mask_point_undistort_pos(sc, feather_point, feather_point);
+      }
 
       if (j == 0) {
         sel = MASKPOINT_ISSEL_ANY(point);
@@ -244,10 +247,12 @@ static void draw_spline_points(const bContext *C,
       }
 
       if (sel) {
-        if (point == masklay->act_point)
+        if (point == masklay->act_point) {
           immUniformColor3f(1.0f, 1.0f, 1.0f);
-        else
+        }
+        else {
           immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX_SELECT, 0, 255);
+        }
       }
       else {
         immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX, 0, 255);
@@ -314,13 +319,16 @@ static void draw_spline_points(const bContext *C,
 
     /* draw CV point */
     if (MASKPOINT_ISSEL_KNOT(point)) {
-      if (point == masklay->act_point)
+      if (point == masklay->act_point) {
         immUniformColor3f(1.0f, 1.0f, 1.0f);
-      else
+      }
+      else {
         immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX_SELECT, 0, 255);
+      }
     }
-    else
+    else {
       immUniformThemeColorShadeAlpha(TH_HANDLE_VERTEX, 0, 255);
+    }
 
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex2fv(pos, vert);
@@ -502,8 +510,9 @@ static void mask_draw_curve_type(const bContext *C,
       BLI_assert(false);
   }
 
-  if (points != orig_points)
+  if (points != orig_points) {
     MEM_freeN(points);
+  }
 }
 
 static void draw_spline_curve(const bContext *C,
@@ -533,8 +542,9 @@ static void draw_spline_curve(const bContext *C,
 
   diff_points = BKE_mask_spline_differentiate_with_resolution(spline, &tot_diff_point, resol);
 
-  if (!diff_points)
+  if (!diff_points) {
     return;
+  }
 
   if (is_smooth) {
     GPU_line_smooth(true);
@@ -633,8 +643,9 @@ void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type)
   Mask *mask = CTX_data_edit_mask(C);
   int width, height;
 
-  if (!mask)
+  if (!mask) {
     return;
+  }
 
   ED_mask_get_size(sa, &width, &height);
 

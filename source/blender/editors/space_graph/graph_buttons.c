@@ -81,20 +81,25 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
    * to work correctly is able to be correctly retrieved.
    * There's no point showing empty panels?
    */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return 0;
+  }
 
   /* try to find 'active' F-Curve */
   elem = get_active_fcurve_channel(&ac);
-  if (elem == NULL)
+  if (elem == NULL) {
     return 0;
+  }
 
-  if (fcu)
+  if (fcu) {
     *fcu = (FCurve *)elem->data;
-  if (ale)
+  }
+  if (ale) {
     *ale = elem;
-  else
+  }
+  else {
     MEM_freeN(elem);
+  }
 
   return 1;
 }
@@ -130,10 +135,12 @@ static void graph_panel_view(const bContext *C, Panel *pa)
   sub = uiLayoutColumn(col, true);
   uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor"));
   row = uiLayoutSplit(sub, 0.7f, true);
-  if (sipo->mode == SIPO_MODE_DRIVERS)
+  if (sipo->mode == SIPO_MODE_DRIVERS) {
     uiItemR(row, &spaceptr, "cursor_position_x", 0, IFACE_("Cursor X"), ICON_NONE);
-  else
+  }
+  else {
     uiItemR(row, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
+  }
   uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_CFRA);
 
   row = uiLayoutSplit(sub, 0.7f, true);
@@ -153,8 +160,9 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
   char name[256];
   int icon = 0;
 
-  if (!graph_panel_context(C, &ale, &fcu))
+  if (!graph_panel_context(C, &ale, &fcu)) {
     return;
+  }
 
   /* F-Curve pointer */
   RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
@@ -179,8 +187,9 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
     }
 
     /* icon */
-    if (ale->type == ANIMTYPE_NLACURVE)
+    if (ale->type == ANIMTYPE_NLACURVE) {
       icon = ICON_NLA;
+    }
   }
   uiItemL(col, name, icon);
 
@@ -221,8 +230,9 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
   *bezt = *prevbezt = NULL;
 
   /* sanity checks */
-  if ((fcu->bezt == NULL) || (fcu->totvert == 0))
+  if ((fcu->bezt == NULL) || (fcu->totvert == 0)) {
     return 0;
+  }
 
   /* find first selected keyframe for now, and call it the active one
    * - this is a reasonable assumption, given that whenever anyone
@@ -332,8 +342,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
   uiLayout *col;
   uiBlock *block;
 
-  if (!graph_panel_context(C, &ale, &fcu))
+  if (!graph_panel_context(C, &ale, &fcu)) {
     return;
+  }
 
   block = uiLayoutGetBlock(layout);
   /* UI_block_func_handle_set(block, do_graph_region_buttons, NULL); */
@@ -367,8 +378,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
     }
 
     /* easing type */
-    if (bezt->ipo > BEZT_IPO_BEZ)
+    if (bezt->ipo > BEZT_IPO_BEZ) {
       uiItemR(col, &bezt_ptr, "easing", 0, NULL, 0);
+    }
 
     /* easing extra */
     switch (bezt->ipo) {
@@ -567,8 +579,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
               IFACE_("F-Curve doesn't have any keyframes as it only contains sampled points"),
               ICON_NONE);
     }
-    else
+    else {
       uiItemL(layout, IFACE_("No active keyframe on F-Curve"), ICON_NONE);
+    }
   }
 
   MEM_freeN(ale);
@@ -695,8 +708,9 @@ static bool graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   SpaceGraph *sipo = CTX_wm_space_graph(C);
 
-  if (sipo->mode != SIPO_MODE_DRIVERS)
+  if (sipo->mode != SIPO_MODE_DRIVERS) {
     return 0;
+  }
 
   return graph_panel_context(C, NULL, NULL);
 }
@@ -969,8 +983,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     col = uiLayoutColumn(layout, true);
     block = uiLayoutGetBlock(col);
 
-    if (driver->flag & DRIVER_FLAG_INVALID)
+    if (driver->flag & DRIVER_FLAG_INVALID) {
       uiItemL(col, IFACE_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+    }
 
     /* Warnings about a lack of variables
      * NOTE: The lack of variables is generally a bad thing, since it indicates
@@ -1201,8 +1216,9 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
   bAnimListElem *ale;
   FCurve *fcu;
 
-  if (!graph_panel_context(C, &ale, &fcu))
+  if (!graph_panel_context(C, &ale, &fcu)) {
     return;
+  }
 
   graph_draw_driven_property_panel(pa->layout, ale->id, fcu);
 
@@ -1217,8 +1233,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
   FCurve *fcu;
 
   /* Get settings from context */
-  if (!graph_panel_context(C, &ale, &fcu))
+  if (!graph_panel_context(C, &ale, &fcu)) {
     return;
+  }
 
   graph_draw_driver_settings_panel(pa->layout, ale->id, fcu, false);
 
@@ -1306,8 +1323,9 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
   uiBlock *block;
   bool active;
 
-  if (!graph_panel_context(C, &ale, &fcu))
+  if (!graph_panel_context(C, &ale, &fcu)) {
     return;
+  }
 
   block = uiLayoutGetBlock(pa->layout);
   UI_block_func_handle_set(block, do_graph_region_modifier_buttons, NULL);

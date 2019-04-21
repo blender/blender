@@ -86,18 +86,22 @@ static bool act_markers_make_local_poll(bContext *C)
   SpaceAction *sact = CTX_wm_space_action(C);
 
   /* 1) */
-  if (sact == NULL)
+  if (sact == NULL) {
     return 0;
+  }
 
   /* 2) */
-  if (ELEM(sact->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) == 0)
+  if (ELEM(sact->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) == 0) {
     return 0;
-  if (sact->action == NULL)
+  }
+  if (sact->action == NULL) {
     return 0;
+  }
 
   /* 3) */
-  if (sact->flag & SACTION_POSEMARKERS_SHOW)
+  if (sact->flag & SACTION_POSEMARKERS_SHOW) {
     return 0;
+  }
 
   /* 4) */
   return ED_markers_get_first_selected(ED_context_get_markers(C)) != NULL;
@@ -113,8 +117,9 @@ static int act_markers_make_local_exec(bContext *C, wmOperator *UNUSED(op))
   TimeMarker *marker, *markern = NULL;
 
   /* sanity checks */
-  if (ELEM(NULL, markers, act))
+  if (ELEM(NULL, markers, act)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* migrate markers */
   for (marker = markers->first; marker; marker = markern) {
@@ -260,12 +265,15 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   float min, max;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
-  if (ac.scene == NULL)
+  }
+  if (ac.scene == NULL) {
     return OPERATOR_CANCELLED;
-  else
+  }
+  else {
     scene = ac.scene;
+  }
 
   /* set the range directly */
   get_keyframe_extents(&ac, &min, &max, false);
@@ -364,15 +372,17 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
   bool found;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
   v2d = &ac.ar->v2d;
 
   /* set the horizontal range, with an extra offset so that the extreme keys will be in view */
   found = get_keyframe_extents(&ac, &min, &max, only_sel);
 
-  if (only_sel && (found == false))
+  if (only_sel && (found == false)) {
     return OPERATOR_CANCELLED;
+  }
 
   if (fabsf(max - min) < 1.0f) {
     /* Exception - center the single keyfrme */
@@ -558,8 +568,9 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* copy keyframes */
   if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -607,8 +618,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* ac.reports by default will be the global reports list, which won't show warnings */
   ac.reports = op->reports;
@@ -745,8 +757,9 @@ static void insert_action_keys(bAnimContext *ac, short mode)
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
       /* adjust current frame for NLA-scaling */
-      if (adt)
+      if (adt) {
         cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+      }
 
       const float curval = evaluate_fcurve(fcu, cfra);
       insert_vert_fcurve(fcu, cfra, curval, ts->keyframe_type, 0);
@@ -775,16 +788,19 @@ static void insert_gpencil_keys(bAnimContext *ac, short mode)
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
             ANIMFILTER_NODUPLIS);
-  if (mode == 2)
+  if (mode == 2) {
     filter |= ANIMFILTER_SEL;
+  }
 
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* add a copy or a blank frame? */
-  if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST)
+  if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
     add_frame_mode = GP_GETFRAME_ADD_COPY; /* XXX: actframe may not be what we want? */
-  else
+  }
+  else {
     add_frame_mode = GP_GETFRAME_ADD_NEW;
+  }
 
   /* insert gp frames */
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -804,8 +820,9 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ac.datatype == ANIMCONT_MASK) {
     BKE_report(op->reports, RPT_ERROR, "Insert Keyframes is not yet implemented for this mode");
@@ -869,14 +886,18 @@ static void duplicate_action_keys(bAnimContext *ac)
 
   /* loop through filtered data and delete selected keys */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE))
+    if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
       duplicate_fcurve_keys((FCurve *)ale->key_data);
-    else if (ale->type == ANIMTYPE_GPLAYER)
+    }
+    else if (ale->type == ANIMTYPE_GPLAYER) {
       ED_gplayer_frames_duplicate((bGPDlayer *)ale->data);
-    else if (ale->type == ANIMTYPE_MASKLAYER)
+    }
+    else if (ale->type == ANIMTYPE_MASKLAYER) {
       ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
-    else
+    }
+    else {
       BLI_assert(0);
+    }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
@@ -892,8 +913,9 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* duplicate keyframes */
   duplicate_action_keys(&ac);
@@ -983,12 +1005,14 @@ static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* delete keyframes */
-  if (!delete_action_keys(&ac))
+  if (!delete_action_keys(&ac)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* set notifier that keyframes have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
@@ -1045,8 +1069,9 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
   bool clean_chan;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented");
@@ -1119,8 +1144,9 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented");
@@ -1224,8 +1250,9 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
         for (fcm = fcu->modifiers.first; fcm; fcm = fcn) {
           fcn = fcm->next;
 
-          if (fcm->type == FMODIFIER_TYPE_CYCLES)
+          if (fcm->type == FMODIFIER_TYPE_CYCLES) {
             remove_fmodifier(&fcu->modifiers, fcm);
+          }
         }
       }
     }
@@ -1245,8 +1272,9 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented");
@@ -1321,8 +1349,9 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented");
@@ -1407,8 +1436,9 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented");
@@ -1507,8 +1537,9 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ac.datatype == ANIMCONT_MASK) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented for Masks");
@@ -1559,8 +1590,9 @@ void ACTION_OT_keyframe_type(wmOperatorType *ot)
 static bool actkeys_framejump_poll(bContext *C)
 {
   /* prevent changes during render */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return 0;
+  }
 
   return ED_operator_action_active(C);
 }
@@ -1575,8 +1607,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
   KeyframeEditData ked = {{NULL}};
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* init edit data */
   /* loop over action data, averaging values */
@@ -1591,8 +1624,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
     }
-    else
+    else {
       ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
+    }
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -1716,8 +1750,9 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get snapping mode */
   mode = RNA_enum_get(op->ptr, "type");
@@ -1792,10 +1827,12 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
   if (mode == ACTKEYS_MIRROR_MARKER) {
     TimeMarker *marker = ED_markers_get_first_selected(ac->markers);
 
-    if (marker)
+    if (marker) {
       ked.f1 = (float)marker->frame;
-    else
+    }
+    else {
       return;
+    }
   }
 
   /* filter data */
@@ -1843,8 +1880,9 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get mirroring mode */
   mode = RNA_enum_get(op->ptr, "type");

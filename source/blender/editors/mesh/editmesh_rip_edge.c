@@ -71,8 +71,9 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 
     float projectMat[4][4];
 
-    if (bm->totvertsel == 0)
+    if (bm->totvertsel == 0) {
       continue;
+    }
 
     ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 

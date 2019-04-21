@@ -223,8 +223,9 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2
   float dphi;
 
   dphi = saacos((float)deler);
-  if ((dx1 * dy2 - dx2 * dy1) > 0.0)
+  if ((dx1 * dy2 - dx2 * dy1) > 0.0) {
     dphi = -dphi;
+  }
 
   /* If the angle is zero, because of lack of precision close to the 1.0 value in acos
    * approximate the angle with the opposite side of the normalized triangle
@@ -244,8 +245,9 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2
     dy = dy1 - dy2;
 
     dphi = sqrt(dx * dx + dy * dy);
-    if ((dx1 * dy2 - dx2 * dy1) > 0.0)
+    if ((dx1 * dy2 - dx2 * dy1) > 0.0) {
       dphi = -dphi;
+    }
   }
 
   data->angle += ((double)dphi) * (mi->precision ? (double)mi->precision_factor : 1.0);

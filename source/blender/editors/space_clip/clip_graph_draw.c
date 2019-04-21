@@ -111,8 +111,9 @@ static void tracking_segment_knot_cb(void *userdata,
   TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
   int sel = 0, sel_flag;
 
-  if (track != data->act_track)
+  if (track != data->act_track) {
     return;
+  }
 
   sel_flag = coord == 0 ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
   sel = (marker->flag & sel_flag) ? 1 : 0;
@@ -140,8 +141,9 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int p
 
   BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
-  if (!width || !height)
+  if (!width || !height) {
     return;
+  }
 
   /* non-selected knot handles */
   userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);

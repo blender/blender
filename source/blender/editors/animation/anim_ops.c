@@ -62,8 +62,9 @@ static bool change_frame_poll(bContext *C)
   ScrArea *sa = CTX_wm_area(C);
 
   /* XXX temp? prevent changes during render */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return false;
+  }
 
   /* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
    * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
@@ -157,8 +158,9 @@ static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
       ED_sequencer_special_preview_set(C, event->mval);
     }
   }
-  if (screen)
+  if (screen) {
     screen->scrubbing = true;
+  }
 }
 
 static void change_frame_seq_preview_end(bContext *C)
@@ -225,8 +227,9 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case RIGHTMOUSE:
     case MIDDLEMOUSE:
       /* We check for either mouse-button to end, to work with all user keymaps. */
-      if (event->val == KM_RELEASE)
+      if (event->val == KM_RELEASE) {
         ret = OPERATOR_FINISHED;
+      }
       break;
 
     case LEFTCTRLKEY:
@@ -281,8 +284,9 @@ static bool anim_set_end_frames_poll(bContext *C)
   ScrArea *sa = CTX_wm_area(C);
 
   /* XXX temp? prevent changes during render */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return false;
+  }
 
   /* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
    * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
@@ -302,22 +306,27 @@ static int anim_set_sfra_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   int frame;
 
-  if (scene == NULL)
+  if (scene == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   frame = CFRA;
 
   /* if Preview Range is defined, set the 'start' frame for that */
-  if (PRVRANGEON)
+  if (PRVRANGEON) {
     scene->r.psfra = frame;
-  else
+  }
+  else {
     scene->r.sfra = frame;
+  }
 
   if (PEFRA < frame) {
-    if (PRVRANGEON)
+    if (PRVRANGEON) {
       scene->r.pefra = frame;
-    else
+    }
+    else {
       scene->r.efra = frame;
+    }
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
@@ -345,22 +354,27 @@ static int anim_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   int frame;
 
-  if (scene == NULL)
+  if (scene == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   frame = CFRA;
 
   /* if Preview Range is defined, set the 'end' frame for that */
-  if (PRVRANGEON)
+  if (PRVRANGEON) {
     scene->r.pefra = frame;
-  else
+  }
+  else {
     scene->r.efra = frame;
+  }
 
   if (PSFRA > frame) {
-    if (PRVRANGEON)
+    if (PRVRANGEON) {
       scene->r.psfra = frame;
-    else
+    }
+    else {
       scene->r.sfra = frame;
+    }
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
@@ -405,8 +419,9 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
    */
   FRAMENUMBER_MIN_CLAMP(sfra);
   FRAMENUMBER_MIN_CLAMP(efra);
-  if (efra < sfra)
+  if (efra < sfra) {
     efra = sfra;
+  }
 
   scene->r.flag |= SCER_PRV_RANGE;
   scene->r.psfra = round_fl_to_int(sfra);
@@ -452,8 +467,9 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
   ScrArea *curarea = CTX_wm_area(C);
 
   /* sanity checks */
-  if (ELEM(NULL, scene, curarea))
+  if (ELEM(NULL, scene, curarea)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* simply clear values */
   scene->r.flag &= ~SCER_PRV_RANGE;

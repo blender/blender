@@ -94,12 +94,15 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
   wmWindowManager *wm = bmain->wm.first;
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_ANY);
 
-  if (scene->id.prev)
+  if (scene->id.prev) {
     scene_new = scene->id.prev;
-  else if (scene->id.next)
+  }
+  else if (scene->id.next) {
     scene_new = scene->id.next;
-  else
+  }
+  else {
     return false;
+  }
 
   WM_window_set_active_scene(bmain, C, win, scene_new);
 
@@ -245,8 +248,9 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("scene delete %p\n", scene);
+  }
 
   WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, scene);
 

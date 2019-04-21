@@ -66,8 +66,9 @@ static bool dopesheet_select_channel_poll(bContext *C)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  if (sc && sc->clip)
+  if (sc && sc->clip) {
     return sc->view == SC_VIEW_DOPESHEET;
+  }
 
   return false;
 }
@@ -93,10 +94,12 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
     MovieTrackingTrack *track = channel->track;
 
     if (current_channel_index == channel_index) {
-      if (extend)
+      if (extend) {
         track->flag ^= TRACK_DOPE_SEL;
-      else
+      }
+      else {
         track->flag |= TRACK_DOPE_SEL;
+      }
 
       if (track->flag & TRACK_DOPE_SEL) {
         tracking->act_track = track;
@@ -106,8 +109,9 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
         BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
       }
     }
-    else if (!extend)
+    else if (!extend) {
       track->flag &= ~TRACK_DOPE_SEL;
+    }
 
     current_channel_index++;
   }

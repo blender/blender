@@ -325,8 +325,9 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
   }
   else {
     /* No triangles needed - Free anything allocated previously */
-    if (gps->triangles)
+    if (gps->triangles) {
       MEM_freeN(gps->triangles);
+    }
 
     gps->triangles = NULL;
   }
@@ -818,26 +819,33 @@ static bool gp_can_draw_stroke(const bGPDstroke *gps, const int dflag)
 {
   /* skip stroke if it isn't in the right display space for this drawing context */
   /* 1) 3D Strokes */
-  if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE))
+  if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE)) {
     return false;
+  }
 
   /* 2) Screen Space 2D Strokes */
-  if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE))
+  if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE)) {
     return false;
+  }
 
   /* 3) Image Space (2D) */
-  if ((dflag & GP_DRAWDATA_ONLYI2D) && !(gps->flag & GP_STROKE_2DIMAGE))
+  if ((dflag & GP_DRAWDATA_ONLYI2D) && !(gps->flag & GP_STROKE_2DIMAGE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE)) {
     return false;
+  }
 
   /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == NULL) || (gps->totpoints < 1))
+  if ((gps->points == NULL) || (gps->totpoints < 1)) {
     return false;
+  }
 
   /* stroke can be drawn */
   return true;
@@ -1143,8 +1151,9 @@ static void UNUSED_FUNCTION(gp_draw_status_text)(const bGPdata *gpd, ARegion *ar
   rcti rect;
 
   /* Cannot draw any status text when drawing OpenGL Renders */
-  if (G.f & G_FLAG_RENDER_VIEWPORT)
+  if (G.f & G_FLAG_RENDER_VIEWPORT) {
     return;
+  }
 
   /* Get bounds of region - Necessary to avoid problems with region overlap */
   ED_region_visible_rect(ar, &rect);

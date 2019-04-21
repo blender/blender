@@ -120,10 +120,12 @@ static float get_bevel_offset(wmOperator *op)
 {
   float val;
 
-  if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT)
+  if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
     val = RNA_float_get(op->ptr, "offset_pct");
-  else
+  }
+  else {
     val = RNA_float_get(op->ptr, "offset");
+  }
   return val;
 }
 
@@ -579,10 +581,12 @@ static bool edbm_bevel_poll_property(const bContext *UNUSED(C),
   if (STRPREFIX(prop_id, "offset")) {
     int offset_type = RNA_enum_get(op->ptr, "offset_type");
 
-    if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT)
+    if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT) {
       return false;
-    else if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT)
+    }
+    else if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT) {
       return false;
+    }
   }
 
   return true;
@@ -648,8 +652,9 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
   wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Bevel Modal Map");
 
   /* this function is called for each spacetype, only needs to add map once */
-  if (keymap && keymap->modal_items)
+  if (keymap && keymap->modal_items) {
     return NULL;
+  }
 
   keymap = WM_modalkeymap_add(keyconf, "Bevel Modal Map", modal_items);
 
@@ -689,10 +694,12 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else if (etype == MOUSEPAN) {
     float delta = 0.02f * (event->y - event->prevy);
-    if (opdata->segments >= 1 && opdata->segments + delta < 1)
+    if (opdata->segments >= 1 && opdata->segments + delta < 1) {
       opdata->segments = 1;
-    else
+    }
+    else {
       opdata->segments += delta;
+    }
     RNA_int_set(op->ptr, "segments", (int)opdata->segments);
     edbm_bevel_calc(op);
     edbm_bevel_update_header(C, op);
@@ -733,13 +740,16 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (type > BEVEL_AMT_PERCENT) {
           type = BEVEL_AMT_OFFSET;
         }
-        if (opdata->value_mode == OFFSET_VALUE && type == BEVEL_AMT_PERCENT)
+        if (opdata->value_mode == OFFSET_VALUE && type == BEVEL_AMT_PERCENT) {
           opdata->value_mode = OFFSET_VALUE_PERCENT;
-        else if (opdata->value_mode == OFFSET_VALUE_PERCENT && type != BEVEL_AMT_PERCENT)
+        }
+        else if (opdata->value_mode == OFFSET_VALUE_PERCENT && type != BEVEL_AMT_PERCENT) {
           opdata->value_mode = OFFSET_VALUE;
+        }
         RNA_enum_set(op->ptr, "offset_type", type);
-        if (opdata->initial_length[opdata->value_mode] == -1.0f)
+        if (opdata->initial_length[opdata->value_mode] == -1.0f) {
           edbm_bevel_calc_initial_length(op, event, true);
+        }
       }
         /* Update offset accordingly to new offset_type. */
         if (!has_numinput &&
@@ -805,10 +815,12 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case BEV_MODAL_INNER_MITER_CHANGE: {
         int miter_inner = RNA_enum_get(op->ptr, "miter_inner");
         miter_inner++;
-        if (miter_inner == BEVEL_MITER_PATCH)
+        if (miter_inner == BEVEL_MITER_PATCH) {
           miter_inner++; /* no patch option for inner miter */
-        if (miter_inner > BEVEL_MITER_ARC)
+        }
+        if (miter_inner > BEVEL_MITER_ARC) {
           miter_inner = BEVEL_MITER_SHARP;
+        }
         RNA_enum_set(op->ptr, "miter_inner", miter_inner);
         edbm_bevel_calc(op);
         edbm_bevel_update_header(C, op);
@@ -819,8 +831,9 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case BEV_MODAL_OUTER_MITER_CHANGE: {
         int miter_outer = RNA_enum_get(op->ptr, "miter_outer");
         miter_outer++;
-        if (miter_outer > BEVEL_MITER_ARC)
+        if (miter_outer > BEVEL_MITER_ARC) {
           miter_outer = BEVEL_MITER_SHARP;
+        }
         RNA_enum_set(op->ptr, "miter_outer", miter_outer);
         edbm_bevel_calc(op);
         edbm_bevel_update_header(C, op);

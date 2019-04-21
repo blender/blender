@@ -368,8 +368,9 @@ static bool gp_brush_thickness_apply(
    * the upper end of this range. Therefore, we don't actually clamp
    * down on the upper end.
    */
-  if (pt->pressure < 0.0f)
+  if (pt->pressure < 0.0f) {
     pt->pressure = 0.0f;
+  }
 
   return true;
 }
@@ -937,8 +938,9 @@ static bool gp_brush_weight_apply(
   }
 
   /* weight should stay within [0.0, 1.0] */
-  if (pt->pressure < 0.0f)
+  if (pt->pressure < 0.0f) {
     pt->pressure = 0.0f;
+  }
 
   return true;
 }
@@ -1394,8 +1396,9 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
   int cfra_eval = (int)DEG_get_ctime(gso->depsgraph);
 
   /* only try to add a new frame if this is the first stroke, or the frame has changed */
-  if ((gpd == NULL) || (cfra_eval == gso->cfra))
+  if ((gpd == NULL) || (cfra_eval == gso->cfra)) {
     return;
+  }
 
   /* go through each layer, and ensure that we've got a valid frame to use */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -1735,10 +1738,12 @@ static void gpsculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *itempt
 
   gso->pressure = RNA_float_get(itemptr, "pressure");
 
-  if (RNA_boolean_get(itemptr, "pen_flip"))
+  if (RNA_boolean_get(itemptr, "pen_flip")) {
     gso->flag |= GP_SCULPT_FLAG_INVERT;
-  else
+  }
+  else {
     gso->flag &= ~GP_SCULPT_FLAG_INVERT;
+  }
 
   /* Store coordinates as reference, if operator just started running */
   if (gso->first) {
@@ -1838,8 +1843,9 @@ static void gpsculpt_brush_apply_event(bContext *C, wmOperator *op, const wmEven
 /* reapply */
 static int gpsculpt_brush_exec(bContext *C, wmOperator *op)
 {
-  if (!gpsculpt_brush_init(C, op))
+  if (!gpsculpt_brush_init(C, op)) {
     return OPERATOR_CANCELLED;
+  }
 
   RNA_BEGIN (op->ptr, itemptr, "stroke") {
     gpsculpt_brush_apply(C, op, &itemptr);
@@ -1868,8 +1874,9 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   /* init painting data */
-  if (!gpsculpt_brush_init(C, op))
+  if (!gpsculpt_brush_init(C, op)) {
     return OPERATOR_CANCELLED;
+  }
 
   gso = op->customdata;
 

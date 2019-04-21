@@ -216,8 +216,9 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               bool current_frame_only)
 {
   /* sanity check */
-  if (ELEM(NULL, targets, targets->first))
+  if (ELEM(NULL, targets, targets->first)) {
     return;
+  }
 
   /* Compute frame range to bake within.
    * TODO: this method could be improved...
@@ -263,10 +264,12 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
       bAnimVizSettings *avs;
 
       /* get pointer to animviz settings for each target */
-      if (mpt->pchan)
+      if (mpt->pchan) {
         avs = &mpt->ob->pose->avs;
-      else
+      }
+      else {
         avs = &mpt->ob->avs;
+      }
 
       /* it is assumed that keyframes for bones are all grouped in a single group
        * unless an option is set to always use the whole action
@@ -320,10 +323,12 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     bMotionPath *mpath = mpt->mpath;
 
     /* get pointer to animviz settings for each target */
-    if (mpt->pchan)
+    if (mpt->pchan) {
       avs = &mpt->ob->pose->avs;
-    else
+    }
+    else {
       avs = &mpt->ob->avs;
+    }
 
     /* clear the flag requesting recalculation of targets */
     avs->recalc &= ~ANIMVIZ_RECALC_PATHS;

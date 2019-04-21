@@ -60,10 +60,12 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
     char filepath[FILE_MAX];
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-    if (blendfile_path[0] == '\0')
+    if (blendfile_path[0] == '\0') {
       BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    else
+    }
+    else {
       BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
+    }
 
     BLI_path_extension_replace(filepath, sizeof(filepath), ".dae");
     RNA_string_set(op->ptr, "filepath", filepath);
@@ -221,10 +223,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.keep_bind_info = keep_bind_info != 0;
 
   int includeFilter = OB_REL_NONE;
-  if (export_settings.include_armatures)
+  if (export_settings.include_armatures) {
     includeFilter |= OB_REL_MOD_ARMATURE;
-  if (export_settings.include_children)
+  }
+  if (export_settings.include_children) {
     includeFilter |= OB_REL_CHILDREN_RECURSIVE;
+  }
 
   export_count = collada_export(C, &export_settings);
 

@@ -74,8 +74,9 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
         while (a--) {
           if (bezt->hide == 0) {
             bool skip_handle = false;
-            if (bezt->f2 & SELECT)
+            if (bezt->f2 & SELECT) {
               skip_handle = (mode & TM_SKIP_HANDLES) != 0;
+            }
 
             if ((bezt->f1 & SELECT) && !skip_handle) {
               BLI_assert(tv->loc == bezt->vec[0]);
@@ -131,8 +132,9 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
           add_v3_v3(ebo->tail, diffvec);
 
           a++;
-          if (a < tvs->transverts_tot)
+          if (a < tvs->transverts_tot) {
             tv++;
+          }
         }
       }
     }
@@ -150,14 +152,16 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
         }
       }
     }
-    if (arm->flag & ARM_MIRROR_EDIT)
+    if (arm->flag & ARM_MIRROR_EDIT) {
       ED_armature_edit_transform_mirror_update(obedit);
+    }
   }
   else if (obedit->type == OB_LATTICE) {
     Lattice *lt = obedit->data;
 
-    if (lt->editlatt->latt->flag & LT_OUTSIDE)
+    if (lt->editlatt->latt->flag & LT_OUTSIDE) {
       outside_lattice(lt->editlatt->latt);
+    }
   }
 }
 
@@ -247,8 +251,9 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
       }
 
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_index_get(eve) == TM_INDEX_ON)
+        if (BM_elem_index_get(eve) == TM_INDEX_ON) {
           tvs->transverts_tot++;
+        }
       }
     }
     else {
@@ -270,8 +275,9 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
       }
 
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_index_get(eve) == TM_INDEX_ON)
+        if (BM_elem_index_get(eve) == TM_INDEX_ON) {
           tvs->transverts_tot++;
+        }
       }
     }
     /* for any of the 3 loops above which all dirty the indices */
@@ -363,10 +369,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
     for (nu = nurbs->first; nu; nu = nu->next) {
-      if (nu->type == CU_BEZIER)
+      if (nu->type == CU_BEZIER) {
         totmalloc += 3 * nu->pntsu;
-      else
+      }
+      else {
         totmalloc += nu->pntsu * nu->pntsv;
+      }
     }
     tv = tvs->transverts = MEM_callocN(totmalloc * sizeof(TransVert), __func__);
 
@@ -378,8 +386,9 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
         while (a--) {
           if (bezt->hide == 0) {
             bool skip_handle = false;
-            if (bezt->f2 & SELECT)
+            if (bezt->f2 & SELECT) {
               skip_handle = (mode & TM_SKIP_HANDLES) != 0;
+            }
 
             if ((bezt->f1 & SELECT) && !skip_handle) {
               copy_v3_v3(tv->oldloc, bezt->vec[0]);

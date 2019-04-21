@@ -113,14 +113,16 @@ ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
   short split;
   rcti window_rect;
 
-  if (sa == NULL)
+  if (sa == NULL) {
     return NULL;
+  }
 
   WM_window_rect_calc(win, &window_rect);
 
   split = screen_geom_find_area_split_point(sa, &window_rect, dir, fac);
-  if (split == 0)
+  if (split == 0) {
     return NULL;
+  }
 
   /* note regarding (fac > 0.5f) checks below.
    * normally it shouldn't matter which is used since the copy should match the original
@@ -190,8 +192,9 @@ ScrArea *area_split(const wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
   }
 
   /* remove double vertices en edges */
-  if (merge)
+  if (merge) {
     BKE_screen_remove_double_scrverts(sc);
+  }
   BKE_screen_remove_double_scredges(sc);
   BKE_screen_remove_unused_scredges(sc);
 
@@ -269,8 +272,9 @@ void screen_data_copy(bScreen *to, bScreen *from)
   }
 
   /* put at zero (needed?) */
-  for (s1 = from->vertbase.first; s1; s1 = s1->next)
+  for (s1 = from->vertbase.first; s1; s1 = s1->next) {
     s1->newv = NULL;
+  }
 }
 
 /**
@@ -291,8 +295,9 @@ int area_getorientation(ScrArea *sa, ScrArea *sb)
   ScrVert *sav1, *sav2, *sav3, *sav4;
   ScrVert *sbv1, *sbv2, *sbv3, *sbv4;
 
-  if (sa == NULL || sb == NULL)
+  if (sa == NULL || sb == NULL) {
     return -1;
+  }
 
   sav1 = sa->v1;
   sav2 = sa->v2;
@@ -399,19 +404,22 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
   /* generic notes */
   switch (note->category) {
     case NC_WM:
-      if (note->data == ND_FILEREAD)
+      if (note->data == ND_FILEREAD) {
         screen->do_draw = true;
+      }
       break;
     case NC_WINDOW:
       screen->do_draw = true;
       break;
     case NC_SCREEN:
-      if (note->action == NA_EDITED)
+      if (note->action == NA_EDITED) {
         screen->do_draw = screen->do_refresh = true;
+      }
       break;
     case NC_SCENE:
-      if (note->data == ND_MODE)
+      if (note->data == ND_MODE) {
         region_cursor_set(win, true);
+      }
       break;
   }
 }
@@ -425,16 +433,19 @@ static void screen_refresh_headersizes(void)
   for (st = lb->first; st; st = st->next) {
     ARegionType *art;
     art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
-    if (art)
+    if (art) {
       art->prefsizey = ED_area_headersize();
+    }
 
     art = BKE_regiontype_from_id(st, RGN_TYPE_TOOL_HEADER);
-    if (art)
+    if (art) {
       art->prefsizey = ED_area_headersize();
+    }
 
     art = BKE_regiontype_from_id(st, RGN_TYPE_FOOTER);
-    if (art)
+    if (art) {
       art->prefsizey = ED_area_headersize();
+    }
   }
 }
 
@@ -462,8 +473,9 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
     }
 
     /* wake up animtimer */
-    if (screen->animtimer)
+    if (screen->animtimer) {
       WM_event_timer_sleep(wm, win, screen->animtimer, false);
+    }
   }
 
   if (G.debug & G_DEBUG_EVENTS) {
@@ -514,8 +526,9 @@ void ED_region_exit(bContext *C, ARegion *ar)
   wmWindow *win = CTX_wm_window(C);
   ARegion *prevar = CTX_wm_region(C);
 
-  if (ar->type && ar->type->exit)
+  if (ar->type && ar->type->exit) {
     ar->type->exit(wm, ar);
+  }
 
   CTX_wm_region_set(C, ar);
 
@@ -545,13 +558,15 @@ void ED_area_exit(bContext *C, ScrArea *sa)
   ScrArea *prevsa = CTX_wm_area(C);
   ARegion *ar;
 
-  if (sa->type && sa->type->exit)
+  if (sa->type && sa->type->exit) {
     sa->type->exit(wm, sa);
+  }
 
   CTX_wm_area_set(C, sa);
 
-  for (ar = sa->regionbase.first; ar; ar = ar->next)
+  for (ar = sa->regionbase.first; ar; ar = ar->next) {
     ED_region_exit(C, ar);
+  }
 
   WM_event_remove_handlers(C, &sa->handlers);
   WM_event_modal_handler_area_replace(win, sa, NULL);
@@ -566,8 +581,9 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
   CTX_wm_window_set(C, window);
 
-  if (screen->animtimer)
+  if (screen->animtimer) {
     WM_event_remove_timer(wm, window, screen->animtimer);
+  }
   screen->animtimer = NULL;
   screen->scrubbing = false;
 
@@ -606,31 +622,39 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
   AZone *az = NULL;
   ScrArea *sa;
 
-  for (sa = screen->areabase.first; sa; sa = sa->next)
-    if ((az = ED_area_actionzone_find_xy(sa, xy)))
+  for (sa = screen->areabase.first; sa; sa = sa->next) {
+    if ((az = ED_area_actionzone_find_xy(sa, xy))) {
       break;
+    }
+  }
 
   if (sa) {
-    if (az->type == AZONE_AREA)
+    if (az->type == AZONE_AREA) {
       WM_cursor_set(win, CURSOR_EDIT);
+    }
     else if (az->type == AZONE_REGION) {
-      if (az->edge == AE_LEFT_TO_TOPRIGHT || az->edge == AE_RIGHT_TO_TOPLEFT)
+      if (az->edge == AE_LEFT_TO_TOPRIGHT || az->edge == AE_RIGHT_TO_TOPLEFT) {
         WM_cursor_set(win, CURSOR_X_MOVE);
-      else
+      }
+      else {
         WM_cursor_set(win, CURSOR_Y_MOVE);
+      }
     }
   }
   else {
     ScrEdge *actedge = screen_geom_find_active_scredge(win, screen, xy[0], xy[1]);
 
     if (actedge) {
-      if (screen_geom_edge_is_horizontal(actedge))
+      if (screen_geom_edge_is_horizontal(actedge)) {
         WM_cursor_set(win, CURSOR_Y_MOVE);
-      else
+      }
+      else {
         WM_cursor_set(win, CURSOR_X_MOVE);
+      }
     }
-    else
+    else {
       WM_cursor_set(win, CURSOR_STD);
+    }
   }
 }
 
@@ -665,8 +689,9 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
         }
       }
     }
-    else
+    else {
       scr->active_region = NULL;
+    }
 
     /* check for redraw headers */
     if (old_ar != scr->active_region) {
@@ -707,8 +732,9 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
           UI_screen_free_active_but(C, scr);
         }
       }
-      else
+      else {
         region_cursor_set(win, false);
+      }
     }
   }
 }
@@ -723,12 +749,15 @@ int ED_screen_area_active(const bContext *C)
     AZone *az = ED_area_actionzone_find_xy(sa, &win->eventstate->x);
     ARegion *ar;
 
-    if (az && az->type == AZONE_REGION)
+    if (az && az->type == AZONE_REGION) {
       return 1;
+    }
 
-    for (ar = sa->regionbase.first; ar; ar = ar->next)
-      if (ar == sc->active_region)
+    for (ar = sa->regionbase.first; ar; ar = ar->next) {
+      if (ar == sc->active_region) {
         return 1;
+      }
+    }
   }
   return 0;
 }
@@ -994,10 +1023,12 @@ static void screen_set_3dview_camera(Scene *scene, ViewLayer *view_layer, ScrAre
       ListBase *regionbase;
 
       /* regionbase is in different place depending if space is active */
-      if (v3d == sa->spacedata.first)
+      if (v3d == sa->spacedata.first) {
         regionbase = &sa->regionbase;
-      else
+      }
+      else {
         regionbase = &v3d->regionbase;
+      }
 
       for (ar = regionbase->first; ar; ar = ar->next) {
         if (ar->regiontype == RGN_TYPE_WINDOW) {
@@ -1194,8 +1225,9 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
     sa->full = NULL;
 
     if (fullsa == NULL) {
-      if (G.debug & G_DEBUG)
+      if (G.debug & G_DEBUG) {
         printf("%s: something wrong in areafullscreen\n", __func__);
+      }
       return NULL;
     }
 
@@ -1310,9 +1342,10 @@ void ED_refresh_viewport_fps(bContext *C)
     ScreenFrameRateInfo *fpsi = scene->fps_info;
 
     /* if there isn't any info, init it first */
-    if (fpsi == NULL)
+    if (fpsi == NULL) {
       fpsi = scene->fps_info = MEM_callocN(sizeof(ScreenFrameRateInfo),
                                            "refresh_viewport_fps fps_info");
+    }
 
     /* update the values */
     fpsi->redrawtime = fpsi->lredrawtime;
@@ -1320,8 +1353,9 @@ void ED_refresh_viewport_fps(bContext *C)
   }
   else {
     /* playback stopped or shouldn't be running */
-    if (scene->fps_info)
+    if (scene->fps_info) {
       MEM_freeN(scene->fps_info);
+    }
     scene->fps_info = NULL;
   }
 }
@@ -1355,16 +1389,18 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
         sad->sfra = scene->r.cfra;
         scene->r.cfra = scene->r.psfra;
       }
-      else
+      else {
         sad->sfra = scene->r.cfra;
+      }
     }
     else {
       if (scene->r.sfra > scene->r.cfra) {
         sad->sfra = scene->r.cfra;
         scene->r.cfra = scene->r.sfra;
       }
-      else
+      else {
         sad->sfra = scene->r.cfra;
+      }
     }
     sad->redraws = redraws;
     sad->refresh = refresh;
@@ -1375,8 +1411,9 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 
     char spacetype = -1;
 
-    if (sa)
+    if (sa) {
       spacetype = sa->spacetype;
+    }
 
     sad->from_anim_edit = (ELEM(spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA));
 
@@ -1420,8 +1457,9 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
     sad->redraws = redraws;
     sad->refresh = refresh;
     sad->ar = NULL;
-    if (redraws & TIME_REGION)
+    if (redraws & TIME_REGION) {
       sad->ar = time_top_left_3dwindow(screen);
+    }
   }
 }
 
@@ -1462,8 +1500,9 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
       case SPACE_VIEW3D: {
         View3D *v3d;
 
-        if (!is_multiview)
+        if (!is_multiview) {
           continue;
+        }
 
         v3d = sa->spacedata.first;
         if (v3d->camera && v3d->stereo3d_camera == STEREO_3D_ID) {
@@ -1494,8 +1533,9 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
       case SPACE_NODE: {
         SpaceNode *snode;
 
-        if (!is_multiview)
+        if (!is_multiview) {
           continue;
+        }
 
         snode = sa->spacedata.first;
         if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
@@ -1506,8 +1546,9 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
       case SPACE_SEQ: {
         SpaceSeq *sseq;
 
-        if (!is_multiview)
+        if (!is_multiview) {
           continue;
+        }
 
         sseq = sa->spacedata.first;
         if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {

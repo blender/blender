@@ -69,8 +69,9 @@ static int uvedit_center(Scene *scene, Object *obedit, BMEditMesh *em, Image *im
 
   zero_v2(center);
   BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (!uvedit_face_visible_test(scene, obedit, ima, f))
+    if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
       continue;
+    }
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
@@ -100,8 +101,9 @@ static void uvedit_translate(
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (!uvedit_face_visible_test(scene, obedit, ima, f))
+    if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
       continue;
+    }
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
       if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
@@ -203,8 +205,9 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
   float center[2], delta[2];
   int imx, imy;
 
-  if (event != B_UVEDIT_VERTEX)
+  if (event != B_UVEDIT_VERTEX) {
     return;
+  }
 
   em = BKE_editmesh_from_object(obedit);
 

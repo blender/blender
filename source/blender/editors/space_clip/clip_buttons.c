@@ -110,8 +110,9 @@ void uiTemplateMovieClip(
   uiLayout *row, *split;
   uiBlock *block;
 
-  if (!ptr->data)
+  if (!ptr->data) {
     return;
+  }
 
   prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -133,9 +134,10 @@ void uiTemplateMovieClip(
 
   uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
-  if (!compact)
+  if (!compact) {
     uiTemplateID(
         layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false);
+  }
 
   if (clip) {
     uiLayout *col;
@@ -166,8 +168,9 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
   uiLayout *col;
   MovieClipScopes *scopes;
 
-  if (!ptr->data)
+  if (!ptr->data) {
     return;
+  }
 
   prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -274,8 +277,9 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
   MovieTrackingMarker *marker;
 
-  if (!cb->compact)
+  if (!cb->compact) {
     return;
+  }
 
   marker = BKE_tracking_marker_ensure(cb->track, cb->framenr);
 
@@ -381,8 +385,9 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
     sub_v2_v2v2(delta, offset, cb->track->offset);
     copy_v2_v2(cb->track->offset, offset);
 
-    for (i = 0; i < cb->track->markersnr; i++)
+    for (i = 0; i < cb->track->markersnr; i++) {
       sub_v2_v2(cb->track->markers[i].pos, delta);
+    }
 
     /* to update position of "parented" objects */
     DEG_id_tag_update(&cb->clip->id, 0);
@@ -391,8 +396,9 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
     ok = true;
   }
 
-  if (ok)
+  if (ok) {
     WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, cb->clip);
+  }
 }
 
 void uiTemplateMarker(uiLayout *layout,
@@ -414,8 +420,9 @@ void uiTemplateMarker(uiLayout *layout,
   const char *tip;
   float pat_min[2], pat_max[2];
 
-  if (!ptr->data)
+  if (!ptr->data) {
     return;
+  }
 
   prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -451,10 +458,12 @@ void uiTemplateMarker(uiLayout *layout,
   if (compact) {
     block = uiLayoutGetBlock(layout);
 
-    if (cb->marker_flag & MARKER_DISABLED)
+    if (cb->marker_flag & MARKER_DISABLED) {
       tip = TIP_("Marker is disabled at current frame");
-    else
+    }
+    else {
       tip = TIP_("Marker is enabled at current frame");
+    }
 
     bt = uiDefIconButBitI(block,
                           UI_BTYPE_TOGGLE_N,
@@ -525,10 +534,12 @@ void uiTemplateMarker(uiLayout *layout,
     UI_block_func_handle_set(block, marker_block_handler, cb);
     UI_block_funcN_set(block, marker_update_cb, cb, NULL);
 
-    if (cb->marker_flag & MARKER_DISABLED)
+    if (cb->marker_flag & MARKER_DISABLED) {
       tip = TIP_("Marker is disabled at current frame");
-    else
+    }
+    else {
       tip = TIP_("Marker is enabled at current frame");
+    }
 
     uiDefButBitI(block,
                  UI_BTYPE_CHECKBOX_N,
@@ -773,8 +784,9 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   ImBuf *ibuf;
   size_t ofs = 0;
 
-  if (!ptr->data)
+  if (!ptr->data) {
     return;
+  }
 
   prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -805,19 +817,24 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
   if (ibuf) {
     if (ibuf->rect_float) {
-      if (ibuf->channels != 4)
+      if (ibuf->channels != 4) {
         ofs += BLI_snprintf(
             str + ofs, sizeof(str) - ofs, IFACE_(", %d float channel(s)"), ibuf->channels);
-      else if (ibuf->planes == R_IMF_PLANES_RGBA)
+      }
+      else if (ibuf->planes == R_IMF_PLANES_RGBA) {
         ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA float"), sizeof(str) - ofs);
-      else
+      }
+      else {
         ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB float"), sizeof(str) - ofs);
+      }
     }
     else {
-      if (ibuf->planes == R_IMF_PLANES_RGBA)
+      if (ibuf->planes == R_IMF_PLANES_RGBA) {
         ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA byte"), sizeof(str) - ofs);
-      else
+      }
+      else {
         ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB byte"), sizeof(str) - ofs);
+      }
     }
 
     if (clip->anim != NULL) {
@@ -837,10 +854,12 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
   /* Display current frame number. */
   framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-  if (framenr <= clip->len)
+  if (framenr <= clip->len) {
     BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d / %d"), framenr, clip->len);
-  else
+  }
+  else {
     BLI_snprintf(str, sizeof(str), IFACE_("Frame: - / %d"), clip->len);
+  }
   uiItemL(col, str, ICON_NONE);
 
   /* Display current file name if it's a sequence clip. */

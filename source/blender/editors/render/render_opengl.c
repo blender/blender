@@ -154,8 +154,9 @@ static bool screen_opengl_is_multiview(OGLRender *oglrender)
   RegionView3D *rv3d = oglrender->rv3d;
   RenderData *rd = &oglrender->scene->r;
 
-  if ((rd == NULL) || ((v3d != NULL) && (rv3d == NULL)))
+  if ((rd == NULL) || ((v3d != NULL) && (rv3d == NULL))) {
     return false;
+  }
 
   return (rd->scemode & R_MULTIVIEW) &&
          ((v3d == NULL) || (rv3d->persp == RV3D_CAMOB && v3d->camera));
@@ -189,14 +190,17 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
       RenderView *rv_del = rv->next;
       BLI_remlink(&rr->views, rv_del);
 
-      if (rv_del->rectf)
+      if (rv_del->rectf) {
         MEM_freeN(rv_del->rectf);
+      }
 
-      if (rv_del->rectz)
+      if (rv_del->rectz) {
         MEM_freeN(rv_del->rectz);
+      }
 
-      if (rv_del->rect32)
+      if (rv_del->rect32) {
         MEM_freeN(rv_del->rect32);
+      }
 
       MEM_freeN(rv_del);
     }
@@ -219,14 +223,17 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
         BLI_remlink(&rr->views, rv_del);
 
-        if (rv_del->rectf)
+        if (rv_del->rectf) {
           MEM_freeN(rv_del->rectf);
+        }
 
-        if (rv_del->rectz)
+        if (rv_del->rectz) {
           MEM_freeN(rv_del->rectz);
+        }
 
-        if (rv_del->rect32)
+        if (rv_del->rect32) {
           MEM_freeN(rv_del->rect32);
+        }
 
         MEM_freeN(rv_del);
       }
@@ -234,8 +241,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
     /* create all the views that are needed */
     for (srv = rd->views.first; srv; srv = srv->next) {
-      if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
+      if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
+      }
 
       rv = BLI_findstring(&rr->views, srv->name, offsetof(SceneRenderView, name));
 
@@ -247,8 +255,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     }
   }
 
-  if (!(is_multiview && BKE_scene_multiview_is_stereo3d(rd)))
+  if (!(is_multiview && BKE_scene_multiview_is_stereo3d(rd))) {
     oglrender->iuser.flag &= ~IMA_SHOW_STEREO;
+  }
 
   /* will only work for non multiview correctly */
   if (v3d) {
@@ -431,10 +440,12 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 
   RE_ReleaseResultImage(oglrender->re);
 
-  if (ok)
+  if (ok) {
     printf("OpenGL Render written to '%s'\n", name);
-  else
+  }
+  else {
     printf("OpenGL Render failed to write '%s'\n", name);
+  }
 }
 
 static void UNUSED_FUNCTION(addAlphaOverFloat)(float dest[4], const float source[4])
@@ -551,8 +562,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   }
 
   /* only one render job at a time */
-  if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
+  if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
     return false;
+  }
 
   if (is_sequencer) {
     is_view_context = false;
@@ -951,8 +963,9 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
   RenderResult *rr;
 
   /* go to next frame */
-  if (CFRA < oglrender->nfra)
+  if (CFRA < oglrender->nfra) {
     CFRA++;
+  }
   while (CFRA < oglrender->nfra) {
     BKE_scene_graph_update_for_newframe(depsgraph, bmain);
     CFRA++;
@@ -1035,8 +1048,9 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
       return OPERATOR_FINISHED;
     case TIMER:
       /* render frame? */
-      if (oglrender->timer == event->customdata)
+      if (oglrender->timer == event->customdata) {
         break;
+      }
       ATTR_FALLTHROUGH;
     default:
       /* nothing to do */
@@ -1068,12 +1082,14 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   OGLRender *oglrender;
   const bool anim = RNA_boolean_get(op->ptr, "animation");
 
-  if (!screen_opengl_render_init(C, op))
+  if (!screen_opengl_render_init(C, op)) {
     return OPERATOR_CANCELLED;
+  }
 
   if (anim) {
-    if (!screen_opengl_render_anim_initialize(C, op))
+    if (!screen_opengl_render_anim_initialize(C, op)) {
       return OPERATOR_CANCELLED;
+    }
   }
 
   oglrender = op->customdata;
@@ -1093,8 +1109,9 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 {
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
 
-  if (!screen_opengl_render_init(C, op))
+  if (!screen_opengl_render_init(C, op)) {
     return OPERATOR_CANCELLED;
+  }
 
   if (!is_animation) { /* same as invoke */
     /* render image */
@@ -1106,8 +1123,9 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
   else {
     bool ret = true;
 
-    if (!screen_opengl_render_anim_initialize(C, op))
+    if (!screen_opengl_render_anim_initialize(C, op)) {
       return OPERATOR_CANCELLED;
+    }
 
     while (ret) {
       ret = screen_opengl_render_anim_step(C, op);

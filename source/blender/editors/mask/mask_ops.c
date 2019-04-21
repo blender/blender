@@ -179,29 +179,36 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   }
 
   if (len_sq < threshold_sq) {
-    if (masklay_r)
+    if (masklay_r) {
       *masklay_r = point_masklay;
+    }
 
-    if (spline_r)
+    if (spline_r) {
       *spline_r = point_spline;
+    }
 
-    if (which_handle_r)
+    if (which_handle_r) {
       *which_handle_r = which_handle;
+    }
 
-    if (score)
+    if (score) {
       *score = sqrtf(len_sq);
+    }
 
     return point;
   }
 
-  if (masklay_r)
+  if (masklay_r) {
     *masklay_r = NULL;
+  }
 
-  if (spline_r)
+  if (spline_r) {
     *spline_r = NULL;
+  }
 
-  if (which_handle_r)
+  if (which_handle_r) {
     *which_handle_r = MASK_WHICH_HANDLE_NONE;
+  }
 
   return NULL;
 }
@@ -262,10 +269,12 @@ bool ED_mask_feather_find_nearest(const bContext *C,
           cur_len_sq = len_squared_v2v2(vec, co);
 
           if (point == NULL || cur_len_sq < len) {
-            if (j == 0)
+            if (j == 0) {
               uw = NULL;
-            else
+            }
+            else {
               uw = &cur_point->uw[j - 1];
+            }
 
             point_masklay = masklay;
             point_spline = spline;
@@ -282,32 +291,40 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   }
 
   if (len < threshold_sq) {
-    if (masklay_r)
+    if (masklay_r) {
       *masklay_r = point_masklay;
+    }
 
-    if (spline_r)
+    if (spline_r) {
       *spline_r = point_spline;
+    }
 
-    if (point_r)
+    if (point_r) {
       *point_r = point;
+    }
 
-    if (uw_r)
+    if (uw_r) {
       *uw_r = uw;
+    }
 
-    if (score)
+    if (score) {
       *score = sqrtf(len);
+    }
 
     return true;
   }
 
-  if (masklay_r)
+  if (masklay_r) {
     *masklay_r = NULL;
+  }
 
-  if (spline_r)
+  if (spline_r) {
     *spline_r = NULL;
+  }
 
-  if (point_r)
+  if (point_r) {
     *point_r = NULL;
+  }
 
   return false;
 }
@@ -720,10 +737,12 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
   }
 
   if (cv_point && action == SLIDE_ACTION_NONE) {
-    if (which_handle != MASK_WHICH_HANDLE_NONE)
+    if (which_handle != MASK_WHICH_HANDLE_NONE) {
       action = SLIDE_ACTION_HANDLE;
-    else
+    }
+    else {
       action = SLIDE_ACTION_POINT;
+    }
 
     masklay = cv_masklay;
     spline = cv_spline;
@@ -851,8 +870,9 @@ static void slide_point_restore_spline(SlidePointData *data)
 
     point->bezt = orig_point->bezt;
 
-    for (j = 0; j < point->tot_uw; j++)
+    for (j = 0; j < point->tot_uw; j++) {
       point->uw[j] = orig_point->uw[j];
+    }
   }
 }
 
@@ -865,10 +885,12 @@ static void cancel_slide_point(SlidePointData *data)
   }
   else {
     if (data->action == SLIDE_ACTION_FEATHER) {
-      if (data->uw)
+      if (data->uw) {
         data->uw->w = data->weight;
-      else
+      }
+      else {
         data->point->bezt.weight = data->weight;
+      }
     }
     else if (data->action != SLIDE_ACTION_SPLINE) {
       copy_m3_m3(data->point->bezt.vec, data->vec);
@@ -880,8 +902,9 @@ static void cancel_slide_point(SlidePointData *data)
 
 static void free_slide_point_data(SlidePointData *data)
 {
-  if (data->orig_spline)
+  if (data->orig_spline) {
     BKE_mask_spline_free(data->orig_spline);
+  }
 
   MEM_freeN(data);
 }
@@ -906,8 +929,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
 
-      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+      if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY)) {
         data->is_accurate = (event->val == KM_PRESS);
+      }
 
       ATTR_FALLTHROUGH; /* update CV position */
     case MOUSEMOVE: {
@@ -1028,8 +1052,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (is_overall_feather) {
             float w_delta;
 
-            if (dot_v2v2(no, vec) <= 0.0f)
+            if (dot_v2v2(no, vec) <= 0.0f) {
               w = -w;
+            }
 
             w_delta = w - data->weight * data->weight_scalar;
 
@@ -1049,8 +1074,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
             slide_point_delta_all_feather(data, w_delta);
           }
           else {
-            if (dot_v2v2(no, vec) <= 0.0f)
+            if (dot_v2v2(no, vec) <= 0.0f) {
               w = 0.0f;
+            }
 
             if (data->orig_spline) {
               /* restore possible overall feather changes */
@@ -1586,12 +1612,14 @@ static void delete_feather_points(MaskSplinePoint *point)
 {
   int i, count = 0;
 
-  if (!point->tot_uw)
+  if (!point->tot_uw) {
     return;
+  }
 
   for (i = 0; i < point->tot_uw; i++) {
-    if ((point->uw[i].flag & SELECT) == 0)
+    if ((point->uw[i].flag & SELECT) == 0) {
       count++;
+    }
   }
 
   if (count == 0) {
@@ -1644,8 +1672,9 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
       for (i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        if (!MASKPOINT_ISSEL_ANY(point))
+        if (!MASKPOINT_ISSEL_ANY(point)) {
           count++;
+        }
       }
 
       if (count == 0) {
@@ -1670,8 +1699,9 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
           MaskSplinePoint *point = &spline->points[i];
 
           if (!MASKPOINT_ISSEL_ANY(point)) {
-            if (point == masklay->act_point)
+            if (point == masklay->act_point) {
               masklay->act_point = &new_points[j];
+            }
 
             delete_feather_points(point);
 
@@ -1679,8 +1709,9 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
             j++;
           }
           else {
-            if (point == masklay->act_point)
+            if (point == masklay->act_point) {
               masklay->act_point = NULL;
+            }
 
             BKE_mask_point_free(point);
             spline->tot_point--;
@@ -2138,14 +2169,16 @@ static int mask_layer_move_exec(bContext *C, wmOperator *op)
   MaskLayer *mask_layer_other;
   int direction = RNA_enum_get(op->ptr, "direction");
 
-  if (!mask_layer)
+  if (!mask_layer) {
     return OPERATOR_CANCELLED;
+  }
 
   if (direction == -1) {
     mask_layer_other = mask_layer->prev;
 
-    if (!mask_layer_other)
+    if (!mask_layer_other) {
       return OPERATOR_CANCELLED;
+    }
 
     BLI_remlink(&mask->masklayers, mask_layer);
     BLI_insertlinkbefore(&mask->masklayers, mask_layer_other, mask_layer);
@@ -2154,8 +2187,9 @@ static int mask_layer_move_exec(bContext *C, wmOperator *op)
   else if (direction == 1) {
     mask_layer_other = mask_layer->next;
 
-    if (!mask_layer_other)
+    if (!mask_layer_other) {
       return OPERATOR_CANCELLED;
+    }
 
     BLI_remlink(&mask->masklayers, mask_layer);
     BLI_insertlinkafter(&mask->masklayers, mask_layer_other, mask_layer);

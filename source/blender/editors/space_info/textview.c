@@ -161,8 +161,9 @@ static int console_draw_string(ConsoleDrawContext *cdc,
         CLAMP(ofs, 0, str_len);
         *cdc->pos_pick += str_len - ofs;
       }
-      else
+      else {
         *cdc->pos_pick += str_len + 1;
+      }
     }
 
     cdc->xy[1] = y_next;

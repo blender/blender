@@ -512,8 +512,9 @@ static bool slide_check_corners(float (*corners)[2])
   float cross = 0.0f;
   float p[2] = {0.0f, 0.0f};
 
-  if (!isect_point_quad_v2(p, corners[0], corners[1], corners[2], corners[3]))
+  if (!isect_point_quad_v2(p, corners[0], corners[1], corners[2], corners[3])) {
     return false;
+  }
 
   for (i = 0; i < 4; i++) {
     float v1[2], v2[2], cur_cross;
@@ -562,8 +563,9 @@ MovieTrackingTrack *tracking_marker_check_slide(
 
   ED_space_clip_get_size(sc, &width, &height);
 
-  if (width == 0 || height == 0)
+  if (width == 0 || height == 0) {
     return NULL;
+  }
 
   ED_clip_mouse_pos(sc, ar, event->mval, co);
 

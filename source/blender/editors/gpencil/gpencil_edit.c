@@ -286,8 +286,9 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
     is_object = true;
   }
 
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Just toggle paintmode flag... */
   gpd->flag ^= GP_DATA_STROKE_PAINTMODE;
@@ -386,8 +387,9 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
     is_object = true;
   }
 
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Just toggle sculptmode flag... */
   gpd->flag ^= GP_DATA_STROKE_SCULPTMODE;
@@ -475,8 +477,9 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     is_object = true;
   }
 
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Just toggle weightmode flag... */
   gpd->flag ^= GP_DATA_STROKE_WEIGHTMODE;
@@ -545,8 +548,9 @@ void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot)
 static int gpencil_hideselect_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
   View3D *v3d = CTX_wm_view3d(C);
-  if (v3d == NULL)
+  if (v3d == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Just toggle alpha... */
   if (v3d->vertex_opacity > 0.0f) {
@@ -685,8 +689,9 @@ static int gp_duplicate_exec(bContext *C, wmOperator *op)
     bGPDframe *gpf = gpl->actframe;
     bGPDstroke *gps;
 
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     /* make copies of selected strokes, and deselect these once we're done */
     for (gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -931,13 +936,15 @@ static int gp_extrude_exec(bContext *C, wmOperator *op)
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           if (gps->flag & GP_STROKE_SELECT) {
             gpencil_add_move_points(gpf, gps);
@@ -1123,14 +1130,16 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
     bGPDframe *gpf = gpl->actframe;
     bGPDstroke *gps;
 
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     /* make copies of selected strokes, and deselect these once we're done */
     for (gps = gpf->strokes.first; gps; gps = gps->next) {
       /* skip strokes that are invalid for current view */
-      if (ED_gpencil_stroke_can_use(C, gps) == false)
+      if (ED_gpencil_stroke_can_use(C, gps) == false) {
         continue;
+      }
 
       if (gps->flag & GP_STROKE_SELECT) {
         if (gps->totpoints == 1) {
@@ -1278,10 +1287,12 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
        * (i.e. image editor is incompatible with normal 2D strokes),
        * but should be enough to give users a good idea of what's going on.
        */
-      if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D)
+      if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D) {
         BKE_report(op->reports, RPT_ERROR, "Cannot paste 2D strokes in 3D View");
-      else
+      }
+      else {
         BKE_report(op->reports, RPT_ERROR, "Cannot paste 3D strokes in 2D editors");
+      }
 
       return OPERATOR_CANCELLED;
     }
@@ -1444,16 +1455,18 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
     bGPDstroke *gps, *gpsn;
 
     /* skip if no frame with strokes, or if this is the layer we're moving strokes to */
-    if ((gpl == target_layer) || (gpf == NULL))
+    if ((gpl == target_layer) || (gpf == NULL)) {
       continue;
+    }
 
     /* make copies of selected strokes, and deselect these once we're done */
     for (gps = gpf->strokes.first; gps; gps = gpsn) {
       gpsn = gps->next;
 
       /* skip strokes that are invalid for current view */
-      if (ED_gpencil_stroke_can_use(C, gps) == false)
+      if (ED_gpencil_stroke_can_use(C, gps) == false) {
         continue;
+      }
 
       /* TODO: Don't just move entire strokes - instead, only copy the selected portions... */
       if (gps->flag & GP_STROKE_SELECT) {
@@ -1679,8 +1692,9 @@ static int gp_actframe_delete_all_exec(bContext *C, wmOperator *op)
     /* try to get the "active" frame - but only if it actually occurs on this frame */
     bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
 
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     /* delete it... */
     BKE_gpencil_layer_delframe(gpl, gpf);
@@ -1755,16 +1769,18 @@ static int gp_delete_selected_strokes(bContext *C)
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         bGPDstroke *gps, *gpsn;
 
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         /* simply delete strokes which are selected */
         for (gps = gpf->strokes.first; gps; gps = gpsn) {
           gpsn = gps->next;
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           /* free stroke if selected */
           if (gps->flag & GP_STROKE_SELECT) {
@@ -1820,8 +1836,9 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
 
         bGPDstroke *gps, *gpsn;
 
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         /* simply delete points from selected strokes
          * NOTE: we may still have to remove the stroke if it ends up having no points!
@@ -1830,11 +1847,13 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
           gpsn = gps->next;
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
           /* check if the color is editable */
-          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false)
+          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
             continue;
+          }
 
           /* the stroke must have at least one point selected for any operator */
           if (gps->flag & GP_STROKE_SELECT) {
@@ -2313,19 +2332,22 @@ static int gp_delete_selected_points(bContext *C)
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         bGPDstroke *gps, *gpsn;
 
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         /* simply delete strokes which are selected */
         for (gps = gpf->strokes.first; gps; gps = gpsn) {
           gpsn = gps->next;
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
           /* check if the color is editable */
-          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false)
+          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
             continue;
+          }
 
           if (gps->flag & GP_STROKE_SELECT) {
             /* deselect old stroke, since it will be used as template for the new strokes */
@@ -2499,11 +2521,13 @@ static int gp_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
         int i;
 
         /* skip strokes that are invalid for current view */
-        if (ED_gpencil_stroke_can_use(C, gps) == false)
+        if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
+        }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false)
+        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
           continue;
+        }
 
         // TODO: if entire stroke is selected, offset entire stroke by same amount?
         for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
@@ -2574,14 +2598,17 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
         int i;
 
         /* skip strokes that are invalid for current view */
-        if (ED_gpencil_stroke_can_use(C, gps) == false)
+        if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
+        }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false)
+        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
           continue;
+        }
         /* only continue if this stroke is selected (editable doesn't guarantee this)... */
-        if ((gps->flag & GP_STROKE_SELECT) == 0)
+        if ((gps->flag & GP_STROKE_SELECT) == 0) {
           continue;
+        }
 
         if (use_offset) {
           float offset[3];
@@ -2669,14 +2696,17 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
         int i;
 
         /* skip strokes that are invalid for current view */
-        if (ED_gpencil_stroke_can_use(C, gps) == false)
+        if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
+        }
         /* check if the color is editable */
-        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false)
+        if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
           continue;
+        }
         /* only continue if this stroke is selected (editable doesn't guarantee this)... */
-        if ((gps->flag & GP_STROKE_SELECT) == 0)
+        if ((gps->flag & GP_STROKE_SELECT) == 0) {
           continue;
+        }
 
         for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
           if (pt->flag & GP_SPOINT_SELECT) {
@@ -2731,8 +2761,9 @@ static int gp_stroke_apply_thickness_exec(bContext *C, wmOperator *UNUSED(op))
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 
   /* sanity checks */
-  if (ELEM(NULL, gpd, gpl, gpl->frames.first))
+  if (ELEM(NULL, gpd, gpl, gpl->frames.first)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* loop all strokes */
   for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
@@ -2785,24 +2816,28 @@ static int gp_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* loop all selected strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    if (gpl->actframe == NULL)
+    if (gpl->actframe == NULL) {
       continue;
+    }
 
     for (bGPDstroke *gps = gpl->actframe->strokes.last; gps; gps = gps->prev) {
       MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
       /* skip strokes that are not selected or invalid for current view */
-      if (((gps->flag & GP_STROKE_SELECT) == 0) || ED_gpencil_stroke_can_use(C, gps) == false)
+      if (((gps->flag & GP_STROKE_SELECT) == 0) || ED_gpencil_stroke_can_use(C, gps) == false) {
         continue;
+      }
       /* skip hidden or locked colors */
       if (!gp_style || (gp_style->flag & GP_STYLE_COLOR_HIDE) ||
-          (gp_style->flag & GP_STYLE_COLOR_LOCKED))
+          (gp_style->flag & GP_STYLE_COLOR_LOCKED)) {
         continue;
+      }
 
       switch (type) {
         case GP_STROKE_CYCLIC_CLOSE:
@@ -2878,13 +2913,15 @@ static int gp_stroke_caps_set_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* loop all selected strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    if (gpl->actframe == NULL)
+    if (gpl->actframe == NULL) {
       continue;
+    }
 
     for (bGPDstroke *gps = gpl->actframe->strokes.last; gps; gps = gps->prev) {
       MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
@@ -3047,11 +3084,13 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
   float deltatime = 0.0f;
 
   /* sanity checks */
-  if (ELEM(NULL, gps_a, gps_b))
+  if (ELEM(NULL, gps_a, gps_b)) {
     return;
+  }
 
-  if ((gps_a->totpoints == 0) || (gps_b->totpoints == 0))
+  if ((gps_a->totpoints == 0) || (gps_b->totpoints == 0)) {
     return;
+  }
 
   /* define start and end points of each stroke */
   float sa[3], sb[3], ea[3], eb[3];
@@ -3112,11 +3151,13 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
   const bool leave_gaps = RNA_boolean_get(op->ptr, "leave_gaps");
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
-  if (activegpl->flag & GP_LAYER_LOCKED)
+  if (activegpl->flag & GP_LAYER_LOCKED) {
     return OPERATOR_CANCELLED;
+  }
 
   BLI_assert(ELEM(type, GP_STROKE_JOIN, GP_STROKE_JOINCOPY));
 
@@ -3124,8 +3165,9 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
   bool first = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *gpf = gpl->actframe;
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     for (gps = gpf->strokes.first; gps; gps = gpsn) {
       gpsn = gps->next;
@@ -3196,8 +3238,9 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
   if (type == GP_STROKE_JOINCOPY) {
     if (new_stroke) {
       /* Add a new frame if needed */
-      if (activegpl->actframe == NULL)
+      if (activegpl->actframe == NULL) {
         activegpl->actframe = BKE_gpencil_frame_addnew(activegpl, gpf_a->framenum);
+      }
 
       BLI_addtail(&activegpl->actframe->strokes, new_stroke);
     }
@@ -3247,14 +3290,16 @@ static int gp_stroke_flip_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* read all selected strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *gpf = gpl->actframe;
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
       if (gps->flag & GP_STROKE_SELECT) {
@@ -3569,8 +3614,9 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
   int i2;
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Go through each editable + selected stroke */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
@@ -3731,8 +3777,9 @@ static int gp_stroke_simplify_exec(bContext *C, wmOperator *op)
   float factor = RNA_float_get(op->ptr, "factor");
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Go through each editable + selected stroke */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
@@ -3779,8 +3826,9 @@ static int gp_stroke_simplify_fixed_exec(bContext *C, wmOperator *op)
   int steps = RNA_int_get(op->ptr, "step");
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Go through each editable + selected stroke */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
@@ -3828,8 +3876,9 @@ static int gp_stroke_trim_exec(bContext *C, wmOperator *UNUSED(op))
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* Go through each editable + selected stroke */
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
@@ -3844,15 +3893,17 @@ static int gp_stroke_trim_exec(bContext *C, wmOperator *UNUSED(op))
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         bGPDstroke *gps, *gpsn;
 
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (gps = gpf->strokes.first; gps; gps = gpsn) {
           gpsn = gps->next;
 
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           if (gps->flag & GP_STROKE_SELECT) {
             BKE_gpencil_trim_stroke(gps);
@@ -4205,8 +4256,9 @@ static int gp_stroke_smooth_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
   /* sanity checks */
-  if (ELEM(NULL, gpd))
+  if (ELEM(NULL, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   gp_smooth_stroke(C, op);
 
@@ -4427,8 +4479,9 @@ static bool gpencil_cutter_poll(bContext *C)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
   if (GPENCIL_PAINT_MODE(gpd)) {
-    if (gpd->layers.first)
+    if (gpd->layers.first) {
       return true;
+    }
   }
 
   return false;

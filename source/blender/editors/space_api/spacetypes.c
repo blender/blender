@@ -179,8 +179,9 @@ void ED_spacemacros_init(void)
   /* register dropboxes (can use macros) */
   spacetypes = BKE_spacetypes_list();
   for (type = spacetypes->first; type; type = type->next) {
-    if (type->dropboxes)
+    if (type->dropboxes) {
       type->dropboxes();
+    }
   }
 }
 
@@ -216,11 +217,13 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
   spacetypes = BKE_spacetypes_list();
   for (stype = spacetypes->first; stype; stype = stype->next) {
-    if (stype->keymap)
+    if (stype->keymap) {
       stype->keymap(keyconf);
+    }
     for (atype = stype->regiontypes.first; atype; atype = atype->next) {
-      if (atype->keymap)
+      if (atype->keymap) {
         atype->keymap(keyconf);
+      }
     }
   }
 }

@@ -40,37 +40,39 @@ static int txtfmt_osl_find_builtinfunc(const char *string)
   /* list is from
    * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
    */
-  if      (STR_LITERAL_STARTSWITH(string, "break",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "closure",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "color",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "continue",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "do",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "else",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "emit",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "float",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "for",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "if",           len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "illuminance",  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "illuminate",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "int",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "matrix",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "normal",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "output",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "point",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "public",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "return",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "string",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "struct",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "vector",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "void",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "while",        len)) i = len;
-  else                                                          i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "break",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "closure",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "color",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "continue",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "do",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "else",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "emit",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "float",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "for",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "if",           len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "illuminance",  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "illuminate",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "int",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "matrix",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "normal",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "output",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "point",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "public",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "return",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "string",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "struct",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "vector",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "void",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "while",        len)) { i = len;
+  } else {                                                          i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -84,49 +86,51 @@ static int txtfmt_osl_find_reserved(const char *string)
   /* list is from...
    * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
    */
-  if      (STR_LITERAL_STARTSWITH(string, "bool",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "case",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "catch",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "char",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "const",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "delete",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "default",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "double",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "enum",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "extern",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "false",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "friend",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "goto",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "inline",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "long",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "new",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "operator",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "private",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "protected",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "short",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "signed",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "sizeof",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "static",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "switch",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "template",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "this",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "throw",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "true",         len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "try",          len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "typedef",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "uniform",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "union",        len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "unsigned",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "varying",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "virtual",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "volatile",     len)) i = len;
-  else                                                          i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "bool",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "case",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "catch",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "char",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "const",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "delete",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "default",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "double",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "enum",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "extern",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "false",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "friend",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "goto",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "inline",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "long",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "new",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "operator",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "private",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "protected",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "short",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "signed",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "sizeof",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "static",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "switch",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "template",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "this",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "throw",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "true",         len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "try",          len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "typedef",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "uniform",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "union",        len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "unsigned",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "varying",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "virtual",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "volatile",     len)) { i = len;
+  } else {                                                          i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -145,17 +149,19 @@ static int txtfmt_osl_find_specialvar(const char *string)
   /* clang-format off */
 
   /* OSL shader types */
-  if      (STR_LITERAL_STARTSWITH(string, "shader",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "surface",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "volume",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "displacement", len)) i = len;
-  else                                                    i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "shader",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "surface",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "volume",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "displacement", len)) { i = len;
+  } else {                                                    i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -183,11 +189,12 @@ static char txtfmt_osl_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_osl_find_specialvar(str))   != -1) fmt = FMT_TYPE_SPECIAL;
-  else if ((txtfmt_osl_find_builtinfunc(str))  != -1) fmt = FMT_TYPE_KEYWORD;
-  else if ((txtfmt_osl_find_reserved(str))     != -1) fmt = FMT_TYPE_RESERVED;
-  else if ((txtfmt_osl_find_preprocessor(str)) != -1) fmt = FMT_TYPE_DIRECTIVE;
-  else                                                fmt = FMT_TYPE_DEFAULT;
+  if      ((txtfmt_osl_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if ((txtfmt_osl_find_builtinfunc(str))  != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else if ((txtfmt_osl_find_reserved(str))     != -1) { fmt = FMT_TYPE_RESERVED;
+  } else if ((txtfmt_osl_find_preprocessor(str)) != -1) { fmt = FMT_TYPE_DIRECTIVE;
+  } else {                                                fmt = FMT_TYPE_DEFAULT;
+}
 
   /* clang-format on */
 
@@ -236,8 +243,9 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
       *fmt = prev;
       fmt++;
       str++;
-      if (*str == '\0')
+      if (*str == '\0') {
         break;
+      }
       *fmt = prev;
       fmt++;
       str += BLI_str_utf8_size_safe(str);
@@ -261,8 +269,9 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
-        if (*str == find)
+        if (*str == find) {
           cont = 0;
+        }
         *fmt = FMT_TYPE_STRING;
       }
 
@@ -314,10 +323,11 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_osl_format_identifier()' */
-        if      ((i = txtfmt_osl_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
-        else if ((i = txtfmt_osl_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
-        else if ((i = txtfmt_osl_find_reserved(str))     != -1) prev = FMT_TYPE_RESERVED;
-        else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) prev = FMT_TYPE_DIRECTIVE;
+        if      ((i = txtfmt_osl_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
+        } else if ((i = txtfmt_osl_find_builtinfunc(str))  != -1) { prev = FMT_TYPE_KEYWORD;
+        } else if ((i = txtfmt_osl_find_reserved(str))     != -1) { prev = FMT_TYPE_RESERVED;
+        } else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) { prev = FMT_TYPE_DIRECTIVE;
+}
 
         /* clang-format on */
 

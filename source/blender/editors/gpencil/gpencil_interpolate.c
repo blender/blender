@@ -541,8 +541,9 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
 
   /* try to initialize context data needed */
   if (!gpencil_interpolate_init(C, op)) {
-    if (op->customdata)
+    if (op->customdata) {
       MEM_freeN(op->customdata);
+    }
     return OPERATOR_CANCELLED;
   }
   else {
@@ -1129,8 +1130,9 @@ static int gpencil_interpolate_reverse_exec(bContext *C, wmOperator *UNUSED(op))
     bGPDframe *gpf, *gpfn;
 
     /* Only continue if we're currently on a breakdown keyframe */
-    if ((gpl->actframe == NULL) || (gpl->actframe->key_type != BEZT_KEYTYPE_BREAKDOWN))
+    if ((gpl->actframe == NULL) || (gpl->actframe->key_type != BEZT_KEYTYPE_BREAKDOWN)) {
       continue;
+    }
 
     /* Search left for "start_key" (i.e. the first breakdown to remove) */
     gpf = gpl->actframe;

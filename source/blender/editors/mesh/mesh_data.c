@@ -217,8 +217,9 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
     BLI_assert(cd_loop_uv_offset != -1);
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
+      if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
         continue;
+      }
 
       mesh_uv_reset_bmface(efa, cd_loop_uv_offset);
     }
@@ -261,8 +262,9 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set, co
     em = me->edit_mesh;
 
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
-    if (layernum_dst >= MAX_MTFACE)
+    if (layernum_dst >= MAX_MTFACE) {
       return -1;
+    }
 
     /* CD_MLOOPUV */
     BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPUV, name);
@@ -279,8 +281,9 @@ int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set, co
   }
   else {
     layernum_dst = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-    if (layernum_dst >= MAX_MTFACE)
+    if (layernum_dst >= MAX_MTFACE) {
       return -1;
+    }
 
     if (me->mloopuv && do_init) {
       CustomData_add_layer_named(
@@ -322,13 +325,15 @@ void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name)
     em = me->edit_mesh;
 
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPUV);
-    if (layernum_dst == 0)
+    if (layernum_dst == 0) {
       ED_mesh_uv_texture_add(me, name, true, true);
+    }
   }
   else {
     layernum_dst = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-    if (layernum_dst == 0)
+    if (layernum_dst == 0) {
       ED_mesh_uv_texture_add(me, name, true, true);
+    }
   }
 }
 
@@ -341,8 +346,9 @@ bool ED_mesh_uv_texture_remove_index(Mesh *me, const int n)
   index = CustomData_get_layer_index_n(ldata, CD_MLOOPUV, n);
   cdlu = (index == -1) ? NULL : &ldata->layers[index];
 
-  if (!cdlu)
+  if (!cdlu) {
     return false;
+  }
 
   delete_customdata_layer(me, cdlu);
 
@@ -455,8 +461,9 @@ bool ED_mesh_color_remove_index(Mesh *me, const int n)
   index = CustomData_get_layer_index_n(ldata, CD_MLOOPCOL, n);
   cdl = (index == -1) ? NULL : &ldata->layers[index];
 
-  if (!cdl)
+  if (!cdl) {
     return false;
+  }
 
   delete_customdata_layer(me, cdl);
   DEG_id_tag_update(&me->id, 0);
@@ -501,8 +508,9 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Mesh *me = ob->data;
 
-  if (ED_mesh_uv_texture_add(me, NULL, true, true) == -1)
+  if (ED_mesh_uv_texture_add(me, NULL, true, true) == -1) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
@@ -533,8 +541,9 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Mesh *me = ob->data;
 
-  if (!ED_mesh_uv_texture_remove_active(me))
+  if (!ED_mesh_uv_texture_remove_active(me)) {
     return OPERATOR_CANCELLED;
+  }
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
@@ -567,8 +576,9 @@ static int mesh_vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Mesh *me = ob->data;
 
-  if (ED_mesh_color_add(me, NULL, true, true) == -1)
+  if (ED_mesh_color_add(me, NULL, true, true) == -1) {
     return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -593,8 +603,9 @@ static int mesh_vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = ED_object_context(C);
   Mesh *me = ob->data;
 
-  if (!ED_mesh_color_remove_active(me))
+  if (!ED_mesh_color_remove_active(me)) {
     return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -892,8 +903,9 @@ void ED_mesh_update(
     BKE_mesh_calc_edges_loose(mesh);
   }
 
-  if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0))
+  if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0)) {
     BKE_mesh_calc_edges(mesh, calc_edges, true);
+  }
 
   if (calc_tessface) {
     if (tessface_input == false) {
@@ -917,15 +929,17 @@ static void mesh_add_verts(Mesh *mesh, int len)
   MVert *mvert;
   int i, totvert;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totvert = mesh->totvert + len;
   CustomData_copy(&mesh->vdata, &vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
   CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
 
-  if (!CustomData_has_layer(&vdata, CD_MVERT))
+  if (!CustomData_has_layer(&vdata, CD_MVERT)) {
     CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+  }
 
   CustomData_free(&mesh->vdata, mesh->totvert);
   mesh->vdata = vdata;
@@ -935,8 +949,9 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   /* set default flags */
   mvert = &mesh->mvert[mesh->totvert];
-  for (i = 0; i < len; i++, mvert++)
+  for (i = 0; i < len; i++, mvert++) {
     mvert->flag |= SELECT;
+  }
 
   /* set final vertex list size */
   mesh->totvert = totvert;
@@ -948,8 +963,9 @@ static void mesh_add_edges(Mesh *mesh, int len)
   MEdge *medge;
   int i, totedge;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totedge = mesh->totedge + len;
 
@@ -957,8 +973,9 @@ static void mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
-  if (!CustomData_has_layer(&edata, CD_MEDGE))
+  if (!CustomData_has_layer(&edata, CD_MEDGE)) {
     CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+  }
 
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edata;
@@ -966,8 +983,9 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   /* set default flags */
   medge = &mesh->medge[mesh->totedge];
-  for (i = 0; i < len; i++, medge++)
+  for (i = 0; i < len; i++, medge++) {
     medge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+  }
 
   mesh->totedge = totedge;
 }
@@ -978,8 +996,9 @@ static void mesh_add_tessfaces(Mesh *mesh, int len)
   MFace *mface;
   int i, totface;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totface = mesh->totface + len; /* new face count */
 
@@ -987,8 +1006,9 @@ static void mesh_add_tessfaces(Mesh *mesh, int len)
   CustomData_copy(&mesh->fdata, &fdata, CD_MASK_MESH.fmask, CD_DEFAULT, totface);
   CustomData_copy_data(&mesh->fdata, &fdata, 0, 0, mesh->totface);
 
-  if (!CustomData_has_layer(&fdata, CD_MFACE))
+  if (!CustomData_has_layer(&fdata, CD_MFACE)) {
     CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+  }
 
   CustomData_free(&mesh->fdata, mesh->totface);
   mesh->fdata = fdata;
@@ -996,8 +1016,9 @@ static void mesh_add_tessfaces(Mesh *mesh, int len)
 
   /* set default flags */
   mface = &mesh->mface[mesh->totface];
-  for (i = 0; i < len; i++, mface++)
+  for (i = 0; i < len; i++, mface++) {
     mface->flag = ME_FACE_SEL;
+  }
 
   mesh->totface = totface;
 }
@@ -1007,8 +1028,9 @@ static void mesh_add_loops(Mesh *mesh, int len)
   CustomData ldata;
   int totloop;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totloop = mesh->totloop + len; /* new face count */
 
@@ -1016,8 +1038,9 @@ static void mesh_add_loops(Mesh *mesh, int len)
   CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH.lmask, CD_DEFAULT, totloop);
   CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
 
-  if (!CustomData_has_layer(&ldata, CD_MLOOP))
+  if (!CustomData_has_layer(&ldata, CD_MLOOP)) {
     CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
+  }
 
   CustomData_free(&mesh->ldata, mesh->totloop);
   mesh->ldata = ldata;
@@ -1032,8 +1055,9 @@ static void mesh_add_polys(Mesh *mesh, int len)
   MPoly *mpoly;
   int i, totpoly;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totpoly = mesh->totpoly + len; /* new face count */
 
@@ -1041,8 +1065,9 @@ static void mesh_add_polys(Mesh *mesh, int len)
   CustomData_copy(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_DEFAULT, totpoly);
   CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
 
-  if (!CustomData_has_layer(&pdata, CD_MPOLY))
+  if (!CustomData_has_layer(&pdata, CD_MPOLY)) {
     CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
+  }
 
   CustomData_free(&mesh->pdata, mesh->totpoly);
   mesh->pdata = pdata;
@@ -1050,8 +1075,9 @@ static void mesh_add_polys(Mesh *mesh, int len)
 
   /* set default flags */
   mpoly = &mesh->mpoly[mesh->totpoly];
-  for (i = 0; i < len; i++, mpoly++)
+  for (i = 0; i < len; i++, mpoly++) {
     mpoly->flag = ME_FACE_SEL;
+  }
 
   mesh->totpoly = totpoly;
 }
@@ -1060,8 +1086,9 @@ static void mesh_remove_verts(Mesh *mesh, int len)
 {
   int totvert;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totvert = mesh->totvert - len;
   CustomData_free_elem(&mesh->vdata, totvert, len);
@@ -1074,8 +1101,9 @@ static void mesh_remove_edges(Mesh *mesh, int len)
 {
   int totedge;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totedge = mesh->totedge - len;
   CustomData_free_elem(&mesh->edata, totedge, len);
@@ -1087,8 +1115,9 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 {
   int totface;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totface = mesh->totface - len; /* new face count */
   CustomData_free_elem(&mesh->fdata, totface, len);

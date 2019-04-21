@@ -107,10 +107,12 @@ ListBase *ED_context_get_markers(const bContext *C)
 /* public API for getting markers from "animation" context */
 ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 {
-  if (ac)
+  if (ac) {
     return context_get_markers(ac->scene, ac->sa);
-  else
+  }
+  else {
     return NULL;
+  }
 }
 
 /* --------------------------------- */
@@ -212,10 +214,12 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
   max = -FLT_MAX;
   for (marker = markers->first; marker; marker = marker->next) {
     if (!sel || (marker->flag & SELECT)) {
-      if (marker->frame < min)
+      if (marker->frame < min) {
         min = (float)marker->frame;
-      if (marker->frame > max)
+      }
+      if (marker->frame > max) {
         max = (float)marker->frame;
+      }
     }
   }
 
@@ -232,15 +236,17 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
   CfraElem *ce, *cen;
 
   /* should this one only be considered if it is selected? */
-  if ((only_sel) && ((marker->flag & SELECT) == 0))
+  if ((only_sel) && ((marker->flag & SELECT) == 0)) {
     return;
+  }
 
   /* insertion sort - try to find a previous cfra elem */
   for (ce = lb->first; ce; ce = ce->next) {
     if (ce->cfra == marker->frame) {
       /* do because of double keys */
-      if (marker->flag & SELECT)
+      if (marker->flag & SELECT) {
         ce->sel = marker->flag;
+      }
       return;
     }
     else if (ce->cfra > marker->frame) {
@@ -249,10 +255,12 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
   }
 
   cen = MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");
-  if (ce)
+  if (ce) {
     BLI_insertlinkbefore(lb, ce, cen);
-  else
+  }
+  else {
     BLI_addtail(lb, cen);
+  }
 
   cen->cfra = marker->frame;
   cen->sel = marker->flag;
@@ -281,8 +289,9 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
     return;
   }
 
-  for (marker = markers->first; marker; marker = marker->next)
+  for (marker = markers->first; marker; marker = marker->next) {
     add_marker_to_cfra_elem(lb, marker, only_sel);
+  }
 }
 
 void ED_markers_deselect_all(ListBase *markers, int action)
@@ -316,8 +325,9 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 
   if (markers) {
     for (marker = markers->first; marker; marker = marker->next) {
-      if (marker->flag & SELECT)
+      if (marker->flag & SELECT) {
         return marker;
+      }
     }
   }
 
@@ -571,8 +581,9 @@ static bool ed_markers_poll_selected_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
 
   /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0)
+  if (ED_operator_animview_active(C) == 0) {
     return 0;
+  }
 
   /* check if some marker is selected */
   return ED_markers_get_first_selected(markers) != NULL;
@@ -583,12 +594,14 @@ static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers)
+  if (ts->lock_markers) {
     return 0;
+  }
 
   /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0)
+  if (ED_operator_animview_active(C) == 0) {
     return 0;
+  }
 
   /* check if some marker is selected */
   return ED_markers_get_first_selected(markers) != NULL;
@@ -600,12 +613,14 @@ static bool ed_markers_poll_markers_exist(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers)
+  if (ts->lock_markers) {
     return 0;
+  }
 
   /* first things first: markers can only exist in timeline views */
-  if (ED_operator_animview_active(C) == 0)
+  if (ED_operator_animview_active(C) == 0) {
     return 0;
+  }
 
   /* list of markers must exist, as well as some markers in it! */
   return (markers && markers->first);
@@ -634,14 +649,17 @@ static int ed_markers_opwrap_invoke_custom(bContext *C,
   /* removed check for Y coord of event, keymap has bounbox now */
 
   /* allow operator to run now */
-  if (invoke_func)
+  if (invoke_func) {
     retval = invoke_func(C, op, event);
-  else if (op->type->exec)
+  }
+  else if (op->type->exec) {
     retval = op->type->exec(C, op);
-  else
+  }
+  else {
     BKE_report(op->reports,
                RPT_ERROR,
                "Programming error: operator does not actually have code to do anything!");
+  }
 
   /* unless successful, must add "pass-through"
    * to let normal operator's have a chance at tackling this event */
@@ -671,19 +689,22 @@ static int ed_marker_add_exec(bContext *C, wmOperator *UNUSED(op))
   TimeMarker *marker;
   int frame = CTX_data_scene(C)->r.cfra;
 
-  if (markers == NULL)
+  if (markers == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   /* prefer not having 2 markers at the same place,
    * though the user can move them to overlap once added */
   for (marker = markers->first; marker; marker = marker->next) {
-    if (marker->frame == frame)
+    if (marker->frame == frame) {
       return OPERATOR_CANCELLED;
+    }
   }
 
   /* deselect all */
-  for (marker = markers->first; marker; marker = marker->next)
+  for (marker = markers->first; marker; marker = marker->next) {
     marker->flag &= ~SELECT;
+  }
 
   marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
   marker->flag = SELECT;
@@ -1081,8 +1102,9 @@ static void ed_marker_duplicate_apply(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   TimeMarker *marker, *newmarker;
 
-  if (markers == NULL)
+  if (markers == NULL) {
     return;
+  }
 
   /* go through the list of markers, duplicate selected markers and add duplicated copies
    * to the beginning of the list (unselect original markers)
@@ -1191,8 +1213,9 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
   float viewx;
   int x, cfra;
 
-  if (markers == NULL)
+  if (markers == NULL) {
     return OPERATOR_PASS_THROUGH;
+  }
 
   x = event->x - ar->winrct.xmin;
 
@@ -1211,8 +1234,9 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
     TimeMarker *marker;
     int sel = 0;
 
-    if (!extend)
+    if (!extend) {
       BKE_view_layer_base_deselect_all(view_layer);
+    }
 
     for (marker = markers->first; marker; marker = marker->next) {
       if (marker->frame == cfra) {
@@ -1227,8 +1251,9 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
           base = BKE_view_layer_base_find(view_layer, marker->camera);
           if (base) {
             ED_object_base_select(base, sel);
-            if (sel)
+            if (sel) {
               ED_object_base_activate(C, base);
+            }
           }
         }
       }
@@ -1317,8 +1342,9 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rect);
   UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
 
-  if (markers == NULL)
+  if (markers == NULL) {
     return 0;
+  }
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
@@ -1412,8 +1438,9 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
   TimeMarker *marker, *nmarker;
   bool changed = false;
 
-  if (markers == NULL)
+  if (markers == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   for (marker = markers->first; marker; marker = nmarker) {
     nmarker = marker->next;
@@ -1477,8 +1504,9 @@ static int ed_marker_rename_invoke_wrapper(bContext *C, wmOperator *op, const wm
 {
   /* must initialize the marker name first if there is a marker selected */
   TimeMarker *marker = ED_markers_get_first_selected(ED_context_get_markers(C));
-  if (marker)
+  if (marker) {
     RNA_string_set(op->ptr, "name", marker->name);
+  }
 
   /* now see if the operator is usable */
   return ed_markers_opwrap_invoke_custom(C, op, event, WM_operator_props_popup_confirm);
@@ -1600,8 +1628,9 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
   }
 
   /* add new marker, unless we already have one on this frame, in which case, replace it */
-  if (markers == NULL)
+  if (markers == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   marker = ED_markers_find_nearest_marker(markers, CFRA);
   if ((marker == NULL) || (marker->frame != CFRA)) {

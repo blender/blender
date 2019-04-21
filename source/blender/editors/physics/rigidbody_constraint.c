@@ -60,8 +60,9 @@ static bool ED_operator_rigidbody_con_active_poll(bContext *C)
     Object *ob = CTX_data_active_object(C);
     return (ob && ob->rigidbody_constraint);
   }
-  else
+  else {
     return 0;
+  }
 }
 
 bool ED_rigidbody_constraint_add(

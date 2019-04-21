@@ -57,13 +57,15 @@ static int rule_add_exec(bContext *C, wmOperator *op)
   BoidRule *rule;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   state = boid_get_current_state(part->boids);
 
-  for (rule = state->rules.first; rule; rule = rule->next)
+  for (rule = state->rules.first; rule; rule = rule->next) {
     rule->flag &= ~BOIDRULE_CURRENT;
+  }
 
   rule = boid_new_rule(type);
   rule->flag |= BOIDRULE_CURRENT;
@@ -99,8 +101,9 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
   BoidRule *rule;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   state = boid_get_current_state(part->boids);
 
@@ -113,8 +116,9 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
   }
   rule = state->rules.first;
 
-  if (rule)
+  if (rule) {
     rule->flag |= BOIDRULE_CURRENT;
+  }
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
@@ -144,8 +148,9 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
   BoidRule *rule;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   state = boid_get_current_state(part->boids);
   for (rule = state->rules.first; rule; rule = rule->next) {
@@ -180,8 +185,9 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
   BoidRule *rule;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   state = boid_get_current_state(part->boids);
   for (rule = state->rules.first; rule; rule = rule->next) {
@@ -216,11 +222,13 @@ static int state_add_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part = ptr.data;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
-  for (state = part->boids->states.first; state; state = state->next)
+  for (state = part->boids->states.first; state; state = state->next) {
     state->flag &= ~BOIDSTATE_CURRENT;
+  }
 
   state = boid_new_state(part->boids);
   state->flag |= BOIDSTATE_CURRENT;
@@ -250,8 +258,9 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
   ParticleSettings *part = ptr.data;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   for (state = part->boids->states.first; state; state = state->next) {
     if (state->flag & BOIDSTATE_CURRENT) {
@@ -266,8 +275,9 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
     state = boid_new_state(part->boids);
     BLI_addtail(&part->boids->states, state);
   }
-  else
+  else {
     state = part->boids->states.first;
+  }
 
   state->flag |= BOIDSTATE_CURRENT;
 
@@ -299,8 +309,9 @@ static int state_move_up_exec(bContext *C, wmOperator *UNUSED(op))
   BoidSettings *boids;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   boids = part->boids;
 
@@ -334,8 +345,9 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
   BoidSettings *boids;
   BoidState *state;
 
-  if (!part || part->phystype != PART_PHYS_BOIDS)
+  if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
+  }
 
   boids = part->boids;
 

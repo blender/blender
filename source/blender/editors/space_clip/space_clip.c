@@ -136,12 +136,14 @@ static void reinit_preview_region(const bContext *C, ARegion *ar)
   SpaceClip *sc = CTX_wm_space_clip(C);
 
   if (sc->view == SC_VIEW_DOPESHEET) {
-    if ((ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0)
+    if ((ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0) {
       init_preview_region(scene, sa, sc, ar);
+    }
   }
   else {
-    if (ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL)
+    if (ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
       init_preview_region(scene, sa, sc, ar);
+    }
   }
 }
 
@@ -150,15 +152,17 @@ static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *sa)
   ARegion *ar, *arnew;
 
   ar = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
-  if (ar)
+  if (ar) {
     return ar;
+  }
 
   /* add subdiv level; after header */
   ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
   /* is error! */
-  if (ar == NULL)
+  if (ar == NULL) {
     return NULL;
+  }
 
   arnew = MEM_callocN(sizeof(ARegion), "clip preview region");
 
@@ -173,15 +177,17 @@ static ARegion *ED_clip_has_channels_region(ScrArea *sa)
   ARegion *ar, *arnew;
 
   ar = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
-  if (ar)
+  if (ar) {
     return ar;
+  }
 
   /* add subdiv level; after header */
   ar = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
 
   /* is error! */
-  if (ar == NULL)
+  if (ar == NULL) {
     return NULL;
+  }
 
   arnew = MEM_callocN(sizeof(ARegion), "clip channels region");
 
@@ -200,13 +206,15 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
   SpaceClip *sc = (SpaceClip *)sa->spacedata.first;
   ARegion *ar;
 
-  if (sc->mode != SC_MODE_TRACKING)
+  if (sc->mode != SC_MODE_TRACKING) {
     return;
+  }
 
   /* only while properties are visible */
   for (ar = sa->regionbase.first; ar; ar = ar->next) {
-    if (ar->regiontype == RGN_TYPE_UI && ar->flag & RGN_FLAG_HIDDEN)
+    if (ar->regiontype == RGN_TYPE_UI && ar->flag & RGN_FLAG_HIDDEN) {
       return;
+    }
   }
 
   sc->scopes.ok = false;
@@ -296,11 +304,13 @@ static void clip_free(SpaceLink *sl)
 
   sc->clip = NULL;
 
-  if (sc->scopes.track_preview)
+  if (sc->scopes.track_preview) {
     IMB_freeImBuf(sc->scopes.track_preview);
+  }
 
-  if (sc->scopes.track_search)
+  if (sc->scopes.track_search) {
     IMB_freeImBuf(sc->scopes.track_search);
+  }
 }
 
 /* spacetype; init callback */
@@ -565,13 +575,15 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
     return true;
   }
   else if (CTX_data_equals(member, "edit_movieclip")) {
-    if (sc->clip)
+    if (sc->clip) {
       CTX_data_id_pointer_set(result, &sc->clip->id);
+    }
     return true;
   }
   else if (CTX_data_equals(member, "edit_mask")) {
-    if (sc->mask_info.mask)
+    if (sc->mask_info.mask) {
       CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
+    }
     return true;
   }
 
@@ -868,8 +880,9 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 
   /* if tracking is in progress, we should synchronize framenr from clipuser
    * so latest tracked frame would be shown */
-  if (clip && clip->tracking_context)
+  if (clip && clip->tracking_context) {
     BKE_autotrack_context_sync_user(clip->tracking_context, &sc->user);
+  }
 
   if (sc->flag & SC_LOCK_SELECTION) {
     ImBuf *tmpibuf = NULL;
@@ -883,8 +896,9 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
       sc->yof += sc->ylockof;
     }
 
-    if (tmpibuf)
+    if (tmpibuf) {
       IMB_freeImBuf(tmpibuf);
+    }
   }
 
   /* clear and setup matrix */
@@ -968,10 +982,12 @@ static void clip_main_region_listener(wmWindow *UNUSED(win),
   /* context changes */
   switch (wmn->category) {
     case NC_GPENCIL:
-      if (wmn->action == NA_EDITED)
+      if (wmn->action == NA_EDITED) {
         ED_region_tag_redraw(ar);
-      else if (wmn->data & ND_GPENCIL_EDITMODE)
+      }
+      else if (wmn->data & ND_GPENCIL_EDITMODE) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -1004,8 +1020,9 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   short unitx, unity;
   short cfra_flag = 0;
 
-  if (sc->flag & SC_LOCK_TIMECURSOR)
+  if (sc->flag & SC_LOCK_TIMECURSOR) {
     ED_clip_graph_center_current_frame(scene, ar);
+  }
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -1017,8 +1034,9 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   clip_draw_graph(sc, ar, scene);
 
   /* current frame indicator line */
-  if (sc->flag & SC_SHOW_SECONDS)
+  if (sc->flag & SC_SHOW_SECONDS) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+  }
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* reset view matrix */
@@ -1033,8 +1051,9 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* current frame indicator */
-  if (sc->flag & SC_SHOW_SECONDS)
+  if (sc->flag & SC_SHOW_SECONDS) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+  }
   UI_view2d_view_orthoSpecial(ar, v2d, 1);
   ANIM_draw_cfra_number(C, v2d, cfra_flag);
 }
@@ -1049,8 +1068,9 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   View2DScrollers *scrollers;
   short unit = 0, cfra_flag = 0;
 
-  if (clip)
+  if (clip) {
     BKE_tracking_dopesheet_update(&clip->tracking);
+  }
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -1069,8 +1089,9 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   clip_draw_dopesheet_main(sc, ar, scene);
 
   /* current frame indicator line */
-  if (sc->flag & SC_SHOW_SECONDS)
+  if (sc->flag & SC_SHOW_SECONDS) {
     cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+  }
   ANIM_draw_cfra(C, v2d, cfra_flag);
 
   /* reset view matrix */
@@ -1091,10 +1112,12 @@ static void clip_preview_region_draw(const bContext *C, ARegion *ar)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  if (sc->view == SC_VIEW_GRAPH)
+  if (sc->view == SC_VIEW_GRAPH) {
     graph_region_draw(C, ar);
-  else if (sc->view == SC_VIEW_DOPESHEET)
+  }
+  else if (sc->view == SC_VIEW_DOPESHEET) {
     dopesheet_region_draw(C, ar);
+  }
 }
 
 static void clip_preview_region_listener(wmWindow *UNUSED(win),
@@ -1126,8 +1149,9 @@ static void clip_channels_region_draw(const bContext *C, ARegion *ar)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   View2D *v2d = &ar->v2d;
 
-  if (clip)
+  if (clip) {
     BKE_tracking_dopesheet_update(&clip->tracking);
+  }
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -1215,20 +1239,24 @@ static void clip_props_region_listener(wmWindow *UNUSED(win),
   /* context changes */
   switch (wmn->category) {
     case NC_WM:
-      if (wmn->data == ND_HISTORY)
+      if (wmn->data == ND_HISTORY) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_SCENE:
-      if (wmn->data == ND_MODE)
+      if (wmn->data == ND_MODE) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_SPACE:
-      if (wmn->data == ND_SPACE_CLIP)
+      if (wmn->data == ND_SPACE_CLIP) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_GPENCIL:
-      if (wmn->action == NA_EDITED)
+      if (wmn->action == NA_EDITED) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }
@@ -1264,12 +1292,14 @@ static void clip_properties_region_listener(wmWindow *UNUSED(win),
   /* context changes */
   switch (wmn->category) {
     case NC_GPENCIL:
-      if (ELEM(wmn->data, ND_DATA, ND_GPENCIL_EDITMODE))
+      if (ELEM(wmn->data, ND_DATA, ND_GPENCIL_EDITMODE)) {
         ED_region_tag_redraw(ar);
+      }
       break;
     case NC_BRUSH:
-      if (wmn->action == NA_EDITED)
+      if (wmn->action == NA_EDITED) {
         ED_region_tag_redraw(ar);
+      }
       break;
   }
 }

@@ -168,8 +168,9 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
     {
       float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(scene, brush);
 
-      if (unprojected_radius < 0.001f)  // XXX magic number
+      if (unprojected_radius < 0.001f) {  // XXX magic number
         unprojected_radius = 0.001f;
+      }
 
       BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
     }
@@ -229,8 +230,9 @@ static bool palette_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
 
-  if (paint && paint->palette != NULL)
+  if (paint && paint->palette != NULL) {
     return true;
+  }
 
   return false;
 }
@@ -306,8 +308,9 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
   Brush *brush = BKE_paint_brush(paint);
   Object *ob = CTX_data_active_object(C);
 
-  if (!ob || !brush)
+  if (!ob || !brush) {
     return OPERATOR_CANCELLED;
+  }
 
   /* TODO: other modes */
   if (ob->mode & OB_MODE_SCULPT) {
@@ -396,8 +399,9 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
      * for one that is */
     br = brush_tool_cycle(bmain, paint, brush_orig, tool);
     /* store the previously-selected brush */
-    if (br)
+    if (br) {
       br->toggle_brush = brush_orig;
+    }
 
     return br;
   }
@@ -406,8 +410,9 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
      * back to the previously selected brush. */
     return brush_orig->toggle_brush;
   }
-  else
+  else {
     return NULL;
+  }
 }
 
 static int brush_generic_tool_set(Main *bmain,
@@ -628,12 +633,14 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   int mask = RNA_enum_get(op->ptr, "texmode");
 
   if (mask) {
-    if (br->mask_mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL)
+    if (br->mask_mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL) {
       return OPERATOR_CANCELLED;
+    }
   }
   else {
-    if (br->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL)
+    if (br->mtex.brush_map_mode != MTEX_MAP_MODE_STENCIL) {
       return OPERATOR_CANCELLED;
+    }
   }
 
   scd = MEM_mallocN(sizeof(StencilControlData), "stencil_control");
@@ -695,10 +702,12 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
       len = len_v2(mdiff);
       factor = len / scd->lenorig;
       copy_v2_v2(mdiff, scd->init_sdim);
-      if (scd->constrain_mode != STENCIL_CONSTRAINT_Y)
+      if (scd->constrain_mode != STENCIL_CONSTRAINT_Y) {
         mdiff[0] = factor * scd->init_sdim[0];
-      if (scd->constrain_mode != STENCIL_CONSTRAINT_X)
+      }
+      if (scd->constrain_mode != STENCIL_CONSTRAINT_X) {
         mdiff[1] = factor * scd->init_sdim[1];
+      }
       CLAMP(mdiff[0], 5.0f, 10000.0f);
       CLAMP(mdiff[1], 5.0f, 10000.0f);
       copy_v2_v2(scd->dim_target, mdiff);
@@ -709,10 +718,12 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
       sub_v2_v2v2(mdiff, mvalf, scd->pos_target);
       angle = atan2f(mdiff[1], mdiff[0]);
       angle = scd->init_rot + angle - scd->init_angle;
-      if (angle < 0.0f)
+      if (angle < 0.0f) {
         angle += (float)(2 * M_PI);
-      if (angle > (float)(2 * M_PI))
+      }
+      if (angle > (float)(2 * M_PI)) {
         angle -= (float)(2 * M_PI);
+      }
       *scd->rot_target = angle;
       break;
     }
@@ -744,20 +755,24 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
     case XKEY:
       if (event->val == KM_PRESS) {
 
-        if (scd->constrain_mode == STENCIL_CONSTRAINT_X)
+        if (scd->constrain_mode == STENCIL_CONSTRAINT_X) {
           scd->constrain_mode = 0;
-        else
+        }
+        else {
           scd->constrain_mode = STENCIL_CONSTRAINT_X;
+        }
 
         stencil_control_calculate(scd, event->mval);
       }
       break;
     case YKEY:
       if (event->val == KM_PRESS) {
-        if (scd->constrain_mode == STENCIL_CONSTRAINT_Y)
+        if (scd->constrain_mode == STENCIL_CONSTRAINT_Y) {
           scd->constrain_mode = 0;
-        else
+        }
+        else {
           scd->constrain_mode = STENCIL_CONSTRAINT_Y;
+        }
 
         stencil_control_calculate(scd, event->mval);
       }
@@ -778,8 +793,9 @@ static bool stencil_control_poll(bContext *C)
   Paint *paint;
   Brush *br;
 
-  if (!paint_supports_texture(mode))
+  if (!paint_supports_texture(mode)) {
     return false;
+  }
 
   paint = BKE_paint_get_active_from_context(C);
   br = BKE_paint_brush(paint);
@@ -905,8 +921,9 @@ static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
   Brush *br = BKE_paint_brush(paint);
   bool do_mask = RNA_boolean_get(op->ptr, "mask");
 
-  if (!br)
+  if (!br) {
     return OPERATOR_CANCELLED;
+  }
 
   if (do_mask) {
     br->mask_stencil_pos[0] = 256;

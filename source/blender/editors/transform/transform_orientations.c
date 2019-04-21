@@ -100,8 +100,9 @@ static TransformOrientation *createViewSpace(bContext *C,
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float mat[3][3];
 
-  if (!rv3d)
+  if (!rv3d) {
     return NULL;
+  }
 
   copy_m3_m4(mat, rv3d->viewinv);
   normalize_m3(mat);
@@ -129,8 +130,9 @@ static TransformOrientation *createObjectSpace(bContext *C,
   Object *ob;
   float mat[3][3];
 
-  if (base == NULL)
+  if (base == NULL) {
     return NULL;
+  }
 
   ob = base->object;
 
@@ -309,12 +311,15 @@ void BIF_createTransformOrientation(bContext *C,
     Object *obedit = CTX_data_edit_object(C);
     Object *ob = CTX_data_active_object(C);
     if (obedit) {
-      if (obedit->type == OB_MESH)
+      if (obedit->type == OB_MESH) {
         ts = createMeshSpace(C, reports, name, overwrite);
-      else if (obedit->type == OB_ARMATURE)
+      }
+      else if (obedit->type == OB_ARMATURE) {
         ts = createBoneSpace(C, reports, name, overwrite);
-      else if (obedit->type == OB_CURVE)
+      }
+      else if (obedit->type == OB_CURVE) {
         ts = createCurveSpace(C, reports, name, overwrite);
+      }
     }
     else if (ob && (ob->mode & OB_MODE_POSE)) {
       ts = createBoneSpace(C, reports, name, overwrite);
@@ -868,12 +873,15 @@ int getTransformOrientation_ex(const bContext *C,
 #define SEL_F3 (1 << 2)
 
               if (use_handle) {
-                if (bezt->f1 & SELECT)
+                if (bezt->f1 & SELECT) {
                   flag |= SEL_F1;
-                if (bezt->f2 & SELECT)
+                }
+                if (bezt->f2 & SELECT) {
                   flag |= SEL_F2;
-                if (bezt->f3 & SELECT)
+                }
+                if (bezt->f3 & SELECT) {
                   flag |= SEL_F3;
+                }
               }
               else {
                 flag = (bezt->f2 & SELECT) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;

@@ -323,12 +323,14 @@ int join_mesh_exec(bContext *C, wmOperator *op)
       totpoly += me->totpoly;
       totmat += ob_iter->totcol;
 
-      if (ob_iter == ob)
+      if (ob_iter == ob) {
         ok = true;
+      }
 
       /* check for shapekeys */
-      if (me->key)
+      if (me->key) {
         haskey++;
+      }
     }
   }
   CTX_DATA_END;
@@ -386,8 +388,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
     /* for all keys in old block, clear data-arrays */
     for (kb = key->block.first; kb; kb = kb->next) {
-      if (kb->data)
+      if (kb->data) {
         MEM_freeN(kb->data);
+      }
       kb->data = MEM_callocN(sizeof(float) * 3 * totvert, "join_shapekey");
       kb->totelem = totvert;
     }
@@ -413,8 +416,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
           BLI_addtail(&ob->defbase, odg);
         }
       }
-      if (ob->defbase.first && ob->actdef == 0)
+      if (ob->defbase.first && ob->actdef == 0) {
         ob->actdef = 1;
+      }
 
       if (me->totvert) {
         /* Add this object's materials to the base one's if they don't exist already
@@ -609,13 +613,15 @@ int join_mesh_exec(bContext *C, wmOperator *op)
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {
     ma = ob->mat[a - 1];
-    if (ma)
+    if (ma) {
       id_us_min(&ma->id);
+    }
   }
   for (a = 1; a <= me->totcol; a++) {
     ma = me->mat[a - 1];
-    if (ma)
+    if (ma) {
       id_us_min(&ma->id);
+    }
   }
   MEM_SAFE_FREE(ob->mat);
   MEM_SAFE_FREE(ob->matbits);
@@ -683,21 +689,25 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
     if (ob_iter->type == OB_MESH) {
       selme = (Mesh *)ob_iter->data;
 
-      if (selme->totvert == me->totvert)
+      if (selme->totvert == me->totvert) {
         ok = true;
-      else
+      }
+      else {
         nonequal_verts = 1;
+      }
     }
   }
   CTX_DATA_END;
 
   if (!ok) {
-    if (nonequal_verts)
+    if (nonequal_verts) {
       BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
-    else
+    }
+    else {
       BKE_report(op->reports,
                  RPT_WARNING,
                  "No additional selected meshes with equal vertex count to join");
+    }
     return OPERATOR_CANCELLED;
   }
 
@@ -793,8 +803,9 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh, int index)
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
 {
-  if (ED_mesh_mirror_topo_table(ob, mesh, 'u') == -1)
+  if (ED_mesh_mirror_topo_table(ob, mesh, 'u') == -1) {
     return -1;
+  }
 
   return mesh_topo_store.index_lookup[index];
 }
@@ -836,8 +847,9 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
                                                 int index)
 {
   intptr_t poinval;
-  if (ED_mesh_mirror_topo_table(ob, NULL, 'u') == -1)
+  if (ED_mesh_mirror_topo_table(ob, NULL, 'u') == -1) {
     return NULL;
+  }
 
   if (index == -1) {
     BMIter iter;
@@ -845,8 +857,9 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
 
     index = 0;
     BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-      if (v == eve)
+      if (v == eve) {
         break;
+      }
       index++;
     }
 
@@ -857,8 +870,9 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
 
   poinval = mesh_topo_store.index_lookup[index];
 
-  if (poinval != -1)
+  if (poinval != -1) {
     return (BMVert *)(poinval);
+  }
   return NULL;
 }
 
@@ -978,22 +992,29 @@ static unsigned int mirror_facehash(const void *ptr)
 static int mirror_facerotation(MFace *a, MFace *b)
 {
   if (b->v4) {
-    if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3 && a->v4 == b->v4)
+    if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3 && a->v4 == b->v4) {
       return 0;
-    else if (a->v4 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3 && a->v3 == b->v4)
+    }
+    else if (a->v4 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3 && a->v3 == b->v4) {
       return 1;
-    else if (a->v3 == b->v1 && a->v4 == b->v2 && a->v1 == b->v3 && a->v2 == b->v4)
+    }
+    else if (a->v3 == b->v1 && a->v4 == b->v2 && a->v1 == b->v3 && a->v2 == b->v4) {
       return 2;
-    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v4 == b->v3 && a->v1 == b->v4)
+    }
+    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v4 == b->v3 && a->v1 == b->v4) {
       return 3;
+    }
   }
   else {
-    if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3)
+    if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3) {
       return 0;
-    else if (a->v3 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3)
+    }
+    else if (a->v3 == b->v1 && a->v1 == b->v2 && a->v2 == b->v3) {
       return 1;
-    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v1 == b->v3)
+    }
+    else if (a->v2 == b->v1 && a->v3 == b->v2 && a->v1 == b->v3) {
       return 2;
+    }
   }
 
   return -1;
@@ -1028,14 +1049,16 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
   ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 's');
 
-  for (a = 0, mv = mvert; a < totvert; a++, mv++)
+  for (a = 0, mv = mvert; a < totvert; a++, mv++) {
     mirrorverts[a] = mesh_get_x_mirror_vert(ob, me_eval, a, use_topology);
+  }
 
   ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 'e');
 
   fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
-  for (a = 0, mf = mface; a < totface; a++, mf++)
+  for (a = 0, mf = mface; a < totface; a++, mf++) {
     BLI_ghash_insert(fhash, mf, mf);
+  }
 
   for (a = 0, mf = mface; a < totface; a++, mf++) {
     mirrormf.v1 = mirrorverts[mf->v3];
@@ -1054,8 +1077,9 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
       mirrorfaces[a * 2] = hashmf - mface;
       mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);
     }
-    else
+    else {
       mirrorfaces[a * 2] = -1;
+    }
   }
 
   BLI_ghash_free(fhash, NULL, NULL);
@@ -1080,8 +1104,9 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
-  if (!me || me->totpoly == 0)
+  if (!me || me->totpoly == 0) {
     return false;
+  }
 
   ED_view3d_viewcontext_init(C, &vc);
 
@@ -1261,8 +1286,9 @@ bool ED_mesh_pick_vert(
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
-  if (!me || me->totvert == 0)
+  if (!me || me->totvert == 0) {
     return false;
+  }
 
   ED_view3d_viewcontext_init(C, &vc);
 
@@ -1336,15 +1362,17 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
       BMVert *eve = BM_mesh_active_vert_get(bm);
 
       if (eve) {
-        if (r_eve)
+        if (r_eve) {
           *r_eve = eve;
+        }
         return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
       }
     }
   }
 
-  if (r_eve)
+  if (r_eve) {
     *r_eve = NULL;
+  }
   return NULL;
 }
 
@@ -1352,8 +1380,9 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
 {
   Mesh *me = ob->data;
   int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
-  if (r_index)
+  if (r_index) {
     *r_index = index;
+  }
   if (index == -1 || me->dvert == NULL) {
     return NULL;
   }

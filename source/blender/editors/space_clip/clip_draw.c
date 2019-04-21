@@ -178,12 +178,14 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
       while (a < markersnr) {
         int marker_framenr = generic_track_get_marker_framenr(act_track, act_plane_track, a);
 
-        if (marker_framenr >= i)
+        if (marker_framenr >= i) {
           break;
+        }
 
         if (a < markersnr - 1 &&
-            generic_track_get_marker_framenr(act_track, act_plane_track, a + 1) > i)
+            generic_track_get_marker_framenr(act_track, act_plane_track, a + 1) > i) {
           break;
+        }
 
         a++;
       }
@@ -284,8 +286,9 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
     full_redraw = true;
   }
   else {
-    if (sc->flag & SC_LOCK_SELECTION)
+    if (sc->flag & SC_LOCK_SELECTION) {
       strcpy(str, "Locked");
+    }
   }
 
   if (str[0]) {
@@ -411,14 +414,16 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr, start_frame;
   MovieTrackingMarker *marker;
 
-  if (count == 0)
+  if (count == 0) {
     return;
+  }
 
   start_frame = framenr = ED_space_clip_get_clip_frame_number(sc);
 
   marker = BKE_tracking_marker_get(track, framenr);
-  if (marker->framenr != framenr || marker->flag & MARKER_DISABLED)
+  if (marker->framenr != framenr || marker->flag & MARKER_DISABLED) {
     return;
+  }
 
   if (count < MAX_STATIC_PATH) {
     path = path_static;
@@ -432,15 +437,17 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   while (i >= framenr - count) {
     marker = BKE_tracking_marker_get(track, i);
 
-    if (!marker || marker->flag & MARKER_DISABLED)
+    if (!marker || marker->flag & MARKER_DISABLED) {
       break;
+    }
 
     if (marker->framenr == i) {
       add_v2_v2v2(path[--a], marker->pos, track->offset);
       ED_clip_point_undistorted_pos(sc, path[a], path[a]);
 
-      if (marker->framenr == start_frame)
+      if (marker->framenr == start_frame) {
         curindex = a;
+      }
     }
     else {
       break;
@@ -454,18 +461,21 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
   while (i <= framenr + count) {
     marker = BKE_tracking_marker_get(track, i);
 
-    if (!marker || marker->flag & MARKER_DISABLED)
+    if (!marker || marker->flag & MARKER_DISABLED) {
       break;
+    }
 
     if (marker->framenr == i) {
-      if (marker->framenr == start_frame)
+      if (marker->framenr == start_frame) {
         curindex = b;
+      }
 
       add_v2_v2v2(path[b++], marker->pos, track->offset);
       ED_clip_point_undistorted_pos(sc, path[b - 1], path[b - 1]);
     }
-    else
+    else {
       break;
+    }
 
     i++;
   }
@@ -658,20 +668,24 @@ static void draw_marker_outline(SpaceClip *sc,
 static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
-    if (act)
+    if (act) {
       UI_GetThemeColor3fv(TH_ACT_MARKER, scol);
-    else
+    }
+    else {
       copy_v3_v3(scol, track->color);
+    }
 
     mul_v3_v3fl(col, track->color, 0.5f);
   }
   else {
     UI_GetThemeColor3fv(TH_MARKER, col);
 
-    if (act)
+    if (act) {
       UI_GetThemeColor3fv(TH_ACT_MARKER, scol);
-    else
+    }
+    else {
       UI_GetThemeColor3fv(TH_SEL_MARKER, scol);
+    }
   }
 }
 
@@ -923,11 +937,13 @@ static void draw_marker_slide_zones(SpaceClip *sc,
   int tiny = sc->flag & SC_SHOW_TINY_MARKER;
   float col[3], scol[3], px[2], side;
 
-  if ((tiny && outline) || (marker->flag & MARKER_DISABLED))
+  if ((tiny && outline) || (marker->flag & MARKER_DISABLED)) {
     return;
+  }
 
-  if (!TRACK_VIEW_SELECTED(sc, track) || track->flag & TRACK_LOCKED)
+  if (!TRACK_VIEW_SELECTED(sc, track) || track->flag & TRACK_LOCKED) {
     return;
+  }
 
   track_colors(track, act, col, scol);
 
@@ -1020,8 +1036,9 @@ static void draw_marker_texts(SpaceClip *sc,
   uiStyle *style = U.uistyles.first;
   int fontid = style->widget.uifont_id;
 
-  if (!TRACK_VIEW_SELECTED(sc, track))
+  if (!TRACK_VIEW_SELECTED(sc, track)) {
     return;
+  }
 
   BLF_size(fontid, 11.0f * U.pixelsize, U.dpi);
   fontsize = BLF_height_max(fontid);
@@ -1062,19 +1079,25 @@ static void draw_marker_texts(SpaceClip *sc,
   pos[0] = pos[0] * zoomx;
   pos[1] = pos[1] * zoomy - fontsize;
 
-  if (marker->flag & MARKER_DISABLED)
+  if (marker->flag & MARKER_DISABLED) {
     strcpy(state, "disabled");
-  else if (marker->framenr != ED_space_clip_get_clip_frame_number(sc))
+  }
+  else if (marker->framenr != ED_space_clip_get_clip_frame_number(sc)) {
     strcpy(state, "estimated");
-  else if (marker->flag & MARKER_TRACKED)
+  }
+  else if (marker->flag & MARKER_TRACKED) {
     strcpy(state, "tracked");
-  else
+  }
+  else {
     strcpy(state, "keyframed");
+  }
 
-  if (state[0])
+  if (state[0]) {
     BLI_snprintf(str, sizeof(str), "%s: %s", track->name, state);
-  else
+  }
+  else {
     BLI_strncpy(str, track->name, sizeof(str));
+  }
 
   BLF_position(fontid, pos[0], pos[1], 0.0f);
   BLF_draw(fontid, str, sizeof(str));
@@ -1479,8 +1502,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
       if ((track->flag & TRACK_HIDDEN) == 0) {
         marker = BKE_tracking_marker_get(track, framenr);
 
-        if (MARKER_VISIBLE(sc, track, marker))
+        if (MARKER_VISIBLE(sc, track, marker)) {
           count++;
+        }
       }
 
       track = track->next;
@@ -1499,8 +1523,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
           if (MARKER_VISIBLE(sc, track, marker)) {
             ED_clip_point_undistorted_pos(sc, marker->pos, fp);
 
-            if (track == act_track)
+            if (track == act_track) {
               active_pos = fp;
+            }
 
             fp += 2;
           }
@@ -1514,8 +1539,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
   if (sc->flag & SC_SHOW_TRACK_PATH) {
     track = tracksbase->first;
     while (track) {
-      if ((track->flag & TRACK_HIDDEN) == 0)
+      if ((track->flag & TRACK_HIDDEN) == 0) {
         draw_track_path(sc, clip, track);
+      }
 
       track = track->next;
     }
@@ -1541,8 +1567,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
         draw_marker_slide_zones(sc, track, marker, cur_pos, 1, 0, 0, width, height, position);
         draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 0, 0, width, height, position);
 
-        if (fp)
+        if (fp) {
           fp += 2;
+        }
       }
     }
 
@@ -1566,8 +1593,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
           draw_marker_slide_zones(sc, track, marker, cur_pos, 0, 1, 0, width, height, position);
         }
 
-        if (fp)
+        if (fp) {
           fp += 2;
+        }
       }
     }
 
@@ -1664,8 +1692,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
           draw_marker_texts(sc, track, marker, cur_pos, act, width, height, zoomx, zoomy);
 
-          if (fp)
+          if (fp) {
             fp += 2;
+          }
         }
       }
 
@@ -1675,8 +1704,9 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   GPU_matrix_pop();
 
-  if (marker_pos)
+  if (marker_pos) {
     MEM_freeN(marker_pos);
+  }
 }
 
 static void draw_distortion(
@@ -1692,11 +1722,13 @@ static void draw_distortion(
   float dx = (float)width / n, dy = (float)height / n * aspy;
   float offsx = 0.0f, offsy = 0.0f;
 
-  if (!tracking->camera.focal)
+  if (!tracking->camera.focal) {
     return;
+  }
 
-  if ((sc->flag & SC_SHOW_GRID) == 0 && (sc->flag & SC_MANUAL_CALIBRATION) == 0)
+  if ((sc->flag & SC_SHOW_GRID) == 0 && (sc->flag & SC_MANUAL_CALIBRATION) == 0) {
     return;
+  }
 
   UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
@@ -1717,10 +1749,12 @@ static void draw_distortion(
     float min[2], max[2];
 
     for (a = 0; a < 4; a++) {
-      if (a < 2)
+      if (a < 2) {
         val[a][a % 2] = FLT_MAX;
-      else
+      }
+      else {
         val[a][a % 2] = -FLT_MAX;
+      }
     }
 
     zero_v2(pos);
@@ -1732,10 +1766,12 @@ static void draw_distortion(
           for (a = 0; a < 4; a++) {
             int ok;
 
-            if (a < 2)
+            if (a < 2) {
               ok = tpos[a % 2] < val[a][a % 2];
-            else
+            }
+            else {
               ok = tpos[a % 2] > val[a][a % 2];
+            }
 
             if (ok) {
               copy_v2_v2(val[a], tpos);
@@ -1912,10 +1948,12 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
       ibuf = ED_space_clip_get_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
     }
 
-    if (ibuf != NULL && width != ibuf->x)
+    if (ibuf != NULL && width != ibuf->x) {
       mul_v2_v2fl(translation, sc->loc, (float)width / ibuf->x);
-    else
+    }
+    else {
       copy_v2_v2(translation, sc->loc);
+    }
 
     BKE_tracking_stabilization_data_to_mat4(
         width, height, aspect, translation, sc->scale, sc->angle, sc->stabmat);
@@ -1970,8 +2008,9 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
-  if (!clip)
+  if (!clip) {
     return;
+  }
 
   if (onlyv2d) {
     bool is_track_source = sc->gpencil_src == SC_GPENCIL_SRC_TRACK;

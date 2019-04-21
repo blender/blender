@@ -86,8 +86,9 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 
   /* when an NLA track is tagged "solo", action doesn't contribute,
    * so shouldn't be as prominent */
-  if (adt && (adt->flag & ADT_NLA_SOLO_TRACK))
+  if (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) {
     color[3] *= 0.15f;
+  }
 }
 
 /* draw the keyframes in the specified Action */
@@ -99,8 +100,9 @@ static void nla_action_draw_keyframes(
   BLI_dlrbTree_init(&keys);
   action_to_keylist(adt, act, &keys, 0);
 
-  if (ELEM(NULL, act, keys.first))
+  if (ELEM(NULL, act, keys.first)) {
     return;
+  }
 
   /* draw a darkened region behind the strips
    * - get and reset the background color, this time without the alpha to stand out better
@@ -181,8 +183,9 @@ static void nla_actionclip_draw_markers(
 {
   const bAction *act = strip->act;
 
-  if (ELEM(NULL, act, act->markers.first))
+  if (ELEM(NULL, act, act->markers.first)) {
     return;
+  }
 
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -351,16 +354,18 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
         immVertex2f(pos, strip->start, yminc);
         immVertex2f(pos, strip->start + strip->blendin, ymaxc);
       }
-      else
+      else {
         immVertex2f(pos, strip->start, ymaxc);
+      }
 
       /* end of strip */
       if (IS_EQF(strip->blendout, 0.0f) == 0) {
         immVertex2f(pos, strip->end - strip->blendout, ymaxc);
         immVertex2f(pos, strip->end, yminc);
       }
-      else
+      else {
         immVertex2f(pos, strip->end, ymaxc);
+      }
 
       immEnd();
     }
@@ -489,15 +494,17 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw strip's control 'curves'
    * - only if user hasn't hidden them...
    */
-  if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
+  if ((snla->flag & SNLA_NOSTRIPCURVES) == 0) {
     nla_draw_strip_curves(strip, yminc, ymaxc, shdr_pos);
+  }
 
   immUnbindProgram();
 
   /* draw markings indicating locations of local markers
    * (useful for lining up different actions) */
-  if ((snla->flag & SNLA_NOLOCALMARKERS) == 0)
+  if ((snla->flag & SNLA_NOLOCALMARKERS) == 0) {
     nla_strip_draw_markers(strip, yminc, ymaxc);
+  }
 
   /* draw strip outline
    * - color used here is to indicate active vs non-active
@@ -615,10 +622,12 @@ static void nla_draw_strip_text(AnimData *adt,
   }
 
   /* text opacity depends on whether if there's a solo'd track, this isn't it */
-  if (non_solo == 0)
+  if (non_solo == 0) {
     col[3] = 255;
-  else
+  }
+  else {
     col[3] = 128;
+  }
 
   /* set bounding-box for text
    * - padding of 2 'units' on either side
@@ -722,8 +731,9 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
               /* if transforming strips (only real reason for temp-metas currently),
                * add to the cache the frame numbers of the strip's extents
                */
-              if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+              if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
                 nla_draw_strip_frames_text(nlt, strip, v2d, yminc, ymaxc);
+              }
             }
           }
           break;

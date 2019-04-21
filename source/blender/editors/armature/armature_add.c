@@ -137,20 +137,23 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
   /* find the active or selected bone */
   for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
     if (EBONE_VISIBLE(arm, ebone)) {
-      if (ebone->flag & BONE_TIPSEL || arm->act_edbone == ebone)
+      if (ebone->flag & BONE_TIPSEL || arm->act_edbone == ebone) {
         break;
+      }
     }
   }
 
   if (ebone == NULL) {
     for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
       if (EBONE_VISIBLE(arm, ebone)) {
-        if (ebone->flag & BONE_ROOTSEL || arm->act_edbone == ebone)
+        if (ebone->flag & BONE_ROOTSEL || arm->act_edbone == ebone) {
           break;
+        }
       }
     }
-    if (ebone == NULL)
+    if (ebone == NULL) {
       return OPERATOR_CANCELLED;
+    }
 
     to_root = 1;
   }
@@ -159,13 +162,15 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* we re-use code for mirror editing... */
   flipbone = NULL;
-  if (arm->flag & ARM_MIRROR_EDIT)
+  if (arm->flag & ARM_MIRROR_EDIT) {
     flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+  }
 
   for (a = 0; a < 2; a++) {
     if (a == 1) {
-      if (flipbone == NULL)
+      if (flipbone == NULL) {
         break;
+      }
       else {
         SWAP(EditBone *, flipbone, ebone);
       }
@@ -190,8 +195,9 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
     copy_v3_v3(newbone->tail, curs->location);
     sub_v3_v3v3(newbone->tail, newbone->tail, obedit->obmat[3]);
 
-    if (a == 1)
+    if (a == 1) {
       newbone->tail[0] = -newbone->tail[0];
+    }
 
     copy_m3_m4(mat, obedit->obmat);
     invert_m3_m3(imat, mat);
@@ -279,8 +285,9 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
 
   if (name) {
     for (eBone = edbo->first; eBone; eBone = eBone->next) {
-      if (STREQ(name, eBone->name))
+      if (STREQ(name, eBone->name)) {
         return eBone;
+      }
     }
   }
 
@@ -410,8 +417,9 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone,
             }
           }
 
-          if (cti->flush_constraint_targets)
+          if (cti->flush_constraint_targets) {
             cti->flush_constraint_targets(curcon, &targets, 0);
+          }
         }
       }
     }
@@ -442,8 +450,9 @@ EditBone *duplicateEditBoneObjects(
   BLI_addtail(editbones, eBone);
 
   /* copy the ID property */
-  if (curBone->prop)
+  if (curBone->prop) {
     eBone->prop = IDP_CopyProperty(curBone->prop);
+  }
 
   /* Lets duplicate the list of constraints that the
    * current bone has.
@@ -478,8 +487,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
   const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
 
   /* cancel if nothing selected */
-  if (CTX_DATA_COUNT(C, selected_bones) == 0)
+  if (CTX_DATA_COUNT(C, selected_bones) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -888,8 +898,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
       if (EBONE_VISIBLE(arm, ebone)) {
         if (ebone->flag & BONE_ROOTSEL) {
           if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-            if (ebone->parent->flag & BONE_TIPSEL)
+            if (ebone->parent->flag & BONE_TIPSEL) {
               ebone->flag &= ~BONE_ROOTSEL;
+            }
           }
         }
       }
@@ -920,18 +931,21 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
             if (flipbone) {
               forked_iter = 0;  // we extrude 2 different bones
-              if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED))
+              if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED)) {
                 /* don't want this bone to be selected... */
                 flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+              }
             }
-            if ((flipbone == NULL) && (forked_iter))
+            if ((flipbone == NULL) && (forked_iter)) {
               flipbone = ebone;
+            }
           }
 
           for (a = 0; a < 2; a++) {
             if (a == 1) {
-              if (flipbone == NULL)
+              if (flipbone == NULL) {
                 break;
+              }
               else {
                 SWAP(EditBone *, flipbone, ebone);
               }
@@ -948,8 +962,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
               /* copies it, in case mirrored bone */
               newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);
 
-              if (newbone->parent)
+              if (newbone->parent) {
                 newbone->flag |= BONE_CONNECTED;
+              }
             }
             else {
               copy_v3_v3(newbone->head, ebone->head);
@@ -988,22 +1003,26 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             if (flipbone && forked_iter) {  // only set if mirror edit
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {
-                if (a == 0)
+                if (a == 0) {
                   strcat(newbone->name, "_L");
-                else
+                }
+                else {
                   strcat(newbone->name, "_R");
+                }
               }
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);
 
             /* Add the new bone to the list */
             BLI_addtail(arm->edbo, newbone);
-            if (!first)
+            if (!first) {
               first = newbone;
+            }
 
             /* restore ebone if we were flipping */
-            if (a == 1 && flipbone)
+            if (a == 1 && flipbone) {
               SWAP(EditBone *, flipbone, ebone);
+            }
           }
         }
 
@@ -1073,10 +1092,12 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   invert_m4_m4(obedit->imat, obedit->obmat);
   mul_m4_v3(obedit->imat, curs);
 
-  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
+  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
     copy_m3_m4(obmat, rv3d->viewmat);
-  else
+  }
+  else {
     unit_m3(obmat);
+  }
 
   copy_m3_m4(viewmat, obedit->obmat);
   mul_m3_m3m3(totmat, obmat, viewmat);
@@ -1089,10 +1110,12 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
   copy_v3_v3(bone->head, curs);
 
-  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
+  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
     add_v3_v3v3(bone->tail, bone->head, imat[1]);  // bone with unit length 1
-  else
+  }
+  else {
     add_v3_v3v3(bone->tail, bone->head, imat[2]);  // bone with unit length 1, pointing up Z
+  }
 
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
@@ -1174,8 +1197,9 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 
       /* correct parent bones */
       for (tbone = arm->edbo->first; tbone; tbone = tbone->next) {
-        if (tbone->parent == ebone)
+        if (tbone->parent == ebone) {
           tbone->parent = newbone;
+        }
       }
       newbone->parent = ebone;
     }

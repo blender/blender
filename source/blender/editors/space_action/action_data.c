@@ -127,10 +127,12 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
   if (sa->spacetype == SPACE_ACTION) {
     SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 
-    if (saction->mode == SACTCONT_SHAPEKEY)
+    if (saction->mode == SACTCONT_SHAPEKEY) {
       action->idroot = ID_KE;
-    else
+    }
+    else {
       action->idroot = ID_OB;
+    }
   }
 
   return action;
@@ -180,15 +182,17 @@ static bool action_new_poll(bContext *C)
     if (saction->mode == SACTCONT_ACTION) {
       /* XXX: This assumes that actions are assigned to the active object in this mode */
       if (ob) {
-        if ((ob->adt == NULL) || (ob->adt->flag & ADT_NLA_EDIT_ON) == 0)
+        if ((ob->adt == NULL) || (ob->adt->flag & ADT_NLA_EDIT_ON) == 0) {
           return true;
+        }
       }
     }
     else if (saction->mode == SACTCONT_SHAPEKEY) {
       Key *key = BKE_key_from_object(ob);
       if (key) {
-        if ((key->adt == NULL) || (key->adt->flag & ADT_NLA_EDIT_ON) == 0)
+        if ((key->adt == NULL) || (key->adt->flag & ADT_NLA_EDIT_ON) == 0) {
           return true;
+        }
       }
     }
   }
@@ -300,8 +304,9 @@ static bool action_pushdown_poll(bContext *C)
       /* NOTE: We check this for the AnimData block in question and not the global flag,
        *       as the global flag may be left dirty by some of the browsing ops here.
        */
-      if (!(adt->flag & ADT_NLA_EDIT_ON))
+      if (!(adt->flag & ADT_NLA_EDIT_ON)) {
         return true;
+      }
     }
   }
 
@@ -432,8 +437,9 @@ static bool action_stash_create_poll(bContext *C)
     /* NOTE: unlike for pushdown,
      * this operator needs to be run when creating an action from nothing... */
     if (adt) {
-      if (!(adt->flag & ADT_NLA_EDIT_ON))
+      if (!(adt->flag & ADT_NLA_EDIT_ON)) {
         return true;
+      }
     }
     else {
       /* There may not be any action/animdata yet, so, just fallback to the global setting
@@ -628,8 +634,9 @@ static bool action_unlink_poll(bContext *C)
     AnimData *adt = ED_actedit_animdata_from_context(C);
 
     /* Only when there's an active action, in the right modes... */
-    if (saction->action && adt)
+    if (saction->action && adt) {
       return true;
+    }
   }
 
   /* something failed... */

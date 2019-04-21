@@ -956,8 +956,9 @@ static void cb_mlooptri_edges_get(const int index, int v_index[3], const BVHTree
       //printf("real edge found\n");
       v_index[j] = mloop[lt->tri[j]].e;
     }
-    else
+    else {
       v_index[j] = -1;
+    }
   }
 }
 

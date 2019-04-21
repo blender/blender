@@ -72,8 +72,9 @@ bool ED_space_clip_poll(bContext *C)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  if (sc && sc->clip)
+  if (sc && sc->clip) {
     return true;
+  }
 
   return false;
 }
@@ -93,8 +94,9 @@ bool ED_space_clip_tracking_poll(bContext *C)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  if (sc && sc->clip)
+  if (sc && sc->clip) {
     return ED_space_clip_check_show_trackedit(sc);
+  }
 
   return false;
 }
@@ -159,10 +161,12 @@ void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
-  if (clip)
+  if (clip) {
     BKE_movieclip_get_aspect(clip, aspx, aspy);
-  else
+  }
+  else {
     *aspx = *aspy = 1.0f;
+  }
 
   if (*aspx < *aspy) {
     *aspy = *aspy / *aspx;
@@ -224,11 +228,13 @@ ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 
     ibuf = BKE_movieclip_get_postprocessed_ibuf(sc->clip, &sc->user, sc->postproc_flag);
 
-    if (ibuf && (ibuf->rect || ibuf->rect_float))
+    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
       return ibuf;
+    }
 
-    if (ibuf)
+    if (ibuf) {
       IMB_freeImBuf(ibuf);
+    }
   }
 
   return NULL;
@@ -242,11 +248,13 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
     ibuf = BKE_movieclip_get_stable_ibuf(
         sc->clip, &sc->user, loc, scale, angle, sc->postproc_flag);
 
-    if (ibuf && (ibuf->rect || ibuf->rect_float))
+    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
       return ibuf;
+    }
 
-    if (ibuf)
+    if (ibuf) {
       IMB_freeImBuf(ibuf);
+    }
   }
 
   return NULL;
@@ -395,11 +403,13 @@ bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 
   ED_space_clip_get_size(sc, &frame_width, &frame_height);
 
-  if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL))
+  if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL)) {
     return false;
+  }
 
-  if (!selected_boundbox(C, min, max))
+  if (!selected_boundbox(C, min, max)) {
     return false;
+  }
 
   /* center view */
   clip_view_center_to_point(
@@ -423,8 +433,9 @@ bool ED_clip_view_selection(const bContext *C, ARegion *ar, bool fit)
 
     newzoom = 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy));
 
-    if (fit || sc->zoom > newzoom)
+    if (fit || sc->zoom > newzoom) {
       sc->zoom = newzoom;
+    }
   }
 
   return true;
@@ -489,8 +500,9 @@ void ED_clip_select_all(SpaceClip *sc, int action, bool *r_has_selection)
       }
     }
 
-    if (TRACK_VIEW_SELECTED(sc, track))
+    if (TRACK_VIEW_SELECTED(sc, track)) {
       has_selection = true;
+    }
   }
 
   for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
@@ -635,8 +647,9 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
   MovieClip *old_clip;
   bool old_clip_visible = false;
 
-  if (!screen && C)
+  if (!screen && C) {
     screen = CTX_wm_screen(C);
+  }
 
   old_clip = sc->clip;
   sc->clip = clip;
@@ -654,8 +667,9 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 
           if (cur_sc != sc) {
             if (cur_sc->view == SC_VIEW_CLIP) {
-              if (cur_sc->clip == old_clip)
+              if (cur_sc->clip == old_clip) {
                 old_clip_visible = true;
+              }
             }
             else {
               if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
@@ -673,8 +687,9 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
     BKE_movieclip_clear_cache(old_clip);
   }
 
-  if (C)
+  if (C) {
     WM_event_add_notifier(C, NC_MOVIECLIP | NA_SELECTED, sc->clip);
+  }
 }
 
 /* ******** masking editing functions ******** */
@@ -785,16 +800,18 @@ static int prefetch_find_uncached_frame(MovieClip *clip,
     for (current_frame = from_frame; current_frame <= end_frame; current_frame++) {
       user.framenr = current_frame;
 
-      if (!BKE_movieclip_has_cached_frame(clip, &user))
+      if (!BKE_movieclip_has_cached_frame(clip, &user)) {
         break;
+      }
     }
   }
   else {
     for (current_frame = from_frame; current_frame >= end_frame; current_frame--) {
       user.framenr = current_frame;
 
-      if (!BKE_movieclip_has_cached_frame(clip, &user))
+      if (!BKE_movieclip_has_cached_frame(clip, &user)) {
         break;
+      }
     }
   }
 
@@ -956,8 +973,9 @@ static bool prefetch_movie_frame(
   MovieClipUser user = {0};
   ImBuf *ibuf;
 
-  if (check_prefetch_break() || *stop)
+  if (check_prefetch_break() || *stop) {
     return false;
+  }
 
   user.framenr = frame;
   user.render_size = render_size;
@@ -1002,8 +1020,9 @@ static void do_prefetch_movie(MovieClip *clip,
 
   /* read frames starting from current frame up to scene end frame */
   for (frame = current_frame; frame <= end_frame; frame++) {
-    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop))
+    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop)) {
       return;
+    }
 
     frames_processed++;
 
@@ -1013,8 +1032,9 @@ static void do_prefetch_movie(MovieClip *clip,
 
   /* read frames starting from current frame up to scene start frame */
   for (frame = current_frame; frame >= start_frame; frame--) {
-    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop))
+    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop)) {
       return;
+    }
 
     frames_processed++;
 
@@ -1113,8 +1133,9 @@ static bool prefetch_check_early_out(const bContext *C)
     first_uncached_frame = prefetch_find_uncached_frame(
         clip, sc->user.framenr, start_frame, sc->user.render_size, sc->user.render_flag, -1);
 
-    if (first_uncached_frame < start_frame)
+    if (first_uncached_frame < start_frame) {
       return true;
+    }
   }
 
   return false;
@@ -1126,8 +1147,9 @@ void clip_start_prefetch_job(const bContext *C)
   PrefetchJob *pj;
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  if (prefetch_check_early_out(C))
+  if (prefetch_check_early_out(C)) {
     return;
+  }
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),

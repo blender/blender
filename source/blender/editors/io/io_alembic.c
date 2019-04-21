@@ -504,10 +504,12 @@ static int cmp_frame(const void *a, const void *b)
   const CacheFrame *frame_a = a;
   const CacheFrame *frame_b = b;
 
-  if (frame_a->framenr < frame_b->framenr)
+  if (frame_a->framenr < frame_b->framenr) {
     return -1;
-  if (frame_a->framenr > frame_b->framenr)
+  }
+  if (frame_a->framenr > frame_b->framenr) {
     return 1;
+  }
   return 0;
 }
 

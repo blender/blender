@@ -155,8 +155,9 @@ static void file_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
    */
   fsmenu_refresh_bookmarks_status(ED_fsmenu_get());
 
-  if (sfile->layout)
+  if (sfile->layout) {
     sfile->layout->dirty = true;
+  }
 }
 
 static void file_exit(wmWindowManager *wm, ScrArea *sa)
@@ -188,11 +189,13 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
     filelist_setdir(sfilen->files, sfilen->params->dir);
   }
 
-  if (sfileo->folders_prev)
+  if (sfileo->folders_prev) {
     sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
+  }
 
-  if (sfileo->folders_next)
+  if (sfileo->folders_next) {
     sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
+  }
 
   if (sfileo->layout) {
     sfilen->layout = MEM_dupallocN(sfileo->layout);
@@ -389,8 +392,9 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
   float col[3];
 
   /* Needed, because filelist is not initialized on loading */
-  if (!sfile->files || filelist_empty(sfile->files))
+  if (!sfile->files || filelist_empty(sfile->files)) {
     file_refresh(C, NULL);
+  }
 
   /* clear and setup matrix */
   UI_GetThemeColor3fv(TH_BACK, col);

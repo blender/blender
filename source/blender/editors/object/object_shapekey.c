@@ -110,8 +110,9 @@ static bool object_shape_key_mirror(
   *r_totmirr = *r_totfail = 0;
 
   key = BKE_key_from_object(ob);
-  if (key == NULL)
+  if (key == NULL) {
     return 0;
+  }
 
   kb = BLI_findlink(&key->block, ob->shapenr - 1);
 
@@ -335,11 +336,13 @@ static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Key *key = BKE_key_from_object(ob);
   KeyBlock *kb = BKE_keyblock_from_object(ob);
 
-  if (!key || !kb)
+  if (!key || !kb) {
     return OPERATOR_CANCELLED;
+  }
 
-  for (kb = key->block.first; kb; kb = kb->next)
+  for (kb = key->block.first; kb; kb = kb->next) {
     kb->curval = 0.0f;
+  }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -370,8 +373,9 @@ static int shape_key_retime_exec(bContext *C, wmOperator *UNUSED(op))
   KeyBlock *kb = BKE_keyblock_from_object(ob);
   float cfra = 0.0f;
 
-  if (!key || !kb)
+  if (!key || !kb) {
     return OPERATOR_CANCELLED;
+  }
 
   for (kb = key->block.first; kb; kb = kb->next) {
     kb->pos = cfra;
@@ -405,8 +409,9 @@ static int shape_key_mirror_exec(bContext *C, wmOperator *op)
   int totmirr = 0, totfail = 0;
   bool use_topology = RNA_boolean_get(op->ptr, "use_topology");
 
-  if (!object_shape_key_mirror(C, ob, &totmirr, &totfail, use_topology))
+  if (!object_shape_key_mirror(C, ob, &totmirr, &totfail, use_topology)) {
     return OPERATOR_CANCELLED;
+  }
 
   ED_mesh_report_mirror(op, totmirr, totfail);
 

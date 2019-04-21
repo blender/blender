@@ -58,43 +58,45 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "and",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "as",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "async",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "await",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "break",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "continue", len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "del",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "elif",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "else",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "except",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "finally",  len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "for",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "from",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "global",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "if",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "import",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "in",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "is",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "lambda",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "nonlocal", len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "not",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "or",       len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "pass",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "raise",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "return",   len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "try",      len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "while",    len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "with",     len)) i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) i = len;
-  else                                                      i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "async",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "await",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "continue", len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "del",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "elif",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "else",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "except",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "finally",  len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "for",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "from",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "global",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "if",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "import",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "in",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "is",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "lambda",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "nonlocal", len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "not",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "or",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "pass",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "raise",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "return",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "try",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "with",     len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) { i = len;
+  } else {                                                      i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -112,15 +114,17 @@ static int txtfmt_py_find_specialvar(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "def", len))   i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "class", len)) i = len;
-  else                                                   i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "def", len)) {   i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "class", len)) { i = len;
+  } else {                                                   i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -151,16 +155,18 @@ static int txtfmt_py_find_bool(const char *string)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      (STR_LITERAL_STARTSWITH(string, "None",  len))  i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "True",  len))  i = len;
-  else if (STR_LITERAL_STARTSWITH(string, "False", len))  i = len;
-  else                                                    i = 0;
+  if      (STR_LITERAL_STARTSWITH(string, "None",  len)) {  i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "True",  len)) {  i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "False", len)) {  i = len;
+  } else {                                                    i = 0;
+}
 
   /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
-  if (i == 0 || text_check_identifier(string[i]))
+  if (i == 0 || text_check_identifier(string[i])) {
     return -1;
+  }
   return i;
 }
 
@@ -171,10 +177,11 @@ static char txtfmt_py_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if      ((txtfmt_py_find_specialvar(str))   != -1) fmt = FMT_TYPE_SPECIAL;
-  else if ((txtfmt_py_find_builtinfunc(str))  != -1) fmt = FMT_TYPE_KEYWORD;
-  else if ((txtfmt_py_find_decorator(str))    != -1) fmt = FMT_TYPE_RESERVED;
-  else                                               fmt = FMT_TYPE_DEFAULT;
+  if      ((txtfmt_py_find_specialvar(str))   != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if ((txtfmt_py_find_builtinfunc(str))  != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else if ((txtfmt_py_find_decorator(str))    != -1) { fmt = FMT_TYPE_RESERVED;
+  } else {                                               fmt = FMT_TYPE_DEFAULT;
+}
 
   /* clang-format on */
   return fmt;
@@ -222,8 +229,9 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       *fmt = prev;
       fmt++;
       str++;
-      if (*str == '\0')
+      if (*str == '\0') {
         break;
+      }
       *fmt = prev;
       fmt++;
       str += BLI_str_utf8_size_safe(str);
@@ -247,8 +255,9 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
-        if (*str == find)
+        if (*str == find) {
           cont = FMT_CONT_NOP;
+        }
       }
 
       *fmt = FMT_TYPE_STRING;
@@ -311,9 +320,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
 
         /* Special vars(v) or built-in keywords(b) */
         /* keep in sync with 'txtfmt_py_format_identifier()' */
-        if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
-        else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
-        else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
+        if      ((i = txtfmt_py_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
+        } else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) { prev = FMT_TYPE_KEYWORD;
+        } else if ((i = txtfmt_py_find_decorator(str))    != -1) { prev = FMT_TYPE_DIRECTIVE;
+}
 
         /* clang-format on */
 

@@ -131,14 +131,16 @@ ImBuf *get_brush_icon(Brush *brush)
           }
         }
 
-        if (brush->icon_imbuf)
+        if (brush->icon_imbuf) {
           BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
+        }
       }
     }
   }
 
-  if (!(brush->icon_imbuf))
+  if (!(brush->icon_imbuf)) {
     brush->id.icon_id = 0;
+  }
 
   return brush->icon_imbuf;
 }
@@ -234,17 +236,20 @@ static bool check_engine_supports_preview(Scene *scene)
 
 void ED_preview_free_dbase(void)
 {
-  if (G_pr_main)
+  if (G_pr_main) {
     BKE_main_free(G_pr_main);
+  }
 
-  if (G_pr_main_grease_pencil)
+  if (G_pr_main_grease_pencil) {
     BKE_main_free(G_pr_main_grease_pencil);
+  }
 }
 
 static Scene *preview_get_scene(Main *pr_main)
 {
-  if (pr_main == NULL)
+  if (pr_main == NULL) {
     return NULL;
+  }
 
   return pr_main->scenes.first;
 }
@@ -397,10 +402,12 @@ static Scene *preview_prepare_scene(
       sce->r.tiley = sce->r.ysch / 4;
     }
 
-    if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO)
+    if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO) {
       sce->r.alphamode = R_ALPHAPREMUL;
-    else
+    }
+    else {
       sce->r.alphamode = R_ADDSKY;
+    }
 
     sce->r.cfra = scene->r.cfra;
 
@@ -461,8 +468,9 @@ static Scene *preview_prepare_scene(
             Material ***matar = give_matarar(base->object);
             int actcol = max_ii(base->object->actcol - 1, 0);
 
-            if (matar && actcol < base->object->totcol)
+            if (matar && actcol < base->object->totcol) {
               (*matar)[actcol] = mat;
+            }
           }
           else if (base->object->type == OB_LAMP) {
             base->flag |= BASE_VISIBLE;
@@ -510,8 +518,9 @@ static Scene *preview_prepare_scene(
 
       for (Base *base = view_layer->object_bases.first; base; base = base->next) {
         if (base->object->id.name[2] == 'p') {
-          if (base->object->type == OB_LAMP)
+          if (base->object->type == OB_LAMP) {
             base->object->data = la;
+          }
         }
       }
 
@@ -562,10 +571,12 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
   int newy = BLI_rcti_size_y(rect);
   bool ok = false;
 
-  if (!split || first)
+  if (!split || first) {
     sprintf(name, "Preview %p", (void *)sa);
-  else
+  }
+  else {
     sprintf(name, "SecondPreview %p", (void *)sa);
+  }
 
   if (split) {
     if (first) {
@@ -581,8 +592,9 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
   /* test if something rendered ok */
   re = RE_GetRender(name);
 
-  if (re == NULL)
+  if (re == NULL) {
     return false;
+  }
 
   RE_AcquireResultImageViews(re, &rres);
 
@@ -609,8 +621,9 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
         float fy = rect->ymin;
 
         /* material preview only needs monoscopy (view 0) */
-        if (re)
+        if (re) {
           RE_AcquiredResultGet32(re, &rres, (unsigned int *)rect_byte, 0);
+        }
 
         IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
         immDrawPixelsTex(&state,
@@ -662,11 +675,13 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
       ok = ed_preview_draw_rect(sa, 1, 1, rect, &newrect);
       ok &= ed_preview_draw_rect(sa, 1, 0, rect, &newrect);
     }
-    else
+    else {
       ok = ed_preview_draw_rect(sa, 0, 0, rect, &newrect);
+    }
 
-    if (ok)
+    if (ok) {
       *rect = newrect;
+    }
 
     /* start a new preview render job if signaled through sbuts->preview,
      * if no render result was found and no preview render job is running,
@@ -712,26 +727,30 @@ static void shader_preview_updatejob(void *spv)
       if (GS(sp->id->name) == ID_MA) {
         Material *mat = (Material *)sp->id;
 
-        if (sp->matcopy && mat->nodetree && sp->matcopy->nodetree)
+        if (sp->matcopy && mat->nodetree && sp->matcopy->nodetree) {
           ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
+        }
       }
       else if (GS(sp->id->name) == ID_TE) {
         Tex *tex = (Tex *)sp->id;
 
-        if (sp->texcopy && tex->nodetree && sp->texcopy->nodetree)
+        if (sp->texcopy && tex->nodetree && sp->texcopy->nodetree) {
           ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
+        }
       }
       else if (GS(sp->id->name) == ID_WO) {
         World *wrld = (World *)sp->id;
 
-        if (sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree)
+        if (sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree) {
           ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
+        }
       }
       else if (GS(sp->id->name) == ID_LA) {
         Light *la = (Light *)sp->id;
 
-        if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
+        if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree) {
           ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
+        }
       }
     }
   }
@@ -809,10 +828,12 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
   /* in case of split preview, use border render */
   if (split) {
-    if (first)
+    if (first) {
       sizex = sp->sizex / 2;
-    else
+    }
+    else {
       sizex = sp->sizex - sp->sizex / 2;
+    }
   }
   else {
     sizex = sp->sizex;
@@ -828,18 +849,22 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
   /* get the stuff from the builtin preview dbase */
   sce = preview_prepare_scene(sp->bmain, sp->scene, id_eval, idtype, sp);
-  if (sce == NULL)
+  if (sce == NULL) {
     return;
+  }
 
-  if (!split || first)
+  if (!split || first) {
     sprintf(name, "Preview %p", sp->owner);
-  else
+  }
+  else {
     sprintf(name, "SecondPreview %p", sp->owner);
+  }
   re = RE_GetRender(name);
 
   /* full refreshed render from first tile */
-  if (re == NULL)
+  if (re == NULL) {
     re = RE_NewRender(name);
+  }
 
   /* sce->r gets copied in RE_InitState! */
   sce->r.scemode &= ~(R_MATNODE_PREVIEW | R_TEXNODE_PREVIEW);
@@ -850,10 +875,12 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     sce->r.mode |= R_OSA;
   }
   else if (sp->pr_method == PR_NODE_RENDER) {
-    if (idtype == ID_MA)
+    if (idtype == ID_MA) {
       sce->r.scemode |= R_MATNODE_PREVIEW;
-    else if (idtype == ID_TE)
+    }
+    else if (idtype == ID_TE) {
       sce->r.scemode |= R_TEXNODE_PREVIEW;
+    }
     sce->r.mode &= ~R_OSA;
   }
   else { /* PR_BUTS_RENDER */
@@ -869,8 +896,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
   /* lens adjust */
   oldlens = ((Camera *)sce->camera->data)->lens;
-  if (sizex > sp->sizey)
+  if (sizex > sp->sizey) {
     ((Camera *)sce->camera->data)->lens *= (float)sp->sizey / (float)sizex;
+  }
 
   /* entire cycle for render engine */
   if (idtype == ID_TE) {
@@ -887,8 +915,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   if (sp->pr_method == PR_ICON_RENDER) {
     // char *rct= (char *)(sp->pr_rect + 32*16 + 16);
 
-    if (sp->pr_rect)
+    if (sp->pr_rect) {
       RE_ResultGet32(re, sp->pr_rect);
+    }
   }
 
   /* unassign the pointers, reset vars */
@@ -914,8 +943,9 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
     shader_preview_render(sp, sp->id, 1, 1);
     shader_preview_render(sp, sp->parent, 1, 0);
   }
-  else
+  else {
     shader_preview_render(sp, sp->id, 0, 0);
+  }
 
   *do_update = true;
 }
@@ -986,14 +1016,16 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
   short ex, ey, dx, dy;
 
   /* paranoia test */
-  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL))
+  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
     return;
+  }
 
   /* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
   ima = IMB_dupImBuf(ibuf);
 
-  if (!ima)
+  if (!ima) {
     return;
+  }
 
   if (ima->x > ima->y) {
     scaledx = (float)w;
@@ -1013,8 +1045,9 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
   IMB_scalefastImBuf(ima, ex, ey);
 
   /* if needed, convert to 32 bits */
-  if (ima->rect == NULL)
+  if (ima->rect == NULL) {
     IMB_rect_from_float(ima);
+  }
 
   srect = ima->rect;
   drect = rect;
@@ -1033,8 +1066,9 @@ static void set_alpha(char *cp, int sizex, int sizey, char alpha)
 {
   int a, size = sizex * sizey;
 
-  for (a = 0; a < size; a++, cp += 4)
+  for (a = 0; a < size; a++, cp += 4) {
     cp[3] = alpha;
+  }
 }
 
 static void icon_preview_startjob(void *customdata, short *stop, short *do_update)
@@ -1070,8 +1104,9 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
       ImageUser iuser = {NULL};
 
       /* ima->ok is zero when Image cannot load */
-      if (ima == NULL || ima->ok == 0)
+      if (ima == NULL || ima->ok == 0) {
         return;
+      }
 
       /* setup dummy image user */
       iuser.ok = iuser.framenr = 1;
@@ -1099,8 +1134,9 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
       memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(unsigned int));
 
-      if (!(br->icon_imbuf) || !(br->icon_imbuf->rect))
+      if (!(br->icon_imbuf) || !(br->icon_imbuf->rect)) {
         return;
+      }
 
       icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
@@ -1135,10 +1171,12 @@ static void common_preview_startjob(void *customdata,
 {
   ShaderPreview *sp = customdata;
 
-  if (ELEM(sp->pr_method, PR_ICON_RENDER, PR_ICON_DEFERRED))
+  if (ELEM(sp->pr_method, PR_ICON_RENDER, PR_ICON_DEFERRED)) {
     icon_preview_startjob(customdata, stop, do_update);
-  else
+  }
+  else {
     shader_preview_startjob(customdata, stop, do_update);
+  }
 }
 
 /* exported functions */
@@ -1228,8 +1266,9 @@ static void icon_preview_endjob(void *customdata)
 
   if (ip->id) {
 
-    if (GS(ip->id->name) == ID_BR)
+    if (GS(ip->id->name) == ID_BR) {
       WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
+    }
 #if 0
     if (GS(ip->id->name) == ID_MA) {
       Material *ma = (Material *)ip->id;
@@ -1319,8 +1358,9 @@ void ED_preview_icon_job(
 
   /* render all resolutions from suspended job too */
   old_ip = WM_jobs_customdata_get(wm_job);
-  if (old_ip)
+  if (old_ip) {
     BLI_movelisttolist(&ip->sizes, &old_ip->sizes);
+  }
 
   /* customdata for preview thread */
   ip->bmain = CTX_data_main(C);
@@ -1433,6 +1473,7 @@ void ED_preview_shader_job(const bContext *C,
 
 void ED_preview_kill_jobs(wmWindowManager *wm, Main *UNUSED(bmain))
 {
-  if (wm)
+  if (wm) {
     WM_jobs_kill(wm, NULL, common_preview_startjob);
+  }
 }

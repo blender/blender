@@ -50,8 +50,9 @@ int ED_mesh_mirror_spatial_table(
     Object *ob, BMEditMesh *em, Mesh *me_eval, const float co[3], char mode)
 {
   if (mode == 'u') { /* use table */
-    if (MirrKdStore.tree == NULL)
+    if (MirrKdStore.tree == NULL) {
       ED_mesh_mirror_spatial_table(ob, em, me_eval, NULL, 's');
+    }
 
     if (MirrKdStore.tree) {
       KDTreeNearest_3d nearest;
@@ -70,8 +71,9 @@ int ED_mesh_mirror_spatial_table(
     const bool use_em = (!me_eval && em && me->edit_mesh == em);
     const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->totvert : me->totvert;
 
-    if (MirrKdStore.tree) /* happens when entering this call without ending it */
+    if (MirrKdStore.tree) { /* happens when entering this call without ending it */
       ED_mesh_mirror_spatial_table(ob, em, me_eval, co, 'e');
+    }
 
     MirrKdStore.tree = BLI_kdtree_3d_new(totvert);
 
@@ -126,19 +128,23 @@ typedef struct MirrTopoVert_t {
 
 static int mirrtopo_hash_sort(const void *l1, const void *l2)
 {
-  if ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2)
+  if ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) {
     return 1;
-  else if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2)
+  }
+  else if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) {
     return -1;
+  }
   return 0;
 }
 
 static int mirrtopo_vert_sort(const void *v1, const void *v2)
 {
-  if (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash)
+  if (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash) {
     return 1;
-  else if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash)
+  }
+  else if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash) {
     return -1;
+  }
   return 0;
 }
 

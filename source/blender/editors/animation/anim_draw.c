@@ -237,12 +237,14 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
   /* sanity checks */
-  if (ac == NULL)
+  if (ac == NULL) {
     return NULL;
+  }
 
   /* abort if rendering - we may get some race condition issues... */
-  if (G.is_rendering)
+  if (G.is_rendering) {
     return NULL;
+  }
 
   /* apart from strictly keyframe-related contexts, this shouldn't even happen */
   // XXX: nla and channel here may not be necessary...
@@ -257,8 +259,9 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
     if (ale) {
       /* NLA Control Curves occur on NLA strips,
        * and shouldn't be subjected to this kind of mapping. */
-      if (ale->type != ANIMTYPE_NLACURVE)
+      if (ale->type != ANIMTYPE_NLACURVE) {
         return ale->adt;
+      }
     }
   }
 
@@ -323,10 +326,12 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
   ked.i1 = (int)only_keys;
 
   /* get editing callback */
-  if (restore)
+  if (restore) {
     map_cb = bezt_nlamapping_restore;
-  else
+  }
+  else {
     map_cb = bezt_nlamapping_apply;
+  }
 
   /* apply to F-Curve */
   ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, map_cb, NULL);
@@ -355,15 +360,17 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   float factor = 1.0f, offset = 0.0f;
 
   if (flag & ANIM_UNITCONV_RESTORE) {
-    if (r_offset)
+    if (r_offset) {
       *r_offset = fcu->prev_offset;
+    }
 
     return 1.0f / fcu->prev_norm_factor;
   }
 
   if (flag & ANIM_UNITCONV_NORMALIZE_FREEZE) {
-    if (r_offset)
+    if (r_offset) {
       *r_offset = fcu->prev_offset;
+    }
     if (fcu->prev_norm_factor == 0.0f) {
       /* Happens when Auto Normalize was disabled before
        * any curves were displayed.
@@ -374,8 +381,9 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   }
 
   if (G.moving & G_TRANSFORM_FCURVES) {
-    if (r_offset)
+    if (r_offset) {
       *r_offset = fcu->prev_offset;
+    }
     if (fcu->prev_norm_factor == 0.0f) {
       /* Same as above. */
       return 1.0f;
@@ -499,8 +507,9 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
     return normalization_factor_get(scene, fcu, flag, r_offset);
   }
 
-  if (r_offset)
+  if (r_offset) {
     *r_offset = 0.0f;
+  }
 
   /* sanity checks */
   if (id && fcu && fcu->rna_path) {
@@ -514,10 +523,12 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
       if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
         /* if the radians flag is not set, default to using degrees which need conversions */
         if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
-          if (flag & ANIM_UNITCONV_RESTORE)
+          if (flag & ANIM_UNITCONV_RESTORE) {
             return DEG2RADF(1.0f); /* degrees to radians */
-          else
+          }
+          else {
             return RAD2DEGF(1.0f); /* radians to degrees */
+          }
         }
       }
 
@@ -577,8 +588,9 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
       }
       else {
         /* this changes the frame, so set the frame and we're done */
-        if (++nextcount == U.view_frame_keyframes)
+        if (++nextcount == U.view_frame_keyframes) {
           donenext = true;
+        }
       }
       cfranext = aknext->cfra;
     }
@@ -593,8 +605,9 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
       }
       else {
         /* this changes the frame, so set the frame and we're done */
-        if (++prevcount == U.view_frame_keyframes)
+        if (++prevcount == U.view_frame_keyframes) {
           doneprev = true;
+        }
       }
       cfraprev = akprev->cfra;
     }
@@ -605,15 +618,19 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 
   /* any success? */
   if (doneprev || donenext) {
-    if (doneprev)
+    if (doneprev) {
       *prevfra = cfraprev;
-    else
+    }
+    else {
       *prevfra = CFRA - (cfranext - CFRA);
+    }
 
-    if (donenext)
+    if (donenext) {
       *nextfra = cfranext;
-    else
+    }
+    else {
       *nextfra = CFRA + (CFRA - cfraprev);
+    }
 
     return true;
   }

@@ -96,12 +96,15 @@ static CursorSnapshot cursor_snap = {0};
 /* delete overlay cursor textures to preserve memory and invalidate all overlay flags */
 void paint_cursor_delete_textures(void)
 {
-  if (primary_snap.overlay_texture)
+  if (primary_snap.overlay_texture) {
     glDeleteTextures(1, &primary_snap.overlay_texture);
-  if (secondary_snap.overlay_texture)
+  }
+  if (secondary_snap.overlay_texture) {
     glDeleteTextures(1, &secondary_snap.overlay_texture);
-  if (cursor_snap.overlay_texture)
+  }
+  if (cursor_snap.overlay_texture) {
     glDeleteTextures(1, &cursor_snap.overlay_texture);
+  }
 
   memset(&primary_snap, 0, sizeof(TexSnapshot));
   memset(&secondary_snap, 0, sizeof(TexSnapshot));
@@ -271,16 +274,19 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       int s = BKE_brush_size_get(vc->scene, br);
       int r = 1;
 
-      for (s >>= 1; s > 0; s >>= 1)
+      for (s >>= 1; s > 0; s >>= 1) {
         r++;
+      }
 
       size = (1 << r);
 
-      if (size < 256)
+      if (size < 256) {
         size = 256;
+      }
 
-      if (size < target->old_size)
+      if (size < target->old_size) {
         size = target->old_size;
+      }
     }
     else {
       size = 512;
@@ -296,10 +302,12 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
       target->old_size = size;
     }
-    if (col)
+    if (col) {
       buffer = MEM_mallocN(sizeof(GLubyte) * size * size * 4, "load_tex");
-    else
+    }
+    else {
       buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
+    }
 
     pool = BKE_image_pool_new();
 
@@ -324,14 +332,17 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
     BLI_parallel_range_settings_defaults(&settings);
     BLI_task_parallel_range(0, size, &data, load_tex_task_cb_ex, &settings);
 
-    if (mtex->tex && mtex->tex->nodetree)
+    if (mtex->tex && mtex->tex->nodetree) {
       ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    }
 
-    if (pool)
+    if (pool) {
       BKE_image_pool_free(pool);
+    }
 
-    if (!target->overlay_texture)
+    if (!target->overlay_texture) {
       glGenTextures(1, &target->overlay_texture);
+    }
   }
   else {
     size = target->old_size;
@@ -352,8 +363,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, format, GL_UNSIGNED_BYTE, buffer);
     }
 
-    if (buffer)
+    if (buffer) {
       MEM_freeN(buffer);
+    }
 
     target->old_col = col;
   }
@@ -422,16 +434,19 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     s = BKE_brush_size_get(vc->scene, br);
     r = 1;
 
-    for (s >>= 1; s > 0; s >>= 1)
+    for (s >>= 1; s > 0; s >>= 1) {
       r++;
+    }
 
     size = (1 << r);
 
-    if (size < 256)
+    if (size < 256) {
       size = 256;
+    }
 
-    if (size < cursor_snap.size)
+    if (size < cursor_snap.size) {
       size = cursor_snap.size;
+    }
 
     if (cursor_snap.size != size) {
       if (cursor_snap.overlay_texture) {
@@ -457,8 +472,9 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     BLI_parallel_range_settings_defaults(&settings);
     BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 
-    if (!cursor_snap.overlay_texture)
+    if (!cursor_snap.overlay_texture) {
       glGenTextures(1, &cursor_snap.overlay_texture);
+    }
   }
   else {
     size = cursor_snap.size;
@@ -475,8 +491,9 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_RED, GL_UNSIGNED_BYTE, buffer);
     }
 
-    if (buffer)
+    if (buffer) {
       MEM_freeN(buffer);
+    }
   }
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -567,8 +584,9 @@ static bool sculpt_get_brush_geometry(bContext *C,
     *pixel_radius = project_brush_radius(
         vc, BKE_brush_unprojected_radius_get(scene, brush), location);
 
-    if (*pixel_radius == 0)
+    if (*pixel_radius == 0) {
       *pixel_radius = BKE_brush_size_get(scene, brush);
+    }
 
     mul_m4_v3(vc->obact->obmat, location);
   }
@@ -665,10 +683,12 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups,
         quad.ymax = brush->mask_stencil_dimension[1];
       }
       GPU_matrix_push();
-      if (primary)
+      if (primary) {
         GPU_matrix_translate_2fv(brush->stencil_pos);
-      else
+      }
+      else {
         GPU_matrix_translate_2fv(brush->mask_stencil_pos);
+      }
       GPU_matrix_rotate_2d(RAD2DEGF(mtex->rot));
     }
 
@@ -787,8 +807,9 @@ static void paint_draw_cursor_overlay(
 
     GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 
-    if (do_pop)
+    if (do_pop) {
       GPU_matrix_pop();
+    }
   }
 }
 
@@ -814,18 +835,23 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
 
   /* coloured overlay should be drawn separately */
   if (col) {
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY))
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY)) {
       paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, true, true);
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_SECONDARY))
+    }
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_SECONDARY)) {
       paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, false);
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
+    }
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
       paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
+    }
   }
   else {
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PAINT_MODE_WEIGHT))
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PAINT_MODE_WEIGHT)) {
       paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
+    }
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
       paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
+    }
   }
 
   GPU_matrix_pop();
@@ -954,7 +980,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
       draw_rect_point(
           pos, selec_col, handle_col, &cp->bez.vec[2][0], 8.0f, cp->bez.f3 || cp->bez.f2);
 
-      for (j = 0; j < 2; j++)
+      for (j = 0; j < 2; j++) {
         BKE_curve_forward_diff_bezier(cp->bez.vec[1][j],
                                       cp->bez.vec[2][j],
                                       cp_next->bez.vec[0][j],
@@ -962,6 +988,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
                                       data + j,
                                       PAINT_CURVE_NUM_SEGMENTS,
                                       sizeof(float[2]));
+      }
 
       float(*v)[2] = (float(*)[2])data;
 
@@ -1010,21 +1037,25 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups,
   /* update the brush's cached 3D radius */
   if (!BKE_brush_use_locked_size(vc->scene, brush)) {
     /* get 2D brush radius */
-    if (ups->draw_anchored)
+    if (ups->draw_anchored) {
       projected_radius = ups->anchored_size;
+    }
     else {
-      if (brush->flag & BRUSH_ANCHORED)
+      if (brush->flag & BRUSH_ANCHORED) {
         projected_radius = 8;
-      else
+      }
+      else {
         projected_radius = BKE_brush_size_get(vc->scene, brush);
+      }
     }
 
     /* convert brush radius from 2D to 3D */
     unprojected_radius = paint_calc_object_space_radius(vc, location, projected_radius);
 
     /* scale 3D brush radius by pressure */
-    if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush))
+    if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
       unprojected_radius *= ups->size_pressure_value;
+    }
 
     /* set cached value in either Brush or UnifiedPaintSettings */
     BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
@@ -1053,8 +1084,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   /* check that brush drawing is enabled */
-  if (ommit_cursor_drawing(paint, mode, brush))
+  if (ommit_cursor_drawing(paint, mode, brush)) {
     return;
+  }
 
   /* can't use stroke vc here because this will be called during
    * mouse over too, not just during a stroke */
@@ -1100,8 +1132,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     /* test if brush is over the mesh */
     bool hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location, ups);
 
-    if (BKE_brush_use_locked_size(scene, brush))
+    if (BKE_brush_use_locked_size(scene, brush)) {
       BKE_brush_size_set(scene, brush, pixel_radius);
+    }
 
     /* check if brush is subtracting, use different color then */
     /* TODO: no way currently to know state of pen flip or
@@ -1112,8 +1145,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
     }
 
     /* only do if brush is over the mesh */
-    if (hit)
+    if (hit) {
       paint_cursor_on_hit(ups, brush, &vc, location);
+    }
   }
 
   if (ups->draw_anchored) {

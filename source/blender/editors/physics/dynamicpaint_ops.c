@@ -72,14 +72,16 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Make sure we're dealing with a canvas */
   pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
-  if (!pmd || !pmd->canvas)
+  if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
+  }
 
   canvas = pmd->canvas;
   surface = dynamicPaint_createNewSurface(canvas, CTX_data_scene(C));
 
-  if (!surface)
+  if (!surface) {
     return OPERATOR_CANCELLED;
+  }
 
   /* set preview for this surface only and set active */
   canvas->active_sur = 0;
@@ -117,8 +119,9 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Make sure we're dealing with a canvas */
   pmd = (DynamicPaintModifierData *)modifiers_findByType(obj_ctx, eModifierType_DynamicPaint);
-  if (!pmd || !pmd->canvas)
+  if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
+  }
 
   canvas = pmd->canvas;
   surface = canvas->surfaces.first;
@@ -165,8 +168,9 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
       cObject, eModifierType_DynamicPaint);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (!pmd)
+  if (!pmd) {
     return OPERATOR_CANCELLED;
+  }
 
   /* if type is already enabled, toggle it off */
   if (type == MOD_DYNAMICPAINT_TYPE_CANVAS && pmd->canvas) {
@@ -177,8 +181,9 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
   }
   /* else create a new type */
   else {
-    if (!dynamicPaint_createType(pmd, type, scene))
+    if (!dynamicPaint_createType(pmd, type, scene)) {
       return OPERATOR_CANCELLED;
+    }
   }
 
   /* update dependency */
@@ -223,8 +228,9 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
       ob, eModifierType_DynamicPaint);
   int output = RNA_enum_get(op->ptr, "output"); /* currently only 1/0 */
 
-  if (!pmd || !pmd->canvas)
+  if (!pmd || !pmd->canvas) {
     return OPERATOR_CANCELLED;
+  }
   surface = get_activeSurface(pmd->canvas);
 
   /* if type is already enabled, toggle it off */
@@ -232,17 +238,21 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
     int exists = dynamicPaint_outputLayerExists(surface, ob, output);
     const char *name;
 
-    if (output == 0)
+    if (output == 0) {
       name = surface->output_name;
-    else
+    }
+    else {
       name = surface->output_name2;
+    }
 
     /* Vertex Color Layer */
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-      if (!exists)
+      if (!exists) {
         ED_mesh_color_add(ob->data, name, true, true);
-      else
+      }
+      else {
         ED_mesh_color_remove_named(ob->data, name);
+      }
     }
     /* Vertex Weight Layer */
     else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
@@ -251,8 +261,9 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
       }
       else {
         bDeformGroup *defgroup = defgroup_find_name(ob, name);
-        if (defgroup)
+        if (defgroup) {
           BKE_object_defgroup_remove(ob, defgroup);
+        }
       }
     }
   }

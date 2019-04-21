@@ -91,8 +91,9 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 
   if (sa) {
     char flts_str[NUM_STR_REP_LEN * 2];
-    if (hasNumInput(&opdata->num_input))
+    if (hasNumInput(&opdata->num_input)) {
       outputNumInput(&opdata->num_input, flts_str, &sce->unit);
+    }
     else {
       BLI_snprintf(flts_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "thickness"));
       BLI_snprintf(
@@ -413,18 +414,21 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
 
           /* Fake shift-transform... */
-          if (opdata->shift)
+          if (opdata->shift) {
             amount = (amount - opdata->shift_amount) * 0.1f + opdata->shift_amount;
+          }
 
-          if (opdata->modify_depth)
+          if (opdata->modify_depth) {
             RNA_float_set(op->ptr, "depth", amount);
+          }
           else {
             amount = max_ff(amount, 0.0f);
             RNA_float_set(op->ptr, "thickness", amount);
           }
 
-          if (edbm_inset_calc(op))
+          if (edbm_inset_calc(op)) {
             edbm_inset_update_header(op, C);
+          }
           else {
             edbm_inset_cancel(C, op);
             return OPERATOR_CANCELLED;
@@ -446,10 +450,12 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case LEFTSHIFTKEY:
       case RIGHTSHIFTKEY:
         if (event->val == KM_PRESS) {
-          if (opdata->modify_depth)
+          if (opdata->modify_depth) {
             opdata->shift_amount = RNA_float_get(op->ptr, "depth");
-          else
+          }
+          else {
             opdata->shift_amount = RNA_float_get(op->ptr, "thickness");
+          }
           opdata->shift = true;
           handled = true;
         }
@@ -469,14 +475,16 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         if (event->val == KM_PRESS) {
           opdata->old_thickness = RNA_float_get(op->ptr, "thickness");
-          if (opdata->shift)
+          if (opdata->shift) {
             opdata->shift_amount = opdata->old_thickness;
+          }
           opdata->modify_depth = true;
         }
         else {
           opdata->old_depth = RNA_float_get(op->ptr, "depth");
-          if (opdata->shift)
+          if (opdata->shift) {
             opdata->shift_amount = opdata->old_depth;
+          }
           opdata->modify_depth = false;
         }
         opdata->initial_length = len_v2(mlen);

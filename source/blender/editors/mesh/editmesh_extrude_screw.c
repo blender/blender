@@ -125,8 +125,9 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
     sub_v3_v3v3(dvec, v1_co_global, v2_co_global);
     mul_v3_fl(dvec, 1.0f / steps);
 
-    if (dot_v3v3(nor, dvec) > 0.0f)
+    if (dot_v3v3(nor, dvec) > 0.0f) {
       negate_v3(dvec);
+    }
 
     BMOperator spinop;
     if (!EDBM_op_init(

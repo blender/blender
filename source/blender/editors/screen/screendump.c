@@ -71,8 +71,9 @@ static void screenshot_read_pixels(int x, int y, int w, int h, unsigned char *re
   glFinish();
 
   /* clear alpha, it is not set to a meaningful value in opengl */
-  for (i = 0, rect += 3; i < w * h; i++, rect += 4)
+  for (i = 0, rect += 3; i < w * h; i++, rect += 4) {
     *rect = 255;
+  }
 }
 
 /* get shot from frontbuffer */
@@ -137,8 +138,9 @@ static void screenshot_data_free(wmOperator *op)
   ScreenshotData *scd = op->customdata;
 
   if (scd) {
-    if (scd->dumprect)
+    if (scd->dumprect) {
       MEM_freeN(scd->dumprect);
+    }
     MEM_freeN(scd);
     op->customdata = NULL;
   }
@@ -153,8 +155,9 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
   int y;
 
   if (crop_x > 0 && crop_y > 0) {
-    for (y = 0; y < crop_y; y++, to += crop_x, from += ibuf->x)
+    for (y = 0; y < crop_y; y++, to += crop_x, from += ibuf->x) {
       memmove(to, from, sizeof(unsigned int) * crop_x);
+    }
 
     ibuf->x = crop_x;
     ibuf->y = crop_y;
@@ -185,8 +188,9 @@ static int screenshot_exec(bContext *C, wmOperator *op)
       ibuf->rect = scd->dumprect;
 
       /* crop to show only single editor */
-      if (!RNA_boolean_get(op->ptr, "full"))
+      if (!RNA_boolean_get(op->ptr, "full")) {
         screenshot_crop(ibuf, scd->crop);
+      }
 
       if (scd->im_format.planes == R_IMF_PLANES_BW) {
         /* bw screenshot? - users will notice if it fails! */
@@ -211,8 +215,9 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   if (screenshot_data_create(C, op)) {
-    if (RNA_struct_property_is_set(op->ptr, "filepath"))
+    if (RNA_struct_property_is_set(op->ptr, "filepath")) {
       return screenshot_exec(C, op);
+    }
 
     /* extension is added by 'screenshot_check' after */
     char filepath[FILE_MAX] = "//screen";
@@ -267,8 +272,9 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 static bool screenshot_poll(bContext *C)
 {
-  if (G.background)
+  if (G.background) {
     return false;
+  }
 
   return WM_operator_winactive(C);
 }

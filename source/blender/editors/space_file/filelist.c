@@ -139,8 +139,9 @@ const char *folderlist_peeklastdir(ListBase *folderlist)
 {
   struct FolderList *folder;
 
-  if (!folderlist->last)
+  if (!folderlist->last) {
     return NULL;
+  }
 
   folder = folderlist->last;
   return folder->foldername;
@@ -151,14 +152,16 @@ int folderlist_clear_next(struct SpaceFile *sfile)
   struct FolderList *folder;
 
   /* if there is no folder_next there is nothing we can clear */
-  if (!sfile->folders_next)
+  if (!sfile->folders_next) {
     return 0;
+  }
 
   /* if previous_folder, next_folder or refresh_folder operators are executed
    * it doesn't clear folder_next */
   folder = sfile->folders_prev->last;
-  if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
+  if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0)) {
     return 0;
+  }
 
   /* eventually clear flist->folders_next */
   return 1;
@@ -169,8 +172,9 @@ void folderlist_free(ListBase *folderlist)
 {
   if (folderlist) {
     FolderList *folder;
-    for (folder = folderlist->first; folder; folder = folder->next)
+    for (folder = folderlist->first; folder; folder = folder->next) {
       MEM_freeN(folder->foldername);
+    }
     BLI_freelistN(folderlist);
   }
 }
@@ -400,14 +404,18 @@ static int compare_direntry_generic(const FileListInternEntry *entry1,
   }
 
   /* make sure "." and ".." are always first */
-  if (FILENAME_IS_CURRENT(entry1->relpath))
+  if (FILENAME_IS_CURRENT(entry1->relpath)) {
     return -1;
-  if (FILENAME_IS_CURRENT(entry2->relpath))
+  }
+  if (FILENAME_IS_CURRENT(entry2->relpath)) {
     return 1;
-  if (FILENAME_IS_PARENT(entry1->relpath))
+  }
+  if (FILENAME_IS_PARENT(entry1->relpath)) {
     return -1;
-  if (FILENAME_IS_PARENT(entry2->relpath))
+  }
+  if (FILENAME_IS_PARENT(entry2->relpath)) {
     return 1;
+  }
 
   return 0;
 }
@@ -443,10 +451,12 @@ static int compare_date(void *UNUSED(user_data), const void *a1, const void *a2)
 
   time1 = (int64_t)entry1->st.st_mtime;
   time2 = (int64_t)entry2->st.st_mtime;
-  if (time1 < time2)
+  if (time1 < time2) {
     return 1;
-  if (time1 > time2)
+  }
+  if (time1 > time2) {
     return -1;
+  }
 
   name1 = entry1->name;
   name2 = entry2->name;
@@ -468,10 +478,12 @@ static int compare_size(void *UNUSED(user_data), const void *a1, const void *a2)
 
   size1 = entry1->st.st_size;
   size2 = entry2->st.st_size;
-  if (size1 < size2)
+  if (size1 < size2) {
     return 1;
-  if (size1 > size2)
+  }
+  if (size1 > size2) {
     return -1;
+  }
 
   name1 = entry1->name;
   name2 = entry2->name;
@@ -490,31 +502,41 @@ static int compare_extension(void *UNUSED(user_data), const void *a1, const void
     return ret;
   }
 
-  if ((entry1->typeflag & FILE_TYPE_BLENDERLIB) && !(entry2->typeflag & FILE_TYPE_BLENDERLIB))
+  if ((entry1->typeflag & FILE_TYPE_BLENDERLIB) && !(entry2->typeflag & FILE_TYPE_BLENDERLIB)) {
     return -1;
-  if (!(entry1->typeflag & FILE_TYPE_BLENDERLIB) && (entry2->typeflag & FILE_TYPE_BLENDERLIB))
+  }
+  if (!(entry1->typeflag & FILE_TYPE_BLENDERLIB) && (entry2->typeflag & FILE_TYPE_BLENDERLIB)) {
     return 1;
+  }
   if ((entry1->typeflag & FILE_TYPE_BLENDERLIB) && (entry2->typeflag & FILE_TYPE_BLENDERLIB)) {
-    if ((entry1->typeflag & FILE_TYPE_DIR) && !(entry2->typeflag & FILE_TYPE_DIR))
+    if ((entry1->typeflag & FILE_TYPE_DIR) && !(entry2->typeflag & FILE_TYPE_DIR)) {
       return 1;
-    if (!(entry1->typeflag & FILE_TYPE_DIR) && (entry2->typeflag & FILE_TYPE_DIR))
+    }
+    if (!(entry1->typeflag & FILE_TYPE_DIR) && (entry2->typeflag & FILE_TYPE_DIR)) {
       return -1;
-    if (entry1->blentype < entry2->blentype)
+    }
+    if (entry1->blentype < entry2->blentype) {
       return -1;
-    if (entry1->blentype > entry2->blentype)
+    }
+    if (entry1->blentype > entry2->blentype) {
       return 1;
+    }
   }
   else {
     const char *sufix1, *sufix2;
 
-    if (!(sufix1 = strstr(entry1->relpath, ".blend.gz")))
+    if (!(sufix1 = strstr(entry1->relpath, ".blend.gz"))) {
       sufix1 = strrchr(entry1->relpath, '.');
-    if (!(sufix2 = strstr(entry2->relpath, ".blend.gz")))
+    }
+    if (!(sufix2 = strstr(entry2->relpath, ".blend.gz"))) {
       sufix2 = strrchr(entry2->relpath, '.');
-    if (!sufix1)
+    }
+    if (!sufix1) {
       sufix1 = "";
-    if (!sufix2)
+    }
+    if (!sufix2) {
       sufix2 = "";
+    }
 
     if ((ret = BLI_strcasecmp(sufix1, sufix2))) {
       return ret;
@@ -954,28 +976,39 @@ static int filelist_geticon_ex(const int typeflag,
     }
   }
 
-  if (typeflag & FILE_TYPE_BLENDER)
+  if (typeflag & FILE_TYPE_BLENDER) {
     return ICON_FILE_BLEND;
-  else if (typeflag & FILE_TYPE_BLENDER_BACKUP)
+  }
+  else if (typeflag & FILE_TYPE_BLENDER_BACKUP) {
     return ICON_FILE_BACKUP;
-  else if (typeflag & FILE_TYPE_IMAGE)
+  }
+  else if (typeflag & FILE_TYPE_IMAGE) {
     return ICON_FILE_IMAGE;
-  else if (typeflag & FILE_TYPE_MOVIE)
+  }
+  else if (typeflag & FILE_TYPE_MOVIE) {
     return ICON_FILE_MOVIE;
-  else if (typeflag & FILE_TYPE_PYSCRIPT)
+  }
+  else if (typeflag & FILE_TYPE_PYSCRIPT) {
     return ICON_FILE_SCRIPT;
-  else if (typeflag & FILE_TYPE_SOUND)
+  }
+  else if (typeflag & FILE_TYPE_SOUND) {
     return ICON_FILE_SOUND;
-  else if (typeflag & FILE_TYPE_FTFONT)
+  }
+  else if (typeflag & FILE_TYPE_FTFONT) {
     return ICON_FILE_FONT;
-  else if (typeflag & FILE_TYPE_BTX)
+  }
+  else if (typeflag & FILE_TYPE_BTX) {
     return ICON_FILE_BLANK;
-  else if (typeflag & FILE_TYPE_COLLADA)
+  }
+  else if (typeflag & FILE_TYPE_COLLADA) {
     return ICON_FILE_BLANK;
-  else if (typeflag & FILE_TYPE_ALEMBIC)
+  }
+  else if (typeflag & FILE_TYPE_ALEMBIC) {
     return ICON_FILE_BLANK;
-  else if (typeflag & FILE_TYPE_TEXT)
+  }
+  else if (typeflag & FILE_TYPE_TEXT) {
     return ICON_FILE_TEXT;
+  }
   else if (typeflag & FILE_TYPE_BLENDERLIB) {
     const int ret = UI_idcode_icon_get(blentype);
     if (ret != ICON_NONE) {
@@ -1424,8 +1457,9 @@ void filelist_free(struct FileList *filelist)
 
 void filelist_freelib(struct FileList *filelist)
 {
-  if (filelist->libfiledata)
+  if (filelist->libfiledata) {
     BLO_blendhandle_close(filelist->libfiledata);
+  }
   filelist->libfiledata = NULL;
 }
 
@@ -2044,14 +2078,16 @@ static bool file_is_blend_backup(const char *str)
   else {
     const char *loc;
 
-    if (a > b + 1)
+    if (a > b + 1) {
       b++;
+    }
 
     /* allow .blend1 .blend2 .blend32 */
     loc = BLI_strcasestr(str + a - b, ".blend");
 
-    if (loc)
+    if (loc) {
       retval = 1;
+    }
   }
 
   return (retval);
@@ -2274,8 +2310,9 @@ static int groupname_to_code(const char *group)
 
   BLI_strncpy(buf, group, sizeof(buf));
   lslash = (char *)BLI_last_slash(buf);
-  if (lslash)
+  if (lslash) {
     lslash[0] = '\0';
+  }
 
   return buf[0] ? BKE_idcode_from_name(buf) : 0;
 }

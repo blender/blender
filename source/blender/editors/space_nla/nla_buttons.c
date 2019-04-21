@@ -84,8 +84,9 @@ bool nla_panel_context(const bContext *C,
   /* For now, only draw if we could init the anim-context info
    * (necessary for all animation-related tools)
    * to work correctly is able to be correctly retrieved. There's no point showing empty panels? */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return false;
+  }
 
   /* extract list of active channel(s), of which we should only take the first one
    * - we need the channels flag to get the active AnimData block when there are no NLA Tracks
@@ -168,8 +169,9 @@ bool nla_panel_context(const bContext *C,
       }
     }
 
-    if (found > 0)
+    if (found > 0) {
       break;
+    }
   }
 
   /* free temp data */
@@ -208,10 +210,12 @@ static bool nla_strip_actclip_panel_poll(const bContext *C, PanelType *UNUSED(pt
   PointerRNA ptr;
   NlaStrip *strip;
 
-  if (!nla_panel_context(C, NULL, NULL, &ptr))
+  if (!nla_panel_context(C, NULL, NULL, &ptr)) {
     return 0;
-  if (ptr.data == NULL)
+  }
+  if (ptr.data == NULL) {
     return 0;
+  }
 
   strip = ptr.data;
   return (strip->type == NLASTRIP_TYPE_CLIP);
@@ -222,15 +226,18 @@ static bool nla_strip_eval_panel_poll(const bContext *C, PanelType *UNUSED(pt))
   PointerRNA ptr;
   NlaStrip *strip;
 
-  if (!nla_panel_context(C, NULL, NULL, &ptr))
+  if (!nla_panel_context(C, NULL, NULL, &ptr)) {
     return 0;
-  if (ptr.data == NULL)
+  }
+  if (ptr.data == NULL) {
     return 0;
+  }
 
   strip = ptr.data;
 
-  if (strip->type == NLASTRIP_TYPE_SOUND)
+  if (strip->type == NLASTRIP_TYPE_SOUND) {
     return 0;
+  }
 
   return 1;
 }
@@ -247,8 +254,9 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, &adt_ptr, NULL, NULL))
+  if (!nla_panel_context(C, &adt_ptr, NULL, NULL)) {
     return;
+  }
 
   /* adt = adt_ptr.data; */
 
@@ -312,8 +320,9 @@ static void nla_panel_track(const bContext *C, Panel *pa)
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, NULL, &nlt_ptr, NULL))
+  if (!nla_panel_context(C, NULL, &nlt_ptr, NULL)) {
     return;
+  }
 
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
@@ -332,8 +341,9 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
   uiBlock *block;
   short showEvalProps = 1;
 
-  if (!nla_panel_context(C, NULL, NULL, &strip_ptr))
+  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
     return;
+  }
 
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
@@ -353,8 +363,9 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
   /* Evaluation-Related Strip Properties ------------------ */
 
   /* sound properties strips don't have these settings */
-  if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_SOUND)
+  if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_SOUND) {
     showEvalProps = 0;
+  }
 
   /* only show if allowed to... */
   if (showEvalProps) {
@@ -398,8 +409,9 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, NULL, NULL, &strip_ptr))
+  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
     return;
+  }
 
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
@@ -439,8 +451,9 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, NULL, NULL, &strip_ptr))
+  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
     return;
+  }
 
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, NULL);
@@ -472,8 +485,9 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
   uiBlock *block;
 
   /* check context and also validity of pointer */
-  if (!nla_panel_context(C, NULL, NULL, &strip_ptr))
+  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
     return;
+  }
   strip = strip_ptr.data;
 
   block = uiLayoutGetBlock(pa->layout);

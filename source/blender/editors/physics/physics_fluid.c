@@ -80,8 +80,9 @@ static float get_fluid_rate(FluidsimSettings *settings)
 
   rate = settings->animRate;
 
-  if (rate < 0.0f)
+  if (rate < 0.0f) {
     rate = 0.0f;
+  }
 
   return rate;
 }
@@ -257,8 +258,9 @@ static void set_vertex_channel(Depsgraph *depsgraph,
   int framesize = (3 * fobj->numVerts) + 1;
   int j;
 
-  if (channel == NULL)
+  if (channel == NULL) {
     return;
+  }
 
   initElbeemMesh(depsgraph, scene, ob, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 
@@ -281,8 +283,9 @@ static void set_vertex_channel(Depsgraph *depsgraph,
 
 static void free_domain_channels(FluidAnimChannels *channels)
 {
-  if (!channels->timeAtFrame)
+  if (!channels->timeAtFrame) {
     return;
+  }
   MEM_freeN(channels->timeAtFrame);
   channels->timeAtFrame = NULL;
   MEM_freeN(channels->DomainGravity);
@@ -457,8 +460,9 @@ static void fluid_init_all_channels(bContext *C,
       float active = (float)((fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE) ? 1 : 0);
       float rot_d[3] = {0.f, 0.f, 0.f}, old_rot[3] = {0.f, 0.f, 0.f};
 
-      if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
+      if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE)) {
         continue;
+      }
 
       /* init euler rotation values and convert to elbeem format */
       /* get the rotation from ob->obmat rather than ob->rot to account for parent animations */
@@ -526,8 +530,9 @@ static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *s
 
     elbeemMesh fsmesh;
 
-    if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
+    if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE)) {
       continue;
+    }
 
     elbeemResetMesh(&fsmesh);
 
@@ -554,12 +559,15 @@ static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *s
       fsmesh.localInivelCoords = ((fluidmd->fss->typeFlags & OB_FSINFLOW_LOCALCOORD) ? 1 : 0);
     }
 
-    if (fluidmd->fss->typeFlags & OB_FSBND_NOSLIP)
+    if (fluidmd->fss->typeFlags & OB_FSBND_NOSLIP) {
       fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
-    else if (fluidmd->fss->typeFlags & OB_FSBND_PARTSLIP)
+    }
+    else if (fluidmd->fss->typeFlags & OB_FSBND_PARTSLIP) {
       fsmesh.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
-    else if (fluidmd->fss->typeFlags & OB_FSBND_FREESLIP)
+    }
+    else if (fluidmd->fss->typeFlags & OB_FSBND_FREESLIP) {
       fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
+    }
 
     fsmesh.obstaclePartslip = fluidmd->fss->partSlipValue;
     fsmesh.volumeInitType = fluidmd->fss->volumeInitType;
@@ -593,16 +601,19 @@ static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *s
       fsmesh.channelTranslation = fsmesh.channelRotation = fsmesh.channelScale = NULL;
 
       /* Override user settings, only noslip is supported here! */
-      if (fsmesh.type != OB_FLUIDSIM_CONTROL)
+      if (fsmesh.type != OB_FLUIDSIM_CONTROL) {
         fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
+      }
     }
 
     elbeemAddMesh(&fsmesh);
 
-    if (verts)
+    if (verts) {
       MEM_freeN(verts);
-    if (tris)
+    }
+    if (tris) {
       MEM_freeN(tris);
+    }
   }
 }
 
@@ -619,8 +630,9 @@ static int fluid_validate_scene(ReportList *reports, ViewLayer *view_layer, Obje
         ob, eModifierType_Fluidsim);
 
     /* only find objects with fluid modifiers */
-    if (!fluidmdtmp || ob->type != OB_MESH)
+    if (!fluidmdtmp || ob->type != OB_MESH) {
       continue;
+    }
 
     if (fluidmdtmp->fss->type == OB_FLUIDSIM_DOMAIN) {
       /* if no initial domain object given, find another potential domain */
@@ -635,16 +647,19 @@ static int fluid_validate_scene(ReportList *reports, ViewLayer *view_layer, Obje
     }
 
     /* count number of objects needed for animation channels */
-    if (!ELEM(fluidmdtmp->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
+    if (!ELEM(fluidmdtmp->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE)) {
       channelObjCount++;
+    }
 
     /* count number of fluid input objects */
-    if (ELEM(fluidmdtmp->fss->type, OB_FLUIDSIM_FLUID, OB_FLUIDSIM_INFLOW))
+    if (ELEM(fluidmdtmp->fss->type, OB_FLUIDSIM_FLUID, OB_FLUIDSIM_INFLOW)) {
       fluidInputCount++;
+    }
   }
 
-  if (newdomain)
+  if (newdomain) {
     fsDomain = newdomain;
+  }
 
   if (!fsDomain) {
     BKE_report(reports, RPT_ERROR, "No domain object found");
@@ -768,8 +783,9 @@ static int fluidbake_breakjob(void *customdata)
 {
   FluidBakeJob *fb = (FluidBakeJob *)customdata;
 
-  if (fb->stop && *(fb->stop))
+  if (fb->stop && *(fb->stop)) {
     return 1;
+  }
 
   /* this is not nice yet, need to make the jobs list template better
    * for identifying/acting upon various different jobs */
@@ -1099,19 +1115,24 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
   fsset->runsimCallback = &runSimulationCallback;
   fsset->runsimUserData = fb;
 
-  if (domainSettings->typeFlags & OB_FSBND_NOSLIP)
+  if (domainSettings->typeFlags & OB_FSBND_NOSLIP) {
     fsset->domainobsType = FLUIDSIM_OBSTACLE_NOSLIP;
-  else if (domainSettings->typeFlags & OB_FSBND_PARTSLIP)
+  }
+  else if (domainSettings->typeFlags & OB_FSBND_PARTSLIP) {
     fsset->domainobsType = FLUIDSIM_OBSTACLE_PARTSLIP;
-  else if (domainSettings->typeFlags & OB_FSBND_FREESLIP)
+  }
+  else if (domainSettings->typeFlags & OB_FSBND_FREESLIP) {
     fsset->domainobsType = FLUIDSIM_OBSTACLE_FREESLIP;
+  }
   fsset->domainobsPartslip = domainSettings->partSlipValue;
 
   /* use domainobsType also for surface generation flag (bit: >=64) */
-  if (domainSettings->typeFlags & OB_FSSG_NOOBS)
+  if (domainSettings->typeFlags & OB_FSSG_NOOBS) {
     fsset->mFsSurfGenSetting = FLUIDSIM_FSSG_NOOBS;
-  else
+  }
+  else {
     fsset->mFsSurfGenSetting = 0;  // "normal" mode
+  }
 
   fsset->generateVertexVectors = (domainSettings->domainNovecgen == 0);
 
@@ -1190,19 +1211,22 @@ static int fluidsimBake(bContext *UNUSED(C),
 static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   /* only one bake job at a time */
-  if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
+  if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
     return OPERATOR_CANCELLED;
+  }
 
-  if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), true))
+  if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), true)) {
     return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }
 
 static int fluid_bake_exec(bContext *C, wmOperator *op)
 {
-  if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), false))
+  if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), false)) {
     return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
 }

@@ -287,8 +287,9 @@ static void gpencil_add_verts_to_dgroups(
   /* count the number of skinnable bones */
   numbones = gpencil_bone_looper(ob, arm->bonebase.first, &looper_data, gpencil_bone_skinnable_cb);
 
-  if (numbones == 0)
+  if (numbones == 0) {
     return;
+  }
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
@@ -366,13 +367,15 @@ static void gpencil_add_verts_to_dgroups(
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
 
-        if (gpf == NULL)
+        if (gpf == NULL) {
           continue;
+        }
 
         for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
           /* skip strokes that are invalid for current view */
-          if (ED_gpencil_stroke_can_use(C, gps) == false)
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
+          }
 
           BKE_gpencil_dvert_ensure(gps);
 
@@ -564,8 +567,9 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
   const float decay = RNA_float_get(op->ptr, "decay");
 
   /* sanity checks */
-  if (ELEM(NULL, ob, gpd))
+  if (ELEM(NULL, ob, gpd)) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get armature */
   const int arm_idx = RNA_enum_get(op->ptr, "armature");

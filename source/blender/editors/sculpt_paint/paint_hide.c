@@ -66,8 +66,9 @@ static bool is_effected(PartialVisArea area,
                         const float co[3],
                         const float mask)
 {
-  if (area == PARTIALVIS_ALL)
+  if (area == PARTIALVIS_ALL) {
     return 1;
+  }
   else if (area == PARTIALVIS_MASKED) {
     return mask > 0.5f;
   }
@@ -103,15 +104,18 @@ static void partialvis_update_mesh(Object *ob,
 
     /* hide vertex if in the hide volume */
     if (is_effected(area, planes, v->co, vmask)) {
-      if (action == PARTIALVIS_HIDE)
+      if (action == PARTIALVIS_HIDE) {
         v->flag |= ME_HIDE;
-      else
+      }
+      else {
         v->flag &= ~ME_HIDE;
+      }
       any_changed = true;
     }
 
-    if (!(v->flag & ME_HIDE))
+    if (!(v->flag & ME_HIDE)) {
       any_visible = true;
+    }
   }
 
   if (any_changed) {
@@ -183,10 +187,12 @@ static void partialvis_update_grids(Object *ob,
         }
 
         /* keep track of whether any elements are still hidden */
-        if (BLI_BITMAP_TEST(gh, y * key.grid_size + x))
+        if (BLI_BITMAP_TEST(gh, y * key.grid_size + x)) {
           any_hidden = true;
-        else
+        }
+        else {
           any_visible = true;
+        }
       }
     }
 
@@ -222,15 +228,18 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
 
     /* hide vertex if in the hide volume */
     if (is_effected(area, planes, v->co, *vmask)) {
-      if (action == PARTIALVIS_HIDE)
+      if (action == PARTIALVIS_HIDE) {
         BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
-      else
+      }
+      else {
         BM_elem_flag_disable(v, BM_ELEM_HIDDEN);
+      }
       (*any_changed) = true;
     }
 
-    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+    if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       (*any_visible) = true;
+    }
   }
 }
 
@@ -241,10 +250,12 @@ static void partialvis_update_bmesh_faces(GSet *faces)
   GSET_ITER (gs_iter, faces) {
     BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 
-    if (paint_is_bmesh_face_hidden(f))
+    if (paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
-    else
+    }
+    else {
       BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
+    }
   }
 }
 
@@ -375,8 +386,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (nodes)
+  if (nodes) {
     MEM_freeN(nodes);
+  }
 
   /* end undo */
   sculpt_undo_push_end();
@@ -396,10 +408,12 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PartialVisArea area = RNA_enum_get(op->ptr, "area");
 
-  if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED))
+  if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED)) {
     return WM_gesture_box_invoke(C, op, event);
-  else
+  }
+  else {
     return op->type->exec(C, op);
+  }
 }
 
 void PAINT_OT_hide_show(struct wmOperatorType *ot)

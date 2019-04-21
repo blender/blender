@@ -82,8 +82,9 @@ static bool vertex_color_set(Object *ob, uint paintcol)
   for (i = 0; i < me->totpoly; i++, mp++) {
     MLoopCol *lcol = me->mloopcol + mp->loopstart;
 
-    if (use_face_sel && !(mp->flag & ME_FACE_SEL))
+    if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
       continue;
+    }
 
     j = 0;
     do {
@@ -220,8 +221,9 @@ static void vertex_color_smooth_looptag(Mesh *me, bool *mlooptag)
   /* if no mloopcol: do not do */
   /* if mtexpoly: only the involved faces, otherwise all */
 
-  if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0)
+  if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) {
     return;
+  }
 
   scol = MEM_callocN(sizeof(int) * me->totvert * 5, "scol");
 
@@ -289,8 +291,9 @@ static bool vertex_color_smooth(Object *ob)
     const MLoop *ml = me->mloop + mp->loopstart;
     int ml_index = mp->loopstart;
 
-    if (use_face_sel && !(mp->flag & ME_FACE_SEL))
+    if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
       continue;
+    }
 
     for (j = 0; j < mp->totloop; j++, ml_index++, ml++) {
       mlooptag[ml_index] = true;

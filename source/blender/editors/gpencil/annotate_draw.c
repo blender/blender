@@ -101,12 +101,14 @@ static void gp_draw_stroke_buffer(const tGPspoint *points,
   int draw_points = 0;
 
   /* error checking */
-  if ((points == NULL) || (totpoints <= 0))
+  if ((points == NULL) || (totpoints <= 0)) {
     return;
+  }
 
   /* check if buffer can be drawn */
-  if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D))
+  if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D)) {
     return;
+  }
 
   if (sflag & GP_STROKE_ERASER) {
     /* don't draw stroke at all! */
@@ -515,26 +517,33 @@ static bool gp_can_draw_stroke(const bGPDstroke *gps, const int dflag)
 {
   /* skip stroke if it isn't in the right display space for this drawing context */
   /* 1) 3D Strokes */
-  if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE))
+  if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE)) {
     return false;
+  }
 
   /* 2) Screen Space 2D Strokes */
-  if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE))
+  if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE)) {
     return false;
+  }
 
   /* 3) Image Space (2D) */
-  if ((dflag & GP_DRAWDATA_ONLYI2D) && !(gps->flag & GP_STROKE_2DIMAGE))
+  if ((dflag & GP_DRAWDATA_ONLYI2D) && !(gps->flag & GP_STROKE_2DIMAGE)) {
     return false;
-  if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE))
+  }
+  if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE)) {
     return false;
+  }
 
   /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == NULL) || (gps->totpoints < 1))
+  if ((gps->points == NULL) || (gps->totpoints < 1)) {
     return false;
+  }
 
   /* stroke can be drawn */
   return true;
@@ -629,8 +638,9 @@ static void gp_draw_strokes_edit(bGPdata *gpd,
                                  float alpha)
 {
   /* if alpha 0 do not draw */
-  if (alpha == 0.0f)
+  if (alpha == 0.0f) {
     return;
+  }
 
   const bool no_xray = (dflag & GP_DRAWDATA_NO_XRAY) != 0;
   int mask_orig = 0;
@@ -653,15 +663,17 @@ static void gp_draw_strokes_edit(bGPdata *gpd,
   /* draw stroke verts */
   for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
     /* check if stroke can be drawn */
-    if (gp_can_draw_stroke(gps, dflag) == false)
+    if (gp_can_draw_stroke(gps, dflag) == false) {
       continue;
+    }
 
     /* Optimisation: only draw points for selected strokes
      * We assume that selected points can only occur in
      * strokes that are selected too.
      */
-    if ((gps->flag & GP_STROKE_SELECT) == 0)
+    if ((gps->flag & GP_STROKE_SELECT) == 0) {
       continue;
+    }
 
     /* Get size of verts:
      * - The selected state needs to be larger than the unselected state so that
@@ -787,8 +799,9 @@ static void gp_draw_onionskins(bGPdata *gpd,
         color[3] = alpha * fac * 0.66f;
         gp_draw_strokes(gpd, gpl, gf, offsx, offsy, winx, winy, dflag, gpl->thickness, color);
       }
-      else
+      else {
         break;
+      }
     }
   }
   else if (gpl->gstep == 0) {
@@ -818,8 +831,9 @@ static void gp_draw_onionskins(bGPdata *gpd,
         color[3] = alpha * fac * 0.66f;
         gp_draw_strokes(gpd, gpl, gf, offsx, offsy, winx, winy, dflag, gpl->thickness, color);
       }
-      else
+      else {
         break;
+      }
     }
   }
   else if (gpl->gstep_next == 0) {
@@ -850,13 +864,15 @@ static void gp_draw_data_layers(
     ink[3] = gpl->opacity;
 
     /* don't draw layer if hidden */
-    if (gpl->flag & GP_LAYER_HIDE)
+    if (gpl->flag & GP_LAYER_HIDE) {
       continue;
+    }
 
     /* get frame to draw */
     bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra, GP_GETFRAME_USE_PREV);
-    if (gpf == NULL)
+    if (gpf == NULL) {
       continue;
+    }
 
     /* set basic stroke thickness */
     GPU_line_width(lthick);
@@ -917,8 +933,9 @@ static void gp_draw_status_text(const bGPdata *gpd, ARegion *ar)
   rcti rect;
 
   /* Cannot draw any status text when drawing OpenGL Renders */
-  if (G.f & G_FLAG_RENDER_VIEWPORT)
+  if (G.f & G_FLAG_RENDER_VIEWPORT) {
     return;
+  }
 
   /* Get bounds of region - Necessary to avoid problems with region overlap */
   ED_region_visible_rect(ar, &rect);
@@ -1036,8 +1053,9 @@ void ED_annotation_draw_2dimage(const bContext *C)
   int dflag = GP_DRAWDATA_NOSTATUS;
 
   bGPdata *gpd = ED_gpencil_data_get_active(C);  // XXX
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return;
+  }
 
   /* calculate rect */
   switch (sa->spacetype) {
@@ -1103,22 +1121,27 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   int dflag = 0;
 
   /* check that we have grease-pencil stuff to draw */
-  if (sa == NULL)
+  if (sa == NULL) {
     return;
+  }
   bGPdata *gpd = ED_gpencil_data_get_active(C);  // XXX
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return;
+  }
 
   /* special hack for Image Editor */
   /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
-  if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP))
+  if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
     dflag |= GP_DRAWDATA_IEDITHACK;
+  }
 
   /* draw it! */
-  if (onlyv2d)
+  if (onlyv2d) {
     dflag |= (GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_NOSTATUS);
-  if (ED_screen_animation_playing(wm))
+  }
+  if (ED_screen_animation_playing(wm)) {
     dflag |= GP_DRAWDATA_NO_ONIONS;
+  }
 
   gp_draw_data_all(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
 
@@ -1141,8 +1164,9 @@ void ED_annotation_draw_view3d(
   /* check that we have grease-pencil stuff to draw */
   /* XXX: Hardcoded reference here may get out of sync if we change how we fetch annotation data */
   bGPdata *gpd = scene->gpd;
-  if (gpd == NULL)
+  if (gpd == NULL) {
     return;
+  }
 
   /* when rendering to the offscreen buffer we don't want to
    * deal with the camera border, otherwise map the coords to the camera border. */

@@ -56,24 +56,29 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
   int tgti, *top;
   int mval[2] = {0, 0};
 
-  if (!st || !st->text)
+  if (!st || !st->text) {
     return 0;
-  if (!texttool_text_is_active(st->text))
+  }
+  if (!texttool_text_is_active(st->text)) {
     return 0;
+  }
 
   first = texttool_suggest_first();
   last = texttool_suggest_last();
   /* sel = texttool_suggest_selected(); */ /* UNUSED */
   top = texttool_suggest_top();
 
-  if (!last || !first)
+  if (!last || !first) {
     return 0;
+  }
 
   /* Count the visible lines to the cursor */
-  for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++)
+  for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++) {
     ;
-  if (l < 0)
+  }
+  if (l < 0) {
     return 0;
+  }
 
   text_update_character_width(st);
 
@@ -90,22 +95,27 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 
   // XXX getmouseco_areawin(mval);
 
-  if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1])
+  if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1]) {
     return 0;
+  }
 
   /* Work out which of the items is at the top of the visible list */
-  for (i = 0, item = first; i < *top && item->next; i++, item = item->next)
+  for (i = 0, item = first; i < *top && item->next; i++, item = item->next) {
     ;
+  }
 
   /* Work out the target item index in the visible list */
   tgti = (y - mval[1] - 4) / st->lheight_dpi;
-  if (tgti < 0 || tgti > SUGG_LIST_SIZE)
+  if (tgti < 0 || tgti > SUGG_LIST_SIZE) {
     return 1;
+  }
 
-  for (i = tgti; i > 0 && item->next; i--, item = item->next)
+  for (i = tgti; i > 0 && item->next; i--, item = item->next) {
     ;
-  if (item)
+  }
+  if (item) {
     texttool_suggest_select(item);
+  }
   return 1;
 }
 
@@ -123,10 +133,12 @@ void text_pop_suggest_list(void)
     item = item->next;
     i++;
   }
-  if (i > *top + SUGG_LIST_SIZE - 1)
+  if (i > *top + SUGG_LIST_SIZE - 1) {
     *top = i - SUGG_LIST_SIZE + 1;
-  else if (i < *top)
+  }
+  else if (i < *top) {
     *top = i;
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -235,10 +247,12 @@ static void get_suggest_prefix(Text *text, int offset)
   int i, len;
   const char *line;
 
-  if (!text)
+  if (!text) {
     return;
-  if (!texttool_text_is_active(text))
+  }
+  if (!texttool_text_is_active(text)) {
     return;
+  }
 
   line = text->curl->line;
   i = text_find_identifier_start(line, text->curc + offset);
@@ -252,14 +266,17 @@ static void confirm_suggestion(Text *text, TextUndoBuf *utxt)
   int i, over = 0;
   const char *line;
 
-  if (!text)
+  if (!text) {
     return;
-  if (!texttool_text_is_active(text))
+  }
+  if (!texttool_text_is_active(text)) {
     return;
+  }
 
   sel = texttool_suggest_selected();
-  if (!sel)
+  if (!sel) {
     return;
+  }
 
   line = text->curl->line;
   i = text_find_identifier_start(line, text->curc /* - skipleft */);
@@ -324,17 +341,20 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   (void)text;
 
   if (st->doplugins && texttool_text_is_active(st->text)) {
-    if (texttool_suggest_first())
+    if (texttool_suggest_first()) {
       tools |= TOOL_SUGG_LIST;
-    if (texttool_docs_get())
+    }
+    if (texttool_docs_get()) {
       tools |= TOOL_DOCUMENT;
+    }
   }
 
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, ar))
+        if (text_do_suggest_select(st, ar)) {
           swallow = 1;
+        }
         else {
           if (tools & TOOL_SUGG_LIST) {
             texttool_suggest_clear();
@@ -380,8 +400,9 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
           texttool_docs_clear();
           doc_scroll = 0;
         }
-        else
+        else {
           draw = swallow = 0;
+        }
         retval = OPERATOR_CANCELLED;
       }
       break;
@@ -510,8 +531,9 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case UPARROWKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_DOCUMENT) {
-          if (doc_scroll > 0)
+          if (doc_scroll > 0) {
             doc_scroll--;
+          }
           swallow = 1;
           draw = 1;
         }

@@ -56,8 +56,9 @@
 void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
 {
   int fmap_nr;
-  if (GS(((ID *)ob->data)->name) != ID_ME)
+  if (GS(((ID *)ob->data)->name) != ID_ME) {
     return;
+  }
 
   /* get the face map number, exit if it can't be found */
   fmap_nr = BLI_findindex(&ob->fmaps, fmap);
@@ -67,8 +68,9 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
     Mesh *me = ob->data;
 
     /* if there's is no facemap layer then create one */
-    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL)
+    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL) {
       facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_DEFAULT, NULL, me->totpoly);
+    }
 
     facemap[facenum] = fmap_nr;
   }
@@ -78,8 +80,9 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
 void ED_object_facemap_face_remove(Object *ob, bFaceMap *fmap, int facenum)
 {
   int fmap_nr;
-  if (GS(((ID *)ob->data)->name) != ID_ME)
+  if (GS(((ID *)ob->data)->name) != ID_ME) {
     return;
+  }
 
   /* get the face map number, exit if it can't be found */
   fmap_nr = BLI_findindex(&ob->fmaps, fmap);
@@ -88,8 +91,9 @@ void ED_object_facemap_face_remove(Object *ob, bFaceMap *fmap, int facenum)
     int *facemap;
     Mesh *me = ob->data;
 
-    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL)
+    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL) {
       return;
+    }
 
     facemap[facenum] = -1;
   }
@@ -114,10 +118,12 @@ static void object_fmap_swap_edit_mode(Object *ob, int num1, int num2)
 
           if (map) {
             if (num1 != -1) {
-              if (*map == num1)
+              if (*map == num1) {
                 *map = num2;
-              else if (*map == num2)
+              }
+              else if (*map == num2) {
                 *map = num1;
+              }
             }
           }
         }
@@ -138,10 +144,12 @@ static void object_fmap_swap_object_mode(Object *ob, int num1, int num2)
       if (map) {
         for (i = 0; i < me->totpoly; i++) {
           if (num1 != -1) {
-            if (map[i] == num1)
+            if (map[i] == num1) {
               map[i] = num2;
-            else if (map[i] == num2)
+            }
+            else if (map[i] == num2) {
               map[i] = num1;
+            }
           }
         }
       }
@@ -151,10 +159,12 @@ static void object_fmap_swap_object_mode(Object *ob, int num1, int num2)
 
 static void object_facemap_swap(Object *ob, int num1, int num2)
 {
-  if (BKE_object_is_in_editmode(ob))
+  if (BKE_object_is_in_editmode(ob)) {
     object_fmap_swap_edit_mode(ob, num1, num2);
-  else
+  }
+  else {
     object_fmap_swap_object_mode(ob, num1, num2);
+  }
 }
 
 static bool face_map_supported_poll(bContext *C)
@@ -245,8 +255,9 @@ static int face_map_assign_exec(bContext *C, wmOperator *UNUSED(op))
     int *map;
     int cd_fmap_offset;
 
-    if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP))
+    if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP)) {
       BM_data_layer_add(em->bm, &em->bm->pdata, CD_FACEMAP);
+    }
 
     cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
 
@@ -294,8 +305,9 @@ static int face_map_remove_from_exec(bContext *C, wmOperator *UNUSED(op))
     int cd_fmap_offset;
     int mapindex = ob->actfmap - 1;
 
-    if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP))
+    if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP)) {
       return OPERATOR_CANCELLED;
+    }
 
     cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
 
@@ -339,8 +351,9 @@ static void fmap_select(Object *ob, bool select)
   int cd_fmap_offset;
   int mapindex = ob->actfmap - 1;
 
-  if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP))
+  if (!CustomData_has_layer(&em->bm->pdata, CD_FACEMAP)) {
     BM_data_layer_add(em->bm, &em->bm->pdata, CD_FACEMAP);
+  }
 
   cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
 

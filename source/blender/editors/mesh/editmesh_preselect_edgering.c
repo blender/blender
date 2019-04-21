@@ -93,8 +93,9 @@ static void edgering_find_order(BMEdge *eed_last, BMEdge *eed, BMVert *eve_last,
   if (!(BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))) {
     BMIter liter;
     BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
-      if (BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f))
+      if (BM_edge_in_face(eed, l->f) && BM_edge_in_face(eed_last, l->f)) {
         break;
+      }
     }
   }
 

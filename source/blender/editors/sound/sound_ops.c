@@ -94,12 +94,14 @@ static int sound_open_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", path);
   sound = BKE_sound_new_file(bmain, path);
 
-  if (!op->customdata)
+  if (!op->customdata) {
     sound_open_init(C, op);
+  }
 
   if (sound->playback_handle == NULL) {
-    if (op->customdata)
+    if (op->customdata) {
       MEM_freeN(op->customdata);
+    }
     BKE_id_free(bmain, sound);
     BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
     return OPERATOR_CANCELLED;
@@ -109,8 +111,9 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 
   if (info.specs.channels == AUD_CHANNELS_INVALID) {
     BKE_id_free(bmain, sound);
-    if (op->customdata)
+    if (op->customdata) {
       MEM_freeN(op->customdata);
+    }
     BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
     return OPERATOR_CANCELLED;
   }
@@ -154,8 +157,9 @@ static int sound_open_exec(bContext *UNUSED(C), wmOperator *op)
 
 static int sound_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (RNA_struct_property_is_set(op->ptr, "filepath"))
+  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return sound_open_exec(C, op);
+  }
 
   sound_open_init(C, op);
 
@@ -227,22 +231,28 @@ static int sound_update_animation_flags_cb(Sequence *seq, void *user_data)
   bool driven;
 
   fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
-  if (fcu || driven)
+  if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
-  else
+  }
+  else {
     seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
+  }
 
   fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
-  if (fcu || driven)
+  if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
-  else
+  }
+  else {
     seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
+  }
 
   fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
-  if (fcu || driven)
+  if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
-  else
+  }
+  else {
     seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
+  }
 
   if (seq->type == SEQ_TYPE_SCENE) {
     /* TODO(sergey): For now we do manual recursion into the scene strips,
@@ -271,10 +281,12 @@ static void sound_update_animation_flags(Scene *scene)
   SEQ_END;
 
   fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
-  if (fcu || driven)
+  if (fcu || driven) {
     scene->audio.flag |= AUDIO_VOLUME_ANIMATED;
-  else
+  }
+  else {
     scene->audio.flag &= ~AUDIO_VOLUME_ANIMATED;
+  }
 }
 
 static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
@@ -376,7 +388,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
   BLI_strncpy(filename, path, sizeof(filename));
   BLI_path_abs(filename, BKE_main_blendfile_path(bmain));
 
-  if (split)
+  if (split) {
     result = AUD_mixdown_per_channel(scene->sound_scene,
                                      SFRA * specs.rate / FPS,
                                      (EFRA - SFRA + 1) * specs.rate / FPS,
@@ -386,7 +398,8 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                                      container,
                                      codec,
                                      bitrate);
-  else
+  }
+  else {
     result = AUD_mixdown(scene->sound_scene,
                          SFRA * specs.rate / FPS,
                          (EFRA - SFRA + 1) * specs.rate / FPS,
@@ -396,6 +409,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                          container,
                          codec,
                          bitrate);
+  }
 
   BKE_sound_reset_scene_specs(scene);
 
@@ -468,13 +482,16 @@ static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
     prop = RNA_struct_find_property(op->ptr, "filepath");
     RNA_property_string_get(op->ptr, prop, filepath);
 
-    if (BLI_path_extension_check_array(filepath, snd_ext_sound))
+    if (BLI_path_extension_check_array(filepath, snd_ext_sound)) {
       check = BLI_path_extension_replace(filepath, FILE_MAX, extension);
-    else
+    }
+    else {
       check = BLI_path_extension_ensure(filepath, FILE_MAX, extension);
+    }
 
-    if (!check)
+    if (!check) {
       return check;
+    }
 
     RNA_property_string_set(op->ptr, prop, filepath);
     return true;
@@ -487,8 +504,9 @@ static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 
 static int sound_mixdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (RNA_struct_property_is_set(op->ptr, "filepath"))
+  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return sound_mixdown_exec(C, op);
+  }
 
   return WM_operator_filesel(C, op, event);
 }
@@ -738,8 +756,9 @@ static bool sound_poll(bContext *C)
 {
   Editing *ed = CTX_data_scene(C)->ed;
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
+  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
     return 0;
+  }
 
   return 1;
 }
@@ -751,13 +770,15 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
   Editing *ed = CTX_data_scene(C)->ed;
   bSound *sound;
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
+  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
     return OPERATOR_CANCELLED;
+  }
 
   sound = ed->act_seq->sound;
 
-  if (!sound || sound->packedfile)
+  if (!sound || sound->packedfile) {
     return OPERATOR_CANCELLED;
+  }
 
   sound->packedfile = newPackedFile(op->reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
   BKE_sound_load(bmain, sound);
@@ -795,13 +816,15 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
     sound = BLI_findstring(&bmain->sounds, sndname, offsetof(ID, name) + 2);
   }
 
-  if (!sound || !sound->packedfile)
+  if (!sound || !sound->packedfile) {
     return OPERATOR_CANCELLED;
+  }
 
-  if (G.fileflags & G_FILE_AUTOPACK)
+  if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_report(op->reports,
                RPT_WARNING,
                "AutoPack is enabled, so image will be packed again on file save");
+  }
 
   unpackSound(bmain, op->reports, sound, method);
 
@@ -813,21 +836,25 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   Editing *ed = CTX_data_scene(C)->ed;
   bSound *sound;
 
-  if (RNA_struct_property_is_set(op->ptr, "id"))
+  if (RNA_struct_property_is_set(op->ptr, "id")) {
     return sound_unpack_exec(C, op);
+  }
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
+  if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
     return OPERATOR_CANCELLED;
+  }
 
   sound = ed->act_seq->sound;
 
-  if (!sound || !sound->packedfile)
+  if (!sound || !sound->packedfile) {
     return OPERATOR_CANCELLED;
+  }
 
-  if (G.fileflags & G_FILE_AUTOPACK)
+  if (G.fileflags & G_FILE_AUTOPACK) {
     BKE_report(op->reports,
                RPT_WARNING,
                "AutoPack is enabled, so image will be packed again on file save");
+  }
 
   unpack_menu(C, "SOUND_OT_unpack", sound->id.name + 2, sound->name, "sounds", sound->packedfile);
 

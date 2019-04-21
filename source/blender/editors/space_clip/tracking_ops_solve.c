@@ -239,8 +239,9 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 static int solve_camera_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* No running solver, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY))
+  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
 
   /* Running solver. */
   switch (event->type) {

@@ -66,8 +66,9 @@ static bool ED_operator_rigidbody_active_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_object);
   }
-  else
+  else {
     return 0;
+  }
 }
 
 static bool ED_operator_rigidbody_add_poll(bContext *C)
@@ -76,8 +77,9 @@ static bool ED_operator_rigidbody_add_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->type == OB_MESH);
   }
-  else
+  else {
     return 0;
+  }
 }
 
 /* ----------------- */
@@ -506,8 +508,9 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
   /* get density (kg/m^3) to apply */
   if (material >= 0) {
     /* get density from table, and store in props for later repeating */
-    if (material >= NUM_RB_MATERIAL_PRESETS)
+    if (material >= NUM_RB_MATERIAL_PRESETS) {
       material = 0;
+    }
 
     density = RB_MATERIAL_DENSITY_TABLE[material].density;
     RNA_float_set(op->ptr, "density", density);

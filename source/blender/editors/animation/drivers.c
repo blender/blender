@@ -73,13 +73,15 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
   FCurve *fcu;
 
   /* sanity checks */
-  if (ELEM(NULL, id, rna_path))
+  if (ELEM(NULL, id, rna_path)) {
     return NULL;
+  }
 
   /* init animdata if none available yet */
   adt = BKE_animdata_from_id(id);
-  if ((adt == NULL) && (add))
+  if ((adt == NULL) && (add)) {
     adt = BKE_animdata_add_id(id);
+  }
   if (adt == NULL) {
     /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
     return NULL;
@@ -233,31 +235,40 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
 
       /* Transform channel depends on type */
       if (STREQ(prop_name, "location")) {
-        if (src_index == 2)
+        if (src_index == 2) {
           dtar->transChan = DTAR_TRANSCHAN_LOCZ;
-        else if (src_index == 1)
+        }
+        else if (src_index == 1) {
           dtar->transChan = DTAR_TRANSCHAN_LOCY;
-        else
+        }
+        else {
           dtar->transChan = DTAR_TRANSCHAN_LOCX;
+        }
       }
       else if (STREQ(prop_name, "scale")) {
-        if (src_index == 2)
+        if (src_index == 2) {
           dtar->transChan = DTAR_TRANSCHAN_SCALEZ;
-        else if (src_index == 1)
+        }
+        else if (src_index == 1) {
           dtar->transChan = DTAR_TRANSCHAN_SCALEY;
-        else
+        }
+        else {
           dtar->transChan = DTAR_TRANSCHAN_SCALEX;
+        }
       }
       else {
         /* XXX: With quaternions and axis-angle, this mapping might not be correct...
          *      But since those have 4 elements instead, there's not much we can do
          */
-        if (src_index == 2)
+        if (src_index == 2) {
           dtar->transChan = DTAR_TRANSCHAN_ROTZ;
-        else if (src_index == 1)
+        }
+        else if (src_index == 1) {
           dtar->transChan = DTAR_TRANSCHAN_ROTY;
-        else
+        }
+        else {
           dtar->transChan = DTAR_TRANSCHAN_ROTX;
+        }
       }
     }
     else {
@@ -438,12 +449,14 @@ int ANIM_add_driver(
     array_index_max = RNA_property_array_length(&ptr, prop);
     array_index = 0;
   }
-  else
+  else {
     array_index_max = array_index;
+  }
 
   /* maximum index should be greater than the start index */
-  if (array_index == array_index_max)
+  if (array_index == array_index_max) {
     array_index_max += 1;
+  }
 
   /* will only loop once unless the array index was -1 */
   for (; array_index < array_index_max; array_index++) {
@@ -477,26 +490,32 @@ int ANIM_add_driver(
         float fval;
 
         if (proptype == PROP_BOOLEAN) {
-          if (!array)
+          if (!array) {
             val = RNA_property_boolean_get(&ptr, prop);
-          else
+          }
+          else {
             val = RNA_property_boolean_get_index(&ptr, prop, array_index);
+          }
 
           BLI_snprintf(expression, maxlen, "%s%s", dvar_prefix, (val) ? "True" : "False");
         }
         else if (proptype == PROP_INT) {
-          if (!array)
+          if (!array) {
             val = RNA_property_int_get(&ptr, prop);
-          else
+          }
+          else {
             val = RNA_property_int_get_index(&ptr, prop, array_index);
+          }
 
           BLI_snprintf(expression, maxlen, "%s%d", dvar_prefix, val);
         }
         else if (proptype == PROP_FLOAT) {
-          if (!array)
+          if (!array) {
             fval = RNA_property_float_get(&ptr, prop);
-          else
+          }
+          else {
             fval = RNA_property_float_get_index(&ptr, prop, array_index);
+          }
 
           BLI_snprintf(expression, maxlen, "%s%.3f", dvar_prefix, fval);
           BLI_str_rstrip_float_zero(expression, '\0');
@@ -587,8 +606,9 @@ static FCurve *channeldriver_copypaste_buf = NULL;
 void ANIM_drivers_copybuf_free(void)
 {
   /* free the buffer F-Curve if it exists, as if it were just another F-Curve */
-  if (channeldriver_copypaste_buf)
+  if (channeldriver_copypaste_buf) {
     free_fcurve(channeldriver_copypaste_buf);
+  }
   channeldriver_copypaste_buf = NULL;
 }
 
@@ -868,8 +888,9 @@ static const EnumPropertyItem *driver_mapping_type_itemsf(bContext *C,
 
   int totitem = 0;
 
-  if (!C) /* needed for docs */
+  if (!C) { /* needed for docs */
     return prop_driver_create_mapping_types;
+  }
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
@@ -929,8 +950,9 @@ static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_typ
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (mapping_type == CREATEDRIVER_MAPPING_NONE_ALL)
+  if (mapping_type == CREATEDRIVER_MAPPING_NONE_ALL) {
     index = -1;
+  }
 
   if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
     char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
@@ -1084,8 +1106,9 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
   /* try to find driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  if (all)
+  if (all) {
     index = -1;
+  }
 
   if (ptr.id.data && ptr.data && prop) {
     char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);

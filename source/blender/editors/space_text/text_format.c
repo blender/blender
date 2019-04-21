@@ -79,8 +79,9 @@ int flatten_string(const SpaceText *st, FlattenString *fs, const char *in)
       i = st->tabnumber - (total % st->tabnumber);
       total += i;
 
-      while (i--)
+      while (i--) {
         flatten_string_append(fs, " ", r, 1);
+      }
 
       in++;
     }
@@ -99,10 +100,12 @@ int flatten_string(const SpaceText *st, FlattenString *fs, const char *in)
 
 void flatten_string_free(FlattenString *fs)
 {
-  if (fs->buf != fs->fixedbuf)
+  if (fs->buf != fs->fixedbuf) {
     MEM_freeN(fs->buf);
-  if (fs->accum != fs->fixedaccum)
+  }
+  if (fs->accum != fs->fixedaccum) {
     MEM_freeN(fs->accum);
+  }
 }
 
 /* takes a string within fs->buf and returns its length */
@@ -121,14 +124,16 @@ int text_check_format_len(TextLine *line, unsigned int len)
     if (strlen(line->format) < len) {
       MEM_freeN(line->format);
       line->format = MEM_mallocN(len + 2, "SyntaxFormat");
-      if (!line->format)
+      if (!line->format) {
         return 0;
+      }
     }
   }
   else {
     line->format = MEM_mallocN(len + 2, "SyntaxFormat");
-    if (!line->format)
+    if (!line->format) {
       return 0;
+    }
   }
 
   return 1;

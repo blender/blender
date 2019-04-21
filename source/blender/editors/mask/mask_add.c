@@ -126,8 +126,9 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
             dist_sq = dist_squared_to_line_segment_v2(co, a, b);
 
             if (dist_sq < dist_best_sq) {
-              if (tangent)
+              if (tangent) {
                 sub_v2_v2v2(tangent, &diff_points[2 * j + 2], &diff_points[2 * j]);
+              }
 
               point_masklay = masklay;
               point_spline = spline;
@@ -138,8 +139,9 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
             }
           }
 
-          if (feather_points)
+          if (feather_points) {
             MEM_freeN(feather_points);
+          }
 
           MEM_freeN(diff_points);
         }
@@ -148,14 +150,17 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   }
 
   if (point && dist_best_sq < threshold) {
-    if (masklay_r)
+    if (masklay_r) {
       *masklay_r = point_masklay;
+    }
 
-    if (spline_r)
+    if (spline_r) {
       *spline_r = point_spline;
+    }
 
-    if (point_r)
+    if (point_r) {
       *point_r = point;
+    }
 
     if (u_r) {
       /* TODO(sergey): Projection fails in some weirdo cases.. */
@@ -173,14 +178,17 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
     return true;
   }
 
-  if (masklay_r)
+  if (masklay_r) {
     *masklay_r = NULL;
+  }
 
-  if (spline_r)
+  if (spline_r) {
     *spline_r = NULL;
+  }
 
-  if (point_r)
+  if (point_r) {
     *point_r = NULL;
+  }
 
   return false;
 }
@@ -702,8 +710,9 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
 
   point = ED_mask_point_find_nearest(C, mask, co, threshold, NULL, NULL, NULL, NULL);
-  if (point)
+  if (point) {
     return OPERATOR_FINISHED;
+  }
 
   if (ED_mask_find_nearest_diff_point(
           C, mask, co, threshold, true, NULL, true, true, &masklay, &spline, &point, &u, NULL)) {

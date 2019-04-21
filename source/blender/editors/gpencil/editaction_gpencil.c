@@ -61,14 +61,16 @@ bool ED_gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPD
   bGPDframe *gpf;
 
   /* error checker */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return false;
+  }
 
   /* do loop */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
     /* execute callback */
-    if (gpf_cb(gpf, scene))
+    if (gpf_cb(gpf, scene)) {
       return true;
+    }
   }
 
   /* nothing to return */
@@ -85,8 +87,9 @@ void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlysel)
   CfraElem *ce;
 
   /* error checking */
-  if (ELEM(NULL, gpl, elems))
+  if (ELEM(NULL, gpl, elems)) {
     return;
+  }
 
   /* loop through gp-frames, adding */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
@@ -110,13 +113,15 @@ bool ED_gplayer_frame_select_check(bGPDlayer *gpl)
   bGPDframe *gpf;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return false;
+  }
 
   /* stop at the first one found */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-    if (gpf->flag & GP_FRAME_SELECT)
+    if (gpf->flag & GP_FRAME_SELECT) {
       return true;
+    }
   }
 
   /* not found */
@@ -126,8 +131,9 @@ bool ED_gplayer_frame_select_check(bGPDlayer *gpl)
 /* helper function - select gp-frame based on SELECT_* mode */
 static void gpframe_select(bGPDframe *gpf, short select_mode)
 {
-  if (gpf == NULL)
+  if (gpf == NULL) {
     return;
+  }
 
   switch (select_mode) {
     case SELECT_ADD:
@@ -148,8 +154,9 @@ void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
   bGPDframe *gpf;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* handle according to mode */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
@@ -161,8 +168,9 @@ void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 void ED_gplayer_frame_select_set(bGPDlayer *gpl, short mode)
 {
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* now call the standard function */
   ED_gpencil_select_frames(gpl, mode);
@@ -173,8 +181,9 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 {
   bGPDframe *gpf;
 
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   gpf = BKE_gpencil_layer_find_frame(gpl, selx);
 
@@ -188,13 +197,15 @@ void ED_gplayer_frames_select_box(bGPDlayer *gpl, float min, float max, short se
 {
   bGPDframe *gpf;
 
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* only select those frames which are in bounds */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-    if (IN_RANGE(gpf->framenum, min, max))
+    if (IN_RANGE(gpf->framenum, min, max)) {
       gpframe_select(gpf, select_mode);
+    }
   }
 }
 
@@ -206,8 +217,9 @@ void ED_gplayer_frames_select_region(KeyframeEditData *ked,
 {
   bGPDframe *gpf;
 
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* only select frames which are within the region */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
@@ -220,13 +232,15 @@ void ED_gplayer_frames_select_region(KeyframeEditData *ked,
     /* check the necessary regions */
     if (tool == BEZT_OK_CHANNEL_LASSO) {
       /* Lasso */
-      if (keyframe_region_lasso_test(ked->data, pt))
+      if (keyframe_region_lasso_test(ked->data, pt)) {
         gpframe_select(gpf, select_mode);
+      }
     }
     else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
       /* Circle */
-      if (keyframe_region_circle_test(ked->data, pt))
+      if (keyframe_region_circle_test(ked->data, pt)) {
         gpframe_select(gpf, select_mode);
+      }
     }
   }
 }
@@ -241,8 +255,9 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
   bool changed = false;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return false;
+  }
 
   /* check for frames to delete */
   for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
@@ -263,8 +278,9 @@ void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
   bGPDframe *gpf, *gpfn;
 
   /* error checking */
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   /* duplicate selected frames  */
   for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
@@ -290,8 +306,9 @@ void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
 {
   bGPDframe *gpf;
 
-  if (gpl == NULL)
+  if (gpl == NULL) {
     return;
+  }
 
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
     if (gpf->flag & GP_FRAME_SELECT) {
@@ -364,10 +381,12 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
         BLI_addtail(&copied_frames, new_frame);
 
         /* extend extents for keyframes encountered */
-        if (gpf->framenum < gp_anim_copy_firstframe)
+        if (gpf->framenum < gp_anim_copy_firstframe) {
           gp_anim_copy_firstframe = gpf->framenum;
-        if (gpf->framenum > gp_anim_copy_lastframe)
+        }
+        if (gpf->framenum > gp_anim_copy_lastframe) {
           gp_anim_copy_lastframe = gpf->framenum;
+        }
       }
     }
 
@@ -460,8 +479,9 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
     }
 
     /* this situation might occur! */
-    if (gpls == NULL)
+    if (gpls == NULL) {
       continue;
+    }
 
     /* add frames from buffer */
     for (gpfs = gpls->frames.first; gpfs; gpfs = gpfs->next) {
@@ -495,8 +515,9 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
         }
 
         /* if no strokes (i.e. new frame) added, free gpf */
-        if (BLI_listbase_is_empty(&gpf->strokes))
+        if (BLI_listbase_is_empty(&gpf->strokes)) {
           BKE_gpencil_layer_delframe(gpld, gpf);
+        }
       }
 
       /* unapply offset from buffer-frame */
@@ -524,23 +545,26 @@ static short snap_gpf_nearest(bGPDframe *UNUSED(gpf), Scene *UNUSED(scene))
 static short snap_gpf_nearestsec(bGPDframe *gpf, Scene *scene)
 {
   float secf = (float)FPS;
-  if (gpf->flag & GP_FRAME_SELECT)
+  if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)(floorf(gpf->framenum / secf + 0.5f) * secf);
+  }
   return 0;
 }
 
 static short snap_gpf_cframe(bGPDframe *gpf, Scene *scene)
 {
-  if (gpf->flag & GP_FRAME_SELECT)
+  if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)CFRA;
+  }
   return 0;
 }
 
 static short snap_gpf_nearmarker(bGPDframe *gpf, Scene *scene)
 {
-  if (gpf->flag & GP_FRAME_SELECT)
+  if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)ED_markers_find_nearest_marker_time(&scene->markers,
                                                              (float)gpf->framenum);
+  }
   return 0;
 }
 

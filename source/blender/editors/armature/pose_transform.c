@@ -102,8 +102,9 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
   EditBone *curbone;
 
   /* don't check if editmode (should be done by caller) */
-  if (ob->type != OB_ARMATURE)
+  if (ob->type != OB_ARMATURE) {
     return OPERATOR_CANCELLED;
+  }
   if (BKE_object_obdata_is_libdata(ob)) {
     BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature");
     return OPERATOR_CANCELLED;
@@ -111,11 +112,12 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 
   /* helpful warnings... */
   /* TODO: add warnings to be careful about actions, applying deforms first, etc. */
-  if (ob->adt && ob->adt->action)
+  if (ob->adt && ob->adt->action) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Actions on this armature will be destroyed by this new rest pose as the "
                "transforms stored are relative to the old rest pose");
+  }
 
   /* Get editbones of active armature to alter */
   ED_armature_to_edit(arm);
@@ -293,10 +295,12 @@ static void set_pose_keys(Object *ob)
   if (ob->pose) {
     for (chan = ob->pose->chanbase.first; chan; chan = chan->next) {
       Bone *bone = chan->bone;
-      if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
+      if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer)) {
         chan->flag |= POSE_KEY;
-      else
+      }
+      else {
         chan->flag &= ~POSE_KEY;
+      }
     }
   }
 }
@@ -320,10 +324,12 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   short paste_ok;
 
   /* get the name - if flipping, we must flip this first */
-  if (flip)
+  if (flip) {
     BLI_string_flip_side_name(name, chan->name, false, sizeof(name));
-  else
+  }
+  else {
     BLI_strncpy(name, chan->name, sizeof(name));
+  }
 
   /* only copy when:
    *  1) channel exists - poses are not meant to add random channels to anymore
@@ -332,10 +338,12 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
    */
   pchan = BKE_pose_channel_find_name(ob->pose, name);
 
-  if (selOnly)
+  if (selOnly) {
     paste_ok = ((pchan) && (pchan->bone->flag & BONE_SELECTED));
-  else
+  }
+  else {
     paste_ok = (pchan != NULL);
+  }
 
   /* continue? */
   if (paste_ok) {
@@ -362,24 +370,30 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     }
     else if (pchan->rotmode > 0) {
       /* quat/axis-angle to euler */
-      if (chan->rotmode == ROT_MODE_AXISANGLE)
+      if (chan->rotmode == ROT_MODE_AXISANGLE) {
         axis_angle_to_eulO(pchan->eul, pchan->rotmode, chan->rotAxis, chan->rotAngle);
-      else
+      }
+      else {
         quat_to_eulO(pchan->eul, pchan->rotmode, chan->quat);
+      }
     }
     else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
       /* quat/euler to axis angle */
-      if (chan->rotmode > 0)
+      if (chan->rotmode > 0) {
         eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
-      else
+      }
+      else {
         quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
+      }
     }
     else {
       /* euler/axis-angle to quat */
-      if (chan->rotmode > 0)
+      if (chan->rotmode > 0) {
         eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
-      else
+      }
+      else {
         axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
+      }
     }
 
     /* B-Bone posing options should also be included... */
@@ -628,12 +642,15 @@ void POSE_OT_paste(wmOperatorType *ot)
 /* clear scale of pose-channel */
 static void pchan_clear_scale(bPoseChannel *pchan)
 {
-  if ((pchan->protectflag & OB_LOCK_SCALEX) == 0)
+  if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
     pchan->size[0] = 1.0f;
-  if ((pchan->protectflag & OB_LOCK_SCALEY) == 0)
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
     pchan->size[1] = 1.0f;
-  if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0)
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
     pchan->size[2] = 1.0f;
+  }
 
   pchan->ease1 = 0.0f;
   pchan->ease2 = 0.0f;
@@ -644,12 +661,15 @@ static void pchan_clear_scale(bPoseChannel *pchan)
 /* clear location of pose-channel */
 static void pchan_clear_loc(bPoseChannel *pchan)
 {
-  if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
+  if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
     pchan->loc[0] = 0.0f;
-  if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
     pchan->loc[1] = 0.0f;
-  if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
     pchan->loc[2] = 0.0f;
+  }
 }
 
 /* clear rotation of pose-channel */
@@ -660,39 +680,51 @@ static void pchan_clear_rot(bPoseChannel *pchan)
     if (pchan->protectflag & OB_LOCK_ROT4D) {
       /* perform clamping on a component by component basis */
       if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-        if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+        if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
           pchan->rotAngle = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
           pchan->rotAxis[0] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
           pchan->rotAxis[1] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
           pchan->rotAxis[2] = 0.0f;
+        }
 
         /* check validity of axis - axis should never be 0,0,0
          * (if so, then we make it rotate about y). */
         if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) &&
-            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
+            IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2])) {
           pchan->rotAxis[1] = 1.0f;
+        }
       }
       else if (pchan->rotmode == ROT_MODE_QUAT) {
-        if ((pchan->protectflag & OB_LOCK_ROTW) == 0)
+        if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
           pchan->quat[0] = 1.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
           pchan->quat[1] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
           pchan->quat[2] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
           pchan->quat[3] = 0.0f;
+        }
       }
       else {
         /* the flag may have been set for the other modes, so just ignore the extra flag... */
-        if ((pchan->protectflag & OB_LOCK_ROTX) == 0)
+        if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
           pchan->eul[0] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTY) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
           pchan->eul[1] = 0.0f;
-        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
+        }
+        if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
           pchan->eul[2] = 0.0f;
+        }
       }
     }
     else {
@@ -713,12 +745,15 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 
       eul[0] = eul[1] = eul[2] = 0.0f;
 
-      if (pchan->protectflag & OB_LOCK_ROTX)
+      if (pchan->protectflag & OB_LOCK_ROTX) {
         eul[0] = oldeul[0];
-      if (pchan->protectflag & OB_LOCK_ROTY)
+      }
+      if (pchan->protectflag & OB_LOCK_ROTY) {
         eul[1] = oldeul[1];
-      if (pchan->protectflag & OB_LOCK_ROTZ)
+      }
+      if (pchan->protectflag & OB_LOCK_ROTZ) {
         eul[2] = oldeul[2];
+      }
 
       if (pchan->rotmode == ROT_MODE_QUAT) {
         eul_to_quat(pchan->quat, eul);

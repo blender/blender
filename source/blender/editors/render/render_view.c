@@ -92,12 +92,14 @@ static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow *
       for (sa = screen->areabase.first; sa; sa = sa->next) {
         if (sa->spacetype == SPACE_IMAGE) {
           sima = sa->spacedata.first;
-          if (sima->image && sima->image->type == IMA_TYPE_R_RESULT)
+          if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
             break;
+          }
         }
       }
-      if (sa)
+      if (sa) {
         break;
+      }
     }
   }
 
@@ -114,8 +116,9 @@ static ScrArea *find_area_image_empty(bContext *C)
   for (sa = sc->areabase.first; sa; sa = sa->next) {
     if (sa->spacetype == SPACE_IMAGE) {
       sima = sa->spacedata.first;
-      if (!sima->image)
+      if (!sima->image) {
         break;
+      }
     }
   }
 
@@ -134,18 +137,21 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   SpaceImage *sima;
   bool area_was_image = false;
 
-  if (scene->r.displaymode == R_OUTPUT_NONE)
+  if (scene->r.displaymode == R_OUTPUT_NONE) {
     return NULL;
+  }
 
   if (scene->r.displaymode == R_OUTPUT_WINDOW) {
     int sizex = 30 * UI_DPI_FAC + (scene->r.xsch * scene->r.size) / 100;
     int sizey = 60 * UI_DPI_FAC + (scene->r.ysch * scene->r.size) / 100;
 
     /* arbitrary... miniature image window views don't make much sense */
-    if (sizex < 320)
+    if (sizex < 320) {
       sizex = 320;
-    if (sizey < 256)
+    }
+    if (sizey < 256) {
       sizey = 256;
+    }
 
     /* changes context! */
     if (WM_window_open_temp(C, mx, my, sizex, sizey, WM_WINDOW_RENDER) == NULL) {
@@ -164,8 +170,9 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       sa = NULL;
     }
     else {
-      if (sa && sa->spacetype == SPACE_IMAGE)
+      if (sa && sa->spacetype == SPACE_IMAGE) {
         area_was_image = true;
+      }
 
       /* this function returns with changed context */
       sa = ED_screen_full_newspace(C, sa, SPACE_IMAGE);
@@ -174,12 +181,14 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
   if (!sa) {
     sa = find_area_showing_r_result(C, scene, &win);
-    if (sa == NULL)
+    if (sa == NULL) {
       sa = find_area_image_empty(C);
+    }
 
     /* if area found in other window, we make that one show in front */
-    if (win && win != CTX_wm_window(C))
+    if (win && win != CTX_wm_window(C)) {
       wm_window_raise(win);
+    }
 
     if (sa == NULL) {
       /* find largest open non-image area */
@@ -221,8 +230,9 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
     /* Tell the image editor to revert to previous space in space list on close
      * _only_ if it wasn't already an image editor when the render was invoked */
-    if (area_was_image == 0)
+    if (area_was_image == 0) {
       sima->flag |= SI_PREVSPACE;
+    }
     else {
       /* Leave it alone so the image editor will just go back from
        * full screen to the original tiled setup */

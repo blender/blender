@@ -126,8 +126,9 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
 
   IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
-  if (w == 0 || h == 0)
+  if (w == 0 || h == 0) {
     return;
+  }
 
   if (!imapaintpartial.enabled) {
     imapaintpartial.x1 = x;
@@ -147,14 +148,17 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
 
   ListBase *undo_tiles = ED_image_undo_get_tiles();
 
-  for (ty = tiley; ty <= tileh; ty++)
-    for (tx = tilex; tx <= tilew; tx++)
+  for (ty = tiley; ty <= tileh; ty++) {
+    for (tx = tilex; tx <= tilew; tx++) {
       image_undo_push_tile(undo_tiles, ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
+    }
+  }
 
   ibuf->userflags |= IB_BITMAPDIRTY;
 
-  if (tmpibuf)
+  if (tmpibuf) {
     IMB_freeImBuf(tmpibuf);
+  }
 }
 
 void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
@@ -164,8 +168,9 @@ void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short te
         ibuf, imapaintpartial.x1, imapaintpartial.y1, imapaintpartial.x2, imapaintpartial.y2);
   }
 
-  if (ibuf->mipmap[0])
+  if (ibuf->mipmap[0]) {
     ibuf->userflags |= IB_MIPMAP_INVALID;
+  }
 
   /* todo: should set_tpage create ->rect? */
   if (texpaint || (sima && sima->lock)) {
@@ -197,8 +202,9 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
     kernel->pixel_len = radius;
   }
   else {
-    if (br->blur_kernel_radius <= 0)
+    if (br->blur_kernel_radius <= 0) {
       br->blur_kernel_radius = 1;
+    }
 
     radius = br->blur_kernel_radius;
 
@@ -210,8 +216,9 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
   switch (type) {
     case KERNEL_BOX:
-      for (i = 0; i < kernel->side_squared; i++)
+      for (i = 0; i < kernel->side_squared; i++) {
         kernel->wdata[i] = 1.0;
+      }
       break;
 
     case KERNEL_GAUSSIAN: {
@@ -246,8 +253,9 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
 void paint_delete_blur_kernel(BlurKernel *kernel)
 {
-  if (kernel->wdata)
+  if (kernel->wdata) {
     MEM_freeN(kernel->wdata);
+  }
 }
 
 /************************ image paint poll ************************/
@@ -264,8 +272,9 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
 {
   Object *obact;
 
-  if (!image_paint_brush(C))
+  if (!image_paint_brush(C)) {
     return 0;
+  }
 
   obact = CTX_data_active_object(C);
   if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
@@ -302,10 +311,13 @@ static bool image_paint_2d_clone_poll(bContext *C)
 {
   Brush *brush = image_paint_brush(C);
 
-  if (!CTX_wm_region_view3d(C) && image_paint_poll(C))
-    if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE))
-      if (brush->clone.image)
+  if (!CTX_wm_region_view3d(C) && image_paint_poll(C)) {
+    if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
+      if (brush->clone.image) {
         return 1;
+      }
+    }
+  }
 
   return 0;
 }
@@ -353,8 +365,9 @@ void paint_brush_color_get(struct Scene *scene,
                            float color[3],
                            struct ColorManagedDisplay *display)
 {
-  if (invert)
+  if (invert) {
     copy_v3_v3(color, BKE_brush_secondary_color_get(scene, br));
+  }
   else {
     if (br->flag & BRUSH_USE_GRADIENT) {
       float color_gr[4];
@@ -374,11 +387,13 @@ void paint_brush_color_get(struct Scene *scene,
       }
       copy_v3_v3(color, color_gr);
     }
-    else
+    else {
       copy_v3_v3(color, BKE_brush_color_get(scene, br));
+    }
   }
-  if (color_correction)
+  if (color_correction) {
     IMB_colormanagement_display_to_scene_linear_v3(color, display);
+  }
 }
 
 void paint_brush_init_tex(Brush *brush)
@@ -401,11 +416,13 @@ void paint_brush_exit_tex(Brush *brush)
 {
   if (brush) {
     MTex *mtex = &brush->mtex;
-    if (mtex->tex && mtex->tex->nodetree)
+    if (mtex->tex && mtex->tex->nodetree) {
       ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    }
     mtex = &brush->mask_mtex;
-    if (mtex->tex && mtex->tex->nodetree)
+    if (mtex->tex && mtex->tex->nodetree) {
       ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    }
   }
 }
 
@@ -528,10 +545,12 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
     return;
   }
 
-  if (BKE_brush_use_alpha_pressure(scene, brush))
+  if (BKE_brush_use_alpha_pressure(scene, brush)) {
     BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * pressure * alphafac));
-  else
+  }
+  else {
     BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * alphafac));
+  }
 
   if ((brush->flag & BRUSH_DRAG_DOT) || (brush->flag & BRUSH_ANCHORED)) {
     UndoStack *ustack = CTX_wm_manager(C)->undo_stack;
@@ -697,8 +716,9 @@ static int paint_exec(bContext *C, wmOperator *op)
 
   strokeprop = RNA_struct_find_property(op->ptr, "stroke");
 
-  if (!RNA_property_collection_lookup_int(op->ptr, strokeprop, 0, &firstpoint))
+  if (!RNA_property_collection_lookup_int(op->ptr, strokeprop, 0, &firstpoint)) {
     return OPERATOR_CANCELLED;
+  }
 
   RNA_float_get_array(&firstpoint, "mouse", mouse);
 
@@ -767,8 +787,9 @@ static void toggle_paint_cursor(bContext *C, int enable)
     settings->imapaint.paintcursor = NULL;
     paint_cursor_delete_textures();
   }
-  else if (enable)
+  else if (enable) {
     paint_cursor_start(C, image_paint_poll);
+  }
 }
 
 /* enable the paint cursor if it isn't already.
@@ -1094,12 +1115,15 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 static bool texture_paint_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL || ob->type != OB_MESH)
+  if (ob == NULL || ob->type != OB_MESH) {
     return 0;
-  if (!ob->data || ID_IS_LINKED(ob->data))
+  }
+  if (!ob->data || ID_IS_LINKED(ob->data)) {
     return 0;
-  if (CTX_data_edit_object(C))
+  }
+  if (CTX_data_edit_object(C)) {
     return 0;
+  }
 
   return 1;
 }
@@ -1122,8 +1146,9 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
   if (ob->mode & mode_flag) {
     ob->mode &= ~mode_flag;
 
-    if (U.glreslimit != 0)
+    if (U.glreslimit != 0) {
       GPU_free_images(bmain);
+    }
     GPU_paint_set_mipmap(bmain, 1);
 
     toggle_paint_cursor(C, 0);
@@ -1144,8 +1169,9 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
       /* set the current material active paint slot on image editor */
       Material *ma = give_current_material(ob, ob->actcol);
 
-      if (ma && ma->texpaintslot)
+      if (ma && ma->texpaintslot) {
         ima = ma->texpaintslot[ma->paint_active_slot].ima;
+      }
     }
     else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
       ima = imapaint->canvas;
@@ -1176,8 +1202,9 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
     BKE_paint_toolslots_brush_validate(bmain, &imapaint->paint);
 
-    if (U.glreslimit != 0)
+    if (U.glreslimit != 0) {
       GPU_free_images(bmain);
+    }
     GPU_paint_set_mipmap(bmain, 0);
 
     toggle_paint_cursor(C, 1);
@@ -1235,8 +1262,9 @@ static bool brush_colors_flip_poll(bContext *C)
 {
   if (image_paint_poll(C)) {
     Brush *br = image_paint_brush(C);
-    if (ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL))
+    if (ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL)) {
       return true;
+    }
   }
   else {
     Object *ob = CTX_data_active_object(C);
@@ -1283,9 +1311,11 @@ void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
 
 static bool texture_paint_poll(bContext *C)
 {
-  if (texture_paint_toggle_poll(C))
-    if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT)
+  if (texture_paint_toggle_poll(C)) {
+    if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT) {
       return 1;
+    }
+  }
 
   return 0;
 }

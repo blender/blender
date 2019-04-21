@@ -54,28 +54,39 @@
 
 static const char *object_mode_op_string(eObjectMode mode)
 {
-  if (mode & OB_MODE_EDIT)
+  if (mode & OB_MODE_EDIT) {
     return "OBJECT_OT_editmode_toggle";
-  if (mode == OB_MODE_SCULPT)
+  }
+  if (mode == OB_MODE_SCULPT) {
     return "SCULPT_OT_sculptmode_toggle";
-  if (mode == OB_MODE_VERTEX_PAINT)
+  }
+  if (mode == OB_MODE_VERTEX_PAINT) {
     return "PAINT_OT_vertex_paint_toggle";
-  if (mode == OB_MODE_WEIGHT_PAINT)
+  }
+  if (mode == OB_MODE_WEIGHT_PAINT) {
     return "PAINT_OT_weight_paint_toggle";
-  if (mode == OB_MODE_TEXTURE_PAINT)
+  }
+  if (mode == OB_MODE_TEXTURE_PAINT) {
     return "PAINT_OT_texture_paint_toggle";
-  if (mode == OB_MODE_PARTICLE_EDIT)
+  }
+  if (mode == OB_MODE_PARTICLE_EDIT) {
     return "PARTICLE_OT_particle_edit_toggle";
-  if (mode == OB_MODE_POSE)
+  }
+  if (mode == OB_MODE_POSE) {
     return "OBJECT_OT_posemode_toggle";
-  if (mode == OB_MODE_EDIT_GPENCIL)
+  }
+  if (mode == OB_MODE_EDIT_GPENCIL) {
     return "GPENCIL_OT_editmode_toggle";
-  if (mode == OB_MODE_PAINT_GPENCIL)
+  }
+  if (mode == OB_MODE_PAINT_GPENCIL) {
     return "GPENCIL_OT_paintmode_toggle";
-  if (mode == OB_MODE_SCULPT_GPENCIL)
+  }
+  if (mode == OB_MODE_SCULPT_GPENCIL) {
     return "GPENCIL_OT_sculptmode_toggle";
-  if (mode == OB_MODE_WEIGHT_GPENCIL)
+  }
+  if (mode == OB_MODE_WEIGHT_GPENCIL) {
     return "GPENCIL_OT_weightmode_toggle";
+  }
   return NULL;
 }
 
@@ -86,8 +97,9 @@ static const char *object_mode_op_string(eObjectMode mode)
 bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 {
   if (ob) {
-    if (mode == OB_MODE_OBJECT)
+    if (mode == OB_MODE_OBJECT) {
       return true;
+    }
 
     switch (ob->type) {
       case OB_MESH:
@@ -100,16 +112,19 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       case OB_SURF:
       case OB_FONT:
       case OB_MBALL:
-        if (mode & (OB_MODE_EDIT))
+        if (mode & (OB_MODE_EDIT)) {
           return true;
+        }
         break;
       case OB_LATTICE:
-        if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT))
+        if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT)) {
           return true;
+        }
         break;
       case OB_ARMATURE:
-        if (mode & (OB_MODE_EDIT | OB_MODE_POSE))
+        if (mode & (OB_MODE_EDIT | OB_MODE_POSE)) {
           return true;
+        }
         break;
       case OB_GPENCIL:
         if (mode & (OB_MODE_EDIT | OB_MODE_EDIT_GPENCIL | OB_MODE_PAINT_GPENCIL |

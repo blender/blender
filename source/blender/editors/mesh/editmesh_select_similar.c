@@ -1218,12 +1218,15 @@ static int edbm_select_similar_exec(bContext *C, wmOperator *op)
     ts->select_thresh = RNA_property_float_get(op->ptr, prop);
   }
 
-  if (type < 100)
+  if (type < 100) {
     return similar_vert_select_exec(C, op);
-  else if (type < 200)
+  }
+  else if (type < 200) {
     return similar_edge_select_exec(C, op);
-  else
+  }
+  else {
     return similar_face_select_exec(C, op);
+  }
 }
 
 static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
@@ -1233,8 +1236,9 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
 {
   Object *obedit;
 
-  if (!C) /* needed for docs and i18n tools */
+  if (!C) { /* needed for docs and i18n tools */
     return prop_similar_types;
+  }
 
   obedit = CTX_data_edit_object(C);
 

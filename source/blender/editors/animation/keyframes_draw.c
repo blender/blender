@@ -77,13 +77,16 @@ short compare_ak_cfraPtr(void *node, void *data)
   const float *cframe = data;
   float val = *cframe;
 
-  if (is_cfra_eq(val, ak->cfra))
+  if (is_cfra_eq(val, ak->cfra)) {
     return 0;
+  }
 
-  if (val < ak->cfra)
+  if (val < ak->cfra) {
     return -1;
-  else
+  }
+  else {
     return 1;
+  }
 }
 
 /* --------------- */
@@ -205,16 +208,18 @@ static void nupdate_ak_bezt(void *node, void *data)
   BezTriple *bezt = chain->cur;
 
   /* set selection status and 'touched' status */
-  if (BEZT_ISSEL_ANY(bezt))
+  if (BEZT_ISSEL_ANY(bezt)) {
     ak->sel = SELECT;
+  }
 
   /* count keyframes in this column */
   ak->totkey++;
 
   /* For keyframe type, 'proper' keyframes have priority over breakdowns
    * (and other types for now). */
-  if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
+  if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME) {
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
+  }
 
   /* For interpolation type, select the highest value (enum is sorted). */
   ak->handle_type = MAX2(ak->handle_type, bezt_handle_type(bezt));
@@ -268,16 +273,18 @@ static void nupdate_ak_gpframe(void *node, void *data)
   bGPDframe *gpf = (bGPDframe *)data;
 
   /* set selection status and 'touched' status */
-  if (gpf->flag & GP_FRAME_SELECT)
+  if (gpf->flag & GP_FRAME_SELECT) {
     ak->sel = SELECT;
+  }
 
   /* count keyframes in this column */
   ak->totkey++;
 
   /* for keyframe type, 'proper' keyframes have priority over breakdowns
    * (and other types for now). */
-  if (gpf->key_type == BEZT_KEYTYPE_KEYFRAME)
+  if (gpf->key_type == BEZT_KEYTYPE_KEYFRAME) {
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
+  }
 }
 
 /* ......... */
@@ -314,8 +321,9 @@ static void nupdate_ak_masklayshape(void *node, void *data)
   MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
 
   /* set selection status and 'touched' status */
-  if (masklay_shape->flag & MASK_SHAPE_SELECT)
+  if (masklay_shape->flag & MASK_SHAPE_SELECT) {
     ak->sel = SELECT;
+  }
 
   /* count keyframes in this column */
   ak->totkey++;
@@ -326,32 +334,38 @@ static void nupdate_ak_masklayshape(void *node, void *data)
 /* Add the given BezTriple to the given 'list' of Keyframes */
 static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTripleChain *bezt)
 {
-  if (ELEM(NULL, keys, bezt))
+  if (ELEM(NULL, keys, bezt)) {
     return;
-  else
+  }
+  else {
     BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
+  }
 }
 
 /* Add the given GPencil Frame to the given 'list' of Keyframes */
 static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
 {
-  if (ELEM(NULL, keys, gpf))
+  if (ELEM(NULL, keys, gpf)) {
     return;
-  else
+  }
+  else {
     BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
+  }
 }
 
 /* Add the given MaskLayerShape Frame to the given 'list' of Keyframes */
 static void add_masklay_to_keycolumns_list(DLRBT_Tree *keys, MaskLayerShape *masklay_shape)
 {
-  if (ELEM(NULL, keys, masklay_shape))
+  if (ELEM(NULL, keys, masklay_shape)) {
     return;
-  else
+  }
+  else {
     BLI_dlrbTree_add(keys,
                      compare_ak_masklayshape,
                      nalloc_ak_masklayshape,
                      nupdate_ak_masklayshape,
                      masklay_shape);
+  }
 }
 
 /* ActKeyBlocks (Long Keyframes) ------------------------------------------ */
@@ -528,8 +542,9 @@ bool actkeyblock_is_valid(ActKeyColumn *ac)
 int actkeyblock_get_valid_hold(ActKeyColumn *ac)
 {
   /* check that block is valid */
-  if (!actkeyblock_is_valid(ac))
+  if (!actkeyblock_is_valid(ac)) {
     return 0;
+  }
 
   const int hold_mask = (ACTKEYBLOCK_FLAG_ANY_HOLD | ACTKEYBLOCK_FLAG_STATIC_HOLD |
                          ACTKEYBLOCK_FLAG_ANY_HOLD);
@@ -784,8 +799,9 @@ static void draw_keylist(View2D *v2d,
        * This might give some improvements,
        * since we current have to flip between view/region matrices.
        */
-      if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax))
+      if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
         key_len++;
+      }
     }
 
     if (key_len > 0) {
@@ -1046,8 +1062,9 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, int saction
 
   bAnimListElem dummychan = {NULL};
 
-  if (sce == NULL)
+  if (sce == NULL) {
     return;
+  }
 
   /* create a dummy wrapper data to work with */
   dummychan.type = ANIMTYPE_SCENE;
@@ -1064,8 +1081,9 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, int saction
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through each F-Curve, grabbing the keyframes */
-  for (ale = anim_data.first; ale; ale = ale->next)
+  for (ale = anim_data.first; ale; ale = ale->next) {
     fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+  }
 
   ANIM_animdata_freelist(&anim_data);
 }
@@ -1080,8 +1098,9 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_fl
   bAnimListElem dummychan = {NULL};
   Base dummybase = {NULL};
 
-  if (ob == NULL)
+  if (ob == NULL) {
     return;
+  }
 
   /* create a dummy wrapper data to work with */
   dummybase.object = ob;
@@ -1100,8 +1119,9 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_fl
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through each F-Curve, grabbing the keyframes */
-  for (ale = anim_data.first; ale; ale = ale->next)
+  for (ale = anim_data.first; ale; ale = ale->next) {
     fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+  }
 
   ANIM_animdata_freelist(&anim_data);
 }
@@ -1144,8 +1164,9 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction
 {
   if (fcu && fcu->totvert && fcu->bezt) {
     /* apply NLA-mapping (if applicable) */
-    if (adt)
+    if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+    }
 
     /* Check if the curve is cyclic. */
     bool is_cyclic = BKE_fcurve_is_cyclic(fcu) && (fcu->totvert >= 2);
@@ -1170,8 +1191,9 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction
     update_keyblocks(keys, fcu->bezt, fcu->totvert);
 
     /* unapply NLA-mapping if applicable */
-    if (adt)
+    if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+    }
   }
 }
 
@@ -1222,8 +1244,9 @@ void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, DLRBT_Tree *keys)
   if (gpl && keys) {
     /* Although the frames should already be in an ordered list,
      * they are not suitable for displaying yet. */
-    for (gpf = gpl->frames.first; gpf; gpf = gpf->next)
+    for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
       add_gpframe_to_keycolumns_list(keys, gpf);
+    }
 
     update_keyblocks(keys, NULL, 0);
   }

@@ -512,12 +512,15 @@ static int bm_edge_sort_length_cb(const void *e_a_v, const void *e_b_v)
   const float val_a = -BM_edge_calc_length_squared(*((BMEdge **)e_a_v));
   const float val_b = -BM_edge_calc_length_squared(*((BMEdge **)e_b_v));
 
-  if (val_a > val_b)
+  if (val_a > val_b) {
     return 1;
-  else if (val_a < val_b)
+  }
+  else if (val_a < val_b) {
     return -1;
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void bm_face_split_by_edges_island_connect(

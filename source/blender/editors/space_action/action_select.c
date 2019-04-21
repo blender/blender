@@ -155,8 +155,9 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* 'standard' behavior - check if selected, then apply relevant selection */
   const int action = RNA_enum_get(op->ptr, "action");
@@ -243,10 +244,12 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   /* get beztriple editing/validation funcs  */
   select_cb = ANIM_editkeyframes_select(selectmode);
 
-  if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS))
+  if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
     ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-  else
+  }
+  else {
     ok_cb = NULL;
+  }
 
   /* init editing data */
   memset(&ked, 0, sizeof(KeyframeEditData));
@@ -352,13 +355,16 @@ static int actkeys_box_select_exec(bContext *C, wmOperator *op)
      *   as frame-range one is often used for tweaking timing when "blocking",
      *   while channels is not that useful...
      */
-    if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
+    if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect)) {
       mode = ACTKEYS_BORDERSEL_FRAMERANGE;
-    else
+    }
+    else {
       mode = ACTKEYS_BORDERSEL_CHANNELS;
+    }
   }
-  else
+  else {
     mode = ACTKEYS_BORDERSEL_ALLKEYS;
+  }
 
   /* apply box_select action */
   box_select_action(&ac, rect, mode, selectmode);
@@ -535,13 +541,15 @@ static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
   rctf rect_fl;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   data_lasso.rectf_view = &rect_fl;
   data_lasso.mcords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcords_tot);
-  if (data_lasso.mcords == NULL)
+  if (data_lasso.mcords == NULL) {
     return OPERATOR_CANCELLED;
+  }
 
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const int selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
@@ -600,8 +608,9 @@ static int action_circle_select_exec(bContext *C, wmOperator *op)
   float radius = RNA_int_get(op->ptr, "radius");
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
                                               WM_gesture_is_modal_first(op->customdata));
@@ -747,15 +756,17 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-        for (ale = anim_data.first; ale; ale = ale->next)
+        for (ale = anim_data.first; ale; ale = ale->next) {
           ED_gplayer_make_cfra_list(ale->data, &ked.list, 1);
+        }
       }
       else {
         filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-        for (ale = anim_data.first; ale; ale = ale->next)
+        for (ale = anim_data.first; ale; ale = ale->next) {
           ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_to_cfraelem, NULL);
+        }
       }
       ANIM_animdata_freelist(&anim_data);
       break;
@@ -783,10 +794,12 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
   /* loop through all of the keys and select additional keyframes
    * based on the keys found to be selected above
    */
-  if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+  if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
-  else
+  }
+  else {
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -797,10 +810,12 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
      */
     for (ce = ked.list.first; ce; ce = ce->next) {
       /* set frame for validation callback to refer to */
-      if (adt)
+      if (adt) {
         ked.f1 = BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
-      else
+      }
+      else {
         ked.f1 = ce->cfra;
+      }
 
       /* select elements with frame number matching cfraelem */
       if (ale->type == ANIMTYPE_GPLAYER) {
@@ -831,16 +846,19 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
   short mode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* action to take depends on the mode */
   mode = RNA_enum_get(op->ptr, "mode");
 
-  if (mode == ACTKEYS_COLUMNSEL_MARKERS_BETWEEN)
+  if (mode == ACTKEYS_COLUMNSEL_MARKERS_BETWEEN) {
     markers_selectkeys_between(&ac);
-  else
+  }
+  else {
     columnselect_action_keys(&ac, mode);
+  }
 
   /* set notifier that keyframe selection have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -880,8 +898,9 @@ static int actkeys_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
   KeyframeEditFunc sel_cb = ANIM_editkeyframes_select(SELECT_ADD);
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* loop through all of the keys and select additional keyframes based on these */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ |
@@ -946,8 +965,9 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
     FCurve *fcu = (FCurve *)ale->key_data;
 
     /* only continue if F-Curve has keyframes */
-    if (fcu->bezt == NULL)
+    if (fcu->bezt == NULL) {
       continue;
+    }
 
     /* build up map of whether F-Curve's keyframes should be selected or not */
     ked.data = MEM_callocN(fcu->totvert, "selmap actEdit more");
@@ -972,8 +992,9 @@ static int actkeys_select_more_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* perform select changes */
   select_moreless_action_keys(&ac, SELMAP_MORE);
@@ -1006,8 +1027,9 @@ static int actkeys_select_less_exec(bContext *C, wmOperator *UNUSED(op))
   bAnimContext ac;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* perform select changes */
   select_moreless_action_keys(&ac, SELMAP_LESS);
@@ -1144,18 +1166,22 @@ static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
   short selectmode;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* select mode is either replace (deselect all, then add) or add/extend */
-  if (RNA_boolean_get(op->ptr, "extend"))
+  if (RNA_boolean_get(op->ptr, "extend")) {
     selectmode = SELECT_INVERT;
-  else
+  }
+  else {
     selectmode = SELECT_REPLACE;
+  }
 
   /* if "test" mode is set, we don't have any info to set this with */
-  if (leftright == ACTKEYS_LRSEL_TEST)
+  if (leftright == ACTKEYS_LRSEL_TEST) {
     return OPERATOR_CANCELLED;
+  }
 
   /* do the selecting now */
   actkeys_select_leftright(&ac, leftright, selectmode);
@@ -1173,8 +1199,9 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wm
   short leftright = RNA_enum_get(op->ptr, "mode");
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* handle mode-based testing */
   if (leftright == ACTKEYS_LRSEL_TEST) {
@@ -1185,10 +1212,12 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 
     /* determine which side of the current frame mouse is on */
     x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
-    if (x < CFRA)
+    if (x < CFRA) {
       RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
-    else
+    }
+    else {
       RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
+    }
   }
 
   /* perform selection */
@@ -1320,10 +1349,12 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     /* set frame for validation callback to refer to */
-    if (adt)
+    if (adt) {
       ked.f1 = BKE_nla_tweakedit_remap(adt, selx, NLATIME_CONVERT_UNMAP);
-    else
+    }
+    else {
       ked.f1 = selx;
+    }
 
     /* select elements with frame number matching cfra */
     if (ale->type == ANIMTYPE_GPLAYER) {
@@ -1411,8 +1442,9 @@ static void mouse_action_keys(
   rctf rectf;
 
   /* get dopesheet info */
-  if (ELEM(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE))
+  if (ELEM(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
     ads = ac->data;
+  }
 
   /* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
@@ -1509,10 +1541,12 @@ static void mouse_action_keys(
         found = true;
         break;
       }
-      else if (ak->cfra < rectf.xmin)
+      else if (ak->cfra < rectf.xmin) {
         akn = ak->right;
-      else
+      }
+      else {
         akn = ak->left;
+      }
     }
 
     /* Remove active channel from list of channels for separate treatment
@@ -1623,17 +1657,20 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
   bool column, channel;
 
   /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0)
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
+  }
 
   /* get useful pointers from animation context data */
   /* ar = ac.ar; */ /* UNUSED */
 
   /* select mode is either replace (deselect all, then add) or add/extend */
-  if (RNA_boolean_get(op->ptr, "extend"))
+  if (RNA_boolean_get(op->ptr, "extend")) {
     selectmode = SELECT_INVERT;
-  else
+  }
+  else {
     selectmode = SELECT_REPLACE;
+  }
 
   /* column selection */
   column = RNA_boolean_get(op->ptr, "column");
