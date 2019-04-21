@@ -122,12 +122,14 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
         Material *mat = give_current_material(ob, gps->mat_nr + 1);
-        if (mat == NULL)
+        if (mat == NULL) {
           continue;
+        }
         MaterialGPencilStyle *gp_style = mat->gp_style;
         /* skip stroke if it doesn't have color info */
-        if (ELEM(NULL, gp_style))
+        if (ELEM(NULL, gp_style)) {
           continue;
+        }
 
         copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
         copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);

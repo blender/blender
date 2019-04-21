@@ -126,8 +126,9 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
   bGPdata *gpd = (bGPdata *)ob->data;
   int oldframe = (int)DEG_get_ctime(depsgraph);
 
-  if (mmd->object == NULL)
+  if (mmd->object == NULL) {
     return;
+  }
 
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
