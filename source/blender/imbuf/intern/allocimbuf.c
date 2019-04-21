@@ -212,9 +212,8 @@ void IMB_freeImBuf(ImBuf *ibuf)
       colormanage_cache_free(ibuf);
 
       if (ibuf->dds_data.data != NULL) {
-        free(
-            ibuf->dds_data
-                .data); /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+        free(ibuf->dds_data.data);
       }
       MEM_freeN(ibuf);
     }
@@ -385,7 +384,8 @@ bool imb_addrectImBuf(ImBuf *ibuf)
   if (ibuf == NULL)
     return false;
 
-  /* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
+  /* Don't call imb_freerectImBuf, it frees mipmaps,
+   * this call is used only too give float buffers display. */
   if (ibuf->rect && (ibuf->mall & IB_rect))
     MEM_freeN(ibuf->rect);
   ibuf->rect = NULL;

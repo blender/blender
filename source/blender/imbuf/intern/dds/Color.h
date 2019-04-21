@@ -47,9 +47,20 @@ class Color32 {
   {
     setRGBA(R, G, B, A);
   }
-  //Color32(unsigned char c[4]) { setRGBA(c[0], c[1], c[2], c[3]); }
-  //Color32(float R, float G, float B) { setRGBA(uint(R*255), uint(G*255), uint(B*255), 0xFF); }
-  //Color32(float R, float G, float B, float A) { setRGBA(uint(R*255), uint(G*255), uint(B*255), uint(A*255)); }
+#if 0
+  Color32(unsigned char c[4])
+  {
+    setRGBA(c[0], c[1], c[2], c[3]);
+  }
+  Color32(float R, float G, float B)
+  {
+    setRGBA(uint(R * 255), uint(G * 255), uint(B * 255), 0xFF);
+  }
+  Color32(float R, float G, float B, float A)
+  {
+    setRGBA(uint(R * 255), uint(G * 255), uint(B * 255), uint(A * 255));
+  }
+#endif
   Color32(unsigned int U) : u(U)
   {
   }

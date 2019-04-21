@@ -801,7 +801,10 @@ static void partial_rect_from_float_thread_do(void *data_v, int start_scanline, 
                                 data->is_data);
 }
 
-/* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
+/**
+ * Converts from linear float to sRGB byte for part of the texture,
+ * buffer will hold the changed part.
+ */
 void IMB_partial_rect_from_float(
     ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data)
 {

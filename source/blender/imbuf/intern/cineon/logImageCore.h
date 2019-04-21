@@ -43,7 +43,8 @@ extern "C" {
  * Image structure
  */
 
-/* There are some differences between DPX and Cineon so we need to know from what type of file the datas come from */
+/* There are some differences between DPX and Cineon
+ * so we need to know from what type of file the datas come from. */
 enum format {
   format_DPX,
   format_Cineon,

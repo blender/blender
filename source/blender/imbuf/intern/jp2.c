@@ -588,10 +588,15 @@ finally:
   return ibuf;
 }
 
-//static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp)
+#if 0
+static opj_image_t *rawtoimage(const char *filename,
+                               opj_cparameters_t *parameters,
+                               raw_cparameters_t *raw_cp)
+#endif
 /* prec can be 8, 12, 16 */
 
-/* use inline because the float passed can be a function call that would end up being called many times */
+/* Use inline because the float passed can be a function call
+ * that would end up being called many times. */
 #if 0
 #  define UPSAMPLE_8_TO_12(_val) ((_val << 4) | (_val & ((1 << 4) - 1)))
 #  define UPSAMPLE_8_TO_16(_val) ((_val << 8) + _val)
@@ -628,7 +633,8 @@ BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
 #endif
 
 /*
- * 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
+ * 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps;
+ * 3x12 bits per pixel, XYZ color space
  *
  * - In 2K, for Scope (2.39:1) presentation 2048x858  pixels of the image is used
  * - In 2K, for Flat  (1.85:1) presentation 1998x1080 pixels of the image is used

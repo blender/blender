@@ -413,7 +413,14 @@ static int startavi(struct anim *anim)
   anim->curposition = 0;
   anim->preseek = 0;
 
-  /*  printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
+#  if 0
+  printf("x:%d y:%d size:%d interl:%d dur:%d\n",
+         anim->x,
+         anim->y,
+         anim->framesize,
+         anim->interlacing,
+         anim->duration);
+#  endif
 
   return 0;
 }

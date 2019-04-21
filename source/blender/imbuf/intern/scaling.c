@@ -557,7 +557,8 @@ static void shrink_picture_byte(unsigned char *src,
 
       w = (weight1y * weight1x) >> 16;
 
-      /* ensure correct rounding, without this you get ugly banding, or too low color values (ton) */
+      /* Ensure correct rounding, without this you get ugly banding,
+       * or too low color values (ton). */
       dst_line1[x].r += (line[0] * w + 32767) >> 16;
       dst_line1[x].g += (line[1] * w + 32767) >> 16;
       dst_line1[x].b += (line[2] * w + 32767) >> 16;

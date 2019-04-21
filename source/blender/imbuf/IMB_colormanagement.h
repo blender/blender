@@ -318,7 +318,8 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
 bool IMB_colormanagement_setup_glsl_draw_ctx(const struct bContext *C,
                                              float dither,
                                              bool predivide);
-/* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
+/* Same as setup_glsl_draw_from_space,
+ * but color management settings are guessing from a given context. */
 bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C,
                                                         struct ColorSpace *colorspace,
                                                         float dither,

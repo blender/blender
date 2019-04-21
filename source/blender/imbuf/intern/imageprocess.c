@@ -131,7 +131,8 @@ void bilinear_interpolation_color(
 
 /* Note about wrapping, the u/v still needs to be within the image bounds,
  * just the interpolation is wrapped.
- * This the same as bilinear_interpolation_color except it wraps rather than using empty and emptyI */
+ * This the same as bilinear_interpolation_color except it wraps
+ * rather than using empty and emptyI. */
 void bilinear_interpolation_color_wrap(
     struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {

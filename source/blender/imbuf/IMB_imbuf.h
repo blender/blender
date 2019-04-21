@@ -472,7 +472,8 @@ bool IMB_isfloat(struct ImBuf *ibuf);
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */
 void IMB_rect_from_float(struct ImBuf *ibuf);
 /* Create char buffer for part of the image, color corrected if necessary,
- * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
+ * Changed part will be stored in buffer.
+ * This is expected to be used for texture painting updates */
 void IMB_partial_rect_from_float(
     struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data);
 void IMB_float_from_rect(struct ImBuf *ibuf);
@@ -660,7 +661,8 @@ void IMB_rectfill_area(struct ImBuf *ibuf,
                        struct ColorManagedDisplay *display);
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
-/* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
+/* This should not be here, really,
+ * we needed it for operating on render data, IMB_rectfill_area calls it. */
 void buf_rectfill_area(unsigned char *rect,
                        float *rectf,
                        int width,

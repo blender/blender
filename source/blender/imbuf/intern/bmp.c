@@ -33,8 +33,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-/* some code copied from article on microsoft.com, copied
- * here for enhanced BMP support in the future
+/* Some code copied from article on microsoft.com,
+ * copied here for enhanced BMP support in the future:
  * http://www.microsoft.com/msj/defaultframe.asp?page=/msj/0197/mfcp1/mfcp1.htm&nav=/msj/0197/newnav.htm
  */
 

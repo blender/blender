@@ -592,7 +592,7 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
   }
 }
 
-/* ********************* Nicer API, MultiLayer and with Tile file support ************************************ */
+/* ******* Nicer API, MultiLayer and with Tile file support ************************************ */
 
 /* naming rules:
  * - parse name from right to left
@@ -618,8 +618,10 @@ typedef struct ExrHandle {
   int width, height;
   int mipmap;
 
-  StringVector *
-      multiView; /* it needs to be a pointer due to Windows release builds of EXR2.0 segfault when opening EXR bug */
+  /** It needs to be a pointer due to Windows release builds of EXR2.0
+   * segfault when opening EXR bug. */
+  StringVector *multiView;
+
   int parts;
 
   ListBase channels; /* flattened out, ExrChannel */
@@ -1817,7 +1819,8 @@ static bool exr_has_multipart_file(MultiPartInputFile &file)
 /* it returns true if the file is multilayer or multiview */
 static bool imb_exr_is_multi(MultiPartInputFile &file)
 {
-  /* multipart files are treated as multilayer in blender - even if they are single layer openexr with multiview */
+  /* Multipart files are treated as multilayer in blender -
+   * even if they are single layer openexr with multiview. */
   if (exr_has_multipart_file(file))
     return true;
 
@@ -1922,7 +1925,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
 
           imb_addrectfloatImBuf(ibuf);
 
-          /* inverse correct first pixel for datawindow coordinates (- dw.min.y because of y flip) */
+          /* Inverse correct first pixel for datawindow
+           * coordinates (- dw.min.y because of y flip). */
           first = ibuf->rect_float - 4 * (dw.min.x - dw.min.y * width);
           /* but, since we read y-flipped (negative y stride) we move to last scanline */
           first += 4 * (height - 1) * width;
@@ -1967,7 +1971,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           // XXX, ImBuf has no nice way to deal with this.
           // ideally IM_rect would be used when the caller wants a rect BUT
           // at the moment all functions use IM_rect.
-          // Disabling this is ok because all functions should check if a rect exists and create one on demand.
+          // Disabling this is ok because all functions should check
+          // if a rect exists and create one on demand.
           //
           // Disabling this because the sequencer frees immediate.
           //

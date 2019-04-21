@@ -332,8 +332,8 @@ static ImBuf *colormanage_cache_get_ibuf(ImBuf *ibuf,
   struct MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
   if (!moviecache) {
-    /* if there's no moviecache it means no color management was applied on given image buffer before */
-
+    /* If there's no moviecache it means no color management was applied
+     * on given image buffer before. */
     return NULL;
   }
 
@@ -425,7 +425,8 @@ static void colormanage_cache_put(ImBuf *ibuf,
   cache_ibuf->mall |= IB_rect;
   cache_ibuf->flags |= IB_rect;
 
-  /* store data which is needed to check whether cached buffer could be used for color managed display settings */
+  /* Store data which is needed to check whether cached buffer
+   * could be used for color managed display settings. */
   cache_data = MEM_callocN(sizeof(ColormanageCacheData), "color manage cache imbuf data");
   cache_data->look = view_settings->look;
   cache_data->exposure = view_settings->exposure;
@@ -1798,7 +1799,8 @@ static void processor_transform_apply_threaded(unsigned char *byte_buffer,
 
 /*********************** Color space transformation functions *************************/
 
-/* convert the whole buffer from specified by name color space to another - internal implementation */
+/* Convert the whole buffer from specified by name color space to another -
+ * internal implementation. */
 static void colormanagement_transform_ex(unsigned char *byte_buffer,
                                          float *float_buffer,
                                          int width,
@@ -2249,8 +2251,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
       colormanaged_ibuf = IMB_dupImBuf(ibuf);
     }
     else {
-      /* render pipeline is constructing image buffer itself, but it's re-using byte and float buffers from render result
-       * make copy of this buffers here sine this buffers would be transformed to other color space here
+      /* Render pipeline is constructing image buffer itself,
+       * but it's re-using byte and float buffers from render result make copy of this buffers
+       * here sine this buffers would be transformed to other color space here.
        */
 
       if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
@@ -3843,7 +3846,10 @@ bool IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_se
       view_settings, display_settings, NULL, dither, predivide);
 }
 
-/* Same as setup_glsl_draw_from_space, but color management settings are guessing from a given context */
+/**
+ * Same as setup_glsl_draw_from_space,
+ * but color management settings are guessing from a given context.
+ */
 bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C,
                                                         struct ColorSpace *from_colorspace,
                                                         float dither,
