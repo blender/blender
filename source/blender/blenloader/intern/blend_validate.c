@@ -17,7 +17,8 @@
 /** \file
  * \ingroup blenloader
  *
- * Utils to check/validate a Main is in sane state, only checks relations between datablocks and libraries for now.
+ * Utils to check/validate a Main is in sane state,
+ * only checks relations between datablocks and libraries for now.
  *
  * \note Does not *fix* anything, only reports found errors.
  */
@@ -45,7 +46,10 @@
 
 #include "readfile.h"
 
-/** Check (but do *not* fix) that all linked data-blocks are still valid (i.e. pointing to the right library). */
+/**
+ * Check (but do *not* fix) that all linked data-blocks are still valid
+ * (i.e. pointing to the right library).
+ */
 bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 {
   ListBase mainlist;

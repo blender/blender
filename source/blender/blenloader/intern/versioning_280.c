@@ -98,7 +98,8 @@
 
 static bScreen *screen_parent_find(const bScreen *screen)
 {
-  /* can avoid lookup if screen state isn't maximized/full (parent and child store the same state) */
+  /* Can avoid lookup if screen state isn't maximized/full
+   * (parent and child store the same state). */
   if (ELEM(screen->state, SCREENMAXIMIZED, SCREENFULL)) {
     for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
       if (sa->full && sa->full != screen) {
@@ -173,7 +174,8 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
  * - Active scene isn't stored in screen anymore, but in window.
  * - Create workspace instance hook for each window.
  *
- * \note Some of the created workspaces might be deleted again in case of reading the default startup.blend.
+ * \note Some of the created workspaces might be deleted again
+ * in case of reading the default `startup.blend`.
  */
 static void do_version_workspaces_after_lib_link(Main *bmain)
 {
@@ -187,7 +189,8 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
       bScreen *screen = screen_parent ? screen_parent : win->screen;
 
       if (screen->temp) {
-        /* We do not generate a new workspace for those screens... still need to set some data in win. */
+        /* We do not generate a new workspace for those screens...
+         * still need to set some data in win. */
         win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
         win->scene = screen->scene;
         /* Deprecated from now on! */
@@ -509,7 +512,8 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   if (have_override || need_default_renderlayer) {
     ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport");
 
-    /* If we ported all the original render layers, we don't need to make the viewport layer renderable. */
+    /* If we ported all the original render layers,
+     * we don't need to make the viewport layer renderable. */
     if (!BLI_listbase_is_single(&scene->view_layers)) {
       view_layer->flag &= ~VIEW_LAYER_RENDER;
     }
@@ -665,9 +669,11 @@ void do_versions_after_linking_280(Main *bmain)
       }
     }
 
-    /* We need to assign lib pointer to generated hidden collections *after* all have been created, otherwise we'll
-     * end up with several datablocks sharing same name/library, which is FORBIDDEN!
-     * Note: we need this to be recursive, since a child collection may be sorted before its parent in bmain... */
+    /* We need to assign lib pointer to generated hidden collections *after* all have been created,
+     * otherwise we'll end up with several datablocks sharing same name/library,
+     * which is FORBIDDEN!
+     * Note: we need this to be recursive,
+     * since a child collection may be sorted before its parent in bmain. */
     for (Collection *collection = bmain->collections.first; collection != NULL;
          collection = collection->id.next) {
       do_version_collection_propagate_lib_to_children(collection);
@@ -758,8 +764,9 @@ void do_versions_after_linking_280(Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
-    /* Due to several changes to particle RNA and draw code particles from older files may no longer
-     * be visible. Here we correct this by setting a default draw size for those files. */
+    /* Due to several changes to particle RNA and draw code particles from older files may
+     * no longer be visible.
+     * Here we correct this by setting a default draw size for those files. */
     for (Object *object = bmain->objects.first; object; object = object->id.next) {
       for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
         if (psys->part->draw_size == 0.0f) {
@@ -983,8 +990,10 @@ void do_versions_after_linking_280(Main *bmain)
   }
 }
 
-/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already.
- *       But in 2.79 another case generating non-unique names was discovered (see T55668, involving Meta strips)... */
+/* NOTE: This version patch is intended for versions < 2.52.2,
+ * but was initially introduced in 2.27 already.
+ * But in 2.79 another case generating non-unique names was discovered
+ * (see T55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
   for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {
@@ -1811,7 +1820,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
             if (sl->spacetype == SPACE_ACTION) {
               SpaceAction *saction = (SpaceAction *)sl;
-              /* "Dopesheet" should be default here, unless it looks like the Action Editor was active instead */
+              /* "Dopesheet" should be default here,
+               * unless it looks like the Action Editor was active instead. */
               if ((saction->mode_prev == 0) && (saction->action == NULL)) {
                 saction->mode_prev = SACTCONT_DOPESHEET;
               }

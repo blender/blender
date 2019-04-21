@@ -508,7 +508,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 270, 4)) {
-    /* ui_previews were not handled correctly when copying areas, leading to corrupted files (see T39847).
+    /* ui_previews were not handled correctly when copying areas,
+     * leading to corrupted files (see T39847).
      * This will always reset situation to a valid state.
      */
     bScreen *sc;
@@ -1153,7 +1154,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (scene->gpd) {
           bGPdata *gpd = scene->gpd;
 
-          /* Copy over the settings stored in the GP datablock linked to the scene, for minimal disruption */
+          /* Copy over the settings stored in the GP data-block linked to the scene,
+           * for minimal disruption. */
           ts->gpencil_v3d_align = 0;
 
           if (gpd->flag & GP_DATA_VIEWALIGN)
@@ -1201,8 +1203,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     ListBase *lbarray[MAX_LIBARRAY];
     int a;
 
-    /* Important to clear all non-persistent flags from older versions here, otherwise they could collide
-     * with any new persistent flag we may add in the future. */
+    /* Important to clear all non-persistent flags from older versions here,
+     * otherwise they could collide with any new persistent flag we may add in the future. */
     a = set_listbasepointers(bmain, lbarray);
     while (a--) {
       for (ID *id = lbarray[a]->first; id; id = id->next) {

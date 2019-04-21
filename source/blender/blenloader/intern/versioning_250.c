@@ -310,7 +310,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
 
-        /* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
+        /* We totally reinit the view for the Action Editor,
+         * as some old instances had some weird cruft set. */
         ar->v2d.tot.xmin = -20.0f;
         ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
         ar->v2d.tot.xmax = (float)((sa->winx > 120) ? (sa->winx) : 120);
@@ -577,9 +578,10 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
 }
 
 /* Create default_value structs for node sockets from the internal bNodeStack value.
- * These structs were used from 2.59.2 on, but are replaced in the subsequent do_versions for custom nodes
- * by generic ID property values. This conversion happened _after_ do_versions originally due to messy type initialization
- * for node sockets. Now created here intermediately for convenience and to keep do_versions consistent.
+ * These structs were used from 2.59.2 on, but are replaced in the subsequent do_versions for
+ * custom nodes by generic ID property values. This conversion happened _after_ do_versions
+ * originally due to messy type initialization for node sockets.
+ * Now created here intermediately for convenience and to keep do_versions consistent.
  *
  * Node compatibility code is gross ...
  */
@@ -848,7 +850,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       if (fluidmd)
         fluidmd->fss->fmd = fluidmd;
 
-      /* rotation modes were added, but old objects would now default to being 'quaternion based' */
+      /* rotation modes were added,
+       * but old objects would now default to being 'quaternion based' */
       ob->rotmode = ROT_MODE_EUL;
     }
 
@@ -874,7 +877,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
     }
 
-    /* Assign proper global gravity weights for dynamics (only z-coordinate is taken into account) */
+    /* Assign proper global gravity weights for dynamics
+     * (only z-coordinate is taken into account) */
     if (do_gravity) {
       for (part = bmain->particles.first; part; part = part->id.next)
         part->effector_weights->global_gravity = part->acc[2] / -9.81f;
@@ -914,7 +918,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 6)) {
     Object *ob;
 
-    /* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialization */
+    /* New variables for axis-angle rotations and/or quaternion rotations were added,
+     * and need proper initialization */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       /* new variables for all objects */
       ob->quat[0] = 1.0f;
@@ -1898,7 +1903,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
             copy_v4_v4(gsock->ns.vec, sock->ns.vec);
 
             /* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
-             * have to create these directly here. These links are updated again in subsequent do_version!
+             * have to create these directly here.
+             * These links are updated again in subsequent do_version!
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
@@ -1920,7 +1926,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
             copy_v4_v4(gsock->ns.vec, sock->ns.vec);
 
             /* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
-             * have to create these directly here. These links are updated again in subsequent do_version!
+             * have to create these directly here.
+             * These links are updated again in subsequent do_version!
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
@@ -1954,7 +1961,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
       if (sc->redraws_flag == 0) {
         /* just initialize to default? */
-        /* XXX: we could also have iterated through areas, and taken them from the first timeline available... */
+        /* XXX: we could also have iterated through areas,
+         * and taken them from the first timeline available... */
         sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
       }
     }
@@ -2007,9 +2015,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
-    /* screen view2d settings were not properly initialized [#27164]
-     * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
-     * need to make less ugly - possibly an iterator? */
+    /* screen view2d settings were not properly initialized T27164.
+     * v2d->scroll caused the bug but best reset other values too
+     * which are in old blend files only.
+     * Need to make less ugly - possibly an iterator? */
     bScreen *screen;
 
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {

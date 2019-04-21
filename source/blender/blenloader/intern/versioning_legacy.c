@@ -456,7 +456,8 @@ PartEff *blo_do_version_give_parteff_245(Object *ob)
   return NULL;
 }
 
-/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already */
+/* NOTE: this version patch is intended for versions < 2.52.2,
+ * but was initially introduced in 2.27 already. */
 void blo_do_version_old_trackto_to_constraints(Object *ob)
 {
   /* create new trackto constraint from the relationship */

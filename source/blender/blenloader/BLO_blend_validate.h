@@ -22,7 +22,8 @@
 
 /** \file
  * \ingroup blenloader
- * \brief Utils ensuring .blend file (i.e. Main) is in valid state during write and/or read process.
+ * \brief Utils ensuring .blend file (i.e. Main)
+ * is in valid state during write and/or read process.
  */
 
 struct Main;

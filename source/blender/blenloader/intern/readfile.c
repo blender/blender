@@ -571,7 +571,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
   while (i--) {
     ID *id = lbarray[i]->first;
     if (id == NULL || GS(id->name) == ID_LI) {
-      continue; /* no ID_LI datablock should ever be linked anyway, but just in case, better be explicit. */
+      /* No ID_LI datablock should ever be linked anyway, but just in case, better be explicit. */
+      continue;
     }
     split_libdata(lbarray[i], lib_main_array, lib_main_array_len);
   }
@@ -1379,8 +1380,8 @@ FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
 }
 
 /**
- * Same as blo_filedata_from_file(), but does not reads DNA data, only header. Use it for light access
- * (e.g. thumbnail reading).
+ * Same as blo_filedata_from_file(), but does not reads DNA data, only header.
+ * Use it for light access (e.g. thumbnail reading).
  */
 static FileData *blo_filedata_from_file_minimal(const char *filepath)
 {
@@ -1582,7 +1583,8 @@ bool BLO_has_bfile_extension(const char *str)
  */
 bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name)
 {
-  /* We might get some data names with slashes, so we have to go up in path until we find blend file itself,
+  /* We might get some data names with slashes,
+   * so we have to go up in path until we find blend file itself,
    * then we now next path item is group, and everything else is data name. */
   char *slash = NULL, *prev_slash = NULL, c = '\0';
 
@@ -1644,7 +1646,8 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
  *
  * \param filepath: The path of the file to extract thumbnail from.
  * \return The raw thumbnail
- * (MEM-allocated, as stored in file, use #BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
+ * (MEM-allocated, as stored in file, use #BKE_main_thumbnail_to_imbuf()
+ * to convert it to ImBuf image).
  */
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
@@ -2034,7 +2037,8 @@ void blo_end_sound_pointer_map(FileData *fd, Main *oldmain)
   }
 }
 
-/* XXX disabled this feature - packed files also belong in temp saves and quit.blend, to make restore work */
+/* XXX disabled this feature - packed files also belong in temp saves and quit.blend,
+ * to make restore work. */
 
 static void insert_packedmap(FileData *fd, PackedFile *pf)
 {
@@ -2584,7 +2588,8 @@ static void direct_link_id(FileData *fd, ID *id)
   }
   id->py_instance = NULL;
 
-  /* That way datablock reading not going through main read_libblock() function are still in a clear tag state.
+  /* That way datablock reading not going through main read_libblock()
+   * function are still in a clear tag state.
    * (glowering at certain nodetree fake datablock here...). */
   id->tag = 0;
 
@@ -2955,7 +2960,8 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
       ChannelDriver *driver = fcu->driver;
       DriverVar *dvar;
 
-      /* compiled expression data will need to be regenerated (old pointer may still be set here) */
+      /* Compiled expression data will need to be regenerated
+       * (old pointer may still be set here). */
       driver->expr_comp = NULL;
       driver->expr_simple = NULL;
 
@@ -5900,7 +5906,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 {
   PartEff *paf;
 
-  /* XXX This should not be needed - but seems like it can happen in some cases, so for now play safe... */
+  /* XXX This should not be needed - but seems like it can happen in some cases,
+   * so for now play safe. */
   ob->proxy_from = NULL;
 
   /* loading saved files with editmode enabled works, but for undo we like
@@ -6847,7 +6854,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     }
     SEQ_END;
 
-    /* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
+    /* link metastack, slight abuse of structs here,
+     * have to restore pointer to internal part in struct */
     {
       Sequence temp;
       void *poin;
@@ -7647,7 +7655,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
     WorkSpaceInstanceHook *hook = win->workspace_hook;
     win->workspace_hook = newdataadr(fd, hook);
 
-    /* we need to restore a pointer to this later when reading workspaces, so store in global oldnew-map */
+    /* we need to restore a pointer to this later when reading workspaces,
+     * so store in global oldnew-map. */
     oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
 
     direct_link_area_map(fd, &win->global_areas);
@@ -7877,7 +7886,8 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
 
           v3d->localvd->camera = scene->camera;
 
-          /* Localview can become invalid during undo/redo steps, so we exit it when no could be found. */
+          /* Localview can become invalid during undo/redo steps,
+           * so we exit it when no could be found. */
           for (base = view_layer->object_bases.first; base; base = base->next) {
             if (base->local_view_bits & v3d->local_view_uuid) {
               break;
@@ -8248,8 +8258,9 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
         BLI_remlink(&main->libraries, lib);
         MEM_freeN(lib);
 
-        /* Now, since Blender always expect **latest** Main pointer from fd->mainlist to be the active library
-         * Main pointer, where to add all non-library data-blocks found in file next, we have to switch that
+        /* Now, since Blender always expect **latest** Main pointer from fd->mainlist
+         * to be the active library Main pointer,
+         * where to add all non-library data-blocks found in file next, we have to switch that
          * 'dupli' found Main to latest position in the list!
          * Otherwise, you get weird disappearing linked data on a rather inconsistent basis.
          * See also T53977 for reproducible case. */
@@ -8286,7 +8297,8 @@ static void lib_link_library(FileData *UNUSED(fd), Main *main)
   }
 }
 
-/* Always call this once you have loaded new library data to set the relative paths correctly in relation to the blend file */
+/* Always call this once you have loaded new library data to set the relative paths correctly
+ * in relation to the blend file. */
 static void fix_relpaths_library(const char *basepath, Main *main)
 {
   Library *lib;
@@ -8306,7 +8318,8 @@ static void fix_relpaths_library(const char *basepath, Main *main)
   else {
     for (lib = main->libraries.first; lib; lib = lib->id.next) {
       /* Libraries store both relative and abs paths, recreate relative paths,
-       * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
+       * relative to the blend file since indirectly linked libs will be
+       * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->name)) { /* if this is relative to begin with? */
         BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
         BLI_path_rel(lib->name, basepath);
@@ -9031,11 +9044,14 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
   const char *allocname;
   bool wrong_id = false;
 
-  /* In undo case, most libs and linked data should be kept as is from previous state (see BLO_read_from_memfile).
-   * However, some needed by the snapshot being read may have been removed in previous one, and would go missing.
+  /* In undo case, most libs and linked data should be kept as is from previous state
+   * (see BLO_read_from_memfile).
+   * However, some needed by the snapshot being read may have been removed in previous one,
+   * and would go missing.
    * This leads e.g. to disappearing objects in some undo/redo case, see T34446.
-   * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
-   * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
+   * That means we have to carefully check whether current lib or
+   * libdata already exits in old main, if it does we merely copy it over into new main area,
+   * otherwise we have to do a full read of that bhead... */
   if (fd->memfile && ELEM(bhead->code, ID_LI, ID_LINK_PLACEHOLDER)) {
     const char *idname = blo_bhead_id_name(fd, bhead);
 
@@ -9049,9 +9065,11 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
         if (libmain->curlib && STREQ(idname, libmain->curlib->id.name)) {
           Main *oldmain = fd->old_mainlist->first;
           DEBUG_PRINTF("FOUND!\n");
-          /* In case of a library, we need to re-add its main to fd->mainlist, because if we have later
-           * a missing ID_LINK_PLACEHOLDER, we need to get the correct lib it is linked to!
-           * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile() like it used to be... */
+          /* In case of a library, we need to re-add its main to fd->mainlist,
+           * because if we have later a missing ID_LINK_PLACEHOLDER,
+           * we need to get the correct lib it is linked to!
+           * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile()
+           * like it used to be. */
           BLI_remlink(fd->old_mainlist, libmain);
           BLI_remlink_safe(&oldmain->libraries, libmain->curlib);
           BLI_addtail(fd->mainlist, libmain);
@@ -9071,12 +9089,14 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const int ta
                    main->curlib ? main->curlib->name : "<NULL>");
       if ((id = BKE_libblock_find_name(main, GS(idname), idname + 2))) {
         DEBUG_PRINTF("FOUND!\n");
-        /* Even though we found our linked ID, there is no guarantee its address is still the same... */
+        /* Even though we found our linked ID,
+         * there is no guarantee its address is still the same. */
         if (id != bhead->old) {
           oldnewmap_insert(fd->libmap, bhead->old, id, GS(id->name));
         }
 
-        /* No need to do anything else for ID_LINK_PLACEHOLDER, it's assumed already present in its lib's main... */
+        /* No need to do anything else for ID_LINK_PLACEHOLDER,
+         * it's assumed already present in its lib's main. */
         if (r_id) {
           *r_id = NULL; /* Just in case... */
         }
@@ -9283,7 +9303,8 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   bfd->globalf = fg->globalf;
   BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 
-  /* error in 2.65 and older: main->name was not set if you save from startup (not after loading file) */
+  /* Error in 2.65 and older: main->name was not set if you save from startup
+   * (not after loading file). */
   if (bfd->filename[0] == 0) {
     if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1))
       if ((G.fileflags & G_FILE_RECOVER) == 0)
@@ -9341,7 +9362,8 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
   if (MAIN_VERSION_OLDER(bmain, 266, 4)) {
     bTheme *btheme;
 
-    /* themes for Node and Sequence editor were not using grid color, but back. we copy this over then */
+    /* Themes for Node and Sequence editor were not using grid color,
+     * but back. we copy this over then. */
     for (btheme = user->themes.first; btheme; btheme = btheme->next) {
       copy_v4_v4_char(btheme->space_node.grid, btheme->space_node.back);
       copy_v4_v4_char(btheme->space_sequencer.grid, btheme->space_sequencer.back);
@@ -9426,7 +9448,8 @@ static void lib_link_all(FileData *fd, Main *main)
   if (fd->memfile == NULL) {
     lib_link_windowmanager(fd, main);
   }
-  /* DO NOT skip screens here, 3Dview may contains pointers to other ID data (like bgpic)! See T41411. */
+  /* DO NOT skip screens here,
+   * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
   lib_link_screen(fd, main);
   lib_link_scene(fd, main);
   lib_link_object(fd, main);
@@ -9916,8 +9939,12 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
        * read yet at that point. */
       change_link_placeholder_to_real_ID_pointer_fd(fd, bhead->old, id);
 
-      // commented because this can print way too much
-      // if (G.debug & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+      /* Commented because this can print way too much. */
+#if 0
+      if (G.debug & G_DEBUG) {
+        printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+      }
+#endif
     }
 
     MEM_freeN(lib);
@@ -9934,8 +9961,9 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       read_libblock(fd, mainvar, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, NULL);
     }
     else {
-      /* this is actually only needed on UI call? when ID was already read before, and another append
-       * happens which invokes same ID... in that case the lookup table needs this entry */
+      /* this is actually only needed on UI call? when ID was already read before,
+       * and another append happens which invokes same ID...
+       * in that case the lookup table needs this entry */
       oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
       // commented because this can print way too much
       // if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
@@ -10944,7 +10972,8 @@ static void add_loose_objects_to_scene(Main *mainvar,
 
   BLI_assert(scene);
 
-  /* Give all objects which are LIB_TAG_INDIRECT a base, or for a collection when *lib has been set. */
+  /* Give all objects which are LIB_TAG_INDIRECT a base,
+   * or for a collection when *lib has been set. */
   for (Object *ob = mainvar->objects.first; ob; ob = ob->id.next) {
     bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0;
     if (do_it || ((ob->id.tag & LIB_TAG_INDIRECT) && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
@@ -10953,7 +10982,8 @@ static void add_loose_objects_to_scene(Main *mainvar,
           do_it = true;
         }
         else if ((ob->id.lib == lib) && (object_in_any_scene(bmain, ob) == 0)) {
-          /* When appending, make sure any indirectly loaded objects get a base, else they cant be accessed at all
+          /* When appending, make sure any indirectly loaded objects get a base,
+           * else they cant be accessed at all
            * (see T27437). */
           do_it = true;
         }
@@ -10983,7 +11013,8 @@ static void add_loose_objects_to_scene(Main *mainvar,
 
         if (flag & FILE_AUTOSELECT) {
           base->flag |= BASE_SELECTED;
-          /* Do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level. */
+          /* Do NOT make base active here! screws up GUI stuff,
+           * if you want it do it on src/ level. */
         }
 
         BKE_scene_object_base_flag_sync_from_base(base);
@@ -11046,14 +11077,16 @@ static void add_collections_to_scene(Main *mainvar,
     /* We do not want to force instantiation of indirectly linked collections...
      * Except when we are appending (since in that case, we'll end up instantiating all objects,
      * it's better to do it via their own collections if possible).
-     * Reports showing that desired difference in behaviors between link and append: T62570, T61796. */
+     * Reports showing that desired difference in behaviors between link and append:
+     * See T62570, T61796. */
     else if (do_append || (collection->id.tag & LIB_TAG_INDIRECT) == 0) {
       bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
       if (!do_add_collection) {
         /* We need to check that objects in that collections are already instantiated in a scene.
          * Otherwise, it's better to add the collection to the scene's active collection, than to
          * instantiate its objects in active scene's collection directly. See T61141.
-         * Note that we only check object directly into that collection, not recursively into its children.
+         * Note that we only check object directly into that collection,
+         * not recursively into its children.
          */
         for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL;
              coll_ob = coll_ob->next) {
@@ -11245,8 +11278,10 @@ ID *BLO_library_link_named_part(Main *mainl,
  * \param idcode: The kind of data-block to link.
  * \param name: The name of the data-block (without the 2 char ID prefix).
  * \param flag: Options for linking, used for instantiating.
- * \param scene: The scene in which to instantiate objects/collections (if NULL, no instantiation is done).
- * \param v3d: The active View3D (only to define active layers for instantiated objects & collections, can be NULL).
+ * \param scene: The scene in which to instantiate objects/collections
+ * (if NULL, no instantiation is done).
+ * \param v3d: The active 3D viewport.
+ * (only to define active layers for instantiated objects & collections, can be NULL).
  * \return the linked ID when found.
  */
 ID *BLO_library_link_named_part_ex(
@@ -11287,10 +11322,11 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 /**
  * Initialize the BlendHandle for linking library data.
  *
- * \param mainvar: The current main database, e.g. G_MAIN or CTX_data_main(C).
- * \param bh: A blender file handle as returned by \a BLO_blendhandle_from_file or \a BLO_blendhandle_from_memory.
+ * \param mainvar: The current main database, e.g. #G_MAIN or #CTX_data_main(C).
+ * \param bh: A blender file handle as returned by
+ * #BLO_blendhandle_from_file or #BLO_blendhandle_from_memory.
  * \param filepath: Used for relative linking, copied to the \a lib->name.
- * \return the library Main, to be passed to \a BLO_library_append_named_part as \a mainl.
+ * \return the library Main, to be passed to #BLO_library_append_named_part as \a mainl.
  */
 Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
@@ -11368,7 +11404,8 @@ static void library_link_end(Main *mainl,
   Main *main_newid = BKE_main_new();
   for (mainvar = ((Main *)(*fd)->mainlist->first)->next; mainvar; mainvar = mainvar->next) {
     BLI_assert(mainvar->versionfile != 0);
-    /* We need to split out IDs already existing, or they will go again through do_versions - bad, very bad! */
+    /* We need to split out IDs already existing,
+     * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
     do_versions_after_linking(main_newid);
@@ -11387,7 +11424,8 @@ static void library_link_end(Main *mainl,
                        mainvar); /* make all relative paths, relative to the open blend file */
 
   /* Give a base to loose objects and collections.
-   * Only directly linked objects & collections are instantiated by `BLO_library_link_named_part_ex()` & co,
+   * Only directly linked objects & collections are instantiated by
+   * `BLO_library_link_named_part_ex()` & co,
    * here we handle indirect ones and other possible edge-cases. */
   if (scene) {
     add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
@@ -11417,9 +11455,12 @@ static void library_link_end(Main *mainl,
  * \param bh: The blender file handle (WARNING! may be freed by this function!).
  * \param flag: Options for linking, used for instantiating.
  * \param bmain: The main database in which to instantiate objects/collections
- * \param scene: The scene in which to instantiate objects/collections (if NULL, no instantiation is done).
- * \param view_layer: The scene layer in which to instantiate objects/collections (if NULL, no instantiation is done).
- * \param v3d: The active View3D (only to define local-view for instantiated objects & groups, can be NULL).
+ * \param scene: The scene in which to instantiate objects/collections
+ * (if NULL, no instantiation is done).
+ * \param view_layer: The scene layer in which to instantiate objects/collections
+ * (if NULL, no instantiation is done).
+ * \param v3d: The active 3D viewport
+ * (only to define local-view for instantiated objects & groups, can be NULL).
  */
 void BLO_library_link_end(Main *mainl,
                           BlendHandle **bh,
@@ -11656,7 +11697,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
       /* Does this library have any more linked datablocks we need to read? */
       if (has_linked_ids_to_read(mainptr)) {
-        // printf("Reading linked datablocks from %s (%s)\n", mainptr->curlib->id.name, mainptr->curlib->name);
+#if 0
+        printf("Reading linked datablocks from %s (%s)\n",
+               mainptr->curlib->id.name,
+               mainptr->curlib->name);
+#endif
 
         /* Open file if it has not been done yet. */
         FileData *fd = read_library_file_data(basefd, mainlist, mainl, mainptr);

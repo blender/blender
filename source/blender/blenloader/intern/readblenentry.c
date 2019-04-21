@@ -128,7 +128,8 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 }
 
 /**
- * Gets the names of all the datablocks in a file of a certain type (e.g. all the scene names in a file).
+ * Gets the names of all the datablocks in a file of a certain type
+ * (e.g. all the scene names in a file).
  *
  * \param bh: The blendhandle to access.
  * \param ofblocktype: The type of names to get.
@@ -158,7 +159,8 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 }
 
 /**
- * Gets the previews of all the datablocks in a file of a certain type (e.g. all the scene previews in a file).
+ * Gets the previews of all the datablocks in a file of a certain type
+ * (e.g. all the scene previews in a file).
  *
  * \param bh: The blendhandle to access.
  * \param ofblocktype: The type of names to get.
@@ -247,7 +249,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 }
 
 /**
- * Gets the names of all the linkable datablock types available in a file. (e.g. "Scene", "Mesh", "Light", etc.).
+ * Gets the names of all the linkable datablock types available in a file.
+ * (e.g. "Scene", "Mesh", "Light", etc.).
  *
  * \param bh: The blendhandle to access.
  * \return A BLI_linklist of strings. The string links should be freed with malloc.
@@ -348,9 +351,11 @@ BlendFileData *BLO_read_from_memory(const void *mem,
 }
 
 /**
- * Used for undo/redo, skips part of libraries reading (assuming their data are already loaded & valid).
+ * Used for undo/redo, skips part of libraries reading
+ * (assuming their data are already loaded & valid).
  *
- * \param oldmain: old main, from which we will keep libraries and other datablocks that should not have changed.
+ * \param oldmain: old main,
+ * from which we will keep libraries and other datablocks that should not have changed.
  * \param filename: current file, only for retrieving library data.
  */
 BlendFileData *BLO_read_from_memfile(Main *oldmain,
@@ -410,17 +415,18 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
     BLI_assert(old_mainlist.first == oldmain);
 
     if (bfd && old_mainlist.first != old_mainlist.last) {
-      /* Even though directly used libs have been already moved to new main, indirect ones have not.
-       * This is a bit annoying, but we have no choice but to keep them all for now - means some now unused
-       * data may remain in memory, but think we'll have to live with it. */
+      /* Even though directly used libs have been already moved to new main,
+       * indirect ones have not.
+       * This is a bit annoying, but we have no choice but to keep them all for now -
+       * means some now unused data may remain in memory, but think we'll have to live with it. */
       Main *libmain, *libmain_next;
       Main *newmain = bfd->main;
       ListBase new_mainlist = {newmain, newmain};
 
       for (libmain = oldmain->next; libmain; libmain = libmain_next) {
         libmain_next = libmain->next;
-        /* Note that LIB_INDIRECT does not work with libraries themselves, so we use non-NULL parent
-         * to detect indirect-linked ones... */
+        /* Note that LIB_INDIRECT does not work with libraries themselves, so we use non-NULL
+         * parent to detect indirect-linked ones. */
         if (libmain->curlib && (libmain->curlib->parent != NULL)) {
           BLI_remlink(&old_mainlist, libmain);
           BLI_addtail(&new_mainlist, libmain);
@@ -438,7 +444,9 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
       blo_join_main(&new_mainlist);
     }
 
-    /* printf("Remaining mains/libs in oldmain: %d\n", BLI_listbase_count(&fd->old_mainlist) - 1); */
+#if 0
+    printf("Remaining mains/libs in oldmain: %d\n", BLI_listbase_count(&fd->old_mainlist) - 1);
+#endif
 
     /* That way, libs (aka mains) we did not reuse in new undone/redone state
      * will be cleared together with oldmain... */
@@ -451,7 +459,8 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
 }
 
 /**
- * Frees a BlendFileData structure and *all* the data associated with it (the userdef data, and the main libblock data).
+ * Frees a BlendFileData structure and *all* the data associated with it
+ * (the userdef data, and the main libblock data).
  *
  * \param bfd: The structure to free.
  */

@@ -2175,10 +2175,10 @@ static void write_mesh(WriteData *wd, Mesh *mesh)
 
       /**
        * Those calls:
-       *   - Reduce mesh->xdata.totlayer to number of layers to write.
-       *   - Fill xlayers with those layers to be written.
-       * Note that mesh->xdata is from now on invalid for Blender, but this is why the whole mesh is
-       * a temp local copy!
+       * - Reduce mesh->xdata.totlayer to number of layers to write.
+       * - Fill xlayers with those layers to be written.
+       * Note that mesh->xdata is from now on invalid for Blender,
+       * but this is why the whole mesh is a temp local copy!
        */
       CustomData_file_write_prepare(
           &mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
@@ -3740,9 +3740,10 @@ static void write_libraries(WriteData *wd, Main *main)
       }
     }
 
-    /* to be able to restore quit.blend and temp saves, the packed blend has to be in undo buffers... */
-    /* XXX needs rethink, just like save UI in undo files now - would be nice to append things only for the]
-     * quit.blend and temp saves */
+    /* To be able to restore 'quit.blend' and temp saves,
+     * the packed blend has to be in undo buffers... */
+    /* XXX needs rethink, just like save UI in undo files now -
+     * would be nice to append things only for the 'quit.blend' and temp saves. */
     if (found_one) {
       /* Not overridable. */
 
@@ -3893,7 +3894,8 @@ static bool write_file_handle(Main *mainvar,
                                                 NULL :
                                                 BKE_override_static_operations_store_initialize();
 
-  /* This outer loop allows to save first datablocks from real mainvar, then the temp ones from override process,
+  /* This outer loop allows to save first datablocks from real mainvar,
+   * then the temp ones from override process,
    * if needed, without duplicating whole code. */
   Main *bmain = mainvar;
   do {
@@ -3907,7 +3909,8 @@ static bool write_file_handle(Main *mainvar,
       }
 
       for (; id; id = id->next) {
-        /* We should never attempt to write non-regular IDs (i.e. all kind of temp/runtime ones). */
+        /* We should never attempt to write non-regular IDs
+         * (i.e. all kind of temp/runtime ones). */
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 

@@ -92,7 +92,8 @@ void BLO_update_defaults_userpref_blend(void)
   /* Leave temp directory empty, will then get appropriate value per OS. */
   U.tempdir[0] = '\0';
 
-  /* Only enable tooltips translation by default, without actually enabling translation itself, for now. */
+  /* Only enable tooltips translation by default,
+   * without actually enabling translation itself, for now. */
   U.transopts = USER_TR_TOOLTIPS;
   U.memcachelimit = 4096;
 
@@ -147,7 +148,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
       for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-        /* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
+        /* Remove all stored panels, we want to use defaults
+         * (order, open/closed) as defined by UI code here! */
         BKE_area_region_panels_free(&ar->panels);
 
         /* some toolbars have been saved as initialized,

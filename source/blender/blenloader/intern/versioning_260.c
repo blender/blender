@@ -106,7 +106,8 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
     else if (node->type == CMP_NODE_DEFOCUS) {
       /* Convert degrees to radians. */
       NodeDefocus *nqd = node->storage;
-      /* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
+      /* XXX DNA char to float conversion seems to map the char value
+       * into the [0.0f, 1.0f] range. */
       nqd->rotation = DEG2RADF(nqd->rotation * 255.0f);
     }
     else if (node->type == CMP_NODE_CHROMA_MATTE) {
@@ -118,7 +119,8 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
     else if (node->type == CMP_NODE_GLARE) {
       /* Convert degrees to radians. */
       NodeGlare *ndg = node->storage;
-      /* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
+      /* XXX DNA char to float conversion seems to map the char value
+       * into the [0.0f, 1.0f] range. */
       ndg->angle_ofs = DEG2RADF(ndg->angle_ofs * 255.0f);
     }
     /* XXX TexMapping struct is used by other nodes too (at least node_composite_mapValue),
@@ -233,7 +235,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
       bNodeSocket *sock;
       char filename[FILE_MAXFILE];
 
-      /* ugly, need to remove the old inputs list to avoid bad pointer checks when adding new sockets.
+      /* ugly, need to remove the old inputs list to avoid bad pointer
+       * checks when adding new sockets.
        * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
        */
       BLI_listbase_clear(&node->inputs);
@@ -457,7 +460,8 @@ static const char *node_get_static_idname(int type, int treetype)
   case ID: \
     return #Category #StructName;
 
-  /* XXX hack, group types share a single static integer identifier, but are registered as separate types */
+  /* XXX hack, group types share a single static integer identifier,
+   * but are registered as separate types */
   if (type == NODE_GROUP) {
     switch (treetype) {
       case NTREE_COMPOSIT:
@@ -1450,13 +1454,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         ima->flag |= IMA_VIEW_AS_RENDER;
       }
       else if (colormanagement_disabled) {
-        /* if colormanagement not used, set image's color space to raw, so no sRGB->linear conversion
-         * would happen on display and render
-         * there's no clear way to check whether color management is enabled or not in render engine
-         * so set all images to raw if there's at least one scene with color management disabled
-         * this would still behave incorrect in cases when color management was used for only some
-         * of scenes, but such a setup is crazy anyway and think it's fair enough to break compatibility
-         * in that cases
+        /* if color-management not used, set image's color space to raw, so no sRGB->linear
+         * conversion would happen on display and render there's no clear way to check whether
+         * color management is enabled or not in render engine so set all images to raw if there's
+         * at least one scene with color management disabled this would still behave incorrect in
+         * cases when color management was used for only some of scenes, but such a setup is
+         * crazy anyway and think it's fair enough to break compatibility in that cases.
          */
 
         BLI_strncpy(ima->colorspace_settings.name, "Raw", sizeof(ima->colorspace_settings.name));
@@ -1877,7 +1880,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /* Set flag for delayed do_versions in lib_verify_nodetree. It needs valid typeinfo pointers ... */
+  /* Set flag for delayed do_versions in lib_verify_nodetree.
+   * It needs valid typeinfo pointers ... */
   {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       /* XXX This should be kept without version check for now!
