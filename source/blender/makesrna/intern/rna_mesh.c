@@ -2170,8 +2170,8 @@ static void rna_def_mproperties(BlenderRNA *brna)
   MESH_FLOAT_PROPERTY_LAYER("Polygon");
   MESH_INT_PROPERTY_LAYER("Vertex");
   MESH_INT_PROPERTY_LAYER("Polygon");
-  MESH_STRING_PROPERTY_LAYER("Vertex");
-  MESH_STRING_PROPERTY_LAYER("Polygon");
+  MESH_STRING_PROPERTY_LAYER("Vertex")
+  MESH_STRING_PROPERTY_LAYER("Polygon")
 #  undef MESH_PROPERTY_LAYER
 }
 

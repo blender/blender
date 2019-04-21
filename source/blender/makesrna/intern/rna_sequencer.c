@@ -2704,8 +2704,9 @@ static void rna_def_effects(BlenderRNA *brna)
 
     rna_def_effect_inputs(srna, effect->inputs);
 
-    if (effect->func)
+    if (effect->func) {
       effect->func(srna);
+    }
   }
 }
 

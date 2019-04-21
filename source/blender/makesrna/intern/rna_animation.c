@@ -693,8 +693,9 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
                            "Override Insert Keyframes Default- Only Needed",
                            "Override default setting to only insert keyframes where they're "
                            "needed in the relevant F-Curves");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   prop = RNA_def_property(srna, "use_insertkey_override_visual", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "keyingoverride", INSERTKEY_MATRIX);
@@ -702,8 +703,9 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
       prop,
       "Override Insert Keyframes Default - Visual",
       "Override default setting to insert keyframes based on 'visual transforms'");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   prop = RNA_def_property(srna, "use_insertkey_override_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "keyingoverride", INSERTKEY_XYZ2RGB);
@@ -712,8 +714,9 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
       "Override F-Curve Colors - XYZ to RGB",
       "Override default setting to set color for newly added transformation F-Curves "
       "(Location, Rotation, Scale) to be based on the transform axis");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   /* value to override defaults with */
   prop = RNA_def_property(srna, "use_insertkey_needed", PROP_BOOLEAN, PROP_NONE);
@@ -721,15 +724,17 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
   RNA_def_property_ui_text(prop,
                            "Insert Keyframes - Only Needed",
                            "Only insert keyframes where they're needed in the relevant F-Curves");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   prop = RNA_def_property(srna, "use_insertkey_visual", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
   RNA_def_property_ui_text(
       prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   prop = RNA_def_property(srna, "use_insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
@@ -737,8 +742,9 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
                            "F-Curve Colors - XYZ to RGB",
                            "Color for newly added transformation F-Curves (Location, Rotation, "
                            "Scale) is based on the transform axis");
-  if (reg)
+  if (reg) {
     RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 }
 
 /* --- */

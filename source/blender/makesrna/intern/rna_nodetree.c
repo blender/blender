@@ -9134,8 +9134,9 @@ static StructRNA *define_specific_node(BlenderRNA *brna,
 
   /* XXX hack, want to avoid "NodeInternal" prefix,
    * so use "Node" in NOD_static_types.h and replace here */
-  if (STREQ(base_name, "Node"))
+  if (STREQ(base_name, "Node")) {
     base_name = "NodeInternal";
+  }
 
   srna = RNA_def_struct(brna, struct_name, base_name);
   RNA_def_struct_ui_text(srna, ui_name, ui_desc);
@@ -9172,8 +9173,9 @@ static StructRNA *define_specific_node(BlenderRNA *brna,
   RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
 
-  if (def_func)
+  if (def_func) {
     def_func(srna);
+  }
 
   return srna;
 }

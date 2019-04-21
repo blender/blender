@@ -2825,47 +2825,58 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
   RNA_def_property_boolean_funcs(prop, "rna_NumberProperty_is_array_get", NULL);
   RNA_def_property_ui_text(prop, "Is Array", "");
 
-  if (type == PROP_BOOLEAN)
+  if (type == PROP_BOOLEAN) {
     return;
+  }
 
   prop = RNA_def_property(srna, "hard_min", type, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  if (type == PROP_INT)
+  if (type == PROP_INT) {
     RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_min_get", NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_min_get", NULL, NULL);
+  }
   RNA_def_property_ui_text(prop, "Hard Minimum", "Minimum value used by buttons");
 
   prop = RNA_def_property(srna, "hard_max", type, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  if (type == PROP_INT)
+  if (type == PROP_INT) {
     RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_max_get", NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_max_get", NULL, NULL);
+  }
   RNA_def_property_ui_text(prop, "Hard Maximum", "Maximum value used by buttons");
 
   prop = RNA_def_property(srna, "soft_min", type, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  if (type == PROP_INT)
+  if (type == PROP_INT) {
     RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_min_get", NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_min_get", NULL, NULL);
+  }
   RNA_def_property_ui_text(prop, "Soft Minimum", "Minimum value used by buttons");
 
   prop = RNA_def_property(srna, "soft_max", type, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  if (type == PROP_INT)
+  if (type == PROP_INT) {
     RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_max_get", NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_max_get", NULL, NULL);
+  }
   RNA_def_property_ui_text(prop, "Soft Maximum", "Maximum value used by buttons");
 
   prop = RNA_def_property(srna, "step", type, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  if (type == PROP_INT)
+  if (type == PROP_INT) {
     RNA_def_property_int_funcs(prop, "rna_IntProperty_step_get", NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_float_funcs(prop, "rna_FloatProperty_step_get", NULL, NULL);
+  }
   RNA_def_property_ui_text(
       prop, "Step", "Step size used by number buttons, for floats 1/100th of the step size");
 
@@ -2996,11 +3007,13 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
   prop = RNA_def_property(srna, "fixed_type", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Struct");
-  if (type == PROP_POINTER)
+  if (type == PROP_POINTER) {
     RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL, NULL, NULL);
-  else
+  }
+  else {
     RNA_def_property_pointer_funcs(
         prop, "rna_CollectionProperty_fixed_type_get", NULL, NULL, NULL);
+  }
   RNA_def_property_ui_text(prop, "Pointer Type", "Fixed pointer type, empty if variable type");
 }
 

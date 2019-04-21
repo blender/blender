@@ -923,8 +923,9 @@ void rna_def_mtex_common(BlenderRNA *brna,
   prop = RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Texture");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  if (activeeditable)
+  if (activeeditable) {
     RNA_def_property_editable_func(prop, activeeditable);
+  }
   RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL, NULL);
   RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, update);

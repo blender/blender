@@ -587,8 +587,9 @@ static int preprocess_include(char *maindata, const int maindata_len)
     else if (*cp == '\n') {
       comment = 0;
     }
-    if (comment || *cp < 32 || *cp > 128)
+    if (comment || *cp < 32 || *cp > 128) {
       *cp = 32;
+    }
     cp++;
   }
 

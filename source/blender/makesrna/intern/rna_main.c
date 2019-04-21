@@ -442,8 +442,9 @@ void RNA_def_main(BlenderRNA *brna)
 
     /* collection functions */
     func = lists[i].func;
-    if (func)
+    if (func) {
       func(brna, prop);
+    }
   }
 
   RNA_api_main(srna);

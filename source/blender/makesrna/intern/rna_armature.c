@@ -727,29 +727,35 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_string_sdna(prop, NULL, "name");
   RNA_def_property_ui_text(prop, "Name", "");
   RNA_def_struct_name_property(srna, prop);
-  if (editbone)
+  if (editbone) {
     RNA_def_property_string_funcs(prop, NULL, NULL, "rna_EditBone_name_set");
-  else
+  }
+  else {
     RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Bone_name_set");
+  }
   RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
   /* flags */
   prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
   RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
   RNA_def_property_array(prop, 32);
-  if (editbone)
+  if (editbone) {
     RNA_def_property_boolean_funcs(prop, NULL, "rna_EditBone_layer_set");
-  else
+  }
+  else {
     RNA_def_property_boolean_funcs(prop, NULL, "rna_Bone_layer_set");
+  }
   RNA_def_property_ui_text(prop, "Layers", "Layers bone exists in");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
   prop = RNA_def_property(srna, "use_connect", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_CONNECTED);
-  if (editbone)
+  if (editbone) {
     RNA_def_property_boolean_funcs(prop, NULL, "rna_EditBone_connected_set");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
   RNA_def_property_ui_text(
       prop, "Connected", "When bone has a parent, bone's head is stuck to the parent's tail");
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
@@ -829,10 +835,12 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_DISTANCE);
-  if (editbone)
+  if (editbone) {
     RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
-  else
+  }
+  else {
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+  }
   RNA_def_property_float_sdna(prop, NULL, "rad_head");
   /* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
   /*RNA_def_property_range(prop, 0, 1000); */
@@ -841,10 +849,12 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
 
   prop = RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_DISTANCE);
-  if (editbone)
+  if (editbone) {
     RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
-  else
+  }
+  else {
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+  }
   RNA_def_property_float_sdna(prop, NULL, "rad_tail");
   /* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
   /*RNA_def_property_range(prop, 0, 1000); */

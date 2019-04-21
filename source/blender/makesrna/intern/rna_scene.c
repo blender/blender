@@ -3612,16 +3612,20 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  if (scene)
+  if (scene) {
     RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ViewLayer_name_set");
-  else
+  }
+  else {
     RNA_def_property_string_sdna(prop, NULL, "name");
+  }
   RNA_def_property_ui_text(prop, "Name", "View layer name");
   RNA_def_struct_name_property(srna, prop);
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   if (scene) {
     prop = RNA_def_property(srna, "material_override", PROP_POINTER, PROP_NONE);
@@ -3653,10 +3657,12 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
   prop = RNA_def_property(srna, "use_zmask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZMASK);
   RNA_def_property_ui_text(prop, "Zmask", "Only render what's in front of the solid z values");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "invert_zmask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_NEG_ZMASK);
@@ -3664,270 +3670,336 @@ void rna_def_view_layer_common(StructRNA *srna, const bool scene)
       prop,
       "Zmask Negate",
       "For Zmask, only render what is behind solid z values instead of in front");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_all_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ALL_Z);
   RNA_def_property_ui_text(
       prop, "All Z", "Fill in Z values for solid faces in invisible layers, for masking");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_solid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
   RNA_def_property_ui_text(prop, "Solid", "Render Solid faces in this Layer");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_HALO);
   RNA_def_property_ui_text(prop, "Halo", "Render Halos in this Layer (on top of Solid)");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_ztransp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZTRA);
   RNA_def_property_ui_text(
       prop, "ZTransp", "Render Z-Transparent faces in this Layer (on top of Solid and Halos)");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SKY);
   RNA_def_property_ui_text(prop, "Sky", "Render Sky in this Layer");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_ao", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_AO);
   RNA_def_property_ui_text(prop, "Ambient Occlusion", "Render Ambient Occlusion in this Layer");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_edge_enhance", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_EDGE);
   RNA_def_property_ui_text(
       prop, "Edge", "Render Edge-enhance in this Layer (only works for Solid faces)");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_strand", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_STRAND);
   RNA_def_property_ui_text(prop, "Strand", "Render Strands in this Layer");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   /* passes */
   prop = RNA_def_property(srna, "use_pass_combined", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_COMBINED);
   RNA_def_property_ui_text(prop, "Combined", "Deliver full combined RGBA buffer");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_Z);
   RNA_def_property_ui_text(prop, "Z", "Deliver Z values pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_vector", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_VECTOR);
   RNA_def_property_ui_text(prop, "Vector", "Deliver speed vector pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_normal", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_NORMAL);
   RNA_def_property_ui_text(prop, "Normal", "Deliver normal pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_uv", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_UV);
   RNA_def_property_ui_text(prop, "UV", "Deliver texture UV pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_mist", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_MIST);
   RNA_def_property_ui_text(prop, "Mist", "Deliver mist factor pass (0.0-1.0)");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_object_index", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXOB);
   RNA_def_property_ui_text(prop, "Object Index", "Deliver object index pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_material_index", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXMA);
   RNA_def_property_ui_text(prop, "Material Index", "Deliver material index pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_shadow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SHADOW);
   RNA_def_property_ui_text(prop, "Shadow", "Deliver shadow pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_AO);
   RNA_def_property_ui_text(prop, "Ambient Occlusion", "Deliver Ambient Occlusion pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_emit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_EMIT);
   RNA_def_property_ui_text(prop, "Emit", "Deliver emission pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_environment", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_ENVIRONMENT);
   RNA_def_property_ui_text(prop, "Environment", "Deliver environment lighting pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_diffuse_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_DIRECT);
   RNA_def_property_ui_text(prop, "Diffuse Direct", "Deliver diffuse direct pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_diffuse_indirect", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_INDIRECT);
   RNA_def_property_ui_text(prop, "Diffuse Indirect", "Deliver diffuse indirect pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_diffuse_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_COLOR);
   RNA_def_property_ui_text(prop, "Diffuse Color", "Deliver diffuse color pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_glossy_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_DIRECT);
   RNA_def_property_ui_text(prop, "Glossy Direct", "Deliver glossy direct pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_glossy_indirect", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_INDIRECT);
   RNA_def_property_ui_text(prop, "Glossy Indirect", "Deliver glossy indirect pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_glossy_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_COLOR);
   RNA_def_property_ui_text(prop, "Glossy Color", "Deliver glossy color pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_transmission_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_DIRECT);
   RNA_def_property_ui_text(prop, "Transmission Direct", "Deliver transmission direct pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_transmission_indirect", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_INDIRECT);
   RNA_def_property_ui_text(prop, "Transmission Indirect", "Deliver transmission indirect pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_transmission_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_COLOR);
   RNA_def_property_ui_text(prop, "Transmission Color", "Deliver transmission color pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_subsurface_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_DIRECT);
   RNA_def_property_ui_text(prop, "Subsurface Direct", "Deliver subsurface direct pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_subsurface_indirect", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_INDIRECT);
   RNA_def_property_ui_text(prop, "Subsurface Indirect", "Deliver subsurface indirect pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 
   prop = RNA_def_property(srna, "use_pass_subsurface_color", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_COLOR);
   RNA_def_property_ui_text(prop, "Subsurface Color", "Deliver subsurface color pass");
-  if (scene)
+  if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
-  else
+  }
+  else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  }
 }
 
 static void rna_def_freestyle_modules(BlenderRNA *brna, PropertyRNA *cprop)
