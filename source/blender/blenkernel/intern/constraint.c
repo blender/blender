@@ -1404,8 +1404,9 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
     mul_m4_m4m4(cob->matrix, ct->matrix, obmat);
 
     /* un-apply scaling caused by path */
-    if ((data->followflag & FOLLOWPATH_RADIUS) ==
-        0) { /* XXX - assume that scale correction means that radius will have some scale error in it - Campbell */
+    if ((data->followflag & FOLLOWPATH_RADIUS) == 0) {
+      /* XXX: Assume that scale correction means that radius
+       * will have some scale error in it - Campbell. */
       float obsize[3];
 
       mat4_to_size(obsize, cob->matrix);

@@ -145,14 +145,18 @@ typedef struct IDRemap {
   Main *bmain; /* Only used to trigger depsgraph updates in the right bmain. */
   ID *old_id;
   ID *new_id;
-  ID *id; /* The ID in which we are replacing old_id by new_id usages. */
+  /** The ID in which we are replacing old_id by new_id usages. */
+  ID *id;
   short flag;
 
   /* 'Output' data. */
   short status;
-  int skipped_direct; /* Number of direct usecases that could not be remapped (e.g.: obdata when in edit mode). */
-  int skipped_indirect;   /* Number of indirect usecases that could not be remapped. */
-  int skipped_refcounted; /* Number of skipped usecases that refcount the datablock. */
+  /** Number of direct usecases that could not be remapped (e.g.: obdata when in edit mode). */
+  int skipped_direct;
+  /** Number of indirect usecases that could not be remapped. */
+  int skipped_indirect;
+  /** Number of skipped usecases that refcount the datablock. */
+  int skipped_refcounted;
 } IDRemap;
 
 /* IDRemap->flag enums defined in BKE_library.h */

@@ -5250,7 +5250,9 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 #  if 0 /* TODO */
     {DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
 #  endif
-#  if 0 /* XXX When SkinModifier is enabled, it seems to erase its own CD_MVERT_SKIN layer from final DM :( */
+  /* XXX When SkinModifier is enabled,
+   * it seems to erase its own CD_MVERT_SKIN layer from final DM :( */
+#  if 0
     {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #  endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},

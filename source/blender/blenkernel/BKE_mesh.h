@@ -325,22 +325,25 @@ void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
  * References a contiguous loop-fan with normal offset vars.
  */
 typedef struct MLoopNorSpace {
-  float vec_lnor[3];  /* Automatically computed loop normal. */
-  float vec_ref[3];   /* Reference vector, orthogonal to vec_lnor. */
-  float vec_ortho[3]; /* Third vector, orthogonal to vec_lnor and vec_ref. */
-  float
-      ref_alpha; /* Reference angle, around vec_ortho, in ]0, pi] range (0.0 marks that space as invalid). */
-  float
-      ref_beta; /* Reference angle, around vec_lnor, in ]0, 2pi] range (0.0 marks that space as invalid). */
-  /* All loops using this lnor space (i.e. smooth fan of loops),
+  /** Automatically computed loop normal. */
+  float vec_lnor[3];
+  /** Reference vector, orthogonal to vec_lnor. */
+  float vec_ref[3];
+  /** Third vector, orthogonal to vec_lnor and vec_ref. */
+  float vec_ortho[3];
+  /** Reference angle, around vec_ortho, in ]0, pi] range (0.0 marks that space as invalid). */
+  float ref_alpha;
+  /** Reference angle, around vec_lnor, in ]0, 2pi] range (0.0 marks that space as invalid). */
+  float ref_beta;
+  /** All loops using this lnor space (i.e. smooth fan of loops),
    * as (depending on owning MLoopNorSpaceArrary.data_type):
    *     - Indices (uint_in_ptr), or
    *     - BMLoop pointers. */
   struct LinkNode *loops;
   char flags;
 
-  void *
-      user_data; /* To be used for extended processing related to loop normal spaces (aka smooth fans). */
+  /** To be used for extended processing related to loop normal spaces (aka smooth fans). */
+  void *user_data;
 } MLoopNorSpace;
 /**
  * MLoopNorSpace.flags

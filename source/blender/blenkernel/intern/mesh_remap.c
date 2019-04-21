@@ -445,13 +445,16 @@ static int mesh_remap_interp_poly_data_get(const MPoly *mp,
   return sources_num;
 }
 
-/* Little helper when dealing with source islands */
+/** Little helper when dealing with source islands */
 typedef struct IslandResult {
-  float
-      factor; /* A factor, based on which best island for a given set of elements will be selected. */
-  int index_src;      /* Index of the source. */
-  float hit_dist;     /* The actual hit distance. */
-  float hit_point[3]; /* The hit point, if relevant. */
+  /** A factor, based on which best island for a given set of elements will be selected. */
+  float factor;
+  /** Index of the source. */
+  int index_src;
+  /** The actual hit distance. */
+  float hit_dist;
+  /** The hit point, if relevant. */
+  float hit_point[3];
 } IslandResult;
 
 /* Note about all bvh/raycasting stuff below:

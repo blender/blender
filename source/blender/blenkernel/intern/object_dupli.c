@@ -66,9 +66,10 @@
 
 typedef struct DupliContext {
   Depsgraph *depsgraph;
-  Collection
-      *collection; /* XXX child objects are selected from this group if set, could be nicer */
-  Object *obedit;  /* Only to check if the object is in edit-mode. */
+  /** XXX child objects are selected from this group if set, could be nicer. */
+  Collection *collection;
+  /** Only to check if the object is in edit-mode. */
+  Object *obedit;
 
   Scene *scene;
   ViewLayer *view_layer;
@@ -80,7 +81,7 @@ typedef struct DupliContext {
 
   const struct DupliGenerator *gen;
 
-  /* result containers */
+  /** Result containers. */
   ListBase *duplilist; /* legacy doubly-linked list */
 } DupliContext;
 

@@ -92,38 +92,64 @@ typedef struct EEVEE_LightBake {
   struct Main *bmain;
   EEVEE_ViewLayerData *sldata;
 
-  LightProbe **probe;       /* Current probe being rendered. */
-  GPUTexture *rt_color;     /* Target cube color texture. */
-  GPUTexture *rt_depth;     /* Target cube depth texture. */
-  GPUFrameBuffer *rt_fb[6]; /* Target cube framebuffers. */
-  GPUFrameBuffer *store_fb; /* Storage framebuffer. */
-  int rt_res;               /* Cube render target resolution. */
+  /** Current probe being rendered. */
+  LightProbe **probe;
+  /** Target cube color texture. */
+  GPUTexture *rt_color;
+  /** Target cube depth texture. */
+  GPUTexture *rt_depth;
+  /** Target cube framebuffers. */
+  GPUFrameBuffer *rt_fb[6];
+  /** Storage framebuffer. */
+  GPUFrameBuffer *store_fb;
+  /** Cube render target resolution. */
+  int rt_res;
 
   /* Shared */
-  int layer;                       /* Target layer to store the data to. */
-  float samples_ct, invsamples_ct; /* Sample count for the convolution. */
-  float lod_factor;                /* Sampling bias during convolution step. */
-  float lod_max;                   /* Max cubemap LOD to sample when convolving. */
-  int cube_len, grid_len;          /* Number of probes to render + world probe. */
+  /** Target layer to store the data to. */
+  int layer;
+  /** Sample count for the convolution. */
+  float samples_ct, invsamples_ct;
+  /** Sampling bias during convolution step. */
+  float lod_factor;
+  /** Max cubemap LOD to sample when convolving. */
+  float lod_max;
+  /** Number of probes to render + world probe. */
+  int cube_len, grid_len;
 
   /* Irradiance grid */
-  EEVEE_LightGrid *grid;       /* Current probe being rendered (UBO data). */
-  int irr_cube_res;            /* Target cubemap at MIP 0. */
-  int irr_size[3];             /* Size of the irradiance texture. */
-  int total_irr_samples;       /* Total for all grids */
-  int grid_sample;             /* Nth sample of the current grid being rendered. */
-  int grid_sample_len;         /* Total number of samples for the current grid. */
-  int grid_curr;               /* Nth grid in the cache being rendered. */
-  int bounce_curr, bounce_len; /* The current light bounce being evaluated. */
-  float vis_res;               /* Resolution of the Visibility shadowmap. */
-  GPUTexture *grid_prev;       /* Result of previous light bounce. */
-  LightProbe **grid_prb;       /* Pointer to the id.data of the probe object. */
+  /** Current probe being rendered (UBO data). */
+  EEVEE_LightGrid *grid;
+  /** Target cubemap at MIP 0. */
+  int irr_cube_res;
+  /** Size of the irradiance texture. */
+  int irr_size[3];
+  /** Total for all grids */
+  int total_irr_samples;
+  /** Nth sample of the current grid being rendered. */
+  int grid_sample;
+  /** Total number of samples for the current grid. */
+  int grid_sample_len;
+  /** Nth grid in the cache being rendered. */
+  int grid_curr;
+  /** The current light bounce being evaluated. */
+  int bounce_curr, bounce_len;
+  /** Resolution of the Visibility shadowmap. */
+  float vis_res;
+  /** Result of previous light bounce. */
+  GPUTexture *grid_prev;
+  /** Pointer to the id.data of the probe object. */
+  LightProbe **grid_prb;
 
   /* Reflection probe */
-  EEVEE_LightProbe *cube; /* Current probe being rendered (UBO data). */
-  int ref_cube_res;       /* Target cubemap at MIP 0. */
-  int cube_offset;        /* Index of the current cube. */
-  LightProbe **cube_prb;  /* Pointer to the id.data of the probe object. */
+  /** Current probe being rendered (UBO data). */
+  EEVEE_LightProbe *cube;
+  /** Target cubemap at MIP 0. */
+  int ref_cube_res;
+  /** Index of the current cube. */
+  int cube_offset;
+  /** Pointer to the id.data of the probe object. */
+  LightProbe **cube_prb;
 
   /* Dummy Textures */
   struct GPUTexture *dummy_color, *dummy_depth;
@@ -133,15 +159,18 @@ typedef struct EEVEE_LightBake {
   short *stop, *do_update;
   float *progress;
 
-  bool resource_only; /* For only handling the resources. */
+  /** For only handling the resources. */
+  bool resource_only;
   bool own_resources;
-  bool
-      own_light_cache; /* If the lightcache was created for baking, it's first owned by the baker. */
-  int delay; /* ms. delay the start of the baking to not slowdown interactions (TODO remove) */
-  int frame; /* Scene frame to bake. */
+  /** If the lightcache was created for baking, it's first owned by the baker. */
+  bool own_light_cache;
+  /** ms. delay the start of the baking to not slowdown interactions (TODO remove) */
+  int delay;
+  /** Scene frame to bake. */
+  int frame;
 
-  void *gl_context,
-      *gpu_context; /* If running in parallel (in a separate thread), use this context. */
+  /** If running in parallel (in a separate thread), use this context. */
+  void *gl_context, *gpu_context;
 
   ThreadMutex *mutex;
 } EEVEE_LightBake;

@@ -617,9 +617,9 @@ static void draw_clipping_setup_from_view(void)
     float F = -1.0f, N;          /* square distance of far and near point to origin */
     float f, n; /* distance of far and near point to z axis. f is always > 0 but n can be < 0 */
     float e, s; /* far and near clipping distance (<0) */
-    float
-        c; /* slope of center line = distance of far clipping center to z axis / far clipping distance */
-    float z; /* projection of sphere center on z axis (<0) */
+    float c;    /* slope of center line = distance of far clipping center
+                 * to z axis / far clipping distance. */
+    float z;    /* projection of sphere center on z axis (<0) */
 
     /* Find farthest corner and center of far clip plane. */
     float corner[3] = {1.0f, 1.0f, 1.0f}; /* in clip space */
