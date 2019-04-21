@@ -86,11 +86,11 @@ bool BLT_lang_is_ime_supported(void);
 
 /* Default, void context.
  * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
- * NOTE: We translate BLT_I18NCONTEXT_DEFAULT as BLT_I18NCONTEXT_DEFAULT_BPY in Python, as we can't use "natural"
- *       None value in rna string properties... :/
+ * NOTE: We translate BLT_I18NCONTEXT_DEFAULT as BLT_I18NCONTEXT_DEFAULT_BPY in Python,
+ *       as we can't use "natural" None value in rna string properties... :/
  *       The void string "" is also interpreted as BLT_I18NCONTEXT_DEFAULT.
- *       For perf reason, we only use the first char to detect this context, so other contexts should never start
- *       with the same char!
+ *       For perf reason, we only use the first char to detect this context,
+ *       so other contexts should never start with the same char!
  */
 #define BLT_I18NCONTEXT_DEFAULT NULL
 #define BLT_I18NCONTEXT_DEFAULT_BPYRNA "*"
@@ -102,7 +102,8 @@ bool BLT_lang_is_ime_supported(void);
  * easy to get collisions with other areas...). */
 #define BLT_I18NCONTEXT_UI_EVENTS "UI_Events_KeyMaps"
 
-/* Mark the msgid applies to several elements (needed in some cases, as english adjectives have no plural mark :( ). */
+/* Mark the msgid applies to several elements
+ * (needed in some cases, as english adjectives have no plural mark :( ). */
 #define BLT_I18NCONTEXT_PLURAL "Plural"
 
 /* ID-types contexts. */

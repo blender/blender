@@ -198,8 +198,8 @@ void BLF_buffer(int fontid,
 /* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
 
-/* Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
- * it's not necessary set both buffer, NULL is valid here.
+/* Draw the string into the buffer, this function draw in both buffer,
+ * float and unsigned char _BUT_ it's not necessary set both buffer, NULL is valid here.
  */
 void BLF_draw_buffer_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
     ATTR_NONNULL(2);

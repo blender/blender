@@ -24,8 +24,10 @@
  *
  * Generate binary message catalog from textual translation description.
  *
- * This program converts a textual Uniforum-style message catalog (.po file) into a binary GNU catalog (.mo file).
- * This is essentially the same function as the GNU msgfmt program, however, it is a simpler implementation.
+ * This program converts a textual Uniforum-style message catalog (.po file)
+ * into a binary GNU catalog (.mo file).
+ * This is essentially the same function as the GNU msgfmt program,
+ * however, it is a simpler implementation.
  *
  * Usage: msgfmt input.po output.po
  */
@@ -206,7 +208,8 @@ static char *generate(GHash *messages, size_t *r_output_size)
     tot_vals_len += off->val_len + 1;
   }
 
-  /* The header is 7 32-bit unsigned integers. then comes the keys index table, then the values index table. */
+  /* The header is 7 32-bit unsigned integers.
+   * Then comes the keys index table, then the values index table. */
   const uint32_t idx_keystart = 7 * 4;
   const uint32_t idx_valstart = idx_keystart + 8 * num_keys;
   /* We don't use hash tables, so the keys start right after the index tables. */

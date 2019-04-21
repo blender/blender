@@ -118,7 +118,8 @@ static void fill_locales(void)
   /* And now, build locales and locale_menu! */
   locales_menu = MEM_callocN(num_locales_menu * sizeof(EnumPropertyItem), __func__);
   line = lines;
-  /* Do not allocate locales with zero-sized mem, as LOCALE macro uses NULL locales as invalid marker! */
+  /* Do not allocate locales with zero-sized mem,
+   * as LOCALE macro uses NULL locales as invalid marker! */
   if (num_locales > 0) {
     locales = MEM_callocN(num_locales * sizeof(char *), __func__);
     while (line) {
@@ -155,7 +156,8 @@ static void fill_locales(void)
             /* The DEFAULT/Automatic item... */
             if (BLI_strnlen(loc, 2)) {
               locales[id] = "";
-              /* Keep this tip in sync with the one in rna_userdef (rna_enum_language_default_items). */
+              /* Keep this tip in sync with the one in rna_userdef
+               * (rna_enum_language_default_items). */
               locales_menu[idx].description = BLI_strdup(
                   "Automatically choose system's defined language "
                   "if available, or fall-back to English");
@@ -307,10 +309,12 @@ const char *BLT_lang_get(void)
 #undef LOCALE
 #undef ULANGUAGE
 
-/* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
+/* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.
+ * if there is no variant,
  * *variant and *language_variant will always be NULL).
  * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
- * NOTE: Keep that one always available, you never know, may become useful even in no-WITH_INTERNATIONAL context...
+ * NOTE: Keep that one always available, you never know,
+ * may become useful even in no-WITH_INTERNATIONAL context...
  */
 void BLT_lang_locale_explode(const char *locale,
                              char **language,
