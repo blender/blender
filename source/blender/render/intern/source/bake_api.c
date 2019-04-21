@@ -139,8 +139,9 @@ static void store_bake_pixel(void *handle, int x, int y, float u, float v)
 void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, char *mask)
 {
   size_t i;
-  if (!mask)
+  if (!mask) {
     return;
+  }
 
   /* only extend to pixels outside the mask area */
   for (i = 0; i < num_pixels; i++) {
@@ -155,9 +156,10 @@ void RE_bake_margin(ImBuf *ibuf, char *mask, const int margin)
   /* margin */
   IMB_filter_extend(ibuf, mask, margin);
 
-  if (ibuf->planes != R_IMF_PLANES_RGBA)
+  if (ibuf->planes != R_IMF_PLANES_RGBA) {
     /* clear alpha added by filtering */
     IMB_rectfill_alpha(ibuf, 1.0f);
+  }
 }
 
 /**
@@ -690,8 +692,9 @@ void RE_bake_pixels_populate(Mesh *me,
     mloopuv = CustomData_get_layer_n(&me->ldata, CD_MTFACE, uv_id);
   }
 
-  if (mloopuv == NULL)
+  if (mloopuv == NULL) {
     return;
+  }
 
   bd.pixel_array = pixel_array;
   bd.zspan = MEM_callocN(sizeof(ZSpan) * bake_images->size, "bake zspan");
@@ -757,8 +760,9 @@ void RE_bake_pixels_populate(Mesh *me,
 static void normal_uncompress(float out[3], const float in[3])
 {
   int i;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     out[i] = 2.0f * in[i] - 1.0f;
+  }
 }
 
 static void normal_compress(float out[3],
@@ -849,10 +853,12 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     offset = i * depth;
 
     if (primitive_id == -1) {
-      if (depth == 4)
+      if (depth == 4) {
         copy_v4_fl4(&result[offset], 0.5f, 0.5f, 1.0f, 1.0f);
-      else
+      }
+      else {
         copy_v3_fl3(&result[offset], 0.5f, 0.5f, 1.0f);
+      }
       continue;
     }
 
@@ -862,10 +868,12 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     for (j = 0; j < 3; j++) {
       const TSpace *ts;
 
-      if (is_smooth)
+      if (is_smooth) {
         normal_short_to_float_v3(normals[j], triangle->mverts[j]->no);
-      else
+      }
+      else {
         normal[j] = triangle->normal[j];
+      }
 
       ts = triangle->tspace[j];
       copy_v3_v3(tangents[j], ts->tangent);
@@ -877,8 +885,9 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     w = 1.0f - u - v;
 
     /* normal */
-    if (is_smooth)
+    if (is_smooth) {
       interp_barycentric_tri_v3(normals, u, v, normal);
+    }
 
     /* tangent */
     interp_barycentric_tri_v3(tangents, u, v, tangent);
@@ -936,8 +945,9 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
     size_t offset;
     float nor[3];
 
-    if (pixel_array[i].primitive_id == -1)
+    if (pixel_array[i].primitive_id == -1) {
       continue;
+    }
 
     offset = i * depth;
     normal_uncompress(nor, &result[offset]);
@@ -963,8 +973,9 @@ void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
     size_t offset;
     float nor[3];
 
-    if (pixel_array[i].primitive_id == -1)
+    if (pixel_array[i].primitive_id == -1) {
       continue;
+    }
 
     offset = i * depth;
     normal_uncompress(nor, &result[offset]);
@@ -987,10 +998,12 @@ void RE_bake_ibuf_clear(Image *image, const bool is_tangent)
   ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
   BLI_assert(ibuf);
 
-  if (is_tangent)
+  if (is_tangent) {
     IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
-  else
+  }
+  else {
     IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+  }
 
   BKE_image_release_ibuf(image, ibuf, lock);
 }

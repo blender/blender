@@ -56,10 +56,12 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 void zbuf_free_span(ZSpan *zspan)
 {
   if (zspan) {
-    if (zspan->span1)
+    if (zspan->span1) {
       MEM_freeN(zspan->span1);
-    if (zspan->span2)
+    }
+    if (zspan->span2) {
       MEM_freeN(zspan->span2);
+    }
     zspan->span1 = zspan->span2 = NULL;
   }
 }
@@ -91,18 +93,22 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   my0 = ceil(minv[1]);
   my2 = floor(maxv[1]);
 
-  if (my2 < 0 || my0 >= zspan->recty)
+  if (my2 < 0 || my0 >= zspan->recty) {
     return;
+  }
 
   /* clip top */
-  if (my2 >= zspan->recty)
+  if (my2 >= zspan->recty) {
     my2 = zspan->recty - 1;
+  }
   /* clip bottom */
-  if (my0 < 0)
+  if (my0 < 0) {
     my0 = 0;
+  }
 
-  if (my0 > my2)
+  if (my0 > my2) {
     return;
+  }
   /* if (my0>my2) should still fill in, that way we get spans that skip nicely */
 
   xx1 = maxv[1] - minv[1];
@@ -136,10 +142,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp1 == NULL || zspan->maxp1[1] < maxv[1]) {
       zspan->maxp1 = maxv;
     }
-    if (my0 < zspan->miny1)
+    if (my0 < zspan->miny1) {
       zspan->miny1 = my0;
-    if (my2 > zspan->maxy1)
+    }
+    if (my2 > zspan->maxy1) {
       zspan->maxy1 = my2;
+    }
   }
   else {
     //      printf("right span my0 %d my2 %d\n", my0, my2);
@@ -149,10 +157,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp2 == NULL || zspan->maxp2[1] < maxv[1]) {
       zspan->maxp2 = maxv;
     }
-    if (my0 < zspan->miny2)
+    if (my0 < zspan->miny2) {
       zspan->miny2 = my0;
-    if (my2 > zspan->maxy2)
+    }
+    if (my2 > zspan->maxy2) {
       zspan->maxy2 = my2;
+    }
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
@@ -189,15 +199,17 @@ void zspan_scanconvert(ZSpan *zspan,
   zbuf_add_to_span(zspan, v3, v1);
 
   /* clipped */
-  if (zspan->minp2 == NULL || zspan->maxp2 == NULL)
+  if (zspan->minp2 == NULL || zspan->maxp2 == NULL) {
     return;
+  }
 
   my0 = max_ii(zspan->miny1, zspan->miny2);
   my2 = min_ii(zspan->maxy1, zspan->maxy2);
 
   //  printf("my %d %d\n", my0, my2);
-  if (my2 < my0)
+  if (my2 < my0) {
     return;
+  }
 
   /* ZBUF DX DY, in floats still */
   x1 = v1[0] - v2[0];
@@ -212,8 +224,9 @@ void zspan_scanconvert(ZSpan *zspan,
   y0 = z1 * x2 - x1 * z2;
   z0 = x1 * y2 - y1 * x2;
 
-  if (z0 == 0.0f)
+  if (z0 == 0.0f) {
     return;
+  }
 
   xx1 = (x0 * v1[0] + y0 * v1[1]) / z0 + 1.0f;
   uxd = -(double)x0 / (double)z0;
@@ -241,10 +254,12 @@ void zspan_scanconvert(ZSpan *zspan,
     sn2 = floor(max_ff(*span1, *span2));
     sn1++;
 
-    if (sn2 >= rectx)
+    if (sn2 >= rectx) {
       sn2 = rectx - 1;
-    if (sn1 < 0)
+    }
+    if (sn1 < 0) {
       sn1 = 0;
+    }
 
     u = (((double)sn1 * uxd) + uy0) - (i * uyd);
     v = (((double)sn1 * vxd) + vy0) - (i * vyd);

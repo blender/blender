@@ -121,17 +121,21 @@ static int blend(Tex *tex, const float texvec[3], TexResult *texres)
   }
   else if (tex->stype == TEX_QUAD) { /* quad */
     texres->tin = (1.0f + x) / 2.0f;
-    if (texres->tin < 0.0f)
+    if (texres->tin < 0.0f) {
       texres->tin = 0.0f;
-    else
+    }
+    else {
       texres->tin *= texres->tin;
+    }
   }
   else if (tex->stype == TEX_EASE) { /* ease */
     texres->tin = (1.0f + x) / 2.0f;
-    if (texres->tin <= 0.0f)
+    if (texres->tin <= 0.0f) {
       texres->tin = 0.0f;
-    else if (texres->tin >= 1.0f)
+    }
+    else if (texres->tin >= 1.0f) {
       texres->tin = 1.0f;
+    }
     else {
       t = texres->tin * texres->tin;
       texres->tin = (3.0f * t - 2.0f * t * texres->tin);
@@ -145,10 +149,12 @@ static int blend(Tex *tex, const float texvec[3], TexResult *texres)
   }
   else { /* sphere TEX_SPHERE */
     texres->tin = 1.0f - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
-    if (texres->tin < 0.0f)
+    if (texres->tin < 0.0f) {
       texres->tin = 0.0f;
-    if (tex->stype == TEX_HALO)
+    }
+    if (tex->stype == TEX_HALO) {
       texres->tin *= texres->tin; /* halo */
+    }
   }
 
   BRICONT;
@@ -244,8 +250,9 @@ static float tex_saw(float a)
 
   int n = (int)(a / b);
   a -= n * b;
-  if (a < 0)
+  if (a < 0) {
     a += b;
+  }
   return a / b;
 }
 
@@ -274,8 +281,9 @@ static float wood_int(Tex *tex, float x, float y, float z)
   waveform[1] = tex_saw;
   waveform[2] = tex_tri;
 
-  if ((wf > TEX_TRI) || (wf < TEX_SIN))
+  if ((wf > TEX_TRI) || (wf < TEX_SIN)) {
     wf = 0; /* check to be sure noisebasis2 is initialized ahead of time */
+  }
 
   if (wt == TEX_BAND) {
     wi = waveform[wf]((x + y + z) * 10.0f);
@@ -329,8 +337,9 @@ static float marble_int(Tex *tex, float x, float y, float z)
   waveform[1] = tex_saw;
   waveform[2] = tex_tri;
 
-  if ((wf > TEX_TRI) || (wf < TEX_SIN))
+  if ((wf > TEX_TRI) || (wf < TEX_SIN)) {
     wf = 0; /* check to be sure noisebasis2 isn't initialized ahead of time */
+  }
 
   n = 5.0f * (x + y + z);
 
@@ -469,8 +478,9 @@ static int stucci(Tex *tex, const float texvec[3], TexResult *texres)
 
   ofs = tex->turbul / 200.0f;
 
-  if (tex->stype)
+  if (tex->stype) {
     ofs *= (b2 * b2);
+  }
   nor[0] = BLI_gNoise(tex->noisesize,
                       texvec[0] + ofs,
                       texvec[1],
@@ -506,11 +516,13 @@ static int stucci(Tex *tex, const float texvec[3], TexResult *texres)
     retval |= TEX_NOR;
   }
 
-  if (tex->stype == TEX_WALLOUT)
+  if (tex->stype == TEX_WALLOUT) {
     texres->tin = 1.0f - texres->tin;
+  }
 
-  if (texres->tin < 0.0f)
+  if (texres->tin < 0.0f) {
     texres->tin = 0.0f;
+  }
 
   return retval;
 }
@@ -523,10 +535,12 @@ static float mg_mFractalOrfBmTex(Tex *tex, const float texvec[3], TexResult *tex
   int rv = TEX_INT;
   float (*mgravefunc)(float, float, float, float, float, float, int);
 
-  if (tex->stype == TEX_MFRACTAL)
+  if (tex->stype == TEX_MFRACTAL) {
     mgravefunc = mg_MultiFractal;
-  else
+  }
+  else {
     mgravefunc = mg_fBm;
+  }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
                                               texvec[1],
@@ -576,10 +590,12 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, const float texvec[3], TexResult *
   int rv = TEX_INT;
   float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
 
-  if (tex->stype == TEX_RIDGEDMF)
+  if (tex->stype == TEX_RIDGEDMF) {
     mgravefunc = mg_RidgedMultiFractal;
-  else
+  }
+  else {
     mgravefunc = mg_HybridMultiFractal;
+  }
 
   texres->tin = tex->ns_outscale * mgravefunc(texvec[0],
                                               texvec[1],
@@ -737,8 +753,9 @@ static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
   float aw3 = fabsf(tex->vn_w3);
   float aw4 = fabsf(tex->vn_w4);
   float sc = (aw1 + aw2 + aw3 + aw4);
-  if (sc != 0.f)
+  if (sc != 0.f) {
     sc = tex->ns_outscale / sc;
+  }
 
   voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
   texres->tin = sc * fabsf(tex->vn_w1 * da[0] + tex->vn_w2 * da[1] + tex->vn_w3 * da[2] +
@@ -764,12 +781,15 @@ static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
     texres->tb += aw4 * ca[2];
     if (tex->vn_coltype >= 2) {
       float t1 = (da[1] - da[0]) * 10;
-      if (t1 > 1)
+      if (t1 > 1) {
         t1 = 1;
-      if (tex->vn_coltype == 3)
+      }
+      if (tex->vn_coltype == 3) {
         t1 *= texres->tin;
-      else
+      }
+      else {
         t1 *= sc;
+      }
       texres->tr *= t1;
       texres->tg *= t1;
       texres->tb *= t1;
@@ -895,10 +915,12 @@ static void do_2d_mapping(
       fx = (texvec[0] + 1.0f) / 2.0f;
       fy = (texvec[1] + 1.0f) / 2.0f;
     }
-    else if (wrap == MTEX_TUBE)
+    else if (wrap == MTEX_TUBE) {
       map_to_tube(&fx, &fy, texvec[0], texvec[1], texvec[2]);
-    else if (wrap == MTEX_SPHERE)
+    }
+    else if (wrap == MTEX_SPHERE) {
       map_to_sphere(&fx, &fy, texvec[0], texvec[1], texvec[2]);
+    }
     else {
       cubemap_glob(n, texvec[0], texvec[1], texvec[2], &fx, &fy);
     }
@@ -908,29 +930,35 @@ static void do_2d_mapping(
       if (tex->xrepeat > 1) {
         float origf = fx *= tex->xrepeat;
 
-        if (fx > 1.0f)
+        if (fx > 1.0f) {
           fx -= (int)(fx);
-        else if (fx < 0.0f)
+        }
+        else if (fx < 0.0f) {
           fx += 1 - (int)(fx);
+        }
 
         if (tex->flag & TEX_REPEAT_XMIR) {
           int orig = (int)floor(origf);
-          if (orig & 1)
+          if (orig & 1) {
             fx = 1.0f - fx;
+          }
         }
       }
       if (tex->yrepeat > 1) {
         float origf = fy *= tex->yrepeat;
 
-        if (fy > 1.0f)
+        if (fy > 1.0f) {
           fy -= (int)(fy);
-        else if (fy < 0.0f)
+        }
+        else if (fy < 0.0f) {
           fy += 1 - (int)(fy);
+        }
 
         if (tex->flag & TEX_REPEAT_YMIR) {
           int orig = (int)floor(origf);
-          if (orig & 1)
+          if (orig & 1) {
             fy = 1.0f - fy;
+          }
         }
       }
     }
@@ -994,10 +1022,12 @@ static void do_2d_mapping(
         areaflag = 1;
       }
       else {
-        if (wrap == MTEX_TUBE)
+        if (wrap == MTEX_TUBE) {
           map_to_tube(&fx, &fy, texvec[0], texvec[1], texvec[2]);
-        else
+        }
+        else {
           map_to_sphere(&fx, &fy, texvec[0], texvec[1], texvec[2]);
+        }
         dxt[0] /= 2.0f;
         dxt[1] /= 2.0f;
         dyt[0] /= 2.0f;
@@ -1049,15 +1079,18 @@ static void do_2d_mapping(
 
         /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
         if (tex->texfilter == TXF_BOX) {
-          if (fx > 1.0f)
+          if (fx > 1.0f) {
             fx -= (int)(fx);
-          else if (fx < 0.0f)
+          }
+          else if (fx < 0.0f) {
             fx += 1 - (int)(fx);
+          }
 
           if (tex->flag & TEX_REPEAT_XMIR) {
             int orig = (int)floor(origf);
-            if (orig & 1)
+            if (orig & 1) {
               fx = 1.0f - fx;
+            }
           }
         }
 
@@ -1071,20 +1104,24 @@ static void do_2d_mapping(
 
         /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
         if (tex->texfilter == TXF_BOX) {
-          if (fy > 1.0f)
+          if (fy > 1.0f) {
             fy -= (int)(fy);
-          else if (fy < 0.0f)
+          }
+          else if (fy < 0.0f) {
             fy += 1 - (int)(fy);
+          }
 
           if (tex->flag & TEX_REPEAT_YMIR) {
             int orig = (int)floor(origf);
-            if (orig & 1)
+            if (orig & 1) {
               fy = 1.0f - fy;
+            }
           }
         }
 
-        if (max < tex->yrepeat)
+        if (max < tex->yrepeat) {
           max = tex->yrepeat;
+        }
 
         dxt[1] *= tex->yrepeat;
         dyt[1] *= tex->yrepeat;
@@ -1175,11 +1212,13 @@ static int multitex(Tex *tex,
         retval = texnoise(tex, texres, thread);
         break;
       case TEX_IMAGE:
-        if (osatex)
+        if (osatex) {
           retval = imagewraposa(
               tex, tex->ima, NULL, texvec, dxt, dyt, texres, pool, skip_load_image);
-        else
+        }
+        else {
           retval = imagewrap(tex, tex->ima, NULL, texvec, texres, pool, skip_load_image);
+        }
         if (tex->ima) {
           BKE_image_tag_time(tex->ima);
         }
@@ -1263,8 +1302,9 @@ static int multitex_nodes_intern(Tex *tex,
     return 0;
   }
 
-  if (mtex)
+  if (mtex) {
     which_output = mtex->which_output;
+  }
 
   if (tex->type == TEX_IMAGE) {
     int rgbnor;
@@ -1490,18 +1530,24 @@ void texture_rgb_blend(
       fact *= facg;
       facm = 1.0f - fact;
 
-      if (out[0] < 0.5f)
+      if (out[0] < 0.5f) {
         in[0] = out[0] * (facm + 2.0f * fact * tex[0]);
-      else
+      }
+      else {
         in[0] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[0])) * (1.0f - out[0]);
-      if (out[1] < 0.5f)
+      }
+      if (out[1] < 0.5f) {
         in[1] = out[1] * (facm + 2.0f * fact * tex[1]);
-      else
+      }
+      else {
         in[1] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[1])) * (1.0f - out[1]);
-      if (out[2] < 0.5f)
+      }
+      if (out[2] < 0.5f) {
         in[2] = out[2] * (facm + 2.0f * fact * tex[2]);
-      else
+      }
+      else {
         in[2] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[2])) * (1.0f - out[2]);
+      }
       break;
 
     case MTEX_SUB:
@@ -1518,12 +1564,15 @@ void texture_rgb_blend(
       fact *= facg;
       facm = 1.0f - fact;
 
-      if (tex[0] != 0.0f)
+      if (tex[0] != 0.0f) {
         in[0] = facm * out[0] + fact * out[0] / tex[0];
-      if (tex[1] != 0.0f)
+      }
+      if (tex[1] != 0.0f) {
         in[1] = facm * out[1] + fact * out[1] / tex[1];
-      if (tex[2] != 0.0f)
+      }
+      if (tex[2] != 0.0f) {
         in[2] = facm * out[2] + fact * out[2] / tex[2];
+      }
 
       break;
 
@@ -1594,8 +1643,9 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
   fact *= facg;
   facm = 1.0f - fact;
-  if (flip)
+  if (flip) {
     SWAP(float, fact, facm);
+  }
 
   switch (blendtype) {
     case MTEX_BLEND:
@@ -1614,10 +1664,12 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
     case MTEX_OVERLAY:
       facm = 1.0f - facg;
-      if (out < 0.5f)
+      if (out < 0.5f) {
         in = out * (facm + 2.0f * fact * tex);
-      else
+      }
+      else {
         in = 1.0f - (facm + 2.0f * fact * (1.0f - tex)) * (1.0f - out);
+      }
       break;
 
     case MTEX_SUB:
@@ -1628,8 +1680,9 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
       break;
 
     case MTEX_DIV:
-      if (tex != 0.0f)
+      if (tex != 0.0f) {
         in = facm * out + fact * out / tex;
+      }
       break;
 
     case MTEX_DIFF:
@@ -1642,10 +1695,12 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 
     case MTEX_LIGHT:
       col = fact * tex;
-      if (col > out)
+      if (col > out) {
         in = col;
-      else
+      }
+      else {
         in = out;
+      }
       break;
 
     case MTEX_SOFT_LIGHT:
@@ -1654,10 +1709,12 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
       break;
 
     case MTEX_LIN_LIGHT:
-      if (tex > 0.5f)
+      if (tex > 0.5f) {
         in = out + fact * (2.0f * (tex - 0.5f));
-      else
+      }
+      else {
         in = out + fact * (2.0f * tex - 1.0f);
+      }
       break;
   }
 
@@ -1684,25 +1741,32 @@ int externtex(const MTex *mtex,
   int rgb;
 
   tex = mtex->tex;
-  if (tex == NULL)
+  if (tex == NULL) {
     return 0;
+  }
   texr.nor = NULL;
 
   /* placement */
-  if (mtex->projx)
+  if (mtex->projx) {
     texvec[0] = mtex->size[0] * (vec[mtex->projx - 1] + mtex->ofs[0]);
-  else
+  }
+  else {
     texvec[0] = mtex->size[0] * (mtex->ofs[0]);
+  }
 
-  if (mtex->projy)
+  if (mtex->projy) {
     texvec[1] = mtex->size[1] * (vec[mtex->projy - 1] + mtex->ofs[1]);
-  else
+  }
+  else {
     texvec[1] = mtex->size[1] * (mtex->ofs[1]);
+  }
 
-  if (mtex->projz)
+  if (mtex->projz) {
     texvec[2] = mtex->size[2] * (vec[mtex->projz - 1] + mtex->ofs[2]);
-  else
+  }
+  else {
     texvec[2] = mtex->size[2] * (mtex->ofs[2]);
+  }
 
   /* texture */
   if (tex->type == TEX_IMAGE) {

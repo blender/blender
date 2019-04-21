@@ -49,12 +49,15 @@
 
 static float filt_quadratic(float x)
 {
-  if (x < 0.0f)
+  if (x < 0.0f) {
     x = -x;
-  if (x < 0.5f)
+  }
+  if (x < 0.5f) {
     return 0.75f - (x * x);
-  if (x < 1.5f)
+  }
+  if (x < 1.5f) {
     return 0.50f * (x - 1.5f) * (x - 1.5f);
+  }
   return 0.0f;
 }
 
@@ -62,13 +65,16 @@ static float filt_cubic(float x)
 {
   float x2 = x * x;
 
-  if (x < 0.0f)
+  if (x < 0.0f) {
     x = -x;
+  }
 
-  if (x < 1.0f)
+  if (x < 1.0f) {
     return 0.5f * x * x2 - x2 + 2.0f / 3.0f;
-  if (x < 2.0f)
+  }
+  if (x < 2.0f) {
     return (2.0f - x) * (2.0f - x) * (2.0f - x) / 6.0f;
+  }
   return 0.0f;
 }
 
@@ -76,12 +82,15 @@ static float filt_catrom(float x)
 {
   float x2 = x * x;
 
-  if (x < 0.0f)
+  if (x < 0.0f) {
     x = -x;
-  if (x < 1.0f)
+  }
+  if (x < 1.0f) {
     return 1.5f * x2 * x - 2.5f * x2 + 1.0f;
-  if (x < 2.0f)
+  }
+  if (x < 2.0f) {
     return -0.5f * x2 * x + 2.5f * x2 - 4.0f * x + 2.0f;
+  }
   return 0.0f;
 }
 
@@ -96,16 +105,21 @@ static float filt_mitchell(float x) /* Mitchell & Netravali's two-param cubic */
   float q2 = (6.0f * b + 30.0f * c) / 6.0f;
   float q3 = (-b - 6.0f * c) / 6.0f;
 
-  if (x < -2.0f)
+  if (x < -2.0f) {
     return 0.0f;
-  if (x < -1.0f)
+  }
+  if (x < -1.0f) {
     return (q0 - x * (q1 - x * (q2 - x * q3)));
-  if (x < 0.0f)
+  }
+  if (x < 0.0f) {
     return (p0 + x * x * (p2 - x * p3));
-  if (x < 1.0f)
+  }
+  if (x < 1.0f) {
     return (p0 + x * x * (p2 + x * p3));
-  if (x < 2.0f)
+  }
+  if (x < 2.0f) {
     return (q0 + x * (q1 + x * (q2 + x * q3)));
+  }
   return 0.0f;
 }
 
@@ -118,13 +132,15 @@ float RE_filter_value(int type, float x)
 
   switch (type) {
     case R_FILTER_BOX:
-      if (x > 1.0f)
+      if (x > 1.0f) {
         return 0.0f;
+      }
       return 1.0f;
 
     case R_FILTER_TENT:
-      if (x > 1.0f)
+      if (x > 1.0f) {
         return 0.0f;
+      }
       return 1.0f - x;
 
     case R_FILTER_GAUSS: {
@@ -278,19 +294,23 @@ void RE_parts_init(Render *re)
     /* ensure we cover the entire picture, so last parts go to end */
     if (xd < xparts - 1) {
       disprect.xmax = disprect.xmin + partx;
-      if (disprect.xmax > xmaxb)
+      if (disprect.xmax > xmaxb) {
         disprect.xmax = xmaxb;
+      }
     }
-    else
+    else {
       disprect.xmax = xmaxb;
+    }
 
     if (yd < yparts - 1) {
       disprect.ymax = disprect.ymin + party;
-      if (disprect.ymax > ymaxb)
+      if (disprect.ymax > ymaxb) {
         disprect.ymax = ymaxb;
+      }
     }
-    else
+    else {
       disprect.ymax = ymaxb;
+    }
 
     rectx = BLI_rcti_size_x(&disprect);
     recty = BLI_rcti_size_y(&disprect);

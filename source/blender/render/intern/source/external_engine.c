@@ -85,8 +85,9 @@ void RE_engines_exit(void)
     BLI_remlink(&R_engines, type);
 
     if (!(type->flag & RE_INTERNAL)) {
-      if (type->ext.free)
+      if (type->ext.free) {
         type->ext.free(type->ext.data);
+      }
 
       MEM_freeN(type);
     }
@@ -106,8 +107,9 @@ RenderEngineType *RE_engines_find(const char *idname)
   RenderEngineType *type;
 
   type = BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
-  if (!type)
+  if (!type) {
     type = BLI_findstring(&R_engines, "BLENDER_EEVEE", offsetof(RenderEngineType, idname));
+  }
 
   return type;
 }
@@ -194,10 +196,12 @@ RenderResult *RE_engine_begin_result(
   CLAMP(w, 0, re->result->rectx);
   CLAMP(h, 0, re->result->recty);
 
-  if (x + w > re->result->rectx)
+  if (x + w > re->result->rectx) {
     w = re->result->rectx - x;
-  if (y + h > re->result->recty)
+  }
+  if (y + h > re->result->recty) {
     h = re->result->recty - y;
+  }
 
   /* allocate a render result */
   disprect.xmin = x;
@@ -229,8 +233,9 @@ RenderResult *RE_engine_begin_result(
 
     pa = get_part_from_result(re, result);
 
-    if (pa)
+    if (pa) {
       pa->status = PART_STATUS_IN_PROGRESS;
+    }
   }
 
   return result;
@@ -291,8 +296,9 @@ void RE_engine_end_result(
         render_result_exr_file_merge(re->result, result, re->viewname);
       }
     }
-    else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW)))
+    else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
       render_result_merge(re->result, result);
+    }
 
     /* draw */
     if (!re->test_break(re->tbh)) {
@@ -317,8 +323,9 @@ bool RE_engine_test_break(RenderEngine *engine)
 {
   Render *re = engine->re;
 
-  if (re)
+  if (re) {
     return re->test_break(re->tbh);
+  }
 
   return 0;
 }
@@ -341,12 +348,15 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
   /* set engine text */
   engine->text[0] = '\0';
 
-  if (stats && stats[0] && info && info[0])
+  if (stats && stats[0] && info && info[0]) {
     BLI_snprintf(engine->text, sizeof(engine->text), "%s | %s", stats, info);
-  else if (info && info[0])
+  }
+  else if (info && info[0]) {
     BLI_strncpy(engine->text, info, sizeof(engine->text));
-  else if (stats && stats[0])
+  }
+  else if (stats && stats[0]) {
     BLI_strncpy(engine->text, stats, sizeof(engine->text));
+  }
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)
@@ -373,10 +383,12 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 {
   Render *re = engine->re;
 
-  if (re)
+  if (re) {
     BKE_report(engine->re->reports, type, msg);
-  else if (engine->reports)
+  }
+  else if (engine->reports) {
     BKE_report(engine->reports, type, msg);
+  }
 }
 
 void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
@@ -412,8 +424,9 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, bool us
 
   /* When using spherical stereo, get camera shift without multiview,
    * leaving stereo to be handled by the engine. */
-  if (use_spherical_stereo)
+  if (use_spherical_stereo) {
     re = NULL;
+  }
 
   return BKE_camera_multiview_shift_x(re ? &re->r : NULL, camera, re->viewname);
 }
@@ -427,8 +440,9 @@ void RE_engine_get_camera_model_matrix(RenderEngine *engine,
 
   /* When using spherical stereo, get model matrix without multiview,
    * leaving stereo to be handled by the engine. */
-  if (use_spherical_stereo)
+  if (use_spherical_stereo) {
     re = NULL;
+  }
 
   BKE_camera_multiview_model_matrix(
       re ? &re->r : NULL, camera, re->viewname, (float(*)[4])r_modelmat);
@@ -593,8 +607,9 @@ bool RE_bake_engine(Render *re,
     engine->depsgraph = depsgraph;
 
     /* update is only called so we create the engine.session */
-    if (type->update)
+    if (type->update) {
       type->update(engine, re->main, engine->depsgraph);
+    }
 
     type->bake(engine,
                engine->depsgraph,
@@ -625,8 +640,9 @@ bool RE_bake_engine(Render *re,
   RE_parts_free(re);
   BLI_rw_mutex_unlock(&re->partsmutex);
 
-  if (BKE_reports_contain(re->reports, RPT_ERROR))
+  if (BKE_reports_contain(re->reports, RPT_ERROR)) {
     G.is_break = true;
+  }
 
   return true;
 }
@@ -640,14 +656,18 @@ int RE_engine_render(Render *re, int do_all)
   bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
   /* verify if we can render */
-  if (!type->render)
+  if (!type->render) {
     return 0;
-  if ((re->r.scemode & R_BUTS_PREVIEW) && !(type->flag & RE_USE_PREVIEW))
+  }
+  if ((re->r.scemode & R_BUTS_PREVIEW) && !(type->flag & RE_USE_PREVIEW)) {
     return 0;
-  if (do_all && !(type->flag & RE_USE_POSTPROCESS))
+  }
+  if (do_all && !(type->flag & RE_USE_POSTPROCESS)) {
     return 0;
-  if (!do_all && (type->flag & RE_USE_POSTPROCESS))
+  }
+  if (!do_all && (type->flag & RE_USE_POSTPROCESS)) {
     return 0;
+  }
 
   /* Lock drawing in UI during data phase. */
   if (re->draw_lock) {
@@ -665,11 +685,13 @@ int RE_engine_render(Render *re, int do_all)
   if (re->result == NULL || !(re->r.scemode & R_BUTS_PREVIEW)) {
     int savebuffers = RR_USE_MEM;
 
-    if (re->result)
+    if (re->result) {
       render_result_free(re->result);
+    }
 
-    if ((type->flag & RE_USE_SAVE_BUFFERS) && (re->r.scemode & R_EXR_TILE_FILE))
+    if ((type->flag & RE_USE_SAVE_BUFFERS) && (re->r.scemode & R_EXR_TILE_FILE)) {
       savebuffers = RR_USE_EXR;
+    }
     re->result = render_result_new(re, &re->disprect, 0, savebuffers, RR_ALL_LAYERS, RR_ALL_VIEWS);
   }
   BLI_rw_mutex_unlock(&re->resultmutex);
@@ -705,10 +727,12 @@ int RE_engine_render(Render *re, int do_all)
   /* TODO: actually link to a parent which shouldn't happen */
   engine->re = re;
 
-  if (re->flag & R_ANIMATION)
+  if (re->flag & R_ANIMATION) {
     engine->flag |= RE_ENGINE_ANIMATION;
-  if (re->r.scemode & R_BUTS_PREVIEW)
+  }
+  if (re->r.scemode & R_BUTS_PREVIEW) {
     engine->flag |= RE_ENGINE_PREVIEW;
+  }
   engine->camera_override = re->camera_override;
 
   engine->resolution_x = re->winx;
@@ -718,8 +742,9 @@ int RE_engine_render(Render *re, int do_all)
   engine->tile_x = re->partx;
   engine->tile_y = re->party;
 
-  if (re->result->do_exr_tile)
+  if (re->result->do_exr_tile) {
     render_result_exr_file_begin(re, engine);
+  }
 
   /* Clear UI drawing locks. */
   if (re->draw_lock) {
@@ -792,12 +817,14 @@ int RE_engine_render(Render *re, int do_all)
   RE_parts_free(re);
   BLI_rw_mutex_unlock(&re->partsmutex);
 
-  if (BKE_reports_contain(re->reports, RPT_ERROR))
+  if (BKE_reports_contain(re->reports, RPT_ERROR)) {
     G.is_break = true;
+  }
 
 #ifdef WITH_FREESTYLE
-  if (re->r.mode & R_EDGE_FRS)
+  if (re->r.mode & R_EDGE_FRS) {
     RE_RenderFreestyleExternal(re);
+  }
 #endif
 
   return 1;

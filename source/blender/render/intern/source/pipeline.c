@@ -186,10 +186,12 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
           mmap_used_memory,
           megs_peak_memory);
 
-  if (rs->curfield)
+  if (rs->curfield) {
     fprintf(stdout, IFACE_("Field %d "), rs->curfield);
-  if (rs->curblur)
+  }
+  if (rs->curblur) {
     fprintf(stdout, IFACE_("Blur %d "), rs->curblur);
+  }
 
   BLI_timecode_string_from_time_simple(
       info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
@@ -199,7 +201,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
     fprintf(stdout, "%s", rs->infostr);
   }
   else {
-    if (rs->tothalo)
+    if (rs->tothalo) {
       fprintf(stdout,
               IFACE_("Sce: %s Ve:%d Fa:%d Ha:%d La:%d"),
               rs->scene_name,
@@ -207,13 +209,15 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
               rs->totface,
               rs->tothalo,
               rs->totlamp);
-    else
+    }
+    else {
       fprintf(stdout,
               IFACE_("Sce: %s Ve:%d Fa:%d La:%d"),
               rs->scene_name,
               rs->totvert,
               rs->totface,
               rs->totlamp);
+    }
   }
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
@@ -331,9 +335,11 @@ Render *RE_GetRender(const char *name)
   Render *re;
 
   /* search for existing renders */
-  for (re = RenderGlobal.renderlist.first; re; re = re->next)
-    if (STREQLEN(re->name, name, RE_MAXNAME))
+  for (re = RenderGlobal.renderlist.first; re; re = re->next) {
+    if (STREQLEN(re->name, name, RE_MAXNAME)) {
       break;
+    }
+  }
 
   return re;
 }
@@ -377,15 +383,17 @@ void RE_SwapResult(Render *re, RenderResult **rr)
 
 void RE_ReleaseResult(Render *re)
 {
-  if (re)
+  if (re) {
     BLI_rw_mutex_unlock(&re->resultmutex);
+  }
 }
 
 /* displist.c util.... */
 Scene *RE_GetScene(Render *re)
 {
-  if (re)
+  if (re) {
     return re->scene;
+  }
   return NULL;
 }
 
@@ -486,11 +494,13 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       rl = render_get_active_layer(re, re->result);
 
       if (rl) {
-        if (rv->rectf == NULL)
+        if (rv->rectf == NULL) {
           rr->rectf = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, rv->name);
+        }
 
-        if (rv->rectz == NULL)
+        if (rv->rectz == NULL) {
           rr->rectz = RE_RenderLayerGetPass(rl, RE_PASSNAME_Z, rv->name);
+        }
       }
 
       rr->layers = re->result->layers;
@@ -506,8 +516,9 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 
 void RE_ReleaseResultImage(Render *re)
 {
-  if (re)
+  if (re) {
     BLI_rw_mutex_unlock(&re->resultmutex);
+  }
 }
 
 /* caller is responsible for allocating rect in correct size! */
@@ -607,10 +618,12 @@ void RE_InitRenderCB(Render *re)
   re->current_scene_update = current_scene_nothing;
   re->progress = float_nothing;
   re->test_break = default_break;
-  if (G.background)
+  if (G.background) {
     re->stats_draw = stats_background;
-  else
+  }
+  else {
     re->stats_draw = stats_nothing;
+  }
   /* clear callback handles */
   re->dih = re->dch = re->duh = re->sdh = re->prh = re->tbh = NULL;
 }
@@ -618,8 +631,9 @@ void RE_InitRenderCB(Render *re)
 /* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
-  if (re->engine)
+  if (re->engine) {
     RE_engine_free(re->engine);
+  }
 
   BLI_rw_mutex_end(&re->resultmutex);
   BLI_rw_mutex_end(&re->partsmutex);
@@ -686,8 +700,9 @@ void RE_FreePersistentData(void)
   for (re = RenderGlobal.renderlist.first; re; re = re->next) {
     if (re->engine) {
       /* if engine is currently rendering, just tag it to be freed when render is finished */
-      if (!(re->engine->flag & RE_ENGINE_RENDERING))
+      if (!(re->engine->flag & RE_ENGINE_RENDERING)) {
         RE_engine_free(re->engine);
+      }
 
       re->engine = NULL;
     }
@@ -705,8 +720,9 @@ static int check_mode_full_sample(RenderData *rd)
   scemode &= ~R_FULL_SAMPLE;
 
 #ifdef WITH_OPENEXR
-  if (scemode & R_FULL_SAMPLE)
+  if (scemode & R_FULL_SAMPLE) {
     scemode |= R_EXR_TILE_FILE; /* enable automatic */
+  }
 #else
   /* can't do this without openexr support */
   scemode &= ~(R_EXR_TILE_FILE | R_FULL_SAMPLE);
@@ -836,9 +852,11 @@ void RE_InitState(Render *re,
       RenderLayer *rl;
       bool have_layer = false;
 
-      for (rl = re->result->layers.first; rl; rl = rl->next)
-        if (STREQ(rl->name, active_render_layer->name))
+      for (rl = re->result->layers.first; rl; rl = rl->next) {
+        if (STREQ(rl->name, active_render_layer->name)) {
           have_layer = true;
+        }
+      }
 
       if (re->result->rectx == re->rectx && re->result->recty == re->recty && have_layer) {
         /* keep render result, this avoids flickering black tiles
@@ -1256,17 +1274,22 @@ static int composite_needs_render(Scene *sce, int this_scene)
   bNodeTree *ntree = sce->nodetree;
   bNode *node;
 
-  if (ntree == NULL)
+  if (ntree == NULL) {
     return 1;
-  if (sce->use_nodes == false)
+  }
+  if (sce->use_nodes == false) {
     return 1;
-  if ((sce->r.scemode & R_DOCOMP) == 0)
+  }
+  if ((sce->r.scemode & R_DOCOMP) == 0) {
     return 1;
+  }
 
   for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0)
-      if (this_scene == 0 || node->id == NULL || node->id == &sce->id)
+    if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
+      if (this_scene == 0 || node->id == NULL || node->id == &sce->id) {
         return 1;
+      }
+    }
   }
   return 0;
 }
@@ -1289,8 +1312,9 @@ static void ntree_render_scenes(Render *re)
   int cfra = re->scene->r.cfra;
   Scene *restore_scene = re->scene;
 
-  if (re->scene->nodetree == NULL)
+  if (re->scene->nodetree == NULL) {
     return;
+  }
 
   /* now foreach render-result node we do a full render */
   /* results are stored in a way compositor will find it */
@@ -1356,8 +1380,9 @@ static void add_freestyle(Render *re, int render)
     link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
     BLI_addtail(&re->freestyle_renders, link);
 
-    if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer)
+    if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer) {
       continue;
+    }
     if (FRS_is_freestyle_enabled(view_layer)) {
       r = FRS_do_stroke_rendering(re, view_layer, render);
       link->data = (void *)r;
@@ -1451,8 +1476,9 @@ static void do_render_composite(Render *re)
 
     if (ntree && re->scene->use_nodes && re->r.scemode & R_DOCOMP) {
       /* checks if there are render-result nodes that need scene */
-      if ((re->r.scemode & R_SINGLE_LAYER) == 0)
+      if ((re->r.scemode & R_SINGLE_LAYER) == 0) {
         ntree_render_scenes(re);
+      }
 
       if (!re->test_break(re->tbh)) {
         ntree->stats_draw = render_composit_stats;
@@ -1527,12 +1553,14 @@ int RE_seq_render_active(Scene *scene, RenderData *rd)
 
   ed = scene->ed;
 
-  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first)
+  if (!(rd->scemode & R_DOSEQ) || !ed || !ed->seqbase.first) {
     return 0;
+  }
 
   for (seq = ed->seqbase.first; seq; seq = seq->next) {
-    if (seq->type != SEQ_TYPE_SOUND_RAM)
+    if (seq->type != SEQ_TYPE_SOUND_RAM) {
       return 1;
+    }
   }
 
   return 0;
@@ -1614,8 +1642,9 @@ static void do_render_seq(Render *re)
 
       if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
         Editing *ed = re->scene->ed;
-        if (ed)
+        if (ed) {
           BKE_sequencer_free_imbuf(re->scene, &ed->seqbase, true);
+        }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
     }
@@ -1639,10 +1668,12 @@ static void do_render_seq(Render *re)
   re->r.scemode |= R_DOSEQ;
 
   /* set overall progress of sequence rendering */
-  if (re->r.efra != re->r.sfra)
+  if (re->r.efra != re->r.sfra) {
     re->progress(re->prh, (float)(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
-  else
+  }
+  else {
     re->progress(re->prh, 1.0f);
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1699,8 +1730,9 @@ static void do_render_all_options(Render *re)
   if (re->result != NULL) {
     camera = RE_GetCamera(re);
     /* sequence rendering should have taken care of that already */
-    if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA)))
+    if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA))) {
       BKE_render_result_stamp_info(re->scene, camera, re->result, false);
+    }
 
     /* stamp image info here */
     if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
@@ -1741,8 +1773,9 @@ static bool check_valid_camera_multiview(Scene *scene, Object *camera, ReportLis
   SceneRenderView *srv;
   bool active_view = false;
 
-  if (camera == NULL || (scene->r.scemode & R_MULTIVIEW) == 0)
+  if (camera == NULL || (scene->r.scemode & R_MULTIVIEW) == 0) {
     return true;
+  }
 
   for (srv = scene->r.views.first; srv; srv = srv->next) {
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
@@ -1778,11 +1811,13 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 {
   const char *err_msg = "No camera found in scene \"%s\"";
 
-  if (camera_override == NULL && scene->camera == NULL)
+  if (camera_override == NULL && scene->camera == NULL) {
     scene->camera = BKE_view_layer_camera_find(BKE_view_layer_default_render(scene));
+  }
 
-  if (!check_valid_camera_multiview(scene, scene->camera, reports))
+  if (!check_valid_camera_multiview(scene, scene->camera, reports)) {
     return false;
+  }
 
   if (RE_seq_render_active(scene, &scene->r)) {
     if (scene->ed) {
@@ -1803,8 +1838,9 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
               }
             }
           }
-          else if (!check_valid_camera_multiview(seq->scene, seq->scene_camera, reports))
+          else if (!check_valid_camera_multiview(seq->scene, seq->scene_camera, reports)) {
             return false;
+          }
         }
 
         seq = seq->next;
@@ -2015,8 +2051,9 @@ static int render_initialize_from_main(Render *re,
   }
 
   RE_InitState(re, NULL, &scene->r, &scene->view_layers, single_layer, winx, winy, &disprect);
-  if (!re->ok) /* if an error was printed, abort */
+  if (!re->ok) { /* if an error was printed, abort */
     return 0;
+  }
 
   /* initstate makes new result, have to send changed tags around */
   ntreeCompositTagRender(re->scene);
@@ -2101,8 +2138,9 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
 {
   re->result_ok = 0;
   if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, 0, 0)) {
-    if (render)
+    if (render) {
       do_render_3d(re);
+    }
   }
   re->result_ok = 1;
 }
@@ -2128,8 +2166,9 @@ bool RE_WriteRenderViewsImage(
   bool ok = true;
   RenderData *rd = &scene->r;
 
-  if (!rr)
+  if (!rr) {
     return false;
+  }
 
   bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
   bool is_exr_rr = ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
@@ -2162,8 +2201,9 @@ bool RE_WriteRenderViewsImage(
           ImageFormatData imf = rd->im_format;
           imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-          if (BLI_path_extension_check(name, ".exr"))
+          if (BLI_path_extension_check(name, ".exr")) {
             name[strlen(name) - 4] = 0;
+          }
           BKE_image_path_ensure_ext_from_imformat(name, &imf);
 
           ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
@@ -2222,8 +2262,9 @@ bool RE_WriteRenderViewsImage(
         ImageFormatData imf = rd->im_format;
         imf.imtype = R_IMF_IMTYPE_JPEG90;
 
-        if (BLI_path_extension_check(name, ".exr"))
+        if (BLI_path_extension_check(name, ".exr")) {
           name[strlen(name) - 4] = 0;
+        }
 
         BKE_image_path_ensure_ext_from_imformat(name, &imf);
         ibuf_arr[2]->planes = 24;
@@ -2254,8 +2295,9 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   bool is_mono;
   bool ok = true;
 
-  if (!rr)
+  if (!rr) {
     return false;
+  }
 
   is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
 
@@ -2343,9 +2385,10 @@ static int do_write_image_or_movie(Render *re,
         re->reports, &rres, scene, &re->r, mh, re->movie_ctx_arr, totvideos, false);
   }
   else {
-    if (name_override)
+    if (name_override) {
       BLI_strncpy(name, name_override, sizeof(name));
-    else
+    }
+    else {
       BKE_image_path_from_imformat(name,
                                    scene->r.pic,
                                    BKE_main_blendfile_path(bmain),
@@ -2354,6 +2397,7 @@ static int do_write_image_or_movie(Render *re,
                                    (scene->r.scemode & R_EXTENSION) != 0,
                                    true,
                                    NULL);
+    }
 
     /* write images as individual images or stereo */
     ok = RE_WriteRenderViewsImage(re->reports, &rres, scene, true, name);
@@ -2438,8 +2482,9 @@ void RE_BlenderAnim(Render *re,
   BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
   /* do not fully call for each frame, it initializes & pops output window */
-  if (!render_initialize_from_main(re, &rd, bmain, scene, single_layer, camera_override, 0, 1))
+  if (!render_initialize_from_main(re, &rd, bmain, scene, single_layer, camera_override, 0, 1)) {
     return;
+  }
 
   if (is_movie) {
     size_t width, height;
@@ -2531,12 +2576,13 @@ void RE_BlenderAnim(Render *re,
         /* Skip this frame, but could update for physics and particles system. */
         continue;
       }
-      else
+      else {
         nfra += tfra;
+      }
 
       /* Touch/NoOverwrite options are only valid for image's */
       if (is_movie == false) {
-        if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
+        if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH)) {
           BKE_image_path_from_imformat(name,
                                        scene->r.pic,
                                        BKE_main_blendfile_path(bmain),
@@ -2545,6 +2591,7 @@ void RE_BlenderAnim(Render *re,
                                        (scene->r.scemode & R_EXTENSION) != 0,
                                        true,
                                        NULL);
+        }
 
         if (scene->r.mode & R_NO_OVERWRITE) {
           if (!is_multiview_name) {
@@ -2560,8 +2607,9 @@ void RE_BlenderAnim(Render *re,
             char filepath[FILE_MAX];
 
             for (srv = scene->r.views.first; srv; srv = srv->next) {
-              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv))
+              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
                 continue;
+              }
 
               BKE_scene_multiview_filepath_get(srv, name, filepath);
 
@@ -2590,8 +2638,9 @@ void RE_BlenderAnim(Render *re,
             char filepath[FILE_MAX];
 
             for (srv = scene->r.views.first; srv; srv = srv->next) {
-              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv))
+              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
                 continue;
+              }
 
               BKE_scene_multiview_filepath_get(srv, name, filepath);
 
@@ -2613,12 +2662,15 @@ void RE_BlenderAnim(Render *re,
       totrendered++;
 
       if (re->test_break(re->tbh) == 0) {
-        if (!G.is_break)
-          if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL))
+        if (!G.is_break) {
+          if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL)) {
             G.is_break = true;
+          }
+        }
       }
-      else
+      else {
         G.is_break = true;
+      }
 
       if (G.is_break == true) {
         /* remove touched file */
@@ -2635,8 +2687,9 @@ void RE_BlenderAnim(Render *re,
               char filepath[FILE_MAX];
 
               for (srv = scene->r.views.first; srv; srv = srv->next) {
-                if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv))
+                if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
                   continue;
+                }
 
                 BKE_scene_multiview_filepath_get(srv, name, filepath);
 
@@ -2665,8 +2718,9 @@ void RE_BlenderAnim(Render *re,
     re_movie_free_all(re, mh, totvideos);
   }
 
-  if (totskipped && totrendered == 0)
+  if (totskipped && totrendered == 0) {
     BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");
+  }
 
   scene->r.cfra = cfrao;
 
@@ -2730,13 +2784,15 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
     disprect.ymax = winy;
   }
 
-  if (scenode)
+  if (scenode) {
     scene = scenode;
+  }
 
   /* get render: it can be called from UI with draw callbacks */
   re = RE_GetSceneRender(scene);
-  if (re == NULL)
+  if (re == NULL) {
     re = RE_NewSceneRender(scene);
+  }
   RE_InitState(re, NULL, &scene->r, &scene->view_layers, NULL, winx, winy, &disprect);
   re->scene = scene;
 
@@ -2764,21 +2820,25 @@ void RE_layer_load_from_file(
   RenderPass *rpass = NULL;
 
   /* multiview: since the API takes no 'view', we use the first combined pass found */
-  for (rpass = layer->passes.first; rpass; rpass = rpass->next)
-    if (STREQ(rpass->name, RE_PASSNAME_COMBINED))
+  for (rpass = layer->passes.first; rpass; rpass = rpass->next) {
+    if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
       break;
+    }
+  }
 
-  if (rpass == NULL)
+  if (rpass == NULL) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s: no Combined pass found in the render layer '%s'",
                 __func__,
                 filename);
+  }
 
   if (ibuf && (ibuf->rect || ibuf->rect_float)) {
     if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
-      if (ibuf->rect_float == NULL)
+      if (ibuf->rect_float == NULL) {
         IMB_float_from_rect(ibuf);
+      }
 
       memcpy(rpass->rect, ibuf->rect_float, sizeof(float) * 4 * layer->rectx * layer->recty);
     }
@@ -2786,8 +2846,9 @@ void RE_layer_load_from_file(
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
         ImBuf *ibuf_clip;
 
-        if (ibuf->rect_float == NULL)
+        if (ibuf->rect_float == NULL) {
           IMB_float_from_rect(ibuf);
+        }
 
         ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
         if (ibuf_clip) {
@@ -2857,10 +2918,12 @@ RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, con
 
   for (rp = rl->passes.last; rp; rp = rp->prev) {
     if (STREQ(rp->name, name)) {
-      if (viewname == NULL || viewname[0] == '\0')
+      if (viewname == NULL || viewname[0] == '\0') {
         break;
-      else if (STREQ(rp->view, viewname))
+      }
+      else if (STREQ(rp->view, viewname)) {
         break;
+      }
     }
   }
   return rp;
