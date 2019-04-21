@@ -17,19 +17,22 @@
 /** \file
  * \ingroup render
  *
- * \brief The API itself is simple. Blender sends a populated array of BakePixels to the renderer, and gets back an
- * array of floats with the result.
+ * \brief The API itself is simple.
+ * Blender sends a populated array of BakePixels to the renderer,
+ * and gets back an array of floats with the result.
  *
  * \section bake_api Development Notes for External Engines
  *
- * The Bake API is fully implemented with Python rna functions. The operator expects/call a function:
+ * The Bake API is fully implemented with Python rna functions.
+ * The operator expects/call a function:
  *
  * ``def bake(scene, object, pass_type, object_id, pixel_array, num_pixels, depth, result)``
  * - scene: current scene (Python object)
  * - object: object to render (Python object)
  * - pass_type: pass to render (string, e.g., "COMBINED", "AO", "NORMAL", ...)
  * - object_id: index of object to bake (to use with the pixel_array)
- * - pixel_array: list of primitive ids and barycentric coordinates to bake(Python object, see bake_pixel)
+ * - pixel_array: list of primitive ids and barycentric coordinates to
+ *   `bake(Python object, see bake_pixel)`.
  * - num_pixels: size of pixel_array, number of pixels to bake (int)
  * - depth: depth of pixels to return (int, assuming always 4 now)
  * - result: array to be populated by the engine (float array, PyLong_AsVoidPtr)
@@ -158,8 +161,10 @@ void RE_bake_margin(ImBuf *ibuf, char *mask, const int margin)
 }
 
 /**
- * This function returns the coordinate and normal of a barycentric u,v for a face defined by the primitive_id index.
- * The returned normal is actually the direction from the same barycentric coordinate in the cage to the base mesh
+ * This function returns the coordinate and normal of a barycentric u,v
+ * for a face defined by the primitive_id index.
+ * The returned normal is actually the direction from the same barycentric coordinate
+ * in the cage to the base mesh
  * The returned coordinate is the point in the cage mesh
  */
 static void calc_point_from_barycentric_cage(TriTessFace *triangles_low,
@@ -201,7 +206,8 @@ static void calc_point_from_barycentric_cage(TriTessFace *triangles_low,
 }
 
 /**
- * This function returns the coordinate and normal of a barycentric u,v for a face defined by the primitive_id index.
+ * This function returns the coordinate and normal of a barycentric u,v
+ * for a face defined by the primitive_id index.
  * The returned coordinate is extruded along the normal by cage_extrusion
  */
 static void calc_point_from_barycentric_extrusion(TriTessFace *triangles,
@@ -722,8 +728,8 @@ void RE_bake_pixels_populate(Mesh *me,
     for (a = 0; a < 3; a++) {
       const float *uv = mloopuv[lt->tri[a]].uv;
 
-      /* Note, workaround for pixel aligned UVs which are common and can screw up our intersection tests
-       * where a pixel gets in between 2 faces or the middle of a quad,
+      /* Note, workaround for pixel aligned UVs which are common and can screw up our
+       * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
        * Add a small offset to the UVs, fixes bug #18685 - Campbell */
       vec[a][0] = uv[0] * (float)bd.bk_image->width - (0.5f + 0.001f);
@@ -796,7 +802,8 @@ static void normal_compress(float out[3],
 }
 
 /**
- * This function converts an object space normal map to a tangent space normal map for a given low poly mesh
+ * This function converts an object space normal map
+ * to a tangent space normal map for a given low poly mesh.
  */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      const size_t num_pixels,

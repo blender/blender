@@ -597,7 +597,8 @@ static void boxsample(ImBuf *ibuf,
    * If variable 'imaprepeat' has been set, the
    * clipped-away parts are sampled as well.
    */
-  /* note: actually minx etc isn't in the proper range... this due to filter size and offset vectors for bump */
+  /* note: actually minx etc isn't in the proper range...
+   *       this due to filter size and offset vectors for bump */
   /* note: talpha must be initialized */
   /* note: even when 'imaprepeat' is set, this can only repeat once in any direction.
    * the point which min/max is derived from is assumed to be wrapped */
@@ -682,8 +683,8 @@ static void boxsample(ImBuf *ibuf,
   }
 }
 
-/*-----------------------------------------------------------------------------------------------------------------
- * from here, some functions only used for the new filtering */
+/* -------------------------------------------------------------------- */
+/* from here, some functions only used for the new filtering */
 
 /* anisotropic filters, data struct used instead of long line of (possibly unused) func args */
 typedef struct afdata_t {
@@ -1043,7 +1044,8 @@ static int imagewraposa_aniso(Tex *tex,
   miny = (maxy - miny) * 0.5f;
 
   if (tex->imaflag & TEX_FILTER_MIN) {
-    /* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
+    /* Make sure the filtersize is minimal in pixels
+     * (normal, ref map can have miniature pixel dx/dy). */
     const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
     if (addval > minx)
       minx = addval;
@@ -1063,8 +1065,9 @@ static int imagewraposa_aniso(Tex *tex,
     float t;
     SWAP(float, minx, miny);
     /* must rotate dxt/dyt 90 deg
-     * yet another blender problem is that swapping X/Y axes (or any tex proj switches) should do something similar,
-     * but it doesn't, it only swaps coords, so filter area will be incorrect in those cases. */
+     * yet another blender problem is that swapping X/Y axes (or any tex proj switches)
+     * should do something similar, but it doesn't, it only swaps coords,
+     * so filter area will be incorrect in those cases. */
     t = dxt[0];
     dxt[0] = dxt[1];
     dxt[1] = -t;
@@ -1368,8 +1371,9 @@ static int imagewraposa_aniso(Tex *tex,
   }
 
   /* de-premul, this is being premulled in shade_input_do_shade()
-   * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode, so for now commented out
-   * also disabled in imagewraposa() to be able to compare results with blender's default texture filtering */
+   * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode,
+   * so for now commented out also disabled in imagewraposa()
+   * to be able to compare results with blender's default texture filtering */
 
   /* brecht: tried to fix this, see "TXF alpha" comments */
 
@@ -1404,8 +1408,8 @@ int imagewraposa(Tex *tex,
   float maxd, pixsize, val1, val2, val3;
   int curmap, retval, imaprepeat, imapextend;
 
-  /* TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
-   * make a local copy here so that original vecs remain untouched */
+  /* TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa()
+   * call, make a local copy here so that original vecs remain untouched. */
   copy_v2_v2(dxt, DXT);
   copy_v2_v2(dyt, DYT);
 
@@ -1471,7 +1475,8 @@ int imagewraposa(Tex *tex,
   miny = (maxy - miny) / 2.0f;
 
   if (tex->imaflag & TEX_FILTER_MIN) {
-    /* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
+    /* Make sure the filtersize is minimal in pixels
+     * (normal, ref map can have miniature pixel dx/dy). */
     float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
 
     if (addval > minx)

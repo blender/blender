@@ -85,7 +85,8 @@ void render_result_free(RenderResult *res)
   while (res->layers.first) {
     RenderLayer *rl = res->layers.first;
 
-    /* acolrect and scolrect are optionally allocated in shade_tile, only free here since it can be used for drawing */
+    /* acolrect and scolrect are optionally allocated in shade_tile,
+     * only free here since it can be used for drawing. */
     if (rl->acolrect)
       MEM_freeN(rl->acolrect);
     if (rl->scolrect)
@@ -684,7 +685,8 @@ static int order_render_passes(const void *a, const void *b)
   return (rpa->view_id < rpb->view_id);
 }
 
-/* from imbuf, if a handle was returned and it's not a singlelayer multiview we convert this to render result */
+/* From imbuf, if a handle was returned and
+ * it's not a singlelayer multiview we convert this to render result. */
 RenderResult *render_result_new_from_exr(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {

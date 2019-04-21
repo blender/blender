@@ -723,7 +723,10 @@ static float mg_distNoiseTex(Tex *tex, const float texvec[3], TexResult *texres)
 }
 
 /* ------------------------------------------------------------------------- */
-/* newnoise: Voronoi texture type, probably the slowest, especially with minkovsky, bumpmapping, could be done another way */
+/* newnoise: Voronoi texture type
+ *
+ * probably the slowest, especially with minkovsky, bumpmapping, could be done another way.
+ */
 
 static float voronoiTex(Tex *tex, const float texvec[3], TexResult *texres)
 {
@@ -1387,8 +1390,10 @@ int multitex_nodes(Tex *tex,
                                true);
 }
 
-/* Warning, if the texres's values are not declared zero, check the return value to be sure
- * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell
+/**
+ * \warning if the texres's values are not declared zero,
+ * check the return value to be sure the color values are set before using the r/g/b values,
+ * otherwise you may use uninitialized values - Campbell
  *
  * Use it for stuff which is out of render pipeline.
  */

@@ -410,7 +410,8 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, bool us
 {
   Render *re = engine->re;
 
-  /* when using spherical stereo, get camera shift without multiview, leaving stereo to be handled by the engine */
+  /* When using spherical stereo, get camera shift without multiview,
+   * leaving stereo to be handled by the engine. */
   if (use_spherical_stereo)
     re = NULL;
 
@@ -424,7 +425,8 @@ void RE_engine_get_camera_model_matrix(RenderEngine *engine,
 {
   Render *re = engine->re;
 
-  /* when using spherical stereo, get model matrix without multiview, leaving stereo to be handled by the engine */
+  /* When using spherical stereo, get model matrix without multiview,
+   * leaving stereo to be handled by the engine. */
   if (use_spherical_stereo)
     re = NULL;
 

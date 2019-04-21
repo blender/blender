@@ -219,7 +219,8 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
-  /* NOTE: using G_MAIN seems valid here??? Not sure it's actually even used anyway, we could as well pass NULL? */
+  /* NOTE: using G_MAIN seems valid here???
+   * Not sure it's actually even used anyway, we could as well pass NULL? */
   BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
 
   fputc('\n', stdout);
@@ -1248,7 +1249,8 @@ static void render_scene(Render *re, Scene *sce, int cfra)
   do_render(resc);
 }
 
-/* helper call to detect if this scene needs a render, or if there's a any render layer to render */
+/* helper call to detect if this scene needs a render,
+ * or if there's a any render layer to render. */
 static int composite_needs_render(Scene *sce, int this_scene)
 {
   bNodeTree *ntree = sce->nodetree;
@@ -1668,7 +1670,8 @@ static void do_render_all_options(Render *re)
    * work with copy-on-write. */
   BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra);
 
-  /* Update for masks (these do not use animsys but own lighter weight structure to define animation). */
+  /* Update for masks
+   * (these do not use animsys but own lighter weight structure to define animation). */
   BKE_mask_evaluate_all_masks(re->main, (float)cfra, true);
 
   if (RE_engine_render(re, 1)) {
@@ -1967,7 +1970,8 @@ static int render_initialize_from_main(Render *re,
   winx = (rd->size * rd->xsch) / 100;
   winy = (rd->size * rd->ysch) / 100;
 
-  /* we always render smaller part, inserting it in larger image is compositor bizz, it uses disprect for it */
+  /* We always render smaller part, inserting it in larger image is compositor bizz,
+   * it uses disprect for it. */
   if (scene->r.mode & R_BORDER) {
     disprect.xmin = rd->border.xmin * winx;
     disprect.xmax = rd->border.xmax * winx;
@@ -2041,7 +2045,8 @@ void RE_BlenderFrame(Render *re,
 {
   BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
-  /* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
+  /* Ugly global still...
+   * is to prevent preview events and signal subsurfs etc to make full resol. */
   G.is_rendering = true;
 
   scene->r.cfra = frame;
@@ -2365,7 +2370,8 @@ static int do_write_image_or_movie(Render *re,
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
 
-  /* NOTE: using G_MAIN seems valid here??? Not sure it's actually even used anyway, we could as well pass NULL? */
+  /* NOTE: using G_MAIN seems valid here???
+   * Not sure it's actually even used anyway, we could as well pass NULL? */
   BLI_callback_exec(G_MAIN, NULL, BLI_CB_EVT_RENDER_STATS);
 
   BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
@@ -2469,8 +2475,8 @@ void RE_BlenderAnim(Render *re,
     }
   }
 
-  /* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
-  /* is also set by caller renderwin.c */
+  /* Ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol
+   * is also set by caller renderwin.c */
   G.is_rendering = true;
 
   re->flag |= R_ANIMATION;

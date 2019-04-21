@@ -91,7 +91,8 @@ typedef struct RenderPass {
 
 /* a renderlayer is a full image, but with all passes and samples */
 /* size of the rects is defined in RenderResult */
-/* after render, the Combined pass is in combined, for renderlayers read from files it is a real pass */
+/* after render, the Combined pass is in combined,
+ * for renderlayers read from files it is a real pass */
 typedef struct RenderLayer {
   struct RenderLayer *next, *prev;
 
@@ -125,8 +126,8 @@ typedef struct RenderResult {
   int rectx, recty;
   short crop, sample_nr;
 
-  /* the following rect32, rectf and rectz buffers are for temporary storage only, for RenderResult structs
-   * created in #RE_AcquireResultImage - which do not have RenderView */
+  /* The following rect32, rectf and rectz buffers are for temporary storage only,
+   * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
 
   /* optional, 32 bits version of picture, used for ogl render and image curves */
   int *rect32;
