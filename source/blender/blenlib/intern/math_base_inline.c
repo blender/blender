@@ -428,11 +428,13 @@ MINLINE int compare_ff(float a, float b, const float max_diff)
 }
 
 /**
- * Almost-equal for IEEE floats, using their integer representation (mixing ULP and absolute difference methods).
+ * Almost-equal for IEEE floats, using their integer representation
+ * (mixing ULP and absolute difference methods).
  *
  * \param max_diff: is the maximum absolute difference (allows to take care of the near-zero area,
- *                 where relative difference methods cannot really work).
- * \param max_ulps: is the 'maximum number of floats + 1' allowed between \a a and \a b to consider them equal.
+ * where relative difference methods cannot really work).
+ * \param max_ulps: is the 'maximum number of floats + 1'
+ * allowed between \a a and \a b to consider them equal.
  *
  * \see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */

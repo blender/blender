@@ -32,8 +32,10 @@
  *
  * - BArrayStore: The whole array store.
  * - BArrayState: Represents a single state (array) of data.
- *   These can be add using a reference state, while this could be considered the previous or parent state.
- *   no relationship is kept, so the caller is free to add any state from the same BArrayStore as a reference.
+ *   These can be add using a reference state,
+ *   while this could be considered the previous or parent state.
+ *   no relationship is kept,
+ *   so the caller is free to add any state from the same BArrayStore as a reference.
  *
  * <pre>
  * <+> BArrayStore: root data-structure,
@@ -136,7 +138,8 @@
 
 /* For arrays of matching length, test that *enough* of the chunks are aligned,
  * and simply step over both arrays, using matching chunks.
- * This avoids overhead of using a lookup table for cases when we can assume they're mostly aligned.
+ * This avoids overhead of using a lookup table for cases
+ * when we can assume they're mostly aligned.
  */
 #define USE_ALIGN_CHUNKS_TEST
 
@@ -1411,7 +1414,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
  *   but adds overhead by increasing the number of chunks to look-up when searching for duplicates,
  *   as well as some overhead constructing the original array again, with more calls to ``memcpy``.
  * - Larger values reduce the *book keeping* overhead,
- *   but increase the chance a small, isolated change will cause a larger amount of data to be duplicated.
+ *   but increase the chance a small,
+ *   isolated change will cause a larger amount of data to be duplicated.
  *
  * \return A new array store, to be freed with #BLI_array_store_destroy.
  */
@@ -1542,7 +1546,8 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
  * typically this is the previous state,
  * however it can be any previously created state from this \a bs.
  *
- * \return The new state, which is used by the caller as a handle to get back the contents of \a data.
+ * \return The new state,
+ * which is used by the caller as a handle to get back the contents of \a data.
  * This may be removed using #BLI_array_store_state_remove,
  * otherwise it will be removed with #BLI_array_store_destroy.
  */

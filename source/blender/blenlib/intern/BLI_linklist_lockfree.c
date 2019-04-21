@@ -57,10 +57,10 @@ void BLI_linklist_lockfree_insert(LockfreeLinkList *list, LockfreeLinkNode *node
 {
   /* Based on:
    *
-   *   John D. Valois
-   *   Implementing Lock-Free Queues
+   * John D. Valois
+   * Implementing Lock-Free Queues
    *
-   *   http://people.csail.mit.edu/bushl2/rpi/portfolio/lockfree-grape/documents/lock-free-linked-lists.pdf
+   * http://people.csail.mit.edu/bushl2/rpi/portfolio/lockfree-grape/documents/lock-free-linked-lists.pdf
    */
   bool keep_working;
   LockfreeLinkNode *tail_node;

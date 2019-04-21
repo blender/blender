@@ -118,7 +118,8 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
 }
 
 /**
- * Like BLI_strncpy but ensures dst is always padded by given char, on both sides (unless src is empty).
+ * Like BLI_strncpy but ensures dst is always padded by given char,
+ * on both sides (unless src is empty).
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
@@ -927,7 +928,8 @@ bool BLI_str_endswith(const char *__restrict str, const char *__restrict end)
  * \param str: The string to search within.
  * \param delim: The set of delimiters to search for, as unicode values.
  * \param sep: Return value, set to the first delimiter found (or NULL if none found).
- * \param suf: Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \param suf: Return value, set to next char after the first delimiter found
+ * (or NULL if none found).
  * \return The length of the prefix (i.e. *sep - str).
  */
 size_t BLI_str_partition(const char *str, const char delim[], const char **sep, const char **suf)
@@ -941,7 +943,8 @@ size_t BLI_str_partition(const char *str, const char delim[], const char **sep, 
  * \param str: The string to search within.
  * \param delim: The set of delimiters to search for, as unicode values.
  * \param sep: Return value, set to the first delimiter found (or NULL if none found).
- * \param suf: Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \param suf: Return value, set to next char after the first delimiter found
+ * (or NULL if none found).
  * \return The length of the prefix (i.e. *sep - str).
  */
 size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep, const char **suf)
@@ -956,7 +959,8 @@ size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep,
  * \param end: If non-NULL, the right delimiter of the string.
  * \param delim: The set of delimiters to search for, as unicode values.
  * \param sep: Return value, set to the first delimiter found (or NULL if none found).
- * \param suf: Return value, set to next char after the first delimiter found (or NULL if none found).
+ * \param suf: Return value, set to next char after the first delimiter found
+ * (or NULL if none found).
  * \param from_right: If %true, search from the right of \a str, else, search from its left.
  * \return The length of the prefix (i.e. *sep - str).
  */
@@ -1073,9 +1077,10 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
  * 1000 -> 1 KB
  * Number of decimal places grows with the used unit (e.g. 1.5 MB, 1.55 GB, 1.545 TB).
  *
- * \param dst: The resulting string. Dimension of 14 to support largest possible value for \a bytes (LLONG_MAX).
- * \param bytes: Number to format
- * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...)
+ * \param dst: The resulting string.
+ * Dimension of 14 to support largest possible value for \a bytes (#LLONG_MAX).
+ * \param bytes: Number to format.
+ * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
  */
 void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
 {

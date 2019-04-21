@@ -1897,8 +1897,10 @@ void blend_m4_m4m4(float out[4][4],
  * A polar-decomposition-based interpolation between matrix A and matrix B.
  *
  * \note This code is about five times slower as the 'naive' interpolation done by #blend_m3_m3m3
- *       (it typically remains below 2 usec on an average i74700, while #blend_m3_m3m3 remains below 0.4 usec).
- *       However, it gives expected results even with non-uniformly scaled matrices, see T46418 for an example.
+ * (it typically remains below 2 usec on an average i74700,
+ * while #blend_m3_m3m3 remains below 0.4 usec).
+ * However, it gives expected results even with non-uniformly scaled matrices,
+ * see T46418 for an example.
  *
  * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
  *
@@ -1937,7 +1939,8 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
 }
 
 /**
- * Complete transform matrix interpolation, based on polar-decomposition-based interpolation from #interp_m3_m3m3.
+ * Complete transform matrix interpolation,
+ * based on polar-decomposition-based interpolation from #interp_m3_m3m3.
  *
  * \param R: Resulting interpolated matrix.
  * \param A: Input matrix which is totally effective with `t = 0.0`.
@@ -2626,11 +2629,13 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
  * - #BLI_SPACE_TRANSFORM_SETUP(&data,  ob1, ob2)
  *
  * After that the following calls can be used:
- * - #BLI_space_transform_apply(&data, co);  // converts a coordinate in ob1 space to the corresponding ob2 space.
- * - #BLI_space_transform_invert(&data, co);  // converts a coordinate in ob2 space to the corresponding ob1 space.
+ * - Converts a coordinate in ob1 space to the corresponding ob2 space:
+ *   #BLI_space_transform_apply(&data, co);
+ * - Converts a coordinate in ob2 space to the corresponding ob1 space:
+ *   #BLI_space_transform_invert(&data, co);
  *
- * Same concept as #BLI_space_transform_apply and #BLI_space_transform_invert, but no is normalized after conversion
- * (and not translated at all!):
+ * Same concept as #BLI_space_transform_apply and #BLI_space_transform_invert,
+ * but no is normalized after conversion (and not translated at all!):
  * - #BLI_space_transform_apply_normal(&data, no);
  * - #BLI_space_transform_invert_normal(&data, no);
  */
@@ -2638,12 +2643,14 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
 /**
  * Global-invariant transform.
  *
- * This defines a matrix transforming a point in local space to a point in target space such that its global
- * coordinates remain unchanged.
+ * This defines a matrix transforming a point in local space to a point in target space
+ * such that its global coordinates remain unchanged.
  *
- * In other words, if we have a global point P with local coordinates (x, y, z) and global coordinates (X, Y, Z),
+ * In other words, if we have a global point P with local coordinates (x, y, z)
+ * and global coordinates (X, Y, Z),
  * this defines a transform matrix TM such that (x', y', z') = TM * (x, y, z)
- * where (x', y', z') are the coordinates of P' in target space such that it keeps (X, Y, Z) coordinates in global space.
+ * where (x', y', z') are the coordinates of P' in target space
+ * such that it keeps (X, Y, Z) coordinates in global space.
  */
 void BLI_space_transform_from_matrices(SpaceTransform *data,
                                        const float local[4][4],
@@ -2658,12 +2665,14 @@ void BLI_space_transform_from_matrices(SpaceTransform *data,
 /**
  * Local-invariant transform.
  *
- * This defines a matrix transforming a point in global space such that its local coordinates
- * (from local space to target space) remain unchanged.
+ * This defines a matrix transforming a point in global space
+ * such that its local coordinates (from local space to target space) remain unchanged.
  *
- * In other words, if we have a local point p with local coordinates (x, y, z) and global coordinates (X, Y, Z),
+ * In other words, if we have a local point p with local coordinates (x, y, z)
+ * and global coordinates (X, Y, Z),
  * this defines a transform matrix TM such that (X', Y', Z') = TM * (X, Y, Z)
- * where (X', Y', Z') are the coordinates of p' in global space such that it keeps (x, y, z) coordinates in target space.
+ * where (X', Y', Z') are the coordinates of p' in global space
+ * such that it keeps (x, y, z) coordinates in target space.
  */
 void BLI_space_transform_global_from_matrices(SpaceTransform *data,
                                               const float local[4][4],

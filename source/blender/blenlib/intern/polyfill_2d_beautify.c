@@ -96,8 +96,9 @@ BLI_INLINE bool is_boundary_edge(uint i_a, uint i_b, const uint coord_last)
  * Assuming we have 2 triangles sharing an edge (2 - 4),
  * check if the edge running from (1 - 3) gives better results.
  *
- * \param lock_degenerate: Use to avoid rotating out of a degenerate state.
- * - When true, an existing zero area face on either side of the (2 - 4) split will return a positive value.
+ * \param lock_degenerate: Use to avoid rotating out of a degenerate state:
+ * - When true, an existing zero area face on either side of the (2 - 4
+ *   split will return a positive value.
  * - When false, the check must be non-biased towards either split direction.
  *
  * \return (negative number means the edge can be rotated, lager == better).

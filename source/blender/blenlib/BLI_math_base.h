@@ -200,8 +200,9 @@ double double_round(double x, int ndigits);
 /** \note 0.0001 is too small becaues normals may be converted from short's: see T34322. */
 #  define BLI_ASSERT_UNIT_EPSILON 0.0002f
 /**
- * \note Checks are flipped so NAN doesn't assert. This is done because we're making sure the value was normalized
- * and in the case we don't want NAN to be raising asserts since there is nothing to be done in that case.
+ * \note Checks are flipped so NAN doesn't assert.
+ * This is done because we're making sure the value was normalized and in the case we
+ * don't want NAN to be raising asserts since there is nothing to be done in that case.
  */
 #  define BLI_ASSERT_UNIT_V3(v) \
     { \

@@ -63,7 +63,8 @@
 
 /**
  * Important that this value is an is _not_  aligned with ``sizeof(void *)``.
- * So having a pointer to 2/4/8... aligned memory is enough to ensure the freeword will never be used.
+ * So having a pointer to 2/4/8... aligned memory is enough to ensure
+ * the freeword will never be used.
  * To be safe, use a word thats the same in both directions.
  */
 #define FREEWORD \
@@ -547,8 +548,10 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 /**
  * Initialize an array of mempool iterators, #BLI_MEMPOOL_ALLOW_ITER flag must be set.
  *
- * This is used in threaded code, to generate as much iterators as needed (each task should have its own),
- * such that each iterator goes over its own single chunk, and only getting the next chunk to iterate over has to be
+ * This is used in threaded code, to generate as much iterators as needed
+ * (each task should have its own),
+ * such that each iterator goes over its own single chunk,
+ * and only getting the next chunk to iterate over has to be
  * protected against concurrency (which can be done in a lockless way).
  *
  * To be used when creating a task for each single item in the pool is totally overkill.

@@ -57,7 +57,8 @@
 
 #ifdef WIN32
 
-/* return true if the path is absolute ie starts with a drive specifier (eg A:\) or is a UNC path */
+/** Return true if the path is absolute ie starts with a drive specifier
+ * (eg A:\) or is a UNC path. */
 static bool BLI_path_is_abs(const char *name);
 
 #endif /* WIN32 */
@@ -71,8 +72,10 @@ static bool BLI_path_is_abs(const char *name);
  * returning the integer value if found, or 0 if not.
  *
  * \param string: String to scan.
- * \param head: Optional area to return copy of part of string prior to digits, or before dot if no digits.
- * \param tail: Optional area to return copy of part of string following digits, or from dot if no digits.
+ * \param head: Optional area to return copy of part of string prior to digits,
+ * or before dot if no digits.
+ * \param tail: Optional area to return copy of part of string following digits,
+ * or from dot if no digits.
  * \param r_num_len: Optional to return number of digits found.
  */
 int BLI_stringdec(const char *string, char *head, char *tail, ushort *r_num_len)
@@ -282,15 +285,18 @@ void BLI_cleanup_file(const char *relabase, char *path)
  * https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
  * by underscores ('_').
  *
- * \note Space case ' ' is a bit of an edge case here - in theory it is allowed, but again can be an issue
- *       in some cases, so we simply replace it by an underscore too (good practice anyway).
- *       REMOVED based on popular demand (see T45900).
- *       Percent '%' char is a bit same case - not recommended to use it, but supported by all decent FS/OS around...
+ * \note Space case ' ' is a bit of an edge case here - in theory it is allowed,
+ * but again can be an issue in some cases, so we simply replace it by an underscore too
+ * (good practice anyway).
+ * REMOVED based on popular demand (see T45900).
+ * Percent '%' char is a bit same case - not recommended to use it,
+ * but supported by all decent FS/OS around.
  *
- * \note On Windows, it also ensures there is no '.' (dot char) at the end of the file, this can lead to issues...
+ * \note On Windows, it also ensures there is no '.' (dot char) at the end of the file,
+ * this can lead to issues.
  *
  * \note On Windows, it also checks for forbidden names
- *       (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
+ * (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
 bool BLI_filename_make_safe(char *fname)
 {
@@ -438,7 +444,8 @@ static int BLI_path_unc_prefix_len(const char *path)
 
 #if defined(WIN32)
 
-/* return true if the path is absolute ie starts with a drive specifier (eg A:\) or is a UNC path */
+/** Return true if the path is absolute ie starts with a drive specifier
+ * (eg A:\) or is a UNC path. */
 static bool BLI_path_is_abs(const char *name)
 {
   return (name[1] == ':' && (name[2] == '\\' || name[2] == '/')) || BLI_path_is_unc(name);
@@ -1302,8 +1309,8 @@ const char *BLI_getenv(const char *env)
 }
 
 /**
- * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir, leaving the path of
- * the lowest-level directory that does exist and we can read.
+ * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir,
+ * leaving the path of the lowest-level directory that does exist and we can read.
  */
 void BLI_make_exist(char *dir)
 {

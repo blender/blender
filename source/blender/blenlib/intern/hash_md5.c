@@ -49,8 +49,9 @@
 #endif
 
 /* If UINT_MAX isn't defined, assume it's a 32-bit type.
- * This should be valid for all systems GNU cares about because that doesn't include 16-bit systems,
- * and only modern systems (that certainly have <limits.h>) have 64+-bit integral types.
+ * This should be valid for all systems GNU cares about
+ * because that doesn't include 16-bit systems, and only modern systems
+ * (that certainly have <limits.h>) have 64+-bit integral types.
  */
 
 #ifndef UINT_MAX
@@ -359,9 +360,10 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
   return 0;
 }
 
-/** Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
- *  The result is always in little endian byte order, so that a byte-wise output yields to the wanted
- *  ASCII representation of the message digest.
+/**
+ * Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
+ * The result is always in little endian byte order,
+ * so that a byte-wise output yields to the wanted ASCII representation of the message digest.
  */
 void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
 {

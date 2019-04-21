@@ -73,7 +73,8 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(hashsizes) == GHASH_MAX_SIZE, "Invalid 'hashsizes' 
 /**
  * \note Max load #GHASH_LIMIT_GROW used to be 3. (pre 2.74).
  * Python uses 0.6666, tommyhashlib even goes down to 0.5.
- * Reducing our from 3 to 0.75 gives huge speedup (about twice quicker pure GHash insertions/lookup,
+ * Reducing our from 3 to 0.75 gives huge speedup
+ * (about twice quicker pure GHash insertions/lookup,
  * about 25% - 30% quicker 'dynamic-topology' stroke drawing e.g.).
  * Min load #GHASH_LIMIT_SHRINK is a quarter of max load, to avoid resizing to quickly.
  */
@@ -379,7 +380,8 @@ BLI_INLINE void ghash_buckets_reset(GHash *gh, const uint nentries)
 
 /**
  * Internal lookup function.
- * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index multiple times.
+ * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index
+ * multiple times.
  */
 BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key, const uint bucket_index)
 {
@@ -397,7 +399,8 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key, const uint b
 
 /**
  * Internal lookup function, returns previous entry of target one too.
- * Takes bucket_index argument to avoid calling #ghash_keyhash and #ghash_bucket_index multiple times.
+ * Takes bucket_index argument to avoid calling #ghash_keyhash and #ghash_bucket_index
+ * multiple times.
  * Useful when modifying buckets somehow (like removing an entry...).
  */
 BLI_INLINE Entry *ghash_lookup_entry_prev_ex(GHash *gh,
@@ -451,7 +454,8 @@ static GHash *ghash_new(GHashHashFP hashfp,
 
 /**
  * Internal insert function.
- * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index multiple times.
+ * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index
+ * multiple times.
  */
 BLI_INLINE void ghash_insert_ex(GHash *gh, void *key, void *val, const uint bucket_index)
 {
@@ -723,7 +727,8 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
 }
 
 /**
- * Copy given GHash. Keys and values are also copied if relevant callback is provided, else pointers remain the same.
+ * Copy given GHash. Keys and values are also copied if relevant callback is provided,
+ * else pointers remain the same.
  */
 GHash *BLI_ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
 {
@@ -951,7 +956,8 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
 }
 
 /**
- * Remove a random entry from \a gh, returning true if a key/value pair could be removed, false otherwise.
+ * Remove a random entry from \a gh, returning true
+ * if a key/value pair could be removed, false otherwise.
  *
  * \param r_key: The removed key.
  * \param r_val: The removed value.
@@ -1332,7 +1338,8 @@ int BLI_gset_buckets_len(GSet *gs)
 
 /**
  * Measure how well the hash function performs (1.0 is approx as good as random distribution),
- * and return a few other stats like load, variance of the distribution of the entries in the buckets, etc.
+ * and return a few other stats like load,
+ * variance of the distribution of the entries in the buckets, etc.
  *
  * Smaller is better!
  */

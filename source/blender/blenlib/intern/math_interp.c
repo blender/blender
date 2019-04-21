@@ -512,8 +512,9 @@ void BLI_bilinear_interpolation_wrap_char(const unsigned char *buffer,
  * by Ned Greene and Paul S. Heckbert (1986)
  ***************************************************************************/
 
-/* table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
- * used instead of actual gaussian, otherwise at high texture magnifications circular artifacts are visible */
+/* Table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
+ * used instead of actual gaussian,
+ * otherwise at high texture magnifications circular artifacts are visible. */
 #define EWA_MAXIDX 255
 const float EWA_WTS[EWA_MAXIDX + 1] = {
     1.f,         0.990965f,   0.982f,      0.973105f,   0.96428f,    0.955524f,   0.946836f,
@@ -621,9 +622,10 @@ void BLI_ewa_filter(const int width,
    * so the ellipse always covers at least some texels. But since the filter is now always larger,
    * it also means that everywhere else it's also more blurry then ideally should be the case.
    * So instead here the ellipse radii are modified instead whenever either is too low.
-   * Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
-   * and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
-   * (minimum values: const float rmin = intpol ? 1.f : 0.5f;) */
+   * Use a different radius based on interpolation switch,
+   * just enough to anti-alias when interpolation is off,
+   * and slightly larger to make result a bit smoother than bilinear interpolation when
+   * interpolation is on (minimum values: const float rmin = intpol ? 1.f : 0.5f;) */
   const float rmin = (intpol ? 1.5625f : 0.765625f) / ff2;
   BLI_ewa_imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
   if ((b2 = b * b) < rmin) {

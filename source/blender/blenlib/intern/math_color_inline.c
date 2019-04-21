@@ -265,8 +265,8 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
  *
  * \warning
  * These are only an approximation,
- * in almost _all_ cases, #IMB_colormanagement_get_luminance should be used instead.
- * however for screen-only colors which don't depend on the currently loaded profile - this is preferred.
+ * in almost _all_ cases, #IMB_colormanagement_get_luminance should be used instead. However for
+ * screen-only colors which don't depend on the currently loaded profile - this is preferred.
  * Checking theme colors for contrast, etc. Basically anything outside the render pipeline.
  *
  * \{ */

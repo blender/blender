@@ -599,7 +599,8 @@ float dist_squared_to_ray_v3_normalized(const float ray_origin[3],
 
 /**
  * Find the closest point in a seg to a ray and return the distance squared.
- * \param r_point: Is the point on segment closest to ray (or to ray_origin if the ray and the segment are parallel).
+ * \param r_point: Is the point on segment closest to ray
+ * (or to ray_origin if the ray and the segment are parallel).
  * \param r_depth: the distance of r_point projection on ray to the ray_origin.
  */
 float dist_squared_ray_to_seg_v3(const float ray_origin[3],
@@ -2868,7 +2869,8 @@ bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
  * Test a bounding box (AABB) for ray intersection.
  * Assumes the ray is already local to the boundbox space.
  *
- * \note: \a direction should be normalized if you intend to use the \a tmin or \a tmax distance results!
+ * \note: \a direction should be normalized
+ * if you intend to use the \a tmin or \a tmax distance results!
  */
 bool isect_ray_aabb_v3_simple(const float orig[3],
                               const float dir[3],
@@ -3131,7 +3133,8 @@ bool isect_point_tri_prism_v3(const float p[3],
 /**
  * \param r_isect_co: The point \a p projected onto the triangle.
  * \return True when \a p is inside the triangle.
- * \note Its up to the caller to check the distance between \a p and \a r_vi against an error margin.
+ * \note Its up to the caller to check the distance between \a p and \a r_vi
+ * against an error margin.
  */
 bool isect_point_tri_v3(
     const float p[3], const float v1[3], const float v2[3], const float v3[3], float r_isect_co[3])
@@ -3408,7 +3411,12 @@ void interp_weights_quad_v3(float w[4],
   }
 }
 
-/* return 1 of point is inside triangle, 2 if it's on the edge, 0 if point is outside of triangle */
+/**
+ * \return
+ * - 0 if the point is outside of triangle.
+ * - 1 if the point is inside triangle.
+ * - 2 if it's on the edge.
+ * */
 int barycentric_inside_triangle_v2(const float w[3])
 {
   if (IN_RANGE(w[0], 0.0f, 1.0f) && IN_RANGE(w[1], 0.0f, 1.0f) && IN_RANGE(w[2], 0.0f, 1.0f)) {
@@ -3469,7 +3477,8 @@ void barycentric_weights_v2(
 
 /**
  * A version of #barycentric_weights_v2 that doesn't allow negative weights.
- * Useful when negative values cause problems and points are only ever slightly outside of the triangle.
+ * Useful when negative values cause problems and points are only
+ * ever slightly outside of the triangle.
  */
 void barycentric_weights_v2_clamped(
     const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
@@ -3524,9 +3533,9 @@ void barycentric_weights_v2_quad(const float v1[2],
                                  float w[4])
 {
   /* note: fabsf() here is not needed for convex quads (and not used in interp_weights_poly_v2).
-   *       but in the case of concave/bow-tie quads for the mask rasterizer it gives unreliable results
-   *       without adding absf(). If this becomes an issue for more general usage we could have
-   *       this optional or use a different function - Campbell */
+   * but in the case of concave/bow-tie quads for the mask rasterizer it gives unreliable results
+   * without adding absf(). If this becomes an issue for more general usage we could have
+   * this optional or use a different function - Campbell */
 #define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) \
   ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \
        fabsf(((lens[i1] * lens[i2]) - dot_v2v2(dirs[i1], dirs[i2])) / _area) : \
@@ -4338,7 +4347,8 @@ void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x
 }
 
 /**
- * Frustum planes extraction from a projection matrix (homogeneous 4d vector representations of planes).
+ * Frustum planes extraction from a projection matrix
+ * (homogeneous 4d vector representations of planes).
  *
  * plane parameters can be NULL if you do not need them.
  */
@@ -4814,7 +4824,8 @@ void tangent_from_uv_v3(const float uv1[2],
  * \param pos: current pos array of 'new' positions
  * \param weight: current weight array of 'new'weights (may be NULL pointer if you have no weights)
  * \param rpos: Reference rpos array of 'old' positions
- * \param rweight: Reference rweight array of 'old'weights (may be NULL pointer if you have no weights).
+ * \param rweight: Reference rweight array of 'old'weights
+ * (may be NULL pointer if you have no weights).
  *
  * output
  *

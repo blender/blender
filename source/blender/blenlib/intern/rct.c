@@ -553,7 +553,8 @@ void BLI_rctf_transform_pt_v(const rctf *dst,
 /**
  * Calculate a 4x4 matrix representing the transformation between two rectangles.
  *
- * \note Multiplying a vector by this matrix does *not* give the same value as #BLI_rctf_transform_pt_v.
+ * \note Multiplying a vector by this matrix does *not*
+ * give the same value as #BLI_rctf_transform_pt_v.
  */
 void BLI_rctf_transform_calc_m4_pivot_min_ex(
     const rctf *dst, const rctf *src, float matrix[4][4], uint x, uint y)

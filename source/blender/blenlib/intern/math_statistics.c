@@ -93,7 +93,8 @@ static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
  * \param n: the dimension of the vectors (and hence, of the covariance matrix to compute).
  * \param cos_vn: the nD points to compute covariance from.
  * \param nbr_cos_vn: the number of nD coordinates in cos_vn.
- * \param center: the center (or mean point) of cos_vn. If NULL, it is assumed cos_vn is already centered.
+ * \param center: the center (or mean point) of cos_vn. If NULL,
+ * it is assumed cos_vn is already centered.
  * \param use_sample_correction: whether to apply sample correction
  *                              (i.e. get 'sample varince' instead of 'population variance').
  * \return r_covmat the computed covariance matrix.

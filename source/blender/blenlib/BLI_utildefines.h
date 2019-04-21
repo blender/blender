@@ -703,7 +703,8 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
  *     args = [(chr(ord('a') + (c % 26)) + (chr(ord('0') + (c // 26)))) for c in range(i + 1)]
  *     print("#define _VA_UNUSED_VARS_%d(%s) \\" % (i + 1, ", ".join(args)))
  *     print("\t((void)(%s)%s)" %
- *             (args[0], ((", _VA_UNUSED_VARS_" + str(i) + "(%s)") if i else "%s") % ", ".join((args[1:]))))
+ *             (args[0], ((", _VA_UNUSED_VARS_" + str(i) + "(%s)") if i else "%s") %
+ *              ", ".join((args[1:]))))
  * \endcode
  */
 

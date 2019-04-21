@@ -27,13 +27,16 @@
  * in addition to distance already walked. This heuristic allows more efficiency
  * in finding optimal path.
  *
- * Implementation based on Wikipedia A* page [https://en.wikipedia.org/wiki/A*_search_algorithm].
+ * Implementation based on Wikipedia A* page:
+ * https://en.wikipedia.org/wiki/A*_search_algorithm
  *
- * Note that most memory handling here is done through two different MemArena's. Those should also be used to allocate
+ * Note that most memory handling here is done through two different MemArena's.
+ * Those should also be used to allocate
  * custom data needed to a specific use of A*.
- * The first one, owned by BLI_AStarGraph, is for 'static' data that will live as long as the graph.
- * The second one, owned by BLI_AStarSolution, is for data used during a single path solve. It will be cleared
- * much more often than graph's one.
+ * The first one, owned by BLI_AStarGraph,
+ * is for 'static' data that will live as long as the graph.
+ * The second one, owned by BLI_AStarSolution, is for data used during a single path solve.
+ * It will be cleared much more often than graph's one.
  */
 
 #include <limits.h>
@@ -53,7 +56,8 @@
 /**
  * Init a node in A* graph.
  *
- * \param custom_data: an opaque pointer attached to this link, available e.g. to cost callback function.
+ * \param custom_data: an opaque pointer attached to this link,
+ * available e.g. to cost callback function.
  */
 void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *custom_data)
 {
@@ -63,8 +67,10 @@ void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *c
 /**
  * Add a link between two nodes of our A* graph.
  *
- * \param cost: the 'length' of the link (actual distance between two vertices or face centers e.g.).
- * \param custom_data: an opaque pointer attached to this link, available e.g. to cost callback function.
+ * \param cost: the 'length' of the link
+ * (actual distance between two vertices or face centers e.g.).
+ * \param custom_data: an opaque pointer attached to this link,
+ * available e.g. to cost callback function.
  */
 void BLI_astar_node_link_add(BLI_AStarGraph *as_graph,
                              const int node1_index,
@@ -98,7 +104,8 @@ int BLI_astar_node_link_other_node(BLI_AStarGNLink *lnk, const int idx)
 /**
  * Initialize a solution data for given A* graph. Does not compute anything!
  *
- * \param custom_data: an opaque pointer attached to this link, available e.g. to cost callback function.
+ * \param custom_data: an opaque pointer attached to this link, available e.g
+ * . to cost callback function.
  *
  * \note BLI_AStarSolution stores nearly all data needed during solution compute.
  */
@@ -165,7 +172,8 @@ void BLI_astar_solution_free(BLI_AStarSolution *as_solution)
  *
  * Nodes might be e.g. vertices, faces, ...
  *
- * \param custom_data: an opaque pointer attached to this link, available e.g. to cost callback function.
+ * \param custom_data: an opaque pointer attached to this link,
+ * available e.g. to cost callback function.
  */
 void BLI_astar_graph_init(BLI_AStarGraph *as_graph, const int node_num, void *custom_data)
 {
@@ -194,8 +202,9 @@ void BLI_astar_graph_free(BLI_AStarGraph *as_graph)
 /**
  * Solve a path in given graph, using given 'cost' callback function.
  *
- * \param max_steps: maximum number of nodes the found path may have. Useful in performance-critical usages.
- *                  If no path is found within given steps, returns false too.
+ * \param max_steps: maximum number of nodes the found path may have.
+ * Useful in performance-critical usages.
+ * If no path is found within given steps, returns false too.
  * \return true if a path was found, false otherwise.
  */
 bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,

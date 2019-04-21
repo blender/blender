@@ -58,7 +58,8 @@ struct KDTree {
 
 #define KD_NODE_UNSET ((uint)-1)
 
-/** When set we know all values are unbalanced, otherwise clear them when re-balancing: see T62210. */
+/** When set we know all values are unbalanced,
+ * otherwise clear them when re-balancing: see T62210. */
 #define KD_NODE_ROOT_IS_INIT ((uint)-2)
 
 /* -------------------------------------------------------------------- */
@@ -732,7 +733,8 @@ int BLI_kdtree_nd_(range_search)(const KDTree *tree,
  * A version of #BLI_kdtree_3d_range_search which runs a callback
  * instead of allocating an array.
  *
- * \param search_cb: Called for every node found in \a range, false return value performs an early exit.
+ * \param search_cb: Called for every node found in \a range,
+ * false return value performs an early exit.
  *
  * \note the order of calls isn't sorted based on distance.
  */

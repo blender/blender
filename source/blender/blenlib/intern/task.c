@@ -714,13 +714,15 @@ TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
 
 /**
  * Create a background task pool.
- * In multi-threaded context, there is no differences with \a BLI_task_pool_create(), but in single-threaded case
- * it is ensured to have at least one worker thread to run on (i.e. you do not have to call
- * \a BLI_task_pool_work_and_wait() on it to be sure it will be processed).
+ * In multi-threaded context, there is no differences with #BLI_task_pool_create(),
+ * but in single-threaded case it is ensured to have at least one worker thread to run on
+ * (i.e. you don't have to call #BLI_task_pool_work_and_wait
+ * on it to be sure it will be processed).
  *
- * \note Background pools are non-recursive (that is, you should not create other background pools in tasks assigned
- *       to a background pool, they could end never being executed, since the 'fallback' background thread is already
- *       busy with parent task in single-threaded context).
+ * \note Background pools are non-recursive
+ * (that is, you should not create other background pools in tasks assigned to a background pool,
+ * they could end never being executed, since the 'fallback' background thread is already
+ * busy with parent task in single-threaded context).
  */
 TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata)
 {
@@ -1078,7 +1080,8 @@ static void parallel_range_single_thread(const int start,
 }
 
 /**
- * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
+ * This function allows to parallelized for loops in a similar way to OpenMP's
+ * 'parallel for' statement.
  *
  * See public API doc of ParallelRangeSettings for description of all settings.
  */
@@ -1264,10 +1267,12 @@ BLI_INLINE int task_parallel_listbasecalc_chunk_size(const int num_threads)
  * \param listbase: The double linked list to loop over.
  * \param userdata: Common userdata passed to all instances of \a func.
  * \param func: Callback function.
- * \param use_threading: If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
+ * \param use_threading: If \a true, actually split-execute loop in threads,
+ * else just do a sequential forloop
+ * (allows caller to use any kind of test to switch on parallelization or not).
  *
- * \note There is no static scheduling here, since it would need another full loop over items to count them...
+ * \note There is no static scheduling here,
+ * since it would need another full loop over items to count them.
  */
 void BLI_task_parallel_listbase(struct ListBase *listbase,
                                 void *userdata,
@@ -1336,7 +1341,8 @@ static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata, int
  * \param mempool: The iterable BLI_mempool to loop over.
  * \param userdata: Common userdata passed to all instances of \a func.
  * \param func: Callback function.
- * \param use_threading: If \a true, actually split-execute loop in threads, else just do a sequential for loop
+ * \param use_threading: If \a true, actually split-execute loop in threads,
+ * else just do a sequential for loop
  * (allows caller to use any kind of test to switch on parallelization or not).
  *
  * \note There is no static scheduling here.

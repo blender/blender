@@ -184,7 +184,8 @@ bool BLI_tridiagonal_solve_cyclic(
  *
  * \param func_delta: Callback computing the value of f(x).
  * \param func_jacobian: Callback computing the Jacobian matrix of the function at x.
- * \param func_correction: Callback for forcing the search into an arbitrary custom domain. May be NULL.
+ * \param func_correction: Callback for forcing the search into an arbitrary custom domain.
+ * May be NULL.
  * \param userdata: Data for the callbacks.
  * \param epsilon: Desired precision.
  * \param max_iterations: Limit on the iterations.

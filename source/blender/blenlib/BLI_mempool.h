@@ -77,8 +77,10 @@ enum {
   BLI_MEMPOOL_NOP = 0,
   /** allow iterating on this mempool.
    *
-   * \note this requires that the first four bytes of the elements never begin with 'free' (FREEWORD).
-   * \note order of iteration is only assured to be the order of allocation when no chunks have been freed.
+   * \note this requires that the first four bytes of the elements
+   * never begin with 'free' (#FREEWORD).
+   * \note order of iteration is only assured to be the
+   * order of allocation when no chunks have been freed.
    */
   BLI_MEMPOOL_ALLOW_ITER = (1 << 0),
 };

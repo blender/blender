@@ -132,10 +132,13 @@ void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, cons
 }
 
 /**
- * Finds the best possible flipped (left/right) name. For renaming; check for unique names afterwards.
+ * Finds the best possible flipped (left/right) name.
+ * For renaming; check for unique names afterwards.
  *
- * \param r_name: flipped name, assumed to be a pointer to a string of at least \a name_len size.
- * \param from_name: original name, assumed to be a pointer to a string of at least \a name_len size.
+ * \param r_name: flipped name,
+ * assumed to be a pointer to a string of at least \a name_len size.
+ * \param from_name: original name,
+ * assumed to be a pointer to a string of at least \a name_len size.
  * \param strip_number: If set, remove number extensions.
  */
 void BLI_string_flip_side_name(char *r_name,
@@ -326,7 +329,8 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  *
  * For places where this is used, see constraint.c for example...
  *
- * \param name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
+ * \param name_offs: should be calculated using offsetof(structname, membername)
+ * macro from stddef.h
  */
 static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, int name_offs)
 {

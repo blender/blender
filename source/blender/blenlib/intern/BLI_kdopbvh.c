@@ -622,9 +622,12 @@ static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, con
 /**
  * Generalized implicit tree build
  *
- * An implicit tree is a tree where its structure is implied, thus there is no need to store child pointers or indexs.
- * Its possible to find the position of the child or the parent with simple maths (multiplication and adittion).
- * This type of tree is for example used on heaps.. where node N has its childs at indexs N*2 and N*2+1.
+ * An implicit tree is a tree where its structure is implied,
+ * thus there is no need to store child pointers or indexs.
+ * Its possible to find the position of the child or the parent with simple maths
+ * (multiplication and adittion).
+ * This type of tree is for example used on heaps..
+ * where node N has its childs at indexs N*2 and N*2+1.
  *
  * Although in this case the tree type is general.. and not know until runtime.
  * tree_type stands for the maximum number of childs that a tree node can have.
@@ -766,14 +769,16 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
  * - At most only one branch will have NULL childs;
  * - All leafs will be stored at level N or N+1.
  *
- * This function creates an implicit tree on branches_array, the leafs are given on the leafs_array.
+ * This function creates an implicit tree on branches_array,
+ * the leafs are given on the leafs_array.
  *
  * The tree is built per depth levels. First branches at depth 1.. then branches at depth 2.. etc..
- * The reason is that we can build level N+1 from level N without any data dependencies.. thus it allows
- * to use multithread building.
+ * The reason is that we can build level N+1 from level N without any data dependencies..
+ * thus it allows to use multithread building.
  *
- * To archive this is necessary to find how much leafs are accessible from a certain branch, BVHBuildHelper
- * #implicit_needed_branches and #implicit_leafs_index are auxiliary functions to solve that "optimal-split".
+ * To archive this is necessary to find how much leafs are accessible from a certain branch,
+ * #BVHBuildHelper, #implicit_needed_branches and #implicit_leafs_index
+ * are auxiliary functions to solve that "optimal-split".
  */
 static void non_recursive_bvh_div_nodes(const BVHTree *tree,
                                         BVHNode *branches_array,
@@ -1731,9 +1736,10 @@ float BLI_bvhtree_bb_raycast(const float bv[6],
  * Calls the callback for every ray intersection
  *
  * \note Using a \a callback which resets or never sets the #BVHTreeRayHit index & dist works too,
- * however using this function means existing generic callbacks can be used from custom callbacks without
- * having to handle resetting the hit beforehand.
- * It also avoid redundant argument and return value which aren't meaningful when collecting multiple hits.
+ * however using this function means existing generic callbacks can be used from custom callbacks
+ * without having to handle resetting the hit beforehand.
+ * It also avoid redundant argument and return value which aren't meaningful
+ * when collecting multiple hits.
  */
 void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
                                  const float co[3],
@@ -1786,7 +1792,8 @@ void BLI_bvhtree_ray_cast_all(BVHTree *tree,
 /* -------------------------------------------------------------------- */
 /** \name BLI_bvhtree_range_query
  *
- * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius).
+ * Allocs and fills an array with the indexs of node that are on the given spherical range
+ * (center, radius).
  * Returns the size of the array.
  *
  * \{ */
@@ -2063,7 +2070,8 @@ typedef struct BVHTree_WalkData {
 } BVHTree_WalkData;
 
 /**
- * Runs first among nodes children of the first node before going to the next node in the same layer.
+ * Runs first among nodes children of the first node before going
+ * to the next node in the same layer.
  *
  * \return false to break out of the search early.
  */
