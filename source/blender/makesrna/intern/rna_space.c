@@ -84,7 +84,13 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 
     /* Animation */
     {0, "", ICON_NONE, "Animation", ""},
-    //{SPACE_ACTION, "TIMELINE", ICON_TIME, "Timeline", "Timeline and playback controls (NOTE: Switch to 'Timeline' mode)"}, /* XXX */
+#if 0
+    {SPACE_ACTION,
+     "TIMELINE",
+     ICON_TIME,
+     "Timeline",
+     "Timeline and playback controls (NOTE: Switch to 'Timeline' mode)"}, /* XXX */
+#endif
     {SPACE_ACTION, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", "Adjust timing of keyframes"},
     {SPACE_GRAPH,
      "GRAPH_EDITOR",
@@ -191,7 +197,8 @@ const EnumPropertyItem rna_enum_space_graph_mode_items[] = {
   }
 
 #ifndef RNA_RUNTIME
-/* XXX: action-editor is currently for object-level only actions, so show that using object-icon hint */
+/* XXX: action-editor is currently for object-level only actions,
+ * so show that using object-icon hint */
 static EnumPropertyItem rna_enum_space_action_mode_all_items[] = {
     SACT_ITEM_DOPESHEET,
     SACT_ITEM_TIMELINE,
@@ -370,7 +377,8 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Actually populated dynamically trough a function, but helps for context-less access (e.g. doc, i18n...). */
+/* Actually populated dynamically trough a function,
+ * but helps for context-less access (e.g. doc, i18n...). */
 static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
     {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene"},
@@ -1210,7 +1218,8 @@ static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(bContext *C
 static int rna_SpaceView3D_icon_from_show_object_viewport_get(PointerRNA *ptr)
 {
   const View3D *v3d = (View3D *)ptr->data;
-  /* Ignore selection values when view is off, intent is to show if visible objects aren't selectable. */
+  /* Ignore selection values when view is off,
+   * intent is to show if visible objects aren't selectable. */
   const int view_value = (v3d->object_type_exclude_viewport != 0);
   const int select_value = (v3d->object_type_exclude_select &
                             ~v3d->object_type_exclude_viewport) != 0;
@@ -1798,7 +1807,8 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
              * EXCEPTION:
              * This callback runs when unlinking actions. In that case, we don't want to
              * stash the action, as the user is signalling that they want to detach it.
-             * This can be reviewed again later, but it could get annoying if we keep these instead.
+             * This can be reviewed again later,
+             * but it could get annoying if we keep these instead.
              */
             if ((adt->action->id.us <= 0) && (saction->action != NULL)) {
               /* XXX: Things here get dodgy if this action is only partially completed,
@@ -1881,7 +1891,8 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
   /* recalculate extents of channel list */
   saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 
-  /* store current mode as "old mode", so that returning from other editors doesn't always reset to "Action Editor" */
+  /* store current mode as "old mode",
+   * so that returning from other editors doesn't always reset to "Action Editor" */
   if (saction->mode != SACTCONT_TIMELINE) {
     saction->mode_prev = saction->mode;
   }
@@ -2479,7 +2490,8 @@ static void rna_def_space(BlenderRNA *brna)
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "spacetype");
   RNA_def_property_enum_items(prop, rna_enum_space_type_items);
-  /* When making this editable, take care for the special case of global areas (see rna_Area_type_set). */
+  /* When making this editable, take care for the special case of global areas
+   * (see rna_Area_type_set). */
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "Space data type");
 

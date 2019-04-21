@@ -175,7 +175,8 @@ static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
   /* Hack? copied from sequencer.c::reload_sequence_new_file() */
   size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(struct StripElem);
 
-  /* the problem with seq->strip->len and seq->len is that it's discounted from the offset (hard cut trim) */
+  /* The problem with seq->strip->len and seq->len is that it's discounted from the offset
+   * (hard cut trim). */
   return (int)olen;
 }
 
@@ -508,8 +509,10 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 
   /* fix all the animation data which may link to this */
 
-  /* don't rename everywhere because these are per scene */
-  /* BKE_animdata_fix_paths_rename_all(NULL, "sequence_editor.sequences_all", oldname, seq->name + 2); */
+  /* Don't rename everywhere because these are per scene. */
+#  if 0
+  BKE_animdata_fix_paths_rename_all(NULL, "sequence_editor.sequences_all", oldname, seq->name + 2);
+#  endif
   adt = BKE_animdata_from_id(&scene->id);
   if (adt)
     BKE_animdata_fix_paths_rename(

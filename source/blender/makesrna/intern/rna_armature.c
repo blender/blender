@@ -588,7 +588,8 @@ static void rna_Armature_transform(struct bArmature *arm, Main *bmain, float *ma
 
 #else
 
-/* Settings for curved bbone settings - The posemode values get applied over the top of the editmode ones */
+/* Settings for curved bbone settings -
+ * The posemode values get applied over the top of the editmode ones. */
 void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 {
 #  define RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone) \

@@ -614,7 +614,8 @@ bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&pchan_dst->constraints, con_anchor, con_dst);
 
-  /* This should actually *not* be needed in typical cases. However, if overridden source was edited,
+  /* This should actually *not* be needed in typical cases.
+   * However, if overridden source was edited,
    * we *may* have some new conflicting names. */
   BKE_constraint_unique_name(con_dst, &pchan_dst->constraints);
 
@@ -743,7 +744,8 @@ static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob,
                                                       bPoseChannel *ref_pchan)
 {
   if (ref_ob != ob) {
-    /* We are trying to set a pchan from another object! Forbidden, try to find by name, or abort. */
+    /* We are trying to set a pchan from another object! Forbidden,
+     * try to find by name, or abort. */
     if (ref_pchan != NULL) {
       ref_pchan = BKE_pose_channel_find_name(ob->pose, ref_pchan->name);
     }
@@ -978,7 +980,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "rotmode");
   RNA_def_property_enum_items(prop, rna_enum_object_rotation_mode_items);
   RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
-  /* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
+  /* XXX... disabled, since proxy-locked layers are currently
+   * used for ensuring proxy-syncing too */
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
   RNA_def_property_ui_text(prop, "Rotation Mode", "");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");

@@ -65,11 +65,12 @@ const char *rna_translate_ui_text(
 
   /* Else, if an RNA type or property is specified, use its context. */
 #  if 0
-  /* XXX Disabled for now. Unfortunately, their is absolutely no way from py code to get the RNA struct corresponding
-   *     to the 'data' (in functions like prop() & co), as this is pure runtime data. Hence, messages extraction
-   *     script can't determine the correct context it should use for such 'text' messages...
-   *     So for now, one have to explicitly specify the 'text_ctxt' when using prop() etc. functions,
-   *     if default context is not suitable.
+  /* XXX Disabled for now. Unfortunately, their is absolutely no way from py code to get the RNA
+   *     struct corresponding to the 'data' (in functions like prop() & co),
+   *     as this is pure runtime data. Hence, messages extraction script can't determine the
+   *     correct context it should use for such 'text' messages...
+   *     So for now, one have to explicitly specify the 'text_ctxt' when using prop() etc.
+   *     functions, if default context is not suitable.
    */
   if (prop) {
     return BLT_pgettext(RNA_property_translation_context(prop), text);
@@ -1473,7 +1474,13 @@ void RNA_api_ui_layout(StructRNA *srna)
       func, "Item. A widget to control color managed view settings settings.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
-  /* RNA_def_boolean(func, "show_global_settings", false, "", "Show widgets to control global color management settings"); */
+#  if 0
+  RNA_def_boolean(func,
+                  "show_global_settings",
+                  false,
+                  "",
+                  "Show widgets to control global color management settings");
+#  endif
 
   /* node socket icon */
   func = RNA_def_function(srna, "template_node_socket", "uiTemplateNodeSocket");

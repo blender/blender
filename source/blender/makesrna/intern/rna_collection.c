@@ -152,8 +152,8 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
     return false;
   }
 
-  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection' util in BKE_collection...
-   * This is only temp auick dirty test! */
+  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection'
+   * util in BKE_collection. This is only temp quick dirty test! */
   id_us_min(&cob_dst->ob->id);
   cob_dst->ob = ob_src;
   id_us_plus(&cob_dst->ob->id);
@@ -255,8 +255,8 @@ static bool rna_Collection_children_override_apply(Main *bmain,
     return false;
   }
 
-  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection' util in BKE_collection...
-   * This is only temp auick dirty test! */
+  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection'
+   * util in BKE_collection. This is only temp quick dirty test! */
   id_us_min(&collchild_dst->collection->id);
   collchild_dst->collection = subcoll_src;
   id_us_plus(&collchild_dst->collection->id);
@@ -342,7 +342,8 @@ void RNA_def_collections(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "Collection", "ID");
   RNA_def_struct_ui_text(srna, "Collection", "Collection of Object data-blocks");
   RNA_def_struct_ui_icon(srna, ICON_GROUP);
-  /* this is done on save/load in readfile.c, removed if no objects are in the collection and not in a scene */
+  /* This is done on save/load in readfile.c,
+   * removed if no objects are in the collection and not in a scene. */
   RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
   prop = RNA_def_property(srna, "instance_offset", PROP_FLOAT, PROP_TRANSLATION);

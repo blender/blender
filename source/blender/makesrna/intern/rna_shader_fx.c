@@ -532,7 +532,8 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Threshold", "Limit to select color for glow effect");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
-  /* use blur fields to make compatible with blur filter, but only makes public first array element */
+  /* Use blur fields to make compatible with blur filter,
+   * but only makes public first array element. */
   prop = RNA_def_property(srna, "radius", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "blur[0]");
   RNA_def_property_range(prop, 0, INT_MAX);

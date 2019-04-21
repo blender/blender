@@ -46,7 +46,8 @@
 
 static void rna_FCurve_convert_to_samples(FCurve *fcu, ReportList *reports, int start, int end)
 {
-  /* XXX fcurve_store_samples uses end frame included, which is not consistent with usual behavior in Blender,
+  /* XXX fcurve_store_samples uses end frame included,
+   * which is not consistent with usual behavior in Blender,
    * nor python slices, etc. Let have public py API be consistent here at least. */
   end--;
   if (start > end) {

@@ -904,7 +904,8 @@ static void rna_ImagePreview_icon_pixels_float_set(PointerRNA *ptr, const float 
 
 static int rna_ImagePreview_icon_id_get(PointerRNA *ptr)
 {
-  /* Using a callback here allows us to only generate icon matching that preview when icon_id is requested. */
+  /* Using a callback here allows us to only generate icon matching
+   * that preview when icon_id is requested. */
   return BKE_icon_preview_ensure(ptr->id.data, (PreviewImage *)(ptr->data));
 }
 static void rna_ImagePreview_icon_reload(PreviewImage *prv)
@@ -1299,7 +1300,8 @@ static void rna_def_ID_override_static_property(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "ID Static Override Property", "Description of an overridden property");
 
-  /* String pointer, we *should* add get/set/etc. But NULL rna_path would be a nasty bug anyway... */
+  /* String pointer, we *should* add get/set/etc.
+   * But NULL rna_path would be a nasty bug anyway. */
   prop = RNA_def_string(srna,
                         "rna_path",
                         NULL,

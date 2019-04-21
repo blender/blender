@@ -496,8 +496,8 @@ static void uilist_filter_items(uiList *ui_list,
       memcpy(flt_data->items_filter_flags, filter_flags, sizeof(int) * len);
 
       if (filter_neworder) {
-        /* For sake of simplicity, py filtering is expected to filter all items, but we actually only want
-         * reordering data for shown items!
+        /* For sake of simplicity, py filtering is expected to filter all items,
+         * but we actually only want reordering data for shown items!
          */
         int items_shown, shown_idx;
         int t_idx, t_ni, prev_ni;
@@ -1405,8 +1405,8 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_EXCLUDE);
   RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice-versa)");
 
-  /* WARNING: This is sort of an abuse, sort-by-alpha is actually a value, should even be an enum in full logic
-   * (of two values, sort by index and sort by name).
+  /* WARNING: This is sort of an abuse, sort-by-alpha is actually a value,
+   * should even be an enum in full logic (of two values, sort by index and sort by name).
    * But for default UIList, it's nicer (better UI-wise) to show this as a boolean bit-flag option,
    * avoids having to define custom setters/getters using UILST_FLT_SORT_MASK to mask out
    * actual bitflags on same var, etc.

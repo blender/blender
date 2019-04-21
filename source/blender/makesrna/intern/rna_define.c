@@ -457,8 +457,13 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 {
   int a = 0;
 
-  /* list is from...
-   * ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist if kw not in {"False", "None", "True"}])
+  /** List is from:
+   * \code{.py}
+   * ", ".join([
+   *     '"%s"' % kw for kw in __import__("keyword").kwlist
+   *     if kw not in {"False", "None", "True"}
+   * ])
+   * \endcode
    */
   static const char *kwlist[] = {
       /* "False", "None", "True", */
@@ -954,8 +959,9 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 
   ds = rna_find_def_struct(srna);
 
-  /* there are far too many structs which initialize without valid DNA struct names,
-   * this can't be checked without adding an option to disable (tested this and it means changes all over - Campbell) */
+  /* There are far too many structs which initialize without valid DNA struct names,
+   * this can't be checked without adding an option to disable
+   * (tested this and it means changes all over - Campbell) */
 #if 0
   if (DNA_struct_find_nr_wrapper(DefRNA.sdna, structname) == -1) {
     if (!DefRNA.silent) {

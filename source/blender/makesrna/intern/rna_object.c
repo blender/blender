@@ -346,8 +346,9 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
   Object *ob = ptr->id.data;
   float local_mat[4][4];
 
-  /* localspace matrix is truly relative to the parent, but parameters stored in object are
-   * relative to parentinv matrix. Undo the parent inverse part before applying it as local matrix. */
+  /* Localspace matrix is truly relative to the parent,
+   * but parameters stored in object are relative to parentinv matrix.
+   * Undo the parent inverse part before applying it as local matrix. */
   if (ob->parent) {
     float invmat[4][4];
     invert_m4_m4(invmat, ob->parentinv);
@@ -357,7 +358,8 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
     copy_m4_m4(local_mat, (float(*)[4])values);
   }
 
-  /* don't use compat so we get predictable rotation, and do not use parenting either, because it's a local matrix! */
+  /* Don't use compat so we get predictable rotation, and do not use parenting either,
+   * because it's a local matrix! */
   BKE_object_apply_mat4(ob, local_mat, false, false);
 }
 
@@ -1369,8 +1371,8 @@ bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&ob_dst->constraints, con_anchor, con_dst);
 
-  /* This should actually *not* be needed in typical cases. However, if overridden source was edited,
-   * we *may* have some new conflicting names. */
+  /* This should actually *not* be needed in typical cases.
+   * However, if overridden source was edited, we *may* have some new conflicting names. */
   BKE_constraint_unique_name(con_dst, &ob_dst->constraints);
 
   //  printf("%s: We inserted a constraint...\n", __func__);
@@ -1458,7 +1460,8 @@ bool rna_Object_modifiers_override_apply(Main *UNUSED(bmain),
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&ob_dst->modifiers, mod_anchor, mod_dst);
 
-  /* This should actually *not* be needed in typical cases. However, if overridden source was edited,
+  /* This should actually *not* be needed in typical cases.
+   * However, if overridden source was edited,
    * we *may* have some new conflicting names. */
   modifier_unique_name(&ob_dst->modifiers, mod_dst);
 
@@ -1860,7 +1863,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 
   /* WARNING! Order is crucial for override to work properly here... :/
-   * 'link' must come before material pointer, since it defines where (in object or obdata) that one is set! */
+   * 'link' must come before material pointer,
+   * since it defines where (in object or obdata) that one is set! */
   prop = RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, link_items);
   RNA_def_property_enum_funcs(
@@ -2640,7 +2644,10 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Constraints", "Constraints affecting the transformation of the object");
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Object_constraints_override_apply");
-  /*  RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "constraints__add", "constraints__remove"); */
+#  if 0
+  RNA_def_property_collection_funcs(
+      prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "constraints__add", "constraints__remove");
+#  endif
   rna_def_object_constraints(brna, prop);
 
   /* vertex groups */

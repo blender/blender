@@ -40,7 +40,13 @@
 const EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
     {MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
     {0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
-    //{MOTIONPATH_BAKE_CENTERS, "CENTROID", 0, "Centers", "Calculate bone paths from center of mass"},
+#if 0
+    {MOTIONPATH_BAKE_CENTERS,
+     "CENTROID",
+     0,
+     "Centers",
+     "Calculate bone paths from center of mass"},
+#endif
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -296,9 +302,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   /* Readonly Property - Do any motion paths exist/need updating? (Mainly for bone paths) */
   prop = RNA_def_property(srna, "has_motion_paths", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "path_bakeflag", MOTIONPATH_BAKE_HAS_PATHS);
-  RNA_def_property_clear_flag(
-      prop,
-      PROP_EDITABLE); /* NOTE: This is really an internal state var for convenience, so don't allow edits! */
+  /* NOTE: This is really an internal state var for convenience, so don't allow edits! */
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Has Motion Paths", "Are there any bone paths that will need updating (read-only)");
 }

@@ -504,7 +504,8 @@ static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
     /* of course we need to invalidate here */
     BKE_texpaint_slots_refresh_object(scene, ob);
 
-    /* we assume that changing the current mode will invalidate the uv layers so we need to refresh display */
+    /* We assume that changing the current mode will invalidate the uv layers
+     * so we need to refresh display. */
     BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
   }

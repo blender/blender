@@ -599,8 +599,8 @@ static void rna_NodeTree_get_from_context(
   void *ret1, *ret2, *ret3;
 
   RNA_pointer_create(NULL, ntreetype->ext.srna, NULL, &ptr); /* dummy */
-  func =
-      &rna_NodeTree_get_from_context_func; /* RNA_struct_find_function(&ptr, "get_from_context"); */
+  /* RNA_struct_find_function(&ptr, "get_from_context"); */
+  func = &rna_NodeTree_get_from_context_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1692,7 +1692,8 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         const char *name,
                                         const char *identifier)
 {
-  /* Adding an input to a group node is not working, simpler to add it to its underlying nodetree. */
+  /* Adding an input to a group node is not working,
+   * simpler to add it to its underlying nodetree. */
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
     return rna_NodeTree_inputs_new((bNodeTree *)node->id, bmain, reports, type, name);
   }
@@ -1721,7 +1722,8 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          const char *name,
                                          const char *identifier)
 {
-  /* Adding an output to a group node is not working, simpler to add it to its underlying nodetree. */
+  /* Adding an output to a group node is not working,
+   * simpler to add it to its underlying nodetree. */
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
     return rna_NodeTree_outputs_new((bNodeTree *)node->id, bmain, reports, type, name);
   }
@@ -2151,8 +2153,8 @@ static void rna_NodeSocketInterface_register_properties(bNodeTree *ntree,
     return;
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
-  func =
-      &rna_NodeSocketInterface_register_properties_func; /* RNA_struct_find_function(&ptr, "register_properties"); */
+  /* RNA_struct_find_function(&ptr, "register_properties"); */
+  func = &rna_NodeSocketInterface_register_properties_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "data_rna_type", &data_srna);
@@ -2176,8 +2178,8 @@ static void rna_NodeSocketInterface_init_socket(
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
-  func =
-      &rna_NodeSocketInterface_init_socket_func; /* RNA_struct_find_function(&ptr, "init_socket"); */
+  /* RNA_struct_find_function(&ptr, "init_socket"); */
+  func = &rna_NodeSocketInterface_init_socket_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "node", &node_ptr);
@@ -2205,8 +2207,8 @@ static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
-  func =
-      &rna_NodeSocketInterface_from_socket_func; /* RNA_struct_find_function(&ptr, "from_socket"); */
+  /* RNA_struct_find_function(&ptr, "from_socket"); */
+  func = &rna_NodeSocketInterface_from_socket_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "node", &node_ptr);
@@ -2827,7 +2829,8 @@ static const EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 
   while (rl) {
     tmp.identifier = rl->name;
-    /* little trick: using space char instead empty string makes the item selectable in the dropdown */
+    /* Little trick: using space char instead empty string
+     * makes the item selectable in the dropdown. */
     if (rl->name[0] == '\0')
       tmp.name = " ";
     else
@@ -2898,7 +2901,8 @@ static const EnumPropertyItem *renderresult_views_add_enum(RenderView *rv)
 
   while (rv) {
     tmp.identifier = rv->name;
-    /* little trick: using space char instead empty string makes the item selectable in the dropdown */
+    /* Little trick: using space char instead empty string
+     * makes the item selectable in the dropdown. */
     if (rv->name[0] == '\0')
       tmp.name = " ";
     else
@@ -8142,7 +8146,8 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
   /* XXX Workaround: Registered functions are not exposed in python by bpy,
    * it expects them to be registered from python and use the native implementation.
    * However, the standard socket types below are not registering these functions from python,
-   * so in order to call them in py scripts we need to overload and replace them with plain C callbacks.
+   * so in order to call them in py scripts we need to overload and
+   * replace them with plain C callbacks.
    * These types provide a usable basis for socket types defined in C.
    */
 
@@ -8219,7 +8224,8 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 
   /* XXX These types should eventually be registered at runtime.
    * Then use the nodeStaticSocketType and nodeStaticSocketInterfaceType functions
-   * to get the idname strings from int type and subtype (see node_socket.c, register_standard_node_socket_types).
+   * to get the idname strings from int type and subtype
+   * (see node_socket.c, register_standard_node_socket_types).
    */
 
   rna_def_node_socket_float(brna, "NodeSocketFloat", "NodeSocketInterfaceFloat", PROP_NONE);
@@ -8304,8 +8310,10 @@ static void rna_def_internal_node(BlenderRNA *brna)
 
   /* XXX Workaround: Registered functions are not exposed in python by bpy,
    * it expects them to be registered from python and use the native implementation.
+   *
    * However, the standard node types are not registering these functions from python,
-   * so in order to call them in py scripts we need to overload and replace them with plain C callbacks.
+   * so in order to call them in py scripts we need to overload and
+   * replace them with plain C callbacks.
    * This type provides a usable basis for node types defined in C.
    */
 
@@ -9124,7 +9132,8 @@ static StructRNA *define_specific_node(BlenderRNA *brna,
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  /* XXX hack, want to avoid "NodeInternal" prefix, so use "Node" in NOD_static_types.h and replace here */
+  /* XXX hack, want to avoid "NodeInternal" prefix,
+   * so use "Node" in NOD_static_types.h and replace here */
   if (STREQ(base_name, "Node"))
     base_name = "NodeInternal";
 
@@ -9139,8 +9148,8 @@ static StructRNA *define_specific_node(BlenderRNA *brna,
   RNA_def_function_return(func, parm);
 
   /* Exposes the socket template type lists in RNA for use in scripts
-   * Only used in the C nodes and not exposed in the base class to keep the namespace clean for pynodes.
-   */
+   * Only used in the C nodes and not exposed in the base class to
+   * keep the namespace clean for py-nodes. */
   func = RNA_def_function(srna, "input_template", "rna_NodeInternal_input_template");
   RNA_def_function_ui_description(func, "Input socket template");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);

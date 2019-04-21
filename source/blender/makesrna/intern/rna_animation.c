@@ -48,7 +48,8 @@ const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values, but it would break existing
+/* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values,
+ * but it would break existing
  * exported keyingset... :/
  */
 const EnumPropertyItem rna_enum_keying_flag_items[] = {
@@ -225,7 +226,8 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
 
 /* ------ */
 
-/* XXX: the exact purpose of this is not too clear... maybe we want to revise this at some point? */
+/* XXX: the exact purpose of this is not too clear...
+ * maybe we want to revise this at some point? */
 static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
 {
   KeyingSetInfo *ksi = (KeyingSetInfo *)ptr->data;
@@ -263,7 +265,8 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   int have_function[3];
 
   /* setup dummy type info to store static properties in */
-  /* TODO: perhaps we want to get users to register as if they're using 'KeyingSet' directly instead? */
+  /* TODO: perhaps we want to get users to register
+   * as if they're using 'KeyingSet' directly instead? */
   RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
 
   /* validate the python class */
@@ -471,7 +474,8 @@ static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset,
   KS_Path *ksp = NULL;
   short flag = 0;
 
-  /* special case when index = -1, we key the whole array (as with other places where index is used) */
+  /* Special case when index = -1, we key the whole array
+   * (as with other places where index is used). */
   if (index == -1) {
     flag |= KSP_FLAG_WHOLE_ARRAY;
     index = 0;
@@ -507,7 +511,8 @@ static void rna_KeyingSet_paths_remove(KeyingSet *keyingset,
   RNA_POINTER_INVALIDATE(ksp_ptr);
 
   /* the active path number will most likely have changed */
-  /* TODO: we should get more fancy and actually check if it was removed, but this will do for now */
+  /* TODO: we should get more fancy and actually check if it was removed,
+   * but this will do for now */
   keyingset->active_path = 0;
 }
 
@@ -1010,7 +1015,10 @@ static void rna_def_keyingset(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "idname");
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "ID Name", KEYINGSET_IDNAME_DOC);
-  /*  RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL); */ /* NOTE: disabled, as ID name shouldn't be editable */
+  /* NOTE: disabled, as ID name shouldn't be editable */
+#  if 0
+  RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL);
+#  endif
 
   prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "name");

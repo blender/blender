@@ -2949,10 +2949,8 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop, "Keyframe Scale Factor", "Scale factor for adjusting the height of keyframes");
-  RNA_def_property_range(
-      prop,
-      0.8f,
-      5.0f); /* Note: These limits prevent buttons overlapping (min), and excessive size... (max) */
+  /* Note: These limits prevent buttons overlapping (min), and excessive size... (max) */
+  RNA_def_property_range(prop, 0.8f, 5.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "summary", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -4474,7 +4472,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Particle", "Causes particle systems to be duplicated with the object");
 
-  /* currently only used for insert offset (aka auto-offset), maybe also be useful for later stuff though */
+  /* Currently only used for insert offset (aka auto-offset),
+   * maybe also be useful for later stuff though. */
   prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "node_margin");
   RNA_def_property_ui_text(
@@ -4534,21 +4533,21 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem audio_rate_items[] = {
-      /*      {8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second"}, */
-      /*      {11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second"}, */
-      /*      {16000, "RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second"}, */
-      /*      {22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second"}, */
-      /*      {32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second"}, */
-      {44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second"},
-      {48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second"},
-      /*      {88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second"}, */
-      {96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
-      {192000,
-       "RATE_192000",
-       0,
-       "192 kHz",
-       "Set audio sampling rate to 192000 samples per second"},
-      {0, NULL, 0, NULL, NULL},
+#  if 0
+    {8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second"},
+    {11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second"},
+    {16000, "RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second"},
+    {22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second"},
+    {32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second"},
+#  endif
+    {44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second"},
+    {48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second"},
+#  if 0
+    {88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second"},
+#  endif
+    {96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
+    {192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second"},
+    {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem audio_format_items[] = {
@@ -5086,9 +5085,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   /* 3D view */
   prop = RNA_def_property(srna, "ndof_show_guide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_SHOW_GUIDE);
+
+  /* TODO: update description when fly-mode visuals are in place
+   * ("projected position in fly mode"). */
   RNA_def_property_ui_text(
       prop, "Show Navigation Guide", "Display the center and axis during rotation");
-  /* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
 
   /* 3D view */
   prop = RNA_def_property(srna, "ndof_view_navigate_method", PROP_ENUM, PROP_NONE);

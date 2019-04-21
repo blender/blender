@@ -713,8 +713,8 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
 {
   GP_Interpolate_Settings *settings = (GP_Interpolate_Settings *)ptr->data;
 
-  /* NOTE: This cast should be fine, as we have a small + finite set of values (eGP_Interpolate_Type)
-   * that should fit well within a char
+  /* NOTE: This cast should be fine, as we have a small + finite set of values
+   * (#eGP_Interpolate_Type) that should fit well within a char.
    */
   settings->type = (char)value;
 
@@ -1009,7 +1009,8 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
   ListBaseIterator *internal = &iter->internal.listbase;
   KeyingSet *ks = (KeyingSet *)internal->link;
 
-  /* if we've run out of links in Scene list, jump over to the builtins list unless we're there already */
+  /* If we've run out of links in Scene list,
+   * jump over to the builtins list unless we're there already. */
   if ((ks->next == NULL) && (ks != builtin_keyingsets.last))
     internal->link = (Link *)builtin_keyingsets.first;
   else

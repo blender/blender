@@ -297,8 +297,8 @@ static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
  */
 
 /* XXX Ugly python seems to query next item of an iterator before using current one (see T57558).
- * This forces us to use that nasty ping-pong game between two sets of iterator data, so that previous one remains
- * valid memory for python to access to. Yuck.
+ * This forces us to use that nasty ping-pong game between two sets of iterator data,
+ * so that previous one remains valid memory for python to access to. Yuck.
  */
 typedef struct RNA_Depsgraph_Instances_Iterator {
   BLI_Iterator iterators[2];
@@ -335,8 +335,10 @@ static void rna_Depsgraph_object_instances_next(CollectionPropertyIterator *iter
   di_it->iterators[di_it->counter % 2].data = &di_it->deg_data[di_it->counter % 2];
   DEG_iterator_objects_next(&di_it->iterators[di_it->counter % 2]);
   /* Dupli_object_current is also temp memory generated during the iterations,
-   * it may be freed when last item has been iterated, so we have same issue as with the iterator itself:
-   * we need to keep a local copy, which memory remains valid a bit longer, for python accesses to work. */
+   * it may be freed when last item has been iterated,
+   * so we have same issue as with the iterator itself:
+   * we need to keep a local copy, which memory remains valid a bit longer,
+   * for Python accesses to work. */
   if (di_it->deg_data[di_it->counter % 2].dupli_object_current != NULL) {
     di_it->dupli_object_current[di_it->counter % 2] =
         *di_it->deg_data[di_it->counter % 2].dupli_object_current;

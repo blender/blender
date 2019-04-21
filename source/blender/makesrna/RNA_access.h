@@ -1409,7 +1409,8 @@ void _RNA_warning(const char *format, ...) ATTR_PRINTF_FORMAT(1, 2);
 
 /* Equals test. */
 
-/* Note: In practice, EQ_STRICT and EQ_COMPARE have same behavior currently, and will yield same result. */
+/* Note: In practice, EQ_STRICT and EQ_COMPARE have same behavior currently,
+ * and will yield same result. */
 typedef enum eRNACompareMode {
   /* Only care about equality, not full comparison. */
   RNA_EQ_STRICT,           /* set/unset ignored */
@@ -1445,7 +1446,8 @@ typedef enum eRNAOverrideMatch {
 } eRNAOverrideMatch;
 
 typedef enum eRNAOverrideMatchResult {
-  /* Some new property overrides were created to take into account differences between local and reference. */
+  /* Some new property overrides were created to take into account
+   * differences between local and reference. */
   RNA_OVERRIDE_MATCH_RESULT_CREATED = 1 << 0,
   /* Some properties were reset to reference values. */
   RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 1,

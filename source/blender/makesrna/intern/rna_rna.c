@@ -1165,7 +1165,8 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
 
   /* We do a generic quick first comparison checking for "name" and/or "type" properties.
    * We assume that is any of those are false, then we are not handling the same data.
-   * This helps a lot in static override case, especially to detect inserted items in collections. */
+   * This helps a lot in static override case, especially to detect inserted items in collections.
+   */
   if (!no_prop_name && (is_valid_for_diffing || do_force_name)) {
     PropertyRNA *nameprop_a = RNA_struct_name_property(propptr_a->type);
     PropertyRNA *nameprop_b = (propptr_b != NULL) ? RNA_struct_name_property(propptr_b->type) :
@@ -1238,7 +1239,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
   bool is_id = false;
   bool is_null = false;
   bool is_type_diff = false;
-  /* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
+  /* If false, it means that the whole data itself is different,
+   * so no point in going inside of it at all! */
   bool is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(propptr_a,
                                                                                   propptr_b,
                                                                                   no_prop_name,
@@ -1253,8 +1255,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                                                   0);
 
   if (is_id) {
-    BLI_assert(
-        no_ownership); /* For now, once we deal with nodetrees we'll want to get rid of that one. */
+    /* For now, once we deal with nodetrees we'll want to get rid of that one. */
+    BLI_assert(no_ownership);
   }
 
   if (override) {
@@ -1319,7 +1321,8 @@ int rna_property_override_diff_default(Main *bmain,
 {
   BLI_assert(len_a == len_b);
 
-  /* Note: at this point, we are sure that when len_a is zero, we are not handling an (empty) array. */
+  /* Note: at this point, we are sure that when len_a is zero,
+   * we are not handling an (empty) array. */
 
   const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
                          rna_path != NULL;
@@ -1543,9 +1546,14 @@ int rna_property_override_diff_default(Main *bmain,
           ptr_a, prop_a, fixed_a, sizeof(fixed_a), &len_str_a);
       char *value_b = RNA_property_string_get_alloc(
           ptr_b, prop_b, fixed_b, sizeof(fixed_b), &len_str_b);
-      /* TODO we could do a check on length too, but then we would not have a 'real' string comparison...
+      /* TODO we could do a check on length too,
+       * but then we would not have a 'real' string comparison...
        * Maybe behind a eRNAOverrideMatch flag? */
-      //          const int comp = len_str_a < len_str_b ? -1 : len_str_a > len_str_b ? 1 : strcmp(value_a, value_b);
+#  if 0
+      const int comp = len_str_a < len_str_b ?
+                           -1 :
+                           len_str_a > len_str_b ? 1 : strcmp(value_a, value_b);
+#  endif
       const int comp = strcmp(value_a, value_b);
 
       if (do_create && comp != 0) {
@@ -1643,7 +1651,8 @@ int rna_property_override_diff_default(Main *bmain,
 
           is_valid_for_insertion = use_insertion;
 
-          /* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
+          /* If false, it means that the whole data itself is different,
+           * so no point in going inside of it at all! */
           if (iter_b.valid) {
             is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
                 &iter_a.ptr,
@@ -1725,7 +1734,8 @@ int rna_property_override_diff_default(Main *bmain,
             }
             else { /* Based on index... */
               if (rna_path) {
-                /* In case of indices, we need _a one for insertion, but _b ones for in-depth diffing.
+                /* In case of indices, we need _a one for insertion,
+                 * but _b ones for in-depth diffing.
                  * Insertion always happen once all 'replace' operations have been done,
                  * otherwise local and reference paths for those would have to be different! */
                 RNA_PATH_PRINTF("%s[%d]", rna_path, is_valid_for_insertion ? idx_a : idx_b);
@@ -1733,8 +1743,8 @@ int rna_property_override_diff_default(Main *bmain,
             }
           }
 
-          /* Collections do not support replacement of their data (since they do not support removing),
-           * only in *some* cases, insertion.
+          /* Collections do not support replacement of their data
+           * (since they do not support removing), only in *some* cases, insertion.
            * We also assume then that _a data is the one where things are inserted. */
           if (is_valid_for_insertion && use_insertion) {
             bool created;
@@ -1742,8 +1752,8 @@ int rna_property_override_diff_default(Main *bmain,
                 override, rna_path, &created);
 
             if (is_first_insert) {
-              /* We need to clean up all possible existing insertion operations, otherwise we'd end up
-               * with a mess of ops everytime something changes. */
+              /* We need to clean up all possible existing insertion operations,
+               * otherwise we'd end up with a mess of ops everytime something changes. */
               for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop != NULL;) {
                 IDOverrideStaticPropertyOperation *opop_next = opop->next;
                 if (ELEM(opop->operation,
@@ -1765,7 +1775,12 @@ int rna_property_override_diff_default(Main *bmain,
                                                        true,
                                                        NULL,
                                                        NULL);
-            //                      printf("%s: Adding insertion op override after '%s'/%d\n", rna_path, prev_propname_a, idx_a - 1);
+#  if 0
+            printf("%s: Adding insertion op override after '%s'/%d\n",
+                   rna_path,
+                   prev_propname_a,
+                   idx_a - 1);
+#  endif
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
@@ -1878,8 +1893,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
 
   /* XXX TODO About range limits.
    * Ideally, it would be great to get rid of RNA range in that specific case.
-   * However, this won't be that easy and will add yet another layer of complexity in generated code,
-   * not to mention that we could most likely *not* bypass custom setters anyway.
+   * However, this won't be that easy and will add yet another layer of complexity in
+   * generated code, not to mention that we could most likely *not* bypass custom setters anyway.
    * So for now, if needed second operand value is not in valid range, we simply fall back
    * to a mere REPLACE operation.
    * Time will say whether this is acceptable limitation or not. */

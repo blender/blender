@@ -2580,7 +2580,8 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
     /* XXX only arrays and strings are allowed to be dynamic, is this checked anywhere? */
     else if (cptr || (flag & PROP_DYNAMIC))
       ptrstr = pout ? "**" : "*";
-    /* fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack, pass a pointer to it */
+    /* Fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack,
+     * pass a pointer to it. */
     else if (type == PROP_POINTER || dparm->prop->arraydimension)
       ptrstr = "*";
     else if ((type == PROP_POINTER) && (flag_parameter & PARM_RNAPTR) && !(flag & PROP_THICK_WRAP))
@@ -2666,8 +2667,8 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
         valstr = "*";
       }
 
-      /* this must be kept in sync with RNA_parameter_dynamic_length_get_data and RNA_parameter_get,
-       * we could just call the function directly, but this is faster */
+      /* This must be kept in sync with RNA_parameter_dynamic_length_get_data and
+       * RNA_parameter_get, we could just call the function directly, but this is faster. */
       if (flag & PROP_DYNAMIC) {
         fprintf(f,
                 "\t%s_len = %s((ParameterDynAlloc *)_data)->array_tot;\n",
@@ -3466,7 +3467,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_POINTER: {
       PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
-      /* XXX This systematically enforces that flag on ID pointers... we'll probably have to revisit. :/ */
+      /* XXX This systematically enforces that flag on ID pointers...
+       * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)pprop->type);
       if (type && (type->flag & STRUCT_ID)) {
         prop->flag |= PROP_PTR_NO_OWNERSHIP;
@@ -3476,7 +3478,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_COLLECTION: {
       CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
-      /* XXX This systematically enforces that flag on ID pointers... we'll probably have to revisit. :/ */
+      /* XXX This systematically enforces that flag on ID pointers...
+       * we'll probably have to revisit. :/ */
       StructRNA *type = rna_find_struct((const char *)cprop->item_type);
       if (type && (type->flag & STRUCT_ID)) {
         prop->flag |= PROP_PTR_NO_OWNERSHIP;

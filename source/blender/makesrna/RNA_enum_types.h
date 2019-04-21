@@ -248,7 +248,12 @@ const EnumPropertyItem *RNA_action_itemf(struct bContext *C,
                                          struct PointerRNA *ptr,
                                          struct PropertyRNA *prop,
                                          bool *r_free);
-// EnumPropertyItem *RNA_action_local_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+#if 0
+EnumPropertyItem *RNA_action_local_itemf(struct bContext *C,
+                                         struct PointerRNA *ptr,
+                                         struct PropertyRNA *prop,
+                                         bool *r_free);
+#endif
 const EnumPropertyItem *RNA_collection_itemf(struct bContext *C,
                                              struct PointerRNA *ptr,
                                              struct PropertyRNA *prop,

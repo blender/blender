@@ -201,19 +201,25 @@ typedef enum PropertyFlag {
    * only apply this to types that are derived from an ID ()*/
   PROP_ID_SELF_CHECK = (1 << 20),
   /* use for...
-   * - pointers: in the UI and python so unsetting or setting to None won't work
-   * - strings: so our internal generated get/length/set functions know to do NULL checks before access [#30865] */
+   * - pointers: in the UI and python so unsetting or setting to None won't work.
+   * - strings: so our internal generated get/length/set
+   *   functions know to do NULL checks before access T30865.
+   */
   PROP_NEVER_NULL = (1 << 18),
   /* currently only used for UI, this is similar to PROP_NEVER_NULL
    * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
-   * but setting NULL on a mesh object is not possible. So, if its not NULL, setting NULL cant be done! */
+   * but setting NULL on a mesh object is not possible.
+   * So, if its not NULL, setting NULL cant be done!
+   */
   PROP_NEVER_UNLINK = (1 << 25),
 
   /* Pointers to data that is not owned by the struct.
    * Typical example: Bone.parent, Bone.child, etc., and nearly all ID pointers.
-   * This is crucial information for processes that walk the whole data of an ID e.g. (like static override).
-   * Note that all ID pointers are enforced to this by default, this probably will need to be rechecked
-   * (see ugly infamous NodeTrees of mat/tex/scene/etc.). */
+   * This is crucial information for processes that walk the whole data of an ID e.g.
+   * (like static override).
+   * Note that all ID pointers are enforced to this by default,
+   * this probably will need to be rechecked (see ugly infamous NodeTrees of mat/tex/scene/etc.).
+   */
   PROP_PTR_NO_OWNERSHIP = (1 << 7),
 
   /* flag contains multiple enums.
@@ -248,7 +254,8 @@ typedef enum PropertyFlag {
   PROP_NO_DEG_UPDATE = (1 << 30),
 } PropertyFlag;
 
-/* Flags related to comparing and overriding RNA properties. Make sure enums are updated with these */
+/* Flags related to comparing and overriding RNA properties.
+ * Make sure enums are updated with these */
 /* FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above. */
 typedef enum PropertyOverrideFlag {
   /* Means the property can be overridden by a local 'proxy' of some linked datablock. */
@@ -275,7 +282,8 @@ typedef enum ParameterFlag {
   PARM_REQUIRED = (1 << 0),
   PARM_OUTPUT = (1 << 1),
   PARM_RNAPTR = (1 << 2),
-  /* This allows for non-breaking API updates, when adding non-critical new parameter to a callback function.
+  /* This allows for non-breaking API updates,
+   * when adding non-critical new parameter to a callback function.
    * This way, old py code defining funcs without that parameter would still work.
    * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
    * NOTE: only for input parameters!
@@ -295,16 +303,20 @@ typedef struct ListBaseIterator {
 
 typedef struct ArrayIterator {
   char *ptr;
-  char *endptr;   /* past the last valid pointer, only for comparisons, ignores skipped values */
-  void *free_ptr; /* will be freed if set */
+  /* Past the last valid pointer, only for comparisons, ignores skipped values. */
+  char *endptr;
+  /* Will be freed if set. */
+  void *free_ptr;
   int itemsize;
 
-  /* array length with no skip functions applied, take care not to compare against index from animsys
-   * or python indices */
+  /* Array length with no skip functions applied,
+   * take care not to compare against index from animsys or python indices. */
   int length;
 
-  /* optional skip function, when set the array as viewed by rna can contain only a subset of the members.
-   * this changes indices so quick array index lookups are not possible when skip function is used. */
+  /* Optional skip function,
+   * when set the array as viewed by rna can contain only a subset of the members.
+   * this changes indices so quick array index lookups are not possible when skip function is used.
+   */
   IteratorSkipFunc skip;
 } ArrayIterator;
 
@@ -476,10 +488,12 @@ typedef enum FunctionFlag {
    *                 [ReportList *reports],
    *                 <other RNA-defined parameters>);
    */
-  /* Pass ID owning 'self' data (i.e. ptr->id.data, might be same as self in case data is an ID...). */
+  /* Pass ID owning 'self' data
+   * (i.e. ptr->id.data, might be same as self in case data is an ID...). */
   FUNC_USE_SELF_ID = (1 << 11),
 
-  /* Do not pass the object (DNA struct pointer) from which it is called, used to define static or class functions. */
+  /* Do not pass the object (DNA struct pointer) from which it is called,
+   * used to define static or class functions. */
   FUNC_NO_SELF = (1 << 0),
   /* Pass RNA type, used to define class functions, only valid when FUNC_NO_SELF is set. */
   FUNC_USE_SELF_TYPE = (1 << 1),
@@ -490,11 +504,13 @@ typedef enum FunctionFlag {
   FUNC_USE_REPORTS = (1 << 4),
 
   /***** Registering of python subclasses. *****/
-  /* This function is part of the registerable class' interface, and can be implemented/redefined in python. */
+  /* This function is part of the registerable class' interface,
+   * and can be implemented/redefined in python. */
   FUNC_REGISTER = (1 << 5),
   /* Subclasses can choose not to implement this function. */
   FUNC_REGISTER_OPTIONAL = FUNC_REGISTER | (1 << 6),
-  /* If not set, the python function implementing this call is not allowed to write into data-blocks.
+  /* If not set, the python function implementing this call
+   * is not allowed to write into data-blocks.
    * Except for WindowManager and Screen currently, see rna_id_write_error() in bpy_rna.c */
   FUNC_ALLOW_WRITE = (1 << 12),
 
@@ -505,7 +521,8 @@ typedef enum FunctionFlag {
   FUNC_EXPORT = (1 << 8),
   /* Function has been defined at runtime, not statically in RNA source code. */
   FUNC_RUNTIME = (1 << 9),
-  /* UNUSED CURRENTLY? Function owns its identifier and description strings, and has to free them when deleted. */
+  /* UNUSED CURRENTLY? Function owns its identifier and description strings,
+   * and has to free them when deleted. */
   FUNC_FREE_POINTERS = (1 << 10),
 } FunctionFlag;
 

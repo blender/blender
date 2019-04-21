@@ -167,8 +167,9 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 #  undef SHAPEKEY_SLIDER_TOL
 
 /* ***** Normals accessors for shapekeys. ***** */
-/* Note: with this we may recompute several times the same data, should we want to access verts, then polys, then loops
- *       normals... However, such case looks rather unlikely - and not worth adding some kind of caching in KeyBlocks.
+/* Note: with this we may recompute several times the same data, should we want to access verts,
+ *       then polys, then loops normals... However,
+ *       such case looks rather unlikely - and not worth adding some kind of caching in KeyBlocks.
  */
 
 static Mesh *rna_KeyBlock_normals_get_mesh(PointerRNA *ptr, ID *id)
@@ -722,7 +723,8 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
        */
       end = (float *)((char *)start + (key->elemsize * kb->totelem));
 
-      /* if point's address is less than the end, then it is somewhere between start and end, so in array */
+      /* If point's address is less than the end,
+       * then it is somewhere between start and end, so in array. */
       if (end > point) {
         /* we've found the owner of the point data */
         return kb;
@@ -964,8 +966,8 @@ static void rna_def_keyblock(BlenderRNA *brna)
                                     NULL,
                                     NULL);
 
-  /* XXX multi-dim dynamic arrays are very badly supported by (py)rna currently, those are defined for the day
-   *     it works better, for now user will get a 1D tuple...
+  /* XXX multi-dim dynamic arrays are very badly supported by (py)rna currently,
+   *     those are defined for the day it works better, for now user will get a 1D tuple.
    */
   func = RNA_def_function(srna, "normals_vertex_get", "rna_KeyBlock_normals_vert_calc");
   RNA_def_function_ui_description(func,

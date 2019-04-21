@@ -720,7 +720,8 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
   Nurb *nu;
   ListBase *nurbs = BKE_curve_nurbs_get(cu);
 
-  /* for curve outside editmode will set to -1,  should be changed to be allowed outside of editmode. */
+  /* For curve outside editmode will set to -1,
+   * should be changed to be allowed outside of editmode. */
   nu = BLI_findlink(nurbs, cu->actnu);
 
   if (nu)

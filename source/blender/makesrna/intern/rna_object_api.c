@@ -534,7 +534,8 @@ static void rna_Object_ray_cast(Object *ob,
        distmin <= distance)) {
     BVHTreeFromMesh treeData = {NULL};
 
-    /* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
+    /* No need to managing allocation or freeing of the BVH data.
+     * This is generated and freed as needed. */
     BKE_bvhtree_from_mesh_get(&treeData, ob->runtime.mesh_eval, BVHTREE_FROM_LOOPTRI, 4);
 
     /* may fail if the mesh has no faces, in that case the ray-cast misses */
@@ -591,7 +592,8 @@ static void rna_Object_closest_point_on_mesh(Object *ob,
     return;
   }
 
-  /* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
+  /* No need to managing allocation or freeing of the BVH data.
+   * this is generated and freed as needed. */
   BKE_bvhtree_from_mesh_get(&treeData, ob->runtime.mesh_eval, BVHTREE_FROM_LOOPTRI, 4);
 
   if (treeData.tree == NULL) {

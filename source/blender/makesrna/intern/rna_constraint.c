@@ -2961,7 +2961,8 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Expanded", "Constraint's panel is expanded in UI");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 
-  /* XXX this is really an internal flag, but it may be useful for some tools to be able to access this... */
+  /* XXX this is really an internal flag,
+   * but it may be useful for some tools to be able to access this... */
   prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);

@@ -752,8 +752,8 @@ static void rna_gizmogroup_invoke_prepare_cb(const bContext *C, wmGizmoGroup *gz
   FunctionRNA *func;
 
   RNA_pointer_create(NULL, gzgroup->type->ext.srna, gzgroup, &gzgroup_ptr);
-  func =
-      &rna_GizmoGroup_invoke_prepare_func; /* RNA_struct_find_function(&wgroupr, "invoke_prepare"); */
+  /* RNA_struct_find_function(&wgroupr, "invoke_prepare"); */
+  func = &rna_GizmoGroup_invoke_prepare_func;
 
   RNA_parameter_list_create(&list, &gzgroup_ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);

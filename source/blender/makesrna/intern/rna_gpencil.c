@@ -1044,7 +1044,8 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "End Cap", "Stroke end extreme cap style");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-  /* No fill: The stroke never must fill area and must use fill color as stroke color (this is a special flag for fill brush) */
+  /* No fill: The stroke never must fill area and must use fill color as stroke color
+   * (this is a special flag for fill brush). */
   prop = RNA_def_property(srna, "is_nofill_stroke", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STROKE_NOFILL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

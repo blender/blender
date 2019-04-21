@@ -138,12 +138,13 @@ static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
   NlaStrip *data = (NlaStrip *)ptr->data;
 
-  /* clamp value to lie within valid limits
-   * - cannot start past the end of the strip + some flexibility threshold
-   * - cannot start before the previous strip (if present) ends
-   *   -> but if it was a transition, we could go up to the start of the strip + some flexibility threshold
-   *   as long as we re-adjust the transition afterwards
-   * - minimum frame is -MAXFRAME so that we don't get clipping on frame 0
+  /* Clamp value to lie within valid limits:
+   * - Cannot start past the end of the strip + some flexibility threshold.
+   * - Cannot start before the previous strip (if present) ends.
+   *   -> But if it was a transition,
+   *   we could go up to the start of the strip + some flexibility threshold.
+   *   as long as we re-adjust the transition afterwards.
+   * - Minimum frame is -MAXFRAME so that we don't get clipping on frame 0.
    */
   if (data->prev) {
     if (data->prev->type == NLASTRIP_TYPE_TRANSITION) {
@@ -171,7 +172,8 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
    * - must not have zero or negative length strip, so cannot start before the first frame
    *   + some minimum-strip-length threshold
    * - cannot end later than the start of the next strip (if present)
-   *   -> but if it was a transition, we could go up to the start of the end - some flexibility threshold
+   *   -> but if it was a transition,
+   *   we could go up to the start of the end - some flexibility threshold
    *   as long as we re-adjust the transition afterwards
    */
   if (data->next) {
@@ -210,7 +212,8 @@ static void rna_NlaStrip_scale_set(PointerRNA *ptr, float value)
   NlaStrip *data = (NlaStrip *)ptr->data;
 
   /* set scale value */
-  /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
+  /* NOTE: these need to be synced with the values in the
+   * property definition in rna_def_nlastrip() */
   CLAMP(value, 0.0001f, 1000.0f);
   data->scale = value;
 
@@ -223,7 +226,8 @@ static void rna_NlaStrip_repeat_set(PointerRNA *ptr, float value)
   NlaStrip *data = (NlaStrip *)ptr->data;
 
   /* set repeat value */
-  /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
+  /* NOTE: these need to be synced with the values in the
+   * property definition in rna_def_nlastrip() */
   CLAMP(value, 0.01f, 1000.0f);
   data->repeat = value;
 
@@ -411,7 +415,8 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
     AnimData adt = {NULL};
     NlaTrack *nlt, *nlt_p;
 
-    /* 'first' NLA track is found by going back up chain of given track's parents until we fall off */
+    /* 'first' NLA track is found by going back up chain of given
+     * track's parents until we fall off. */
     nlt_p = track;
     nlt = track;
     while ((nlt = nlt->prev) != NULL)
@@ -736,15 +741,15 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Influence", "Amount the strip contributes to the current result");
   /* XXX: Update temporarily disabled so that the property can be edited at all!
-   * Even autokey only applies after the curves have been re-evaluated, causing the unkeyed values to be lost
-   */
+   * Even autokey only applies after the curves have been re-evaluated,
+   * causing the unkeyed values to be lost. */
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ NULL);
 
   prop = RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate");
   /* XXX: Update temporarily disabled so that the property can be edited at all!
-   * Even autokey only applies after the curves have been re-evaluated, causing the unkeyed values to be lost
-   */
+   * Even autokey only applies after the curves have been re-evaluated,
+   * causing the unkeyed values to be lost. */
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ NULL);
 
   /* TODO: should the animated_influence/time settings be animatable themselves? */

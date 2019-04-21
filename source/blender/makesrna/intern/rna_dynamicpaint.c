@@ -185,7 +185,10 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
-  /*rna_iterator_array_begin(iter, (void *)canvas->surfaces, sizeof(PaintSurface), canvas->totsur, 0, 0); */
+#  if 0
+  rna_iterator_array_begin(
+      iter, (void *)canvas->surfaces, sizeof(PaintSurface), canvas->totsur, 0, 0);
+#  endif
   rna_iterator_listbase_begin(iter, &canvas->surfaces, NULL);
 }
 

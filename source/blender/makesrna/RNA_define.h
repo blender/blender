@@ -262,8 +262,18 @@ PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont,
                                  float softmin,
                                  float softmax);
 
-//PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont, const char *identifier, float hardmin, float hardmax,
-//  const char *ui_name, const char *ui_description, float softmin, float softmax, unsigned int dimension, unsigned short dim_size[]);
+#if 0
+PropertyRNA *RNA_def_float_dynamic_array(StructOrFunctionRNA *cont,
+                                         const char *identifier,
+                                         float hardmin,
+                                         float hardmax,
+                                         const char *ui_name,
+                                         const char *ui_description,
+                                         float softmin,
+                                         float softmax,
+                                         unsigned int dimension,
+                                         unsigned short dim_size[]);
+#endif
 
 PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont,
                                       const char *identifier,
