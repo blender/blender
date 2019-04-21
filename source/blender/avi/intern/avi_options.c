@@ -43,8 +43,9 @@ AviError AVI_set_compress_option(
   (void)stream; /* unused */
 
   if (movie->header->TotalFrames !=
-      0) /* Can't change params after we have already started writing frames */
+      0) { /* Can't change params after we have already started writing frames */
     return AVI_ERROR_OPTION;
+  }
 
   switch (option_type) {
     case AVI_OPTION_TYPE_MAIN:
@@ -112,8 +113,9 @@ AviError AVI_set_compress_option(
 
         case AVI_OPTION_FRAMERATE:
           useconds = (int)(1000000 / (*((double *)opt_data)));
-          if (useconds)
+          if (useconds) {
             movie->header->MicroSecPerFrame = useconds;
+          }
 
           for (i = 0; i < movie->header->Streams; i++) {
             if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {

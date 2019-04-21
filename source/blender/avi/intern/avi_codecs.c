@@ -33,8 +33,9 @@
 void *avi_format_convert(
     AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, size_t *size)
 {
-  if (from == to)
+  if (from == to) {
     return buffer;
+  }
 
   if (from != AVI_FORMAT_RGB24 && to != AVI_FORMAT_RGB24) {
     return avi_format_convert(
@@ -82,12 +83,15 @@ int avi_get_data_id(AviFormat format, int stream)
 {
   char fcc[5];
 
-  if (avi_get_format_type(format) == FCC("vids"))
+  if (avi_get_format_type(format) == FCC("vids")) {
     sprintf(fcc, "%2.2ddc", stream);
-  else if (avi_get_format_type(format) == FCC("auds"))
+  }
+  else if (avi_get_format_type(format) == FCC("auds")) {
     sprintf(fcc, "%2.2ddc", stream);
-  else
+  }
+  else {
     return 0;
+  }
 
   return FCC(fcc);
 }

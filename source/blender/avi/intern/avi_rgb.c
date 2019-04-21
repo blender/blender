@@ -44,8 +44,9 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
   (void)size; /* unused */
 
   bi = (AviBitmapInfoHeader *)movie->streams[stream].sf;
-  if (bi)
+  if (bi) {
     bits = bi->BitCount;
+  }
 
   if (bits == 16) {
     unsigned short *pxl;
@@ -96,8 +97,9 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
 
     if (buf) {
       size_t rowstride = movie->header->Width * 3;
-      if ((bits != 16) && (movie->header->Width % 2))
+      if ((bits != 16) && (movie->header->Width % 2)) {
         rowstride++;
+      }
 
       for (size_t y = 0; y < movie->header->Height; y++) {
         memcpy(&buf[y * movie->header->Width * 3],

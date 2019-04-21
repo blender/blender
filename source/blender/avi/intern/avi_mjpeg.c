@@ -47,8 +47,9 @@ static void add_huff_table(j_decompress_ptr dinfo,
                            const UINT8 *bits,
                            const UINT8 *val)
 {
-  if (*htblptr == NULL)
+  if (*htblptr == NULL) {
     *htblptr = jpeg_alloc_huff_table((j_common_ptr)dinfo);
+  }
 
   memcpy((*htblptr)->bits, bits, sizeof((*htblptr)->bits));
   memcpy((*htblptr)->huffval, val, sizeof((*htblptr)->huffval));
@@ -237,8 +238,9 @@ static int Decode_JPEG(unsigned char *inBuffer,
   }
   jpeg_finish_decompress(&dinfo);
 
-  if (dinfo.output_height >= height)
+  if (dinfo.output_height >= height) {
     return 0;
+  }
 
   inBuffer += numbytes;
   jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize - numbytes);
@@ -306,14 +308,16 @@ static void Compress_JPEG(int quality,
   marker[i++] = 'I';
   marker[i++] = '1';
   marker[i++] = 0;
-  while (i < 60)
+  while (i < 60) {
     marker[i++] = 32;
+  }
 
   jpeg_write_marker(&cinfo, JPEG_APP0, marker, 60);
 
   i = 0;
-  while (i < 60)
+  while (i < 60) {
     marker[i++] = 0;
+  }
 
   jpeg_write_marker(&cinfo, JPEG_COM, marker, 60);
 
@@ -331,10 +335,12 @@ static void interlace(unsigned char *to, unsigned char *from, int width, int hei
   size_t i, rowstride = width * 3;
 
   for (i = 0; i < height; i++) {
-    if (i & 1)
+    if (i & 1) {
       memcpy(&to[i * rowstride], &from[(i / 2 + height / 2) * rowstride], rowstride);
-    else
+    }
+    else {
       memcpy(&to[i * rowstride], &from[(i / 2) * rowstride], rowstride);
+    }
   }
 }
 
@@ -343,10 +349,12 @@ static void deinterlace(int odd, unsigned char *to, unsigned char *from, int wid
   size_t i, rowstride = width * 3;
 
   for (i = 0; i < height; i++) {
-    if ((i & 1) == odd)
+    if ((i & 1) == odd) {
       memcpy(&to[(i / 2 + height / 2) * rowstride], &from[i * rowstride], rowstride);
-    else
+    }
+    else {
       memcpy(&to[(i / 2) * rowstride], &from[i * rowstride], rowstride);
+    }
   }
 }
 
@@ -507,8 +515,9 @@ static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo)
 
 static void jpegmemsrcmgr_skip_input_data(j_decompress_ptr dinfo, long skipcnt)
 {
-  if (dinfo->src->bytes_in_buffer < skipcnt)
+  if (dinfo->src->bytes_in_buffer < skipcnt) {
     skipcnt = dinfo->src->bytes_in_buffer;
+  }
 
   dinfo->src->next_input_byte += skipcnt;
   dinfo->src->bytes_in_buffer -= skipcnt;
