@@ -170,23 +170,26 @@ static float edbm_rip_edge_side_measure(
  *
  * The method used for checking the side of selection is as follows...
  * - First tag all rip-able edges.
- * - Build a contiguous edge list by looping over tagged edges and following each ones tagged siblings in both
- *   directions.
- *   - The loops are not stored in an array, Instead both loops on either side of each edge has its index values set
- *     to count down from the last edge, this way, once we have the 'last' edge its very easy to walk down the
- *     connected edge loops.
- *     The reason for using loops like this is because when the edges are split we don't which face user gets the newly
- *     created edge (its as good as random so we cant assume new edges will be on once side).
- *     After splitting, its very simple to walk along boundary loops since each only has one edge from a single side.
- * - The end loop pairs are stored in an array however to support multiple edge-selection-islands, so you can rip
- *   multiple selections at once.
+ * - Build a contiguous edge list by looping over tagged edges and following each ones tagged
+ *   siblings in both directions.
+ *   - The loops are not stored in an array, Instead both loops on either side of each edge has
+ *     its index values set to count down from the last edge, this way, once we have the 'last'
+ *     edge its very easy to walk down the connected edge loops.
+ *     The reason for using loops like this is because when the edges are split we don't which
+ *     face user gets the newly created edge
+ *     (its as good as random so we cant assume new edges will be on once side).
+ *     After splitting, its very simple to walk along boundary loops since each only has one edge
+ *     from a single side.
+ * - The end loop pairs are stored in an array however to support multiple edge-selection-islands,
+ *   so you can rip multiple selections at once.
  * - * Execute the split *
- * - For each #EdgeLoopPair walk down both sides of the split using the loops and measure which is facing the mouse.
+ * - For each #EdgeLoopPair walk down both sides of the split using the loops and measure
+ *   which is facing the mouse.
  * - Deselect the edge loop facing away.
  *
  * Limitation!
- * This currently works very poorly with intersecting edge islands (verts with more than 2 tagged edges)
- * This is nice to but for now not essential.
+ * This currently works very poorly with intersecting edge islands
+ * (verts with more than 2 tagged edges). This is nice to but for now not essential.
  *
  * - campbell.
  */

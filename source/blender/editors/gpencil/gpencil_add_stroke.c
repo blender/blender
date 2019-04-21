@@ -210,7 +210,8 @@ static const ColorTemplate gp_stroke_material_grey = {
 /* ***************************************************************** */
 /* Stroke API */
 
-/* add a Simple stroke with colors (original design created by Daniel M. Lara and Matias Mendiola) */
+/* Add a Simple stroke with colors
+ * (original design created by Daniel M. Lara and Matias Mendiola). */
 void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
 {
   Main *bmain = CTX_data_main(C);

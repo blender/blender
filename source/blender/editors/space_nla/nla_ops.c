@@ -167,9 +167,10 @@ void nla_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "NLA Generic", SPACE_NLA, 0);
 
   /* channels ---------------------------------------------------------- */
-  /* Channels are not directly handled by the NLA Editor module, but are inherited from the Animation module.
-   * Most of the relevant operations, keymaps, drawing, etc. can therefore all
-   * be found in that module instead, as there are many similarities with the other Animation Editors.
+  /* Channels are not directly handled by the NLA Editor module, but are inherited from the
+   * animation module. Most of the relevant operations, keymaps, drawing, etc. can therefore all
+   * be found in that module instead, as there are many similarities with the other
+   * animation editors.
    *
    * However, those operations which involve clicking on channels and/or
    * the placement of them in the view are implemented here instead

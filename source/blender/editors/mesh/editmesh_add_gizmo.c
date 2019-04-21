@@ -58,7 +58,8 @@
  * When we place a shape, pick a plane.
  *
  * We may base this choice on context,
- * for now pick the "ground" based on the 3D cursor's dominant plane pointing down relative to the view.
+ * for now pick the "ground" based on the 3D cursor's dominant plane
+ * pointing down relative to the view.
  */
 static void calc_initial_placement_point_from_view(bContext *C,
                                                    const float mval[2],

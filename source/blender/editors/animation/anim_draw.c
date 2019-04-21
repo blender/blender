@@ -255,7 +255,8 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
            ANIMCONT_CHANNEL)) {
     /* handling depends on the type of animation-context we've got */
     if (ale) {
-      /* NLA Control Curves occur on NLA strips, and shouldn't be subjected to this kind of mapping */
+      /* NLA Control Curves occur on NLA strips,
+       * and shouldn't be subjected to this kind of mapping. */
       if (ale->type != ANIMTYPE_NLACURVE)
         return ale->adt;
     }
@@ -267,7 +268,8 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 
 /* ------------------- */
 
-/* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
+/* Helper function for ANIM_nla_mapping_apply_fcurve() -> "restore",
+ * i.e. mapping points back to action-time. */
 static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */

@@ -84,7 +84,8 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se)
 }
 
 /**
- * \param bounds_rect: Either window or screen bounds. Used to exclude edges along window/screen edges.
+ * \param bounds_rect: Either window or screen bounds.
+ * Used to exclude edges along window/screen edges.
  */
 ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
                                                   const rcti *bounds_rect,
@@ -225,7 +226,8 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *sc)
     }
   }
 
-  /* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set. */
+  /* Global areas have a fixed size that only changes with the DPI.
+   * Here we ensure that exactly this size is set. */
   for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
     if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
       continue;

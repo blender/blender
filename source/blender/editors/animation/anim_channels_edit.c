@@ -501,7 +501,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
    */
   if (((setting == ACHANNEL_SETTING_VISIBLE) && (mode != ACHANNEL_SETFLAG_CLEAR)) ||
       ((setting != ACHANNEL_SETTING_VISIBLE) && (mode == ACHANNEL_SETFLAG_CLEAR))) {
-    /* go backwards in the list, until the highest-ranking element (by indention has been covered) */
+    /* Go backwards in the list, until the highest-ranking element
+     * (by indention has been covered). */
     for (ale = match->prev; ale; ale = ale->prev) {
       const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
       int level;
@@ -517,8 +518,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
 
       /* if the level is 'less than' (i.e. more important) the level we're matching
        * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves,
-       * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let prevLevel
-       * get updated below once the first 1st group is found)...
+       * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let
+       * prevLevel get updated below once the first 1st group is found).
        */
       if (level < prevLevel) {
         /* flush the new status... */
@@ -907,7 +908,8 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands,
       (island == NULL) ||
       /* 2) unselected islands have single channels only - to allow up/down movement */
       ((island->flag & REORDER_ISLAND_SELECTED) == 0) ||
-      /* 3) if channel is unselected, stop existing island (it was either wrong sel status, or full already) */
+      /* 3) if channel is unselected, stop existing island
+       * (it was either wrong sel status, or full already) */
       (is_sel == 0) ||
       /* 4) hidden status changes */
       ((island->flag & REORDER_ISLAND_HIDDEN) != is_hidden)) {
@@ -997,9 +999,12 @@ static bool rearrange_animchannel_islands(ListBase *list,
     rearrange_animchannel_add_to_islands(&islands, list, channel, type, is_hidden);
   }
 
-  /* perform moving of selected islands now, but only if there is more than one of 'em so that something will happen
-   * - scanning of the list is performed in the opposite direction to the direction we're moving things, so that we
-   *   shouldn't need to encounter items we've moved already
+  /* Perform moving of selected islands now, but only if there is more than one of them
+   * so that something will happen:
+   *
+   * - Scanning of the list is performed in the opposite direction
+   *   to the direction we're moving things,
+   *   so that we shouldn't need to encounter items we've moved already.
    */
   if (islands.first != islands.last) {
     tReorderChannelIsland *first = (mode > 0) ? islands.last : islands.first;
@@ -2632,10 +2637,11 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
   ar = ac->ar;
   v2d = &ar->v2d;
 
-  /* figure out which channel user clicked in
-   * Note: although channels technically start at (y = ACHANNEL_FIRST), we need to adjust by half a channel's height
-   *       so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
-   *       ACHANNEL_HEIGHT_HALF.
+  /* Figure out which channel user clicked in.
+   *
+   * Note: although channels technically start at (y = ACHANNEL_FIRST),
+   * we need to adjust by half a channel's height so that the tops of channels get caught ok.
+   * Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use ACHANNEL_HEIGHT_HALF.
    */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
@@ -2724,7 +2730,8 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
     return 0;
   }
 
-  /* selectmode -1 is a special case for ActionGroups only, which selects all of the channels underneath it only... */
+  /* selectmode -1 is a special case for ActionGroups only,
+   * which selects all of the channels underneath it only. */
   /* TODO: should this feature be extended to work with other channel types too? */
   if ((selectmode == -1) && (ale->type != ANIMTYPE_GROUP)) {
     /* normal channels should not behave normally in this case */
@@ -2800,7 +2807,8 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
         if ((adt) && (adt->flag & ADT_UI_SELECTED))
           adt->flag |= ADT_UI_ACTIVE;
 
-        /* ensure we exit editmode on whatever object was active before to avoid getting stuck there - T48747 */
+        /* Ensure we exit editmode on whatever object was active before
+         * to avoid getting stuck there - T48747. */
         if (ob != CTX_data_edit_object(C)) {
           ED_object_editmode_exit(C, EM_FREEDATA);
         }
@@ -2965,9 +2973,10 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
     case ANIMTYPE_NLACONTROLS: {
       AnimData *adt = (AnimData *)ale->data;
 
-      /* toggle expand
-       *   - Although the triangle widget already allows this, since there's nothing else that can be done here now,
-       *     let's just use it for easier expand/collapse for now
+      /* Toggle expand:
+       * - Although the triangle widget already allows this,
+       *   since there's nothing else that can be done here now,
+       *   let's just use it for easier expand/collapse for now.
        */
       adt->flag ^= ADT_NLA_SKEYS_COLLAPSED;
 
@@ -2977,8 +2986,9 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
     case ANIMTYPE_GPDATABLOCK: {
       bGPdata *gpd = (bGPdata *)ale->data;
 
-      /* toggle expand
-       * - although the triangle widget already allows this, the whole channel can also be used for this purpose
+      /* Toggle expand:
+       * - Although the triangle widget already allows this,
+       *   the whole channel can also be used for this purpose.
        */
       gpd->flag ^= GP_DATA_EXPAND;
 
@@ -3015,8 +3025,9 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
     case ANIMTYPE_MASKDATABLOCK: {
       Mask *mask = (Mask *)ale->data;
 
-      /* toggle expand
-       * - although the triangle widget already allows this, the whole channel can also be used for this purpose
+      /* Toggle expand
+       * - Although the triangle widget already allows this,
+       *   the whole channel can also be used for this purpose.
        */
       mask->flag ^= MASK_ANIMF_EXPAND;
 

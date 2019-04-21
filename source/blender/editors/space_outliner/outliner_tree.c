@@ -1782,10 +1782,11 @@ static TreeElement *outliner_find_first_desired_element_at_y(const SpaceOutliner
 }
 
 /**
- * Store information of current outliner scrolling status to be restored later
+ * Store information of current outliner scrolling status to be restored later.
  *
- * Finds the top-most collection visible in the outliner and populates the OutlinerTreeElementFocus
- * struct to retrieve this element later to make sure it is in the same original position as before filtering
+ * Finds the top-most collection visible in the outliner and populates the
+ * #OutlinerTreeElementFocus struct to retrieve this element later to make sure it is in the same
+ * original position as before filtering.
  */
 static void outliner_store_scrolling_position(SpaceOutliner *soops,
                                               ARegion *ar,

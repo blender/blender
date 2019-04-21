@@ -2973,8 +2973,8 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 /**
  * \note This is based on similar use case to #MESH_OT_split(), which has a similar effect
  * but in this case they are not joined to begin with (only having the behavior of being joined)
- * so its best to call this #uv_select_split() instead of just split(), but assigned to the same key
- * as #MESH_OT_split - Campbell.
+ * so its best to call this #uv_select_split() instead of just split(), but assigned to the same
+ * key as #MESH_OT_split - Campbell.
  */
 static int uv_select_split_exec(bContext *C, wmOperator *op)
 {
@@ -3159,10 +3159,12 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
 /**
  * Flush the selection from face tags based on sticky and selection modes.
  *
- * needed because settings the selection a face is done in a number of places but it also needs to respect
- * the sticky modes for the UV verts, so dealing with the sticky modes is best done in a separate function.
+ * needed because settings the selection a face is done in a number of places but it also
+ * needs to respect the sticky modes for the UV verts, so dealing with the sticky modes
+ * is best done in a separate function.
  *
- * \note! This function is very similar to #uv_select_flush_from_tag_loop, be sure to update both upon changing.
+ * \note This function is very similar to #uv_select_flush_from_tag_loop,
+ * be sure to update both upon changing.
  */
 static void uv_select_flush_from_tag_face(SpaceImage *sima,
                                           Scene *scene,
@@ -3243,10 +3245,12 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima,
 /**
  * Flush the selection from loop tags based on sticky and selection modes.
  *
- * needed because settings the selection a face is done in a number of places but it also needs to respect
- * the sticky modes for the UV verts, so dealing with the sticky modes is best done in a separate function.
+ * needed because settings the selection a face is done in a number of places but it also needs
+ * to respect the sticky modes for the UV verts, so dealing with the sticky modes is best done
+ * in a separate function.
  *
- * \note! This function is very similar to #uv_select_flush_from_tag_loop, be sure to update both upon changing.
+ * \note This function is very similar to #uv_select_flush_from_tag_loop,
+ * be sure to update both upon changing.
  */
 static void uv_select_flush_from_tag_loop(SpaceImage *sima,
                                           Scene *scene,

@@ -54,8 +54,10 @@
 
 #include "node_intern.h" /* own include */
 
-/* XXX Does some additional initialization on top of nodeAddNode
- * Can be used with both custom and static nodes, if idname==NULL the static int type will be used instead.
+/**
+ * XXX Does some additional initialization on top of #nodeAddNode
+ * Can be used with both custom and static nodes,
+ * if `idname == NULL` the static int type will be used instead.
  */
 bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy)
 {

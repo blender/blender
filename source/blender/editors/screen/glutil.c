@@ -351,7 +351,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 
       /* NOTE: Weirdly enough this is only required on macOS. Without this there is some sort of
        * bleeding of data is happening from tiles which are drawn later on.
-       * This doesn't seem to be too slow, but still would be nice to have fast and nice solution. */
+       * This doesn't seem to be too slow,
+       * but still would be nice to have fast and nice solution. */
 #ifdef __APPLE__
       GPU_flush();
 #endif
@@ -494,7 +495,8 @@ float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist)
     /* This adjustment effectively results in reducing the Z value by 0.25%.
      *
      * winmat[14] actually evaluates to `-2 * far * near / (far - near)`,
-     * is very close to -0.2 with default clip range, and is used as the coefficient multiplied by `w / z`,
+     * is very close to -0.2 with default clip range,
+     * and is used as the coefficient multiplied by `w / z`,
      * thus controlling the z dependent part of the depth value.
      */
     return winmat[14] * -0.0025f * dist;

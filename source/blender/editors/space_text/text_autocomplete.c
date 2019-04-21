@@ -179,8 +179,8 @@ static GHash *text_autocomplete_build(Text *text)
         }
 
         if ((i_start != i_end) &&
-            /* check we're at the beginning of a line or that the previous char is not an identifier
-             * this prevents digits from being added */
+            /* Check we're at the beginning of a line or that the previous char is not an
+             * identifier this prevents digits from being added. */
             ((i_start < 1) ||
              !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1])))) {
           char *str_sub = &linep->line[i_start];

@@ -230,8 +230,8 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = graphkeys_previewrange_exec;
-  ot->poll =
-      ED_operator_graphedit_active;  // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+  // XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier...
+  ot->poll = ED_operator_graphedit_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -447,7 +447,8 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op)
   if (ANIM_animdata_get_context(C, &ac) == 0)
     return OPERATOR_CANCELLED;
 
-  /* ghost curves are snapshots of the visible portions of the curves, so set range to be the visible range */
+  /* Ghost curves are snapshots of the visible portions of the curves,
+   * so set range to be the visible range. */
   v2d = &ac.ar->v2d;
   start = (int)v2d->cur.xmin;
   end = (int)v2d->cur.xmax;
@@ -638,13 +639,17 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       FCurve *fcu = (FCurve *)ale->key_data;
       float cfra = (float)CFRA;
 
-      /* read value from property the F-Curve represents, or from the curve only?
-       * - ale->id != NULL:    Typically, this means that we have enough info to try resolving the path
-       * - ale->owner != NULL: If this is set, then the path may not be resolvable from the ID alone,
-       *                       so it's easier for now to just read the F-Curve directly.
-       *                       (TODO: add the full-blown PointerRNA relative parsing case here...)
-       * - fcu->driver != NULL: If this is set, then it's a driver. If we don't check for this, we'd end
-       *                        up adding the keyframes on a new F-Curve in the action data instead.
+      /* Read value from property the F-Curve represents, or from the curve only?
+       *
+       * - ale->id != NULL:
+       *   Typically, this means that we have enough info to try resolving the path.
+       * - ale->owner != NULL:
+       *   If this is set, then the path may not be resolvable from the ID alone,
+       *   so it's easier for now to just read the F-Curve directly.
+       *   (TODO: add the full-blown PointerRNA relative parsing case here...)
+       * - fcu->driver != NULL:
+       *   If this is set, then it's a driver. If we don't check for this, we'd end
+       *   up adding the keyframes on a new F-Curve in the action data instead.
        */
       if (ale->id && !ale->owner && !fcu->driver) {
         insert_keyframe(ac->bmain,
@@ -760,9 +765,9 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 
     /* preserve selection? */
     if (RNA_boolean_get(op->ptr, "extend") == false) {
-      /* deselect all keyframes first, so that we can immediately start manipulating the newly added one(s)
-       * - only affect the keyframes themselves, as we don't want channels popping in and out...
-       */
+      /* Deselect all keyframes first,
+       * so that we can immediately start manipulating the newly added one(s)
+       * - only affect the keyframes themselves, as we don't want channels popping in and out. */
       deselect_graph_keys(&ac, false, SELECT_SUBTRACT, false);
     }
 
@@ -1755,8 +1760,9 @@ static void setipo_graph_keys(bAnimContext *ac, short mode)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting BezTriple interpolation
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting BezTriple interpolation
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
@@ -1826,8 +1832,9 @@ static void seteasing_graph_keys(bAnimContext *ac, short mode)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting BezTriple easing
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting BezTriple easing.
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
@@ -1898,8 +1905,9 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting flags for handles
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting flags for handles.
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
@@ -2081,8 +2089,10 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    /* simple method: just treat any difference between keys of greater than 180 degrees as being a flip */
-    /* FIXME: there are more complicated methods that will be needed to fix more cases than just some */
+    /* Simple method: just treat any difference between
+     * keys of greater than 180 degrees as being a flip. */
+    /* FIXME: there are more complicated methods that
+     * will be needed to fix more cases than just some */
     for (f = 0; f < 3; f++) {
       FCurve *fcu = euf->fcurves[f];
       BezTriple *bezt, *prev;
@@ -2787,7 +2797,13 @@ void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* id-props */
-  //ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+#if 0
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "all",
+                             1,
+                             "All F-Modifiers",
+                             "Copy all the F-Modifiers, instead of just the active one");
+#endif
 }
 
 /* ******************** Paste F-Modifiers Operator *********************** */
@@ -2814,7 +2830,8 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
               ANIMFILTER_NODUPLIS);
   }
   else {
-    /* This is only if the operator gets called from a hotkey or search - Paste to all visible curves */
+    /* This is only if the operator gets called from a hotkey or search -
+     * Paste to all visible curves. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL |
               ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
   }

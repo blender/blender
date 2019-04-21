@@ -219,7 +219,8 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
             tmax = BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
           }
 
-          /* try to set cur using these values, if they're more extreme than previously set values */
+          /* Try to set cur using these values,
+           * if they're more extreme than previously set values. */
           *min = min_ff(*min, tmin);
           *max = max_ff(*max, tmax);
           found = true;
@@ -392,7 +393,8 @@ static int actkeys_viewall(bContext *C, const bool only_sel)
 
   /* set vertical range */
   if (only_sel == false) {
-    /* view all -> the summary channel is usually the shows everything, and resides right at the top... */
+    /* view all -> the summary channel is usually the shows everything,
+     * and resides right at the top... */
     v2d->cur.ymax = 0.0f;
     v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
   }
@@ -1297,8 +1299,9 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
             ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting BezTriple interpolation
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting BezTriple interpolation
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
@@ -1376,8 +1379,9 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
             ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting flags for handles
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting flags for handles
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
@@ -1457,8 +1461,9 @@ static void setkeytype_action_keys(bAnimContext *ac, short mode)
             ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through setting BezTriple interpolation
-   * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
+  /* Loop through setting BezTriple interpolation
+   * Note: we do not supply KeyframeEditData to the looper yet.
+   * Currently that's not necessary here.
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
     ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, NULL);

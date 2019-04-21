@@ -397,7 +397,8 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     }
     case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
     {
-      /* perform simple linear interpolation - coefficient for start must come from pso->percentage... */
+      /* Perform simple linear interpolation -
+       * coefficient for start must come from pso->percentage. */
       /* TODO: make this use some kind of spline interpolation instead? */
       (*val) = ((sVal * w2) + (eVal * w1));
       break;
@@ -583,7 +584,8 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
     /* perform blending */
     if (pso->mode == POSESLIDE_BREAKDOWN) {
-      /* just perform the interpol between quat_prev and quat_next using pso->percentage as a guide */
+      /* Just perform the interpol between quat_prev and
+       * quat_next using pso->percentage as a guide. */
       interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->percentage);
     }
     else if (pso->mode == POSESLIDE_PUSH) {
@@ -1109,7 +1111,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  /* perform pose updates - in response to some user action (e.g. pressing a key or moving the mouse) */
+  /* Perform pose updates - in response to some user action
+   * (e.g. pressing a key or moving the mouse). */
   if (do_pose_update) {
     /* update percentage indicator in header */
     pose_slide_draw_status(pso);
@@ -1396,7 +1399,8 @@ typedef enum ePosePropagate_Termination {
   POSE_PROPAGATE_SELECTED_MARKERS,
 } ePosePropagate_Termination;
 
-/* termination data needed for some modes - assumes only one of these entries will be needed at a time */
+/* Termination data needed for some modes -
+ * assumes only one of these entries will be needed at a time. */
 typedef union tPosePropagate_ModeData {
   /* smart holds + before frame: frame number to stop on */
   float end_frame;
@@ -1656,7 +1660,8 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
   poseAnim_mapping_get(C, &pflinks);
 
   if (BLI_listbase_is_empty(&pflinks)) {
-    /* There is a change the reason the list is empty is that there is no valid object to propagate poses for.
+    /* There is a change the reason the list is empty is
+     * that there is no valid object to propagate poses for.
      * This is very unlikely though, so we focus on the most likely issue. */
     BKE_report(op->reports, RPT_ERROR, "No keyframed poses to propagate to");
     return OPERATOR_CANCELLED;

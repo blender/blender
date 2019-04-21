@@ -216,7 +216,8 @@ void GRAPH_OT_select_all(wmOperatorType *ot)
  * -> BKEY     - 1) all keyframes within region are selected (validation with BEZT_OK_REGION)
  * -> ALT-BKEY - depending on which axis of the region was larger...
  *    -> 2) x-axis, so select all frames within frame range (validation with BEZT_OK_FRAMERANGE)
- *    -> 3) y-axis, so select all frames within channels that region included (validation with BEZT_OK_VALUERANGE)
+ *    -> 3) y-axis, so select all frames within channels that region included
+ *          (validation with BEZT_OK_VALUERANGE).
  *
  * The selection backend is also reused for the Lasso and Circle select operators.
  */
@@ -243,7 +244,8 @@ static void box_select_graphkeys(bAnimContext *ac,
   View2D *v2d = &ac->ar->v2d;
   rctf rectf, scaled_rectf;
 
-  /* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
+  /* Convert mouse coordinates to frame ranges and
+   * channel coordinates corrected for view pan/zoom. */
   UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 
   /* filter data */
@@ -362,9 +364,11 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
   /* selection 'mode' depends on whether box_select region only matters on one axis */
   if (RNA_boolean_get(op->ptr, "axis_range")) {
     /* mode depends on which axis of the range is larger to determine which axis to use
-     * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-     * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-     *   used for tweaking timing when "blocking", while channels is not that useful...
+     * - Checking this in region-space is fine, as it's fundamentally still going to be a
+     *   different rect size.
+     * - The frame-range select option is favored over the channel one (x over y),
+     *   as frame-range one is often used for tweaking timing when "blocking",
+     *   while channels is not that useful.
      */
     if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect)))
       mode = BEZT_OK_FRAMERANGE;
@@ -1319,8 +1323,11 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
   return BLI_pophead(matches);
 }
 
-/* Find the nearest vertices (either a handle or the keyframe) that are nearest to the mouse cursor (in area coordinates)
- * NOTE: the match info found must still be freed
+/**
+ * Find the nearest vertices (either a handle or the keyframe)
+ * that are nearest to the mouse cursor (in area coordinates)
+ *
+ * \note the match info found must still be freed.
  */
 static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mval[2])
 {
@@ -1445,7 +1452,8 @@ static void mouse_graph_keys(bAnimContext *ac,
         nvi->fcu->flag &= ~FCURVE_SELECTED;
     }
     else {
-      /* didn't hit any channel, so just apply that selection mode to the curve's selection status */
+      /* Didn't hit any channel,
+       * so just apply that selection mode to the curve's selection status. */
       if (select_mode == SELECT_INVERT)
         nvi->fcu->flag ^= FCURVE_SELECTED;
       else if (select_mode == SELECT_ADD)

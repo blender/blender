@@ -455,7 +455,8 @@ bool ED_view3d_win_to_ray_clipped(struct Depsgraph *depsgraph,
  * \param r_ray_start: The world-space point where the ray intersects the window plane.
  * \param r_ray_normal: The normalized world-space direction of towards mval.
  *
- * \note Ignores view near/far clipping, to take this into account use #ED_view3d_win_to_ray_clipped.
+ * \note Ignores view near/far clipping,
+ * to take this into account use #ED_view3d_win_to_ray_clipped.
  */
 void ED_view3d_win_to_ray(const ARegion *ar,
                           const float mval[2],
@@ -556,8 +557,9 @@ void ED_view3d_win_to_3d(const View3D *v3d,
     copy_v3_v3(ray_origin, rv3d->viewinv[3]);
     ED_view3d_win_to_vector(ar, mval, ray_direction);
 
-    /* note, we could use isect_line_plane_v3() however we want the intersection to be infront of the
-     * view no matter what, so apply the unsigned factor instead */
+    /* note, we could use isect_line_plane_v3()
+     * however we want the intersection to be infront of the view no matter what,
+     * so apply the unsigned factor instead */
     plane_from_point_normal_v3(plane, depth_pt, rv3d->viewinv[2]);
 
     isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, false);

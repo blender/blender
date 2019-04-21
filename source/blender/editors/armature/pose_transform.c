@@ -244,8 +244,9 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
        * new raw-transform components, don't recalc the poses yet, otherwise IK result will
        * change, thus changing the result we may be trying to record.
        */
-      /* XXX For some reason, we can't use pchan->chan_mat here, gives odd rotation/offset (see T38251).
-       *     Using pchan->pose_mat and bringing it back in bone space seems to work as expected!
+      /* XXX For some reason, we can't use pchan->chan_mat here, gives odd rotation/offset
+       * (see T38251).
+       * Using pchan->pose_mat and bringing it back in bone space seems to work as expected!
        */
       BKE_armature_mat_pose_to_bone(pchan_eval, pchan_eval->pose_mat, delta_mat);
 
@@ -326,7 +327,8 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 
   /* only copy when:
    *  1) channel exists - poses are not meant to add random channels to anymore
-   *  2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
+   *  2) if selection-masking is on, channel is selected -
+   *     only selected bones get pasted on, allowing making both sides symmetrical.
    */
   pchan = BKE_pose_channel_find_name(ob->pose, name);
 
@@ -667,7 +669,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
         if ((pchan->protectflag & OB_LOCK_ROTZ) == 0)
           pchan->rotAxis[2] = 0.0f;
 
-        /* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+        /* check validity of axis - axis should never be 0,0,0
+         * (if so, then we make it rotate about y). */
         if (IS_EQF(pchan->rotAxis[0], pchan->rotAxis[1]) &&
             IS_EQF(pchan->rotAxis[1], pchan->rotAxis[2]))
           pchan->rotAxis[1] = 1.0f;

@@ -764,15 +764,15 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 {
   SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 
-  /* update the state of the animchannels in response to changes from the data they represent
-   * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
-   */
+  /* Update the state of the animchannels in response to changes from the data they represent
+   * NOTE: the temp flag is used to indicate when this needs to be done,
+   * and will be cleared once handled. */
   if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
     ARegion *ar;
 
     /* Perform syncing of channel state incl. selection
-     * Active action setting also occurs here (as part of anim channel filtering in anim_filter.c)
-     */
+     * Active action setting also occurs here
+     * (as part of anim channel filtering in anim_filter.c). */
     ANIM_sync_animchannels_to_data(C);
     saction->runtime.flag &= ~SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 

@@ -553,7 +553,8 @@ static void do_weight_paint_normalize_all_locked_try_active(MDeformVert *dvert,
 
   if (!success) {
     /**
-     * Locks prevented the first pass from full completion, so remove restriction on active group; e.g:
+     * Locks prevented the first pass from full completion,
+     * so remove restriction on active group; e.g:
      *
      * - With 1.0 weight painted into active:
      *   nonzero locked weight; first pass zeroed out unlocked weight; scale 1 down to fit.
@@ -845,15 +846,15 @@ static void do_weight_paint_vertex_single(
               dv_mirr, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags, wpi->mirror.lock);
         }
         else {
-          /* this case accounts for...
-           * - painting onto a center vertex of a mesh
-           * - x mirror is enabled
-           * - auto normalize is enabled
-           * - the group you are painting onto has a L / R version
+          /* This case accounts for:
+           * - Painting onto a center vertex of a mesh.
+           * - X-mirror is enabled.
+           * - Auto normalize is enabled.
+           * - The group you are painting onto has a L / R version.
            *
            * We want L/R vgroups to have the same weight but this cant be if both are over 0.5,
-           * We _could_ have special check for that, but this would need its own normalize function which
-           * holds 2 groups from changing at once.
+           * We _could_ have special check for that, but this would need its own
+           * normalize function which holds 2 groups from changing at once.
            *
            * So! just balance out the 2 weights, it keeps them equal and everything normalized.
            *
@@ -1289,7 +1290,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_toolslots_brush_validate(bmain, &ts->wpaint->paint);
   }
 
-  /* When locked, it's almost impossible to select the pose then the object to enter weight paint mode.
+  /* When locked, it's almost impossible to select the pose
+   * then the object to enter weight paint mode.
    * In this case move our pose object in/out of pose mode.
    * This is in fits with the convention of selecting multiple objects and entering a mode. */
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {

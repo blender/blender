@@ -733,8 +733,8 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 
       nu = editnurb->nurbs.first;
       /* We need to restore to original curve into newnurb, *not* editcurve's nurbs.
-       * Otherwise, in case we update obdata *without* leaving editmode (e.g. viewport render), we would
-       * invalidate editcurve. */
+       * Otherwise, in case we update obdata *without* leaving editmode (e.g. viewport render),
+       * we would invalidate editcurve. */
       newnu = newnurbs->first;
       i = 0;
       while (nu) {
@@ -1275,9 +1275,10 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
       }
     }
 
-    /* We have to pass also new copied nurbs, since we want to restore original curve (without edited shapekey)
-     * on obdata, but *not* on editcurve itself (ED_curve_editnurb_load call does not always implies freeing
-     * of editcurve, e.g. when called to generate render data...). */
+    /* We have to pass also new copied nurbs, since we want to restore original curve
+     * (without edited shapekey) on obdata, but *not* on editcurve itself
+     * (ED_curve_editnurb_load call does not always implies freeing
+     * of editcurve, e.g. when called to generate render data). */
     calc_shapeKeys(obedit, &newnurb);
 
     cu->nurb = newnurb;
@@ -2288,7 +2289,8 @@ static void adduplicateflagNurb(
     }
     else {
       if (ED_curve_nurb_select_check(v3d, nu)) {
-        /* a rectangular area in nurb has to be selected and if splitting must be in U or V direction */
+        /* A rectangular area in nurb has to be selected and if splitting
+         * must be in U or V direction. */
         usel = MEM_callocN(nu->pntsu, "adduplicateN3");
         bp = nu->bp;
         for (a = 0; a < nu->pntsv; a++) {
@@ -3726,7 +3728,8 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 1000, "Number of cuts", "", 1, 10);
-  /* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+  /* Avoid re-using last var because it can cause _very_ high poly meshes
+   * and annoy users (or worse crash). */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

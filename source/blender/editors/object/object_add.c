@@ -1421,8 +1421,9 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
 
-    /* This is sort of a quick hack to address T51243 - Proper thing to do here would be to nuke most of all this
-     * custom scene/object/base handling, and use generic lib remap/query for that.
+    /* This is sort of a quick hack to address T51243 -
+     * Proper thing to do here would be to nuke most of all this custom scene/object/base handling,
+     * and use generic lib remap/query for that.
      * But this is for later (aka 2.8, once layers & co are settled and working).
      */
     if (use_global && ob->id.lib == NULL) {
@@ -1535,8 +1536,10 @@ static void copy_object_set_idnew(bContext *C)
 /********************* Make Duplicates Real ************************/
 
 /**
- * \note regarding hashing dupli-objects when using OB_DUPLICOLLECTION, skip the first member of #DupliObject.persistent_id
- * since its a unique index and we only want to know if the group objects are from the same dupli-group instance.
+ * \note regarding hashing dupli-objects when using OB_DUPLICOLLECTION,
+ * skip the first member of #DupliObject.persistent_id
+ * since its a unique index and we only want to know if the group objects are from the same
+ * dupli-group instance.
  */
 static unsigned int dupliobject_group_hash(const void *ptr)
 {
@@ -1550,8 +1553,10 @@ static unsigned int dupliobject_group_hash(const void *ptr)
 }
 
 /**
- * \note regarding hashing dupli-objects when NOT using OB_DUPLICOLLECTION, include the first member of #DupliObject.persistent_id
- * since its the index of the vertex/face the object is instantiated on and we want to identify objects on the same vertex/face.
+ * \note regarding hashing dupli-objects when NOT using OB_DUPLICOLLECTION,
+ * include the first member of #DupliObject.persistent_id
+ * since its the index of the vertex/face the object is instantiated on and we want to identify
+ * objects on the same vertex/face.
  */
 static unsigned int dupliobject_hash(const void *ptr)
 {
@@ -1827,7 +1832,8 @@ static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Objec
   if (ob->runtime.curve_cache == NULL) {
     /* Force creation. This is normally not needed but on operator
      * redo we might end up with an object which isn't evaluated yet.
-     * Also happens in case we are working on a copy of the object (all its caches have been nuked then).
+     * Also happens in case we are working on a copy of the object
+     * (all its caches have been nuked then).
      */
     if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
       /* We need 'for render' ON here, to enable computing bevel dipslist if needed.
@@ -1932,8 +1938,9 @@ static int convert_exec(bContext *C, wmOperator *op)
       Base *base = link->ptr.data;
       Object *ob = base->object;
 
-      /* The way object type conversion works currently (enforcing conversion of *all* objects using converted
-       * object-data, even some un-selected/hidden/another scene ones, sounds totally bad to me.
+      /* The way object type conversion works currently (enforcing conversion of *all* objects
+       * using converted object-data, even some un-selected/hidden/another scene ones,
+       * sounds totally bad to me.
        * However, changing this is more design than bug-fix, not to mention convoluted code below,
        * so that will be for later.
        * But at the very least, do not do that with linked IDs! */
@@ -2269,9 +2276,10 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 
 /*
  * dupflag: a flag made from constants declared in DNA_userdef_types.h
- * The flag tells adduplicate() whether to copy data linked to the object, or to reference the existing data.
+ * The flag tells adduplicate() whether to copy data linked to the object,
+ * or to reference the existing data.
  * U.dupflag for default operations or you can construct a flag as python does
- * if the dupflag is 0 then no data will be copied (linked duplicate) */
+ * if the dupflag is 0 then no data will be copied (linked duplicate). */
 
 /* used below, assumes id.new is correct */
 /* leaves selection of base/object unaltered */

@@ -1653,7 +1653,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   }
 
   /* Now go through the candidates and find intersections */
-  /* These tolerances, in screen space, are for intermediate hits, as ends are already snapped to screen */
+  /* These tolerances, in screen space, are for intermediate hits,
+   * as ends are already snapped to screen. */
 
   if (kcd->is_interactive) {
     vert_tol = KNIFE_FLT_EPS_PX_VERT;
@@ -1663,8 +1664,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   else {
     /* Use 1/100th of a pixel, see T43896 (too big), T47910 (too small).
      *
-     * Update, leave this as is until we investigate not using pixel coords for geometry calculations: T48023
-     */
+     * Update, leave this as is until we investigate not using pixel coords
+     * for geometry calculations: T48023. */
     vert_tol = line_tol = face_tol = 0.5f;
   }
 

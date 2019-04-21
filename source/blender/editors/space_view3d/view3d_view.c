@@ -865,8 +865,8 @@ void view3d_viewmatrix_set(Depsgraph *depsgraph,
       vec[2] = 0.0f;
 
       if (rect_scale) {
-        /* Since 'RegionView3D.winmat' has been calculated and this function doesn't take the 'ARegion'
-         * we don't know about the region size.
+        /* Since 'RegionView3D.winmat' has been calculated and this function doesn't take the
+         * 'ARegion' we don't know about the region size.
          * Use 'rect_scale' when drawing a sub-region to apply 2D offset,
          * scaled by the difference between the sub-region and the region size.
          */

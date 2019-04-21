@@ -586,7 +586,7 @@ static void object_test_constraint(Main *bmain, Object *owner, bConstraint *con)
   }
 }
 
-/************************ generic functions for operators using constraint names and data context *********************/
+/*** generic functions for operators using constraint names and data context *********************/
 
 #define EDIT_CONSTRAINT_OWNER_OBJECT 0
 #define EDIT_CONSTRAINT_OWNER_BONE 1
@@ -690,20 +690,30 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
     if (pchan)
       list = &pchan->constraints;
     else {
-      //if (G.debug & G_DEBUG)
-      //printf("edit_constraint_property_get: No active bone for object '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
+#if 0
+      if (G.debug & G_DEBUG) {
+        printf("edit_constraint_property_get: No active bone for object '%s'\n",
+               (ob) ? ob->id.name + 2 : "<None>");
+      }
+#endif
       return NULL;
     }
   }
   else {
-    //if (G.debug & G_DEBUG)
-    //printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
+#if 0
+    if (G.debug & G_DEBUG) {
+      printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
+    }
+#endif
     list = get_active_constraints(ob);
   }
 
   con = BKE_constraints_find_name(list, constraint_name);
-  //if (G.debug & G_DEBUG)
-  //printf("constraint found = %p, %s\n", (void *)con, (con) ? con->name : "<Not found>");
+#if 0
+  if (G.debug & G_DEBUG) {
+    printf("constraint found = %p, %s\n", (void *)con, (con) ? con->name : "<Not found>");
+  }
+#endif
 
   if (con && (type != 0) && (con->type != type))
     con = NULL;
@@ -1275,10 +1285,11 @@ static void object_pose_tag_update(Main *bmain, Object *ob)
 {
   BKE_pose_tag_recalc(bmain, ob->pose); /* Checks & sort pose channels. */
   if (ob->proxy && ob->adt) {
-    /* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
-     * after calling `BKE_pose_rebuild()`, which causes T43872.
-     * Note that this is a bit wide here, since we cannot be sure whether there are some locked proxy bones
-     * or not...
+    /* We need to make use of ugly #POSE_ANIMATION_WORKAROUND here too,
+     * else anim data are not reloaded after calling `BKE_pose_rebuild()`,
+     * which causes T43872.
+     * Note that this is a bit wide here, since we cannot be sure whether there are some locked
+     * proxy bones or not.
      * XXX Temp hack until new depsgraph hopefully solves this. */
     DEG_id_tag_update(&ob->id, ID_RECALC_ANIMATION);
   }
@@ -1816,7 +1827,8 @@ static int constraint_add_exec(
     return OPERATOR_CANCELLED;
   }
 
-  /* create a new constraint of the type required, and add it to the active/given constraints list */
+  /* Create a new constraint of the type required,
+   * and add it to the active/given constraints list. */
   if (pchan)
     con = BKE_constraint_add_for_pose(ob, pchan, NULL, type);
   else
@@ -1831,8 +1843,8 @@ static int constraint_add_exec(
 
     /* get the target objects, adding them as need be */
     if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, 1)) {
-      /* method of setting target depends on the type of target we've got
-       * - by default, just set the first target (distinction here is only for multiple-targeted constraints)
+      /* Method of setting target depends on the type of target we've got - by default,
+       * just set the first target (distinction here is only for multiple-targeted constraints).
        */
       if (tar_pchan)
         set_constraint_nth_target(con, tar_ob, tar_pchan->name, 0);
@@ -1881,8 +1893,8 @@ static int constraint_add_exec(
   if ((ob->type == OB_ARMATURE) && (pchan)) {
     BKE_pose_tag_recalc(bmain, ob->pose); /* sort pose channels */
     if (BKE_constraints_proxylocked_owner(ob, pchan) && ob->adt) {
-      /* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too, else anim data are not reloaded
-       * after calling `BKE_pose_rebuild()`, which causes T43872.
+      /* We need to make use of ugly POSE_ANIMATION_WORKAROUND here too,
+       * else anim data are not reloaded after calling `BKE_pose_rebuild()`, which causes T43872.
        * XXX Temp hack until new depsgraph hopefully solves this. */
       DEG_id_tag_update(&ob->id, ID_RECALC_ANIMATION);
     }
@@ -2091,7 +2103,8 @@ static int pose_ik_add_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   const bool with_targets = RNA_boolean_get(op->ptr, "with_targets");
 
-  /* add the constraint - all necessary checks should have been done by the invoke() callback already... */
+  /* add the constraint - all necessary checks should have
+   * been done by the invoke() callback already... */
   return constraint_add_exec(
       C, op, ob, get_active_constraints(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
 }

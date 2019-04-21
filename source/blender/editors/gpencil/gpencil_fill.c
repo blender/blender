@@ -930,7 +930,8 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     view3d_region_operator_needs_opengl(tgpf->win, tgpf->ar);
     ED_view3d_autodist_init(tgpf->depsgraph, tgpf->ar, tgpf->v3d, 0);
 
-    /* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
+    /* Since strokes are so fine, when using their depth we need a margin
+     * otherwise they might get missed. */
     int depth_margin = 0;
 
     /* get an array of depths, far depths are blended */

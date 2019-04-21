@@ -245,7 +245,8 @@ bool ED_vgroup_parray_alloc(ID *id,
  * For use with tools that use ED_vgroup_parray_alloc with \a use_vert_sel == true.
  * This finds the unselected mirror deform verts and copies the weights to them from the selected.
  *
- * \note \a dvert_array has mirrored weights filled in, in case cleanup operations are needed on both.
+ * \note \a dvert_array has mirrored weights filled in,
+ * in case cleanup operations are needed on both.
  */
 void ED_vgroup_parray_mirror_sync(Object *ob,
                                   MDeformVert **dvert_array,
@@ -376,7 +377,8 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
   if (ob == ob_from)
     return true;
 
-  /* in case we copy vgroup between two objects using same data, we only have to care about object side of things. */
+  /* In case we copy vgroup between two objects using same data,
+   * we only have to care about object side of things. */
   if (ob->data != ob_from->data) {
     ED_vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
     ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
@@ -1227,8 +1229,9 @@ static int *getSurroundingVerts(Mesh *me, int vert, int *count)
   return verts;
 }
 
-/* get a single point in space by averaging a point cloud (vectors of size 3)
- * coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
+/* Get a single point in space by averaging a point cloud (vectors of size 3)
+ * coord is the place the average is stored,
+ * points is the point cloud, count is the number of points in the cloud.
  */
 static void getSingleCoordinate(MVert *points, int count, float coord[3])
 {

@@ -551,9 +551,11 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, struct Bone *actBone)
 /**
  * This function:
  * - Sets local head/tail rest locations using parent bone's arm_mat.
- * - Calls #BKE_armature_where_is_bone() which uses parent's transform (arm_mat) to define this bone's transform.
+ * - Calls #BKE_armature_where_is_bone() which uses parent's transform (arm_mat)
+ *   to define this bone's transform.
  * - Fixes (converts) EditBone roll into Bone roll.
- * - Calls again #BKE_armature_where_is_bone(), since roll fiddling may have changed things for our bone...
+ * - Calls again #BKE_armature_where_is_bone(),
+ *   since roll fiddling may have changed things for our bone.
  *
  * \note The order is crucial here, we can only handle child
  * if all its parents in chain have already been handled (this is ensured by recursive process).
@@ -565,8 +567,8 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
 
   for (curBone = bonelist->first; curBone; curBone = curBone->next) {
     /* Set bone's local head/tail.
-     * Note that it's important to use final parent's restpose (arm_mat) here, instead of setting those values
-     * from editbone's matrix (see T46010). */
+     * Note that it's important to use final parent's restpose (arm_mat) here,
+     * instead of setting those values from editbone's matrix (see T46010). */
     if (curBone->parent) {
       float parmat_inv[4][4];
 

@@ -689,7 +689,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
     filelist_cache_previews_update(files);
 
-    /* Handle preview timer here, since it's filelist_file_cache_block() and filelist_cache_previews_update()
+    /* Handle preview timer here,
+     * since it's filelist_file_cache_block() and filelist_cache_previews_update()
      * which controls previews task. */
     {
       const bool previews_running = filelist_cache_previews_running(files);

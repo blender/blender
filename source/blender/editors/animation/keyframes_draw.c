@@ -211,7 +211,8 @@ static void nupdate_ak_bezt(void *node, void *data)
   /* count keyframes in this column */
   ak->totkey++;
 
-  /* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
+  /* For keyframe type, 'proper' keyframes have priority over breakdowns
+   * (and other types for now). */
   if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
 
@@ -273,7 +274,8 @@ static void nupdate_ak_gpframe(void *node, void *data)
   /* count keyframes in this column */
   ak->totkey++;
 
-  /* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
+  /* for keyframe type, 'proper' keyframes have priority over breakdowns
+   * (and other types for now). */
   if (gpf->key_type == BEZT_KEYTYPE_KEYFRAME)
     ak->key_type = BEZT_KEYTYPE_KEYFRAME;
 }
@@ -777,8 +779,10 @@ static void draw_keylist(View2D *v2d,
     /* count keys */
     uint key_len = 0;
     for (ActKeyColumn *ak = keys->first; ak; ak = ak->next) {
-      /* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
-       * - this might give some improvements, since we current have to flip between view/region matrices
+      /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
+       * in visible area, don't draw.
+       * This might give some improvements,
+       * since we current have to flip between view/region matrices.
        */
       if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax))
         key_len++;
@@ -1216,7 +1220,8 @@ void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, DLRBT_Tree *keys)
   bGPDframe *gpf;
 
   if (gpl && keys) {
-    /* although the frames should already be in an ordered list, they are not suitable for displaying yet */
+    /* Although the frames should already be in an ordered list,
+     * they are not suitable for displaying yet. */
     for (gpf = gpl->frames.first; gpf; gpf = gpf->next)
       add_gpframe_to_keycolumns_list(keys, gpf);
 

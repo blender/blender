@@ -116,9 +116,10 @@ typedef struct tJoinArmature_AdtFixData {
   GHash *names_map;
 } tJoinArmature_AdtFixData;
 
-/* Callback to pass to BKE_animdata_main_cb() for fixing driver ID's to point to the new ID */
-/* FIXME: For now, we only care about drivers here. When editing rigs, it's very rare to have animation
- *        on the rigs being edited already, so it should be safe to skip these.
+/* Callback to pass to BKE_animdata_main_cb() for fixing driver ID's to point to the new ID. */
+/* FIXME: For now, we only care about drivers here.
+ *        When editing rigs, it's very rare to have animation on the rigs being edited already,
+ *        so it should be safe to skip these.
  */
 static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 {
@@ -591,12 +592,13 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     Object *oldob, *newob;
     Base *oldbase, *newbase;
 
-    /* we are going to do this as follows (unlike every other instance of separate):
-     * 1. exit editmode +posemode for active armature/base. Take note of what this is.
-     * 2. duplicate base - BASACT is the new one now
-     * 3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
-     * 4. fix constraint links
-     * 5. make original armature active and enter editmode
+    /* We are going to do this as follows (unlike every other instance of separate):
+     * 1. Exit editmode +posemode for active armature/base. Take note of what this is.
+     * 2. Duplicate base - BASACT is the new one now
+     * 3. For each of the two armatures,
+     *    enter editmode -> remove appropriate bones -> exit editmode + recalc.
+     * 4. Fix constraint links
+     * 5. Make original armature active and enter editmode
      */
 
     /* 1) only edit-base selected */
@@ -672,7 +674,7 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************************************** Parenting ************************************************* */
+/* ********************************* Parenting ************************************************* */
 
 /* armature parenting options */
 #define ARM_PAR_CONNECT 1

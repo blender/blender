@@ -1066,8 +1066,10 @@ static bool copy_particle_systems_to_object(const bContext *C,
  * the final DM of the object without particles.
  * However, when evaluating the DM all the particle modifiers must be valid,
  * i.e. have the psys assigned already.
- * To break this hen/egg problem we create all psys separately first (to collect required customdata masks),
- * then create the DM, then add them to the object and make the psys modifiers ...
+ *
+ * To break this hen/egg problem we create all psys separately first
+ * (to collect required customdata masks),
+ * then create the DM, then add them to the object and make the psys modifiers.
  */
 #define PSYS_FROM_FIRST (single_psys_from ? single_psys_from : ob_from->particlesystem.first)
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? NULL : (cur)->next)

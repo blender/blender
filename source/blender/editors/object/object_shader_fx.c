@@ -281,7 +281,9 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
                                        BLT_I18NCONTEXT_ID_ID); /* Abused, for "Light"... */
 }
 
-/************************ generic functions for operators using names and data context *********************/
+/* -------------------------------------------------------------------- */
+/** \name Generic Functions for Operators Using Names and Data Context
+ * \{ */
 
 static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
 {
@@ -352,6 +354,8 @@ static ShaderFxData *edit_shaderfx_property_get(wmOperator *op, Object *ob, int 
 
   return fx;
 }
+
+/** \} */
 
 /************************ remove shaderfx operator *********************/
 

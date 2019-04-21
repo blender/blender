@@ -358,7 +358,10 @@ float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vert
 void ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 
 /* mesh_data.c */
-// void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+#if 0
+void ED_mesh_geometry_add(
+    struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+#endif
 void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_tessfaces_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);

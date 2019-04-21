@@ -422,9 +422,10 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-  /* Disable OpenMP when dynamic-topology is enabled. Otherwise, new entries might be inserted by
-   * sculpt_undo_push_node() into the GHash used internally by BM_log_original_vert_co() by a different thread.
-   * See T33787. */
+  /**
+   * Disable OpenMP when dynamic-topology is enabled. Otherwise, new entries might be inserted by
+   * #sculpt_undo_push_node() into the GHash used internally by #BM_log_original_vert_co()
+   * by a different thread. See T33787. */
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -2357,7 +2358,8 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
-  /* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
+  /* We divide out the squared alpha and multiply by the squared crease
+   * to give us the pinch strength. */
   crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
   brush_alpha = BKE_brush_alpha_get(scene, brush);
   if (brush_alpha > 0.0f)
@@ -2370,7 +2372,8 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   if (brush->sculpt_tool == SCULPT_TOOL_BLOB)
     flippedbstrength *= -1.0f;
 
-  /* Use surface normal for 'spvc', so the vertices are pinched towards a line instead of a single point.
+  /* Use surface normal for 'spvc',
+   * so the vertices are pinched towards a line instead of a single point.
    * Without this we get a 'flat' surface surrounding the pinch */
   sculpt_project_v3_cache_init(&spvc, ss->cache->sculpt_normal_symm);
 
@@ -4271,7 +4274,8 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   cache->bstrength = brush_strength(sd, cache, feather, ups);
   cache->symmetry = symm;
 
-  /* symm is a bit combination of XYZ - 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
+  /* symm is a bit combination of XYZ -
+   * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 0; i <= symm; ++i) {
     if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
       cache->mirror_symmetry_pass = i;
@@ -5381,8 +5385,8 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   const Brush *brush = BKE_paint_brush(&sd->paint);
 
-  /* XXX Canceling strokes that way does not work with dynamic topology, user will have to do real undo for now.
-   *     See T46456. */
+  /* XXX Canceling strokes that way does not work with dynamic topology,
+   *     user will have to do real undo for now. See T46456. */
   if (ss->cache && !sculpt_stroke_is_dynamic_topology(ss, brush)) {
     paint_mesh_restore_co(sd, ob);
   }

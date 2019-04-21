@@ -759,8 +759,8 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_lis
   /* First Strip! */
   /* strips with extended stillfames before */
 
-  /* Precaution, needed because the length saved on-disk may not match the length saved in the blend file,
-   * or our code may have minor differences reading file length between versions.
+  /* Precaution, needed because the length saved on-disk may not match the length saved in the
+   * blend file, or our code may have minor differences reading file length between versions.
    * This causes hard-cut to fail, see: T47862 */
   if (seq->type != SEQ_TYPE_META) {
     BKE_sequence_reload_new_file(scene, seq, true);
@@ -1548,7 +1548,9 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         seq->enddisp = data->ts[i].enddisp + offset;
       }
 
-      /* effects are only added if we they are in a metastrip. In this case, dependent strips will just be transformed and we can skip calculating for effects
+      /* effects are only added if we they are in a meta-strip.
+       * In this case, dependent strips will just be transformed and
+       * we can skip calculating for effects.
        * This way we can avoid an extra loop just for effects*/
       if (!(seq->type & SEQ_TYPE_EFFECT)) {
         BKE_sequence_calc(scene, seq);

@@ -63,7 +63,8 @@
 /* UI STUFF */
 
 // XXX! --------------------------------
-/* temporary definition for limits of float number buttons (FLT_MAX tends to infinity with old system) */
+/* Temporary definition for limits of float number buttons
+ * (FLT_MAX tends to infinity with old system). */
 #define UI_FLT_MAX 10000.0f
 
 #define B_REDR 1
@@ -97,7 +98,8 @@ static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
   ED_undo_push(C, "Delete F-Curve Modifier");
 
   /* send notifiers */
-  // XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case
+  /* XXX for now, this is the only way to get updates in all the right places...
+   * but would be nice to have a special one in this case. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
   DEG_id_tag_update(ctx->fcurve_owner_id, ID_RECALC_ANIMATION);
 }

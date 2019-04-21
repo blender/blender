@@ -885,8 +885,9 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
   BM_select_history_clear(bm);
 
   /* Notes on hidden geometry:
-   * - un-hide the face since its possible hidden was copied when copying surrounding face attributes.
-   * - un-hide before adding to select history
+   * - Un-hide the face since its possible hidden was copied when copying
+   *   surrounding face attributes.
+   * - Un-hide before adding to select history
    *   since we may extend into an existing, hidden vert/edge.
    */
 
@@ -946,8 +947,8 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
     BMElem *ele_desel;
     BMFace *ele_desel_face;
 
-    /* be extra clever, figure out if a partial selection should be extended so we can create geometry
-     * with single vert or single edge selection */
+    /* be extra clever, figure out if a partial selection should be extended so we can create
+     * geometry with single vert or single edge selection. */
     ele_desel = edbm_add_edge_face_exec__tricky_extend_sel(em->bm);
 #endif
     if (!EDBM_op_init(em,
@@ -980,7 +981,8 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
       /* Newly created faces may include existing hidden edges,
        * copying face data from surrounding, may have copied hidden face flag too.
        *
-       * Important that faces use flushing since 'edges.out' wont include hidden edges that already existed.
+       * Important that faces use flushing since 'edges.out'
+       * wont include hidden edges that already existed.
        */
       BMO_slot_buffer_hflag_disable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
@@ -3425,7 +3427,8 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_blend_from_shape_exec;
-  //  ot->invoke = WM_operator_props_popup_call;  /* disable because search popup closes too easily */
+  /* disable because search popup closes too easily */
+  //  ot->invoke = WM_operator_props_popup_call;
   ot->ui = edbm_blend_from_shape_ui;
   ot->poll = ED_operator_editmesh;
 
@@ -7730,7 +7733,8 @@ static void point_normals_apply(bContext *C, wmOperator *op, float target[3], co
       copy_v3_v3(lnor_ed->nloc, lnor_ed->niloc);
     }
     else if (do_spherize) {
-      /* Note that this is *not* real spherical interpolation. Probably good enough in this case though? */
+      /* Note that this is *not* real spherical interpolation.
+       * Probably good enough in this case though? */
       const float strength = RNA_float_get(op->ptr, "spherize_strength");
       float spherized_normal[3];
 
@@ -8810,12 +8814,13 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
 
   float(*smooth_normal)[3] = MEM_callocN(sizeof(*smooth_normal) * lnors_ed_arr->totloop, __func__);
 
-  /* This is weird choice of operation, taking all loops of faces of current vertex... Could lead to some rather
-   * far away loops weighting as much as very close ones (topologically speaking), with complex polygons.
-   * Using topological distance here (rather than geometrical one) makes sense imho, but would rather go with
-   * a more consistent and flexible code, we could even add max topological distance to take into account,
-   * and a weighting curve...
-   * Would do that later though, think for now we can live with that choice. --mont29 */
+  /* This is weird choice of operation, taking all loops of faces of current vertex.
+   * Could lead to some rather far away loops weighting as much as very close ones
+   * (topologically speaking), with complex polygons.
+   * Using topological distance here (rather than geometrical one)
+   * makes sense imho, but would rather go with a more consistent and flexible code,
+   * we could even add max topological distance to take into account, * and a weighting curve.
+   * Would do that later though, think for now we can live with that choice. --mont29. */
   BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
   for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
     l = lnor_ed->loop;

@@ -356,7 +356,8 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
     else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
       offset += (short)(0.7f * U.widget_unit);
 
-    /* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
+    /* If not in Action Editor mode, action-groups (and their children)
+     * must carry some offset too. */
     else if (ac->datatype != ANIMCONT_ACTION)
       offset += (short)(0.7f * U.widget_unit);
 
@@ -3855,7 +3856,8 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
   return -1;
 }
 
-/* quick macro for use in ANIM_channel_setting_set - set flag for setting according the mode given */
+/* Quick macro for use in ANIM_channel_setting_set -
+ * set flag for setting according the mode given. */
 #define ACF_SETTING_SET(sval, sflag, smode) \
   { \
     if (negflag) { \
@@ -4022,8 +4024,8 @@ void ANIM_channel_draw(
 
         immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-        /* F-Curve channels need to have a special 'color code' box drawn, which is colored with whatever
-         * color the curve has stored
+        /* F-Curve channels need to have a special 'color code' box drawn,
+         * which is colored with whatever color the curve has stored.
          */
         immUniformColor3fv(fcu->color);
 
@@ -4143,26 +4145,29 @@ void ANIM_channel_draw(
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PINNED))
         offset += ICON_WIDTH;
 
-      /* NOTE: technically, NLA Action "pushdown" should be here too, but there are no sliders there */
+      /* NOTE: technically, NLA Action "pushdown" should be here too,
+       * but there are no sliders there. */
 
       /* NLA action channels have slightly different spacing requirements... */
       if (ale->type == ANIMTYPE_NLAACTION)
         ymin_ofs = NLACHANNEL_SKIP;
     }
 
-    /* draw slider
-     * - even if we can draw sliders for this view, we must also check that the channel-type supports them
-     *   (only only F-Curves really can support them for now)
-     * - slider should start before the toggles (if they're visible) to keep a clean line down the side
+    /* Draw slider:
+     * - Even if we can draw sliders for this view,
+     *   we must also check that the channel-type supports them
+     *   (only only F-Curves really can support them for now).
+     * - Slider should start before the toggles (if they're visible)
+     *   to keep a clean line down the side.
      */
     if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY)) {
       /* adjust offset */
       offset += SLIDER_WIDTH;
     }
 
-    /* finally draw a backdrop rect behind these
-     * - starts from the point where the first toggle/slider starts,
-     * - ends past the space that might be reserved for a scroller
+    /* Finally draw a backdrop rect behind these:
+     * - Starts from the point where the first toggle/slider starts.
+     * - Ends past the space that might be reserved for a scroller.
      */
     immRectf(pos,
              v2d->cur.xmax - (float)offset,
@@ -4402,7 +4407,8 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   /* get flags for keyframing */
   flag = ANIM_get_keyframing_flags(scene, 1);
 
-  /* get pointer and property from the slider - this should all match up with the NlaStrip required... */
+  /* Get pointer and property from the slider -
+   * this should all match up with the NlaStrip required. */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (fcu && prop) {
@@ -4853,7 +4859,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_MUTE);
       }
       if (ale->type == ANIMTYPE_GPLAYER) {
-        /* Not technically "mute" (in terms of anim channels, but this sets layer visibility instead) */
+        /* Not technically "mute"
+         * (in terms of anim channels, but this sets layer visibility instead). */
         offset -= ICON_WIDTH;
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
       }
@@ -4900,17 +4907,20 @@ void ANIM_channel_draw_widgets(const bContext *C,
       }
     }
 
-    /* draw slider
-     * - even if we can draw sliders for this view, we must also check that the channel-type supports them
-     *   (only only F-Curves really can support them for now)
-     * - to make things easier, we use RNA-autobuts for this so that changes are reflected immediately,
-     *   wherever they occurred. BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
-     *   and wouldn't be able to auto-keyframe...
-     * - slider should start before the toggles (if they're visible) to keep a clean line down the side
+    /* Draw slider:
+     * - Even if we can draw sliders for this view, we must also check that the channel-type
+     *   supports them (only only F-Curves really can support them for now).
+     * - To make things easier, we use RNA-autobuts for this so that changes are
+     *   reflected immediately, wherever they occurred.
+     *   BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
+     *   and wouldn't be able to auto-keyframe.
+     * - Slider should start before the toggles (if they're visible)
+     *   to keep a clean line down the side.
      */
     if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY)) {
       /* adjust offset */
-      // TODO: make slider width dynamic, so that they can be easier to use when the view is wide enough
+      /* TODO: make slider width dynamic,
+       * so that they can be easier to use when the view is wide enough. */
       offset -= SLIDER_WIDTH;
 
       /* need backdrop behind sliders... */
@@ -4931,7 +4941,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
           if (prop) {
             uiBut *but;
 
-            /* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
+            /* Create the slider button,
+             * and assign relevant callback to ensure keyframes are inserted. */
             but = uiDefAutoButR(block,
                                 &ptr,
                                 prop,
@@ -4977,7 +4988,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
           if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
             uiBut *but;
 
-            /* create the slider button, and assign relevant callback to ensure keyframes are inserted... */
+            /* Create the slider button,
+             * and assign relevant callback to ensure keyframes are inserted. */
             but = uiDefAutoButR(block,
                                 &ptr,
                                 prop,

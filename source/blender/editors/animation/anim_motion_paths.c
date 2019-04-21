@@ -249,7 +249,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   /* get copies of objects/bones to get the calculated results from
    * (for copy-on-write evaluation), so that we actually get some results
    */
-  // TODO: Create a copy of background depsgraph that only contain these entities, and only evaluates them..
+  // TODO: Create a copy of background depsgraph that only contain these entities,
+  // and only evaluates them.
   for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
     mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
 

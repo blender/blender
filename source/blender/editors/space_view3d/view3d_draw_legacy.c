@@ -922,7 +922,8 @@ void ED_view3d_screen_datamask(const bContext *C,
 
 /**
  * Store values from #RegionView3D, set when drawing.
- * This is needed when we draw with to a viewport using a different matrix (offscreen drawing for example).
+ * This is needed when we draw with to a viewport using a different matrix
+ * (offscreen drawing for example).
  *
  * Values set by #ED_view3d_update_viewmat should be handled here.
  */

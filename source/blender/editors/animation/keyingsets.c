@@ -461,7 +461,8 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 /* ******************************************* */
 
 /* Change Active KeyingSet Operator ------------------------ */
-/* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
+/* This operator checks if a menu should be shown
+ * for choosing the KeyingSet to make the active one. */
 
 static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -526,7 +527,7 @@ ListBase builtin_keyingsets = {NULL, NULL};
 
 /* --------------- */
 
-/* Find KeyingSet type info given a name */
+/* Find KeyingSet type info given a name. */
 KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[])
 {
   /* sanity checks */
@@ -537,7 +538,7 @@ KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[])
   return BLI_findstring(&keyingset_type_infos, name, offsetof(KeyingSetInfo, idname));
 }
 
-/* Find builtin KeyingSet by name */
+/* Find builtin KeyingSet by name. */
 KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[])
 {
   KeyingSet *ks, *first = NULL;
@@ -569,7 +570,8 @@ KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[]
 
 /* --------------- */
 
-/* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
+/* Add the given KeyingSetInfo to the list of type infos,
+ * and create an appropriate builtin set too. */
 void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
 {
   KeyingSet *ks;
@@ -589,7 +591,8 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
   BLI_addtail(&keyingset_type_infos, ksi);
 }
 
-/* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
+/* Remove the given KeyingSetInfo from the list of type infos,
+ * and also remove the builtin set if appropriate. */
 void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 {
   KeyingSet *ks, *ksn;
@@ -1037,7 +1040,8 @@ int ANIM_apply_keyingset(
       continue;
     }
 
-    /* since keying settings can be defined on the paths too, apply the settings for this path first */
+    /* Since keying settings can be defined on the paths too,
+     * apply the settings for this path first. */
     kflag2 = keyingset_apply_keying_flags(kflag, ksp->keyingoverride, ksp->keyingflag);
 
     /* get pointer to name of group to add channels to */

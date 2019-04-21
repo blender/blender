@@ -282,8 +282,8 @@ static void drawseqwave(View2D *v2d,
     waveform = sound->waveform;
 
     if (waveform->length == 0) {
-      /* BKE_sound_read_waveform() set an empty SoundWaveform data in case it cannot generate a valid one...
-       * See T45726. */
+      /* BKE_sound_read_waveform() set an empty SoundWaveform data in case it cannot generate a
+       * valid one. See T45726. */
       return;
     }
 
@@ -1603,7 +1603,8 @@ void sequencer_draw_preview(const bContext *C,
   /* TODO */
   /* sequencer_draw_maskedit(C, scene, ar, sseq); */
 
-  /* Scope is freed in sequencer_check_scopes when ibuf changes and scope image is to be replaced. */
+  /* Scope is freed in sequencer_check_scopes when ibuf changes and
+   * scope image is to be replaced. */
   if (ibuf) {
     IMB_freeImBuf(ibuf);
   }

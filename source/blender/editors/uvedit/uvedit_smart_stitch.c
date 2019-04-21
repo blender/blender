@@ -1412,8 +1412,9 @@ static int stitch_process_data(StitchStateContainer *ssc,
           l = element->l;
           luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
-          /* accumulate each islands' translation from stitchable elements. it is important to do here
-           * because in final pass MTFaces get modified and result is zero. */
+          /* accumulate each islands' translation from stitchable elements.
+           * It is important to do here because in final pass MTFaces
+           * get modified and result is zero. */
           island_stitch_data[element->island].translation[0] += final_position[i].uv[0] -
                                                                 luv->uv[0];
           island_stitch_data[element->island].translation[1] += final_position[i].uv[1] -
@@ -1466,8 +1467,9 @@ static int stitch_process_data(StitchStateContainer *ssc,
           l = element->l;
           luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
-          /* accumulate each islands' translation from stitchable elements. it is important to do here
-           * because in final pass MTFaces get modified and result is zero. */
+          /* accumulate each islands' translation from stitchable elements.
+           * it is important to do here because in final pass MTFaces
+           * get modified and result is zero. */
           island_stitch_data[element->island].translation[0] += final_position[i].uv[0] -
                                                                 luv->uv[0];
           island_stitch_data[element->island].translation[1] += final_position[i].uv[1] -

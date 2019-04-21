@@ -138,8 +138,9 @@ static void gp_draw_stroke_buffer(const tGPspoint *points,
     immBeginAtMost(GPU_PRIM_LINE_STRIP, totpoints);
 
     for (int i = 0; i < totpoints; i++, pt++) {
-      /* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
-       * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
+      /* If there was a significant pressure change,
+       * stop the curve, change the thickness of the stroke,
+       * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP).
        */
       if (fabsf(pt->pressure - oldpressure) > 0.2f) {
         /* need to have 2 points to avoid immEnd assert error */
@@ -277,8 +278,9 @@ static void gp_draw_stroke_3d(const bGPDspoint *points,
   immBeginAtMost(GPU_PRIM_LINE_STRIP, totpoints + cyclic_add);
   const bGPDspoint *pt = points;
   for (int i = 0; i < totpoints; i++, pt++) {
-    /* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
-     * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
+    /* If there was a significant pressure change, stop the curve,
+     * change the thickness of the stroke, and continue drawing again
+     * (since line-width cannot change in middle of GL_LINE_STRIP)
      * Note: we want more visible levels of pressures when thickness is bigger.
      */
     if (fabsf(pt->pressure - curpressure) > 0.2f / (float)thickness) {
@@ -352,8 +354,9 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
     scalefac = 0.001f;
   }
 
-  /* tessellation code - draw stroke as series of connected quads (triangle strips in fact) with connection
-   * edges rotated to minimize shrinking artifacts, and rounded endcaps
+  /* Tessellation code - draw stroke as series of connected quads
+   * (triangle strips in fact) with connection edges rotated to minimize shrinking artifacts,
+   * and rounded endcaps.
    */
   {
     const bGPDspoint *pt1, *pt2;
@@ -377,7 +380,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
       float mt[2], sc[2]; /* gradient for thickness, point for end-cap */
       float pthick;       /* thickness at segment point */
 
-      /* get x and y coordinates from point2 (point1 has already been computed in previous iteration). */
+      /* Get x and y coordinates from point2
+       * (point1 has already been computed in previous iteration). */
       gp_calc_2d_stroke_fxy(&pt2->x, sflag, offsx, offsy, winx, winy, s1);
 
       /* calculate gradient and normal - 'angle'=(ny/nx) */
@@ -1041,7 +1045,8 @@ void ED_annotation_draw_2dimage(const bContext *C)
     case SPACE_CLIP:  /* clip */
     {
       /* just draw using standard scaling (settings here are currently ignored anyways) */
-      /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
+      /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way,
+       * so disabled. */
       offsx = 0;
       offsy = 0;
       sizex = ar->winx;

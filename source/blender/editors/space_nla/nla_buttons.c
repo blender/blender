@@ -81,9 +81,9 @@ bool nla_panel_context(const bContext *C,
   short found = 0; /* not bool, since we need to indicate "found but not ideal" status */
   int filter;
 
-  /* for now, only draw if we could init the anim-context info (necessary for all animation-related tools)
-   * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
-   */
+  /* For now, only draw if we could init the anim-context info
+   * (necessary for all animation-related tools)
+   * to work correctly is able to be correctly retrieved. There's no point showing empty panels? */
   if (ANIM_animdata_get_context(C, &ac) == 0)
     return false;
 
@@ -416,7 +416,8 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
   uiItemR(column, &strip_ptr, "action_frame_start", 0, IFACE_("Start Frame"), ICON_NONE);
   uiItemR(column, &strip_ptr, "action_frame_end", 0, IFACE_("End Frame"), ICON_NONE);
 
-  // XXX: this layout may actually be too abstract and confusing, and may be better using standard column layout
+  /* XXX: this layout may actually be too abstract and confusing,
+   * and may be better using standard column layout. */
   row = uiLayoutRow(layout, false);
   uiItemR(row, &strip_ptr, "use_sync_length", 0, IFACE_("Sync Length"), ICON_NONE);
   uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
@@ -483,7 +484,8 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
     row = uiLayoutRow(pa->layout, false);
     block = uiLayoutGetBlock(row);
 
-    // FIXME: we need to set the only-active property so that this will only add modifiers for the active strip (not all selected)
+    // FIXME: we need to set the only-active property so that this
+    // will only add modifiers for the active strip (not all selected).
     uiItemMenuEnumO(
         row, (bContext *)C, "NLA_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 

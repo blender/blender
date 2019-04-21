@@ -554,7 +554,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
     at->draw(C, ar);
   }
 
-  /* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+  /* XXX test: add convention to end regions always in pixel space,
+   * for drawing of borders/gestures etc */
   ED_region_pixelspace(ar);
 
   ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
@@ -2390,7 +2391,8 @@ void ED_region_panels_layout_ex(
     }
   }
   else if (vertical) {
-    /* we always keep the scroll offset - so the total view gets increased with the scrolled away part */
+    /* We always keep the scroll offset -
+     * so the total view gets increased with the scrolled away part. */
     if (v2d->cur.ymax < -FLT_EPSILON) {
       /* Clamp to lower view boundary */
       if (v2d->tot.ymin < -v2d->winy) {
@@ -2525,7 +2527,8 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
   int yco = buttony + (ar->winy - buttony) / 2;
   int maxco = xco;
 
-  /* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
+  /* XXX workaround for 1 px alignment issue. Not sure what causes it...
+   * Would prefer a proper fix - Julian */
   if (!ELEM(CTX_wm_area(C)->spacetype, SPACE_TOPBAR, SPACE_STATUSBAR)) {
     yco -= 1;
   }

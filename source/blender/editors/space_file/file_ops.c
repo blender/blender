@@ -1639,7 +1639,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   numfiles = filelist_files_ensure(sfile->files);
 
   /* Due to async nature of file listing, we may execute this code before `file_refresh()`
-   * editing entry is available in our listing, so we also have to handle switching to rename mode here. */
+   * editing entry is available in our listing,
+   * so we also have to handle switching to rename mode here. */
   FileSelectParams *params = ED_fileselect_get_params(sfile);
   if ((params->rename_flag &
        (FILE_PARAMS_RENAME_PENDING | FILE_PARAMS_RENAME_POSTSCROLL_PENDING)) != 0) {
@@ -1657,8 +1658,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
   /* if we are not editing, we are done */
   if (edit_idx == -1) {
-    /* Do not invalidate timer if filerename is still pending, we might still be building the filelist
-     * and yet have to find edited entry... */
+    /* Do not invalidate timer if filerename is still pending,
+     * we might still be building the filelist and yet have to find edited entry. */
     if (params->rename_flag == 0) {
       WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
       sfile->smoothscroll_timer = NULL;
@@ -1693,8 +1694,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   }
 
   numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
-  /* Using margins helps avoiding scrolling to stop when target item is barely visible on one side of the screen
-   * (i.e. it centers a bit more the target). */
+  /* Using margins helps avoiding scrolling to stop when target item
+   * is barely visible on one side of the screen (i.e. it centers a bit more the target). */
   int numfiles_layout_margin = max_ii(0, numfiles_layout / 3);
 
   /* check if we have reached our final scroll position */
@@ -1702,7 +1703,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
       (sfile->scroll_offset < offset + numfiles_layout - numfiles_layout_margin)) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
     sfile->smoothscroll_timer = NULL;
-    /* Postscroll (after rename has been validated by user) is done, rename process is totally finisehd, cleanup. */
+    /* Postscroll (after rename has been validated by user) is done,
+     * rename process is totally finisehd, cleanup. */
     if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE) != 0) {
       params->renamefile[0] = '\0';
       params->rename_flag = 0;
@@ -1791,8 +1793,10 @@ void FILE_OT_filepath_drop(wmOperatorType *ot)
   RNA_def_string_file_path(ot->srna, "filepath", "Path", FILE_MAX, "", "");
 }
 
-/* create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
- * The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
+/**
+ * Create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
+ * The actual name is returned in 'name', 'folder' contains the complete path,
+ * including the new folder name.
  */
 static int new_folder_path(const char *parent, char *folder, char *name)
 {
@@ -2270,7 +2274,8 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
       filelist_entry_select_index_set(
           sfile->files, idx, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
       BLI_strncpy(sfile->params->renamefile, file->relpath, FILE_MAXFILE);
-      /* We can skip the pending state, as we can directly set FILE_SEL_EDITING on the expected entry here. */
+      /* We can skip the pending state,
+       * as we can directly set FILE_SEL_EDITING on the expected entry here. */
       sfile->params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
     }
     ED_area_tag_redraw(sa);

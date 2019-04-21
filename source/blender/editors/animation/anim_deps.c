@@ -149,7 +149,8 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
     Object *ob = (Object *)owner_id;
 
     /* check if there are bones, and whether the name matches any
-     * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
+     * NOTE: this feature will only really work if groups by default contain the F-Curves
+     * for a single bone.
      */
     if (ob->pose) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
@@ -314,8 +315,10 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
     return;
 
   /* filter data */
-  /* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed
-   *       However, don't include duplicates so that selection statuses don't override each other
+
+  /* NOTE: we want all channels, since we want to be able to set selection status on some of them
+   * even when collapsed... however,
+   * don't include duplicates so that selection statuses don't override each other.
    */
   filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS;
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

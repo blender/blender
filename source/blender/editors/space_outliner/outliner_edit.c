@@ -1478,7 +1478,8 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 
 /* Show Hierarchy ----------------------------------------------- */
 
-/* helper function for tree_element_shwo_hierarchy() - recursively checks whether subtrees have any objects*/
+/* Helper function for tree_element_shwo_hierarchy() -
+ * recursively checks whether subtrees have any objects. */
 static int subtree_has_objects(ListBase *lb)
 {
   TreeElement *te;
@@ -1682,7 +1683,8 @@ static void tree_element_to_path(TreeElement *te,
       }
     }
     else {
-      /* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
+      /* no ID, so check if entry is RNA-struct,
+       * and if that RNA-struct is an ID datablock to extract info from. */
       if (tse->type == TSE_RNA_STRUCT) {
         /* ptr->data not ptr->id.data seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */

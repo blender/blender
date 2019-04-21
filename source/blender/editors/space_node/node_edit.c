@@ -2032,7 +2032,8 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
   for (node = ntree->nodes.first; node; node = node->next) {
     if (node->flag & SELECT) {
-      /* No ID refcounting, this node is virtual, detached from any actual Blender data currently. */
+      /* No ID refcounting, this node is virtual,
+       * detached from any actual Blender data currently. */
       bNode *new_node = BKE_node_copy_ex(NULL, node, LIB_ID_CREATE_NO_USER_REFCOUNT);
       BKE_node_clipboard_add_node(new_node);
     }

@@ -677,7 +677,8 @@ static int poselib_rename_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
   else {
-    /* use the existing name of the marker as the name, and use the active marker as the one to rename */
+    /* Use the existing name of the marker as the name,
+     * and use the active marker as the one to rename. */
     RNA_enum_set(op->ptr, "pose", act->active_marker - 1);
     RNA_string_set(op->ptr, "name", marker->name);
   }
@@ -1359,7 +1360,11 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
 
   /* only accept 'press' event, and ignore 'release', so that we don't get double actions */
   if (ELEM(event->val, KM_PRESS, KM_NOTHING) == 0) {
-    //printf("PoseLib: skipping event with type '%s' and val %d\n", WM_key_event_string(event->type, false), event->val);
+#if 0
+    printf("PoseLib: skipping event with type '%s' and val %d\n",
+           WM_key_event_string(event->type, false),
+           event->val);
+#endif
     return ret;
   }
 

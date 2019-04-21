@@ -4274,7 +4274,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     /* Recalculate the time-step for the timer now that we've finished calculating this,
      * since the frames-per-second value may have been changed.
      */
-    /* TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this? */
+    /* TODO: this may make evaluation a bit slower if the value doesn't change...
+     * any way to avoid this? */
     wt->timestep = (1.0 / FPS);
 
     return OPERATOR_FINISHED;
@@ -4620,7 +4621,8 @@ static int drivers_editor_show_invoke(bContext *C, wmOperator *op, const wmEvent
           ANIM_set_active_channel(&ac, ac.data, ac.datatype, filter, fcu, ANIMTYPE_FCURVE);
         }
         else {
-          /* Just blindly isolate... This isn't the best, and shouldn't happen, but may be enough... */
+          /* Just blindly isolate...
+           * This isn't the best, and shouldn't happen, but may be enough. */
           fcu->flag |= (FCURVE_ACTIVE | FCURVE_SELECTED);
         }
       }

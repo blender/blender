@@ -1028,8 +1028,9 @@ eOLDrawState tree_element_active(bContext *C,
                                  const bool handle_all_types)
 {
   switch (te->idcode) {
-    /* Note: ID_OB only if handle_all_type is true, else objects are handled specially to allow multiple
-     * selection. See do_outliner_item_activate. */
+    /** \note #ID_OB only if handle_all_type is true,
+     * else objects are handled specially to allow multiple selection.
+     * See #do_outliner_item_activate. */
     case ID_OB:
       if (handle_all_types) {
         return tree_element_set_active_object(C, scene, view_layer, soops, te, set, false);
@@ -1131,8 +1132,8 @@ static void do_outliner_item_activate_tree_element(bContext *C,
            TSE_SEQUENCE_DUP,
            TSE_EBONE,
            TSE_LAYER_COLLECTION)) {
-    /* Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
-     * to switch out of edit mode (see T48328 for details). */
+    /* Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects,
+     * we do not want to switch out of edit mode (see T48328 for details). */
   }
   else if (tselem->id && OB_DATA_SUPPORT_EDITMODE(te->idcode)) {
     /* Support edit-mode toggle, keeping the active object as is. */

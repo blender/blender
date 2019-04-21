@@ -306,8 +306,9 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
 
   for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
     float dist;
-    /* This is supposed to happen only if "Pin Edges" is on, since we have initialization on stroke start
-     * If ever uv brushes get their own mode we should check for toolsettings option too */
+    /* This is supposed to happen only if "Pin Edges" is on,
+     * since we have initialization on stroke start.
+     * If ever uv brushes get their own mode we should check for toolsettings option too. */
     if ((sculptdata->uv[i].flag & MARK_BOUNDARY)) {
       continue;
     }
@@ -375,8 +376,8 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
     add_v2_v2(tmp_uvdata[tmpedge->uv1].sum_co, sculptdata->uv[tmpedge->uv2].uv);
   }
 
-  /* Original Lacplacian algorithm included removal of normal component of translation. here it is not
-   * needed since we translate along the UV plane always.*/
+  /* Original Lacplacian algorithm included removal of normal component of translation.
+   * here it is not needed since we translate along the UV plane always. */
   for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
     copy_v2_v2(tmp_uvdata[i].p, tmp_uvdata[i].sum_co);
     mul_v2_fl(tmp_uvdata[i].p, 1.f / tmp_uvdata[i].ncounter);
@@ -384,8 +385,9 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
 
   for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
     float dist;
-    /* This is supposed to happen only if "Pin Edges" is on, since we have initialization on stroke start
-     * If ever uv brushes get their own mode we should check for toolsettings option too */
+    /* This is supposed to happen only if "Pin Edges" is on,
+     * since we have initialization on stroke start.
+     * If ever uv brushes get their own mode we should check for toolsettings option too. */
     if ((sculptdata->uv[i].flag & MARK_BOUNDARY)) {
       continue;
     }
@@ -463,8 +465,9 @@ static void uv_sculpt_stroke_apply(bContext *C,
     alpha *= invert;
     for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
       float dist, diff[2];
-      /* This is supposed to happen only if "Lock Borders" is on, since we have initialization on stroke start
-       * If ever uv brushes get their own mode we should check for toolsettings option too */
+      /* This is supposed to happen only if "Lock Borders" is on,
+       * since we have initialization on stroke start.
+       * If ever uv brushes get their own mode we should check for toolsettings option too. */
       if (sculptdata->uv[i].flag & MARK_BOUNDARY) {
         continue;
       }

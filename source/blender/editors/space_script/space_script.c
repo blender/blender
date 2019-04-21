@@ -192,9 +192,8 @@ void ED_spacetype_script(void)
   art->init = script_main_region_init;
   art->draw = script_main_region_draw;
   art->listener = script_main_region_listener;
-  art->keymapflag =
-      ED_KEYMAP_VIEW2D | ED_KEYMAP_UI |
-      ED_KEYMAP_FRAMES;  // XXX need to further test this ED_KEYMAP_UI is needed for button interaction
+  /* XXX: Need to further test this ED_KEYMAP_UI is needed for button interaction. */
+  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);
 

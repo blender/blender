@@ -194,8 +194,8 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
     len = sqrtf(x * x + y * y);
 
     if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL) || len <= 1.0f) {
-      /* it is probably worth optimizing for those cases where the texture is not rotated by skipping the calls to
-       * atan2, sqrtf, sin, and cos. */
+      /* It is probably worth optimizing for those cases where the texture is not rotated by
+       * skipping the calls to atan2, sqrtf, sin, and cos. */
       if (mtex->tex && (rotation > 0.001f || rotation < -0.001f)) {
         const float angle = atan2f(y, x) + rotation;
 

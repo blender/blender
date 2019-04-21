@@ -22,8 +22,9 @@
  *
  * \name Gizmo Geometry
  *
- * \brief Prototypes for arrays defining the gizmo geometry. The actual definitions can be found in files usually
- *        called geom_xxx_gizmo.c
+ * \brief Prototypes for arrays defining the gizmo geometry.
+ * The actual definitions can be found in files usually
+ * called geom_xxx_gizmo.c
  */
 
 #ifndef __GIZMO_GEOMETRY_H__

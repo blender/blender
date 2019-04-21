@@ -655,13 +655,15 @@ static void graph_refresh_fcurve_colors(const bContext *C)
     /* set color of curve here */
     switch (fcu->color_mode) {
       case FCURVE_COLOR_CUSTOM: {
-        /* User has defined a custom color for this curve already (we assume it's not going to cause clashes with text colors),
+        /* User has defined a custom color for this curve already
+         * (we assume it's not going to cause clashes with text colors),
          * which should be left alone... Nothing needs to be done here.
          */
         break;
       }
       case FCURVE_COLOR_AUTO_RGB: {
-        /* F-Curve's array index is automatically mapped to RGB values. This works best of 3-value vectors.
+        /* F-Curve's array index is automatically mapped to RGB values.
+         * This works best of 3-value vectors.
          * TODO: find a way to module the hue so that not all curves have same color...
          */
         float *col = fcu->color;
@@ -765,9 +767,9 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
   /* region updates? */
   // XXX re-sizing y-extents of tot should go here?
 
-  /* update the state of the animchannels in response to changes from the data they represent
-   * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
-   */
+  /* Update the state of the animchannels in response to changes from the data they represent
+   * NOTE: the temp flag is used to indicate when this needs to be done,
+   * and will be cleared once handled. */
   if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
     ANIM_sync_animchannels_to_data(C);
     sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;

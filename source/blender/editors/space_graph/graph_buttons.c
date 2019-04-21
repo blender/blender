@@ -76,8 +76,10 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
   bAnimContext ac;
   bAnimListElem *elem = NULL;
 
-  /* for now, only draw if we could init the anim-context info (necessary for all animation-related tools)
-   * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
+  /* For now, only draw if we could init the anim-context info
+   * (necessary for all animation-related tools)
+   * to work correctly is able to be correctly retrieved.
+   * There's no point showing empty panels?
    */
   if (ANIM_animdata_get_context(C, &ac) == 0)
     return 0;
@@ -869,7 +871,8 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
   /* -> user friendly 'name' for datablock that owns F-Curve */
-  /* XXX: Actually, we may need the datablock icons only... (e.g. right now will show bone for bone props) */
+  /* XXX: Actually, we may need the datablock icons only...
+   * (e.g. right now will show bone for bone props). */
   uiItemL(row, id->name + 2, icon);
 
   /* -> user friendly 'name' for F-Curve/driver target */
@@ -915,7 +918,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   uiItemS(layout);
   uiItemS(layout);
 
-  /* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
+  /* show expression box if doing scripted drivers,
+   * and/or error messages when invalid drivers exist */
   if (driver->type == DRIVER_TYPE_PYTHON) {
     bool bpy_data_expr_error = (strstr(driver->expression, "bpy.data.") != NULL);
     bool bpy_ctx_expr_error = (strstr(driver->expression, "bpy.context.") != NULL);
@@ -1190,7 +1194,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
 /* ----------------------------------------------------------------- */
 
-/* panel to show property driven by the driver (in Drivers Editor) - duplicates Active FCurve, but useful for clarity */
+/* Panel to show property driven by the driver (in Drivers Editor) - duplicates Active FCurve,
+ * but useful for clarity. */
 static void graph_panel_driven_property(const bContext *C, Panel *pa)
 {
   bAnimListElem *ale;
@@ -1223,7 +1228,8 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 
 /* ----------------------------------------------------------------- */
 
-/* poll to make this not show up in the graph editor, as this is only to be used as a popup elsewhere */
+/* Poll to make this not show up in the graph editor,
+ * as this is only to be used as a popup elsewhere. */
 static bool graph_panel_drivers_popover_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   return ED_operator_graphedit_active((bContext *)C) == false;

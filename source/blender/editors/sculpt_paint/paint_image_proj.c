@@ -1131,7 +1131,8 @@ static bool check_seam(const ProjPaintState *ps,
       i1_fidx = BKE_MESH_TESSTRI_VINDEX_ORDER(lt_vtri, i1);
       i2_fidx = BKE_MESH_TESSTRI_VINDEX_ORDER(lt_vtri, i2);
 
-      /* Only need to check if 'i2_fidx' is valid because we know i1_fidx is the same vert on both faces */
+      /* Only need to check if 'i2_fidx' is valid because
+       * we know i1_fidx is the same vert on both faces. */
       if (i2_fidx != -1) {
         const float *lt_tri_uv[3] = {PS_LOOPTRI_AS_UV_3(ps->poly_to_loop_uv, lt)};
         Image *tpage = project_paint_face_paint_image(ps, tri_index);
@@ -1392,11 +1393,11 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   }
 }
 
-/*
- * Be tricky with flags, first 4 bits are PROJ_FACE_SEAM0 to 4, last 4 bits are PROJ_FACE_NOSEAM0 to 4
- * 1<<i - where i is (0-3)
+/**
+ * Be tricky with flags, first 4 bits are #PROJ_FACE_SEAM0 to 4,
+ * last 4 bits are #PROJ_FACE_NOSEAM0 to 4. `1 << i` - where i is `(0..3)`.
  *
- * If we're multithreadng, make sure threads are locked when this is called
+ * If we're multithreadng, make sure threads are locked when this is called.
  */
 static void project_face_seams_init(const ProjPaintState *ps,
                                     MemArena *arena,
@@ -1427,7 +1428,8 @@ static void project_face_seams_init(const ProjPaintState *ps,
           insert_seam_vert_array(ps, arena, tri_index, fidx[0], ibuf_x, ibuf_y);
 
           if (other_face != -1) {
-            /* Check if the other seam is already set. We don't want to insert it in the list twice. */
+            /* Check if the other seam is already set.
+             * We don't want to insert it in the list twice. */
             if ((ps->faceSeamFlags[other_face] & (PROJ_FACE_SEAM0 << other_fidx)) == 0) {
               ps->faceSeamFlags[other_face] |= PROJ_FACE_SEAM0 << other_fidx;
               insert_seam_vert_array(ps, arena, other_face, other_fidx, ibuf_x, ibuf_y);
@@ -2205,17 +2207,21 @@ static float len_squared_v2v2_alt(const float v1[2], const float v2_1, const flo
   return x * x + y * y;
 }
 
-/* note, use a squared value so we can use len_squared_v2v2
- * be sure that you have done a bounds check first or this may fail */
-/* only give bucket_bounds as an arg because we need it elsewhere */
+/**
+ * \note Use a squared value so we can use #len_squared_v2v2
+ * be sure that you have done a bounds check first or this may fail.
+ *
+ * Only give \a bucket_bounds as an arg because we need it elsewhere.
+ */
 static bool project_bucket_isect_circle(const float cent[2],
                                         const float radius_squared,
                                         const rctf *bucket_bounds)
 {
 
-  /* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect
-   * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
-   * this is even less work then an intersection test
+  /* Would normally to a simple intersection test,
+   * however we know the bounds of these 2 already intersect so we only need to test
+   * if the center is inside the vertical or horizontal bounds on either axis,
+   * this is even less work then an intersection test.
    */
 #if 0
   if (BLI_rctf_isect_pt_v(bucket_bounds, cent))
@@ -3027,7 +3033,8 @@ static void project_paint_face_init(const ProjPaintState *ps,
                              &uv_clip_tot,
                              do_backfacecull || ps->do_occlude);
 
-    /* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
+    /* Sometimes this happens, better just allow for 8 intersections
+     * even though there should be max 6 */
 #if 0
     if (uv_clip_tot > 6) {
       printf("this should never happen! %d\n", uv_clip_tot);
@@ -3132,7 +3139,12 @@ static void project_paint_face_init(const ProjPaintState *ps,
         (face_seam_flag & PROJ_FACE_SEAM_INIT2) == 0) {
       project_face_seams_init(ps, arena, tri_index, 0, true, ibuf->x, ibuf->y);
       face_seam_flag = ps->faceSeamFlags[tri_index];
-      //printf("seams - %d %d %d %d\n", flag&PROJ_FACE_SEAM0, flag&PROJ_FACE_SEAM1, flag&PROJ_FACE_SEAM2);
+#  if 0
+      printf("seams - %d %d %d %d\n",
+             flag & PROJ_FACE_SEAM0,
+             flag & PROJ_FACE_SEAM1,
+             flag & PROJ_FACE_SEAM2);
+#  endif
     }
 
     if ((face_seam_flag & (PROJ_FACE_SEAM0 | PROJ_FACE_SEAM1 | PROJ_FACE_SEAM2)) == 0) {

@@ -178,7 +178,8 @@ typedef struct tGPsdata {
 
   /* These need to be doubles, as (at least under unix) they are in seconds since epoch,
    * float (and its 7 digits precision) is definitively not enough here!
-   * double, with its 15 digits precision, ensures us millisecond precision for a few centuries at least.
+   * double, with its 15 digits precision,
+   * ensures us millisecond precision for a few centuries at least.
    */
   /** Used when converting to path. */
   double inittime;
@@ -370,9 +371,10 @@ static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float mvalo[2
   else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
     return true;
 
-  /* check if the distance since the last point is significant enough
-   * - prevents points being added too densely
-   * - distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
+  /* Check if the distance since the last point is significant enough:
+   * - Prevents points being added too densely
+   * - Distance here doesn't use sqrt to prevent slowness.
+   *   We should still be safe from overflows though.
    */
   else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX)
     return true;
@@ -913,7 +915,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
                          (!is_depth);
   int i, totelem;
 
-  /* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
+  /* Since strokes are so fine,
+   * when using their depth we need a margin otherwise they might get missed. */
   int depth_margin = (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
 
   /* get total number of points to allocate space for
@@ -1233,9 +1236,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
   /* calculate UVs along the stroke */
   ED_gpencil_calc_stroke_uv(obact, gps);
 
-  /* add stroke to frame, usually on tail of the listbase, but if on back is enabled the stroke is added on listbase head
-   * because the drawing order is inverse and the head stroke is the first to draw. This is very useful for artist
-   * when drawing the background
+  /* add stroke to frame, usually on tail of the listbase, but if on back is enabled the stroke
+   * is added on listbase head because the drawing order is inverse and the head stroke is the
+   * first to draw. This is very useful for artist when drawing the background.
    */
   if ((ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) &&
       (p->paintmode != GP_PAINTMODE_DRAW_POLY)) {
@@ -2544,7 +2547,8 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
     copy_v2_v2(p->mvalo, p->mval);
     p->opressure = p->pressure;
   }
-  /* only add current point to buffer if mouse moved (even though we got an event, it might be just noise) */
+  /* Only add current point to buffer if mouse moved
+   * (even though we got an event, it might be just noise). */
   else if (gp_stroke_filtermval(p, p->mval, p->mvalo)) {
 
     /* if lazy mouse, interpolate the last and current mouse positions */
@@ -3266,10 +3270,12 @@ static void gpencil_stroke_end(wmOperator *op)
   p->gpf = NULL;
 }
 
-/* Move last stroke in the listbase to the head to be drawn below all previous strokes in the layer */
+/* Move last stroke in the listbase to the head
+ * to be drawn below all previous strokes in the layer. */
 static void gpencil_move_last_stroke_to_back(bContext *C)
 {
-  /* move last stroke (the polygon) to head of the listbase stroke to draw on back of all previous strokes */
+  /* Move last stroke (the polygon) to head of the listbase stroke
+   * to draw on back of all previous strokes. */
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 

@@ -284,7 +284,8 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
-  /* We first walk over and find the Collections we actually want to delete (ignoring duplicates). */
+  /* We first walk over and find the Collections we actually want to delete
+   * (ignoring duplicates). */
   outliner_tree_traverse(
       soops, &soops->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
 
@@ -295,8 +296,8 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 
     /* Test in case collection got deleted as part of another one. */
     if (BLI_findindex(&bmain->collections, collection) != -1) {
-      /* We cannot allow to delete collections that are indirectly linked, or that are used by (linked to...)
-       * other linked scene/collection. */
+      /* We cannot allow to delete collections that are indirectly linked,
+       * or that are used by (linked to...) other linked scene/collection. */
       bool skip = false;
       if (ID_IS_LINKED(collection)) {
         if (collection->id.tag & LIB_TAG_INDIRECT) {
@@ -650,7 +651,8 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
-  /* We first walk over and find the Collections we actually want to instance (ignoring duplicates). */
+  /* We first walk over and find the Collections we actually want to instance
+   * (ignoring duplicates). */
   outliner_tree_traverse(
       soops, &soops->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
 
@@ -957,7 +959,8 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
   };
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
-  /* Hide all collections before the isolate function - needed in order to support multiple selected collections. */
+  /* Hide all collections before the isolate function -
+   * needed in order to support multiple selected collections. */
   if (!extend) {
     LayerCollection *lc_master = view_layer->layer_collections.first;
     for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;

@@ -1482,7 +1482,8 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
     /* make temporary metastrips so that entire islands of selections can be moved around */
     BKE_nlastrips_make_metas(&nlt->strips, 1);
 
-    /* special case: if there is only 1 island (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this,
+    /* special case: if there is only 1 island
+     * (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this,
      * and this island has two strips inside it, then we should be able to just swap these still...
      */
     if (BLI_listbase_is_empty(&nlt->strips) == false) {
@@ -2471,7 +2472,13 @@ void NLA_OT_fmodifier_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* id-props */
-  //ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+#if 0
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "all",
+                             1,
+                             "All F-Modifiers",
+                             "Copy all the F-Modifiers, instead of just the active one");
+#endif
 }
 
 /* ******************** Paste F-Modifiers Operator *********************** */

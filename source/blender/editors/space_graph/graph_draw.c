@@ -175,8 +175,9 @@ static void draw_fcurve_selected_keyframe_vertices(
 
   BezTriple *bezt = fcu->bezt;
   for (int i = 0; i < fcu->totvert; i++, bezt++) {
-    /* as an optimization step, only draw those in view
-     * - we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
+    /* As an optimization step, only draw those in view
+     * - We apply a correction factor to ensure that points
+     *   don't pop in/out due to slight twitches of view size.
      */
     if (IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
       if (edit) {
@@ -281,9 +282,10 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
   View2D *v2d = &ar->v2d;
 
   /* only draw points if curve is visible
-   * - draw unselected points before selected points as separate passes
+   * - Draw unselected points before selected points as separate passes
    *    to make sure in the case of overlapping points that the selected is always visible
-   * - draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
+   * - Draw handles before keyframes, so that keyframes will overlap handles
+   *   (keyframes are more important for users).
    */
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -484,7 +486,8 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *ar, FCurve *fcu)
 
 /* Curve ---------------- */
 
-/* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
+/* Helper func - just draw the F-Curve by sampling the visible region
+ * (for drawing curves with modifiers). */
 static void draw_fcurve_curve(
     bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, View2DGrid *grid, unsigned int pos)
 {
@@ -496,8 +499,8 @@ static void draw_fcurve_curve(
   short mapping_flag = ANIM_get_normalization_flags(ac);
   int i, n;
 
-  /* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
-   * best just bail out in this case */
+  /* when opening a blend file on a different sized screen or while dragging the toolbar this can
+   * happen best just bail out in this case. */
   UI_view2d_grid_size(grid, &dx, &dy);
   if (dx <= 0.0f)
     return;
@@ -523,7 +526,8 @@ static void draw_fcurve_curve(
    */
   /* grid->dx represents the number of 'frames' between gridlines,
    * but we divide by U.v2d_min_gridsize to get pixels-steps */
-  /* TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted? */
+  /* TODO: perhaps we should have 1.0 frames
+   * as upper limit so that curves don't get too distorted? */
   samplefreq = dx / (U.v2d_min_gridsize * U.pixelsize);
 
   if (sipo->flag & SIPO_BEAUTYDRAW_OFF) {

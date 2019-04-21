@@ -126,7 +126,8 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
             ob->drotAxis[2] = 0.0f;
         }
 
-        /* check validity of axis - axis should never be 0,0,0 (if so, then we make it rotate about y) */
+        /* Check validity of axis - axis should never be 0,0,0
+         * (if so, then we make it rotate about y). */
         if (IS_EQF(ob->rotAxis[0], ob->rotAxis[1]) && IS_EQF(ob->rotAxis[1], ob->rotAxis[2]))
           ob->rotAxis[1] = 1.0f;
         if (IS_EQF(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQF(ob->drotAxis[1], ob->drotAxis[2]) &&
@@ -1385,11 +1386,12 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
  * - campbell.
  * \{ */
 
-/* When using multiple objects, apply their relative rotational offset to the active object. */
+/** When using multiple objects, apply their relative rotational offset to the active object. */
 #define USE_RELATIVE_ROTATION
-/* Disable overlays, ignoring user setting (light wire gets in the way). */
+/** Disable overlays, ignoring user setting (light wire gets in the way). */
 #define USE_RENDER_OVERRIDE
-/* Calculate a depth if the cursor isn't already over a depth (not essential but feels buggy without). */
+/** Calculate a depth if the cursor isn't already over a depth
+ * (not essential but feels buggy without). */
 #define USE_FAKE_DEPTH_INIT
 
 struct XFormAxisItem {

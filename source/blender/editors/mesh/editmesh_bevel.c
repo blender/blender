@@ -491,7 +491,8 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* for OFFSET_VALUE only, the scale is the size of a pixel under the mouse in 3d space */
   opdata->scale[OFFSET_VALUE] = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
-  /* since we are affecting untransformed object but seeing in transformed space, compensate for that */
+  /* since we are affecting untransformed object but seeing in transformed space,
+   * compensate for that */
   opdata->scale[OFFSET_VALUE] /= opdata->max_obj_scale;
 
   edbm_bevel_calc_initial_length(op, event, false);

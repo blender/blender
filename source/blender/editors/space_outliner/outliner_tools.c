@@ -650,7 +650,8 @@ static void singleuser_world_cb(bContext *C,
 }
 
 /**
- * \param select_recurse: Set to false for operations which are already recursively operating on their children.
+ * \param select_recurse: Set to false for operations which are already
+ * recursively operating on their children.
  */
 void outliner_do_object_operation_ex(bContext *C,
                                      ReportList *reports,
@@ -738,7 +739,8 @@ static void refreshdrivers_animdata_cb(int UNUSED(event),
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
   FCurve *fcu;
 
-  /* loop over drivers, performing refresh (i.e. check graph_buttons.c and rna_fcurve.c for details) */
+  /* Loop over drivers, performing refresh
+   * (i.e. check graph_buttons.c and rna_fcurve.c for details). */
   for (fcu = iat->adt->drivers.first; fcu; fcu = fcu->next) {
     fcu->flag &= ~FCURVE_DISABLED;
 
@@ -1768,7 +1770,8 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   else if (act->idroot == 0) {
-    /* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
+    /* Hopefully in this case (i.e. library of userless actions),
+     * the user knows what they're doing. */
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Action '%s' does not specify what data-blocks it can be used on "

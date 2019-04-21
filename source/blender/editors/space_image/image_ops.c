@@ -1117,9 +1117,10 @@ static void image_open_cancel(bContext *UNUSED(C), wmOperator *op)
 }
 
 /**
- * \brief Get a list of frames from the list of image files matching the first file name sequence pattern
- * \param ptr: [in] the RNA pointer containing the "directory" entry and "files" collection
- * \param frames_all: [out] the list of frame numbers found in the files matching the first one by name
+ * Get a list of frames from the list of image files matching the first file name sequence pattern.
+ * \param ptr[in]: The RNA pointer containing the "directory" entry and "files" collection.
+ * \param frames_all[out]: the list of frame numbers found in the files matching
+ * the first one by name.
  */
 static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_all)
 {
@@ -1174,7 +1175,8 @@ static int image_cmp_frame(const void *a, const void *b)
 }
 
 /**
- * Return the start (offset) and the length of the sequence of continuous frames in the list of frames
+ * Return the start (offset) and the length of the sequence of
+ * continuous frames in the list of frames.
  *
  * \param frames: [in] the list of frame numbers, as a side-effect the list is sorted.
  * \param ofs: [out] offset the first frame number in the sequence.

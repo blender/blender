@@ -566,9 +566,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "gpencil_data")) {
-    /* FIXME: for some reason, CTX_data_active_object(C) returns NULL when called from these situations
-     * (as outlined above - see Campbell's #ifdefs). That causes the get_active function to fail when
-     * called from context. For that reason, we end up using an alternative where we pass everything in!
+    /* FIXME: for some reason, CTX_data_active_object(C) returns NULL when called from these
+     * situations (as outlined above - see Campbell's #ifdefs).
+     * That causes the get_active function to fail when called from context.
+     * For that reason, we end up using an alternative where we pass everything in!
      */
     bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
 
@@ -578,8 +579,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     }
   }
   else if (CTX_data_equals(member, "gpencil_data_owner")) {
-    /* pointer to which data/datablock owns the reference to the Grease Pencil data being used (as gpencil_data)
-     * XXX: see comment for gpencil_data case...
+    /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used
+     * (as gpencil_data).
+     * XXX: see comment for gpencil_data case.
      */
     bGPdata **gpd_ptr = NULL;
     PointerRNA ptr;

@@ -219,9 +219,8 @@ void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry)
   if (fsentry->path && fsentry->path[0]) {
 #ifdef WIN32
     /* XXX Special case, always consider those as valid.
-     *     Thanks to Windows, which can spend five seconds to perform a mere stat() call on those paths...
-     *     See T43684.
-     */
+     * Thanks to Windows, which can spend five seconds to perform a mere stat() call on those paths
+     * See T43684. */
     const char *exceptions[] = {"A:\\", "B:\\", NULL};
     const size_t exceptions_len[] = {strlen(exceptions[0]), strlen(exceptions[1]), 0};
     int i;
@@ -519,11 +518,11 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 #  ifdef __APPLE__
   {
-    /* Get mounted volumes better method OSX 10.6 and higher, see: */
-    /*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
+    /* Get mounted volumes better method OSX 10.6 and higher, see:
+     * https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html */
 
-    /* we get all volumes sorted including network and do not relay
-     * on user-defined finder visibility, less confusing */
+    /* We get all volumes sorted including network and do not relay
+     * on user-defined finder visibility, less confusing. */
 
     CFURLRef cfURL = NULL;
     CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;

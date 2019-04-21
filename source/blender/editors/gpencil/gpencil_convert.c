@@ -693,8 +693,10 @@ static void gp_stroke_to_path(bContext *C,
    *   the last segment to get the first point (p1) position and timing.
    * - If we do not have those (quite odd, but may happen), we linearly interpolate the last point
    *   with the first point of the current stroke.
-   * The same goes for the second point, first segment of the current stroke is "negatively" extrapolated
-   * if it exists, else (if the stroke is a single point), linear interpolation with last curve point...
+   *
+   * The same goes for the second point, first segment of the current stroke is "negatively"
+   * extrapolated if it exists, else (if the stroke is a single point),
+   * linear interpolation with last curve point.
    */
   if (curnu && !stitch && old_nbp) {
     float p1[3], p2[3], p[3], next_p[3];
@@ -774,8 +776,9 @@ static void gp_stroke_to_path(bContext *C,
       dt = -GAP_DFAC;   /* Rather arbitrary too! */
     }
     bp = &nu->bp[old_nbp];
-    /* Note we can't give anything else than 0.0 as time here, since a negative one (which would be expected value)
-     * would not work (it would be *before* gtd->inittime, which is not supported currently).
+    /* Note we can't give anything else than 0.0 as time here, since a negative one
+     * (which would be expected value) would not work
+     * (it would be *before* gtd->inittime, which is not supported currently).
      */
     gp_stroke_to_path_add_point(
         gtd, bp, p, p, do_gtd, gps->inittime, dt, 0.0f, rad_fac, minmax_weights);
@@ -907,9 +910,10 @@ static void gp_stroke_to_bezier(bContext *C,
   /* create new 'nurb' or extend current one within the curve */
   if (nu) {
     old_nbezt = nu->pntsu;
-    /* If we do stitch, first point of current stroke is assumed the same as last point of previous stroke,
-     * so no need to add it.
-     * If no stitch, we want to add two additional points to make a "zero-radius" link between both strokes.
+    /* If we do stitch, first point of current stroke is assumed the same as last point of
+     * previous stroke, so no need to add it.
+     * If no stitch, we want to add two additional points to make a "zero-radius"
+     * link between both strokes.
      */
     BKE_nurb_bezierPoints_add(nu, gps->totpoints + ((stitch) ? -1 : 2) + add_start_end_points);
   }
@@ -962,8 +966,11 @@ static void gp_stroke_to_bezier(bContext *C,
      *   the last segment to get the first point (p1) position and timing.
      * - If we do not have those (quite odd, but may happen), we linearly interpolate the last point
      *   with the first point of the current stroke.
-     * The same goes for the second point, first segment of the current stroke is "negatively" extrapolated
-     * if it exists, else (if the stroke is a single point), linear interpolation with last curve point...
+     *
+     * The same goes for the second point,
+     * first segment of the current stroke is "negatively" extrapolated
+     * if it exists, else (if the stroke is a single point),
+     * linear interpolation with last curve point.
      */
     else {
       float p1[3], p2[3];
@@ -1133,7 +1140,8 @@ static void gp_stroke_to_bezier(bContext *C,
     /* The end point */
     interp_v3_v3v3(h1, p, prev_bezt->vec[1], BEZT_HANDLE_FAC);
     interp_v3_v3v3(h2, p, prev_bezt->vec[1], -BEZT_HANDLE_FAC);
-    /* Note bezt has already been incremented in main loop above, so it points to the right place. */
+    /* Note bezt has already been incremented in main loop above,
+     * so it points to the right place. */
     gp_stroke_to_bezier_add_point(gtd,
                                   bezt,
                                   p,

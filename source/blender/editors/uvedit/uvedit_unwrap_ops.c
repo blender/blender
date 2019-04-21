@@ -446,8 +446,11 @@ static void texface_from_original_index(BMFace *efa,
   }
 }
 
-/* unwrap handle initialization for subsurf aware-unwrapper. The many modifications required to make the original function(see above)
- * work justified the existence of a new function. */
+/**
+ * Unwrap handle initialization for subsurf aware-unwrapper.
+ * The many modifications required to make the original function(see above)
+ * work justified the existence of a new function.
+ */
 static ParamHandle *construct_param_handle_subsurfed(Scene *scene,
                                                      Object *ob,
                                                      BMEditMesh *em,
@@ -575,7 +578,8 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene,
     co[2] = subsurfedVerts[mloop[2].v].co;
     co[3] = subsurfedVerts[mloop[3].v].co;
 
-    /* This is where all the magic is done. If the vertex exists in the, we pass the original uv pointer to the solver, thus
+    /* This is where all the magic is done.
+     * If the vertex exists in the, we pass the original uv pointer to the solver, thus
      * flushing the solution to the edit mesh. */
     texface_from_original_index(origFace,
                                 origVertIndices[mloop[0].v],

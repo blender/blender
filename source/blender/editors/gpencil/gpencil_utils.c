@@ -85,7 +85,9 @@
 /* ******************************************************** */
 /* Context Wrangling... */
 
-/* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it,
+/**
+ * Get pointer to active Grease Pencil datablock,
+ * and an RNA-pointer to trace back to whatever owns it,
  * when context info is not available.
  */
 bGPdata **ED_gpencil_data_get_pointers_direct(
@@ -154,7 +156,8 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
       {
         SpaceSeq *sseq = (SpaceSeq *)sl;
 
-        /* for now, Grease Pencil data is associated with the space (actually preview region only) */
+        /* For now, Grease Pencil data is associated with the space
+         * (actually preview region only). */
         /* XXX our convention for everything else is to link to data though... */
         if (r_ptr)
           RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, r_ptr);
@@ -202,7 +205,8 @@ bGPdata **ED_gpencil_data_get_pointers_direct(
   return NULL;
 }
 
-/* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it */
+/* Get pointer to active Grease Pencil datablock,
+ * and an RNA-pointer to trace back to whatever owns it. */
 bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 {
   ID *screen_id = (ID *)CTX_wm_screen(C);
@@ -251,7 +255,11 @@ bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
   Object *ob = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
-  /* if (ob && ob->type == OB_GPENCIL) BLI_assert(ob_eval->data == DEG_get_evaluated_id(ob->data)); */
+#if 0
+  if (ob && ob->type == OB_GPENCIL) {
+    BLI_assert(ob_eval->data == DEG_get_evaluated_id(ob->data));
+  }
+#endif
   return ED_gpencil_data_get_active_direct(screen_id, sa, scene_eval, ob_eval);
 }
 
@@ -606,7 +614,8 @@ void gp_apply_parent_point(
  * \param[out] r_x  The screen-space x-coordinate of the point
  * \param[out] r_y  The screen-space y-coordinate of the point
  *
- * \warning This assumes that the caller has already checked whether the stroke in question can be drawn.
+ * \warning This assumes that the caller has already checked
+ * whether the stroke in question can be drawn.
  */
 void gp_point_to_xy(
     const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt, int *r_x, int *r_y)
@@ -650,15 +659,17 @@ void gp_point_to_xy(
 }
 
 /**
- * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
+ * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D).
  *
  * Just like #gp_point_to_xy(), except the resulting coordinates are floats not ints.
- * Use this version to solve "stair-step" artifacts which may arise when roundtripping the calculations.
+ * Use this version to solve "stair-step" artifacts which may arise when
+ * roundtripping the calculations.
  *
- * \param r_x: [out] The screen-space x-coordinate of the point.
- * \param r_y: [out] The screen-space y-coordinate of the point.
+ * \param r_x[out]: The screen-space x-coordinate of the point.
+ * \param r_y[out]: The screen-space y-coordinate of the point.
  *
- * \warning This assumes that the caller has already checked whether the stroke in question can be drawn.
+ * \warning This assumes that the caller has already checked
+ * whether the stroke in question can be drawn.
  */
 void gp_point_to_xy_fl(const GP_SpaceConversion *gsc,
                        const bGPDstroke *gps,
@@ -1079,7 +1090,9 @@ void ED_gp_project_point_to_plane(const Scene *scene,
 
 /* ******************************************************** */
 /* Stroke Operations */
-// XXX: Check if these functions duplicate stuff in blenkernel, and/or whether we should just deduplicate
+
+/* XXX: Check if these functions duplicate stuff in blenkernel,
+ * and/or whether we should just deduplicate. */
 
 /**
  * Subdivide a stroke once, by adding a point half way between each pair of existing points

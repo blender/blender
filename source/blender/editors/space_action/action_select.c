@@ -203,11 +203,13 @@ void ACTION_OT_select_all(wmOperatorType *ot)
 }
 
 /* ******************** Box Select Operator **************************** */
-/* This operator currently works in one of three ways:
- * -> BKEY     - 1) all keyframes within region are selected (ACTKEYS_BORDERSEL_ALLKEYS)
- * -> ALT-BKEY - depending on which axis of the region was larger...
- *  -> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
- *  -> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
+/**
+ * This operator currently works in one of three ways:
+ * - BKEY     - 1) all keyframes within region are selected #ACTKEYS_BORDERSEL_ALLKEYS.
+ * - ALT-BKEY - depending on which axis of the region was larger...
+ *   - 2) x-axis, so select all frames within frame range #ACTKEYS_BORDERSEL_FRAMERANGE.
+ *   - 3) y-axis, so select all frames within channels that region included
+ *     #ACTKEYS_BORDERSEL_CHANNELS.
  */
 
 /* defines for box_select mode */
@@ -229,7 +231,8 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   rctf rectf;
   float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 
-  /* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
+  /* Convert mouse coordinates to frame ranges and channel
+   * coordinates corrected for view pan/zoom. */
   UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
   UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
@@ -342,10 +345,12 @@ static int actkeys_box_select_exec(bContext *C, wmOperator *op)
 
   /* selection 'mode' depends on whether box_select region only matters on one axis */
   if (RNA_boolean_get(op->ptr, "axis_range")) {
-    /* mode depends on which axis of the range is larger to determine which axis to use
-     * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-     * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-     *   used for tweaking timing when "blocking", while channels is not that useful...
+    /* Mode depends on which axis of the range is larger to determine which axis to use:
+     * - checking this in region-space is fine,
+     *   as it's fundamentally still going to be a different rect size.
+     * - the frame-range select option is favored over the channel one (x over y),
+     *   as frame-range one is often used for tweaking timing when "blocking",
+     *   while channels is not that useful...
      */
     if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
       mode = ACTKEYS_BORDERSEL_FRAMERANGE;
@@ -409,7 +414,8 @@ static void region_select_action_keys(
   rctf rectf, scaled_rectf;
   float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 
-  /* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
+  /* Convert mouse coordinates to frame ranges and channel
+   * coordinates corrected for view pan/zoom. */
   UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 
   /* filter data */
@@ -1413,8 +1419,8 @@ static void mouse_action_keys(
   UI_view2d_listview_view_to_cell(
       v2d, 0, ACHANNEL_STEP(ac), 0, (float)ACHANNEL_HEIGHT_HALF(ac), x, y, NULL, &channel_index);
 
-  /* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale (in screen/region-space),
-   * on either side of mouse click (size of keyframe icon)
+  /* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale
+   * (in screen/region-space), on either side of mouse click (size of keyframe icon).
    */
 
   /* standard channel height (to allow for some slop) */
@@ -1509,7 +1515,8 @@ static void mouse_action_keys(
         akn = ak->left;
     }
 
-    /* remove active channel from list of channels for separate treatment (since it's needed later on) */
+    /* Remove active channel from list of channels for separate treatment
+     * (since it's needed later on). */
     BLI_remlink(&anim_data, ale);
     ale->next = ale->prev = NULL;
 

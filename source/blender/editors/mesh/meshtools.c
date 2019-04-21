@@ -150,9 +150,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
         mul_m4_v3(cmat, mvert->co);
       }
 
-      /* for each shapekey in destination mesh:
-       * - if there's a matching one, copy it across (will need to transform vertices into new space...)
-       * - otherwise, just copy own coordinates of mesh (no need to transform vertex coordinates into new space)
+      /* For each shapekey in destination mesh:
+       * - if there's a matching one, copy it across
+       *   (will need to transform vertices into new space...).
+       * - otherwise, just copy own coordinates of mesh
+       *   (no need to transform vertex coordinates into new space).
        */
       if (key) {
         /* if this mesh has any shapekeys, check first, otherwise just copy coordinates */
@@ -337,7 +339,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* only join meshes if there are verts to join, there aren't too many, and we only had one mesh selected */
+  /* Only join meshes if there are verts to join,
+   * there aren't too many, and we only had one mesh selected. */
   me = (Mesh *)ob->data;
   key = me->key;
 
@@ -748,9 +751,10 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 
 static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 
-/* mode is 's' start, or 'e' end, or 'u' use */
-/* if end, ob can be NULL */
-/* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
+/** mode is 's' start, or 'e' end, or 'u' use
+ * if end, ob can be NULL.
+ * \note, is supposed return -1 on error,
+ * which callers are currently checking for, but is not used so far. */
 int ED_mesh_mirror_topo_table(Object *ob, Mesh *me_eval, char mode)
 {
   if (mode == 'u') { /* use table */

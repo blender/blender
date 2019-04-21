@@ -1212,8 +1212,9 @@ static bool gp_strokes_paste_poll(bContext *C)
 {
   /* 1) Must have GP datablock to paste to
    *    - We don't need to have an active layer though, as that can easily get added
-   *    - If the active layer is locked, we can't paste there, but that should prompt a warning instead
-   * 2) Copy buffer must at least have something (though it may be the wrong sort...)
+   *    - If the active layer is locked, we can't paste there,
+   *      but that should prompt a warning instead.
+   * 2) Copy buffer must at least have something (though it may be the wrong sort...).
    */
   return (ED_gpencil_data_get_active(C) != NULL) &&
          (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
@@ -1273,8 +1274,9 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
     }
 
     if (ok == false) {
-      /* XXX: this check is not 100% accurate (i.e. image editor is incompatible with normal 2D strokes),
-       * but should be enough to give users a good idea of what's going on
+      /* XXX: this check is not 100% accurate
+       * (i.e. image editor is incompatible with normal 2D strokes),
+       * but should be enough to give users a good idea of what's going on.
        */
       if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D)
         BKE_report(op->reports, RPT_ERROR, "Cannot paste 2D strokes in 3D View");
@@ -1541,7 +1543,8 @@ static int gp_blank_frame_add_exec(bContext *C, wmOperator *op)
 
   /* Initialise datablock and an active layer if nothing exists yet */
   if (ELEM(NULL, gpd, active_gpl)) {
-    /* let's just be lazy, and call the "Add New Layer" operator, which sets everything up as required */
+    /* Let's just be lazy, and call the "Add New Layer" operator,
+     * which sets everything up as required. */
     WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL);
   }
 
@@ -2239,13 +2242,13 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf,
           e++;
         }
       }
-      /* Each island corresponds to a new stroke. We must adjust the
-       * timings of these new strokes:
+      /* Each island corresponds to a new stroke.
+       * We must adjust the timings of these new strokes:
        *
-       * Each point's timing data is a delta from stroke's inittime, so as we erase some points from
-       * the start of the stroke, we have to offset this inittime and all remaining points' delta values.
-       * This way we get a new stroke with exactly the same timing as if user had started drawing from
-       * the first non-removed point...
+       * Each point's timing data is a delta from stroke's inittime, so as we erase some points
+       * from the start of the stroke, we have to offset this inittime and all remaining points'
+       * delta values. This way we get a new stroke with exactly the same timing as if user had
+       * started drawing from the first non-removed point.
        */
       {
         bGPDspoint *pts;

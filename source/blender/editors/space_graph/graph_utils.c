@@ -91,11 +91,14 @@ void ED_drivers_editor_init(bContext *C, ScrArea *sa)
 /* ************************************************************** */
 /* Active F-Curve */
 
-/* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).
- * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed
- * when the caller is done with it.
+/**
+ * Find 'active' F-Curve.
+ * It must be editable, since that's the purpose of these buttons (subject to change).
+ * We return the 'wrapper' since it contains valuable context info (about hierarchy),
+ * which will need to be freed when the caller is done with it.
  *
- * NOTE: curve-visible flag isn't included, otherwise selecting a curve via list to edit is too cumbersome
+ * \note curve-visible flag isn't included,
+ * otherwise selecting a curve via list to edit is too cumbersome.
  */
 bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
@@ -244,9 +247,10 @@ bool graphop_active_fcurve_poll(bContext *C)
   if (ale == NULL)
     return 0;
 
-  /* do we have a suitable F-Curves?
-   * - For most cases, NLA Control Curves are sufficiently similar to NLA curves to serve this role too.
-   *   Under the hood, they are F-Curves too. The only problems which will arise here are if these need to be
+  /* Do we have a suitable F-Curves?
+   * - For most cases, NLA Control Curves are sufficiently similar to NLA
+   *   curves to serve this role too. Under the hood, they are F-Curves too.
+   *   The only problems which will arise here are if these need to be
    *   in an Action too (but drivers would then also be affected!)
    */
   has_fcurve = ((ale->data) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE));
@@ -280,9 +284,9 @@ bool graphop_selected_fcurve_poll(bContext *C)
   if (ANIM_animdata_get_context(C, &ac) == 0)
     return 0;
 
-  /* get the editable + selected F-Curves, and as long as we got some, we can return
-   * NOTE: curve-visible flag isn't included, otherwise selecting a curve via list to edit is too cumbersome
-   */
+  /* Get the editable + selected F-Curves, and as long as we got some, we can return.
+   * NOTE: curve-visible flag isn't included,
+   * otherwise selecting a curve via list to edit is too cumbersome. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0)

@@ -173,8 +173,9 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* **************************************************** */
 /* Various Tools */
 
-/* Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only
- * optionally clears up curve if one keyframe with default value remains
+/**
+ * Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on
+ * linear-segments only optionally clears up curve if one keyframe with default value remains.
  */
 void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
@@ -373,7 +374,8 @@ void smooth_fcurve(FCurve *fcu)
     /* round 1: calculate smoothing deltas and new values */
     tsb = tarray;
     for (i = 0; i < totSel; i++, tsb++) {
-      /* don't touch end points (otherwise, curves slowly explode, as we don't have enough data there) */
+      /* Don't touch end points (otherwise, curves slowly explode,
+       * as we don't have enough data there). */
       if (ELEM(i, 0, (totSel - 1)) == 0) {
         const tSmooth_Bezt *tP1 = tsb - 1;
         const tSmooth_Bezt *tP2 = (i - 2 > 0) ? (tsb - 2) : (NULL);
@@ -500,11 +502,12 @@ void sample_fcurve(FCurve *fcu)
 }
 
 /* **************************************************** */
-/* Copy/Paste Tools */
-/* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes
- *   that were selected in each of the original F-Curves
- * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
- *   the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
+/* Copy/Paste Tools:
+ * - The copy/paste buffer currently stores a set of temporary F-Curves containing only the
+ *   keyframes that were selected in each of the original F-Curves.
+ * - All pasted frames are offset by the same amount.
+ *   This is calculated as the difference in the times of the current frame and the
+ *   'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
  */
 
@@ -591,8 +594,9 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
     aci->rna_path = MEM_dupallocN(fcu->rna_path);
     aci->array_index = fcu->array_index;
 
-    /* detect if this is a bone. We do that here rather than during pasting because ID pointers will get invalidated if we undo.
-     * storing the relevant information here helps avoiding crashes if we undo-repaste */
+    /* Detect if this is a bone. We do that here rather than during pasting because ID pointers
+     * will get invalidated if we undo.
+     * Storing the relevant information here helps avoiding crashes if we undo-repaste. */
     if ((aci->id_type == ID_OB) && (((Object *)aci->id)->type == OB_ARMATURE) && aci->rna_path) {
       Object *ob = (Object *)aci->id;
       bPoseChannel *pchan;
@@ -1005,10 +1009,11 @@ short paste_animedit_keys(bAnimContext *ac,
       unsigned int totmatch = 0;
 
       for (ale = anim_data->first; ale; ale = ale->next) {
-        /* find buffer item to paste from
-         * - if names don't matter (i.e. only 1 channel in buffer), don't check id/group
-         * - if names do matter, only check if id-type is ok for now (group check is not that important)
-         * - most importantly, rna-paths should match (array indices are unimportant for now)
+        /* Find buffer item to paste from:
+         * - If names don't matter (i.e. only 1 channel in buffer), don't check id/group
+         * - If names do matter, only check if id-type is ok for now
+         *   (group check is not that important).
+         * - Most importantly, rna-paths should match (array indices are unimportant for now)
          */
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
         FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */

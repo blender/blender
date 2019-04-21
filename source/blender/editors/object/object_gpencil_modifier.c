@@ -379,7 +379,7 @@ void OBJECT_OT_gpencil_modifier_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/************************ generic functions for operators using mod names and data context *********************/
+/********** generic functions for operators using mod names and data context *********************/
 
 static int gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
 {

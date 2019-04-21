@@ -701,7 +701,8 @@ static bool fluid_init_filepaths(Main *bmain,
   const bool dir_exists = BLI_dir_create_recursive(targetDir);
   const bool is_writable = BLI_file_is_writable(targetFile);
 
-  /* We change path to some presumably valid default value, but do not allow bake process to continue,
+  /* We change path to some presumably valid default value,
+   * but do not allow bake process to continue,
    * this gives user chance to set manually another path. */
   if (!dir_exists || !is_writable) {
     modifier_path_init(domainSettings->surfdataPath,
@@ -817,7 +818,13 @@ static int runSimulationCallback(void *data, int status, int frame)
 
   if (status == FLUIDSIM_CBSTATUS_NEWFRAME) {
     fluidbake_updatejob(fb, frame / (float)settings->noOfFrames);
-    //printf("elbeem blender cb s%d, f%d, domainid:%d noOfFrames: %d\n", status, frame, settings->domainId, settings->noOfFrames ); // DEBUG
+#  if 0
+    printf("elbeem blender cb s%d, f%d, domainid:%d noOfFrames: %d\n",
+           status,
+           frame,
+           settings->domainId,
+           settings->noOfFrames);  // DEBUG
+#  endif
   }
 
   if (fluidbake_breakjob(fb)) {
@@ -940,7 +947,8 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
     elbeemDebugOut(debugStrBuffer);
   }
 
-  /* make sure it corresponds to startFrame setting (old: noFrames = scene->r.efra - scene->r.sfra +1) */
+  /* Make sure it corresponds to startFrame setting
+   * (old: noFrames = scene->r.efra - scene->r.sfra +1). */
   ;
   noFrames = scene->r.efra - 0;
   if (noFrames <= 0) {
@@ -1017,9 +1025,9 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
     return false;
   }
 
-  channels->length =
-      scene->r
-          .efra;  // DG TODO: why using endframe and not "noFrames" here? .. because "noFrames" is buggy too? (not using sfra)
+  /* DG TODO: why using endframe and not "noFrames" here?
+   * because "noFrames" is buggy too? (not using sfra) */
+  channels->length = scene->r.efra;
   channels->aniFrameTime = (double)((double)domainSettings->animEnd -
                                     (double)domainSettings->animStart) /
                            (double)noFrames;

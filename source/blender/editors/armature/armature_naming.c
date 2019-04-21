@@ -318,8 +318,9 @@ void ED_armature_bone_rename(Main *bmain,
       DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
     }
 
-    /* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since
-     * other ID-blocks may have drivers referring to this bone [#29822]
+    /* Fix all animdata that may refer to this bone -
+     * we can't just do the ones attached to objects,
+     * since other ID-blocks may have drivers referring to this bone T29822.
      */
     // XXX: the ID here is for armatures, but most bone drivers are actually on the object instead...
     {
@@ -376,8 +377,8 @@ void ED_armature_bones_flip_names(Main *bmain,
   BoneFlipNameData *bfn;
 
   /* First pass: generate flip names, and blindly rename.
-   * If rename did not yield expected result, store both bone's name and expected flipped one into temp list
-   * for second pass. */
+   * If rename did not yield expected result,
+   * store both bone's name and expected flipped one into temp list for second pass. */
   for (LinkData *link = bones_names->first; link; link = link->next) {
     char name_flip[MAXBONENAME];
     char *name = link->data;
@@ -397,8 +398,9 @@ void ED_armature_bones_flip_names(Main *bmain,
   }
 
   /* Second pass to handle the bones that have naming conflicts with other bones.
-   * Note that if the other bone was not selected, its name was not flipped, so conflict remains and that second
-   * rename simply generates a new numbered alternative name. */
+   * Note that if the other bone was not selected, its name was not flipped,
+   * so conflict remains and that second rename simply generates a new numbered alternative name.
+   */
   for (bfn = bones_names_conflicts.first; bfn; bfn = bfn->next) {
     ED_armature_bone_rename(bmain, arm, bfn->name, bfn->name_flip);
   }

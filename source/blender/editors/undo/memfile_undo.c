@@ -115,7 +115,8 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
 static void memfile_undosys_step_free(UndoStep *us_p)
 {
-  /* To avoid unnecessary slow down, free backwards (so we don't need to merge when clearing all). */
+  /* To avoid unnecessary slow down, free backwards
+   * (so we don't need to merge when clearing all). */
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
   if (us_p->next != NULL) {
     UndoStep *us_next_p = BKE_undosys_step_same_type_next(us_p);
@@ -149,7 +150,8 @@ void ED_memfile_undosys_type(UndoType *ut)
  * \{ */
 
 /**
- * Ideally we wouldn't need to export global undo internals, there are some cases where it's needed though.
+ * Ideally we wouldn't need to export global undo internals,
+ * there are some cases where it's needed though.
  */
 static struct MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
 {

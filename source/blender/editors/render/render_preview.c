@@ -1332,7 +1332,8 @@ void ED_preview_icon_job(
 
   icon_preview_add_size(ip, rect, sizex, sizey);
 
-  /* Special threading hack: warn main code that this preview is being rendered and cannot be freed... */
+  /* Special threading hack:
+   * warn main code that this preview is being rendered and cannot be freed... */
   {
     PreviewImage *prv_img = owner;
     if (prv_img->tag & PRV_TAG_DEFFERED) {
@@ -1363,7 +1364,8 @@ void ED_preview_shader_job(const bContext *C,
   Scene *scene = CTX_data_scene(C);
   short id_type = GS(id->name);
 
-  /* Use workspace render only for buttons Window, since the other previews are related to the datablock. */
+  /* Use workspace render only for buttons Window,
+   * since the other previews are related to the datablock. */
 
   if (!check_engine_supports_preview(scene)) {
     return;

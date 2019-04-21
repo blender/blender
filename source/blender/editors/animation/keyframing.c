@@ -398,7 +398,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         }
 
         if (flag & INSERTKEY_CYCLE_AWARE) {
-          /* If replacing an end point of a cyclic curve without offset, modify the other end too. */
+          /* If replacing an end point of a cyclic curve without offset,
+           * modify the other end too. */
           if ((i == 0 || i == fcu->totvert - 1) &&
               BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT) {
             replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
@@ -411,7 +412,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
       /* insert new - if we're not restricted to replacing keyframes only */
       BezTriple *newb = MEM_callocN((fcu->totvert + 1) * sizeof(BezTriple), "beztriple");
 
-      /* add the beztriples that should occur before the beztriple to be pasted (originally in fcu) */
+      /* Add the beztriples that should occur before the beztriple to be pasted
+       * (originally in fcu). */
       if (i > 0)
         memcpy(newb, fcu->bezt, i * sizeof(BezTriple));
 
@@ -545,9 +547,10 @@ int insert_vert_fcurve(
   if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE) == 0) {
     BezTriple *bezt = (fcu->bezt + a);
 
-    /* set interpolation from previous (if available), but only if we didn't just replace some keyframe
-     * - replacement is indicated by no-change in number of verts
-     * - when replacing, the user may have specified some interpolation that should be kept
+    /* Set interpolation from previous (if available),
+     * but only if we didn't just replace some keyframe:
+     * - Replacement is indicated by no-change in number of verts.
+     * - When replacing, the user may have specified some interpolation that should be kept.
      */
     if (fcu->totvert > oldTot) {
       if (a > 0)
@@ -1146,8 +1149,9 @@ static bool insert_keyframe_value(ReportList *reports,
 }
 
 /* Secondary Keyframing API call:
- * Use this when validation of necessary animation data is not necessary, since an RNA-pointer to the necessary
- * data being keyframed, and a pointer to the F-Curve to use have both been provided.
+ * Use this when validation of necessary animation data is not necessary,
+ * since an RNA-pointer to the necessary data being keyframed,
+ * and a pointer to the F-Curve to use have both been provided.
  *
  * This function can't keyframe quaternion channels on some NLA strip types.
  *
@@ -2205,8 +2209,9 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        /* special exception for bones, as this makes this operator more convenient to use
-         * NOTE: This is only done in pose mode. In object mode, we're dealing with the entire object.
+        /* Special exception for bones, as this makes this operator more convenient to use
+         * NOTE: This is only done in pose mode.
+         * In object mode, we're dealing with the entire object.
          */
         if ((ob->mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
           bPoseChannel *pchan;
@@ -2355,8 +2360,9 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
         const char *group = NULL;
 
         /* Special exception for keyframing transforms:
-         * Set "group" for this manually, instead of having them appearing at the bottom (ungrouped)
-         * part of the channels list. Leaving these ungrouped is not a nice user behavior in this case.
+         * Set "group" for this manually, instead of having them appearing at the bottom
+         * (ungrouped) part of the channels list.
+         * Leaving these ungrouped is not a nice user behavior in this case.
          *
          * TODO: Perhaps we can extend this behavior in future for other properties...
          */

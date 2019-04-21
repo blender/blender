@@ -139,7 +139,8 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
         ACHANNEL_SET_FLAG(strip, smode, NLASTRIP_FLAG_SELECT);
 
       /* clear active flag */
-      // TODO: for clear active, do we want to limit this to only doing this on a certain set of tracks though?
+      /* TODO: for clear active,
+       * do we want to limit this to only doing this on a certain set of tracks though? */
       strip->flag &= ~NLASTRIP_FLAG_ACTIVE;
     }
   }
@@ -203,11 +204,13 @@ void NLA_OT_select_all(wmOperatorType *ot)
 }
 
 /* ******************** Box Select Operator **************************** */
-/* This operator currently works in one of three ways:
- *  -> BKEY     - 1) all strips within region are selected (NLAEDIT_BORDERSEL_ALLSTRIPS)
- *  -> ALT-BKEY - depending on which axis of the region was larger...
- *      -> 2) x-axis, so select all frames within frame range (NLAEDIT_BORDERSEL_FRAMERANGE)
- *      -> 3) y-axis, so select all frames within channels that region included (NLAEDIT_BORDERSEL_CHANNELS)
+/**
+ * This operator currently works in one of three ways:
+ * - BKEY     - 1: all strips within region are selected #NLAEDIT_BOX_ALLSTRIPS.
+ * - ALT-BKEY - depending on which axis of the region was larger.
+ *   - 2: x-axis, so select all frames within frame range #NLAEDIT_BOXSEL_FRAMERANGE.
+ *   - 3: y-axis, so select all frames within channels that region included
+ *     #NLAEDIT_BOXSEL_CHANNELS.
  */
 
 /* defines for box_select mode */
@@ -295,10 +298,12 @@ static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
 
   /* selection 'mode' depends on whether box_select region only matters on one axis */
   if (RNA_boolean_get(op->ptr, "axis_range")) {
-    /* mode depends on which axis of the range is larger to determine which axis to use
-     * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-     * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-     *   used for tweaking timing when "blocking", while channels is not that useful...
+    /* mode depends on which axis of the range is larger to determine which axis to use.
+     * - Checking this in region-space is fine,
+     *   as it's fundamentally still going to be a different rect size.
+     * - The frame-range select option is favored over the channel one (x over y),
+     *   as frame-range one is often.
+     *   Used for tweaking timing when "blocking", while channels is not that useful.
      */
     if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
       mode = NLA_BOXSEL_FRAMERANGE;

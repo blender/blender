@@ -43,9 +43,13 @@
 
 /* ----------------------- Getter functions ----------------------- */
 
-/* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings),
+/**
+ * Write into "name" buffer, the name of the property
+ * (retrieved using RNA from the curve's settings),
  * and return the icon used for the struct that this property refers to
- * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
+ *
+ * \warning name buffer we're writing to cannot exceed 256 chars
+ * (check anim_channels_defines.c for details).
  */
 int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
@@ -83,17 +87,19 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
        * 2) <array-index> <property-name> (<struct name>)
        *     i.e. X Location (Bone1), or X Location (Object)
        *
-       * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves (it does have
-       * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of
-       * hierarchy though, which isn't so clear with option 2.
+       * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves
+       * (it does have problems with looking rather odd though).
+       * Option 1 is better in terms of revealing a consistent sense of hierarchy though,
+       * which isn't so clear with option 2.
        */
 
-      /* for structname
-       * - as base, we use a custom name from the structs if one is available
-       * - however, if we're showing subdata of bones (probably there will be other exceptions later)
-       *   need to include that info too since it gets confusing otherwise
-       * - if a pointer just refers to the ID-block, then don't repeat this info
-       *   since this just introduces clutter
+      /* For structname:
+       * - As base, we use a custom name from the structs if one is available
+       * - However, if we're showing subdata of bones
+       *   (probably there will be other exceptions later).
+       *   need to include that info too since it gets confusing otherwise.
+       * - If a pointer just refers to the ID-block, then don't repeat this info
+       *   since this just introduces clutter.
        */
       if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
         /* perform string 'chopping' to get "Bone Name : Constraint Name" */

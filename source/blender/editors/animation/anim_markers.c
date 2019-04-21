@@ -118,7 +118,8 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 /**
  * Apply some transformation to markers after the fact
  *
- * \param markers: List of markers to affect - this may or may not be the scene markers list, so don't assume anything
+ * \param markers: List of markers to affect - this may or may not be the scene markers list,
+ * so don't assume anything.
  * \param scene: Current scene (for getting current frame)
  * \param mode: (TfmMode) transform mode that this transform is for
  * \param value: From the transform code, this is ``t->vec[0]``
@@ -326,7 +327,8 @@ TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 /* --------------------------------- */
 
 /* Print debugging prints of list of markers
- * BSI's: do NOT make static or put in if-defs as "unused code". That's too much trouble when we need to use for quick debugging!
+ * BSI's: do NOT make static or put in if-defs as "unused code".
+ * That's too much trouble when we need to use for quick debugging!
  */
 void debug_markers_print_list(ListBase *markers)
 {
@@ -1504,7 +1506,13 @@ static void MARKER_OT_rename(wmOperatorType *ot)
                             sizeof(((TimeMarker *)NULL)->name),
                             "Name",
                             "New name for marker");
-  //RNA_def_boolean(ot->srna, "ensure_unique", 0, "Ensure Unique", "Ensure that new name is unique within collection of markers");
+#if 0
+  RNA_def_boolean(ot->srna,
+                  "ensure_unique",
+                  0,
+                  "Ensure Unique",
+                  "Ensure that new name is unique within collection of markers");
+#endif
 }
 
 /* **************** make links to scene ***************** */

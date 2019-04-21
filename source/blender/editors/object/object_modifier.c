@@ -889,7 +889,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/************************ generic functions for operators using mod names and data context *********************/
+/********** generic functions for operators using mod names and data context *********************/
 
 bool edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
 {
@@ -2022,7 +2022,8 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
     mmd->totinfluence = 0;
   }
   else {
-    /* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+    /* Force modifier to run, it will call binding routine
+     * (this has to happen outside of depsgraph evaluation). */
     MeshDeformModifierData *mmd_eval = (MeshDeformModifierData *)modifier_get_evaluated(
         depsgraph, ob, &mmd->modifier);
     mmd_eval->bindfunc = ED_mesh_deform_bind_callback;

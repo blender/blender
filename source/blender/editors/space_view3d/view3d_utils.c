@@ -1143,7 +1143,8 @@ float ED_view3d_radius_to_dist_ortho(const float lens, const float radius)
  * \param ar: Can be NULL if \a use_aspect is false.
  * \param persp: Allow the caller to tell what kind of perspective to use (ortho/view/camera)
  * \param use_aspect: Increase the distance to account for non 1:1 view aspect.
- * \param radius: The radius will be fitted exactly, typically pre-scaled by a margin (#VIEW3D_MARGIN).
+ * \param radius: The radius will be fitted exactly,
+ * typically pre-scaled by a margin (#VIEW3D_MARGIN).
  */
 float ED_view3d_radius_to_dist(const View3D *v3d,
                                const ARegion *ar,
@@ -1435,7 +1436,8 @@ void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float 
 
 /**
  * Set the object transformation from RegionView3D members.
- * \param depsgraph: The depsgraph to get the evaluated object parent for the transformation calculation.
+ * \param depsgraph: The depsgraph to get the evaluated object parent
+ * for the transformation calculation.
  * \param ob: The object which has the transformation assigned.
  * \param ofs: The view offset, normally from RegionView3D.ofs.
  * \param quat: The view rotation, quaternion normally from RegionView3D.viewquat.

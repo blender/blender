@@ -55,7 +55,7 @@
 #include "armature_intern.h"
 #include "meshlaplacian.h"
 
-/* ********************************** Bone Skinning *********************************************** */
+/* ******************************* Bone Skinning *********************************************** */
 
 static int bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap)
 {

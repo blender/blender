@@ -3256,8 +3256,8 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
   BKE_mesh_tessface_ensure(me);
 
-  /* Note: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh. Avoids an (impossible)
-   *       mesh -> orig -> mesh tessface indices conversion... */
+  /* NOTE: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh.
+   * Avoids an (impossible) mesh -> orig -> mesh tessface indices conversion. */
   mirrorfaces = mesh_get_x_mirror_faces(
       ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
 
@@ -3350,7 +3350,8 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
       }
 
       /* assign face index */
-      /* NOTE: mesh_get_x_mirror_faces generates -1 for non-found mirror, same as DMCACHE_NOTFOUND... */
+      /* NOTE: mesh_get_x_mirror_faces generates -1 for non-found mirror,
+       * same as DMCACHE_NOTFOUND. */
       newpa->num = mirrorfaces[pa_num * 2];
 
       if (use_dm_final_indices) {

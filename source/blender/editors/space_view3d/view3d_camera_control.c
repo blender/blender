@@ -23,10 +23,11 @@
  * or other details.
  * Typical view-control usage:
  *
- * - acquire a view-control (#ED_view3d_cameracontrol_acquire).
- * - modify ``rv3d->ofs``, ``rv3d->viewquat``.
- * - update the view data (#ED_view3d_cameracontrol_acquire) - within a loop which draws the viewport.
- * - finish and release the view-control (#ED_view3d_cameracontrol_release),
+ * - Acquire a view-control (#ED_view3d_cameracontrol_acquire).
+ * - Modify ``rv3d->ofs``, ``rv3d->viewquat``.
+ * - Update the view data (#ED_view3d_cameracontrol_acquire) -
+ *   within a loop which draws the viewport.
+ * - Finish and release the view-control (#ED_view3d_cameracontrol_release),
  *   either keeping the current view or restoring the initial view.
  *
  * Notes:

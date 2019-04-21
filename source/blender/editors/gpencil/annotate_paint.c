@@ -160,7 +160,8 @@ typedef struct tGPsdata {
 
   /* These need to be doubles, as (at least under unix) they are in seconds since epoch,
    * float (and its 7 digits precision) is definitively not enough here!
-   * double, with its 15 digits precision, ensures us millisecond precision for a few centuries at least.
+   * double, with its 15 digits precision,
+   * ensures us millisecond precision for a few centuries at least.
    */
   /** Used when converting to path. */
   double inittime;
@@ -287,9 +288,10 @@ static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float pmval[2
   else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
     return true;
 
-  /* check if the distance since the last point is significant enough
-   * - prevents points being added too densely
-   * - distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
+  /* Check if the distance since the last point is significant enough:
+   * - Prevents points being added too densely
+   * - Distance here doesn't use sqrt to prevent slowness.
+   *   We should still be safe from overflows though.
    */
   else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX)
     return true;
@@ -646,7 +648,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
   ToolSettings *ts = p->scene->toolsettings;
 
   int i, totelem;
-  /* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
+  /* Since strokes are so fine, when using their depth we need a margin
+   * otherwise they might get missed. */
   int depth_margin = (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
 
   /* get total number of points to allocate space for
@@ -1718,7 +1721,8 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
     p->mvalo[1] = p->mval[1];
     p->opressure = p->pressure;
   }
-  /* only add current point to buffer if mouse moved (even though we got an event, it might be just noise) */
+  /* Only add current point to buffer if mouse moved
+   * (even though we got an event, it might be just noise). */
   else if (gp_stroke_filtermval(p, p->mval, p->mvalo)) {
     /* try to add point */
     short ok = gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime);

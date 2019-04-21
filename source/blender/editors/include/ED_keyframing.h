@@ -143,8 +143,8 @@ short insert_keyframe(struct Main *bmain,
                       eInsertKeyFlags flag);
 
 /* Main Keyframing API call:
- *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
- */
+ * Use this to delete keyframe on current frame for relevant channel.
+ * Will perform checks just in case. */
 short delete_keyframe(struct Main *bmain,
                       struct ReportList *reports,
                       struct ID *id,

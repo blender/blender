@@ -274,7 +274,8 @@ static void gp_calc_stroke_text_coordinates(
   }
 }
 
-/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
+/* Triangulate stroke for high quality fill
+ * (this is done only if cache is null or stroke was modified). */
 static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 {
   BLI_assert(gps->totpoints >= 3);
@@ -643,8 +644,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
 
   /* TODO: fancy++ with the magic of shaders */
 
-  /* tessellation code - draw stroke as series of connected quads (triangle strips in fact) with connection
-   * edges rotated to minimize shrinking artifacts, and rounded endcaps
+  /* tessellation code - draw stroke as series of connected quads (triangle strips in fact)
+   * with connection edges rotated to minimize shrinking artifacts, and rounded endcaps.
    */
   {
     const bGPDspoint *pt1, *pt2;
@@ -675,7 +676,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
       float mt[2], sc[2]; /* gradient for thickness, point for end-cap */
       float pthick;       /* thickness at segment point */
 
-      /* get x and y coordinates from point2 (point1 has already been computed in previous iteration). */
+      /* Get x and y coordinates from point2
+       * (point1 has already been computed in previous iteration). */
       mul_v3_m4v3(fpt, diff_mat, &pt2->x);
       gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, s1);
 

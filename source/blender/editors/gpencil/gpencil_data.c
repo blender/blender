@@ -124,7 +124,8 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
       id_us_min(&gpd->id);
     }
 
-    /* add new datablock, with a single layer ready to use (so users don't have to perform an extra step) */
+    /* Add new datablock, with a single layer ready to use
+     * (so users don't have to perform an extra step). */
     if (is_annotation) {
       bGPdata *gpd = BKE_gpencil_data_addnew(bmain, DATA_("Annotations"));
       *gpd_ptr = gpd;
@@ -2091,7 +2092,10 @@ typedef struct tJoinGPencil_AdtFixData {
   GHash *names_map;
 } tJoinGPencil_AdtFixData;
 
-/* Callback to pass to BKE_fcurves_main_cb() for RNA Paths attached to each F-Curve used in the AnimData */
+/**
+ * Callback to pass to #BKE_fcurves_main_cb()
+ * for RNA Paths attached to each F-Curve used in the #AnimData.
+ */
 static void joined_gpencil_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 {
   tJoinGPencil_AdtFixData *afd = (tJoinGPencil_AdtFixData *)user_data;
@@ -2374,7 +2378,7 @@ static bool gpencil_active_color_poll(bContext *C)
   return false;
 }
 
-/* ******************* Lock and hide any color non used in current layer ************************** */
+/* **************** Lock and hide any color non used in current layer ************************** */
 static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);

@@ -78,7 +78,8 @@ Object *ED_pose_object_from_context(bContext *C)
   ScrArea *sa = CTX_wm_area(C);
   Object *ob;
 
-  /* since this call may also be used from the buttons window, we need to check for where to get the object */
+  /* Since this call may also be used from the buttons window,
+   * we need to check for where to get the object. */
   if (sa && sa->spacetype == SPACE_PROPERTIES) {
     ob = ED_object_context(C);
   }
@@ -790,7 +791,8 @@ static int armature_layers_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   if (arm == NULL)
     return OPERATOR_CANCELLED;
 
-  /* get RNA pointer to armature data to use that to retrieve the layers as ints to init the operator */
+  /* Get RNA pointer to armature data to use that to retrieve the layers as ints
+   * to init the operator. */
   RNA_id_pointer_create((ID *)arm, &ptr);
   RNA_boolean_get_array(&ptr, "layers", layers);
   RNA_boolean_set_array(op->ptr, "layers", layers);

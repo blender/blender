@@ -1046,7 +1046,8 @@ static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
 /**
  * Zoom and pan in the same function since sometimes zoom is interpreted as dolly (pan forward).
  *
- * \param has_zoom: zoom, otherwise dolly, often `!rv3d->is_persp` since it doesn't make sense to dolly in ortho.
+ * \param has_zoom: zoom, otherwise dolly,
+ * often `!rv3d->is_persp` since it doesn't make sense to dolly in ortho.
  */
 static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof,
                                  ScrArea *sa,
@@ -1068,9 +1069,8 @@ static void view3d_ndof_pan_zoom(const struct wmNDOFMotionData *ndof,
     /* zoom with Z */
 
     /* Zoom!
-     * velocity should be proportional to the linear velocity attained by rotational motion of same strength
-     * [got that?]
-     * proportional to arclength = radius * angle
+     * velocity should be proportional to the linear velocity attained by rotational motion
+     * of same strength [got that?] proportional to `arclength = radius * angle`.
      */
 
     pan_vec[2] = 0.0f;
@@ -1844,7 +1844,8 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 }
 
 /**
- * \param zoom_xy: Optionally zoom to window location (coords compatible w/ #wmEvent.x, y). Use when not NULL.
+ * \param zoom_xy: Optionally zoom to window location
+ * (coords compatible w/ #wmEvent.x, y). Use when not NULL.
  */
 static void view_zoom_to_window_xy_camera(
     Scene *scene, Depsgraph *depsgraph, View3D *v3d, ARegion *ar, float dfac, const int zoom_xy[2])
@@ -1892,7 +1893,8 @@ static void view_zoom_to_window_xy_camera(
 }
 
 /**
- * \param zoom_xy: Optionally zoom to window location (coords compatible w/ #wmEvent.x, y). Use when not NULL.
+ * \param zoom_xy: Optionally zoom to window location
+ * (coords compatible w/ #wmEvent.x, y). Use when not NULL.
  */
 static void view_zoom_to_window_xy_3d(ARegion *ar, float dfac, const int zoom_xy[2])
 {

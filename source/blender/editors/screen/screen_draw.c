@@ -540,7 +540,8 @@ void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
 /* Screen Thumbnail Preview */
 
 /**
- * Calculates a scale factor to squash the preview for \a screen into a rectangle of given size and aspect.
+ * Calculates a scale factor to squash the preview for \a screen into a rectangle
+ * of given size and aspect.
  */
 static void screen_preview_scale_get(
     const bScreen *screen, float size_x, float size_y, const float asp[2], float r_scale[2])
@@ -588,7 +589,8 @@ static void screen_preview_draw_areas(const bScreen *screen,
 static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 {
   const float asp[2] = {1.0f, 0.8f}; /* square previews look a bit ugly */
-  /* could use theme color (tui.wcol_menu_item.text), but then we'd need to regenerate all previews when changing */
+  /* could use theme color (tui.wcol_menu_item.text),
+   * but then we'd need to regenerate all previews when changing. */
   const float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float scale[2];
 

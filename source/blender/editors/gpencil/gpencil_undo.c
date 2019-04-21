@@ -154,7 +154,8 @@ void gpencil_undo_push(bGPdata *gpd)
    * - to prevent running out of memory during **really**
    *   long drawing sessions (triggering swapping)
    */
-  /* TODO: Undo-memory constraint is not respected yet, but can be added if we have any need for it */
+  /* TODO: Undo-memory constraint is not respected yet,
+   * but can be added if we have any need for it. */
   if (U.undosteps && !BLI_listbase_is_empty(&undo_nodes)) {
     /* remove anything older than n-steps before cur_node */
     int steps = 0;

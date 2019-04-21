@@ -43,7 +43,8 @@
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 
-/* This file defines an API and set of callback-operators for non-destructive editing of keyframe data.
+/* This file defines an API and set of callback-operators for
+ * non-destructive editing of keyframe data.
  *
  * Two API functions are defined for actually performing the operations on the data:
  * ANIM_fcurve_keyframes_loop()
@@ -146,7 +147,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
   return 0;
 }
 
-/* -------------------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */
+/* --------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */
 
 /* This function is used to loop over the keyframe data in an Action Group */
 static short agrp_keyframes_loop(KeyframeEditData *ked,
@@ -467,9 +468,11 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 /* ------------------------ */
 /* Some macros to make this easier... */
 
-/* run the given check on the 3 handles
- * - check should be a macro, which takes the handle index as its single arg, which it substitutes later
- * - requires that a var, of type short, is named 'ok', and has been initialized to 0
+/* run the given check on the 3 handles:
+ * - Check should be a macro, which takes the handle index as its single arg,
+ *   which it substitutes later.
+ * - Requires that a var, of type short, is named 'ok',
+ *   and has been initialized to 0.
  */
 #define KEYFRAME_OK_CHECKS(check) \
   { \
@@ -529,9 +532,10 @@ static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
   short ok = 0;
 
-  /* value is stored in f1 property
-   * - this float accuracy check may need to be dropped?
-   * - should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
+  /* Value is stored in f1 property:
+   * - This float accuracy check may need to be dropped?
+   * - Should value be stored in f2 instead
+   *   so that we won't have conflicts when using f1 for frames too?
    */
 #define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
   KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
@@ -998,8 +1002,10 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* ******************************************* */
 /* Settings */
 
-/* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
- * "if the handles are not of the same type, set them to type free"
+/**
+ * Standard validation step for a few of these
+ * (implemented as macro for inlining without fn-call overhead):
+ * "if the handles are not of the same type, set them to type free".
  */
 #define ENSURE_HANDLES_MATCH(bezt) \
   if (bezt->h1 != bezt->h2) { \

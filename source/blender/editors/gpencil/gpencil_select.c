@@ -291,7 +291,8 @@ typedef enum eGP_SelectGrouped {
   /* Select strokes with the same color */
   GP_SEL_SAME_MATERIAL = 1,
 
-  /* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
+  /* TODO: All with same prefix -
+   * Useful for isolating all layers for a particular character for instance. */
   /* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
 } eGP_SelectGrouped;
 
@@ -621,7 +622,8 @@ static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))
       int i;
       bool prev_sel;
 
-      /* First Pass: Go in forward order, expanding selection if previous was selected (pre changes)...
+      /* First Pass: Go in forward order,
+       * expanding selection if previous was selected (pre changes).
        * - This pass covers the "after" edges of selection islands
        */
       prev_sel = false;
@@ -705,7 +707,8 @@ static int gpencil_select_less_exec(bContext *C, wmOperator *UNUSED(op))
       int i;
       bool prev_sel;
 
-      /* First Pass: Go in forward order, shrinking selection if previous was not selected (pre changes)...
+      /* First Pass: Go in forward order, shrinking selection
+       * if previous was not selected (pre changes).
        * - This pass covers the "after" edges of selection islands
        */
       prev_sel = false;
@@ -776,9 +779,12 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
 /** \name Circle Select Operator
  * \{ */
 
-/* Helper to check if a given stroke is within the area */
-/* NOTE: Code here is adapted (i.e. copied directly) from gpencil_paint.c::gp_stroke_eraser_dostroke()
- *       It would be great to de-duplicate the logic here sometime, but that can wait...
+/**
+ * Helper to check if a given stroke is within the area.
+ *
+ * \note Code here is adapted (i.e. copied directly)
+ * from gpencil_paint.c #gp_stroke_eraser_dostroke().
+ * It would be great to de-duplicate the logic here sometime, but that can wait.
  */
 static bool gp_stroke_do_circle_sel(bGPDlayer *gpl,
                                     bGPDstroke *gps,

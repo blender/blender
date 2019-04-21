@@ -493,9 +493,11 @@ void graphedit_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, 0);
 
   /* channels */
-  /* Channels are not directly handled by the Graph Editor module, but are inherited from the Animation module.
-   * All the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as these
-   * are all used for the Graph Editor too.
+  /* Channels are not directly handled by the Graph Editor module,
+   * but are inherited from the Animation module.
+   * All the relevant operations, keymaps, drawing, etc.
+   * can therefore all be found in that module instead,
+   * as these are all used for the Graph Editor too.
    */
 
   /* keyframes */
