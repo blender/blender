@@ -77,8 +77,10 @@ typedef struct bToolRef {
 /**
  * \brief Wrapper for bScreen.
  *
- * bScreens are IDs and thus stored in a main list-base. We also want to store a list-base of them within the
- * workspace (so each workspace can have its own set of screen-layouts) which would mess with the next/prev pointers.
+ * #bScreens are IDs and thus stored in a main list-base.
+ * We also want to store a list-base of them within the workspace
+ * (so each workspace can have its own set of screen-layouts)
+ * which would mess with the next/prev pointers.
  * So we use this struct to wrap a bScreen pointer with another pair of next/prev pointers.
  */
 typedef struct WorkSpaceLayout {

@@ -23,7 +23,7 @@
 #ifndef __DNA_OBJECT_ENUMS_H__
 #define __DNA_OBJECT_ENUMS_H__
 
-/* Object.mode */
+/** #Object.mode */
 typedef enum eObjectMode {
   OB_MODE_OBJECT = 0,
   OB_MODE_EDIT = 1 << 0,
@@ -39,17 +39,18 @@ typedef enum eObjectMode {
   OB_MODE_WEIGHT_GPENCIL = 1 << 10,
 } eObjectMode;
 
-/* Any mode where the brush system is used. */
+/** Any mode where the brush system is used. */
 #define OB_MODE_ALL_PAINT \
   (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)
 
 #define OB_MODE_ALL_PAINT_GPENCIL \
   (OB_MODE_PAINT_GPENCIL | OB_MODE_SCULPT_GPENCIL | OB_MODE_WEIGHT_GPENCIL)
 
-/* Any mode that uses Object.sculpt. */
+/** Any mode that uses Object.sculpt. */
 #define OB_MODE_ALL_SCULPT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)
 
-/* Any mode that has data we need to free when switching modes, see: #ED_object_mode_generic_exit */
+/** Any mode that has data we need to free when switching modes,
+ * see: #ED_object_mode_generic_exit */
 #define OB_MODE_ALL_MODE_DATA \
   (OB_MODE_EDIT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT | OB_MODE_POSE)
 

@@ -264,13 +264,14 @@ typedef struct bNode {
   rctf butr;
   /** Optional preview area. */
   rctf prvr;
-  /* XXX TODO
+  /**
+   * XXX TODO
    * Node totr size depends on the prvr size, which in turn is determined from preview size.
    * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
-   * multiple instances using different preview images it is possible that required node size varies between instances.
-   * preview_xsize, preview_ysize defines a common reserved size for preview rect for now,
-   * could be replaced by more accurate node instance drawing, but that requires removing totr from DNA
-   * and replacing all uses with per-instance data.
+   * multiple instances using different preview images it is possible that required node size
+   * varies between instances. preview_xsize, preview_ysize defines a common reserved size for
+   * preview rect for now, could be replaced by more accurate node instance drawing,
+   * but that requires removing totr from DNA and replacing all uses with per-instance data.
    */
   /** Reserved size of the preview rect. */
   short preview_xsize, preview_ysize;
@@ -466,10 +467,12 @@ typedef struct bNodeTree {
   bNodeInstanceKey active_viewer_key;
   char _pad[4];
 
-  /* execution data */
-  /* XXX It would be preferable to completely move this data out of the underlying node tree,
-   * so node tree execution could finally run independent of the tree itself. This would allow node trees
-   * to be merely linked by other data (materials, textures, etc.), as ID data is supposed to.
+  /** Execution data.
+   *
+   * XXX It would be preferable to completely move this data out of the underlying node tree,
+   * so node tree execution could finally run independent of the tree itself.
+   * This would allow node trees to be merely linked by other data (materials, textures, etc.),
+   * as ID data is supposed to.
    * Execution data is generated from the tree once at execution start and can then be used
    * as long as necessary, even while the tree is being modified.
    */

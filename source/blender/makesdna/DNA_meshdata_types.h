@@ -61,8 +61,9 @@ typedef struct MVert {
   char flag, bweight;
 } MVert;
 
-/* tessellation vertex color data.
- * at the moment alpha is abused for vertex painting and not used for transparency, note that red and blue are swapped
+/** Tessellation vertex color data.
+ * at the moment alpha is abused for vertex painting and not used for transparency,
+ * note that red and blue are swapped
  */
 typedef struct MCol {
   unsigned char a, r, g, b;
@@ -87,10 +88,12 @@ typedef struct MLoop {
 } MLoop;
 
 /**
- * #MLoopTri's are lightweight triangulation data, for functionality that doesn't support ngons (#MPoly).
+ * #MLoopTri's are lightweight triangulation data,
+ * for functionality that doesn't support ngons (#MPoly).
  * This is cache data created from (#MPoly, #MLoop & #MVert arrays).
- * There is no attempt to maintain this data's validity over time, any changes to the underlying mesh
- * invalidate the #MLoopTri array, which will need to be re-calculated.
+ * There is no attempt to maintain this data's validity over time,
+ * any changes to the underlying mesh invalidate the #MLoopTri array,
+ * which will need to be re-calculated.
  *
  * Users normally access this via #BKE_mesh_runtime_looptri_ensure.
  * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
@@ -102,7 +105,8 @@ typedef struct MLoop {
  *
  * Storing loop indices (instead of vertex indices) allows us to
  * directly access UV's, vertex-colors as well as vertices.
- * The index of the source polygon is stored as well, giving access to materials and polygon normals.
+ * The index of the source polygon is stored as well,
+ * giving access to materials and polygon normals.
  *
  * \note This data is runtime only, never written to disk.
  *
@@ -148,7 +152,8 @@ typedef struct MLoop {
  * };
  * \endcode
  *
- * It may also be useful to check whether or not two vertices of a triangle form an edge in the underlying mesh.
+ * It may also be useful to check whether or not two vertices of a triangle
+ * form an edge in the underlying mesh.
  *
  * This can be done by checking the edge of the referenced loop (#MLoop.e),
  * the winding of the #MLoopTri and the #MLoop's will always match,

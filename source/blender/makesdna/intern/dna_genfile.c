@@ -94,37 +94,38 @@
  *  structs. Only needed to keep a file short though...
  *
  * ALLOWED AND TESTED CHANGES IN STRUCTS:
- *  - type change (a char to float will be divided by 255)
- *  - location within a struct (everything can be randomly mixed up)
- *  - struct within struct (within struct etc), this is recursive
- *  - adding new elements, will be default initialized zero
- *  - removing elements
- *  - change of array sizes
- *  - change of a pointer type: when the name doesn't change the contents is copied
+ *  - Type change (a char to float will be divided by 255).
+ *  - Location within a struct (everything can be randomly mixed up).
+ *  - Struct within struct (within struct etc), this is recursive.
+ *  - Adding new elements, will be default initialized zero.
+ *  - Removing elements.
+ *  - Change of array sizes.
+ *  - Change of a pointer type: when the name doesn't change the contents is copied.
  *
  * NOT YET:
- *  - array (``vec[3]``) to float struct (``vec3f``)
+ *  - array (``vec[3]``) to float struct (``vec3f``).
  *
  * DONE:
- *  - endian compatibility
- *  - pointer conversion (32-64 bits)
+ *  - Endian compatibility.
+ *  - Pointer conversion (32-64 bits).
  *
  * IMPORTANT:
- *  - do not use #defines in structs for array lengths, this cannot be read by the dna functions
- *  - do not use uint, but unsigned int instead, ushort and ulong are allowed
- *  - only use a long in Blender if you want this to be the size of a pointer. so it is
- *    32 bits or 64 bits, dependent at the cpu architecture
- *  - chars are always unsigned
- *  - alignment of variables has to be done in such a way, that any system does
+ *  - Do not use #defines in structs for array lengths, this cannot be read by the dna functions.
+ *  - Do not use uint, but unsigned int instead, ushort and ulong are allowed.
+ *  - Only use a long in Blender if you want this to be the size of a pointer. so it is
+ *    32 bits or 64 bits, dependent at the cpu architecture.
+ *  - Chars are always unsigned
+ *  - Alignment of variables has to be done in such a way, that any system does
  *    not create 'padding' (gaps) in structures. So make sure that:
- *    - short: 2 aligned
- *    - int: 4 aligned
- *    - float: 4 aligned
- *    - double: 8 aligned
- *    - long: 8 aligned
- *    - int64: 8 aligned
- *    - struct: 8 aligned
- *  - the sdna functions have several error prints builtin, always check blender running from a console.
+ *    - short: 2 aligned.
+ *    - int: 4 aligned.
+ *    - float: 4 aligned.
+ *    - double: 8 aligned.
+ *    - long: 8 aligned.
+ *    - int64: 8 aligned.
+ *    - struct: 8 aligned.
+ *  - the sdna functions have several error prints builtin,
+ *    always check blender running from a console.
  */
 
 #ifdef __BIG_ENDIAN__
@@ -543,7 +544,8 @@ SDNA *DNA_sdna_from_data(const void *data,
 }
 
 /**
- * Using globals is acceptable here, the data is read-only and only changes between Blender versions.
+ * Using globals is acceptable here,
+ * the data is read-only and only changes between Blender versions.
  *
  * So it is safe to create once and reuse.
  */
@@ -1499,7 +1501,8 @@ static bool DNA_sdna_patch_struct_member_nr(SDNA *sdna,
 }
 /**
  * Replace \a elem_old with \a elem_new for struct \a struct_name
- * handles search & replace, maintaining surrounding non-identifier characters such as pointer & array size.
+ * handles search & replace, maintaining surrounding non-identifier characters
+ * such as pointer & array size.
  */
 bool DNA_sdna_patch_struct_member(SDNA *sdna,
                                   const char *struct_name,

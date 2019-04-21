@@ -574,8 +574,8 @@ typedef enum eItasc_Solver {
  * ensure that action-groups never end up being the sole 'owner' of a channel.
  *
  * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used
- * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly related
- * to Action-Groups.
+ * primarily to color bones in the 3d-view. There are other benefits too, but those are mostly
+ * related to Action-Groups.
  *
  * Note that these two uses each have their own RNA 'ActionGroup' and 'BoneGroup'.
  */
@@ -630,13 +630,13 @@ typedef enum eActionGroup_Flag {
 
 /* Action - reusable F-Curve 'bag'  (act)
  *
- * This contains F-Curves that may affect settings from more than one ID blocktype and/or
- * datablock (i.e. sub-data linked/used directly to the ID block that the animation data is linked to),
- * but with the restriction that the other unrelated data (i.e. data that is not directly used or linked to
- * by the source ID block).
+ * This contains F-Curves that may affect settings from more than one ID blocktype and/or datablock
+ * (i.e. sub-data linked/used directly to the ID block that the animation data is linked to),
+ * but with the restriction that the other unrelated data (i.e. data that is not directly used or
+ * linked to by the source ID block).
  *
- * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that
- * affects a group of related settings (as defined by the user).
+ * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data),
+ * that affects a group of related settings (as defined by the user).
  */
 typedef struct bAction {
   /** ID-serialisation for relinking. */

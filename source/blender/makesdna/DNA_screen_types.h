@@ -166,9 +166,11 @@ typedef struct Panel {
 /**
  * Notes on Panel Categories:
  *
- * - #ARegion.panels_category (#PanelCategoryDyn) is a runtime only list of categories collected during draw.
+ * - #ARegion.panels_category (#PanelCategoryDyn)
+ *   is a runtime only list of categories collected during draw.
  *
- * - #ARegion.panels_category_active (#PanelCategoryStack) is basically a list of strings (category id's).
+ * - #ARegion.panels_category_active (#PanelCategoryStack)
+ *   is basically a list of strings (category id's).
  *
  * Clicking on a tab moves it to the front of ar->panels_category_active,
  * If the context changes so this tab is no longer displayed,
@@ -544,7 +546,7 @@ enum {
 #define UI_LIST_AUTO_SIZE_THRESHOLD 1
 
 /* uiList filter flags (dyn_data) */
-/* WARNING! Those values are used by integer RNA too, which does not handle well values > INT_MAX...
+/* WARNING! Those values are used by integer RNA too, which does not handle well values > INT_MAX.
  *          So please do not use 32nd bit here. */
 enum {
   UILST_FLT_ITEM = 1 << 30, /* This item has passed the filter process successfully. */

@@ -456,8 +456,8 @@ typedef enum eDriverVar_Flags {
  * the value of some setting semi-procedurally.
  *
  * Drivers are stored as part of F-Curve data, so that the F-Curve's RNA-path settings (for storing
- * what setting the driver will affect). The order in which they are stored defines the order that they're
- * evaluated in. This order is set by the Depsgraph's sorting stuff.
+ * what setting the driver will affect). The order in which they are stored defines the order that
+ * they're evaluated in. This order is set by the Depsgraph's sorting stuff.
  */
 typedef struct ChannelDriver {
   /** Targets for this driver (i.e. list of DriverVar). */

@@ -949,7 +949,8 @@ typedef enum eZoomFrame_Mode {
 } eZoomFrame_Mode;
 
 /** Auto-Keying flag
- * #UserDef.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days)
+ * #UserDef.autokey_flag (not strictly used when autokeying only -
+ * is also used when keyframing these days).
  * \note #eAutokey_Flag is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL).
  */
 typedef enum eAutokey_Flag {

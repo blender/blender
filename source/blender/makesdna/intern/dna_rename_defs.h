@@ -30,7 +30,8 @@
  * - Changes here only change generated code for `makesdna.c` and `makesrna.c`
  *   without impacting Blender's run-time, besides allowing us to use the new names.
  *
- * - Renaming something that has already been renamed can be done by editing the existing rename macro.
+ * - Renaming something that has already been renamed can be done
+ *   by editing the existing rename macro.
  *   All references to the previous destination name can be removed since they're
  *   never written to disk.
  *

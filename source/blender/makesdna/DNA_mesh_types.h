@@ -61,7 +61,8 @@ typedef struct EditMeshData {
 } EditMeshData;
 
 /**
- * \warning Typical access is done via #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
+ * \warning Typical access is done via
+ * #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
  */
 struct MLoopTri_Store {
   /* WARNING! swapping between array (ready-to-be-used data) and array_wip
