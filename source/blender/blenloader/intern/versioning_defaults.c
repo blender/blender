@@ -144,6 +144,11 @@ static ID *rename_id_for_versioning(Main *bmain,
  * This function can be emptied each time the startup.blend is updated. */
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
+  /* For all builtin templates shipped with Blender. */
+  const bool builtin_template =
+      (!app_template ||
+       STR_ELEM(app_template, "2D_Animation", "Sculpting", "VFX", "Video_Editing"));
+
   /* For all startup.blend files. */
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -191,31 +196,29 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
   }
 
-  if (app_template == NULL) {
+  if (builtin_template) {
     /* Name all screens by their workspaces (avoids 'Default.###' names). */
-    {
-      /* Default only has one window. */
-      wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
-      for (WorkSpace *workspace = bmain->workspaces.first; workspace;
-           workspace = workspace->id.next) {
-        WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook,
-                                                                              workspace);
-        bScreen *screen = layout->screen;
-        BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-        BLI_libblock_ensure_unique_name(bmain, screen->id.name);
-      }
+    /* Default only has one window. */
+    wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
+    for (WorkSpace *workspace = bmain->workspaces.first; workspace;
+         workspace = workspace->id.next) {
+      WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook,
+                                                                            workspace);
+      bScreen *screen = layout->screen;
+      BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+      BLI_libblock_ensure_unique_name(bmain, screen->id.name);
     }
+  }
 
-    {
-      /* 'UV Editing' should use UV mode. */
-      bScreen *screen = BLI_findstring(&bmain->screens, "UV Editing", offsetof(ID, name) + 2);
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-          if (sl->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)sl;
-            if (sima->mode == SI_MODE_VIEW) {
-              sima->mode = SI_MODE_UV;
-            }
+  if (app_template == NULL) {
+    /* 'UV Editing' should use UV mode. */
+    bScreen *screen = BLI_findstring(&bmain->screens, "UV Editing", offsetof(ID, name) + 2);
+    for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+      for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+        if (sl->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = (SpaceImage *)sl;
+          if (sima->mode == SI_MODE_VIEW) {
+            sima->mode = SI_MODE_UV;
           }
         }
       }
@@ -265,11 +268,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
     }
   }
-
-  /* For all builtin templates shipped with Blender. */
-  bool builtin_template = (!app_template || STREQ(app_template, "2D_Animation") ||
-                           STREQ(app_template, "Sculpting") || STREQ(app_template, "VFX") ||
-                           STREQ(app_template, "Video_Editing"));
 
   if (builtin_template) {
     /* Clear all tools to use default options instead, ignore the tool saved in the file. */
