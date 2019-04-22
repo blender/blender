@@ -1497,13 +1497,12 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 
   if (ftype == IMB_FTYPE_IMAGIC) {
     im_format->imtype = R_IMF_IMTYPE_IRIS;
-
-#ifdef WITH_HDR
   }
+#ifdef WITH_HDR
   else if (ftype == IMB_FTYPE_RADHDR) {
     im_format->imtype = R_IMF_IMTYPE_RADHDR;
-#endif
   }
+#endif
   else if (ftype == IMB_FTYPE_PNG) {
     im_format->imtype = R_IMF_IMTYPE_PNG;
 
@@ -1517,13 +1516,12 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 #ifdef WITH_DDS
   else if (ftype == IMB_FTYPE_DDS) {
     im_format->imtype = R_IMF_IMTYPE_DDS;
-#endif
   }
+#endif
   else if (ftype == IMB_FTYPE_BMP) {
     im_format->imtype = R_IMF_IMTYPE_BMP;
-
-#ifdef WITH_TIFF
   }
+#ifdef WITH_TIFF
   else if (ftype == IMB_FTYPE_TIF) {
     im_format->imtype = R_IMF_IMTYPE_TIFF;
     if (custom_flags & TIF_16BIT) {
@@ -1565,8 +1563,8 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
   }
   else if (ftype == IMB_FTYPE_DPX) {
     im_format->imtype = R_IMF_IMTYPE_DPX;
-#endif
   }
+#endif
   else if (ftype == IMB_FTYPE_TGA) {
     if (custom_flags & RAWTGA) {
       im_format->imtype = R_IMF_IMTYPE_RAWTGA;
