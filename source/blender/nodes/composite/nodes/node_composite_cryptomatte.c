@@ -276,8 +276,9 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree), bNode *dest_nod
   NodeCryptomatte *src_nc = src_node->storage;
   NodeCryptomatte *dest_nc = MEM_dupallocN(src_nc);
 
-  if (src_nc->matte_id)
+  if (src_nc->matte_id) {
     dest_nc->matte_id = MEM_dupallocN(src_nc->matte_id);
+  }
 
   dest_node->storage = dest_nc;
 }

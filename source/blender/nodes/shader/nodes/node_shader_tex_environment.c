@@ -71,8 +71,9 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   int isdata = tex->color_space == SHD_COLORSPACE_NONE;
   GPUNodeLink *outalpha;
 
-  if (!ima)
+  if (!ima) {
     return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
+  }
 
   if (!in[0].link) {
     GPU_link(mat, "node_tex_environment_texco", GPU_builtin(GPU_VIEW_POSITION), &in[0].link);

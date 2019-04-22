@@ -67,8 +67,9 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
   bNodeTree *ngroup = (bNodeTree *)node->id;
   bNodeTreeExec *exec;
 
-  if (!ngroup)
+  if (!ngroup) {
     return NULL;
+  }
 
   /* initialize the internal node tree execution */
   exec = ntreeShaderBeginExecTree_internal(context, ngroup, key);
@@ -80,8 +81,9 @@ static void group_freeexec(void *nodedata)
 {
   bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
 
-  if (gexec)
+  if (gexec) {
     ntreeShaderEndExecTree_internal(gexec);
+  }
 }
 
 /* Copy inputs to the internal stack.
@@ -98,8 +100,9 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
     if (node->type == NODE_GROUP_INPUT) {
       for (sock = node->outputs.first, a = 0; sock; sock = sock->next, ++a) {
         ns = node_get_socket_stack(gstack, sock);
-        if (ns)
+        if (ns) {
           copy_stack(ns, in[a]);
+        }
       }
     }
   }
@@ -119,8 +122,9 @@ static void group_move_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
     if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
       for (sock = node->inputs.first, a = 0; sock; sock = sock->next, ++a) {
         ns = node_get_socket_stack(gstack, sock);
-        if (ns)
+        if (ns) {
           move_stack(out[a], ns);
+        }
       }
       break; /* only one active output node */
     }
@@ -137,16 +141,18 @@ static void group_execute(void *data,
   bNodeTreeExec *exec = execdata->data;
   bNodeThreadStack *nts;
 
-  if (!exec)
+  if (!exec) {
     return;
+  }
 
   /* XXX same behavior as trunk: all nodes inside group are executed.
    * it's stupid, but just makes it work. compo redesign will do this better.
    */
   {
     bNode *inode;
-    for (inode = exec->nodetree->nodes.first; inode; inode = inode->next)
+    for (inode = exec->nodetree->nodes.first; inode; inode = inode->next) {
       inode->need_exec = 1;
+    }
   }
 
   nts = ntreeGetThreadStack(exec, thread);
@@ -208,8 +214,9 @@ static int gpu_group_execute(
 {
   bNodeTreeExec *exec = execdata->data;
 
-  if (!node->id)
+  if (!node->id) {
     return 0;
+  }
 
   group_gpu_copy_inputs(node, in, exec->stack);
   ntreeExecGPUNodes(exec, mat, NULL);

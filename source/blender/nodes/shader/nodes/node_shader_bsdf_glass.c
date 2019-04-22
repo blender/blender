@@ -55,8 +55,9 @@ static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {
-  if (!in[3].link)
+  if (!in[3].link) {
     GPU_link(mat, "world_normals_get", &in[3].link);
+  }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);
 

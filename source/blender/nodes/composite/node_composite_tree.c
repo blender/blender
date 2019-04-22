@@ -89,8 +89,9 @@ static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
 static void free_cache(bNodeTree *ntree)
 {
   bNode *node;
-  for (node = ntree->nodes.first; node; node = node->next)
+  for (node = ntree->nodes.first; node; node = node->next) {
     free_node_cache(ntree, node);
+  }
 }
 
 /* local tree then owns all compbufs */
@@ -109,10 +110,12 @@ static void localize(bNodeTree *UNUSED(localtree), bNodeTree *ntree)
 
     if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
       if (node->id) {
-        if (node->flag & NODE_DO_OUTPUT)
+        if (node->flag & NODE_DO_OUTPUT) {
           node->new_node->id = (ID *)node->id;
-        else
+        }
+        else {
           node->new_node->id = NULL;
+        }
       }
     }
 
@@ -150,8 +153,9 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
          * and to achieve much better performance on further calls this context should be
          * copied back to original node */
         if (lnode->storage) {
-          if (lnode->new_node->storage)
+          if (lnode->new_node->storage) {
             BKE_tracking_distortion_free(lnode->new_node->storage);
+          }
 
           lnode->new_node->storage = BKE_tracking_distortion_copy(lnode->storage);
         }
@@ -253,12 +257,14 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {
   bNode *node;
 
-  if (ntree == NULL)
+  if (ntree == NULL) {
     return;
+  }
 
   for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == CMP_NODE_R_LAYERS)
+    if (node->type == CMP_NODE_R_LAYERS) {
       node_cmp_rlayers_outputs(ntree, node);
+    }
   }
 }
 
@@ -267,12 +273,14 @@ void ntreeCompositRegisterPass(
 {
   bNode *node;
 
-  if (ntree == NULL)
+  if (ntree == NULL) {
     return;
+  }
 
   for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == CMP_NODE_R_LAYERS)
+    if (node->type == CMP_NODE_R_LAYERS) {
       node_cmp_rlayers_register_pass(ntree, node, scene, view_layer, name, type);
+    }
   }
 }
 
@@ -290,10 +298,12 @@ void ntreeCompositTagRender(Scene *curscene)
       bNode *node;
 
       for (node = sce->nodetree->nodes.first; node; node = node->next) {
-        if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE)
+        if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE) {
           nodeUpdate(sce->nodetree, node);
-        else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */
+        }
+        else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */ {
           nodeUpdate(sce->nodetree, node);
+        }
       }
     }
   }
@@ -304,12 +314,14 @@ void ntreeCompositClearTags(bNodeTree *ntree)
 {
   bNode *node;
 
-  if (ntree == NULL)
+  if (ntree == NULL) {
     return;
+  }
 
   for (node = ntree->nodes.first; node; node = node->next) {
     node->need_exec = 0;
-    if (node->type == NODE_GROUP)
+    if (node->type == NODE_GROUP) {
       ntreeCompositClearTags((bNodeTree *)node->id);
+    }
   }
 }

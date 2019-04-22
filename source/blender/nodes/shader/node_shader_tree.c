@@ -408,8 +408,9 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
 
   for (node = group_ntree->nodes.first; node; node = node->next) {
     for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
-      if ((sock->flag & SOCK_HIDE_VALUE) == 0)
+      if ((sock->flag & SOCK_HIDE_VALUE) == 0) {
         continue;
+      }
       /* If socket is linked to a group input node and sockets id match. */
       if (sock && sock->link && sock->link->fromnode->type == NODE_GROUP_INPUT) {
         if (STREQ(isock->identifier, sock->link->fromsock->identifier)) {
@@ -439,16 +440,18 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 
   for (group_node = localtree->nodes.first; group_node; group_node = group_node->next) {
 
-    if (!(ELEM(group_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) || group_node->id == NULL)
+    if (!(ELEM(group_node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) || group_node->id == NULL) {
       continue;
+    }
 
     /* Do it recursively. */
     ntree_shader_groups_expand_inputs((bNodeTree *)group_node->id);
 
     bNodeSocket *group_socket = group_node->inputs.first;
     for (; group_socket; group_socket = group_socket->next) {
-      if (group_socket->link != NULL)
+      if (group_socket->link != NULL) {
         continue;
+      }
 
       /* Detect the case where an input is plugged into a hidden value socket.
        * In this case we should just remove the link to trigger the socket default override. */
@@ -574,8 +577,9 @@ static void ntree_shader_link_builtin_group_normal(bNodeTree *ntree,
   /* Need to update tree so all node instances nodes gets proper sockets. */
   bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
   node_group_verify(ntree, group_node, &group_ntree->id);
-  if (group_input_node)
+  if (group_input_node) {
     node_group_input_verify(group_ntree, group_input_node, &group_ntree->id);
+  }
   ntreeUpdateTree(G.main, group_ntree);
   /* Assumes sockets are always added at the end. */
   bNodeSocket *group_node_normal_socket = group_node->inputs.last;
@@ -849,8 +853,9 @@ bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context,
   /* allocate the thread stack listbase array */
   exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
 
-  for (node = exec->nodetree->nodes.first; node; node = node->next)
+  for (node = exec->nodetree->nodes.first; node; node = node->next) {
     node->need_exec = 1;
+  }
 
   return exec;
 }
@@ -863,8 +868,9 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
   /* XXX hack: prevent exec data from being generated twice.
    * this should be handled by the renderer!
    */
-  if (ntree->execdata)
+  if (ntree->execdata) {
     return ntree->execdata;
+  }
 
   context.previews = ntree->previews;
 
@@ -885,9 +891,11 @@ void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
 
   if (exec->threadstack) {
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = exec->threadstack[a].first; nts; nts = nts->next)
-        if (nts->stack)
+      for (nts = exec->threadstack[a].first; nts; nts = nts->next) {
+        if (nts->stack) {
           MEM_freeN(nts->stack);
+        }
+      }
       BLI_freelistN(&exec->threadstack[a]);
     }
 
@@ -921,8 +929,9 @@ bool ntreeShaderExecTree(bNodeTree *ntree, int thread)
   /* ensure execdata is only initialized once */
   if (!exec) {
     BLI_thread_lock(LOCK_NODES);
-    if (!ntree->execdata)
+    if (!ntree->execdata) {
       ntree->execdata = ntreeShaderBeginExecTree(ntree);
+    }
     BLI_thread_unlock(LOCK_NODES);
 
     exec = ntree->execdata;

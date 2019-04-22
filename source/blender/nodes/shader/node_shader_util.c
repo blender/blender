@@ -49,10 +49,12 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
   const float *from = ns->vec;
 
   if (type_in == SOCK_FLOAT) {
-    if (ns->sockettype == SOCK_FLOAT)
+    if (ns->sockettype == SOCK_FLOAT) {
       *in = *from;
-    else
+    }
+    else {
       *in = (from[0] + from[1] + from[2]) / 3.0f;
+    }
   }
   else if (type_in == SOCK_VECTOR) {
     if (ns->sockettype == SOCK_FLOAT) {
@@ -98,18 +100,24 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
     nodestack_get_vec(gs->vec, type, ns);
     gs->link = ns->data;
 
-    if (type == SOCK_FLOAT)
+    if (type == SOCK_FLOAT) {
       gs->type = GPU_FLOAT;
-    else if (type == SOCK_INT)
+    }
+    else if (type == SOCK_INT) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
-    else if (type == SOCK_VECTOR)
+    }
+    else if (type == SOCK_VECTOR) {
       gs->type = GPU_VEC3;
-    else if (type == SOCK_RGBA)
+    }
+    else if (type == SOCK_RGBA) {
       gs->type = GPU_VEC4;
-    else if (type == SOCK_SHADER)
+    }
+    else if (type == SOCK_SHADER) {
       gs->type = GPU_CLOSURE;
-    else
+    }
+    else {
       gs->type = GPU_NONE;
+    }
 
     gs->hasinput = ns->hasinput && ns->data;
     /* XXX Commented out the ns->data check here, as it seems it's not always set,
@@ -133,8 +141,9 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
   bNodeSocket *sock;
   int i;
 
-  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++)
+  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++) {
     node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
+  }
 
   gs[i].end = true;
 }
@@ -144,8 +153,9 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
   bNodeSocket *sock;
   int i;
 
-  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++)
+  for (sock = sockets->first, i = 0; sock; sock = sock->next, i++) {
     node_data_from_gpu_stack(ns[i], &gs[i]);
+  }
 }
 
 bNode *nodeGetActiveTexture(bNodeTree *ntree)
@@ -154,23 +164,28 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
   bNode *node, *tnode, *inactivenode = NULL, *activetexnode = NULL, *activegroup = NULL;
   bool hasgroup = false;
 
-  if (!ntree)
+  if (!ntree) {
     return NULL;
+  }
 
   for (node = ntree->nodes.first; node; node = node->next) {
     if (node->flag & NODE_ACTIVE_TEXTURE) {
       activetexnode = node;
       /* if active we can return immediately */
-      if (node->flag & NODE_ACTIVE)
+      if (node->flag & NODE_ACTIVE) {
         return node;
+      }
     }
-    else if (!inactivenode && node->typeinfo->nclass == NODE_CLASS_TEXTURE)
+    else if (!inactivenode && node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
       inactivenode = node;
+    }
     else if (node->type == NODE_GROUP) {
-      if (node->flag & NODE_ACTIVE)
+      if (node->flag & NODE_ACTIVE) {
         activegroup = node;
-      else
+      }
+      else {
         hasgroup = true;
+      }
     }
   }
 
@@ -178,20 +193,23 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
   if (activegroup) {
     tnode = nodeGetActiveTexture((bNodeTree *)activegroup->id);
     /* active node takes priority, so ignore any other possible nodes here */
-    if (tnode)
+    if (tnode) {
       return tnode;
+    }
   }
 
-  if (activetexnode)
+  if (activetexnode) {
     return activetexnode;
+  }
 
   if (hasgroup) {
     /* node active texture node in this tree, look inside groups */
     for (node = ntree->nodes.first; node; node = node->next) {
       if (node->type == NODE_GROUP) {
         tnode = nodeGetActiveTexture((bNodeTree *)node->id);
-        if (tnode && ((tnode->flag & NODE_ACTIVE_TEXTURE) || !inactivenode))
+        if (tnode && ((tnode->flag & NODE_ACTIVE_TEXTURE) || !inactivenode)) {
           return tnode;
+        }
       }
     }
   }
@@ -218,8 +236,9 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
     do_it = false;
     /* for groups, only execute outputs for edited group */
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-      if ((output_node != NULL) && (node == output_node))
+      if ((output_node != NULL) && (node == output_node)) {
         do_it = true;
+      }
     }
     else {
       do_it = true;
@@ -230,8 +249,9 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
         node_get_stack(node, stack, nsin, nsout);
         gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
         gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-        if (node->typeinfo->gpufunc(mat, node, &nodeexec->data, gpuin, gpuout))
+        if (node->typeinfo->gpufunc(mat, node, &nodeexec->data, gpuin, gpuout)) {
           data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
+        }
       }
     }
   }
@@ -261,7 +281,8 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
 
     GPU_link(mat, "mapping", in[0].link, tmat0, tmat1, tmat2, tmat3, tmin, tmax, &in[0].link);
 
-    if (texmap->type == TEXMAP_TYPE_NORMAL)
+    if (texmap->type == TEXMAP_TYPE_NORMAL) {
       GPU_link(mat, "texco_norm", in[0].link, &in[0].link);
+    }
   }
 }

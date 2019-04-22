@@ -115,8 +115,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   int isdata = tex->color_space == SHD_COLORSPACE_NONE;
   float blend = tex->projection_blend;
 
-  if (!ima)
+  if (!ima) {
     return GPU_stack_link(mat, node, "node_tex_image_empty", in, out);
+  }
 
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
   if ((tex->color_space == SHD_COLORSPACE_COLOR) && ibuf &&
@@ -126,8 +127,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   }
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
-  if (!in[0].link)
+  if (!in[0].link) {
     in[0].link = GPU_attribute(CD_MTFACE, "");
+  }
 
   node_shader_gpu_tex_mapping(mat, node, in, out);
 

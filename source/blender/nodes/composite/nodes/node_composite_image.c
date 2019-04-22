@@ -90,8 +90,9 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
      * Any dynamically allocated sockets follow afterwards, and are sorted in the order in which they were stored in the RenderResult.
      * Therefore, we remember the index of the last matched socket. New sockets are placed behind the previously traversed one, but always after the first 31. */
     int after_index = *prev_index;
-    if (is_rlayers && after_index < 30)
+    if (is_rlayers && after_index < 30) {
       after_index = 30;
+    }
 
     if (rres_index >= 0) {
       sock = node_add_socket_from_template(
@@ -158,10 +159,12 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
         RenderPass *rpass;
         for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
           int type;
-          if (rpass->channels == 1)
+          if (rpass->channels == 1) {
             type = SOCK_FLOAT;
-          else
+          }
+          else {
             type = SOCK_RGBA;
+          }
 
           cmp_node_image_add_pass_output(ntree,
                                          node,
@@ -345,10 +348,12 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
   int sock_index;
 
   /* XXX make callback */
-  if (rlayer)
+  if (rlayer) {
     cmp_node_rlayer_create_outputs(ntree, node, &available_sockets);
-  else
+  }
+  else {
     cmp_node_image_create_outputs(ntree, node, &available_sockets);
+  }
 
   /* Get rid of sockets whose passes are not available in the image.
    * If sockets that are not available would be deleted, the connections to them would be lost
@@ -368,8 +373,9 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
     else {
       bNodeLink *link;
       for (link = ntree->links.first; link; link = link->next) {
-        if (link->fromsock == sock)
+        if (link->fromsock == sock) {
           break;
+        }
       }
       if (!link && (!rlayer || sock_index > 30)) {
         MEM_freeN(sock->storage);
@@ -387,8 +393,9 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
 static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 {
   /* avoid unnecessary updates, only changes to the image/image user data are of interest */
-  if (node->update & NODE_UPDATE_ID)
+  if (node->update & NODE_UPDATE_ID) {
     cmp_node_image_verify_outputs(ntree, node, false);
+  }
 
   cmp_node_update_default(ntree, node);
 }
@@ -411,8 +418,9 @@ static void node_composit_free_image(bNode *node)
   bNodeSocket *sock;
 
   /* free extra socket info */
-  for (sock = node->outputs.first; sock; sock = sock->next)
+  for (sock = node->outputs.first; sock; sock = sock->next) {
     MEM_freeN(sock->storage);
+  }
 
   MEM_freeN(node->storage);
 }
@@ -426,8 +434,9 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = MEM_dupallocN(src_node->storage);
 
   /* copy extra socket info */
-  for (sock = src_node->outputs.first; sock; sock = sock->next)
+  for (sock = src_node->outputs.first; sock; sock = sock->next) {
     sock->new_sock->storage = MEM_dupallocN(sock->storage);
+  }
 }
 
 void register_node_type_cmp_image(void)
@@ -518,9 +527,11 @@ static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntre
      * Render layers node can only be used in local scene->nodetree,
      * since it directly links to the scene.
      */
-    for (scene = G.main->scenes.first; scene; scene = scene->id.next)
-      if (scene->nodetree == ntree)
+    for (scene = G.main->scenes.first; scene; scene = scene->id.next) {
+      if (scene->nodetree == ntree) {
         break;
+      }
+    }
 
     return (scene != NULL);
   }

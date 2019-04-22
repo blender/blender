@@ -45,8 +45,9 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
   tex_input_rgba(col2, in[2], p, thread);
 
   /* use alpha */
-  if (node->custom2 & 1)
+  if (node->custom2 & 1) {
     fac *= col2[3];
+  }
 
   CLAMP(fac, 0.0f, 1.0f);
 

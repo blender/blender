@@ -100,8 +100,9 @@ static bNodeSocket *verify_socket_template(
   bNodeSocket *sock;
 
   for (sock = socklist->first; sock; sock = sock->next) {
-    if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR))
+    if (STREQLEN(sock->name, stemp->name, NODE_MAXSTR)) {
       break;
+    }
   }
   if (sock) {
     if (sock->type != stemp->type) {
@@ -182,10 +183,12 @@ void node_verify_socket_templates(bNodeTree *ntree, bNode *node)
    * render layer node since it still has fixed sockets too.
    */
   if (ntype) {
-    if (ntype->inputs && ntype->inputs[0].type >= 0)
+    if (ntype->inputs && ntype->inputs[0].type >= 0) {
       verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
-    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type != CMP_NODE_R_LAYERS)
+    }
+    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type != CMP_NODE_R_LAYERS) {
       verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
+    }
   }
 }
 
@@ -194,8 +197,9 @@ void node_socket_init_default_value(bNodeSocket *sock)
   int type = sock->typeinfo->type;
   int subtype = sock->typeinfo->subtype;
 
-  if (sock->default_value)
+  if (sock->default_value) {
     return; /* already initialized */
+  }
 
   switch (type) {
     case SOCK_FLOAT: {
@@ -264,12 +268,14 @@ void node_socket_init_default_value(bNodeSocket *sock)
 void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
 {
   /* sanity check */
-  if (to->type != from->type)
+  if (to->type != from->type) {
     return;
+  }
 
   /* make sure both exist */
-  if (!from->default_value)
+  if (!from->default_value) {
     return;
+  }
   node_socket_init_default_value(to);
 
   switch (from->typeinfo->type) {
@@ -339,12 +345,14 @@ static void standard_node_socket_interface_verify_socket(bNodeTree *UNUSED(ntree
                                                          const char *UNUSED(data_path))
 {
   /* sanity check */
-  if (sock->type != stemp->typeinfo->type)
+  if (sock->type != stemp->typeinfo->type) {
     return;
+  }
 
   /* make sure both exist */
-  if (!stemp->default_value)
+  if (!stemp->default_value) {
     return;
+  }
   node_socket_init_default_value(sock);
 
   switch (stemp->typeinfo->type) {

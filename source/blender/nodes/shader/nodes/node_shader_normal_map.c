@@ -60,32 +60,37 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
 
   float d[4] = {0, 0, 0, 0};
 
-  if (in[0].link)
+  if (in[0].link) {
     strength = in[0].link;
+  }
   else if (node->original) {
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 0);
     bNodeSocketValueFloat *socket_data = socket->default_value;
     strength = GPU_uniform(&socket_data->value);
   }
-  else
+  else {
     strength = GPU_constant(in[0].vec);
+  }
 
-  if (in[1].link)
+  if (in[1].link) {
     realnorm = in[1].link;
+  }
   else if (node->original) {
     bNodeSocket *socket = BLI_findlink(&node->original->inputs, 1);
     bNodeSocketValueRGBA *socket_data = socket->default_value;
     realnorm = GPU_uniform(socket_data->value);
   }
-  else
+  else {
     realnorm = GPU_constant(in[1].vec);
+  }
 
   negnorm = GPU_builtin(GPU_VIEW_NORMAL);
   GPU_link(mat, "math_max", strength, GPU_constant(d), &strength);
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";
-  if (nm->space == SHD_SPACE_BLENDER_OBJECT || nm->space == SHD_SPACE_BLENDER_WORLD)
+  if (nm->space == SHD_SPACE_BLENDER_OBJECT || nm->space == SHD_SPACE_BLENDER_WORLD) {
     color_to_normal_fnc_name = "color_to_blender_normal_new_shading";
+  }
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
       GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);

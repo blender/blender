@@ -57,8 +57,9 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
                                                  GPUNodeStack *in,
                                                  GPUNodeStack *out)
 {
-  if (!in[5].link)
+  if (!in[5].link) {
     GPU_link(mat, "world_normals_get", &in[5].link);
+  }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
 
@@ -83,10 +84,12 @@ static void node_shader_update_subsurface_scattering(bNodeTree *UNUSED(ntree), b
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (STREQ(sock->name, "Sharpness")) {
-      if (falloff == SHD_SUBSURFACE_CUBIC)
+      if (falloff == SHD_SUBSURFACE_CUBIC) {
         sock->flag &= ~SOCK_UNAVAIL;
-      else
+      }
+      else {
         sock->flag |= SOCK_UNAVAIL;
+      }
     }
   }
 }

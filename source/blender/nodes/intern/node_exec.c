@@ -44,8 +44,9 @@ int node_exec_socket_use_stack(bNodeSocket *sock)
 /* for a given socket, find the actual stack entry */
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 {
-  if (stack && sock && sock->stack_index >= 0)
+  if (stack && sock && sock->stack_index >= 0) {
     return stack + sock->stack_index;
+  }
   return NULL;
 }
 
@@ -74,10 +75,12 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
     sock->stack_index = sock->link->fromsock->stack_index;
   }
   else {
-    if (node_exec_socket_use_stack(sock))
+    if (node_exec_socket_use_stack(sock)) {
       sock->stack_index = (*index)++;
-    else
+    }
+    else {
       sock->stack_index = -1;
+    }
   }
 }
 
@@ -98,17 +101,21 @@ static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *inte
     }
     /* if not internally connected, assign a new stack index anyway to avoid bad stack access */
     if (!link) {
-      if (node_exec_socket_use_stack(sock))
+      if (node_exec_socket_use_stack(sock)) {
         sock->stack_index = (*index)++;
-      else
+      }
+      else {
         sock->stack_index = -1;
+      }
     }
   }
   else {
-    if (node_exec_socket_use_stack(sock))
+    if (node_exec_socket_use_stack(sock)) {
       sock->stack_index = (*index)++;
-    else
+    }
+    else {
       sock->stack_index = -1;
+    }
   }
 }
 
@@ -119,12 +126,14 @@ static struct bNodeStack *setup_stack(bNodeStack *stack,
                                       bNodeSocket *sock)
 {
   bNodeStack *ns = node_get_socket_stack(stack, sock);
-  if (!ns)
+  if (!ns) {
     return NULL;
+  }
 
   /* don't mess with remote socket stacks, these are initialized by other nodes! */
-  if (sock->link)
+  if (sock->link) {
     return ns;
+  }
 
   ns->sockettype = sock->type;
 
@@ -179,16 +188,19 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     node->stack_index = index;
 
     /* init node socket stack indexes */
-    for (sock = node->inputs.first; sock; sock = sock->next)
+    for (sock = node->inputs.first; sock; sock = sock->next) {
       node_init_input_index(sock, &index);
+    }
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      for (sock = node->outputs.first; sock; sock = sock->next)
+      for (sock = node->outputs.first; sock; sock = sock->next) {
         node_init_output_index(sock, &index, &node->internal_links);
+      }
     }
     else {
-      for (sock = node->outputs.first; sock; sock = sock->next)
+      for (sock = node->outputs.first; sock; sock = sock->next) {
         node_init_output_index(sock, &index, NULL);
+      }
     }
   }
 
@@ -200,8 +212,9 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   exec->stack = MEM_callocN(exec->stacksize * sizeof(bNodeStack), "bNodeStack");
 
   /* all non-const results are considered inputs */
-  for (n = 0; n < exec->stacksize; ++n)
+  for (n = 0; n < exec->stacksize; ++n) {
     exec->stack[n].hasinput = 1;
+  }
 
   /* prepare all nodes for execution */
   for (n = 0, nodeexec = exec->nodeexec; n < totnodes; ++n, ++nodeexec) {
@@ -211,12 +224,14 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     /* tag inputs */
     for (sock = node->inputs.first; sock; sock = sock->next) {
       /* disable the node if an input link is invalid */
-      if (sock->link && !(sock->link->flag & NODE_LINK_VALID))
+      if (sock->link && !(sock->link->flag & NODE_LINK_VALID)) {
         node->need_exec = 0;
+      }
 
       ns = setup_stack(exec->stack, ntree, node, sock);
-      if (ns)
+      if (ns) {
         ns->hasoutput = 1;
+      }
     }
 
     /* tag all outputs */
@@ -228,12 +243,14 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     nodeexec->data.preview = context->previews ?
                                  BKE_node_instance_hash_lookup(context->previews, nodekey) :
                                  NULL;
-    if (node->typeinfo->initexecfunc)
+    if (node->typeinfo->initexecfunc) {
       nodeexec->data.data = node->typeinfo->initexecfunc(context, node, nodekey);
+    }
   }
 
-  if (nodelist)
+  if (nodelist) {
     MEM_freeN(nodelist);
+  }
 
   return exec;
 }
@@ -243,16 +260,19 @@ void ntree_exec_end(bNodeTreeExec *exec)
   bNodeExec *nodeexec;
   int n;
 
-  if (exec->stack)
+  if (exec->stack) {
     MEM_freeN(exec->stack);
-
-  for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
-    if (nodeexec->freeexecfunc)
-      nodeexec->freeexecfunc(nodeexec->data.data);
   }
 
-  if (exec->nodeexec)
+  for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+    if (nodeexec->freeexecfunc) {
+      nodeexec->freeexecfunc(nodeexec->data.data);
+    }
+  }
+
+  if (exec->nodeexec) {
     MEM_freeN(exec->nodeexec);
+  }
 
   MEM_freeN(exec);
 }
@@ -304,8 +324,9 @@ bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
        * If the mute func is not set, assume the node should never be muted,
        * and hence execute it!
        */
-      if (node->typeinfo->execfunc && !(node->flag & NODE_MUTED))
+      if (node->typeinfo->execfunc && !(node->flag & NODE_MUTED)) {
         node->typeinfo->execfunc(callerdata, thread, node, &nodeexec->data, nsin, nsout);
+      }
     }
   }
 

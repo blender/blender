@@ -53,10 +53,13 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       *out = in0 * in1;
       break;
     case NODE_MATH_DIVIDE: {
-      if (in1 == 0) /* We don't want to divide by zero. */
+      if (in1 == 0) {
+        /* We don't want to divide by zero. */
         *out = 0.0;
-      else
+      }
+      else {
         *out = in0 / in1;
+      }
       break;
     }
     case NODE_MATH_SIN: {
@@ -73,18 +76,22 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
     case NODE_MATH_ASIN: {
       /* Can't do the impossible... */
-      if (in0 <= 1 && in0 >= -1)
+      if (in0 <= 1 && in0 >= -1) {
         *out = asinf(in0);
-      else
+      }
+      else {
         *out = 0.0;
+      }
       break;
     }
     case NODE_MATH_ACOS: {
       /* Can't do the impossible... */
-      if (in0 <= 1 && in0 >= -1)
+      if (in0 <= 1 && in0 >= -1) {
         *out = acosf(in0);
-      else
+      }
+      else {
         *out = 0.0;
+      }
       break;
     }
     case NODE_MATH_ATAN: {
@@ -109,24 +116,30 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
     case NODE_MATH_LOG: {
       /* Don't want any imaginary numbers... */
-      if (in0 > 0 && in1 > 0)
+      if (in0 > 0 && in1 > 0) {
         *out = log(in0) / log(in1);
-      else
+      }
+      else {
         *out = 0.0;
+      }
       break;
     }
     case NODE_MATH_MIN: {
-      if (in0 < in1)
+      if (in0 < in1) {
         *out = in0;
-      else
+      }
+      else {
         *out = in1;
+      }
       break;
     }
     case NODE_MATH_MAX: {
-      if (in0 > in1)
+      if (in0 > in1) {
         *out = in0;
-      else
+      }
+      else {
         *out = in1;
+      }
       break;
     }
     case NODE_MATH_ROUND: {
@@ -135,26 +148,32 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
 
     case NODE_MATH_LESS: {
-      if (in0 < in1)
+      if (in0 < in1) {
         *out = 1.0f;
-      else
+      }
+      else {
         *out = 0.0f;
+      }
       break;
     }
 
     case NODE_MATH_GREATER: {
-      if (in0 > in1)
+      if (in0 > in1) {
         *out = 1.0f;
-      else
+      }
+      else {
         *out = 0.0f;
+      }
       break;
     }
 
     case NODE_MATH_MOD: {
-      if (in1 == 0.0f)
+      if (in1 == 0.0f) {
         *out = 0.0f;
-      else
+      }
+      else {
         *out = fmod(in0, in1);
+      }
       break;
     }
 
@@ -184,10 +203,12 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     }
 
     case NODE_MATH_SQRT: {
-      if (in0 > 0.0f)
+      if (in0 > 0.0f) {
         *out = sqrtf(in0);
-      else
+      }
+      else {
         *out = 0.0f;
+      }
       break;
     }
 

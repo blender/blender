@@ -60,8 +60,9 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
   if (dg->node->need_exec) {
     dg->fn(out, params, dg->node, dg->in, thread);
 
-    if (dg->cdata->do_preview)
+    if (dg->cdata->do_preview) {
       tex_do_preview(dg->preview, params->previewco, out, dg->cdata->do_manage);
+    }
   }
 }
 
@@ -71,8 +72,9 @@ static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, sho
   if (dg) {
     tex_call_delegate(dg, in->vec, params, thread);
 
-    if (in->hasoutput && in->sockettype == SOCK_FLOAT)
+    if (in->hasoutput && in->sockettype == SOCK_FLOAT) {
       in->vec[1] = in->vec[2] = in->vec[0];
+    }
   }
   memcpy(out, in->vec, sz * sizeof(float));
 }
@@ -144,11 +146,13 @@ void tex_output(bNode *node,
     return;
   }
   else {
-    if (!out->data)
+    if (!out->data) {
       /* Freed in tex_end_exec (node.c) */
       dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
-    else
+    }
+    else {
       dg = out->data;
+    }
   }
 
   dg->cdata = cdata;

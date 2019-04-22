@@ -53,12 +53,15 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
   else {
     GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 
-    if (attr->axis == SHD_TANGENT_AXIS_X)
+    if (attr->axis == SHD_TANGENT_AXIS_X) {
       GPU_link(mat, "tangent_orco_x", orco, &orco);
-    else if (attr->axis == SHD_TANGENT_AXIS_Y)
+    }
+    else if (attr->axis == SHD_TANGENT_AXIS_Y) {
       GPU_link(mat, "tangent_orco_y", orco, &orco);
-    else
+    }
+    else {
       GPU_link(mat, "tangent_orco_z", orco, &orco);
+    }
 
     return GPU_stack_link(mat,
                           node,

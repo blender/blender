@@ -65,10 +65,12 @@ static void texture_get_from_context(const bContext *C,
   if (snode->texfrom == SNODE_TEX_BRUSH) {
     struct Brush *brush = NULL;
 
-    if (ob && (ob->mode & OB_MODE_SCULPT))
+    if (ob && (ob->mode & OB_MODE_SCULPT)) {
       brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
-    else
+    }
+    else {
       brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
+    }
 
     if (brush) {
       *r_from = (ID *)brush;
@@ -188,8 +190,9 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   /* allocate the thread stack listbase array */
   exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
 
-  for (node = exec->nodetree->nodes.first; node; node = node->next)
+  for (node = exec->nodetree->nodes.first; node; node = node->next) {
     node->need_exec = 1;
+  }
 
   return exec;
 }
@@ -202,8 +205,9 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
   /* XXX hack: prevent exec data from being generated twice.
    * this should be handled by the renderer!
    */
-  if (ntree->execdata)
+  if (ntree->execdata) {
     return ntree->execdata;
+  }
 
   context.previews = ntree->previews;
 
@@ -224,11 +228,15 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   bNodeStack *ns;
   int th, a;
 
-  for (th = 0; th < BLENDER_MAX_THREADS; th++)
-    for (nts = exec->threadstack[th].first; nts; nts = nts->next)
-      for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++)
-        if (ns->data && !ns->is_copy)
+  for (th = 0; th < BLENDER_MAX_THREADS; th++) {
+    for (nts = exec->threadstack[th].first; nts; nts = nts->next) {
+      for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
+        if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
+        }
+      }
+    }
+  }
 }
 
 void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
@@ -240,9 +248,11 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = exec->threadstack[a].first; nts; nts = nts->next)
-        if (nts->stack)
+      for (nts = exec->threadstack[a].first; nts; nts = nts->next) {
+        if (nts->stack) {
           MEM_freeN(nts->stack);
+        }
+      }
       BLI_freelistN(&exec->threadstack[a]);
     }
 
@@ -299,8 +309,9 @@ int ntreeTexExecTree(bNodeTree *nodes,
   /* ensure execdata is only initialized once */
   if (!exec) {
     BLI_thread_lock(LOCK_NODES);
-    if (!nodes->execdata)
+    if (!nodes->execdata) {
       ntreeTexBeginExecTree(nodes);
+    }
     BLI_thread_unlock(LOCK_NODES);
 
     exec = nodes->execdata;
@@ -310,8 +321,9 @@ int ntreeTexExecTree(bNodeTree *nodes,
   ntreeExecThreadNodes(exec, nts, &data, thread);
   ntreeReleaseThreadStack(nts);
 
-  if (texres->nor)
+  if (texres->nor) {
     retval |= TEX_NOR;
+  }
   retval |= TEX_RGB;
   /* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
    * however, the texture code checks this for other reasons (namely, a normal is required for material) */

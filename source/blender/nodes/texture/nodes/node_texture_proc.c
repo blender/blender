@@ -59,14 +59,16 @@ static void do_proc(float *result,
   if (is_normal) {
     texres.nor = result;
   }
-  else
+  else {
     texres.nor = NULL;
+  }
 
   textype = multitex_nodes(
       tex, p->co, p->dxt, p->dyt, p->osatex, &texres, thread, 0, p->mtex, NULL);
 
-  if (is_normal)
+  if (is_normal) {
     return;
+  }
 
   if (textype & TEX_RGB) {
     copy_v4_v4(result, &texres.tr);
@@ -276,8 +278,9 @@ ProcDef(stucci)
   BKE_texture_default(tex);
   tex->type = node->type - TEX_NODE_PROC;
 
-  if (tex->type == TEX_WOOD)
+  if (tex->type == TEX_WOOD) {
     tex->stype = TEX_BANDNOISE;
+  }
 }
 
 /* Node type definitions */

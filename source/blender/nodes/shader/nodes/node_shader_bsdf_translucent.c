@@ -48,8 +48,9 @@ static int node_shader_gpu_bsdf_translucent(GPUMaterial *mat,
                                             GPUNodeStack *in,
                                             GPUNodeStack *out)
 {
-  if (!in[1].link)
+  if (!in[1].link) {
     GPU_link(mat, "world_normals_get", &in[1].link);
+  }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 

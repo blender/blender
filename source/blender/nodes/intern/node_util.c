@@ -131,8 +131,9 @@ static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
     /* end of common prefix? */
     if (*ca != *cb) {
       /* prefix delimited by non-alphabetic char */
-      if (isalpha(*ca) || isalpha(*cb))
+      if (isalpha(*ca) || isalpha(*cb)) {
         return false;
+      }
       break;
     }
     ++prefix_len;
@@ -145,10 +146,12 @@ static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
   bNodeLink *link;
   int count = 0;
   for (link = ntree->links.first; link; link = link->next) {
-    if (link->fromsock == sock)
+    if (link->fromsock == sock) {
       ++count;
-    if (link->tosock == sock)
+    }
+    if (link->tosock == sock) {
       ++count;
+    }
   }
   return count;
 }
@@ -166,8 +169,9 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNo
     if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
       int link_count = node_count_links(ntree, sock);
       /* take +1 into account since we would add a new link */
-      if (link_count + 1 <= sock->limit)
+      if (link_count + 1 <= sock->limit) {
         return sock; /* found a valid free socket we can swap to */
+      }
     }
 
     sock = sock->next ? sock->next : first; /* wrap around the list end */
@@ -181,15 +185,17 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
   bNodeLink *tlink, *tlink_next;
 
   /* inputs can have one link only, outputs can have unlimited links */
-  if (node != link->tonode)
+  if (node != link->tonode) {
     return;
+  }
 
   for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
     bNodeSocket *new_sock;
     tlink_next = tlink->next;
 
-    if (sock != tlink->tosock)
+    if (sock != tlink->tosock) {
       continue;
+    }
 
     new_sock = node_find_linkable_socket(ntree, node, sock);
     if (new_sock && new_sock != sock) {
@@ -346,22 +352,27 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
   bNodeSocket *output, *input;
 
   /* sanity check */
-  if (!ntree)
+  if (!ntree) {
     return;
+  }
 
   /* use link pointer as a tag for handled sockets (for outputs is unused anyway) */
-  for (output = node->outputs.first; output; output = output->next)
+  for (output = node->outputs.first; output; output = output->next) {
     output->link = NULL;
+  }
 
   for (link = ntree->links.first; link; link = link->next) {
-    if (nodeLinkIsHidden(link))
+    if (nodeLinkIsHidden(link)) {
       continue;
+    }
 
     output = link->fromsock;
-    if (link->fromnode != node || output->link)
+    if (link->fromnode != node || output->link) {
       continue;
-    if (nodeSocketIsHidden(output) || output->flag & SOCK_NO_INTERNAL_LINK)
+    }
+    if (nodeSocketIsHidden(output) || output->flag & SOCK_NO_INTERNAL_LINK) {
       continue;
+    }
     output->link = link; /* not really used, just for tagging handled sockets */
 
     /* look for suitable input */
@@ -380,8 +391,9 @@ void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
   }
 
   /* clean up */
-  for (output = node->outputs.first; output; output = output->next)
+  for (output = node->outputs.first; output; output = output->next) {
     output->link = NULL;
+  }
 }
 
 /**** Default value RNA access ****/

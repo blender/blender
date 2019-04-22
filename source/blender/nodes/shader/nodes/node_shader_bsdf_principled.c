@@ -196,10 +196,12 @@ static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (STREQ(sock->name, "Transmission Roughness")) {
-      if (distribution == SHD_GLOSSY_GGX)
+      if (distribution == SHD_GLOSSY_GGX) {
         sock->flag &= ~SOCK_UNAVAIL;
-      else
+      }
+      else {
         sock->flag |= SOCK_UNAVAIL;
+      }
     }
   }
 }

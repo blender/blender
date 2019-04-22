@@ -62,8 +62,9 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                                    GPUNodeStack *in,
                                    GPUNodeStack *out)
 {
-  if (!in[0].link)
+  if (!in[0].link) {
     in[0].link = GPU_attribute(CD_ORCO, "");
+  }
 
   node_shader_gpu_tex_mapping(mat, node, in, out);
 

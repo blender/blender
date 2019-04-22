@@ -54,8 +54,9 @@ static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanc
   bNodeTree *ngroup = (bNodeTree *)node->id;
   void *exec;
 
-  if (!ngroup)
+  if (!ngroup) {
     return NULL;
+  }
 
   /* initialize the internal node tree execution */
   exec = ntreeTexBeginExecTree_internal(context, ngroup, key);
@@ -130,16 +131,18 @@ static void group_execute(void *data,
   bNodeTreeExec *exec = execdata->data;
   bNodeThreadStack *nts;
 
-  if (!exec)
+  if (!exec) {
     return;
+  }
 
   /* XXX same behavior as trunk: all nodes inside group are executed.
    * it's stupid, but just makes it work. compo redesign will do this better.
    */
   {
     bNode *inode;
-    for (inode = exec->nodetree->nodes.first; inode; inode = inode->next)
+    for (inode = exec->nodetree->nodes.first; inode; inode = inode->next) {
       inode->need_exec = 1;
+    }
   }
 
   nts = ntreeGetThreadStack(exec, thread);

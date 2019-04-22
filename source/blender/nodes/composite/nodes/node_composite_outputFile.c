@@ -46,8 +46,9 @@ static bool unique_path_unique_check(void *arg, const char *name)
   for (sock = data->lb->first; sock; sock = sock->next) {
     if (sock != data->sock) {
       NodeImageMultiFileSocket *sockdata = sock->storage;
-      if (STREQ(sockdata->path, name))
+      if (STREQ(sockdata->path, name)) {
         return true;
+      }
     }
   }
   return false;
@@ -66,8 +67,9 @@ void ntreeCompositOutputFileUniquePath(ListBase *list,
   data.sock = sock;
 
   /* See if we are given an empty string */
-  if (ELEM(NULL, sock, defname))
+  if (ELEM(NULL, sock, defname)) {
     return;
+  }
 
   sockdata = sock->storage;
   BLI_uniquename_cb(
@@ -85,8 +87,9 @@ static bool unique_layer_unique_check(void *arg, const char *name)
   for (sock = data->lb->first; sock; sock = sock->next) {
     if (sock != data->sock) {
       NodeImageMultiFileSocket *sockdata = sock->storage;
-      if (STREQ(sockdata->layer, name))
+      if (STREQ(sockdata->layer, name)) {
         return true;
+      }
     }
   }
   return false;
@@ -105,8 +108,9 @@ void ntreeCompositOutputFileUniqueLayer(ListBase *list,
   data.sock = sock;
 
   /* See if we are given an empty string */
-  if (ELEM(NULL, sock, defname))
+  if (ELEM(NULL, sock, defname)) {
     return;
+  }
 
   sockdata = sock->storage;
   BLI_uniquename_cb(
@@ -137,8 +141,9 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
       sockdata->format.imtype = R_IMF_IMTYPE_OPENEXR;
     }
   }
-  else
+  else {
     BKE_imformat_defaults(&sockdata->format);
+  }
   /* use node data format by default */
   sockdata->use_node_format = true;
 
@@ -153,11 +158,13 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock = BLI_findlink(&node->inputs, nimf->active_input);
   int totinputs = BLI_listbase_count(&node->inputs);
 
-  if (!sock)
+  if (!sock) {
     return 0;
+  }
 
-  if (nimf->active_input == totinputs - 1)
+  if (nimf->active_input == totinputs - 1) {
     --nimf->active_input;
+  }
 
   /* free format data */
   MEM_freeN(sock->storage);
@@ -201,8 +208,9 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
 
     format = &nimf->format;
   }
-  else
+  else {
     BKE_imformat_defaults(&nimf->format);
+  }
 
   /* add one socket by default */
   ntreeCompositOutputFileAddSocket(ntree, node, "Image", format);
