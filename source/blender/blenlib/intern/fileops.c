@@ -70,11 +70,13 @@ int BLI_file_gzip(const char *from, const char *to)
   /* level 1 is very close to 3 (the default) in terms of file size,
    * but about twice as fast, best use for speedy saving - campbell */
   gzfile = BLI_gzopen(to, "wb1");
-  if (gzfile == NULL)
+  if (gzfile == NULL) {
     return -1;
+  }
   file = BLI_open(from, O_BINARY | O_RDONLY, 0);
-  if (file == -1)
+  if (file == -1) {
     return -2;
+  }
 
   while (1) {
     readsize = read(file, buffer, sizeof(buffer));
@@ -84,8 +86,9 @@ int BLI_file_gzip(const char *from, const char *to)
       fprintf(stderr, "Error reading file %s: %s.\n", from, strerror(errno));
       break;
     }
-    else if (readsize == 0)
+    else if (readsize == 0) {
       break; /* done reading */
+    }
 
     if (gzwrite(gzfile, buffer, readsize) <= 0) {
       rval = -1; /* error happened in writing */
@@ -946,8 +949,9 @@ static int move_callback_pre(const char *from, const char *to)
 {
   int ret = rename(from, to);
 
-  if (ret)
+  if (ret) {
     return copy_callback_pre(from, to);
+  }
 
   return RecursiveOp_Callback_StopRecurs;
 }
@@ -956,8 +960,9 @@ static int move_single_file(const char *from, const char *to)
 {
   int ret = rename(from, to);
 
-  if (ret)
+  if (ret) {
     return copy_single_file(from, to);
+  }
 
   return RecursiveOp_Callback_OK;
 }

@@ -787,8 +787,9 @@ static void import_endjob(void *user_data)
 
       /* It's possible that cancellation occurred between the creation of
        * the reader and the creation of the Blender object. */
-      if (ob == NULL)
+      if (ob == NULL) {
         continue;
+      }
 
       BKE_id_free_us(data->bmain, ob);
     }

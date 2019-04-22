@@ -4731,8 +4731,9 @@ void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
 
-  if (cache == NULL)
+  if (cache == NULL) {
     return;
+  }
 
   if (mesh_cd_layers_type_equal(cache->cd_used_over_time, cache->cd_used)) {
     cache->lastmatch = ctime;

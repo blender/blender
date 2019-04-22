@@ -80,8 +80,9 @@ int main(int argc, char **argv)
 
   argv_len = (int)strlen(argv[1]);
   for (i = 0; i < argv_len; i++) {
-    if (argv[1][i] == '.')
+    if (argv[1][i] == '.') {
       argv[1][i] = '_';
+    }
   }
 
   fpout = fopen(argv[2], "w");

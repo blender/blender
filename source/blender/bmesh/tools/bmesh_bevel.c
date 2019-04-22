@@ -2990,11 +2990,13 @@ static void adjust_offsets(BevelParams *bp, BMesh *bm)
   /* find and process chains and cycles of unvisited BoundVerts that have eon set */
   /* note: for repeatability, iterate over all verts of mesh rather than over ghash'ed BMVerts */
   BM_ITER_MESH (bmv, &iter, bm, BM_VERTS_OF_MESH) {
-    if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+    if (!BM_elem_flag_test(bmv, BM_ELEM_TAG)) {
       continue;
+    }
     bv = bvcur = find_bevvert(bp, bmv);
-    if (!bv)
+    if (!bv) {
       continue;
+    }
     vanchor = bv->vmesh->boundstart;
     do {
       if (vanchor->visited || !vanchor->eon) {
@@ -3068,8 +3070,9 @@ static void adjust_offsets(BevelParams *bp, BMesh *bm)
   BM_ITER_MESH (bmv, &iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(bmv, BM_ELEM_TAG)) {
       bv = find_bevvert(bp, bmv);
-      if (bv)
+      if (bv) {
         build_boundary(bp, bv, false);
+      }
     }
   }
 }
@@ -6357,11 +6360,13 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
 
   limited_offset = bp->offset;
   BM_ITER_MESH (bmv, &iter, bm, BM_VERTS_OF_MESH) {
-    if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+    if (!BM_elem_flag_test(bmv, BM_ELEM_TAG)) {
       continue;
+    }
     bv = find_bevvert(bp, bmv);
-    if (!bv)
+    if (!bv) {
       continue;
+    }
     for (i = 0; i < bv->edgecount; i++) {
       eh = &bv->edges[i];
       if (bp->vertex_only) {
@@ -6387,11 +6392,13 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
      */
     offset_factor = limited_offset / bp->offset;
     BM_ITER_MESH (bmv, &iter, bm, BM_VERTS_OF_MESH) {
-      if (!BM_elem_flag_test(bmv, BM_ELEM_TAG))
+      if (!BM_elem_flag_test(bmv, BM_ELEM_TAG)) {
         continue;
+      }
       bv = find_bevvert(bp, bmv);
-      if (!bv)
+      if (!bv) {
         continue;
+      }
       for (i = 0; i < bv->edgecount; i++) {
         eh = &bv->edges[i];
         eh->offset_l_spec *= offset_factor;
@@ -6500,8 +6507,9 @@ void BM_mesh_bevel(BMesh *bm,
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
         if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
           bv = find_bevvert(&bp, v);
-          if (bv)
+          if (bv) {
             build_boundary(&bp, bv, true);
+          }
         }
       }
     }
@@ -6534,8 +6542,9 @@ void BM_mesh_bevel(BMesh *bm,
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
         bv = find_bevvert(&bp, v);
-        if (bv)
+        if (bv) {
           bevel_extend_edge_data(bv);
+        }
       }
     }
 

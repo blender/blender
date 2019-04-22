@@ -108,8 +108,9 @@ static void fill_locales(void)
       continue; /* Comment or void... */
     }
     t = atoi(str);
-    if (t >= num_locales)
+    if (t >= num_locales) {
       num_locales = t + 1;
+    }
     num_locales_menu++;
     line = line->next;
   }
@@ -261,8 +262,9 @@ void BLT_lang_set(const char *str)
   const char *short_locale = str ? str : LOCALE(ulang);
   const char *short_locale_utf8 = NULL;
 
-  if ((U.transopts & USER_DOTRANSLATE) == 0)
+  if ((U.transopts & USER_DOTRANSLATE) == 0) {
     return;
+  }
 
   /* We want to avoid locales like '.UTF-8'! */
   if (short_locale[0]) {
@@ -331,36 +333,45 @@ void BLT_lang_locale_explode(const char *locale,
   if (language || language_variant) {
     if (m1 || m2) {
       _t = m1 ? BLI_strdupn(locale, m1 - locale) : BLI_strdupn(locale, m2 - locale);
-      if (language)
+      if (language) {
         *language = _t;
+      }
     }
     else if (language) {
       *language = BLI_strdup(locale);
     }
   }
   if (country) {
-    if (m1)
+    if (m1) {
       *country = m2 ? BLI_strdupn(m1 + 1, m2 - (m1 + 1)) : BLI_strdup(m1 + 1);
-    else
+    }
+    else {
       *country = NULL;
+    }
   }
   if (variant) {
-    if (m2)
+    if (m2) {
       *variant = BLI_strdup(m2 + 1);
-    else
+    }
+    else {
       *variant = NULL;
+    }
   }
   if (language_country) {
-    if (m1)
+    if (m1) {
       *language_country = m2 ? BLI_strdupn(locale, m2 - locale) : BLI_strdup(locale);
-    else
+    }
+    else {
       *language_country = NULL;
+    }
   }
   if (language_variant) {
-    if (m2)
+    if (m2) {
       *language_variant = m1 ? BLI_strdupcat(_t, m2) : BLI_strdup(locale);
-    else
+    }
+    else {
       *language_variant = NULL;
+    }
   }
   if (_t && !language) {
     MEM_freeN(_t);

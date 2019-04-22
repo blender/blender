@@ -373,8 +373,9 @@ void AbcGenericMeshWriter::setIsAnimated(bool is_animated)
 void AbcGenericMeshWriter::do_write()
 {
   /* We have already stored a sample for this object. */
-  if (!m_first_frame && !m_is_animated)
+  if (!m_first_frame && !m_is_animated) {
     return;
+  }
 
   bool needsfree;
   struct Mesh *mesh = getFinalMesh(needsfree);
@@ -387,12 +388,14 @@ void AbcGenericMeshWriter::do_write()
       writeMesh(mesh);
     }
 
-    if (needsfree)
+    if (needsfree) {
       freeEvaluatedMesh(mesh);
+    }
   }
   catch (...) {
-    if (needsfree)
+    if (needsfree) {
       freeEvaluatedMesh(mesh);
+    }
     throw;
   }
 }

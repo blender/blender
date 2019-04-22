@@ -237,10 +237,12 @@ void DEG_stats_simple(const Depsgraph *graph,
       tot_rels += time_source->inlinks.size();
     }
 
-    if (r_relations)
+    if (r_relations) {
       *r_relations = tot_rels;
-    if (r_outer)
+    }
+    if (r_outer) {
       *r_outer = tot_outer;
+    }
   }
 }
 
