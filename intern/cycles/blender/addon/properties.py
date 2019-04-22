@@ -1490,7 +1490,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 break
 
         if not found_device:
-            box.label(text="No compatible GPUs found", icon='INFO')
+            col = box.column(align=True);
+            col.label(text="No compatible GPUs found for path tracing", icon='INFO')
+            col.label(text="Cycles will render on the CPU", icon='BLANK1')
             return
 
         for device in devices:
