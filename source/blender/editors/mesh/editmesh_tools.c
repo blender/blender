@@ -4297,7 +4297,7 @@ void MESH_OT_separate(wmOperatorType *ot)
   static const EnumPropertyItem prop_separate_types[] = {
       {MESH_SEPARATE_SELECTED, "SELECTED", 0, "Selection", ""},
       {MESH_SEPARATE_MATERIAL, "MATERIAL", 0, "By Material", ""},
-      {MESH_SEPARATE_LOOSE, "LOOSE", 0, "By loose parts", ""},
+      {MESH_SEPARATE_LOOSE, "LOOSE", 0, "By Loose Parts", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
