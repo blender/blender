@@ -140,6 +140,9 @@ void BKE_brush_init(Brush *brush)
 
   brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
 
+  /* A kernel radius of 1 has almost no effect (T63233). */
+  brush->blur_kernel_radius = 2;
+
   /* the default alpha falloff curve */
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
