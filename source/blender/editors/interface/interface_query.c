@@ -497,10 +497,6 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
 
   /* check if the mouse is in the region */
   if (!BLI_rcti_isect_pt(&winrct, x, y)) {
-    for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
-      block->auto_open = false;
-    }
-
     return false;
   }
 
