@@ -7692,6 +7692,11 @@ uiBut *UI_region_active_but_get(ARegion *ar)
   return ui_context_button_active(ar, NULL);
 }
 
+uiBut *UI_region_but_find_rect_over(const ARegion *ar, const rcti *rect_px)
+{
+  return ui_but_find_rect_over(ar, rect_px);
+}
+
 /**
  * Version of #UI_context_active_but_get that also returns RNA property info.
  * Helper function for insert keyframe, reset to default, etc operators.

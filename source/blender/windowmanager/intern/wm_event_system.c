@@ -69,6 +69,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "PIL_time.h"
 
@@ -2951,15 +2952,23 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   return action;
 }
 
-static int wm_event_inside_i(wmEvent *event, rcti *rect)
+static bool wm_event_inside_rect(const wmEvent *event, const rcti *rect)
 {
   if (wm_event_always_pass(event)) {
-    return 1;
+    return true;
   }
   if (BLI_rcti_isect_pt_v(rect, &event->x)) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
+}
+
+static bool wm_event_inside_region(const wmEvent *event, const ARegion *ar)
+{
+  if (wm_event_always_pass(event)) {
+    return true;
+  }
+  return ED_region_contains_xy(ar, &event->x);
 }
 
 static ScrArea *area_event_inside(bContext *C, const int xy[2])
@@ -3246,12 +3255,13 @@ void wm_event_do_handlers(bContext *C)
             ED_area_azones_update(sa, &event->x);
           }
 
-          if (wm_event_inside_i(event, &sa->totrct)) {
+          if (wm_event_inside_rect(event, &sa->totrct)) {
             CTX_wm_area_set(C, sa);
 
             if ((action & WM_HANDLER_BREAK) == 0) {
               for (ar = sa->regionbase.first; ar; ar = ar->next) {
-                if (wm_event_inside_i(event, &ar->winrct)) {
+                if (wm_event_inside_region(event, ar)) {
+
                   CTX_wm_region_set(C, ar);
 
                   /* call even on non mouse events, since the */

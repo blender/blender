@@ -117,6 +117,9 @@ enum eView2D_Gridlines {
 #define IN_2D_VERT_SCROLL(v2d, co) (BLI_rcti_isect_pt_v(&v2d->vert, co))
 #define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_rcti_isect_pt_v(&v2d->hor, co))
 
+#define IN_2D_VERT_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->vert, rct, NULL))
+#define IN_2D_HORIZ_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->hor, rct, NULL))
+
 /* ------------------------------------------ */
 /* Type definitions:                          */
 
@@ -275,6 +278,13 @@ char UI_view2d_mouse_in_scrollers(const struct ARegion *ar,
                                   const struct View2D *v2d,
                                   int x,
                                   int y);
+char UI_view2d_rect_in_scrollers_ex(const struct ARegion *ar,
+                                    const struct View2D *v2d,
+                                    const struct rcti *rect,
+                                    int *r_scroll);
+char UI_view2d_rect_in_scrollers(const struct ARegion *ar,
+                                 const struct View2D *v2d,
+                                 const struct rcti *rect);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(

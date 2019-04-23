@@ -201,6 +201,11 @@ bool ui_but_contains_pt(const uiBut *but, float mx, float my)
   return BLI_rctf_isect_pt(&but->rect, mx, my);
 }
 
+bool ui_but_contains_rect(const uiBut *but, const rctf *rect)
+{
+  return BLI_rctf_isect(&but->rect, rect, NULL);
+}
+
 bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
 {
   uiBlock *block = but->block;
@@ -299,6 +304,44 @@ uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bo
 uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event)
 {
   return ui_but_find_mouse_over_ex(ar, event->x, event->y, event->ctrl != 0);
+}
+
+uiBut *ui_but_find_rect_over(const struct ARegion *ar, const rcti *rect_px)
+{
+  if (!ui_region_contains_rect_px(ar, rect_px)) {
+    return NULL;
+  }
+
+  /* Currently no need to expose this at the moment. */
+  bool labeledit = true;
+  rctf rect_px_fl;
+  BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
+  uiBut *butover = NULL;
+
+  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+    rctf rect_block;
+    ui_window_to_block_rctf(ar, block, &rect_block, &rect_px_fl);
+
+    for (uiBut *but = block->buttons.last; but; but = but->prev) {
+      if (ui_but_is_interactive(but, labeledit)) {
+        /* No pie menu support. */
+        BLI_assert(but->pie_dir == UI_RADIAL_NONE);
+        if (ui_but_contains_rect(but, &rect_block)) {
+          butover = but;
+          break;
+        }
+      }
+    }
+
+    /* CLIP_EVENTS prevents the event from reaching other blocks */
+    if (block->flag & UI_BLOCK_CLIP_EVENTS) {
+      /* check if mouse is inside block */
+      if (BLI_rctf_isect(&block->rect, &rect_block, NULL)) {
+        break;
+      }
+    }
+  }
+  return butover;
 }
 
 uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
@@ -485,17 +528,13 @@ uiBut *ui_region_find_first_but_test_flag(ARegion *ar, int flag_include, int fla
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Region (#ARegion) State
+/** \name Region (#ARegion) Spatial
  * \{ */
 
 bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
 {
   rcti winrct;
-
-  /* scale down area rect to exclude shadow */
   ui_region_winrct_get_no_margin(ar, &winrct);
-
-  /* check if the mouse is in the region */
   if (!BLI_rcti_isect_pt(&winrct, x, y)) {
     return false;
   }
@@ -507,16 +546,33 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
    */
   if (ar->v2d.mask.xmin != ar->v2d.mask.xmax) {
     const View2D *v2d = &ar->v2d;
-    int mx, my;
+    int mx = x, my = y;
 
-    /* convert window coordinates to region coordinates */
-    mx = x;
-    my = y;
     ui_window_to_region(ar, &mx, &my);
-
-    /* check if in the rect */
     if (!BLI_rcti_isect_pt(&v2d->mask, mx, my) ||
         UI_view2d_mouse_in_scrollers(ar, &ar->v2d, x, y)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool ui_region_contains_rect_px(const ARegion *ar, const rcti *rect_px)
+{
+  rcti winrct;
+  ui_region_winrct_get_no_margin(ar, &winrct);
+  if (!BLI_rcti_isect(&winrct, rect_px, NULL)) {
+    return false;
+  }
+
+  /* See comment in 'ui_region_contains_point_px' */
+  if (ar->v2d.mask.xmin != ar->v2d.mask.xmax) {
+    const View2D *v2d = &ar->v2d;
+    rcti rect_region;
+    ui_window_to_region_rcti(ar, &rect_region, rect_px);
+    if (!BLI_rcti_isect(&v2d->mask, &rect_region, NULL) ||
+        UI_view2d_rect_in_scrollers(ar, &ar->v2d, rect_px)) {
       return false;
     }
   }

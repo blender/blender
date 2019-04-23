@@ -403,6 +403,18 @@ void ED_region_generic_tools_region_message_subscribe(const struct bContext *C,
                                                       struct wmMsgBus *mbus);
 int ED_region_generic_tools_region_snap_size(const struct ARegion *ar, int size, int axis);
 
+/* area_query.c */
+bool ED_region_overlap_isect_x(const ARegion *ar, const int event_x);
+bool ED_region_overlap_isect_y(const ARegion *ar, const int event_y);
+bool ED_region_overlap_isect_xy(const ARegion *ar, const int event_xy[2]);
+bool ED_region_overlap_isect_x_with_margin(const ARegion *ar, const int event_x, const int margin);
+bool ED_region_overlap_isect_y_with_margin(const ARegion *ar, const int event_y, const int margin);
+bool ED_region_overlap_isect_xy_with_margin(const ARegion *ar,
+                                            const int event_xy[2],
+                                            const int margin);
+
+bool ED_region_contains_xy(const struct ARegion *ar, const int event_xy[2]);
+
 /* interface_region_hud.c */
 struct ARegionType *ED_area_type_hud(int space_type);
 void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *sa_keep);
