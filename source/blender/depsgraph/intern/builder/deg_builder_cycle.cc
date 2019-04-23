@@ -182,20 +182,16 @@ void solve_cycles(CyclesSolverState *state)
         OperationNode *to = (OperationNode *)rel->to;
         eCyclicCheckVisitedState to_state = get_node_visited_state(to);
         if (to_state == NODE_IN_STACK) {
-          printf("Dependency cycle detected:\n");
-          printf("  '%s' depends on '%s' through '%s'\n",
-                 to->full_identifier().c_str(),
-                 node->full_identifier().c_str(),
-                 rel->name);
+          string cycle_str = "  " + to->full_identifier() + " depends on\n  " +
+                             node->full_identifier() + " via '" + rel->name + "'\n";
           StackEntry *current = entry;
           while (current->node != to) {
             BLI_assert(current != NULL);
-            printf("  '%s' depends on '%s' through '%s'\n",
-                   current->node->full_identifier().c_str(),
-                   current->from->node->full_identifier().c_str(),
-                   current->via_relation->name);
+            cycle_str += "  " + current->from->node->full_identifier() + " via '" +
+                         current->via_relation->name + "'\n";
             current = current->from;
           }
+          printf("Dependency cycle detected:\n%s", cycle_str.c_str());
           Relation *sacrificial_relation = select_relation_to_murder(rel, entry);
           sacrificial_relation->flag |= RELATION_FLAG_CYCLIC;
           ++state->num_cycles;

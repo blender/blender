@@ -208,14 +208,11 @@ string OperationNode::identifier() const
  * used for logging and debug prints. */
 string OperationNode::full_identifier() const
 {
-  string owner_str = "";
-  if (owner->type == NodeType::BONE) {
-    owner_str = string(owner->owner->name) + "." + owner->name;
+  string owner_str = owner->owner->name;
+  if (owner->type == NodeType::BONE || !owner->name.empty()) {
+    owner_str += "/" + owner->name;
   }
-  else {
-    owner_str = owner->owner->name;
-  }
-  return owner_str + "." + identifier();
+  return owner_str + "/" + identifier();
 }
 
 void OperationNode::tag_update(Depsgraph *graph, eUpdateSource source)
