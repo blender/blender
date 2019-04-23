@@ -79,6 +79,7 @@
 #include "ED_view3d.h"
 #include "ED_clip.h"
 #include "ED_keyframing.h"
+#include "ED_object.h"
 
 #include "gpencil_intern.h"
 
@@ -1395,9 +1396,7 @@ static void gp_layer_to_curve(bContext *C,
     }
   }
 
-  /* set the layer and select */
-  base_new->flag |= BASE_SELECTED;
-  BKE_scene_object_base_flag_sync_from_base(base_new);
+  ED_object_base_select(base_new, BA_SELECT);
 }
 
 /* --- */

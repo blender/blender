@@ -106,12 +106,7 @@ static void rna_Object_select_set(
     return;
   }
 
-  if (select) {
-    BKE_view_layer_base_select(base);
-  }
-  else {
-    base->flag &= ~BASE_SELECTED;
-  }
+  ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
 
   Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

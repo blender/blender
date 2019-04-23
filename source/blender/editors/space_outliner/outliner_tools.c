@@ -452,8 +452,8 @@ static void object_select_cb(bContext *C,
   Object *ob = (Object *)tselem->id;
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
-  if (base && ((base->flag & BASE_VISIBLE) != 0)) {
-    base->flag |= BASE_SELECTED;
+  if (base) {
+    ED_object_base_select(base, BA_SELECT);
   }
 }
 

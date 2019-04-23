@@ -1911,8 +1911,7 @@ static bool ed_object_select_pick(bContext *C,
                   }
                 }
 
-                basact->flag |= BASE_SELECTED;
-                BKE_scene_object_base_flag_sync_from_base(basact);
+                ED_object_base_select(basact, BA_SELECT);
 
                 retval = true;
 
@@ -1945,8 +1944,7 @@ static bool ed_object_select_pick(bContext *C,
 
           /* we make the armature selected:
            * not-selected active object in posemode won't work well for tools */
-          basact->flag |= BASE_SELECTED;
-          BKE_scene_object_base_flag_sync_from_base(basact);
+          ED_object_base_select(basact, BA_SELECT);
 
           retval = true;
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);

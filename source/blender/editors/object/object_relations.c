@@ -2158,8 +2158,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
 
       BKE_collection_object_add(bmain, collection, ob);
       base = BKE_view_layer_base_find(view_layer, ob);
-      base->flag |= BASE_SELECTED;
-      BKE_scene_object_base_flag_sync_from_base(base);
+      ED_object_base_select(base, BA_SELECT);
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
       changed = true;
