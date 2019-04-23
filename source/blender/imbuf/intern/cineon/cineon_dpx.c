@@ -77,8 +77,9 @@ static struct ImBuf *imb_load_dpx_cineon(const unsigned char *mem,
   logImageClose(image);
   ibuf->ftype = use_cineon ? IMB_FTYPE_CINEON : IMB_FTYPE_DPX;
 
-  if (flags & IB_alphamode_detect)
+  if (flags & IB_alphamode_detect) {
     ibuf->flags |= IB_alphamode_premul;
+  }
 
   return ibuf;
 }
@@ -104,14 +105,18 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
     return 0;
   }
 
-  if (ibuf->foptions.flag & CINEON_10BIT)
+  if (ibuf->foptions.flag & CINEON_10BIT) {
     bitspersample = 10;
-  else if (ibuf->foptions.flag & CINEON_12BIT)
+  }
+  else if (ibuf->foptions.flag & CINEON_12BIT) {
     bitspersample = 12;
-  else if (ibuf->foptions.flag & CINEON_16BIT)
+  }
+  else if (ibuf->foptions.flag & CINEON_16BIT) {
     bitspersample = 16;
-  else
+  }
+  else {
     bitspersample = 8;
+  }
 
   logImage = logImageCreate(filename,
                             use_cineon,
@@ -149,8 +154,9 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
     MEM_freeN(fbuf);
   }
   else {
-    if (ibuf->rect == NULL)
+    if (ibuf->rect == NULL) {
       IMB_rect_from_float(ibuf);
+    }
 
     fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float),
                                 "fbuf in imb_save_dpx_cineon");
@@ -192,8 +198,9 @@ ImBuf *imb_load_cineon(const unsigned char *mem,
                        int flags,
                        char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_cineon(mem))
+  if (imb_is_cineon(mem)) {
     return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
+  }
   return NULL;
 }
 
@@ -212,7 +219,8 @@ ImBuf *imb_load_dpx(const unsigned char *mem,
                     int flags,
                     char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_dpx(mem))
+  if (imb_is_dpx(mem)) {
     return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
+  }
   return NULL;
 }

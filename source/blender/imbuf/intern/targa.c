@@ -67,8 +67,9 @@ static int tga_out1(unsigned int data, FILE *file)
   uchar *p;
 
   p = (uchar *)&data;
-  if (putc(p[0], file) == EOF)
+  if (putc(p[0], file) == EOF) {
     return EOF;
+  }
   return ~EOF;
 }
 
@@ -77,10 +78,12 @@ static int tga_out2(unsigned int data, FILE *file)
   uchar *p;
 
   p = (uchar *)&data;
-  if (putc(p[0], file) == EOF)
+  if (putc(p[0], file) == EOF) {
     return EOF;
-  if (putc(p[1], file) == EOF)
+  }
+  if (putc(p[1], file) == EOF) {
     return EOF;
+  }
   return ~EOF;
 }
 
@@ -89,12 +92,15 @@ static int tga_out3(unsigned int data, FILE *file)
   uchar *p;
 
   p = (uchar *)&data;
-  if (putc(p[2], file) == EOF)
+  if (putc(p[2], file) == EOF) {
     return EOF;
-  if (putc(p[1], file) == EOF)
+  }
+  if (putc(p[1], file) == EOF) {
     return EOF;
-  if (putc(p[0], file) == EOF)
+  }
+  if (putc(p[0], file) == EOF) {
     return EOF;
+  }
   return ~EOF;
 }
 
@@ -104,14 +110,18 @@ static int tga_out4(unsigned int data, FILE *file)
 
   p = (uchar *)&data;
   /* order = bgra */
-  if (putc(p[2], file) == EOF)
+  if (putc(p[2], file) == EOF) {
     return EOF;
-  if (putc(p[1], file) == EOF)
+  }
+  if (putc(p[1], file) == EOF) {
     return EOF;
-  if (putc(p[0], file) == EOF)
+  }
+  if (putc(p[0], file) == EOF) {
     return EOF;
-  if (putc(p[3], file) == EOF)
+  }
+  if (putc(p[3], file) == EOF) {
     return EOF;
+  }
   return ~EOF;
 }
 
@@ -143,22 +153,26 @@ static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE 
 
         copy = rect - rectstart;
         copy--;
-        if (bytes)
+        if (bytes) {
           copy -= 2;
+        }
 
         temp = rect;
         rect = rectstart;
 
         while (copy) {
           last = copy;
-          if (copy >= 128)
+          if (copy >= 128) {
             last = 128;
+          }
           copy -= last;
-          if (fputc(last - 1, file) == EOF)
+          if (fputc(last - 1, file) == EOF) {
             return 0;
+          }
           do {
-            if (out(*rect++, file) == EOF)
+            if (out(*rect++, file) == EOF) {
               return 0;
+            }
           } while (--last != 0);
         }
         rectstart = rect;
@@ -169,8 +183,9 @@ static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE 
       }
       else {
         while (*rect++ == this) { /* seek for first different byte */
-          if (--bytes == 0)
+          if (--bytes == 0) {
             break; /* oor end of line */
+          }
         }
         rect--;
         copy = rect - rectstart;
@@ -180,21 +195,25 @@ static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE 
 
         while (copy) {
           if (copy > 128) {
-            if (fputc(255, file) == EOF)
+            if (fputc(255, file) == EOF) {
               return 0;
+            }
             copy -= 128;
           }
           else {
             if (copy == 1) {
-              if (fputc(0, file) == EOF)
+              if (fputc(0, file) == EOF) {
                 return 0;
+              }
             }
-            else if (fputc(127 + copy, file) == EOF)
+            else if (fputc(127 + copy, file) == EOF) {
               return 0;
+            }
             copy = 0;
           }
-          if (out(last, file) == EOF)
+          if (out(last, file) == EOF) {
             return 0;
+          }
         }
         copy = 1;
       }
@@ -208,18 +227,21 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   int size;
   uchar *rect;
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return 0;
-  if (ibuf->rect == NULL)
+  }
+  if (ibuf->rect == NULL) {
     return 0;
+  }
 
   size = ibuf->x * ibuf->y;
   rect = (uchar *)ibuf->rect;
 
   if (ibuf->planes <= 8) {
     while (size > 0) {
-      if (putc(*rect, file) == EOF)
+      if (putc(*rect, file) == EOF) {
         return 0;
+      }
       size--;
       rect += 4;
     }
@@ -227,8 +249,9 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   else if (ibuf->planes <= 16) {
     while (size > 0) {
       putc(rect[0], file);
-      if (putc(rect[1], file) == EOF)
+      if (putc(rect[1], file) == EOF) {
         return 0;
+      }
       size--;
       rect += 4;
     }
@@ -237,8 +260,9 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
     while (size > 0) {
       putc(rect[2], file);
       putc(rect[1], file);
-      if (putc(rect[0], file) == EOF)
+      if (putc(rect[0], file) == EOF) {
         return 0;
+      }
       size--;
       rect += 4;
     }
@@ -248,8 +272,9 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
       putc(rect[2], file);
       putc(rect[1], file);
       putc(rect[0], file);
-      if (putc(rect[3], file) == EOF)
+      if (putc(rect[3], file) == EOF) {
         return 0;
+      }
       size--;
       rect += 4;
     }
@@ -277,8 +302,9 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
     buf[2] = 11;
   }
 
-  if (ibuf->foptions.flag & RAWTGA)
+  if (ibuf->foptions.flag & RAWTGA) {
     buf[2] &= ~8;
+  }
 
   buf[8] = 0;
   buf[9] = 0;
@@ -296,8 +322,9 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
     buf[17] |= 0x08;
   }
   fildes = BLI_fopen(name, "wb");
-  if (!fildes)
+  if (!fildes) {
     return 0;
+  }
 
   if (fwrite(buf, 1, 18, fildes) != 18) {
     fclose(fildes);
@@ -344,8 +371,9 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
   tga->pixsize = mem[16];
   tga->imgdes = mem[17];
 
-  if (tga->maptyp > 1)
+  if (tga->maptyp > 1) {
     return 0;
+  }
   switch (tga->imgtyp) {
     case 1:  /* raw cmap */
     case 2:  /* raw rgb */
@@ -357,16 +385,21 @@ static int checktarga(TARGA *tga, const unsigned char *mem)
     default:
       return 0;
   }
-  if (tga->mapsize && tga->mapbits > 32)
+  if (tga->mapsize && tga->mapbits > 32) {
     return 0;
-  if (tga->xsize <= 0)
+  }
+  if (tga->xsize <= 0) {
     return 0;
-  if (tga->ysize <= 0)
+  }
+  if (tga->ysize <= 0) {
     return 0;
-  if (tga->pixsize > 32)
+  }
+  if (tga->pixsize > 32) {
     return 0;
-  if (tga->pixsize == 0)
+  }
+  if (tga->pixsize == 0) {
     return 0;
+  }
   return 1;
 }
 
@@ -400,10 +433,12 @@ static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem
   unsigned int *rect;
   uchar *cp = (uchar *)&col;
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
-  if (ibuf->rect == NULL)
+  }
+  if (ibuf->rect == NULL) {
     return;
+  }
 
   size = ibuf->x * ibuf->y;
   rect = ibuf->rect;
@@ -415,8 +450,9 @@ static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem
   while (size > 0) {
     count = *mem++;
 
-    if (mem > mem_end)
+    if (mem > mem_end) {
       goto partial_load;
+    }
 
     if (count >= 128) {
       /*if (count == 128) printf("TARGA: 128 in file !\n");*/
@@ -495,12 +531,14 @@ static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem
           *rect++ = col;
           count--;
 
-          if (mem > mem_end)
+          if (mem > mem_end) {
             goto partial_load;
+          }
         }
 
-        if (mem > mem_end)
+        if (mem > mem_end) {
           goto partial_load;
+        }
       }
     }
   }
@@ -520,10 +558,12 @@ static void ldtarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_siz
   unsigned int *rect;
   uchar *cp = (uchar *)&col;
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
-  if (ibuf->rect == NULL)
+  }
+  if (ibuf->rect == NULL) {
     return;
+  }
 
   size = ibuf->x * ibuf->y;
   rect = ibuf->rect;
@@ -533,8 +573,9 @@ static void ldtarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_siz
   cp[1] = cp[2] = 0;
 
   while (size > 0) {
-    if (mem > mem_end)
+    if (mem > mem_end) {
       goto partial_load;
+    }
 
     if (psize & 2) {
       if (psize & 1) {
@@ -592,16 +633,20 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-  if (flags & IB_test)
+  if (flags & IB_test) {
     ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, tga.pixsize, 0);
-  else
+  }
+  else {
     ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, (tga.pixsize + 0x7) & ~0x7, IB_rect);
+  }
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return NULL;
+  }
   ibuf->ftype = IMB_FTYPE_TGA;
-  if (tga.imgtyp < 4)
+  if (tga.imgtyp < 4) {
     ibuf->foptions.flag |= RAWTGA;
+  }
   mem = mem + 18 + tga.numid;
 
   cp[0] = 0xff;
@@ -669,26 +714,34 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     case 1:
     case 2:
     case 3:
-      if (tga.pixsize <= 8)
+      if (tga.pixsize <= 8) {
         ldtarga(ibuf, mem, mem_size, 0);
-      else if (tga.pixsize <= 16)
+      }
+      else if (tga.pixsize <= 16) {
         ldtarga(ibuf, mem, mem_size, 1);
-      else if (tga.pixsize <= 24)
+      }
+      else if (tga.pixsize <= 24) {
         ldtarga(ibuf, mem, mem_size, 2);
-      else if (tga.pixsize <= 32)
+      }
+      else if (tga.pixsize <= 32) {
         ldtarga(ibuf, mem, mem_size, 3);
+      }
       break;
     case 9:
     case 10:
     case 11:
-      if (tga.pixsize <= 8)
+      if (tga.pixsize <= 8) {
         decodetarga(ibuf, mem, mem_size, 0);
-      else if (tga.pixsize <= 16)
+      }
+      else if (tga.pixsize <= 16) {
         decodetarga(ibuf, mem, mem_size, 1);
-      else if (tga.pixsize <= 24)
+      }
+      else if (tga.pixsize <= 24) {
         decodetarga(ibuf, mem, mem_size, 2);
-      else if (tga.pixsize <= 32)
+      }
+      else if (tga.pixsize <= 32) {
         decodetarga(ibuf, mem, mem_size, 3);
+      }
       break;
   }
 
@@ -744,8 +797,9 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     IMB_flipy(ibuf);
   }
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     IMB_convert_rgba_to_abgr(ibuf);
+  }
 
   return ibuf;
 }

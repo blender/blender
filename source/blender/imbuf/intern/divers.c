@@ -119,8 +119,9 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
   BLI_assert(profile_to != IB_PROFILE_NONE);
   BLI_assert(profile_from != IB_PROFILE_NONE);
 
-  if (dither)
+  if (dither) {
     di = create_dither_context(dither);
+  }
 
   for (y = 0; y < height; y++) {
     float t = y * inv_height;
@@ -130,8 +131,9 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
       const float *from = rect_from + ((size_t)stride_from) * y;
       uchar *to = rect_to + ((size_t)stride_to) * y * 4;
 
-      for (x = 0; x < width; x++, from++, to += 4)
+      for (x = 0; x < width; x++, from++, to += 4) {
         to[0] = to[1] = to[2] = to[3] = unit_float_to_uchar_clamp(from[0]);
+      }
     }
     else if (channels_from == 3) {
       /* RGB input */
@@ -178,8 +180,9 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
           }
         }
         else if (dither) {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             float_to_byte_dither_v4(to, from, di, (float)x * inv_width, t);
+          }
         }
         else if (predivide) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
@@ -188,8 +191,9 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
           }
         }
         else {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             rgba_float_to_uchar(to, from);
+          }
         }
       }
       else if (profile_to == IB_PROFILE_SRGB) {
@@ -254,8 +258,9 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
     }
   }
 
-  if (dither)
+  if (dither) {
     clear_dither_context(di);
+  }
 }
 
 /* float to byte pixels, output 4-channel RGBA */
@@ -274,8 +279,9 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
   DitherContext *di = NULL;
   float inv_width = 1.0f / width, inv_height = 1.0f / height;
 
-  if (dither)
+  if (dither) {
     di = create_dither_context(dither);
+  }
 
   for (y = 0; y < height; y++) {
     float t = y * inv_height;
@@ -285,9 +291,11 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
       const float *from = rect_from + ((size_t)stride_from) * y;
       uchar *to = rect_to + ((size_t)stride_to) * y * 4;
 
-      for (x = 0; x < width; x++, from++, to += 4)
-        if (*mask++ == FILTER_MASK_USED)
+      for (x = 0; x < width; x++, from++, to += 4) {
+        if (*mask++ == FILTER_MASK_USED) {
           to[0] = to[1] = to[2] = to[3] = unit_float_to_uchar_clamp(from[0]);
+        }
+      }
     }
     else if (channels_from == 3) {
       /* RGB input */
@@ -317,9 +325,11 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
         }
       }
       else if (dither) {
-        for (x = 0; x < width; x++, from += 4, to += 4)
-          if (*mask++ == FILTER_MASK_USED)
+        for (x = 0; x < width; x++, from += 4, to += 4) {
+          if (*mask++ == FILTER_MASK_USED) {
             float_to_byte_dither_v4(to, from, di, (float)x * inv_width, t);
+          }
+        }
       }
       else if (predivide) {
         for (x = 0; x < width; x++, from += 4, to += 4) {
@@ -330,15 +340,18 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
         }
       }
       else {
-        for (x = 0; x < width; x++, from += 4, to += 4)
-          if (*mask++ == FILTER_MASK_USED)
+        for (x = 0; x < width; x++, from += 4, to += 4) {
+          if (*mask++ == FILTER_MASK_USED) {
             rgba_float_to_uchar(to, from);
+          }
+        }
       }
     }
   }
 
-  if (dither)
+  if (dither) {
     clear_dither_context(di);
+  }
 }
 
 /* byte to float pixels, input and output 4-channel RGBA  */
@@ -366,8 +379,9 @@ void IMB_buffer_float_from_byte(float *rect_to,
 
     if (profile_to == profile_from) {
       /* no color space conversion */
-      for (x = 0; x < width; x++, from += 4, to += 4)
+      for (x = 0; x < width; x++, from += 4, to += 4) {
         rgba_uchar_to_float(to, from);
+      }
     }
     else if (profile_to == IB_PROFILE_LINEAR_RGB) {
       /* convert sRGB to linear */
@@ -424,8 +438,9 @@ void IMB_buffer_float_from_float(float *rect_to,
       const float *from = rect_from + ((size_t)stride_from) * y;
       float *to = rect_to + ((size_t)stride_to) * y * 4;
 
-      for (x = 0; x < width; x++, from++, to += 4)
+      for (x = 0; x < width; x++, from++, to += 4) {
         to[0] = to[1] = to[2] = to[3] = from[0];
+      }
     }
   }
   else if (channels_from == 3) {
@@ -470,23 +485,27 @@ void IMB_buffer_float_from_float(float *rect_to,
       else if (profile_to == IB_PROFILE_LINEAR_RGB) {
         /* convert to sRGB to linear */
         if (predivide) {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             srgb_to_linearrgb_predivide_v4(to, from);
+          }
         }
         else {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             srgb_to_linearrgb_v4(to, from);
+          }
         }
       }
       else if (profile_to == IB_PROFILE_SRGB) {
         /* convert from linear to sRGB */
         if (predivide) {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             linearrgb_to_srgb_predivide_v4(to, from);
+          }
         }
         else {
-          for (x = 0; x < width; x++, from += 4, to += 4)
+          for (x = 0; x < width; x++, from += 4, to += 4) {
             linearrgb_to_srgb_v4(to, from);
+          }
         }
       }
     }
@@ -580,9 +599,11 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
       const float *from = rect_from + ((size_t)stride_from) * y;
       float *to = rect_to + ((size_t)stride_to) * y * 4;
 
-      for (x = 0; x < width; x++, from++, to += 4)
-        if (*mask++ == FILTER_MASK_USED)
+      for (x = 0; x < width; x++, from++, to += 4) {
+        if (*mask++ == FILTER_MASK_USED) {
           to[0] = to[1] = to[2] = to[3] = from[0];
+        }
+      }
     }
   }
   else if (channels_from == 3) {
@@ -605,9 +626,11 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
       const float *from = rect_from + ((size_t)stride_from) * y * 4;
       float *to = rect_to + ((size_t)stride_to) * y * 4;
 
-      for (x = 0; x < width; x++, from += 4, to += 4)
-        if (*mask++ == FILTER_MASK_USED)
+      for (x = 0; x < width; x++, from += 4, to += 4) {
+        if (*mask++ == FILTER_MASK_USED) {
           copy_v4_v4(to, from);
+        }
+      }
     }
   }
 }
@@ -684,19 +707,23 @@ void IMB_rect_from_float(ImBuf *ibuf)
   const char *from_colorspace;
 
   /* verify we have a float buffer */
-  if (ibuf->rect_float == NULL)
+  if (ibuf->rect_float == NULL) {
     return;
+  }
 
   /* create byte rect if it didn't exist yet */
   if (ibuf->rect == NULL) {
-    if (imb_addrectImBuf(ibuf) == 0)
+    if (imb_addrectImBuf(ibuf) == 0) {
       return;
+    }
   }
 
-  if (ibuf->float_colorspace == NULL)
+  if (ibuf->float_colorspace == NULL) {
     from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
-  else
+  }
+  else {
     from_colorspace = ibuf->float_colorspace->name;
+  }
 
   buffer = MEM_dupallocN(ibuf->rect_float);
 
@@ -812,12 +839,14 @@ void IMB_partial_rect_from_float(
   uchar *rect_byte;
 
   /* verify we have a float buffer */
-  if (ibuf->rect_float == NULL || buffer == NULL)
+  if (ibuf->rect_float == NULL || buffer == NULL) {
     return;
+  }
 
   /* create byte rect if it didn't exist yet */
-  if (ibuf->rect == NULL)
+  if (ibuf->rect == NULL) {
     imb_addrectImBuf(ibuf);
+  }
 
   /* do conversion */
   rect_float = ibuf->rect_float + (x + ((size_t)y) * ibuf->x) * ibuf->channels;
@@ -846,8 +875,9 @@ void IMB_float_from_rect(ImBuf *ibuf)
   float *rect_float;
 
   /* verify if we byte and float buffers */
-  if (ibuf->rect == NULL)
+  if (ibuf->rect == NULL) {
     return;
+  }
 
   /* allocate float buffer outside of image buffer,
    * so work-in-progress color space conversion doesn't
@@ -863,8 +893,9 @@ void IMB_float_from_rect(ImBuf *ibuf)
 
     rect_float = MEM_mapallocN(size, "IMB_float_from_rect");
 
-    if (rect_float == NULL)
+    if (rect_float == NULL) {
       return;
+    }
   }
 
   /* first, create float buffer in non-linear space */
@@ -902,13 +933,15 @@ void IMB_color_to_bw(ImBuf *ibuf)
   size_t i;
 
   if (rct_fl) {
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, rct_fl += 4)
+    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, rct_fl += 4) {
       rct_fl[0] = rct_fl[1] = rct_fl[2] = IMB_colormanagement_get_luminance(rct_fl);
+    }
   }
 
   if (rct) {
-    for (i = ((size_t)ibuf->x * ibuf->y); i > 0; i--, rct += 4)
+    for (i = ((size_t)ibuf->x * ibuf->y); i > 0; i--, rct += 4) {
       rct[0] = rct[1] = rct[2] = IMB_colormanagement_get_luminance_byte(rct);
+    }
   }
 }
 

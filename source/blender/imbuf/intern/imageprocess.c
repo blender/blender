@@ -79,11 +79,13 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 {
   size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     *outI = (unsigned char *)ibuf->rect + offset;
+  }
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     *outF = ibuf->rect_float + offset;
+  }
 }
 
 /* BICUBIC Interpolation */
@@ -154,15 +156,19 @@ void bilinear_interpolation_color_wrap(
   }
 
   /* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
-  if (x1 < 0)
+  if (x1 < 0) {
     x1 = in->x + x1;
-  if (y1 < 0)
+  }
+  if (y1 < 0) {
     y1 = in->y + y1;
+  }
 
-  if (x2 >= in->x)
+  if (x2 >= in->x) {
     x2 = x2 - in->x;
-  if (y2 >= in->y)
+  }
+  if (y2 >= in->y) {
     y2 = y2 - in->y;
+  }
 
   a = u - floorf(u);
   b = v - floorf(v);
@@ -236,10 +242,12 @@ void nearest_interpolation_color(
 
   /* sample area entirely outside image? */
   if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) {
-    if (outI)
+    if (outI) {
       outI[0] = outI[1] = outI[2] = outI[3] = 0;
-    if (outF)
+    }
+    if (outF) {
       outF[0] = outF[1] = outF[2] = outF[3] = 0.0f;
+    }
     return;
   }
 
@@ -292,10 +300,12 @@ void nearest_interpolation_color_wrap(
   y = y % in->y;
 
   /* wrap interpolation pixels - main difference from nearest_interpolation_color  */
-  if (x < 0)
+  if (x < 0) {
     x += in->x;
-  if (y < 0)
+  }
+  if (y < 0) {
     y += in->y;
+  }
 
   dataI = (unsigned char *)in->rect + ((size_t)in->x) * y * 4 + 4 * x;
   if (outI) {
@@ -362,10 +372,12 @@ void IMB_processor_apply_threaded(
     int lines_per_current_task;
     void *handle = ((char *)handles) + handle_size * i;
 
-    if (i < total_tasks - 1)
+    if (i < total_tasks - 1) {
       lines_per_current_task = lines_per_task;
-    else
+    }
+    else {
       lines_per_current_task = buffer_lines - start_line;
+    }
 
     init_handle(handle, start_line, lines_per_current_task, init_customdata);
 

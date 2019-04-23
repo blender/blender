@@ -129,8 +129,9 @@ void IMB_filtery(struct ImBuf *ibuf)
 
   for (; x > 0; x--) {
     if (point) {
-      if (ibuf->planes > 24)
+      if (ibuf->planes > 24) {
         filtcolum(point, y, skip);
+      }
       point++;
       filtcolum(point, y, skip);
       point++;
@@ -140,8 +141,9 @@ void IMB_filtery(struct ImBuf *ibuf)
       point++;
     }
     if (pointf) {
-      if (ibuf->planes > 24)
+      if (ibuf->planes > 24) {
         filtcolumf(pointf, y, skip);
+      }
       pointf++;
       filtcolumf(pointf, y, skip);
       pointf++;
@@ -168,8 +170,9 @@ void imb_filterx(struct ImBuf *ibuf)
 
   for (; y > 0; y--) {
     if (point) {
-      if (ibuf->planes > 24)
+      if (ibuf->planes > 24) {
         filtrow(point, x);
+      }
       point++;
       filtrow(point, x);
       point++;
@@ -179,8 +182,9 @@ void imb_filterx(struct ImBuf *ibuf)
       point += skip;
     }
     if (pointf) {
-      if (ibuf->planes > 24)
+      if (ibuf->planes > 24) {
         filtrowf(pointf, x);
+      }
       pointf++;
       filtrowf(pointf, x);
       pointf++;
@@ -331,10 +335,12 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
     row1 = (char *)(temprect + (y - 2) * rowlen);
     row2 = row1 + rowlen;
     row3 = row2 + rowlen;
-    if (y == 1)
+    if (y == 1) {
       row1 = row2;
-    else if (y == height)
+    }
+    else if (y == height) {
       row3 = row2;
+    }
 
     for (x = 0; x < rowlen; x++) {
       if (mask[((y - 1) * rowlen) + x] == 0) {
@@ -385,10 +391,12 @@ void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 
 static int filter_make_index(const int x, const int y, const int w, const int h)
 {
-  if (x < 0 || x >= w || y < 0 || y >= h)
+  if (x < 0 || x >= w || y < 0 || y >= h) {
     return -1; /* return bad index */
-  else
+  }
+  else {
     return y * w + x;
+  }
 }
 
 static int check_pixel_assigned(
@@ -484,18 +492,21 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
                   if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float)) {
                     if (is_float) {
-                      for (c = 0; c < depth; c++)
+                      for (c = 0; c < depth; c++) {
                         tmp[c] = ((const float *)srcbuf)[depth * tmpindex + c];
+                      }
                     }
                     else {
-                      for (c = 0; c < depth; c++)
+                      for (c = 0; c < depth; c++) {
                         tmp[c] = (float)((const unsigned char *)srcbuf)[depth * tmpindex + c];
+                      }
                     }
 
                     wsum += weight[k];
 
-                    for (c = 0; c < depth; c++)
+                    for (c = 0; c < depth; c++) {
                       acc[c] += weight[k] * tmp[c];
+                    }
                   }
                 }
                 k++;
@@ -503,12 +514,14 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
             }
 
             if (wsum != 0) {
-              for (c = 0; c < depth; c++)
+              for (c = 0; c < depth; c++) {
                 acc[c] /= wsum;
+              }
 
               if (is_float) {
-                for (c = 0; c < depth; c++)
+                for (c = 0; c < depth; c++) {
                   ((float *)dstbuf)[depth * index + c] = acc[c];
+                }
               }
               else {
                 for (c = 0; c < depth; c++) {
@@ -517,8 +530,9 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                 }
               }
 
-              if (dstmask != NULL)
+              if (dstmask != NULL) {
                 dstmask[index] = FILTER_MASK_MARGIN; /* assigned */
+              }
               cannot_early_out = 1;
             }
           }
@@ -535,8 +549,9 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
   /* free memory */
   MEM_freeN(dstbuf);
-  if (dstmask != NULL)
+  if (dstmask != NULL) {
     MEM_freeN(dstmask);
+  }
 }
 
 /* threadsafe version, only recreates existing maps */
@@ -557,17 +572,20 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
         imb_onehalf_no_alloc(ibuf->mipmap[curmap], nbuf);
         IMB_freeImBuf(nbuf);
       }
-      else
+      else {
         imb_onehalf_no_alloc(ibuf->mipmap[curmap], hbuf);
+      }
     }
 
     ibuf->miptot = curmap + 2;
     hbuf = ibuf->mipmap[curmap];
-    if (hbuf)
+    if (hbuf) {
       hbuf->miplevel = curmap + 1;
+    }
 
-    if (!hbuf || (hbuf->x <= 2 && hbuf->y <= 2))
+    if (!hbuf || (hbuf->x <= 2 && hbuf->y <= 2)) {
       break;
+    }
 
     curmap++;
   }
@@ -582,8 +600,9 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
   imb_freemipmapImBuf(ibuf);
 
   /* no mipmap for non RGBA images */
-  if (ibuf->rect_float && ibuf->channels < 4)
+  if (ibuf->rect_float && ibuf->channels < 4) {
     return;
+  }
 
   ibuf->miptot = 1;
 
@@ -594,15 +613,17 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
       ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
       IMB_freeImBuf(nbuf);
     }
-    else
+    else {
       ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
+    }
 
     ibuf->miptot = curmap + 2;
     hbuf = ibuf->mipmap[curmap];
     hbuf->miplevel = curmap + 1;
 
-    if (hbuf->x < 2 && hbuf->y < 2)
+    if (hbuf->x < 2 && hbuf->y < 2) {
       break;
+    }
 
     curmap++;
   }
@@ -622,9 +643,11 @@ void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h)
   if (planes == 24) { /* put alpha at 255 */
     cp = (char *)(rect);
 
-    for (y = 0; y < h; y++)
-      for (x = 0; x < w; x++, cp += 4)
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++, cp += 4) {
         cp[3] = 255;
+      }
+    }
   }
   else {
     cp = (char *)(rect);
@@ -660,14 +683,17 @@ void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_premultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
+  }
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     IMB_premultiply_rect(ibuf->rect, ibuf->planes, ibuf->x, ibuf->y);
+  }
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     IMB_premultiply_rect_float(ibuf->rect_float, ibuf->channels, ibuf->x, ibuf->y);
+  }
 }
 
 void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h)
@@ -679,9 +705,11 @@ void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h)
   if (planes == 24) { /* put alpha at 255 */
     cp = (char *)(rect);
 
-    for (y = 0; y < h; y++)
-      for (x = 0; x < w; x++, cp += 4)
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++, cp += 4) {
         cp[3] = 255;
+      }
+    }
   }
   else {
     cp = (char *)(rect);
@@ -717,12 +745,15 @@ void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_unpremultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
+  }
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     IMB_unpremultiply_rect(ibuf->rect, ibuf->planes, ibuf->x, ibuf->y);
+  }
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     IMB_unpremultiply_rect_float(ibuf->rect_float, ibuf->channels, ibuf->x, ibuf->y);
+  }
 }

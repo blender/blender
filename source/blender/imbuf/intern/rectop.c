@@ -220,8 +220,9 @@ void IMB_rectclip(ImBuf *dbuf,
 {
   int tmp;
 
-  if (dbuf == NULL)
+  if (dbuf == NULL) {
     return;
+  }
 
   if (*destx < 0) {
     *srcx -= *destx;
@@ -245,19 +246,23 @@ void IMB_rectclip(ImBuf *dbuf,
   }
 
   tmp = dbuf->x - *destx;
-  if (*width > tmp)
+  if (*width > tmp) {
     *width = tmp;
+  }
   tmp = dbuf->y - *desty;
-  if (*height > tmp)
+  if (*height > tmp) {
     *height = tmp;
+  }
 
   if (sbuf) {
     tmp = sbuf->x - *srcx;
-    if (*width > tmp)
+    if (*width > tmp) {
       *width = tmp;
+    }
     tmp = sbuf->y - *srcy;
-    if (*height > tmp)
+    if (*height > tmp) {
       *height = tmp;
+    }
   }
 
   if ((*height <= 0) || (*width <= 0)) {
@@ -280,8 +285,9 @@ static void imb_rectclip3(ImBuf *dbuf,
 {
   int tmp;
 
-  if (dbuf == NULL)
+  if (dbuf == NULL) {
     return;
+  }
 
   if (*destx < 0) {
     *srcx -= *destx;
@@ -322,28 +328,34 @@ static void imb_rectclip3(ImBuf *dbuf,
   }
 
   tmp = dbuf->x - *destx;
-  if (*width > tmp)
+  if (*width > tmp) {
     *width = tmp;
+  }
   tmp = dbuf->y - *desty;
-  if (*height > tmp)
+  if (*height > tmp) {
     *height = tmp;
+  }
 
   if (obuf) {
     tmp = obuf->x - *origx;
-    if (*width > tmp)
+    if (*width > tmp) {
       *width = tmp;
+    }
     tmp = obuf->y - *origy;
-    if (*height > tmp)
+    if (*height > tmp) {
       *height = tmp;
+    }
   }
 
   if (sbuf) {
     tmp = sbuf->x - *srcx;
-    if (*width > tmp)
+    if (*width > tmp) {
       *width = tmp;
+    }
     tmp = sbuf->y - *srcy;
-    if (*height > tmp)
+    if (*height > tmp) {
       *height = tmp;
+    }
   }
 
   if ((*height <= 0) || (*width <= 0)) {
@@ -408,17 +420,21 @@ void IMB_rectblend(ImBuf *dbuf,
   IMB_blend_func func = NULL;
   IMB_blend_func_float func_float = NULL;
 
-  if (dbuf == NULL || obuf == NULL)
+  if (dbuf == NULL || obuf == NULL) {
     return;
+  }
 
   imb_rectclip3(dbuf, obuf, sbuf, &destx, &desty, &origx, &origy, &srcx, &srcy, &width, &height);
 
-  if (width == 0 || height == 0)
+  if (width == 0 || height == 0) {
     return;
-  if (sbuf && sbuf->channels != 4)
+  }
+  if (sbuf && sbuf->channels != 4) {
     return;
-  if (dbuf->channels != 4)
+  }
+  if (dbuf->channels != 4) {
     return;
+  }
 
   do_char = (sbuf && sbuf->rect && dbuf->rect && obuf->rect);
   do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
@@ -432,24 +448,29 @@ void IMB_rectblend(ImBuf *dbuf,
     orectf = obuf->rect_float + (((size_t)origy) * obuf->x + origx) * 4;
   }
 
-  if (dmaskrect)
+  if (dmaskrect) {
     dmaskrect += ((size_t)origy) * obuf->x + origx;
+  }
 
   destskip = dbuf->x;
   origskip = obuf->x;
 
   if (sbuf) {
-    if (do_char)
+    if (do_char) {
       srect = sbuf->rect + ((size_t)srcy) * sbuf->x + srcx;
-    if (do_float)
+    }
+    if (do_float) {
       srectf = sbuf->rect_float + (((size_t)srcy) * sbuf->x + srcx) * 4;
+    }
     srcskip = sbuf->x;
 
-    if (cmaskrect)
+    if (cmaskrect) {
       cmaskrect += ((size_t)srcy) * sbuf->x + srcx;
+    }
 
-    if (texmaskrect)
+    if (texmaskrect) {
       texmaskrect += ((size_t)srcy) * sbuf->x + srcx;
+    }
   }
   else {
     srect = drect;
@@ -509,8 +530,9 @@ void IMB_rectblend(ImBuf *dbuf,
       if (do_char) {
         dr = drect;
         sr = srect;
-        for (x = width; x > 0; x--, dr++, sr++)
+        for (x = width; x > 0; x--, dr++, sr++) {
           ((char *)dr)[3] = ((char *)sr)[3];
+        }
         drect += destskip;
         srect += srcskip;
       }
@@ -518,8 +540,9 @@ void IMB_rectblend(ImBuf *dbuf,
       if (do_float) {
         drf = drectf;
         srf = srectf;
-        for (x = width; x > 0; x--, drf += 4, srf += 4)
+        for (x = width; x > 0; x--, drf += 4, srf += 4) {
           drf[3] = srf[3];
+        }
         drectf += destskip * 4;
         srectf += srcskip * 4;
       }
@@ -647,16 +670,19 @@ void IMB_rectblend(ImBuf *dbuf,
               unsigned char *src = (unsigned char *)sr;
               float mask_lim = mask_max * (*cmr);
 
-              if (texmaskrect)
+              if (texmaskrect) {
                 mask_lim *= ((*tmr++) / 65535.0f);
+              }
 
               if (src[3] && mask_lim) {
                 float mask;
 
-                if (accumulate)
+                if (accumulate) {
                   mask = *dmr + mask_lim;
-                else
+                }
+                else {
                   mask = *dmr + mask_lim - (*dmr * (*cmr / 65535.0f));
+                }
 
                 mask = min_ff(mask, 65535.0);
 
@@ -689,8 +715,9 @@ void IMB_rectblend(ImBuf *dbuf,
               unsigned char *src = (unsigned char *)sr;
               float mask = (float)mask_max * ((float)(*cmr));
 
-              if (texmaskrect)
+              if (texmaskrect) {
                 mask *= ((float)(*tmr++) / 65535.0f);
+              }
 
               mask = min_ff(mask, 65535.0);
 
@@ -715,14 +742,16 @@ void IMB_rectblend(ImBuf *dbuf,
           }
 
           cmaskrect += srcskip;
-          if (texmaskrect)
+          if (texmaskrect) {
             texmaskrect += srcskip;
+          }
         }
         else {
           /* regular blending */
           for (x = width; x > 0; x--, dr++, or ++, sr++) {
-            if (((unsigned char *)sr)[3])
+            if (((unsigned char *)sr)[3]) {
               func((unsigned char *)dr, (unsigned char *) or, (unsigned char *)sr);
+            }
           }
         }
 
@@ -747,16 +776,19 @@ void IMB_rectblend(ImBuf *dbuf,
             for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, dmr++, cmr++) {
               float mask_lim = mask_max * (*cmr);
 
-              if (texmaskrect)
+              if (texmaskrect) {
                 mask_lim *= ((*tmr++) / 65535.0f);
+              }
 
               if (srf[3] && mask_lim) {
                 float mask;
 
-                if (accumulate)
+                if (accumulate) {
                   mask = min_ff(*dmr + mask_lim, 65535.0);
-                else
+                }
+                else {
                   mask = *dmr + mask_lim - (*dmr * (*cmr / 65535.0f));
+                }
 
                 mask = min_ff(mask, 65535.0);
 
@@ -781,8 +813,9 @@ void IMB_rectblend(ImBuf *dbuf,
             for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, cmr++) {
               float mask = (float)mask_max * ((float)(*cmr));
 
-              if (texmaskrect)
+              if (texmaskrect) {
                 mask *= ((float)(*tmr++) / 65535.0f);
+              }
 
               mask = min_ff(mask, 65535.0);
 
@@ -800,14 +833,16 @@ void IMB_rectblend(ImBuf *dbuf,
           }
 
           cmaskrect += srcskip;
-          if (texmaskrect)
+          if (texmaskrect) {
             texmaskrect += srcskip;
+          }
         }
         else {
           /* regular blending */
           for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4) {
-            if (srf[3] != 0)
+            if (srf[3] != 0) {
               func_float(drf, orf, srf);
+            }
           }
         }
 
@@ -926,8 +961,9 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
     ccol[3] = (int)(col[3] * 255);
 
     num = drect->x * drect->y;
-    for (; num > 0; num--)
+    for (; num > 0; num--) {
       *rrect++ = *((unsigned int *)ccol);
+    }
   }
 
   if (drect->rect_float) {
@@ -958,8 +994,9 @@ void buf_rectfill_area(unsigned char *rect,
   float a;    /* alpha */
   float ai;   /* alpha inverted */
   float aich; /* alpha, inverted, ai/255.0 - Convert char to float at the same time */
-  if ((!rect && !rectf) || (!col) || col[3] == 0.0f)
+  if ((!rect && !rectf) || (!col) || col[3] == 0.0f) {
     return;
+  }
 
   /* sanity checks for coords */
   CLAMP(x1, 0, width);
@@ -967,12 +1004,15 @@ void buf_rectfill_area(unsigned char *rect,
   CLAMP(y1, 0, height);
   CLAMP(y2, 0, height);
 
-  if (x1 > x2)
+  if (x1 > x2) {
     SWAP(int, x1, x2);
-  if (y1 > y2)
+  }
+  if (y1 > y2) {
     SWAP(int, y1, y2);
-  if (x1 == x2 || y1 == y2)
+  }
+  if (x1 == x2 || y1 == y2) {
     return;
+  }
 
   a = col[3];
   ai = 1 - a;
@@ -1058,8 +1098,9 @@ void IMB_rectfill_area(ImBuf *ibuf,
                        int y2,
                        struct ColorManagedDisplay *display)
 {
-  if (!ibuf)
+  if (!ibuf) {
     return;
+  }
   buf_rectfill_area((unsigned char *)ibuf->rect,
                     ibuf->rect_float,
                     ibuf->x,

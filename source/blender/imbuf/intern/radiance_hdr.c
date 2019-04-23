@@ -180,10 +180,12 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 {
   int e;
   float d = (fcol[RED] > fcol[GRN]) ? fcol[RED] : fcol[GRN];
-  if (fcol[BLU] > d)
+  if (fcol[BLU] > d) {
     d = fcol[BLU];
-  if (d <= 1e-32f)
+  }
+  if (d <= 1e-32f) {
     rgbe[RED] = rgbe[GRN] = rgbe[BLU] = rgbe[EXP] = 0;
+  }
   else {
     d = (float)frexp(d, &e) * 256.0f / d;
     rgbe[RED] = (unsigned char)(fcol[RED] * d);
@@ -201,8 +203,9 @@ int imb_is_a_hdr(const unsigned char *buf)
   /* update: actually, the 'RADIANCE' part is just an optional program name,
    * the magic word is really only the '#?' part */
   //if (strstr((char *)buf, "#?RADIANCE")) return 1;
-  if (strstr((char *)buf, "#?"))
+  if (strstr((char *)buf, "#?")) {
     return 1;
+  }
   // if (strstr((char *)buf, "32-bit_rle_rgbe")) return 1;
   return 0;
 }
@@ -246,18 +249,21 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
       ptr = (unsigned char *)strchr((char *)&mem[x + 1], '\n');
       ptr++;
 
-      if (flags & IB_test)
+      if (flags & IB_test) {
         ibuf = IMB_allocImBuf(width, height, 32, 0);
-      else
+      }
+      else {
         ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect) | IB_rectfloat);
+      }
 
       if (UNLIKELY(ibuf == NULL)) {
         return NULL;
       }
       ibuf->ftype = IMB_FTYPE_RADHDR;
 
-      if (flags & IB_alphamode_detect)
+      if (flags & IB_alphamode_detect) {
         ibuf->flags |= IB_alphamode_premul;
+      }
 
       if (flags & IB_test) {
         return ibuf;
@@ -284,8 +290,9 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
         }
       }
       MEM_freeN(sline);
-      if (oriY[0] == '-')
+      if (oriY[0] == '-') {
         IMB_flipy(ibuf);
+      }
 
       if (flags & IB_rect) {
         IMB_rect_from_float(ibuf);
@@ -346,10 +353,12 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
       for (beg = j; beg < width; beg += cnt) {
         for (cnt = 1; (cnt < 127) && ((beg + cnt) < width) &&
                       (rgbe_scan[beg + cnt][i] == rgbe_scan[beg][i]);
-             cnt++)
+             cnt++) {
           ;
-        if (cnt >= MINRUN)
+        }
+        if (cnt >= MINRUN) {
           break; /* long enough */
+        }
       }
       if (((beg - j) > 1) && ((beg - j) < MINRUN)) {
         c2 = j + 1;
@@ -363,11 +372,13 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
         }
       }
       while (j < beg) { /* write out non-run */
-        if ((c2 = beg - j) > 128)
+        if ((c2 = beg - j) > 128) {
           c2 = 128;
+        }
         putc((unsigned char)(c2), file);
-        while (c2--)
+        while (c2--) {
           putc(rgbe_scan[j++][i], file);
+        }
       }
       if (cnt >= MINRUN) { /* write out run */
         putc((unsigned char)(128 + cnt), file);
@@ -412,10 +423,12 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 
   writeHeader(file, width, height);
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     cp = (unsigned char *)ibuf->rect + ibuf->channels * (height - 1) * width;
-  if (ibuf->rect_float)
+  }
+  if (ibuf->rect_float) {
     fp = ibuf->rect_float + ibuf->channels * (height - 1) * width;
+  }
 
   for (size_t y = 0; y < height; y++) {
     if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
@@ -423,10 +436,12 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
       printf("HDR write error\n");
       return 0;
     }
-    if (cp)
+    if (cp) {
       cp -= ibuf->channels * width;
-    if (fp)
+    }
+    if (fp) {
       fp -= ibuf->channels * width;
+    }
   }
 
   fclose(file);

@@ -231,16 +231,20 @@ void imb_filetypes_init(void)
 {
   const ImFileType *type;
 
-  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
-    if (type->init)
+  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (type->init) {
       type->init();
+    }
+  }
 }
 
 void imb_filetypes_exit(void)
 {
   const ImFileType *type;
 
-  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
-    if (type->exit)
+  for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
+    if (type->exit) {
       type->exit();
+    }
+  }
 }

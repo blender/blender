@@ -34,8 +34,9 @@ void IMB_flipy(struct ImBuf *ibuf)
 {
   int x, y;
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
+  }
 
   if (ibuf->rect) {
     unsigned int *top, *bottom, *line;
@@ -89,8 +90,9 @@ void IMB_flipx(struct ImBuf *ibuf)
   int x, y, xr, xl, yi;
   float px_f[4];
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return;
+  }
 
   x = ibuf->x;
   y = ibuf->y;

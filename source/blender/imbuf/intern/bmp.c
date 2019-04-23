@@ -125,8 +125,9 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem,
 
   (void)size; /* unused */
 
-  if (checkbmp(mem) == 0)
+  if (checkbmp(mem) == 0) {
     return (NULL);
+  }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
@@ -310,8 +311,9 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 
   data = (uchar *)ibuf->rect;
   ofile = BLI_fopen(name, "wb");
-  if (!ofile)
+  if (!ofile) {
     return 0;
+  }
 
   putShortLSB(19778, ofile);                                             /* "BM" */
   putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader), ofile); /* Total file size */
@@ -335,17 +337,21 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
   for (size_t y = 0; y < ibuf->y; y++) {
     for (size_t x = 0; x < ibuf->x; x++) {
       ptr = (x + y * ibuf->x) * 4;
-      if (putc(data[ptr + 2], ofile) == EOF)
+      if (putc(data[ptr + 2], ofile) == EOF) {
         return 0;
-      if (putc(data[ptr + 1], ofile) == EOF)
+      }
+      if (putc(data[ptr + 1], ofile) == EOF) {
         return 0;
-      if (putc(data[ptr], ofile) == EOF)
+      }
+      if (putc(data[ptr], ofile) == EOF) {
         return 0;
+      }
     }
     /* add padding here */
     for (size_t t = 0; t < extrabytes; t++) {
-      if (putc(0, ofile) == EOF)
+      if (putc(0, ofile) == EOF) {
         return 0;
+      }
     }
   }
   if (ofile) {

@@ -126,16 +126,20 @@ int IMB_ispic_type(const char *name)
 
   BLI_assert(!BLI_path_is_rel(name));
 
-  if (UTIL_DEBUG)
+  if (UTIL_DEBUG) {
     printf("%s: loading %s\n", __func__, name);
+  }
 
-  if (BLI_stat(name, &st) == -1)
+  if (BLI_stat(name, &st) == -1) {
     return false;
-  if (((st.st_mode) & S_IFMT) != S_IFREG)
+  }
+  if (((st.st_mode) & S_IFMT) != S_IFREG) {
     return false;
+  }
 
-  if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) == -1)
+  if ((fp = BLI_open(name, O_BINARY | O_RDONLY, 0)) == -1) {
     return false;
+  }
 
   memset(buf, 0, sizeof(buf));
   if (read(fp, buf, HEADER_SIZE) <= 0) {
@@ -146,8 +150,9 @@ int IMB_ispic_type(const char *name)
   close(fp);
 
   /* XXX move this exception */
-  if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
+  if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0) {
     return IMB_FTYPE_JPG;
+  }
 
   for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->is_a) {
@@ -223,8 +228,9 @@ void IMB_ffmpeg_init(void)
 
   ffmpeg_last_error[0] = '\0';
 
-  if (G.debug & G_DEBUG_FFMPEG)
+  if (G.debug & G_DEBUG_FFMPEG) {
     av_log_set_level(AV_LOG_DEBUG);
+  }
 
   /* set own callback which could store last error to report to UI */
   av_log_set_callback(ffmpeg_log_callback);
@@ -259,20 +265,23 @@ static int isffmpeg(const char *filename)
   }
 
   if (avformat_open_input(&pFormatCtx, filename, NULL, NULL) != 0) {
-    if (UTIL_DEBUG)
+    if (UTIL_DEBUG) {
       fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+    }
     return 0;
   }
 
   if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
-    if (UTIL_DEBUG)
+    if (UTIL_DEBUG) {
       fprintf(stderr, "isffmpeg: avformat_find_stream_info failed\n");
+    }
     avformat_close_input(&pFormatCtx);
     return 0;
   }
 
-  if (UTIL_DEBUG)
+  if (UTIL_DEBUG) {
     av_dump_format(pFormatCtx, 0, filename, 0);
+  }
 
   /* Find the first video stream */
   videoStream = -1;
@@ -316,40 +325,51 @@ int imb_get_anim_type(const char *name)
 
   BLI_assert(!BLI_path_is_rel(name));
 
-  if (UTIL_DEBUG)
+  if (UTIL_DEBUG) {
     printf("%s: %s\n", __func__, name);
+  }
 
 #ifndef _WIN32
 #  ifdef WITH_FFMPEG
   /* stat test below fails on large files > 4GB */
-  if (isffmpeg(name))
+  if (isffmpeg(name)) {
     return (ANIM_FFMPEG);
+  }
 #  endif
-  if (BLI_stat(name, &st) == -1)
+  if (BLI_stat(name, &st) == -1) {
     return (0);
-  if (((st.st_mode) & S_IFMT) != S_IFREG)
+  }
+  if (((st.st_mode) & S_IFMT) != S_IFREG) {
     return (0);
+  }
 
-  if (isavi(name))
+  if (isavi(name)) {
     return (ANIM_AVI);
+  }
 
-  if (ismovie(name))
+  if (ismovie(name)) {
     return (ANIM_MOVIE);
+  }
 #else
-  if (BLI_stat(name, &st) == -1)
+  if (BLI_stat(name, &st) == -1) {
     return (0);
-  if (((st.st_mode) & S_IFMT) != S_IFREG)
+  }
+  if (((st.st_mode) & S_IFMT) != S_IFREG) {
     return (0);
+  }
 
-  if (ismovie(name))
+  if (ismovie(name)) {
     return (ANIM_MOVIE);
+  }
 #  ifdef WITH_FFMPEG
-  if (isffmpeg(name))
+  if (isffmpeg(name)) {
     return (ANIM_FFMPEG);
+  }
 #  endif
 
-  if (isavi(name))
+  if (isavi(name)) {
     return (ANIM_AVI);
+  }
 #endif
   type = IMB_ispic(name);
   if (type) {

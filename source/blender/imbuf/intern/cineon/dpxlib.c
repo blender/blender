@@ -143,8 +143,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   int i;
 
   if (dpx == NULL) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Failed to malloc dpx file structure.\n");
+    }
     return NULL;
   }
 
@@ -158,8 +159,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
     /* byteStuff is then the filename */
     dpx->file = BLI_fopen(filename, "rb");
     if (dpx->file == NULL) {
-      if (verbose)
+      if (verbose) {
         printf("DPX: Failed to open file \"%s\".\n", filename);
+      }
       logImageClose(dpx);
       return NULL;
     }
@@ -175,8 +177,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   }
 
   if (logimage_fread(&header, sizeof(header), 1, dpx) == 0) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Not enough data for header in \"%s\".\n", byteStuff);
+    }
     logImageClose(dpx);
     return NULL;
   }
@@ -184,13 +187,15 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   /* endianness determination */
   if (header.fileHeader.magic_num == swap_uint(DPX_FILE_MAGIC, 1)) {
     dpx->isMSB = 1;
-    if (verbose)
+    if (verbose) {
       printf("DPX: File is MSB.\n");
+    }
   }
   else if (header.fileHeader.magic_num == DPX_FILE_MAGIC) {
     dpx->isMSB = 0;
-    if (verbose)
+    if (verbose) {
       printf("DPX: File is LSB.\n");
+    }
   }
   else {
     if (verbose) {
@@ -204,8 +209,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   dpx->numElements = swap_ushort(header.imageHeader.elements_per_image, dpx->isMSB);
   size_t max_elements = sizeof(header.imageHeader.element) / sizeof(header.imageHeader.element[0]);
   if (dpx->numElements == 0 || dpx->numElements >= max_elements) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Wrong number of elements: %d\n", dpx->numElements);
+    }
     logImageClose(dpx);
     return NULL;
   }
@@ -214,8 +220,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
   dpx->height = swap_uint(header.imageHeader.lines_per_element, dpx->isMSB);
 
   if (dpx->width == 0 || dpx->height == 0) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Wrong image dimension: %dx%d\n", dpx->width, dpx->height);
+    }
     logImageClose(dpx);
     return NULL;
   }
@@ -262,8 +269,9 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
     }
 
     if (dpx->depth == 0 || dpx->depth > 4) {
-      if (verbose)
+      if (verbose) {
         printf("DPX: Unsupported image depth: %d\n", dpx->depth);
+      }
       logImageClose(dpx);
       return NULL;
     }
@@ -272,10 +280,11 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
     if (dpx->element[i].bitsPerSample != 1 && dpx->element[i].bitsPerSample != 8 &&
         dpx->element[i].bitsPerSample != 10 && dpx->element[i].bitsPerSample != 12 &&
         dpx->element[i].bitsPerSample != 16) {
-      if (verbose)
+      if (verbose) {
         printf("DPX: Unsupported bitsPerSample for elements %d: %d\n",
                i,
                dpx->element[i].bitsPerSample);
+      }
       logImageClose(dpx);
       return NULL;
     }
@@ -284,20 +293,23 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 
     dpx->element[i].packing = swap_ushort(header.imageHeader.element[i].packing, dpx->isMSB);
     if (dpx->element[i].packing > 2) {
-      if (verbose)
+      if (verbose) {
         printf("DPX: Unsupported packing for element %d: %d\n", i, dpx->element[i].packing);
+      }
       logImageClose(dpx);
       return NULL;
     }
 
     /* Sometimes, the offset is not set correctly in the header */
     dpx->element[i].dataOffset = swap_uint(header.imageHeader.element[i].data_offset, dpx->isMSB);
-    if (dpx->element[i].dataOffset == 0 && dpx->numElements == 1)
+    if (dpx->element[i].dataOffset == 0 && dpx->numElements == 1) {
       dpx->element[i].dataOffset = swap_uint(header.fileHeader.offset, dpx->isMSB);
+    }
 
     if (dpx->element[i].dataOffset == 0) {
-      if (verbose)
+      if (verbose) {
         printf("DPX: Image header is corrupted.\n");
+      }
       logImageClose(dpx);
       return NULL;
     }
@@ -321,23 +333,28 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
       case descriptor_RGB:
       case descriptor_RGBA:
       case descriptor_ABGR:
-        if (dpx->element[i].refLowData == DPX_UNDEFINED_U32)
+        if (dpx->element[i].refLowData == DPX_UNDEFINED_U32) {
           dpx->element[i].refLowData = 0;
+        }
 
-        if (dpx->element[i].refHighData == DPX_UNDEFINED_U32)
+        if (dpx->element[i].refHighData == DPX_UNDEFINED_U32) {
           dpx->element[i].refHighData = (unsigned int)dpx->element[i].maxValue;
+        }
 
         if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refLowQuantity))
+            isnan(dpx->element[i].refLowQuantity)) {
           dpx->element[i].refLowQuantity = 0.0f;
+        }
 
         if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 ||
             isnan(dpx->element[i].refHighQuantity)) {
           if (dpx->element[i].transfer == transfer_PrintingDensity ||
-              dpx->element[i].transfer == transfer_Logarithmic)
+              dpx->element[i].transfer == transfer_Logarithmic) {
             dpx->element[i].refHighQuantity = 2.048f;
-          else
+          }
+          else {
             dpx->element[i].refHighQuantity = dpx->element[i].maxValue;
+          }
         }
 
         break;
@@ -348,19 +365,23 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
       case descriptor_CbYCr:
       case descriptor_CbYACrYA:
       case descriptor_CbYCrA:
-        if (dpx->element[i].refLowData == DPX_UNDEFINED_U32)
+        if (dpx->element[i].refLowData == DPX_UNDEFINED_U32) {
           dpx->element[i].refLowData = 16.0f / 255.0f * dpx->element[i].maxValue;
+        }
 
-        if (dpx->element[i].refHighData == DPX_UNDEFINED_U32)
+        if (dpx->element[i].refHighData == DPX_UNDEFINED_U32) {
           dpx->element[i].refHighData = 235.0f / 255.0f * dpx->element[i].maxValue;
+        }
 
         if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refLowQuantity))
+            isnan(dpx->element[i].refLowQuantity)) {
           dpx->element[i].refLowQuantity = 0.0f;
+        }
 
         if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 ||
-            isnan(dpx->element[i].refHighQuantity))
+            isnan(dpx->element[i].refHighQuantity)) {
           dpx->element[i].refHighQuantity = 0.7f;
+        }
 
         break;
 
@@ -425,8 +446,9 @@ LogImageFile *dpxCreate(const char *filename,
 
   LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
   if (dpx == NULL) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Failed to malloc dpx file structure.\n");
+    }
     return NULL;
   }
 
@@ -451,8 +473,9 @@ LogImageFile *dpxCreate(const char *filename,
       break;
 
     default:
-      if (verbose)
+      if (verbose) {
         printf("DPX: bitsPerSample not supported: %d\n", bitsPerSample);
+      }
       logImageClose(dpx);
       return NULL;
   }
@@ -481,32 +504,41 @@ LogImageFile *dpxCreate(const char *filename,
   dpx->element[0].refLowData = 0;
   dpx->element[0].refHighData = dpx->element[0].maxValue;
 
-  if (referenceWhite > 0)
+  if (referenceWhite > 0) {
     dpx->referenceWhite = referenceWhite;
-  else
+  }
+  else {
     dpx->referenceWhite = 685.0f / 1023.0f * dpx->element[0].maxValue;
+  }
 
-  if (referenceBlack > 0)
+  if (referenceBlack > 0) {
     dpx->referenceBlack = referenceBlack;
-  else
+  }
+  else {
     dpx->referenceBlack = 95.0f / 1023.0f * dpx->element[0].maxValue;
+  }
 
-  if (gamma > 0.0f)
+  if (gamma > 0.0f) {
     dpx->gamma = gamma;
-  else
+  }
+  else {
     dpx->gamma = 1.7f;
+  }
 
   shortFilename = strrchr(filename, '/');
-  if (shortFilename == NULL)
+  if (shortFilename == NULL) {
     shortFilename = filename;
-  else
+  }
+  else {
     shortFilename++;
+  }
 
   dpx->file = BLI_fopen(filename, "wb");
 
   if (dpx->file == NULL) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Couldn't open file %s\n", filename);
+    }
     logImageClose(dpx);
     return NULL;
   }
@@ -514,8 +546,9 @@ LogImageFile *dpxCreate(const char *filename,
   fillDpxMainHeader(dpx, &header, shortFilename, creator);
 
   if (fwrite(&header, sizeof(header), 1, dpx->file) == 0) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Couldn't write image header\n");
+    }
     logImageClose(dpx);
     return NULL;
   }
@@ -524,8 +557,9 @@ LogImageFile *dpxCreate(const char *filename,
    * 6044 = 8092 - sizeof(DpxMainHeader) */
   memset(&pad, 0, 6044);
   if (fwrite(&pad, 6044, 1, dpx->file) == 0) {
-    if (verbose)
+    if (verbose) {
       printf("DPX: Couldn't write image header\n");
+    }
     logImageClose(dpx);
     return NULL;
   }

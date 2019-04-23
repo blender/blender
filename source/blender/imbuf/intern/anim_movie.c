@@ -124,8 +124,9 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
   nume = len;
 
   for (i = len - 1; i >= 0; i--) {
-    if (string[i] == PATHSEPARATOR)
+    if (string[i] == PATHSEPARATOR) {
       break;
+    }
     if (isdigit(string[i])) {
       if (found) {
         nums = i;
@@ -137,8 +138,9 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
       }
     }
     else {
-      if (found)
+      if (found) {
         break;
+      }
     }
   }
   if (found) {
@@ -167,10 +169,12 @@ static void free_anim_avi(struct anim *anim)
   int i;
 #  endif
 
-  if (anim == NULL)
+  if (anim == NULL) {
     return;
-  if (anim->avi == NULL)
+  }
+  if (anim->avi == NULL) {
     return;
+  }
 
   AVI_close(anim->avi);
   MEM_freeN(anim->avi);
@@ -227,16 +231,18 @@ void IMB_free_anim(struct anim *anim)
 
 void IMB_close_anim(struct anim *anim)
 {
-  if (anim == NULL)
+  if (anim == NULL) {
     return;
+  }
 
   IMB_free_anim(anim);
 }
 
 void IMB_close_anim_proxies(struct anim *anim)
 {
-  if (anim == NULL)
+  if (anim == NULL) {
     return;
+  }
 
   IMB_free_indices(anim);
 }
@@ -253,8 +259,9 @@ struct IDProperty *IMB_anim_load_metadata(struct anim *anim)
 
       while (true) {
         entry = av_dict_get(anim->pFormatCtx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
-        if (entry == NULL)
+        if (entry == NULL) {
           break;
+        }
 
         /* Delay creation of the property group until there is actual metadata to put in there. */
         IMB_metadata_ensure(&anim->metadata);
@@ -503,8 +510,9 @@ static int startffmpeg(struct anim *anim)
   const int *inv_table;
 #  endif
 
-  if (anim == NULL)
+  if (anim == NULL) {
     return (-1);
+  }
 
   streamcount = anim->streamindex;
 
@@ -971,14 +979,16 @@ static int match_format(const char *name, AVFormatContext *pFormatCtx)
 
   const char *names = pFormatCtx->iformat->name;
 
-  if (!name || !names)
+  if (!name || !names) {
     return 0;
+  }
 
   namelen = strlen(name);
   while ((p = strchr(names, ','))) {
     len = MAX2(p - names, namelen);
-    if (!BLI_strncasecmp(name, names, len))
+    if (!BLI_strncasecmp(name, names, len)) {
       return 1;
+    }
     names = p + 1;
   }
   return !BLI_strcasecmp(name, names);
@@ -1015,8 +1025,9 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   int new_frame_index = 0; /* To quiet gcc barking... */
   int old_frame_index = 0; /* To quiet gcc barking... */
 
-  if (anim == NULL)
+  if (anim == NULL) {
     return (0);
+  }
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: pos=%d\n", position);
 
@@ -1178,8 +1189,9 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
 
 static void free_anim_ffmpeg(struct anim *anim)
 {
-  if (anim == NULL)
+  if (anim == NULL) {
     return;
+  }
 
   if (anim->pCodecCtx) {
     avcodec_close(anim->pCodecCtx);
@@ -1222,8 +1234,9 @@ static ImBuf *anim_getnew(struct anim *anim)
 {
   struct ImBuf *ibuf = NULL;
 
-  if (anim == NULL)
+  if (anim == NULL) {
     return (NULL);
+  }
 
   free_anim_movie(anim);
 
@@ -1235,8 +1248,9 @@ static ImBuf *anim_getnew(struct anim *anim)
   free_anim_ffmpeg(anim);
 #endif
 
-  if (anim->curtype != 0)
+  if (anim->curtype != 0) {
     return (NULL);
+  }
   anim->curtype = imb_get_anim_type(anim->name);
 
   switch (anim->curtype) {
@@ -1248,8 +1262,9 @@ static ImBuf *anim_getnew(struct anim *anim)
       }
       break;
     case ANIM_MOVIE:
-      if (startmovie(anim))
+      if (startmovie(anim)) {
         return (NULL);
+      }
       ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0); /* fake */
       break;
 #ifdef WITH_AVI
@@ -1263,8 +1278,9 @@ static ImBuf *anim_getnew(struct anim *anim)
 #endif
 #ifdef WITH_FFMPEG
     case ANIM_FFMPEG:
-      if (startffmpeg(anim))
+      if (startffmpeg(anim)) {
         return (0);
+      }
       ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
       break;
 #endif
@@ -1296,8 +1312,9 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
   unsigned short digits;
   int pic;
   int filter_y;
-  if (anim == NULL)
+  if (anim == NULL) {
     return (NULL);
+  }
 
   filter_y = (anim->ib_flags & IB_animdeinterlace);
 
@@ -1312,10 +1329,12 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
       ibuf = NULL;
     }
 
-    if (position < 0)
+    if (position < 0) {
       return (NULL);
-    if (position >= anim->duration)
+    }
+    if (position >= anim->duration) {
       return (NULL);
+    }
   }
   else {
     struct anim *proxy = IMB_anim_open_proxy(anim, preview_size);
@@ -1347,23 +1366,26 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
 #ifdef WITH_AVI
     case ANIM_AVI:
       ibuf = avi_fetchibuf(anim, position);
-      if (ibuf)
+      if (ibuf) {
         anim->curposition = position;
+      }
       break;
 #endif
 #ifdef WITH_FFMPEG
     case ANIM_FFMPEG:
       ibuf = ffmpeg_fetchibuf(anim, position, tc);
-      if (ibuf)
+      if (ibuf) {
         anim->curposition = position;
+      }
       filter_y = 0; /* done internally */
       break;
 #endif
   }
 
   if (ibuf) {
-    if (filter_y)
+    if (filter_y) {
       IMB_filtery(ibuf);
+    }
     BLI_snprintf(ibuf->name, sizeof(ibuf->name), "%s.%04d", anim->name, anim->curposition + 1);
   }
   return (ibuf);

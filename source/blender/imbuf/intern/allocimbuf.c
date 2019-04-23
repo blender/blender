@@ -597,8 +597,9 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   tbuf.encodedbuffer = ibuf2->encodedbuffer;
   tbuf.zbuf = ibuf2->zbuf;
   tbuf.zbuf_float = ibuf2->zbuf_float;
-  for (a = 0; a < IMB_MIPMAP_LEVELS; a++)
+  for (a = 0; a < IMB_MIPMAP_LEVELS; a++) {
     tbuf.mipmap[a] = NULL;
+  }
   tbuf.dds_data.data = NULL;
 
   /* set malloc flag */

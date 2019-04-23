@@ -49,8 +49,9 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
   BLI_assert(!BLI_path_is_rel(name));
 
-  if (ibuf == NULL)
+  if (ibuf == NULL) {
     return (false);
+  }
   ibuf->flags = flags;
 
   for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {

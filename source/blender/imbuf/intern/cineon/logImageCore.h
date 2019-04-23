@@ -213,18 +213,22 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 
 BLI_INLINE unsigned short swap_ushort(unsigned short x, int swap)
 {
-  if (swap != 0)
+  if (swap != 0) {
     return (x >> 8) | (x << 8);
-  else
+  }
+  else {
     return x;
+  }
 }
 
 BLI_INLINE unsigned int swap_uint(unsigned int x, int swap)
 {
-  if (swap != 0)
+  if (swap != 0) {
     return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
-  else
+  }
+  else {
     return x;
+  }
 }
 
 BLI_INLINE float swap_float(float x, int swap)
@@ -242,40 +246,50 @@ BLI_INLINE float swap_float(float x, int swap)
     dat2.b[3] = dat1.b[0];
     return dat2.f;
   }
-  else
+  else {
     return x;
+  }
 }
 
 /* Other */
 
 BLI_INLINE unsigned int clamp_uint(unsigned int x, unsigned int low, unsigned int high)
 {
-  if (x > high)
+  if (x > high) {
     return high;
-  else if (x < low)
+  }
+  else if (x < low) {
     return low;
-  else
+  }
+  else {
     return x;
+  }
 }
 
 BLI_INLINE float clamp_float(float x, float low, float high)
 {
-  if (x > high)
+  if (x > high) {
     return high;
-  else if (x < low)
+  }
+  else if (x < low) {
     return low;
-  else
+  }
+  else {
     return x;
+  }
 }
 
 BLI_INLINE unsigned int float_uint(float value, unsigned int max)
 {
-  if (value < 0.0f)
+  if (value < 0.0f) {
     return 0;
-  else if (value > (1.0f - 0.5f / (float)max))
+  }
+  else if (value > (1.0f - 0.5f / (float)max)) {
     return max;
-  else
+  }
+  else {
     return (unsigned int)(((float)max * value) + 0.5f);
+  }
 }
 
 #ifdef __cplusplus

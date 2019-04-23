@@ -51,7 +51,7 @@
 #ifndef __PIXELFORMAT_H__
 #define __PIXELFORMAT_H__
 
-#include <Common.h>
+#include "Common.h"
 
 namespace PixelFormat {
 

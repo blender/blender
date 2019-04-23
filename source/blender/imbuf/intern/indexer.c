@@ -867,8 +867,9 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
     if (context->tcs_in_use & tc_types[i]) {
       int tc_frameno = context->frameno;
 
-      if (tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS)
+      if (tc_types[i] == IMB_TC_RECORD_RUN_NO_GAPS) {
         tc_frameno = context->frameno_gapless;
+      }
 
       IMB_index_builder_proc_frame(context->indexer[i],
                                    curr_packet->data,
@@ -1201,8 +1202,9 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
 #endif
   }
 
-  if (context)
+  if (context) {
     context->anim_type = anim->curtype;
+  }
 
   return context;
 

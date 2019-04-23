@@ -173,11 +173,13 @@ int FlipDXTCImage(
     unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data)
 {
   // must have valid dimensions
-  if (width == 0 || height == 0)
+  if (width == 0 || height == 0) {
     return 0;
+  }
   // height must be a power-of-two
-  if ((height & (height - 1)) != 0)
+  if ((height & (height - 1)) != 0) {
     return 0;
+  }
 
   FlipBlockFunction full_block_function;
   FlipBlockFunction half_block_function;
@@ -223,8 +225,9 @@ int FlipDXTCImage(
     }
     else {
       // flip each block.
-      for (unsigned int i = 0; i < blocks; ++i)
+      for (unsigned int i = 0; i < blocks; ++i) {
         full_block_function(data + i * block_bytes);
+      }
 
       // swap each block line in the first half of the image with the
       // corresponding one in the second half.

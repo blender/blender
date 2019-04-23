@@ -435,17 +435,20 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   i = image->numcomps;
-  if (i > 4)
+  if (i > 4) {
     i = 4;
+  }
 
   while (i) {
     i--;
 
-    if (image->comps[i].prec > 8)
+    if (image->comps[i].prec > 8) {
       use_float = true;
+    }
 
-    if (image->comps[i].sgnd)
+    if (image->comps[i].sgnd) {
       signed_offsets[i] = 1 << (image->comps[i].prec - 1);
+    }
 
     /* only needed for float images but dosnt hurt to calc this */
     float_divs[i] = (1 << image->comps[i].prec) - 1;
@@ -850,8 +853,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 
   if (ibuf->foptions.flag & JP2_CINE) {
 
-    if (ibuf->x == 4096 || ibuf->y == 2160)
+    if (ibuf->x == 4096 || ibuf->y == 2160) {
       parameters->cp_cinema = OPJ_CINEMA4K_24;
+    }
     else {
       if (ibuf->foptions.flag & JP2_CINE_48FPS) {
         parameters->cp_cinema = OPJ_CINEMA2K_48;
@@ -876,12 +880,15 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
     /* Get settings from the imbuf */
     color_space = (ibuf->foptions.flag & JP2_YCC) ? OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
 
-    if (ibuf->foptions.flag & JP2_16BIT)
+    if (ibuf->foptions.flag & JP2_16BIT) {
       prec = 16;
-    else if (ibuf->foptions.flag & JP2_12BIT)
+    }
+    else if (ibuf->foptions.flag & JP2_12BIT) {
       prec = 12;
-    else
+    }
+    else {
       prec = 8;
+    }
 
     /* 32bit images == alpha channel */
     /* grayscale not supported yet */
@@ -1181,8 +1188,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
     cinema_setup_encoder(parameters, image, &img_fol);
   }
 
-  if (img_fol.rates)
+  if (img_fol.rates) {
     MEM_freeN(img_fol.rates);
+  }
 
   return image;
 }

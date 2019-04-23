@@ -59,8 +59,9 @@ static uchar ibuf_quality;
 
 int imb_is_a_jpeg(const unsigned char *mem)
 {
-  if ((mem[0] == 0xFF) && (mem[1] == 0xD8))
+  if ((mem[0] == 0xFF) && (mem[1] == 0xD8)) {
     return 1;
+  }
   return 0;
 }
 
@@ -279,8 +280,9 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
     y = cinfo->image_height;
     depth = cinfo->num_components;
 
-    if (cinfo->jpeg_color_space == JCS_YCCK)
+    if (cinfo->jpeg_color_space == JCS_YCCK) {
       cinfo->out_color_space = JCS_CMYK;
+    }
 
     jpeg_start_decompress(cinfo);
 
@@ -341,8 +343,9 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 
       marker = cinfo->marker_list;
       while (marker) {
-        if (marker->marker != JPEG_COM)
+        if (marker->marker != JPEG_COM) {
           goto next_stamp_marker;
+        }
 
         /*
          * JPEG marker strings are not null-terminated,
@@ -426,8 +429,9 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
   struct my_error_mgr jerr;
   ImBuf *ibuf;
 
-  if (!imb_is_a_jpeg(buffer))
+  if (!imb_is_a_jpeg(buffer)) {
     return NULL;
+  }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
@@ -554,10 +558,12 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   int quality;
 
   quality = ibuf->foptions.quality;
-  if (quality <= 0)
+  if (quality <= 0) {
     quality = jpeg_default_quality;
-  if (quality > 100)
+  }
+  if (quality > 100) {
     quality = 100;
+  }
 
   jpeg_create_compress(cinfo);
   jpeg_stdio_dest(cinfo, outfile);
@@ -566,8 +572,9 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   cinfo->image_height = ibuf->y;
 
   cinfo->in_color_space = JCS_RGB;
-  if (ibuf->planes == 8)
+  if (ibuf->planes == 8) {
     cinfo->in_color_space = JCS_GRAYSCALE;
+  }
 #if 0
   /* just write RGBA as RGB,
    * unsupported feature only confuses other s/w */
@@ -606,8 +613,9 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
   struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
 
-  if ((outfile = BLI_fopen(name, "wb")) == NULL)
+  if ((outfile = BLI_fopen(name, "wb")) == NULL) {
     return 0;
+  }
 
   cinfo->err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = jpeg_error;

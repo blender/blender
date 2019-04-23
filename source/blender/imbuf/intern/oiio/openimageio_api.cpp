@@ -29,7 +29,7 @@
 
 // NOTE: Keep first, BLI_path_util conflicts with OIIO's format.
 #include <memory>
-#include <openimageio_api.h>
+#include "openimageio_api.h"
 #include <OpenImageIO/imageio.h>
 
 extern "C" {
@@ -98,16 +98,18 @@ static ImBuf *imb_oiio_load_image(
       std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
                 << in->geterror() << std::endl;
 
-      if (ibuf)
+      if (ibuf) {
         IMB_freeImBuf(ibuf);
+      }
 
       return NULL;
     }
   }
   catch (const std::exception &exc) {
     std::cerr << exc.what() << std::endl;
-    if (ibuf)
+    if (ibuf) {
       IMB_freeImBuf(ibuf);
+    }
 
     return NULL;
   }
@@ -136,16 +138,18 @@ static ImBuf *imb_oiio_load_image_float(
       std::cerr << __func__ << ": ImageInput::read_image() failed:" << std::endl
                 << in->geterror() << std::endl;
 
-      if (ibuf)
+      if (ibuf) {
         IMB_freeImBuf(ibuf);
+      }
 
       return NULL;
     }
   }
   catch (const std::exception &exc) {
     std::cerr << exc.what() << std::endl;
-    if (ibuf)
+    if (ibuf) {
       IMB_freeImBuf(ibuf);
+    }
 
     return NULL;
   }
@@ -194,8 +198,9 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   char file_colorspace[IM_MAX_SPACE];
 
   /* load image from file through OIIO */
-  if (imb_is_a_photoshop(filename) == 0)
+  if (imb_is_a_photoshop(filename) == 0) {
     return (NULL);
+  }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
@@ -219,12 +224,14 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   BLI_strncpy(file_colorspace, ics.c_str(), IM_MAX_SPACE);
 
   /* only use colorspaces exis */
-  if (colormanage_colorspace_get_named(file_colorspace))
+  if (colormanage_colorspace_get_named(file_colorspace)) {
     strcpy(colorspace, file_colorspace);
-  else
+  }
+  else {
     std::cerr << __func__ << ": The embed colorspace (\"" << file_colorspace
               << "\") not supported in existent OCIO configuration file. Fallback "
               << "to system default colorspace (\"" << colorspace << "\")." << std::endl;
+  }
 
   width = spec.width;
   height = spec.height;
@@ -241,17 +248,20 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
     return NULL;
   }
 
-  if (is_float)
+  if (is_float) {
     ibuf = imb_oiio_load_image_float(in.get(), width, height, components, flags, is_alpha);
-  else
+  }
+  else {
     ibuf = imb_oiio_load_image(in.get(), width, height, components, flags, is_alpha);
+  }
 
   if (in) {
     in->close();
   }
 
-  if (!ibuf)
+  if (!ibuf) {
     return NULL;
+  }
 
   /* ImBuf always needs 4 channels */
   ibuf->ftype = IMB_FTYPE_PSD;
@@ -263,8 +273,9 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
   }
   catch (const std::exception &exc) {
     std::cerr << exc.what() << std::endl;
-    if (ibuf)
+    if (ibuf) {
       IMB_freeImBuf(ibuf);
+    }
 
     return NULL;
   }

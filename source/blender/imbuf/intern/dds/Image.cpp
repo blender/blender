@@ -51,8 +51,9 @@ void Image::allocate(uint w, uint h)
 
 void Image::free()
 {
-  if (m_data)
+  if (m_data) {
     delete[] m_data;
+  }
   m_data = NULL;
 }
 

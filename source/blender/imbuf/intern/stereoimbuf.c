@@ -573,11 +573,13 @@ static void imb_stereo3d_squeeze_ImBuf(ImBuf *ibuf,
                                        const size_t x,
                                        const size_t y)
 {
-  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false)
+  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false) {
     return;
+  }
 
-  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0)
+  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0) {
     return;
+  }
 
   IMB_scaleImBuf_threaded(ibuf, x, y);
 }
@@ -587,11 +589,13 @@ static void imb_stereo3d_unsqueeze_ImBuf(ImBuf *ibuf,
                                          const size_t x,
                                          const size_t y)
 {
-  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false)
+  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false) {
     return;
+  }
 
-  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0)
+  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0) {
     return;
+  }
 
   IMB_scaleImBuf_threaded(ibuf, x, y);
 }
@@ -602,11 +606,13 @@ static void imb_stereo3d_squeeze_rectf(
   ImBuf *ibuf;
   size_t width, height;
 
-  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false)
+  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false) {
     return;
+  }
 
-  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0)
+  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0) {
     return;
+  }
 
   /* creates temporary imbuf to store the rectf */
   IMB_stereo3d_write_dimensions(s3d->display_mode, false, x, y, &width, &height);
@@ -634,11 +640,13 @@ static void imb_stereo3d_squeeze_rect(
   ImBuf *ibuf;
   size_t width, height;
 
-  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false)
+  if (ELEM(s3d->display_mode, S3D_DISPLAY_SIDEBYSIDE, S3D_DISPLAY_TOPBOTTOM) == false) {
     return;
+  }
 
-  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0)
+  if ((s3d->flag & S3D_SQUEEZED_FRAME) == 0) {
     return;
+  }
 
   /* creates temporary imbuf to store the rectf */
   IMB_stereo3d_write_dimensions(s3d->display_mode, false, x, y, &width, &height);
