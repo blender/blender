@@ -723,12 +723,54 @@ static void fullscreen_click_rcti_init(
   BLI_rcti_init(rect, x, x + icon_size, y, y + icon_size);
 }
 
+static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
+{
+  const ARegion *ar = az->ar;
+  *r_rect_clip = az->rect;
+  if (az->type == AZONE_REGION) {
+    if (ar->overlap && (ar->v2d.keeptot != V2D_KEEPTOT_STRICT)) {
+      /* A floating region to be resized, clip by the visible region. */
+      switch (az->edge) {
+        case AE_TOP_TO_BOTTOMRIGHT:
+        case AE_BOTTOM_TO_TOPLEFT: {
+          r_rect_clip->xmin = max_ii(
+              r_rect_clip->xmin,
+              (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmin)) -
+                  UI_REGION_OVERLAP_MARGIN);
+          r_rect_clip->xmax = min_ii(
+              r_rect_clip->xmax,
+              (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmax)) +
+                  UI_REGION_OVERLAP_MARGIN);
+          return true;
+        }
+        case AE_LEFT_TO_TOPRIGHT:
+        case AE_RIGHT_TO_TOPLEFT: {
+          r_rect_clip->ymin = max_ii(
+              r_rect_clip->ymin,
+              (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymin)) -
+                  UI_REGION_OVERLAP_MARGIN);
+          r_rect_clip->ymax = min_ii(
+              r_rect_clip->ymax,
+              (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymax)) +
+                  UI_REGION_OVERLAP_MARGIN);
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const bool test_only)
 {
   AZone *az = NULL;
 
   for (az = sa->actionzones.first; az; az = az->next) {
-    if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
+    rcti az_rect_clip;
+    if (BLI_rcti_isect_pt_v(&az->rect, xy) &&
+        /* Check clipping if this is clipped */
+        (!azone_clipped_rect_calc(az, &az_rect_clip) || BLI_rcti_isect_pt_v(&az_rect_clip, xy))) {
+
       if (az->type == AZONE_AREA) {
         break;
       }

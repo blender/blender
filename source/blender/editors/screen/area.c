@@ -901,65 +901,32 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
 #define AZONEPAD_ICON (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
-  int clip_axis = -1;
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
       az->x1 = ar->winrct.xmin;
       az->y1 = ar->winrct.ymax - AZONEPAD_EDGE;
       az->x2 = ar->winrct.xmax;
       az->y2 = ar->winrct.ymax + AZONEPAD_EDGE;
-      if (ar->overlap) {
-        clip_axis = 0;
-      }
       break;
     case AE_BOTTOM_TO_TOPLEFT:
       az->x1 = ar->winrct.xmin;
       az->y1 = ar->winrct.ymin + AZONEPAD_EDGE;
       az->x2 = ar->winrct.xmax;
       az->y2 = ar->winrct.ymin - AZONEPAD_EDGE;
-      if (ar->overlap) {
-        clip_axis = 0;
-      }
       break;
     case AE_LEFT_TO_TOPRIGHT:
       az->x1 = ar->winrct.xmin - AZONEPAD_EDGE;
       az->y1 = ar->winrct.ymin;
       az->x2 = ar->winrct.xmin + AZONEPAD_EDGE;
       az->y2 = ar->winrct.ymax;
-      if (ar->overlap) {
-        clip_axis = 1;
-      }
       break;
     case AE_RIGHT_TO_TOPLEFT:
       az->x1 = ar->winrct.xmax + AZONEPAD_EDGE;
       az->y1 = ar->winrct.ymin;
       az->x2 = ar->winrct.xmax - AZONEPAD_EDGE;
       az->y2 = ar->winrct.ymax;
-      if (ar->overlap) {
-        clip_axis = 1;
-      }
       break;
   }
-
-  /* Constrain action zones to usable area of region.
-   * Needed so blank areas of the region are interactive and aciton zones don't get in the way. */
-  if (clip_axis == 0) {
-    az->x1 = max_ii(az->x1,
-                    (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmin)) -
-                        UI_REGION_OVERLAP_MARGIN);
-    az->x2 = min_ii(az->x2,
-                    (ar->winrct.xmin + UI_view2d_view_to_region_x(&ar->v2d, ar->v2d.tot.xmax)) +
-                        UI_REGION_OVERLAP_MARGIN);
-  }
-  else if (clip_axis == 1) {
-    az->y1 = max_ii(az->y1,
-                    (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymin)) -
-                        UI_REGION_OVERLAP_MARGIN);
-    az->y2 = min_ii(az->y2,
-                    (ar->winrct.ymin + UI_view2d_view_to_region_y(&ar->v2d, ar->v2d.tot.ymax)) +
-                        UI_REGION_OVERLAP_MARGIN);
-  }
-
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
