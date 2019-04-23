@@ -24,22 +24,39 @@ out vec4 fragColor;
 #define GPENCIL_COLOR_PATTERN 2
 
 /* Function to check the point inside ellipse */
-float checkpoint(vec2 pt, vec2 radius)
+float check_ellipse_point(vec2 pt, vec2 radius)
 {
   float p = (pow(pt.x, 2) / pow(radius.x, 2)) + (pow(pt.y, 2) / pow(radius.y, 2));
 
   return p;
 }
 
+/* Function to check the point inside box */
+vec2 check_box_point(vec2 pt, vec2 radius)
+{
+  vec2 rtn;
+  rtn.x = abs(pt.x) / radius.x;
+  rtn.y = abs(pt.y) / radius.y;
+
+  return rtn;
+}
+
 void main()
 {
   vec2 centered = mTexCoord - vec2(0.5);
-  float ellip = checkpoint(centered, vec2(gradient_s / 2.0));
+  float ellip = check_ellipse_point(centered, vec2(gradient_s / 2.0));
+  vec2 box;
 
   if (mode != GPENCIL_MODE_BOX) {
     if (ellip > 1.0) {
       discard;
     }
+  }
+  else {
+    box = check_box_point(centered, vec2(gradient_s / 2.0));
+    if ((box.x > 1.0) || (box.y > 1.0)) {
+      discard;
+	  }
   }
 
   vec4 tmp_color = texture2D(myTexture, mTexCoord);
@@ -70,11 +87,13 @@ void main()
     fragColor.a = min(text_color.a * mColor.a, mColor.a);
   }
 
-  if ((mode == GPENCIL_MODE_DOTS) && (gradient_f < 1.0)) {
-    float dist = length(centered) * 2;
+  if (gradient_f < 1.0) {
+    float dist = length(centered) * 2.0;
     float decay = dist * (1.0 - gradient_f) * fragColor.a;
     fragColor.a = clamp(fragColor.a - decay, 0.0, 1.0);
-    fragColor.a = fragColor.a * (1.0 - ellip);
+    if (mode == GPENCIL_MODE_DOTS) {
+      fragColor.a = fragColor.a * (1.0 - ellip);
+    }
   }
 
   if (fragColor.a < 0.0035) {

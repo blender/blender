@@ -1246,7 +1246,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Border Opacity Factor",
-                           "Amount of gradient for Dot strokes (set to 1 for full solid)");
+                           "Amount of gradient for Dot and Box strokes (set to 1 for full solid)");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
   /* gradient shape ratio */

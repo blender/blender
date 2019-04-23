@@ -1729,7 +1729,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
 
             col.separator()
             subcol = col.column(align=True)
-            if ma and ma.grease_pencil.mode != 'DOTS':
+            if ma and ma.grease_pencil.mode == 'LINE':
                 subcol.enabled = False
             subcol.prop(gp_settings, "gradient_factor", slider=True)
             subcol.prop(gp_settings, "gradient_shape")
