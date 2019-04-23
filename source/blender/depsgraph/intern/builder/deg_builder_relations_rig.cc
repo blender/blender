@@ -83,45 +83,33 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
   /* Never cleanup before solver is run. */
   add_relation(solver_key, pose_cleanup_key, "IK Solver -> Cleanup", RELATION_FLAG_GODMODE);
+  /* The ITASC solver currently accesses the target transforms in init tree :(
+   * TODO: Fix ITASC and remove this.
+   */
+  bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
+  OperationKey target_dependent_key = is_itasc ? init_ik_key : solver_key;
   /* IK target */
   /* TODO(sergey): This should get handled as part of the constraint code. */
   if (data->tar != NULL) {
-    /* TODO(sergey): For until we'll store partial matrices in the
-     * depsgraph, we create dependency between target object and pose eval
-     * component.
-     *
-     * This way we ensuring the whole subtree is updated from scratch
-     * without need of intermediate matrices. This is an overkill, but good
-     * enough for testing IK solver. */
-    ComponentKey pose_key(&object->id, NodeType::EVAL_POSE);
+    /* Different object - requires its transform. */
+    if (data->tar != object) {
+      ComponentKey target_key(&data->tar->id, NodeType::TRANSFORM);
+      add_relation(target_key, target_dependent_key, con->name);
+    }
+    /* Subtarget references: */
     if ((data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
-      /* TODO(sergey): This is only for until granular update stores
-       * intermediate result. */
-      if (data->tar != object) {
-        /* Different armature - can just read the results. */
-        ComponentKey target_key(&data->tar->id, NodeType::BONE, data->subtarget);
-        add_relation(target_key, pose_key, con->name);
-      }
-      else {
-        /* Same armature - we'll use the ready state only, just in case
-         * this bone is in the chain we're solving. */
-        OperationKey target_key(
-            &data->tar->id, NodeType::BONE, data->subtarget, OperationCode::BONE_DONE);
-        add_relation(target_key, solver_key, con->name);
-      }
+      /* Bone - use the final transformation. */
+      OperationKey target_key(
+          &data->tar->id, NodeType::BONE, data->subtarget, OperationCode::BONE_DONE);
+      add_relation(target_key, target_dependent_key, con->name);
     }
     else if (data->subtarget[0] && ELEM(data->tar->type, OB_MESH, OB_LATTICE)) {
       /* Vertex group target. */
       /* NOTE: for now, we don't need to represent vertex groups
        * separately. */
       ComponentKey target_key(&data->tar->id, NodeType::GEOMETRY);
-      add_relation(target_key, solver_key, con->name);
+      add_relation(target_key, target_dependent_key, con->name);
       add_customdata_mask(data->tar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
-    }
-    else {
-      /* Standard Object Target. */
-      ComponentKey target_key(&data->tar->id, NodeType::TRANSFORM);
-      add_relation(target_key, pose_key, con->name);
     }
     if (data->tar == object && data->subtarget[0]) {
       /* Prevent target's constraints from linking to anything from same
@@ -132,21 +120,25 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   /* Pole Target. */
   /* TODO(sergey): This should get handled as part of the constraint code. */
   if (data->poletar != NULL) {
+    /* Different object - requires its transform. */
+    if (data->poletar != object) {
+      ComponentKey target_key(&data->poletar->id, NodeType::TRANSFORM);
+      add_relation(target_key, target_dependent_key, con->name);
+    }
+    /* Subtarget references: */
     if ((data->poletar->type == OB_ARMATURE) && (data->polesubtarget[0])) {
-      ComponentKey target_key(&data->poletar->id, NodeType::BONE, data->polesubtarget);
-      add_relation(target_key, solver_key, con->name);
+      /* Bone - use the final transformation. */
+      OperationKey target_key(
+          &data->poletar->id, NodeType::BONE, data->polesubtarget, OperationCode::BONE_DONE);
+      add_relation(target_key, target_dependent_key, con->name);
     }
     else if (data->polesubtarget[0] && ELEM(data->poletar->type, OB_MESH, OB_LATTICE)) {
       /* Vertex group target. */
       /* NOTE: for now, we don't need to represent vertex groups
        * separately. */
       ComponentKey target_key(&data->poletar->id, NodeType::GEOMETRY);
-      add_relation(target_key, solver_key, con->name);
+      add_relation(target_key, target_dependent_key, con->name);
       add_customdata_mask(data->poletar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
-    }
-    else {
-      ComponentKey target_key(&data->poletar->id, NodeType::TRANSFORM);
-      add_relation(target_key, solver_key, con->name);
     }
   }
   DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
