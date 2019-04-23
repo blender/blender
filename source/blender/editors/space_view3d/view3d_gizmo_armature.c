@@ -85,13 +85,13 @@ static void gizmo_bbone_offset_get(const wmGizmo *UNUSED(gz),
 
   if (bh->index == 0) {
     bh->co[1] = pchan->bone->ease1 / BBONE_SCALE_Y;
-    bh->co[0] = pchan->curveInX;
-    bh->co[2] = pchan->curveInY;
+    bh->co[0] = pchan->curve_in_x;
+    bh->co[2] = pchan->curve_in_y;
   }
   else {
     bh->co[1] = -pchan->bone->ease2 / BBONE_SCALE_Y;
-    bh->co[0] = pchan->curveOutX;
-    bh->co[2] = pchan->curveOutY;
+    bh->co[0] = pchan->curve_out_x;
+    bh->co[2] = pchan->curve_out_y;
   }
   copy_v3_v3(value, bh->co);
 }
@@ -110,13 +110,13 @@ static void gizmo_bbone_offset_set(const wmGizmo *UNUSED(gz),
 
   if (bh->index == 0) {
     pchan->bone->ease1 = max_ff(0.0f, bh->co[1] * BBONE_SCALE_Y);
-    pchan->curveInX = bh->co[0];
-    pchan->curveInY = bh->co[2];
+    pchan->curve_in_x = bh->co[0];
+    pchan->curve_in_y = bh->co[2];
   }
   else {
     pchan->bone->ease2 = max_ff(0.0f, -bh->co[1] * BBONE_SCALE_Y);
-    pchan->curveOutX = bh->co[0];
-    pchan->curveOutY = bh->co[2];
+    pchan->curve_out_x = bh->co[0];
+    pchan->curve_out_y = bh->co[2];
   }
 }
 

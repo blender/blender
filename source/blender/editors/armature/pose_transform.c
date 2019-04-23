@@ -162,10 +162,10 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
      */
     if (pchan->bone->segments > 1) {
       /* combine rest/pose values  */
-      curbone->curveInX += pchan_eval->curveInX;
-      curbone->curveInY += pchan_eval->curveInY;
-      curbone->curveOutX += pchan_eval->curveOutX;
-      curbone->curveOutY += pchan_eval->curveOutY;
+      curbone->curve_in_x += pchan_eval->curve_in_x;
+      curbone->curve_in_y += pchan_eval->curve_in_y;
+      curbone->curve_out_x += pchan_eval->curve_out_x;
+      curbone->curve_out_y += pchan_eval->curve_out_y;
       curbone->roll1 += pchan_eval->roll1;
       curbone->roll2 += pchan_eval->roll2;
       curbone->ease1 += pchan_eval->ease1;
@@ -176,8 +176,8 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
       curbone->scale_out_y *= pchan_eval->scale_out_y;
 
       /* reset pose values */
-      pchan->curveInX = pchan->curveOutX = 0.0f;
-      pchan->curveInY = pchan->curveOutY = 0.0f;
+      pchan->curve_in_x = pchan->curve_out_x = 0.0f;
+      pchan->curve_in_y = pchan->curve_out_y = 0.0f;
       pchan->roll1 = pchan->roll2 = 0.0f;
       pchan->ease1 = pchan->ease2 = 0.0f;
       pchan->scale_in_x = pchan->scale_in_y = 1.0f;
@@ -400,10 +400,10 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     }
 
     /* B-Bone posing options should also be included... */
-    pchan->curveInX = chan->curveInX;
-    pchan->curveInY = chan->curveInY;
-    pchan->curveOutX = chan->curveOutX;
-    pchan->curveOutY = chan->curveOutY;
+    pchan->curve_in_x = chan->curve_in_x;
+    pchan->curve_in_y = chan->curve_in_y;
+    pchan->curve_out_x = chan->curve_out_x;
+    pchan->curve_out_y = chan->curve_out_y;
 
     pchan->roll1 = chan->roll1;
     pchan->roll2 = chan->roll2;
@@ -418,8 +418,8 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     if (flip) {
       pchan->loc[0] *= -1;
 
-      pchan->curveInX *= -1;
-      pchan->curveOutX *= -1;
+      pchan->curve_in_x *= -1;
+      pchan->curve_out_x *= -1;
       pchan->roll1 *= -1;  // XXX?
       pchan->roll2 *= -1;  // XXX?
 
@@ -798,10 +798,10 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   pchan->roll1 = 0.0f;
   pchan->roll2 = 0.0f;
 
-  pchan->curveInX = 0.0f;
-  pchan->curveInY = 0.0f;
-  pchan->curveOutX = 0.0f;
-  pchan->curveOutY = 0.0f;
+  pchan->curve_in_x = 0.0f;
+  pchan->curve_in_y = 0.0f;
+  pchan->curve_out_x = 0.0f;
+  pchan->curve_out_y = 0.0f;
 }
 
 /* clear loc/rot/scale of pose-channel */

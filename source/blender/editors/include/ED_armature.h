@@ -82,8 +82,8 @@ typedef struct EditBone {
 
   /* Bendy-Bone parameters */
   float roll1, roll2;
-  float curveOutX, curveOutY;
-  float curveInX, curveInY;
+  float curve_in_x, curve_in_y;
+  float curve_out_x, curve_out_y;
   float ease1, ease2;
   float scale_in_x, scale_in_y;
   float scale_out_x, scale_out_y;

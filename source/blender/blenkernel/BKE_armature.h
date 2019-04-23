@@ -208,7 +208,7 @@ typedef struct BBoneSplineParameters {
   float ease1, ease2;
   float roll1, roll2;
   float scale_in_x, scale_in_y, scale_out_x, scale_out_y;
-  float curveInX, curveInY, curveOutX, curveOutY;
+  float curve_in_x, curve_in_y, curve_out_x, curve_out_y;
 } BBoneSplineParameters;
 
 void BKE_pchan_bbone_handles_get(struct bPoseChannel *pchan,

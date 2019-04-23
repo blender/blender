@@ -1408,8 +1408,8 @@ void BKE_pose_rest(bPose *pose)
     pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
 
     pchan->roll1 = pchan->roll2 = 0.0f;
-    pchan->curveInX = pchan->curveInY = 0.0f;
-    pchan->curveOutX = pchan->curveOutY = 0.0f;
+    pchan->curve_in_x = pchan->curve_in_y = 0.0f;
+    pchan->curve_out_x = pchan->curve_out_y = 0.0f;
     pchan->ease1 = pchan->ease2 = 0.0f;
     pchan->scale_in_x = pchan->scale_in_y = 1.0f;
     pchan->scale_out_x = pchan->scale_out_y = 1.0f;
@@ -1434,10 +1434,10 @@ void BKE_pose_copyesult_pchan_result(bPoseChannel *pchanto, const bPoseChannel *
 
   pchanto->roll1 = pchanfrom->roll1;
   pchanto->roll2 = pchanfrom->roll2;
-  pchanto->curveInX = pchanfrom->curveInX;
-  pchanto->curveInY = pchanfrom->curveInY;
-  pchanto->curveOutX = pchanfrom->curveOutX;
-  pchanto->curveOutY = pchanfrom->curveOutY;
+  pchanto->curve_in_x = pchanfrom->curve_in_x;
+  pchanto->curve_in_y = pchanfrom->curve_in_y;
+  pchanto->curve_out_x = pchanfrom->curve_out_x;
+  pchanto->curve_out_y = pchanfrom->curve_out_y;
   pchanto->ease1 = pchanfrom->ease1;
   pchanto->ease2 = pchanfrom->ease2;
   pchanto->scale_in_x = pchanfrom->scale_in_x;

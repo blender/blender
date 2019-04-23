@@ -686,11 +686,11 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
     param->scale_out_y = bone->scale_out_y * (!rest ? pchan->scale_out_y : 1.0f);
 
     /* Extra curve x / y */
-    param->curveInX = bone->curveInX + (!rest ? pchan->curveInX : 0.0f);
-    param->curveInY = bone->curveInY + (!rest ? pchan->curveInY : 0.0f);
+    param->curve_in_x = bone->curve_in_x + (!rest ? pchan->curve_in_x : 0.0f);
+    param->curve_in_y = bone->curve_in_y + (!rest ? pchan->curve_in_y : 0.0f);
 
-    param->curveOutX = bone->curveOutX + (!rest ? pchan->curveOutX : 0.0f);
-    param->curveOutY = bone->curveOutY + (!rest ? pchan->curveOutY : 0.0f);
+    param->curve_out_x = bone->curve_out_x + (!rest ? pchan->curve_out_x : 0.0f);
+    param->curve_out_y = bone->curve_out_y + (!rest ? pchan->curve_out_y : 0.0f);
   }
 }
 
@@ -816,11 +816,11 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param,
     const float xscale_correction = (param->do_scale) ? param->scale[0] : 1.0f;
     const float yscale_correction = (param->do_scale) ? param->scale[2] : 1.0f;
 
-    h1[0] += param->curveInX * xscale_correction;
-    h1[2] += param->curveInY * yscale_correction;
+    h1[0] += param->curve_in_x * xscale_correction;
+    h1[2] += param->curve_in_y * yscale_correction;
 
-    h2[0] += param->curveOutX * xscale_correction;
-    h2[2] += param->curveOutY * yscale_correction;
+    h2[0] += param->curve_out_x * xscale_correction;
+    h2[2] += param->curve_out_y * yscale_correction;
   }
 }
 
