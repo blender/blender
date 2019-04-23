@@ -209,14 +209,11 @@ bool ui_but_contains_rect(const uiBut *but, const rctf *rect)
 bool ui_but_contains_point_px(const uiBut *but, const ARegion *ar, int x, int y)
 {
   uiBlock *block = but->block;
-  float mx, my;
   if (!ui_region_contains_point_px(ar, x, y)) {
     return false;
   }
 
-  mx = x;
-  my = y;
-
+  float mx = x, my = y;
   ui_window_to_block_fl(ar, block, &mx, &my);
 
   if (but->pie_dir != UI_RADIAL_NONE) {
@@ -258,23 +255,16 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *ar, const wmEvent 
 /* x and y are only used in case event is NULL... */
 uiBut *ui_but_find_mouse_over_ex(ARegion *ar, const int x, const int y, const bool labeledit)
 {
-  uiBlock *block;
-  uiBut *but, *butover = NULL;
-  float mx, my;
+  uiBut *butover = NULL;
 
-  //  if (!win->active) {
-  //      return NULL;
-  //  }
   if (!ui_region_contains_point_px(ar, x, y)) {
     return NULL;
   }
-
-  for (block = ar->uiblocks.first; block; block = block->next) {
-    mx = x;
-    my = y;
+  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+    float mx = x, my = y;
     ui_window_to_block_fl(ar, block, &mx, &my);
 
-    for (but = block->buttons.last; but; but = but->prev) {
+    for (uiBut *but = block->buttons.last; but; but = but->prev) {
       if (ui_but_is_interactive(but, labeledit)) {
         if (but->pie_dir != UI_RADIAL_NONE) {
           if (ui_but_isect_pie_seg(block, but)) {
@@ -346,20 +336,13 @@ uiBut *ui_but_find_rect_over(const struct ARegion *ar, const rcti *rect_px)
 
 uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
 {
-  uiBlock *block;
-  uiBut *but;
-  float mx, my;
-
   if (!ui_region_contains_point_px(ar, x, y)) {
     return NULL;
   }
-
-  for (block = ar->uiblocks.first; block; block = block->next) {
-    mx = x;
-    my = y;
+  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+    float mx = x, my = y;
     ui_window_to_block_fl(ar, block, &mx, &my);
-
-    for (but = block->buttons.last; but; but = but->prev) {
+    for (uiBut *but = block->buttons.last; but; but = but->prev) {
       if (but->type == UI_BTYPE_LISTBOX && ui_but_contains_pt(but, mx, my)) {
         return but;
       }
@@ -498,11 +481,8 @@ bool UI_block_is_empty(const uiBlock *block)
 
 uiBut *ui_region_find_active_but(ARegion *ar)
 {
-  uiBlock *block;
-  uiBut *but;
-
-  for (block = ar->uiblocks.first; block; block = block->next) {
-    for (but = block->buttons.first; but; but = but->next) {
+  for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+    for (uiBut *but = block->buttons.first; but; but = but->next) {
       if (but->active) {
         return but;
       }
