@@ -132,10 +132,12 @@ void TextureBaseOperation::executePixelSampled(float output[4],
   retval = multitex_ext(
       this->m_texture, vec, NULL, NULL, 0, &texres, thread_id, m_pool, m_sceneColorManage, false);
 
-  if (texres.talpha)
+  if (texres.talpha) {
     output[3] = texres.ta;
-  else
+  }
+  else {
     output[3] = texres.tin;
+  }
 
   if ((retval & TEX_RGB)) {
     output[0] = texres.tr;

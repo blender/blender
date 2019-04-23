@@ -56,39 +56,55 @@ static int extrapolate9(float *E0,
     *DST = *SRC; \
   } while (0)
   if ((!PEQ(B, H)) && (!PEQ(D, F))) {
-    if (PEQ(D, B))
+    if (PEQ(D, B)) {
       PCPY(E0, D);
-    else
+    }
+    else {
       PCPY(E0, E);
-    if ((PEQ(D, B) && !PEQ(E, C)) || (PEQ(B, F) && !PEQ(E, A)))
+    }
+    if ((PEQ(D, B) && !PEQ(E, C)) || (PEQ(B, F) && !PEQ(E, A))) {
       PCPY(E1, B);
-    else
+    }
+    else {
       PCPY(E1, E);
-    if (PEQ(B, F))
+    }
+    if (PEQ(B, F)) {
       PCPY(E2, F);
-    else
+    }
+    else {
       PCPY(E2, E);
-    if ((PEQ(D, B) && !PEQ(E, G)) || (PEQ(D, H) && !PEQ(E, A)))
+    }
+    if ((PEQ(D, B) && !PEQ(E, G)) || (PEQ(D, H) && !PEQ(E, A))) {
       PCPY(E3, D);
-    else
+    }
+    else {
       PCPY(E3, E);
+    }
     PCPY(E4, E);
-    if ((PEQ(B, F) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, C)))
+    if ((PEQ(B, F) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, C))) {
       PCPY(E5, F);
-    else
+    }
+    else {
       PCPY(E5, E);
-    if (PEQ(D, H))
+    }
+    if (PEQ(D, H)) {
       PCPY(E6, D);
-    else
+    }
+    else {
       PCPY(E6, E);
-    if ((PEQ(D, H) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, G)))
+    }
+    if ((PEQ(D, H) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, G))) {
       PCPY(E7, H);
-    else
+    }
+    else {
       PCPY(E7, E);
-    if (PEQ(H, F))
+    }
+    if (PEQ(H, F)) {
       PCPY(E8, F);
-    else
+    }
+    else {
       PCPY(E8, E);
+    }
     return 1;
   }
   else {

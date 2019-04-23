@@ -46,8 +46,9 @@ void PlaneTrackCommon::readCornersFromTrack(float corners[4][2], float frame)
   MovieTracking *tracking;
   MovieTrackingObject *object;
 
-  if (!this->m_movieClip)
+  if (!this->m_movieClip) {
     return;
+  }
 
   tracking = &this->m_movieClip->tracking;
 

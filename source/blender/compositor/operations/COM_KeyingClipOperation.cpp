@@ -90,21 +90,26 @@ void KeyingClipOperation::executePixel(float output[4], int x, int y, void *data
   }
 
   if (this->m_isEdgeMatte) {
-    if (ok)
+    if (ok) {
       output[0] = 0.0f;
-    else
+    }
+    else {
       output[0] = 1.0f;
+    }
   }
   else {
     output[0] = value;
 
     if (ok) {
-      if (output[0] < this->m_clipBlack)
+      if (output[0] < this->m_clipBlack) {
         output[0] = 0.0f;
-      else if (output[0] >= this->m_clipWhite)
+      }
+      else if (output[0] >= this->m_clipWhite) {
         output[0] = 1.0f;
-      else
+      }
+      else {
         output[0] = (output[0] - this->m_clipBlack) / (this->m_clipWhite - this->m_clipBlack);
+      }
     }
   }
 }

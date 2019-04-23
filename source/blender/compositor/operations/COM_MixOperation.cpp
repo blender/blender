@@ -185,42 +185,54 @@ void MixBurnOperation::executePixelSampled(float output[4], float x, float y, Pi
   float valuem = 1.0f - value;
 
   tmp = valuem + value * inputColor2[0];
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     output[0] = 0.0f;
+  }
   else {
     tmp = 1.0f - (1.0f - inputColor1[0]) / tmp;
-    if (tmp < 0.0f)
+    if (tmp < 0.0f) {
       output[0] = 0.0f;
-    else if (tmp > 1.0f)
+    }
+    else if (tmp > 1.0f) {
       output[0] = 1.0f;
-    else
+    }
+    else {
       output[0] = tmp;
+    }
   }
 
   tmp = valuem + value * inputColor2[1];
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     output[1] = 0.0f;
+  }
   else {
     tmp = 1.0f - (1.0f - inputColor1[1]) / tmp;
-    if (tmp < 0.0f)
+    if (tmp < 0.0f) {
       output[1] = 0.0f;
-    else if (tmp > 1.0f)
+    }
+    else if (tmp > 1.0f) {
       output[1] = 1.0f;
-    else
+    }
+    else {
       output[1] = tmp;
+    }
   }
 
   tmp = valuem + value * inputColor2[2];
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     output[2] = 0.0f;
+  }
   else {
     tmp = 1.0f - (1.0f - inputColor1[2]) / tmp;
-    if (tmp < 0.0f)
+    if (tmp < 0.0f) {
       output[2] = 0.0f;
-    else if (tmp > 1.0f)
+    }
+    else if (tmp > 1.0f) {
       output[2] = 1.0f;
-    else
+    }
+    else {
       output[2] = tmp;
+    }
   }
 
   output[3] = inputColor1[3];
@@ -365,18 +377,24 @@ void MixDivideOperation::executePixelSampled(float output[4],
   }
   float valuem = 1.0f - value;
 
-  if (inputColor2[0] != 0.0f)
+  if (inputColor2[0] != 0.0f) {
     output[0] = valuem * (inputColor1[0]) + value * (inputColor1[0]) / inputColor2[0];
-  else
+  }
+  else {
     output[0] = 0.0f;
-  if (inputColor2[1] != 0.0f)
+  }
+  if (inputColor2[1] != 0.0f) {
     output[1] = valuem * (inputColor1[1]) + value * (inputColor1[1]) / inputColor2[1];
-  else
+  }
+  else {
     output[1] = 0.0f;
-  if (inputColor2[2] != 0.0f)
+  }
+  if (inputColor2[2] != 0.0f) {
     output[2] = valuem * (inputColor1[2]) + value * (inputColor1[2]) / inputColor2[2];
-  else
+  }
+  else {
     output[2] = 0.0f;
+  }
 
   output[3] = inputColor1[3];
 
@@ -411,48 +429,60 @@ void MixDodgeOperation::executePixelSampled(float output[4],
 
   if (inputColor1[0] != 0.0f) {
     tmp = 1.0f - value * inputColor2[0];
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       output[0] = 1.0f;
+    }
     else {
       tmp = inputColor1[0] / tmp;
-      if (tmp > 1.0f)
+      if (tmp > 1.0f) {
         output[0] = 1.0f;
-      else
+      }
+      else {
         output[0] = tmp;
+      }
     }
   }
-  else
+  else {
     output[0] = 0.0f;
+  }
 
   if (inputColor1[1] != 0.0f) {
     tmp = 1.0f - value * inputColor2[1];
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       output[1] = 1.0f;
+    }
     else {
       tmp = inputColor1[1] / tmp;
-      if (tmp > 1.0f)
+      if (tmp > 1.0f) {
         output[1] = 1.0f;
-      else
+      }
+      else {
         output[1] = tmp;
+      }
     }
   }
-  else
+  else {
     output[1] = 0.0f;
+  }
 
   if (inputColor1[2] != 0.0f) {
     tmp = 1.0f - value * inputColor2[2];
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       output[2] = 1.0f;
+    }
     else {
       tmp = inputColor1[2] / tmp;
-      if (tmp > 1.0f)
+      if (tmp > 1.0f) {
         output[2] = 1.0f;
-      else
+      }
+      else {
         output[2] = tmp;
+      }
     }
   }
-  else
+  else {
     output[2] = 0.0f;
+  }
 
   output[3] = inputColor1[3];
 
@@ -482,12 +512,15 @@ void MixGlareOperation::executePixelSampled(float output[4],
   value = inputValue[0];
   float mf = 2.0f - 2.0f * fabsf(value - 0.5f);
 
-  if (inputColor1[0] < 0.0f)
+  if (inputColor1[0] < 0.0f) {
     inputColor1[0] = 0.0f;
-  if (inputColor1[1] < 0.0f)
+  }
+  if (inputColor1[1] < 0.0f) {
     inputColor1[1] = 0.0f;
-  if (inputColor1[2] < 0.0f)
+  }
+  if (inputColor1[2] < 0.0f) {
     inputColor1[2] = 0.0f;
+  }
 
   output[0] = mf * max(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
   output[1] = mf * max(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
@@ -565,20 +598,26 @@ void MixLightenOperation::executePixelSampled(float output[4],
   }
   float tmp;
   tmp = value * inputColor2[0];
-  if (tmp > inputColor1[0])
+  if (tmp > inputColor1[0]) {
     output[0] = tmp;
-  else
+  }
+  else {
     output[0] = inputColor1[0];
+  }
   tmp = value * inputColor2[1];
-  if (tmp > inputColor1[1])
+  if (tmp > inputColor1[1]) {
     output[1] = tmp;
-  else
+  }
+  else {
     output[1] = inputColor1[1];
+  }
   tmp = value * inputColor2[2];
-  if (tmp > inputColor1[2])
+  if (tmp > inputColor1[2]) {
     output[2] = tmp;
-  else
+  }
+  else {
     output[2] = inputColor1[2];
+  }
   output[3] = inputColor1[3];
 
   clampIfNeeded(output);
@@ -608,18 +647,24 @@ void MixLinearLightOperation::executePixelSampled(float output[4],
   if (this->useValueAlphaMultiply()) {
     value *= inputColor2[3];
   }
-  if (inputColor2[0] > 0.5f)
+  if (inputColor2[0] > 0.5f) {
     output[0] = inputColor1[0] + value * (2.0f * (inputColor2[0] - 0.5f));
-  else
+  }
+  else {
     output[0] = inputColor1[0] + value * (2.0f * (inputColor2[0]) - 1.0f);
-  if (inputColor2[1] > 0.5f)
+  }
+  if (inputColor2[1] > 0.5f) {
     output[1] = inputColor1[1] + value * (2.0f * (inputColor2[1] - 0.5f));
-  else
+  }
+  else {
     output[1] = inputColor1[1] + value * (2.0f * (inputColor2[1]) - 1.0f);
-  if (inputColor2[2] > 0.5f)
+  }
+  if (inputColor2[2] > 0.5f) {
     output[2] = inputColor1[2] + value * (2.0f * (inputColor2[2] - 0.5f));
-  else
+  }
+  else {
     output[2] = inputColor1[2] + value * (2.0f * (inputColor2[2]) - 1.0f);
+  }
 
   output[3] = inputColor1[3];
 

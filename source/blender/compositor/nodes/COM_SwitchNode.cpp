@@ -29,10 +29,12 @@ void SwitchNode::convertToOperations(NodeConverter &converter,
   bool condition = this->getbNode()->custom1;
 
   NodeOperationOutput *result;
-  if (!condition)
+  if (!condition) {
     result = converter.addInputProxy(getInputSocket(0), false);
-  else
+  }
+  else {
     result = converter.addInputProxy(getInputSocket(1), false);
+  }
 
   converter.mapOutputSocket(getOutputSocket(0), result);
 }

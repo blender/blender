@@ -30,10 +30,12 @@ void DisplaceNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
   NodeOperation *operation;
-  if (context.getQuality() == COM_QUALITY_LOW)
+  if (context.getQuality() == COM_QUALITY_LOW) {
     operation = new DisplaceSimpleOperation();
-  else
+  }
+  else {
     operation = new DisplaceOperation();
+  }
   converter.addOperation(operation);
 
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));

@@ -30,8 +30,9 @@ static unsigned int nextPow2(unsigned int x, unsigned int *L2)
 {
   unsigned int pw, x_notpow2 = x & (x - 1);
   *L2 = 0;
-  while (x >>= 1)
+  while (x >>= 1) {
     ++(*L2);
+  }
   pw = 1 << (*L2);
   if (x_notpow2) {
     (*L2)++;
@@ -46,8 +47,9 @@ static unsigned int nextPow2(unsigned int x, unsigned int *L2)
 // use: r = revbin_upd(r, h) where h = N>>1
 static unsigned int revbin_upd(unsigned int r, unsigned int h)
 {
-  while (!((r ^= h) & h))
+  while (!((r ^= h) & h)) {
     h >>= 1;
+  }
   return r;
 }
 //------------------------------------------------------------------------------
@@ -115,8 +117,9 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 
   if (inverse) {
     fREAL sc = (fREAL)1 / (fREAL)len;
-    for (k = 0; k < len; ++k)
+    for (k = 0; k < len; ++k) {
       data[k] *= sc;
+    }
   }
 }
 //------------------------------------------------------------------------------
@@ -133,25 +136,29 @@ static void FHT2D(
 
   // rows (forward transform skips 0 pad data)
   maxy = inverse ? Ny : nzp;
-  for (j = 0; j < maxy; ++j)
+  for (j = 0; j < maxy; ++j) {
     FHT(&data[Nx * j], Mx, inverse);
+  }
 
   // transpose data
   if (Nx == Ny) {  // square
-    for (j = 0; j < Ny; ++j)
+    for (j = 0; j < Ny; ++j) {
       for (i = j + 1; i < Nx; ++i) {
         unsigned int op = i + (j << Mx), np = j + (i << My);
         SWAP(fREAL, data[op], data[np]);
       }
+    }
   }
   else {  // rectangular
     unsigned int k, Nym = Ny - 1, stm = 1 << (Mx + My);
     for (i = 0; stm > 0; i++) {
 #define PRED(k) (((k & Nym) << Mx) + (k >> My))
-      for (j = PRED(i); j > i; j = PRED(j))
+      for (j = PRED(i); j > i; j = PRED(j)) {
         ;
-      if (j < i)
+      }
+      if (j < i) {
         continue;
+      }
       for (k = i, j = PRED(i); j != i; k = j, j = PRED(j), stm--) {
         SWAP(fREAL, data[j], data[k]);
       }
@@ -164,8 +171,9 @@ static void FHT2D(
   SWAP(unsigned int, Mx, My);
 
   // now columns == transposed rows
-  for (j = 0; j < Ny; ++j)
+  for (j = 0; j < Ny; ++j) {
     FHT(&data[Nx * j], Mx, inverse);
+  }
 
   // finalize
   for (j = 0; j <= (Ny >> 1); j++) {
@@ -280,19 +288,24 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   wt[0] = wt[1] = wt[2] = 0.0f;
   for (y = 0; y < kernelHeight; y++) {
     colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
-    for (x = 0; x < kernelWidth; x++)
+    for (x = 0; x < kernelWidth; x++) {
       add_v3_v3(wt, colp[x]);
+    }
   }
-  if (wt[0] != 0.0f)
+  if (wt[0] != 0.0f) {
     wt[0] = 1.0f / wt[0];
-  if (wt[1] != 0.0f)
+  }
+  if (wt[1] != 0.0f) {
     wt[1] = 1.0f / wt[1];
-  if (wt[2] != 0.0f)
+  }
+  if (wt[2] != 0.0f) {
     wt[2] = 1.0f / wt[2];
+  }
   for (y = 0; y < kernelHeight; y++) {
     colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
-    for (x = 0; x < kernelWidth; x++)
+    for (x = 0; x < kernelWidth; x++) {
       mul_v3_v3(colp[x], wt);
+    }
   }
 
   // copy image data, unpacking interleaved RGBA into separate channels
@@ -304,11 +317,13 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   xbsz = (w2 + 1) - kernelWidth;
   ybsz = (h2 + 1) - kernelHeight;
   nxb = imageWidth / xbsz;
-  if (imageWidth % xbsz)
+  if (imageWidth % xbsz) {
     nxb++;
+  }
   nyb = imageHeight / ybsz;
-  if (imageHeight % ybsz)
+  if (imageHeight % ybsz) {
     nyb++;
+  }
   for (ybl = 0; ybl < nyb; ybl++) {
     for (xbl = 0; xbl < nxb; xbl++) {
 
@@ -322,8 +337,9 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
           for (y = 0; y < kernelHeight; y++) {
             fp = &data1ch[y * w2];
             colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
-            for (x = 0; x < kernelWidth; x++)
+            for (x = 0; x < kernelWidth; x++) {
               fp[x] = colp[x][ch];
+            }
           }
         }
 
@@ -331,22 +347,25 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         memset(data2, 0, w2 * h2 * sizeof(fREAL));
         for (y = 0; y < ybsz; y++) {
           int yy = ybl * ybsz + y;
-          if (yy >= imageHeight)
+          if (yy >= imageHeight) {
             continue;
+          }
           fp = &data2[y * w2];
           colp = (fRGB *)&imageBuffer[yy * imageWidth * COM_NUM_CHANNELS_COLOR];
           for (x = 0; x < xbsz; x++) {
             int xx = xbl * xbsz + x;
-            if (xx >= imageWidth)
+            if (xx >= imageWidth) {
               continue;
+            }
             fp[x] = colp[xx][ch];
           }
         }
 
         // forward FHT
         // zero pad data start is different for each == height+1
-        if (!in2done)
+        if (!in2done) {
           FHT2D(data1ch, log2_w, log2_h, kernelHeight + 1, 0);
+        }
         FHT2D(data2, log2_w, log2_h, kernelHeight + 1, 0);
 
         // FHT2D transposed data, row/col now swapped
@@ -358,14 +377,16 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         // overlap-add result
         for (y = 0; y < (int)h2; y++) {
           const int yy = ybl * ybsz + y - hh;
-          if ((yy < 0) || (yy >= imageHeight))
+          if ((yy < 0) || (yy >= imageHeight)) {
             continue;
+          }
           fp = &data2[y * w2];
           colp = (fRGB *)&rdst->getBuffer()[yy * imageWidth * COM_NUM_CHANNELS_COLOR];
           for (x = 0; x < (int)w2; x++) {
             const int xx = xbl * xbsz + x - hw;
-            if ((xx < 0) || (xx >= imageWidth))
+            if ((xx < 0) || (xx >= imageWidth)) {
               continue;
+            }
             colp[xx][ch] += fp[x];
           }
         }

@@ -52,14 +52,17 @@ void KeyingScreenOperation::deinitExecution()
   if (this->m_cachedTriangulation) {
     TriangulationData *triangulation = this->m_cachedTriangulation;
 
-    if (triangulation->triangulated_points)
+    if (triangulation->triangulated_points) {
       MEM_freeN(triangulation->triangulated_points);
+    }
 
-    if (triangulation->triangles)
+    if (triangulation->triangles) {
       MEM_freeN(triangulation->triangles);
+    }
 
-    if (triangulation->triangles_AABB)
+    if (triangulation->triangles_AABB) {
       MEM_freeN(triangulation->triangles_AABB);
+    }
 
     MEM_freeN(this->m_cachedTriangulation);
 
@@ -86,13 +89,15 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   if (this->m_trackingObject[0]) {
     MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->m_trackingObject);
 
-    if (!object)
+    if (!object) {
       return NULL;
+    }
 
     tracksbase = BKE_tracking_object_get_tracks(tracking, object);
   }
-  else
+  else {
     tracksbase = BKE_tracking_get_active_tracks(tracking);
+  }
 
   /* count sites */
   for (track = (MovieTrackingTrack *)tracksbase->first, sites_total = 0; track;
@@ -100,8 +105,9 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
     MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
     float pos[2];
 
-    if (marker->flag & MARKER_DISABLED)
+    if (marker->flag & MARKER_DISABLED) {
       continue;
+    }
 
     add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -112,14 +118,16 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
     sites_total++;
   }
 
-  if (!sites_total)
+  if (!sites_total) {
     return NULL;
+  }
 
   BKE_movieclip_user_set_frame(&user, clip_frame);
   ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, &user);
 
-  if (!ibuf)
+  if (!ibuf) {
     return NULL;
+  }
 
   triangulation = (TriangulationData *)MEM_callocN(sizeof(TriangulationData),
                                                    "keying screen triangulation data");
@@ -133,8 +141,9 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
     int j;
     float pos[2];
 
-    if (marker->flag & MARKER_DISABLED)
+    if (marker->flag & MARKER_DISABLED) {
       continue;
+    }
 
     add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -225,8 +234,9 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
   int chunk_size = 20;
   int i;
 
-  if (this->m_movieClip == NULL)
+  if (this->m_movieClip == NULL) {
     return NULL;
+  }
 
   if (!this->m_cachedTriangulation) {
     lockMutex();
@@ -238,8 +248,9 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
 
   triangulation = this->m_cachedTriangulation;
 
-  if (!triangulation)
+  if (!triangulation) {
     return NULL;
+  }
 
   tile_data = (TileData *)MEM_callocN(sizeof(TileData), "keying screen tile data");
 

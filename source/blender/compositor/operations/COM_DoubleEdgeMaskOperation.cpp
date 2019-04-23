@@ -1340,8 +1340,9 @@ void DoubleEdgeMaskOperation::initExecution()
 
 void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect)
 {
-  if (this->m_cachedInstance)
+  if (this->m_cachedInstance) {
     return this->m_cachedInstance;
+  }
 
   lockMutex();
   if (this->m_cachedInstance == NULL) {

@@ -53,19 +53,23 @@ DebugInfo::GroupStateMap DebugInfo::m_group_states;
 std::string DebugInfo::node_name(const Node *node)
 {
   NodeNameMap::const_iterator it = m_node_names.find(node);
-  if (it != m_node_names.end())
+  if (it != m_node_names.end()) {
     return it->second;
-  else
+  }
+  else {
     return "";
+  }
 }
 
 std::string DebugInfo::operation_name(const NodeOperation *op)
 {
   OpNameMap::const_iterator it = m_op_names.find(op);
-  if (it != m_op_names.end())
+  if (it != m_op_names.end()) {
     return it->second;
-  else
+  }
+  else {
     return "";
+  }
 }
 
 void DebugInfo::convert_started()
@@ -79,8 +83,9 @@ void DebugInfo::execute_started(const ExecutionSystem *system)
   m_group_states.clear();
   for (ExecutionSystem::Groups::const_iterator it = system->m_groups.begin();
        it != system->m_groups.end();
-       ++it)
+       ++it) {
     m_group_states[*it] = EG_WAIT;
+  }
 }
 
 void DebugInfo::node_added(const Node *node)
@@ -145,10 +150,12 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   }
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// OPERATION: %p\r\n", operation);
-  if (group)
+  if (group) {
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p_%p\"", operation, group);
-  else
+  }
+  else {
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p\"", operation);
+  }
   len += snprintf(str + len,
                   maxlen > len ? maxlen - len : 0,
                   " [fillcolor=%s,style=filled,shape=record,label=\"{",
@@ -368,8 +375,9 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   /* operations not included in any group */
   for (int j = 0; j < totops; ++j) {
     NodeOperation *operation = system->m_operations[j];
-    if (op_groups.find(operation) != op_groups.end())
+    if (op_groups.find(operation) != op_groups.end()) {
       continue;
+    }
 
     op_groups[operation].push_back(std::string(""));
 
@@ -407,8 +415,9 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
       NodeOperationInput *to = *it;
       NodeOperationOutput *from = to->getLink();
 
-      if (!from)
+      if (!from) {
         continue;
+      }
 
       std::string color;
       switch (from->getDataType()) {

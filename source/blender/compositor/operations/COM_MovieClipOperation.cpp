@@ -42,11 +42,13 @@ void MovieClipBaseOperation::initExecution()
     BKE_movieclip_user_set_frame(this->m_movieClipUser, this->m_framenumber);
     ImBuf *ibuf;
 
-    if (this->m_cacheFrame)
+    if (this->m_cacheFrame) {
       ibuf = BKE_movieclip_get_ibuf(this->m_movieClip, this->m_movieClipUser);
-    else
+    }
+    else {
       ibuf = BKE_movieclip_get_ibuf_flag(
           this->m_movieClip, this->m_movieClipUser, this->m_movieClip->flag, MOVIECLIP_CACHE_SKIP);
+    }
 
     if (ibuf) {
       this->m_movieClipBuffer = ibuf;

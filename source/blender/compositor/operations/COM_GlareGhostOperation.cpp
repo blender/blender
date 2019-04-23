@@ -48,41 +48,54 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
   bool breaked = false;
 
   FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 0, 3);
-  if (!breaked)
+  if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 1, 3);
-  if (isBreaked())
+  }
+  if (isBreaked()) {
     breaked = true;
-  if (!breaked)
+  }
+  if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 2, 3);
+  }
 
   MemoryBuffer *tbuf2 = tbuf1->duplicate();
 
-  if (isBreaked())
+  if (isBreaked()) {
     breaked = true;
-  if (!breaked)
+  }
+  if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 0, 3);
-  if (isBreaked())
+  }
+  if (isBreaked()) {
     breaked = true;
-  if (!breaked)
+  }
+  if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 1, 3);
-  if (isBreaked())
+  }
+  if (isBreaked()) {
     breaked = true;
-  if (!breaked)
+  }
+  if (!breaked) {
     FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 2, 3);
+  }
 
   ofs = (settings->iter & 1) ? 0.5f : 0.0f;
   for (x = 0; x < (settings->iter * 4); x++) {
     y = x & 3;
     cm[x][0] = cm[x][1] = cm[x][2] = 1;
-    if (y == 1)
+    if (y == 1) {
       fRGB_rgbmult(cm[x], 1.0f, cmo, cmo);
-    if (y == 2)
+    }
+    if (y == 2) {
       fRGB_rgbmult(cm[x], cmo, cmo, 1.0f);
-    if (y == 3)
+    }
+    if (y == 3) {
       fRGB_rgbmult(cm[x], cmo, 1.0f, cmo);
+    }
     scalef[x] = 2.1f * (1.0f - (x + ofs) / (float)(settings->iter * 4));
-    if (x & 1)
+    if (x & 1) {
       scalef[x] = -0.99f / scalef[x];
+    }
   }
 
   sc = 2.13;
@@ -104,8 +117,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
       gbuf->writePixel(x, y, c);
     }
-    if (isBreaked())
+    if (isBreaked()) {
       breaked = true;
+    }
   }
 
   memset(tbuf1->getBuffer(),
@@ -128,8 +142,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
         }
         tbuf1->addPixel(x, y, tc);
       }
-      if (isBreaked())
+      if (isBreaked()) {
         breaked = true;
+      }
     }
     memcpy(gbuf->getBuffer(),
            tbuf1->getBuffer(),

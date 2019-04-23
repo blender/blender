@@ -97,8 +97,9 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(
 
 void ProjectorLensDistortionOperation::updateDispersion()
 {
-  if (this->m_dispersionAvailable)
+  if (this->m_dispersionAvailable) {
     return;
+  }
   this->lockMutex();
   if (!this->m_dispersionAvailable) {
     float result[4];

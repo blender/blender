@@ -54,10 +54,12 @@ void GlareStreaksOperation::generateGlare(float *data,
         for (x = 0; x < tsrc->getWidth(); ++x, tdstcol += 4) {
           // first pass no offset, always same for every pass, exact copy,
           // otherwise results in uneven brightness, only need once
-          if (n == 0)
+          if (n == 0) {
             tsrc->read(c1, x, y);
-          else
+          }
+          else {
             c1[0] = c1[1] = c1[2] = 0;
+          }
           tsrc->readBilinear(c2, x + vxp, y + vyp);
           tsrc->readBilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
           tsrc->readBilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);

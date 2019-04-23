@@ -158,10 +158,12 @@ class MemoryBuffer {
       case COM_MB_CLIP:
         break;
       case COM_MB_EXTEND:
-        if (x < 0)
+        if (x < 0) {
           x = 0;
-        if (x >= w)
+        }
+        if (x >= w) {
           x = w;
+        }
         break;
       case COM_MB_REPEAT:
         x = (x >= 0.0f ? (x % w) : (x % w) + w);
@@ -172,10 +174,12 @@ class MemoryBuffer {
       case COM_MB_CLIP:
         break;
       case COM_MB_EXTEND:
-        if (y < 0)
+        if (y < 0) {
           y = 0;
-        if (y >= h)
+        }
+        if (y >= h) {
           y = h;
+        }
         break;
       case COM_MB_REPEAT:
         y = (y >= 0.0f ? (y % h) : (y % h) + h);
@@ -197,10 +201,12 @@ class MemoryBuffer {
       case COM_MB_CLIP:
         break;
       case COM_MB_EXTEND:
-        if (x < 0)
+        if (x < 0) {
           x = 0.0f;
-        if (x >= w)
+        }
+        if (x >= w) {
           x = w;
+        }
         break;
       case COM_MB_REPEAT:
         x = fmodf(x, w);
@@ -211,10 +217,12 @@ class MemoryBuffer {
       case COM_MB_CLIP:
         break;
       case COM_MB_EXTEND:
-        if (y < 0)
+        if (y < 0) {
           y = 0.0f;
-        if (y >= h)
+        }
+        if (y >= h) {
           y = h;
+        }
         break;
       case COM_MB_REPEAT:
         y = fmodf(y, h);

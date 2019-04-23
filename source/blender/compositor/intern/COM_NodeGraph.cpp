@@ -60,8 +60,9 @@ bNodeSocket *NodeGraph::find_b_node_input(bNode *b_group_node, const char *ident
 {
   for (bNodeSocket *b_sock = (bNodeSocket *)b_group_node->inputs.first; b_sock;
        b_sock = b_sock->next) {
-    if (STREQ(b_sock->identifier, identifier))
+    if (STREQ(b_sock->identifier, identifier)) {
       return b_sock;
+    }
   }
   return NULL;
 }
@@ -70,8 +71,9 @@ bNodeSocket *NodeGraph::find_b_node_output(bNode *b_group_node, const char *iden
 {
   for (bNodeSocket *b_sock = (bNodeSocket *)b_group_node->outputs.first; b_sock;
        b_sock = b_sock->next) {
-    if (STREQ(b_sock->identifier, identifier))
+    if (STREQ(b_sock->identifier, identifier)) {
       return b_sock;
+    }
   }
   return NULL;
 }
@@ -149,8 +151,9 @@ void NodeGraph::add_bNode(const CompositorContext &context,
   else {
     /* regular nodes, handled in Converter */
     Node *node = Converter::convert(b_node);
-    if (node)
+    if (node) {
       add_node(node, b_ntree, key, is_active_group);
+    }
   }
 }
 
@@ -186,24 +189,28 @@ NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_s
 void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink)
 {
   /// \note: ignore invalid links
-  if (!(b_nodelink->flag & NODE_LINK_VALID))
+  if (!(b_nodelink->flag & NODE_LINK_VALID)) {
     return;
-  if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL))
+  }
+  if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL)) {
     return;
+  }
 
   /* Note: a DNA input socket can have multiple NodeInput in the compositor tree! (proxies)
    * The output then gets linked to each one of them.
    */
 
   NodeOutput *output = find_output(node_range, b_nodelink->fromsock);
-  if (!output)
+  if (!output) {
     return;
+  }
 
   NodeInputs inputs = find_inputs(node_range, b_nodelink->tosock);
   for (NodeInputs::const_iterator it = inputs.begin(); it != inputs.end(); ++it) {
     NodeInput *input = *it;
-    if (input->isLinked())
+    if (input->isLinked()) {
       continue;
+    }
     add_link(output, input);
   }
 }
@@ -232,8 +239,9 @@ void NodeGraph::add_proxies_skip(bNodeTree *b_ntree,
 
     /* look for first input with matching datatype for each output */
     for (input = (bNodeSocket *)b_node->inputs.first; input; input = input->next) {
-      if (input->type == output->type)
+      if (input->type == output->type) {
         break;
+      }
     }
 
     if (input) {
@@ -305,11 +313,13 @@ void NodeGraph::add_proxies_group(const CompositorContext &context,
   /* create proxy nodes for group input/output nodes */
   for (bNode *b_node_io = (bNode *)b_group_tree->nodes.first; b_node_io;
        b_node_io = b_node_io->next) {
-    if (b_node_io->type == NODE_GROUP_INPUT)
+    if (b_node_io->type == NODE_GROUP_INPUT) {
       add_proxies_group_inputs(b_node, b_node_io);
+    }
 
-    if (b_node_io->type == NODE_GROUP_OUTPUT && (b_node_io->flag & NODE_DO_OUTPUT))
+    if (b_node_io->type == NODE_GROUP_OUTPUT && (b_node_io->flag & NODE_DO_OUTPUT)) {
       add_proxies_group_outputs(b_node, b_node_io, context.isGroupnodeBufferEnabled());
+    }
   }
 
   add_bNodeTree(context, nodes_start, b_group_tree, key);

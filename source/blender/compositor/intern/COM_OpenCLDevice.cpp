@@ -133,8 +133,9 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
   if (error != CL_SUCCESS) {
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
-  if (error == CL_SUCCESS)
+  if (error == CL_SUCCESS) {
     cleanup->push_back(clBuffer);
+  }
 
   error = clSetKernelArg(kernel, parameterIndex, sizeof(cl_mem), &clBuffer);
   if (error != CL_SUCCESS) {
@@ -263,8 +264,9 @@ cl_kernel OpenCLDevice::COM_clCreateKernel(const char *kernelname,
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
   else {
-    if (clKernelsToCleanUp)
+    if (clKernelsToCleanUp) {
       clKernelsToCleanUp->push_back(kernel);
+    }
   }
   return kernel;
 }

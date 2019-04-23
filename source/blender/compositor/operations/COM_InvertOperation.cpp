@@ -54,10 +54,12 @@ void InvertOperation::executePixelSampled(float output[4], float x, float y, Pix
     copy_v3_v3(output, inputColor);
   }
 
-  if (this->m_alpha)
+  if (this->m_alpha) {
     output[3] = (1.0f - inputColor[3]) * value + inputColor[3] * invertedValue;
-  else
+  }
+  else {
     output[3] = inputColor[3];
+  }
 }
 
 void InvertOperation::deinitExecution()

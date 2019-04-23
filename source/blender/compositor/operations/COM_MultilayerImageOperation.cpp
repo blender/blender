@@ -72,8 +72,9 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
       int yi = y;
       int xi = x;
       if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-          (unsigned int)yi >= this->getHeight())
+          (unsigned int)yi >= this->getHeight()) {
         zero_v4(output);
+      }
       else {
         int offset = (yi * this->getWidth() + xi) * 3;
         copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);
@@ -94,8 +95,9 @@ void MultilayerValueOperation::executePixelSampled(float output[4],
     int yi = y;
     int xi = x;
     if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-        (unsigned int)yi >= this->getHeight())
+        (unsigned int)yi >= this->getHeight()) {
       output[0] = 0.0f;
+    }
     else {
       float result = this->m_imageFloatBuffer[yi * this->getWidth() + xi];
       output[0] = result;
@@ -115,8 +117,9 @@ void MultilayerVectorOperation::executePixelSampled(float output[4],
     int yi = y;
     int xi = x;
     if (xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() ||
-        (unsigned int)yi >= this->getHeight())
+        (unsigned int)yi >= this->getHeight()) {
       output[0] = 0.0f;
+    }
     else {
       int offset = (yi * this->getWidth() + xi) * 3;
       copy_v3_v3(output, &this->m_imageFloatBuffer[offset]);

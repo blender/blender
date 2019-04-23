@@ -39,12 +39,16 @@ void MapValueOperation::executePixelSampled(float output[4],
   this->m_inputOperation->readSampled(src, x, y, sampler);
   TexMapping *texmap = this->m_settings;
   float value = (src[0] + texmap->loc[0]) * texmap->size[0];
-  if (texmap->flag & TEXMAP_CLIP_MIN)
-    if (value < texmap->min[0])
+  if (texmap->flag & TEXMAP_CLIP_MIN) {
+    if (value < texmap->min[0]) {
       value = texmap->min[0];
-  if (texmap->flag & TEXMAP_CLIP_MAX)
-    if (value > texmap->max[0])
+    }
+  }
+  if (texmap->flag & TEXMAP_CLIP_MAX) {
+    if (value > texmap->max[0]) {
       value = texmap->max[0];
+    }
+  }
 
   output[0] = value;
 }

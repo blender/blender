@@ -178,10 +178,12 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty, float clipcrop)
 void zbuf_free_span(ZSpan *zspan)
 {
   if (zspan) {
-    if (zspan->span1)
+    if (zspan->span1) {
       MEM_freeN(zspan->span1);
-    if (zspan->span2)
+    }
+    if (zspan->span2) {
       MEM_freeN(zspan->span2);
+    }
     zspan->span1 = zspan->span2 = NULL;
   }
 }
@@ -213,18 +215,22 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   my0 = ceil(minv[1]);
   my2 = floor(maxv[1]);
 
-  if (my2 < 0 || my0 >= zspan->recty)
+  if (my2 < 0 || my0 >= zspan->recty) {
     return;
+  }
 
   /* clip top */
-  if (my2 >= zspan->recty)
+  if (my2 >= zspan->recty) {
     my2 = zspan->recty - 1;
+  }
   /* clip bottom */
-  if (my0 < 0)
+  if (my0 < 0) {
     my0 = 0;
+  }
 
-  if (my0 > my2)
+  if (my0 > my2) {
     return;
+  }
   /* if (my0>my2) should still fill in, that way we get spans that skip nicely */
 
   xx1 = maxv[1] - minv[1];
@@ -258,10 +264,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp1 == NULL || zspan->maxp1[1] < maxv[1]) {
       zspan->maxp1 = maxv;
     }
-    if (my0 < zspan->miny1)
+    if (my0 < zspan->miny1) {
       zspan->miny1 = my0;
-    if (my2 > zspan->maxy1)
+    }
+    if (my2 > zspan->maxy1) {
       zspan->maxy1 = my2;
+    }
   }
   else {
     //      printf("right span my0 %d my2 %d\n", my0, my2);
@@ -271,10 +279,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
     if (zspan->maxp2 == NULL || zspan->maxp2[1] < maxv[1]) {
       zspan->maxp2 = maxv;
     }
-    if (my0 < zspan->miny2)
+    if (my0 < zspan->miny2) {
       zspan->miny2 = my0;
-    if (my2 > zspan->maxy2)
+    }
+    if (my2 > zspan->maxy2) {
       zspan->maxy2 = my2;
+    }
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
@@ -312,15 +322,17 @@ static void zbuf_fill_in_rgba(
   zbuf_add_to_span(zspan, v4, v1);
 
   /* clipped */
-  if (zspan->minp2 == NULL || zspan->maxp2 == NULL)
+  if (zspan->minp2 == NULL || zspan->maxp2 == NULL) {
     return;
+  }
 
   my0 = max_ii(zspan->miny1, zspan->miny2);
   my2 = min_ii(zspan->maxy1, zspan->maxy2);
 
   //  printf("my %d %d\n", my0, my2);
-  if (my2 < my0)
+  if (my2 < my0) {
     return;
+  }
 
   /* ZBUF DX DY, in floats still */
   x1 = v1[0] - v2[0];
@@ -333,8 +345,9 @@ static void zbuf_fill_in_rgba(
   y0 = z1 * x2 - x1 * z2;
   z0 = x1 * y2 - y1 * x2;
 
-  if (z0 == 0.0f)
+  if (z0 == 0.0f) {
     return;
+  }
 
   xx1 = (x0 * v1[0] + y0 * v1[1]) / z0 + v1[2];
 
@@ -364,10 +377,12 @@ static void zbuf_fill_in_rgba(
     sn2 = floor(*span2);
     sn1++;
 
-    if (sn2 >= rectx)
+    if (sn2 >= rectx) {
       sn2 = rectx - 1;
-    if (sn1 < 0)
+    }
+    if (sn1 < 0) {
       sn1 = 0;
+    }
 
     if (sn2 >= sn1) {
       zverg = (double)sn1 * zxd + zy0;
@@ -409,8 +424,9 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
     row3 = row2 + xsize;
     for (x = 2; x < xsize; x++, row1++, row2++, row3++) {
       if (row2[1]) {
-        if (row2[0] == 0 || row2[2] == 0 || row1[1] == 0 || row3[1] == 0)
+        if (row2[0] == 0 || row2[2] == 0 || row1[1] == 0 || row3[1] == 0) {
           row2[1] = 128;
+        }
       }
     }
   }
@@ -424,8 +440,9 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
         /* find previous color and next color and amount of steps to blend */
         prev = row1[-1];
         step = 1;
-        while (x + step < xsize && row1[step] == 128)
+        while (x + step < xsize && row1[step] == 128) {
           step++;
+        }
 
         if (x + step != xsize) {
           /* now we can blend values */
@@ -455,8 +472,9 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
         /* find previous color and next color and amount of steps to blend */
         prev = row1[-xsize];
         step = 1;
-        while (y + step < ysize && row1[step * xsize] == 128)
+        while (y + step < ysize && row1[step * xsize] == 128) {
           step++;
+        }
 
         if (y + step != ysize) {
           /* now we can blend values */
@@ -483,8 +501,9 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
     row3 = row2 + xsize;
     for (x = 2; x < xsize; x++, row1++, row2++, row3++) {
       if (row2[1] == 0) {
-        if (row2[0] > 1 || row2[2] > 1 || row1[1] > 1 || row3[1] > 1)
+        if (row2[0] > 1 || row2[2] > 1 || row1[1] > 1 || row3[1] > 1) {
           row2[1] = 1;
+        }
       }
     }
   }
@@ -567,8 +586,9 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
       tsktsk = 1;
     }
   }
-  if (tsktsk)
+  if (tsktsk) {
     printf("Found uninitialized speed in vector buffer... fixed.\n");
+  }
 
   /* min speed? then copy speedbuffer to recalculate speed vectors */
   if (nbd->minspeed) {
@@ -605,15 +625,19 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   dvz = rectvz;
   for (y = 0; y <= ysize; y++) {
 
-    if (y == 0)
+    if (y == 0) {
       dvec1 = vecbufrect + 4 * y * xsize;
-    else
+    }
+    else {
       dvec1 = vecbufrect + 4 * (y - 1) * xsize;
+    }
 
-    if (y == ysize)
+    if (y == ysize) {
       dvec2 = vecbufrect + 4 * (y - 1) * xsize;
-    else
+    }
+    else {
       dvec2 = vecbufrect + 4 * y * xsize;
+    }
 
     for (x = 0; x <= xsize; x++) {
 
@@ -698,8 +722,9 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   dm = rectmove;
   dvec1 = vecbufrect;
   for (x = xsize * ysize; x > 0; x--, dm++, dvec1 += 4) {
-    if ((dvec1[0] != 0.0f || dvec1[1] != 0.0f || dvec1[2] != 0.0f || dvec1[3] != 0.0f))
+    if ((dvec1[0] != 0.0f || dvec1[1] != 0.0f || dvec1[2] != 0.0f || dvec1[3] != 0.0f)) {
       *dm = 255;
+    }
   }
 
   antialias_tagbuf(xsize, ysize, rectmove);
@@ -722,20 +747,26 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
       float blendfac, ipodata[4];
 
       /* clear zbuf, if we draw future we fill in not moving pixels */
-      if (0)
-        for (x = xsize * ysize - 1; x >= 0; x--)
-          rectz[x] = 10e16;
-      else
+      if (0) {
         for (x = xsize * ysize - 1; x >= 0; x--) {
-          if (rectmove[x] == 0)
-            rectz[x] = zbufrect[x];
-          else
-            rectz[x] = 10e16;
+          rectz[x] = 10e16;
         }
+      }
+      else {
+        for (x = xsize * ysize - 1; x >= 0; x--) {
+          if (rectmove[x] == 0) {
+            rectz[x] = zbufrect[x];
+          }
+          else {
+            rectz[x] = 10e16;
+          }
+        }
+      }
 
       /* clear drawing buffer */
-      for (x = xsize * ysize - 1; x >= 0; x--)
+      for (x = xsize * ysize - 1; x >= 0; x--) {
         rectdraw[x].colpoin = NULL;
+      }
 
       dimg = imgrect;
       dm = rectmove;
@@ -790,12 +821,15 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
                   v3, speedfac * dz2[4] + jfx + 1.0f, speedfac * dz2[5] + jfy + 1.0f, *dz);
               ARRAY_SET_ITEMS(v4, speedfac * dz2[0] + jfx, speedfac * dz2[1] + jfy + 1.0f, *dz);
             }
-            if (*dm == 255)
+            if (*dm == 255) {
               col.alpha = 1.0f;
-            else if (*dm < 2)
+            }
+            else if (*dm < 2) {
               col.alpha = 0.0f;
-            else
+            }
+            else {
               col.alpha = ((float)*dm) / 255.0f;
+            }
             col.colpoin = dimg;
 
             zbuf_fill_in_rgba(&zspan, &col, v1, v2, v3, v4);
@@ -858,7 +892,8 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   MEM_freeN(rectvz);
   MEM_freeN(rectweight);
   MEM_freeN(rectmax);
-  if (minvecbufrect)
+  if (minvecbufrect) {
     MEM_freeN(vecbufrect); /* rects were swapped! */
+  }
   zbuf_free_span(&zspan);
 }

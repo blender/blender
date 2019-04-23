@@ -49,10 +49,12 @@ void CompositorNode::convertToOperations(NodeConverter &converter,
   converter.addOperation(compositorOperation);
   converter.mapInputSocket(imageSocket, compositorOperation->getInputSocket(0));
   /* only use alpha link if "use alpha" is enabled */
-  if (ignore_alpha)
+  if (ignore_alpha) {
     converter.addInputValue(compositorOperation->getInputSocket(1), 1.0f);
-  else
+  }
+  else {
     converter.mapInputSocket(alphaSocket, compositorOperation->getInputSocket(1));
+  }
   converter.mapInputSocket(depthSocket, compositorOperation->getInputSocket(2));
 
   converter.addNodeInputPreview(imageSocket);

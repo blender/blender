@@ -69,6 +69,7 @@ void SplitViewerNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(splitViewerOperation->getOutputSocket());
 
-  if (do_output)
+  if (do_output) {
     converter.registerViewer(viewerOperation);
+  }
 }

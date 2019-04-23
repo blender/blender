@@ -44,10 +44,12 @@ void LensDistortionNode::convertToOperations(NodeConverter &converter,
     operation->setFit(data->fit);
     operation->setJitter(data->jit);
 
-    if (!getInputSocket(1)->isLinked())
+    if (!getInputSocket(1)->isLinked()) {
       operation->setDistortion(getInputSocket(1)->getEditorValueFloat());
-    if (!getInputSocket(2)->isLinked())
+    }
+    if (!getInputSocket(2)->isLinked()) {
       operation->setDispersion(getInputSocket(2)->getEditorValueFloat());
+    }
 
     converter.addOperation(operation);
 

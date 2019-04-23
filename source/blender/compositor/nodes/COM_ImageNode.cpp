@@ -118,8 +118,9 @@ void ImageNode::convertToOperations(NodeConverter &converter,
                * check if the view name exists in the image */
               view = BLI_findstringindex(
                   &image->rr->views, context.getViewName(), offsetof(RenderView, name));
-              if (view == -1)
+              if (view == -1) {
                 view = 0;
+              }
             }
             else {
               view = view_image - 1;
@@ -195,8 +196,9 @@ void ImageNode::convertToOperations(NodeConverter &converter,
           }
 
           /* incase we can't load the layer */
-          if (operation == NULL)
+          if (operation == NULL) {
             converter.setInvalidOutput(getOutputSocket(index));
+          }
         }
       }
     }
@@ -204,8 +206,9 @@ void ImageNode::convertToOperations(NodeConverter &converter,
 
     /* without this, multilayer that fail to load will crash blender [#32490] */
     if (is_multilayer_ok == false) {
-      for (int i = 0; i < getNumberOfOutputSockets(); ++i)
+      for (int i = 0; i < getNumberOfOutputSockets(); ++i) {
         converter.setInvalidOutput(getOutputSocket(i));
+      }
     }
   }
   else {

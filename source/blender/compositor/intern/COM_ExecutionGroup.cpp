@@ -96,8 +96,9 @@ bool ExecutionGroup::canContainOperation(NodeOperation *operation)
 
 bool ExecutionGroup::addOperation(NodeOperation *operation)
 {
-  if (!canContainOperation(operation))
+  if (!canContainOperation(operation)) {
     return false;
+  }
 
   if (!operation->isReadBufferOperation() && !operation->isWriteBufferOperation()) {
     m_complex = operation->isComplex();
@@ -342,8 +343,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
         startEvaluated = true;
         numberEvaluated++;
 
-        if (bTree->update_draw)
+        if (bTree->update_draw) {
           bTree->update_draw(bTree->udh);
+        }
       }
       else if (state == COM_ES_SCHEDULED) {
         finished = false;
@@ -401,8 +403,9 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 
 void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
 {
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
+  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED) {
     this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
+  }
 
   atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
   if (memoryBuffers) {

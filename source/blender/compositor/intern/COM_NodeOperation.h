@@ -365,8 +365,9 @@ class NodeOperation : public SocketReader {
 
   inline void updateDraw()
   {
-    if (this->m_btree->update_draw)
+    if (this->m_btree->update_draw) {
       this->m_btree->update_draw(this->m_btree->udh);
+    }
   }
 
  protected:

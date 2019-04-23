@@ -54,8 +54,9 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 
 void CompositorOperation::initExecution()
 {
-  if (!this->m_active)
+  if (!this->m_active) {
     return;
+  }
 
   // When initializing the tree during initial load the width and height can be zero.
   this->m_imageInput = getInputSocketReader(0);
@@ -73,8 +74,9 @@ void CompositorOperation::initExecution()
 
 void CompositorOperation::deinitExecution()
 {
-  if (!this->m_active)
+  if (!this->m_active) {
     return;
+  }
 
   if (!isBreaked()) {
     Render *re = RE_GetSceneRender(this->m_scene);
@@ -136,8 +138,9 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   float *buffer = this->m_outputBuffer;
   float *zbuffer = this->m_depthBuffer;
 
-  if (!buffer)
+  if (!buffer) {
     return;
+  }
   int x1 = rect->xmin;
   int y1 = rect->ymin;
   int x2 = rect->xmax;

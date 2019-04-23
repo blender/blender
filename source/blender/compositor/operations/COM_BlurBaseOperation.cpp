@@ -81,8 +81,9 @@ float *BlurBaseOperation::make_gausstab(float rad, int size)
   }
 
   sum = 1.0f / sum;
-  for (i = 0; i < n; i++)
+  for (i = 0; i < n; i++) {
     gausstab[i] *= sum;
+  }
 
   return gausstab;
 }

@@ -302,8 +302,9 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
   }
 
   /* apply blur on matte if needed */
-  if (keying_data->blur_post)
+  if (keying_data->blur_post) {
     postprocessedMatte = setupPostBlur(converter, postprocessedMatte, keying_data->blur_post);
+  }
 
   /* matte dilate/erode */
   if (keying_data->dilate_distance != 0) {
@@ -342,6 +343,7 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
   converter.mapOutputSocket(outputImage, postprocessedImage);
   converter.mapOutputSocket(outputMatte, postprocessedMatte);
 
-  if (edgesMatte)
+  if (edgesMatte) {
     converter.mapOutputSocket(outputEdges, edgesMatte);
+  }
 }

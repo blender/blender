@@ -56,8 +56,9 @@ void ConvertDepthToRadiusOperation::initExecution()
 
   this->m_inputOperation = this->getInputSocketReader(0);
   float focalDistance = determineFocalDistance();
-  if (focalDistance == 0.0f)
+  if (focalDistance == 0.0f) {
     focalDistance = 1e10f; /* if the dof is 0.0 then set it to be far away */
+  }
   this->m_inverseFocalDistance = 1.0f / focalDistance;
   this->m_aspect = (this->getWidth() > this->getHeight()) ?
                        (this->getHeight() / (float)this->getWidth()) :
@@ -95,8 +96,9 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
     radius = 0.5f * fabsf(this->m_aperture *
                           (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.0f));
     // 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
-    if (radius < 0.0f)
+    if (radius < 0.0f) {
       radius = 0.0f;
+    }
     if (radius > this->m_maxRadius) {
       radius = this->m_maxRadius;
     }

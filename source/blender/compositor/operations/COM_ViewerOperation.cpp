@@ -82,8 +82,9 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 {
   float *buffer = this->m_outputBuffer;
   float *depthbuffer = this->m_depthBuffer;
-  if (!buffer)
+  if (!buffer) {
     return;
+  }
   const int x1 = rect->xmin;
   const int y1 = rect->ymin;
   const int x2 = rect->xmax;
@@ -149,8 +150,9 @@ void ViewerOperation::initImage()
     ibuf->x = getWidth();
     ibuf->y = getHeight();
     /* zero size can happen if no image buffers exist to define a sensible resolution */
-    if (ibuf->x > 0 && ibuf->y > 0)
+    if (ibuf->x > 0 && ibuf->y > 0) {
       imb_addrectfloatImBuf(ibuf);
+    }
     ima->ok = IMA_OK_LOADED;
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;

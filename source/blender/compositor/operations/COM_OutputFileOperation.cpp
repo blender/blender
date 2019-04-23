@@ -86,8 +86,9 @@ void free_exr_channels(void *exrhandle,
   for (srv = (SceneRenderView *)rd->views.first; srv; srv = srv->next) {
     float *rect = NULL;
 
-    if (BKE_scene_multiview_is_render_view_active(rd, srv) == false)
+    if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
       continue;
+    }
 
     /* the pointer is stored in the first channel of each datatype */
     switch (datatype) {
@@ -103,8 +104,9 @@ void free_exr_channels(void *exrhandle,
       default:
         break;
     }
-    if (rect)
+    if (rect) {
       MEM_freeN(rect);
+    }
   }
 }
 
@@ -129,8 +131,9 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
     int size = get_datatype_size(datatype);
     return (float *)MEM_callocN(width * height * size * sizeof(float), "OutputFile buffer");
   }
-  else
+  else {
     return NULL;
+  }
 }
 
 static void write_buffer_rect(rcti *rect,
@@ -143,8 +146,9 @@ static void write_buffer_rect(rcti *rect,
   float color[4];
   int i, size = get_datatype_size(datatype);
 
-  if (!buffer)
+  if (!buffer) {
     return;
+  }
   int x1 = rect->xmin;
   int y1 = rect->ymin;
   int x2 = rect->xmax;
@@ -158,12 +162,14 @@ static void write_buffer_rect(rcti *rect,
     for (x = x1; x < x2 && (!breaked); x++) {
       reader->readSampled(color, x, y, COM_PS_NEAREST);
 
-      for (i = 0; i < size; ++i)
+      for (i = 0; i < size; ++i) {
         buffer[offset + i] = color[i];
+      }
       offset += size;
 
-      if (tree->test_break && tree->test_break(tree->tbh))
+      if (tree->test_break && tree->test_break(tree->tbh)) {
         breaked = true;
+      }
     }
     offset += (width - (x2 - x1)) * size;
   }
@@ -240,10 +246,12 @@ void OutputSingleLayerOperation::deinitExecution()
                                  true,
                                  suffix);
 
-    if (0 == BKE_imbuf_write(ibuf, filename, this->m_format))
+    if (0 == BKE_imbuf_write(ibuf, filename, this->m_format)) {
       printf("Cannot save Node File Output to %s\n", filename);
-    else
+    }
+    else {
       printf("Saved: %s\n", filename);
+    }
 
     IMB_freeImBuf(ibuf);
   }
@@ -304,13 +312,14 @@ void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int /*
 {
   for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
     OutputOpenExrLayer &layer = this->m_layers[i];
-    if (layer.imageInput)
+    if (layer.imageInput) {
       write_buffer_rect(rect,
                         this->m_tree,
                         layer.imageInput,
                         layer.outputBuffer,
                         this->getWidth(),
                         layer.datatype);
+    }
   }
 }
 
@@ -336,8 +345,9 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 
     for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
       OutputOpenExrLayer &layer = this->m_layers[i];
-      if (!layer.imageInput)
+      if (!layer.imageInput) {
         continue; /* skip unconnected sockets */
+      }
 
       add_exr_channels(exrhandle,
                        this->m_layers[i].name,

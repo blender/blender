@@ -26,22 +26,22 @@
 const sampler_t SAMPLER_NEAREST       = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 const sampler_t SAMPLER_NEAREST_CLAMP = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-__constant const int2 zero = {0,0};
+__constant const int zero = {0,0};
 
 // KERNEL --- BOKEH BLUR ---
 __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only image2d_t inputImage, 
                               __read_only image2d_t bokehImage, __write_only image2d_t output, 
-                              int2 offsetInput, int2 offsetOutput, int radius, int step, int2 dimension, int2 offset) 
+                              int offsetInput, int offsetOutput, int radius, int step, int dimension, int offset) 
 {
-	int2 coords = {get_global_id(0), get_global_id(1)};
+	int coords = {get_global_id(0), get_global_id(1)};
 	coords += offset;
 	float tempBoundingBox;
-	float4 color = {0.0f,0.0f,0.0f,0.0f};
-	float4 multiplyer = {0.0f,0.0f,0.0f,0.0f};
-	float4 bokeh;
+	float color = {0.0f,0.0f,0.0f,0.0f};
+	float multiplyer = {0.0f,0.0f,0.0f,0.0f};
+	float bokeh;
 	const float radius2 = radius*2.0f;
-	const int2 realCoordinate = coords + offsetOutput;
-	int2 imageCoordinates = realCoordinate - offsetInput;
+	const int realCoordinate = coords + offsetOutput;
+	int imageCoordinates = realCoordinate - offsetInput;
 
 	tempBoundingBox = read_imagef(boundingBox, SAMPLER_NEAREST, coords).s0;
 

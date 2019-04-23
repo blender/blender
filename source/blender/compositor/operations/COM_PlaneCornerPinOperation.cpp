@@ -43,13 +43,16 @@ static bool check_corners(float corners[4][2])
     sub_v2_v2v2(v2, corners[next], corners[i]);
 
     cur_cross = cross_v2v2(v1, v2);
-    if (fabsf(cur_cross) <= FLT_EPSILON)
+    if (fabsf(cur_cross) <= FLT_EPSILON) {
       return false;
+    }
 
-    if (cross == 0.0f)
+    if (cross == 0.0f) {
       cross = cur_cross;
-    else if (cross * cur_cross < 0.0f)
+    }
+    else if (cross * cur_cross < 0.0f) {
       return false;
+    }
   }
 
   return true;
@@ -205,9 +208,11 @@ void *PlaneCornerPinWarpImageOperation::initializeTileData(rcti *rect)
 bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
     rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-  for (int i = 0; i < 4; ++i)
-    if (getInputOperation(i + 1)->determineDependingAreaOfInterest(input, readOperation, output))
+  for (int i = 0; i < 4; ++i) {
+    if (getInputOperation(i + 1)->determineDependingAreaOfInterest(input, readOperation, output)) {
       return true;
+    }
+  }
 
   /* XXX this is bad, but unavoidable with the current design:
    * we don't know the actual corners and matrix at this point,

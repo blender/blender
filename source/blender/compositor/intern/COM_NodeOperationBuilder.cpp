@@ -70,8 +70,9 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
    * so multiple operations can use the same node input.
    */
   OpInputInverseMap inverse_input_map;
-  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); ++it)
+  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); ++it) {
     inverse_input_map[it->second].push_back(it->first);
+  }
 
   for (NodeGraph::Links::const_iterator it = m_graph.links().begin(); it != m_graph.links().end();
        ++it) {
@@ -153,8 +154,9 @@ void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
 
 void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput *to)
 {
-  if (to->isConnected())
+  if (to->isConnected()) {
     return;
+  }
 
   m_links.push_back(Link(from, to));
 
@@ -202,14 +204,17 @@ PreviewOperation *NodeOperationBuilder::make_preview_operation() const
 {
   BLI_assert(m_current_node);
 
-  if (!(m_current_node->getbNode()->flag & NODE_PREVIEW))
+  if (!(m_current_node->getbNode()->flag & NODE_PREVIEW)) {
     return NULL;
+  }
   /* previews only in the active group */
-  if (!m_current_node->isInActiveGroup())
+  if (!m_current_node->isInActiveGroup()) {
     return NULL;
+  }
   /* do not calculate previews of hidden nodes */
-  if (m_current_node->getbNode()->flag & NODE_HIDDEN)
+  if (m_current_node->getbNode()->flag & NODE_HIDDEN) {
     return NULL;
+  }
 
   bNodeInstanceHash *previews = m_context->getPreviewHash();
   if (previews) {
@@ -275,11 +280,13 @@ void NodeOperationBuilder::add_datatype_conversions()
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
     NodeOperation *to_op = &link.to()->getOperation();
-    if (!(from_op->useDatatypeConversion() || to_op->useDatatypeConversion()))
+    if (!(from_op->useDatatypeConversion() || to_op->useDatatypeConversion())) {
       continue;
+    }
 
-    if (link.from()->getDataType() != link.to()->getDataType())
+    if (link.from()->getDataType() != link.to()->getDataType()) {
       convert_links.push_back(link);
+    }
   }
   for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
     const Link &link = *it;
@@ -305,8 +312,9 @@ void NodeOperationBuilder::add_operation_input_constants()
     NodeOperation *op = *it;
     for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
-      if (!input->isConnected())
+      if (!input->isConnected()) {
         pending_inputs.push_back(input);
+      }
     }
   }
   for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
@@ -321,10 +329,12 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
   switch (input->getDataType()) {
     case COM_DT_VALUE: {
       float value;
-      if (node_input && node_input->getbNodeSocket())
+      if (node_input && node_input->getbNodeSocket()) {
         value = node_input->getEditorValueFloat();
-      else
+      }
+      else {
         value = 0.0f;
+      }
 
       SetValueOperation *op = new SetValueOperation();
       op->setValue(value);
@@ -334,10 +344,12 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
     }
     case COM_DT_COLOR: {
       float value[4];
-      if (node_input && node_input->getbNodeSocket())
+      if (node_input && node_input->getbNodeSocket()) {
         node_input->getEditorValueColor(value);
-      else
+      }
+      else {
         zero_v4(value);
+      }
 
       SetColorOperation *op = new SetColorOperation();
       op->setChannels(value);
@@ -347,10 +359,12 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
     }
     case COM_DT_VECTOR: {
       float value[3];
-      if (node_input && node_input->getbNodeSocket())
+      if (node_input && node_input->getbNodeSocket()) {
         node_input->getEditorValueVector(value);
-      else
+      }
+      else {
         zero_v3(value);
+      }
 
       SetVectorOperation *op = new SetVectorOperation();
       op->setVector(value);
@@ -387,8 +401,9 @@ void NodeOperationBuilder::resolve_proxies()
     /* we may not have a final proxy input link,
      * in that case it just gets dropped
      */
-    if (from)
+    if (from) {
       addLink(from, to);
+    }
   }
 }
 
@@ -426,8 +441,9 @@ void NodeOperationBuilder::determineResolutions()
       if (link.to()->getResizeMode() != COM_SC_NO_RESIZE) {
         NodeOperation &from_op = link.from()->getOperation();
         NodeOperation &to_op = link.to()->getOperation();
-        if (from_op.getWidth() != to_op.getWidth() || from_op.getHeight() != to_op.getHeight())
+        if (from_op.getWidth() != to_op.getWidth() || from_op.getHeight() != to_op.getHeight()) {
           convert_links.push_back(link);
+        }
       }
     }
     for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
@@ -443,8 +459,9 @@ NodeOperationBuilder::OpInputs NodeOperationBuilder::cache_output_links(
   OpInputs inputs;
   for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
     const Link &link = *it;
-    if (link.from() == output)
+    if (link.from() == output) {
       inputs.push_back(link.to());
+    }
   }
   return inputs;
 }
@@ -456,8 +473,9 @@ WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation
     const Link &link = *it;
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
-      if (op.isWriteBufferOperation())
+      if (op.isWriteBufferOperation()) {
         return (WriteBufferOperation *)(&op);
+      }
     }
   }
   return NULL;
@@ -466,8 +484,9 @@ WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation
 void NodeOperationBuilder::add_input_buffers(NodeOperation * /*operation*/,
                                              NodeOperationInput *input)
 {
-  if (!input->isConnected())
+  if (!input->isConnected()) {
     return;
+  }
 
   NodeOperationOutput *output = input->getLink();
   if (output->getOperation().isReadBufferOperation()) {
@@ -505,8 +524,9 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
 {
   /* cache connected sockets, so we can safely remove links first before replacing them */
   OpInputs targets = cache_output_links(output);
-  if (targets.empty())
+  if (targets.empty()) {
     return;
+  }
 
   WriteBufferOperation *writeOperation = NULL;
   for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
@@ -537,8 +557,9 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   /* add readbuffer op for every former connected input */
   for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
     NodeOperationInput *target = *it;
-    if (&target->getOperation() == writeOperation)
+    if (&target->getOperation() == writeOperation) {
       continue; /* skip existing write op links */
+    }
 
     ReadBufferOperation *readoperation = new ReadBufferOperation(
         operation->getOutputSocket()->getDataType());
@@ -557,20 +578,24 @@ void NodeOperationBuilder::add_complex_operation_buffers()
    * will invalidate iterators over the main m_operations
    */
   Operations complex_ops;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it)
-    if ((*it)->isComplex())
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
+    if ((*it)->isComplex()) {
       complex_ops.push_back(*it);
+    }
+  }
 
   for (Operations::const_iterator it = complex_ops.begin(); it != complex_ops.end(); ++it) {
     NodeOperation *op = *it;
 
     DebugInfo::operation_read_write_buffer(op);
 
-    for (int index = 0; index < op->getNumberOfInputSockets(); index++)
+    for (int index = 0; index < op->getNumberOfInputSockets(); index++) {
       add_input_buffers(op, op->getInputSocket(index));
+    }
 
-    for (int index = 0; index < op->getNumberOfOutputSockets(); index++)
+    for (int index = 0; index < op->getNumberOfOutputSockets(); index++) {
       add_output_buffers(op, op->getOutputSocket(index));
+    }
   }
 }
 
@@ -578,14 +603,16 @@ typedef std::set<NodeOperation *> Tags;
 
 static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *op)
 {
-  if (reachable.find(op) != reachable.end())
+  if (reachable.find(op) != reachable.end()) {
     return;
+  }
   reachable.insert(op);
 
   for (int i = 0; i < op->getNumberOfInputSockets(); ++i) {
     NodeOperationInput *input = op->getInputSocket(i);
-    if (input->isConnected())
+    if (input->isConnected()) {
       find_reachable_operations_recursive(reachable, &input->getLink()->getOperation());
+    }
   }
 
   /* associated write-buffer operations are executed as well */
@@ -603,8 +630,9 @@ void NodeOperationBuilder::prune_operations()
     NodeOperation *op = *it;
 
     /* output operations are primary executed operations */
-    if (op->isOutputOperation(m_context->isRendering()))
+    if (op->isOutputOperation(m_context->isRendering())) {
       find_reachable_operations_recursive(reachable, op);
+    }
   }
 
   /* delete unreachable operations */
@@ -612,10 +640,12 @@ void NodeOperationBuilder::prune_operations()
   for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     NodeOperation *op = *it;
 
-    if (reachable.find(op) != reachable.end())
+    if (reachable.find(op) != reachable.end()) {
       reachable_ops.push_back(op);
-    else
+    }
+    else {
       delete op;
+    }
   }
   /* finally replace the operations list with the pruned list */
   m_operations = reachable_ops;
@@ -626,14 +656,16 @@ static void sort_operations_recursive(NodeOperationBuilder::Operations &sorted,
                                       Tags &visited,
                                       NodeOperation *op)
 {
-  if (visited.find(op) != visited.end())
+  if (visited.find(op) != visited.end()) {
     return;
+  }
   visited.insert(op);
 
   for (int i = 0; i < op->getNumberOfInputSockets(); ++i) {
     NodeOperationInput *input = op->getInputSocket(i);
-    if (input->isConnected())
+    if (input->isConnected()) {
       sort_operations_recursive(sorted, visited, &input->getLink()->getOperation());
+    }
   }
 
   sorted.push_back(op);
@@ -645,26 +677,30 @@ void NodeOperationBuilder::sort_operations()
   sorted.reserve(m_operations.size());
   Tags visited;
 
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it)
+  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
     sort_operations_recursive(sorted, visited, *it);
+  }
 
   m_operations = sorted;
 }
 
 static void add_group_operations_recursive(Tags &visited, NodeOperation *op, ExecutionGroup *group)
 {
-  if (visited.find(op) != visited.end())
+  if (visited.find(op) != visited.end()) {
     return;
+  }
   visited.insert(op);
 
-  if (!group->addOperation(op))
+  if (!group->addOperation(op)) {
     return;
+  }
 
   /* add all eligible input ops to the group */
   for (int i = 0; i < op->getNumberOfInputSockets(); ++i) {
     NodeOperationInput *input = op->getInputSocket(i);
-    if (input->isConnected())
+    if (input->isConnected()) {
       add_group_operations_recursive(visited, &input->getLink()->getOperation(), group);
+    }
   }
 }
 

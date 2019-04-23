@@ -46,8 +46,9 @@ void RenderLayersNode::testSocketLink(NodeConverter &converter,
   converter.mapOutputSocket(output, operation->getOutputSocket());
   converter.addOperation(operation);
 
-  if (is_preview) /* only for image socket */
+  if (is_preview) { /* only for image socket */
     converter.addPreview(operation->getOutputSocket());
+  }
 }
 
 void RenderLayersNode::testRenderLink(NodeConverter &converter,

@@ -45,10 +45,12 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter,
     operation->setChannel(0);
     converter.addOperation(operation);
 
-    if (color_conv)
+    if (color_conv) {
       converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
-    else
+    }
+    else {
       converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
+    }
     converter.mapOutputSocket(outputRSocket, operation->getOutputSocket(0));
   }
 
@@ -57,10 +59,12 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter,
     operation->setChannel(1);
     converter.addOperation(operation);
 
-    if (color_conv)
+    if (color_conv) {
       converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
-    else
+    }
+    else {
       converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
+    }
     converter.mapOutputSocket(outputGSocket, operation->getOutputSocket(0));
   }
 
@@ -69,10 +73,12 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter,
     operation->setChannel(2);
     converter.addOperation(operation);
 
-    if (color_conv)
+    if (color_conv) {
       converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
-    else
+    }
+    else {
       converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
+    }
     converter.mapOutputSocket(outputBSocket, operation->getOutputSocket(0));
   }
 
@@ -81,10 +87,12 @@ void SeparateColorNode::convertToOperations(NodeConverter &converter,
     operation->setChannel(3);
     converter.addOperation(operation);
 
-    if (color_conv)
+    if (color_conv) {
       converter.addLink(color_conv->getOutputSocket(), operation->getInputSocket(0));
-    else
+    }
+    else {
       converter.mapInputSocket(imageSocket, operation->getInputSocket(0));
+    }
     converter.mapOutputSocket(outputASocket, operation->getOutputSocket(0));
   }
 }

@@ -34,17 +34,21 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode,
   DataType dt;
 
   dt = COM_DT_VALUE;
-  if (editorInput->type == SOCK_RGBA)
+  if (editorInput->type == SOCK_RGBA) {
     dt = COM_DT_COLOR;
-  if (editorInput->type == SOCK_VECTOR)
+  }
+  if (editorInput->type == SOCK_VECTOR) {
     dt = COM_DT_VECTOR;
+  }
   this->addInputSocket(dt, editorInput);
 
   dt = COM_DT_VALUE;
-  if (editorOutput->type == SOCK_RGBA)
+  if (editorOutput->type == SOCK_RGBA) {
     dt = COM_DT_COLOR;
-  if (editorOutput->type == SOCK_VECTOR)
+  }
+  if (editorOutput->type == SOCK_VECTOR) {
     dt = COM_DT_VECTOR;
+  }
   this->addOutputSocket(dt, editorOutput);
 }
 
@@ -63,17 +67,21 @@ SocketBufferNode::SocketBufferNode(bNode *editorNode,
   DataType dt;
 
   dt = COM_DT_VALUE;
-  if (editorInput->type == SOCK_RGBA)
+  if (editorInput->type == SOCK_RGBA) {
     dt = COM_DT_COLOR;
-  if (editorInput->type == SOCK_VECTOR)
+  }
+  if (editorInput->type == SOCK_VECTOR) {
     dt = COM_DT_VECTOR;
+  }
   this->addInputSocket(dt, editorInput);
 
   dt = COM_DT_VALUE;
-  if (editorOutput->type == SOCK_RGBA)
+  if (editorOutput->type == SOCK_RGBA) {
     dt = COM_DT_COLOR;
-  if (editorOutput->type == SOCK_VECTOR)
+  }
+  if (editorOutput->type == SOCK_VECTOR) {
     dt = COM_DT_VECTOR;
+  }
   this->addOutputSocket(dt, editorOutput);
 }
 

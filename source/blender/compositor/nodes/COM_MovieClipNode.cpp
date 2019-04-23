@@ -51,11 +51,13 @@ void MovieClipNode::convertToOperations(NodeConverter &converter,
 
   ImBuf *ibuf = NULL;
   if (movieClip) {
-    if (cacheFrame)
+    if (cacheFrame) {
       ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
-    else
+    }
+    else {
       ibuf = BKE_movieclip_get_ibuf_flag(
           movieClip, movieClipUser, movieClip->flag, MOVIECLIP_CACHE_SKIP);
+    }
   }
 
   // always connect the output image

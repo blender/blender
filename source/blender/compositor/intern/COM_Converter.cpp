@@ -130,8 +130,9 @@ Node *Converter::convert(bNode *b_node)
   Node *node = NULL;
 
   /* ignore undefined nodes with missing or invalid node data */
-  if (!nodeIsRegistered(b_node))
+  if (!nodeIsRegistered(b_node)) {
     return NULL;
+  }
 
   switch (b_node->type) {
     case CMP_NODE_COMPOSITE:
@@ -514,8 +515,9 @@ void Converter::convertResolution(NodeOperationBuilder &builder,
     TranslateOperation *translateOperation = new TranslateOperation();
     translateOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
     translateOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
-    if (!first)
+    if (!first) {
       first = translateOperation;
+    }
     SetValueOperation *xop = new SetValueOperation();
     xop->setValue(addX);
     builder.addLink(xop->getOutputSocket(), translateOperation->getInputSocket(1));

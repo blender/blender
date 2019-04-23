@@ -125,10 +125,12 @@ void InpaintSimpleOperation::calc_manhatten_distance()
       /* no need to clamp here */
       if (this->get_pixel(i, j)[3] < 1.0f) {
         r = width + height;
-        if (i > 0)
+        if (i > 0) {
           r = min_ii(r, m[j * width + i - 1] + 1);
-        if (j > 0)
+        }
+        if (j > 0) {
           r = min_ii(r, m[(j - 1) * width + i] + 1);
+        }
       }
       m[j * width + i] = r;
     }
@@ -138,10 +140,12 @@ void InpaintSimpleOperation::calc_manhatten_distance()
     for (int i = width - 1; i >= 0; i--) {
       int r = m[j * width + i];
 
-      if (i + 1 < width)
+      if (i + 1 < width) {
         r = min_ii(r, m[j * width + i + 1] + 1);
-      if (j + 1 < height)
+      }
+      if (j + 1 < height) {
         r = min_ii(r, m[(j + 1) * width + i] + 1);
+      }
 
       m[j * width + i] = r;
 

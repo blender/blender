@@ -98,8 +98,9 @@ void GaussianBokehBlurOperation::updateGauss()
     if (sum > 0.0f) {
       /* normalize */
       float norm = 1.0f / sum;
-      for (j = n - 1; j >= 0; j--)
+      for (j = n - 1; j >= 0; j--) {
         ddgauss[j] *= norm;
+      }
     }
     else {
       int center = m_rady * ddwidth + m_radx;
@@ -233,19 +234,23 @@ void GaussianBlurReferenceOperation::initExecution()
   /* horizontal */
   m_filtersizex = (float)this->m_data.sizex;
   int imgx = getWidth() / 2;
-  if (m_filtersizex > imgx)
+  if (m_filtersizex > imgx) {
     m_filtersizex = imgx;
-  else if (m_filtersizex < 1)
+  }
+  else if (m_filtersizex < 1) {
     m_filtersizex = 1;
+  }
   m_radx = (float)m_filtersizex;
 
   /* vertical */
   m_filtersizey = (float)this->m_data.sizey;
   int imgy = getHeight() / 2;
-  if (m_filtersizey > imgy)
+  if (m_filtersizey > imgy) {
     m_filtersizey = imgy;
-  else if (m_filtersizey < 1)
+  }
+  else if (m_filtersizey < 1) {
     m_filtersizey = 1;
+  }
   m_rady = (float)m_filtersizey;
   updateGauss();
 }
@@ -277,14 +282,18 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
   float refSize = tempSize[0];
   int refradx = (int)(refSize * m_radx);
   int refrady = (int)(refSize * m_rady);
-  if (refradx > m_filtersizex)
+  if (refradx > m_filtersizex) {
     refradx = m_filtersizex;
-  else if (refradx < 1)
+  }
+  else if (refradx < 1) {
     refradx = 1;
-  if (refrady > m_filtersizey)
+  }
+  if (refrady > m_filtersizey) {
     refrady = m_filtersizey;
-  else if (refrady < 1)
+  }
+  else if (refrady < 1) {
     refrady = 1;
+  }
 
   if (refradx == 1 && refrady == 1) {
     memorybuffer->readNoCheck(output, x, y);

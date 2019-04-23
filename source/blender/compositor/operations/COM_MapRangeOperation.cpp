@@ -73,10 +73,12 @@ void MapRangeOperation::executePixelSampled(float output[4],
     value = (value - source_min) / (source_max - source_min);
     value = dest_min + value * (dest_max - dest_min);
   }
-  else if (value > BLENDER_ZMAX)
+  else if (value > BLENDER_ZMAX) {
     value = dest_max;
-  else
+  }
+  else {
     value = dest_min;
+  }
 
   if (this->m_useClamp) {
     if (dest_max > dest_min) {
