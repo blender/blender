@@ -4282,7 +4282,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   UI_block_funcN_set(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
   /* curve itself */
-  size = uiLayoutGetWidth(layout);
+  size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
   row = uiLayoutRow(layout, false);
   uiDefBut(
       block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, bg, 0, "");
