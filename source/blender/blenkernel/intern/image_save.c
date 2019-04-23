@@ -153,7 +153,7 @@ bool BKE_image_save(
   bool ok = false;
 
   if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
-    BKE_image_release_ibuf(ima, ibuf, &lock);
+    BKE_image_release_ibuf(ima, ibuf, lock);
     goto cleanup;
   }
 
@@ -194,7 +194,7 @@ bool BKE_image_save(
   if (!rr) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
       BKE_report(reports, RPT_ERROR, "Did not write, no Multilayer Image");
-      BKE_image_release_ibuf(ima, ibuf, &lock);
+      BKE_image_release_ibuf(ima, ibuf, lock);
       goto cleanup;
     }
   }
@@ -206,7 +206,7 @@ bool BKE_image_save(
                     "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
-        BKE_image_release_ibuf(ima, ibuf, &lock);
+        BKE_image_release_ibuf(ima, ibuf, lock);
         goto cleanup;
       }
 
@@ -218,7 +218,7 @@ bool BKE_image_save(
                     "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
-        BKE_image_release_ibuf(ima, ibuf, &lock);
+        BKE_image_release_ibuf(ima, ibuf, lock);
         goto cleanup;
       }
     }
@@ -230,7 +230,7 @@ bool BKE_image_save(
     /* save render result */
     ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, NULL, layer);
     image_save_post(reports, bmain, ima, ibuf, ok, opts, true, opts->filepath);
-    BKE_image_release_ibuf(ima, ibuf, &lock);
+    BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* regular mono pipeline */
   else if (is_mono) {
@@ -245,7 +245,7 @@ bool BKE_image_save(
     }
     image_save_post(
         reports, bmain, ima, ibuf, ok, opts, (is_exr_rr ? true : save_copy), opts->filepath);
-    BKE_image_release_ibuf(ima, ibuf, &lock);
+    BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* individual multiview images */
   else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
@@ -254,7 +254,7 @@ bool BKE_image_save(
     const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
 
     if (!is_exr_rr) {
-      BKE_image_release_ibuf(ima, ibuf, &lock);
+      BKE_image_release_ibuf(ima, ibuf, lock);
     }
 
     for (i = 0; i < totviews; i++) {
@@ -306,7 +306,7 @@ bool BKE_image_save(
     }
 
     if (is_exr_rr) {
-      BKE_image_release_ibuf(ima, ibuf, &lock);
+      BKE_image_release_ibuf(ima, ibuf, lock);
     }
   }
   /* stereo (multiview) images */
@@ -314,7 +314,7 @@ bool BKE_image_save(
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
       ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, NULL, layer);
       image_save_post(reports, bmain, ima, ibuf, ok, opts, true, opts->filepath);
-      BKE_image_release_ibuf(ima, ibuf, &lock);
+      BKE_image_release_ibuf(ima, ibuf, lock);
     }
     else {
       ImBuf *ibuf_stereo[2] = {NULL};
@@ -324,7 +324,7 @@ bool BKE_image_save(
       int i;
 
       /* we need to get the specific per-view buffers */
-      BKE_image_release_ibuf(ima, ibuf, &lock);
+      BKE_image_release_ibuf(ima, ibuf, lock);
 
       for (i = 0; i < 2; i++) {
         ImageUser view_iuser;
