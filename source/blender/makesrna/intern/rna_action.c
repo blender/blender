@@ -617,7 +617,14 @@ static void rna_def_action_group(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);
-  RNA_def_property_ui_text(prop, "Expanded", "Action group is expanded");
+  RNA_def_property_ui_text(prop, "Expanded", "Action group is expanded except in graph editor");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "show_expanded_graph", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED_G);
+  RNA_def_property_ui_text(
+      prop, "Expanded in Graph Editor", "Action group is expanded in graph editor");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
   /* color set */
