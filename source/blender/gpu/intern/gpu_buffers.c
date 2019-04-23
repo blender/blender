@@ -162,7 +162,6 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
   }
 
   if (buffers->lines == NULL) {
-    BLI_assert(buffers->index_lines_buf != NULL);
     buffers->lines = GPU_batch_create(GPU_PRIM_LINES,
                                       buffers->vert_buf,
                                       /* can be NULL if buffer is empty */
