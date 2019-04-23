@@ -552,7 +552,7 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
     processor = (*config)->getProcessor((*cs)->getName(), "scene_linear");
   }
   catch (Exception &exception) {
-    OCIO_reportException(exception);
+    /* Silently ignore if no conversion possible, then it's not scene linear or sRGB. */
     is_scene_linear = false;
     is_srgb = false;
     return;

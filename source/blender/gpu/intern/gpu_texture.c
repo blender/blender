@@ -1081,7 +1081,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
   /* this binds a texture, so that's why we restore it to 0 */
   if (bindcode == 0) {
     GPU_create_gl_tex(
-        &bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, 0, NULL);
+        &bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, false, NULL);
   }
   if (tex) {
     tex->bindcode = bindcode;

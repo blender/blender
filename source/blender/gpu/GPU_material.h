@@ -145,7 +145,7 @@ typedef enum eGPUMaterialStatus {
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_constant(float *num);
 GPUNodeLink *GPU_uniform(float *num);
-GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);
+GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
 GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 
@@ -202,7 +202,6 @@ struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void);
 
 void GPU_material_vertex_attrs(GPUMaterial *material, struct GPUVertAttrLayers *attrs);
 
-bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);
 bool GPU_material_use_domain_volume(GPUMaterial *mat);
 

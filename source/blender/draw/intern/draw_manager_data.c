@@ -1009,8 +1009,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
       if (input->ima) {
         GPUTexture **tex_ref = BLI_memblock_alloc(DST.vmempool->images);
 
-        *tex_ref = tex = GPU_texture_from_blender(
-            input->ima, input->iuser, GL_TEXTURE_2D, input->image_isdata);
+        *tex_ref = tex = GPU_texture_from_blender(input->ima, input->iuser, GL_TEXTURE_2D);
 
         GPU_texture_ref(tex);
       }

@@ -708,6 +708,11 @@ static void node_buts_image_user(uiLayout *layout,
     col = uiLayoutColumn(layout, false);
     uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
   }
+
+  uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
+  PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
+  uiItemL(split, IFACE_("Color Space"), ICON_NONE);
+  uiItemR(split, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
 }
 
 static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -782,7 +787,6 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
                NULL,
                UI_TEMPLATE_ID_FILTER_ALL,
                false);
-  uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "interpolation", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
 
@@ -820,11 +824,10 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
                UI_TEMPLATE_ID_FILTER_ALL,
                false);
 
-  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
-
-  uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "interpolation", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+
+  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
 }
 
 static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -875,7 +878,6 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
     uiTemplateImageInfo(layout, C, ima, iuserptr.data);
   }
 
-  uiItemR(layout, ptr, "color_space", 0, IFACE_("Color Space"), ICON_NONE);
   uiItemR(layout, ptr, "interpolation", 0, IFACE_("Interpolation"), ICON_NONE);
   uiItemR(layout, ptr, "projection", 0, IFACE_("Projection"), ICON_NONE);
 }

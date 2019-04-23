@@ -242,6 +242,10 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
                                    size_t width,
                                    size_t height)
 {
+  /* TODO: implement faster version for when we know the conversion
+   * is a simple matrix transform between linear spaces. In that case
+   * unpremultiply is not needed. */
+
   /* Process large images in chunks to keep temporary memory requirement down. */
   size_t y_chunk_size = max(1, 16 * 1024 * 1024 / (sizeof(float4) * width));
   vector<float4> float_pixels(y_chunk_size * width);
@@ -252,7 +256,16 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
 
     for (size_t y = y0; y < y1; y++) {
       for (size_t x = 0; x < width; x++, i++) {
-        float_pixels[i] = cast_to_float4(pixels + 4 * (y * width + x));
+        float4 value = cast_to_float4(pixels + 4 * (y * width + x));
+
+        if (!(value.w == 0.0f || value.w == 1.0f)) {
+          float inv_alpha = 1.0f / value.w;
+          value.x *= inv_alpha;
+          value.y *= inv_alpha;
+          value.z *= inv_alpha;
+        }
+
+        float_pixels[i] = value;
       }
     }
 
@@ -263,24 +276,19 @@ inline void processor_apply_pixels(const OCIO::Processor *processor,
     for (size_t y = y0; y < y1; y++) {
       for (size_t x = 0; x < width; x++, i++) {
         float4 value = float_pixels[i];
+
+        value.x *= value.w;
+        value.y *= value.w;
+        value.z *= value.w;
+
         if (compress_as_srgb) {
           value = color_linear_to_srgb_v4(value);
         }
+
         cast_from_float4(pixels + 4 * (y * width + x), value);
       }
     }
   }
-}
-
-/* Fast version for float images, which OpenColorIO can handle natively. */
-template<>
-inline void processor_apply_pixels(const OCIO::Processor *processor,
-                                   float *pixels,
-                                   size_t width,
-                                   size_t height)
-{
-  OCIO::PackedImageDesc desc(pixels, width, height, 4);
-  processor->apply(desc);
 }
 #endif
 

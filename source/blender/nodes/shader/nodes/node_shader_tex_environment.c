@@ -46,7 +46,6 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *no
   NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
-  tex->color_space = SHD_COLORSPACE_COLOR;
   tex->projection = SHD_PROJ_EQUIRECTANGULAR;
   BKE_imageuser_default(&tex->iuser);
 
@@ -68,7 +67,6 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   NodeTexImage *tex_original = node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
 
-  int isdata = tex->color_space == SHD_COLORSPACE_NONE;
   GPUNodeLink *outalpha;
 
   if (!ima) {
@@ -89,7 +87,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
              "node_tex_environment_equirectangular",
              in[0].link,
              GPU_constant(&clamp_size),
-             GPU_image(ima, iuser, isdata),
+             GPU_image(ima, iuser),
              &in[0].link);
   }
   else {
@@ -104,7 +102,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
       GPU_link(mat,
                "node_tex_image_linear_no_mip",
                in[0].link,
-               GPU_image(ima, iuser, isdata),
+               GPU_image(ima, iuser),
                &out[0].link,
                &outalpha);
       break;
@@ -112,26 +110,19 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
       GPU_link(mat,
                "node_tex_image_nearest",
                in[0].link,
-               GPU_image(ima, iuser, isdata),
+               GPU_image(ima, iuser),
                &out[0].link,
                &outalpha);
       break;
     default:
-      GPU_link(mat,
-               "node_tex_image_cubic",
-               in[0].link,
-               GPU_image(ima, iuser, isdata),
-               &out[0].link,
-               &outalpha);
+      GPU_link(
+          mat, "node_tex_image_cubic", in[0].link, GPU_image(ima, iuser), &out[0].link, &outalpha);
       break;
   }
 
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-  if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
-      GPU_material_do_color_management(mat)) {
-    GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+  if (out[0].hasoutput) {
+    GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
   }
-  BKE_image_release_ibuf(ima, ibuf, NULL);
 
   return true;
 }

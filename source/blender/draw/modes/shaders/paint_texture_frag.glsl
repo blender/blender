@@ -16,6 +16,27 @@ uniform vec3 maskingColor;
 uniform bool maskingInvertStencil;
 #endif
 
+float linearrgb_to_srgb(float c)
+{
+  if (c < 0.0031308) {
+    return (c < 0.0) ? 0.0 : c * 12.92;
+  }
+  else {
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+  }
+}
+
+vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+{
+  /* By convention image textures return scene linear colors, but
+   * overlays still assume srgb. */
+  vec4 color = texture2D(tex, co);
+  color.r = linearrgb_to_srgb(color.r);
+  color.g = linearrgb_to_srgb(color.g);
+  color.b = linearrgb_to_srgb(color.b);
+  return color;
+}
+
 void main()
 {
   vec2 uv = uv_interp;
@@ -24,7 +45,7 @@ void main()
     uv = (floor(uv_interp * tex_size) + 0.5) / tex_size;
   }
 
-  vec4 color = texture(image, uv);
+  vec4 color = texture_read_as_srgb(image, uv);
   color.a *= alpha;
 
 #ifdef TEXTURE_PAINT_MASK

@@ -14,12 +14,33 @@ uniform sampler2D image;
 uniform int depthMode;
 uniform bool useAlphaTest;
 
+float linearrgb_to_srgb(float c)
+{
+  if (c < 0.0031308) {
+    return (c < 0.0) ? 0.0 : c * 12.92;
+  }
+  else {
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+  }
+}
+
+vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+{
+  /* By convention image textures return scene linear colors, but
+   * overlays still assume srgb. */
+  vec4 color = texture2D(tex, co);
+  color.r = linearrgb_to_srgb(color.r);
+  color.g = linearrgb_to_srgb(color.g);
+  color.b = linearrgb_to_srgb(color.b);
+  return color;
+}
+
 void main()
 {
 #ifdef USE_WIRE
   fragColor = finalColor;
 #else
-  vec4 tex_col = texture(image, texCoord_interp);
+  vec4 tex_col = texture_read_as_srgb(image, texCoord_interp);
   fragColor = finalColor * tex_col;
 
   if (useAlphaTest) {

@@ -191,8 +191,6 @@ enum {
   IMA_GPU_REFRESH = (1 << 0),
   /** All mipmap levels in OpenGL texture set? */
   IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
-  /** OpenGL image texture bound as non-color data. */
-  IMA_GPU_IS_DATA = (1 << 2),
 };
 
 /* ima->type and ima->source moved to BKE_image.h, for API */

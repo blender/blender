@@ -1503,7 +1503,6 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       input->source = GPU_SOURCE_TEX;
       input->ima = link->ima;
       input->iuser = link->iuser;
-      input->image_isdata = link->image_isdata;
       break;
     case GPU_NODE_LINK_ATTR:
       input->source = GPU_SOURCE_ATTR;
@@ -1748,13 +1747,12 @@ GPUNodeLink *GPU_uniform(float *num)
   return link;
 }
 
-GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
+GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser)
 {
   GPUNodeLink *link = GPU_node_link_create();
   link->link_type = GPU_NODE_LINK_IMAGE_BLENDER;
   link->ima = ima;
   link->iuser = iuser;
-  link->image_isdata = is_data;
   return link;
 }
 

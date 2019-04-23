@@ -140,32 +140,18 @@ vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
   return matcap_uv * 0.496 + 0.5;
 }
 
-float srgb_to_linearrgb(float c)
-{
-  if (c < 0.04045) {
-    return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
-  }
-  else {
-    return pow((c + 0.055) * (1.0 / 1.055), 2.4);
-  }
-}
-
-vec4 srgb_to_linearrgb(vec4 col_from)
-{
-  vec4 col_to;
-  col_to.r = srgb_to_linearrgb(col_from.r);
-  col_to.g = srgb_to_linearrgb(col_from.g);
-  col_to.b = srgb_to_linearrgb(col_from.b);
-  col_to.a = col_from.a;
-  return col_to;
-}
-
-vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool srgb, bool nearest_sampling)
+vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool nearest_sampling)
 {
   vec2 tex_size = vec2(textureSize(image, 0).xy);
   /* TODO(fclem) We could do the same with sampler objects.
    * But this is a quick workaround instead of messing with the GPUTexture itself. */
   vec2 uv = nearest_sampling ? (floor(coord * tex_size) + 0.5) / tex_size : coord;
   vec4 color = texture(image, uv);
-  return (srgb) ? srgb_to_linearrgb(color) : color;
+
+  /* Unpremultiply, ideally shaders would be added so this is not needed. */
+  if (!(color.a == 0.0 || color.a == 1.0)) {
+    color.rgb = color.rgb / color.a;
+  }
+
+  return color;
 }

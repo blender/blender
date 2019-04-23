@@ -50,6 +50,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -207,53 +208,232 @@ static GPUTexture **gpu_get_image_gputexture(Image *ima, GLenum textarget)
   return NULL;
 }
 
-typedef struct VerifyThreadData {
-  ImBuf *ibuf;
-  float *srgb_frect;
-} VerifyThreadData;
-
-static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
-                                                  ImBuf *ibuf,
-                                                  const int start_line,
-                                                  const int height)
+static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
 {
-  size_t offset = ibuf->channels * start_line * ibuf->x;
-  float *current_srgb_frect = srgb_frect + offset;
-  float *current_rect_float = ibuf->rect_float + offset;
-  IMB_buffer_float_from_float(current_srgb_frect,
-                              current_rect_float,
-                              ibuf->channels,
-                              IB_PROFILE_SRGB,
-                              IB_PROFILE_LINEAR_RGB,
-                              true,
-                              ibuf->x,
-                              height,
-                              ibuf->x,
-                              ibuf->x);
-  IMB_buffer_float_unpremultiply(current_srgb_frect, ibuf->x, height);
+  uint bindcode = 0;
+  const bool mipmap = GPU_get_mipmap();
+
+#ifdef WITH_DDS
+  if (ibuf->ftype == IMB_FTYPE_DDS) {
+    /* DDS is loaded directly in compressed form. */
+    GPU_create_gl_tex_compressed(
+        &bindcode, ibuf->rect, ibuf->x, ibuf->y, textarget, mipmap, ima, ibuf);
+    return bindcode;
+  }
+#endif
+
+  /* Regular uncompressed texture. */
+  float *rect_float = ibuf->rect_float;
+  uchar *rect = (uchar *)ibuf->rect;
+  bool compress_as_srgb = false;
+
+  if (rect_float == NULL) {
+    /* Byte image is in original colorspace from the file. If the file is sRGB
+     * scene linear, or non-color data no conversion is needed. Otherwise we
+     * compress as scene linear + sRGB transfer function to avoid precision loss
+     * in common cases.
+     *
+     * We must also convert to premultiplied for correct texture interpolation
+     * and consistency with float images. */
+    if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
+      compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace);
+
+      rect = MEM_mallocN(sizeof(uchar) * 4 * ibuf->x * ibuf->y, __func__);
+      if (rect == NULL) {
+        return bindcode;
+      }
+
+      IMB_colormanagement_imbuf_to_srgb_texture(
+          rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb);
+    }
+  }
+  else if (ibuf->channels != 4) {
+    /* Float image is already in scene linear colorspace or non-color data by
+     * convention, no colorspace conversion needed. But we do require 4 channels
+     * currently. */
+    rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
+    if (rect_float == NULL) {
+      return bindcode;
+    }
+
+    IMB_buffer_float_from_float(rect_float,
+                                ibuf->rect_float,
+                                ibuf->channels,
+                                IB_PROFILE_LINEAR_RGB,
+                                IB_PROFILE_LINEAR_RGB,
+                                false,
+                                ibuf->x,
+                                ibuf->y,
+                                ibuf->x,
+                                ibuf->x);
+  }
+
+  /* Create OpenGL texture. */
+  GPU_create_gl_tex(&bindcode,
+                    (uint *)rect,
+                    rect_float,
+                    ibuf->x,
+                    ibuf->y,
+                    textarget,
+                    mipmap,
+                    compress_as_srgb,
+                    ima);
+
+  /* Free buffers if needed. */
+  if (rect && rect != (uchar *)ibuf->rect) {
+    MEM_freeN(rect);
+  }
+  if (rect_float && rect_float != ibuf->rect_float) {
+    MEM_freeN(rect_float);
+  }
+
+  return bindcode;
 }
 
-static void verify_thread_do(void *data_v, int start_scanline, int num_scanlines)
+static void gpu_texture_update_scaled(
+    uchar *rect, float *rect_float, int full_w, int full_h, int x, int y, int w, int h)
 {
-  VerifyThreadData *data = (VerifyThreadData *)data_v;
-  gpu_verify_high_bit_srgb_buffer_slice(
-      data->srgb_frect, data->ibuf, start_scanline, num_scanlines);
-}
+  /* Partial update with scaling. */
+  int limit_w = smaller_power_of_2_limit(full_w);
+  int limit_h = smaller_power_of_2_limit(full_h);
+  float xratio = limit_w / (float)full_w;
+  float yratio = limit_h / (float)full_h;
 
-static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect, ImBuf *ibuf)
-{
-  if (ibuf->y < 64) {
-    gpu_verify_high_bit_srgb_buffer_slice(srgb_frect, ibuf, 0, ibuf->y);
+  /* Find sub coordinates in scaled image. Take ceiling because we will be
+   * losing 1 pixel due to rounding errors in x,y. */
+  int sub_x = x * xratio;
+  int sub_y = y * yratio;
+  int sub_w = (int)ceil(xratio * w);
+  int sub_h = (int)ceil(yratio * h);
+
+  /* ...but take back if we are over the limit! */
+  if (sub_w + sub_x > limit_w) {
+    sub_w--;
+  }
+  if (sub_h + sub_y > limit_h) {
+    sub_h--;
+  }
+
+  /* Scale pixels. */
+  ImBuf *ibuf = IMB_allocFromBuffer((uint *)rect, rect_float, w, h);
+  IMB_scaleImBuf(ibuf, sub_w, sub_h);
+
+  if (ibuf->rect_float) {
+    glTexSubImage2D(
+        GL_TEXTURE_2D, 0, sub_x, sub_y, sub_w, sub_h, GL_RGBA, GL_FLOAT, ibuf->rect_float);
   }
   else {
-    VerifyThreadData data;
-    data.ibuf = ibuf;
-    data.srgb_frect = srgb_frect;
-    IMB_processor_apply_threaded_scanlines(ibuf->y, verify_thread_do, &data);
+    glTexSubImage2D(
+        GL_TEXTURE_2D, 0, sub_x, sub_y, sub_w, sub_h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+  }
+
+  IMB_freeImBuf(ibuf);
+}
+
+static void gpu_texture_update_unscaled(
+    uchar *rect, float *rect_float, int x, int y, int w, int h, GLint tex_stride, GLint tex_offset)
+{
+  /* Partial update without scaling. Stride and offset are used to copy only a
+   * subset of a possible larger buffer than what we are updating. */
+  GLint row_length;
+  glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, tex_stride);
+
+  if (rect_float == NULL) {
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect + tex_offset);
+  }
+  else {
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, rect_float + tex_offset);
+  }
+
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+}
+
+static void gpu_texture_update_from_ibuf(ImBuf *ibuf, int x, int y, int w, int h)
+{
+  /* Partial update of texture for texture painting. This is often much
+   * quicker than fully updating the texture for high resolution images.
+   * Assumes the OpenGL texture is bound to 0. */
+  const bool scaled = is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y);
+
+  if (scaled) {
+    /* Extra padding to account for bleed from neighboring pixels. */
+    const int padding = 4;
+    const int xmax = min_ii(x + w + padding, ibuf->x);
+    const int ymax = min_ii(y + h + padding, ibuf->y);
+    x = max_ii(x - padding, 0);
+    y = max_ii(y - padding, 0);
+    w = xmax - x;
+    h = ymax - y;
+  }
+
+  /* Get texture data pointers. */
+  float *rect_float = ibuf->rect_float;
+  uchar *rect = (uchar *)ibuf->rect;
+  GLint tex_stride = ibuf->x;
+  GLint tex_offset = ibuf->channels * (y * ibuf->x + x);
+
+  if (rect_float == NULL) {
+    /* Byte pixels. */
+    if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
+      const bool compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(
+          ibuf->rect_colorspace);
+
+      rect = MEM_mallocN(sizeof(uchar) * 4 * w * h, __func__);
+      if (rect == NULL) {
+        return;
+      }
+
+      tex_stride = w;
+      tex_offset = 0;
+
+      /* Convert to scene linear with sRGB compression, and premultiplied for
+       * correct texture interpolation. */
+      IMB_colormanagement_imbuf_to_srgb_texture(rect, x, y, w, h, ibuf, compress_as_srgb);
+    }
+  }
+  else if (ibuf->channels != 4 || scaled) {
+    /* Float pixels. */
+    rect_float = MEM_mallocN(sizeof(float) * 4 * x * y, __func__);
+    if (rect_float == NULL) {
+      return;
+    }
+
+    tex_stride = w;
+    tex_offset = 0;
+
+    size_t ibuf_offset = (y * ibuf->x + x) * ibuf->channels;
+    IMB_buffer_float_from_float(rect_float,
+                                ibuf->rect_float + ibuf_offset,
+                                ibuf->channels,
+                                IB_PROFILE_LINEAR_RGB,
+                                IB_PROFILE_LINEAR_RGB,
+                                false,
+                                w,
+                                h,
+                                x,
+                                ibuf->x);
+  }
+
+  if (scaled) {
+    /* Slower update where we first have to scale the input pixels. */
+    gpu_texture_update_scaled(rect, rect_float, ibuf->x, ibuf->y, x, y, w, h);
+  }
+  else {
+    /* Fast update at same resolution. */
+    gpu_texture_update_unscaled(rect, rect_float, x, y, w, h, tex_stride, tex_offset);
+  }
+
+  /* Free buffers if needed. */
+  if (rect && rect != (uchar *)ibuf->rect) {
+    MEM_freeN(rect);
+  }
+  if (rect_float && rect_float != ibuf->rect_float) {
+    MEM_freeN(rect_float);
   }
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget, bool is_data)
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget)
 {
   if (ima == NULL) {
     return NULL;
@@ -286,62 +466,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
     return *tex;
   }
 
-  /* flag to determine whether deep format is used */
-  bool use_high_bit_depth = false, do_color_management = false;
-
-  if (ibuf->rect_float) {
-    use_high_bit_depth = true;
-
-    /* TODO unneeded when float images are correctly treated as linear always */
-    if (!is_data) {
-      do_color_management = true;
-    }
-  }
-
-  const int rectw = ibuf->x;
-  const int recth = ibuf->y;
-  uint *rect = ibuf->rect;
-  float *frect = NULL;
-  float *srgb_frect = NULL;
-
-  if (use_high_bit_depth) {
-    if (do_color_management) {
-      frect = srgb_frect = MEM_mallocN(ibuf->x * ibuf->y * sizeof(*srgb_frect) * 4,
-                                       "floar_buf_col_cor");
-      gpu_verify_high_bit_srgb_buffer(srgb_frect, ibuf);
-    }
-    else {
-      frect = ibuf->rect_float;
-    }
-  }
-
-  const bool mipmap = GPU_get_mipmap();
-
-#ifdef WITH_DDS
-  if (ibuf->ftype == IMB_FTYPE_DDS) {
-    GPU_create_gl_tex_compressed(&bindcode, rect, rectw, recth, textarget, mipmap, ima, ibuf);
-  }
-  else
-#endif
-  {
-    GPU_create_gl_tex(
-        &bindcode, rect, frect, rectw, recth, textarget, mipmap, use_high_bit_depth, ima);
-  }
-
-  /* mark as non-color data texture */
-  if (bindcode) {
-    if (is_data) {
-      ima->gpuflag |= IMA_GPU_IS_DATA;
-    }
-    else {
-      ima->gpuflag &= ~IMA_GPU_IS_DATA;
-    }
-  }
-
-  /* clean up */
-  if (srgb_frect) {
-    MEM_freeN(srgb_frect);
-  }
+  bindcode = gpu_texture_create_from_ibuf(ima, ibuf, textarget);
 
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
@@ -349,15 +474,14 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
   return *tex;
 }
 
-static void **gpu_gen_cube_map(
-    uint *rect, float *frect, int rectw, int recth, bool use_high_bit_depth)
+static void **gpu_gen_cube_map(uint *rect, float *frect, int rectw, int recth)
 {
-  size_t block_size = use_high_bit_depth ? sizeof(float[4]) : sizeof(uchar[4]);
+  size_t block_size = frect ? sizeof(float[4]) : sizeof(uchar[4]);
   void **sides = NULL;
   int h = recth / 2;
   int w = rectw / 3;
 
-  if ((use_high_bit_depth && frect == NULL) || (!use_high_bit_depth && rect == NULL) || w != h) {
+  if (w != h) {
     return sides;
   }
 
@@ -376,7 +500,7 @@ static void **gpu_gen_cube_map(
    * | NegZ | PosZ | PosY |
    * |______|______|______|
    */
-  if (use_high_bit_depth) {
+  if (frect) {
     float(*frectb)[4] = (float(*)[4])frect;
     float(**fsides)[4] = (float(**)[4])sides;
 
@@ -430,7 +554,7 @@ void GPU_create_gl_tex(uint *bind,
                        int recth,
                        int textarget,
                        bool mipmap,
-                       bool use_high_bit_depth,
+                       bool use_srgb,
                        Image *ima)
 {
   ImBuf *ibuf = NULL;
@@ -441,7 +565,7 @@ void GPU_create_gl_tex(uint *bind,
     rectw = smaller_power_of_2_limit(rectw);
     recth = smaller_power_of_2_limit(recth);
 
-    if (use_high_bit_depth) {
+    if (frect) {
       ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
       IMB_scaleImBuf(ibuf, rectw, recth);
 
@@ -459,12 +583,15 @@ void GPU_create_gl_tex(uint *bind,
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
+  GLenum internal_format = (frect) ? GL_RGBA16F : (use_srgb) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+
   if (textarget == GL_TEXTURE_2D) {
-    if (use_high_bit_depth) {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+    if (frect) {
+      glTexImage2D(GL_TEXTURE_2D, 0, internal_format, rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
     }
     else {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+      glTexImage2D(
+          GL_TEXTURE_2D, 0, internal_format, rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
     }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
@@ -484,15 +611,14 @@ void GPU_create_gl_tex(uint *bind,
     int w = rectw / 3, h = recth / 2;
 
     if (h == w && is_power_of_2_i(h) && !is_over_resolution_limit(textarget, h, w)) {
-      void **cube_map = gpu_gen_cube_map(rect, frect, rectw, recth, use_high_bit_depth);
-      GLenum informat = use_high_bit_depth ? GL_RGBA16F : GL_RGBA8;
-      GLenum type = use_high_bit_depth ? GL_FLOAT : GL_UNSIGNED_BYTE;
+      void **cube_map = gpu_gen_cube_map(rect, frect, rectw, recth);
+      GLenum type = frect ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
       if (cube_map) {
         for (int i = 0; i < 6; i++) {
           glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                        0,
-                       informat,
+                       internal_format,
                        w,
                        h,
                        0,
@@ -617,14 +743,14 @@ void GPU_create_gl_tex_compressed(
 #ifndef WITH_DDS
   (void)ibuf;
   /* Fall back to uncompressed if DDS isn't enabled */
-  GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, 0, ima);
+  GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, true, ima);
 #else
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
   if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf) == 0) {
     glDeleteTextures(1, (GLuint *)bind);
-    GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, 0, ima);
+    GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, true, ima);
   }
 
   glBindTexture(textarget, 0);
@@ -680,146 +806,20 @@ void GPU_paint_set_mipmap(Main *bmain, bool mipmap)
   }
 }
 
-/* check if image has been downscaled and do scaled partial update */
-static bool gpu_check_scaled_image(
-    ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
-{
-  if (is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y)) {
-    int x_limit = smaller_power_of_2_limit(ibuf->x);
-    int y_limit = smaller_power_of_2_limit(ibuf->y);
-
-    float xratio = x_limit / (float)ibuf->x;
-    float yratio = y_limit / (float)ibuf->y;
-
-    /* find new width, height and x,y gpu texture coordinates */
-
-    /* take ceiling because we will be losing 1 pixel due to rounding errors in x,y... */
-    int rectw = (int)ceil(xratio * w);
-    int recth = (int)ceil(yratio * h);
-
-    x *= xratio;
-    y *= yratio;
-
-    /* ...but take back if we are over the limit! */
-    if (rectw + x > x_limit) {
-      rectw--;
-    }
-    if (recth + y > y_limit) {
-      recth--;
-    }
-
-    GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
-
-    /* float rectangles are already continuous in memory so we can use IMB_scaleImBuf */
-    if (frect) {
-      ImBuf *ibuf_scale = IMB_allocFromBuffer(NULL, frect, w, h);
-      IMB_scaleImBuf(ibuf_scale, rectw, recth);
-
-      glTexSubImage2D(
-          GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA, GL_FLOAT, ibuf_scale->rect_float);
-
-      IMB_freeImBuf(ibuf_scale);
-    }
-    /* byte images are not continuous in memory so do manual interpolation */
-    else {
-      uchar *scalerect = MEM_mallocN(rectw * recth * sizeof(*scalerect) * 4, "scalerect");
-      uint *p = (uint *)scalerect;
-      int i, j;
-      float inv_xratio = 1.0f / xratio;
-      float inv_yratio = 1.0f / yratio;
-      for (i = 0; i < rectw; i++) {
-        float u = (x + i) * inv_xratio;
-        for (j = 0; j < recth; j++) {
-          float v = (y + j) * inv_yratio;
-          bilinear_interpolation_color_wrap(ibuf, (uchar *)(p + i + j * (rectw)), NULL, u, v);
-        }
-      }
-
-      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, scalerect);
-
-      MEM_freeN(scalerect);
-    }
-
-    if (GPU_get_mipmap()) {
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
-      ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-    }
-
-    GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
-
-    return true;
-  }
-
-  return false;
-}
-
 void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 
   if ((ima->gputexture[TEXTARGET_TEXTURE_2D] == NULL) || (ibuf == NULL) || (w == 0) || (h == 0)) {
-    /* these cases require full reload still */
+    /* Full reload of texture. */
     GPU_free_image(ima);
   }
   else {
-    /* for the special case, we can do a partial update
-     * which is much quicker for painting */
-    GLint row_length, skip_pixels, skip_rows;
-
-    /* if color correction is needed, we must update the part that needs updating. */
-    if (ibuf->rect_float) {
-      float *buffer = MEM_mallocN(w * h * sizeof(float) * 4, "temp_texpaint_float_buf");
-      bool is_data = (ima->gpuflag & IMA_GPU_IS_DATA) != 0;
-      IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
-
-      if (gpu_check_scaled_image(ibuf, ima, buffer, x, y, w, h)) {
-        MEM_freeN(buffer);
-        BKE_image_release_ibuf(ima, ibuf, NULL);
-        return;
-      }
-
-      GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, buffer);
-
-      MEM_freeN(buffer);
-
-      if (GPU_get_mipmap()) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-      }
-      else {
-        ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-      }
-
-      GPU_texture_unbind(ima->gputexture[TEXTARGET_TEXTURE_2D]);
-
-      BKE_image_release_ibuf(ima, ibuf, NULL);
-      return;
-    }
-
-    if (gpu_check_scaled_image(ibuf, ima, NULL, x, y, w, h)) {
-      BKE_image_release_ibuf(ima, ibuf, NULL);
-      return;
-    }
-
+    /* Partial update of texture. */
     GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
 
-    glGetIntegerv(GL_UNPACK_ROW_LENGTH, &row_length);
-    glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &skip_pixels);
-    glGetIntegerv(GL_UNPACK_SKIP_ROWS, &skip_rows);
+    gpu_texture_update_from_ibuf(ibuf, x, y, w, h);
 
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, ibuf->x);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
-
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
-
-    /* see comment above as to why we are using gpu mipmap generation here */
     if (GPU_get_mipmap()) {
       glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -1242,7 +1242,7 @@ static void gpu_free_image_immediate(Image *ima)
     }
   }
 
-  ima->gpuflag &= ~(IMA_GPU_MIPMAP_COMPLETE | IMA_GPU_IS_DATA);
+  ima->gpuflag &= ~(IMA_GPU_MIPMAP_COMPLETE);
 }
 
 void GPU_free_image(Image *ima)

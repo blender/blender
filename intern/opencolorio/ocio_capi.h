@@ -31,6 +31,7 @@ struct OCIO_GLSLDrawState;
     int unused; \
   } * name
 
+#define OCIO_ROLE_DATA "data"
 #define OCIO_ROLE_SCENE_LINEAR "scene_linear"
 #define OCIO_ROLE_COLOR_PICKING "color_picking"
 #define OCIO_ROLE_TEXTURE_PAINT "texture_paint"

@@ -58,6 +58,10 @@ void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *
 const char *IMB_colormanagement_get_float_colorspace(struct ImBuf *ibuf);
 const char *IMB_colormanagement_get_rect_colorspace(struct ImBuf *ibuf);
 
+bool IMB_colormanagement_space_is_data(struct ColorSpace *colorspace);
+bool IMB_colormanagement_space_is_scene_linear(struct ColorSpace *colorspace);
+bool IMB_colormanagement_space_is_srgb(struct ColorSpace *colorspace);
+
 BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
 BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
 BLI_INLINE void IMB_colormangement_xyz_to_rgb(float rgb[3], const float xyz[3]);
@@ -123,6 +127,14 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer,
                                                     int channels,
                                                     struct ColorSpace *colorspace,
                                                     bool predivide);
+
+void IMB_colormanagement_imbuf_to_srgb_texture(unsigned char *rect,
+                                               const int x,
+                                               const int y,
+                                               const int width,
+                                               const int height,
+                                               const struct ImBuf *ibuf,
+                                               const bool compress_as_srgb);
 
 void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3]);
 void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3]);
@@ -340,6 +352,7 @@ enum {
   COLOR_ROLE_DEFAULT_SEQUENCER,
   COLOR_ROLE_DEFAULT_BYTE,
   COLOR_ROLE_DEFAULT_FLOAT,
+  COLOR_ROLE_DATA,
 };
 
 #include "intern/colormanagement_inline.c"

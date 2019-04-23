@@ -182,7 +182,7 @@ static DRWShadingGroup *create_texture_paint_shading_group(PAINT_TEXTURE_PassLis
 
   if (masking_enabled) {
     const bool masking_inverted = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) > 0;
-    GPUTexture *stencil = GPU_texture_from_blender(imapaint->stencil, NULL, GL_TEXTURE_2D, false);
+    GPUTexture *stencil = GPU_texture_from_blender(imapaint->stencil, NULL, GL_TEXTURE_2D);
     DRW_shgroup_uniform_texture(grp, "maskingImage", stencil);
     DRW_shgroup_uniform_vec3(grp, "maskingColor", imapaint->stencil_col, 1);
     DRW_shgroup_uniform_bool_copy(grp, "maskingInvertStencil", masking_inverted);
@@ -236,7 +236,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
                                                   NULL;
           int interp = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].interp :
                                                   0;
-          GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false);
+          GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D);
 
           if (tex) {
             DRWShadingGroup *grp = create_texture_paint_shading_group(
@@ -250,7 +250,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
       }
       else {
         Image *ima = imapaint->canvas;
-        GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false);
+        GPUTexture *tex = GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D);
 
         if (tex) {
           DRWShadingGroup *grp = create_texture_paint_shading_group(

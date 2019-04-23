@@ -3987,21 +3987,6 @@ static void def_sh_tex_sky(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static const EnumPropertyItem sh_tex_prop_color_space_items[] = {
-    {SHD_COLORSPACE_COLOR,
-     "COLOR",
-     0,
-     "Color",
-     "Image contains color data, and will be converted to linear color for rendering"},
-    {SHD_COLORSPACE_NONE,
-     "NONE",
-     0,
-     "Non-Color Data",
-     "Image contains non-color data, for example a displacement or normal map, "
-     "and will not be converted"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static const EnumPropertyItem sh_tex_prop_interpolation_items[] = {
     {SHD_INTERP_LINEAR, "Linear", 0, "Linear", "Linear interpolation"},
     {SHD_INTERP_CLOSEST, "Closest", 0, "Closest", "No interpolation (sample closest texel)"},
@@ -4037,12 +4022,6 @@ static void def_sh_tex_environment(StructRNA *srna)
 
   RNA_def_struct_sdna_from(srna, "NodeTexEnvironment", "storage");
   def_sh_tex(srna);
-
-  prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, sh_tex_prop_color_space_items);
-  RNA_def_property_enum_default(prop, SHD_COLORSPACE_COLOR);
-  RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
-  RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_projection_items);
@@ -4121,12 +4100,6 @@ static void def_sh_tex_image(StructRNA *srna)
 
   RNA_def_struct_sdna_from(srna, "NodeTexImage", "storage");
   def_sh_tex(srna);
-
-  prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, sh_tex_prop_color_space_items);
-  RNA_def_property_enum_default(prop, SHD_COLORSPACE_COLOR);
-  RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
-  RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_projection_items);

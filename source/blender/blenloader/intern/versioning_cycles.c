@@ -38,6 +38,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "IMB_colormanagement.h"
+
 #include "BLO_readfile.h"
 #include "readfile.h"
 
@@ -262,6 +264,33 @@ static void ambient_occlusion_node_relink(bNodeTree *ntree)
   }
 }
 
+static void image_node_colorspace(bNode *node)
+{
+  if (node->id == NULL) {
+    return;
+  }
+
+  int color_space;
+  if (node->type == SH_NODE_TEX_IMAGE) {
+    NodeTexImage *tex = node->storage;
+    color_space = tex->color_space;
+  }
+  else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+    NodeTexEnvironment *tex = node->storage;
+    color_space = tex->color_space;
+  }
+  else {
+    return;
+  }
+
+  const int SHD_COLORSPACE_NONE = 0;
+  Image *image = (Image *)node->id;
+  if (color_space == SHD_COLORSPACE_NONE) {
+    STRNCPY(image->colorspace_settings.name,
+            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -325,6 +354,12 @@ void do_versions_after_linking_cycles(Main *bmain)
 
       if (!MAIN_VERSION_ATLEAST(bmain, 279, 5)) {
         ambient_occlusion_node_relink(ntree);
+      }
+
+      if (!MAIN_VERSION_ATLEAST(bmain, 280, 63)) {
+        for (bNode *node = ntree->nodes.first; node; node = node->next) {
+          image_node_colorspace(node);
+        }
       }
     }
     FOREACH_NODETREE_END;

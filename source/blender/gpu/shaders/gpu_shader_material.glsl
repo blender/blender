@@ -117,38 +117,6 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
   outcol = vec4(rgb, hsv.w);
 }
 
-float srgb_to_linearrgb(float c)
-{
-  if (c < 0.04045)
-    return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
-  else
-    return pow((c + 0.055) * (1.0 / 1.055), 2.4);
-}
-
-float linearrgb_to_srgb(float c)
-{
-  if (c < 0.0031308)
-    return (c < 0.0) ? 0.0 : c * 12.92;
-  else
-    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
-}
-
-void srgb_to_linearrgb(vec4 col_from, out vec4 col_to)
-{
-  col_to.r = srgb_to_linearrgb(col_from.r);
-  col_to.g = srgb_to_linearrgb(col_from.g);
-  col_to.b = srgb_to_linearrgb(col_from.b);
-  col_to.a = col_from.a;
-}
-
-void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
-{
-  col_to.r = linearrgb_to_srgb(col_from.r);
-  col_to.g = linearrgb_to_srgb(col_from.g);
-  col_to.b = linearrgb_to_srgb(col_from.b);
-  col_to.a = col_from.a;
-}
-
 void color_to_normal_new_shading(vec3 color, out vec3 normal)
 {
   normal = vec3(2.0) * color - vec3(1.0);
@@ -2329,6 +2297,21 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 
 /* 16bits floats limits. Higher/Lower values produce +/-inf. */
 #define safe_color(a) (clamp(a, -65520.0, 65520.0))
+
+void tex_color_alpha_clear(vec4 color, out vec4 result)
+{
+  result = vec4(color.rgb, 1.0);
+}
+
+void tex_color_alpha_unpremultiply(vec4 color, out vec4 result)
+{
+  if (color.a == 0.0 || color.a == 1.0) {
+    result = vec4(color.rgb, 1.0);
+  }
+  else {
+    result = vec4(color.rgb / color.a, 1.0);
+  }
+}
 
 void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {

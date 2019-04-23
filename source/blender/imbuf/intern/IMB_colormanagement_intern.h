@@ -48,6 +48,13 @@ typedef struct ColorSpace {
 
   bool is_invertible;
   bool is_data;
+
+  /* Additional info computed only when needed since it's not cheap. */
+  struct {
+    bool cached;
+    bool is_srgb;
+    bool is_scene_linear;
+  } info;
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {

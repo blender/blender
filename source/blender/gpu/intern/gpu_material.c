@@ -597,15 +597,6 @@ eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 
 /* Code generation */
 
-bool GPU_material_do_color_management(GPUMaterial *mat)
-{
-  if (!BKE_scene_check_color_management_enabled(mat->scene)) {
-    return false;
-  }
-
-  return true;
-}
-
 bool GPU_material_use_domain_surface(GPUMaterial *mat)
 {
   return (mat->domain & GPU_DOMAIN_SURFACE);

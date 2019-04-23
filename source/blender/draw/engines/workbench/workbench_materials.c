@@ -294,15 +294,8 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
 
   if (workbench_material_determine_color_type(wpd, material->ima, ob, false) ==
       V3D_SHADING_TEXTURE_COLOR) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(material->ima, material->iuser, NULL);
-    const bool do_color_correction = wpd->use_color_management &&
-                                     (ibuf &&
-                                      (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0);
-    BKE_image_release_ibuf(material->ima, ibuf, NULL);
-    GPUTexture *tex = GPU_texture_from_blender(
-        material->ima, material->iuser, GL_TEXTURE_2D, false);
+    GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D);
     DRW_shgroup_uniform_texture(grp, "image", tex);
-    DRW_shgroup_uniform_bool_copy(grp, "imageSrgb", do_color_correction);
     DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
   }
   else {

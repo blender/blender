@@ -1,7 +1,6 @@
 
 uniform float ImageTransparencyCutoff = 0.1;
 uniform sampler2D image;
-uniform bool imageSrgb;
 uniform bool imageNearest;
 
 uniform float alpha = 0.5;
@@ -44,7 +43,7 @@ void main()
   vec4 diffuse_color;
 
 #if defined(V3D_SHADING_TEXTURE_COLOR)
-  diffuse_color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
+  diffuse_color = workbench_sample_texture(image, uv_interp, imageNearest);
   if (diffuse_color.a < ImageTransparencyCutoff) {
     discard;
   }

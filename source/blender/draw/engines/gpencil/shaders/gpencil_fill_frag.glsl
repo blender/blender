@@ -89,6 +89,27 @@ void set_color(in vec4 color,
   ocolor.a *= layer_opacity;
 }
 
+float linearrgb_to_srgb(float c)
+{
+  if (c < 0.0031308) {
+    return (c < 0.0) ? 0.0 : c * 12.92;
+  }
+  else {
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+  }
+}
+
+vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+{
+  /* By convention image textures return scene linear colors, but
+   * grease pencil still works in srgb. */
+  vec4 color = texture2D(tex, co);
+  color.r = linearrgb_to_srgb(color.r);
+  color.g = linearrgb_to_srgb(color.g);
+  color.b = linearrgb_to_srgb(color.b);
+  return color;
+}
+
 void main()
 {
   vec2 t_center = vec2(0.5, 0.5);
@@ -97,8 +118,8 @@ void main()
   vec2 rot_tex = (matrot_tex * (texCoord_interp - t_center)) + t_center + texture_offset;
   vec4 tmp_color;
   tmp_color = (texture_clamp == 0) ?
-                  texture2D(myTexture, rot_tex * texture_scale) :
-                  texture2D(myTexture, clamp(rot_tex * texture_scale, 0.0, 1.0));
+                  texture_read_as_srgb(myTexture, rot_tex * texture_scale) :
+                  texture_read_as_srgb(myTexture, clamp(rot_tex * texture_scale, 0.0, 1.0));
   vec4 text_color = vec4(tmp_color[0], tmp_color[1], tmp_color[2], tmp_color[3] * texture_opacity);
   vec4 chesscolor;
 
