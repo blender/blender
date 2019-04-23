@@ -213,6 +213,16 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
   }
 }
 
+void ui_window_to_block_rctf(const struct ARegion *ar,
+                             uiBlock *block,
+                             rctf *rct_dst,
+                             const rctf *rct_src)
+{
+  *rct_dst = *rct_src;
+  ui_window_to_block_fl(ar, block, &rct_dst->xmin, &rct_dst->ymin);
+  ui_window_to_block_fl(ar, block, &rct_dst->xmax, &rct_dst->ymax);
+}
+
 void ui_window_to_block(const ARegion *ar, uiBlock *block, int *x, int *y)
 {
   float fx, fy;
@@ -230,6 +240,14 @@ void ui_window_to_region(const ARegion *ar, int *x, int *y)
 {
   *x -= ar->winrct.xmin;
   *y -= ar->winrct.ymin;
+}
+
+void ui_window_to_region_rcti(const ARegion *ar, rcti *rect_dst, const rcti *rct_src)
+{
+  rect_dst->xmin = rct_src->xmin - ar->winrct.xmin;
+  rect_dst->xmax = rct_src->xmax - ar->winrct.xmin;
+  rect_dst->ymin = rct_src->ymin - ar->winrct.ymin;
+  rect_dst->ymax = rct_src->ymax - ar->winrct.ymin;
 }
 
 void ui_region_to_window(const ARegion *ar, int *x, int *y)

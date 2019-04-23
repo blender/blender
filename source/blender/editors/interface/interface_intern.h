@@ -460,7 +460,12 @@ extern void ui_block_to_window_rctf(const struct ARegion *ar,
 extern float ui_block_to_window_scale(const struct ARegion *ar, uiBlock *block);
 extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
+extern void ui_window_to_block_rctf(const struct ARegion *ar,
+                                    uiBlock *block,
+                                    rctf *rct_dst,
+                                    const rctf *rct_src);
 extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
+extern void ui_window_to_region_rcti(const ARegion *ar, rcti *rect_dst, const rcti *rct_src);
 extern void ui_region_to_window(const struct ARegion *ar, int *x, int *y);
 extern void ui_region_winrct_get_no_margin(const struct ARegion *ar, struct rcti *r_rect);
 
