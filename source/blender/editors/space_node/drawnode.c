@@ -55,6 +55,7 @@
 #include "RNA_define.h"
 
 #include "ED_node.h"
+#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -3413,6 +3414,14 @@ void draw_nodespace_back_pix(const bContext *C,
   Image *ima;
   void *lock;
   ImBuf *ibuf;
+
+  GPU_matrix_push_projection();
+  GPU_matrix_push();
+  wmOrtho2_region_pixelspace(ar);
+  GPU_matrix_identity_set();
+  ED_region_draw_cb_draw(C, ar, REGION_DRAW_BACKDROP);
+  GPU_matrix_pop_projection();
+  GPU_matrix_pop();
 
   if (!(snode->flag & SNODE_BACKDRAW) || !ED_node_is_compositor(snode)) {
     return;

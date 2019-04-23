@@ -8836,7 +8836,7 @@ PyDoc_STRVAR(
     "(:class:`bpy.types.Region.type`)\n"
     "   :type region_type: str\n"
     "   :param draw_type: Usually `POST_PIXEL` for 2D drawing and `POST_VIEW` for 3D drawing. In "
-    "some cases `PRE_VIEW` can be used.\n"
+    "some cases `PRE_VIEW` can be used. `BACKDROP` can be used for backdrops in the node editor.\n"
     "   :type draw_type: str\n"
     "   :return: Handler that can be removed later on.\n"
     "   :rtype: object");
