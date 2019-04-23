@@ -519,11 +519,20 @@ static void drw_viewport_cache_resize(void)
   GPU_viewport_cache_release(DST.viewport);
 
   if (DST.vmempool != NULL) {
+    /* Release Image textures. */
+    BLI_mempool_iter iter;
+    GPUTexture **tex;
+    BLI_mempool_iternew(DST.vmempool->images, &iter);
+    while ((tex = BLI_mempool_iterstep(&iter))) {
+      GPU_texture_free(*tex);
+    }
+
     BLI_mempool_clear_ex(DST.vmempool->calls, BLI_mempool_len(DST.vmempool->calls));
     BLI_mempool_clear_ex(DST.vmempool->states, BLI_mempool_len(DST.vmempool->states));
     BLI_mempool_clear_ex(DST.vmempool->shgroups, BLI_mempool_len(DST.vmempool->shgroups));
     BLI_mempool_clear_ex(DST.vmempool->uniforms, BLI_mempool_len(DST.vmempool->uniforms));
     BLI_mempool_clear_ex(DST.vmempool->passes, BLI_mempool_len(DST.vmempool->passes));
+    BLI_mempool_clear_ex(DST.vmempool->images, BLI_mempool_len(DST.vmempool->images));
   }
 
   DRW_instance_data_list_free_unused(DST.idatalist);
@@ -602,6 +611,10 @@ static void drw_viewport_var_init(void)
     }
     if (DST.vmempool->passes == NULL) {
       DST.vmempool->passes = BLI_mempool_create(sizeof(DRWPass), 0, 64, 0);
+    }
+    if (DST.vmempool->images == NULL) {
+      DST.vmempool->images = BLI_mempool_create(
+          sizeof(GPUTexture *), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
     }
 
     DST.idatalist = GPU_viewport_instance_data_list_get(DST.viewport);

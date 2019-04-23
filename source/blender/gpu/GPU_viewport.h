@@ -42,6 +42,7 @@ typedef struct ViewportMemoryPool {
   struct BLI_mempool *shgroups;
   struct BLI_mempool *uniforms;
   struct BLI_mempool *passes;
+  struct BLI_mempool *images;
 } ViewportMemoryPool;
 
 /* All FramebufferLists are just the same pointers with different names */

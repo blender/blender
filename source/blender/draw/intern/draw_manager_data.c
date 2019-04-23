@@ -981,8 +981,12 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
       GPUTexture *tex = NULL;
 
       if (input->ima) {
-        tex = GPU_texture_from_blender(
+        GPUTexture **tex_ref = BLI_mempool_alloc(DST.vmempool->images);
+
+        *tex_ref = tex = GPU_texture_from_blender(
             input->ima, input->iuser, GL_TEXTURE_2D, input->image_isdata);
+
+        GPU_texture_ref(tex);
       }
       else {
         /* Color Ramps */

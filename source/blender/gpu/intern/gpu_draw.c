@@ -1199,12 +1199,13 @@ void GPU_free_smoke_velocity(SmokeModifierData *smd)
 }
 
 static LinkNode *image_free_queue = NULL;
+static ThreadMutex img_queue_mutex = BLI_MUTEX_INITIALIZER;
 
 static void gpu_queue_image_for_free(Image *ima)
 {
-  BLI_thread_lock(LOCK_OPENGL);
+  BLI_mutex_lock(&img_queue_mutex);
   BLI_linklist_prepend(&image_free_queue, ima);
-  BLI_thread_unlock(LOCK_OPENGL);
+  BLI_mutex_unlock(&img_queue_mutex);
 }
 
 void GPU_free_unused_buffers(Main *bmain)
@@ -1213,7 +1214,7 @@ void GPU_free_unused_buffers(Main *bmain)
     return;
   }
 
-  BLI_thread_lock(LOCK_OPENGL);
+  BLI_mutex_lock(&img_queue_mutex);
 
   /* images */
   for (LinkNode *node = image_free_queue; node; node = node->next) {
@@ -1228,7 +1229,7 @@ void GPU_free_unused_buffers(Main *bmain)
   BLI_linklist_free(image_free_queue, NULL);
   image_free_queue = NULL;
 
-  BLI_thread_unlock(LOCK_OPENGL);
+  BLI_mutex_unlock(&img_queue_mutex);
 }
 
 static void gpu_free_image_immediate(Image *ima)
