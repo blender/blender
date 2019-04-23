@@ -112,8 +112,23 @@ bool ED_region_contains_xy(const ARegion *ar, const int event_xy[2])
       }
       else {
         /* Side-bar & any other kind of overlapping region. */
-        if (!ED_region_overlap_isect_xy_with_margin(ar, event_xy, overlap_margin)) {
-          return false;
+
+        /* Check alignment to avoid region tabs being clipped out
+         * by only clipping a single axis for aligned regions. */
+        if (ELEM(ar->alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+          if (!ED_region_overlap_isect_x_with_margin(ar, event_xy[0], overlap_margin)) {
+            return false;
+          }
+        }
+        else if (ELEM(ar->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+          if (!ED_region_overlap_isect_y_with_margin(ar, event_xy[1], overlap_margin)) {
+            return false;
+          }
+        }
+        else {
+          if (!ED_region_overlap_isect_xy_with_margin(ar, event_xy, overlap_margin)) {
+            return false;
+          }
         }
       }
     }
