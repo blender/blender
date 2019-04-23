@@ -606,14 +606,14 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   /* Roll In/Out */
   prop = RNA_def_property(srna, "bbone_rollin", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "roll1");
-  RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
+  RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 10, 2);
   RNA_def_property_ui_text(
       prop, "Roll In", "Roll offset for the start of the B-Bone, adjusts twist");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
   prop = RNA_def_property(srna, "bbone_rollout", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "roll2");
-  RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
+  RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 10, 2);
   RNA_def_property_ui_text(
       prop, "Roll Out", "Roll offset for the end of the B-Bone, adjusts twist");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
@@ -629,28 +629,28 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   /* Curve X/Y Offsets */
   prop = RNA_def_property(srna, "bbone_curveinx", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "curve_in_x");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(
       prop, "In X", "X-axis handle offset for start of the B-Bone's curve, adjusts curvature");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
   prop = RNA_def_property(srna, "bbone_curveiny", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "curve_in_y");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(
       prop, "In Y", "Y-axis handle offset for start of the B-Bone's curve, adjusts curvature");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
   prop = RNA_def_property(srna, "bbone_curveoutx", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "curve_out_x");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(
       prop, "Out X", "X-axis handle offset for end of the B-Bone's curve, adjusts curvature");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
   prop = RNA_def_property(srna, "bbone_curveouty", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "curve_out_y");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(
       prop, "Out Y", "Y-axis handle offset for end of the B-Bone's curve, adjusts curvature");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
@@ -658,14 +658,14 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   /* Ease In/Out */
   prop = RNA_def_property(srna, "bbone_easein", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "ease1");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -5.0f, 5.0f, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Ease In", "Length of first Bezier Handle (for B-Bones only)");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
   prop = RNA_def_property(srna, "bbone_easeout", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "ease2");
-  RNA_def_property_range(prop, -5.0f, 5.0f);
+  RNA_def_property_ui_range(prop, -5.0f, 5.0f, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Ease Out", "Length of second Bezier Handle (for B-Bones only)");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
@@ -674,7 +674,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   prop = RNA_def_property(srna, "bbone_scaleinx", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "scale_in_x");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Scale In X",
@@ -685,7 +685,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   prop = RNA_def_property(srna, "bbone_scaleiny", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "scale_in_y");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Scale In Y",
@@ -696,7 +696,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   prop = RNA_def_property(srna, "bbone_scaleoutx", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "scale_out_x");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Scale Out X",
@@ -707,7 +707,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   prop = RNA_def_property(srna, "bbone_scaleouty", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "scale_out_y");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Scale Out Y",
