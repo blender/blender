@@ -2481,7 +2481,6 @@ static int add_named_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_scene_object_base_flag_sync_from_object(basen);
   basen->object->restrictflag &= ~OB_RESTRICT_VIEW;
 
   if (event) {

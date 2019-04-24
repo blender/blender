@@ -35,7 +35,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
 
 #include "DNA_ID.h"
 #include "DNA_space_types.h"
@@ -91,7 +90,9 @@ static Base *object_base_new(Object *ob)
 {
   Base *base = MEM_callocN(sizeof(Base), "Object Base");
   base->object = ob;
-  BKE_scene_object_base_flag_sync_from_object(base);
+  if (ob->base_flag & BASE_SELECTED) {
+    base->flag |= BASE_SELECTED;
+  }
   return base;
 }
 
