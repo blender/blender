@@ -48,6 +48,7 @@
 #include "DNA_linestyle_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 #include "BLI_mempool.h"
 #include "BLI_fnmatch.h"
@@ -1477,6 +1478,108 @@ static void outliner_make_object_parent_hierarchy(ListBase *lb)
   }
 }
 
+static void outliner_make_object_parent_hierarchy_recursive(SpaceOutliner *soops,
+                                                            GHash *parent_children_hash,
+                                                            TreeElement *te_parent,
+                                                            ListBase *tree_to_remove_objects_from)
+{
+  if (tree_to_remove_objects_from == NULL) {
+    tree_to_remove_objects_from = &te_parent->subtree;
+  }
+
+  /* Build hierarchy. */
+  for (TreeElement *te = te_parent->subtree.first; te; te = te->next) {
+    TreeStoreElem *tselem = TREESTORE(te);
+
+    if (tselem->type == TSE_LAYER_COLLECTION) {
+      outliner_make_object_parent_hierarchy_recursive(soops, parent_children_hash, te, NULL);
+    }
+    else if (tselem->type == 0 && te->idcode == ID_OB) {
+      Object *ob = (Object *)tselem->id;
+      ListBase *children = BLI_ghash_lookup(parent_children_hash, ob);
+
+      if (children) {
+        TreeElement *te_last_element_in_object_tree = te->subtree.last;
+        for (LinkData *link = children->first; link; link = link->next) {
+          Object *child = link->data;
+          TreeElement *te_child = NULL;
+
+          /* Check if the child is in the layer collection / tree. */
+          for (TreeElement *te_iter = tree_to_remove_objects_from->first; te_iter;
+               te_iter = te_iter->next) {
+            TreeStoreElem *tselem_iter = TREESTORE(te_iter);
+            if ((tselem_iter->type == 0 && te_iter->idcode == ID_OB) &&
+                (tselem_iter->id == &child->id)) {
+              te_child = te_iter;
+              break;
+            }
+          }
+
+          if (te_child) {
+            BLI_remlink(tree_to_remove_objects_from, te_child);
+            /* We group the children that are in the collection before the ones that are not.
+             * This way we can try to draw them in a different style altogether.
+             * We also have to respect the original order of the elements in case alphabetical
+             * sorting is not enabled. This keep object data and modifiers before its children. */
+            BLI_insertlinkafter(&te->subtree, te_last_element_in_object_tree, te_child);
+            te_child->parent = te;
+            continue;
+          }
+
+          /* If not see if it is already nested under its parent.
+           * This happens depending on the order of the evaluation. */
+          for (TreeElement *te_iter = te->subtree.first; te_iter; te_iter = te_iter->next) {
+            TreeStoreElem *tselem_iter = TREESTORE(te_iter);
+            if ((tselem_iter->type == 0 && te_iter->idcode == ID_OB) &&
+                (tselem_iter->id == &child->id)) {
+              te_child = te_iter;
+              break;
+            }
+          }
+
+          if (te_child == NULL) {
+            te_child = outliner_add_element(soops, &te->subtree, child, te, 0, 0);
+            outliner_free_tree(&te_child->subtree);
+            te_child->flag |= TE_CHILD_NOT_IN_COLLECTION;
+          }
+        }
+        outliner_make_object_parent_hierarchy_recursive(
+            soops, parent_children_hash, te, tree_to_remove_objects_from);
+      }
+    }
+  }
+}
+
+static void outliner_build_parent_children_tree_create(Main *bmain, GHash *parent_children_hash)
+{
+  ListBase *children = NULL;
+
+  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+    if (!ob->parent) {
+      continue;
+    }
+
+    children = BLI_ghash_lookup(parent_children_hash, ob->parent);
+    if (children == NULL) {
+      children = MEM_callocN(sizeof(ListBase), __func__);
+      BLI_ghash_insert(parent_children_hash, ob->parent, children);
+    }
+
+    BLI_addtail(children, BLI_genericNodeN(ob));
+  }
+}
+
+static void outliner_build_parent_children_tree_free(Main *bmain, GHash *parent_children_hash)
+{
+  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+    ListBase *children = BLI_ghash_lookup(parent_children_hash, ob);
+    if (children) {
+      BLI_freelistN(children);
+      MEM_freeN(children);
+    }
+  }
+}
+
 /* Sorting ------------------------------------------------------ */
 
 typedef struct tTreeSort {
@@ -1505,6 +1608,13 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
     return -1;
   }
   else if (comp == 3) {
+    /* Among objects first come the ones in the collection, followed by the ones not on it.
+     * This way we can have the dashed lines in a separate style connecting the former. */
+    if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) !=
+        (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION)) {
+      return (x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) ? 1 : -1;
+    }
+
     comp = strcmp(x1->name, x2->name);
 
     if (comp > 0) {
@@ -2191,6 +2301,15 @@ void outliner_build_tree(
 
       bool show_objects = !(soops->filter & SO_FILTER_NO_OBJECT);
       outliner_add_view_layer(soops, &ten->subtree, ten, view_layer, show_objects);
+
+      if ((soops->filter & SO_FILTER_NO_CHILDREN) == 0) {
+        GHash *parent_children_hash = BLI_ghash_new(
+            BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+        outliner_build_parent_children_tree_create(mainvar, parent_children_hash);
+        outliner_make_object_parent_hierarchy_recursive(soops, parent_children_hash, ten, NULL);
+        outliner_build_parent_children_tree_free(mainvar, parent_children_hash);
+        BLI_ghash_free(parent_children_hash, NULL, NULL);
+      }
     }
   }
 
