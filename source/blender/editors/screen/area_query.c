@@ -24,6 +24,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "RNA_types.h"
 
@@ -60,6 +61,35 @@ bool ED_region_overlap_isect_xy(const ARegion *ar, const int event_xy[2])
 {
   return (ED_region_overlap_isect_x(ar, event_xy[0]) &&
           ED_region_overlap_isect_y(ar, event_xy[1]));
+}
+
+bool ED_region_panel_category_gutter_calc_rect(const ARegion *ar, rcti *r_ar_gutter)
+{
+  *r_ar_gutter = ar->winrct;
+  if (UI_panel_category_is_visible(ar)) {
+    const int category_tabs_width = round_fl_to_int(UI_view2d_scale_get_x(&ar->v2d) *
+                                                    UI_PANEL_CATEGORY_MARGIN_WIDTH);
+    if (ar->alignment == RGN_ALIGN_LEFT) {
+      r_ar_gutter->xmax = r_ar_gutter->xmin + category_tabs_width;
+    }
+    else if (ar->alignment == RGN_ALIGN_RIGHT) {
+      r_ar_gutter->xmin = r_ar_gutter->xmax - category_tabs_width;
+    }
+    else {
+      BLI_assert(!"Unsupported alignment");
+    }
+    return true;
+  }
+  return false;
+}
+
+bool ED_region_panel_category_gutter_isect_xy(const ARegion *ar, const int event_xy[2])
+{
+  rcti ar_gutter;
+  if (ED_region_panel_category_gutter_calc_rect(ar, &ar_gutter)) {
+    return BLI_rcti_isect_pt_v(&ar_gutter, event_xy);
+  }
+  return false;
 }
 
 bool ED_region_overlap_isect_x_with_margin(const ARegion *ar, const int event_x, const int margin)
@@ -121,11 +151,15 @@ bool ED_region_contains_xy(const ARegion *ar, const int event_xy[2])
           }
         }
         else if (ELEM(ar->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
-          if (!ED_region_overlap_isect_y_with_margin(ar, event_xy[1], overlap_margin)) {
+          if (ED_region_panel_category_gutter_isect_xy(ar, event_xy)) {
+            /* pass */
+          }
+          else if (!ED_region_overlap_isect_y_with_margin(ar, event_xy[1], overlap_margin)) {
             return false;
           }
         }
         else {
+          /* No panel categories for horizontal regions currently. */
           if (!ED_region_overlap_isect_xy_with_margin(ar, event_xy, overlap_margin)) {
             return false;
           }

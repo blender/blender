@@ -413,6 +413,9 @@ bool ED_region_overlap_isect_xy_with_margin(const ARegion *ar,
                                             const int event_xy[2],
                                             const int margin);
 
+bool ED_region_panel_category_gutter_calc_rect(const ARegion *ar, rcti *r_ar_gutter);
+bool ED_region_panel_category_gutter_isect_xy(const ARegion *ar, const int event_xy[2]);
+
 bool ED_region_contains_xy(const struct ARegion *ar, const int event_xy[2]);
 
 /* interface_region_hud.c */

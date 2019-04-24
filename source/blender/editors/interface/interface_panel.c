@@ -1757,7 +1757,7 @@ static void ui_handle_panel_header(
   }
 }
 
-bool UI_panel_category_is_visible(ARegion *ar)
+bool UI_panel_category_is_visible(const ARegion *ar)
 {
   /* more than one */
   return ar->panels_category.first && ar->panels_category.first != ar->panels_category.last;
