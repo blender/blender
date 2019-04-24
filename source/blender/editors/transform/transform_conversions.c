@@ -1325,9 +1325,17 @@ static void createTransPose(TransInfo *t)
 
 void restoreBones(TransDataContainer *tc)
 {
-  bArmature *arm = tc->obedit->data;
+  bArmature *arm;
   BoneInitData *bid = tc->custom.type.data;
   EditBone *ebo;
+
+  if (tc->obedit) {
+    arm = tc->obedit->data;
+  }
+  else {
+    BLI_assert(tc->poseobj != NULL);
+    arm = tc->poseobj->data;
+  }
 
   while (bid->bone) {
     ebo = bid->bone;

@@ -968,6 +968,23 @@ static void recalcData_objects(TransInfo *t)
       }
     }
   }
+  else if (t->flag & T_POSE && (t->mode == TFM_BONESIZE)) {
+    /* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
+     * in pose mode (to use bone orientation matrix),
+     * in that case we have to do mirroring as well. */
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      Object *ob = tc->poseobj;
+      bArmature *arm = ob->data;
+      if (arm->flag & ARM_MIRROR_EDIT) {
+        if (t->state != TRANS_CANCEL) {
+          ED_armature_edit_transform_mirror_update(ob);
+        }
+        else {
+          restoreBones(tc);
+        }
+      }
+    }
+  }
   else if (t->flag & T_POSE) {
     GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
