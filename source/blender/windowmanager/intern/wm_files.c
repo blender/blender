@@ -1846,24 +1846,6 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int wm_homefile_read_invoke(bContext *C,
-                                   wmOperator *UNUSED(op),
-                                   const wmEvent *UNUSED(event))
-{
-  /* Draw menu which includes default startup and application templates. */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("New File"), ICON_FILE_NEW);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-
-  MenuType *mt = WM_menutype_find("TOPBAR_MT_file_new", false);
-  if (mt) {
-    UI_menutype_draw(C, mt, layout);
-  }
-
-  UI_popup_menu_end(C, pup);
-
-  return OPERATOR_INTERFACE;
-}
-
 void WM_OT_read_homefile(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1871,7 +1853,6 @@ void WM_OT_read_homefile(wmOperatorType *ot)
   ot->idname = "WM_OT_read_homefile";
   ot->description = "Open the default file (doesn't save the current file)";
 
-  ot->invoke = wm_homefile_read_invoke;
   ot->exec = wm_homefile_read_exec;
 
   prop = RNA_def_string_file_path(
