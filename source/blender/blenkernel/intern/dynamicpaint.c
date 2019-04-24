@@ -302,54 +302,10 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
   return 0;
 }
 
-/* checks whether surface's format/type has realtime preview */
-bool dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface)
-{
-  if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-    return false;
-  }
-  else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-    return !ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE);
-  }
-
-  return true;
-}
-
 /* get currently active surface (in user interface) */
 DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
 {
   return BLI_findlink(&canvas->surfaces, canvas->active_sur);
-}
-
-/* set preview to first previewable surface */
-void dynamicPaint_resetPreview(DynamicPaintCanvasSettings *canvas)
-{
-  DynamicPaintSurface *surface = canvas->surfaces.first;
-  bool done = false;
-
-  for (; surface; surface = surface->next) {
-    if (!done && dynamicPaint_surfaceHasColorPreview(surface)) {
-      surface->flags |= MOD_DPAINT_PREVIEW;
-      done = true;
-    }
-    else {
-      surface->flags &= ~MOD_DPAINT_PREVIEW;
-    }
-  }
-}
-
-/* set preview to defined surface */
-static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
-{
-  DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
-  for (; surface; surface = surface->next) {
-    if (surface == t_surface) {
-      surface->flags |= MOD_DPAINT_PREVIEW;
-    }
-    else {
-      surface->flags &= ~MOD_DPAINT_PREVIEW;
-    }
-  }
 }
 
 bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int output)
@@ -471,14 +427,6 @@ void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
   }
 
   surface_setUniqueOutputName(surface, surface->output_name, 0);
-
-  /* update preview */
-  if (dynamicPaint_surfaceHasColorPreview(surface)) {
-    dynamicPaint_setPreview(surface);
-  }
-  else {
-    dynamicPaint_resetPreview(surface->canvas);
-  }
 }
 
 static int surface_totalSamples(DynamicPaintSurface *surface)
@@ -1079,7 +1027,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 
   /* Set initial values */
   surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG |
-                   MOD_DPAINT_DISSOLVE_LOG | MOD_DPAINT_ACTIVE | MOD_DPAINT_PREVIEW |
+                   MOD_DPAINT_DISSOLVE_LOG | MOD_DPAINT_ACTIVE |
                    MOD_DPAINT_OUT1 | MOD_DPAINT_USE_DRYING;
   surface->effect = 0;
   surface->effect_ui = 1;
@@ -1280,7 +1228,6 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
       t_surface->disp_type = surface->disp_type;
       t_surface->image_fileformat = surface->image_fileformat;
       t_surface->effect_ui = surface->effect_ui;
-      t_surface->preview_id = surface->preview_id;
       t_surface->init_color_type = surface->init_color_type;
       t_surface->flags = surface->flags;
       t_surface->effect = surface->effect;
@@ -1323,7 +1270,6 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
       BLI_strncpy(t_surface->output_name, surface->output_name, sizeof(t_surface->output_name));
       BLI_strncpy(t_surface->output_name2, surface->output_name2, sizeof(t_surface->output_name2));
     }
-    dynamicPaint_resetPreview(tpmd->canvas);
   }
   else if (tpmd->brush) {
     DynamicPaintBrushSettings *brush = pmd->brush, *t_brush = tpmd->brush;
@@ -1841,7 +1787,6 @@ typedef struct DynamicPaintModifierApplyData {
   float (*fcolor)[4];
   MLoopCol *mloopcol;
   MLoopCol *mloopcol_wet;
-  MLoopCol *mloopcol_preview;
 } DynamicPaintModifierApplyData;
 
 static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
@@ -1906,7 +1851,6 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
                                                   const ParallelRangeTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintModifierApplyData *data = userdata;
-  Object *ob = data->ob;
 
   const MLoop *mloop = data->mloop;
   const MPoly *mpoly = data->mpoly;
@@ -1917,11 +1861,6 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
 
   MLoopCol *mloopcol = data->mloopcol;
   MLoopCol *mloopcol_wet = data->mloopcol_wet;
-  MLoopCol *mloopcol_preview = data->mloopcol_preview;
-
-  const Material *material = mloopcol_preview ?
-                                 give_current_material(ob, mpoly[p_index].mat_nr + 1) :
-                                 NULL;
 
   for (int j = 0; j < mpoly[p_index].totloop; j++) {
     const int l_index = mpoly[p_index].loopstart + j;
@@ -1939,37 +1878,6 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
       mloopcol_wet[l_index].g = c;
       mloopcol_wet[l_index].b = c;
       mloopcol_wet[l_index].a = 255;
-    }
-
-    /* viewport preview */
-    if (mloopcol_preview) {
-      if (surface->preview_id == MOD_DPAINT_SURFACE_PREV_PAINT) {
-        float c[3];
-
-        /* Apply material color as base vertex color for preview */
-        mloopcol_preview[l_index].a = 255;
-        if (material) {
-          c[0] = material->r;
-          c[1] = material->g;
-          c[2] = material->b;
-        }
-        else { /* default gray */
-          c[0] = 0.65f;
-          c[1] = 0.65f;
-          c[2] = 0.65f;
-        }
-        /* mix surface color */
-        interp_v3_v3v3(c, c, fcolor[v_index], fcolor[v_index][3]);
-
-        rgb_float_to_uchar((unsigned char *)&mloopcol_preview[l_index].r, c);
-      }
-      else {
-        const char c = unit_float_to_uchar_clamp(pPoint[v_index].wetness);
-        mloopcol_preview[l_index].r = c;
-        mloopcol_preview[l_index].g = c;
-        mloopcol_preview[l_index].b = c;
-        mloopcol_preview[l_index].a = 255;
-      }
     }
   }
 }
@@ -2056,22 +1964,11 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                   &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
             }
 
-            /* Save preview results to weight layer to be able to share same drawing methods */
-            MLoopCol *mloopcol_preview = NULL;
-            if (surface->flags & MOD_DPAINT_PREVIEW) {
-              mloopcol_preview = CustomData_get_layer(&result->ldata, CD_PREVIEW_MLOOPCOL);
-              if (!mloopcol_preview) {
-                mloopcol_preview = CustomData_add_layer(
-                    &result->ldata, CD_PREVIEW_MLOOPCOL, CD_CALLOC, NULL, totloop);
-              }
-            }
-
             data.ob = ob;
             data.mloop = mloop;
             data.mpoly = mpoly;
             data.mloopcol = mloopcol;
             data.mloopcol_wet = mloopcol_wet;
-            data.mloopcol_preview = mloopcol_preview;
 
             {
               ParallelRangeSettings settings;
@@ -2091,15 +1988,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             int defgrp_index = defgroup_name_index(ob, surface->output_name);
             MDeformVert *dvert = CustomData_get_layer(&result->vdata, CD_MDEFORMVERT);
             float *weight = (float *)sData->type_data;
-
-            /* viewport preview */
-            if (surface->flags & MOD_DPAINT_PREVIEW) {
-              /* Save preview results to weight layer to be
-               * able to share same drawing methods.
-               * Note this func also sets DM_DIRTY_TESS_CDLAYERS flag! */
-              //TODO port this function
-              //DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
-            }
 
             /* apply weights into a vertex group, if doesn't exists add a new layer */
             if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0')) {

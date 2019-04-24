@@ -39,15 +39,6 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
             row.label(text="", icon_value=icon)
             row.prop(surf, "name", text="", emboss=False, icon_value=sticon)
             row = layout.row(align=True)
-
-            if surf.use_color_preview:
-                row.prop(
-                    surf,
-                    "show_preview",
-                    text="",
-                    emboss=False,
-                    icon='RESTRICT_VIEW_OFF' if surf.show_preview else 'RESTRICT_VIEW_ON'
-                )
             row.prop(surf, "is_active", text="")
 
         elif self.layout_type == 'GRID':
@@ -373,9 +364,6 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
         # vertex format outputs.
         if surface.surface_format == 'VERTEX':
             if surface_type == 'PAINT':
-                # toggle active preview.
-                layout.prop(surface, "preview_id")
-
                 # paint-map output.
                 row = layout.row()
                 row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap Layer")

@@ -83,13 +83,11 @@ void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);
 
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
-bool dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
 bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface,
                                     struct Object *ob,
                                     int output);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
 void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, const char *basename);
-void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);
 struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
 
 /* image sequence baking */

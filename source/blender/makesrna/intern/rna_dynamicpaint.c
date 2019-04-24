@@ -117,20 +117,6 @@ static void rna_DynamicPaintSurface_initialcolortype(Main *bmain, Scene *scene, 
   rna_DynamicPaint_redoModifier(bmain, scene, ptr);
 }
 
-static void rna_DynamicPaintSurface_changePreview(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  DynamicPaintSurface *act_surface = (DynamicPaintSurface *)ptr->data;
-  DynamicPaintSurface *surface = act_surface->canvas->surfaces.first;
-
-  /* since only one color surface can show preview at time
-   * disable preview on other surfaces. */
-  for (; surface; surface = surface->next) {
-    if (surface != act_surface)
-      surface->flags &= ~MOD_DPAINT_PREVIEW;
-  }
-  rna_DynamicPaint_redoModifier(bmain, scene, ptr);
-}
-
 static void rna_DynamicPaintSurface_uniqueName(Main *UNUSED(bmain),
                                                Scene *UNUSED(scene),
                                                PointerRNA *ptr)
@@ -237,14 +223,6 @@ static bool rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
   DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
   return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ? 1 : 0;
-}
-
-/* is some 3D view preview available */
-static bool rna_DynamicPaint_use_color_preview_get(PointerRNA *ptr)
-{
-  DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
-
-  return dynamicPaint_surfaceHasColorPreview(surface);
 }
 
 /* does output layer exist*/
@@ -354,13 +332,6 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  /*  Surface output preview. currently only paint has multiple outputs */
-  static const EnumPropertyItem prop_dynamicpaint_surface_preview[] = {
-      {MOD_DPAINT_SURFACE_PREV_PAINT, "PAINT", 0, "Paint", ""},
-      {MOD_DPAINT_SURFACE_PREV_WETMAP, "WETMAP", 0, "Wetmap", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   /*  Initial color setting */
   static const EnumPropertyItem prop_dynamicpaint_init_color_type[] = {
       {MOD_DPAINT_INITIAL_NONE, "NONE", 0, "None", ""},
@@ -420,11 +391,6 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ACTIVE);
   RNA_def_property_ui_text(prop, "Is Active", "Toggle whether surface is processed or ignored");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-
-  prop = RNA_def_property(srna, "show_preview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PREVIEW);
-  RNA_def_property_ui_text(prop, "Show Preview", "Display surface preview in 3D-views");
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurface_changePreview");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Surface name");
@@ -667,13 +633,6 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT2);
   RNA_def_property_ui_text(prop, "Use Output", "Save this output layer");
 
-  prop = RNA_def_property(srna, "preview_id", PROP_ENUM, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_enum_sdna(prop, NULL, "preview_id");
-  RNA_def_property_enum_items(prop, prop_dynamicpaint_surface_preview);
-  RNA_def_property_ui_text(prop, "Preview", "");
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-
   /* to check if output name exists */
   func = RNA_def_function(srna, "output_exists", "rna_DynamicPaint_is_output_exists");
   RNA_def_function_ui_description(func, "Checks if surface output layer of given name exists");
@@ -767,15 +726,6 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_is_cache_user_get", NULL);
   RNA_def_property_ui_text(prop, "Use Cache", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-
-  /* whether this surface has preview data for 3D view */
-  RNA_define_verify_sdna(false);
-  prop = RNA_def_property(srna, "use_color_preview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_use_color_preview_get", NULL);
-  RNA_def_property_ui_text(
-      prop, "Use Color Preview", "Whether this surface has some color preview for 3D view");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)

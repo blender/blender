@@ -48,7 +48,6 @@ enum {
   MOD_DPAINT_MULALPHA = 1 << 3,     /* Multiply color by alpha when saving image */
   MOD_DPAINT_DISSOLVE_LOG = 1 << 4, /* Use 1/x for surface dissolve */
   MOD_DPAINT_DRY_LOG = 1 << 5,      /* Use 1/x for drying paint */
-  MOD_DPAINT_PREVIEW = 1 << 6,      /* preview this surface on viewport*/
 
   MOD_DPAINT_WAVE_OPEN_BORDERS = 1 << 7, /* passes waves through mesh edges */
   MOD_DPAINT_DISP_INCREMENTAL = 1 << 8,  /* builds displace on top of earlier values */
@@ -75,12 +74,6 @@ enum {
   MOD_DPAINT_EFFECT_DO_SPREAD = 1 << 0, /* do spread effect */
   MOD_DPAINT_EFFECT_DO_DRIP = 1 << 1,   /* do drip effect */
   MOD_DPAINT_EFFECT_DO_SHRINK = 1 << 2, /* do shrink effect */
-};
-
-/* preview_id */
-enum {
-  MOD_DPAINT_SURFACE_PREV_PAINT = 0,
-  MOD_DPAINT_SURFACE_PREV_WETMAP = 1,
 };
 
 /* init_color_type */
@@ -120,15 +113,11 @@ typedef struct DynamicPaintSurface {
   short disp_type, image_fileformat;
   /** Ui selection box. */
   short effect_ui;
-  /** Surface output id to preview. */
-  short preview_id;
   short init_color_type;
-  char _pad0[2];
   int flags, effect;
 
   int image_resolution, substeps;
   int start_frame, end_frame;
-  char _pad[4];
 
   /* initial color */
   float init_color[4];
@@ -163,12 +152,6 @@ typedef struct DynamicPaintSurface {
 
 /* canvas flags */
 enum {
-/* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
- * And if not, should be a general flag. But seems unnecessary for now... */
-#if 0
-  /** if viewport preview is ready */
-  MOD_DPAINT_PREVIEW_READY = 1 << 0,
-#endif
   /** surface is already baking, so it wont get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,
 };

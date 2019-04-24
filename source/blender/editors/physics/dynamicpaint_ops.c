@@ -83,10 +83,8 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* set preview for this surface only and set active */
   canvas->active_sur = 0;
   for (surface = surface->prev; surface; surface = surface->prev) {
-    surface->flags &= ~MOD_DPAINT_PREVIEW;
     canvas->active_sur++;
   }
 
@@ -136,7 +134,6 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
     id++;
   }
 
-  dynamicPaint_resetPreview(canvas);
   DEG_id_tag_update(&obj_ctx->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obj_ctx);
 
