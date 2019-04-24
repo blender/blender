@@ -1028,7 +1028,10 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
     }
 
     /* If we need normals, no choice, have to convert to mesh now. */
-    if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md) && modified == NULL) {
+    bool need_normal = mti->dependsOnNormals != NULL && mti->dependsOnNormals(md);
+    /* XXX 2.8 : now that batch cache is stored inside the ob->data
+     * we need to create a Mesh for each curve that uses modifiers. */
+    if (modified == NULL /* && need_normal */) {
       if (vertCos != NULL) {
         displist_apply_allverts(dispbase, vertCos);
       }
@@ -1046,7 +1049,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
         if (!vertCos) {
           vertCos = BKE_mesh_vertexCos_get(modified, &totvert);
         }
-        if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md)) {
+        if (need_normal) {
           BKE_mesh_ensure_normals(modified);
         }
         mti->deformVerts(md, &mectx_deform, modified, vertCos, totvert);
@@ -1095,7 +1098,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
         vertCos = NULL;
       }
 
-      if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md)) {
+      if (need_normal) {
         BKE_mesh_ensure_normals(modified);
       }
       mesh_applied = mti->applyModifier(md, &mectx_apply, modified);

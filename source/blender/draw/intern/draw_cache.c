@@ -3302,7 +3302,13 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_CURVE);
 
   struct Curve *cu = ob->data;
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+  if (mesh_eval != NULL) {
+    return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
+  }
+  else {
+    return DRW_curve_batch_cache_get_wire_edge(cu);
+  }
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
@@ -3448,7 +3454,13 @@ GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_FONT);
 
   struct Curve *cu = ob->data;
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+  if (mesh_eval != NULL) {
+    return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
+  }
+  else {
+    return DRW_curve_batch_cache_get_wire_edge(cu);
+  }
 }
 
 GPUBatch *DRW_cache_text_surface_get(Object *ob)
@@ -3560,7 +3572,13 @@ GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  struct Mesh *mesh_eval = ob->runtime.mesh_eval;
+  if (mesh_eval != NULL) {
+    return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
+  }
+  else {
+    return DRW_curve_batch_cache_get_wire_edge(cu);
+  }
 }
 
 GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
