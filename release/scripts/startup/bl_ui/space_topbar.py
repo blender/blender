@@ -262,7 +262,7 @@ class TOPBAR_MT_file_new(Menu):
 
     @staticmethod
     def draw_ex(layout, _context, *, use_splash=False, use_more=False):
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         # Limit number of templates in splash screen, spill over into more menu.
         paths = TOPBAR_MT_file_new.app_template_paths()
@@ -557,7 +557,7 @@ class TOPBAR_MT_file_context_menu(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.read_homefile", text="New", icon='FILE_NEW')
+        layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
 
         layout.separator()
