@@ -544,12 +544,22 @@ class ToolSelectPanelHelper:
         self.draw_cls(self.layout, context)
 
     @staticmethod
+    def _tool_key_from_context(context):
+        space_data = context.space_data
+        space_type = space_data.type
+        if space_type == 'VIEW_3D':
+            return space_type, context.mode
+        elif space_type == 'IMAGE_EDITOR':
+            return space_type, space_data.mode
+        elif space_type == 'NODE_EDITOR':
+            return space_type, None
+        else:
+            return None, None
+
+    @staticmethod
     def tool_active_from_context(context):
-        # BAD DESIGN WARNING: last used tool
-        workspace = context.workspace
-        space_type = workspace.tools_space_type
-        mode = workspace.tools_mode
-        return ToolSelectPanelHelper._tool_active_from_context(context, space_type, mode)
+        space_type = context.space_data.type
+        return ToolSelectPanelHelper._tool_active_from_context(context, space_type)
 
     @staticmethod
     def draw_active_tool_header(
@@ -557,10 +567,9 @@ class ToolSelectPanelHelper:
             *,
             show_tool_name=False,
     ):
-        # BAD DESIGN WARNING: last used tool
-        workspace = context.workspace
-        space_type = workspace.tools_space_type
-        mode = workspace.tools_mode
+        space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
+        if space_type is None:
+            return None
         item, tool, icon_value = ToolSelectPanelHelper._tool_get_active(context, space_type, mode, with_icon=True)
         if item is None:
             return None
