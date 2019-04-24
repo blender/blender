@@ -99,7 +99,7 @@ typedef struct HairAttributeID {
 
 typedef struct EditStrandData {
   float pos[3];
-  uchar color;
+  float color;
 } EditStrandData;
 
 static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_color_id)
@@ -110,7 +110,7 @@ static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_color_
     /* Keep in sync with EditStrandData */
     pos_id = GPU_vertformat_attr_add(&edit_point_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     color_id = GPU_vertformat_attr_add(
-        &edit_point_format, "color", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &edit_point_format, "color", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
   *r_pos_id = pos_id;
   *r_color_id = color_id;
@@ -693,12 +693,12 @@ static int particle_batch_cache_fill_segments_edit(
       float strand_t = (float)(j) / path->segments;
       if (particle) {
         float weight = particle_key_weight(particle, i, strand_t);
-        /* NaN or unclamped become 0xFF */
-        seg_data->color = (uchar)((weight <= 1.0f) ? 0xFE * weight : 0xFF);
+        /* NaN or unclamped become 1.0f */
+        seg_data->color = (weight < 1.0f) ? weight : 1.0f;
       }
       else {
         float selected = particle_key_select_ratio(edit, i, strand_t);
-        seg_data->color = (uchar)(0xFF * selected);
+        seg_data->color = selected;
       }
       GPU_indexbuf_add_generic_vert(elb, curr_point);
       curr_point++;
@@ -1565,7 +1565,7 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
     const PTCacheEditPoint *point = &edit->points[point_index];
     for (int key_index = 0; key_index < point->totkey - 1; key_index++) {
       PTCacheEditKey *key = &point->keys[key_index];
-      uchar color = (key->flag & PEK_SELECT) ? 0xFF : 0x00;
+      float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
       GPU_vertbuf_attr_set(cache->edit_inner_pos, pos_id, global_key_index, key->world_co);
       GPU_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, &color);
       global_key_index++;
@@ -1611,7 +1611,8 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
     const PTCacheEditPoint *point = &edit->points[point_index];
     PTCacheEditKey *key = &point->keys[point->totkey - 1];
-    uchar color = (key->flag & PEK_SELECT) ? 0xFF : 0x00;
+    float color = (key->flag & PEK_SELECT) ? 0.0f : 1.0f;
+
     GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, point_index, key->world_co);
     GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, &color);
   }

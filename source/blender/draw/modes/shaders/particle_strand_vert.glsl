@@ -45,14 +45,12 @@ vec3 weight_to_rgb(float weight)
   return r_rgb;
 }
 
-#define DECOMPRESS_RANGE 1.0039
-
 void main()
 {
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
 #ifdef USE_WEIGHT
-  finalColor = vec4(weight_to_rgb(color * DECOMPRESS_RANGE), 1.0);
+  finalColor = vec4(weight_to_rgb(color), 1.0);
 #else
   finalColor = mix(colorWire, colorEdgeSelect, color);
 #endif
