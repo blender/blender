@@ -236,10 +236,13 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Compute offset based on direction. */
-  int offset_x = 0, offset_y = 0;
+  float offset_x = 0, offset_y = 0;
+
+  /* Ensure buttons don't come between the parent button and the popup, see: T63566. */
+  const float offset_overlap = max_ff(U.pixelsize, 1.0f);
 
   if (dir1 == UI_DIR_LEFT) {
-    offset_x = butrct.xmin - block->rect.xmax;
+    offset_x = (butrct.xmin - block->rect.xmax) + offset_overlap;
     if (dir2 == UI_DIR_UP) {
       offset_y = butrct.ymin - block->rect.ymin - center_y - UI_MENU_PADDING;
     }
@@ -248,7 +251,7 @@ static void ui_popup_block_position(wmWindow *window,
     }
   }
   else if (dir1 == UI_DIR_RIGHT) {
-    offset_x = butrct.xmax - block->rect.xmin;
+    offset_x = (butrct.xmax - block->rect.xmin) - offset_overlap;
     if (dir2 == UI_DIR_UP) {
       offset_y = butrct.ymin - block->rect.ymin - center_y - UI_MENU_PADDING;
     }
@@ -257,7 +260,7 @@ static void ui_popup_block_position(wmWindow *window,
     }
   }
   else if (dir1 == UI_DIR_UP) {
-    offset_y = butrct.ymax - block->rect.ymin;
+    offset_y = (butrct.ymax - block->rect.ymin) - offset_overlap;
     if (dir2 == UI_DIR_RIGHT) {
       offset_x = butrct.xmax - block->rect.xmax + center_x;
     }
@@ -271,7 +274,7 @@ static void ui_popup_block_position(wmWindow *window,
     }
   }
   else if (dir1 == UI_DIR_DOWN) {
-    offset_y = butrct.ymin - block->rect.ymax;
+    offset_y = (butrct.ymin - block->rect.ymax) + offset_overlap;
     if (dir2 == UI_DIR_RIGHT) {
       offset_x = butrct.xmax - block->rect.xmax + center_x;
     }
