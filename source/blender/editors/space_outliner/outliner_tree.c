@@ -1478,6 +1478,7 @@ static void outliner_make_object_parent_hierarchy(ListBase *lb)
   }
 }
 
+#if 0
 static void outliner_make_object_parent_hierarchy_recursive(SpaceOutliner *soops,
                                                             GHash *parent_children_hash,
                                                             TreeElement *te_parent,
@@ -1579,6 +1580,7 @@ static void outliner_build_parent_children_tree_free(Main *bmain, GHash *parent_
     }
   }
 }
+#endif
 
 /* Sorting ------------------------------------------------------ */
 
@@ -2302,6 +2304,7 @@ void outliner_build_tree(
       bool show_objects = !(soops->filter & SO_FILTER_NO_OBJECT);
       outliner_add_view_layer(soops, &ten->subtree, ten, view_layer, show_objects);
 
+#if 0
       if ((soops->filter & SO_FILTER_NO_CHILDREN) == 0) {
         GHash *parent_children_hash = BLI_ghash_new(
             BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
@@ -2310,6 +2313,7 @@ void outliner_build_tree(
         outliner_build_parent_children_tree_free(mainvar, parent_children_hash);
         BLI_ghash_free(parent_children_hash, NULL, NULL);
       }
+#endif
     }
   }
 
