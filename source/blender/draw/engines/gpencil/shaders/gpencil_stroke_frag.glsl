@@ -5,6 +5,7 @@ uniform float gradient_f;
 
 uniform vec4 colormix;
 uniform float mix_stroke_factor;
+uniform int shading_type[2];
 
 in vec4 mColor;
 in vec2 mTexCoord;
@@ -21,6 +22,11 @@ out vec4 fragColor;
 
 #define ENDCAP 1.0
 
+#define OB_SOLID 3
+#define V3D_SHADING_TEXTURE_COLOR 3
+
+bool no_texture = (shading_type[0] == OB_SOLID) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR);
+
 void main()
 {
 
@@ -33,8 +39,8 @@ void main()
       discard;
     }
   }
-  /* Solid */
-  if (color_type == GPENCIL_COLOR_SOLID) {
+
+  if ((color_type == GPENCIL_COLOR_SOLID) || (no_texture)) {
     fragColor = tColor;
   }
 
@@ -48,7 +54,7 @@ void main()
   }
 
   /* texture */
-  if (color_type == GPENCIL_COLOR_TEXTURE) {
+  if ((color_type == GPENCIL_COLOR_TEXTURE) && (!no_texture)) {
     if (mix_stroke_factor > 0.0) {
       fragColor.rgb = mix(text_color.rgb, colormix.rgb, mix_stroke_factor);
       fragColor.a = text_color.a;
@@ -61,7 +67,7 @@ void main()
     fragColor.a = min(fragColor.a * tColor.a, fragColor.a);
   }
   /* pattern */
-  if (color_type == GPENCIL_COLOR_PATTERN) {
+  if ((color_type == GPENCIL_COLOR_PATTERN) && (!no_texture)) {
     fragColor = tColor;
     /* mult both alpha factor to use strength factor with color alpha limit */
     fragColor.a = min(text_color.a * tColor.a, tColor.a);

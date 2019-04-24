@@ -7,6 +7,7 @@ uniform vec2 gradient_s;
 
 uniform vec4 colormix;
 uniform float mix_stroke_factor;
+uniform int shading_type[2];
 
 in vec4 mColor;
 in vec2 mTexCoord;
@@ -22,6 +23,11 @@ out vec4 fragColor;
 #define GPENCIL_COLOR_SOLID 0
 #define GPENCIL_COLOR_TEXTURE 1
 #define GPENCIL_COLOR_PATTERN 2
+
+#define OB_SOLID 3
+#define V3D_SHADING_TEXTURE_COLOR 3
+
+bool no_texture = (shading_type[0] == OB_SOLID) && (shading_type[1] != V3D_SHADING_TEXTURE_COLOR);
 
 /* Function to check the point inside ellipse */
 float check_ellipse_point(vec2 pt, vec2 radius)
@@ -62,11 +68,11 @@ void main()
   vec4 tmp_color = texture2D(myTexture, mTexCoord);
 
   /* Solid */
-  if (color_type == GPENCIL_COLOR_SOLID) {
+  if ((color_type == GPENCIL_COLOR_SOLID) || (no_texture)) {
     fragColor = mColor;
   }
   /* texture */
-  if (color_type == GPENCIL_COLOR_TEXTURE) {
+  if ((color_type == GPENCIL_COLOR_TEXTURE) && (!no_texture)) {
     vec4 text_color = texture2D(myTexture, mTexCoord);
     if (mix_stroke_factor > 0.0) {
       fragColor.rgb = mix(text_color.rgb, colormix.rgb, mix_stroke_factor);
@@ -80,7 +86,7 @@ void main()
     fragColor.a = min(fragColor.a * mColor.a, fragColor.a);
   }
   /* pattern */
-  if (color_type == GPENCIL_COLOR_PATTERN) {
+  if ((color_type == GPENCIL_COLOR_PATTERN) && (!no_texture)) {
     vec4 text_color = texture2D(myTexture, mTexCoord);
     fragColor = mColor;
     /* mult both alpha factor to use strength factor with color alpha limit */
