@@ -24,11 +24,13 @@
 #include <string.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 
+#include "BKE_action.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -91,7 +93,26 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   if (amd->object != NULL) {
-    DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
+    /* If not using envelopes, create relations to individual bones for more rigging flexibility. */
+    if ((amd->deformflag & ARM_DEF_ENVELOPE) == 0 && (amd->object->pose != NULL) &&
+        ELEM(ctx->object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+      /* If neither vertex groups nor envelopes are used, the modifier has no bone dependencies. */
+      if ((amd->deformflag & ARM_DEF_VGROUP) != 0) {
+        /* Enumerate groups that match existing bones. */
+        LISTBASE_FOREACH (bDeformGroup *, dg, &ctx->object->defbase) {
+          if (BKE_pose_channel_find_name(amd->object->pose, dg->name) != NULL) {
+            /* Can't check BONE_NO_DEFORM because it can be animated. */
+            DEG_add_bone_relation(
+                ctx->node, amd->object, dg->name, DEG_OB_COMP_BONE, "Armature Modifier");
+          }
+        }
+      }
+    }
+    /* Otherwise require the whole pose to be complete. */
+    else {
+      DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
+    }
+
     DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
   }
   DEG_add_modifier_to_transform_relation(ctx->node, "Armature Modifier");

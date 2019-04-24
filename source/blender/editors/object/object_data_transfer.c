@@ -842,6 +842,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
     BLI_freelistN(&ctx_objects);
   }
 
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
   return OPERATOR_FINISHED;

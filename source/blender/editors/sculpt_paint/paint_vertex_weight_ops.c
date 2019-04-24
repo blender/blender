@@ -130,6 +130,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
       op->reports, depsgraph, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
   DEG_id_tag_update(&me->id, 0);
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
   return OPERATOR_FINISHED;

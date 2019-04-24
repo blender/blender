@@ -41,6 +41,8 @@
 #include "BKE_report.h"
 #include "BKE_object.h"
 
+#include "DEG_depsgraph_build.h"
+
 /* Only for blend modes. */
 #include "IMB_imbuf.h"
 
@@ -93,6 +95,7 @@ bool ED_wpaint_ensure_data(bContext *C,
           bDeformGroup *dg = defgroup_find_name(ob, pchan->name);
           if (dg == NULL) {
             dg = BKE_object_defgroup_add_name(ob, pchan->name); /* sets actdef */
+            DEG_relations_tag_update(CTX_data_main(C));
           }
           else {
             int actdef = 1 + BLI_findindex(&ob->defbase, dg);
@@ -105,6 +108,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   }
   if (BLI_listbase_is_empty(&ob->defbase)) {
     BKE_object_defgroup_add(ob);
+    DEG_relations_tag_update(CTX_data_main(C));
   }
 
   /* ensure we don't try paint onto an invalid group */

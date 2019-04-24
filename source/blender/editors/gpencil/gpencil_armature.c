@@ -480,6 +480,8 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
      */
     gpencil_add_verts_to_dgroups(C, ob, ob_arm, ratio, decay);
   }
+
+  DEG_relations_tag_update(CTX_data_main(C));
 }
 
 bool ED_gpencil_add_armature_weights(

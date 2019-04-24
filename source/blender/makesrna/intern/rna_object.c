@@ -381,6 +381,12 @@ void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
+void rna_Object_internal_update_data_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  DEG_relations_tag_update(bmain);
+  rna_Object_internal_update_data(bmain, scene, ptr);
+}
+
 static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 {
   Object *ob = ptr->id.data;
@@ -1539,16 +1545,20 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
   }
 }
 
-static bDeformGroup *rna_Object_vgroup_new(Object *ob, const char *name)
+static bDeformGroup *rna_Object_vgroup_new(Object *ob, Main *bmain, const char *name)
 {
   bDeformGroup *defgroup = BKE_object_defgroup_add_name(ob, name);
 
+  DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 
   return defgroup;
 }
 
-static void rna_Object_vgroup_remove(Object *ob, ReportList *reports, PointerRNA *defgroup_ptr)
+static void rna_Object_vgroup_remove(Object *ob,
+                                     Main *bmain,
+                                     ReportList *reports,
+                                     PointerRNA *defgroup_ptr)
 {
   bDeformGroup *defgroup = defgroup_ptr->data;
   if (BLI_findindex(&ob->defbase, defgroup) == -1) {
@@ -1563,13 +1573,15 @@ static void rna_Object_vgroup_remove(Object *ob, ReportList *reports, PointerRNA
   BKE_object_defgroup_remove(ob, defgroup);
   RNA_POINTER_INVALIDATE(defgroup_ptr);
 
+  DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static void rna_Object_vgroup_clear(Object *ob)
+static void rna_Object_vgroup_clear(Object *ob, Main *bmain)
 {
   BKE_object_defgroup_remove_all(ob);
 
+  DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -1757,7 +1769,8 @@ static void rna_def_vertex_group(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_VertexGroup_name_set");
   /* update data because modifiers may use [#24761] */
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA | NA_RENAME, "rna_Object_internal_update_data");
+  RNA_def_property_update(
+      prop, NC_GEOM | ND_DATA | NA_RENAME, "rna_Object_internal_update_data_dependency");
 
   prop = RNA_def_property(srna, "lock_weight", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop, "", "Maintain the relative weights for the group");
@@ -2160,19 +2173,21 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* vertex groups */ /* add_vertex_group */
   func = RNA_def_function(srna, "new", "rna_Object_vgroup_new");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add vertex group to object");
   RNA_def_string(func, "name", "Group", 0, "", "Vertex group name"); /* optional */
   parm = RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Object_vgroup_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Delete vertex group from object");
   parm = RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
   func = RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 

@@ -88,6 +88,7 @@ typedef struct tGP_BrushEditData {
   /* Current editor/region/etc. */
   /* NOTE: This stuff is mainly needed to handle 3D view projection stuff... */
   Depsgraph *depsgraph;
+  struct Main *bmain;
   Scene *scene;
   Object *object;
 
@@ -907,6 +908,7 @@ static bool gp_brush_weight_apply(
   if (gso->vrgroup == -1) {
     if (gso->object) {
       BKE_object_defgroup_add(gso->object);
+      DEG_relations_tag_update(gso->bmain);
       gso->vrgroup = 0;
     }
   }
@@ -1220,6 +1222,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
   op->customdata = gso;
 
   gso->depsgraph = CTX_data_depsgraph(C);
+  gso->bmain = CTX_data_main(C);
   /* store state */
   gso->settings = gpsculpt_get_settings(scene);
   gso->gp_brush = gpsculpt_get_brush(scene, is_weight_mode);
