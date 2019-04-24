@@ -1177,12 +1177,6 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_ob
   op_node->set_as_exit();
   /* Materials. */
   if (object->totcol != 0) {
-    if (object->type == OB_MESH) {
-      add_operation_node(&object->id,
-                         NodeType::SHADING,
-                         OperationCode::SHADING,
-                         function_bind(BKE_object_eval_update_shading, _1, object_cow));
-    }
     for (int a = 1; a <= object->totcol; a++) {
       Material *ma = give_current_material(object, a);
       if (ma != NULL) {

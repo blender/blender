@@ -1904,12 +1904,6 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
       Material *ma = give_current_material(object, a);
       if (ma != NULL) {
         build_material(ma);
-
-        if (object->type == OB_MESH) {
-          OperationKey material_key(&ma->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-          OperationKey shading_key(&object->id, NodeType::SHADING, OperationCode::SHADING);
-          add_relation(material_key, shading_key, "Material Update");
-        }
       }
     }
   }
@@ -1923,12 +1917,6 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     OperationKey obdata_ubereval_key(
         &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
     add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
-    if (object->totcol != 0 && object->type == OB_MESH) {
-      ComponentKey object_shading_key(&object->id, NodeType::SHADING);
-      Relation *rel = add_relation(
-          obdata_ubereval_key, object_shading_key, "Object Geometry batch Update");
-      rel->flag |= RELATION_FLAG_NO_FLUSH;
-    }
   }
   if (object->type == OB_MBALL) {
     Object *mom = BKE_mball_basis_find(scene_, object);

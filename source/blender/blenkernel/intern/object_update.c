@@ -369,14 +369,6 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph, Scene *scene, Object *o
   BKE_object_eval_transform_final(depsgraph, object);
 }
 
-void BKE_object_eval_update_shading(Depsgraph *depsgraph, Object *object)
-{
-  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  if (object->type == OB_MESH) {
-    BKE_mesh_batch_cache_dirty_tag(object->data, BKE_MESH_BATCH_DIRTY_SHADING);
-  }
-}
-
 void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
 {
   DEG_debug_print_eval(depsgraph, __func__, object_data->name, object_data);
