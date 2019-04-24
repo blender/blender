@@ -5364,16 +5364,6 @@ def km_3d_view_tool_select_lasso(params):
     )
 
 
-def km_3d_view_tool_transform(params):
-    return (
-        "3D View Tool: Transform",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [
-            ("transform.from_gizmo", {"type": params.tool_tweak, "value": 'ANY'}, None),
-        ]},
-    )
-
-
 def km_3d_view_tool_move(params):
     return (
         "3D View Tool: Move",
@@ -6253,7 +6243,6 @@ def generate_keymaps(params=None):
         km_3d_view_tool_select_box(params),
         km_3d_view_tool_select_circle(params),
         km_3d_view_tool_select_lasso(params),
-        km_3d_view_tool_transform(params),
         km_3d_view_tool_move(params),
         km_3d_view_tool_rotate(params),
         km_3d_view_tool_scale(params),
