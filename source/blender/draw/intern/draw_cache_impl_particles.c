@@ -1611,7 +1611,7 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   for (int point_index = 0; point_index < edit->totpoint; point_index++) {
     const PTCacheEditPoint *point = &edit->points[point_index];
     PTCacheEditKey *key = &point->keys[point->totkey - 1];
-    float color = (key->flag & PEK_SELECT) ? 0.0f : 1.0f;
+    float color = (key->flag & PEK_SELECT) ? 1.0f : 0.0f;
 
     GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, point_index, key->world_co);
     GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, &color);
