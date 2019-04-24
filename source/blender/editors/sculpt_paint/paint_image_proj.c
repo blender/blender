@@ -4306,6 +4306,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
            * It's less trouble to set all faces to valid UV's,
            * avoiding NULL checks all over. */
           skip_tri = true;
+          tpage = NULL;
         }
         else {
           tpage = slot->ima;
