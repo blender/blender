@@ -30,15 +30,15 @@ set(INC
   ../imbuf
   ../makesdna
   ../makesrna
-  ../windowmanager
   ../nodes
+  ../windowmanager
   ../nodes/composite
   ../nodes/intern
   ../render/extern/include
   ../render/intern/include
   ../../../extern/clew/include
-  ../../../intern/guardedalloc
   ../../../intern/atomic
+  ../../../intern/guardedalloc
 )
 
 set(INC_SYS

@@ -39,9 +39,9 @@ set(INC
   ../render/intern/include
   ../windowmanager
 
+  ../../../intern/atomic
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
-  ../../../intern/atomic
 )
 
 set(INC_SYS

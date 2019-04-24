@@ -22,19 +22,19 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
+  ../../gpencil_modifiers
   ../../gpu
   ../../ikplugin
   ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../modifiers
-  ../../gpencil_modifiers
-  ../../shader_fx
   ../../python
+  ../../shader_fx
   ../../render/extern/include
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../intern/glew-mx
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS

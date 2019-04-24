@@ -22,16 +22,16 @@ set(INC
   ../../blenlib
   ../../blentranslation
   ../../depsgraph
-  ../../imbuf
   ../../gpu
+  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
   ../../render/extern/include
-  ../../windowmanager
   ../../compositor
-  ../../../../intern/guardedalloc
+  ../../windowmanager
   ../../../../intern/glew-mx
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS

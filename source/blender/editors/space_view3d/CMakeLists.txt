@@ -28,10 +28,10 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../render/extern/include
-  ../../windowmanager
   ../../depsgraph
-  ../../../../intern/guardedalloc
+  ../../windowmanager
   ../../../../intern/glew-mx
+  ../../../../intern/guardedalloc
   ../../../../intern/smoke/extern
 )
 

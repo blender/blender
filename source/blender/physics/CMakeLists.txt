@@ -21,8 +21,8 @@
 set(INC
   .
   intern
-  ../blenlib
   ../blenkernel
+  ../blenlib
   ../depsgraph
   ../imbuf
   ../makesdna

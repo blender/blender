@@ -22,18 +22,18 @@ setup_libdirs()
 
 blender_include_dirs(
   ../../intern/clog
-  ../../intern/guardedalloc
   ../../intern/glew-mx
-  ../blender/blenlib
+  ../../intern/guardedalloc
   ../blender/blenkernel
+  ../blender/blenlib
   ../blender/blenloader
   ../blender/depsgraph
   ../blender/editors/include
-  ../blender/makesrna
   ../blender/imbuf
+  ../blender/makesrna
   ../blender/render/extern/include
-  ../blender/makesdna
   ../blender/gpu
+  ../blender/makesdna
   ../blender/windowmanager
 )
 

@@ -17,16 +17,16 @@
 
 set(INC
   ../include
+  ../../alembic
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
   ../../bmesh
+  ../../collada
   ../../depsgraph
   ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../collada
-  ../../alembic
   ../../../../intern/guardedalloc
 )
 

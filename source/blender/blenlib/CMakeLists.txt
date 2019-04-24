@@ -22,9 +22,9 @@ set(INC
   .
   # ../blenkernel  # dont add this back!
   ../makesdna
-  ../../../intern/guardedalloc
   ../../../intern/atomic
   ../../../intern/eigen
+  ../../../intern/guardedalloc
   ../../../intern/numaapi/include
   ../../../extern/wcwidth
 )

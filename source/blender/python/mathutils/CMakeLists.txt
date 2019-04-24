@@ -17,8 +17,8 @@
 
 set(INC
   .
-  ../../blenlib
   ../../blenkernel
+  ../../blenlib
   ../../bmesh
   ../../depsgraph
   ../../makesdna

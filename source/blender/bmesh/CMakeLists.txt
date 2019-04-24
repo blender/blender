@@ -24,9 +24,9 @@ set(INC
   ../blenlib
   ../blentranslation
   ../makesdna
-  ../../../intern/guardedalloc
   ../../../intern/atomic
   ../../../intern/eigen
+  ../../../intern/guardedalloc
   ../../../extern/rangetree
 )
 

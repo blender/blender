@@ -41,10 +41,10 @@ set(INC
   ../blentranslation
   ../depsgraph
   ../editors/include
+  ../imbuf
   ../makesdna
   ../makesrna
   ../windowmanager
-  ../imbuf
   ../../../intern/guardedalloc
   ../ikplugin
   ../../../intern/iksolver/extern

@@ -24,29 +24,29 @@ set(INC
   ../blenlib
   ../blenloader
   ../blentranslation
+  ../bmesh
   ../depsgraph
   ../draw
+  ../gpencil_modifiers
   ../gpu
   ../ikplugin
   ../imbuf
   ../makesdna
   ../makesrna
-  ../bmesh
   ../modifiers
-  ../gpencil_modifiers
-  ../shader_fx
   ../nodes
   ../physics
+  ../shader_fx
   ../render/extern/include
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/glew-mx
+  ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
-  ../../../intern/memutil
-  ../../../intern/mikktspace
   ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/libmv
+  ../../../intern/memutil
+  ../../../intern/mikktspace
   ../../../intern/opensubdiv
   ../../../extern/curve_fit_nd
   ../../../intern/smoke/extern

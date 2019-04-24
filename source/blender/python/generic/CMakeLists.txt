@@ -21,8 +21,8 @@ set(INC
   ../../blenlib
   ../../gpu
   ../../makesdna
-  ../../../../intern/guardedalloc
   ../../../../intern/glew-mx
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS

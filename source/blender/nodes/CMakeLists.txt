@@ -33,8 +33,8 @@ set(INC
   ../makesdna
   ../makesrna
   ../render/extern/include
-  ../../../intern/guardedalloc
   ../../../intern/glew-mx
+  ../../../intern/guardedalloc
 )
 
 set(INC_SYS

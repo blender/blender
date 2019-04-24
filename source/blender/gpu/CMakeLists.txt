@@ -31,10 +31,10 @@ set(INC
   ../blenkernel
   ../blenlib
   ../bmesh
+  ../draw
   ../imbuf
   ../makesdna
   ../makesrna
-  ../draw
 
   ../editors/include
 

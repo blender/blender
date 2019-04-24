@@ -25,14 +25,14 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blentranslation
-  ../imbuf
   ../depsgraph
+  ../draw
+  ../gpu
+  ../imbuf
   ../makesdna
   ../makesrna
   ../nodes
   ../physics
-  ../draw
-  ../gpu
   ../../../intern/atomic
   ../../../intern/guardedalloc
   ../../../intern/mikktspace

@@ -39,8 +39,8 @@ set(INC
   ../render/extern/include
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/glew-mx
+  ../../../intern/guardedalloc
   ../../../intern/memutil
 )
 

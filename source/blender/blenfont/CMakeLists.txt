@@ -25,11 +25,11 @@ set(INC
   ../blentranslation
   ../editors/include
   ../gpu
+  ../imbuf
   ../makesdna
   ../makesrna
-  ../imbuf
-  ../../../intern/guardedalloc
   ../../../intern/glew-mx
+  ../../../intern/guardedalloc
 )
 
 set(INC_SYS

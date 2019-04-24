@@ -24,8 +24,8 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../intern/clog
+  ../../../../intern/guardedalloc
 )
 
 set(SRC
