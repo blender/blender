@@ -174,13 +174,13 @@ static void nla_channel_region_init(wmWindowManager *wm, ARegion *ar)
   /* own keymap */
   /* own channels map first to override some channel keymaps */
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
   /* now generic channels map for everything else that can apply */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 }
 
 /* draw entirely, view changes should be handled here */
@@ -220,7 +220,7 @@ static void nla_main_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
@@ -328,7 +328,7 @@ static void nla_buttons_region_init(wmWindowManager *wm, ARegion *ar)
   ED_region_panels_init(wm, ar);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 }
 
 static void nla_buttons_region_draw(const bContext *C, ARegion *ar)

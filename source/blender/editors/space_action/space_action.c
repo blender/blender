@@ -166,7 +166,7 @@ static void action_main_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
@@ -271,7 +271,7 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Dopesheet Generic", SPACE_ACTION, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);

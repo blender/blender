@@ -536,17 +536,17 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* mask polls mode */
   keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   /* image paint polls for mode */
   keymap = WM_keymap_ensure(wm->defaultconf, "Curve", 0, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Paint Curve", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Image Paint", 0, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "UV Editor", 0, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -558,7 +558,7 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
   keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
   WM_event_add_keymap_handler(&ar->handlers, keymap);
   keymap = WM_keymap_ensure(wm->defaultconf, "Image", SPACE_IMAGE, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 }
 
 static void image_main_region_draw(const bContext *C, ARegion *ar)

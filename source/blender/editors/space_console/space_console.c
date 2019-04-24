@@ -136,7 +136,7 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);

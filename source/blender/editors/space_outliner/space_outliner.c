@@ -74,8 +74,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *ar)
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
-  /* don't pass on view2d mask, it's always set with scrollbar space, hide fails */
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   /* Add dropboxes */
   lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);

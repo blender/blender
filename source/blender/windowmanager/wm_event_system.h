@@ -44,14 +44,15 @@ enum eWM_EventHandlerType {
   WM_HANDLER_TYPE_KEYMAP,
 };
 
+typedef bool (*EventHandlerPoll)(const ARegion *ar, const wmEvent *event);
+
 typedef struct wmEventHandler {
   struct wmEventHandler *next, *prev;
 
   enum eWM_EventHandlerType type;
   char flag; /* WM_HANDLER_BLOCKING, ... */
 
-  /** Optional local and windowspace bb. */
-  const rcti *bblocal, *bbwin;
+  EventHandlerPoll poll;
 } wmEventHandler;
 
 /** Run after the keymap item runs. */

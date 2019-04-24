@@ -1550,6 +1550,13 @@ static void region_subwindow(ARegion *ar)
   ar->visible = !hidden;
 }
 
+static bool event_in_markers_region(const ARegion *ar, const wmEvent *event)
+{
+  rcti rect = ar->winrct;
+  rect.ymax = rect.ymin + UI_MARKER_MARGIN_Y;
+  return BLI_rcti_isect_pt(&rect, event->x, event->y);
+}
+
 /**
  * \param ar: Region, may be NULL when adding handlers for \a sa.
  */
@@ -1591,13 +1598,7 @@ static void ed_default_handlers(
   if (flag & ED_KEYMAP_MARKERS) {
     /* time-markers */
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Markers", 0, 0);
-
-    /* use a boundbox restricted map */
-    /* same local check for all areas */
-    static rcti rect = {0, 10000, 0, -1};
-    rect.ymax = UI_MARKER_MARGIN_Y;
-    BLI_assert(ar->type->regionid == RGN_TYPE_WINDOW);
-    WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
+    WM_event_add_keymap_handler_poll(handlers, keymap, event_in_markers_region);
   }
   if (flag & ED_KEYMAP_ANIMATION) {
     /* frame changing and timeline operators (for time spaces) */

@@ -208,12 +208,13 @@ int WM_userdef_event_type_from_keymap_type(int kmitype);
 
 /* handlers */
 
+typedef bool (*EventHandlerPoll)(const ARegion *ar, const struct wmEvent *event);
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
-/* boundbox, optional subwindow boundbox for offset */
-struct wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(ListBase *handlers,
-                                                             wmKeyMap *keymap,
-                                                             const rcti *bb,
-                                                             const rcti *swinbb);
+struct wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
+                                                               wmKeyMap *keymap,
+                                                               EventHandlerPoll poll);
+struct wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBase *handlers,
+                                                                   wmKeyMap *keymap);
 /* priority not implemented, it adds in begin */
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
                                                                    wmKeyMap *keymap,

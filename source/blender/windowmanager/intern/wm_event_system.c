@@ -2470,38 +2470,6 @@ static int wm_handler_fileselect_call(bContext *C,
   return wm_handler_fileselect_do(C, handlers, handler, event->val);
 }
 
-static bool handler_boundbox_test(wmEventHandler *handler, const wmEvent *event)
-{
-  if (handler->bbwin) {
-    if (handler->bblocal) {
-      rcti rect = *handler->bblocal;
-      BLI_rcti_translate(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
-
-      if (BLI_rcti_isect_pt_v(&rect, &event->x)) {
-        return 1;
-      }
-      else if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(&rect, &event->prevx)) {
-        return 1;
-      }
-      else {
-        return 0;
-      }
-    }
-    else {
-      if (BLI_rcti_isect_pt_v(handler->bbwin, &event->x)) {
-        return 1;
-      }
-      else if (event->type == MOUSEMOVE && BLI_rcti_isect_pt_v(handler->bbwin, &event->prevx)) {
-        return 1;
-      }
-      else {
-        return 0;
-      }
-    }
-  }
-  return 1;
-}
-
 static int wm_action_not_handled(int action)
 {
   return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL);
@@ -2540,7 +2508,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* pass */
     }
-    else if (handler_boundbox_test(handler_base, event)) { /* optional boundbox */
+    else if (handler_base->poll == NULL || handler_base->poll(CTX_wm_region(C), event)) {
       /* in advance to avoid access to freed event on window close */
       always_pass = wm_event_always_pass(event);
 
@@ -3608,18 +3576,42 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
   return handler;
 }
 
-wmEventHandler_Keymap *WM_event_add_keymap_handler_bb(ListBase *handlers,
-                                                      wmKeyMap *keymap,
-                                                      const rcti *bblocal,
-                                                      const rcti *bbwin)
+static bool event_or_prev_in_rect(const wmEvent *event, const rcti *rect)
+{
+  if (BLI_rcti_isect_pt(rect, event->x, event->y)) {
+    return true;
+  }
+  else if (event->type == MOUSEMOVE && BLI_rcti_isect_pt(rect, event->prevx, event->prevy)) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+static bool handler_region_v2d_mask_test(const ARegion *ar, const wmEvent *event)
+{
+  rcti rect = ar->v2d.mask;
+  BLI_rcti_translate(&rect, ar->winrct.xmin, ar->winrct.ymin);
+  return event_or_prev_in_rect(event, &rect);
+}
+
+wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
+                                                        wmKeyMap *keymap,
+                                                        EventHandlerPoll poll)
 {
   wmEventHandler_Keymap *handler = WM_event_add_keymap_handler(handlers, keymap);
-
-  if (handler) {
-    handler->head.bblocal = bblocal;
-    handler->head.bbwin = bbwin;
+  if (handler == NULL) {
+    return NULL;
   }
+
+  handler->head.poll = poll;
   return handler;
+}
+
+wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBase *handlers, wmKeyMap *keymap)
+{
+  return WM_event_add_keymap_handler_poll(handlers, keymap, handler_region_v2d_mask_test);
 }
 
 void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
@@ -4802,7 +4794,7 @@ static wmKeyMapItem *wm_kmi_from_event(bContext *C,
     if (handler_base->flag & WM_HANDLER_DO_FREE) {
       /* pass */
     }
-    else if (handler_boundbox_test(handler_base, event)) { /* optional boundbox */
+    else if (handler_base->poll == NULL || handler_base->poll(CTX_wm_region(C), event)) {
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);

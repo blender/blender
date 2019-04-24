@@ -617,7 +617,7 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *ar)
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
-  WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+  WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
