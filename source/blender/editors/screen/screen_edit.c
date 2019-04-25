@@ -424,31 +424,6 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
   }
 }
 
-/* helper call for below, dpi changes headers */
-static void screen_refresh_headersizes(void)
-{
-  const ListBase *lb = BKE_spacetypes_list();
-  SpaceType *st;
-
-  for (st = lb->first; st; st = st->next) {
-    ARegionType *art;
-    art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
-    if (art) {
-      art->prefsizey = ED_area_headersize();
-    }
-
-    art = BKE_regiontype_from_id(st, RGN_TYPE_TOOL_HEADER);
-    if (art) {
-      art->prefsizey = ED_area_headersize();
-    }
-
-    art = BKE_regiontype_from_id(st, RGN_TYPE_FOOTER);
-    if (art) {
-      art->prefsizey = ED_area_headersize();
-    }
-  }
-}
-
 /* make this screen usable */
 /* for file read and first use, for scaling window, area moves */
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
@@ -461,7 +436,6 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
     WM_window_set_dpi(win);
 
     ED_screen_global_areas_refresh(win);
-    screen_refresh_headersizes();
 
     screen_geom_vertices_scale(win, screen);
 
