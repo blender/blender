@@ -6154,17 +6154,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
 #  endif
 
-  prop = RNA_def_property(srna, "use_sequencer_gl_textured_solid", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_SOLID_TEX);
-  RNA_def_property_ui_text(
-      prop, "Textured Solid", "Display face-assigned textures in solid draw method");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
-
-  prop = RNA_def_property(srna, "use_sequencer_gl_dof", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_CAMERA_DOF);
+  prop = RNA_def_property(srna, "use_sequencer_override_scene_strip", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_OVERRIDE_SCENE_SETTINGS);
   RNA_def_property_ui_text(prop,
-                           "Depth of Field",
-                           "Use depth of field using the values from scene strip active camera");
+                           "Override Scene Settings",
+                           "Use workbench render settings from the sequencer scene, instead of "
+                           "each individual scene used in the strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
   prop = RNA_def_property(srna, "use_single_layer", PROP_BOOLEAN, PROP_NONE);

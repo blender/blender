@@ -381,9 +381,10 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       }
     }
     else {
-      draw_flags |= V3D_OFSDRAW_USE_GPENCIL;
+      draw_flags |= V3D_OFSDRAW_SHOW_ANNOTATION;
       ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                         scene,
+                                                        NULL,
                                                         OB_SOLID,
                                                         scene->camera,
                                                         oglrender->sizex,

@@ -100,7 +100,6 @@ typedef struct SeqRenderData {
 
   /* special case for OpenGL render */
   struct GPUOffScreen *gpu_offscreen;
-  struct GPUFX *gpu_fx;
   int gpu_samples;
   bool gpu_full_samples;
 } SeqRenderData;
@@ -487,19 +486,9 @@ struct Sequence *BKE_sequencer_add_movie_strip(struct bContext *C,
                                                ListBase *seqbasep,
                                                struct SeqLoadInfo *seq_load);
 
-/* view3d draw callback, run when not in background view */
-/* NOTE: Keep in sync with V3D_OFSDRAW_* flags. */
-enum {
-  SEQ_OFSDRAW_NONE = (0),
-  SEQ_OFSDRAW_USE_BACKGROUND = (1 << 0),
-  SEQ_OFSDRAW_USE_FULL_SAMPLE = (1 << 1),
-  SEQ_OFSDRAW_USE_GPENCIL = (1 << 2),
-  SEQ_OFSDRAW_USE_SOLID_TEX = (1 << 2),
-  SEQ_OFSDRAW_USE_CAMERA_DOF = (1 << 3),
-};
-
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
+                                           struct View3DShading *shading_override,
                                            int drawtype,
                                            struct Object *camera,
                                            int width,

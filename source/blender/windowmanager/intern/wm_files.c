@@ -1223,6 +1223,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   if (scene->camera) {
     ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                  scene,
+                                                 NULL,
                                                  OB_SOLID,
                                                  scene->camera,
                                                  BLEN_THUMB_SIZE * 2,

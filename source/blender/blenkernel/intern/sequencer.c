@@ -3454,9 +3454,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
   const bool is_rendering = G.is_rendering;
   const bool is_background = G.background;
-  const bool do_seq_gl = is_rendering ? 0 /* (context->scene->r.seq_flag & R_SEQ_GL_REND) */ :
-                                        (context->scene->r.seq_prev_type) != OB_RENDER;
-  // bool have_seq = false;  /* UNUSED */
+  const bool do_seq_gl = is_rendering ? 0 : (context->scene->r.seq_prev_type) != OB_RENDER;
   bool have_comp = false;
   bool use_gpencil = true;
   /* do we need to re-evaluate the frame after rendering? */
@@ -3521,15 +3519,14 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     char err_out[256] = "unknown";
     const int width = (scene->r.xsch * scene->r.size) / 100;
     const int height = (scene->r.ysch * scene->r.size) / 100;
-    const bool use_background = (scene->r.alphamode == R_ADDSKY);
     const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
-    unsigned int draw_flags = SEQ_OFSDRAW_NONE;
-    draw_flags |= (use_gpencil) ? SEQ_OFSDRAW_USE_GPENCIL : 0;
-    draw_flags |= (use_background) ? SEQ_OFSDRAW_USE_BACKGROUND : 0;
-    draw_flags |= (context->gpu_full_samples) ? SEQ_OFSDRAW_USE_FULL_SAMPLE : 0;
-    draw_flags |= (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) ? SEQ_OFSDRAW_USE_SOLID_TEX : 0;
-    draw_flags |= (context->scene->r.seq_flag & R_SEQ_CAMERA_DOF) ? SEQ_OFSDRAW_USE_CAMERA_DOF : 0;
+    unsigned int draw_flags = V3D_OFSDRAW_NONE;
+    draw_flags |= (use_gpencil) ? V3D_OFSDRAW_SHOW_ANNOTATION : 0;
+    draw_flags |= (context->gpu_full_samples) ? V3D_OFSDRAW_USE_FULL_SAMPLE : 0;
+    draw_flags |= (context->scene->r.seq_flag & R_SEQ_OVERRIDE_SCENE_SETTINGS) ?
+                      V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :
+                      0;
 
     /* for old scene this can be uninitialized,
      * should probably be added to do_versions at some point if the functionality stays */
@@ -3544,6 +3541,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         /* set for OpenGL render (NULL when scrubbing) */
         depsgraph,
         scene,
+        &context->scene->display.shading,
         context->scene->r.seq_prev_type,
         camera,
         width,

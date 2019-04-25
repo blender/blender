@@ -1291,7 +1291,7 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
-    bl_label = "Scene Preview & Render"
+    bl_label = "Scene Shading"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Strip"
@@ -1304,11 +1304,8 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         col = layout.column()
         col.prop(render, "sequencer_gl_preview", text="")
 
-        row = col.row()
-        row.active = render.sequencer_gl_preview == 'SOLID'
-        row.prop(render, "use_sequencer_gl_textured_solid")
-
-        col.prop(render, "use_sequencer_gl_dof")
+        if render.sequencer_gl_preview in ['SOLID', 'WIREFRAME']:
+            col.prop(render, "use_sequencer_override_scene_strip")
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
