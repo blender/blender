@@ -1553,11 +1553,10 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     drw_engines_world_update(scene);
 
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-    DEG_OBJECT_ITER_BEGIN (depsgraph,
-                           ob,
-                           DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                               DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                               DEG_ITER_OBJECT_FLAG_DUPLI) {
+    const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                          DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                          DEG_ITER_OBJECT_FLAG_DUPLI;
+    DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flag) {
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
         continue;
       }
@@ -2004,11 +2003,10 @@ void DRW_render_object_iter(
   const int object_type_exclude_viewport = draw_ctx->v3d ?
                                                draw_ctx->v3d->object_type_exclude_viewport :
                                                0;
-  DEG_OBJECT_ITER_BEGIN (depsgraph,
-                         ob,
-                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                             DEG_ITER_OBJECT_FLAG_DUPLI) {
+  const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                        DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flag) {
     if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
@@ -2258,14 +2256,13 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 #  endif
     }
     else {
+      const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
       const int object_type_exclude_select = (v3d->object_type_exclude_viewport |
                                               v3d->object_type_exclude_select);
       bool filter_exclude = false;
-      DEG_OBJECT_ITER_BEGIN (depsgraph,
-                             ob,
-                             DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                                 DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-                                 DEG_ITER_OBJECT_FLAG_VISIBLE | DEG_ITER_OBJECT_FLAG_DUPLI) {
+      DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flag) {
         if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
           continue;
         }
@@ -2377,11 +2374,10 @@ static void drw_draw_depth_loop_imp(void)
 
     View3D *v3d = DST.draw_ctx.v3d;
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-    DEG_OBJECT_ITER_BEGIN (DST.draw_ctx.depsgraph,
-                           ob,
-                           DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                               DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                               DEG_ITER_OBJECT_FLAG_DUPLI) {
+    const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                          DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                          DEG_ITER_OBJECT_FLAG_DUPLI;
+    DEG_OBJECT_ITER_BEGIN (DST.draw_ctx.depsgraph, ob, iter_flag) {
       if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
         continue;
       }
