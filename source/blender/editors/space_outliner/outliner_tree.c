@@ -1623,6 +1623,19 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
   return 0;
 }
 
+/* Move children that are not in the collection to the end of the list. */
+static int treesort_child_not_in_collection(const void *v1, const void *v2)
+{
+  const tTreeSort *x1 = v1, *x2 = v2;
+
+  /* Among objects first come the ones in the collection, followed by the ones not on it.
+   * This way we can have the dashed lines in a separate style connecting the former. */
+  if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) != (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION)) {
+    return (x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) ? 1 : -1;
+  }
+  return 0;
+}
+
 /* alphabetical comparator */
 static int treesort_alpha(const void *v1, const void *v2)
 {
@@ -1730,6 +1743,50 @@ static void outliner_sort(ListBase *lb)
           qsort(tear + skip, totelem - skip, sizeof(tTreeSort), treesort_alpha_ob);
         }
       }
+
+      BLI_listbase_clear(lb);
+      tp = tear;
+      while (totelem--) {
+        BLI_addtail(lb, tp->te);
+        tp++;
+      }
+      MEM_freeN(tear);
+    }
+  }
+
+  for (te = lb->first; te; te = te->next) {
+    outliner_sort(&te->subtree);
+  }
+}
+
+static void outliner_collections_children_sort(ListBase *lb)
+{
+  TreeElement *te;
+  TreeStoreElem *tselem;
+
+  te = lb->last;
+  if (te == NULL) {
+    return;
+  }
+  tselem = TREESTORE(te);
+
+  /* Sorting rules: only object lists. */
+  if (tselem->type == 0 && te->idcode == ID_OB) {
+    int totelem = BLI_listbase_count(lb);
+
+    if (totelem > 1) {
+      tTreeSort *tear = MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array");
+      tTreeSort *tp = tear;
+
+      for (te = lb->first; te; te = te->next, tp++) {
+        tselem = TREESTORE(te);
+        tp->te = te;
+        tp->name = te->name;
+        tp->idcode = te->idcode;
+        tp->id = tselem->id;
+      }
+
+      qsort(tear, totelem, sizeof(tTreeSort), treesort_child_not_in_collection);
 
       BLI_listbase_clear(lb);
       tp = tear;
@@ -2310,6 +2367,13 @@ void outliner_build_tree(
 
   if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&soops->tree);
+  }
+  else if ((soops->filter & SO_FILTER_NO_CHILDREN) == 0) {
+    /* We group the children that are in the collection before the ones that are not.
+     * This way we can try to draw them in a different style altogether.
+     * We also have to respect the original order of the elements in case alphabetical
+     * sorting is not enabled. This keep object data and modifiers before its children. */
+    outliner_collections_children_sort(&soops->tree);
   }
 
   outliner_filter_tree(soops, view_layer);
