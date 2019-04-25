@@ -294,6 +294,8 @@ class TOPBAR_MT_file_new(Menu):
             )
             props.app_template = d
 
+        layout.operator_context = 'EXEC_DEFAULT'
+
         if show_more:
             layout.menu("TOPBAR_MT_templates_more", text="...")
 
