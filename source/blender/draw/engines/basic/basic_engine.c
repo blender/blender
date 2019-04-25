@@ -169,8 +169,8 @@ static void basic_cache_populate(void *vedata, Object *ob)
     const bool do_cull = (draw_ctx->v3d &&
                           (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
     /* Depth Prepass */
-    DRW_shgroup_call_add(
-        (do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
+    DRW_shgroup_call_object_add(
+        (do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob);
   }
 }
 
