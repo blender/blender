@@ -520,6 +520,7 @@ bool UI_but_is_tool(const uiBut *but);
 #define UI_but_is_decorator(but) ((but)->func == ui_but_anim_decorate_cb)
 
 bool UI_block_is_empty(const uiBlock *block);
+bool UI_block_can_add_separator(const uiBlock *block);
 
 /* interface_region_menu_popup.c */
 /**
