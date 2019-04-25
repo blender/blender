@@ -3468,20 +3468,38 @@ def km_transform_modal_map(_params):
 # Tool System Keymaps
 
 
-
 def km_3d_view_tool_move(params):
     return (
         "3D View Tool: Move",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("transform.translate", {"type": params.tool_tweak, "value": 'ANY'},
+            ("transform.translate", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
-            ("object.duplicate_move", {"type": params.tool_tweak, "value": 'ANY', "shift": True}, None),
-            ("mesh.duplicate_move", {"type": params.tool_tweak, "value": 'ANY', "shift": True}, None),
-            ("curve.duplicate_move", {"type": params.tool_tweak, "value": 'ANY', "shift": True}, None),
-            ("armature.duplicate_move", {"type": params.tool_tweak, "value": 'ANY', "shift": True}, None),
-            ("mball.duplicate_move", {"type": params.tool_tweak, "value": 'ANY', "shift": True}, None),
-            ("gpencil.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_rotate(params):
+    return (
+        "3D View Tool: Rotate",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.rotate", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_scale(params):
+    return (
+        "3D View Tool: Scale",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.resize", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
         ]},
     )
 
@@ -3577,4 +3595,6 @@ def generate_keymaps(params=None):
 
         # Tool System.
         km_3d_view_tool_move(params),
+        km_3d_view_tool_rotate(params),
+        km_3d_view_tool_scale(params),
     ]
