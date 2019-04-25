@@ -334,7 +334,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 
   seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
   seq->type = SEQ_TYPE_SCENE;
-  seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
 
   seq->scene = sce_seq;
 
@@ -422,7 +422,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 
   seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
   seq->type = SEQ_TYPE_MOVIECLIP;
-  seq->blend_mode = SEQ_TYPE_CROSS;
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->clip = clip;
 
   id_us_ensure_real(&seq->clip->id);
@@ -508,7 +508,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 
   seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
   seq->type = SEQ_TYPE_MASK;
-  seq->blend_mode = SEQ_TYPE_CROSS;
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->mask = mask;
 
   id_us_ensure_real(&seq->mask->id);
@@ -1098,14 +1098,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   if (seq->type == SEQ_TYPE_COLOR) {
     SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
     RNA_float_get_array(op->ptr, "color", colvars->col);
-    seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
   }
-  else if (seq->type == SEQ_TYPE_ADJUSTMENT) {
-    seq->blend_mode = SEQ_TYPE_CROSS;
-  }
-  else if (seq->type == SEQ_TYPE_TEXT) {
-    seq->blend_mode = SEQ_TYPE_ALPHAOVER;
-  }
+  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
 
   /* an unset channel is a special case where we automatically go above
    * the other strips. */
@@ -1180,7 +1174,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "type",
                sequencer_prop_effect_types,
-               SEQ_TYPE_CROSS,
+               SEQ_TYPE_ALPHAOVER,
                "Type",
                "Sequencer effect type");
   RNA_def_float_vector(ot->srna,
