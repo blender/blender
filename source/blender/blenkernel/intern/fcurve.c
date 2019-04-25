@@ -2608,10 +2608,6 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
      *                                 This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd
      */
     a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.0001, &exact);
-    if (G.debug & G_DEBUG) {
-      printf(
-          "eval fcurve '%s' - %f => %u/%u, %d\n", fcu->rna_path, evaltime, a, fcu->totvert, exact);
-    }
 
     if (exact) {
       /* index returned must be interpreted differently when it sits on top of an existing keyframe
