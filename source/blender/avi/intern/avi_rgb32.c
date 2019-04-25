@@ -71,7 +71,7 @@ void *avi_converter_to_rgb32(AviMovie *movie, int stream, unsigned char *buffer,
 
   *size = (size_t)movie->header->Height * (size_t)movie->header->Width * 4;
   buf = imb_alloc_pixels(
-      movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "torgb32buf");
+      movie->header->Height, movie->header->Width, 4, sizeof(unsigned char), "torgb32buf");
   if (!buf) {
     return NULL;
   }
