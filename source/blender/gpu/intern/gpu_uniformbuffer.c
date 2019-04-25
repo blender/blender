@@ -65,7 +65,7 @@ static void gpu_uniformbuffer_inputs_sort(struct ListBase *inputs);
 
 /* Only support up to this type, if you want to extend it, make sure the
  * padding logic is correct for the new types. */
-#define MAX_UBO_GPU_TYPE GPU_VEC4
+#define MAX_UBO_GPU_TYPE GPU_MAT4
 
 static void gpu_uniformbuffer_initialize(GPUUniformBuffer *ubo, const void *data)
 {
@@ -255,11 +255,11 @@ static int inputs_cmp(const void *a, const void *b)
 
 /**
  * Make sure we respect the expected alignment of UBOs.
- * vec4, pad vec3 as vec4, then vec2, then floats.
+ * mat4, vec4, pad vec3 as vec4, then vec2, then floats.
  */
 static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
 {
-  /* Order them as vec4, vec3, vec2, float. */
+  /* Order them as mat4, vec4, vec3, vec2, float. */
   BLI_listbase_sort(inputs, inputs_cmp);
 
   /* Creates a lookup table for the different types; */
@@ -268,6 +268,17 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
 
   for (LinkData *link = inputs->first; link; link = link->next) {
     GPUInput *input = link->data;
+
+    if (input->type == GPU_MAT3) {
+      /* Alignment for mat3 is not handled currently, so not supported */
+      BLI_assert(!"mat3 not supported in UBO");
+      continue;
+    }
+    else if (input->type > MAX_UBO_GPU_TYPE) {
+      BLI_assert(!"GPU type not supported in UBO");
+      continue;
+    }
+
     if (input->type == cur_type) {
       continue;
     }
