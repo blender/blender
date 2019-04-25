@@ -210,11 +210,6 @@ class SimpleLogger {
 
  public:
   /**
-   * Check whether or not the SimpleLogger's stream is empty.
-   */
-  bool empty();
-
-  /**
    * Return a copy of the string contained in the SimpleLogger's stream.
    */
   std::string str() const;

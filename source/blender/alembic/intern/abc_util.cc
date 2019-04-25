@@ -378,11 +378,6 @@ ScopeTimer::~ScopeTimer()
 
 /* ********************** */
 
-bool SimpleLogger::empty()
-{
-  return ((size_t)m_stream.tellp()) == 0ul;
-}
-
 std::string SimpleLogger::str() const
 {
   return m_stream.str();
