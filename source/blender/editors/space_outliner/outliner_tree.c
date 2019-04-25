@@ -1478,109 +1478,102 @@ static void outliner_make_object_parent_hierarchy(ListBase *lb)
   }
 }
 
-#if 0
-static void outliner_make_object_parent_hierarchy_recursive(SpaceOutliner *soops,
-                                                            GHash *parent_children_hash,
-                                                            TreeElement *te_parent,
-                                                            ListBase *tree_to_remove_objects_from)
+/**
+  * For all objects in the tree, lookup the parent in this map, and move or add tree elements as needed.
+  */
+static void outliner_make_object_parent_hierarchy_collections(SpaceOutliner *soops,
+                                                              GHash *object_tree_elements_hash)
 {
-  if (tree_to_remove_objects_from == NULL) {
-    tree_to_remove_objects_from = &te_parent->subtree;
-  }
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, object_tree_elements_hash) {
+    Object *child = BLI_ghashIterator_getKey(&gh_iter);
 
-  /* Build hierarchy. */
-  for (TreeElement *te = te_parent->subtree.first; te; te = te->next) {
-    TreeStoreElem *tselem = TREESTORE(te);
-
-    if (tselem->type == TSE_LAYER_COLLECTION) {
-      outliner_make_object_parent_hierarchy_recursive(soops, parent_children_hash, te, NULL);
+    if (child->parent == NULL) {
+      continue;
     }
-    else if (tselem->type == 0 && te->idcode == ID_OB) {
-      Object *ob = (Object *)tselem->id;
-      ListBase *children = BLI_ghash_lookup(parent_children_hash, ob);
 
-      if (children) {
-        TreeElement *te_last_element_in_object_tree = te->subtree.last;
-        for (LinkData *link = children->first; link; link = link->next) {
-          Object *child = link->data;
-          TreeElement *te_child = NULL;
+    ListBase *child_ob_tree_elements = BLI_ghashIterator_getValue(&gh_iter);
+    ListBase *parent_ob_tree_elements = BLI_ghash_lookup(object_tree_elements_hash, child->parent);
+    if (parent_ob_tree_elements == NULL) {
+      continue;
+    }
 
-          /* Check if the child is in the layer collection / tree. */
-          for (TreeElement *te_iter = tree_to_remove_objects_from->first; te_iter;
-               te_iter = te_iter->next) {
-            TreeStoreElem *tselem_iter = TREESTORE(te_iter);
-            if ((tselem_iter->type == 0 && te_iter->idcode == ID_OB) &&
-                (tselem_iter->id == &child->id)) {
-              te_child = te_iter;
-              break;
-            }
-          }
+    for (LinkData *link = parent_ob_tree_elements->first; link; link = link->next) {
+      TreeElement *parent_ob_tree_element = link->data;
+      TreeElement *parent_ob_collection_tree_element = NULL;
+      bool found = false;
 
-          if (te_child) {
-            BLI_remlink(tree_to_remove_objects_from, te_child);
-            /* We group the children that are in the collection before the ones that are not.
-             * This way we can try to draw them in a different style altogether.
-             * We also have to respect the original order of the elements in case alphabetical
-             * sorting is not enabled. This keep object data and modifiers before its children. */
-            BLI_insertlinkafter(&te->subtree, te_last_element_in_object_tree, te_child);
-            te_child->parent = te;
-            continue;
-          }
+      /* We always want to remove the child from the direct collection its parent is nested under.
+       * This is particularly important when dealing with multi-level nesting (grandchildren). */
+      parent_ob_collection_tree_element = parent_ob_tree_element->parent;
+      while (!ELEM(TREESTORE(parent_ob_collection_tree_element)->type,
+                   TSE_VIEW_COLLECTION_BASE,
+                   TSE_LAYER_COLLECTION)) {
+        parent_ob_collection_tree_element = parent_ob_collection_tree_element->parent;
+      }
 
-          /* If not see if it is already nested under its parent.
-           * This happens depending on the order of the evaluation. */
-          for (TreeElement *te_iter = te->subtree.first; te_iter; te_iter = te_iter->next) {
-            TreeStoreElem *tselem_iter = TREESTORE(te_iter);
-            if ((tselem_iter->type == 0 && te_iter->idcode == ID_OB) &&
-                (tselem_iter->id == &child->id)) {
-              te_child = te_iter;
-              break;
-            }
-          }
+      for (LinkData *link_iter = child_ob_tree_elements->first; link_iter;
+           link_iter = link_iter->next) {
+        TreeElement *child_ob_tree_element = link_iter->data;
 
-          if (te_child == NULL) {
-            te_child = outliner_add_element(soops, &te->subtree, child, te, 0, 0);
-            outliner_free_tree(&te_child->subtree);
-            te_child->flag |= TE_CHILD_NOT_IN_COLLECTION;
-          }
+        if (child_ob_tree_element->parent == parent_ob_collection_tree_element) {
+          /* Move from the collection subtree into the parent object subtree. */
+          BLI_remlink(&parent_ob_collection_tree_element->subtree, child_ob_tree_element);
+          BLI_addtail(&parent_ob_tree_element->subtree, child_ob_tree_element);
+          child_ob_tree_element->parent = parent_ob_tree_element;
+          found = true;
+          break;
         }
-        outliner_make_object_parent_hierarchy_recursive(
-            soops, parent_children_hash, te, tree_to_remove_objects_from);
+      }
+
+      if (!found) {
+        /* We add the child in the tree even if it is not in the collection.
+         * We deliberately clear its subtree though, to make it less proeminent. */
+        TreeElement *child_ob_tree_element = outliner_add_element(
+            soops, &parent_ob_tree_element->subtree, child, parent_ob_tree_element, 0, 0);
+        outliner_free_tree(&child_ob_tree_element->subtree);
+        child_ob_tree_element->flag |= TE_CHILD_NOT_IN_COLLECTION;
+        BLI_addtail(child_ob_tree_elements, BLI_genericNodeN(child_ob_tree_element));
       }
     }
   }
 }
 
-static void outliner_build_parent_children_tree_create(Main *bmain, GHash *parent_children_hash)
+/**
+ * Build a map from Object* to a list of TreeElement* matching the object.
+ */
+static void outliner_object_tree_elements_lookup_create_recursive(GHash *object_tree_elements_hash,
+                                                                  TreeElement *te_parent)
 {
-  ListBase *children = NULL;
+  for (TreeElement *te = te_parent->subtree.first; te; te = te->next) {
+    TreeStoreElem *tselem = TREESTORE(te);
 
-  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (!ob->parent) {
-      continue;
+    if (tselem->type == TSE_LAYER_COLLECTION) {
+      outliner_object_tree_elements_lookup_create_recursive(object_tree_elements_hash, te);
     }
+    else if (tselem->type == 0 && te->idcode == ID_OB) {
+      Object *ob = (Object *)tselem->id;
+      ListBase *tree_elements = BLI_ghash_lookup(object_tree_elements_hash, ob);
 
-    children = BLI_ghash_lookup(parent_children_hash, ob->parent);
-    if (children == NULL) {
-      children = MEM_callocN(sizeof(ListBase), __func__);
-      BLI_ghash_insert(parent_children_hash, ob->parent, children);
+      if (tree_elements == NULL) {
+        tree_elements = MEM_callocN(sizeof(ListBase), __func__);
+        BLI_ghash_insert(object_tree_elements_hash, ob, tree_elements);
+      }
+
+      BLI_addtail(tree_elements, BLI_genericNodeN(te));
+      outliner_object_tree_elements_lookup_create_recursive(object_tree_elements_hash, te);
     }
-
-    BLI_addtail(children, BLI_genericNodeN(ob));
   }
 }
 
-static void outliner_build_parent_children_tree_free(Main *bmain, GHash *parent_children_hash)
+static void outliner_object_tree_elements_lookup_free(GHash *object_tree_elements_hash)
 {
-  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    ListBase *children = BLI_ghash_lookup(parent_children_hash, ob);
-    if (children) {
-      BLI_freelistN(children);
-      MEM_freeN(children);
-    }
+  GHASH_FOREACH_BEGIN (ListBase *, tree_elements, object_tree_elements_hash) {
+    BLI_freelistN(tree_elements);
+    MEM_freeN(tree_elements);
   }
+  GHASH_FOREACH_END();
 }
-#endif
 
 /* Sorting ------------------------------------------------------ */
 
@@ -2304,16 +2297,14 @@ void outliner_build_tree(
       bool show_objects = !(soops->filter & SO_FILTER_NO_OBJECT);
       outliner_add_view_layer(soops, &ten->subtree, ten, view_layer, show_objects);
 
-#if 0
       if ((soops->filter & SO_FILTER_NO_CHILDREN) == 0) {
-        GHash *parent_children_hash = BLI_ghash_new(
+        GHash *object_tree_elements_hash = BLI_ghash_new(
             BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-        outliner_build_parent_children_tree_create(mainvar, parent_children_hash);
-        outliner_make_object_parent_hierarchy_recursive(soops, parent_children_hash, ten, NULL);
-        outliner_build_parent_children_tree_free(mainvar, parent_children_hash);
-        BLI_ghash_free(parent_children_hash, NULL, NULL);
+        outliner_object_tree_elements_lookup_create_recursive(object_tree_elements_hash, ten);
+        outliner_make_object_parent_hierarchy_collections(soops, object_tree_elements_hash);
+        outliner_object_tree_elements_lookup_free(object_tree_elements_hash);
+        BLI_ghash_free(object_tree_elements_hash, NULL, NULL);
       }
-#endif
     }
   }
 
