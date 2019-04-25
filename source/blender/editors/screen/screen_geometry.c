@@ -160,7 +160,6 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *sc)
   WM_window_rect_calc(win, &window_rect);
   WM_window_screen_rect_calc(win, &screen_rect);
 
-  const int headery_init = ED_area_headersize();
   const int screen_size_x = BLI_rcti_size_x(&screen_rect);
   const int screen_size_y = BLI_rcti_size_y(&screen_rect);
   ScrVert *sv = NULL;
@@ -192,37 +191,55 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *sc)
       sv->vec.y = screen_rect.ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
       CLAMP(sv->vec.y, screen_rect.ymin, screen_rect.ymax - 1);
     }
-  }
 
-  /* test for collapsed areas. This could happen in some blender version... */
-  /* ton: removed option now, it needs Context... */
+    /* test for collapsed areas. This could happen in some blender version... */
+    /* ton: removed option now, it needs Context... */
 
-  /* make each window at least ED_area_headersize() high */
-  for (sa = sc->areabase.first; sa; sa = sa->next) {
-    int headery = headery_init;
+    int headery = ED_area_headersize() + (U.pixelsize * 2);
 
-    /* adjust headery if verts are along the edge of window */
-    if (sa->v1->vec.y > window_rect.ymin) {
-      headery += U.pixelsize;
+    if (facy > 1) {
+      /* Keep timeline small in video edit workspace. */
+      for (sa = sc->areabase.first; sa; sa = sa->next) {
+        if (sa->spacetype == SPACE_ACTION && sa->v1->vec.y == screen_rect.ymin &&
+            screen_geom_area_height(sa) <= headery * facy + 1) {
+          ScrEdge *se = BKE_screen_find_edge(sc, sa->v2, sa->v3);
+          if (se) {
+            const int yval = sa->v1->vec.y + headery - 1;
+
+            screen_geom_select_connected_edge(win, se);
+
+            /* all selected vertices get the right offset */
+            for (sv = sc->vertbase.first; sv; sv = sv->next) {
+              /* if is a collapsed area */
+              if (sv != sa->v1 && sv != sa->v4) {
+                if (sv->flag) {
+                  sv->vec.y = yval;
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    if (sa->v2->vec.y < (window_rect.ymax - 1)) {
-      headery += U.pixelsize;
-    }
+    if (facy < 1) {
+      /* make each window at least ED_area_headersize() high */
+      for (sa = sc->areabase.first; sa; sa = sa->next) {
+        if (screen_geom_area_height(sa) < headery) {
+          /* lower edge */
+          ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
+          if (se && sa->v1 != sa->v2) {
+            const int yval = sa->v2->vec.y - headery + 1;
 
-    if (screen_geom_area_height(sa) < headery) {
-      /* lower edge */
-      ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
-      if (se && sa->v1 != sa->v2) {
-        const int yval = sa->v2->vec.y - headery + 1;
+            screen_geom_select_connected_edge(win, se);
 
-        screen_geom_select_connected_edge(win, se);
-
-        /* all selected vertices get the right offset */
-        for (sv = sc->vertbase.first; sv; sv = sv->next) {
-          /* if is a collapsed area */
-          if (sv != sa->v2 && sv != sa->v3) {
-            if (sv->flag) {
-              sv->vec.y = yval;
+            /* all selected vertices get the right offset */
+            for (sv = sc->vertbase.first; sv; sv = sv->next) {
+              /* if is not a collapsed area */
+              if (sv != sa->v2 && sv != sa->v3) {
+                if (sv->flag) {
+                  sv->vec.y = yval;
+                }
+              }
             }
           }
         }
