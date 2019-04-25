@@ -42,7 +42,6 @@ static bool is_crappy_intel_card()
 
 GHOST_ContextWGL::GHOST_ContextWGL(bool stereoVisual,
                                    bool alphaBackground,
-                                   GHOST_TUns16 numOfAASamples,
                                    HWND hWnd,
                                    HDC hDC,
                                    int contextProfileMask,
@@ -50,7 +49,7 @@ GHOST_ContextWGL::GHOST_ContextWGL(bool stereoVisual,
                                    int contextMinorVersion,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual, numOfAASamples),
+    : GHOST_Context(stereoVisual),
       m_hWnd(hWnd),
       m_hDC(hDC),
       m_contextProfileMask(contextProfileMask),
@@ -154,7 +153,7 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
   /* if no formats can be found, can we determine why it was rejected? */
   if (!(pfd.dwFlags & PFD_SUPPORT_OPENGL) || !(pfd.dwFlags & PFD_DRAW_TO_WINDOW) ||
       !(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this */
-      !(pfd.iPixelType == PFD_TYPE_RGBA) || (pfd.cDepthBits < 16) ||
+      !(pfd.iPixelType == PFD_TYPE_RGBA) ||
       (pfd.cColorBits > 32) ||            /* 64 bit formats disable aero */
       (pfd.dwFlags & PFD_GENERIC_FORMAT)) /* no software renderers */
   {
@@ -163,20 +162,12 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
 
   weight = 1; /* it's usable */
 
-  /* the bigger the depth buffer the better */
-  /* give no weight to a 16-bit depth buffer, because those are crap */
-  weight += pfd.cDepthBits - 16;
-
   weight += pfd.cColorBits - 8;
 
   if (preferredPFD.cAlphaBits > 0 && pfd.cAlphaBits > 0)
     weight++;
 #ifdef WIN32_COMPOSITING
   if ((preferredPFD.dwFlags & PFD_SUPPORT_COMPOSITION) && (pfd.dwFlags & PFD_SUPPORT_COMPOSITION))
-    weight++;
-#endif
-#ifdef GHOST_OPENGL_STENCIL
-  if (pfd.cStencilBits >= 8)
     weight++;
 #endif
 
@@ -373,12 +364,7 @@ finalize:
   }
 }
 
-static void makeAttribList(std::vector<int> &out,
-                           bool stereoVisual,
-                           int numOfAASamples,
-                           bool needAlpha,
-                           bool needStencil,
-                           bool sRGB)
+static void makeAttribList(std::vector<int> &out, bool stereoVisual, bool needAlpha)
 {
   out.clear();
   out.reserve(30);
@@ -406,37 +392,15 @@ static void makeAttribList(std::vector<int> &out,
   out.push_back(WGL_COLOR_BITS_ARB);
   out.push_back(24);
 
-  out.push_back(WGL_DEPTH_BITS_ARB);
-  out.push_back(24);
-
   if (needAlpha) {
     out.push_back(WGL_ALPHA_BITS_ARB);
     out.push_back(8);
   }
 
-  if (needStencil) {
-    out.push_back(WGL_STENCIL_BITS_ARB);
-    out.push_back(8);
-  }
-
-  if (numOfAASamples > 0) {
-    out.push_back(WGL_SAMPLES_ARB);
-    out.push_back(numOfAASamples);
-
-    out.push_back(WGL_SAMPLE_BUFFERS_ARB);
-    out.push_back(GL_TRUE);
-  }
-
-  if (sRGB) {
-    out.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
-    out.push_back(GL_TRUE);
-  }
-
   out.push_back(0);
 }
 
-int GHOST_ContextWGL::_choose_pixel_format_arb_1(
-    bool stereoVisual, int numOfAASamples, bool needAlpha, bool needStencil, bool sRGB)
+int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlpha)
 {
   std::vector<int> iAttributes;
 
@@ -445,27 +409,17 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(
   int iPixelFormat = 0;
   int iPixelFormats[_MAX_PIXEL_FORMATS];
 
-  int samples;
+  makeAttribList(iAttributes, stereoVisual, needAlpha);
 
-  // guard against some insanely high number of samples
-  if (numOfAASamples > 64) {
-    fprintf(stderr, "Warning! Clamping number of samples to 64.\n");
-    samples = 64;
-  }
-  else {
-    samples = numOfAASamples;
-  }
+  UINT nNumFormats;
+  WIN32_CHK(wglChoosePixelFormatARB(
+      m_hDC, &(iAttributes[0]), NULL, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
 
-  // request a format with as many samples as possible, but not more than requested
-  while (samples >= 0) {
-    makeAttribList(iAttributes, stereoVisual, samples, needAlpha, needStencil, sRGB);
-
-    UINT nNumFormats;
-    WIN32_CHK(wglChoosePixelFormatARB(
-        m_hDC, &(iAttributes[0]), NULL, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
+  if (nNumFormats > 0) {
+    iPixelFormat = iPixelFormats[0];
 
 #ifdef WIN32_COMPOSITING
-    if (needAlpha && nNumFormats) {
+    if (needAlpha) {
       // scan through all pixel format to make sure one supports compositing
       PIXELFORMATDESCRIPTOR pfd;
       int i;
@@ -480,41 +434,16 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(
       }
       if (i == nNumFormats) {
         fprintf(stderr, "Warning! Unable to find a pixel format with compositing capability.\n");
-        iPixelFormat = iPixelFormats[0];
       }
     }
-    else
 #endif
-      iPixelFormat = iPixelFormats[0];
-    /* total number of formats that match (regardless of size of iPixelFormat array)
-     * see: WGL_ARB_pixel_format extension spec */
-    if (nNumFormats > 0)
-      break;
-
-    /* if not reset, then the state of iPixelFormat is undefined after call to wglChoosePixelFormatARB
-     * see: WGL_ARB_pixel_format extension spec */
-    iPixelFormat = 0;
-
-    samples--;
   }
 
-  // check how many samples were actually gotten
+  // check pixel format
   if (iPixelFormat != 0) {
-    int iQuery[] = {WGL_SAMPLES_ARB};
-    int actualSamples, alphaBits;
-    wglGetPixelFormatAttribivARB(m_hDC, iPixelFormat, 0, 1, iQuery, &actualSamples);
-
-    if (actualSamples != numOfAASamples) {
-      fprintf(
-          stderr,
-          "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
-          "Substituting one that uses %d samples.\n",
-          numOfAASamples,
-          actualSamples);
-    }
     if (needAlpha) {
-      iQuery[0] = WGL_ALPHA_BITS_ARB;
-      wglGetPixelFormatAttribivARB(m_hDC, iPixelFormat, 0, 1, iQuery, &alphaBits);
+      int alphaBits, iQuery = WGL_ALPHA_BITS_ARB;
+      wglGetPixelFormatAttribivARB(m_hDC, iPixelFormat, 0, 1, &iQuery, &alphaBits);
       if (alphaBits == 0) {
         fprintf(stderr, "Warning! Unable to find a frame buffer with alpha channel.\n");
       }
@@ -523,18 +452,16 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(
   return iPixelFormat;
 }
 
-int GHOST_ContextWGL::choose_pixel_format_arb(
-    bool stereoVisual, int numOfAASamples, bool needAlpha, bool needStencil, bool sRGB)
+int GHOST_ContextWGL::choose_pixel_format_arb(bool stereoVisual, bool needAlpha)
 {
   int iPixelFormat;
 
-  iPixelFormat = _choose_pixel_format_arb_1(
-      stereoVisual, numOfAASamples, needAlpha, needStencil, sRGB);
+  iPixelFormat = _choose_pixel_format_arb_1(stereoVisual, needAlpha);
 
   if (iPixelFormat == 0 && stereoVisual) {
     fprintf(stderr, "Warning! Unable to find a stereo pixel format.\n");
 
-    iPixelFormat = _choose_pixel_format_arb_1(false, numOfAASamples, needAlpha, needStencil, sRGB);
+    iPixelFormat = _choose_pixel_format_arb_1(false, needAlpha);
 
     m_stereoVisual = false;  // set context property to actual value
   }
@@ -542,8 +469,7 @@ int GHOST_ContextWGL::choose_pixel_format_arb(
   return iPixelFormat;
 }
 
-int GHOST_ContextWGL::choose_pixel_format(
-    bool stereoVisual, int numOfAASamples, bool needAlpha, bool needStencil, bool sRGB)
+int GHOST_ContextWGL::choose_pixel_format(bool stereoVisual, bool needAlpha)
 {
   PIXELFORMATDESCRIPTOR preferredPFD = {
       sizeof(PIXELFORMATDESCRIPTOR), /* size */
@@ -572,12 +498,12 @@ int GHOST_ContextWGL::choose_pixel_format(
       0,
       0,
       0,
-      0,                           /* accum bits (ignored) */
-      24,                          /* depth buffer */
-      (BYTE)(needStencil ? 8 : 0), /* stencil buffer */
-      0,                           /* no auxiliary buffers */
-      PFD_MAIN_PLANE,              /* main layer */
-      0,                           /* reserved */
+      0,              /* accum bits (ignored) */
+      0,              /* depth buffer */
+      0,              /* stencil buffer */
+      0,              /* no auxiliary buffers */
+      PFD_MAIN_PLANE, /* main layer */
+      0,              /* reserved */
       0,
       0,
       0 /* layer, visible, and damage masks (ignored) */
@@ -585,21 +511,10 @@ int GHOST_ContextWGL::choose_pixel_format(
 
   initContextWGLEW(preferredPFD);
 
-  if (numOfAASamples > 0 && !WGLEW_ARB_multisample) {
-    fprintf(stderr, "Warning! Unable to request a multisample framebuffer.\n");
-    numOfAASamples = 0;
-  }
-
-  if (sRGB && !(WGLEW_ARB_framebuffer_sRGB || WGLEW_EXT_framebuffer_sRGB)) {
-    fprintf(stderr, "Warning! Unable to request an sRGB framebuffer.\n");
-    sRGB = false;
-  }
-
   int iPixelFormat = 0;
 
   if (WGLEW_ARB_pixel_format)
-    iPixelFormat = choose_pixel_format_arb(
-        stereoVisual, numOfAASamples, needAlpha, needStencil, sRGB);
+    iPixelFormat = choose_pixel_format_arb(stereoVisual, needAlpha);
 
   if (iPixelFormat == 0)
     iPixelFormat = choose_pixel_format_legacy(m_hDC, preferredPFD);
@@ -629,25 +544,12 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
   if (!WGLEW_ARB_create_context || ::GetPixelFormat(m_hDC) == 0) {
     const bool needAlpha = m_alphaBackground;
-
-#ifdef GHOST_OPENGL_STENCIL
-    const bool needStencil = true;
-#else
-    const bool needStencil = false;
-#endif
-
-#ifdef GHOST_OPENGL_SRGB
-    const bool sRGB = true;
-#else
-    const bool sRGB = false;
-#endif
     int iPixelFormat;
     int lastPFD;
 
     PIXELFORMATDESCRIPTOR chosenPFD;
 
-    iPixelFormat = choose_pixel_format(
-        m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
+    iPixelFormat = choose_pixel_format(m_stereoVisual, needAlpha);
 
     if (iPixelFormat == 0) {
       goto error;
@@ -662,9 +564,6 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
     if (needAlpha && chosenPFD.cAlphaBits == 0)
       fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
-
-    if (needStencil && chosenPFD.cStencilBits == 0)
-      fprintf(stderr, "Warning! Unable to find a pixel format with a stencil buffer.\n");
 
     if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
       goto error;

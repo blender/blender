@@ -611,13 +611,6 @@ GHOST_TSuccess GHOST_GetSwapInterval(GHOST_WindowHandle windowhandle, int *inter
   return window->getSwapInterval(*intervalOut);
 }
 
-GHOST_TUns16 GHOST_GetNumOfAASamples(GHOST_WindowHandle windowhandle)
-{
-  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-
-  return window->getNumOfAASamples();
-}
-
 GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;

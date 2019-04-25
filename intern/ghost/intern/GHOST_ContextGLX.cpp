@@ -44,7 +44,6 @@ GLXContext GHOST_ContextGLX::s_sharedContext = None;
 int GHOST_ContextGLX::s_sharedCount = 0;
 
 GHOST_ContextGLX::GHOST_ContextGLX(bool stereoVisual,
-                                   GHOST_TUns16 numOfAASamples,
                                    Window window,
                                    Display *display,
                                    GLXFBConfig fbconfig,
@@ -53,7 +52,7 @@ GHOST_ContextGLX::GHOST_ContextGLX(bool stereoVisual,
                                    int contextMinorVersion,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual, numOfAASamples),
+    : GHOST_Context(stereoVisual),
       m_display(display),
       m_fbconfig(fbconfig),
       m_window(window),
@@ -260,7 +259,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
         int glx_attribs[64];
         int fbcount = 0;
 
-        GHOST_X11_GL_GetAttributes(glx_attribs, 64, m_numOfAASamples, m_stereoVisual, false, true);
+        GHOST_X11_GL_GetAttributes(glx_attribs, 64, m_stereoVisual, false, true);
 
         framebuffer_config = glXChooseFBConfig(
             m_display, DefaultScreen(m_display), glx_attribs, &fbcount);
@@ -369,20 +368,10 @@ GHOST_TSuccess GHOST_ContextGLX::getSwapInterval(int &intervalOut)
  *
  * \note Similar to SDL's 'X11_GL_GetAttributes'
  */
-int GHOST_X11_GL_GetAttributes(int *attribs,
-                               int attribs_max,
-                               int samples,
-                               bool is_stereo_visual,
-                               bool need_alpha,
-                               bool for_fb_config)
+int GHOST_X11_GL_GetAttributes(
+    int *attribs, int attribs_max, bool is_stereo_visual, bool need_alpha, bool for_fb_config)
 {
   int i = 0;
-
-#ifdef GHOST_OPENGL_STENCIL
-  const bool need_stencil = true;
-#else
-  const bool need_stencil = false;
-#endif
 
   if (is_stereo_visual) {
     attribs[i++] = GLX_STEREO;
@@ -413,25 +402,9 @@ int GHOST_X11_GL_GetAttributes(int *attribs,
   attribs[i++] = GLX_GREEN_SIZE;
   attribs[i++] = True;
 
-  attribs[i++] = GLX_DEPTH_SIZE;
-  attribs[i++] = True;
-
   if (need_alpha) {
     attribs[i++] = GLX_ALPHA_SIZE;
     attribs[i++] = True;
-  }
-
-  if (need_stencil) {
-    attribs[i++] = GLX_STENCIL_SIZE;
-    attribs[i++] = True;
-  }
-
-  if (samples) {
-    attribs[i++] = GLX_SAMPLE_BUFFERS_ARB;
-    attribs[i++] = True;
-
-    attribs[i++] = GLX_SAMPLES_ARB;
-    attribs[i++] = samples;
   }
 
   attribs[i++] = 0;

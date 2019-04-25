@@ -40,7 +40,6 @@ NSOpenGLContext *GHOST_ContextCGL::s_sharedOpenGLContext = nil;
 int GHOST_ContextCGL::s_sharedCount = 0;
 
 GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
-                                   GHOST_TUns16 numOfAASamples,
                                    NSWindow *window,
                                    NSOpenGLView *openGLView,
                                    int contextProfileMask,
@@ -48,7 +47,7 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
                                    int contextMinorVersion,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual, numOfAASamples),
+    : GHOST_Context(stereoVisual),
       m_openGLView(openGLView),
       m_openGLContext(nil),
       m_debug(contextFlags)
@@ -183,9 +182,7 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
                            bool coreProfile,
                            bool stereoVisual,
-                           int numOfAASamples,
                            bool needAlpha,
-                           bool needStencil,
                            bool softwareGL)
 {
   attribs.clear();
@@ -207,31 +204,12 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
 
   attribs.push_back(NSOpenGLPFAAllowOfflineRenderers);  // for automatic GPU switching
 
-  attribs.push_back(NSOpenGLPFADepthSize);
-  attribs.push_back((NSOpenGLPixelFormatAttribute)32);
-
   if (stereoVisual)
     attribs.push_back(NSOpenGLPFAStereo);
 
   if (needAlpha) {
     attribs.push_back(NSOpenGLPFAAlphaSize);
     attribs.push_back((NSOpenGLPixelFormatAttribute)8);
-  }
-
-  if (needStencil) {
-    attribs.push_back(NSOpenGLPFAStencilSize);
-    attribs.push_back((NSOpenGLPixelFormatAttribute)8);
-  }
-
-  if (numOfAASamples > 0) {
-    // Multisample anti-aliasing
-    attribs.push_back(NSOpenGLPFAMultisample);
-
-    attribs.push_back(NSOpenGLPFASampleBuffers);
-    attribs.push_back((NSOpenGLPixelFormatAttribute)1);
-
-    attribs.push_back(NSOpenGLPFASamples);
-    attribs.push_back((NSOpenGLPixelFormatAttribute)numOfAASamples);
   }
 
   attribs.push_back((NSOpenGLPixelFormatAttribute)0);
@@ -263,56 +241,17 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   static const bool needAlpha = false;
 #endif
 
-#ifdef GHOST_OPENGL_STENCIL
-  static const bool needStencil = true;
-#else
-  static const bool needStencil = false;
-#endif
-
   static bool softwareGL = getenv("BLENDER_SOFTWAREGL");  // command-line argument would be better
   GLint major = 0, minor = 0;
   NSOpenGLPixelFormat *pixelFormat;
   // TODO: keep pixel format for subsequent windows/contexts instead of recreating each time
 
-  makeAttribList(attribs,
-                 m_coreProfile,
-                 m_stereoVisual,
-                 m_numOfAASamples,
-                 needAlpha,
-                 needStencil,
-                 softwareGL);
+  makeAttribList(attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL);
 
   pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
 
-  // Fall back to no multisampling if Antialiasing init failed
-  if (m_numOfAASamples > 0 && pixelFormat == nil) {
-    // XXX jwilkins: Does CGL only succeed when it makes an exact match on the number of samples?
-    // Does this need to explicitly try for a lesser match before giving up?
-    // (Now that I think about it, does WGL really require the code that it has for finding a lesser match?)
-
-    attribs.clear();
-    makeAttribList(attribs, m_coreProfile, m_stereoVisual, 0, needAlpha, needStencil, softwareGL);
-    pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
-  }
-
   if (pixelFormat == nil)
     goto error;
-
-  if (m_numOfAASamples > 0) {  //Set m_numOfAASamples to the actual value
-    GLint actualSamples;
-    [pixelFormat getValues:&actualSamples forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-
-    if (m_numOfAASamples != (GHOST_TUns16)actualSamples) {
-      fprintf(
-          stderr,
-          "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
-          "Substituting one that uses %d samples.\n",
-          m_numOfAASamples,
-          actualSamples);
-
-      m_numOfAASamples = (GHOST_TUns16)actualSamples;
-    }
-  }
 
   m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
                                                shareContext:s_sharedOpenGLContext];
@@ -336,13 +275,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
     [m_openGLContext release];
 
     // create software GL context
-    makeAttribList(attribs,
-                   m_coreProfile,
-                   m_stereoVisual,
-                   m_numOfAASamples,
-                   needAlpha,
-                   needStencil,
-                   softwareGL);
+    makeAttribList(attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL);
     pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
     m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
                                                  shareContext:s_sharedOpenGLContext];

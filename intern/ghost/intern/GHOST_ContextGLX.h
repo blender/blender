@@ -43,7 +43,6 @@ class GHOST_ContextGLX : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextGLX(bool stereoVisual,
-                   GHOST_TUns16 numOfAASamples,
                    Window window,
                    Display *display,
                    GLXFBConfig fbconfig,
@@ -124,11 +123,7 @@ class GHOST_ContextGLX : public GHOST_Context {
 };
 
 /* used to get GLX info */
-int GHOST_X11_GL_GetAttributes(int *attribs,
-                               int attribs_max,
-                               int samples,
-                               bool is_stereo_visual,
-                               bool need_alpha,
-                               bool for_fb_config);
+int GHOST_X11_GL_GetAttributes(
+    int *attribs, int attribs_max, bool is_stereo_visual, bool need_alpha, bool for_fb_config);
 
 #endif  // __GHOST_CONTEXTGLX_H__

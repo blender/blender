@@ -49,7 +49,6 @@ typedef int GHOST_TInt32;
 typedef unsigned int GHOST_TUns32;
 
 typedef struct {
-  GHOST_TUns16 numOfAASamples;
   int flags;
 } GHOST_GLSettings;
 

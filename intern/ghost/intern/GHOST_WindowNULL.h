@@ -45,9 +45,8 @@ class GHOST_WindowNULL : public GHOST_Window {
                    GHOST_TWindowState state,
                    const GHOST_TEmbedderWindowID parentWindow,
                    GHOST_TDrawingContextType type,
-                   const bool stereoVisual,
-                   const GHOST_TUns16 numOfAASamples)
-      : GHOST_Window(width, height, state, stereoVisual, false, numOfAASamples), m_system(system)
+                   const bool stereoVisual)
+      : GHOST_Window(width, height, state, stereoVisual, false), m_system(system)
   {
     setTitle(title);
   }

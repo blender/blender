@@ -63,8 +63,7 @@ class GHOST_WindowSDL : public GHOST_Window {
                   const GHOST_TEmbedderWindowID parentWindow,
                   GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                   const bool stereoVisual = false,
-                  const bool exclusive = false,
-                  const GHOST_TUns16 numOfAASamples = 0);
+                  const bool exclusive = false);
 
   ~GHOST_WindowSDL();
 

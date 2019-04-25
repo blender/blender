@@ -66,10 +66,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      GHOST_TDrawingContextType type,
                                      bool wantStereoVisual,
                                      bool alphaBackground,
-                                     GHOST_TUns16 wantNumOfAASamples,
                                      GHOST_TEmbedderWindowID parentwindowhwnd,
                                      bool is_debug)
-    : GHOST_Window(width, height, state, wantStereoVisual, false, wantNumOfAASamples),
+    : GHOST_Window(width, height, state, wantStereoVisual, false),
       m_inLiveResize(false),
       m_system(system),
       m_hDC(0),
@@ -661,7 +660,6 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     for (int minor = 5; minor >= 0; --minor) {
       context = new GHOST_ContextWGL(m_wantStereoVisual,
                                      m_wantAlphaBackground,
-                                     m_wantNumOfAASamples,
                                      m_hWnd,
                                      m_hDC,
                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -679,7 +677,6 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     }
     context = new GHOST_ContextWGL(m_wantStereoVisual,
                                    m_wantAlphaBackground,
-                                   m_wantNumOfAASamples,
                                    m_hWnd,
                                    m_hDC,
                                    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -707,7 +704,6 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     // 2.1 ignores the profile bit & is incompatible with core profile
     context = new GHOST_ContextWGL(m_wantStereoVisual,
                                    m_wantAlphaBackground,
-                                   m_wantNumOfAASamples,
                                    m_hWnd,
                                    m_hDC,
                                    0,  // no profile bit

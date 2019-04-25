@@ -223,7 +223,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param state     The state the window is initially opened with.
    * \param type      The type of drawing context installed in this window.
    * \param wantStereoVisual   Stereo visual for quad buffered stereo.
-   * \param wantNumOfAASamples Number of samples used for AA (zero if no AA)
    * \param parentWindowHwnd
    */
   GHOST_WindowWin32(GHOST_SystemWin32 *system,
@@ -236,7 +235,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
                     GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                     bool wantStereoVisual = false,
                     bool alphaBackground = false,
-                    GHOST_TUns16 wantNumOfAASamples = 0,
                     GHOST_TEmbedderWindowID parentWindowHwnd = 0,
                     bool is_debug = false);
 

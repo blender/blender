@@ -35,14 +35,13 @@ SDL_GLContext GHOST_ContextSDL::s_sharedContext = NULL;
 int GHOST_ContextSDL::s_sharedCount = 0;
 
 GHOST_ContextSDL::GHOST_ContextSDL(bool stereoVisual,
-                                   GHOST_TUns16 numOfAASamples,
                                    SDL_Window *window,
                                    int contextProfileMask,
                                    int contextMajorVersion,
                                    int contextMinorVersion,
                                    int contextFlags,
                                    int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual, numOfAASamples),
+    : GHOST_Context(stereoVisual),
       m_window(window),
       m_hidden_window(NULL),
       m_contextProfileMask(contextProfileMask),
@@ -113,12 +112,6 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
   const bool needAlpha = false;
 #endif
 
-#ifdef GHOST_OPENGL_STENCIL
-  const bool needStencil = true;
-#else
-  const bool needStencil = false;
-#endif
-
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_contextProfileMask);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_contextMajorVersion);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_contextMinorVersion);
@@ -126,7 +119,6 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 
   SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -135,17 +127,8 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   }
 
-  if (needStencil) {
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
-  }
-
   if (m_stereoVisual) {
     SDL_GL_SetAttribute(SDL_GL_STEREO, 1);
-  }
-
-  if (m_numOfAASamples) {
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_numOfAASamples);
   }
 
   if (m_window == NULL) {

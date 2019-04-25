@@ -37,10 +37,7 @@ GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
     printf("Error initializing SDL:  %s\n", SDL_GetError());
   }
 
-  /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
-  /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4); */
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -75,8 +72,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const STR_String &title,
                                parentWindow,
                                type,
                                ((glSettings.flags & GHOST_glStereoVisual) != 0),
-                               exclusive,
-                               glSettings.numOfAASamples);
+                               exclusive);
 
   if (window) {
     if (GHOST_kWindowStateFullScreen == state) {
@@ -145,7 +141,6 @@ GHOST_TUns8 GHOST_SystemSDL::getNumDisplays() const
 GHOST_IContext *GHOST_SystemSDL::createOffscreenContext()
 {
   GHOST_Context *context = new GHOST_ContextSDL(0,
-                                                0,
                                                 NULL,
                                                 0,  // profile bit
                                                 3,

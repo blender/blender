@@ -355,7 +355,6 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
                                ((glSettings.flags & GHOST_glStereoVisual) != 0),
                                exclusive,
                                ((glSettings.flags & GHOST_glAlphaBackground) != 0),
-                               glSettings.numOfAASamples,
                                (glSettings.flags & GHOST_glDebugContext) != 0);
 
   if (window) {
@@ -421,7 +420,6 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
 
   for (int minor = 5; minor >= 0; --minor) {
     context = new GHOST_ContextGLX(false,
-                                   0,
                                    (Window)NULL,
                                    m_display,
                                    (GLXFBConfig)NULL,
@@ -439,7 +437,6 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
   }
 
   context = new GHOST_ContextGLX(false,
-                                 0,
                                  (Window)NULL,
                                  m_display,
                                  (GLXFBConfig)NULL,

@@ -129,8 +129,7 @@ bool GHOST_System::validWindow(GHOST_IWindow *window)
 GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting &setting,
                                              GHOST_IWindow **window,
                                              const bool stereoVisual,
-                                             const bool alphaBackground,
-                                             const GHOST_TUns16 numOfAASamples)
+                                             const bool alphaBackground)
 {
   GHOST_TSuccess success = GHOST_kFailure;
   GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager");
@@ -145,7 +144,7 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting &setting
       if (success == GHOST_kSuccess) {
         //GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
         success = createFullScreenWindow(
-            (GHOST_Window **)window, setting, stereoVisual, alphaBackground, numOfAASamples);
+            (GHOST_Window **)window, setting, stereoVisual, alphaBackground);
         if (success == GHOST_kSuccess) {
           m_windowManager->beginFullScreen(*window, stereoVisual);
         }
@@ -353,8 +352,7 @@ GHOST_TSuccess GHOST_System::exit()
 GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                                     const GHOST_DisplaySetting &settings,
                                                     const bool stereoVisual,
-                                                    const bool alphaBackground,
-                                                    const GHOST_TUns16 numOfAASamples)
+                                                    const bool alphaBackground)
 {
   GHOST_GLSettings glSettings = {0};
 
@@ -362,7 +360,6 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
     glSettings.flags |= GHOST_glStereoVisual;
   if (alphaBackground)
     glSettings.flags |= GHOST_glAlphaBackground;
-  glSettings.numOfAASamples = numOfAASamples;
 
   /* note: don't use getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger then the viewport. */

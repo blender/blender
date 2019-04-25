@@ -35,15 +35,13 @@ GHOST_Window::GHOST_Window(GHOST_TUns32 width,
                            GHOST_TUns32 height,
                            GHOST_TWindowState state,
                            const bool wantStereoVisual,
-                           const bool /*exclusive*/,
-                           const GHOST_TUns16 wantNumOfAASamples)
+                           const bool /*exclusive*/)
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_cursorVisible(true),
       m_cursorGrab(GHOST_kGrabDisable),
       m_cursorShape(GHOST_kStandardCursorDefault),
       m_wantStereoVisual(wantStereoVisual),
-      m_wantNumOfAASamples(wantNumOfAASamples),
-      m_context(new GHOST_ContextNone(false, 0))
+      m_context(new GHOST_ContextNone(false))
 {
   m_isUnsavedChanges = false;
   m_canAcceptDragOperation = false;
@@ -85,7 +83,7 @@ GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType typ
       m_drawingContextType = type;
     }
     else {
-      m_context = new GHOST_ContextNone(m_wantStereoVisual, m_wantNumOfAASamples);
+      m_context = new GHOST_ContextNone(m_wantStereoVisual);
       m_drawingContextType = GHOST_kDrawingContextTypeNone;
     }
 
@@ -109,11 +107,6 @@ GHOST_TSuccess GHOST_Window::setSwapInterval(int interval)
 GHOST_TSuccess GHOST_Window::getSwapInterval(int &intervalOut)
 {
   return m_context->getSwapInterval(intervalOut);
-}
-
-GHOST_TUns16 GHOST_Window::getNumOfAASamples()
-{
-  return m_context->getNumOfAASamples();
 }
 
 GHOST_TSuccess GHOST_Window::activateDrawingContext()

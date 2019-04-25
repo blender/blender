@@ -42,7 +42,6 @@ class GHOST_ContextEGL : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextEGL(bool stereoVisual,
-                   GHOST_TUns16 numOfAASamples,
                    EGLNativeWindowType nativeWindow,
                    EGLNativeDisplayType nativeDisplay,
                    EGLint contextProfileMask,

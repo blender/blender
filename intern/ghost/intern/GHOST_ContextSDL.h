@@ -48,7 +48,6 @@ class GHOST_ContextSDL : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextSDL(bool stereoVisual,
-                   GHOST_TUns16 numOfAASamples,
                    SDL_Window *window,
                    int contextProfileMask,
                    int contextMajorVersion,

@@ -200,7 +200,6 @@ template<typename T> T &choose_api(EGLenum api, T &a, T &b, T &c)
 }
 
 GHOST_ContextEGL::GHOST_ContextEGL(bool stereoVisual,
-                                   GHOST_TUns16 numOfAASamples,
                                    EGLNativeWindowType nativeWindow,
                                    EGLNativeDisplayType nativeDisplay,
                                    EGLint contextProfileMask,
@@ -209,7 +208,7 @@ GHOST_ContextEGL::GHOST_ContextEGL(bool stereoVisual,
                                    EGLint contextFlags,
                                    EGLint contextResetNotificationStrategy,
                                    EGLenum api)
-    : GHOST_Context(stereoVisual, numOfAASamples),
+    : GHOST_Context(stereoVisual),
       m_nativeDisplay(nativeDisplay),
       m_nativeWindow(nativeWindow),
       m_contextProfileMask(contextProfileMask),
@@ -435,22 +434,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   attrib_list.push_back(8);
 #endif
 
-  attrib_list.push_back(EGL_DEPTH_SIZE);
-  attrib_list.push_back(24);
-
-#ifdef GHOST_OPENGL_STENCIL
-  attrib_list.push_back(EGL_STENCIL_SIZE);
-  attrib_list.push_back(8);
-#endif
-
-  if (m_numOfAASamples > 0) {
-    attrib_list.push_back(EGL_SAMPLE_BUFFERS);
-    attrib_list.push_back(1);
-
-    attrib_list.push_back(EGL_SAMPLES);
-    attrib_list.push_back(m_numOfAASamples);
-  }
-
   attrib_list.push_back(EGL_NONE);
 
   EGLConfig config;
@@ -461,24 +444,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   // A common error is to assume that ChooseConfig worked because it returned EGL_TRUE
   if (num_config != 1)  // num_config should be exactly 1
     goto error;
-
-  if (m_numOfAASamples > 0) {
-    EGLint actualSamples;
-
-    if (!EGL_CHK(::eglGetConfigAttrib(m_display, config, EGL_SAMPLE_BUFFERS, &actualSamples)))
-      goto error;
-
-    if (m_numOfAASamples != actualSamples) {
-      fprintf(
-          stderr,
-          "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
-          "Substituting one that uses %d samples.\n",
-          m_numOfAASamples,
-          actualSamples);
-
-      m_numOfAASamples = (GHOST_TUns16)actualSamples;
-    }
-  }
 
   m_surface = ::eglCreateWindowSurface(m_display, config, m_nativeWindow, NULL);
 

@@ -733,7 +733,6 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
                                  state,
                                  type,
                                  glSettings.flags & GHOST_glStereoVisual,
-                                 glSettings.numOfAASamples,
                                  glSettings.flags & GHOST_glDebugContext);
 
   if (window->getValid()) {
@@ -763,7 +762,6 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext()
 {
   GHOST_Context *context = new GHOST_ContextCGL(false,
-                                                0,
                                                 NULL,
                                                 NULL,
 

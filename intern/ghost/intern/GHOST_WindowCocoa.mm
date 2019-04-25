@@ -529,9 +529,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      GHOST_TWindowState state,
                                      GHOST_TDrawingContextType type,
                                      const bool stereoVisual,
-                                     const GHOST_TUns16 numOfAASamples,
                                      bool is_debug)
-    : GHOST_Window(width, height, state, stereoVisual, false, numOfAASamples),
+    : GHOST_Window(width, height, state, stereoVisual, false),
       m_customCursor(0),
       m_debug_context(is_debug)
 {
@@ -1018,7 +1017,6 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
   if (type == GHOST_kDrawingContextTypeOpenGL) {
 
     GHOST_Context *context = new GHOST_ContextCGL(m_wantStereoVisual,
-                                                  m_wantNumOfAASamples,
                                                   m_window,
                                                   m_openGLView,
 

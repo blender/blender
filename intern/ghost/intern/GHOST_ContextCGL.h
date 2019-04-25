@@ -44,7 +44,6 @@ class GHOST_ContextCGL : public GHOST_Context {
    * Constructor.
    */
   GHOST_ContextCGL(bool stereoVisual,
-                   GHOST_TUns16 numOfAASamples,
                    NSWindow *window,
                    NSOpenGLView *openGLView,
                    int contextProfileMask,

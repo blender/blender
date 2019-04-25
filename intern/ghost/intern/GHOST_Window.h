@@ -50,14 +50,12 @@ class GHOST_Window : public GHOST_IWindow {
    * \param stereoVisual      Stereo visual for quad buffered stereo.
    * \param exclusive         Use to show the window ontop and ignore others
    *                          (used fullscreen).
-   * \param numOfAASamples    Number of samples used for AA (zero if no AA)
    */
   GHOST_Window(GHOST_TUns32 width,
                GHOST_TUns32 height,
                GHOST_TWindowState state,
                const bool wantStereoVisual = false,
-               const bool exclusive = false,
-               const GHOST_TUns16 wantNumOfAASamples = 0);
+               const bool exclusive = false);
 
   /**
    * \section Interface inherited from GHOST_IWindow left for derived class
@@ -200,12 +198,6 @@ class GHOST_Window : public GHOST_IWindow {
    * \return An integer.
    */
   GHOST_TSuccess getSwapInterval(int &intervalOut);
-
-  /**
-   * Gets the current swap interval for swapBuffers.
-   * \return Number of AA Samples (0 if there is no multisample buffer)
-   */
-  GHOST_TUns16 getNumOfAASamples();
 
   /**
    * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -399,9 +391,6 @@ class GHOST_Window : public GHOST_IWindow {
 
   /** Whether to attempt to initialize a context with a stereo framebuffer. */
   bool m_wantStereoVisual;
-
-  /** Attempt to initialize a context with this many samples. */
-  GHOST_TUns16 m_wantNumOfAASamples;
 
   /** Full-screen width */
   GHOST_TUns32 m_fullScreenWidth;

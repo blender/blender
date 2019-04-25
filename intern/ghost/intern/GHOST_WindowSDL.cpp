@@ -36,9 +36,8 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const GHOST_TEmbedderWindowID parentWindow,
                                  GHOST_TDrawingContextType type,
                                  const bool stereoVisual,
-                                 const bool exclusive,
-                                 const GHOST_TUns16 numOfAASamples)
-    : GHOST_Window(width, height, state, stereoVisual, exclusive, numOfAASamples),
+                                 const bool exclusive)
+    : GHOST_Window(width, height, state, stereoVisual, exclusive),
       m_system(system),
       m_valid_setup(false),
       m_invalid_window(false),
@@ -81,7 +80,6 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     GHOST_Context *context = new GHOST_ContextSDL(m_wantStereoVisual,
-                                                  m_wantNumOfAASamples,
                                                   m_sdl_win,
                                                   0,  // profile bit
                                                   3,

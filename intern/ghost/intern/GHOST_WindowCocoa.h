@@ -54,7 +54,6 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param state             The state the window is initially opened with.
    * \param type              The type of drawing context installed in this window.
    * \param stereoVisual      Stereo visual for quad buffered stereo.
-   * \param numOfAASamples    Number of samples used for AA (zero if no AA)
    */
   GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                     const STR_String &title,
@@ -65,7 +64,6 @@ class GHOST_WindowCocoa : public GHOST_Window {
                     GHOST_TWindowState state,
                     GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                     const bool stereoVisual = false,
-                    const GHOST_TUns16 numOfAASamples = 0,
                     bool is_debug = false);
 
   /**
