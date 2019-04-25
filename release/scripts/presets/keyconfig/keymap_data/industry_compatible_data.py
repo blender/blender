@@ -3504,6 +3504,65 @@ def km_3d_view_tool_scale(params):
     )
 
 
+def km_3d_view_tool_edit_mesh_extrude_region(params):
+    return (
+        "3D View Tool: Edit Mesh, Extrude Region",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("mesh.extrude_context_move", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_edit_mesh_shear(params):
+    return (
+        "3D View Tool: Edit Mesh, Shear",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.shear", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("release_confirm", True)]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_edit_mesh_spin(params):
+    return (
+        "3D View Tool: Edit Mesh, Spin",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("mesh.spin", {"type": 'MIDDLEMOUSE', "value": 'ANY'}, None),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_edit_mesh_spin_duplicate(params):
+    return (
+        "3D View Tool: Edit Mesh, Spin Duplicates",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("mesh.spin", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("dupli", True)]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
+def km_3d_view_tool_edit_curve_extrude(params):
+    return (
+        "3D View Tool: Edit Curve, Extrude",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("curve.extrude_move", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -3597,4 +3656,9 @@ def generate_keymaps(params=None):
         km_3d_view_tool_move(params),
         km_3d_view_tool_rotate(params),
         km_3d_view_tool_scale(params),
+        km_3d_view_tool_edit_mesh_extrude_region(params),
+        km_3d_view_tool_edit_mesh_shear(params),
+        km_3d_view_tool_edit_mesh_spin(params),
+        km_3d_view_tool_edit_mesh_spin_duplicate(params),
+        km_3d_view_tool_edit_curve_extrude(params),
     ]
