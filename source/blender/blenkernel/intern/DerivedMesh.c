@@ -1045,10 +1045,21 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   const bool do_poly_normals = ((dataMask->pmask & CD_MASK_NORMAL) != 0);
 
   if (do_loop_normals) {
-    /* In case we also need poly normals, add the layer here, then BKE_mesh_calc_normals_split() will fill it. */
+    /* In case we also need poly normals, add the layer and compute them here
+     * (BKE_mesh_calc_normals_split() assumes that if that data exists, it is always valid). */
     if (do_poly_normals) {
       if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
-        CustomData_add_layer(&mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
+        float(*polynors)[3] = CustomData_add_layer(
+            &mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
+        BKE_mesh_calc_normals_poly(mesh_final->mvert,
+                                   NULL,
+                                   mesh_final->totvert,
+                                   mesh_final->mloop,
+                                   mesh_final->mpoly,
+                                   mesh_final->totloop,
+                                   mesh_final->totpoly,
+                                   polynors,
+                                   false);
       }
     }
     /* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
