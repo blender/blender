@@ -408,7 +408,6 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4],
                                          const float color[4],
                                          Object *custom)
 {
-  /* grr, not re-using instances! */
   struct GPUBatch *geom = DRW_cache_object_all_edges_get(custom);
 
   if (geom) {
