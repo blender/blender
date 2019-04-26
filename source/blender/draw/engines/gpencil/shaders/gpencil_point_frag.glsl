@@ -62,7 +62,7 @@ void main()
     box = check_box_point(centered, vec2(gradient_s / 2.0));
     if ((box.x > 1.0) || (box.y > 1.0)) {
       discard;
-	  }
+    }
   }
 
   vec4 tmp_color = texture2D(myTexture, mTexCoord);

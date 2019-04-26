@@ -1027,8 +1027,8 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 
   /* Set initial values */
   surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG |
-                   MOD_DPAINT_DISSOLVE_LOG | MOD_DPAINT_ACTIVE |
-                   MOD_DPAINT_OUT1 | MOD_DPAINT_USE_DRYING;
+                   MOD_DPAINT_DISSOLVE_LOG | MOD_DPAINT_ACTIVE | MOD_DPAINT_OUT1 |
+                   MOD_DPAINT_USE_DRYING;
   surface->effect = 0;
   surface->effect_ui = 1;
 

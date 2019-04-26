@@ -71,4 +71,3 @@ macro (set_variable_if_unset var_name default_value)
 endmacro ()
 
 endif()  # DRACO_CMAKE_UTIL_CMAKE_
-

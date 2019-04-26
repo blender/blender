@@ -696,7 +696,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       if (do_show_mesh_analysis) {
         Mesh *me = (Mesh *)ob->data;
         BMEditMesh *embm = me->edit_mesh;
-        const bool is_original = embm->mesh_eval_final && \
+        const bool is_original = embm->mesh_eval_final &&
                                  (embm->mesh_eval_final->runtime.is_original == true);
         if (is_original) {
           geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);

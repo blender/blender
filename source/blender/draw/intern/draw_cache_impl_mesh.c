@@ -3386,8 +3386,7 @@ static void mesh_create_edit_facedots(MeshRenderData *rdata, GPUVertBuf *vbo_fac
   }
 }
 
-static void mesh_create_edit_mesh_analysis(MeshRenderData *rdata,
-                                                GPUVertBuf *vbo_mesh_analysis)
+static void mesh_create_edit_mesh_analysis(MeshRenderData *rdata, GPUVertBuf *vbo_mesh_analysis)
 {
   const MeshStatVis *mesh_stat_vis = &rdata->toolsettings->statvis;
 
