@@ -113,6 +113,9 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
     return NULL;
   }
   glx_version = glx_major * 100 + glx_minor;
+#ifndef WITH_X11_ALPHA
+  (void)glx_version;
+#endif
 
 #ifdef WITH_X11_ALPHA
   if (needAlpha && glx_version >= 103 &&
