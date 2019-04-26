@@ -360,7 +360,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
         (((ob != draw_ctx->object_edit) && !is_edit_mode) || has_edit_mesh_cage) ||
         ob->type != OB_MESH) {
       const bool is_active = (ob == draw_ctx->obact);
-      const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
+      const bool is_sculpt_mode = (ob->sculpt != NULL);
       const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES);
       const bool is_wire = (ob->dt < OB_SOLID);
       const bool use_coloring = (pd->show_overlays && !is_edit_mode && !is_sculpt_mode &&

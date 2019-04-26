@@ -935,7 +935,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool is_active = (ob == draw_ctx->obact);
-    const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
+    const bool is_sculpt_mode = (ob->sculpt != NULL);
     const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
     const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;

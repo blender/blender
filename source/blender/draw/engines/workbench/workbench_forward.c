@@ -566,7 +566,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool is_active = (ob == draw_ctx->obact);
-    const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
+    const bool is_sculpt_mode = (ob->sculpt != NULL);
     bool is_drawn = false;
 
     if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && ELEM(ob->type, OB_MESH)) {
