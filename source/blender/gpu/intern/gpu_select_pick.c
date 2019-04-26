@@ -479,7 +479,14 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev,
 bool gpu_select_pick_load_id(uint id)
 {
   GPUPickState *ps = &g_pick_state;
+
   if (ps->gl.is_init) {
+    if (id == ps->gl.prev_id) {
+      /* No need to read if we are still drawing for the same id since
+       * all these depths will be merged / deduplicated in the end. */
+      return true;
+    }
+
     const uint rect_len = ps->src.rect_len;
     glReadPixels(UNPACK4(ps->gl.clip_readpixels),
                  GL_DEPTH_COMPONENT,
