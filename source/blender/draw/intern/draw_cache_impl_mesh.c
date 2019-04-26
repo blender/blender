@@ -4594,11 +4594,21 @@ static void uvedit_fill_buffer_data(MeshRenderData *rdata,
       }
 
       /* Skip hidden faces. */
-      if (elb_face && face_visible) {
-        for (i = 0; i < efa->len; ++i) {
-          GPU_indexbuf_add_generic_vert(elb_face, vidx + i);
-          GPU_indexbuf_add_generic_vert(elb_vert, vidx + i);
-          GPU_indexbuf_add_line_verts(elb_edge, vidx + i, vidx + (i + 1) % efa->len);
+      if (face_visible) {
+        if (elb_face) {
+          for (i = 0; i < efa->len; ++i) {
+            GPU_indexbuf_add_generic_vert(elb_face, vidx + i);
+          }
+        }
+        if (elb_vert) {
+          for (i = 0; i < efa->len; ++i) {
+            GPU_indexbuf_add_generic_vert(elb_vert, vidx + i);
+          }
+        }
+        if (elb_edge) {
+          for (i = 0; i < efa->len; ++i) {
+            GPU_indexbuf_add_line_verts(elb_edge, vidx + i, vidx + (i + 1) % efa->len);
+          }
         }
       }
 
@@ -4662,18 +4672,24 @@ static void uvedit_fill_buffer_data(MeshRenderData *rdata,
         GPU_vertbuf_attr_set(vbo_fdots_data, uv_attr_id.fdots_flag, fdot_idx, &face_flag);
       }
       /* Skip hidden faces. */
-      if (elb_face && face_visible) {
-        for (i = 0; i < mpoly->totloop; ++i) {
-          GPU_indexbuf_add_generic_vert(elb_face, vidx + i);
-          if (e_origindex[l[i].e] != ORIGINDEX_NONE) {
+      if (face_visible) {
+        if (elb_face) {
+          for (i = 0; i < mpoly->totloop; ++i) {
+            GPU_indexbuf_add_generic_vert(elb_face, vidx + i);
+          }
+          GPU_indexbuf_add_generic_vert(elb_face, vidx);
+          GPU_indexbuf_add_primitive_restart(elb_face);
+        }
+        if (elb_edge && e_origindex[l[i].e] != ORIGINDEX_NONE) {
+          for (i = 0; i < mpoly->totloop; ++i) {
             GPU_indexbuf_add_line_verts(elb_edge, vidx + i, vidx + (i + 1) % mpoly->totloop);
           }
-          if (v_origindex[l[i].v] != ORIGINDEX_NONE) {
+        }
+        if (elb_vert && v_origindex[l[i].v] != ORIGINDEX_NONE) {
+          for (i = 0; i < mpoly->totloop; ++i) {
             GPU_indexbuf_add_generic_vert(elb_vert, vidx + i);
           }
         }
-        GPU_indexbuf_add_generic_vert(elb_face, vidx);
-        GPU_indexbuf_add_primitive_restart(elb_face);
       }
       for (i = 0; i < mpoly->totloop; i++, l++) {
         /* TODO support stretch. */
