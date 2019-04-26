@@ -350,9 +350,6 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
   struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
   float final_bonemat[4][4];
 
-  /* XXXXXXX needs to be moved elsewhere. */
-  drw_batch_cache_generate_requested(custom);
-
   if (surf || edges || ledges) {
     mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
   }
@@ -363,6 +360,9 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
     DRWShadingGroup *shgrp_geom_solid = BLI_ghash_lookup(g_data.passes.custom_shapes, surf);
 
     if (shgrp_geom_solid == NULL) {
+      /* TODO(fclem) needs to be moved elsewhere. */
+      drw_batch_cache_generate_requested(custom);
+
       /* NOTE! g_data.transparent require a separate shading group if the
        * object is transparent. This is done by passing a different ghash
        * for transparent armature in pose mode. */
@@ -377,6 +377,9 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
     DRWShadingGroup *shgrp_geom_wire = BLI_ghash_lookup(g_data.passes.custom_shapes, edges);
 
     if (shgrp_geom_wire == NULL) {
+      /* TODO(fclem) needs to be moved elsewhere. */
+      drw_batch_cache_generate_requested(custom);
+
       shgrp_geom_wire = shgroup_instance_bone_shape_outline(
           g_data.passes.bone_outline, edges, sh_cfg);
 
@@ -389,6 +392,9 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
     DRWShadingGroup *shgrp_geom_ledges = BLI_ghash_lookup(g_data.passes.custom_shapes, ledges);
 
     if (shgrp_geom_ledges == NULL) {
+      /* TODO(fclem) needs to be moved elsewhere. */
+      drw_batch_cache_generate_requested(custom);
+
       shgrp_geom_ledges = shgroup_instance_wire(g_data.passes.bone_wire, ledges);
 
       BLI_ghash_insert(g_data.passes.custom_shapes, ledges, shgrp_geom_ledges);
@@ -405,15 +411,20 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4],
   /* grr, not re-using instances! */
   struct GPUBatch *geom = DRW_cache_object_all_edges_get(custom);
 
-  /* XXXXXXX needs to be moved elsewhere. */
-  drw_batch_cache_generate_requested(custom);
-
   if (geom) {
-    DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
-    float final_bonemat[4][4], final_color[4];
+    DRWShadingGroup *shgrp_geom_wire = BLI_ghash_lookup(g_data.passes.custom_shapes, geom);
+
+    if (shgrp_geom_wire == NULL) {
+      /* TODO(fclem) needs to be moved elsewhere. */
+      drw_batch_cache_generate_requested(custom);
+
+      shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
+
+      BLI_ghash_insert(g_data.passes.custom_shapes, geom, shgrp_geom_wire);
+    }
+    float final_color[4] = {color[0], color[1], color[2], 1.0f};
+    float final_bonemat[4][4];
     mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
-    copy_v3_v3(final_color, color);
-    final_color[3] = 1.0f; /* hack */
     DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, final_color);
   }
 }
