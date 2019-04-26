@@ -52,7 +52,9 @@
 #ifdef WIN32
 #  include <io.h>
 #  include <direct.h>
+#  include <stdbool.h>
 #  include "BLI_winstuff.h"
+#  include "BLI_string_utf8.h"
 #  include "utfconv.h"
 #else
 #  include <sys/ioctl.h>
@@ -77,6 +79,15 @@
  */
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
+#if defined(WIN32)
+  wchar_t path[MAX_PATH];
+  if (_wgetcwd(path, MAX_PATH)) {
+    if (BLI_strncpy_wchar_as_utf8(dir, path, maxncpy) != maxncpy) {
+      return dir;
+    }
+  }
+  return NULL;
+#else
   const char *pwd = BLI_getenv("PWD");
   if (pwd) {
     size_t srclen = BLI_strnlen(pwd, maxncpy);
@@ -88,8 +99,8 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
       return NULL;
     }
   }
-
   return getcwd(dir, maxncpy);
+#endif
 }
 
 /**
