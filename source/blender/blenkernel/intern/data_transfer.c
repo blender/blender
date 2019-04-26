@@ -340,6 +340,10 @@ static void data_transfer_dtdata_type_postprocess(Object *UNUSED(ob_src),
                                                   const bool changed)
 {
   if (dtdata_type == DT_TYPE_LNOR) {
+    if (!changed) {
+      return;
+    }
+
     /* Bake edited destination loop normals into custom normals again. */
     MVert *verts_dst = me_dst->mvert;
     const int num_verts_dst = me_dst->totvert;
@@ -357,10 +361,6 @@ static void data_transfer_dtdata_type_postprocess(Object *UNUSED(ob_src),
     short(*custom_nors_dst)[2] = CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL);
 
     BLI_assert(poly_nors_dst);
-
-    if (!changed) {
-      return;
-    }
 
     if (!custom_nors_dst) {
       custom_nors_dst = CustomData_add_layer(
