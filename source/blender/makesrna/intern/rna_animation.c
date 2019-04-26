@@ -600,7 +600,7 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
 }
 
 static FCurve *rna_Driver_new(
-    ID *id, AnimData *adt, ReportList *reports, const char *rna_path, int array_index)
+    ID *id, AnimData *adt, Main *bmain, ReportList *reports, const char *rna_path, int array_index)
 {
   if (rna_path[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
@@ -615,16 +615,20 @@ static FCurve *rna_Driver_new(
   short add_mode = 1;
   FCurve *fcu = verify_driver_fcurve(id, rna_path, array_index, add_mode);
   BLI_assert(fcu != NULL);
+
+  DEG_relations_tag_update(bmain);
+
   return fcu;
 }
 
-static void rna_Driver_remove(AnimData *adt, ReportList *reports, FCurve *fcu)
+static void rna_Driver_remove(AnimData *adt, Main *bmain, ReportList *reports, FCurve *fcu)
 {
   if (!BLI_remlink_safe(&adt->drivers, fcu)) {
     BKE_report(reports, RPT_ERROR, "Driver not found in this animation data");
     return;
   }
   free_fcurve(fcu);
+  DEG_relations_tag_update(bmain);
 }
 
 static FCurve *rna_Driver_find(AnimData *adt,
@@ -1129,7 +1133,7 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* AnimData.drivers.new(...) */
   func = RNA_def_function(srna, "new", "rna_Driver_new");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_MAIN);
   parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path to use");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
@@ -1139,7 +1143,7 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* AnimData.drivers.remove(...) */
   func = RNA_def_function(srna, "remove", "rna_Driver_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "driver", "FCurve", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 

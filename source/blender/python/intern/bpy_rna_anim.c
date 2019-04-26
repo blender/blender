@@ -55,6 +55,8 @@
 
 #include "../generic/python_utildefines.h"
 
+#include "DEG_depsgraph_build.h"
+
 /* for keyframes and drivers */
 static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
                                            const char *error_prefix,
@@ -586,7 +588,9 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
         ret = pyrna_struct_CreatePyObject(&tptr);
       }
 
+      bContext *context = BPy_GetContext();
       WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
+      DEG_relations_tag_update(CTX_data_main(context));
     }
     else {
       /* XXX, should be handled by reports, */
@@ -644,7 +648,9 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
       return NULL;
     }
 
-    WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
+    bContext *context = BPy_GetContext();
+    WM_event_add_notifier(context, NC_ANIMATION | ND_FCURVES_ORDER, NULL);
+    DEG_relations_tag_update(CTX_data_main(context));
 
     return PyBool_FromLong(result);
   }
