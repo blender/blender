@@ -2771,7 +2771,9 @@ float noise_perlin(float x, float y, float z)
 
   noise_v[1] = noise_nerp(v, noise_u[0], noise_u[1]);
 
-  return noise_scale3(noise_nerp(w, noise_v[0], noise_v[1]));
+  float r = noise_scale3(noise_nerp(w, noise_v[0], noise_v[1]));
+
+  return (isinf(r)) ? 0.0 : r;
 }
 
 float noise(vec3 p)
