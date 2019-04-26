@@ -72,6 +72,7 @@ typedef struct POSE_Data {
 typedef struct POSE_PrivateData {
   DRWShadingGroup *bone_selection_shgrp;
   DRWShadingGroup *bone_selection_invert_shgrp;
+  GHash *custom_shapes[2];
   float blend_color[4];
   float blend_color_invert[4];
   bool transparent_bones;
@@ -139,6 +140,8 @@ static void POSE_cache_init(void *vedata)
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
             DRW_STATE_BLEND | DRW_STATE_WIRE;
     psl->relationship[i] = DRW_pass_create("Bone Relationship Pass", state);
+
+    ppd->custom_shapes[i] = BLI_ghash_ptr_new(__func__);
   }
 
   {
@@ -213,6 +216,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
           .bone_envelope = psl->bone_envelope[ghost],
           .bone_axes = psl->bone_axes,
           .relationship_lines = psl->relationship[ghost],
+          .custom_shapes = ppd->custom_shapes[transp],
       };
       DRW_shgroup_armature_pose(ob, passes, transp);
     }
@@ -228,6 +232,16 @@ static void POSE_cache_populate(void *vedata, Object *ob)
         DRW_shgroup_call_object_add(ppd->bone_selection_invert_shgrp, geom, ob);
       }
     }
+  }
+}
+
+static void POSE_cache_finish(void *vedata)
+{
+  POSE_PrivateData *ppd = ((POSE_Data *)vedata)->stl->g_data;
+
+  /* TODO(fclem): Do not free it for each frame but reuse it. Avoiding alloc cost. */
+  for (int i = 0; i < 2; i++) {
+    BLI_ghash_free(ppd->custom_shapes[i], NULL, NULL);
   }
 }
 
@@ -323,7 +337,7 @@ DrawEngineType draw_engine_pose_type = {
     &POSE_engine_free,
     &POSE_cache_init,
     &POSE_cache_populate,
-    NULL,
+    &POSE_cache_finish,
     NULL,
     &POSE_draw_scene,
     NULL,

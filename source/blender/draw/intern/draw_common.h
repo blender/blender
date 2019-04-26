@@ -216,6 +216,7 @@ typedef struct DRWArmaturePasses {
   struct DRWPass *bone_envelope;
   struct DRWPass *bone_axes;
   struct DRWPass *relationship_lines;
+  struct GHash *custom_shapes;
 } DRWArmaturePasses;
 
 void DRW_shgroup_armature_object(struct Object *ob,

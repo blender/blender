@@ -345,7 +345,6 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
                                           const eGPUShaderConfig sh_cfg,
                                           Object *custom)
 {
-  /* grr, not re-using instances! */
   struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
   struct GPUBatch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
   struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
@@ -358,23 +357,43 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
     mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
   }
 
+  BLI_assert(g_data.passes.custom_shapes != NULL);
+
   if (surf && g_data.passes.bone_solid != NULL) {
-    DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(
-        g_data.passes.bone_solid, surf, g_data.transparent, sh_cfg);
+    DRWShadingGroup *shgrp_geom_solid = BLI_ghash_lookup(g_data.passes.custom_shapes, surf);
+
+    if (shgrp_geom_solid == NULL) {
+      /* NOTE! g_data.transparent require a separate shading group if the
+       * object is transparent. This is done by passing a different ghash
+       * for transparent armature in pose mode. */
+      shgrp_geom_solid = shgroup_instance_bone_shape_solid(
+          g_data.passes.bone_solid, surf, g_data.transparent, sh_cfg);
+      BLI_ghash_insert(g_data.passes.custom_shapes, surf, shgrp_geom_solid);
+    }
     DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
   }
 
   if (edges && outline_color[3] > 0.0f) {
-    DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(
-        g_data.passes.bone_outline, edges, sh_cfg);
+    DRWShadingGroup *shgrp_geom_wire = BLI_ghash_lookup(g_data.passes.custom_shapes, edges);
+
+    if (shgrp_geom_wire == NULL) {
+      shgrp_geom_wire = shgroup_instance_bone_shape_outline(
+          g_data.passes.bone_outline, edges, sh_cfg);
+
+      BLI_ghash_insert(g_data.passes.custom_shapes, edges, shgrp_geom_wire);
+    }
     DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, outline_color);
   }
 
   if (ledges) {
-    DRWShadingGroup *shgrp_geom_ledges = shgroup_instance_wire(g_data.passes.bone_wire, ledges);
-    float final_color[4];
-    copy_v3_v3(final_color, outline_color);
-    final_color[3] = 1.0f; /* hack */
+    DRWShadingGroup *shgrp_geom_ledges = BLI_ghash_lookup(g_data.passes.custom_shapes, ledges);
+
+    if (shgrp_geom_ledges == NULL) {
+      shgrp_geom_ledges = shgroup_instance_wire(g_data.passes.bone_wire, ledges);
+
+      BLI_ghash_insert(g_data.passes.custom_shapes, ledges, shgrp_geom_ledges);
+    }
+    float final_color[4] = {outline_color[0], outline_color[1], outline_color[2], 1.0f};
     DRW_shgroup_call_dynamic_add(shgrp_geom_ledges, final_bonemat, final_color);
   }
 }

@@ -126,6 +126,7 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
           .bone_envelope = psl->bone_envelope[ghost],
           .bone_axes = psl->bone_axes,
           .relationship_lines = psl->relationship[ghost],
+          .custom_shapes = NULL, /* Not needed in edit mode. */
       };
       DRW_shgroup_armature_edit(ob, passes, transp);
     }
