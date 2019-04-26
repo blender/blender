@@ -1130,6 +1130,10 @@ def km_info(params):
 
     items.extend([
         ("info.select_pick", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("info.select_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+         {"properties": [("extend", True)]}),
+        ("info.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+         {"properties": [("wait_for_input", False)]}),
         ("info.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("info.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, None),
         ("info.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, None),

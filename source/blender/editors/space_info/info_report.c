@@ -41,6 +41,37 @@
 
 #include "info_intern.h"
 
+static void reports_select_all(ReportList *reports, int report_mask, int action)
+{
+  if (action == SEL_TOGGLE) {
+    action = SEL_SELECT;
+    for (Report *report = reports->list.last; report; report = report->prev) {
+      if ((report->type & report_mask) && (report->flag & SELECT)) {
+        action = SEL_DESELECT;
+        break;
+      }
+    }
+  }
+
+  for (Report *report = reports->list.last; report; report = report->prev) {
+    if (report->type & report_mask) {
+      switch (action) {
+        case SEL_SELECT:
+          report->flag = SELECT;
+          break;
+        case SEL_DESELECT:
+          report->flag = ~SELECT;
+          break;
+        case SEL_INVERT:
+          report->flag ^= SELECT;
+          break;
+        default:
+          BLI_assert(0);
+      }
+    }
+  }
+}
+
 int info_report_mask(SpaceInfo *UNUSED(sinfo))
 {
 #if 0
@@ -112,12 +143,20 @@ void INFO_OT_report_replay(wmOperatorType *ot)
 static int select_report_pick_exec(bContext *C, wmOperator *op)
 {
   int report_index = RNA_int_get(op->ptr, "report_index");
+  bool extend = RNA_boolean_get(op->ptr, "extend");
+
   Report *report = BLI_findlink(&CTX_wm_reports(C)->list, report_index);
 
+  SpaceInfo *sinfo = CTX_wm_space_info(C);
+  ReportList *reports = CTX_wm_reports(C);
+  const int report_mask = info_report_mask(sinfo);
   if (!report) {
     return OPERATOR_CANCELLED;
   }
 
+  if (!extend) {
+    reports_select_all(reports, report_mask, SEL_DESELECT);
+  }
   report->flag ^= SELECT; /* toggle */
 
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -157,6 +196,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   /* properties */
   RNA_def_int(
       ot->srna, "report_index", 0, 0, INT_MAX, "Report", "Index of the report", 0, INT_MAX);
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend report selection");
 }
 
 static int report_select_all_exec(bContext *C, wmOperator *op)
@@ -166,34 +206,7 @@ static int report_select_all_exec(bContext *C, wmOperator *op)
   const int report_mask = info_report_mask(sinfo);
 
   int action = RNA_enum_get(op->ptr, "action");
-
-  if (action == SEL_TOGGLE) {
-    action = SEL_SELECT;
-    for (Report *report = reports->list.last; report; report = report->prev) {
-      if ((report->type & report_mask) && (report->flag & SELECT)) {
-        action = SEL_DESELECT;
-        break;
-      }
-    }
-  }
-
-  for (Report *report = reports->list.last; report; report = report->prev) {
-    if (report->type & report_mask) {
-      switch (action) {
-        case SEL_SELECT:
-          report->flag = SELECT;
-          break;
-        case SEL_DESELECT:
-          report->flag = ~SELECT;
-          break;
-        case SEL_INVERT:
-          report->flag ^= SELECT;
-          break;
-        default:
-          BLI_assert(0);
-      }
-    }
-  }
+  reports_select_all(reports, report_mask, action);
 
   ED_area_tag_redraw(CTX_wm_area(C));
 
