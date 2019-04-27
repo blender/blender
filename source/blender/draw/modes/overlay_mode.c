@@ -359,7 +359,6 @@ static void overlay_cache_populate(void *vedata, Object *ob)
     if ((!pd->show_overlays) ||
         (((ob != draw_ctx->object_edit) && !is_edit_mode) || has_edit_mesh_cage) ||
         ob->type != OB_MESH) {
-      const bool is_active = (ob == draw_ctx->obact);
       const bool is_sculpt_mode = (ob->sculpt != NULL);
       const bool all_wires = (ob->dtx & OB_DRAW_ALL_EDGES);
       const bool is_wire = (ob->dt < OB_SOLID);

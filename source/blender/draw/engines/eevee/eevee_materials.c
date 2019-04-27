@@ -1614,7 +1614,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
   const bool do_cull = (draw_ctx->v3d &&
                         (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
-  const bool is_active = (ob == draw_ctx->obact);
   const bool is_sculpt_mode = (ob->sculpt != NULL);
   /* For now just force fully shaded with eevee when supported. */
   const bool is_sculpt_mode_draw = ob->sculpt && ob->sculpt->pbvh &&
