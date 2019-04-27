@@ -1909,6 +1909,28 @@ void DRW_gpencil_populate_multiedit(GPENCIL_e_data *e_data,
   cache->is_dirty = false;
 }
 
+/* ensure there is a derived frame */
+static void gpencil_ensure_derived_frame(bGPdata *gpd,
+                                         bGPDlayer *gpl,
+                                         bGPDframe *gpf,
+                                         GpencilBatchCache *cache,
+                                         bGPDframe **derived_gpf)
+{
+  /* create derived frames array data or expand */
+  int derived_idx = BLI_findindex(&gpd->layers, gpl);
+  *derived_gpf = &cache->derived_array[derived_idx];
+
+  /* if no derived frame or dirty cache, create a new one */
+  if ((*derived_gpf == NULL) || (cache->is_dirty)) {
+    if (*derived_gpf != NULL) {
+      /* first clear temp data */
+      BKE_gpencil_free_frame_runtime_data(*derived_gpf);
+    }
+    /* create new data (do not assign new memory)*/
+    gpencil_copy_frame(gpf, *derived_gpf);
+  }
+}
+
 /* helper for populate a complete grease pencil datablock */
 void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data,
                                     void *vedata,
@@ -2001,18 +2023,7 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data,
     }
 
     /* create derived frames array data or expand */
-    int derived_idx = BLI_findindex(&gpd->layers, gpl);
-    derived_gpf = &cache->derived_array[derived_idx];
-
-    /* if no derived frame or dirty cache, create a new one */
-    if ((derived_gpf == NULL) || (cache->is_dirty)) {
-      if (derived_gpf != NULL) {
-        /* first clear temp data */
-        BKE_gpencil_free_frame_runtime_data(derived_gpf);
-      }
-      /* create new data (do not assign new memory)*/
-      gpencil_copy_frame(gpf, derived_gpf);
-    }
+    gpencil_ensure_derived_frame(gpd, gpl, gpf, cache, &derived_gpf);
 
     /* draw onion skins */
     if (!ID_IS_LINKED(&gpd->id)) {
