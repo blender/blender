@@ -476,12 +476,12 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev,
   }
 }
 
-bool gpu_select_pick_load_id(uint id)
+bool gpu_select_pick_load_id(uint id, bool end)
 {
   GPUPickState *ps = &g_pick_state;
 
   if (ps->gl.is_init) {
-    if (id == ps->gl.prev_id) {
+    if (id == ps->gl.prev_id && !end) {
       /* No need to read if we are still drawing for the same id since
        * all these depths will be merged / deduplicated in the end. */
       return true;
@@ -543,7 +543,7 @@ uint gpu_select_pick_end(void)
   if (ps->is_cached == false) {
     if (ps->gl.is_init) {
       /* force finishing last pass */
-      gpu_select_pick_load_id(ps->gl.prev_id);
+      gpu_select_pick_load_id(ps->gl.prev_id, true);
     }
     gpuPopAttr();
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

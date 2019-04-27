@@ -120,7 +120,7 @@ bool GPU_select_load_id(uint id)
     }
     default: /* ALGO_GL_PICK */
     {
-      return gpu_select_pick_load_id(id);
+      return gpu_select_pick_load_id(id, false);
     }
   }
 }
