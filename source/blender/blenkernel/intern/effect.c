@@ -646,8 +646,8 @@ int get_effector_data(EffectorCache *eff,
   float cfra = DEG_get_ctime(eff->depsgraph);
   int ret = 0;
 
-  /* In case surface object is in Edit mode when loading the .blend, surface modifier is never executed
-   * and bvhtree never built, see T48415. */
+  /* In case surface object is in Edit mode when loading the .blend,
+   * surface modifier is never executed and bvhtree never built, see T48415. */
   if (eff->pd && eff->pd->shape == PFIELD_SHAPE_SURFACE && eff->surmd && eff->surmd->bvhtree) {
     /* closest point in the object surface is an effector */
     float vec[3];
@@ -750,7 +750,8 @@ int get_effector_data(EffectorCache *eff,
     sub_v3_v3v3(efd->vec_to_point, point->loc, efd->loc);
     efd->distance = len_v3(efd->vec_to_point);
 
-    /* rest length for harmonic effector, will have to see later if this could be extended to other effectors */
+    /* Rest length for harmonic effector,
+     * will have to see later if this could be extended to other effectors. */
     if (eff->pd && eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size) {
       mul_v3_fl(efd->vec_to_point, (efd->distance - eff->pd->f_size) / efd->distance);
     }

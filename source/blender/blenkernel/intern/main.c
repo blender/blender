@@ -56,7 +56,8 @@ void BKE_main_free(Main *mainvar)
   ListBase *lbarray[MAX_LIBARRAY];
   int a;
 
-  /* Since we are removing whole main, no need to bother 'properly' (and slowly) removing each ID from it. */
+  /* Since we are removing whole main, no need to bother 'properly'
+   * (and slowly) removing each ID from it. */
   const int free_flag = (LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER |
                          LIB_ID_FREE_NO_USER_REFCOUNT | LIB_ID_FREE_NO_DEG_TAG);
 
@@ -285,7 +286,8 @@ void BKE_main_relations_free(Main *bmain)
 /**
  * Create a GSet storing all IDs present in given \a bmain, by their pointers.
  *
- * \param gset: If not NULL, given GSet will be extended with IDs from given \a bmain, instead of creating a new one.
+ * \param gset: If not NULL, given GSet will be extended with IDs from given \a bmain,
+ * instead of creating a new one.
  */
 GSet *BKE_main_gset_create(Main *bmain, GSet *gset)
 {
@@ -348,8 +350,8 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    /* Note: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer, which will fail
-     *       here (we do not want to pass the first two ints!). */
+    /* Note: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer,
+     *       which will fail here (we do not want to pass the first two ints!). */
     img = IMB_allocImBuf(
         (unsigned int)data->width, (unsigned int)data->height, 32, IB_rect | IB_metadata);
     memcpy(img->rect, data->rect, BLEN_THUMB_MEMSIZE(data->width, data->height) - sizeof(*data));
@@ -381,7 +383,8 @@ const char *BKE_main_blendfile_path(const Main *bmain)
 /**
  * Return filepath of global main #G_MAIN.
  *
- * \warning Usage is not recommended, you should always try to get a valid Main pointer from context...
+ * \warning Usage is not recommended,
+ * you should always try to get a valid Main pointer from context...
  */
 const char *BKE_main_blendfile_path_from_global(void)
 {

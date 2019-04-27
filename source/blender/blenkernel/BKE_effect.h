@@ -154,8 +154,14 @@ int get_effector_data(struct EffectorCache *eff,
                       int real_velocity);
 
 /* required for particle_system.c */
-//void do_physical_effector(struct EffectorData *eff, struct EffectorPoint *point, float *total_force);
-//float effector_falloff(struct EffectorData *eff, struct EffectorPoint *point, struct EffectorWeights *weights);
+#if 0
+void do_physical_effector(struct EffectorData *eff,
+                          struct EffectorPoint *point,
+                          float *total_force);
+float effector_falloff(struct EffectorData *eff,
+                       struct EffectorPoint *point,
+                       struct EffectorWeights *weights);
+#endif
 
 /* EffectedPoint->flag */
 #define PE_WIND_AS_SPEED 1

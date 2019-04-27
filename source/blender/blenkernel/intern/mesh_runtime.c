@@ -78,7 +78,8 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 /**
  * Ensure the array is large enough
  *
- * \note This function must always be thread-protected by caller. It should only be used by internal code.
+ * \note This function must always be thread-protected by caller.
+ * It should only be used by internal code.
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {
@@ -149,8 +150,8 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
   }
   else {
     BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
-    /* We need to ensure array is still NULL inside mutex-protected code, some other thread might have already
-     * recomputed those looptris. */
+    /* We need to ensure array is still NULL inside mutex-protected code,
+     * some other thread might have already recomputed those looptris. */
     if (mesh->runtime.looptris.array == NULL) {
       BKE_mesh_runtime_looptri_recalc(mesh);
     }

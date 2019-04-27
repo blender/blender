@@ -536,8 +536,10 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of Mesh ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Mesh ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -926,7 +928,8 @@ void BKE_mesh_texspace_calc(Mesh *me)
 
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
 {
-  /* This is Object-level data access, DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
+  /* This is Object-level data access,
+   * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
   if (ob->runtime.bb == NULL || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
     Mesh *me = ob->data;
     float min[3], max[3];
@@ -1064,7 +1067,8 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
     nr--;
   }
 
-  /* check corrupt cases, bow-tie geometry, cant handle these because edge data wont exist so just return 0 */
+  /* Check corrupt cases, bow-tie geometry,
+   * cant handle these because edge data wont exist so just return 0. */
   if (nr == 3) {
     if (
         /* real edges */
@@ -1363,7 +1367,8 @@ void BKE_mesh_transform(Mesh *me, float mat[4][4], bool do_keys)
   }
 
   /* don't update normals, caller can do this explicitly.
-   * We do update loop normals though, those may not be auto-generated (see e.g. STL import script)! */
+   * We do update loop normals though, those may not be auto-generated
+   * (see e.g. STL import script)! */
   if (lnors) {
     float m3[3][3];
 
@@ -1640,8 +1645,9 @@ void BKE_mesh_apply_vert_normals(Mesh *mesh, short (*vertNormals)[3])
 /**
  * Compute 'split' (aka loop, or per face corner's) normals.
  *
- * \param r_lnors_spacearr: Allows to get computed loop normal space array. That data, among other things,
- *                         contains 'smooth fan' info, useful e.g. to split geometry along sharp edges...
+ * \param r_lnors_spacearr: Allows to get computed loop normal space array.
+ * That data, among other things, contains 'smooth fan' info, useful e.g.
+ * to split geometry along sharp edges...
  */
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)
 {
@@ -1651,7 +1657,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   bool free_polynors = false;
 
   /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-   * However, we obviously only use the autosmooth angle threshold only in case autosmooth is enabled. */
+   * However, we obviously only use the autosmooth angle threshold
+   * only in case autosmooth is enabled. */
   const bool use_split_normals = (r_lnors_spacearr != NULL) || ((mesh->flag & ME_AUTOSMOOTH) != 0);
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI;
 
@@ -1668,7 +1675,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   clnors = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
 
   if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
-    /* This assume that layer is always up to date, not sure this is the case (esp. in Edit mode?)... */
+    /* This assume that layer is always up to date, not sure this is the case
+     * (esp. in Edit mode?)... */
     polynors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
     free_polynors = false;
   }
@@ -1738,8 +1746,9 @@ static int split_faces_prepare_new_verts(const Mesh *mesh,
                                          SplitFaceNewVert **new_verts,
                                          MemArena *memarena)
 {
-  /* This is now mandatory, trying to do the job in simple way without that data is doomed to fail, even when only
-   * dealing with smooth/flat faces one can find cases that no simple algorithm can handle properly. */
+  /* This is now mandatory, trying to do the job in simple way without that data is doomed to fail,
+   * even when only dealing with smooth/flat faces one can find cases that no simple algorithm
+   * can handle properly. */
   BLI_assert(lnors_spacearr != NULL);
 
   const int loops_len = mesh->totloop;
@@ -1785,8 +1794,9 @@ static int split_faces_prepare_new_verts(const Mesh *mesh,
       if (!vert_used) {
         BLI_BITMAP_ENABLE(verts_used, vert_idx);
         /* We need to update that vertex's normal here, we won't go over it again. */
-        /* This is important! *DO NOT* set vnor to final computed lnor, vnor should always be defined to
-         * 'automatic normal' value computed from its polys, not some custom normal.
+        /* This is important! *DO NOT* set vnor to final computed lnor,
+         * vnor should always be defined to 'automatic normal' value computed from its polys,
+         * not some custom normal.
          * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
         normal_float_to_short_v3(mvert[vert_idx].no, (*lnor_space)->vec_lnor);
       }
@@ -1938,8 +1948,9 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
       mesh, &lnors_spacearr, &new_verts, memarena);
 
   if (num_new_verts > 0) {
-    /* Reminder: beyond this point, there is no way out, mesh is in invalid state (due to early-reassignment of
-     * loops' vertex and edge indices to new, to-be-created split ones). */
+    /* Reminder: beyond this point, there is no way out, mesh is in invalid state
+     * (due to early-reassignment of loops' vertex and edge indices to new,
+     * to-be-created split ones). */
 
     const int num_new_edges = split_faces_prepare_new_edges(mesh, &new_edges, memarena);
     /* We can have to split a vertex without having to add a single new edge... */

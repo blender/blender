@@ -90,7 +90,8 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
   }
 }
 
-/* Check what can do each layer type (if it is actually handled by transferdata, if it supports advanced mixing... */
+/* Check what can do each layer type
+ * (if it is actually handled by transferdata, if it supports advanced mixing... */
 bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
                                                    bool *r_advanced_mixing,
                                                    bool *r_threshold)
@@ -458,7 +459,8 @@ static void data_transfer_interp_char(const CustomDataTransferLayerMap *laymap,
   *data_dst = (char)(val_src * 255.0f);
 }
 
-/* Helpers to match sources and destinations data layers (also handles 'conversions' in CD_FAKE cases). */
+/* Helpers to match sources and destinations data layers
+ * (also handles 'conversions' in CD_FAKE cases). */
 
 void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           const int cddata_type,
@@ -537,12 +539,13 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
                                        interp_data);
 }
 
-/* Note: All those layer mapping handlers return false *only* if they were given invalid parameters.
- *       This means that even if they do nothing, they will return true if all given parameters were OK.
- *       Also, r_map may be NULL, in which case they will 'only' create/delete destination layers according
- *       to given parameters.
+/**
+ * \note
+ * All those layer mapping handlers return false *only* if they were given invalid parameters.
+ * This means that even if they do nothing, they will return true if all given parameters were OK.
+ * Also, r_map may be NULL, in which case they will 'only' create/delete destination layers
+ * according to given parameters.
  */
-
 static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map,
                                                                  const int cddata_type,
                                                                  const int mix_mode,
@@ -609,7 +612,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
             continue;
           }
           data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
-          /* If dest is a evaluated mesh (fro; ;odifier), we do not want to overwrite cdlayers of orig mesh! */
+          /* If dest is a evaluated mesh (from modifier),
+           * we do not want to overwrite cdlayers of orig mesh! */
           if (use_dupref_dst) {
             data_dst = CustomData_duplicate_referenced_layer_n(
                 cd_dst, cddata_type, idx_src, num_elem_dst);
@@ -654,7 +658,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
             idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
           }
           else {
-            /* If we are not allowed to create missing dst data layers, just skip matching src one. */
+            /* If we are not allowed to create missing dst data layers,
+             * just skip matching src one. */
             continue;
           }
         }
@@ -662,7 +667,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           data_dst_to_delete[idx_dst] = false;
         }
         if (r_map) {
-          /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+          /* If dest is a evaluated mesh (from modifier),
+           * we do not want to overwrite cdlayers of orig mesh! */
           if (use_dupref_dst) {
             data_dst = CustomData_duplicate_referenced_layer_n(
                 cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -683,9 +689,10 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
       }
 
       if (data_dst_to_delete) {
-        /* Note: This won't affect newly created layers, if any, since tot_dst has not been updated!
-         *       Also, looping backward ensures us we do not suffer from index shifting when deleting a layer.
-         */
+        /* Note:
+         * This won't affect newly created layers, if any, since tot_dst has not been updated!
+         * Also, looping backward ensures us we do not suffer
+         * from index shifting when deleting a layer. */
         for (idx_dst = tot_dst; idx_dst--;) {
           if (data_dst_to_delete[idx_dst]) {
             CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, idx_dst);
@@ -737,7 +744,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
       data_dst = CustomData_add_layer(cd_dst, cddata_type, CD_CALLOC, NULL, num_elem_dst);
     }
     else if (use_dupref_dst && r_map) {
-      /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+      /* If dest is a evaluated mesh (from modifier),
+       * we do not want to overwrite cdlayers of orig mesh! */
       data_dst = CustomData_duplicate_referenced_layer(cd_dst, cddata_type, num_elem_dst);
     }
 
@@ -771,7 +779,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
 
     if (tolayers >= 0) { /* Real-layer index */
       idx_dst = tolayers;
-      /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+      /* If dest is a evaluated mesh (from modifier),
+       * we do not want to overwrite cdlayers of orig mesh! */
       if (use_dupref_dst && r_map) {
         data_dst = CustomData_duplicate_referenced_layer_n(
             cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -788,7 +797,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
         data_dst = CustomData_add_layer(cd_dst, cddata_type, CD_CALLOC, NULL, num_elem_dst);
       }
       else {
-        /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+        /* If dest is a evaluated mesh (from modifier),
+         * we do not want to overwrite cdlayers of orig mesh! */
         if (use_dupref_dst && r_map) {
           data_dst = CustomData_duplicate_referenced_layer_n(
               cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -810,7 +820,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
           CustomData_add_layer(cd_dst, cddata_type, CD_CALLOC, NULL, num_elem_dst);
         }
       }
-      /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+      /* If dest is a evaluated mesh (from modifier),
+       * we do not want to overwrite cdlayers of orig mesh! */
       if (use_dupref_dst && r_map) {
         data_dst = CustomData_duplicate_referenced_layer_n(
             cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -828,7 +839,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
         CustomData_add_layer_named(cd_dst, cddata_type, CD_CALLOC, NULL, num_elem_dst, name);
         idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
       }
-      /* If dest is a evaluated mesh (from modifier), we do not want to overwrite cdlayers of orig mesh! */
+      /* If dest is a evaluated mesh (from modifier),
+       * we do not want to overwrite cdlayers of orig mesh! */
       if (use_dupref_dst && r_map) {
         data_dst = CustomData_duplicate_referenced_layer_n(
             cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -1002,7 +1014,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return ret;
     }
     else if (cddata_type == CD_FAKE_SHAPEKEY) {
-      /* TODO: leaving shapekeys aside for now, quite specific case, since we can't access them from MVert :/ */
+      /* TODO: leaving shapekeys aside for now, quite specific case,
+       * since we can't access them from MVert :/ */
       return false;
     }
   }
@@ -1127,7 +1140,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cddata_type = CD_MLOOPUV;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      /* Preprocess should have generated it, Postprocess will convert it back to CD_CUSTOMLOOPNORMAL. */
+      /* Pre-process should have generated it,
+       * Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
       cddata_type = CD_NORMAL;
       interp_data = space_transform;
       interp = customdata_data_transfer_interp_normal_normals;
@@ -1224,8 +1238,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
 /**
  * Transfer data *layout* of selected types from source to destination object.
  * By default, it only creates new data layers if needed on \a ob_dst.
- * If \a use_delete is true, it will also delete data layers on \a ob_dst that do not match those from \a ob_src,
- * to get (as much as possible) exact copy of source data layout.
+ * If \a use_delete is true, it will also delete data layers on \a ob_dst that do not match those
+ * from \a ob_src, to get (as much as possible) exact copy of source data layout.
  */
 void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      Scene *scene,

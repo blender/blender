@@ -99,8 +99,10 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of MetaBall ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of MetaBall ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -238,7 +240,8 @@ BoundBox *BKE_mball_boundbox_get(Object *ob)
     return ob->runtime.bb;
   }
 
-  /* This should always only be called with evaluated objects, but currently RNA is a problem here... */
+  /* This should always only be called with evaluated objects,
+   * but currently RNA is a problem here... */
   if (ob->runtime.curve_cache != NULL) {
     BKE_mball_texspace_calc(ob);
   }
@@ -283,12 +286,15 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
 
 /* Note on mball basis stuff 2.5x (this is a can of worms)
  * This really needs a rewrite/refactor its totally broken in anything other then basic cases
- * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph on rename
- * and linking into scenes or removal of basis mball. so take care when changing this code.
+ * Multiple Scenes + Set Scenes & mixing mball basis SHOULD work but fails to update the depsgraph
+ * on rename and linking into scenes or removal of basis mball.
+ * So take care when changing this code.
  *
- * Main idiot thing here is that the system returns find_basis_mball() objects which fail a is_basis_mball() test.
+ * Main idiot thing here is that the system returns find_basis_mball()
+ * objects which fail a is_basis_mball() test.
  *
- * Not only that but the depsgraph and their areas depend on this behavior!, so making small fixes here isn't worth it.
+ * Not only that but the depsgraph and their areas depend on this behavior!,
+ * so making small fixes here isn't worth it.
  * - Campbell
  */
 
@@ -360,8 +366,8 @@ bool BKE_mball_is_any_unselected(const MetaBall *mb)
 
 /* \brief copy some properties from object to other metaball object with same base name
  *
- * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties
- * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
+ * When some properties (wiresize, threshold, update flags) of metaball are changed, then this
+ * properties are copied to all metaballs in same "group" (metaballs with same base name: MBall,
  * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
  * because this metaball influence polygonisation of metaballs. */
 void BKE_mball_properties_copy(Scene *scene, Object *active_object)
@@ -427,7 +433,8 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
         if (ob != bob) {
           BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 
-          /* object ob has to be in same "group" ... it means, that it has to have same base of its name */
+          /* Object ob has to be in same "group" ... it means,
+           * that it has to have same base of its name. */
           if (STREQ(obname, basisname)) {
             if (obnr < basisnr) {
               basis = ob;

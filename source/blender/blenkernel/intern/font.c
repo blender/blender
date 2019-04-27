@@ -674,7 +674,8 @@ enum {
  * Descent: the recommended distance below the baseline to fit most characters.
  *
  * We obtain ascent and descent from the font itself (FT_Face->ascender / face->height).
- * And in some cases it is even the same value as FT_Face->bbox.yMax/yMin (font top and bottom respectively).
+ * And in some cases it is even the same value as FT_Face->bbox.yMax/yMin
+ * (font top and bottom respectively).
  *
  * The em_height here is relative to FT_Face->bbox.
  */
@@ -1405,7 +1406,8 @@ static bool vfont_to_curve(Object *ob,
       }
 
       if (ob == NULL || info->mat_nr > (ob->totcol)) {
-        /* CLOG_ERROR(&LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr); */
+        // CLOG_ERROR(
+        //     &LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr);
         info->mat_nr = 0;
       }
       /* We do not want to see any character for \n or \r */
@@ -1625,7 +1627,8 @@ bool BKE_vfont_to_curve_nubase(Object *ob, int mode, ListBase *r_nubase)
   return BKE_vfont_to_curve_ex(ob, ob->data, mode, r_nubase, NULL, NULL, NULL, NULL);
 }
 
-/** Warning: expects to have access to evaluated data (i.e. passed object should be evaluated one...). */
+/** Warning: expects to have access to evaluated data
+ * (i.e. passed object should be evaluated one...). */
 bool BKE_vfont_to_curve(Object *ob, int mode)
 {
   Curve *cu = ob->data;

@@ -92,7 +92,8 @@ typedef struct UndoType {
   /**
    * When NULL, we don't consider this undo type for context checks.
    * Operators must explicitly set the undo type and handle adding the undo step.
-   * This is needed when tools operate on data which isn't the primary mode (eg, paint-curve in sculpt mode).
+   * This is needed when tools operate on data which isn't the primary mode
+   * (eg, paint-curve in sculpt mode).
    */
   bool (*poll)(struct bContext *C);
 

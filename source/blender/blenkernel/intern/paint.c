@@ -447,8 +447,10 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of PaintCurve ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of PaintCurve ID from source to
+ * already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -534,8 +536,10 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of Palette ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Palette ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -938,7 +942,8 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
   if (ob && ob->sculpt) {
     sculptsession_bm_to_me_update_data_only(ob, reorder);
 
-    /* ensure the objects evaluated mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
+    /* Ensure the objects evaluated mesh doesn't hold onto arrays
+     * now realloc'd in the mesh T34473. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
@@ -1134,7 +1139,10 @@ void BKE_sculpt_update_mesh_elements(
       if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
 #if 1
         BKE_sculpt_mask_layers_ensure(ob, mmd);
-#else /* if we wanted to support adding mask data while multi-res painting, we would need to do this */
+#else
+        /* If we wanted to support adding mask data while multi-res painting,
+         * we would need to do this. */
+
         if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
           /* remake the derived mesh */
           ob->recalc |= ID_RECALC_GEOMETRY;

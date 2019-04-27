@@ -464,8 +464,10 @@ Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 }
 
 /**
- * Only copy internal data of Text ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Text ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -2004,7 +2006,7 @@ static void txt_undo_add_unprefix_op(Text *text,
 
   BLI_assert(BLI_listbase_count(line_index_mask) == line_index_mask_len);
 
-  /* OP byte + UInt32 count + counted UInt32 line numbers + UInt32 count + 12-bytes selection + OP byte */
+  /* OP byte + u32 count + counted u32 line numbers + u32 count + 12-bytes selection + OP byte. */
   if (!max_undo_test(utxt, 2 + 4 + (line_index_mask_len * 4) + 4 + 12 + 1)) {
     return;
   }
@@ -3331,7 +3333,8 @@ int text_check_bracket(const char ch)
   return 0;
 }
 
-/* TODO, have a function for operators - http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
+/* TODO, have a function for operators -
+ * http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
 bool text_check_delim(const char ch)
 {
   int a;

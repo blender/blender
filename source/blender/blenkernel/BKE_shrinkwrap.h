@@ -112,7 +112,8 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                int numVerts);
 
 /*
- * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:
+ * This function casts a ray in the given BVHTree.
+ * but it takes into consideration the space_transform, that is:
  *
  * if transf was configured with "SPACE_TRANSFORM_SETUP( &transf,  ob1, ob2 )"
  * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
@@ -129,7 +130,8 @@ bool BKE_shrinkwrap_project_normal(char options,
                                    struct ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);
 
-/* Maps the point to the nearest surface, either by simple nearest, or by target normal projection. */
+/* Maps the point to the nearest surface, either by simple nearest,
+ * or by target normal projection. */
 void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
                                          struct BVHTreeNearest *nearest,
                                          float co[3],

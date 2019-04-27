@@ -196,8 +196,10 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 }
 
 /**
- * Only copy internal data of Curve ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Curve ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -337,7 +339,8 @@ void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
 
 BoundBox *BKE_curve_boundbox_get(Object *ob)
 {
-  /* This is Object-level data access, DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
+  /* This is Object-level data access,
+   * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
   if (ob->runtime.bb == NULL || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
     Curve *cu = ob->data;
     float min[3], max[3];
@@ -2962,8 +2965,11 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
   bev = &ob->runtime.curve_cache->bev;
 
+#if 0
   /* do we need to calculate the radius for each point? */
-  /* do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1; */
+  do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 :
+                                                                                              1;
+#endif
 
   /* STEP 1: MAKE POLYS  */
 
@@ -2974,7 +2980,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
   }
 
   for (; nu; nu = nu->next) {
-
     if (nu->hide && is_editmode) {
       continue;
     }
@@ -3896,7 +3901,8 @@ static bool tridiagonal_solve_with_limits(
       all = true;
     } while (overshoot && !locked);
 
-    /* if no handles overshot and were locked, see if it may be a good idea to unlock some handles */
+    /* If no handles overshot and were locked,
+     * see if it may be a good idea to unlock some handles. */
     if (!locked) {
       for (int i = 0; i < solve_count; i++) {
         // to definitely avoid infinite loops limit this to 2 times
@@ -3949,29 +3955,29 @@ static bool tridiagonal_solve_with_limits(
  * |-------t1---------t2--------- ~ --------tN-------------------> time (co 0)
  * Mathematical basis:
  *
- *   1. Handle lengths on either side of each point are connected by a factor
- *      ensuring continuity of the first derivative:
+ * 1. Handle lengths on either side of each point are connected by a factor
+ *    ensuring continuity of the first derivative:
  *
- *      l[i] = t[i+1]/t[i]
+ *    l[i] = t[i+1]/t[i]
  *
- *   2. The tridiagonal system is formed by the following equation, which is derived
- *      by differentiating the bezier curve and specifies second derivative continuity
- *      at every point:
+ * 2. The tridiagonal system is formed by the following equation, which is derived
+ *    by differentiating the bezier curve and specifies second derivative continuity
+ *    at every point:
  *
- *      l[i]^2 * h[i-1] + (2*l[i]+2) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
+ *    l[i]^2 * h[i-1] + (2*l[i]+2) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
  *
- *   3. If this point is adjacent to a manually set handle with X size not equal to 1/3
- *      of the horizontal interval, this equation becomes slightly more complex:
+ * 3. If this point is adjacent to a manually set handle with X size not equal to 1/3
+ *    of the horizontal interval, this equation becomes slightly more complex:
  *
- *      l[i]^2 * h[i-1] + (3*(1-R[i-1])*l[i] + 3*(1-L[i+1])) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
+ *    l[i]^2 * h[i-1] + (3*(1-R[i-1])*l[i] + 3*(1-L[i+1])) * h[i] + 1/l[i+1] * h[i+1] = (y[i]-y[i-1])*l[i]^2 + y[i+1]-y[i]
  *
- *      The difference between equations amounts to this, and it's obvious that when R[i-1]
- *      and L[i+1] are both 1/3, it becomes zero:
+ *    The difference between equations amounts to this, and it's obvious that when R[i-1]
+ *    and L[i+1] are both 1/3, it becomes zero:
  *
- *      ( (1-3*R[i-1])*l[i] + (1-3*L[i+1]) ) * h[i]
+ *    ( (1-3*R[i-1])*l[i] + (1-3*L[i+1]) ) * h[i]
  *
- *   4. The equations for zero acceleration border conditions are basically the above
- *      equation with parts omitted, so the handle size correction also applies.
+ * 4. The equations for zero acceleration border conditions are basically the above
+ *    equation with parts omitted, so the handle size correction also applies.
  */
 
 static void bezier_eq_continuous(

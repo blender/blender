@@ -123,10 +123,12 @@ struct Mesh *BKE_mesh_new_nomain_from_template(const struct Mesh *me_src,
                                                int loops_len,
                                                int polys_len);
 
-/* Performs copy for use during evaluation, optional referencing original arrays to reduce memory. */
+/* Performs copy for use during evaluation,
+ * optional referencing original arrays to reduce memory. */
 struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);
 
-/* These functions construct a new Mesh, contrary to BKE_mesh_from_nurbs which modifies ob itself. */
+/* These functions construct a new Mesh,
+ * contrary to BKE_mesh_from_nurbs which modifies ob itself. */
 struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);
 struct Mesh *BKE_mesh_new_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
 

@@ -134,8 +134,9 @@ struct DerivedMesh {
    * \warning Typical access is done via #getLoopTriArray, #getNumLoopTri.
    */
   struct {
-    /* WARNING! swapping between array (ready-to-be-used data) and array_wip (where data is actually computed)
-     *          shall always be protected by same lock as one used for looptris computing. */
+    /* WARNING! swapping between array (ready-to-be-used data) and array_wip
+     * (where data is actually computed) shall always be protected by same
+     * lock as one used for looptris computing. */
     struct MLoopTri *array, *array_wip;
     int num;
     int num_alloc;

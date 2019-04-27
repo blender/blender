@@ -152,7 +152,8 @@ static void setup_app_data(bContext *C,
   /* no load screens? */
   if (mode != LOAD_UI) {
     /* Logic for 'track_undo_scene' is to keep using the scene which the active screen has,
-     * as long as the scene associated with the undo operation is visible in one of the open windows.
+     * as long as the scene associated with the undo operation is visible
+     * in one of the open windows.
      *
      * - 'curscreen->scene' - scene the user is currently looking at.
      * - 'bfd->curscene' - scene undo-step was created in.

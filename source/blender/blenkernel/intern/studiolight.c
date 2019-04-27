@@ -1283,7 +1283,8 @@ void BKE_studiolight_init(void)
   BLI_addtail(&studiolights, sl);
 
   /* go over the preset folder and add a studiolight for every image with its path */
-  /* for portable installs (where USER and SYSTEM paths are the same), only go over LOCAL datafiles once */
+  /* for portable installs (where USER and SYSTEM paths are the same),
+   * only go over LOCAL datafiles once */
   /* Also reserve icon space for it. */
   if (!BKE_appdir_app_is_portable_install()) {
     studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,

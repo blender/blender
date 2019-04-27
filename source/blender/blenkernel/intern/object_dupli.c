@@ -122,7 +122,8 @@ static void copy_dupli_context(
 {
   *r_ctx = *ctx;
 
-  /* XXX annoying, previously was done by passing an ID* argument, this at least is more explicit */
+  /* XXX annoying, previously was done by passing an ID* argument,
+   * this at least is more explicit. */
   if (ctx->gen->type == OB_DUPLICOLLECTION) {
     r_ctx->collection = ctx->object->instance_collection;
   }
@@ -525,7 +526,8 @@ static void make_duplis_font(const DupliContext *ctx)
   for (a = 0; a < text_len; a++, ct++) {
 
     /* XXX That G.main is *really* ugly, but not sure what to do here...
-     * Definitively don't think it would be safe to put back Main *bmain pointer in DupliContext as done in 2.7x? */
+     * Definitively don't think it would be safe to put back Main *bmain pointer
+     * in DupliContext as done in 2.7x? */
     ob = find_family_object(G.main, cu->family, family_len, (unsigned int)text[a], family_gh);
     if (ob) {
       vec[0] = fsize * (ct->xof - xof);
@@ -988,7 +990,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         copy_v3_v3(vec, obmat[3]);
         zero_v3(obmat[3]);
 
-        /* particle rotation uses x-axis as the aligned axis, so pre-rotate the object accordingly */
+        /* Particle rotation uses x-axis as the aligned axis,
+         * so pre-rotate the object accordingly. */
         if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
           float xvec[3], q[4], size_mat[4][4], original_size[3];
 

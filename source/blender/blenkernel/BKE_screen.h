@@ -182,7 +182,8 @@ typedef struct ARegionType {
   int prefsizex, prefsizey;
   /* default keymaps to add */
   int keymapflag;
-  /* return without drawing. lock is set by region definition, and copied to do_lock by render. can become flag */
+  /* return without drawing.
+   * lock is set by region definition, and copied to do_lock by render. can become flag. */
   short do_lock, lock;
   /* call cursor function on each move event */
   short event_cursor;
@@ -337,7 +338,8 @@ struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void BKE_area_region_panels_free(struct ListBase *panels);
 void BKE_screen_area_free(struct ScrArea *sa);
-/* Gizmo-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
+/* Gizmo-maps of a region need to be freed with the region.
+ * Uses callback to avoid low-level call. */
 void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 

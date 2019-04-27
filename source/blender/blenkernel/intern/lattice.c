@@ -268,8 +268,10 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of Lattice ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Lattice ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -681,8 +683,8 @@ static bool calc_curve_deform(
 
     if (cd->no_rot_axis) { /* set by caller */
 
-      /* this is not exactly the same as 2.4x, since the axis is having rotation removed rather than
-       * changing the axis before calculating the tilt but serves much the same purpose */
+      /* This is not exactly the same as 2.4x, since the axis is having rotation removed rather
+       * than changing the axis before calculating the tilt but serves much the same purpose. */
       float dir_flat[3] = {0, 0, 0}, q[4];
       copy_v3_v3(dir_flat, dir);
       dir_flat[cd->no_rot_axis - 1] = 0.0f;
@@ -699,8 +701,10 @@ static bool calc_curve_deform(
      *
      * The way 'co' is copied to 'cent' may seem to have no meaning, but it does.
      *
-     * Use a curve modifier to stretch a cube out, color each side RGB, positive side light, negative dark.
-     * view with X up (default), from the angle that you can see 3 faces RGB colors (light), anti-clockwise
+     * Use a curve modifier to stretch a cube out, color each side RGB,
+     * positive side light, negative dark.
+     * view with X up (default), from the angle that you can see 3 faces RGB colors (light),
+     * anti-clockwise
      * Notice X,Y,Z Up all have light colors and each ordered CCW.
      *
      * Now for Neg Up XYZ, the colors are all dark, and ordered clockwise - Campbell
@@ -1061,7 +1065,8 @@ void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   Lattice *lt = ob->data;
-  /* Get vertex coordinates from the original copy; otherwise we get already-modified coordinates. */
+  /* Get vertex coordinates from the original copy;
+   * otherwise we get already-modified coordinates. */
   Object *ob_orig = DEG_get_original_object(ob);
   VirtualModifierData virtualModifierData;
   ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);

@@ -385,7 +385,8 @@ static void cdDM_foreachMappedLoop(DerivedMesh *dm,
                                    void *userData,
                                    DMForeachFlag flag)
 {
-  /* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
+  /* We can't use dm->getLoopDataLayout(dm) here,
+   * we want to always access dm->loopData, EditDerivedBMesh would
    * return loop data from bmesh itself. */
   const float(*lnors)[3] = (flag & DM_FOREACH_USE_NORMAL) ? DM_get_loop_data_layer(dm, CD_NORMAL) :
                                                             NULL;
@@ -633,7 +634,8 @@ DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh,
   if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
     dm->dirty |= DM_DIRTY_NORMALS;
   }
-  /* TODO DM_DIRTY_TESS_CDLAYERS ? Maybe not though, since we probably want to switch to looptris ? */
+  /* TODO DM_DIRTY_TESS_CDLAYERS ? Maybe not though,
+   * since we probably want to switch to looptris? */
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);

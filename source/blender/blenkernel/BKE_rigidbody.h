@@ -106,7 +106,8 @@ void BKE_rigidbody_remove_constraint(struct Scene *scene, struct Object *ob);
             (rbo->flag & RBO_FLAG_DISABLED))) ? \
        (0.0f) : \
        (rbo->mass))
-/* get collision margin for Rigid Body Object, triangle mesh and cone shapes cannot embed margin, convex hull always uses custom margin */
+/* Get collision margin for Rigid Body Object, triangle mesh and cone shapes cannot embed margin,
+ * convex hull always uses custom margin. */
 #define RBO_GET_MARGIN(rbo) \
   ((rbo->flag & RBO_FLAG_USE_MARGIN || rbo->shape == RB_SHAPE_CONVEXH || \
     rbo->shape == RB_SHAPE_TRIMESH || rbo->shape == RB_SHAPE_CONE) ? \

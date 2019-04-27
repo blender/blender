@@ -167,7 +167,8 @@ typedef struct PTCacheID {
   void (*interpolate_extra_data)(
       void *calldata, struct PTCacheMem *pm, float cfra, float cfra1, float cfra2);
 
-  /* total number of simulated points (the cfra parameter is just for using same function pointer with totwrite) */
+  /* Total number of simulated points
+   * (the cfra parameter is just for using same function pointer with totwrite). */
   int (*totpoint)(void *calldata, int cfra);
   /* report error if number of points does not match */
   void (*error)(void *calldata, const char *message);
@@ -265,8 +266,8 @@ typedef struct PTCacheEdit {
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
   struct KDTree_3d *emitter_field;
-  float *
-      emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
+  /* Localspace face centers and normals (average of its verts), from the derived mesh. */
+  float *emitter_cosnos;
   int *mirror_cache;
 
   struct ParticleCacheKey **pathcache; /* path cache (runtime) */

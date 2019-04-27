@@ -128,29 +128,38 @@ float evaluate_driver(struct PathResolvedRNA *anim_rna,
  */
 typedef struct FModifierTypeInfo {
   /* admin/ident */
-  short type;          /* FMODIFIER_TYPE_### */
-  short size;          /* size in bytes of the struct */
-  short acttype;       /* eFMI_Action_Types */
-  short requires;      /* eFMI_Requirement_Flags */
-  char name[64];       /* name of modifier in interface */
-  char structName[64]; /* name of struct for SDNA */
-  uint storage_size;   /* size of buffer that can be reused between time and value evaluation */
+  /** #FMODIFIER_TYPE_* */
+  short type;
+  /** size in bytes of the struct. */
+  short size;
+  /** #eFMI_Action_Types. */
+  short acttype;
+  /** #eFMI_Requirement_Flags. */
+  short requires;
+  /** name of modifier in interface. */
+  char name[64];
+  /** name of struct for SDNA. */
+  char structName[64];
+  /** Size of buffer that can be reused between time and value evaluation. */
+  uint storage_size;
 
   /* data management function pointers - special handling */
-  /* free any data that is allocated separately (optional) */
+  /** Free any data that is allocated separately (optional). */
   void (*free_data)(struct FModifier *fcm);
-  /* copy any special data that is allocated separately (optional) */
+  /** Copy any special data that is allocated separately (optional). */
   void (*copy_data)(struct FModifier *fcm, const struct FModifier *src);
-  /* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
+  /**
+   * Set settings for data that will be used for FCuModifier.data
+   * (memory already allocated using #MEM_callocN). */
   void (*new_data)(void *mdata);
-  /* verifies that the modifier settings are valid */
+  /** Verifies that the modifier settings are valid */
   void (*verify_data)(struct FModifier *fcm);
 
   /* evaluation */
-  /* evaluate time that the modifier requires the F-Curve to be evaluated at */
+  /** Evaluate time that the modifier requires the F-Curve to be evaluated at */
   float (*evaluate_modifier_time)(
       struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime, void *storage);
-  /* evaluate the modifier for the given time and 'accumulated' value */
+  /** Evaluate the modifier for the given time and 'accumulated' value */
   void (*evaluate_modifier)(
       struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime, void *storage);
 } FModifierTypeInfo;
@@ -223,7 +232,8 @@ int BKE_fcm_envelope_find_index(struct FCM_EnvelopeData *array,
 
 /* ************** F-Curves API ******************** */
 
-/* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
+/* threshold for binary-searching keyframes - threshold here should be good enough for now,
+ * but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 0.01f /* was 0.00001, but giving errors */
 
 /* -------- Data Management  --------  */
@@ -243,7 +253,8 @@ struct FCurve *iter_step_fcurve(struct FCurve *fcu_iter, const char rna_path[]);
 struct FCurve *id_data_find_fcurve(
     ID *id, void *data, struct StructRNA *type, const char *prop_name, int index, bool *r_driven);
 
-/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated
+/* Get list of LinkData's containing pointers to the F-Curves which control the types of data
+ * indicated
  * e.g.  numMatches = list_find_data_fcurves(matches, &act->curves, "pose.bones[", "MyFancyBone");
  */
 int list_find_data_fcurves(ListBase *dst,
@@ -259,7 +270,8 @@ struct FCurve *rna_get_fcurve(struct PointerRNA *ptr,
                               struct bAction **r_action,
                               bool *r_driven,
                               bool *r_special);
-/* Same as above, but takes a context data, temp hack needed for complex paths like texture ones. */
+/* Same as above, but takes a context data,
+ * temp hack needed for complex paths like texture ones. */
 struct FCurve *rna_get_fcurve_context_ui(struct bContext *C,
                                          struct PointerRNA *ptr,
                                          struct PropertyRNA *prop,

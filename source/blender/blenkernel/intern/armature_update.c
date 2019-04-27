@@ -165,7 +165,8 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
   CLAMP_MIN(ikData->points[segcount], 0.0f);
 
   /* make a new Spline-IK chain, and store it in the IK chains */
-  /* TODO: we should check if there is already an IK chain on this, since that would take precedence... */
+  /* TODO: we should check if there is already an IK chain on this,
+   * since that would take precedence... */
   {
     /* make new tree */
     tSplineIK_Tree *tree = MEM_callocN(sizeof(tSplineIK_Tree), "SplineIK Tree");
@@ -199,7 +200,8 @@ static void splineik_init_tree(Scene *scene, Object *ob, float UNUSED(ctime))
 {
   bPoseChannel *pchan;
 
-  /* find the tips of Spline IK chains, which are simply the bones which have been tagged as such */
+  /* find the tips of Spline IK chains,
+   * which are simply the bones which have been tagged as such */
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
       splineik_init_tree_from_pchan(scene, ob, pchan);
@@ -330,9 +332,9 @@ static void splineik_evaluate_bone(
     }
   }
 
-  /* step 2: determine the implied transform from these endpoints
-   *     - splineVec: the vector direction that the spline applies on the bone
-   *     - scaleFac: the factor that the bone length is scaled by to get the desired amount
+  /* Step 2: determine the implied transform from these endpoints.
+   * - splineVec: the vector direction that the spline applies on the bone.
+   * - scaleFac: the factor that the bone length is scaled by to get the desired amount.
    */
   sub_v3_v3v3(splineVec, poseTail, poseHead);
   scaleFac = len_v3(splineVec) / pchan->bone->length;
@@ -340,8 +342,10 @@ static void splineik_evaluate_bone(
   /* Adjust the scale factor towards the neutral state when rolling off the curve end. */
   scaleFac = interpf(scaleFac, baseScale, tailBlendFac);
 
-  /* step 3: compute the shortest rotation needed to map from the bone rotation to the current axis
-   *      - this uses the same method as is used for the Damped Track Constraint (see the code there for details)
+  /* Step 3: compute the shortest rotation needed
+   * to map from the bone rotation to the current axis.
+   * - this uses the same method as is used for the Damped Track Constraint
+   *   (see the code there for details).
    */
   {
     float dmat[3][3], rmat[3][3];
@@ -353,7 +357,8 @@ static void splineik_evaluate_bone(
     mul_m3_m4m4(basePoseMat, state->locrot_offset, pchan->pose_mat);
     normalize_m3_m3(rmat, basePoseMat);
 
-    /* also, normalize the orientation imposed by the bone, now that we've extracted the scale factor */
+    /* Also, normalize the orientation imposed by the bone,
+     * now that we've extracted the scale factor. */
     normalize_v3(splineVec);
 
     /* calculate smallest axis-angle rotation necessary for getting from the
@@ -375,12 +380,12 @@ static void splineik_evaluate_bone(
      */
     axis_angle_to_mat3(dmat, raxis, rangle);
 
-    /* combine these rotations so that the y-axis of the bone is now aligned as the spline dictates,
-     * while still maintaining roll control from the existing bone animation
-     */
+    /* Combine these rotations so that the y-axis of the bone is now aligned as the
+     * spline dictates, while still maintaining roll control from the existing bone animation. */
     mul_m3_m3m3(poseMat, dmat, rmat);
-    normalize_m3(
-        poseMat); /* attempt to reduce shearing, though I doubt this'll really help too much now... */
+
+    /* attempt to reduce shearing, though I doubt this'll really help too much now... */
+    normalize_m3(poseMat);
 
     mul_m3_m3m3(basePoseMat, dmat, basePoseMat);
 
@@ -539,7 +544,8 @@ static void splineik_execute_tree(
   while ((tree = pchan_root->siktree.first) != NULL) {
     int i;
 
-    /* Firstly, calculate the bone matrix the standard way, since this is needed for roll control. */
+    /* Firstly, calculate the bone matrix the standard way,
+     * since this is needed for roll control. */
     for (i = tree->chainlen - 1; i >= 0; i--) {
       BKE_pose_where_is_bone(depsgraph, scene, ob, tree->chain[i], ctime, 1);
     }
@@ -549,8 +555,8 @@ static void splineik_execute_tree(
 
     if (splineik_evaluate_init(tree, &state)) {
       /* Walk over each bone in the chain, calculating the effects of spline IK
-       *     - the chain is traversed in the opposite order to storage order (i.e. parent to children)
-       *       so that dependencies are correct
+       * - the chain is traversed in the opposite order to storage order (i.e. parent to children)
+       *   so that dependencies are correct
        */
       for (i = tree->chainlen - 1; i >= 0; i--) {
         bPoseChannel *pchan = tree->chain[i];

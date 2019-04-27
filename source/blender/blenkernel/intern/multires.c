@@ -1712,7 +1712,8 @@ void multires_free(Multires *mr)
       lvl = lvl->next;
     }
 
-    /* mr->verts may be NULL when loading old files, see direct_link_mesh() in readfile.c, and T43560. */
+    /* mr->verts may be NULL when loading old files,
+     * see direct_link_mesh() in readfile.c, and T43560. */
     MEM_SAFE_FREE(mr->verts);
 
     BLI_freelistN(&mr->levels);

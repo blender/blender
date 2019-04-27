@@ -273,7 +273,8 @@ static void BKE_sequence_free_ex(Scene *scene,
    * also invalidate cache for all dependent sequences
    *
    * be _very_ careful here, invalidating cache loops over the scene sequences and
-   * assumes the listbase is valid for all strips, this may not be the case if lists are being freed.
+   * assumes the listbase is valid for all strips,
+   * this may not be the case if lists are being freed.
    * this is optional BKE_sequence_invalidate_cache
    */
   if (do_cache) {
@@ -3515,7 +3516,9 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
   scene = seq->scene;
   frame = (double)scene->r.sfra + (double)nr + (double)seq->anim_startofs;
 
-  // have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first);  /* UNUSED */
+#if 0 /* UNUSED */
+  have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first);
+#endif
   have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
   /* Get view layer for the strip. */
@@ -4723,8 +4726,8 @@ bool BKE_sequence_tx_test(Sequence *seq)
 /**
  * Return \a true if given \a seq needs a complete cleanup of its cache when it is transformed.
  *
- * Some (effect) strip types need a complete recache of themselves when they are transformed, because
- * they do not 'contain' anything and do not have any explicit relations to other strips.
+ * Some (effect) strip types need a complete recache of themselves when they are transformed,
+ * because they do not 'contain' anything and do not have any explicit relations to other strips.
  */
 bool BKE_sequence_tx_fullupdate_test(Sequence *seq)
 {
@@ -5588,7 +5591,8 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   /* basic defaults */
   seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-  /* We add a very small negative offset here, because ceil(132.0) == 133.0, not nice with videos, see T47135. */
+  /* We add a very small negative offset here, because
+   * ceil(132.0) == 133.0, not nice with videos, see T47135. */
   seq->len = (int)ceil((double)info.length * FPS - 1e-4);
   strip->us = 1;
 
@@ -5846,9 +5850,9 @@ static Sequence *seq_dupli(const Scene *scene_src,
   /* When using SEQ_DUPE_UNIQUE_NAME, it is mandatory to add new sequences in relevant container
    * (scene or meta's one), *before* checking for unique names. Otherwise the meta's list is empty
    * and hence we miss all seqs in that meta that have already been duplicated (see T55668).
-   * Note that unique name check itslef could be done at a later step in calling code, once all seqs
-   * have bee duplicated (that was first, simpler solution), but then handling of animation data will
-   * be broken (see T60194). */
+   * Note that unique name check itslef could be done at a later step in calling code, once all
+   * seqs have bee duplicated (that was first, simpler solution), but then handling of animation
+   * data will be broken (see T60194). */
   if (new_seq_list != NULL) {
     BLI_addtail(new_seq_list, seqn);
   }
@@ -6000,7 +6004,8 @@ int BKE_sequencer_find_next_prev_edit(Scene *scene,
   int dist, best_dist, best_frame = cfra;
   int seq_frames[2], seq_frames_tot;
 
-  /* in case where both is passed, frame just finds the nearest end while frame_left the nearest start */
+  /* In case where both is passed,
+   * frame just finds the nearest end while frame_left the nearest start. */
 
   best_dist = MAXFRAME * 2;
 

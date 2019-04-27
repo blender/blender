@@ -20,14 +20,16 @@
 /** \file
  * \ingroup bke
  *
- * This module exposes a rasterizer that works as a black box - implementation details are confined to this file,
+ * This module exposes a rasterizer that works as a black box - implementation details
+ * are confined to this file.
  *
  * The basic method to access is:
  * - create & initialize a handle from a #Mask datablock.
  * - execute pixel lookups.
  * - free the handle.
  *
- * This file is admittedly a bit confusticated, in quite few areas speed was chosen over readability,
+ * This file is admittedly a bit confusticated,
+ * in quite few areas speed was chosen over readability,
  * though it is commented - so shouldn't be so hard to see what's going on.
  * Implementation:
  *
@@ -35,12 +37,16 @@
  *
  * Initially 'kdopbvh' was used but this ended up being too slow.
  *
- * To gain some extra speed we take advantage of a few shortcuts that can be made rasterizing masks specifically.
- * - all triangles are known to be completely white - so no depth check is done on triangle intersection.
- * - all quads are known to be feather outlines - the 1 and 0 depths are known by the vertex order in the quad,
- * - there is no color - just a value for each mask pixel.
- * - the mask spacial structure always maps to space 0-1 on X and Y axis.
- * - bucketing is used to speed up lookups for geometry.
+ * To gain some extra speed we take advantage of a few shortcuts
+ * that can be made rasterizing masks specifically.
+ *
+ * - All triangles are known to be completely white -
+ *   so no depth check is done on triangle intersection.
+ * - All quads are known to be feather outlines -
+ *   the 1 and 0 depths are known by the vertex order in the quad,
+ * - There is no color - just a value for each mask pixel.
+ * - The mask spacial structure always maps to space 0-1 on X and Y axis.
+ * - Bucketing is used to speed up lookups for geometry.
  *
  * Other Details:
  * - used unsigned values all over for some extra speed on some arch's.
@@ -48,7 +54,8 @@
  * - initializing the spacial structure doesn't need to be as optimized as pixel lookups are.
  * - mask lookups need not be pixel aligned so any sub-pixel values from x/y (0 - 1), can be found.
  *   (perhaps masks can be used as a vector texture in 3D later on)
- * Currently, to build the spacial structure we have to calculate the total number of faces ahead of time.
+ * Currently, to build the spacial structure we have to calculate
+ * the total number of faces ahead of time.
  *
  * This is getting a bit complicated with the addition of unfilled splines and end capping -
  * If large changes are needed here we would be better off using an iterable
@@ -504,16 +511,18 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
           for (yi = yi_min; yi <= yi_max; yi++) {
             unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
             for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
-              // unsigned int bucket_index = (layer->buckets_x * yi) + xi; /* correct but do in outer loop */
+              /* correct but do in outer loop */
+              // unsigned int bucket_index = (layer->buckets_x * yi) + xi;
 
               BLI_assert(xi < layer->buckets_x);
               BLI_assert(yi < layer->buckets_y);
               BLI_assert(bucket_index < bucket_tot);
 
-              /* check if the bucket intersects with the face */
-              /* note: there is a trade off here since checking box/tri intersections isn't
-               * as optimal as it could be, but checking pixels against faces they will never intersect
-               * with is likely the greater slowdown here - so check if the cell intersects the face */
+              /* Check if the bucket intersects with the face. */
+              /* Note: there is a trade off here since checking box/tri intersections isn't as
+               * optimal as it could be, but checking pixels against faces they will never
+               * intersect with is likely the greater slowdown here -
+               * so check if the cell intersects the face. */
               if (layer_bucket_isect_test(layer,
                                           face_index,
                                           xi,
@@ -1160,7 +1169,15 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
       MEM_freeN(open_spline_ranges);
 
-      //          fprintf(stderr, "%u %u (%u %u), %u\n", face_index, sf_tri_tot + tot_feather_quads, sf_tri_tot, tot_feather_quads, tot_boundary_used - tot_boundary_found);
+#if 0
+      fprintf(stderr,
+              "%u %u (%u %u), %u\n",
+              face_index,
+              sf_tri_tot + tot_feather_quads,
+              sf_tri_tot,
+              tot_feather_quads,
+              tot_boundary_used - tot_boundary_found);
+#endif
 
 #ifdef USE_SCANFILL_EDGE_WORKAROUND
       BLI_assert(face_index + (tot_boundary_used - tot_boundary_found) ==

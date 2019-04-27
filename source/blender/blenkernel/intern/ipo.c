@@ -337,7 +337,8 @@ static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
   switch (adrcode) {
     case CO_ENFORCE:
       return "influence";
-    case CO_HEADTAIL:  // XXX this needs to be wrapped in RNA.. probably then this path will be invalid
+    case CO_HEADTAIL:
+      /* XXX this needs to be wrapped in RNA.. probably then this path will be invalid. */
       return "data.head_tail";
   }
 
@@ -685,12 +686,13 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
   /* result depends on adrcode */
   switch (adrcode) {
     case CAM_LENS:
-#if 0  // XXX this cannot be resolved easily... perhaps we assume camera is perspective (works for most cases...
+#if 0   /* XXX this cannot be resolved easily...
+         * perhaps we assume camera is perspective (works for most cases... */
       if (ca->type == CAM_ORTHO)
         return "ortho_scale";
       else
         return "lens";
-#else  // XXX lazy hack for now...
+#else   // XXX lazy hack for now...
       return "lens";
 #endif  // XXX this cannot be resolved easily
 
@@ -775,7 +777,8 @@ static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
       return "volume";
     case SND_PITCH:
       return "pitch";
-      /* XXX Joshua -- I had wrapped panning in rna, but someone commented out, calling it "unused" */
+      /* XXX Joshua -- I had wrapped panning in rna,
+       * but someone commented out, calling it "unused" */
 #if 0
     case SND_PANNING:
       return "panning";
@@ -912,14 +915,17 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
 
 /* ------- */
 
-/* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
+/* Allocate memory for RNA-path for some property given a blocktype, adrcode,
+ * and 'root' parts of path.
+ *
  * Input:
- *     - id                    - the datablock that the curve's IPO block is attached to and/or which the new paths will start from
- *     - blocktype, adrcode    - determines setting to get
- *     - actname, constname,seq - used to build path
+ *     - id                      - the datablock that the curve's IPO block
+ *                                 is attached to and/or which the new paths will start from
+ *     - blocktype, adrcode      - determines setting to get
+ *     - actname, constname, seq - used to build path
  * Output:
- *     - array_index           - index in property's array (if applicable) to use
- *     - return                - the allocated path...
+ *     - array_index             - index in property's array (if applicable) to use
+ *     - return                  - the allocated path...
  */
 static char *get_rna_access(ID *id,
                             int blocktype,
@@ -1022,7 +1028,8 @@ static char *get_rna_access(ID *id,
   }
 
   /* check if any property found
-   * - blocktype < 0 is special case for a specific type of driver, where we don't need a property name...
+   * - blocktype < 0 is special case for a specific type of driver,
+   *   where we don't need a property name...
    */
   if ((propname == NULL) && (blocktype > 0)) {
     /* nothing was found, so exit */
@@ -1053,7 +1060,8 @@ static char *get_rna_access(ID *id,
       buf[0] = '\0'; /* empty string */
     }
     else if ((blocktype == ID_KE) && STREQ(actname, "Shape")) {
-      /* Actionified "Shape" IPO's - these are forced onto object level via the action container there... */
+      /* Actionified "Shape" IPO's -
+       * these are forced onto object level via the action container there... */
       strcpy(buf, "data.shape_keys");
     }
     else {
@@ -1257,7 +1265,8 @@ static void fcurve_add_to_list(
     }
 
     /* add F-Curve to group */
-    /* WARNING: this func should only need to look at the stuff we initialized, if not, things may crash */
+    /* WARNING: this func should only need to look at the stuff we initialized,
+     * if not, things may crash. */
     action_groups_add_channel(&tmp_act, agrp, fcu);
 
     if (agrp->flag & AGRP_MUTED) { /* flush down */
@@ -1276,11 +1285,14 @@ static void fcurve_add_to_list(
   }
 }
 
-/* Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that
+/**
+ * Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that
  * is not relevant, BUT do not free the IPO-Curve itself...
- *  actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
- *  constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
- *      seq: sequencer-strip (if applicable) that IPO-Curve's IPO-block belonged to
+ *
+ * \param actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to.
+ * \param constname: name of Constraint-Channel (if applicable)
+ * that IPO-Curve's IPO-block belonged to \a seq.
+ * \param seq: sequencer-strip (if applicable) that IPO-Curve's IPO-block belonged to.
  */
 static void icu_to_fcurves(ID *id,
                            ListBase *groups,
@@ -1385,9 +1397,11 @@ static void icu_to_fcurves(ID *id,
       fcurve->rna_path = BLI_strdup(abp->path);
       fcurve->array_index = abp->array_index;
 
-      /* convert keyframes
-       * - beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-       * - beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+      /* Convert keyframes:
+       * - Beztriples and bpoints are mutually exclusive,
+       *   so we won't have both at the same time.
+       * - Beztriples are more likely to be encountered as they are keyframes
+       *   (the other type wasn't used yet).
        */
       fcurve->totvert = icu->totvert;
 
@@ -1428,7 +1442,8 @@ static void icu_to_fcurves(ID *id,
         }
       }
       else if (icu->bp) {
-        /* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+        /* TODO: need to convert from BPoint type to the more compact FPoint type...
+         * but not priority, since no data used this. */
         //BPoint *bp;
         //FPoint *fpt;
       }
@@ -1449,9 +1464,10 @@ static void icu_to_fcurves(ID *id,
       fcu->flag |= FCURVE_DISABLED;
     }
 
-    /* convert keyframes
-     * - beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-     * - beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+    /* Convert keyframes:
+     * - Beztriples and bpoints are mutually exclusive, so we won't have both at the same time.
+     * - Beztriples are more likely to be encountered as they are keyframes
+     *   (the other type wasn't used yet).
      */
     fcu->totvert = icu->totvert;
 
@@ -1548,7 +1564,8 @@ static void icu_to_fcurves(ID *id,
       }
     }
     else if (icu->bp) {
-      /* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+      /* TODO: need to convert from BPoint type to the more compact FPoint type...
+       * but not priority, since no data used this */
       //BPoint *bp;
       //FPoint *fpt;
     }
@@ -1602,10 +1619,11 @@ static void ipo_to_animato(ID *id,
   /* loop over IPO-Curves, freeing as we progress */
   for (icu = ipo->curve.first; icu; icu = icu->next) {
     /* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves),
-     * we figure out the best place to put the channel, then tell the curve-converter to just dump there
-     */
+     * we figure out the best place to put the channel,
+     * then tell the curve-converter to just dump there. */
     if (icu->driver) {
-      /* Blender 2.4x allowed empty drivers, but we don't now, since they cause more trouble than they're worth */
+      /* Blender 2.4x allowed empty drivers,
+       * but we don't now, since they cause more trouble than they're worth. */
       if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON)) {
         icu_to_fcurves(id, NULL, drivers, icu, actname, constname, seq, ipo->muteipo);
       }
@@ -1734,9 +1752,9 @@ static void ipo_to_animdata(
            BLI_listbase_count(&ipo->curve));
   }
 
-  /* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
-   * and the try to put these lists in the right places, but do not free the lists here
-   */
+  /* Convert curves to animato system
+   * (separated into separate lists of F-Curves for animation and drivers),
+   * and the try to put these lists in the right places, but do not free the lists here. */
   // XXX there shouldn't be any need for the groups, so don't supply pointer for that now...
   ipo_to_animato(id, ipo, actname, constname, seq, NULL, &anim, &drivers);
 
@@ -1819,7 +1837,8 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
       /* convert Action data (if not yet converted), storing the results in the same Action */
       action_to_animato(id, as->act, &as->act->groups, &as->act->curves, &adt->drivers);
 
-      /* create a new-style NLA-strip which references this Action, then copy over relevant settings */
+      /* Create a new-style NLA-strip which references this Action,
+       * then copy over relevant settings. */
       {
         /* init a new strip, and assign the action to it
          * - no need to muck around with the user-counts, since this is just
@@ -2295,12 +2314,12 @@ void do_versions_ipos_to_animato(Main *bmain)
   /* --------- Unconverted Animation Data ------------------ */
   /* For Animation data which may not be directly connected (i.e. not linked) to any other
    * data, we need to perform a separate pass to make sure that they are converted to standalone
-   * Actions which may then be able to be reused. This does mean that we will be going over data that's
-   * already been converted, but there are no problems with that.
+   * Actions which may then be able to be reused. This does mean that we will be going over data
+   * that's already been converted, but there are no problems with that.
    *
    * The most common case for this will be Action Constraints, or IPO's with Fake-Users.
-   * We collect all drivers that were found into a temporary collection, and free them in one go, as they're
-   * impossible to resolve.
+   * We collect all drivers that were found into a temporary collection, and free them in one go,
+   * as they're impossible to resolve.
    */
 
   /* actions */

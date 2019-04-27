@@ -124,9 +124,11 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
  * Compute a value of the difference between both given meshes.
  * The smaller the result, the better the match.
  *
- * We return the inverse of the average of the inversed shortest distance from each dst vertex to src ones.
- * In other words, beyond a certain (relatively small) distance, all differences have more or less the same weight
- * in final result, which allows to reduce influence of a few high differences, in favor of a global good matching.
+ * We return the inverse of the average of the inversed
+ * shortest distance from each dst vertex to src ones.
+ * In other words, beyond a certain (relatively small) distance, all differences have more or less
+ * the same weight in final result, which allows to reduce influence of a few high differences,
+ * in favor of a global good matching.
  */
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
                                                const MVert *verts_dst,
@@ -164,20 +166,24 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
 
   result = ((float)numverts_dst / result) - 1.0f;
 
-  //  printf("%s: Computed difference between meshes (the lower the better): %f\n", __func__, result);
+#if 0
+  printf("%s: Computed difference between meshes (the lower the better): %f\n", __func__, result);
+#endif
 
   return result;
 }
 
-/* This helper computes the eigen values & vectors for covariance matrix of all given vertices coordinates.
+/* This helper computes the eigen values & vectors for
+ * covariance matrix of all given vertices coordinates.
  *
  * Those vectors define the 'average ellipsoid' of the mesh (i.e. the 'best fitting' ellipsoid
  * containing 50% of the vertices).
  *
- * Note that it will not perform fantastic in case two or more eigen values are equal (e.g. a cylinder or
- * parallelepiped with a square section give two identical eigenvalues, a sphere or tetrahedron give
- * three identical ones, etc.), since you cannot really define all axes in those cases. We default to dummy
- * generated orthogonal vectors in this case, instead of using eigen vectors.
+ * Note that it will not perform fantastic in case two or more eigen values are equal
+ * (e.g. a cylinder or parallelepiped with a square section give two identical eigenvalues,
+ * a sphere or tetrahedron give three identical ones, etc.), since you cannot really define all
+ * axes in those cases. We default to dummy generated orthogonal vectors in this case,
+ * instead of using eigen vectors.
  */
 static void mesh_calc_eigen_matrix(const MVert *verts,
                                    const float (*vcos)[3],
@@ -207,8 +213,8 @@ static void mesh_calc_eigen_matrix(const MVert *verts,
   }
   unit_m4(r_mat);
 
-  /* Note: here we apply sample correction to covariance matrix, since we consider the vertices as a sample
-   *       of the whole 'surface' population of our mesh... */
+  /* Note: here we apply sample correction to covariance matrix, since we consider the vertices
+   *       as a sample of the whole 'surface' population of our mesh. */
   BLI_covariance_m3_v3n(vcos, numverts, true, covmat, center);
 
   if (cos) {
@@ -247,8 +253,9 @@ static void mesh_calc_eigen_matrix(const MVert *verts,
     float evi = eigen_val[i];
 
     /* Protect against 1D/2D degenerated cases! */
-    /* Note: not sure why we need square root of eigen values here (which are equivalent to singular values,
-     * as far as I have understood), but it seems to heavily reduce (if not completely nullify)
+    /* Note: not sure why we need square root of eigen values here
+     * (which are equivalent to singular values, as far as I have understood),
+     * but it seems to heavily reduce (if not completely nullify)
      * the error due to non-uniform scalings... */
     evi = (evi < 1e-6f && evi > -1e-6f) ? ((evi < 0.0f) ? -1e-3f : 1e-3f) : sqrtf_signed(evi);
     mul_v3_fl(eigen_vec[i], evi);
@@ -266,7 +273,8 @@ void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
                                               Mesh *me_src,
                                               SpaceTransform *r_space_transform)
 {
-  /* Note that those are done so that we successively get actual mirror matrix (by multiplication of columns)... */
+  /* Note that those are done so that we successively get actual mirror matrix
+   * (by multiplication of columns). */
   const float mirrors[][3] = {
       {-1.0f, 1.0f, 1.0f}, /* -> -1,  1,  1 */
       {1.0f, -1.0f, 1.0f}, /* -> -1, -1,  1 */
@@ -457,16 +465,20 @@ typedef struct IslandResult {
   float hit_point[3];
 } IslandResult;
 
-/* Note about all bvh/raycasting stuff below:
- *      * We must use our ray radius as BVH epsilon too, else rays not hitting anything but 'passing near' an item
- *        would be missed (since BVH handling would not detect them, 'refining' callbacks won't be executed,
- *        even though they would return a valid hit).
- *      * However, in 'islands' case where each hit gets a weight, 'precise' hits should have a better weight than
- *        'approximate' hits. To address that, we simplify things with:
- *        ** A first raycast with default, given rayradius;
- *        ** If first one fails, we do more raycasting with bigger radius, but if hit is found
- *           it will get smaller weight.
- *        This only concerns loops, currently (because of islands), and 'sampled' edges/polys norproj.
+/**
+ * \note About all bvh/raycasting stuff below:
+ *
+ * * We must use our ray radius as BVH epsilon too, else rays not hitting anything but
+ *   'passing near' an item would be missed (since BVH handling would not detect them,
+ *   'refining' callbacks won't be executed, even though they would return a valid hit).
+ * * However, in 'islands' case where each hit gets a weight, 'precise' hits should have a better
+ *   weight than 'approximate' hits.
+ *   To address that, we simplify things with:
+ *   * A first raycast with default, given rayradius;
+ *   * If first one fails, we do more raycasting with bigger radius, but if hit is found
+ *     it will get smaller weight.
+ *
+ *   This only concerns loops, currently (because of islands), and 'sampled' edges/polys norproj.
  */
 
 /* At most n raycasts per 'real' ray. */
@@ -794,8 +806,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
           }
         }
 
-        /* Now, check all source edges of closest sources vertices, and select the one giving the smallest
-         * total verts-to-verts distance. */
+        /* Now, check all source edges of closest sources vertices,
+         * and select the one giving the smallest total verts-to-verts distance. */
         for (j = 2; j--;) {
           const unsigned int vidx_dst = j ? e_dst->v1 : e_dst->v2;
           const float first_dist = v_dst_to_src_map[vidx_dst].hit_dist;
@@ -1012,8 +1024,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
             w /= MREMAP_RAYCAST_APPROXIMATE_FAC;
           }
         }
-        /* A sampling is valid (as in, its result can be considered as valid sources) only if at least
-         * half of the rays found a source! */
+        /* A sampling is valid (as in, its result can be considered as valid sources)
+         * only if at least half of the rays found a source! */
         if (totweights > ((float)grid_size / 2.0f)) {
           for (j = 0; j < (int)numedges_src; j++) {
             if (!weights[j]) {
@@ -1204,7 +1216,8 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
 #undef POLY_COMPLETE
 
 /* Our 'f_cost' callback func, to find shortest poly-path between two remapped-loops.
- * Note we do not want to make innercuts 'walls' here, just detect when the shortest path goes by those. */
+ * Note we do not want to make innercuts 'walls' here,
+ * just detect when the shortest path goes by those. */
 static float mesh_remap_calc_loops_astar_f_cost(BLI_AStarGraph *as_graph,
                                                 BLI_AStarSolution *as_solution,
                                                 BLI_AStarGNLink *link,
@@ -1224,8 +1237,8 @@ static float mesh_remap_calc_loops_astar_f_cost(BLI_AStarGraph *as_graph,
   }
 
   /* Our heuristic part of current f_cost is distance from next node to destination one.
-   * It is guaranteed to be less than (or equal to) actual shortest poly-path between next node and destination one.
-   */
+   * It is guaranteed to be less than (or equal to)
+   * actual shortest poly-path between next node and destination one. */
   co_next = (float *)as_graph->nodes[node_idx_next].custom_data;
   co_dest = (float *)as_graph->nodes[node_idx_dst].custom_data;
   return (link ? (as_solution->g_costs[node_idx_curr] + link->cost) : 0.0f) +
@@ -1601,8 +1614,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     for (pidx_dst = 0, mp_dst = polys_dst; pidx_dst < numpolys_dst; pidx_dst++, mp_dst++) {
       float pnor_dst[3];
 
-      /* Only in use_from_vert case, we may need polys' centers as fallback in case we cannot decide which
-       * corner to use from normals only. */
+      /* Only in use_from_vert case, we may need polys' centers as fallback
+       * in case we cannot decide which corner to use from normals only. */
       float pcent_dst[3];
       bool pcent_dst_valid = false;
 
@@ -1763,8 +1776,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               /* Fallback to 'nearest' hit here, loops usually comes in 'face group', not good to
                * have only part of one dest face's loops to map to source.
                * Note that since we give this a null weight, if whole weight for a given face
-               * is null, it means none of its loop mapped to this source island, hence we can skip it
-               * later.
+               * is null, it means none of its loop mapped to this source island,
+               * hence we can skip it later.
                */
               copy_v3_v3(tmp_co, verts_dst[ml_dst->v].co);
               nearest.index = -1;
@@ -1821,12 +1834,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       /* We have to first select the 'best source island' for given dst poly and its loops.
        * Then, we have to check that poly does not 'spread' across some island's limits
        * (like inner seams for UVs, etc.).
-       * Note we only still partially support that kind of situation here, i.e. polys spreading over actual cracks
-       * (like a narrow space without faces on src, splitting a 'tube-like' geometry). That kind of situation
-       * should be relatively rare, though.
+       * Note we only still partially support that kind of situation here, i.e.
+       * Polys spreading over actual cracks
+       * (like a narrow space without faces on src, splitting a 'tube-like' geometry).
+       * That kind of situation should be relatively rare, though.
        */
-      /* XXX This block in itself is big and complex enough to be a separate function but... it uses a bunch
-       *     of locale vars. Not worth sending all that through parameters (for now at least). */
+      /* XXX This block in itself is big and complex enough to be a separate function but...
+       *     it uses a bunch of locale vars.
+       *     Not worth sending all that through parameters (for now at least). */
       {
         BLI_AStarGraph *as_graph = NULL;
         int *poly_island_index_map = NULL;
@@ -1896,7 +1911,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 if (POINTER_AS_INT(as_solution.custom_data) && (as_solution.steps > 0)) {
                   /* Find first 'cutting edge' on path, and bring back lidx_src on poly just
                    * before that edge.
-                   * Note we could try to be much smarter (like e.g. storing a whole poly's indices,
+                   * Note we could try to be much smarter, g.g. Storing a whole poly's indices,
                    * and making decision (on which side of cutting edge(s!) to be) on the end,
                    * but this is one more level of complexity, better to first see if
                    * simple solution works!
@@ -1922,7 +1937,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                     ml_dst = &loops_dst[lidx_dst];
                     copy_v3_v3(tmp_co, verts_dst[ml_dst->v].co);
 
-                    /* We do our transform here, since we may do several raycast/nearest queries. */
+                    /* We do our transform here,
+                     * since we may do several raycast/nearest queries. */
                     if (space_transform) {
                       BLI_space_transform_apply(space_transform, tmp_co);
                     }
@@ -1952,7 +1968,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             }
             else {
               /* No source for this loop in this island. */
-              /* TODO: would probably be better to get a source at all cost in best island anyway? */
+              /* TODO: would probably be better to get a source
+               * at all cost in best island anyway? */
               mesh_remap_item_define(r_map, lidx_dst, FLT_MAX, best_island_index, 0, NULL, NULL);
             }
           }
@@ -1985,8 +2002,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 if (POINTER_AS_INT(as_solution.custom_data) && (as_solution.steps > 0)) {
                   /* Find first 'cutting edge' on path, and bring back lidx_src on poly just
                    * before that edge.
-                   * Note we could try to be much smarter (like e.g. storing a whole poly's indices,
-                   * and making decision (one which side of cutting edge(s!) to be on the end,
+                   * Note we could try to be much smarter: e.g. Storing a whole poly's indices,
+                   * and making decision (one which side of cutting edge(s)!) to be on the end,
                    * but this is one more level of complexity, better to first see if
                    * simple solution works!
                    */
@@ -2012,7 +2029,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                     ml_dst = &loops_dst[lidx_dst];
                     copy_v3_v3(tmp_co, verts_dst[ml_dst->v].co);
 
-                    /* We do our transform here, since we may do several raycast/nearest queries. */
+                    /* We do our transform here,
+                     * since we may do several raycast/nearest queries. */
                     if (space_transform) {
                       BLI_space_transform_apply(space_transform, tmp_co);
                     }
@@ -2100,7 +2118,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             }
             else {
               /* No source for this loop in this island. */
-              /* TODO: would probably be better to get a source at all cost in best island anyway? */
+              /* TODO: would probably be better to get a source
+               * at all cost in best island anyway? */
               mesh_remap_item_define(r_map, lidx_dst, FLT_MAX, best_island_index, 0, NULL, NULL);
             }
           }
@@ -2283,7 +2302,8 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
       }
     }
     else if (mode == MREMAP_MODE_POLY_POLYINTERP_PNORPROJ) {
-      /* We cast our rays randomly, with a pseudo-even distribution (since we spread across tessellated tris,
+      /* We cast our rays randomly, with a pseudo-even distribution
+       * (since we spread across tessellated tris,
        * with additional weighting based on each tri's relative area).
        */
       RNG *rng = BLI_rng_new(0);
@@ -2399,8 +2419,8 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
           float *v3 = poly_vcos_2d[tri_vidx_2d[j][2]];
           int rays_num;
 
-          /* All this allows us to get 'absolute' number of rays for each tri, avoiding accumulating
-           * errors over iterations, and helping better even distribution. */
+          /* All this allows us to get 'absolute' number of rays for each tri,
+           * avoiding accumulating errors over iterations, and helping better even distribution. */
           done_area += area_tri_v2(v1, v2, v3);
           rays_num = max_ii(
               (int)((float)tot_rays * done_area * poly_area_2d_inv + 0.5f) - done_rays, 0);

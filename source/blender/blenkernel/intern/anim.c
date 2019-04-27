@@ -202,7 +202,8 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
 
     mpath = *dst;
 
-    /* path is "valid" if length is valid, but must also be of the same length as is being requested */
+    /* Path is "valid" if length is valid,
+     * but must also be of the same length as is being requested. */
     if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
       /* outer check ensures that we have some curve data for this path */
       if (mpath->length == expected_length) {
@@ -309,7 +310,8 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
   tot = cycl ? bl->nr : bl->nr - 1;
 
   path->len = tot + 1;
-  /* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
+  /* Exception: vector handle paths and polygon paths should be subdivided
+   * at least a factor resolution. */
   if (path->len < nu->resolu * SEGMENTSU(nu)) {
     path->len = nu->resolu * SEGMENTSU(nu);
   }

@@ -791,8 +791,15 @@ void psys_get_birth_coords(
 
   /* -tangent                             */
   if (use_tangents) {
-    //float phase=vg_rot?2.0f*(psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_rot)-0.5f):0.0f;
+#if 0
+    float phase = vg_rot ?
+                      2.0f *
+                          (psys_particle_value_from_verts(sim->psmd->dm, part->from, pa, vg_rot) -
+                           0.5f) :
+                      0.0f;
+#else
     float phase = 0.0f;
+#endif
     mul_v3_fl(vtan, -cosf((float)M_PI * (part->tanphase + phase)));
     fac = -sinf((float)M_PI * (part->tanphase + phase));
     madd_v3_v3fl(vtan, utan, fac);
@@ -1554,12 +1561,13 @@ static void integrate_particle(
   }
 }
 
-/*********************************************************************************************************
- *                    SPH fluid physics
+/* -------------------------------------------------------------------- */
+/** \name SPH fluid physics
  *
  * In theory, there could be unlimited implementation of SPH simulators
  *
- * This code uses in some parts adapted algorithms from the pseudo code as outlined in the Research paper:
+ * This code uses in some parts adapted algorithms
+ * from the pseudo code as outlined in the Research paper:
  *
  * Titled: Particle-based Viscoelastic Fluid Simulation.
  * Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
@@ -1567,7 +1575,8 @@ static void integrate_particle(
  *
  * Presented at Siggraph, (2005)
  *
- * ********************************************************************************************************/
+ * \{ */
+
 #define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256
 static ParticleSpring *sph_spring_add(ParticleSystem *psys, ParticleSpring *spring)
 {
@@ -2210,6 +2219,8 @@ static void sph_integrate(ParticleSimulationData *sim,
   integrate_particle(part, pa, dtime, effector_acceleration, sphdata->force_cb, sphdata);
 }
 
+/** \} */
+
 /************************************************/
 /*          Basic physics                       */
 /************************************************/
@@ -2435,7 +2446,8 @@ static void collision_interpolate_element(ParticleCollisionElement *pce,
 {
   /* t is the current time for newton rhapson */
   /* fac is the starting factor for current collision iteration */
-  /* the col->fac's are factors for the particle subframe step start and end during collision modifier step */
+  /* The col->fac's are factors for the particle subframe step start
+   * and end during collision modifier step. */
   float f = fac + t * (1.f - fac);
   float mul = col->fac1 + f * (col->fac2 - col->fac1);
   if (pce->tot > 0) {
@@ -2928,7 +2940,8 @@ static int collision_response(ParticleSimulationData *sim,
     /* get exact velocity right before collision */
     madd_v3_v3v3fl(v0, col->ve1, col->acc, dt1);
 
-    /* convert collider velocity from 1/framestep to 1/s TODO: here we assume 1 frame step for collision modifier */
+    /* Convert collider velocity from 1/framestep to 1/s TODO:
+     * here we assume 1 frame step for collision modifier. */
     mul_v3_fl(pce->vel, col->inv_timestep);
 
     /* calculate tangential particle velocity */
@@ -2983,8 +2996,10 @@ static int collision_response(ParticleSimulationData *sim,
       }
     }
 
-    /* stickiness was possibly added before, so cancel that before calculating new normal velocity */
-    /* otherwise particles go flying out of the surface because of high reversed sticky velocity */
+    /* Stickiness was possibly added before,
+     * so cancel that before calculating new normal velocity.
+     * Otherwise particles go flying out of the surface
+     * because of high reversed sticky velocity. */
     if (v0_dot < 0.0f) {
       v0_dot += pd->pdef_stickness;
       if (v0_dot > 0.0f) {
@@ -3578,7 +3593,8 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
     pa->totkey++;
 
-    /* root is always in the origin of hair space so we set it to be so after the last key is saved*/
+    /* Root is always in the origin of hair space
+     * so we set it to be so after the last key is saved. */
     if (pa->totkey == psys->part->hair_step + 1) {
       zero_v3(root->co);
     }
@@ -4200,7 +4216,18 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           pa->dietime = sim->scene->r.efra + 1;
           pa->lifetime = sim->scene->r.efra;
           pa->alive = PARS_ALIVE;
-          //if (a < 25) fprintf(stderr,"FSPARTICLE debug set %s, a%d = %f,%f,%f, life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+#  if 0
+          if (a < 25) {
+            fprintf(stderr,
+                    "FSPARTICLE debug set %s, a%d = %f,%f,%f, life=%f\n",
+                    filename,
+                    a,
+                    pa->co[0],
+                    pa->co[1],
+                    pa->co[2],
+                    pa->lifetime);
+          }
+#  endif
         }
         else {
           // skip...
@@ -4759,7 +4786,8 @@ void particle_system_update(struct Depsgraph *depsgraph,
     }
   }
 
-  /* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
+  /* Save matrix for duplicators,
+   * at rendertime the actual dupliobject's matrix is used so don't update! */
   invert_m4_m4(psys->imat, ob->obmat);
 
   BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);

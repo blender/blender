@@ -188,8 +188,10 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 /***************************** Collection Copy *******************************/
 
 /**
- * Only copy internal data of Collection ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Collection ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -248,7 +250,8 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     collection_new = (Collection *)collection_old->id.newid;
   }
 
-  /* Optionally add to parent (we always want to do that, even if collection_old had already been duplicated). */
+  /* Optionally add to parent (we always want to do that,
+   * even if collection_old had already been duplicated). */
   if (parent != NULL) {
     if (collection_child_add(parent, collection_new, 0, true)) {
       /* Put collection right after existing one. */
@@ -263,14 +266,15 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   }
 
   /* If we are not doing any kind of deep-copy, we can return immediately.
-   * False do_full_process means collection_old had already been duplicated, no need to redo some deep-copy on it. */
+   * False do_full_process means collection_old had already been duplicated,
+   * no need to redo some deep-copy on it. */
   if (!do_hierarchy || !do_full_process) {
     return collection_new;
   }
 
   if (do_objects) {
-    /* We can loop on collection_old's objects, that list is currently identical the collection_new' objects,
-     * and won't be changed here. */
+    /* We can loop on collection_old's objects, that list is currently identical the collection_new
+     * objects, and won't be changed here. */
     for (CollectionObject *cob = collection_old->gobject.first; cob; cob = cob->next) {
       Object *ob_old = cob->ob;
       Object *ob_new = (Object *)ob_old->id.newid;
@@ -285,8 +289,8 @@ static Collection *collection_duplicate_recursive(Main *bmain,
     }
   }
 
-  /* We can loop on collection_old's children, that list is currently identical the collection_new' children,
-   * and won't be changed here. */
+  /* We can loop on collection_old's children,
+   * that list is currently identical the collection_new' children, and won't be changed here. */
   for (CollectionChild *child = collection_old->children.first; child; child = child->next) {
     Collection *child_collection_old = child->collection;
 
@@ -314,13 +318,15 @@ Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *col
  *
  * If \a do_hierarchy and \a do_deep_copy are false, this is a regular (shallow) ID copy.
  *
- * \warning If any 'deep copy' behavior is enabled, this functions will clear all \a bmain id.idnew pointers.
+ * \warning If any 'deep copy' behavior is enabled,
+ * this functions will clear all \a bmain id.idnew pointers.
  *
  * \param do_hierarchy If true, it will recursively make shallow copies of children collections.
  * \param do_objects If true, it will also make duplicates of objects.
  *                   This one does nothing if \a do_hierarchy is not set.
- * \param do_obdata If true, it will also make deep duplicates of objects, using behavior defined in user settings
- *                  (U.dupflag). This one does nothing if \a do_hierarchy and \a do_objects are not set.
+ * \param do_obdata If true, it will also make deep duplicates of objects,
+ * using behavior defined in user settings (U.dupflag).
+ * This one does nothing if \a do_hierarchy and \a do_objects are not set.
  */
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
@@ -835,7 +841,8 @@ static void collection_missing_parents_remove(Collection *collection)
  *
  * \note caller must ensure #BKE_main_collection_sync_remap() is called afterwards!
  *
- * \param collection: may be \a NULL, in which case whole \a bmain database of collections is checked.
+ * \param collection: may be \a NULL,
+ * in which case whole \a bmain database of collections is checked.
  */
 void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
 {

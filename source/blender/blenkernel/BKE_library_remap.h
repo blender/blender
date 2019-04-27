@@ -29,29 +29,44 @@ extern "C" {
 
 /* Also IDRemap->flag. */
 enum {
-  /* Do not remap indirect usages of IDs (that is, when user is some linked data). */
+  /** Do not remap indirect usages of IDs (that is, when user is some linked data). */
   ID_REMAP_SKIP_INDIRECT_USAGE = 1 << 0,
-  /* This flag should always be set, *except for 'unlink' scenarios* (only relevant when new_id == NULL).
-   * Basically, when unset, NEVER_NULL ID usages will keep pointing to old_id, but (if needed) old_id user count
-   * will still be decremented. This is mandatory for 'delete ID' case, but in all other situation this would lead
-   * to invalid user counts! */
+  /**
+   * This flag should always be set, *except for 'unlink' scenarios*
+   * (only relevant when new_id == NULL).
+   * Basically, when unset, NEVER_NULL ID usages will keep pointing to old_id, but (if needed)
+   * old_id user count will still be decremented.
+   * This is mandatory for 'delete ID' case,
+   * but in all other situation this would lead to invalid user counts!
+   */
   ID_REMAP_SKIP_NEVER_NULL_USAGE = 1 << 1,
-  /* This tells the callback func to flag with LIB_DOIT all IDs using target one with a 'never NULL' pointer
-   * (like e.g. Object->data). */
+  /**
+   * This tells the callback func to flag with #LIB_DOIT all IDs
+   * using target one with a 'never NULL' pointer (like e.g. #Object.data).
+   */
   ID_REMAP_FLAG_NEVER_NULL_USAGE = 1 << 2,
-  /* This tells the callback func to force setting IDs using target one with a 'never NULL' pointer to NULL.
-   * WARNING! Use with extreme care, this will leave database in broken state and can cause crashes very easily! */
+  /**
+   * This tells the callback func to force setting IDs
+   * using target one with a 'never NULL' pointer to NULL.
+   * \warning Use with extreme care, this will leave database in broken state
+   * and can cause crashes very easily!
+   */
   ID_REMAP_FORCE_NEVER_NULL_USAGE = 1 << 3,
-  /* Do not consider proxy/_group pointers of local objects as indirect usages...
-   * Our oh-so-beloved proxies again... Do not consider data used by local proxy object as indirect usage.
-   * This is needed e.g. in reload scenario, since we have to ensure remapping of Armature data of local proxy
-   * is also performed. Usual nightmare... */
+  /**
+   * Do not consider proxy/_group pointers of local objects as indirect usages...
+   * Our oh-so-beloved proxies again...
+   * Do not consider data used by local proxy object as indirect usage.
+   * This is needed e.g. in reload scenario,
+   * since we have to ensure remapping of Armature data of local proxy
+   * is also performed. Usual nightmare...
+   */
   ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE = 1 << 4,
-  /* Do not remap static override pointers. */
+  /** Do not remap static override pointers. */
   ID_REMAP_SKIP_STATIC_OVERRIDE = 1 << 5,
 };
 
-/* Note: Requiring new_id to be non-null, this *may* not be the case ultimately, but makes things simpler for now. */
+/* Note: Requiring new_id to be non-null, this *may* not be the case ultimately,
+ * but makes things simpler for now. */
 void BKE_libblock_remap_locked(struct Main *bmain,
                                void *old_idv,
                                void *new_idv,

@@ -109,7 +109,8 @@ void defvert_normalize_lock_map(struct MDeformVert *dvert,
                                 const bool *lock_flags,
                                 const int defbase_tot);
 
-/* Utilities to 'extract' a given vgroup into a simple float array, for verts, but also edges/polys/loops. */
+/* Utilities to 'extract' a given vgroup into a simple float array,
+ * for verts, but also edges/polys/loops. */
 void BKE_defvert_extract_vgroup_to_vertweights(struct MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,

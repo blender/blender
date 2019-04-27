@@ -573,8 +573,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         sp->numverts = mp->totloop;
         sp->loopstart = mp->loopstart;
 
-        /* Ideally we would only have to do that once on all vertices before we start checking each poly, but
-         * several polys can use same vert, so we have to ensure here all verts of current poly are cleared. */
+        /* Ideally we would only have to do that once on all vertices
+         * before we start checking each poly, but several polys can use same vert,
+         * so we have to ensure here all verts of current poly are cleared. */
         for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++) {
           if (ml->v < totvert) {
             mverts[ml->v].flag &= ~ME_VERT_TMP_TAG;
@@ -638,7 +639,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
             if (IS_REMOVED_EDGE(me) ||
                 !((me->v1 == v1 && me->v2 == v2) || (me->v1 == v2 && me->v2 == v1))) {
               /* The pointed edge is invalid (tagged as removed, or vert idx mismatch),
-               * and we already know from previous test that a valid one exists, use it (if allowed)! */
+               * and we already know from previous test that a valid one exists,
+               * use it (if allowed)! */
               if (do_fixes) {
                 int prev_e = ml->e;
                 ml->e = POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, v1, v2));
@@ -676,7 +678,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       const int *p1_v = sp->verts, *p2_v = prev_sp->verts;
 
       if (sp->invalid) {
-        /* break, because all known invalid polys have been put at the end by qsort with search_poly_cmp. */
+        /* Break, because all known invalid polys have been put at the end
+         * by qsort with search_poly_cmp. */
         break;
       }
 

@@ -1916,7 +1916,8 @@ void BKE_pbvh_build_bmesh(PBVH *bvh,
   /* start recursion, assign faces to nodes accordingly */
   pbvh_bmesh_node_limit_ensure_fast(bvh, nodeinfo, bbc_array, &rootnode, arena);
 
-  /* we now have all faces assigned to a node, next we need to assign those to the gsets of the nodes */
+  /* We now have all faces assigned to a node,
+   * next we need to assign those to the gsets of the nodes. */
 
   /* Start with all faces in the root node */
   bvh->nodes = MEM_callocN(sizeof(PBVHNode), "PBVHNode");

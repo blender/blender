@@ -656,7 +656,8 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
   cu->mat = NULL;
   cu->totcol = 0;
 
-  /* Do not decrement ob->data usercount here, it's done at end of func with BKE_id_free_us() call. */
+  /* Do not decrement ob->data usercount here,
+   * it's done at end of func with BKE_id_free_us() call. */
   ob->data = me;
   ob->type = OB_MESH;
 
@@ -1036,9 +1037,10 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
 
       BKE_id_free(NULL, tmpobj);
 
-      /* XXX The curve to mesh conversion is convoluted... But essentially, BKE_mesh_from_nurbs_displist()
-       *     already transfers the ownership of materials from the temp copy of the Curve ID to the new
-       *     Mesh ID, so we do not want to increase materials' usercount later. */
+      /* XXX The curve to mesh conversion is convoluted...
+       *     But essentially, BKE_mesh_from_nurbs_displist()
+       *     already transfers the ownership of materials from the temp copy of the Curve ID to the
+       *     new Mesh ID, so we do not want to increase materials' usercount later. */
       do_mat_id_data_us = false;
 
       break;
@@ -1361,7 +1363,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
                              bool take_ownership)
 {
   /* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
-  /* TODO(Sybren): the above claim came from DM_to_mesh(); check whether it is still true with Mesh */
+  /* TODO(Sybren): the above claim came from DM_to_mesh();
+   * check whether it is still true with Mesh */
   Mesh tmp = *mesh_dst;
   int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
   int did_shapekeys = 0;
@@ -1429,8 +1432,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
 
   /* not all DerivedMeshes store their verts/edges/faces in CustomData, so
    * we set them here in case they are missing */
-  /* TODO(Sybren): we could probably replace CD_ASSIGN with alloctype and always directly pass mesh_src->mxxx,
-   * instead of using a ternary operator. */
+  /* TODO(Sybren): we could probably replace CD_ASSIGN with alloctype and
+   * always directly pass mesh_src->mxxx, instead of using a ternary operator. */
   if (!CustomData_has_layer(&tmp.vdata, CD_MVERT)) {
     CustomData_add_layer(&tmp.vdata,
                          CD_MVERT,

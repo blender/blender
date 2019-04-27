@@ -151,8 +151,10 @@ void BKE_linestyle_free(FreestyleLineStyle *linestyle)
 }
 
 /**
- * Only copy internal data of Linestyle ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Linestyle ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

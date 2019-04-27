@@ -568,7 +568,8 @@ BVHTree *bvhtree_from_editmesh_verts(BVHTreeFromEditMesh *data,
  * Builds a bvh tree where nodes are the given vertices (note: does not copy given mverts!).
  * \param vert_allocated: if true, vert freeing will be done when freeing data.
  * \param verts_mask: if not null, true elements give which vert to add to BVH tree.
- * \param verts_num_active: if >= 0, number of active verts to add to BVH tree (else will be computed from mask).
+ * \param verts_num_active: if >= 0, number of active verts to add to BVH tree
+ * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
@@ -758,7 +759,8 @@ BVHTree *bvhtree_from_editmesh_edges(BVHTreeFromEditMesh *data,
  * \param vert, vert_allocated: if true, elem freeing will be done when freeing data.
  * \param edge, edge_allocated: if true, elem freeing will be done when freeing data.
  * \param edges_mask: if not null, true elements give which vert to add to BVH tree.
- * \param edges_num_active: if >= 0, number of active edges to add to BVH tree (else will be computed from mask).
+ * \param edges_num_active: if >= 0, number of active edges to add to BVH tree
+ * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
@@ -860,11 +862,13 @@ static void bvhtree_from_mesh_faces_setup_data(BVHTreeFromMesh *data,
 }
 
 /**
- * Builds a bvh tree where nodes are the given tessellated faces (note: does not copy given mfaces!).
+ * Builds a bvh tree where nodes are the given tessellated faces
+ * (note: does not copy given mfaces!).
  * \param vert_allocated: if true, vert freeing will be done when freeing data.
  * \param face_allocated: if true, face freeing will be done when freeing data.
  * \param faces_mask: if not null, true elements give which faces to add to BVH tree.
- * \param faces_num_active: if >= 0, number of active faces to add to BVH tree (else will be computed from mask).
+ * \param faces_num_active: if >= 0, number of active faces to add to BVH tree
+ * (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,

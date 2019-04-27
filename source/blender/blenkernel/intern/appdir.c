@@ -55,8 +55,9 @@
 #  ifdef WITH_BINRELOC
 #    include "binreloc.h"
 #  endif
-#  include <unistd.h> /* mkdtemp on OSX (and probably all *BSD?), not worth making specific check for this OS. */
-#endif                /* WIN32 */
+/* mkdtemp on OSX (and probably all *BSD?), not worth making specific check for this OS. */
+#  include <unistd.h>
+#endif /* WIN32 */
 
 /* local */
 static CLG_LogRef LOG = {"bke.appdir"};
@@ -222,9 +223,11 @@ static bool get_path_local(char *targetpath,
     relfolder[0] = '\0';
   }
 
-  /* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
+  /* Try EXECUTABLE_DIR/2.5x/folder_name -
+   * new default directory for local blender installed files. */
 #ifdef __APPLE__
-  /* due new codesign situation in OSX > 10.9.5 we must move the blender_version dir with contents to Resources */
+  /* Due new codesign situation in OSX > 10.9.5
+   * we must move the blender_version dir with contents to Resources. */
   char osx_resourses[FILE_MAX];
   BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", bprogdir);
   /* Remove the '/../' added above. */

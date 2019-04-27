@@ -539,7 +539,8 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
 
     sub_v3_v3v3(relativeVelocity, v2, v1);
 
-    /* Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal'). */
+    /* Calculate the normal component of the relative velocity
+     * (actually only the magnitude - the direction is stored in 'normal'). */
     magrelVel = dot_v3v3(relativeVelocity, collpair->normal);
 
     /* If magrelVel < 0 the edges are approaching each other. */
@@ -557,7 +558,8 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
       sub_v3_v3v3(vrel_t_pre, relativeVelocity, temp);
 
       /* Decrease in magnitude of relative tangential velocity due to coulomb friction
-       * in original formula "magrelVel" should be the "change of relative velocity in normal direction". */
+       * in original formula "magrelVel" should be the
+       * "change of relative velocity in normal direction". */
       magtangent = min_ff(collob->pd->pdef_cfrict * 0.01f * magrelVel, len_v3(vrel_t_pre));
 
       /* Apply friction impulse. */
@@ -720,7 +722,8 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
     sub_v3_v3v3(relativeVelocity, v2, v1);
 
-    /* Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal'). */
+    /* Calculate the normal component of the relative velocity
+     * (actually only the magnitude - the direction is stored in 'normal'). */
     magrelVel = dot_v3v3(relativeVelocity, collpair->normal);
 
     /* TODO: Impulses should be weighed by mass as this is self col,
@@ -740,7 +743,8 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
       sub_v3_v3v3(vrel_t_pre, relativeVelocity, temp);
 
       /* Decrease in magnitude of relative tangential velocity due to coulomb friction
-       * in original formula "magrelVel" should be the "change of relative velocity in normal direction". */
+       * in original formula "magrelVel" should be the
+       * "change of relative velocity in normal direction". */
       magtangent = min_ff(clmd->coll_parms->self_friction * 0.01f * magrelVel, len_v3(vrel_t_pre));
 
       /* Apply friction impulse. */
@@ -1548,7 +1552,8 @@ static CollPair *cloth_point_collpair(float p1[3],
   return collpair;
 }
 
-//Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
+/* Determines collisions on overlap,
+ * collisions are written to collpair[i] and collision+number_collision_found is returned. */
 static CollPair *cloth_point_collision(ModifierData *md1,
                                        ModifierData *md2,
                                        BVHTreeOverlap *overlap,
@@ -1696,8 +1701,11 @@ void cloth_find_point_contacts(Depsgraph *depsgraph,
           clmd, collmd, &ct->collisions, &collisions_index, result, overlap, epsilon, dt);
       ct->totcollisions = (int)(collisions_index - ct->collisions);
 
-      // resolve nearby collisions
-      //          ret += cloth_points_objcollisions_resolve(clmd, collmd, collob->pd, collisions[i], collisions_index[i], dt);
+      /* Resolve nearby collisions. */
+#if 0
+      ret += cloth_points_objcollisions_resolve(
+          clmd, collmd, collob->pd, collisions[i], collisions_index[i], dt);
+#endif
     }
 
     if (overlap) {

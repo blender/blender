@@ -120,7 +120,8 @@ void BKE_constraint_unique_name(bConstraint *con, ListBase *list)
 /* ----------------- Evaluation Loop Preparation --------------- */
 
 /* package an object/bone for use in constraint evaluation */
-/* This function MEM_calloc's a bConstraintOb struct, that will need to be freed after evaluation */
+/* This function MEM_calloc's a bConstraintOb struct,
+ * that will need to be freed after evaluation */
 bConstraintOb *BKE_constraints_make_evalob(
     Depsgraph *depsgraph, Scene *scene, Object *ob, void *subdata, short datatype)
 {
@@ -210,10 +211,10 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 
   /* calculate delta of constraints evaluation */
   invert_m4_m4(imat, cob->startmat);
-  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order - would be nice to
-   *     understand why premul is needed here instead of usual postmul?
-   *     In any case, we **do not get a delta** here (e.g. startmat & matrix having same location, still gives
-   *     a 'delta' with non-null translation component :/ ).*/
+  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order -
+   *     would be nice to understand why premul is needed here instead of usual postmul?
+   *     In any case, we **do not get a delta** here (e.g. startmat & matrix having same location,
+   *     still gives a 'delta' with non-null translation component :/ ).*/
   mul_m4_m4m4(delta, cob->matrix, imat);
 
   /* copy matrices back to source */
@@ -352,8 +353,9 @@ void BKE_constraint_mat_convertspace(
          */
         /* XXX This is actually an ugly hack, local space of a parent-less object *is* the same as
          *     global space!
-         *     Think what we want actually here is some kind of 'Final Space', i.e. once transformations
-         *     are applied - users are often confused about this too, this is not consistent with bones
+         *     Think what we want actually here is some kind of 'Final Space', i.e
+         *     . once transformations are applied - users are often confused about this too,
+         *     this is not consistent with bones
          *     local space either... Meh :|
          *     --mont29
          */
@@ -1139,7 +1141,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     float size[3], vec[3];
     float totmat[3][3];
 
-    /* Get size property, since ob->scale is only the object's own relative size, not its global one */
+    /* Get size property, since ob->scale is only the object's own relative size,
+     * not its global one. */
     mat4_to_size(size, cob->matrix);
 
     /* Clear the object's rotation */
@@ -1357,12 +1360,11 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
         Nurb *nu = cu->nurb.first;
         curvetime = cu->ctime - data->offset;
 
-        /* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
-         * but this will only work if it actually is animated...
+        /* ctime is now a proper var setting of Curve which gets set by Animato like any other var
+         * that's animated, but this will only work if it actually is animated...
          *
-         * we divide the curvetime calculated in the previous step by the length of the path, to get a time
-         * factor, which then gets clamped to lie within 0.0 - 1.0 range
-         */
+         * we divide the curvetime calculated in the previous step by the length of the path,
+         * to get a time factor, which then gets clamped to lie within 0.0 - 1.0 range. */
         curvetime /= cu->pathlen;
 
         if (nu && nu->flagu & CU_NURB_CYCLIC) {
@@ -1806,9 +1808,10 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     copy_v3_v3(loc, cob->matrix[3]);
     mat4_to_size(size, cob->matrix);
 
-    /* to allow compatible rotations, must get both rotations in the order of the owner... */
+    /* To allow compatible rotations, must get both rotations in the order of the owner... */
     mat4_to_eulO(obeul, cob->rotOrder, cob->matrix);
-    /* we must get compatible eulers from the beginning because some of them can be modified below (see bug #21875) */
+    /* We must get compatible eulers from the beginning because
+     * some of them can be modified below (see bug T21875). */
     mat4_to_compatible_eulO(eul, obeul, cob->rotOrder, ct->matrix);
 
     if ((data->flag & ROTLIKE_X) == 0) {
@@ -1850,7 +1853,8 @@ static void rotlike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
       }
     }
 
-    /* good to make eulers compatible again, since we don't know how much they were changed above */
+    /* Good to make eulers compatible again,
+     * since we don't know how much they were changed above. */
     compatible_eul(eul, obeul);
     loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, cob->rotOrder);
   }
@@ -2575,9 +2579,9 @@ static void actcon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
       bPose pose = {{0}};
       bPoseChannel *pchan, *tchan;
 
-      /* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set
-       * - we need to manually copy over a few settings, including rotation order, otherwise this fails
-       */
+      /* make a copy of the bone of interest in the temp pose before evaluating action,
+       * so that it can get set - we need to manually copy over a few settings,
+       * including rotation order, otherwise this fails. */
       pchan = cob->pchan;
 
       tchan = BKE_pose_channel_verify(&pose, pchan->name);
@@ -3559,7 +3563,8 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
             offset = curveMin[clamp_axis] -
                      ceilf((curveMin[clamp_axis] - ownLoc[clamp_axis]) / len) * len;
 
-            /* now, we calculate as per normal, except using offset instead of curveMin[clamp_axis] */
+            /* Now, we calculate as per normal,
+             * except using offset instead of curveMin[clamp_axis]. */
             curvetime = (ownLoc[clamp_axis] - offset) / (len);
           }
           else if (ownLoc[clamp_axis] > curveMax[clamp_axis]) {
@@ -3567,7 +3572,8 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
             offset = curveMax[clamp_axis] +
                      (int)((ownLoc[clamp_axis] - curveMax[clamp_axis]) / len) * len;
 
-            /* now, we calculate as per normal, except using offset instead of curveMax[clamp_axis] */
+            /* Now, we calculate as per normal,
+             * except using offset instead of curveMax[clamp_axis]. */
             curvetime = (ownLoc[clamp_axis] - offset) / (len);
           }
           else {
@@ -3689,11 +3695,10 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         mat4_to_size(dvec, ct->matrix);
 
         if (is_negative_m4(ct->matrix)) {
-          /* Bugfix [#27886]
-           * We can't be sure which axis/axes are negative, though we know that something is negative.
-           * Assume we don't care about negativity of separate axes. <--- This is a limitation that
-           * riggers will have to live with for now.
-           */
+          /* Bugfix T27886: (this is a limitation that riggers will have to live with for now).
+           * We can't be sure which axis/axes are negative,
+           * though we know that something is negative.
+           * Assume we don't care about negativity of separate axes. */
           negate_v3(dvec);
         }
         from_min = data->from_min_scale;
@@ -3932,9 +3937,10 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
               break;
           }
 
-          /* transform normal into requested space */
-          /* Note that in this specific case, we need to keep scaling in non-parented 'local2world' object
-           * case, because SpaceTransform also takes it into account when handling normals. See T42447. */
+          /* Transform normal into requested space */
+          /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
+           * object case, because SpaceTransform also takes it into account when handling normals.
+           * See T42447. */
           unit_m4(mat);
           BKE_constraint_mat_convertspace(
               cob->ob, cob->pchan, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
@@ -5225,7 +5231,8 @@ static void con_extern_cb(bConstraint *UNUSED(con),
   }
 }
 
-/* helper for BKE_constraints_copy(), to be used for making sure that usercounts of copied ID's are fixed up */
+/* helper for BKE_constraints_copy(),
+ * to be used for making sure that usercounts of copied ID's are fixed up */
 static void con_fix_copied_refs_cb(bConstraint *UNUSED(con),
                                    ID **idpoin,
                                    bool is_reference,
@@ -5460,7 +5467,8 @@ static bConstraint *constraint_find_original_for_update(bConstraintOb *cob, bCon
 
 /* -------- Constraints and Proxies ------- */
 
-/* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL (i.e. added to bone that's proxy-synced in this file) */
+/* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL
+ * (i.e. added to bone that's proxy-synced in this file) */
 void BKE_constraints_proxylocal_extract(ListBase *dst, ListBase *src)
 {
   bConstraint *con, *next;
@@ -5502,8 +5510,8 @@ bool BKE_constraints_proxylocked_owner(Object *ob, bPoseChannel *pchan)
 /* -------- Target-Matrix Stuff ------- */
 
 /* This function is a relic from the prior implementations of the constraints system, when all
- * constraints either had one or no targets. It used to be called during the main constraint solving
- * loop, but is now only used for the remaining cases for a few constraints.
+ * constraints either had one or no targets. It used to be called during the main constraint
+ * solving loop, but is now only used for the remaining cases for a few constraints.
  *
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
@@ -5694,9 +5702,9 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
     }
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
-     * - all this happens in worldspace to prevent any weirdness creeping in ([#26014] and [#25725]),
-     *   since some constraints may not convert the solution back to the input space before blending
-     *   but all are guaranteed to end up in good "worldspace" result
+     * - all this happens in worldspace to prevent any weirdness creeping in
+     *   (T26014 and T25725), since some constraints may not convert the solution back to the input
+     *   space before blending but all are guaranteed to end up in good "worldspace" result.
      */
     /* Note: all kind of stuff here before (caused trouble), much easier to just interpolate,
      * or did I miss something? -jahka (r.32105) */

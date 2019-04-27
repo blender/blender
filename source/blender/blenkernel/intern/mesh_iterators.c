@@ -99,7 +99,8 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
                                   void *userData,
                                   MeshForeachFlag flag)
 {
-  /* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
+  /* We can't use dm->getLoopDataLayout(dm) here,
+   * we want to always access dm->loopData, EditDerivedBMesh would
    * return loop data from bmesh itself. */
   const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
                                CustomData_get_layer(&mesh->ldata, CD_NORMAL) :

@@ -1038,9 +1038,10 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
         const int v = vtri[j];
 
         if (bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
-          /* Note: This avoids `lock, add_v3_v3, unlock` and is five to ten times quicker than a spinlock.
-           *       Not exact equivalent though, since atomicity is only ensured for one component
-           *       of the vector at a time, but here it shall not make any sensible difference. */
+          /* Note: This avoids `lock, add_v3_v3, unlock`
+           * and is five to ten times quicker than a spinlock.
+           * Not exact equivalent though, since atomicity is only ensured for one component
+           * of the vector at a time, but here it shall not make any sensible difference. */
           for (int k = 3; k--;) {
             atomic_add_and_fetch_fl(&vnors[v][k], fn[k]);
           }
@@ -1924,8 +1925,8 @@ void BKE_pbvh_raycast_project_ray_root(
       BKE_pbvh_node_get_BB(bvh->nodes, bb_min_root, bb_max_root);
     }
 
-    /* slightly offset min and max in case we have a zero width node (due to a plane mesh for instance),
-     * or faces very close to the bounding box boundary. */
+    /* Slightly offset min and max in case we have a zero width node
+     * (due to a plane mesh for instance), or faces very close to the bounding box boundary. */
     mid_v3_v3v3(bb_center, bb_max_root, bb_min_root);
     /* diff should be same for both min/max since it's calculated from center */
     sub_v3_v3v3(bb_diff, bb_max_root, bb_center);
@@ -2341,7 +2342,8 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3], const int totvert)
       /* unneeded deformation -- duplicate verts/faces to avoid this */
 
       pbvh->verts = MEM_dupallocN(pbvh->verts);
-      /* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh, it's never some mesh data. */
+      /* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh,
+       * it's never some mesh data. */
 
       pbvh->deformed = true;
     }

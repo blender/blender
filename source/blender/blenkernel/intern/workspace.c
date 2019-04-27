@@ -113,8 +113,9 @@ static void *workspace_relation_get_data_matching_parent(const ListBase *relatio
 }
 
 /**
- * Checks if \a screen is already used within any workspace. A screen should never be assigned to multiple
- * WorkSpaceLayouts, but that should be ensured outside of the BKE_workspace module and without such checks.
+ * Checks if \a screen is already used within any workspace. A screen should never be assigned to
+ * multiple WorkSpaceLayouts, but that should be ensured outside of the BKE_workspace module
+ * and without such checks.
  * Hence, this should only be used as assert check before assigining a screen to a workspace.
  */
 #ifndef NDEBUG
@@ -143,8 +144,9 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 }
 
 /**
- * The function that actually frees the workspace data (not workspace itself). It shouldn't be called
- * directly, instead #BKE_workspace_remove should be, which calls this through #BKE_id_free then.
+ * The function that actually frees the workspace data (not workspace itself).
+ * It shouldn't be called directly, instead #BKE_workspace_remove should be,
+ * which calls this through #BKE_id_free then.
  *
  * Should something like a bke_internal.h be added, this should go there!
  */
@@ -275,7 +277,8 @@ WorkSpaceLayout *BKE_workspace_layout_find(const WorkSpace *workspace, const bSc
  * Find the layout for \a screen without knowing which workspace to look in.
  * Can also be used to find the workspace that contains \a screen.
  *
- * \param r_workspace: Optionally return the workspace that contains the looked up layout (if found).
+ * \param r_workspace: Optionally return the workspace that contains the
+ * looked up layout (if found).
  */
 WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
                                                   const bScreen *screen,
@@ -303,7 +306,8 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
 /**
  * Circular workspace layout iterator.
  *
- * \param callback: Custom function which gets executed for each layout. Can return false to stop iterating.
+ * \param callback: Custom function which gets executed for each layout.
+ * Can return false to stop iterating.
  * \param arg: Custom data passed to each \a callback call.
  *
  * \return the layout at which \a callback returned false.

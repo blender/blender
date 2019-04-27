@@ -400,8 +400,9 @@ void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
-/* XXX old trees handle output flags automatically based on special output node types and last active selection.
- * new tree types have a per-output socket flag to indicate the final output to use explicitly.
+/* XXX old trees handle output flags automatically based on special output
+ * node types and last active selection.
+ * New tree types have a per-output socket flag to indicate the final output to use explicitly.
  */
 void ntreeSetOutput(struct bNodeTree *ntree);
 
@@ -775,16 +776,20 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
 /* -------------------------------------------------------------------- */
 /** \name Node Tree Iterator
  *
- * Utility macro for visiting every node tree in the library data, including local bNodeTree blocks in other IDs.
- * This avoids the need for callback functions and allows executing code in a single inner code block.
+ * Utility macro for visiting every node tree in the library data,
+ * including local bNodeTree blocks in other IDs.
+ * This avoids the need for callback functions and allows executing code
+ * in a single inner code block.
  *
  * Variables:
  *
- *   nodetree:  The actual bNodeTree data block.
- *              Check nodetree->idname or nodetree->typeinfo to use only specific types.
+ * - nodetree:
+ *   The actual bNodeTree data block.
+ *   Check nodetree->idname or nodetree->typeinfo to use only specific types.
  *
- *   id:        The owner of the bNodeTree data block.
- *              Same as nodetree if it's a linkable node tree from the library.
+ * - id:
+ *   The owner of the bNodeTree data block.
+ *   Same as nodetree if it's a linkable node tree from the library.
  *
  * Examples:
  *
@@ -852,7 +857,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 
 /* note: types are needed to restore callbacks, don't change values */
 /* range 1 - 100 is reserved for common nodes */
-/* using toolbox, we add node groups by assuming the values below don't exceed NODE_GROUP_MENU for now */
+/* using toolbox, we add node groups by assuming the values below
+ * don't exceed NODE_GROUP_MENU for now. */
 
 //#define SH_NODE_OUTPUT        1
 

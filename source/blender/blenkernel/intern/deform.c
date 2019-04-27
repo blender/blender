@@ -646,11 +646,11 @@ float defvert_array_find_weight_safe(const struct MDeformVert *dvert,
                                      const int index,
                                      const int defgroup)
 {
-  /* Invalid defgroup index means the vgroup selected is invalid, does not exist, in that case it is OK to return 1.0
+  /* Invalid defgroup index means the vgroup selected is invalid,
+   * does not exist, in that case it is OK to return 1.0
    * (i.e. maximum weight, as if no vgroup was selected).
    * But in case of valid defgroup and NULL dvert data pointer, it means that vgroup **is** valid,
-   * and just totally empty, so we shall return '0.0' value then!
-   */
+   * and just totally empty, so we shall return '0.0' value then! */
   if (defgroup == -1) {
     return 1.0f;
   }
@@ -1258,12 +1258,13 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 
   const size_t elem_size = sizeof(*((MDeformVert *)NULL));
 
-  /* Note: VGroups are a bit hairy, since their layout is defined on object level (ob->defbase), while their actual
-   *       data is a (mesh) CD layer.
-   *       This implies we may have to handle data layout itself while having NULL data itself,
-   *       and even have to support NULL data_src in transfer data code (we always create a data_dst, though).
+  /* Note:
+   * VGroups are a bit hairy, since their layout is defined on object level (ob->defbase),
+   * while their actual data is a (mesh) CD layer.
+   * This implies we may have to handle data layout itself while having NULL data itself,
+   * and even have to support NULL data_src in transfer data code
+   * (we always create a data_dst, though).
    */
-
   if (BLI_listbase_is_empty(&ob_src->defbase)) {
     if (use_delete) {
       BKE_object_defgroup_remove_all(ob_dst);

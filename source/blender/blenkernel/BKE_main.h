@@ -57,7 +57,8 @@ typedef struct BlendThumbnail {
 /* Structs caching relations between data-blocks in a given Main. */
 typedef struct MainIDRelationsEntry {
   struct MainIDRelationsEntry *next;
-  /* WARNING! for user_to_used, that pointer is really an ID** one, but for used_to_user, it’s only an ID* one! */
+  /* WARNING! for user_to_used,
+   * that pointer is really an ID** one, but for used_to_user, it’s only an ID* one! */
   struct ID **id_pointer;
   int usage_flag; /* Using IDWALK_ enums, in BKE_library_query.h */
 } MainIDRelationsEntry;
@@ -121,9 +122,11 @@ typedef struct Main {
   ListBase cachefiles;
   ListBase workspaces;
 
-  /* Must be generated, used and freed by same code - never assume this is valid data unless you know
-   * when, who and how it was created.
-   * Used by code doing a lot of remapping etc. at once to speed things up. */
+  /**
+   * Must be generated, used and freed by same code - never assume this is valid data unless you
+   * know when, who and how it was created.
+   * Used by code doing a lot of remapping etc. at once to speed things up.
+   */
   struct MainIDRelations *relations;
 
   struct MainLock *lock;
@@ -165,7 +168,9 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
   } \
   ((void)0)
 
-/* DO NOT use break statement with that macro, use FOREACH_MAIN_LISTBASE and FOREACH_MAIN_LISTBASE_ID instead
+/**
+ * DO NOT use break statement with that macro,
+ * use #FOREACH_MAIN_LISTBASE and #FOREACH_MAIN_LISTBASE_ID instead
  * if you need that kind of control flow. */
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id) \
   { \

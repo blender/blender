@@ -308,7 +308,8 @@ void BKE_spacedata_draw_locks(int set)
 }
 
 /**
- * Version of #BKE_area_find_region_type that also works if \a slink is not the active space of \a sa.
+ * Version of #BKE_area_find_region_type that also works if \a slink
+ * is not the active space of \a sa.
  */
 ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink, const ScrArea *sa, int region_type)
 {

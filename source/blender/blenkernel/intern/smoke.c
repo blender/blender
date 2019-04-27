@@ -119,7 +119,7 @@ struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res),
 {
   return NULL;
 }
-//struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(dx), float *UNUSED(dtdef), int UNUSED(use_heat), int UNUSED(use_fire), int UNUSED(use_colors)) { return NULL; }
+
 void smoke_free(struct FLUID_3D *UNUSED(fluid))
 {
 }
@@ -914,7 +914,8 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     // DG TODO
     // if (scs->type > SM_COLL_STATIC)
-    // if line above is used, the code is in trouble if the object moves but is declared as "does not move"
+    // if line above is used, the code is in trouble if the object moves
+    // but is declared as "does not move".
 
     {
       vert_vel = MEM_callocN(sizeof(float) * numverts * 3, "smoke_obs_velocity");
@@ -1680,7 +1681,8 @@ static void sample_mesh(SmokeFlowSettings *sfs,
         interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
         normalize_v3(hit_normal);
         /* apply normal directional and random velocity
-         * - TODO: random disabled for now since it doesn't really work well as pressure calc smoothens it out... */
+         * - TODO: random disabled for now since it doesn't really work well
+         *   as pressure calc smoothens it out. */
         velocity_map[index * 3] += hit_normal[0] * sfs->vel_normal * 0.25f;
         velocity_map[index * 3 + 1] += hit_normal[1] * sfs->vel_normal * 0.25f;
         velocity_map[index * 3 + 2] += hit_normal[2] * sfs->vel_normal * 0.25f;
@@ -2734,7 +2736,8 @@ static void update_flowsfluids(
 
               /* loop through high res blocks if high res enabled */
               if (bigdensity) {
-                // neighbor cell emission densities (for high resolution smoke smooth interpolation)
+                /* Neighbor cell emission densities
+                 * (for high resolution smoke smooth interpolation). */
                 float c000, c001, c010, c011, c100, c101, c110, c111;
 
                 smoke_turbulence_get_res(sds->wt, bigres);
@@ -3034,12 +3037,9 @@ static void step(Depsgraph *depsgraph,
     update_obstacles(depsgraph, ob, sds, dtSubdiv, substep, totalSubsteps);
 
     if (sds->total_cells > 1) {
-      update_effectors(
-          depsgraph,
-          scene,
-          ob,
-          sds,
-          dtSubdiv);  // DG TODO? problem --> uses forces instead of velocity, need to check how they need to be changed with variable dt
+      // DG TODO? problem --> uses forces instead of velocity,
+      // need to check how they need to be changed with variable dt.
+      update_effectors(depsgraph, scene, ob, sds, dtSubdiv);
       smoke_step(sds->fluid, gravity, dtSubdiv);
     }
   }

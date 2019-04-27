@@ -182,7 +182,8 @@ ID *BKE_main_idmap_lookup(struct IDNameLib_Map *id_map,
 ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_map, const ID *id)
 {
   /* When used during undo/redo, this function cannot assume that given id points to valid memory
-   * (i.e. has not been freed), so it has to check that it does exist in 'old' (aka current) Main database.
+   * (i.e. has not been freed),
+   * so it has to check that it does exist in 'old' (aka current) Main database.
    * Otherwise, we cannot provide new ID pointer that way (would crash accessing freed memory
    * when trying to get ID name).
    */

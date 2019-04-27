@@ -38,8 +38,8 @@ struct Object;
 struct Scene;
 struct ViewLayer;
 struct bArmature;
-struct
-    bContext; /* NOTE: bakeModifier() - called from UI - needs to create new datablocks, hence the need for this */
+/* NOTE: bakeModifier() called from UI: needs to create new datablocks, hence the need for this. */
+struct bContext;
 struct bGPDframe;
 struct bGPDlayer;
 struct bGPDstroke;

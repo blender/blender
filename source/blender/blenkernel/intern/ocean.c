@@ -116,7 +116,8 @@ typedef struct Ocean {
   /* two dimensional arrays of float */
   double *_disp_y; /* init w   sim w via plan? */
   double *_N_x;    /* init w   sim w via plan? */
-  /* all member of this array has same values, so convert this array to a float to reduce memory usage (MEM01)*/
+  /* all member of this array has same values,
+   * so convert this array to a float to reduce memory usage (MEM01). */
   /*float * _N_y; */
   double _N_y;     /*          sim w ********* can be rearranged? */
   double *_N_z;    /* init w   sim w via plan? */
@@ -148,9 +149,9 @@ static float nextfr(RNG *rng, float min, float max)
 
 static float gaussRand(RNG *rng)
 {
-  /* Note: to avoid numerical problems with very small numbers, we make these variables singe-precision floats,
-   * but later we call the double-precision log() and sqrt() functions instead of logf() and sqrtf().
-   */
+  /* Note: to avoid numerical problems with very small numbers, we make these variables
+   * singe-precision floats, but later we call the double-precision log() and sqrt() functions
+   * instead of logf() and sqrtf(). */
   float x;
   float y;
   float length2;
@@ -464,9 +465,8 @@ void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x
   BKE_ocean_eval_uv_catrom(oc, ocr, x / oc->_Lx, z / oc->_Lz);
 }
 
-/* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being just a way to get
- * the raw data out to save in some image format.
- */
+/* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being
+ * just a way to get the raw data out to save in some image format. */
 void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 {
   BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
@@ -519,7 +519,8 @@ static void ocean_compute_htilda(void *__restrict userdata,
 
   int j;
 
-  /* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
+  /* note the <= _N/2 here, see the fftw doco
+   * about the mechanics of the complex->real fft storage. */
   for (j = 0; j <= o->_N / 2; ++j) {
     fftw_complex exp_param1;
     fftw_complex exp_param2;
@@ -770,11 +771,12 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
 
   BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
-  /* Note about multi-threading here: we have to run a first set of computations (htilda one) before we can run
-   * all others, since they all depend on it.
-   * So we make a first parallelized forloop run for htilda, and then pack all other computations into
-   * a set of parallel tasks.
-   * This is not optimal in all cases, but remains reasonably simple and should be OK most of the time. */
+  /* Note about multi-threading here: we have to run a first set of computations (htilda one)
+   * before we can run all others, since they all depend on it.
+   * So we make a first parallelized forloop run for htilda,
+   * and then pack all other computations into a set of parallel tasks.
+   * This is not optimal in all cases,
+   * but remains reasonably simple and should be OK most of the time. */
 
   /* compute a new htilda */
   ParallelRangeSettings settings;
@@ -1342,7 +1344,8 @@ void BKE_ocean_simulate_cache(struct OceanCache *och, int frame)
     return;
   }
 
-  /* use default color spaces since we know for sure cache files were saved with default settings too */
+  /* Use default color spaces since we know for sure cache
+   * files were saved with default settings too. */
 
   cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
   och->ibufs_disp[f] = IMB_loadiffname(string, 0, NULL);
@@ -1429,9 +1432,9 @@ void BKE_ocean_bake(struct Ocean *o,
 
           /* pr = pr * och->foam_fade; */ /* overall fade */
 
-          /* remember ocean coord sys is Y up!
-           * break up the foam where height (Y) is low (wave valley), and X and Z displacement is greatest
-           */
+          /* Remember ocean coord sys is Y up!
+           * break up the foam where height (Y) is low (wave valley),
+           * and X and Z displacement is greatest. */
 
           neg_disp = ocr.disp[1] < 0.0f ? 1.0f + ocr.disp[1] : 1.0f;
           neg_disp = neg_disp < 0.0f ? 0.0f : neg_disp;

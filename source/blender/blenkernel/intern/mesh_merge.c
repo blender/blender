@@ -41,8 +41,8 @@
  * Poly compare with vtargetmap
  * Function used by #BKE_mesh_merge_verts.
  * The function compares poly_source after applying vtargetmap, with poly_target.
- * The two polys are identical if they share the same vertices in the same order, or in reverse order,
- * but starting position loopstart may be different.
+ * The two polys are identical if they share the same vertices in the same order,
+ * or in reverse order, but starting position loopstart may be different.
  * The function is called with direct_reverse=1 for same order (i.e. same normal),
  * and may be called again with direct_reverse=-1 for reverse order.
  * \return 1 if polys are identical,  0 if polys are different.
@@ -159,7 +159,8 @@ static int cddm_poly_compare(MLoop *mloop_array,
       break;
     }
 
-    /* Adjust i_loop_target for cycling around and for direct/reverse order defined by delta = +1 or -1 */
+    /* Adjust i_loop_target for cycling around and for direct/reverse order
+     * defined by delta = +1 or -1 */
     i_loop_target_adjusted = (i_loop_target_start + direct_reverse * i_loop_target_offset) %
                              mpoly_target->totloop;
     if (i_loop_target_adjusted < 0) {
@@ -213,8 +214,8 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  * \param vtargetmap: The table that maps vertices to target vertices.  a value of -1
  * indicates a vertex is a target, and is to be kept.
  * This array is aligned with 'mesh->totvert'
- * \warning \a vtargetmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.), this is not supported
- * and will likely generate corrupted geometry.
+ * \warning \a vtargetmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
+ * this is not supported and will likely generate corrupted geometry.
  *
  * \param tot_vtargetmap: The number of non '-1' values in vtargetmap. (not the size)
  *
@@ -230,10 +231,12 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  * Indeed it could be that all of a poly's vertices are merged,
  * but merged to vertices that do not make up a single poly,
  * in which case the original poly should not be dumped.
- * Actually this later behavior could apply to the Mirror Modifier as well, but the additional checks are
- * costly and not necessary in the case of mirror, because each vertex is only merged to its own mirror.
+ * Actually this later behavior could apply to the Mirror Modifier as well,
+ * but the additional checks are costly and not necessary in the case of mirror,
+ * because each vertex is only merged to its own mirror.
  *
- * \note #BKE_mesh_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
+ * \note #BKE_mesh_recalc_tessellation has to run on the returned DM
+ * if you want to access tessfaces.
  */
 Mesh *BKE_mesh_merge_verts(Mesh *mesh,
                            const int *vtargetmap,
@@ -258,9 +261,9 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   STACK_DECLARE(mvert);
   STACK_DECLARE(oldv);
 
-  /* Note: create (totedge + totloop) elements because partially invalid polys due to merge may require
-   * generating new edges, and while in 99% cases we'll still end with less final edges than totedge,
-   * cases can be forged that would end requiring more... */
+  /* Note: create (totedge + totloop) elements because partially invalid polys due to merge may
+   * require generating new edges, and while in 99% cases we'll still end with less final edges
+   * than totedge, cases can be forged that would end requiring more. */
   MEdge *med, *medge = MEM_malloc_arrayN((totedge + totloop), sizeof(*medge), __func__);
   int *olde = MEM_malloc_arrayN((totedge + totloop), sizeof(*olde), __func__);
   int *newe = MEM_malloc_arrayN((totedge + totloop), sizeof(*newe), __func__);
@@ -354,7 +357,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   if (merge_mode == MESH_MERGE_VERTS_DUMP_IF_EQUAL) {
     /* In this mode, we need to determine,  whenever a poly' vertices are all mapped */
     /* if the targets already make up a poly, in which case the new poly is dropped */
-    /* This poly equality check is rather complex.   We use a BLI_ghash to speed it up with a first level check */
+    /* This poly equality check is rather complex.
+     * We use a BLI_ghash to speed it up with a first level check */
     PolyKey *mpgh;
     poly_keys = MEM_malloc_arrayN(totpoly, sizeof(PolyKey), __func__);
     poly_gset = BLI_gset_new_ex(poly_gset_hash_fn, poly_gset_compare_fn, __func__, totpoly);
@@ -484,7 +488,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         BLI_assert((mlv == v1 && next_mlv == v2) || (mlv == v2 && next_mlv == v1));
       }
 #endif
-      /* A loop is only valid if its matching edge is, and it's not reusing a vertex already used by this poly. */
+      /* A loop is only valid if its matching edge is,
+       * and it's not reusing a vertex already used by this poly. */
       if (LIKELY((newe[ml->e] != -1) && ((mv[mlv].flag & ME_VERT_TMP_TAG) == 0))) {
         mv[mlv].flag |= ME_VERT_TMP_TAG;
 
@@ -505,7 +510,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
             STACK_PUSH(medge, mesh->medge[last_valid_ml->e]);
             medge[new_eidx].v1 = last_valid_ml->v;
             medge[new_eidx].v2 = ml->v;
-            /* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
+            /* DO NOT change newe mapping,
+             * could break actual values due to some deleted original edges. */
             *val_p = POINTER_FROM_INT(new_eidx);
             created_edges++;
 
@@ -525,8 +531,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         }
         c++;
 
-        /* We absolutely HAVE to handle edge index remapping here, otherwise potential newly created edges
-         * in that part of code make remapping later totally unreliable. */
+        /* We absolutely HAVE to handle edge index remapping here, otherwise potential newly
+         * created edges in that part of code make remapping later totally unreliable. */
         BLI_assert(newe[ml->e] != -1);
         last_valid_ml->e = newe[ml->e];
       }
@@ -558,7 +564,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         STACK_PUSH(medge, mesh->medge[last_valid_ml->e]);
         medge[new_eidx].v1 = last_valid_ml->v;
         medge[new_eidx].v2 = first_valid_ml->v;
-        /* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
+        /* DO NOT change newe mapping,
+         * could break actual values due to some deleted original edges. */
         *val_p = POINTER_FROM_INT(new_eidx);
         created_edges++;
 

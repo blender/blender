@@ -375,8 +375,8 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(void *__restrict userdata,
 
   /* Use local proximity heuristics (to reduce the nearest search)
    *
-   * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-   * so we can initiate the "nearest.dist" with the expected value to that last hit.
+   * If we already had an hit before.. we assume this vertex is going to have a close hit to that
+   * other vertex so we can initiate the "nearest.dist" with the expected value to that last hit.
    * This will lead in pruning of the search tree. */
   if (nearest->index != -1) {
     nearest->dist_sq = len_squared_v3v3(tmp_co, nearest->co);
@@ -538,8 +538,9 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
 
   if (calc->vert != NULL && calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
     /* calc->vert contains verts from evaluated mesh.  */
-    /* These coordinates are deformed by vertexCos only for normal projection (to get correct normals) */
-    /* for other cases calc->verts contains undeformed coordinates and vertexCos should be used */
+    /* These coordinates are deformed by vertexCos only for normal projection
+     * (to get correct normals) for other cases calc->verts contains undeformed coordinates and
+     * vertexCos should be used */
     copy_v3_v3(tmp_co, calc->vert[i].co);
     normal_short_to_float_v3(tmp_no, calc->vert[i].no);
   }
@@ -549,8 +550,9 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
   }
 
   hit->index = -1;
-  hit->dist =
-      BVH_RAYCAST_DIST_MAX; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
+
+  /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
+  hit->dist = BVH_RAYCAST_DIST_MAX;
 
   bool is_aux = false;
 
@@ -938,7 +940,8 @@ static bool update_hit(BVHTreeNearest *nearest,
   return false;
 }
 
-/* Target projection on a non-manifold boundary edge - treats it like an infinitely thin cylinder. */
+/* Target projection on a non-manifold boundary edge -
+ * treats it like an infinitely thin cylinder. */
 static void target_project_edge(const ShrinkwrapTreeData *tree,
                                 int index,
                                 const float co[3],
@@ -1142,8 +1145,8 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(void *__restrict userdat
 
   /* Use local proximity heuristics (to reduce the nearest search)
    *
-   * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-   * so we can initiate the "nearest.dist" with the expected value to that last hit.
+   * If we already had an hit before.. we assume this vertex is going to have a close hit to that
+   * other vertex so we can initiate the "nearest.dist" with the expected value to that last hit.
    * This will lead in pruning of the search tree. */
   if (nearest->index != -1) {
     if (calc->smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {

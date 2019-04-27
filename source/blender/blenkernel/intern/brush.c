@@ -148,7 +148,8 @@ void BKE_brush_init(Brush *brush)
 }
 
 /**
- * \note Resulting brush will have two users: one as a fake user, another is assumed to be used by the caller.
+ * \note Resulting brush will have two users: one as a fake user,
+ * another is assumed to be used by the caller.
  */
 Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 {
@@ -584,8 +585,10 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
 }
 
 /**
- * Only copy internal data of Brush ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Brush ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

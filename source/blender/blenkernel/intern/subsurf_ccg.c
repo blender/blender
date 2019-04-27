@@ -305,8 +305,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
   limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
   /* previous behavior here is without accounting for winding, however this causes stretching in
-   * UV map in really simple cases with mirror + subsurf, see second part of T44530. Also, initially
-   * intention is to treat merged vertices from mirror modifier as seams.
+   * UV map in really simple cases with mirror + subsurf, see second part of T44530.
+   * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, limit, false, true);
   if (!vmap) {
@@ -1729,8 +1729,8 @@ static void ccgDM_foreachMappedLoop(DerivedMesh *dm,
                                     void *userData,
                                     DMForeachFlag flag)
 {
-  /* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData, EditDerivedBMesh would
-   * return loop data from bmesh itself. */
+  /* We can't use dm->getLoopDataLayout(dm) here, we want to always access dm->loopData,
+   * EditDerivedBMesh would return loop data from bmesh itself. */
   const float(*lnors)[3] = (flag & DM_FOREACH_USE_NORMAL) ? DM_get_loop_data_layer(dm, CD_NORMAL) :
                                                             NULL;
 
@@ -1978,10 +1978,9 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 
   if (type == CD_TESSLOOPNORMAL) {
     /* Create tessloopnormal on demand to save memory. */
-    /* Note that since tessellated face corners are the same a loops in CCGDM, and since all faces have four
-     * loops/corners, we can simplify the code here by converting tessloopnormals from 'short (*)[4][3]'
-     * to 'short (*)[3]'.
-     */
+    /* Note that since tessellated face corners are the same a loops in CCGDM,
+     * and since all faces have four loops/corners, we can simplify the code
+     * here by converting tessloopnormals from 'short (*)[4][3]' to 'short (*)[3]'. */
     short(*tlnors)[3];
 
     /* Avoid re-creation if the layer exists already */
@@ -2000,7 +1999,8 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
       DM_add_tessface_layer(dm, CD_TESSLOOPNORMAL, CD_CALLOC, NULL);
       tlnors = tlnors_it = (short(*)[3])DM_get_tessface_data_layer(dm, CD_TESSLOOPNORMAL);
 
-      /* With ccgdm, we have a simple one to one mapping between loops and tessellated face corners. */
+      /* With ccgdm, we have a simple one to one mapping between loops
+       * and tessellated face corners. */
       for (i = 0; i < numLoops; ++i, ++tlnors_it, ++lnors) {
         normal_float_to_short_v3(*tlnors_it, *lnors);
       }
@@ -2255,8 +2255,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
   bool grid_pbvh = ccgDM_use_grid_pbvh(ccgdm);
   if ((ob->mode & OB_MODE_SCULPT) == 0) {
     /* In vwpaint, we may use a grid_pbvh for multires/subsurf, under certain conditions.
-     * More complex cases break 'history' trail back to original vertices, in that case we fall back to
-     * deformed cage only (i.e. original deformed mesh). */
+     * More complex cases break 'history' trail back to original vertices,
+     * in that case we fall back to deformed cage only (i.e. original deformed mesh). */
     VirtualModifierData virtualModifierData;
     ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
@@ -2294,8 +2294,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
   }
 
   if (ob->sculpt->pbvh) {
-    /* Note that we have to clean up exisitng pbvh instead of updating it in case it does not match current
-     * grid_pbvh status. */
+    /* Note that we have to clean up exisitng pbvh instead of updating it in case it does not
+     * match current grid_pbvh status. */
     const PBVHType pbvh_type = BKE_pbvh_type(ob->sculpt->pbvh);
     if (grid_pbvh) {
       if (pbvh_type == PBVH_GRIDS) {
@@ -2438,7 +2438,8 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
   ccgdm->dm.getNumEdges = ccgDM_getNumEdges;
   ccgdm->dm.getNumLoops = ccgDM_getNumLoops;
-  /* reuse of ccgDM_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
+  /* reuse of ccgDM_getNumTessFaces is intentional here:
+   * subsurf polys are just created from tessfaces */
   ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
   ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
 

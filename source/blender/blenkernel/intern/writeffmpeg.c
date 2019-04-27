@@ -792,10 +792,11 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   }
 
   if (codec->sample_fmts) {
-    /* check if the preferred sample format for this codec is supported.
-     * this is because, depending on the version of libav, and with the whole ffmpeg/libav fork situation,
-     * you have various implementations around. float samples in particular are not always supported.
-     */
+    /* Check if the preferred sample format for this codec is supported.
+     * this is because, depending on the version of libav,
+     * and with the whole ffmpeg/libav fork situation,
+     * you have various implementations around.
+     * Float samples in particular are not always supported. */
     const enum AVSampleFormat *p = codec->sample_fmts;
     for (; *p != -1; p++) {
       if (*p == st->codec->sample_fmt) {
@@ -1636,7 +1637,9 @@ static void ffmpeg_set_expert_options(RenderData *rd)
      * The other options were taken from the libx264-default.preset
      * included in the ffmpeg distribution.
      */
-    //      ffmpeg_property_add_string(rd, "video", "flags:loop"); // this breaks compatibility for QT
+
+    /* This breaks compatibility for QT. */
+    // BKE_ffmpeg_property_add_string(rd, "video", "flags:loop");
     BKE_ffmpeg_property_add_string(rd, "video", "cmp:chroma");
     BKE_ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");  // Deprecated.
     BKE_ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");  // Deprecated.

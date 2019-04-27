@@ -84,11 +84,12 @@ typedef struct BVHTreeFromMesh {
 
 /**
  * Builds a bvh tree where nodes are the relevant elements of the given mesh.
- * Configures BVHTreeFromMesh.
+ * Configures #BVHTreeFromMesh.
  *
  * The tree is build in mesh space coordinates, this means special care must be made on queries
  * so that the coordinates and rays are first translated on the mesh local coordinates.
- * Reason for this is that bvh_from_mesh_* can use a cache in some cases and so it becomes possible to reuse a BVHTree.
+ * Reason for this is that bvh_from_mesh_* can use a cache in some cases and so it
+ * becomes possible to reuse a #BVHTree.
  *
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */

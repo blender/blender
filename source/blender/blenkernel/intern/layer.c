@@ -1100,7 +1100,8 @@ static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCo
 
 /**
  * Hide/show all the elements of a collection.
- * Don't change the collection children enable/disable state, but it may change it for the collection itself.
+ * Don't change the collection children enable/disable state,
+ * but it may change it for the collection itself.
  *
  * Return true if depsgraph needs update.
  */

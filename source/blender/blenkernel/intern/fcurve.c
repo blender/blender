@@ -230,7 +230,8 @@ FCurve *id_data_find_fcurve(
   return fcu;
 }
 
-/* Find the F-Curve affecting the given RNA-access path + index, in the list of F-Curves provided */
+/* Find the F-Curve affecting the given RNA-access path + index,
+ * in the list of F-Curves provided. */
 FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index)
 {
   FCurve *fcu;
@@ -277,7 +278,10 @@ FCurve *iter_step_fcurve(FCurve *fcu_iter, const char rna_path[])
   return NULL;
 }
 
-/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated
+/**
+ * Get list of LinkData's containing pointers to the F-Curves
+ * which control the types of data indicated.
+ *
  * Lists...
  * - dst: list of LinkData's matching the criteria returned.
  *   List must be freed after use, and is assumed to be empty when passed.
@@ -380,9 +384,9 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
   /* there must be some RNA-pointer + property combon */
   if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
     AnimData *adt = BKE_animdata_from_id(tptr.id.data);
-    int step =
-        C ? 2 :
-            1; /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
+    int step = (
+        /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
+        C ? 2 : 1);
     char *path = NULL;
 
     if (!adt && C) {
@@ -451,7 +455,8 @@ FCurve *rna_get_fcurve_context_ui(bContext *C,
 
 /* ----------------- Finding Keyframes/Extents -------------------------- */
 
-/* Binary search algorithm for finding where to insert BezTriple, with optional argument for precision required.
+/* Binary search algorithm for finding where to insert BezTriple,
+ * with optional argument for precision required.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
 static int binarysearch_bezt_index_ex(
@@ -648,8 +653,8 @@ bool calc_fcurve_bounds(FCurve *fcu,
 
             if (include_handles) {
               /* left handle - only if applicable
-               * NOTE: for the very first keyframe, the left handle actually has no bearings on anything
-               */
+               * NOTE: for the very first keyframe,
+               * the left handle actually has no bearings on anything. */
               if (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)) {
                 yminv = min_ff(yminv, bezt->vec[0][1]);
                 ymaxv = max_ff(ymaxv, bezt->vec[0][1]);
@@ -999,13 +1004,15 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
   return FCU_CYCLE_NONE;
 }
 
-/* Checks if the F-Curve has a Cycles modifier with simple settings that warrant transition smoothing */
+/* Checks if the F-Curve has a Cycles modifier with simple settings
+ * that warrant transition smoothing. */
 bool BKE_fcurve_is_cyclic(FCurve *fcu)
 {
   return BKE_fcurve_get_cycle_type(fcu) != FCU_CYCLE_NONE;
 }
 
-/* Shifts 'in' by the difference in coordinates between 'to' and 'from', using 'out' as the output buffer.
+/* Shifts 'in' by the difference in coordinates between 'to' and 'from',
+ * using 'out' as the output buffer.
  * When 'to' and 'from' are end points of the loop, this moves the 'in' point one loop cycle.
  */
 static BezTriple *cycle_offset_triple(
@@ -1240,7 +1247,10 @@ static ID *dtar_id_ensure_proxy_from(ID *id)
   return id;
 }
 
-/* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
+/**
+ * Helper function to obtain a value using RNA from the specified source
+ * (for evaluating drivers).
+ */
 static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 {
   PointerRNA id_ptr, ptr;
@@ -1879,12 +1889,14 @@ void driver_variable_name_validate(DriverVar *dvar)
   }
 
   /* 1) Must start with a letter */
-  /* XXX: We assume that valid unicode letters in other languages are ok too, hence the blacklisting */
+  /* XXX: We assume that valid unicode letters in other languages are ok too,
+   * hence the blacklisting. */
   if (IN_RANGE_INCL(dvar->name[0], '0', '9')) {
     dvar->flag |= DVAR_FLAG_INVALID_START_NUM;
   }
   else if (dvar->name[0] == '_') {
-    /* NOTE: We don't allow names to start with underscores (i.e. it helps when ruling out security risks) */
+    /* NOTE: We don't allow names to start with underscores
+     * (i.e. it helps when ruling out security risks) */
     dvar->flag |= DVAR_FLAG_INVALID_START_CHAR;
   }
 
@@ -1984,7 +1996,8 @@ void fcurve_free_driver(FCurve *fcu)
 
   BLI_expr_pylike_free(driver->expr_simple);
 
-  /* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
+  /* Free driver itself, then set F-Curve's point to this to NULL
+   * (as the curve may still be used). */
   MEM_freeN(driver);
   fcu->driver = NULL;
 }
@@ -2005,9 +2018,9 @@ ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
   ndriver->expr_simple = NULL;
 
   /* copy variables */
-  BLI_listbase_clear(
-      &ndriver
-           ->variables); /* to get rid of refs to non-copied data (that's still used on original) */
+
+  /* to get rid of refs to non-copied data (that's still used on original) */
+  BLI_listbase_clear(&ndriver->variables);
   driver_variables_copy(&ndriver->variables, &driver->variables);
 
   /* return the new driver */
@@ -2603,9 +2616,12 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
     /* Use binary search to find appropriate keyframes...
      *
      * The threshold here has the following constraints:
-     *    - 0.001   is too coarse   -> We get artifacts with 2cm driver movements at 1BU = 1m (see T40332)
-     *    - 0.00001 is too fine     -> Weird errors, like selecting the wrong keyframe range (see T39207), occur.
-     *                                 This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd
+     * - 0.001 is too coarse:
+     *   We get artifacts with 2cm driver movements at 1BU = 1m (see T40332)
+     *
+     * - 0.00001 is too fine:
+     *   Weird errors, like selecting the wrong keyframe range (see T39207), occur.
+     *   This lower bound was established in b888a32eee8147b028464336ad2404d8155c64dd.
      */
     a = binarysearch_bezt_index_ex(bezts, evaltime, fcu->totvert, 0.0001, &exact);
 
@@ -2624,7 +2640,8 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
       prevbezt = (a > 0) ? (bezt - 1) : bezt;
     }
 
-    /* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
+    /* use if the key is directly on the frame,
+     * rare cases this is needed else we get 0.0 instead. */
     /* XXX: consult T39207 for examples of files where failure of these checks can cause issues */
     if (exact) {
       cvalue = prevbezt->vec[1][1];
@@ -3009,9 +3026,9 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
   BLI_assert(fcu->driver != NULL);
   float cvalue = 0.0f;
 
-  /* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime"
-   * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
-   */
+  /* If there is a driver (only if this F-Curve is acting as 'driver'),
+   * evaluate it to find value to use as "evaltime" since drivers essentially act as alternative
+   * input (i.e. in place of 'time') for F-Curves. */
   if (fcu->driver) {
     /* evaltime now serves as input for the curve */
     evaltime = evaluate_driver(anim_rna, fcu->driver, driver_orig, evaltime);
@@ -3028,12 +3045,12 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
         /* if there are range-restrictions, we must definitely block [#36950] */
         if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
             ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
-          /* within range: here it probably doesn't matter, though we'd want to check on additive... */
+          /* Within range: here it probably doesn't matter,
+           * though we'd want to check on additive. */
         }
         else {
-          /* outside range: modifier shouldn't contribute to the curve here, though it does in other areas,
-           * so neither should the driver!
-           */
+          /* Outside range: modifier shouldn't contribute to the curve here,
+           * though it does in other areas, so neither should the driver! */
           do_linear = false;
         }
       }

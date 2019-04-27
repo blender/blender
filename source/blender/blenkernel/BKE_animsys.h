@@ -95,7 +95,8 @@ void BKE_animdata_merge_copy(struct Main *bmain,
 /* ************************************* */
 /* KeyingSets API */
 
-/* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
+/* Used to create a new 'custom' KeyingSet for the user,
+ * that will be automatically added to the stack */
 struct KeyingSet *BKE_keyingset_add(
     struct ListBase *list, const char idname[], const char name[], short flag, short keyingflag);
 

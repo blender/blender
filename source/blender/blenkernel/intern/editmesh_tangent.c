@@ -276,7 +276,8 @@ static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool),
 /**
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
  *
- * \note This function is not so normal, its using `bm->ldata` as input, but output's to `dm->loopData`.
+ * \note This function is not so normal, its using `bm->ldata` as input,
+ * but output's to `dm->loopData`.
  * This is done because #CD_TANGENT is cache data used only for drawing.
  */
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
@@ -382,9 +383,8 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
 #endif
         mesh2tangent->precomputedFaceNormals = poly_normals;
-        /* Note, we assume we do have tessellated loop normals at this point (in case it is object-enabled),
-         * have to check this is valid...
-         */
+        /* Note, we assume we do have tessellated loop normals at this point
+         * (in case it is object-enabled), have to check this is valid. */
         mesh2tangent->precomputedLoopNormals = loop_normals;
         mesh2tangent->cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, n);
 

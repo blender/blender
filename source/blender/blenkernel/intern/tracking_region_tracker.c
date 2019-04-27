@@ -252,7 +252,8 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf,
   /* configure the tracker */
   tracking_configure_tracker(track, mask, &options);
 
-  /* convert the marker corners and center into pixel coordinates in the search/destination images. */
+  /* Convert the marker corners and center into pixel coordinates in the
+   * search/destination images. */
   tracking_get_marker_coords_for_tracking(
       frame_width, frame_height, reference_marker, src_pixel_x, src_pixel_y);
   tracking_get_marker_coords_for_tracking(

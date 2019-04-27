@@ -55,7 +55,8 @@ static void bke_override_property_operation_copy(IDOverrideStaticPropertyOperati
 static void bke_override_property_clear(IDOverrideStaticProperty *op);
 static void bke_override_property_operation_clear(IDOverrideStaticPropertyOperation *opop);
 
-/* Temp, for until static override is ready and tested enough to go 'public', we hide it by default in UI and such. */
+/* Temp, for until static override is ready and tested enough to go 'public',
+ * we hide it by default in UI and such. */
 static bool _override_static_enabled = false;
 
 void BKE_override_static_enable(const bool do_enable)
@@ -189,7 +190,8 @@ ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
 
   ID *local_id = override_static_create_from(bmain, reference_id);
 
-  /* Remapping, we obviously only want to affect local data (and not our own reference pointer to overridden ID). */
+  /* Remapping, we obviously only want to affect local data
+   * (and not our own reference pointer to overridden ID). */
   BKE_libblock_remap(
       bmain, reference_id, local_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
 
@@ -198,8 +200,8 @@ ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
 
 /** Create overridden local copies of all tagged data-blocks in given Main.
  *
- * \note Set id->newid of overridden libs with newly created overrides, caller is responsible to clean those pointers
- * before/after usage as needed.
+ * \note Set id->newid of overridden libs with newly created overrides,
+ * caller is responsible to clean those pointers before/after usage as needed.
  *
  * \return \a true on success, \a false otherwise.
  */
@@ -474,11 +476,11 @@ void BKE_override_static_property_operation_delete(
 /**
  * Check that status of local data-block is still valid against current reference one.
  *
- * It means that all overridable, but not overridden, properties' local values must be equal to reference ones.
- * Clears LIB_TAG_OVERRIDE_OK if they do not.
+ * It means that all overridable, but not overridden, properties' local values must be equal to
+ * reference ones. Clears #LIB_TAG_OVERRIDE_OK if they do not.
  *
- * This is typically used to detect whether some property has been changed in local and a new IDOverrideProperty
- * (of IDOverridePropertyOperation) has to be added.
+ * This is typically used to detect whether some property has been changed in local and a new
+ * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
  *
  * \return true if status is OK, false otherwise. */
 bool BKE_override_static_status_check_local(Main *bmain, ID *local)
@@ -521,7 +523,8 @@ bool BKE_override_static_status_check_local(Main *bmain, ID *local)
  * It means that all non-overridden properties' local values must be equal to reference ones.
  * Clears LIB_TAG_OVERRIDE_OK if they do not.
  *
- * This is typically used to detect whether some reference has changed and local needs to be updated against it.
+ * This is typically used to detect whether some reference has changed and local
+ * needs to be updated against it.
  *
  * \return true if status is OK, false otherwise. */
 bool BKE_override_static_status_check_reference(Main *bmain, ID *local)
@@ -569,12 +572,13 @@ bool BKE_override_static_status_check_reference(Main *bmain, ID *local)
  * Compares local and reference data-blocks and create new override operations as needed,
  * or reset to reference values if overriding is not allowed.
  *
- * \note Defining override operations is only mandatory before saving a .blend file on disk (not for undo!).
+ * \note Defining override operations is only mandatory before saving a `.blend` file on disk
+ * (not for undo!).
  * Knowing that info at runtime is only useful for UI/UX feedback.
  *
- * \note This is by far the biggest operation (the more time-consuming) of the three so far, since it has to go over
- * all properties in depth (all overridable ones at least). Generating diff values and applying overrides
- * are much cheaper.
+ * \note This is by far the biggest operation (the more time-consuming) of the three so far,
+ * since it has to go over all properties in depth (all overridable ones at least).
+ * Generating diff values and applying overrides are much cheaper.
  *
  * \return true if new overriding op was created, or some local data was reset. */
 bool BKE_override_static_operations_create(Main *bmain, ID *local, const bool force_auto)
@@ -642,19 +646,20 @@ void BKE_override_static_update(Main *bmain, ID *local)
     BKE_override_static_update(bmain, local->override_static->reference);
   }
 
-  /* We want to avoid having to remap here, however creating up-to-date override is much simpler if based
-   * on reference than on current override.
+  /* We want to avoid having to remap here, however creating up-to-date override is much simpler
+   * if based on reference than on current override.
    * So we work on temp copy of reference, and 'swap' its content with local. */
 
   /* XXX We need a way to get off-Main copies of IDs (similar to localized mats/texts/ etc.)!
-   *     However, this is whole bunch of code work in itself, so for now plain stupid ID copy will do,
-   *     as innefficient as it is. :/
-   *     Actually, maybe not! Since we are swapping with original ID's local content, we want to keep
-   *     usercount in correct state when freeing tmp_id (and that usercounts of IDs used by 'new' local data
-   *     also remain correct). */
-  /* This would imply change in handling of usercout all over RNA (and possibly all over Blender code).
-   * Not impossible to do, but would rather see first if extra useless usual user handling is actually
-   * a (performances) issue here. */
+   *     However, this is whole bunch of code work in itself, so for now plain stupid ID copy will
+   *     do, as inn-efficient as it is. :/
+   *     Actually, maybe not! Since we are swapping with original ID's local content, we want to
+   *     keep user-count in correct state when freeing tmp_id
+   *     (and that user-counts of IDs used by 'new' local data also remain correct). */
+  /* This would imply change in handling of usercout all over RNA
+   * (and possibly all over Blender code).
+   * Not impossible to do, but would rather see first if extra useless usual user handling
+   * is actually a (performances) issue here. */
 
   ID *tmp_id;
   BKE_id_copy(bmain, local->override_static->reference, &tmp_id);
@@ -674,11 +679,12 @@ void BKE_override_static_update(Main *bmain, ID *local)
   RNA_struct_override_apply(
       bmain, &rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_static);
 
-  /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa. So when we'll free tmp_id,
-   * we'll actually free old, outdated data from local. */
+  /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
+   * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
   BKE_id_swap(bmain, local, tmp_id);
 
-  /* Again, horribly innefficient in our case, we need something off-Main (aka moar generic nolib copy/free stuff)! */
+  /* Again, horribly inn-efficient in our case, we need something off-Main
+   * (aka more generic nolib copy/free stuff)! */
   /* XXX And crashing in complex cases (e.g. because depsgraph uses same data...). */
   BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER, true);
 
@@ -711,18 +717,21 @@ void BKE_main_override_static_update(Main *bmain)
   FOREACH_MAIN_ID_END;
 }
 
-/***********************************************************************************************************************
- * Storage (how to wtore overriding data into .blend files).
+/**
+ * Storage (how to store overriding data into `.blend` files).
  *
  * Basically:
- * I) Only 'differential' storage needs special handling here. All others (replacing values or
- *    inserting/removing items from a collection) can be handled with simply storing current content of local data-block.
- * II) We store the differential value into a second 'ghost' data-block, which is an empty ID of same type as local one,
- *     where we only define values that need differential data.
+ * 1) Only 'differential' storage needs special handling here. All others (replacing values or
+ *    inserting/removing items from a collection) can be handled with simply storing current
+ *    content of local data-block.
+ * 2) We store the differential value into a second 'ghost' data-block,
+ *    which is an empty ID of same type as local one,
+ *    where we only define values that need differential data.
  *
- * This avoids us having to modify 'real' data-block at write time (and restoring it afterwards), which is inneficient,
- * and potentially dangerous (in case of concurrent access...), while not using much extra memory in typical cases.
- * It also ensures stored data-block always contains exact same data as "desired" ones (kind of "baked" data-blocks).
+ * This avoids us having to modify 'real' data-block at write time (and restoring it afterwards),
+ * which is inneficient, and potentially dangerous (in case of concurrent access...), while not
+ * using much extra memory in typical cases.  It also ensures stored data-block always contains
+ * exact same data as "desired" ones (kind of "baked" data-blocks).
  */
 
 /** Initialize an override storage. */
@@ -734,7 +743,8 @@ OverrideStaticStorage *BKE_override_static_operations_store_initialize(void)
 /**
  * Generate suitable 'write' data (this only affects differential override operations).
  *
- * Note that \a local ID is no more modified by this call, all extra data are stored in its temp \a storage_id copy. */
+ * Note that \a local ID is no more modified by this call,
+ * all extra data are stored in its temp \a storage_id copy. */
 ID *BKE_override_static_operations_store_start(Main *bmain,
                                                OverrideStaticStorage *override_storage,
                                                ID *local)
@@ -756,11 +766,13 @@ ID *BKE_override_static_operations_store_start(Main *bmain,
   TIMEIT_START_AVERAGED(BKE_override_operations_store_start);
 #endif
 
-  /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy never-overridable
-   *          data (like Mesh geometry etc.)? And also maybe avoid lib refcounting completely (shallow copy...). */
-  /* This would imply change in handling of usercout all over RNA (and possibly all over Blender code).
-   * Not impossible to do, but would rather see first is extra useless usual user handling is actually
-   * a (performances) issue here, before doing it. */
+  /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
+   * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib reference-counting
+   * completely (shallow copy...). */
+  /* This would imply change in handling of user-count all over RNA
+   * (and possibly all over Blender code).
+   * Not impossible to do, but would rather see first is extra useless usual user handling is
+   * actually a (performances) issue here, before doing it. */
   BKE_id_copy((Main *)override_storage, local, &storage_id);
 
   if (storage_id != NULL) {
@@ -790,15 +802,15 @@ void BKE_override_static_operations_store_end(OverrideStaticStorage *UNUSED(over
 {
   BLI_assert(local->override_static != NULL);
 
-  /* Nothing else to do here really, we need to keep all temp override storage data-blocks in memory until
-   * whole file is written anyway (otherwise we'd get mem pointers overlap...). */
+  /* Nothing else to do here really, we need to keep all temp override storage data-blocks in
+   * memory until whole file is written anyway (otherwise we'd get mem pointers overlap...). */
   local->override_static->storage = NULL;
 }
 
 void BKE_override_static_operations_store_finalize(OverrideStaticStorage *override_storage)
 {
-  /* We cannot just call BKE_main_free(override_storage), not until we have option to make 'ghost' copies of IDs
-   * without increasing usercount of used data-blocks... */
+  /* We cannot just call BKE_main_free(override_storage), not until we have option to make 'ghost'
+   * copies of IDs without increasing usercount of used data-blocks. */
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (override_storage, id) {

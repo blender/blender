@@ -293,7 +293,8 @@ static int ptcache_particle_write(int index, void *psys_v, void **data, int cfra
     PTCACHE_DATA_FROM(data, BPHYS_DATA_BOIDS, &boid->data);
   }
 
-  /* return flag 1+1=2 for newly born particles to copy exact birth location to previously cached frame */
+  /* Return flag 1+1=2 for newly born particles
+   * to copy exact birth location to previously cached frame. */
   return 1 + (pa->state.time >= pa->time && pa->prev_state.time <= pa->time);
 }
 static void ptcache_particle_read(

@@ -126,8 +126,9 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
   /* initialize the node name with the node label.
    * note: do this after the initfunc so nodes get their data set which may be used in naming
    * (node groups for example) */
-  /* XXX Do not use nodeLabel() here, it returns translated content for UI, which should *only* be used
-   *     in UI, *never* in data... Data have their own translation option!
+  /* XXX Do not use nodeLabel() here, it returns translated content for UI,
+   *     which should *only* be used in UI, *never* in data...
+   *     Data have their own translation option!
    *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
    *     than adding "do_translate" flags to this func (and labelfunc() as well). */
   BLI_strncpy(node->name, DATA_(ntype->ui_name), NODE_MAXSTR);
@@ -284,7 +285,8 @@ static void update_typeinfo(Main *bmain,
 }
 
 /* Try to initialize all typeinfo in a node tree.
- * NB: In general undefined typeinfo is a perfectly valid case, the type may just be registered later.
+ * NB: In general undefined typeinfo is a perfectly valid case,
+ * the type may just be registered later.
  * In that case the update_typeinfo function will set typeinfo on registration
  * and do necessary updates.
  */
@@ -339,8 +341,8 @@ void ntreeTypeAdd(bNodeTreeType *nt)
 {
   BLI_ghash_insert(nodetreetypes_hash, nt->idname, nt);
   /* XXX pass Main to register function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, nt, NULL, NULL, false);
 }
 
@@ -349,8 +351,8 @@ static void ntree_free_type(void *treetype_v)
 {
   bNodeTreeType *treetype = treetype_v;
   /* XXX pass Main to unregister function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, treetype, NULL, NULL, true);
   MEM_freeN(treetype);
 }
@@ -401,8 +403,8 @@ static void node_free_type(void *nodetype_v)
 {
   bNodeType *nodetype = nodetype_v;
   /* XXX pass Main to unregister function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, NULL, nodetype, NULL, true);
 
   /* XXX deprecated */
@@ -423,8 +425,8 @@ void nodeRegisterType(bNodeType *nt)
 
   BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
   /* XXX pass Main to register function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, NULL, nt, NULL, false);
 }
 
@@ -462,8 +464,8 @@ static void node_free_socket_type(void *socktype_v)
 {
   bNodeSocketType *socktype = socktype_v;
   /* XXX pass Main to unregister function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, NULL, NULL, socktype, true);
 
   MEM_freeN(socktype);
@@ -473,8 +475,8 @@ void nodeRegisterSocketType(bNodeSocketType *st)
 {
   BLI_ghash_insert(nodesockettypes_hash, (void *)st->idname, st);
   /* XXX pass Main to register function? */
-  /* Probably not. It is pretty much expected we want to update G_MAIN her I think - or we'd want to update *all*
-   * active Mains, which we cannot do anyway currently. */
+  /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
+   * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, NULL, NULL, NULL, st, false);
 }
 
@@ -931,7 +933,8 @@ void nodeChainIter(const bNodeTree *ntree,
       continue;
     }
     if (link->tonode && link->fromnode) {
-      /* is the link part of the chain meaning node_start == fromnode (or tonode for reversed case)? */
+      /* Is the link part of the chain meaning node_start == fromnode
+       * (or tonode for reversed case)? */
       if ((reversed && (link->tonode == node_start)) ||
           (!reversed && link->fromnode == node_start)) {
         if (!callback(link->fromnode, link->tonode, userdata, reversed)) {
@@ -945,7 +948,8 @@ void nodeChainIter(const bNodeTree *ntree,
 }
 
 /**
- * Iterate over all parents of \a node, executing \a callback for each parent (which can return false to end iterator)
+ * Iterate over all parents of \a node, executing \a callback for each parent
+ * (which can return false to end iterator)
  *
  * \note Recursive
  */
@@ -1370,8 +1374,10 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 }
 
 /**
- * Only copy internal data of NodeTree ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of NodeTree ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -1716,7 +1722,8 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
         BKE_node_instance_hash_insert(to_ntree->previews, key, preview);
       }
 
-      /* Note: NULL free function here, because pointers have already been moved over to to_ntree->previews! */
+      /* Note: NULL free function here,
+       * because pointers have already been moved over to to_ntree->previews! */
       BKE_node_instance_hash_free(from_ntree->previews, NULL);
       from_ntree->previews = NULL;
     }

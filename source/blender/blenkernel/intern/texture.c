@@ -214,7 +214,8 @@ void BKE_texture_free(Tex *tex)
 
 void BKE_texture_default(Tex *tex)
 {
-  /* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tex, id)); */ /* Not here, can be called with some pointers set. :/ */
+  /* Not here, can be called with some pointers set. :/ */
+  /* BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tex, id)); */
 
   tex->type = TEX_IMAGE;
   tex->ima = NULL;
@@ -411,8 +412,10 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 /* ------------------------------------------------------------------------- */
 
 /**
- * Only copy internal data of Texture ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Texture ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

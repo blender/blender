@@ -407,7 +407,8 @@ int checkPackedFile(const char *ref_file_name, const char *filename, PackedFile 
  * It returns a char *to the existing file name / new file name or NULL when
  * there was an error or when the user decides to cancel the operation.
  *
- * \warning 'abs_name' may be relative still! (use a "//" prefix) be sure to run #BLI_path_abs on it first.
+ * \warning 'abs_name' may be relative still! (use a "//" prefix)
+ * be sure to run #BLI_path_abs on it first.
  */
 char *unpackFile(ReportList *reports,
                  const char *ref_file_name,

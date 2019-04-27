@@ -273,7 +273,10 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
   spline->tot_point = 1;
 
   /* cyclic shapes are more usually used */
-  // spline->flag |= MASK_SPLINE_CYCLIC; // disable because its not so nice for drawing. could be done differently
+  /* Disable because its not so nice for drawing. could be done differently. */
+#if 0
+  spline->flag |= MASK_SPLINE_CYCLIC;
+#endif
 
   spline->weight_interp = MASK_SPLINE_INTERP_EASE;
 
@@ -863,8 +866,10 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
 }
 
 /**
- * Only copy internal data of Mask ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Mask ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -1802,7 +1807,8 @@ void BKE_mask_layer_shape_changed_add(MaskLayer *masklay,
 
   if (BKE_mask_layer_shape_spline_from_index(masklay, index, &spline, &spline_point_index)) {
     /* sanity check */
-    /* the point has already been removed in this array so subtract one when comparing with the shapes */
+    /* The point has already been removed in this array
+     * so subtract one when comparing with the shapes. */
     int tot = BKE_mask_layer_shape_totvert(masklay) - 1;
 
     /* for interpolation */

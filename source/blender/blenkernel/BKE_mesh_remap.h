@@ -54,10 +54,12 @@ void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, const int index);
 
 /* TODO:
  * Add other 'from/to' mapping sources, like e.g. using an UVMap, etc.
- *     http://blenderartists.org/forum/showthread.php?346458-Move-Vertices-to-the-location-of-the-Reference-Mesh-based-on-the-UV-Position
+ * https://blenderartists.org/t/619105
+ *
  * We could also use similar topology mappings inside a same mesh
  * (cf. Campbell's 'select face islands from similar topology' wip work).
- * Also, users will have to check, whether we can get rid of some modes here, not sure all will be useful!
+ * Also, users will have to check, whether we can get rid of some modes here,
+ * not sure all will be useful!
  */
 enum {
   MREMAP_USE_VERT = 1 << 4,
@@ -104,13 +106,15 @@ enum {
   /* Nearest edge of nearest poly (using mid-point). */
   MREMAP_MODE_EDGE_POLY_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
 
-  /* Cast a set of rays from along dest edge, interpolating its vertices' normals, and use hit source edges. */
+  /* Cast a set of rays from along dest edge,
+   * interpolating its vertices' normals, and use hit source edges. */
   MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ = MREMAP_MODE_EDGE | MREMAP_USE_VERT | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
 
   /* ***** Target's loops ***** */
-  /* Note: when islands are given to loop mapping func, all loops from the same destination face will always be mapped
-   *       to loops of source faces within a same island, regardless of mapping mode. */
+  /* Note: when islands are given to loop mapping func,
+   * all loops from the same destination face will always be mapped
+   * to loops of source faces within a same island, regardless of mapping mode. */
   MREMAP_MODE_LOOP = 1 << 26,
 
   /* Best normal-matching loop from nearest vert. */
@@ -138,7 +142,8 @@ enum {
   /* Source poly from best normal-matching dest poly. */
   MREMAP_MODE_POLY_NOR = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORMAL,
 
-  /* Project dest poly onto source mesh using its normal, and use interpolation of all intersecting source polys. */
+  /* Project dest poly onto source mesh using its normal,
+   * and use interpolation of all intersecting source polys. */
   MREMAP_MODE_POLY_POLYINTERP_PNORPROJ = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
 

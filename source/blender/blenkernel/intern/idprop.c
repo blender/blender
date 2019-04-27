@@ -665,13 +665,14 @@ void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overw
  *
  * The sanity check just means the property is not added to the group if another property
  * exists with the same name; the client code using ID properties then needs to detect this
- * (the function that adds new properties to groups, IDP_AddToGroup, returns false if a property can't
- * be added to the group, and true if it can) and free the property.
+ * (the function that adds new properties to groups, #IDP_AddToGroup,
+ * returns false if a property can't be added to the group, and true if it can)
+ * and free the property.
  *
  * Currently the code to free ID properties is designed to leave the actual struct
  * you pass it un-freed, this is needed for how the system works.  This means
- * to free an ID property, you first call IDP_FreeProperty then MEM_freeN the
- * struct.  In the future this will just be IDP_FreeProperty and the code will
+ * to free an ID property, you first call #IDP_FreeProperty then #MEM_freeN the struct.
+ * In the future this will just be #IDP_FreeProperty and the code will
  * be reorganized to work properly.
  */
 bool IDP_AddToGroup(IDProperty *group, IDProperty *prop)
@@ -787,7 +788,8 @@ IDProperty *IDP_CopyProperty(const IDProperty *prop)
 }
 
 /* Updates ID pointers after an object has been copied */
-/* TODO Nuke this once its only user has been correctly converted to use generic ID management from BKE_library! */
+/* TODO Nuke this once its only user has been correctly converted
+ * to use generic ID management from BKE_library! */
 void IDP_RelinkProperty(struct IDProperty *prop)
 {
   if (!prop) {

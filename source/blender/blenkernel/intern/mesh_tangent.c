@@ -116,7 +116,8 @@ static void set_tspace(const SMikkTSpaceContext *pContext,
 }
 
 /**
- * Compute simplified tangent space normals, i.e. tangent vector + sign of bi-tangent one, which combined with
+ * Compute simplified tangent space normals, i.e.
+ * tangent vector + sign of bi-tangent one, which combined with
  * split normals can be used to recreate the full tangent space.
  * Note: * The mesh should be made of only tris and quads!
  */
@@ -487,7 +488,8 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
 }
 
 /**
- * Here we get some useful information such as active uv layer name and search if it is already in tangent_names.
+ * Here we get some useful information such as active uv layer name and
+ * search if it is already in tangent_names.
  * Also, we calculate tangent_mask that works as a descriptor of tangents state.
  * If tangent_mask has changed, then recalculate tangents.
  */
@@ -677,9 +679,8 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
         mesh2tangent->mpoly = mpoly;
         mesh2tangent->mloop = mloop;
         mesh2tangent->looptri = looptri;
-        /* Note, we assume we do have tessellated loop normals at this point (in case it is object-enabled),
-         * have to check this is valid...
-         */
+        /* Note, we assume we do have tessellated loop normals at this point
+         * (in case it is object-enabled), have to check this is valid. */
         mesh2tangent->precomputedLoopNormals = loop_normals;
         mesh2tangent->precomputedFaceNormals = poly_normals;
 

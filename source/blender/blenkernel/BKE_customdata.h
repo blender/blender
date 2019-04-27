@@ -113,7 +113,8 @@ bool CustomData_has_referenced(const struct CustomData *data);
  * implemented for mloopuv/mloopcol, for now.*/
 void CustomData_data_copy_value(int type, const void *source, void *dest);
 
-/* Same as above, but doing advanced mixing. Only available for a few types of data (like colors...). */
+/* Same as above, but doing advanced mixing.
+ * Only available for a few types of data (like colors...). */
 void CustomData_data_mix_value(
     int type, const void *source, void *dest, const int mixmode, const float mixfactor);
 
@@ -478,8 +479,8 @@ typedef void (*cd_datatransfer_interp)(const struct CustomDataTransferLayerMap *
                                        const float mix_factor);
 
 /**
- * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs, or otherwise not (directly)
- * accessible to usual CDLayer system). */
+ * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs,
+ * or otherwise not (directly) accessible to usual CDLayer system). */
 enum {
   CD_FAKE = 1 << 8,
 
@@ -531,23 +532,29 @@ typedef struct CustomDataTransferLayerMap {
   int data_type;
   int mix_mode;
   float mix_factor;
-  const float *
-      mix_weights; /* If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
+  /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
+  const float *mix_weights;
 
-  const void *
-      data_src; /* Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
-  void *data_dst;   /* Data dest array (same type as dat_src). */
-  int data_src_n;   /* Index to affect in data_src (used e.g. for vgroups). */
-  int data_dst_n;   /* Index to affect in data_dst (used e.g. for vgroups). */
-  size_t elem_size; /* Size of one element of data_src/data_dst. */
+  /** Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+  const void *data_src;
+  /** Data dest array (same type as dat_src). */
+  void *data_dst;
+  /** Index to affect in data_src (used e.g. for vgroups). */
+  int data_src_n;
+  /** Index to affect in data_dst (used e.g. for vgroups). */
+  int data_dst_n;
+  /** Size of one element of data_src/data_dst. */
+  size_t elem_size;
 
-  size_t data_size; /* Size of actual data we transfer. */
-  size_t
-      data_offset; /* Offset of actual data we transfer (in element contained in data_src/dst). */
-  uint64_t data_flag; /* For bitflag transfer, flag(s) to affect in transferred data. */
+  /** Size of actual data we transfer. */
+  size_t data_size;
+  /** Offset of actual data we transfer (in element contained in data_src/dst). */
+  size_t data_offset;
+  /** For bitflag transfer, flag(s) to affect in transferred data. */
+  uint64_t data_flag;
 
-  void *
-      interp_data; /* Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+  /** Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+  void *interp_data;
 
   cd_datatransfer_interp interp;
 } CustomDataTransferLayerMap;

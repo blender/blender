@@ -38,9 +38,12 @@ enum {
    */
   IDWALK_CB_INDIRECT_USAGE = (1 << 2),
 
-  /** That ID is used as mere sub-data by its owner
+  /**
+   * That ID is used as mere sub-data by its owner
    * (only case currently: those f***ing nodetrees in materials etc.).
-   * This means callback shall not *do* anything, only use this as informative data if it needs it. */
+   * This means callback shall not *do* anything,
+   * only use this as informative data if it needs it.
+   */
   IDWALK_CB_PRIVATE = (1 << 3),
 
   /** That ID is not really used by its owner, it's just an internal hint/helper.

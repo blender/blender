@@ -110,7 +110,8 @@ bool BKE_copybuffer_read(Main *bmain_dst,
 }
 
 /**
- * \return Number of IDs directly pasted from the buffer (does not includes indirectly pulled out ones).
+ * \return Number of IDs directly pasted from the buffer
+ * (does not includes indirectly pulled out ones).
  */
 int BKE_copybuffer_paste(bContext *C,
                          const char *libname,

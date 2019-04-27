@@ -383,8 +383,10 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
 }
 
 /**
- * Only copy internal data of Image ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Image ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -5311,9 +5313,11 @@ bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int index)
     next_slot = current_slot;
   }
 
-  /* If the slot to be removed is the slot with the last render, make another slot the last render slot. */
+  /* If the slot to be removed is the slot with the last render,
+   * make another slot the last render slot. */
   if (remove_slot == current_last_slot) {
-    /* Choose the currently selected slot unless that one is being removed, in that case take the next one. */
+    /* Choose the currently selected slot unless that one is being removed,
+     * in that case take the next one. */
     RenderSlot *next_last_slot;
     if (current_slot == remove_slot) {
       next_last_slot = next_slot;

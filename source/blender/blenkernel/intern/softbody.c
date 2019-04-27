@@ -190,8 +190,8 @@ static float sb_time_scale(Object *ob)
     /* hrms .. this could be IPO as well :)
      * estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
      * 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
-     * theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM)
-     */
+     * theory would give a 50 frames period .. so there must be something inaccurate ..
+     * looking for that (BM). */
   }
   return (1.0f);
   /*
@@ -1528,8 +1528,10 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
   ListBase threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
-  int lowsprings =
-      100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+
+  /* wild guess .. may increase with better thread management 'above'
+   * or even be UI option sb->spawn_cf_threads_nopts */
+  int lowsprings = 100;
 
   ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, ob->soft->effector_weights);
 
@@ -1823,7 +1825,10 @@ static int sb_deflect_face(Object *ob,
   copy_v3_v3(s_actpos, actpos);
   deflected = sb_detect_vertex_collisionCached(
       s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
-  //deflected= sb_detect_vertex_collisionCachedEx(s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
+#if 0
+  deflected = sb_detect_vertex_collisionCachedEx(
+      s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
+#endif
   return (deflected);
 }
 
@@ -2006,7 +2011,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
       float compare;
       float bstune = sb->ballstiff;
 
-      /* running in a slice we must not assume anything done with obp  neither alter the data of obp */
+      /* Running in a slice we must not assume anything done with obp
+       * neither alter the data of obp. */
       for (c = sb->totpoint, obp = sb->bpoint; c > 0; c--, obp++) {
         compare = (obp->colball + bp->colball);
         sub_v3_v3v3(def, bp->pos, obp->pos);
@@ -2196,8 +2202,10 @@ static void sb_cf_threads_run(Scene *scene,
   ListBase threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
-  int lowpoints =
-      100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+
+  /* wild guess .. may increase with better thread management 'above'
+   * or even be UI option sb->spawn_cf_threads_nopts. */
+  int lowpoints = 100;
 
   /* figure the number of threads while preventing pretty pointless threading overhead */
   totthread = BKE_scene_num_threads(scene);
@@ -2266,7 +2274,9 @@ static void softbody_calc_forces(
 
   /* check conditions for various options */
   do_deflector = query_external_colliders(depsgraph, sb->collision_group);
-  /* do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF)); */ /* UNUSED */
+#if 0
+  do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+#endif
   do_springcollision = do_deflector && (ob->softflag & OB_SB_EDGES) &&
                        (ob->softflag & OB_SB_EDGECOLL);
   do_aero = ((sb->aeroedge) && (ob->softflag & OB_SB_EDGES));
@@ -2333,7 +2343,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 #endif
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
-    /* now we have individual masses   */
+    /* Now we have individual masses. */
     /* claim a minimum mass for vertex */
     if (_final_mass(ob, bp) > 0.009999f) {
       timeovermass = forcetime / _final_mass(ob, bp);
@@ -2348,10 +2358,20 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
         copy_v3_v3(dx, bp->vec);
       }
 
-      /* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
-      /* the ( ... )' operator denotes derivate respective time */
-      /* the euler step for velocity then becomes */
-      /* v(t + dt) = v(t) + a(t) * dt */
+      /**
+       * So here is:
+       * <pre>
+       * (v)' = a(cceleration) =
+       *     sum(F_springs)/m + gravitation + some friction forces + more forces.
+       * </pre>
+       *
+       * The ( ... )' operator denotes derivate respective time.
+       *
+       * The euler step for velocity then becomes:
+       * <pre>
+       * v(t + dt) = v(t) + a(t) * dt
+       * </pre>
+       */
       mul_v3_fl(bp->force, timeovermass); /* individual mass of node here */
       /* some nasty if's to have heun in here too */
       copy_v3_v3(dv, bp->force);
@@ -2970,10 +2990,15 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 
   for (nu = cu->nurb.first; nu; nu = nu->next) {
     if (nu->bezt) {
-      /* bezier case ; this is nicly said naive; who ever wrote this part, it was not me (JOW) :) */
-      /* a: never ever make tangent handles (sub) and or (ob)ject to collision */
-      /* b: rather calculate them using some C2 (C2= continuous in second derivate -> no jump in bending ) condition */
-      /* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
+      /* Bezier case; this is nicly said naive; who ever wrote this part,
+       * it was not me (JOW) :).
+       *
+       * a: never ever make tangent handles (sub) and or (ob)ject to collision.
+       * b: rather calculate them using some C2
+       *    (C2= continuous in second derivate -> no jump in bending ) condition.
+       *
+       * Not too hard to do, but needs some more code to care for;
+       * some one may want look at it  JOW 2010/06/12. */
       for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++, bp += 3, curindex += 3) {
         if (setgoal) {
           bp->goal *= bezt->weight;
@@ -3213,10 +3238,9 @@ static void softbody_update_positions(Object *ob,
  * that is:
  * a precise position vector denoting the motion of the center of mass
  * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
- * see: this is kind of reverse engineering: having to states of a point cloud and recover what happened
- * our advantage here we know the identity of the vertex
- * there are others methods giving other results.
- * lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.
+ * see: this is kind of reverse engineering: having to states of a point cloud and recover what
+ * happened our advantage here we know the identity of the vertex there are others methods giving
+ * other results. lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.
  * should be pretty useful for pythoneers :)
  * not! velocity .. 2nd order stuff
  * vcloud_estimate_transform_v3 see
@@ -3407,7 +3431,8 @@ static void softbody_step(
         float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
 
         if (sb->scratch->flag & SBF_DOFUZZY) {
-          //if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
+          ///* stay with this stepsize unless err really small */
+          //if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) {
           newtime = forcetime;
           //}
         }
@@ -3591,9 +3616,9 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   else if (cache_result == PTCACHE_READ_OLD) {
     /* pass */
   }
-  else if (/*ob->id.lib || */ (
-      cache->flag &
-      PTCACHE_BAKED)) { /* "library linking & pointcaches" has to be solved properly at some point */
+  else if (/*ob->id.lib || */
+           /* "library linking & pointcaches" has to be solved properly at some point */
+           (cache->flag & PTCACHE_BAKED)) {
     /* if baked and nothing in cache, do nothing */
     if (can_write_cache) {
       BKE_ptcache_invalidate(cache);

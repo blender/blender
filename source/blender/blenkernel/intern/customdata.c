@@ -159,7 +159,8 @@ typedef struct LayerTypeInfo {
   /** a function to determine file size */
   size_t (*filesize)(CDataFile *cdf, const void *data, int count);
 
-  /** a function to determine max allowed number of layers, should be NULL or return -1 if no limit */
+  /** a function to determine max allowed number of layers,
+   * should be NULL or return -1 if no limit */
   int (*layers_max)(void);
 } LayerTypeInfo;
 
@@ -324,7 +325,8 @@ static void layerInterp_normal(const void **sources,
                                void *dest)
 {
   /* Note: This is linear interpolation, which is not optimal for vectors.
-   *       Unfortunately, spherical interpolation of more than two values is hairy, so for now it will do... */
+   * Unfortunately, spherical interpolation of more than two values is hairy,
+   * so for now it will do... */
   float no[3] = {0.0f};
 
   while (count--) {
@@ -923,7 +925,8 @@ static void layerCopyValue_mloopuv(const void *source,
   const MLoopUV *luv1 = source;
   MLoopUV *luv2 = dest;
 
-  /* We only support a limited subset of advanced mixing here - namely the mixfactor interpolation. */
+  /* We only support a limited subset of advanced mixing here -
+   * namely the mixfactor interpolation. */
 
   if (mixmode == CDT_MIX_NOMIX) {
     copy_v2_v2(luv2->uv, luv1->uv);
@@ -1429,7 +1432,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 14: CD_ORCO */
     {sizeof(float) * 3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 15: CD_MTEXPOLY */ /* DEPRECATED */
-    /* note, when we expose the UV Map / TexFace split to the user, change this back to face Texture */
+    /* note, when we expose the UV Map / TexFace split to the user,
+     * change this back to face Texture. */
     {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 16: CD_MLOOPUV */
     {sizeof(MLoopUV),
@@ -2197,7 +2201,8 @@ void CustomData_set_layer_stencil(CustomData *data, int type, int n)
   }
 }
 
-/* for using with an index from CustomData_get_active_layer_index and CustomData_get_render_layer_index */
+/* For using with an index from CustomData_get_active_layer_index and
+ * CustomData_get_render_layer_index. */
 void CustomData_set_layer_active_index(CustomData *data, int type, int n)
 {
   int i;
@@ -2877,8 +2882,8 @@ void CustomData_interp(const CustomData *source,
 
 /**
  * Swap data inside each item, for all layers.
- * This only applies to item types that may store several sub-item data (e.g. corner data [UVs, VCol, ...] of
- * tessellated faces).
+ * This only applies to item types that may store several sub-item data
+ * (e.g. corner data [UVs, VCol, ...] of tessellated faces).
  *
  * \param corner_indices: A mapping 'new_index -> old_index' of sub-item data.
  */
@@ -3502,7 +3507,9 @@ void CustomData_bmesh_copy_data(const CustomData *source,
   }
 }
 
-/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more efficient memory alloc*/
+/* BMesh Custom Data Functions.
+ * Should replace edit-mesh ones with these as well, due to more efficient memory alloc.
+ */
 void *CustomData_bmesh_get(const CustomData *data, void *block, int type)
 {
   int layer_index;
@@ -3965,15 +3972,20 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
  * Prepare given custom data for file writing.
  *
  * \param data: the customdata to tweak for .blend file writing (modified in place).
- * \param r_write_layers: contains a reduced set of layers to be written to file, use it with writestruct_at_address()
- *                       (caller must free it if != \a write_layers_buff).
+ * \param r_write_layers: contains a reduced set of layers to be written to file,
+ * use it with writestruct_at_address()
+ * (caller must free it if != \a write_layers_buff).
+ *
  * \param write_layers_buff: an optional buffer for r_write_layers (to avoid allocating it).
  * \param write_layers_size: the size of pre-allocated \a write_layer_buff.
  *
- * \warning After this func has ran, given custom data is no more valid from Blender PoV (its totlayer is invalid).
- *          This func shall always be called with localized data (as it is in write_meshes()).
- * \note data->typemap is not updated here, since it is always rebuilt on file read anyway. This means written
- *       typemap does not match written layers (as returned by \a r_write_layers). Trivial to fix is ever needed.
+ * \warning After this func has ran, given custom data is no more valid from Blender PoV
+ * (its totlayer is invalid). This func shall always be called with localized data
+ * (as it is in write_meshes()).
+ *
+ * \note data->typemap is not updated here, since it is always rebuilt on file read anyway.
+ * This means written typemap does not match written layers (as returned by \a r_write_layers).
+ * Trivial to fix is ever needed.
  */
 void CustomData_file_write_prepare(CustomData *data,
                                    CustomDataLayer **r_write_layers,
@@ -4164,9 +4176,11 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
     if (!typeInfo->defaultname && (index > 0) && data->layers[index - 1].type == layer->type) {
       keeplayer = false; /* multiple layers of which we only support one */
     }
-    /* This is a pre-emptive fix for cases that should not happen (layers that should not be written
-     * in .blend files), but can happen due to bugs (see e.g. T62318).
-     * Also for forward compatibility, in future, we may put into .blend file some currently un-written data types,
+    /* This is a pre-emptive fix for cases that should not happen
+     * (layers that should not be written in .blend files),
+     * but can happen due to bugs (see e.g. T62318).
+     * Also for forward compatibility, in future,
+     * we may put into `.blend` file some currently un-written data types,
      * this should cover that case as well.
      * Better to be safe here, and fix issue on the fly rather than crash... */
     /* 0 structnum is used in writing code to tag layer types that should not be written. */
@@ -4189,7 +4203,8 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
 }
 
 /**
- * Validate and fix data of \a layer, if possible (needs relevant callback in layer's type to be defined).
+ * Validate and fix data of \a layer,
+ * if possible (needs relevant callback in layer's type to be defined).
  *
  * \return True if some errors were found.
  */
@@ -4543,9 +4558,9 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
                                                     const float mix_factor)
 {
   /* Fake interpolation, we actually copy highest weighted source to dest.
-   * Note we also handle bitflags here, in which case we rather choose to transfer value of elements totaling
+   * Note we also handle bitflags here,
+   * in which case we rather choose to transfer value of elements totaling
    * more than 0.5 of weight. */
-
   int best_src_idx = 0;
 
   const int data_type = laymap->data_type;
@@ -4581,7 +4596,8 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     int i;
 
     if (data_flag) {
-      /* Boolean case, we can 'interpolate' in two groups, and choose value from highest weighted group. */
+      /* Boolean case, we can 'interpolate' in two groups,
+       * and choose value from highest weighted group. */
       float tot_weight_true = 0.0f;
       int item_true_idx = -1, item_false_idx = -1;
 
@@ -4626,7 +4642,8 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
   }
 
   if (data_flag) {
-    /* Bool flags, only copy if dest data is set (resp. unset) - only 'advanced' modes we can support here! */
+    /* Bool flags, only copy if dest data is set (resp. unset) -
+     * only 'advanced' modes we can support here! */
     if (mix_factor >= 0.5f && ((mix_mode == CDT_MIX_TRANSFER) ||
                                (mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD &&
                                 check_bit_flag(data_dst, data_size, data_flag)) ||

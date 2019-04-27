@@ -225,8 +225,10 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 }
 
 /**
- * Only copy internal data of Scene ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of Scene ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -412,7 +414,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
     id_us_min(&sce_copy->id);
     id_us_ensure_real(&sce_copy->id);
 
-    /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks... */
+    /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
     if (type == SCE_COPY_FULL) {
       /* Copy Freestyle LineStyle datablocks. */
@@ -767,7 +769,8 @@ void BKE_scene_init(Scene *sce)
   BLI_rctf_init(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
   sce->r.osa = 8;
 
-  /* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
+  /* Note; in header_info.c the scene copy happens...,
+   * if you add more to renderdata it has to be checked there. */
 
   /* multiview - stereo */
   BKE_scene_add_render_view(sce, STEREO_LEFT_NAME);
@@ -1006,7 +1009,8 @@ Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 }
 
 /**
- * Sets the active scene, mainly used when running in background mode (``--scene`` command line argument).
+ * Sets the active scene, mainly used when running in background mode
+ * (``--scene`` command line argument).
  * This is also called to set the scene directly, bypassing windowing code.
  * Otherwise #WM_window_set_active_scene is used when changing scenes by the user.
  */
@@ -1031,7 +1035,8 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
       BKE_scene_object_base_flag_sync_from_base(base);
     }
   }
-  /* no full animation update, this to enable render code to work (render code calls own animation updates) */
+  /* No full animation update, this to enable render code to work
+   * (render code calls own animation updates). */
 }
 
 /* called from creator_args.c */
@@ -1048,7 +1053,8 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
   return NULL;
 }
 
-/* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
+/* Used by metaballs, return *all* objects (including duplis)
+ * existing in the scene (including scene's sets). */
 int BKE_scene_base_iter_next(
     Depsgraph *depsgraph, SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
 {
@@ -1334,8 +1340,10 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
   return true;
 }
 
-/* This function is needed to cope with fractional frames - including two Blender rendering features
- * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering.
+/**
+ * This function is needed to cope with fractional frames - including two Blender rendering
+ * features mblur (motion blur that renders 'subframes' and blurs them together),
+ * and fields rendering.
  */
 float BKE_scene_frame_get(const Scene *scene)
 {
@@ -1585,8 +1593,8 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
 
 /** Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
  *
- * \warning Sets matching depsgraph as active, so should only be called from the active editing context
- *          (usually, from operators).
+ * \warning Sets matching depsgraph as active,
+ * so should only be called from the active editing context (usually, from operators).
  */
 void BKE_scene_view_layer_graph_evaluated_ensure(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
@@ -1836,8 +1844,9 @@ int BKE_render_preview_pixel_size(const RenderData *r)
   return r->preview_pixel_size;
 }
 
-/* Apply the needed correction factor to value, based on unit_type (only length-related are affected currently)
- * and unit->scale_length.
+/**
+ * Apply the needed correction factor to value, based on unit_type
+ * (only length-related are affected currently) and unit->scale_length.
  */
 double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, double value)
 {
@@ -2298,7 +2307,8 @@ TransformOrientation *BKE_scene_transform_orientation_find(const Scene *scene, c
 }
 
 /**
- * \return the index that \a orientation has within \a scene's transform-orientation list or -1 if not found.
+ * \return the index that \a orientation has within \a scene's transform-orientation list
+ * or -1 if not found.
  */
 int BKE_scene_transform_orientation_get_index(const Scene *scene,
                                               const TransformOrientation *orientation)

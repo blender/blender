@@ -151,8 +151,10 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
 }
 
 /**
- * Only copy internal data of ShapeKey ID from source to already allocated/initialized destination.
- * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * Only copy internal data of ShapeKey ID from source
+ * to already allocated/initialized destination.
+ * You probably never want to use that directly,
+ * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -2254,8 +2256,9 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
 
 /* ==========================================================*/
 
-/** Move shape key from org_index to new_index. Safe, clamps index to valid range, updates reference keys,
- * the object's active shape index, the 'frame' value in case of absolute keys, etc.
+/** Move shape key from org_index to new_index. Safe, clamps index to valid range,
+ * updates reference keys, the object's active shape index,
+ * the 'frame' value in case of absolute keys, etc.
  * Note indices are expected in real values (not 'fake' shapenr +1 ones).
  *
  * \param org_index: if < 0, current object's active shape will be used as skey to move.
@@ -2283,8 +2286,8 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 
   rev = ((new_index - org_index) < 0) ? true : false;
 
-  /* We swap 'org' element with its previous/next neighbor (depending on direction of the move) repeatedly,
-   * until we reach final position.
+  /* We swap 'org' element with its previous/next neighbor (depending on direction of the move)
+   * repeatedly, until we reach final position.
    * This allows us to only loop on the list once! */
   for (kb = (rev ? key->block.last : key->block.first), i = (rev ? totkey - 1 : 0); kb;
        kb = (rev ? kb->prev : kb->next), rev ? i-- : i++) {
@@ -2321,7 +2324,8 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
     }
   }
 
-  /* Need to update active shape number if it's affected, same principle as for relative indices above. */
+  /* Need to update active shape number if it's affected,
+   * same principle as for relative indices above. */
   if (org_index == act_index) {
     ob->shapenr = new_index + 1;
   }
