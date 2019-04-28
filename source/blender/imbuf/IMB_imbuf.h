@@ -173,6 +173,13 @@ bool addzbufImBuf(struct ImBuf *ibuf);
 bool addzbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
+ * Approximate size of ImBuf in memory
+ *
+ * \attention Defined in allocimbuf.c
+ */
+size_t IMB_get_size_in_memory(struct ImBuf *ibuf);
+
+/**
  *
  * \attention Defined in rectop.c
  */

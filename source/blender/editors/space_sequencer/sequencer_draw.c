@@ -1812,6 +1812,182 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
   GPU_blend(false);
 }
 
+typedef struct CacheDrawData {
+  const bContext *C;
+  uint pos;
+  float stripe_offs;
+  float stripe_ht;
+} CacheDrawData;
+
+/* Called as a callback */
+static bool draw_cache_view_cb(
+    void *userdata, struct Sequence *seq, int cfra, int cache_type, float UNUSED(cost))
+{
+  CacheDrawData *drawdata = userdata;
+  const bContext *C = drawdata->C;
+  Scene *scene = CTX_data_scene(C);
+  ARegion *ar = CTX_wm_region(C);
+  struct View2D *v2d = &ar->v2d;
+  Editing *ed = scene->ed;
+  uint pos = drawdata->pos;
+
+  if ((ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) == 0) {
+    return true;
+  }
+
+  float stripe_bot, stripe_top, stripe_offs, stripe_ht;
+  float color[4];
+  color[3] = 0.4f;
+
+  switch (cache_type) {
+    case SEQ_CACHE_STORE_FINAL_OUT:
+      if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
+        color[0] = 1.0f;
+        color[1] = 0.4f;
+        color[2] = 0.2f;
+        stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
+                    v2d->cur.ymin;
+        ;
+        stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_TEXT);
+        stripe_top = stripe_bot + stripe_ht;
+        break;
+      }
+      else {
+        return false;
+      }
+
+    case SEQ_CACHE_STORE_RAW:
+      if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
+        color[0] = 1.0f;
+        color[1] = 0.1f;
+        color[2] = 0.02f;
+        stripe_offs = drawdata->stripe_offs;
+        stripe_ht = drawdata->stripe_ht;
+        stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_offs;
+        stripe_top = stripe_bot + stripe_ht;
+        break;
+      }
+      else {
+        return false;
+      }
+
+    case SEQ_CACHE_STORE_PREPROCESSED:
+      if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
+        color[0] = 0.1f;
+        color[1] = 0.1f;
+        color[2] = 0.75f;
+        stripe_offs = drawdata->stripe_offs;
+        stripe_ht = drawdata->stripe_ht;
+        stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + (stripe_offs + stripe_ht) + stripe_offs;
+        stripe_top = stripe_bot + stripe_ht;
+        break;
+      }
+      else {
+        return false;
+      }
+
+    case SEQ_CACHE_STORE_COMPOSITE:
+      if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
+        color[0] = 1.0f;
+        color[1] = 0.6f;
+        color[2] = 0.0f;
+        stripe_offs = drawdata->stripe_offs;
+        stripe_ht = drawdata->stripe_ht;
+        stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_offs;
+        stripe_bot = stripe_top - stripe_ht;
+        break;
+      }
+      else {
+        return false;
+      }
+  }
+
+  immUniformColor4f(color[0], color[1], color[2], color[3]);
+  immRectf(pos, cfra, stripe_bot, cfra + 1, stripe_top);
+
+  return false;
+}
+
+static void draw_cache_view(const bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  ARegion *ar = CTX_wm_region(C);
+  struct View2D *v2d = &ar->v2d;
+
+  if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
+    return;
+  }
+
+  GPU_blend(true);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  float stripe_bot, stripe_top, stripe_offs;
+  float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
+                    v2d->cur.ymin;
+
+  if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
+    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_TEXT);
+    stripe_top = stripe_bot + stripe_ht;
+    float bg_color[4] = {1.0f, 0.4f, 0.2f, 0.1f};
+
+    immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
+    immRectf(pos, scene->r.sfra, stripe_bot, scene->r.efra, stripe_top);
+  }
+
+  for (Sequence *seq = scene->ed->seqbasep->first; seq != NULL; seq = seq->next) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM) {
+      continue;
+    }
+
+    if (seq->startdisp > v2d->cur.xmax || seq->enddisp < v2d->cur.xmin) {
+      continue;
+    }
+
+    CLAMP_MAX(stripe_ht, 0.2f);
+    stripe_offs = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
+    CLAMP_MIN(stripe_offs, stripe_ht / 2);
+
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_offs;
+    stripe_top = stripe_bot + stripe_ht;
+
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
+      float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
+      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
+      immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
+    }
+
+    stripe_bot += stripe_ht + stripe_offs;
+    stripe_top = stripe_bot + stripe_ht;
+
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
+      float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
+      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
+      immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
+    }
+
+    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_offs;
+    stripe_bot = stripe_top - stripe_ht;
+
+    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
+      float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
+      immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
+      immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
+    }
+  }
+
+  CacheDrawData userdata;
+  userdata.C = C;
+  userdata.pos = pos;
+  userdata.stripe_offs = stripe_offs;
+  userdata.stripe_ht = stripe_ht;
+
+  BKE_sequencer_cache_iterate(scene, &userdata, draw_cache_view_cb);
+
+  immUnbindProgram();
+  GPU_blend(false);
+}
+
 /* Draw Timeline/Strip Editor Mode for Sequencer */
 void draw_timeline_seq(const bContext *C, ARegion *ar)
 {
@@ -1860,6 +2036,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   if (ed) {
     /* draw the data */
     draw_seq_strips(C, ed, ar);
+    draw_cache_view(C);
 
     /* text draw cached (for sequence names), in pixelspace now */
     UI_view2d_text_cache_draw(ar);

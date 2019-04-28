@@ -186,58 +186,23 @@ static void IMB_moviecache_destructor(void *p)
   }
 }
 
-/* approximate size of ImBuf in memory */
-static size_t IMB_get_size_in_memory(ImBuf *ibuf)
+static size_t get_size_in_memory(ImBuf *ibuf)
 {
-  int a;
-  size_t size = 0, channel_size = 0;
-
-  /* Persistent images should have no affect on how "normal"
-   * images are cached.
-   *
-   * This is a bit arbitrary, but would make it so only movies
-   * and sequences are memory limited, keeping textures in the
-   * memory in order to avoid constant file reload on viewport
-   * update.
-   */
+  /* Keep textures in the memory to avoid constant file reload on viewport update. */
   if (ibuf->userflags & IB_PERSISTENT) {
     return 0;
   }
-
-  size += sizeof(ImBuf);
-
-  if (ibuf->rect) {
-    channel_size += sizeof(char);
+  else {
+    return IMB_get_size_in_memory(ibuf);
   }
-
-  if (ibuf->rect_float) {
-    channel_size += sizeof(float);
-  }
-
-  size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
-
-  if (ibuf->miptot) {
-    for (a = 0; a < ibuf->miptot; a++) {
-      if (ibuf->mipmap[a]) {
-        size += IMB_get_size_in_memory(ibuf->mipmap[a]);
-      }
-    }
-  }
-
-  if (ibuf->tiles) {
-    size += sizeof(unsigned int) * ibuf->ytiles * ibuf->xtiles;
-  }
-
-  return size;
 }
-
 static size_t get_item_size(void *p)
 {
   size_t size = sizeof(MovieCacheItem);
   MovieCacheItem *item = (MovieCacheItem *)p;
 
   if (item->ibuf) {
-    size += IMB_get_size_in_memory(item->ibuf);
+    size += get_size_in_memory(item->ibuf);
   }
 
   return size;
@@ -407,7 +372,7 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
   size_t mem_in_use, mem_limit, elem_size;
   bool result = false;
 
-  elem_size = IMB_get_size_in_memory(ibuf);
+  elem_size = get_size_in_memory(ibuf);
   mem_limit = MEM_CacheLimiter_get_maximum();
 
   BLI_mutex_lock(&limitor_lock);

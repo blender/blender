@@ -159,6 +159,25 @@ class SEQUENCER_MT_view_toggle(Menu):
         layout.operator("sequencer.view_toggle").type = 'SEQUENCER_PREVIEW'
 
 
+class SEQUENCER_MT_view_cache(Menu):
+    bl_label = "Cache"
+
+    def draw(self, context):
+        layout = self.layout
+
+        ed = context.scene.sequence_editor
+        layout.prop(ed, "show_cache")
+        layout.separator()
+
+        col = layout.column()
+        col.enabled = ed.show_cache
+
+        col.prop(ed, "show_cache_final_out")
+        col.prop(ed, "show_cache_raw")
+        col.prop(ed, "show_cache_preprocessed")
+        col.prop(ed, "show_cache_composite")
+
+
 class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
@@ -212,6 +231,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_frame_indicator")
             layout.prop(st, "show_strip_offset")
             layout.prop(st, "show_marker_lines")
+            layout.menu("SEQUENCER_MT_view_cache")
 
             layout.prop_menu_enum(st, "waveform_display_type")
 
@@ -1145,9 +1165,29 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         layout.prop(strip, "use_float", text="Convert to Float")
 
 
+class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
+    bl_label = "Cache Settings"
+    bl_category = "Proxy & Cache"
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
+
+    def draw(self, context):
+        layout = self.layout
+        ed = context.scene.sequence_editor
+
+        layout.prop(ed, "cache_raw")
+        layout.prop(ed, "cache_preprocessed")
+        layout.prop(ed, "cache_composite")
+        layout.prop(ed, "cache_final")
+        layout.separator()
+        layout.prop(ed, "recycle_max_cost")
+
+
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy settings"
-    bl_category = "Proxy"
+    bl_label = "Proxy Settings"
+    bl_category = "Proxy & Cache"
     @classmethod
     def poll(cls, context):
         return cls.has_sequencer(context)
@@ -1168,8 +1208,8 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Strip Proxy/Timecode"
-    bl_category = "Proxy"
+    bl_label = "Strip Proxy & Timecode"
+    bl_category = "Proxy & Cache"
 
     @classmethod
     def poll(cls, context):
@@ -1225,8 +1265,33 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
                 col.prop(proxy, "timecode")
 
 
+class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
+    bl_label = "Strip Cache"
+    bl_category = "Proxy & Cache"
+
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+        if act_strip(context) is not None:
+            return True
+
+    def draw_header(self, context):
+        strip = act_strip(context)
+        self.layout.prop(strip, "override_cache_settings", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        strip = act_strip(context)
+        layout.active = strip.override_cache_settings
+
+        layout.prop(strip, "cache_raw")
+        layout.prop(strip, "cache_preprocessed")
+        layout.prop(strip, "cache_composite")
+
+
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
-    bl_label = "Scene Preview/Render"
+    bl_label = "Scene Preview & Render"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Strip"
@@ -1411,6 +1476,7 @@ classes = (
     SEQUENCER_HT_header,
     SEQUENCER_MT_editor_menus,
     SEQUENCER_MT_view,
+    SEQUENCER_MT_view_cache,
     SEQUENCER_MT_view_toggle,
     SEQUENCER_MT_select,
     SEQUENCER_MT_marker,
@@ -1430,8 +1496,10 @@ classes = (
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
     SEQUENCER_PT_filter,
+    SEQUENCER_PT_cache_settings,
     SEQUENCER_PT_proxy_settings,
     SEQUENCER_PT_strip_proxy,
+    SEQUENCER_PT_strip_cache,
     SEQUENCER_PT_preview,
     SEQUENCER_PT_view,
     SEQUENCER_PT_view_safe_areas,

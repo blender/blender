@@ -695,8 +695,6 @@ static void sequencer_preview_region_listener(wmWindow *UNUSED(win),
     case NC_ANIMATION:
       switch (wmn->data) {
         case ND_KEYFRAME:
-          /* Otherwise, often prevents seeing immediately effects of keyframe editing... */
-          BKE_sequencer_cache_cleanup();
           ED_region_tag_redraw(ar);
           break;
       }

@@ -124,11 +124,10 @@ static void rna_Camera_background_images_clear(Camera *cam)
   WM_main_add_notifier(NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
 }
 
-static void rna_Camera_dof_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
   /* TODO(sergey): Can be more selective here. */
-  BKE_sequencer_cache_cleanup();
-  BKE_sequencer_preprocessed_cache_cleanup();
+  BKE_sequencer_cache_cleanup_all(bmain);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 

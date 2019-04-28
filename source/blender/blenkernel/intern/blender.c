@@ -97,7 +97,6 @@ void BKE_blender_free(void)
 
   BLI_callback_global_finalize();
 
-  BKE_sequencer_cache_destruct();
   IMB_moviecache_destruct();
 
   free_nodesystem();

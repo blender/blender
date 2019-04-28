@@ -618,6 +618,35 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   return (ibuf2);
 }
 
+size_t IMB_get_size_in_memory(ImBuf *ibuf)
+{
+  int a;
+  size_t size = 0, channel_size = 0;
+
+  size += sizeof(ImBuf);
+
+  if (ibuf->rect)
+    channel_size += sizeof(char);
+
+  if (ibuf->rect_float)
+    channel_size += sizeof(float);
+
+  size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
+
+  if (ibuf->miptot) {
+    for (a = 0; a < ibuf->miptot; a++) {
+      if (ibuf->mipmap[a])
+        size += IMB_get_size_in_memory(ibuf->mipmap[a]);
+    }
+  }
+
+  if (ibuf->tiles) {
+    size += sizeof(unsigned int) * ibuf->ytiles * ibuf->xtiles;
+  }
+
+  return size;
+}
+
 #if 0 /* remove? - campbell */
 /* support for cache limiting */
 

@@ -1988,22 +1988,21 @@ static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(
   }
 }
 
-static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SceneCamera_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
   Object *camera = scene->camera;
+
+  BKE_sequencer_cache_cleanup_all(bmain);
 
   if (camera && (camera->type == OB_CAMERA)) {
     DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);
   }
 }
 
-static void rna_SceneSequencer_update(Main *UNUSED(bmain),
-                                      Scene *UNUSED(scene),
-                                      PointerRNA *UNUSED(ptr))
+static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  BKE_sequencer_cache_cleanup();
-  BKE_sequencer_preprocessed_cache_cleanup();
+  BKE_sequencer_cache_cleanup(scene);
 }
 
 static char *rna_ToolSettings_path(PointerRNA *UNUSED(ptr))
@@ -2157,11 +2156,10 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
   }
 }
 
-static void rna_GPUDOFSettings_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_GPUDOFSettings_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
   /* TODO(sergey): Can be more selective here. */
-  BKE_sequencer_cache_cleanup();
-  BKE_sequencer_preprocessed_cache_cleanup();
+  BKE_sequencer_cache_cleanup_all(bmain);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
@@ -5608,7 +5606,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, SHRT_MAX);
   RNA_def_property_ui_range(prop, 1, 100, 10, 1);
   RNA_def_property_ui_text(prop, "Resolution %", "Percentage scale for render resolution");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneSequencer_update");
 
   prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "tilex");

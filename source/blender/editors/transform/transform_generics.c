@@ -1111,18 +1111,15 @@ static void recalcData_sequencer(TransInfo *t)
 
     if (seq != seq_prev) {
       if (BKE_sequence_tx_fullupdate_test(seq)) {
-        /* A few effect strip types need a complete recache on transform. */
         BKE_sequence_invalidate_cache(t->scene, seq);
       }
       else {
-        BKE_sequence_invalidate_dependent(t->scene, seq);
+        BKE_sequence_invalidate_cache(t->scene, seq);
       }
     }
 
     seq_prev = seq;
   }
-
-  BKE_sequencer_preprocessed_cache_cleanup();
 
   flushTransSeq(t);
 }

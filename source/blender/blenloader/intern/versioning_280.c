@@ -1077,6 +1077,14 @@ static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbase
   }
 }
 
+static void do_versions_seq_set_cache_defaults(Editing *ed)
+{
+  ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
+  ed->cache_flag |= SEQ_CACHE_VIEW_FINAL_OUT;
+  ed->cache_flag |= SEQ_CACHE_VIEW_ENABLE;
+  ed->recycle_max_cost = 10.0f;
+}
+
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   bool use_collection_compat_28 = true;
@@ -3242,7 +3250,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 60)) {
     if (!DNA_struct_elem_find(fd->filesdna, "bSplineIKConstraint", "short", "yScaleMode")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         if (ob->pose) {
@@ -3300,6 +3308,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       BKE_animdata_main_cb(bmain, do_version_bbone_scale_animdata_cb, NULL);
     }
 
+    for (Scene *sce = bmain->scenes.first; sce != NULL; sce = sce->id.next) {
+      if (sce->ed != NULL) {
+        do_versions_seq_set_cache_defaults(sce->ed);
+      }
+    }
+  }
+
+  {
     /* Versioning code until next subversion bump goes here. */
   }
 }

@@ -302,46 +302,33 @@ void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
  * Sequencer memory cache management functions
  * ********************************************************************** */
 
-typedef enum {
-  SEQ_STRIPELEM_IBUF,
-  SEQ_STRIPELEM_IBUF_COMP,
-  SEQ_STRIPELEM_IBUF_STARTSTILL,
-  SEQ_STRIPELEM_IBUF_ENDSTILL,
-} eSeqStripElemIBuf;
+#define SEQ_CACHE_COST_MAX 10.0f
 
-void BKE_sequencer_cache_destruct(void);
-void BKE_sequencer_cache_cleanup(void);
-
-/* returned ImBuf is properly refed and has to be freed */
 struct ImBuf *BKE_sequencer_cache_get(const SeqRenderData *context,
                                       struct Sequence *seq,
                                       float cfra,
-                                      eSeqStripElemIBuf type);
-
-/* passed ImBuf is properly refed, so ownership is *not*
- * transferred to the cache.
- * you can pass the same ImBuf multiple times to the cache without problems.
- */
-
+                                      int type);
 void BKE_sequencer_cache_put(const SeqRenderData *context,
                              struct Sequence *seq,
                              float cfra,
-                             eSeqStripElemIBuf type,
-                             struct ImBuf *nval);
-
-void BKE_sequencer_cache_cleanup_sequence(struct Sequence *seq);
-
-struct ImBuf *BKE_sequencer_preprocessed_cache_get(const SeqRenderData *context,
-                                                   struct Sequence *seq,
-                                                   float cfra,
-                                                   eSeqStripElemIBuf type);
-void BKE_sequencer_preprocessed_cache_put(const SeqRenderData *context,
-                                          struct Sequence *seq,
-                                          float cfra,
-                                          eSeqStripElemIBuf type,
-                                          struct ImBuf *ibuf);
-void BKE_sequencer_preprocessed_cache_cleanup(void);
-void BKE_sequencer_preprocessed_cache_cleanup_sequence(struct Sequence *seq);
+                             int type,
+                             struct ImBuf *nval,
+                             float cost);
+bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
+                                         struct Sequence *seq,
+                                         float cfra,
+                                         int type,
+                                         struct ImBuf *nval,
+                                         float cost);
+void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int cfra);
+void BKE_sequencer_cache_destruct(struct Scene *scene);
+void BKE_sequencer_cache_cleanup_all(struct Main *bmain);
+void BKE_sequencer_cache_cleanup(struct Scene *scene);
+void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene, struct Sequence *seq);
+void BKE_sequencer_cache_iterate(
+    struct Scene *scene,
+    void *userdata,
+    bool callback(void *userdata, struct Sequence *seq, int cfra, int cache_type, float cost));
 
 /* **********************************************************************
  * seqeffects.c
