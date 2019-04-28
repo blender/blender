@@ -169,6 +169,28 @@ static void copy_bonechildren(Bone *bone_dst,
   }
 }
 
+static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst, GHash **bone_hash)
+{
+  Bone *bone_dst_child;
+
+  /* Lazily create the name -> bone hashtable. */
+  if ((bone_dst->bbone_prev || bone_dst->bbone_next) && *bone_hash == NULL) {
+    *bone_hash = BKE_armature_bone_from_name_map(arm_dst);
+  }
+
+  if (bone_dst->bbone_prev) {
+    bone_dst->bbone_prev = BLI_ghash_lookup(*bone_hash, bone_dst->bbone_prev->name);
+  }
+  if (bone_dst->bbone_next) {
+    bone_dst->bbone_next = BLI_ghash_lookup(*bone_hash, bone_dst->bbone_next->name);
+  }
+
+  for (bone_dst_child = bone_dst->childbase.first; bone_dst_child;
+       bone_dst_child = bone_dst_child->next) {
+    copy_bonechildren_custom_handles(bone_dst_child, arm_dst, bone_hash);
+  }
+}
+
 /**
  * Only copy internal data of Armature ID from source
  * to already allocated/initialized destination.
@@ -201,6 +223,17 @@ void BKE_armature_copy_data(Main *UNUSED(bmain),
   }
 
   arm_dst->act_bone = bone_dst_act;
+
+  /* Fix custom handle references. */
+  GHash *bone_hash = NULL; /* lazily created */
+
+  for (bone_dst = arm_dst->bonebase.first; bone_dst; bone_dst = bone_dst->next) {
+    copy_bonechildren_custom_handles(bone_dst, arm_dst, &bone_hash);
+  }
+
+  if (bone_hash) {
+    BLI_ghash_free(bone_hash, NULL, NULL);
+  }
 
   arm_dst->edbo = NULL;
   arm_dst->act_edbone = NULL;
