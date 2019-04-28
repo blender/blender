@@ -32,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -878,6 +879,31 @@ void curve_deform_vector(
   mul_m4_v3(cd.objectspace, vec);
 }
 
+typedef struct LatticeDeformUserdata {
+  LatticeDeformData *lattice_deform_data;
+  float (*vertexCos)[3];
+  MDeformVert *dvert;
+  int defgrp_index;
+  float fac;
+} LatticeDeformUserdata;
+
+static void lattice_deform_vert_task(void *__restrict userdata,
+                                     const int index,
+                                     const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+  const LatticeDeformUserdata *data = userdata;
+
+  if (data->dvert != NULL) {
+    const float weight = defvert_find_weight(data->dvert + index, data->defgrp_index);
+    if (weight > 0.0f) {
+      calc_latt_deform(data->lattice_deform_data, data->vertexCos[index], weight * data->fac);
+    }
+  }
+  else {
+    calc_latt_deform(data->lattice_deform_data, data->vertexCos[index], data->fac);
+  }
+}
+
 void lattice_deform_verts(Object *laOb,
                           Object *target,
                           Mesh *mesh,
@@ -889,7 +915,6 @@ void lattice_deform_verts(Object *laOb,
   LatticeDeformData *lattice_deform_data;
   MDeformVert *dvert = NULL;
   int defgrp_index = -1;
-  int a;
 
   if (laOb->type != OB_LATTICE) {
     return;
@@ -916,20 +941,18 @@ void lattice_deform_verts(Object *laOb,
       }
     }
   }
-  if (dvert) {
-    MDeformVert *dvert_iter;
-    for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
-      const float weight = defvert_find_weight(dvert_iter, defgrp_index);
-      if (weight > 0.0f) {
-        calc_latt_deform(lattice_deform_data, vertexCos[a], weight * fac);
-      }
-    }
-  }
-  else {
-    for (a = 0; a < numVerts; a++) {
-      calc_latt_deform(lattice_deform_data, vertexCos[a], fac);
-    }
-  }
+
+  LatticeDeformUserdata data = {.lattice_deform_data = lattice_deform_data,
+                                .vertexCos = vertexCos,
+                                .dvert = dvert,
+                                .defgrp_index = defgrp_index,
+                                .fac = fac};
+
+  ParallelRangeSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.min_iter_per_thread = 32;
+  BLI_task_parallel_range(0, numVerts, &data, lattice_deform_vert_task, &settings);
+
   end_latt_deform(lattice_deform_data);
 }
 
