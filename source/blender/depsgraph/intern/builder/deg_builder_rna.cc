@@ -202,12 +202,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (ptr->type == &RNA_Bone) {
-    const Bone *bone = static_cast<const Bone *>(ptr->data);
-    /* Armature-level bone, but it ends up going to bone component
-     * anyway. */
-    // NOTE: the ID in this case will end up being bArmature.
-    node_identifier.type = NodeType::BONE;
-    node_identifier.component_name = bone->name;
+    /* Armature-level bone mapped to Armature Eval, and thus Pose Init.
+     * Drivers have special code elsewhere that links them to the pose
+     * bone components, instead of using this generic code. */
+    node_identifier.type = NodeType::PARAMETERS;
+    node_identifier.operation_code = OperationCode::ARMATURE_EVAL;
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {

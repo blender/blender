@@ -1336,25 +1336,24 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
                           fcu->rna_path ? fcu->rna_path : "",
                           fcu->array_index);
   const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
-  if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
+  if (GS(id->name) == ID_AR && STRPREFIX(rna_path, "bones[")) {
     /* Drivers on armature-level bone settings (i.e. bbone stuff),
      * which will affect the evaluation of corresponding pose bones. */
-    IDNode *arm_node = graph_->find_id_node(id);
     char *bone_name = BLI_str_quoted_substrN(rna_path, "bones[");
-    if (arm_node != NULL && bone_name != NULL) {
+    if (bone_name != NULL) {
       /* Find objects which use this, and make their eval callbacks
        * depend on this. */
-      for (Relation *rel : arm_node->outlinks) {
-        IDNode *to_node = (IDNode *)rel->to;
-        /* We only care about objects with pose data which use this. */
+      for (IDNode *to_node : graph_->id_nodes) {
         if (GS(to_node->id_orig->name) == ID_OB) {
           Object *object = (Object *)to_node->id_orig;
-          // NOTE: object->pose may be NULL
-          bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
-          if (pchan != NULL) {
-            OperationKey bone_key(
-                &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
-            add_relation(driver_key, bone_key, "Arm Bone -> Driver -> Bone");
+          /* We only care about objects with pose data which use this. */
+          if (object->data == id && object->pose != NULL) {
+            bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
+            if (pchan != NULL) {
+              OperationKey bone_key(
+                  &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
+              add_relation(driver_key, bone_key, "Arm Bone -> Driver -> Bone");
+            }
           }
         }
       }
