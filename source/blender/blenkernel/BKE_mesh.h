@@ -216,8 +216,8 @@ struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
                                       const bool calc_undeformed);
 struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
-                                                  struct Object *ob,
-                                                  struct ModifierData *md,
+                                                  struct Object *ob_eval,
+                                                  struct ModifierData *md_eval,
                                                   int build_shapekey_layers);
 
 /* Copies a nomain-Mesh into an existing Mesh. */

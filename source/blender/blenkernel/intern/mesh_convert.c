@@ -1238,25 +1238,26 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
 
 Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                            Scene *scene,
-                                           Object *ob,
-                                           ModifierData *md,
+                                           Object *ob_eval,
+                                           ModifierData *md_eval,
                                            int build_shapekey_layers)
 {
-  Mesh *me = ob->runtime.mesh_orig ? ob->runtime.mesh_orig : ob->data;
-  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  Mesh *me = ob_eval->runtime.mesh_orig ? ob_eval->runtime.mesh_orig : ob_eval->data;
+  const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
   Mesh *result;
   KeyBlock *kb;
-  ModifierEvalContext mectx = {depsgraph, ob, 0};
+  ModifierEvalContext mectx = {depsgraph, ob_eval, 0};
 
-  if (!(md->mode & eModifierMode_Realtime)) {
+  if (!(md_eval->mode & eModifierMode_Realtime)) {
     return NULL;
   }
 
-  if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+  if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     return NULL;
   }
 
-  if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr - 1))) {
+  if (build_shapekey_layers && me->key &&
+      (kb = BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
     BKE_keyblock_convert_to_mesh(kb, me);
   }
 
@@ -1264,7 +1265,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     int numVerts;
     float(*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
-    mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
+    mti->deformVerts(md_eval, &mectx, NULL, deformedVerts, numVerts);
     BKE_id_copy_ex(NULL, &me->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
     BKE_mesh_apply_vert_coords(result, deformedVerts);
 
@@ -1282,7 +1283,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
       add_shapekey_layers(mesh_temp, me);
     }
 
-    result = mti->applyModifier(md, &mectx, mesh_temp);
+    result = mti->applyModifier(md_eval, &mectx, mesh_temp);
     ASSERT_IS_VALID_MESH(result);
 
     if (mesh_temp != result) {

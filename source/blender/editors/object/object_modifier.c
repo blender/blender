@@ -578,12 +578,11 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports),
 static Mesh *modifier_apply_create_mesh_for_modifier(Depsgraph *depsgraph,
                                                      Scene *UNUSED(scene),
                                                      Object *object,
-                                                     ModifierData *md,
+                                                     ModifierData *md_eval,
                                                      bool build_shapekey_layers)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-  ModifierData *md_eval = modifiers_findByName(object_eval, md->name);
   Mesh *mesh_applied = BKE_mesh_create_derived_for_modifier(
       depsgraph, scene_eval, object_eval, md_eval, build_shapekey_layers);
   return mesh_applied;
@@ -594,11 +593,11 @@ static int modifier_apply_shape(Main *bmain,
                                 Depsgraph *depsgraph,
                                 Scene *scene,
                                 Object *ob,
-                                ModifierData *md)
+                                ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
 
-  if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+  if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
     return 0;
   }
@@ -620,12 +619,12 @@ static int modifier_apply_shape(Main *bmain,
     Key *key = me->key;
     KeyBlock *kb;
 
-    if (!modifier_isSameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
+    if (!modifier_isSameTopology(md_eval) || mti->type == eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
       return 0;
     }
 
-    mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md, false);
+    mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md_eval, false);
     if (!mesh_applied) {
       BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
       return 0;
@@ -640,7 +639,7 @@ static int modifier_apply_shape(Main *bmain,
       BKE_keyblock_convert_from_mesh(me, key, kb);
     }
 
-    kb = BKE_keyblock_add(key, md->name);
+    kb = BKE_keyblock_add(key, md_eval->name);
     BKE_mesh_nomain_to_meshkey(mesh_applied, me, kb);
 
     BKE_id_free(NULL, mesh_applied);
@@ -653,11 +652,11 @@ static int modifier_apply_shape(Main *bmain,
 }
 
 static int modifier_apply_obdata(
-    ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md)
+    ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+  const ModifierTypeInfo *mti = modifierType_getInfo(md_eval->type);
 
-  if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+  if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
     return 0;
   }
@@ -665,7 +664,7 @@ static int modifier_apply_obdata(
   if (ob->type == OB_MESH) {
     Mesh *mesh_applied;
     Mesh *me = ob->data;
-    MultiresModifierData *mmd = find_multires_modifier_before(scene, md);
+    MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
     if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
       BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to a mesh with shape keys");
@@ -673,18 +672,18 @@ static int modifier_apply_obdata(
     }
 
     /* Multires: ensure that recent sculpting is applied */
-    if (md->type == eModifierType_Multires) {
+    if (md_eval->type == eModifierType_Multires) {
       multires_force_update(ob);
     }
 
     if (mmd && mmd->totlvl && mti->type == eModifierTypeType_OnlyDeform) {
-      if (!multiresModifier_reshapeFromDeformModifier(depsgraph, mmd, ob, md)) {
+      if (!multiresModifier_reshapeFromDeformModifier(depsgraph, mmd, ob, md_eval)) {
         BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
         return 0;
       }
     }
     else {
-      mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md, true);
+      mesh_applied = modifier_apply_create_mesh_for_modifier(depsgraph, scene, ob, md_eval, true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return 0;
@@ -692,7 +691,7 @@ static int modifier_apply_obdata(
 
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
-      if (md->type == eModifierType_Multires) {
+      if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
       }
     }
@@ -716,7 +715,7 @@ static int modifier_apply_obdata(
                "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
     vertexCos = BKE_curve_nurbs_vertexCos_get(&curve_eval->nurb, &numVerts);
-    mti->deformVerts(md, &mectx, NULL, vertexCos, numVerts);
+    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
     BK_curve_nurbs_vertexCos_apply(&curve->nurb, vertexCos);
 
     MEM_freeN(vertexCos);
