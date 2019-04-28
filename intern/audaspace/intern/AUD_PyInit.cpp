@@ -34,11 +34,11 @@ extern void *BKE_sound_get_factory(void *sound);
 
 static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 {
-  PyObject* lptr = NULL;
+  PyObject *lptr = NULL;
 
   if (PyArg_Parse(args, "O:_sound_from_pointer", &lptr)) {
     if (lptr) {
-      AUD_Sound* sound = BKE_sound_get_factory(PyLong_AsVoidPtr(lptr));
+      AUD_Sound *sound = BKE_sound_get_factory(PyLong_AsVoidPtr(lptr));
 
       if (sound) {
         Sound *obj = (Sound *)Sound_empty();
