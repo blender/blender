@@ -194,9 +194,11 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   /* ot->flag = OPTYPE_REGISTER; */
 
   /* properties */
+  PropertyRNA *prop;
   RNA_def_int(
       ot->srna, "report_index", 0, 0, INT_MAX, "Report", "Index of the report", 0, INT_MAX);
-  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend report selection");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend report selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int report_select_all_exec(bContext *C, wmOperator *op)
