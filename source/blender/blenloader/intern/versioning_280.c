@@ -3236,14 +3236,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
           /* All spaces that use tools must be eventually added. */
+          ARegion *ar = NULL;
           if (ELEM(sl->spacetype, SPACE_VIEW3D, SPACE_IMAGE) &&
-              (do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER) == NULL)) {
+              ((ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_TOOL_HEADER)) == NULL)) {
             /* Add tool header. */
-            ARegion *ar = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
+            ar = do_versions_add_region(RGN_TYPE_TOOL_HEADER, "tool header");
             ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
             ARegion *ar_header = do_versions_find_region(regionbase, RGN_TYPE_HEADER);
             BLI_insertlinkbefore(regionbase, ar_header, ar);
+          }
+          if (ar != NULL) {
+            SET_FLAG_FROM_TEST(ar->flag, ar->flag & RGN_FLAG_HIDDEN_BY_USER, RGN_FLAG_HIDDEN);
           }
         }
       }
