@@ -45,4 +45,10 @@ template<typename T> static inline T decltype_helper(T x)
 #    define BLI_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
 #  endif
 
+#  if defined(__GNUC__)
+#    define BLI_NOINLINE __attribute__((noinline))
+#  else
+#    define BLI_NOINLINE
+#  endif
+
 #endif /* __BLI_COMPILER_COMPAT_H__ */
