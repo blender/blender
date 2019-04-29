@@ -41,6 +41,7 @@ extern "C" {
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
+#include "intern/builder/deg_builder_cache.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_id.h"
@@ -51,6 +52,16 @@ extern "C" {
 
 namespace DEG {
 
+bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base)
+{
+  Object *object_orig = base->base_orig->object;
+  IDNode *id_node = graph->find_id_node(&object_orig->id);
+  if (id_node == NULL) {
+    return false;
+  }
+  return id_node->has_base;
+}
+
 /*******************************************************************************
  * Base class for builders.
  */
@@ -60,62 +71,30 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuild
 {
 }
 
-namespace {
-
-struct VisibilityCheckData {
-  eEvaluationMode eval_mode;
-  bool is_visibility_animated;
-};
-
-void visibility_animated_check_cb(ID * /*id*/, FCurve *fcu, void *user_data)
+bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
 {
-  VisibilityCheckData *data = reinterpret_cast<VisibilityCheckData *>(user_data);
-  if (data->is_visibility_animated) {
-    return;
-  }
-  if (data->eval_mode == DAG_EVAL_VIEWPORT) {
-    if (STREQ(fcu->rna_path, "hide_viewport")) {
-      data->is_visibility_animated = true;
-    }
-  }
-  else if (data->eval_mode == DAG_EVAL_RENDER) {
-    if (STREQ(fcu->rna_path, "hide_render")) {
-      data->is_visibility_animated = true;
-    }
-  }
-}
-
-bool is_object_visibility_animated(const Depsgraph *graph, Object *object)
-{
-  AnimData *anim_data = BKE_animdata_from_id(&object->id);
-  if (anim_data == NULL) {
-    return false;
-  }
-  VisibilityCheckData data;
-  data.eval_mode = graph->mode;
-  data.is_visibility_animated = false;
-  BKE_fcurves_id_cb(&object->id, visibility_animated_check_cb, &data);
-  return data.is_visibility_animated;
-}
-
-}  // namespace
-
-bool deg_check_base_available_for_build(const Depsgraph *graph, Base *base)
-{
-  const int base_flag = (graph->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
-                                                             BASE_ENABLED_RENDER;
+  /* Simple check: enabled bases are always part of dependency graph. */
+  const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
+                                                              BASE_ENABLED_RENDER;
   if (base->flag & base_flag) {
     return true;
   }
-  if (is_object_visibility_animated(graph, base->object)) {
-    return true;
+  /* More involved check: since we don't support dynamic changes in dependency graph topology and
+   * all visible objects are to be part of dependency graph, we pull all objects which has animated
+   * visibility. */
+  Object *object = base->object;
+  AnimatedPropertyID property_id;
+  if (graph_->mode == DAG_EVAL_VIEWPORT) {
+    property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_viewport");
   }
-  return false;
-}
-
-bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
-{
-  return deg_check_base_available_for_build(graph_, base);
+  else if (graph_->mode == DAG_EVAL_RENDER) {
+    property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_render");
+  }
+  else {
+    BLI_assert(!"Unknown evaluation mode.");
+    return false;
+  }
+  return cache_->isPropertyAnimated(&object->id, property_id);
 }
 
 /*******************************************************************************

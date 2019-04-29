@@ -380,7 +380,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph, ViewLayer *vie
      * points to is not yet copied. This is dangerous access from evaluated
      * domain to original one, but this is how the entire copy-on-write works:
      * it does need to access original for an initial copy. */
-    const bool is_object_enabled = deg_check_base_available_for_build(depsgraph, base->base_orig);
+    const bool is_object_enabled = deg_check_base_in_depsgraph(depsgraph, base);
     if (is_object_enabled) {
       BLI_addtail(&enabled_bases, base);
     }

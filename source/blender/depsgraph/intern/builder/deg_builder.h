@@ -33,7 +33,7 @@ class DepsgraphBuilderCache;
 
 class DepsgraphBuilder {
  public:
-  bool need_pull_base_into_graph(struct Base *base);
+  bool need_pull_base_into_graph(Base *base);
 
  protected:
   /* NOTE: The builder does NOT take ownership over any of those resources. */
@@ -45,7 +45,7 @@ class DepsgraphBuilder {
   DepsgraphBuilderCache *cache_;
 };
 
-bool deg_check_base_available_for_build(const Depsgraph *graph, Base *base);
+bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base);
 void deg_graph_build_finalize(struct Main *bmain, struct Depsgraph *graph);
 
 }  // namespace DEG
