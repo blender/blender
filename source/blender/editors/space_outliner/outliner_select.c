@@ -1299,8 +1299,9 @@ void outliner_item_do_activate_from_tree_element(
  * */
 static int outliner_item_do_activate_from_cursor(bContext *C,
                                                  const int mval[2],
-                                                 bool extend,
-                                                 bool recursive)
+                                                 const bool extend,
+                                                 const bool recursive,
+                                                 const bool deselect_all)
 {
   ARegion *ar = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
@@ -1315,7 +1316,10 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   }
 
   if (!(te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]))) {
-    /* skip */
+    if (deselect_all) {
+      outliner_flag_set(&soops->tree, TSE_SELECTED, false);
+      changed = true;
+    }
   }
   else if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
     outliner_item_toggle_closed(te, extend);
@@ -1351,9 +1355,10 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 /* event can enterkey, then it opens/closes */
 static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bool extend = RNA_boolean_get(op->ptr, "extend");
-  bool recursive = RNA_boolean_get(op->ptr, "recursive");
-  return outliner_item_do_activate_from_cursor(C, event->mval, extend, recursive);
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool recursive = RNA_boolean_get(op->ptr, "recursive");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  return outliner_item_do_activate_from_cursor(C, event->mval, extend, recursive, deselect_all);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
@@ -1368,6 +1373,11 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
   RNA_def_boolean(ot->srna, "recursive", false, "Recursive", "Select Objects and their children");
+  RNA_def_boolean(ot->srna,
+                  "deselect_all",
+                  false,
+                  "Deselect On Nothing",
+                  "Deselect all when nothing under the cursor");
 }
 
 /* ****************************************************** */
