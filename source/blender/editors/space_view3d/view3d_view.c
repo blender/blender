@@ -146,7 +146,7 @@ void ED_view3d_smooth_view_ex(
   }
   sms.org_view = rv3d->view;
 
-  /* sms.to_camera = false; */ /* initizlized to zero anyway */
+  /* sms.to_camera = false; */ /* initialized to zero anyway */
 
   /* note on camera locking, this is a little confusing but works ok.
    * we may be changing the view 'as if' there is no active camera, but in fact
