@@ -487,3 +487,134 @@ TEST(path_util, PathFrameStrip)
   PATH_FRAME_STRIP("/ext/shorter/somefile.123001.abc", "/ext/shorter/somefile.######", ".abc");
 }
 #undef PATH_FRAME_STRIP
+
+#define PATH_EXTENSION_CHECK(input_path, input_ext, expect_ext) \
+  { \
+    const bool ret = BLI_path_extension_check(input_path, input_ext); \
+    if (strcmp(input_ext, expect_ext) == 0) { \
+      EXPECT_TRUE(ret); \
+    } \
+    else { \
+      EXPECT_FALSE(ret); \
+    } \
+  } \
+  ((void)0)
+
+/* BLI_path_extension_check */
+TEST(path_util, PathExtensionCheck)
+{
+  PATH_EXTENSION_CHECK("a/b/c.exe", ".exe", ".exe");
+  PATH_EXTENSION_CHECK("correct/path/to/file.h", ".h", ".h");
+  PATH_EXTENSION_CHECK("correct/path/to/file.BLEND", ".BLEND", ".BLEND");
+  PATH_EXTENSION_CHECK("../tricky/path/to/file.h", ".h", ".h");
+  PATH_EXTENSION_CHECK("../dirty//../path\\to/file.h", ".h", ".h");
+  PATH_EXTENSION_CHECK("a/b/c.veryveryverylonglonglongextension",
+                       ".veryveryverylonglonglongextension",
+                       ".veryveryverylonglonglongextension");
+  PATH_EXTENSION_CHECK("filename.PNG", "pnG", "pnG");
+  PATH_EXTENSION_CHECK("a/b/c.h.exe", ".exe", ".exe");
+  PATH_EXTENSION_CHECK("a/b/c.h.exe", "exe", "exe");
+  PATH_EXTENSION_CHECK("a/b/c.exe", "c.exe", "c.exe");
+  PATH_EXTENSION_CHECK("a/b/noext", "noext", "noext");
+
+  PATH_EXTENSION_CHECK("a/b/c.exe", ".png", ".exe");
+  PATH_EXTENSION_CHECK("a/b/c.exe", "c.png", ".exe");
+  PATH_EXTENSION_CHECK("a/b/s.l", "l.s", "s.l");
+  PATH_EXTENSION_CHECK(".hiddenfolder", "", ".hiddenfolder");
+  PATH_EXTENSION_CHECK("../dirty//../path\\to/actual.h.file.ext", ".h", ".ext");
+  PATH_EXTENSION_CHECK("..\\dirty//../path//to/.hiddenfile.JPEG", ".hiddenfile", ".JPEG");
+}
+#undef PATH_EXTENSION_CHECK
+
+#define PATH_FRAME_CHECK_CHARS(input_path, expect_hasChars) \
+  { \
+    const bool ret = BLI_path_frame_check_chars(input_path); \
+    if (expect_hasChars) { \
+      EXPECT_TRUE(ret); \
+    } \
+    else { \
+      EXPECT_FALSE(ret); \
+    } \
+  } \
+  ((void)0)
+
+/* BLI_path_frame_check_chars */
+TEST(path_util, PathFrameCheckChars)
+{
+  PATH_FRAME_CHECK_CHARS("a#", true);
+  PATH_FRAME_CHECK_CHARS("aaaaa#", true);
+  PATH_FRAME_CHECK_CHARS("#aaaaa", true);
+  PATH_FRAME_CHECK_CHARS("a##.###", true);
+  PATH_FRAME_CHECK_CHARS("####.abc#", true);
+  PATH_FRAME_CHECK_CHARS("path/to/chars/a#", true);
+  PATH_FRAME_CHECK_CHARS("path/to/chars/123#123.exe", true);
+
+  PATH_FRAME_CHECK_CHARS("&", false);
+  PATH_FRAME_CHECK_CHARS("\35", false);
+  PATH_FRAME_CHECK_CHARS("path#/to#/chars#/$.h", false);
+  PATH_FRAME_CHECK_CHARS("path#/to#/chars#/nochars.h", false);
+  PATH_FRAME_CHECK_CHARS("..\\dirty\\path#/..//to#\\chars#/nochars.h", false);
+  PATH_FRAME_CHECK_CHARS("..\\dirty\\path#/..//to#/chars#\\nochars.h", false);
+}
+#undef PATH_FRAME_CHECK_CHARS
+
+#define PATH_FRAME_RANGE(input_path, sta, end, digits, expect_outpath) \
+  { \
+    char path[FILE_MAX]; \
+    bool ret; \
+    BLI_strncpy(path, input_path, FILE_MAX); \
+    ret = BLI_path_frame_range(path, sta, end, digits); \
+    if (expect_outpath == NULL) { \
+      EXPECT_FALSE(ret); \
+    } \
+    else { \
+      EXPECT_TRUE(ret); \
+      EXPECT_STREQ(path, expect_outpath); \
+    } \
+  } \
+  ((void)0)
+
+/* BLI_path_frame_range */
+TEST(path_util, PathFrameRange)
+{
+  int dummy = -1;
+  PATH_FRAME_RANGE("#", 1, 2, dummy, "1-2");
+  PATH_FRAME_RANGE("##", 1, 2, dummy, "01-02");
+  PATH_FRAME_RANGE("##", 1000, 2000, dummy, "1000-2000");
+  PATH_FRAME_RANGE("###", 100, 200, dummy, "100-200");
+  PATH_FRAME_RANGE("###", 8, 9, dummy, "008-009");
+
+  PATH_FRAME_RANGE("", 100, 200, 1, "100-200");
+  PATH_FRAME_RANGE("", 123, 321, 4, "0123-0321");
+  PATH_FRAME_RANGE("", 1, 0, 20, "00000000000000000001-00000000000000000000");
+}
+#undef PATH_FRAME_RANGE
+
+#define PATH_FRAME_GET(input_path, expect_frame, expect_numdigits, expect_pathisvalid) \
+  { \
+    char path[FILE_MAX]; \
+    int out_frame = -1, out_numdigits = -1; \
+    BLI_strncpy(path, input_path, FILE_MAX); \
+    const bool ret = BLI_path_frame_get(path, &out_frame, &out_numdigits); \
+    if (expect_pathisvalid) { \
+      EXPECT_TRUE(ret); \
+    } \
+    else { \
+      EXPECT_FALSE(ret); \
+    } \
+    EXPECT_EQ(out_frame, expect_frame); \
+    EXPECT_EQ(out_numdigits, expect_numdigits); \
+  } \
+  ((void)0)
+
+/* BLI_path_frame_get */
+TEST(path_util, PathFrameGet)
+{
+  PATH_FRAME_GET("001.avi", 1, 3, true);
+  PATH_FRAME_GET("0000299.ext", 299, 7, true);
+  PATH_FRAME_GET("path/to/frame_2810.dummy_quite_long_extension", 2810, 4, true);
+  PATH_FRAME_GET("notframe_7_frame00018.bla", 18, 5, true);
+
+  PATH_FRAME_GET("", -1, -1, false);
+}
+#undef PATH_FRAME_GET
