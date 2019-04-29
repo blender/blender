@@ -908,6 +908,7 @@ bool WM_gizmomap_cursor_set(const wmGizmoMap *gzmap, wmWindow *win)
 bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz, int part)
 {
   if ((gz != gzmap->gzmap_context.highlight) || (gz && part != gz->highlight_part)) {
+    const bool init_last_cursor = (gzmap->gzmap_context.highlight == NULL);
     if (gzmap->gzmap_context.highlight) {
       gzmap->gzmap_context.highlight->state &= ~WM_GIZMO_STATE_HIGHLIGHT;
       gzmap->gzmap_context.highlight->highlight_part = -1;
@@ -918,11 +919,15 @@ bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz
     if (gz) {
       gz->state |= WM_GIZMO_STATE_HIGHLIGHT;
       gz->highlight_part = part;
-      gzmap->gzmap_context.last_cursor = -1;
+      if (init_last_cursor) {
+        gzmap->gzmap_context.last_cursor = -1;
+      }
 
       if (C && gz->type->cursor_get) {
         wmWindow *win = CTX_wm_window(C);
-        gzmap->gzmap_context.last_cursor = win->cursor;
+        if (init_last_cursor) {
+          gzmap->gzmap_context.last_cursor = win->cursor;
+        }
         WM_cursor_set(win, gz->type->cursor_get(gz));
       }
     }
@@ -931,6 +936,7 @@ bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz
         wmWindow *win = CTX_wm_window(C);
         WM_cursor_set(win, gzmap->gzmap_context.last_cursor);
       }
+      gzmap->gzmap_context.last_cursor = -1;
     }
 
     /* tag the region for redraw */
