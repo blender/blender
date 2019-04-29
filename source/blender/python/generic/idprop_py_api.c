@@ -164,7 +164,8 @@ PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)
   }
 }
 
-#if 0 /* UNUSED, currently assignment overwrites into new properties, rather than setting in-place */
+/* UNUSED, currently assignment overwrites into new properties, rather than setting in-place. */
+#if 0
 static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 {
   switch (prop->type) {

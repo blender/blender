@@ -2377,12 +2377,15 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
  *                                 '((%s | SWIZZLE_VALID_AXIS) | '
  *                                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
  *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)) | '
- *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))  ' %
+ *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))  '
+ *                                 %
  *                                 (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos))
  *
  *     axises = axises[:-1]
  * items = list(axis_dict.items())
- * items.sort(key=lambda a: a[0].replace('x', '0').replace('y', '1').replace('z', '2').replace('w', '3'))
+ * items.sort(
+ *     key=lambda a: a[0].replace('x', '0').replace('y', '1').replace('z', '2').replace('w', '3')
+ * )
  *
  * unique = set()
  * for key, val in items:

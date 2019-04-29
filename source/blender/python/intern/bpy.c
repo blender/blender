@@ -177,7 +177,8 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
     return NULL;
   }
 
-  /* same logic as BKE_appdir_folder_id_create(), but best leave it up to the script author to create */
+  /* same logic as BKE_appdir_folder_id_create(),
+   * but best leave it up to the script author to create */
   path = BKE_appdir_folder_id_user_notest(folder_id, subdir);
 
   return PyC_UnicodeFromByte(path ? path : "");

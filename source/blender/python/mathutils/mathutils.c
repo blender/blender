@@ -381,13 +381,16 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 
 /* LomontRRDCompare4, Ever Faster Float Comparisons by Randy Dillon */
 /* XXX We may want to use 'safer' BLI's compare_ff_relative ultimately?
- *     LomontRRDCompare4() is an optimized version of Dawson's AlmostEqual2sComplement() (see [1] and [2]).
- *     Dawson himself now claims this is not a 'safe' thing to do (pushing ULP method beyond its limits),
- *     an recommends using work from [3] instead, which is done in BLI func...
+ * LomontRRDCompare4() is an optimized version of Dawson's AlmostEqual2sComplement()
+ * (see [1] and [2]).
+ * Dawson himself now claims this is not a 'safe' thing to do
+ * (pushing ULP method beyond its limits),
+ * an recommends using work from [3] instead, which is done in BLI func...
  *
- *     [1] http://www.randydillon.org/Papers/2007/everfast.htm
- *     [2] http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
- *     [3] https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/ instead
+ * [1] http://www.randydillon.org/Papers/2007/everfast.htm
+ * [2] http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
+ * [3] https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+ * instead.
  */
 #define SIGNMASK(i) (-(int)(((unsigned int)(i)) >> 31))
 
@@ -437,7 +440,8 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 
 /* Mathutils Callbacks */
 
-/* for mathutils internal use only, eventually should re-alloc but to start with we only have a few users */
+/* For mathutils internal use only,
+ * eventually should re-alloc but to start with we only have a few users. */
 #define MATHUTILS_TOT_CB 17
 static Mathutils_Callback *mathutils_callbacks[MATHUTILS_TOT_CB] = {NULL};
 

@@ -54,7 +54,10 @@ extern void BPY_update_rna_module(void);
 #  include <opcode.h>
 #endif
 
-/* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
+/**
+ * For PyDrivers
+ * (drivers using one-line Python expressions to express relationships between targets).
+ */
 PyObject *bpy_pydriver_Dict = NULL;
 
 #ifdef USE_BYTECODE_WHITELIST
@@ -399,8 +402,10 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 {
   PyObject *driver_vars = NULL;
   PyObject *retval = NULL;
-  PyObject *
-      expr_vars; /* speed up by pre-hashing string & avoids re-converting unicode strings for every execution */
+
+  /* Speed up by pre-hashing string & avoids re-converting unicode strings for every execution. */
+  PyObject *expr_vars;
+
   PyObject *expr_code;
   PyGILState_STATE gilstate;
   bool use_gil;
@@ -475,8 +480,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 0, expr_code);
 
     driver_orig->flag &= ~DRIVER_FLAG_RECOMPILE;
-    driver_orig->flag |=
-        DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
+
+    /* Maybe this can be removed but for now best keep until were sure. */
+    driver_orig->flag |= DRIVER_FLAG_RENAMEVAR;
 #ifdef USE_BYTECODE_WHITELIST
     is_recompile = true;
 #endif

@@ -2277,7 +2277,10 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       return NULL;
     }
 
-    // prop = RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name ? name : id, description);
+#if 0
+    prop = RNA_def_boolean_array(
+        srna, id, size, pydef ? def : NULL, name ? name : id, description);
+#endif
     prop = RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
     RNA_def_property_array(prop, size);
     if (pydef) {

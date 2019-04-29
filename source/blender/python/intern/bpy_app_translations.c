@@ -47,13 +47,16 @@
 
 typedef struct {
   PyObject_HEAD
-      /* The string used to separate context from actual message in PY_TRANSLATE RNA props. */
+      /** The string used to separate context from actual message in PY_TRANSLATE RNA props. */
       const char *context_separator;
-  /* A "named tuple" (StructSequence actually...) containing all C-defined contexts. */
+  /** A "named tuple" (StructSequence actually...) containing all C-defined contexts. */
   PyObject *contexts;
-  /* A readonly mapping {C context id: python id}  (actually, a MappingProxy). */
+  /** A readonly mapping {C context id: python id}  (actually, a MappingProxy). */
   PyObject *contexts_C_to_py;
-  /* A py dict containing all registered py dicts (order is more or less random, first match wins!). */
+  /**
+   * A py dict containing all registered py dicts
+   * (order is more or less random, first match wins!).
+   */
   PyObject *py_messages;
 } BlenderAppTranslations;
 
@@ -111,8 +114,8 @@ static void _ghashutil_keyfree(void *ptr)
 /***** Python's messages cache *****/
 
 /* We cache all messages available for a given locale from all py dicts into a single ghash.
- * Changing of locale is not so common, while looking for a message translation is, so let's try to optimize
- * the later as much as we can!
+ * Changing of locale is not so common, while looking for a message translation is,
+ * so let's try to optimize the later as much as we can!
  * Note changing of locale, as well as (un)registering a message dict, invalidate that cache.
  */
 static GHash *_translations_cache = NULL;
@@ -148,7 +151,8 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
     printf("\n");
 #  endif
 
-    /* Try to get first complete locale, then language+country, then language+variant, then only language */
+    /* Try to get first complete locale, then language+country,
+     * then language+variant, then only language. */
     lang_dict = PyDict_GetItemString(uuid_dict, locale);
     if (!lang_dict && language_country) {
       lang_dict = PyDict_GetItemString(uuid_dict, language_country);
@@ -393,8 +397,8 @@ static PyTypeObject BlenderAppTranslationsContextsType;
 static BLT_i18n_contexts_descriptor _contexts[] = BLT_I18NCONTEXTS_DESC;
 
 /* These fields are just empty placeholders, actual values get set in app_translations_struct().
- * This allows us to avoid many handwriting, and above all, to keep all context definition stuff in BLT_translation.h!
- */
+ * This allows us to avoid many handwriting, and above all,
+ * to keep all context definition stuff in BLT_translation.h! */
 static PyStructSequence_Field app_translations_contexts_fields[ARRAY_SIZE(_contexts)] = {{NULL}};
 
 static PyStructSequence_Desc app_translations_contexts_desc = {

@@ -24,7 +24,10 @@
 /* --- bpy build options --- */
 #ifdef WITH_PYTHON_SAFETY
 
-/* play it safe and keep optional for now, need to test further now this affects looping on 10000's of verts for eg. */
+/**
+ * Play it safe and keep optional for now,
+ * need to test further now this affects looping on 10000's of verts for eg.
+ */
 #  define USE_WEAKREFS
 
 /* method to invalidate removed py data, XXX, slow to remove objects, otherwise no overhead */
@@ -146,8 +149,10 @@ typedef struct {
   PropertyRNA *prop;
 
   /* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
-  int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
-  int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
+  /** Array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
+  int arraydim;
+  /** Array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n. */
+  int arrayoffset;
 } BPy_PropertyArrayRNA;
 
 typedef struct {

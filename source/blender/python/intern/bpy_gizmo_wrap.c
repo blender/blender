@@ -116,8 +116,9 @@ static void gizmo_properties_init(wmGizmoType *gzt)
 
   /* Extract target property definitions from 'bl_target_properties' */
   {
-    /* picky developers will notice that 'bl_targets' won't work with inheritance
-     * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal) - campbell */
+    /* Picky developers will notice that 'bl_targets' won't work with inheritance
+     * get direct from the dict to avoid raising a load of attribute errors
+     * (yes this isnt ideal) - campbell. */
     PyObject *py_class_dict = py_class->tp_dict;
     PyObject *bl_target_properties = PyDict_GetItem(py_class_dict,
                                                     bpy_intern_str_bl_target_properties);

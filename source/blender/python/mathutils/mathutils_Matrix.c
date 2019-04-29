@@ -1072,7 +1072,8 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
   if (det == 0.0f) {
     const float eps = PSEUDOINVERSE_EPSILON;
 
-    /* We will copy self->matrix into r_mat (if needed), and modify it in place to add diagonal epsilon. */
+    /* We will copy self->matrix into r_mat (if needed),
+     * and modify it in place to add diagonal epsilon. */
     in_mat = r_mat;
 
     switch (self->num_col) {

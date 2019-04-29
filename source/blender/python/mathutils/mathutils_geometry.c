@@ -1043,7 +1043,13 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
               if (len_squared_v3(n3n1) > eps) {
                 const float quotient = dot_v3v3(N1, n2n3);
                 if (fabsf(quotient) > eps) {
-                  /* potentialVertex = (n2n3 * N1[3] + n3n1 * N2[3] + n1n2 * N3[3]) * (-1.0 / quotient); */
+                  /**
+                   * <pre>
+                   * potentialVertex = (
+                   *     (n2n3 * N1[3] + n3n1 * N2[3] + n1n2 * N3[3]) *
+                   *     (-1.0 / quotient));
+                   * </pre>
+                   */
                   const float quotient_ninv = -1.0f / quotient;
                   potentialVertex[0] = ((n2n3[0] * N1[3]) + (n3n1[0] * N2[3]) +
                                         (n1n2[0] * N3[3])) *

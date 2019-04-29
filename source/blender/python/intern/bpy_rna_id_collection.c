@@ -34,7 +34,8 @@
 #include "BKE_main.h"
 
 #include "DNA_ID.h"
-/* Those folowing are only to support hack of not listing some internal 'backward' pointers in generated user_map... */
+/* Those folowing are only to support hack of not listing some internal
+ * 'backward' pointers in generated user_map. */
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 
@@ -97,11 +98,13 @@ static int foreach_libblock_id_user_map_callback(void *user_data,
     }
 
     if ((GS(self_id->name) == ID_OB) && (id_p == (ID **)&((Object *)self_id)->proxy_from)) {
-      /* We skip proxy_from here, since it's some internal pointer which is not relevant info for py/API level. */
+      /* We skip proxy_from here,
+       * since it's some internal pointer which is not relevant info for py/API level. */
       return IDWALK_RET_NOP;
     }
     else if ((GS(self_id->name) == ID_KE) && (id_p == (ID **)&((Key *)self_id)->from)) {
-      /* We skip from here, since it's some internal pointer which is not relevant info for py/API level. */
+      /* We skip from here,
+       * since it's some internal pointer which is not relevant info for py/API level. */
       return IDWALK_RET_NOP;
     }
 
@@ -245,14 +248,16 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
       if (!data_cb.is_subset &&
           /* We do not want to pre-add keys of flitered out types. */
           (key_types_bitmap == NULL || id_check_type(id, key_types_bitmap)) &&
-          /* We do not want to pre-add keys when we have filter on value types, but not on key types. */
+          /* We do not want to pre-add keys when we have filter on value types,
+           * but not on key types. */
           (val_types_bitmap == NULL || key_types_bitmap != NULL)) {
         PyObject *key = data_cb.py_id_key_lookup_only;
         PyObject *set;
 
         RNA_id_pointer_create(id, &((BPy_StructRNA *)key)->ptr);
 
-        /* We have to insert the key now, otherwise ID unused would be missing from final dict... */
+        /* We have to insert the key now,
+         * otherwise ID unused would be missing from final dict... */
         if ((set = PyDict_GetItem(data_cb.user_map, key)) == NULL) {
           /* Cannot use our placeholder key here! */
           key = pyrna_id_CreatePyObject(id);

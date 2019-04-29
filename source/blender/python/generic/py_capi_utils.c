@@ -37,7 +37,8 @@
 #include "BLI_string.h"
 
 #ifndef MATH_STANDALONE
-/* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
+/* Only for BLI_strncpy_wchar_from_utf8,
+ * should replace with py funcs but too late in release now. */
 #  include "BLI_string_utf8.h"
 #endif
 
@@ -273,7 +274,8 @@ void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var)
     const PyTypeObject *type = Py_TYPE(var);
     PyObject *var_str = PyObject_Repr(var);
     if (var_str == NULL) {
-      /* We could print error here, but this may be used for generating errors - so don't for now. */
+      /* We could print error here,
+       * but this may be used for generating errors - so don't for now. */
       PyErr_Clear();
     }
     BLI_snprintf(result,
@@ -765,7 +767,8 @@ void PyC_MainModule_Restore(PyObject *main_mod)
   Py_XDECREF(main_mod);
 }
 
-/* must be called before Py_Initialize, expects output of BKE_appdir_folder_id(BLENDER_PYTHON, NULL) */
+/* Must be called before Py_Initialize,
+ * expects output of BKE_appdir_folder_id(BLENDER_PYTHON, NULL). */
 void PyC_SetHomePath(const char *py_path_bundle)
 {
   if (py_path_bundle == NULL) {
@@ -803,7 +806,8 @@ void PyC_SetHomePath(const char *py_path_bundle)
   {
     static wchar_t py_path_bundle_wchar[1024];
 
-    /* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
+    /* Can't use this, on linux gives bug: #23018,
+     * TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 2008 */
     /* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
 
     BLI_strncpy_wchar_from_utf8(

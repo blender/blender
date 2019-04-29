@@ -40,10 +40,12 @@ static PyStructSequence_Field app_ocio_info_fields[] = {
 };
 
 static PyStructSequence_Desc app_ocio_info_desc = {
-    (char *)"bpy.app.ocio", /* name */
-    (char
-         *)"This module contains information about OpenColorIO blender is linked against", /* doc */
-    app_ocio_info_fields, /* fields */
+    /* name */
+    (char *)"bpy.app.ocio",
+    /* doc */
+    (char *)"This module contains information about OpenColorIO blender is linked against",
+    /* fields */
+    app_ocio_info_fields,
     ARRAY_SIZE(app_ocio_info_fields) - 1,
 };
 

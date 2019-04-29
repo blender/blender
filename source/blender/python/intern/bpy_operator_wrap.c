@@ -45,7 +45,8 @@ static void operator_properties_init(wmOperatorType *ot)
   /* Only call this so pyrna_deferred_register_class gives a useful error
    * WM_operatortype_append_ptr will call RNA_def_struct_identifier later.
    *
-   * Note the 'no_struct_map' function is used since the actual struct name is already used by the operator.
+   * Note the 'no_struct_map' function is used since the actual struct name
+   * is already used by the operator.
    */
   RNA_def_struct_identifier_no_struct_map(ot->srna, ot->idname);
 
@@ -56,8 +57,9 @@ static void operator_properties_init(wmOperatorType *ot)
 
   /* set the default property: ot->prop */
   {
-    /* picky developers will notice that 'bl_property' won't work with inheritance
-     * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal) - campbell */
+    /* Picky developers will notice that 'bl_property' won't work with inheritance
+     * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal)
+     * - campbell. */
     PyObject *py_class_dict = py_class->tp_dict;
     PyObject *bl_property = PyDict_GetItem(py_class_dict, bpy_intern_str_bl_property);
     const char *prop_id;
