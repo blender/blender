@@ -257,6 +257,8 @@ static void ui_block_free_func_POPOVER(uiPopupBlockHandle *UNUSED(handle), void 
 uiPopupBlockHandle *ui_popover_panel_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
+  wmWindow *window = CTX_wm_window(C);
+
   /* Create popover, buttons are created from callback. */
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), __func__);
   pup->but = but;
@@ -271,7 +273,11 @@ uiPopupBlockHandle *ui_popover_panel_create(
   pup->menu_arg = arg;
 
 #ifdef USE_UI_POPOVER_ONCE
-  pup->is_once = true;
+  {
+    /* Ideally this would be passed in. */
+    const wmEvent *event = window->eventstate;
+    pup->is_once = (event->type == LEFTMOUSE) && (event->val == KM_PRESS);
+  }
 #endif
 
   /* Create popup block. */
@@ -283,7 +289,6 @@ uiPopupBlockHandle *ui_popover_panel_create(
   /* Add handlers. If attached to a button, the button will already
    * add a modal handler and pass on events. */
   if (!but) {
-    wmWindow *window = CTX_wm_window(C);
     UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
     WM_event_add_mousemove(C);
     handle->popup = true;
