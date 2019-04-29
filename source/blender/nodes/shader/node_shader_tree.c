@@ -68,7 +68,8 @@ static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
   Scene *scene = CTX_data_scene(C);
   const char *engine_id = scene->r.engine;
 
-  /* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
+  /* Allow empty engine string too,
+   * this is from older versions that didn't have registerable engines yet. */
   return (engine_id[0] == '\0' || STREQ(engine_id, RE_engine_id_CYCLES) ||
           !BKE_scene_use_shading_nodes_custom(scene));
 }

@@ -44,7 +44,8 @@ static bNodeSocketTemplate outputs_color_only[] = {{SOCK_RGBA, 0, N_("Color")}, 
     SOCK_RGBA, 1, "Color 2", 1.0f, 1.0f, 1.0f, 1.0f \
   }
 
-/* Calls multitex and copies the result to the outputs. Called by xxx_exec, which handles inputs. */
+/* Calls multitex and copies the result to the outputs.
+ * Called by xxx_exec, which handles inputs. */
 static void do_proc(float *result,
                     TexParams *p,
                     const float col1[4],

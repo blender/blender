@@ -36,7 +36,8 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
 };
 
 /* Sync functions update formula parameters for other modes, such that the result is comparable.
- * Note that the results are not exactly the same due to differences in color handling (sRGB conversion happens for LGG),
+ * Note that the results are not exactly the same due to differences in color handling
+ * (sRGB conversion happens for LGG),
  * but this keeps settings comparable.
  */
 

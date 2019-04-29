@@ -42,7 +42,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 {
   NodeShaderAttribute *attr = node->storage;
 
-  /* FIXME : if an attribute layer (like vertex color) has one of theses name, it will not work as expected. */
+  /* FIXME : if an attribute layer (like vertex color) has one of theses name,
+   * it will not work as expected. */
   if (strcmp(attr->name, "density") == 0) {
     return GPU_stack_link(
         mat, node, "node_attribute_volume_density", in, out, GPU_builtin(GPU_VOLUME_DENSITY));

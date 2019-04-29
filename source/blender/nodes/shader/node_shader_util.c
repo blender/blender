@@ -88,7 +88,8 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
   memset(gs, 0, sizeof(*gs));
 
   if (ns == NULL) {
-    /* node_get_stack() will generate NULL bNodeStack pointers for unknown/unsupported types of sockets... */
+    /* node_get_stack() will generate NULL bNodeStack pointers
+     * for unknown/unsupported types of sockets. */
     zero_v4(gs->vec);
     gs->link = NULL;
     gs->type = GPU_NONE;

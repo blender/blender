@@ -169,7 +169,8 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
   /* ensure all sock->link pointers and node levels are correct */
   /* Using global main here is likely totally wrong, not sure what to do about that one though...
-   * We cannot even check ntree is in global main, since most of the time it won't be (thanks to ntree design)!!! */
+   * We cannot even check ntree is in global main,
+   * since most of the time it won't be (thanks to ntree design)!!! */
   ntreeUpdateTree(G.main, ntree);
 
   /* get a dependency-sorted list of nodes */

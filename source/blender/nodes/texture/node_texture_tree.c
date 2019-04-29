@@ -325,8 +325,9 @@ int ntreeTexExecTree(bNodeTree *nodes,
     retval |= TEX_NOR;
   }
   retval |= TEX_RGB;
-  /* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was set
-   * however, the texture code checks this for other reasons (namely, a normal is required for material) */
+  /* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was
+   * set however, the texture code checks this for other reasons
+   * (namely, a normal is required for material). */
   texres->nor = nor;
 
   return retval;

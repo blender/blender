@@ -86,7 +86,8 @@ void node_blend_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int ma
 
 void node_image_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
-  /* if there is no loaded image, return an empty string, and let nodeLabel() fill in the proper type translation. */
+  /* If there is no loaded image, return an empty string,
+   * and let nodeLabel() fill in the proper type translation. */
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", maxlen);
 }
 

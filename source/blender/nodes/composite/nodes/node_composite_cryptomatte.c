@@ -71,7 +71,8 @@ static void cryptomatte_add(NodeCryptomatte *n, float f)
       /* Be aware that token_len still contains any trailing white space. */
       token_len = token_end - (n->matte_id + start);
 
-      /* If this has a leading bracket, assume a raw floating point number and look for the closing bracket. */
+      /* If this has a leading bracket,
+       * assume a raw floating point number and look for the closing bracket. */
       if (n->matte_id[start] == '<') {
         if (strncmp(n->matte_id + start, number, strlen(number)) == 0) {
           /* This number is already there, so continue. */
@@ -152,7 +153,8 @@ static void cryptomatte_remove(NodeCryptomatte *n, float f)
     if (token_len == 1) {
       skip = true;
     }
-    /* If this has a leading bracket, assume a raw floating point number and look for the closing bracket. */
+    /* If this has a leading bracket,
+     * assume a raw floating point number and look for the closing bracket. */
     else if (n->matte_id[start] == '<') {
       if (strncmp(n->matte_id + start, number, strlen(number)) == 0) {
         /* This number is already there, so skip it. */

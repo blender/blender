@@ -247,11 +247,12 @@ void ntreeCompositExecTree(Scene *scene,
 
 /* Update the outputs of the render layer nodes.
  * Since the outputs depend on the render engine, this part is a bit complex:
- * - ntreeCompositUpdateRLayers is called and loops over all render layer nodes
- * - Each render layer node calls the update function of the render engine that's used for its scene
- * - The render engine calls RE_engine_register_pass for each pass
- * - RE_engine_register_pass calls ntreeCompositRegisterPass,
- *   which calls node_cmp_rlayers_register_pass for every render layer node
+ * - ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
+ * - Each render layer node calls the update function of the
+ *   render engine that's used for its scene.
+ * - The render engine calls RE_engine_register_pass for each pass.
+ * - RE_engine_register_pass calls ntreeCompositRegisterPass,.
+ *   which calls node_cmp_rlayers_register_pass for every render layer node.
  */
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {
@@ -292,7 +293,9 @@ void ntreeCompositTagRender(Scene *curscene)
 
   /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,
    * not the ones in temp main generated for rendering?
-   * This is still rather weak though, ideally render struct would store own main AND original G_MAIN... */
+   * This is still rather weak though,
+   * ideally render struct would store own main AND original G_MAIN. */
+
   for (sce = G_MAIN->scenes.first; sce; sce = sce->id.next) {
     if (sce->nodetree) {
       bNode *node;

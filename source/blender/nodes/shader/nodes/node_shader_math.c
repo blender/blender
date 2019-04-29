@@ -159,7 +159,8 @@ static void node_shader_exec_math(void *UNUSED(data),
       else {
         float y_mod_1 = fabsf(fmodf(b, 1.0f));
 
-        /* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
+        /* if input value is not nearly an integer,
+         * fall back to zero, nicer than straight rounding. */
         if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
           r = powf(a, floorf(b + 0.5f));
         }
