@@ -108,15 +108,29 @@ typedef struct AZone {
   float alpha;
 } AZone;
 
-/* actionzone type */
+/** Action-Zone Type: #AZone.type */
 enum {
-  /* corner widgets for splitting areas */
+  /**
+   * Corner widgets for:
+   * - Splitting areas.
+   * - Swapping areas (Ctrl).
+   * - Copying the area into a new window (Shift).
+   */
   AZONE_AREA = 1,
-  /* when a region is collapsed, draw a handle to expose */
+  /**
+   * Use for region show/hide state:
+   * - When a region is collapsed, draw a handle to expose.
+   * - When a region is expanded, use the the action zone to resize the region.
+   */
   AZONE_REGION,
-  /* when in editor fullscreen draw a corner to go to normal mode */
+  /**
+   * Used when in editor fullscreen draw a corner to return to normal mode.
+   */
   AZONE_FULLSCREEN,
-  /* Hotspot azone around scrollbars to show/hide them. */
+  /**
+   * Hotspot azone around scrollbars to show/hide them.
+   * Only show the scrull-bars when the cursor is close.
+   */
   AZONE_REGION_SCROLL,
 };
 
