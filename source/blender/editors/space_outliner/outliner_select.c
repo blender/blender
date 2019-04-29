@@ -1371,13 +1371,15 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
   ot->poll = ED_operator_outliner_active;
 
+  PropertyRNA *prop;
   RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
   RNA_def_boolean(ot->srna, "recursive", false, "Recursive", "Select Objects and their children");
-  RNA_def_boolean(ot->srna,
-                  "deselect_all",
-                  false,
-                  "Deselect On Nothing",
-                  "Deselect all when nothing under the cursor");
+  prop = RNA_def_boolean(ot->srna,
+                         "deselect_all",
+                         false,
+                         "Deselect On Nothing",
+                         "Deselect all when nothing under the cursor");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ****************************************************** */

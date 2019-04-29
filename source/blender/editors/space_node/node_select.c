@@ -581,15 +581,17 @@ void NODE_OT_select(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
+  PropertyRNA *prop;
   RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "");
   RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
-  RNA_def_boolean(ot->srna,
-                  "deselect_all",
-                  false,
-                  "Deselect On Nothing",
-                  "Deselect all when nothing under the cursor");
+  prop = RNA_def_boolean(ot->srna,
+                         "deselect_all",
+                         false,
+                         "Deselect On Nothing",
+                         "Deselect all when nothing under the cursor");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
