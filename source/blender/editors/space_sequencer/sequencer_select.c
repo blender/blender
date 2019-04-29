@@ -318,6 +318,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
   const bool linked_time = RNA_boolean_get(op->ptr, "linked_time");
   int left_right = RNA_enum_get(op->ptr, "left_right");
@@ -401,15 +402,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
     }
   }
   else {
-    // seq = find_nearest_seq(scene, v2d, &hand, mval);
-
     act_orig = ed->act_seq;
 
-    if (extend == 0 && linked_handle == 0) {
-      ED_sequencer_deselect_all(scene);
-    }
-
     if (seq) {
+      if (!extend && !linked_handle) {
+        ED_sequencer_deselect_all(scene);
+      }
+
       BKE_sequencer_active_set(scene, seq);
 
       if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
@@ -535,6 +534,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
         select_linked_time(ed->seqbasep, seq);
       }
     }
+    else if (deselect_all) {
+      ED_sequencer_deselect_all(scene);
+    }
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
@@ -566,7 +568,14 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
+  PropertyRNA *prop;
   RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+  prop = RNA_def_boolean(ot->srna,
+                         "deselect_all",
+                         false,
+                         "Deselect On Nothing",
+                         "Deselect all when nothing under the cursor");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_boolean(
       ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip");
   /* for animation this is an enum but atm having an enum isn't useful for us */

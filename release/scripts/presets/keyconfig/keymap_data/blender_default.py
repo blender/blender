@@ -2419,7 +2419,8 @@ def km_sequencer(params):
              )
         ),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("extend", False), ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
+         {"properties": [("extend", False), ("deselect_all", True),
+                         ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", True), ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
