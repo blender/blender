@@ -23,8 +23,10 @@
 
 #pragma once
 
+struct bPoseChannel;
 struct Base;
 struct Main;
+struct Object;
 
 namespace DEG {
 
@@ -34,6 +36,10 @@ class DepsgraphBuilderCache;
 class DepsgraphBuilder {
  public:
   bool need_pull_base_into_graph(Base *base);
+
+  bool check_pchan_has_bbone(Object *object, const bPoseChannel *pchan);
+  bool check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan);
+  bool check_pchan_has_bbone_segments(Object *object, const char *bone_name);
 
  protected:
   /* NOTE: The builder does NOT take ownership over any of those resources. */
@@ -46,6 +52,6 @@ class DepsgraphBuilder {
 };
 
 bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base);
-void deg_graph_build_finalize(struct Main *bmain, struct Depsgraph *graph);
+void deg_graph_build_finalize(Main *bmain, Depsgraph *graph);
 
 }  // namespace DEG

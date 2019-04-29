@@ -196,17 +196,6 @@ static OperationCode bone_target_opcode(ID *target,
   return OperationCode::BONE_DONE;
 }
 
-static bool bone_has_segments(Object *object, const char *bone_name)
-{
-  /* Proxies don't have BONE_SEGMENTS */
-  if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
-    return false;
-  }
-  /* Only B-Bones have segments. */
-  bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
-  return pchan && pchan->bone && pchan->bone->segments > 1;
-}
-
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -1019,7 +1008,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           }
           /* if needs bbone shape, reference the segment computation */
           if (BKE_constraint_target_uses_bbone(con, ct) &&
-              bone_has_segments(ct->tar, ct->subtarget)) {
+              check_pchan_has_bbone_segments(ct->tar, ct->subtarget)) {
             opcode = OperationCode::BONE_SEGMENTS;
           }
           OperationKey target_key(&ct->tar->id, NodeType::BONE, ct->subtarget, opcode);

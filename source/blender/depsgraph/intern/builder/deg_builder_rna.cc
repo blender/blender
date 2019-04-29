@@ -197,8 +197,9 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       node_identifier.type = NodeType::BONE;
       node_identifier.component_name = pchan->name;
       /* But B-Bone properties should connect to the actual operation. */
-      if (!ELEM(NULL, pchan->bone, prop) && pchan->bone->segments > 1 &&
-          STRPREFIX(RNA_property_identifier(prop), "bbone_")) {
+      Object *object = reinterpret_cast<Object *>(node_identifier.id);
+      if (!ELEM(NULL, pchan->bone, prop) && STRPREFIX(RNA_property_identifier(prop), "bbone_") &&
+          builder_->check_pchan_has_bbone_segments(object, pchan)) {
         node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
       }
     }

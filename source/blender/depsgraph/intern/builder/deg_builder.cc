@@ -26,6 +26,7 @@
 #include <cstring>
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
@@ -33,6 +34,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_stack.h"
+
+#include "BKE_action.h"
 
 extern "C" {
 #include "BKE_animsys.h"
@@ -95,6 +98,38 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
     return false;
   }
   return cache_->isPropertyAnimated(&object->id, property_id);
+}
+
+bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel *pchan)
+{
+  BLI_assert(object->type == OB_ARMATURE);
+  if (pchan->bone == NULL) {
+    return false;
+  }
+  /* We don't really care whether segments are higher than 1 due to static user input (as in,
+   * rigger entered value like 3 manually), or due to animation. In either way we need to create
+   * special evaluation. */
+  if (pchan->bone->segments > 1) {
+    return true;
+  }
+  bArmature *armature = static_cast<bArmature *>(object->data);
+  AnimatedPropertyID property_id(&armature->id, &RNA_Bone, pchan->bone, "bbone_segments");
+  return cache_->isPropertyAnimated(&armature->id, property_id);
+}
+
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan)
+{
+  /* Proxies don't have BONE_SEGMENTS */
+  if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
+    return false;
+  }
+  return check_pchan_has_bbone(object, pchan);
+}
+
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const char *bone_name)
+{
+  const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
+  return check_pchan_has_bbone_segments(object, pchan);
 }
 
 /*******************************************************************************

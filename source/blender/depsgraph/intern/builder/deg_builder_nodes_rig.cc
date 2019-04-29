@@ -231,7 +231,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
                                  function_bind(BKE_pose_bone_done, _1, object_cow, pchan_index));
 
     /* B-Bone shape computation - the real last step if present. */
-    if (pchan->bone != NULL && pchan->bone->segments > 1) {
+    if (check_pchan_has_bbone(object, pchan)) {
       op_node = add_operation_node(
           &object->id,
           NodeType::BONE,
