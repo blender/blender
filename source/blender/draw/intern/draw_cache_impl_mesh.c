@@ -4914,8 +4914,10 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
 
+  bool has_request = false;
   /* Init batches and request VBOs & IBOs */
   if (DRW_batch_requested(cache->batch.surface, GPU_PRIM_TRIS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.surface, &cache->ibo.loops_tris);
     DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_pos_nor);
     /* For paint overlay. Active layer should have been queried. */
@@ -4927,35 +4929,43 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
   if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_vbo_request(cache->batch.all_verts, &cache->ordered.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.all_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.all_edges, &cache->ibo.edges_lines);
     DRW_vbo_request(cache->batch.all_edges, &cache->ordered.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.loose_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.loose_edges, &cache->ibo.loose_edges_lines);
     DRW_vbo_request(cache->batch.loose_edges, &cache->ordered.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edge_detection, &cache->ibo.edges_adj_lines);
     DRW_vbo_request(cache->batch.edge_detection, &cache->ordered.pos_nor);
   }
   if (DRW_batch_requested(cache->batch.surface_weights, GPU_PRIM_TRIS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.surface_weights, &cache->ibo.surf_tris);
     DRW_vbo_request(cache->batch.surface_weights, &cache->ordered.pos_nor);
     DRW_vbo_request(cache->batch.surface_weights, &cache->ordered.weights);
   }
   if (DRW_batch_requested(cache->batch.wire_loops, GPU_PRIM_LINE_STRIP)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.wire_loops, &cache->ibo.loops_line_strips);
     DRW_vbo_request(cache->batch.wire_loops, &cache->ordered.loop_pos_nor);
   }
   if (DRW_batch_requested(cache->batch.wire_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.wire_edges, &cache->ibo.loops_lines);
     DRW_vbo_request(cache->batch.wire_edges, &cache->ordered.loop_pos_nor);
     DRW_vbo_request(cache->batch.wire_edges, &cache->ordered.loop_edge_fac);
   }
   if (DRW_batch_requested(cache->batch.wire_loops_uvs, GPU_PRIM_LINE_STRIP)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.wire_loops_uvs, &cache->ibo.loops_line_strips);
     /* For paint overlay. Active layer should have been queried. */
     if (cache->cd_used.uv != 0) {
@@ -4965,31 +4975,37 @@ void DRW_mesh_batch_cache_create_requested(
 
   /* Edit Mesh */
   if (DRW_batch_requested(cache->batch.edit_triangles, GPU_PRIM_TRIS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_triangles, &cache->ibo.edit_loops_tris);
     DRW_vbo_request(cache->batch.edit_triangles, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_triangles, &cache->edit.loop_data);
   }
   if (DRW_batch_requested(cache->batch.edit_vertices, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_vertices, &cache->ibo.edit_loops_points);
     DRW_vbo_request(cache->batch.edit_vertices, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_vertices, &cache->edit.loop_data);
   }
   if (DRW_batch_requested(cache->batch.edit_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_edges, &cache->ibo.edit_loops_lines);
     DRW_vbo_request(cache->batch.edit_edges, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_edges, &cache->edit.loop_data);
   }
   if (DRW_batch_requested(cache->batch.edit_lnor, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_lnor, &cache->ibo.edit_loops_tris);
     DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_lnor);
   }
   if (DRW_batch_requested(cache->batch.edit_facedots, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_vbo_request(cache->batch.edit_facedots, &cache->edit.facedots_pos_nor_data);
   }
 
   /* Mesh Analysis */
   if (DRW_batch_requested(cache->batch.edit_mesh_analysis, GPU_PRIM_TRIS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_mesh_analysis, &cache->ibo.edit_loops_tris);
     DRW_vbo_request(cache->batch.edit_mesh_analysis, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_mesh_analysis, &cache->edit.loop_mesh_analysis);
@@ -4997,33 +5013,39 @@ void DRW_mesh_batch_cache_create_requested(
 
   /* Edit UV */
   if (DRW_batch_requested(cache->batch.edituv_faces, GPU_PRIM_TRI_FAN)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edituv_faces, &cache->ibo.edituv_loops_tri_fans);
     DRW_vbo_request(cache->batch.edituv_faces, &cache->edit.loop_uv);
     DRW_vbo_request(cache->batch.edituv_faces, &cache->edit.loop_uv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_faces_strech_area, GPU_PRIM_TRI_FAN)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edituv_faces_strech_area, &cache->ibo.edituv_loops_tri_fans);
     DRW_vbo_request(cache->batch.edituv_faces_strech_area, &cache->edit.loop_uv);
     DRW_vbo_request(cache->batch.edituv_faces_strech_area, &cache->edit.loop_uv_data);
     DRW_vbo_request(cache->batch.edituv_faces_strech_area, &cache->edit.loop_stretch_area);
   }
   if (DRW_batch_requested(cache->batch.edituv_faces_strech_angle, GPU_PRIM_TRI_FAN)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edituv_faces_strech_angle, &cache->ibo.edituv_loops_tri_fans);
     DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &cache->edit.loop_uv);
     DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &cache->edit.loop_uv_data);
     DRW_vbo_request(cache->batch.edituv_faces_strech_angle, &cache->edit.loop_stretch_angle);
   }
   if (DRW_batch_requested(cache->batch.edituv_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edituv_edges, &cache->ibo.edituv_loops_line_strips);
     DRW_vbo_request(cache->batch.edituv_edges, &cache->edit.loop_uv);
     DRW_vbo_request(cache->batch.edituv_edges, &cache->edit.loop_uv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_verts, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edituv_verts, &cache->ibo.edituv_loops_points);
     DRW_vbo_request(cache->batch.edituv_verts, &cache->edit.loop_uv);
     DRW_vbo_request(cache->batch.edituv_verts, &cache->edit.loop_uv_data);
   }
   if (DRW_batch_requested(cache->batch.edituv_facedots, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_vbo_request(cache->batch.edituv_facedots, &cache->edit.facedots_uv);
     DRW_vbo_request(cache->batch.edituv_facedots, &cache->edit.facedots_uv_data);
   }
@@ -5031,21 +5053,25 @@ void DRW_mesh_batch_cache_create_requested(
   /* Selection */
   /* TODO reuse ordered.loop_pos_nor if possible. */
   if (DRW_batch_requested(cache->batch.edit_selection_verts, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_selection_verts, &cache->ibo.edit_loops_points);
     DRW_vbo_request(cache->batch.edit_selection_verts, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_selection_verts, &cache->edit.loop_vert_idx);
   }
   if (DRW_batch_requested(cache->batch.edit_selection_edges, GPU_PRIM_LINES)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_selection_edges, &cache->ibo.edit_loops_lines);
     DRW_vbo_request(cache->batch.edit_selection_edges, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_selection_edges, &cache->edit.loop_edge_idx);
   }
   if (DRW_batch_requested(cache->batch.edit_selection_faces, GPU_PRIM_TRIS)) {
+    has_request = true;
     DRW_ibo_request(cache->batch.edit_selection_faces, &cache->ibo.edit_loops_tris);
     DRW_vbo_request(cache->batch.edit_selection_faces, &cache->edit.loop_pos_nor);
     DRW_vbo_request(cache->batch.edit_selection_faces, &cache->edit.loop_face_idx);
   }
   if (DRW_batch_requested(cache->batch.edit_selection_facedots, GPU_PRIM_POINTS)) {
+    has_request = true;
     DRW_vbo_request(cache->batch.edit_selection_facedots, &cache->edit.facedots_pos_nor_data);
     DRW_vbo_request(cache->batch.edit_selection_facedots, &cache->edit.facedots_idx);
   }
@@ -5053,6 +5079,7 @@ void DRW_mesh_batch_cache_create_requested(
   /* Per Material */
   for (int i = 0; i < cache->mat_len; ++i) {
     if (DRW_batch_requested(cache->surf_per_mat[i], GPU_PRIM_TRIS)) {
+      has_request = true;
       if (cache->mat_len > 1) {
         DRW_ibo_request(cache->surf_per_mat[i], &cache->surf_per_mat_tris[i]);
       }
@@ -5071,6 +5098,11 @@ void DRW_mesh_batch_cache_create_requested(
         DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_orco);
       }
     }
+  }
+
+  /* Early out if no request. */
+  if (!has_request) {
+    return;
   }
 
   /* Generate MeshRenderData flags */
