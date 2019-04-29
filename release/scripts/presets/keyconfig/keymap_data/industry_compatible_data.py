@@ -1065,7 +1065,6 @@ def km_node_editor(params):
          {"properties": [("replace", False)]}),
         ("node.link_make", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("replace", True)]}),
-        op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("node.parent_set", {"type": 'P', "value": 'PRESS'}, None),
         ("node.join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
@@ -1643,10 +1642,8 @@ def km_sequencercommon(_params):
     )
 
     items.extend([
-        ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_ui')]}),
-        ("wm.context_toggle", {"type": 'O', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'scene.sequence_editor.show_overlay')]}),
     ])
 
     return keymap
@@ -1746,7 +1743,7 @@ def km_sequencer(params):
         ("sequencer.slip", {"type": 'S', "value": 'PRESS'}, None),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'scene.sequence_editor.overlay_frame'), ("value", 0)]}),
-        ("transform.seq_slide", {"type": 'G', "value": 'PRESS'}, None),
+        ("transform.seq_slide", {"type": 'W', "value": 'PRESS'}, None),
         ("transform.seq_slide", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
