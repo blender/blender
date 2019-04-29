@@ -589,7 +589,6 @@ class DOPESHEET_MT_context_menu(Menu):
 
         layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.easing_type", "type", text="Easing Type")
 
         layout.separator()
 
