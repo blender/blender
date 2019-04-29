@@ -2717,6 +2717,8 @@ static void gpencil_draw_apply_event(
   PointerRNA itemptr;
   float mousef[2];
   int tablet = 0;
+  bool is_speed_guide = ((guide->use_guide) &&
+                         (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
 
   /* convert from window-space to area-space mouse coordinates
    * add any x,y override position for fake events
@@ -2726,7 +2728,7 @@ static void gpencil_draw_apply_event(
   p->shift = event->shift;
 
   /* verify direction for straight lines */
-  if ((guide->use_guide) ||
+  if ((is_speed_guide) ||
       ((event->alt > 0) && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
     if (p->straight == 0) {
       int dx = (int)fabsf(p->mval[0] - p->mvali[0]);
@@ -2824,7 +2826,7 @@ static void gpencil_draw_apply_event(
     /* special exception for grid snapping
      * it requires direction which needs at least two points
      */
-    if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP) && guide->use_guide &&
+    if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP) && is_speed_guide &&
         guide->use_snapping && (guide->type == GP_GUIDE_GRID)) {
       p->flags |= GP_PAINTFLAG_REQ_VECTOR;
     }
@@ -2852,9 +2854,9 @@ static void gpencil_draw_apply_event(
   }
 
   /* check if stroke is straight or guided */
-  if ((p->paintmode != GP_PAINTMODE_ERASER) && ((p->straight) || (guide->use_guide))) {
+  if ((p->paintmode != GP_PAINTMODE_ERASER) && ((p->straight) || (is_speed_guide))) {
     /* guided stroke */
-    if (guide->use_guide) {
+    if (is_speed_guide) {
       switch (guide->type) {
         default:
         case GP_GUIDE_CIRCULAR: {
