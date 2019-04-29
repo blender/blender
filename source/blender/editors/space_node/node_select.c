@@ -587,7 +587,7 @@ void NODE_OT_select(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
   RNA_def_boolean(ot->srna,
                   "deselect_all",
-                  0,
+                  false,
                   "Deselect On Nothing",
                   "Deselect all when nothing under the cursor");
 }
