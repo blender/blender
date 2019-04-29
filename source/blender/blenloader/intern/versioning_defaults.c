@@ -302,7 +302,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         }
       }
       else if (STREQ(app_template, "2D_Animation")) {
-        if (STR_ELEM(screen->id.name + 2, "Sculpting", "Texture Paint")) {
+        if (STR_ELEM(screen->id.name + 2, "2D Animation", "2D Full Canvas")) {
+          show_tool_header = true;
+        }
+      }
+      else if (STREQ(app_template, "Sculpting")) {
+        if (STR_ELEM(screen->id.name + 2, "Sculpting")) {
           show_tool_header = true;
         }
       }
