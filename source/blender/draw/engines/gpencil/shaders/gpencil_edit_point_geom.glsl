@@ -16,6 +16,12 @@ vec2 toScreenSpace(vec4 vertex)
   return vec2(vertex.xy / vertex.w) * Viewport;
 }
 
+/* get zdepth value */
+float getZdepth(vec4 point)
+{
+  return min(-0.05, (point.z / point.w));
+}
+
 void main(void)
 {
   vec4 P0 = gl_in[0].gl_Position;
@@ -26,22 +32,22 @@ void main(void)
   /* generate the triangle strip */
   mTexCoord = vec2(0, 1);
   mColor = finalColor[0];
-  gl_Position = vec4(vec2(sp0.x - size, sp0.y + size) / Viewport, 0, 1.0);
+  gl_Position = vec4(vec2(sp0.x - size, sp0.y + size) / Viewport, getZdepth(P0), 1.0);
   EmitVertex();
 
   mTexCoord = vec2(0, 0);
   mColor = finalColor[0];
-  gl_Position = vec4(vec2(sp0.x - size, sp0.y - size) / Viewport, 0, 1.0);
+  gl_Position = vec4(vec2(sp0.x - size, sp0.y - size) / Viewport, getZdepth(P0), 1.0);
   EmitVertex();
 
   mTexCoord = vec2(1, 1);
   mColor = finalColor[0];
-  gl_Position = vec4(vec2(sp0.x + size, sp0.y + size) / Viewport, 0, 1.0);
+  gl_Position = vec4(vec2(sp0.x + size, sp0.y + size) / Viewport, getZdepth(P0), 1.0);
   EmitVertex();
 
   mTexCoord = vec2(1, 0);
   mColor = finalColor[0];
-  gl_Position = vec4(vec2(sp0.x + size, sp0.y - size) / Viewport, 0, 1.0);
+  gl_Position = vec4(vec2(sp0.x + size, sp0.y - size) / Viewport, getZdepth(P0), 1.0);
   EmitVertex();
 
   EndPrimitive();
