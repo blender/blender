@@ -429,8 +429,13 @@ void node_select_single(bContext *C, bNode *node)
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 }
 
-static int node_mouse_select(
-    Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], bool extend, bool socket_select)
+static int node_mouse_select(Main *bmain,
+                             SpaceNode *snode,
+                             ARegion *ar,
+                             const int mval[2],
+                             const bool extend,
+                             const bool socket_select,
+                             const bool deselect_all)
 {
   bNode *node, *tnode;
   bNodeSocket *sock = NULL;
@@ -500,13 +505,15 @@ static int node_mouse_select(
       /* find the closest visible node */
       node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
 
-      if (node) {
+      if (node != NULL || deselect_all) {
         for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
           nodeSetSelected(tnode, false);
         }
-        nodeSetSelected(node, true);
-        ED_node_set_active(bmain, snode->edittree, node);
         selected = true;
+        if (node != NULL) {
+          nodeSetSelected(node, true);
+          ED_node_set_active(bmain, snode->edittree, node);
+        }
       }
     }
   }
@@ -526,19 +533,18 @@ static int node_select_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *ar = CTX_wm_region(C);
   int mval[2];
-  short extend;
-  bool socket_select;
 
   /* get settings from RNA properties for operator */
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  extend = RNA_boolean_get(op->ptr, "extend");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
   /* always do socket_select when extending selection. */
-  socket_select = extend || RNA_boolean_get(op->ptr, "socket_select");
+  const bool socket_select = extend || RNA_boolean_get(op->ptr, "socket_select");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
 
   /* perform the select */
-  if (node_mouse_select(bmain, snode, ar, mval, extend, socket_select)) {
+  if (node_mouse_select(bmain, snode, ar, mval, extend, socket_select, deselect_all)) {
     /* send notifiers */
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
 
@@ -579,6 +585,11 @@ void NODE_OT_select(wmOperatorType *ot)
   RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "");
   RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
+  RNA_def_boolean(ot->srna,
+                  "deselect_all",
+                  0,
+                  "Deselect On Nothing",
+                  "Deselect all when nothing under the cursor");
 }
 
 /** \} */
