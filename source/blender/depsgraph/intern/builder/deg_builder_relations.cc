@@ -1411,27 +1411,34 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
   LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     /* Only used targets. */
     DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-      if (dtar->id == NULL) {
+      ID *target_id = dtar->id;
+      if (target_id == NULL) {
         continue;
       }
-      build_id(dtar->id);
-      build_driver_id_property(dtar->id, dtar->rna_path);
-      /* Initialize relations coming to proxy_from. */
-      Object *proxy_from = NULL;
-      if ((GS(dtar->id->name) == ID_OB) && (((Object *)dtar->id)->proxy_from != NULL)) {
-        proxy_from = ((Object *)dtar->id)->proxy_from;
-        build_id(&proxy_from->id);
+      build_id(target_id);
+      build_driver_id_property(target_id, dtar->rna_path);
+      /* Look up the proxy - matches dtar_id_ensure_proxy_from during evaluation. */
+      Object *object = NULL;
+      if (GS(target_id->name) == ID_OB) {
+        object = (Object *)target_id;
+        if (object->proxy_from != NULL) {
+          /* Redirect the target to the proxy, like in evaluation. */
+          object = object->proxy_from;
+          target_id = &object->id;
+          /* Prepare the redirected target. */
+          build_id(target_id);
+          build_driver_id_property(target_id, dtar->rna_path);
+        }
       }
       /* Special handling for directly-named bones. */
-      if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (((Object *)dtar->id)->type == OB_ARMATURE) &&
+      if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (object && object->type == OB_ARMATURE) &&
           (dtar->pchan_name[0])) {
-        Object *object = (Object *)dtar->id;
         bPoseChannel *target_pchan = BKE_pose_channel_find_name(object->pose, dtar->pchan_name);
         if (target_pchan == NULL) {
           continue;
         }
         OperationKey variable_key(
-            dtar->id, NodeType::BONE, target_pchan->name, OperationCode::BONE_DONE);
+            target_id, NodeType::BONE, target_pchan->name, OperationCode::BONE_DONE);
         if (is_same_bone_dependency(variable_key, self_key)) {
           continue;
         }
@@ -1439,17 +1446,17 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
       }
       else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
         /* Get node associated with the object's transforms. */
-        if (dtar->id == id) {
+        if (target_id == id) {
           /* Ignore input dependency if we're driving properties of
            * the same ID, otherwise we'll be ending up in a cyclic
            * dependency here. */
           continue;
         }
-        OperationKey target_key(dtar->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+        OperationKey target_key(target_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
         add_relation(target_key, driver_key, "Target -> Driver");
       }
       else if (dtar->rna_path != NULL && dtar->rna_path[0] != '\0') {
-        RNAPathKey variable_exit_key(dtar->id, dtar->rna_path, RNAPointerSource::EXIT);
+        RNAPathKey variable_exit_key(target_id, dtar->rna_path, RNAPointerSource::EXIT);
         if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
           continue;
         }
@@ -1458,12 +1465,6 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
           continue;
         }
         add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
-        if (proxy_from != NULL) {
-          RNAPathKey proxy_from_variable_key(
-              &proxy_from->id, dtar->rna_path, RNAPointerSource::EXIT);
-          RNAPathKey variable_entry_key(dtar->id, dtar->rna_path, RNAPointerSource::ENTRY);
-          add_relation(proxy_from_variable_key, variable_entry_key, "Proxy From -> Variable");
-        }
       }
       else {
         /* If rna_path is NULL, and DTAR_FLAG_STRUCT_REF isn't set, this
