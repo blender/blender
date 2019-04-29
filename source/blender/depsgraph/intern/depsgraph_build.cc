@@ -46,6 +46,7 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 
 #include "builder/deg_builder.h"
+#include "builder/deg_builder_cache.h"
 #include "builder/deg_builder_cycle.h"
 #include "builder/deg_builder_nodes.h"
 #include "builder/deg_builder_relations.h"
@@ -238,14 +239,15 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
   BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
   BLI_assert(deg_graph->scene == scene);
   BLI_assert(deg_graph->view_layer == view_layer);
+  DEG::DepsgraphBuilderCache builder_cache;
   /* Generate all the nodes in the graph first */
-  DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph);
+  DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph, &builder_cache);
   node_builder.begin_build();
   node_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
   node_builder.end_build();
   /* Hook up relationships between operations - to determine evaluation
    * order. */
-  DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph);
+  DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph, &builder_cache);
   relation_builder.begin_build();
   relation_builder.build_view_layer(scene, view_layer);
   relation_builder.build_copy_on_write_relations();

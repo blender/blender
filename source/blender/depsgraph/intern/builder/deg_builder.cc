@@ -55,6 +55,11 @@ namespace DEG {
  * Base class for builders.
  */
 
+DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache)
+    : bmain_(bmain), graph_(graph), cache_(cache)
+{
+}
+
 namespace {
 
 struct VisibilityCheckData {
@@ -106,10 +111,6 @@ bool deg_check_base_available_for_build(const Depsgraph *graph, Base *base)
     return true;
   }
   return false;
-}
-
-DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph) : bmain_(bmain), graph_(graph)
-{
 }
 
 bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)

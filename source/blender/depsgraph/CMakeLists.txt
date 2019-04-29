@@ -37,6 +37,7 @@ set(INC_SYS
 
 set(SRC
   intern/builder/deg_builder.cc
+  intern/builder/deg_builder_cache.cc
   intern/builder/deg_builder_cycle.cc
   intern/builder/deg_builder_map.cc
   intern/builder/deg_builder_nodes.cc
@@ -82,6 +83,7 @@ set(SRC
   DEG_depsgraph_query.h
 
   intern/builder/deg_builder.h
+  intern/builder/deg_builder_cache.h
   intern/builder/deg_builder_cycle.h
   intern/builder/deg_builder_map.h
   intern/builder/deg_builder_nodes.h

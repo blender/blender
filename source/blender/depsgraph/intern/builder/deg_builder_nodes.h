@@ -69,6 +69,7 @@ namespace DEG {
 
 struct ComponentNode;
 struct Depsgraph;
+class DepsgraphBuilderCache;
 struct IDNode;
 struct Node;
 struct OperationNode;
@@ -76,7 +77,7 @@ struct TimeSourceNode;
 
 class DepsgraphNodeBuilder : public DepsgraphBuilder {
  public:
-  DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
+  DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache);
   ~DepsgraphNodeBuilder();
 
   /* For given original ID get ID which is created by CoW system. */

@@ -86,6 +86,7 @@ namespace DEG {
 struct ComponentNode;
 struct DepsNodeHandle;
 struct Depsgraph;
+class DepsgraphBuilderCache;
 struct IDNode;
 struct Node;
 struct OperationNode;
@@ -155,7 +156,7 @@ struct RNAPathKey {
 
 class DepsgraphRelationBuilder : public DepsgraphBuilder {
  public:
-  DepsgraphRelationBuilder(Main *bmain, Depsgraph *graph);
+  DepsgraphRelationBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache);
 
   void begin_build();
 

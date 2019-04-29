@@ -29,17 +29,20 @@ struct Main;
 namespace DEG {
 
 struct Depsgraph;
+class DepsgraphBuilderCache;
 
 class DepsgraphBuilder {
  public:
   bool need_pull_base_into_graph(struct Base *base);
 
  protected:
-  DepsgraphBuilder(Main *bmain, Depsgraph *graph);
+  /* NOTE: The builder does NOT take ownership over any of those resources. */
+  DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache);
 
   /* State which never changes, same for the whole builder time. */
   Main *bmain_;
   Depsgraph *graph_;
+  DepsgraphBuilderCache *cache_;
 };
 
 bool deg_check_base_available_for_build(const Depsgraph *graph, Base *base);
