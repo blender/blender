@@ -1283,10 +1283,8 @@ def km_dopesheet_generic(params):
     )
 
     items.extend([
-        ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
+        ("wm.context_toggle", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_region_ui')]}),
-        ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]})
     ])
 
     return keymap
@@ -1357,17 +1355,16 @@ def km_dopesheet(params):
         ("action.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("anim.channels_editable_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
         ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
-        ("transform.transform", {"type": 'G', "value": 'PRESS'},
+        ("transform.transform", {"type": 'W', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
         ("transform.transform", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
-        ("transform.transform", {"type": 'S', "value": 'PRESS'},
+        ("transform.transform", {"type": 'R', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_SCALE')]}),
         ("transform.transform", {"type": 'T', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'TIME_SLIDE')]}),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'RET', "value": 'PRESS'}, None),
         ("anim.start_frame_set", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True}, None),
