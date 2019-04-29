@@ -449,6 +449,13 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Selection", "Toggle the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna,
+                         "deselect_all",
+                         0,
+                         "Deselect On Nothing",
+                         "Deselect all when nothing under the cursor");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /**

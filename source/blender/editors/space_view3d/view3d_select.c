@@ -2251,9 +2251,6 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_mouse_select(ot);
-  prop = RNA_def_boolean(
-      ot->srna, "deselect_all", 0, "Deselect", "Deselect all when nothing under the cursor");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
       ot->srna,

@@ -262,6 +262,7 @@ static int select_exec(bContext *C, wmOperator *op)
   bool extend = RNA_boolean_get(op->ptr, "extend");
   bool deselect = RNA_boolean_get(op->ptr, "deselect");
   bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   eMaskWhichHandle which_handle;
   const float threshold = 19;
 
@@ -361,6 +362,15 @@ static int select_exec(bContext *C, wmOperator *op)
           }
         }
       }
+
+      ED_mask_select_flush_all(mask);
+
+      WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+      return OPERATOR_FINISHED;
+    }
+    else if (deselect_all) {
+      ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
       ED_mask_select_flush_all(mask);
 
