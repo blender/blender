@@ -263,7 +263,7 @@ static MovieTrackingPlaneTrack *find_nearest_plane_track(SpaceClip *sc,
   return plane_track;
 }
 
-void ed_tracking_delect_all_tracks(ListBase *tracks_base)
+void ed_tracking_deselect_all_tracks(ListBase *tracks_base)
 {
   MovieTrackingTrack *track;
   for (track = tracks_base->first; track != NULL; track = track->next) {
@@ -271,7 +271,7 @@ void ed_tracking_delect_all_tracks(ListBase *tracks_base)
   }
 }
 
-void ed_tracking_delect_all_plane_tracks(ListBase *plane_tracks_base)
+void ed_tracking_deselect_all_plane_tracks(ListBase *plane_tracks_base)
 {
   MovieTrackingPlaneTrack *plane_track;
   for (plane_track = plane_tracks_base->first; plane_track != NULL;
@@ -306,7 +306,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
   }
 
   if (!extend) {
-    ed_tracking_delect_all_plane_tracks(plane_tracks_base);
+    ed_tracking_deselect_all_plane_tracks(plane_tracks_base);
   }
 
   if (track) {
@@ -337,7 +337,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
   }
   else if (plane_track) {
     if (!extend) {
-      ed_tracking_delect_all_tracks(tracksbase);
+      ed_tracking_deselect_all_tracks(tracksbase);
     }
 
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {

@@ -90,7 +90,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
   }
 
   /* Deselect existing tracks. */
-  ed_tracking_delect_all_tracks(tracksbase);
+  ed_tracking_deselect_all_tracks(tracksbase);
   /* Run detector. */
   BKE_tracking_detect_harris(tracking,
                              tracksbase,
