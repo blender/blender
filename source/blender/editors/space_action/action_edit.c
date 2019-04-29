@@ -132,7 +132,8 @@ static int act_markers_make_local_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  /* now enable the "show posemarkers only" setting, so that we can see that something did happen */
+  /* Now enable the "show posemarkers only" setting,
+   * so that we can see that something did happen */
   sact->flag |= SACTION_POSEMARKERS_SHOW;
 
   /* notifiers - both sets, as this change affects both */
@@ -733,11 +734,14 @@ static void insert_action_keys(bAnimContext *ac, short mode)
     FCurve *fcu = (FCurve *)ale->key_data;
     float cfra = (float)CFRA;
 
-    /* read value from property the F-Curve represents, or from the curve only?
-     * - ale->id != NULL:    Typically, this means that we have enough info to try resolving the path
-     * - ale->owner != NULL: If this is set, then the path may not be resolvable from the ID alone,
-     *                       so it's easier for now to just read the F-Curve directly.
-     *                       (TODO: add the full-blown PointerRNA relative parsing case here...)
+    /* Read value from property the F-Curve represents, or from the curve only?
+     * - ale->id != NULL:
+     *   Typically, this means that we have enough info to try resolving the path.
+     *
+     * - ale->owner != NULL:
+     *   If this is set, then the path may not be resolvable from the ID alone,
+     *   so it's easier for now to just read the F-Curve directly.
+     *   (TODO: add the full-blown PointerRNA relative parsing case here...)
      */
     if (ale->id && !ale->owner) {
       insert_keyframe(ac->bmain,

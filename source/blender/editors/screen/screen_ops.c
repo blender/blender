@@ -990,7 +990,8 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   AZone *az = screen_actionzone_find_xy(sc, &event->x);
   sActionzoneData *sad;
 
-  /* quick escape - Scroll azones only hide/unhide the scroll-bars, they have their own handling. */
+  /* Quick escape - Scroll azones only hide/unhide the scroll-bars,
+   * they have their own handling. */
   if (az == NULL || ELEM(az->type, AZONE_REGION_SCROLL)) {
     return OPERATOR_PASS_THROUGH;
   }

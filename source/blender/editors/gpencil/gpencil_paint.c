@@ -1205,10 +1205,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
       gp_randomize_stroke(gps, brush, p->rng);
     }
 
-    /* smooth stroke after subdiv - only if there's something to do
-     * for each iteration, the factor is reduced to get a better smoothing without changing too much
-     * the original stroke
-     */
+    /* Smooth stroke after subdiv - only if there's something to do for each iteration,
+     * the factor is reduced to get a better smoothing
+     * without changing too much the original stroke. */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
         (brush->gpencil_settings->draw_smoothfac > 0.0f)) {
       float reduce = 0.0f;
@@ -3474,7 +3473,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  /* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
+  /* We don't pass on key events, GP is used with key-modifiers -
+   * prevents Dkey to insert drivers. */
   if (ISKEYBOARD(event->type)) {
     if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY, ZKEY)) {
       /* allow some keys:
@@ -3508,8 +3508,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   //printf("\tGP - handle modal event...\n");
 
-  /* exit painting mode (and/or end current stroke)
-   * NOTE: cannot do RIGHTMOUSE (as is standard for canceling) as that would break polyline [#32647]
+  /* Exit painting mode (and/or end current stroke).
+   *
+   * NOTE: cannot do RIGHTMOUSE (as is standard for canceling)
+   * as that would break polyline T32647.
    */
   /* if polyline and release shift must cancel */
   if ((ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) ||

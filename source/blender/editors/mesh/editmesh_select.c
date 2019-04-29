@@ -462,7 +462,8 @@ static void findnearestvert__doClosest(void *userData,
  *
  * \param r_dist: (in/out), minimal distance to the nearest and at the end, actual distance
  * \param use_select_bias:
- * - When true, selected vertices are given a 5 pixel bias to make them further than unselect verts.
+ * - When true, selected vertices are given a 5 pixel bias
+ *   to make them further than unselect verts.
  * - When false, unselected vertices are given the bias.
  * \param use_cycle: Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
  */

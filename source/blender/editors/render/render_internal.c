@@ -1115,7 +1115,10 @@ void RENDER_OT_render(wmOperatorType *ot)
   ot->cancel = screen_render_cancel;
   ot->exec = screen_render_exec;
 
-  /*ot->poll = ED_operator_screenactive;*/ /* this isn't needed, causes failer in background mode */
+  /* this isn't needed, causes failer in background mode */
+#if 0
+  ot->poll = ED_operator_screenactive;
+#endif
 
   prop = RNA_def_boolean(ot->srna,
                          "animation",

@@ -939,8 +939,8 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
                 l_b;
 
         l = BM_loop_other_edge_loop(l, v);
-        /* important edge is manifold else we can be attempting to split off a fan that don't budge,
-         * not crashing but adds duplicate edge. */
+        /* Important edge is manifold else we can be attempting to split off
+         * a fan that don't budge, not crashing but adds duplicate edge. */
         if (BM_edge_is_manifold(l->e)) {
           l = l->radial_next;
 

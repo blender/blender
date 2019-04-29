@@ -520,7 +520,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-/* Note this context poll is only really partial, it cannot check for all possible invalid cases. */
+/* Note this context poll is only really partial,
+ * it cannot check for all possible invalid cases. */
 static bool data_transfer_poll(bContext *C)
 {
   Object *ob = ED_object_active_context(C);
@@ -773,8 +774,8 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
   dtmd = (DataTransferModifierData *)edit_modifier_property_get(
       op, ob_act, eModifierType_DataTransfer);
 
-  /* If we have a modifier, we transfer data layout from this modifier's source object to active one.
-   * Else, we transfer data layout from active object to all selected ones. */
+  /* If we have a modifier, we transfer data layout from this modifier's source object to
+   * active one. Else, we transfer data layout from active object to all selected ones. */
   if (dtmd) {
     Object *ob_src = dtmd->ob_source;
     Object *ob_dst = ob_act;

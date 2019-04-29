@@ -217,8 +217,9 @@ void POSE_OT_propagate(struct wmOperatorType *ot);
 /* ******************************************************* */
 /* Various Armature Edit/Pose Editing API's */
 
-/* Ideally, many of these defines would not be needed as everything would be strictly self-contained
- * within each file, but some tools still have a bit of overlap which makes things messy -- Feb 2013
+/* Ideally, many of these defines would not be needed as everything would be strictly
+ * self-contained within each file,
+ * but some tools still have a bit of overlap which makes things messy -- Feb 2013
  */
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct Bone *actBone);

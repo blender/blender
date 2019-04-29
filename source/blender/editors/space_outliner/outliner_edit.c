@@ -1634,7 +1634,8 @@ static void tree_element_to_path(TreeElement *te,
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
       /* just 'append' property to path
-       * - to prevent memory leaks, we must write to newpath not path, then free old path + swap them
+       * - to prevent memory leaks, we must write to newpath not path,
+       *   then free old path + swap them.
        */
       if (tse->type == TSE_RNA_PROPERTY) {
         if (RNA_property_type(prop) == PROP_POINTER) {

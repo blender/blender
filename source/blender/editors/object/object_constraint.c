@@ -1828,9 +1828,8 @@ static bool get_new_constraint_target(
 
     /* transform cent to global coords for loc */
     if (pchanact) {
-      /* since by default, IK targets the tip of the last bone, use the tip of the active PoseChannel
-       * if adding a target for an IK Constraint
-       */
+      /* Since by default, IK targets the tip of the last bone,
+       * use the tip of the active PoseChannel if adding a target for an IK Constraint. */
       if (con_type == CONSTRAINT_TYPE_KINEMATIC) {
         mul_v3_m4v3(obt->loc, obact->obmat, pchanact->pose_tail);
       }
@@ -2215,7 +2214,8 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     bConstraint *con, *next;
 
-    /* TODO: should we be checking if these constraints were local before we try and remove them? */
+    /* TODO: should we be checking if these constraints were local
+     * before we try and remove them? */
     for (con = pchan->constraints.first; con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {

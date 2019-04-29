@@ -2810,7 +2810,9 @@ void MESH_OT_colors_reverse(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  //RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around");
+#if 0
+  RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around");
+#endif
 }
 
 /** \} */
@@ -7010,7 +7012,8 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
   ot->exec = edbm_offset_edgeloop_exec;
   ot->poll = ED_operator_editmesh;
 
-  /* Keep internal, since this is only meant to be accessed via 'MESH_OT_offset_edge_loops_slide' */
+  /* Keep internal, since this is only meant to be accessed via
+   * 'MESH_OT_offset_edge_loops_slide'. */
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

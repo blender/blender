@@ -657,8 +657,9 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
     AnimData *adt = ale->adt;
     NlaStrip *strip = NULL;
 
-    /* sanity check: only apply actions of the right type for this ID
-     * NOTE: in the case that this hasn't been set, we've already warned the user about this already
+    /* Sanity check: only apply actions of the right type for this ID.
+     * NOTE: in the case that this hasn't been set,
+     * we've already warned the user about this already
      */
     if ((act->idroot) && (act->idroot != GS(ale->id->name))) {
       BKE_reportf(

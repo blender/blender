@@ -117,7 +117,8 @@ void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channel
 
     /* affect channel selection status? */
     if (do_channels) {
-      /* only change selection of channel when the visibility of keyframes doesn't depend on this */
+      /* Only change selection of channel when the visibility of keyframes
+       * doesn't depend on this. */
       if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
         /* deactivate the F-Curve, and deselect if deselecting keyframes.
          * otherwise select the F-Curve too since we've selected all the keyframes
@@ -324,7 +325,8 @@ static void box_select_graphkeys(bAnimContext *ac,
       /* select keyframes that are in the appropriate places */
       ANIM_fcurve_keyframes_loop(&ked, fcu, ok_cb, select_cb, NULL);
 
-      /* only change selection of channel when the visibility of keyframes doesn't depend on this */
+      /* Only change selection of channel when the visibility of keyframes
+       * doesn't depend on this. */
       if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
         /* select the curve too now that curve will be touched */
         if (selectmode == SELECT_ADD) {
@@ -1188,7 +1190,8 @@ static void nearest_fcurve_vert_store(ListBase *matches,
       tNearestVertInfo *nvi = (tNearestVertInfo *)matches->last;
       bool replace = false;
 
-      /* if there is already a point for the F-Curve, check if this point is closer than that was */
+      /* If there is already a point for the F-Curve,
+       * check if this point is closer than that was. */
       if ((nvi) && (nvi->fcu == fcu)) {
         /* replace if we are closer, or if equal and that one wasn't selected but we are... */
         if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZT_ISSEL_ANY(bezt))) {
@@ -1343,8 +1346,9 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
   for (nvi = matches->first; nvi; nvi = nvi->next) {
     /* which mode of search are we in: find first selected, or find vert? */
     if (found) {
-      /* just take this vert now that we've found the selected one
-       * - we'll need to remove this from the list so that it can be returned to the original caller
+      /* Just take this vert now that we've found the selected one
+       * - We'll need to remove this from the list
+       *   so that it can be returned to the original caller.
        */
       BLI_remlink(matches, nvi);
       return nvi;

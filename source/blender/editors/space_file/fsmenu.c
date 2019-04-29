@@ -296,8 +296,8 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 
   if ((category == FS_CATEGORY_RECENT) && (!name || !name[0])) {
-    /* Special handling when adding new recent entry - check if dir exists in some other categories,
-     * and try to use name from there if so. */
+    /* Special handling when adding new recent entry - check if dir exists in
+     * some other categories, and try to use name from there if so. */
     FSMenuCategory cats[] = {
         FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS};
     int i = ARRAY_SIZE(cats);

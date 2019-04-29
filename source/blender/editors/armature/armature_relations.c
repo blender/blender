@@ -432,9 +432,10 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
             cti->get_constraint_targets(con, &targets);
 
             for (ct = targets.first; ct; ct = ct->next) {
-              /* any targets which point to original armature are redirected to the new one only if:
-               * - the target isn't origArm/newArm itself
-               * - the target is one that can be found in newArm/origArm
+              /* Any targets which point to original armature
+               * are redirected to the new one only if:
+               * - The target isn't origArm/newArm itself.
+               * - The target is one that can be found in newArm/origArm.
                */
               if (ct->subtarget[0] != 0) {
                 if (ct->tar == origArm) {

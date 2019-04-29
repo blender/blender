@@ -2205,7 +2205,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     p->ar = ar;
   }
 
-  /* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
+  /* We don't pass on key events, GP is used with key-modifiers -
+   * prevents Dkey to insert drivers. */
   if (ISKEYBOARD(event->type)) {
     if (ELEM(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY, ZKEY)) {
       /* allow some keys:
@@ -2235,8 +2236,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   //printf("\tGP - handle modal event...\n");
 
-  /* exit painting mode (and/or end current stroke)
-   * NOTE: cannot do RIGHTMOUSE (as is standard for canceling) as that would break polyline [#32647]
+  /* Exit painting mode (and/or end current stroke)
+   *
+   * NOTE: cannot do RIGHTMOUSE (as is standard for canceling)
+   * as that would break polyline T32647.
    */
   if (ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) {
     /* exit() ends the current stroke before cleaning up */

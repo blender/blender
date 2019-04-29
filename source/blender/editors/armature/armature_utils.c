@@ -466,8 +466,8 @@ static EditBone *make_boneList_rec(ListBase *edbo,
         eBone->parent->flag |= BONE_TIPSEL;
       }
 
-      /* For connected bones, take care when changing the selection when we have a connected parent,
-       * this flag is a copy of '(eBone->parent->flag & BONE_TIPSEL)'. */
+      /* For connected bones, take care when changing the selection when we have a
+       * connected parent, this flag is a copy of '(eBone->parent->flag & BONE_TIPSEL)'. */
       eBone->flag |= BONE_ROOTSEL;
     }
     else {

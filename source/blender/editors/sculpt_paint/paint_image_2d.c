@@ -999,8 +999,8 @@ static void paint_2d_lift_soften(
           /* subtract blurred image from normal image gives high pass filter */
           sub_v3_v3v3(outrgb, rgba, outrgb);
 
-          /* now rgba_ub contains the edge result, but this should be converted to luminance to avoid
-           * colored speckles appearing in final image, and also to check for threshold */
+          /* Now rgba_ub contains the edge result, but this should be converted to luminance to
+           * avoid colored speckles appearing in final image, and also to check for threshold. */
           outrgb[0] = outrgb[1] = outrgb[2] = IMB_colormanagement_get_luminance(outrgb);
           if (fabsf(outrgb[0]) > threshold) {
             float mask = BKE_brush_alpha_get(s->scene, s->brush);

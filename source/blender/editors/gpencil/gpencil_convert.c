@@ -328,9 +328,9 @@ static int gp_find_end_of_stroke_idx(tGpTimingData *gtd,
           else {
             float delta, min, max;
 
-            /* This code ensures that if the first gaps have been shorter than average gap_duration,
-             * next gaps will tend to be longer (i.e. try to recover the lateness), and vice-versa!
-             */
+            /* This code ensures that if the first gaps
+             * have been shorter than average gap_duration, next gaps
+             * will tend to be longer (i.e. try to recover the lateness), and vice-versa! */
             delta = delta_time - (gtd->gap_duration * (*nbr_done_gaps));
 
             /* Clamp min between [-gap_randomness, 0.0], with lower delta giving higher min */
@@ -963,10 +963,10 @@ static void gp_stroke_to_bezier(bContext *C,
 
     /* Create "link points" */
     /* About "zero-radius" point interpolations:
-     * - If we have at least two points in current curve (most common case), we linearly extrapolate
-     *   the last segment to get the first point (p1) position and timing.
-     * - If we do not have those (quite odd, but may happen), we linearly interpolate the last point
-     *   with the first point of the current stroke.
+     * - If we have at least two points in current curve (most common case),
+     *   we linearly extrapolate the last segment to get the first point (p1) position and timing.
+     * - If we do not have those (quite odd, but may happen),
+     *   we linearly interpolate the last point with the first point of the current stroke.
      *
      * The same goes for the second point,
      * first segment of the current stroke is "negatively" extrapolated

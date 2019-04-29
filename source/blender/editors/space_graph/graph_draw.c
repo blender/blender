@@ -1157,7 +1157,8 @@ void graph_draw_curves(
     }
 
     /* 2) draw handles and vertices as appropriate based on active
-     * - if the option to only show controls if the F-Curve is selected is enabled, we must obey this
+     * - If the option to only show controls if the F-Curve is selected is enabled,
+     *   we must obey this.
      */
     if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
       if (!fcurve_are_keyframes_usable(fcu) && !(fcu->fpt && fcu->totvert)) {
@@ -1181,7 +1182,8 @@ void graph_draw_curves(
         GPU_matrix_scale_2f(1.0f, unit_scale);
         GPU_matrix_translate_2f(0.0f, offset);
 
-        /* set this once and for all - all handles and handle-verts should use the same thickness */
+        /* Set this once and for all -
+         * all handles and handle-verts should use the same thickness. */
         GPU_line_width(1.0);
 
         if (fcu->bezt) {

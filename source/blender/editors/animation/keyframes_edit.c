@@ -240,7 +240,8 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
   filter = ANIMFILTER_DATA_VISIBLE;  // curves only
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-  /* loop through each F-Curve, applying the operation as required, but stopping on the first one */
+  /* Loop through each F-Curve, applying the operation as required,
+   * but stopping on the first one. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     if (ANIM_fcurve_keyframes_loop(ked, (FCurve *)ale->data, key_ok, key_cb, fcu_cb)) {
       ret = 1;
@@ -288,7 +289,8 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
   filter = ANIMFILTER_DATA_VISIBLE;  // curves only
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-  /* loop through each F-Curve, applying the operation as required, but stopping on the first one */
+  /* Loop through each F-Curve, applying the operation as required,
+   * but stopping on the first one. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     if (ANIM_fcurve_keyframes_loop(ked, (FCurve *)ale->data, key_ok, key_cb, fcu_cb)) {
       ret = 1;

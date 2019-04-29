@@ -290,7 +290,8 @@ static bool image_sample_poll(bContext *C)
   if (sima) {
     Object *obedit = CTX_data_edit_object(C);
     if (obedit) {
-      /* Disable when UV editing so it doesn't swallow all click events (use for setting cursor). */
+      /* Disable when UV editing so it doesn't swallow all click events
+       * (use for setting cursor). */
       if (ED_space_image_show_uvedit(sima, obedit)) {
         return false;
       }

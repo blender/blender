@@ -1772,8 +1772,8 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
     } /* otherwise no mask normal is needed, were within the limit */
   }
 
-  /* This only works when the opacity doesn't change while painting, stylus pressure messes with this
-   * so don't use it. */
+  /* This only works when the opacity doesn't change while painting, stylus pressure messes with
+   * this so don't use it. */
   // if (ps->is_airbrush == 0) mask *= BKE_brush_alpha_get(ps->brush);
 
   return mask;
@@ -2203,8 +2203,8 @@ static bool line_clip_rect2f(const rctf *cliprect,
 
 /**
  * Scale the tri about its center
- * scaling by #PROJ_FACE_SCALE_SEAM (0.99x) is used for getting fake UV pixel coords that are on the
- * edge of the face but slightly inside it occlusion tests don't return hits on adjacent faces
+ * scaling by #PROJ_FACE_SCALE_SEAM (0.99x) is used for getting fake UV pixel coords that are on
+ * the edge of the face but slightly inside it occlusion tests don't return hits on adjacent faces.
  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 
@@ -2303,8 +2303,8 @@ static bool project_bucket_isect_circle(const float cent[2],
 
 /* Note for rect_to_uvspace_ortho() and rect_to_uvspace_persp()
  * in ortho view this function gives good results when bucket_bounds are outside the triangle
- * however in some cases, perspective view will mess up with faces that have minimal screenspace area
- * (viewed from the side)
+ * however in some cases, perspective view will mess up with faces
+ * that have minimal screenspace area (viewed from the side).
  *
  * for this reason its not reliable in this case so we'll use the Simple Barycentric'
  * funcs that only account for points inside the triangle.

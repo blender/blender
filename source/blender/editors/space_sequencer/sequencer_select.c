@@ -60,8 +60,8 @@ static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRIN
 
   neighbor = find_neighboring_sequence(scene, test, SEQ_SIDE_LEFT, -1);
   if (neighbor) {
-    /* Only select neighbor handle if matching handle from test seq is also selected, or if neighbor
-     * was not selected at all up till now.
+    /* Only select neighbor handle if matching handle from test seq is also selected,
+     * or if neighbor was not selected at all up till now.
      * Otherwise, we get odd mismatch when shift-alt-rmb selecting neighbor strips... */
     if (!(neighbor->flag & SELECT) || (test->flag & SEQ_LEFTSEL)) {
       neighbor->flag |= SEQ_RIGHTSEL;
@@ -427,8 +427,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
       if (linked_handle) {
         if (!ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
           /* First click selects the strip and its adjacent handles (if valid).
-           * Second click selects the strip, both of its handles and its adjacent handles (if valid).
-           */
+           * Second click selects the strip,
+           * both of its handles and its adjacent handles (if valid). */
           const bool is_striponly_selected = ((seq->flag & SEQ_ALLSEL) == SELECT);
 
           if (!extend) {

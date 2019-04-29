@@ -1452,7 +1452,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     }
 
     /* remove from Grease Pencil parent */
-    /* XXX This is likely not correct? Will also remove parent from grease pencil from other scenes,
+    /* XXX This is likely not correct?
+     *     Will also remove parent from grease pencil from other scenes,
      *     even when use_global is false... */
     for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
       for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {

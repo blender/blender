@@ -1479,8 +1479,9 @@ static void outliner_make_object_parent_hierarchy(ListBase *lb)
 }
 
 /**
-  * For all objects in the tree, lookup the parent in this map, and move or add tree elements as needed.
-  */
+ * For all objects in the tree, lookup the parent in this map,
+ * and move or add tree elements as needed.
+ */
 static void outliner_make_object_parent_hierarchy_collections(SpaceOutliner *soops,
                                                               GHash *object_tree_elements_hash)
 {

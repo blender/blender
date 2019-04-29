@@ -490,8 +490,8 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  /* Note that if you use MESH_ADD_VERTS_MAXI for both x and y at the same time you will still reach
-   * impossible values (10^12 vertices or so...). */
+  /* Note that if you use MESH_ADD_VERTS_MAXI for both x and y at the same time
+   * you will still reach impossible values (10^12 vertices or so...). */
   RNA_def_int(
       ot->srna, "x_subdivisions", 10, 2, MESH_ADD_VERTS_MAXI, "X Subdivisions", "", 2, 1000);
   RNA_def_int(

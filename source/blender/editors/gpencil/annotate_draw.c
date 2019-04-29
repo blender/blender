@@ -897,12 +897,13 @@ static void annotation_draw_data_layers(
     /* draw the strokes already in active frame */
     annotation_draw_strokes(gpd, gpl, gpf, offsx, offsy, winx, winy, dflag, lthick, ink);
 
-    /* Draw verts of selected strokes
+    /* Draw verts of selected strokes:
      *  - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
      *  - locked layers can't be edited, so there's no point showing these verts
      *    as they will have no bearings on what gets edited
      *  - only show when in editmode, since operators shouldn't work otherwise
-     *    (NOTE: doing it this way means that the toggling editmode shows visible change immediately)
+     *    (NOTE: doing it this way means that the toggling editmode
+     *    shows visible change immediately).
      */
     /* XXX: perhaps we don't want to show these when users are drawing... */
     if ((G.f & G_FLAG_RENDER_VIEWPORT) == 0 && (gpl->flag & GP_LAYER_LOCKED) == 0 &&
@@ -1114,9 +1115,13 @@ void ED_annotation_draw_2dimage(const bContext *C)
   annotation_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
 }
 
-/* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly
- * Note: this gets called twice - first time with onlyv2d=true to draw 'canvas' strokes,
- * second time with onlyv2d=false for screen-aligned strokes */
+/**
+ * Draw grease-pencil sketches to specified 2d-view
+ * assuming that matrices are already set correctly.
+ *
+ * \note This gets called twice - first time with onlyv2d=true to draw 'canvas' strokes,
+ * second time with onlyv2d=false for screen-aligned strokes.
+ */
 void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1135,7 +1140,8 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   }
 
   /* special hack for Image Editor */
-  /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
+  /* FIXME: the opengl poly-strokes don't draw at right thickness when done this way,
+   * so disabled. */
   if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
     dflag |= GP_DRAWDATA_IEDITHACK;
   }

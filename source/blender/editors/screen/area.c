@@ -1524,7 +1524,8 @@ static void area_calc_totrct(ScrArea *sa, const rcti *window_rect)
     sa->totrct.ymax -= px;
   }
   /* Although the following asserts are correct they lead to a very unstable Blender.
-   * And the asserts would fail even in 2.7x (they were added in 2.8x as part of the top-bar commit).
+   * And the asserts would fail even in 2.7x
+   * (they were added in 2.8x as part of the top-bar commit).
    * For more details see T54864. */
 #if 0
   BLI_assert(sa->totrct.xmin >= 0);

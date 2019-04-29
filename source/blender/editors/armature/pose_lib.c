@@ -77,7 +77,9 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
 }
 
 /* ************************************************************* */
-/* == POSE-LIBRARY TOOL FOR BLENDER ==
+/**
+ * Pose-Library Tool for Blender
+ * =============================
  *
  * Overview:
  *  This tool allows animators to store a set of frequently used poses to dump into
@@ -85,13 +87,13 @@ static void action_set_activemarker(void *UNUSED(a), void *UNUSED(b), void *UNUS
  *  It acts as a kind of "glorified clipboard for poses", allowing for naming of poses.
  *
  * Features:
- * - PoseLibs are simply normal Actions
- * - Each "pose" is simply a set of keyframes that occur on a particular frame
- *   -> a set of TimeMarkers that belong to each Action, help 'label' where a 'pose' can be
- *      found in the Action
+ * - PoseLibs are simply normal Actions.
+ * - Each "pose" is simply a set of keyframes that occur on a particular frame.
+ *   - A set of TimeMarkers that belong to each Action, help 'label' where a 'pose' can be
+ *     found in the Action.
  * - The Scrollwheel or PageUp/Down buttons when used in a special mode or after pressing/holding
- *   [a modifier] key, cycles through the poses available for the active pose's poselib, allowing the
- *   animator to preview what action best suits that pose
+ *   [a modifier] key, cycles through the poses available for the active pose's poselib,
+ *   allowing the animator to preview what action best suits that pose.
  */
 /* ************************************************************* */
 

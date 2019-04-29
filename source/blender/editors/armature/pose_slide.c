@@ -362,9 +362,10 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     w2 = (w2 / wtot);
   }
 
-  /* depending on the mode, calculate the new value
-   * - in all of these, the start+end values are multiplied by w2 and w1 (respectively),
-   *   since multiplication in another order would decrease the value the current frame is closer to
+  /* Depending on the mode, calculate the new value:
+   * - In all of these, the start+end values are multiplied by w2 and w1 (respectively),
+   *   since multiplication in another order would decrease
+   *   the value the current frame is closer to.
    */
   switch (pso->mode) {
     case POSESLIDE_PUSH: /* make the current pose more pronounced */
@@ -698,9 +699,8 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
-      /* not strictly a transform, but custom properties contribute to the pose produced in many rigs
-       * (e.g. the facial rigs used in Sintel)
-       */
+      /* Not strictly a transform, but custom properties contribute
+       * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
       pose_slide_apply_props(pso, pfl, "[\""); /* dummy " for texteditor bugs */
     }
   }

@@ -474,7 +474,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   for (ale = anim_data->first; ale; ale = ale->next) {
     /* compare data, and type as main way of identifying the channel */
     if ((ale->data == ale_setting->data) && (ale->type == ale_setting->type)) {
-      /* we also have to check the ID, this is assigned to, since a block may have multiple users */
+      /* We also have to check the ID, this is assigned to,
+       * since a block may have multiple users. */
       /* TODO: is the owner-data more revealing? */
       if (ale->id == ale_setting->id) {
         match = ale;
@@ -1233,9 +1234,10 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
   /* Filter visible data. */
   rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_GROUP);
 
-  /* rearrange groups first
-   * - the group's channels will only get considered if nothing happened when rearranging the groups
-   *   i.e. the rearrange function returned 0
+  /* Rearrange groups first:
+   * - The group's channels will only get considered
+   *   if nothing happened when rearranging the groups
+   *   i.e. the rearrange function returned 0.
    */
   do_channels = (rearrange_animchannel_islands(
                      &act->groups, rearrange_func, mode, ANIMTYPE_GROUP, &anim_data_visible) == 0);

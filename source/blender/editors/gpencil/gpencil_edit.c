@@ -2212,7 +2212,8 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf,
 
   /* Watch out for special case where No islands = All points selected = Delete Stroke only */
   if (num_islands) {
-    /* there are islands, so create a series of new strokes, adding them before the "next" stroke */
+    /* There are islands, so create a series of new strokes,
+     * adding them before the "next" stroke. */
     int idx;
     bGPDstroke *new_stroke = NULL;
 

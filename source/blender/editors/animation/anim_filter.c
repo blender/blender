@@ -425,7 +425,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   animedit_get_yscale_factor(ac);
 
   /* get data context info */
-  // XXX: if the below fails, try to grab this info from context instead... (to allow for scripting)
+  /* XXX: if the below fails, try to grab this info from context instead...
+   * (to allow for scripting). */
   return ANIM_animdata_context_getdata(ac);
 }
 
@@ -486,7 +487,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  * Quick macro to test for all three above usability tests, performing the appropriate provided
  * action for each when the AnimData context is appropriate.
  *
- * Priority order for this goes (most important, to least): AnimData blocks, NLA, Drivers, Keyframes.
+ * Priority order for this goes (most important, to least):
+ * AnimData blocks, NLA, Drivers, Keyframes.
  *
  * For this to work correctly,
  * a standard set of data needs to be available within the scope that this
@@ -582,7 +584,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 #define ANIMCHANNEL_ACTIVEOK(ale) \
   (!(filter_mode & ANIMFILTER_ACTIVE) || !(ale->adt) || (ale->adt->flag & ADT_UI_ACTIVE))
 
-/* quick macro to test if an anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
+/* Quick macro to test if an anim-channel (F-Curve, Group, etc.)
+ * is selected in an acceptable way. */
 #define ANIMCHANNEL_SELOK(test_func) \
   (!(filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)) || \
    ((filter_mode & ANIMFILTER_SEL) && test_func) || \
@@ -1210,12 +1213,13 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads,
    */
   for (fcu = first; ((fcu) && (fcu->grp == grp)); fcu = fcu->next) {
     /* special exception for Pose-Channel/Sequence-Strip/Node Based F-Curves:
-     * - the 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data which
-     *   can be independently selected/hidden, such as Pose-Channels, Sequence Strips, and Nodes.
-     *   Since these checks were traditionally done as first check for objects, we do the same here
-     * - we currently use an 'approximate' method for getting these F-Curves that doesn't require
-     *   carefully checking the entire path
-     * - this will also affect things like Drivers, and also works for Bone Constraints
+     * - The 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data
+     *   which can be independently selected/hidden, such as Pose-Channels, Sequence Strips,
+     *   and Nodes. Since these checks were traditionally done as first check for objects,
+     *   we do the same here.
+     * - We currently use an 'approximate' method for getting these F-Curves that doesn't require
+     *   carefully checking the entire path.
+     * - This will also affect things like Drivers, and also works for Bone Constraints.
      */
     if (ads && owner_id) {
       if ((filter_mode & ANIMFILTER_TMP_IGNORE_ONLYSEL) == 0) {
@@ -1498,7 +1502,8 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac),
       next = nlt->next;
     }
 
-    /* if we're in NLA-tweakmode, don't show this track if it was disabled (due to tweaking) for now
+    /* if we're in NLA-tweakmode, don't show this track if it was disabled
+     * (due to tweaking) for now:
      * - active track should still get shown though (even though it has disabled flag set)
      */
     // FIXME: the channels after should still get drawn, just 'differently',
@@ -1811,7 +1816,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
          */
         if ((filter_mode & ANIMFILTER_DATA_VISIBLE) &&
             !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
-          /* layer visibility - we check both object and base, since these may not be in sync yet */
+          /* Layer visibility - we check both object and base,
+           * since these may not be in sync yet. */
           if ((base->flag & BASE_VISIBLE) == 0) {
             continue;
           }
@@ -2223,7 +2229,8 @@ static size_t animdata_filter_ds_textures(
     }
   }
 
-  /* firstly check that we actuallly have some textures, by gathering all textures in a temp list */
+  /* Firstly check that we actuallly have some textures,
+   * by gathering all textures in a temp list. */
   for (a = 0; a < MAX_MTEX; a++) {
     Tex *tex = (mtex[a]) ? mtex[a]->tex : NULL;
 
@@ -2393,7 +2400,8 @@ static size_t animdata_filter_ds_modifiers(
   /* 1) create a temporary "context" containing all the info we have here to pass to the callback
    *    use to walk through the dependencies of the modifiers
    *
-   * ! Assumes that all other unspecified values (i.e. accumulation buffers) are zero'd out properly
+   * Assumes that all other unspecified values (i.e. accumulation buffers)
+   * are zero'd out properly!
    */
   afm.ac = ac;
   afm.ads = ads;
@@ -2915,7 +2923,8 @@ static size_t animdata_filter_dopesheet_scene(
       tmp_items += animdata_filter_ds_gpencil(ac, &tmp_data, ads, gpd, filter_mode);
     }
 
-    /* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
+    /* TODO: one day, when sequencer becomes its own datatype,
+     * perhaps it should be included here. */
   }
   END_ANIMFILTER_SUBCHANNELS;
 
@@ -3148,7 +3157,8 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
 
   /* If filtering for channel drawing, we want the objects in alphabetical order,
    * to make it easier to predict where items are in the hierarchy
-   * - This order only really matters if we need to show all channels in the list (e.g. for drawing)
+   * - This order only really matters
+   *   if we need to show all channels in the list (e.g. for drawing).
    *   (XXX: What about lingering "active" flags? The order may now become unpredictable)
    * - Don't do this if this behavior has been turned off (i.e. due to it being too slow)
    * - Don't do this if there's just a single object
@@ -3320,7 +3330,8 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 
     /* check if hash has any record of an entry like this
      * - just use ale->data for now, though it would be nicer to involve
-     *   ale->type in combination too to capture corner cases (where same data performs differently)
+     *   ale->type in combination too to capture corner cases
+     *   (where same data performs differently)
      */
     if (BLI_gset_add(gs, ale->data)) {
       /* this entry is 'unique' and can be kept */
@@ -3439,7 +3450,8 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
         break;
       }
 
-      /* Timeline Mode - Basically the same as dopesheet, except we only have the summary for now */
+      /* Timeline Mode - Basically the same as dopesheet,
+       * except we only have the summary for now */
       case ANIMCONT_TIMELINE: {
         /* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
         if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {

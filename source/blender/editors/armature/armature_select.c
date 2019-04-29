@@ -867,8 +867,8 @@ static bool armature_edit_select_op_apply(bArmature *arm,
 }
 
 /**
- * Perform a selection operation on elements which have been 'touched', use for lasso & border select
- * but can be used elsewhere too.
+ * Perform a selection operation on elements which have been 'touched',
+ * use for lasso & border select but can be used elsewhere too.
  *
  * Tagging is done via #EditBone.temp.i using: #BONESEL_ROOT, #BONESEL_TIP, #BONESEL_BONE
  * And optionally ignoring end-points using the #BONESEL_ROOT, #BONESEL_TIP right shifted 16 bits.

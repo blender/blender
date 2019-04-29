@@ -4162,7 +4162,8 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
     }
     else if (iter_data->mesh == psmd_eval->mesh_original) {
-      /* Final DM is not same topology as orig mesh, we have to map num_dmcache to real final dm. */
+      /* Final DM is not same topology as orig mesh,
+       * we have to map num_dmcache to real final dm. */
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = psys_particle_dm_face_lookup(psmd_eval->mesh_final,
                                                                 psmd_eval->mesh_original,

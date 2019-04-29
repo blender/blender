@@ -893,7 +893,8 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
    * deform group.
    */
 
-  /* TODO, this is slow in a loop, better pass def_nr directly, but leave for later... - campbell */
+  /* TODO(campbell): This is slow in a loop, better pass def_nr directly,
+   * but leave for later. */
   const int def_nr = BLI_findindex(&ob->defbase, dg);
 
   if (def_nr != -1) {

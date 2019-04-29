@@ -175,7 +175,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     }
   }
   else {
-    /* mouse doesn't hover any item (ignoring x-axis), so it's either above list bounds or below. */
+    /* Mouse doesn't hover any item (ignoring x-axis),
+     * so it's either above list bounds or below. */
     TreeElement *first = soops->tree.first;
     TreeElement *last = soops->tree.last;
 

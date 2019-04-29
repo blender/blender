@@ -40,7 +40,8 @@
 #include "screen_intern.h"
 
 /**
- * Draw horizontal shape visualizing future joining (left as well right direction of future joining).
+ * Draw horizontal shape visualizing future joining
+ * (left as well right direction of future joining).
  */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {

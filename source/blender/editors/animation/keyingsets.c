@@ -1021,8 +1021,10 @@ static short keyingset_apply_keying_flags(const short base_flags,
   return result;
 }
 
-/* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
- * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
+/**
+ * Given a KeyingSet and context info (if required),
+ * modify keyframes for the channels specified by the KeyingSet.
+ * This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
 int ANIM_apply_keyingset(

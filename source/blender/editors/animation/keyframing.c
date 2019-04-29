@@ -1071,7 +1071,10 @@ static float *visualkey_get_values(Depsgraph *depsgraph,
 
 /* ------------------------- Insert Key API ------------------------- */
 
-/* Retrieve current property values to keyframe, possibly applying NLA correction when necessary. */
+/**
+ * Retrieve current property values to keyframe,
+ * possibly applying NLA correction when necessary.
+ */
 static float *get_keyframe_values(Depsgraph *depsgraph,
                                   ReportList *reports,
                                   PointerRNA ptr,
@@ -2787,8 +2790,10 @@ bool fcurve_is_changed(PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float fra
   return !compare_ff_relative(fcurve_val, cur_val, FLT_EPSILON, 64);
 }
 
-/* Checks whether an Action has a keyframe for a given frame
- * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
+/**
+ * Checks whether an Action has a keyframe for a given frame
+ * Since we're only concerned whether a keyframe exists,
+ * we can simply loop until a match is found.
  */
 static bool action_frame_has_keyframe(bAction *act, float frame, short filter)
 {

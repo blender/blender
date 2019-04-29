@@ -50,7 +50,8 @@
 /* Set Up Drivers Editor */
 
 /* Set up UI configuration for Drivers Editor */
-/* NOTE: Currently called from windowmanager (new drivers editor window) and RNA (mode switching) */
+/* NOTE: Currently called from windowmanager
+ * (new drivers editor window) and RNA (mode switching) */
 void ED_drivers_editor_init(bContext *C, ScrArea *sa)
 {
   SpaceGraph *sipo = (SpaceGraph *)sa->spacedata.first;

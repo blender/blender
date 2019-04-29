@@ -434,7 +434,8 @@ static void fluid_init_all_channels(bContext *C,
     /* now scene data should be current according to animation system, so we fill the channels */
 
     /* Domain time */
-    // TODO: have option for not running sim, time mangling, in which case second case comes in handy
+    /* TODO: have option for not running sim, time mangling,
+     * in which case second case comes in handy. */
     if (channels->DomainTime) {
       time = get_fluid_rate(domainSettings) * (float)channels->aniFrameTime;
       timeAtFrame = channels->timeAtFrame[i] + time;
