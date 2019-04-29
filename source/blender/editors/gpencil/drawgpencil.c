@@ -121,9 +121,15 @@ static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
   immUniformColor3fvAlpha(ink, alpha);
 }
 
-static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4], uint attr_id)
+static void gp_set_point_varying_color(const bGPDspoint *pt,
+                                       const float ink[4],
+                                       uint attr_id,
+                                       bool fix_strength)
 {
   float alpha = ink[3] * pt->strength;
+  if ((fix_strength) && (alpha >= 0.1f)) {
+    alpha = 1.0f;
+  }
   CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
   immAttr4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
@@ -186,7 +192,7 @@ static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points,
     mul_v3_m4v3(fpt, diff_mat, &pt->x);
     gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, co);
 
-    gp_set_point_varying_color(pt, ink, color);
+    gp_set_point_varying_color(pt, ink, color, false);
     immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
     immVertex2f(pos, co[0], co[1]);
   }
@@ -214,7 +220,7 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
 
   const bGPDspoint *pt = points;
   for (int i = 0; i < totpoints && pt; i++, pt++) {
-    gp_set_point_varying_color(pt, ink, color);
+    gp_set_point_varying_color(pt, ink, color, false);
     /* TODO: scale based on view transform */
     immAttr1f(size, pt->pressure * thickness);
     /* we can adjust size in vertex shader based on view/projection! */
@@ -576,7 +582,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
   for (int i = 0; i < totpoints; i++, pt++) {
     /* first point for adjacency (not drawn) */
     if (i == 0) {
-      gp_set_point_varying_color(points, ink, attr_id.color);
+      gp_set_point_varying_color(points, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
 
       if ((cyclic) && (totpoints > 2)) {
         immAttr1f(attr_id.thickness, max_ff((points + totpoints - 1)->pressure * thickness, 1.0f));
@@ -589,7 +595,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
       immVertex3fv(attr_id.pos, fpt);
     }
     /* set point */
-    gp_set_point_varying_color(pt, ink, attr_id.color);
+    gp_set_point_varying_color(pt, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
     immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, 1.0f));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
     immVertex3fv(attr_id.pos, fpt);
@@ -608,7 +614,9 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
   }
   /* last adjacency point (not drawn) */
   else {
-    gp_set_point_varying_color(points + totpoints - 2, ink, attr_id.color);
+    gp_set_point_varying_color(
+        points + totpoints - 2, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+
     immAttr1f(attr_id.thickness, max_ff((points + totpoints - 2)->pressure * thickness, 1.0f));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 2)->x);
     immVertex3fv(attr_id.pos, fpt);
@@ -693,7 +701,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
       pthick = (pt1->pressure * thickness * scalefac);
 
       /* color of point */
-      gp_set_point_varying_color(pt1, ink, attr_id.color);
+      gp_set_point_varying_color(pt1, ink, attr_id.color, false);
 
       /* if the first segment, start of segment is segment's normal */
       if (i == 0) {
@@ -768,7 +776,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points,
         pthick = (pt2->pressure * thickness * scalefac);
 
         /* color of point */
-        gp_set_point_varying_color(pt2, ink, attr_id.color);
+        gp_set_point_varying_color(pt2, ink, attr_id.color, false);
 
         /* calculate points for end of segment */
         mt[0] = m2[0] * pthick;
@@ -861,7 +869,9 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
   GPU_enable_program_point_size();
 
-  for (bGPDstroke *gps = tgpw->t_gpf->strokes.first; gps; gps = gps->next) {
+  bGPDstroke *gps_init = (tgpw->gps) ? tgpw->gps : tgpw->t_gpf->strokes.first;
+
+  for (bGPDstroke *gps = gps_init; gps; gps = gps->next) {
     /* check if stroke can be drawn */
     if (gp_can_draw_stroke(gps, tgpw->dflag) == false) {
       continue;
@@ -955,6 +965,14 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
           copy_v4_v4(ink, tcolor);
         }
       }
+
+      /* if used for fill, set opacity to 1 */
+      if (tgpw->is_fill_stroke) {
+        if (ink[3] >= GPENCIL_ALPHA_OPACITY_THRESH) {
+          ink[3] = 1.0f;
+        }
+      }
+
       if (gp_style->mode == GP_STYLE_MODE_DOTS) {
         /* volumetric stroke drawing */
         if (tgpw->disable_fill != 1) {
@@ -1080,6 +1098,10 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
         }
       }
     }
+    /* if only one stroke, exit from loop */
+    if (tgpw->gps) {
+      break;
+    }
   }
 
   GPU_disable_program_point_size();
@@ -1126,6 +1148,7 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
       tgpw.gpl = tgpil->gpl;
       tgpw.gpf = tgpil->interFrame;
       tgpw.t_gpf = tgpil->interFrame;
+      tgpw.gps = NULL;
 
       tgpw.lthick = tgpil->gpl->line_change;
       tgpw.opacity = 1.0;
