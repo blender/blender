@@ -160,7 +160,7 @@ class IMAGE_MT_select(Menu):
         layout.separator()
 
         layout.operator("uv.select_pinned")
-        layout.operator("uv.select_linked").extend = False
+        layout.operator("uv.select_linked")
 
         layout.separator()
 

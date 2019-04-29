@@ -2875,7 +2875,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 /** \name Select Linked Operator
  * \{ */
 
-static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent *event, int pick)
+static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent *event, bool pick)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
@@ -2962,7 +2962,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
 static int uv_select_linked_exec(bContext *C, wmOperator *op)
 {
-  return uv_select_linked_internal(C, op, NULL, 0);
+  return uv_select_linked_internal(C, op, NULL, false);
 }
 
 static void UV_OT_select_linked(wmOperatorType *ot)
@@ -2976,6 +2976,9 @@ static void UV_OT_select_linked(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = uv_select_linked_exec;
   ot->poll = ED_operator_uvedit; /* requires space image */
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
@@ -2986,12 +2989,12 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 
 static int uv_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return uv_select_linked_internal(C, op, event, 1);
+  return uv_select_linked_internal(C, op, event, true);
 }
 
 static int uv_select_linked_pick_exec(bContext *C, wmOperator *op)
 {
-  return uv_select_linked_internal(C, op, NULL, 1);
+  return uv_select_linked_internal(C, op, NULL, true);
 }
 
 static void UV_OT_select_linked_pick(wmOperatorType *ot)
@@ -3000,7 +3003,9 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
   ot->name = "Select Linked Pick";
   ot->description = "Select all UV vertices linked under the mouse";
   ot->idname = "UV_OT_select_linked_pick";
-  ot->flag = OPTYPE_UNDO;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* api callbacks */
   ot->invoke = uv_select_linked_pick_invoke;
