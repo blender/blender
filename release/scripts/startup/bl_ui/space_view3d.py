@@ -33,7 +33,6 @@ from .properties_grease_pencil_common import (
 )
 from bpy.app.translations import contexts as i18n_contexts
 
-
 class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOL_HEADER"
@@ -43,145 +42,11 @@ class VIEW3D_HT_tool_header(Header):
 
         layout.row(align=True).template_header()
 
-        # mode_string = context.mode
-        obj = context.active_object
-        tool_settings = context.tool_settings
-
-        object_mode = 'OBJECT' if obj is None else obj.mode
-        has_pose_mode = (
-            (object_mode == 'POSE') or
-            (object_mode == 'WEIGHT_PAINT' and context.pose_object is not None)
-        )
-
         self.draw_tool_settings(context)
 
         layout.separator_spacer()
 
-        # Mode & Transform Settings
-        scene = context.scene
-
-        # Orientation
-        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'} or has_pose_mode:
-            orient_slot = scene.transform_orientation_slots[0]
-            row = layout.row(align=True)
-
-            sub = row.row()
-            sub.ui_units_x = 4
-            sub.prop_with_popover(
-                orient_slot,
-                "type",
-                text="",
-                panel="VIEW3D_PT_transform_orientations",
-            )
-
-        # Pivot
-        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'} or has_pose_mode:
-            layout.prop_with_popover(
-                tool_settings,
-                "transform_pivot_point",
-                text="",
-                icon_only=True,
-                panel="VIEW3D_PT_pivot_point",
-            )
-
-        # Snap
-        show_snap = False
-        if obj is None:
-            show_snap = True
-        else:
-            if (object_mode not in {
-                    'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
-                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'
-            }) or has_pose_mode:
-                show_snap = True
-            else:
-
-                from .properties_paint_common import UnifiedPaintPanel
-                paint_settings = UnifiedPaintPanel.paint_settings(context)
-
-                if paint_settings:
-                    brush = paint_settings.brush
-                    if brush and brush.stroke_method == 'CURVE':
-                        show_snap = True
-
-        if show_snap:
-            snap_items = bpy.types.ToolSettings.bl_rna.properties["snap_elements"].enum_items
-            snap_elements = tool_settings.snap_elements
-            if len(snap_elements) == 1:
-                text = ""
-                for elem in snap_elements:
-                    icon = snap_items[elem].icon
-                    break
-            else:
-                text = "Mix"
-                icon = 'NONE'
-            del snap_items, snap_elements
-
-            row = layout.row(align=True)
-            row.prop(tool_settings, "use_snap", text="")
-
-            sub = row.row(align=True)
-            sub.popover(
-                panel="VIEW3D_PT_snapping",
-                icon=icon,
-                text=text,
-            )
-
-        # Proportional editing
-        gpd = context.gpencil_data
-        if object_mode in {'EDIT', 'PARTICLE_EDIT'}:
-            row = layout.row(align=True)
-            row.prop(tool_settings, "proportional_edit", icon_only=True)
-            sub = row.row(align=True)
-            sub.active = tool_settings.proportional_edit != 'DISABLED'
-            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
-        elif object_mode == 'OBJECT':
-            row = layout.row(align=True)
-            row.prop(tool_settings, "use_proportional_edit_objects", icon_only=True)
-            sub = row.row(align=True)
-            sub.active = tool_settings.use_proportional_edit_objects
-            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
-        elif gpd is not None and obj.type == 'GPENCIL':
-            if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "proportional_edit", icon_only=True)
-
-                sub = row.row(align=True)
-                sub.active = tool_settings.proportional_edit != 'DISABLED'
-                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
-        # grease pencil
-        if object_mode == 'PAINT_GPENCIL':
-            layout.prop_with_popover(
-                tool_settings,
-                "gpencil_stroke_placement_view3d",
-                text="",
-                panel="VIEW3D_PT_gpencil_origin",
-            )
-
-        if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
-            layout.prop_with_popover(
-                tool_settings.gpencil_sculpt,
-                "lock_axis",
-                text="",
-                panel="VIEW3D_PT_gpencil_lock",
-            )
-
-        if object_mode == 'PAINT_GPENCIL':
-            # FIXME: this is bad practice!
-            # Tool options are to be displayed in the topbar.
-            if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin_brush.Draw":
-                settings = tool_settings.gpencil_sculpt.guide
-                row = layout.row(align=True)
-                row.prop(settings, "use_guide", text="", icon='GRID')
-                sub = row.row(align=True)
-                sub.active = settings.use_guide
-                sub.popover(
-                    panel="VIEW3D_PT_gpencil_guide",
-                    text="Guides",
-                )
+        VIEW3D_HT_header.draw_xform_template(layout, context)
 
         layout.separator_spacer()
 
@@ -189,12 +54,15 @@ class VIEW3D_HT_tool_header(Header):
 
     def draw_tool_settings(self, context):
         layout = self.layout
+        tool_mode = context.mode
 
         # Active Tool
         # -----------
         from .space_toolsystem_common import ToolSelectPanelHelper
-        tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
-        tool_mode = context.mode if tool is None else tool.mode
+        tool = ToolSelectPanelHelper.draw_active_tool_header(
+            context, layout,
+            tool_key=('VIEW_3D', tool_mode),
+        )
 
         # Object Mode Options
         # -------------------
@@ -516,6 +384,143 @@ class _draw_tool_settings_context_mode:
 class VIEW3D_HT_header(Header):
     bl_space_type = 'VIEW_3D'
 
+    @staticmethod
+    def draw_xform_template(layout, context):
+        obj = context.active_object
+        object_mode = 'OBJECT' if obj is None else obj.mode
+        has_pose_mode = (
+            (object_mode == 'POSE') or
+            (object_mode == 'WEIGHT_PAINT' and context.pose_object is not None)
+        )
+
+        tool_settings = context.tool_settings
+
+        # Mode & Transform Settings
+        scene = context.scene
+
+        # Orientation
+        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL'} or has_pose_mode:
+            orient_slot = scene.transform_orientation_slots[0]
+            row = layout.row(align=True)
+
+            sub = row.row()
+            sub.ui_units_x = 4
+            sub.prop_with_popover(
+                orient_slot,
+                "type",
+                text="",
+                panel="VIEW3D_PT_transform_orientations",
+            )
+
+        # Pivot
+        if object_mode in {'OBJECT', 'EDIT', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'} or has_pose_mode:
+            layout.prop_with_popover(
+                tool_settings,
+                "transform_pivot_point",
+                text="",
+                icon_only=True,
+                panel="VIEW3D_PT_pivot_point",
+            )
+
+        # Snap
+        show_snap = False
+        if obj is None:
+            show_snap = True
+        else:
+            if (object_mode not in {
+                    'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
+                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'
+            }) or has_pose_mode:
+                show_snap = True
+            else:
+
+                from .properties_paint_common import UnifiedPaintPanel
+                paint_settings = UnifiedPaintPanel.paint_settings(context)
+
+                if paint_settings:
+                    brush = paint_settings.brush
+                    if brush and brush.stroke_method == 'CURVE':
+                        show_snap = True
+
+        if show_snap:
+            snap_items = bpy.types.ToolSettings.bl_rna.properties["snap_elements"].enum_items
+            snap_elements = tool_settings.snap_elements
+            if len(snap_elements) == 1:
+                text = ""
+                for elem in snap_elements:
+                    icon = snap_items[elem].icon
+                    break
+            else:
+                text = "Mix"
+                icon = 'NONE'
+            del snap_items, snap_elements
+
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap", text="")
+
+            sub = row.row(align=True)
+            sub.popover(
+                panel="VIEW3D_PT_snapping",
+                icon=icon,
+                text=text,
+            )
+
+        # Proportional editing
+        gpd = context.gpencil_data
+        if object_mode in {'EDIT', 'PARTICLE_EDIT'}:
+            row = layout.row(align=True)
+            row.prop(tool_settings, "proportional_edit", icon_only=True)
+            sub = row.row(align=True)
+            sub.active = tool_settings.proportional_edit != 'DISABLED'
+            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        elif object_mode == 'OBJECT':
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_proportional_edit_objects", icon_only=True)
+            sub = row.row(align=True)
+            sub.active = tool_settings.use_proportional_edit_objects
+            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        elif gpd is not None and obj.type == 'GPENCIL':
+            if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode:
+                row = layout.row(align=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+
+                sub = row.row(align=True)
+                sub.active = tool_settings.proportional_edit != 'DISABLED'
+                sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
+        # grease pencil
+        if object_mode == 'PAINT_GPENCIL':
+            layout.prop_with_popover(
+                tool_settings,
+                "gpencil_stroke_placement_view3d",
+                text="",
+                panel="VIEW3D_PT_gpencil_origin",
+            )
+
+        if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
+            layout.prop_with_popover(
+                tool_settings.gpencil_sculpt,
+                "lock_axis",
+                text="",
+                panel="VIEW3D_PT_gpencil_lock",
+            )
+
+        if object_mode == 'PAINT_GPENCIL':
+            # FIXME: this is bad practice!
+            # Tool options are to be displayed in the topbar.
+            if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin_brush.Draw":
+                settings = tool_settings.gpencil_sculpt.guide
+                row = layout.row(align=True)
+                row.prop(settings, "use_guide", text="", icon='GRID')
+                sub = row.row(align=True)
+                sub.active = settings.use_guide
+                sub.popover(
+                    panel="VIEW3D_PT_gpencil_guide",
+                    text="Guides",
+                )
+
     def draw(self, context):
         layout = self.layout
 
@@ -524,8 +529,9 @@ class VIEW3D_HT_header(Header):
         shading = view.shading
         # mode_string = context.mode
         obj = context.active_object
+        show_region_tool_header = view.show_region_tool_header
 
-        if not view.show_region_tool_header:
+        if not show_region_tool_header:
             layout.row(align=True).template_header()
 
         row = layout.row(align=True)
@@ -605,6 +611,11 @@ class VIEW3D_HT_header(Header):
         VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator_spacer()
+
+        if not show_region_tool_header:
+            VIEW3D_HT_header.draw_xform_template(layout, context)
+
+            layout.separator_spacer()
 
         # Viewport Settings
         layout.popover(
@@ -4633,6 +4644,26 @@ class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
 # ********** Panel **********
 
 
+class VIEW3D_PT_active_tool(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Active Tool"
+    bl_category = "Tool"
+    # bl_context = ".active_tool"  # dot on purpose (access from tool settings)
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Panel display of topbar tool settings.
+        # currently displays in tool settings, keep here since the same functionality is used for the topbar.
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout, show_tool_name=True)
+
+
 class VIEW3D_PT_view3d_properties(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -6413,6 +6444,7 @@ classes = (
     VIEW3D_MT_snap_pie,
     VIEW3D_MT_orientations_pie,
     VIEW3D_MT_proportional_editing_falloff_pie,
+    VIEW3D_PT_active_tool,
     VIEW3D_PT_view3d_properties,
     VIEW3D_PT_view3d_lock,
     VIEW3D_PT_view3d_cursor,

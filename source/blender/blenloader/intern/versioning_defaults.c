@@ -293,6 +293,34 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
     }
 
+    /* Show toopbar for sculpt/paint modes. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      bool show_tool_header = false;
+      if (app_template == NULL) {
+        if (STR_ELEM(screen->id.name + 2, "Sculpting", "Texture Paint")) {
+          show_tool_header = true;
+        }
+      }
+      else if (STREQ(app_template, "2D_Animation")) {
+        if (STR_ELEM(screen->id.name + 2, "Sculpting", "Texture Paint")) {
+          show_tool_header = true;
+        }
+      }
+
+      if (show_tool_header) {
+        for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+            for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+              if (ar->regiontype == RGN_TYPE_TOOL_HEADER) {
+                ar->flag &= ~(RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER);
+              }
+            }
+          }
+        }
+      }
+    }
+
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 

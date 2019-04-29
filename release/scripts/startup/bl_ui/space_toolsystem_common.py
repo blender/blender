@@ -566,8 +566,13 @@ class ToolSelectPanelHelper:
             context, layout,
             *,
             show_tool_name=False,
+            tool_key=None,
     ):
-        space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
+        if tool_key is None:
+            space_type, mode = ToolSelectPanelHelper._tool_key_from_context(context)
+        else:
+            space_type, mode = tool_key
+
         if space_type is None:
             return None
         item, tool, icon_value = ToolSelectPanelHelper._tool_get_active(context, space_type, mode, with_icon=True)
