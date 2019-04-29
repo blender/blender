@@ -1297,10 +1297,10 @@ void outliner_item_do_activate_from_tree_element(
  *
  * May expend/collapse branches or activate items.
  * */
-int outliner_item_do_activate_from_cursor(bContext *C,
-                                          const int mval[2],
-                                          bool extend,
-                                          bool recursive)
+static int outliner_item_do_activate_from_cursor(bContext *C,
+                                                 const int mval[2],
+                                                 bool extend,
+                                                 bool recursive)
 {
   ARegion *ar = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
