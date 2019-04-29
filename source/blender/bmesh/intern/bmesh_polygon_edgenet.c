@@ -987,8 +987,10 @@ static int bm_face_split_edgenet_find_connection(const struct EdgeGroup_FindConn
    * Method for finding connection is as follows:
    *
    * - Cast a ray along either the positive or negative directions.
-   * - Take the hit-edge, and cast rays to their vertices checking those rays don't intersect a closer edge.
-   * - Keep taking the hit-edge and testing its verts until a vertex is found which isn't blocked by an edge.
+   * - Take the hit-edge, and cast rays to their vertices
+   *   checking those rays don't intersect a closer edge.
+   * - Keep taking the hit-edge and testing its verts
+   *   until a vertex is found which isn't blocked by an edge.
    *
    * \note It's possible none of the verts can be accessed (with self-intersecting lines).
    * In that case theres no right answer (without subdividing edges),
@@ -1146,7 +1148,8 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
     }
   }
 
-  /* Detect if this is a delimiter by checking if we didn't walk any of edges connected to 'v_delimit' */
+  /* Detect if this is a delimiter
+   * by checking if we didn't walk any of edges connected to 'v_delimit'. */
   bool is_delimit = false;
   FOREACH_VERT_EDGE(v_delimit, e_iter, {
     BMVert *v_step = BM_edge_other_vert(e_iter, v_delimit);
@@ -1500,7 +1503,8 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 
   /* Now create bvh tree
    *
-   * Note that a large epsilon is used because meshes with dimensions of around 100+ need it. see T52329. */
+   * Note that a large epsilon is used because meshes with dimensions of around 100+ need it.
+   * see T52329. */
   BVHTree *bvhtree = BLI_bvhtree_new(edge_arr_len, 1e-4f, 8, 8);
   for (uint i = 0; i < edge_arr_len; i++) {
     const float e_cos[2][3] = {

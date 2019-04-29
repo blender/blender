@@ -1231,7 +1231,8 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm,
 
   /* note, better not attempt a fast path for selection as done with de-select
    * because hidden geometry and different selection modes can give different results,
-   * we could of course check for no hidden faces and then use quicker method but its not worth it. */
+   * we could of course check for no hidden faces and then use
+   * quicker method but its not worth it. */
 
   for (i = 0; i < 3; i++) {
     if (htype & flag_types[i]) {

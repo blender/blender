@@ -116,7 +116,8 @@ static bool bm_vert_region_test_chain(BMVert *v, int *const depths[2], const int
  *
  * This is done in both directions, after that each vertices 'depth' is added to check
  * if its less than the number of passes needed to complete the search.
- * When it is, we know the path is one of possible paths that have the minimum topological distance.
+ * When it is, we know the path is one of possible paths
+ * that have the minimum topological distance.
  *
  * \note Only verts without BM_ELEM_TAG will be walked over.
  */
@@ -201,7 +202,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
 #ifdef USE_EDGE_CHAIN
     /* Expand initial state to end-point vertices when they only have 2x edges,
-     * this prevents odd behavior when source or destination are in the middle of a long chain of edges. */
+     * this prevents odd behavior when source or destination are in the middle
+     * of a long chain of edges. */
     if (ELEM(path_htype, BM_VERT, BM_EDGE)) {
       for (int i = 0; i < ele_verts_len[side]; i++) {
         BMVert *v = ele_verts[side][i];
@@ -221,8 +223,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     }
 #endif /* USE_EDGE_CHAIN */
 
-    /* Keep walking over connected geometry until we find all the vertices in `ele_verts[side_other]`,
-     * or exit the loop when theres no connection. */
+    /* Keep walking over connected geometry until we find all the vertices in
+     * `ele_verts[side_other]`, or exit the loop when theres no connection. */
     found_all = false;
     for (pass = 1; (STACK_SIZE(stack) != 0); pass++) {
       while (STACK_SIZE(stack) != 0) {
@@ -321,7 +323,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
         } while ((l_iter = l_iter->next) != l_first);
 #else
         /* Allowing a single failure on a face gives fewer 'gaps'.
-         * While correct, in practice they're often part of what a user would consider the 'region'. */
+         * While correct, in practice they're often part of what
+         * a user would consider the 'region'. */
         int ok_tests = f->len > 3 ? 1 : 0; /* how many times we may fail */
         do {
           if (!bm_vert_region_test_chain(l_iter->v, depths, pass)) {

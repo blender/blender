@@ -33,33 +33,41 @@
  *
  * - Editmode operations when a shape key-block is active edits only that key-block.
  * - The first Basis key-block always matches the Mesh verts.
- * - Changing vertex locations of _any_ Basis will apply offsets to those shape keys using this as their Basis.
+ * - Changing vertex locations of _any_ Basis
+ *   will apply offsets to those shape keys using this as their Basis.
+ *
  * \subsection enter_editmode Entering EditMode - #BM_mesh_bm_from_me
  *
- * - the active key-block is used for BMesh vertex locations on entering edit-mode.
- * So obviously the meshes vertex locations remain unchanged and the shape key its self is not being edited directly.
- * Simply the #BMVert.co is a initialized from active shape key (when its set).
- * - all key-blocks are added as CustomData layers (read code for details).
+ * - The active key-block is used for BMesh vertex locations on entering edit-mode.
+ *   So obviously the meshes vertex locations remain unchanged and the shape key
+ *   its self is not being edited directly.
+ *   Simply the #BMVert.co is a initialized from active shape key (when its set).
+ * - All key-blocks are added as CustomData layers (read code for details).
+ *
  * \subsection exit_editmode Exiting EditMode - #BM_mesh_bm_to_me
  *
- * This is where the most confusing code is! Won't attempt to document the details here, for that read the code.
+ * This is where the most confusing code is! Won't attempt to document the details here,
+ * for that read the code.
  * But basics are as follows.
  *
- * - Vertex locations (possibly modified from initial active key-block) are copied directly into #MVert.co
- * (special confusing note that these may be restored later, when editing the 'Basis', read on).
- * - if the 'Key' is relative, and the active key-block is the basis for ANY other key-blocks - get an array of offsets
- * between the new vertex locations and the original shape key (before entering edit-mode),
- * these offsets get applied later on to inactive key-blocks using the active one (which we are editing) as their Basis.
+ * - Vertex locations (possibly modified from initial active key-block)
+ *   are copied directly into #MVert.co
+ *   (special confusing note that these may be restored later, when editing the 'Basis', read on).
+ * - if the 'Key' is relative, and the active key-block is the basis for ANY other key-blocks -
+ *   get an array of offsets between the new vertex locations and the original shape key
+ *   (before entering edit-mode), these offsets get applied later on to inactive key-blocks
+ *   using the active one (which we are editing) as their Basis.
  *
  * Copying the locations back to the shape keys is quite confusing...
  * One main area of confusion is that when editing a 'Basis' key-block 'me->key->refkey'
- * The coords are written into the mesh, from the users perspective the Basis coords are written into the mesh
- * when exiting edit-mode.
+ * The coords are written into the mesh, from the users perspective the Basis coords are written
+ * into the mesh when exiting edit-mode.
  *
- * When _not_ editing the 'Basis', the original vertex locations (stored in the mesh and unchanged during edit-mode),
- * are copied back into the mesh.
+ * When _not_ editing the 'Basis', the original vertex locations
+ * (stored in the mesh and unchanged during edit-mode), are copied back into the mesh.
  *
- * This has the effect from the users POV of leaving the mesh un-touched, and only editing the active shape key-block.
+ * This has the effect from the users POV of leaving the mesh un-touched,
+ * and only editing the active shape key-block.
  */
 
 #include "DNA_mesh_types.h"
@@ -490,7 +498,8 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
       if ((keyi != ORIGINDEX_NONE) && (keyi < ototvert) &&
           /* not fool-proof, but chances are if we have many verts with the same index,
-           * we will want to use the first one, since the second is more likely to be a duplicate. */
+           * we will want to use the first one,
+           * since the second is more likely to be a duplicate. */
           (vertMap[keyi] == NULL)) {
         vertMap[keyi] = eve;
       }
@@ -944,8 +953,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         if (apply_offset) {
           add_v3_v3(fp, *ofs_pt++);
           /* Apply back new coordinates of offsetted shapekeys into BMesh.
-           * Otherwise, in case we call again BM_mesh_bm_to_me on same BMesh, we'll apply diff from previous
-           * call to BM_mesh_bm_to_me, to shapekey values from *original creation of the BMesh*. See T50524. */
+           * Otherwise, in case we call again BM_mesh_bm_to_me on same BMesh,
+           * we'll apply diff from previous call to BM_mesh_bm_to_me,
+           * to shapekey values from *original creation of the BMesh*. See T50524. */
           copy_v3_v3(BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset), fp);
         }
 
@@ -977,8 +987,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 }
 
 /**
- * A version of #BM_mesh_bm_to_me intended for getting the mesh to pass to the modifier stack for evaluation,
- * instad of mode switching (where we make sure all data is kept and do expensive lookups to maintain shape keys).
+ * A version of #BM_mesh_bm_to_me intended for getting the mesh
+ * to pass to the modifier stack for evaluation,
+ * instad of mode switching (where we make sure all data is kept
+ * and do expensive lookups to maintain shape keys).
  *
  * Key differences:
  *

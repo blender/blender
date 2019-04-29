@@ -121,7 +121,8 @@ static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
  *
- * \param use_fixed_quad: When true, always split quad along (0 -> 2) regardless of concave corners,
+ * \param use_fixed_quad: When true,
+ * always split quad along (0 -> 2) regardless of concave corners,
  * (as done in #BM_mesh_calc_tessellation).
  * \param r_loops: Store face loop pointers, (f->len)
  * \param r_index: Store triangle triples, indices into \a r_loops,  `((f->len - 2) * 3)`
@@ -963,8 +964,8 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
  * with a length equal to (f->len - 3). It will be filled with the new
  * triangles (not including the original triangle).
  *
- * \param r_faces_double: When newly created faces are duplicates of existing faces, they're added to this list.
- * Caller must handle de-duplication.
+ * \param r_faces_double: When newly created faces are duplicates of existing faces,
+ * they're added to this list. Caller must handle de-duplication.
  * This is done because its possible _all_ faces exist already,
  * and in that case we would have to remove all faces including the one passed,
  * which causes complications adding/removing faces while looking over them.
@@ -1156,8 +1157,8 @@ void BM_face_triangulate(BMesh *bm,
         l_iter = l_first = l_new;
         do {
           BMEdge *e = l_iter->e;
-          /* confusing! if its not a boundary now, we know it will be later
-           * since this will be an edge of one of the new faces which we're in the middle of creating */
+          /* Confusing! if its not a boundary now, we know it will be later since this will be an
+           * edge of one of the new faces which we're in the middle of creating. */
           bool is_new_edge = (l_iter == l_iter->radial_next);
 
           if (is_new_edge) {

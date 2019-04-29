@@ -161,15 +161,15 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     BLI_array_clear(faces);
     faces = NULL; /* forces different allocatio */
 
-    BMW_init(
-        &regwalker,
-        bm,
-        BMW_ISLAND_MANIFOLD,
-        BMW_MASK_NOP,
-        BMW_MASK_NOP,
-        FACE_MARK,
-        BMW_FLAG_NOP, /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo */
-        BMW_NIL_LAY);
+    BMW_init(&regwalker,
+             bm,
+             BMW_ISLAND_MANIFOLD,
+             BMW_MASK_NOP,
+             BMW_MASK_NOP,
+             FACE_MARK,
+             /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo. */
+             BMW_FLAG_NOP,
+             BMW_NIL_LAY);
 
     for (f_iter = BMW_begin(&regwalker, f); f_iter; f_iter = BMW_step(&regwalker)) {
       BLI_array_append(faces, f_iter);

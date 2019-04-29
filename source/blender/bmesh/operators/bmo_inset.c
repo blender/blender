@@ -659,7 +659,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     BM_edge_calc_face_tangent(es->e_new, es->l, es->no);
 
     if (es->e_new == es->e_old) { /* happens on boundary edges */
-      /* take care here, we're creating this double edge which _must_ have its verts replaced later on */
+      /* Take care here, we're creating this double edge which _must_
+       * have its verts replaced later on. */
       es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, BM_CREATE_NOP);
     }
 
@@ -709,9 +710,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
   }
 #endif
 
-  /* execute the split and position verts, it would be most obvious to loop over verts
-   * here but don't do this since we will be splitting them off (iterating stuff you modify is bad juju)
-   * instead loop over edges then their verts */
+  /* Execute the split and position verts, it would be most obvious to loop
+   * over verts here but don't do this since we will be splitting them off
+   * (iterating stuff you modify is bad juju)
+   * instead loop over edges then their verts. */
   for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
     for (int j = 0; j < 2; j++) {
       v = (j == 0) ? es->e_new->v1 : es->e_new->v2;
@@ -1048,7 +1050,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
     /* Copy for loop data, otherwise UV's and vcols are no good.
      * tiny speedup here we could be more clever and copy from known adjacent data
-     * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
+     * also - we could attempt to interpolate the loop data,
+     * this would be much slower but more useful too. */
     if (0) {
       /* Don't use this because face boundaries have no adjacent loops and won't be filled in.
        * instead copy from the opposite side with the code below */
@@ -1163,8 +1166,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     float(*varr_co)[3];
     BMOIter oiter;
 
-    /* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
-     * faces they inset from,  */
+    /* We need to re-calculate tagged normals,
+     * but for this purpose we can copy tagged verts from the faces they inset from. */
     for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
       zero_v3(es->e_new->v1->no);
       zero_v3(es->e_new->v2->no);

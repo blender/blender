@@ -350,7 +350,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     BM_ITER_MESH_INDEX (e_iter, &iter, bm, BM_EDGES_OF_MESH, i) {
       earray[i] = e_iter;
     }
-    /* remove all edges/verts left behind from dissolving, NULL'ing the vertex array so we dont re-use */
+    /* Remove all edges/verts left behind from dissolving,
+     * NULL'ing the vertex array so we dont re-use. */
     for (i = bm->totedge - 1; i != -1; i--) {
       e_iter = earray[i];
 

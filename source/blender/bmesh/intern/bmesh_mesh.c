@@ -321,7 +321,8 @@ void BM_mesh_free(BMesh *bm)
  * Helpers for #BM_mesh_normals_update and #BM_verts_calc_normal_vcos
  */
 
-/* We use that existing internal API flag, assuming no other tool using it would run concurrently to clnors editing. */
+/* We use that existing internal API flag,
+ * assuming no other tool using it would run concurrently to clnors editing. */
 #define BM_LNORSPACE_UPDATE _FLAG_MF
 
 typedef struct BMEdgesCalcVectorsData {
@@ -433,7 +434,8 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
     virtual_lock += f_no[0] * fac;
     v_no[1] += f_no[1] * fac;
     v_no[2] += f_no[2] * fac;
-    /* Second atomic operation to 'release' our lock on that vector and set its first scalar value. */
+    /* Second atomic operation to 'release'
+     * our lock on that vector and set its first scalar value. */
     /* Note that we do not need to loop here, since we 'locked' v_no[0],
      * nobody should have changed it in the mean time. */
     virtual_lock = atomic_cas_float(&v_no[0], FLT_MAX, virtual_lock);
@@ -529,7 +531,8 @@ void BM_mesh_normals_update(BMesh *bm)
 /**
  * \brief BMesh Compute Normals from/to external data.
  *
- * Computes the vertex normals of a mesh into vnos, using given vertex coordinates (vcos) and polygon normals (fnos).
+ * Computes the vertex normals of a mesh into vnos,
+ * using given vertex coordinates (vcos) and polygon normals (fnos).
  */
 void BM_verts_calc_normal_vcos(BMesh *bm,
                                const float (*fnos)[3],
@@ -573,9 +576,8 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
     BM_mesh_elem_index_ensure(bm, htype);
   }
 
-  /* This first loop checks which edges are actually smooth, and pre-populate lnos with vnos (as if they were
-   * all smooth).
-   */
+  /* This first loop checks which edges are actually smooth,
+   * and pre-populate lnos with vnos (as if they were all smooth). */
   BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
     BMLoop *l_a, *l_b;
 
@@ -613,7 +615,8 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
           }
         }
         else if (do_sharp_edges_tag) {
-          /* Note that we do not care about the other sharp-edge cases (sharp poly, non-manifold edge, etc.),
+          /* Note that we do not care about the other sharp-edge cases
+           * (sharp poly, non-manifold edge, etc.),
            * only tag edge as sharp when it is due to angle threashold. */
           BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
         }
@@ -626,7 +629,8 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
 
 /**
  * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
- * Needed because cyclic smooth fans have no obvious 'entry point', and yet we need to walk them once, and only once.
+ * Needed because cyclic smooth fans have no obvious 'entry point',
+ * and yet we need to walk them once, and only once.
  */
 bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
 {
@@ -647,8 +651,9 @@ bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
     /* Smooth loop/edge... */
     else if (BM_elem_flag_test(lfan_pivot_next, BM_ELEM_TAG)) {
       if (lfan_pivot_next == l_curr) {
-        /* We walked around a whole cyclic smooth fan without finding any already-processed loop, means we can
-         * use initial l_curr/l_prev edge as start for this smooth fan. */
+        /* We walked around a whole cyclic smooth fan
+         * without finding any already-processed loop,
+         * means we can use initial l_curr/l_prev edge as start for this smooth fan. */
         return true;
       }
       /* ... already checked in some previous looping, we can abort. */
@@ -661,8 +666,11 @@ bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
   }
 }
 
-/* BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c
- * Will use first clnors_data array, and fallback to cd_loop_clnors_offset (use NULL and -1 to not use clnors). */
+/**
+ * BMesh version of BKE_mesh_normals_loop_split() in mesh_evaluate.c
+ * Will use first clnors_data array, and fallback to cd_loop_clnors_offset
+ * (use NULL and -1 to not use clnors).
+ */
 static void bm_mesh_loops_calc_normals(BMesh *bm,
                                        const float (*vcos)[3],
                                        const float (*fnos)[3],
@@ -718,7 +726,8 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
-  /* We now know edges that can be smoothed (they are tagged), and edges that will be hard (they aren't).
+  /* We now know edges that can be smoothed (they are tagged),
+   * and edges that will be hard (they aren't).
    * Now, time to generate the normals.
    */
   BM_ITER_MESH (f_curr, &fiter, bm, BM_FACES_OF_MESH) {
@@ -731,12 +740,15 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
         continue;
       }
       /* A smooth edge, we have to check for cyclic smooth fan case.
-       * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge as
-       * 'entry point', otherwise we can skip it. */
-      /* Note: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store mlfan_pivot's in a stack,
-       * to avoid having to fan again around the vert during actual computation of clnor & clnorspace.
-       * However, this would complicate the code, add more memory usage, and BM_vert_step_fan_loop()
-       * is quite cheap in term of CPU cycles, so really think it's not worth it. */
+       * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge
+       * as 'entry point', otherwise we can skip it. */
+
+      /* Note: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store
+       * mlfan_pivot's in a stack, to avoid having to fan again around
+       * the vert during actual computation of clnor & clnorspace. However, this would complicate
+       * the code, add more memory usage, and
+       * BM_vert_step_fan_loop() is quite cheap in term of CPU cycles,
+       * so really think it's not worth it. */
       if (BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
           (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !BM_loop_check_cyclic_smooth_fan(l_curr))) {
       }
@@ -769,7 +781,8 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
           }
 
           BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, NULL);
-          /* We know there is only one loop in this space, no need to create a linklist in this case... */
+          /* We know there is only one loop in this space,
+           * no need to create a linklist in this case... */
           BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, l_curr, true);
 
           if (has_clnors) {
@@ -780,20 +793,22 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
         }
       }
       /* We *do not need* to check/tag loops as already computed!
-       * Due to the fact a loop only links to one of its two edges, a same fan *will never be walked more than
-       * once!*
-       * Since we consider edges having neighbor faces with inverted (flipped) normals as sharp, we are sure that
-       * no fan will be skipped, even only considering the case (sharp curr_edge, smooth prev_edge), and not the
-       * alternative (smooth curr_edge, sharp prev_edge).
+       * Due to the fact a loop only links to one of its two edges,
+       * a same fan *will never be walked more than once!*
+       * Since we consider edges having neighbor faces with inverted (flipped) normals as sharp,
+       * we are sure that no fan will be skipped, even only considering the case
+       * (sharp curr_edge, smooth prev_edge), and not the alternative
+       * (smooth curr_edge, sharp prev_edge).
        * All this due/thanks to link between normals and loop ordering.
        */
       else {
         /* We have to fan around current vertex, until we find the other non-smooth edge,
          * and accumulate face normals into the vertex!
-         * Note in case this vertex has only one sharp edge, this is a waste because the normal is the same as
-         * the vertex normal, but I do not see any easy way to detect that (would need to count number
-         * of sharp edges per vertex, I doubt the additional memory usage would be worth it, especially as
-         * it should not be a common case in real-life meshes anyway).
+         * Note in case this vertex has only one sharp edge,
+         * this is a waste because the normal is the same as the vertex normal,
+         * but I do not see any easy way to detect that (would need to count number of sharp edges
+         * per vertex, I doubt the additional memory usage would be worth it, especially as it
+         * should not be a common case in real-life meshes anyway).
          */
         BMVert *v_pivot = l_curr->v;
         BMEdge *e_next;
@@ -820,7 +835,8 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
         lfan_pivot_index = BM_elem_index_get(lfan_pivot);
         e_next = lfan_pivot->e; /* Current edge here, actually! */
 
-        /* Only need to compute previous edge's vector once, then we can just reuse old current one! */
+        /* Only need to compute previous edge's vector once,
+         * then we can just reuse old current one! */
         {
           const BMVert *v_2 = BM_edge_other_vert(e_next, v_pivot);
           const float *co_2 = vcos ? vcos[BM_elem_index_get(v_2)] : v_2->co;
@@ -846,9 +862,10 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
           }
 
           /* Compute edge vector.
-           * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing them
-           *       twice (or more) here. However, time gained is not worth memory and time lost,
-           *       given the fact that this code should not be called that much in real-life meshes...
+           * NOTE: We could pre-compute those into an array, in the first iteration,
+           * instead of computing them twice (or more) here.
+           * However, time gained is not worth memory and time lost,
+           * given the fact that this code should not be called that much in real-life meshes.
            */
           {
             const BMVert *v_2 = BM_edge_other_vert(e_next, v_pivot);
@@ -970,7 +987,8 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
           }
         }
 
-        /* Tag related vertex as sharp, to avoid fanning around it again (in case it was a smooth one). */
+        /* Tag related vertex as sharp, to avoid fanning around it again
+         * (in case it was a smooth one). */
         if (r_lnors_spacearr) {
           BM_elem_flag_enable(l_curr->v, BM_ELEM_TAG);
         }
@@ -1023,8 +1041,8 @@ static void bm_mesh_loops_calc_normals_no_autosmooth(BMesh *bm,
 /**
  * \brief BMesh Compute Loop Normals
  *
- * Updates the loop normals of a mesh. Assumes vertex and face normals are valid (else call BM_mesh_normals_update()
- * first)!
+ * Updates the loop normals of a mesh.
+ * Assumes vertex and face normals are valid (else call BM_mesh_normals_update() first)!
  */
 void BM_mesh_loop_normals_update(BMesh *bm,
                                  const bool use_split_normals,
@@ -1041,7 +1059,8 @@ void BM_mesh_loop_normals_update(BMesh *bm,
      * When using custom loop normals, disable the angle feature! */
     bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
 
-    /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+    /* Finish computing lnos by accumulating face normals
+     * in each fan of faces defined by sharp edges. */
     bm_mesh_loops_calc_normals(
         bm, NULL, NULL, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
   }
@@ -1056,7 +1075,8 @@ void BM_mesh_loop_normals_update(BMesh *bm,
  * \brief BMesh Compute Loop Normals from/to external data.
  *
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
- * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
+ * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
+ * (splitting edges).
  */
 void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*vcos)[3],
@@ -1077,7 +1097,8 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
      * When using custom loop normals, disable the angle feature! */
     bm_mesh_edges_sharp_tag(bm, vnos, fnos, r_lnos, has_clnors ? (float)M_PI : split_angle, false);
 
-    /* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
+    /* Finish computing lnos by accumulating face normals
+     * in each fan of faces defined by sharp edges. */
     bm_mesh_loops_calc_normals(
         bm, vcos, fnos, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset, do_rebuild);
   }
@@ -1089,7 +1110,8 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
 
 /** Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
  *
- * Used when defining an empty custom loop normals data layer, to keep same shading as with autosmooth!
+ * Used when defining an empty custom loop normals data layer,
+ * to keep same shading as with autosmooth!
  */
 void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
 {
@@ -1144,7 +1166,8 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
   BMVert *v;
   BMLoop *l;
   BMIter viter, liter;
-  /* Note: we could use temp tag of BMItem for that, but probably better not use it in such a low-level func?
+  /* Note: we could use temp tag of BMItem for that,
+   * but probably better not use it in such a low-level func?
    * --mont29 */
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(bm->totvert, __func__);
 
@@ -1414,13 +1437,15 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
 
   if (use_sel_face_history) {
     /* Using face history allows to select a single loop from a single face...
-     * Note that this is On² piece of code, but it is not designed to be used with huge selection sets,
+     * Note that this is On² piece of code,
+     * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most.*/
     printf("using face history selection\n");
     /* Goes from last selected to the first selected element. */
     for (ese = bm->selected.last; ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {
-        /* If current face is selected, then any verts to be edited must have been selected before it. */
+        /* If current face is selected,
+         * then any verts to be edited must have been selected before it. */
         for (ese_prev = ese->prev; ese_prev; ese_prev = ese_prev->prev) {
           if (ese_prev->htype == BM_VERT) {
             bm_loop_normal_mark_indiv_do_loop(
@@ -2078,11 +2103,13 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
  *
  * A NULL array means no changes.
  *
- * Note: - Does not mess with indices, just sets elem_index_dirty flag.
- *       - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
- *         on a per-face basis...).
+ * \note
+ * - Does not mess with indices, just sets elem_index_dirty flag.
+ * - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
+ *   on a per-face basis...).
  *
- * WARNING: Be careful if you keep pointers to affected BM elements, or arrays, when using this func!
+ * \warning Be careful if you keep pointers to affected BM elements,
+ * or arrays, when using this func!
  */
 void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx)
 {
@@ -2134,7 +2161,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     for (i = totvert; i--; new_idx--, ve--, vep--) {
       BMVert *new_vep = verts_pool[*new_idx];
       *new_vep = *ve;
-      /*          printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
+#if 0
+      printf(
+          "mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);
+#endif
       BLI_ghash_insert(vptr_map, *vep, new_vep);
       if (cd_vert_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr);
@@ -2183,7 +2213,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
       BMEdge *new_edp = edges_pool[*new_idx];
       *new_edp = *ed;
       BLI_ghash_insert(eptr_map, *edp, new_edp);
-      /*          printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
+#if 0
+      printf(
+          "mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);
+#endif
       if (cd_edge_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edp), cd_edge_pyptr);
         *pyptr = pyptrs[*new_idx];
@@ -2258,27 +2291,28 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     }
   }
 
-  /* Edges' pointers, only vert pointers (as we don't mess with loops!), and - ack! - edge pointers,
+  /* Edges' pointers, only vert pointers (as we don't mess with loops!),
+   * and - ack! - edge pointers,
    * as we have to handle disklinks... */
   if (vptr_map || eptr_map) {
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       if (vptr_map) {
-        /*              printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, ed->v1));*/
-        /*              printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, ed->v2));*/
+        /* printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, ed->v1));*/
+        /* printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, ed->v2));*/
         ed->v1 = BLI_ghash_lookup(vptr_map, ed->v1);
         ed->v2 = BLI_ghash_lookup(vptr_map, ed->v2);
         BLI_assert(ed->v1);
         BLI_assert(ed->v2);
       }
       if (eptr_map) {
-        /*              printf("Edge v1_disk_link prev: %p -> %p\n", ed->v1_disk_link.prev,*/
-        /*                     BLI_ghash_lookup(eptr_map, ed->v1_disk_link.prev));*/
-        /*              printf("Edge v1_disk_link next: %p -> %p\n", ed->v1_disk_link.next,*/
-        /*                     BLI_ghash_lookup(eptr_map, ed->v1_disk_link.next));*/
-        /*              printf("Edge v2_disk_link prev: %p -> %p\n", ed->v2_disk_link.prev,*/
-        /*                     BLI_ghash_lookup(eptr_map, ed->v2_disk_link.prev));*/
-        /*              printf("Edge v2_disk_link next: %p -> %p\n", ed->v2_disk_link.next,*/
-        /*                     BLI_ghash_lookup(eptr_map, ed->v2_disk_link.next));*/
+        /* printf("Edge v1_disk_link prev: %p -> %p\n", ed->v1_disk_link.prev,*/
+        /*        BLI_ghash_lookup(eptr_map, ed->v1_disk_link.prev));*/
+        /* printf("Edge v1_disk_link next: %p -> %p\n", ed->v1_disk_link.next,*/
+        /*        BLI_ghash_lookup(eptr_map, ed->v1_disk_link.next));*/
+        /* printf("Edge v2_disk_link prev: %p -> %p\n", ed->v2_disk_link.prev,*/
+        /*        BLI_ghash_lookup(eptr_map, ed->v2_disk_link.prev));*/
+        /* printf("Edge v2_disk_link next: %p -> %p\n", ed->v2_disk_link.next,*/
+        /*        BLI_ghash_lookup(eptr_map, ed->v2_disk_link.next));*/
         ed->v1_disk_link.prev = BLI_ghash_lookup(eptr_map, ed->v1_disk_link.prev);
         ed->v1_disk_link.next = BLI_ghash_lookup(eptr_map, ed->v1_disk_link.next);
         ed->v2_disk_link.prev = BLI_ghash_lookup(eptr_map, ed->v2_disk_link.prev);
@@ -2571,7 +2605,8 @@ void BM_mesh_rebuild(BMesh *bm,
 #undef REMAP_EDGE
 
   /* Cleanup, re-use local tables if the current mesh had tables allocated.
-   * could use irrespective but it may use more memory then the caller wants (and not be needed). */
+   * could use irrespective but it may use more memory then the caller wants
+   * (and not be needed). */
   if (remap & BM_VERT) {
     if (bm->vtable) {
       SWAP(BMVert **, vtable_dst, bm->vtable);

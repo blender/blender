@@ -182,7 +182,8 @@ finally : {
 }
 
 /**
- * \note with 'targetmap', multiple 'keys' are currently supported, though no callers should be using.
+ * \note with 'targetmap', multiple 'keys' are currently supported,
+ * though no callers should be using.
  * (because slot maps currently use GHash without the GHASH_FLAG_ALLOW_DUPES flag set)
  */
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)

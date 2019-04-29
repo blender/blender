@@ -124,7 +124,8 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
 /**
  * \brief copies face loop data from shared adjacent faces.
  *
- * \param filter_fn: A function that filters the source loops before copying (don't always want to copy all)
+ * \param filter_fn: A function that filters the source loops before copying
+ * (don't always want to copy all).
  *
  * \note when a matching edge is found, both loops of that edge are copied
  * this is done since the face may not be completely surrounded by faces,

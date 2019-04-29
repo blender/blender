@@ -140,7 +140,8 @@ BMVert *BM_vert_create(BMesh *bm,
  * \brief Main function for creating a new edge.
  *
  * \note Duplicate edges are supported by the API however users should _never_ see them.
- * so unless you need a unique edge or know the edge won't exist, you should call with \a no_double = true
+ * so unless you need a unique edge or know the edge won't exist,
+ * you should call with \a no_double = true.
  */
 BMEdge *BM_edge_create(
     BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *e_example, const eBMCreateFlag create_flag)
@@ -1417,8 +1418,9 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
  *
  * \warning this is a low level function, most likely you want to use #BM_face_split()
  *
- * Takes as input two vertices in a single face. An edge is created which divides the original face
- * into two distinct regions. One of the regions is assigned to the original face and it is closed off.
+ * Takes as input two vertices in a single face.
+ * An edge is created which divides the original face into two distinct regions.
+ * One of the regions is assigned to the original face and it is closed off.
  * The second region has a new face assigned to it.
  *
  * \par Examples:
@@ -1944,7 +1946,8 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
  *
  * Collapse an edge, merging surrounding data.
  *
- * Unlike #BM_vert_collapse_edge & #bmesh_kernel_join_edge_kill_vert which only handle 2 valence verts,
+ * Unlike #BM_vert_collapse_edge & #bmesh_kernel_join_edge_kill_vert
+ * which only handle 2 valence verts,
  * this can handle any number of connected edges/faces.
  *
  * <pre>
@@ -2065,8 +2068,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
  * before attempting to fuse \a f1 and \a f2.
  *
  * \note The order of arguments decides whether or not certain per-face attributes are present
- * in the resultant face. For instance vertex winding, material index, smooth flags, etc are inherited
- * from \a f1, not \a f2.
+ * in the resultant face. For instance vertex winding, material index, smooth flags,
+ * etc are inherited from \a f1, not \a f2.
  *
  * \return A BMFace pointer
  */
@@ -2413,7 +2416,8 @@ void bmesh_kernel_vert_separate(
  *
  * Takes a list of edges, which have been split from their original.
  *
- * Any edges which failed to split off in #bmesh_kernel_vert_separate will be merged back into the original edge.
+ * Any edges which failed to split off in #bmesh_kernel_vert_separate
+ * will be merged back into the original edge.
  *
  * \param edges_separate:
  * A list-of-lists, each list is from a single original edge (the first edge is the original),

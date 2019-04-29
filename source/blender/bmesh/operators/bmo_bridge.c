@@ -211,8 +211,11 @@ static void bridge_loop_pair(BMesh *bm,
        * +--------+  +--------+
        * </pre>
        *
-       * When loops are aligned to the direction between the loops values of 'dir_a/b' is degenerate,
-       * in this case compare the original directions (before they were corrected by 'el_dir'), see: T43013
+       * When loops are aligned to the direction between
+       * the loops values of 'dir_a/b' is degenerate,
+       * in this case compare the original directions
+       * (before they were corrected by 'el_dir'),
+       * see: T43013
        */
       test_a = dir_a_orig;
       test_b = dir_b_orig;

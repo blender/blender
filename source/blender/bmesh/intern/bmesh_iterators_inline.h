@@ -174,7 +174,8 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 }
 
 /**
- * \brief Parallel (threaded) iterator, only available for most basic itertypes (verts/edges/faces of mesh).
+ * \brief Parallel (threaded) iterator,
+ * only available for most basic itertypes (verts/edges/faces of mesh).
  *
  * Uses BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
  *

@@ -941,8 +941,8 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
     BMLoop *l;
     BMIter fiter, liter;
 
-    /* We cannot tag faces for UVs computing above, so we have to do it now, based on all its vertices
-     * being tagged. */
+    /* We cannot tag faces for UVs computing above,
+     * so we have to do it now, based on all its vertices being tagged. */
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       bool valid = true;
 
@@ -1537,7 +1537,8 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
   const float uv_width = 1.0f / (float)segments;
   const float uv_height = cap_ends ? 0.5f : 1.0f;
 
-  /* Note that all this allows us to handle all cases (real cone, truncated cone, with or without ends capped)
+  /* Note that all this allows us to handle all cases
+   * (real cone, truncated cone, with or without ends capped)
    * with a single common code. */
   const float uv_center_y = cap_ends ? 0.25f : 0.5f;
   const float uv_center_x_top = cap_ends ? 0.25f : 0.5f;
@@ -1601,7 +1602,8 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
       }
     }
     else {
-      /* top or bottom face - so unwrap it by transforming back to a circle and using the X/Y coords */
+      /* Top or bottom face - so unwrap it by transforming
+       * back to a circle and using the X/Y coords. */
       BM_face_normal_update(f);
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {

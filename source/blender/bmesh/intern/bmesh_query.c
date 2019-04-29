@@ -311,9 +311,11 @@ float BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3])
 }
 
 /**
- * Given 2 verts, find a face they share that has the lowest angle across these verts and give back both loops.
+ * Given 2 verts,
+ * find a face they share that has the lowest angle across these verts and give back both loops.
  *
- * This can be better then #BM_vert_pair_share_face_by_len because concave splits are ranked lowest.
+ * This can be better then #BM_vert_pair_share_face_by_len
+ * because concave splits are ranked lowest.
  */
 BMFace *BM_vert_pair_share_face_by_angle(
     BMVert *v_a, BMVert *v_b, BMLoop **r_l_a, BMLoop **r_l_b, const bool allow_adjacent)
@@ -1410,7 +1412,8 @@ BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
  *
- * \note This is in fact quite a simple check, mainly include this function so the intent is more obvious.
+ * \note This is in fact quite a simple check,
+ * mainly include this function so the intent is more obvious.
  * We know these 2 verts will _always_ make up the loops edge
  */
 void BM_edge_ordered_verts_ex(const BMEdge *edge,
@@ -1507,10 +1510,13 @@ float BM_loop_calc_face_angle(const BMLoop *l)
  */
 float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, float r_normal[3])
 {
-  /* Note: we cannot use result of normal_tri_v3 here to detect colinear vectors (vertex on a straight line)
-   * from zero value, because it does not normalize both vectors before making crossproduct.
-   * Instead of adding two costly normalize computations, just check ourselves for colinear case. */
-  /* Note: FEPSILON might need some finer tweaking at some point? Seems to be working OK for now though. */
+  /* Note: we cannot use result of normal_tri_v3 here to detect colinear vectors
+   * (vertex on a straight line) from zero value,
+   * because it does not normalize both vectors before making crossproduct.
+   * Instead of adding two costly normalize computations,
+   * just check ourselves for colinear case. */
+  /* Note: FEPSILON might need some finer tweaking at some point?
+   * Seems to be working OK for now though. */
   float v1[3], v2[3], v_tmp[3];
   sub_v3_v3v3(v1, l->prev->v->co, l->v->co);
   sub_v3_v3v3(v2, l->next->v->co, l->v->co);

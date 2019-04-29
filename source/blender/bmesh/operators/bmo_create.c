@@ -230,8 +230,8 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
      *
      * Rather then do nothing, when 5+ verts are selected, check if they are in our history,
      * when this is so, we can make edges from them, but _not_ a face,
-     * if it is the intention to make a face the user can just hit F again since there will be edges next
-     * time around.
+     * if it is the intention to make a face the user can just hit F again
+     * since there will be edges next time around.
      *
      * if all history verts have ELE_NEW flagged and the total number of history verts == totv,
      * then we know the history contains all verts here and we can continue...

@@ -23,7 +23,8 @@
 
 /* bmesh data structures */
 
-/* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
+/* dissable holes for now,
+ * these are ifdef'd because they use more memory and cant be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
 struct BMEdge;
@@ -98,10 +99,12 @@ typedef struct BMVert {
   float co[3]; /* vertex coordinates */
   float no[3]; /* vertex normal */
 
-  /* pointer to (any) edge using this vertex (for disk cycles)
+  /**
+   * Pointer to (any) edge using this vertex (for disk cycles).
    *
-   * note: some higher level functions set this to different edges that use this vertex,
-   *       which is a bit of an abuse of internal bmesh data but also works OK for now (use with care!).
+   * \note Some higher level functions set this to different edges that use this vertex,
+   * which is a bit of an abuse of internal bmesh data but also works OK for now
+   * (use with care!).
    */
   struct BMEdge *e;
 } BMVert;
@@ -125,8 +128,12 @@ typedef struct BMEdge {
    * to access the other loops using the edge */
   struct BMLoop *l;
 
-  /* disk cycle pointers
-   * relative data: d1 indicates indicates the next/prev edge around vertex v1 and d2 does the same for v2 */
+  /**
+   * Disk Cycle Pointers
+   *
+   * relative data: d1 indicates indicates the next/prev
+   * edge around vertex v1 and d2 does the same for v2.
+   */
   BMDiskLink v1_disk_link, v2_disk_link;
 } BMEdge;
 
@@ -281,7 +288,10 @@ typedef struct BMLoopNorEditData {
 
 typedef struct BMLoopNorEditDataArray {
   BMLoopNorEditData *lnor_editdata;
-  /* This one has full amount of loops, used to map loop index to actual BMLoopNorEditData struct. */
+  /**
+   * This one has full amount of loops,
+   * used to map loop index to actual BMLoopNorEditData struct.
+   */
   BMLoopNorEditData **lidx_to_lnor_editdata;
 
   int cd_custom_normal_offset;
