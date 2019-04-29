@@ -25,7 +25,7 @@
  * See also:
  * reference implementation:
  * - https://smhasher.googlecode.com/svn-history/r130/trunk/MurmurHash2.cpp
- * - http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
+ * - http://programmers.stackexchange.com/questions/49550
  *
  * \warning Do not store that hash in files or such, it is not endian-agnostic,
  * so you should only use it for temporary data.

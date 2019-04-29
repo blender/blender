@@ -107,8 +107,8 @@ void BLF_thumb_preview(const char *filename,
 
     font->pos[1] -= font->glyph_cache->ascender * 1.1f;
 
-    /* We fallback to default english strings in case not enough chars are available in current font
-     * for given translated string (useful in non-latin i18n context, like chinese,
+    /* We fallback to default english strings in case not enough chars are available in current
+     * font for given translated string (useful in non-latin i18n context, like chinese,
      * since many fonts will then show nothing but ugly 'missing char' in their preview).
      * Does not handle all cases, but much better than nothing.
      */

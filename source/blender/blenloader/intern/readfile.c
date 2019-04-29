@@ -8050,7 +8050,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
             BLI_mempool_iternew(so->treestore, &iter);
             while ((tselem = BLI_mempool_iterstep(&iter))) {
-              /* Do not try to restore pointers to drivers/sequence/etc., can crash in undo case! */
+              /* Do not try to restore pointers to drivers/sequence/etc.,
+               * can crash in undo case! */
               if (TSE_IS_REAL_ID(tselem)) {
                 tselem->id = restore_pointer_by_name(id_map, tselem->id, USER_IGNORE);
               }
@@ -9724,7 +9725,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
-  /* Now that all our data-blocks are loaded, we can re-generate overrides from their references. */
+  /* Now that all our data-blocks are loaded,
+   * we can re-generate overrides from their references. */
   if (fd->memfile == NULL) {
     /* Do not apply in undo case! */
     BKE_main_override_static_update(bfd->main);
