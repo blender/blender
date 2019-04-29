@@ -43,8 +43,8 @@ struct ExportSettings {
   ExportSettings();
 
   Scene *scene;
-  ViewLayer *
-      view_layer;  // Scene layer to export; all its objects will be exported, unless selected_only=true
+  /** Scene layer to export; all its objects will be exported, unless selected_only=true. */
+  ViewLayer *view_layer;
   Depsgraph *depsgraph;
   SimpleLogger logger;
 

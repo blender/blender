@@ -158,7 +158,8 @@ static bool export_object(const ExportSettings *const settings,
     if (settings->selected_only && !BASE_SELECTED(v3d, base)) {
       return false;
     }
-    // FIXME Sybren: handle these cleanly (maybe just remove code), now using active scene layer instead.
+    // FIXME Sybren: handle these cleanly (maybe just remove code),
+    // now using active scene layer instead.
     if (settings->visible_layers_only && !BASE_VISIBLE(v3d, base)) {
       return false;
     }
