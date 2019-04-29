@@ -121,7 +121,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
       BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_ALL);
     }
     else {
-      BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_SELECT);
+      BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_SELECT_PAINT);
     }
 
     DEG_id_tag_update(ob->data, ID_RECALC_SELECT);

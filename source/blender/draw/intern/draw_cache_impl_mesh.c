@@ -2172,8 +2172,12 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_edges);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_facedots);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_mesh_analysis);
-      /* Paint mode selection */
-      /* TODO only do that in paint mode. */
+      /* Because visible UVs depends on edit mode selection, discard everything. */
+      mesh_batch_cache_discard_uvedit(cache);
+      break;
+    case BKE_MESH_BATCH_DIRTY_SELECT_PAINT:
+      /* Paint mode selection flag is packed inside the nor attrib.
+       * Note that it can be slow if auto smooth is enabled. (see T63946) */
       GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_pos_nor);
       GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
       GPU_BATCH_DISCARD_SAFE(cache->batch.wire_loops);
@@ -2182,8 +2186,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
           GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
         }
       }
-      /* Because visible UVs depends on edit mode selection, discard everything. */
-      mesh_batch_cache_discard_uvedit(cache);
       break;
     case BKE_MESH_BATCH_DIRTY_ALL:
       cache->is_dirty = true;
