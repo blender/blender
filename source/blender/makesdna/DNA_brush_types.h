@@ -324,7 +324,7 @@ typedef struct PaletteColor {
 typedef struct Palette {
   ID id;
 
-  /* pointer to individual colours */
+  /** Pointer to individual colors. */
   ListBase colors;
 
   int active_color;

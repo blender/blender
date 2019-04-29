@@ -294,7 +294,7 @@ typedef enum eGP_SelectGrouped {
 
   /* TODO: All with same prefix -
    * Useful for isolating all layers for a particular character for instance. */
-  /* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
+  /* TODO: All with same appearance - color/opacity/volumetric/fills ? */
 } eGP_SelectGrouped;
 
 /* ----------------------------------- */

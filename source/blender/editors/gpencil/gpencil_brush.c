@@ -969,7 +969,7 @@ typedef struct tGPSB_CloneBrushData {
   /* for "stamp" mode, the currently pasted brushes */
   bGPDstroke **new_strokes;
 
-  /* mapping from colors referenced per stroke, to the new colours in the "pasted" strokes */
+  /** Mapping from colors referenced per stroke, to the new colors in the "pasted" strokes. */
   GHash *new_colors;
 } tGPSB_CloneBrushData;
 
@@ -1017,7 +1017,7 @@ static void gp_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
   }
 
   /* Init colormap for mapping between the pasted stroke's source color (names)
-   * and the final colours that will be used here instead.
+   * and the final colors that will be used here instead.
    */
   data->new_colors = gp_copybuf_validate_colormap(C);
 }

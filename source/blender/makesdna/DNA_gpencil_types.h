@@ -136,7 +136,7 @@ typedef enum eGPDpalettecolor_Flag {
 typedef struct bGPDpalette {
   struct bGPDpalette *next, *prev;
 
-  /** Pointer to individual colours. */
+  /** Pointer to individual colors. */
   ListBase colors;
   /** Palette name. Must be unique. */
   char info[64];

@@ -483,7 +483,7 @@ void paint_sample_color(
   }
 
   if (CTX_wm_view3d(C) && texpaint_proj) {
-    /* first try getting a colour directly from the mesh faces if possible */
+    /* first try getting a color directly from the mesh faces if possible */
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Object *ob = OBACT(view_layer);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);

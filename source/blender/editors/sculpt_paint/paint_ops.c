@@ -583,7 +583,8 @@ typedef struct {
   float area_size[2];
   StencilControlMode mode;
   StencilConstraint constrain_mode;
-  int mask; /* we are twaking mask or colour stencil */
+  /** We are tweaking mask or color stencil. */
+  int mask;
   Brush *br;
   float *dim_target;
   float *rot_target;

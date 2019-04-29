@@ -715,7 +715,7 @@ static void draw_keylist(View2D *v2d,
     float sel_mhcol[4], unsel_mhcol[4];
     float ipo_color[4], ipo_color_mix[4];
 
-    /* cache colours first */
+    /* cache colors first */
     UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
     UI_GetThemeColor4fv(TH_STRIP, unsel_color);
     UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ipo_color);

@@ -766,7 +766,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
         }
       }
       else {
-        /* Number of keys has changed. Genereate an interpolated version
+        /* Number of keys has changed. Generate an interpolated version
          * to preserve motion blur. */
         const float step_size = num_center_curve_keys > 1 ? 1.0f / (num_center_curve_keys - 1) :
                                                             0.0f;

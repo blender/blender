@@ -243,7 +243,7 @@ static eGPUType get_padded_gpu_type(LinkData *link)
 }
 
 /**
- * Returns 1 if the first item shold be after second item.
+ * Returns 1 if the first item should be after second item.
  * We make sure the vec4 uniforms come first.
  */
 static int inputs_cmp(const void *a, const void *b)

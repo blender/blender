@@ -481,7 +481,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /* Adding object to collection which is used as duplicollection for self is bad idea.
+  /* Adding object to collection which is used as dupli-collection for self is bad idea.
    *
    * It is also  bad idea to add object to collection which is in collection which
    * contains our current object.

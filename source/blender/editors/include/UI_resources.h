@@ -356,7 +356,7 @@ void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4]);
 void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]);
 void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
 
-// get four colour values ranged between 0 and 255; includes the alpha channel
+// get four color values ranged between 0 and 255; includes the alpha channel
 void UI_GetThemeColorShadeAlpha4ubv(int colorid,
                                     int coloffset,
                                     int alphaoffset,

@@ -833,7 +833,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   x -= vc->ar->winrct.xmin;
   y -= vc->ar->winrct.ymin;
 
-  /* coloured overlay should be drawn separately */
+  /* Colored overlay should be drawn separately. */
   if (col) {
     if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY)) {
       paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, true, true);

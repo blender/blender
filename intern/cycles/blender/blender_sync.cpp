@@ -583,7 +583,7 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLa
   }
 
   /* Cryptomatte stores two ID/weight pairs per RGBA layer.
-   * User facing paramter is the number of pairs. */
+   * User facing parameter is the number of pairs. */
   int crypto_depth = min(16, get_int(crp, "pass_crypto_depth")) / 2;
   scene->film->cryptomatte_depth = crypto_depth;
   scene->film->cryptomatte_passes = CRYPT_NONE;

@@ -120,7 +120,7 @@ enum {
   /**
    * Use for region show/hide state:
    * - When a region is collapsed, draw a handle to expose.
-   * - When a region is expanded, use the the action zone to resize the region.
+   * - When a region is expanded, use the action zone to resize the region.
    */
   AZONE_REGION,
   /**
@@ -128,8 +128,8 @@ enum {
    */
   AZONE_FULLSCREEN,
   /**
-   * Hotspot azone around scrollbars to show/hide them.
-   * Only show the scrull-bars when the cursor is close.
+   * Hotspot azone around scroll-bars to show/hide them.
+   * Only show the scroll-bars when the cursor is close.
    */
   AZONE_REGION_SCROLL,
 };

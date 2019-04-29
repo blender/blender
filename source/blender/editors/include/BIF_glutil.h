@@ -121,8 +121,8 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 
 /* Image buffer drawing functions, with display transform
  *
- * The view and display settings can either be specified manually, or retrived
- * from the context with the _ctx variations.
+ * The view and display settings can either be specified manually,
+ * or retrieved from the context with the '_ctx' variations.
  *
  * For better performance clipping coordinates can be specified so parts of the
  * image outside the view are skipped. */

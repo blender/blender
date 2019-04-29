@@ -1069,7 +1069,8 @@ void ED_gpencil_strokes_copybuf_free(void)
   gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
 }
 
-/* Ensure that destination datablock has all the colours the pasted strokes need
+/**
+ * Ensure that destination datablock has all the colors the pasted strokes need.
  * Helper function for copy-pasting strokes
  */
 GHash *gp_copybuf_validate_colormap(bContext *C)
