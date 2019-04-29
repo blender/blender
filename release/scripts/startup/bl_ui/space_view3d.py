@@ -6018,7 +6018,7 @@ class VIEW3D_PT_view3d_stereo(Panel):
 class VIEW3D_PT_context_properties(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "View"
+    bl_category = "Item"
     bl_label = "Properties"
     bl_options = {'DEFAULT_CLOSED'}
 
