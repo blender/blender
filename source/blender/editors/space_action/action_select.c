@@ -1558,7 +1558,7 @@ static void mouse_action_keys(bAnimContext *ac,
   /* free list of channels, since it's not used anymore */
   ANIM_animdata_freelist(&anim_data);
 
-  /* For replacing selection, if we have somthing to select, we have to clear existing selection.
+  /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
    * (deselect on nothing behavior). */
   if ((select_mode == SELECT_REPLACE && found) || (!found && deselect_all)) {
