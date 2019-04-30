@@ -4766,7 +4766,7 @@ class VIEW3D_PT_collections(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "View"
-    bl_label = "Collections Visibility"
+    bl_label = "Collections"
     bl_options = {'DEFAULT_CLOSED'}
 
     def _draw_collection(self, layout, view_layer, collection, index):
@@ -4816,9 +4816,6 @@ class VIEW3D_PT_collections(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
-
-        layout.label(text="Collections Visibility")
-        layout.column()
 
         view_layer = context.view_layer
         # We pass index 0 here beause the index is increased
