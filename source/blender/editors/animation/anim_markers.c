@@ -361,45 +361,38 @@ void debug_markers_print_list(ListBase *markers)
 
 /* ************* Marker Drawing ************ */
 
-static void draw_marker_name(const uiFontStyle *fstyle,
-                             TimeMarker *marker,
-                             const char *name,
-                             int cfra,
-                             const float xpos,
-                             const float ypixels)
+static void marker_color_get(TimeMarker *marker, unsigned char *color)
 {
-  unsigned char text_col[4];
-  float x, y;
-
-  /* minimal y coordinate which wouldn't be occluded by scroll */
-  int min_y = 17.0f * UI_DPI_FAC;
-
   if (marker->flag & SELECT) {
-    UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
-    x = xpos + 4.0f * UI_DPI_FAC;
-    y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
-    y = max_ii(y, min_y);
+    UI_GetThemeColor4ubv(TH_TEXT_HI, color);
   }
   else {
-    UI_GetThemeColor4ubv(TH_TEXT, text_col);
-    if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
-      x = xpos + 8.0f * UI_DPI_FAC;
-      y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
-      y = max_ii(y, min_y);
-    }
-    else {
-      x = xpos + 8.0f * UI_DPI_FAC;
-      y = 17.0f * UI_DPI_FAC;
-    }
+    UI_GetThemeColor4ubv(TH_TEXT, color);
   }
+}
+
+static void draw_marker_name(const uiFontStyle *fstyle,
+                             TimeMarker *marker,
+                             float marker_x,
+                             float text_y)
+{
+  unsigned char text_color[4];
+  marker_color_get(marker, text_color);
+
+  const char *name = marker->name;
 
 #ifdef DURIAN_CAMERA_SWITCH
-  if (marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
-    text_col[3] = 100;
+  if (marker->camera) {
+    Object *camera = marker->camera;
+    name = camera->id.name + 2;
+    if (camera->restrictflag & OB_RESTRICT_RENDER) {
+      text_color[3] = 100;
+    }
   }
 #endif
 
-  UI_fontstyle_draw_simple(fstyle, x, y, name, text_col);
+  int name_x = marker_x + UI_DPI_ICON_SIZE * 0.6;
+  UI_fontstyle_draw_simple(fstyle, name_x, text_y, name, text_color);
 }
 
 static void draw_marker_line(const float color[4], float x, float ymin, float ymax)
@@ -426,29 +419,24 @@ static void draw_marker_line(const float color[4], float x, float ymin, float ym
   immUnbindProgram();
 }
 
-/* function to draw markers */
-static void draw_marker(const uiFontStyle *fstyle,
-                        TimeMarker *marker,
-                        int cfra,
-                        int flag,
-                        /* avoid re-calculating each time */
-                        const float ypixels,
-                        const float xscale,
-                        int height)
+static int marker_get_icon_id(TimeMarker *marker, int flag)
 {
-  const float xpos = marker->frame * xscale;
+  if (flag & DRAW_MARKERS_LOCAL) {
+    return (marker->flag & ACTIVE) ? ICON_PMARKER_ACT :
+                                     (marker->flag & SELECT) ? ICON_PMARKER_SEL : ICON_PMARKER;
+  }
 #ifdef DURIAN_CAMERA_SWITCH
-  const float yoffs = (marker->camera) ? 0.2f * UI_DPI_ICON_SIZE : 0.0f;
-#else
-  const float yoffs = 0.0f;
+  else if (marker->camera) {
+    return (marker->flag & SELECT) ? ICON_OUTLINER_OB_CAMERA : ICON_CAMERA_DATA;
+  }
 #endif
-  int icon_id;
+  else {
+    return (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
+  }
+}
 
-  GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
-  /* vertical line - dotted */
+static void draw_marker_line_if_necessary(TimeMarker *marker, int flag, int xpos, int height)
+{
 #ifdef DURIAN_CAMERA_SWITCH
   if ((marker->camera) || (flag & DRAW_MARKERS_LINES))
 #else
@@ -463,103 +451,114 @@ static void draw_marker(const uiFontStyle *fstyle,
       copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 0.38f);
     }
 
-    draw_marker_line(color, xpos, yoffs + 1.5f * UI_DPI_ICON_SIZE, height);
+    draw_marker_line(color, xpos, UI_DPI_FAC * 20, height);
   }
+}
 
-  /* 5 px to offset icon to align properly, space / pixels corrects for zoom */
-  if (flag & DRAW_MARKERS_LOCAL) {
-    icon_id = (marker->flag & ACTIVE) ? ICON_PMARKER_ACT :
-                                        (marker->flag & SELECT) ? ICON_PMARKER_SEL : ICON_PMARKER;
-  }
-#ifdef DURIAN_CAMERA_SWITCH
-  else if (marker->camera) {
-    icon_id = (marker->flag & SELECT) ? ICON_OUTLINER_OB_CAMERA : ICON_CAMERA_DATA;
-  }
-#endif
-  else {
-    icon_id = (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
-  }
+static void draw_marker(
+    const uiFontStyle *fstyle, TimeMarker *marker, int xpos, int flag, int region_height)
+{
+  GPU_blend(true);
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-  UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, yoffs + UI_DPI_ICON_SIZE, icon_id);
+  draw_marker_line_if_necessary(marker, flag, xpos, region_height);
+
+  int icon_id = marker_get_icon_id(marker, flag);
+  UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, UI_DPI_FAC * 18, icon_id);
 
   GPU_blend(false);
 
-  /* and the marker name too, shifted slightly to the top-right */
-#ifdef DURIAN_CAMERA_SWITCH
-  if (marker->camera) {
-    draw_marker_name(fstyle, marker, marker->camera->id.name + 2, cfra, xpos, ypixels);
+  float name_y = UI_DPI_FAC * 18;
+  if (marker->flag & SELECT) {
+    name_y += UI_DPI_FAC * 10;
   }
-  else if (marker->name[0]) {
-    draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
+  draw_marker_name(fstyle, marker, xpos, name_y);
+}
+
+static void draw_markers_background(rctf *rect)
+{
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  const unsigned char shade[4] = {0, 0, 0, 16};
+  immUniformColor4ubv(shade);
+
+  GPU_blend(true);
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+
+  immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+
+  GPU_blend(false);
+
+  immUnbindProgram();
+}
+
+static bool marker_is_in_frame_range(TimeMarker *marker, int frame_range[2])
+{
+  if (marker->frame < frame_range[0]) {
+    return false;
   }
-#else
-  if (marker->name[0]) {
-    draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
+  if (marker->frame > frame_range[1]) {
+    return false;
   }
-#endif
+  return true;
+}
+
+static void get_marker_region_rect(View2D *v2d, rctf *rect)
+{
+  rect->xmin = v2d->cur.xmin;
+  rect->xmax = v2d->cur.xmax;
+  rect->ymin = 0;
+  rect->ymax = UI_MARKER_MARGIN_Y;
+}
+
+static void get_marker_clip_frame_range(View2D *v2d, float xscale, int r_range[2])
+{
+  float font_width_max = (10 * UI_DPI_FAC) / xscale;
+  r_range[0] = v2d->cur.xmin - sizeof(((TimeMarker *)NULL)->name) * font_width_max;
+  r_range[1] = v2d->cur.xmax + font_width_max;
 }
 
 /* Draw Scene-Markers in time window */
 void ED_markers_draw(const bContext *C, int flag)
 {
-  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   ListBase *markers = ED_context_get_markers(C);
-  View2D *v2d;
-  TimeMarker *marker;
-  Scene *scene;
-  int select_pass;
-  int v2d_clip_range_x[2];
-  float font_width_max;
-
-  /* cache values */
-  float ypixels, xscale, yscale;
-
   if (markers == NULL || BLI_listbase_is_empty(markers)) {
     return;
   }
 
-  scene = CTX_data_scene(C);
-  v2d = UI_view2d_fromcontext(C);
-  int height = v2d->mask.ymax - v2d->mask.ymin;
+  ARegion *ar = CTX_wm_region(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
 
-  if (flag & DRAW_MARKERS_MARGIN) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  rctf markers_region_rect;
+  get_marker_region_rect(v2d, &markers_region_rect);
 
-    const unsigned char shade[4] = {0, 0, 0, 16};
-    immUniformColor4ubv(shade);
-
-    GPU_blend(true);
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
-    immRectf(pos, v2d->cur.xmin, 0, v2d->cur.xmax, UI_MARKER_MARGIN_Y);
-
-    GPU_blend(false);
-
-    immUnbindProgram();
-  }
+  draw_markers_background(&markers_region_rect);
 
   /* no time correction for framelen! space is drawn with old values */
-  ypixels = BLI_rcti_size_y(&v2d->mask);
-  UI_view2d_scale_get(v2d, &xscale, &yscale);
+  float xscale, dummy;
+  UI_view2d_scale_get(v2d, &xscale, &dummy);
   GPU_matrix_push();
   GPU_matrix_scale_2f(1.0f / xscale, 1.0f);
 
-  /* x-bounds with offset for text (adjust for long string, avoid checking string width) */
-  font_width_max = (10 * UI_DPI_FAC) / xscale;
-  v2d_clip_range_x[0] = v2d->cur.xmin - (sizeof(marker->name) * font_width_max);
-  v2d_clip_range_x[1] = v2d->cur.xmax + font_width_max;
+  int clip_frame_range[2];
+  get_marker_clip_frame_range(v2d, xscale, clip_frame_range);
 
-  /* loop [unselected, selected] */
-  for (select_pass = 0; select_pass <= SELECT; select_pass += SELECT) {
-    /* unselected markers are drawn at the first time */
-    for (marker = markers->first; marker; marker = marker->next) {
-      if ((marker->flag & SELECT) == select_pass) {
-        /* bounds check */
-        if ((marker->frame >= v2d_clip_range_x[0]) && (marker->frame <= v2d_clip_range_x[1])) {
-          draw_marker(fstyle, marker, scene->r.cfra, flag, ypixels, xscale, height);
-        }
+  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+
+  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+    if ((marker->flag & SELECT) == 0) {
+      if (marker_is_in_frame_range(marker, clip_frame_range)) {
+        draw_marker(fstyle, marker, marker->frame * xscale, flag, ar->winy);
+      }
+    }
+  }
+  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+    if (marker->flag & SELECT) {
+      if (marker_is_in_frame_range(marker, clip_frame_range)) {
+        draw_marker(fstyle, marker, marker->frame * xscale, flag, ar->winy);
       }
     }
   }
