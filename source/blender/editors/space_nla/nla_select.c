@@ -586,10 +586,10 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
     /* remove active channel from list of channels for separate treatment
      * (since it's needed later on) */
     BLI_remlink(&anim_data, ale);
-
-    /* free list of channels, since it's not used anymore */
-    ANIM_animdata_freelist(&anim_data);
   }
+
+  /* free list of channels, since it's not used anymore */
+  ANIM_animdata_freelist(&anim_data);
 
   /* if currently in tweakmode, exit tweakmode before changing selection states
    * now that we've found our target...

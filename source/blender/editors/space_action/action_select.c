@@ -1553,10 +1553,10 @@ static void mouse_action_keys(bAnimContext *ac,
 
     /* cleanup temporary lists */
     BLI_dlrbTree_free(&anim_keys);
-
-    /* free list of channels, since it's not used anymore */
-    ANIM_animdata_freelist(&anim_data);
   }
+
+  /* free list of channels, since it's not used anymore */
+  ANIM_animdata_freelist(&anim_data);
 
   /* For replacing selection, if we have somthing to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
