@@ -1456,6 +1456,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
   View3D *v3d = draw_ctx->v3d;
   const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) : true;
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
+  const bool is_paint_tool = (bool)((brush) && (brush->gpencil_tool == GPAINT_TOOL_DRAW));
   bGPdata *gpd_eval = ob->data;
   /* need the original to avoid cow overhead while drawing */
   bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
@@ -1581,7 +1582,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
   const bool is_show_gizmo = (((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) &&
                               ((v3d->gizmo_flag & V3D_GIZMO_HIDE_TOOL) == 0));
 
-  if ((overlay) && (is_cppoint || is_speed_guide) && (is_show_gizmo) &&
+  if ((overlay) && (is_paint_tool) && (is_cppoint || is_speed_guide) && (is_show_gizmo) &&
       ((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0)) {
     DRWShadingGroup *shgrp = DRW_shgroup_create(e_data->gpencil_edit_point_sh, psl->drawing_pass);
     const float *viewport_size = DRW_viewport_size_get();
