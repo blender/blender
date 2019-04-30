@@ -573,8 +573,7 @@ enum {
 
 /* **************** BASE ********************* */
 
-/* also needed for base!!!!! or rather, they interfere....*/
-/* base->flag and ob->flag */
+/* base->flag_legacy */
 enum {
   BA_WAS_SEL = (1 << 1),
   /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
