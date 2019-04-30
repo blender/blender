@@ -1654,12 +1654,15 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
   if (op && (prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
     if (RNA_property_is_set(op->ptr, prop)) {
-      int proportional = PROP_EDIT_USE;
-      if (RNA_boolean_get(op->ptr, "use_proportional_connected")) {
-        proportional |= PROP_EDIT_CONNECTED;
-      }
-      if (RNA_boolean_get(op->ptr, "use_proportional_projected")) {
-        proportional |= PROP_EDIT_PROJECTED;
+      int proportional = 0;
+      if (RNA_boolean_get(op->ptr, "use_proportional_edit")) {
+        proportional |= PROP_EDIT_USE;
+        if (RNA_boolean_get(op->ptr, "use_proportional_connected")) {
+          proportional |= PROP_EDIT_CONNECTED;
+        }
+        if (RNA_boolean_get(op->ptr, "use_proportional_projected")) {
+          proportional |= PROP_EDIT_PROJECTED;
+        }
       }
       t->flag |= initTransInfo_edit_pet_to_flag(proportional);
     }
