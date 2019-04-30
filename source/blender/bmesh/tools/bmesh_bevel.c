@@ -5222,6 +5222,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
   BMIter iter;
   EdgeHalf *e;
   float weight, z;
+  float vert_axis[3];
   int i, ccw_test_sum;
   int nsel = 0;
   int ntot = 0;
@@ -5290,21 +5291,6 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
   bv->vmesh = (VMesh *)BLI_memarena_alloc(bp->mem_arena, sizeof(VMesh));
   bv->vmesh->seg = bp->seg;
 
-  if (bp->vertex_only) {
-    /* if weighted, modify offset by weight */
-    if (bp->dvert != NULL && bp->vertex_group != -1) {
-      weight = defvert_find_weight(bp->dvert + BM_elem_index_get(v), bp->vertex_group);
-      if (weight <= 0.0f) {
-        BM_elem_flag_disable(v, BM_ELEM_TAG);
-        return NULL;
-      }
-      bv->offset *= weight;
-    }
-    else if (bp->use_weights) {
-      weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
-      bv->offset *= weight;
-    }
-  }
   BLI_ghash_insert(bp->vert_hash, v, bv);
 
   find_bevel_edge_order(bm, bv, first_bme);
@@ -5349,6 +5335,29 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         i = ntot / 2;
         SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
       }
+    }
+  }
+
+  if (bp->vertex_only) {
+    /* if weighted, modify offset by weight */
+    if (bp->dvert != NULL && bp->vertex_group != -1) {
+      weight = defvert_find_weight(bp->dvert + BM_elem_index_get(v), bp->vertex_group);
+      bv->offset *= weight;
+    }
+    else if (bp->use_weights) {
+      weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+      bv->offset *= weight;
+    }
+    /* Find center axis. Note: Don't use vert normal, can give unwanted results. */
+    if (ELEM(bp->offset_type, BEVEL_AMT_WIDTH, BEVEL_AMT_DEPTH)) {
+      float edge_dir[3];
+      for (i = 0, e = bv->edges; i < ntot; i++, e++) {
+        v2 = BM_edge_other_vert(e->e, bv->v);
+        sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
+        normalize_v3(edge_dir);
+        add_v3_v3v3(vert_axis, vert_axis, edge_dir);
+      }
+      mul_v3_fl(vert_axis, 1 / ntot);
     }
   }
 
@@ -5411,13 +5420,43 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
     }
     else if (bp->vertex_only) {
       /* Weight has already been applied to bv->offset, if present.
-       * Transfer to e->offset_[lr]_spec and treat percent as special case */
-      if (bp->offset_type == BEVEL_AMT_PERCENT) {
-        v2 = BM_edge_other_vert(e->e, bv->v);
-        e->offset_l_spec = BM_edge_calc_length(e->e) * bv->offset / 100.0f;
-      }
-      else {
-        e->offset_l_spec = bv->offset;
+       * Transfer to e->offset_[lr]_spec according to offset_type. */
+      float edge_dir[3];
+      switch (bp->offset_type) {
+        case BEVEL_AMT_OFFSET: {
+          e->offset_l_spec = bv->offset;
+          break;
+        }
+        case BEVEL_AMT_WIDTH: {
+          v2 = BM_edge_other_vert(e->e, bv->v);
+          sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
+          normalize_v3(edge_dir);
+          z = fabsf(2.0f * sinf(angle_normalized_v3v3(vert_axis, edge_dir)));
+          if (z < BEVEL_EPSILON) {
+            e->offset_l_spec = 0.01f * bp->offset; /* undefined behavior, so tiny bevel. */
+          }
+          else {
+            e->offset_l_spec = bp->offset / z;
+          }
+          break;
+        }
+        case BEVEL_AMT_DEPTH: {
+          v2 = BM_edge_other_vert(e->e, bv->v);
+          sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
+          normalize_v3(edge_dir);
+          z = fabsf(cosf(angle_normalized_v3v3(vert_axis, edge_dir)));
+          if (z < BEVEL_EPSILON) {
+            e->offset_l_spec = 0.01f * bp->offset; /* undefined behavior, so tiny bevel. */
+          }
+          else {
+            e->offset_l_spec = bp->offset / z;
+          }
+          break;
+        }
+        case BEVEL_AMT_PERCENT: {
+          e->offset_l_spec = BM_edge_calc_length(e->e) * bv->offset / 100.0f;
+          break;
+        }
       }
       e->offset_r_spec = e->offset_l_spec;
     }
