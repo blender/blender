@@ -81,7 +81,8 @@ class DocumentImporter : COLLADAFW::IWriter {
   /** This is the method called. The writer hast to prepare to receive data.*/
   void start();
 
-  /** This method is called after the last write* method. No other methods will be called after this.*/
+  /** This method is called after the last write* method. No other methods will be called after
+   * this.*/
   void finish();
 
   bool writeGlobalAsset(const COLLADAFW::FileInfo *);

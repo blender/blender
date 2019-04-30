@@ -198,7 +198,7 @@ int DocumentExporter::exportCurrentScene()
   RNA_id_pointer_create(&(sce->id), &sceneptr);
   unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
   system = RNA_struct_find_property(&unit_settings, "system");
-  //scale = RNA_struct_find_property(&unit_settings, "scale_length");
+  // scale = RNA_struct_find_property(&unit_settings, "scale_length");
 
   std::string unitname = "meter";
   float linearmeasure = RNA_float_get(&unit_settings, "scale_length");
@@ -338,5 +338,6 @@ void DocumentExporter::exportScenes(const char *filename)
 /*
  * NOTES:
  *
- * AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a user
+ * AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a
+ * user
  */

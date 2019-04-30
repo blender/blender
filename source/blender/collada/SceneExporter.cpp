@@ -32,7 +32,7 @@ void SceneExporter::exportScene()
 {
   Scene *scene = blender_context.get_scene();
 
-  // <library_visual_scenes> <visual_scene>
+  /* <library_visual_scenes> <visual_scene> */
   std::string name = id_name(scene);
   openVisualScene(translate_id(name), encode_xml(name));
   exportHierarchy();
@@ -45,13 +45,13 @@ void SceneExporter::exportHierarchy()
   LinkNode *node;
   std::vector<Object *> base_objects;
 
-  // Ensure all objects in the export_set are marked
+  /* Ensure all objects in the export_set are marked */
   for (node = this->export_settings->export_set; node; node = node->next) {
     Object *ob = (Object *)node->link;
     ob->id.tag |= LIB_TAG_DOIT;
   }
 
-  // Now find all exportable base objects (highest in export hierarchy)
+  /* Now find all exportable base objects (highest in export hierarchy) */
   for (node = this->export_settings->export_set; node; node = node->next) {
     Object *ob = (Object *)node->link;
     if (bc_is_base_node(this->export_settings->export_set, ob)) {
@@ -68,7 +68,7 @@ void SceneExporter::exportHierarchy()
     }
   }
 
-  // And now export the base objects:
+  /* And now export the base objects: */
   for (int index = 0; index < base_objects.size(); index++) {
     Object *ob = base_objects[index];
     if (bc_is_marked(ob)) {
@@ -103,7 +103,7 @@ void SceneExporter::writeNodes(Object *ob)
   bc_get_children(child_objects, ob, view_layer);
   bool can_export = bc_is_in_Export_set(this->export_settings->export_set, ob, view_layer);
 
-  // Add associated armature first if available
+  /* Add associated armature first if available */
   bool armature_exported = false;
   Object *ob_arm = bc_get_assigned_armature(ob);
 
@@ -125,7 +125,7 @@ void SceneExporter::writeNodes(Object *ob)
     colladaNode.start();
 
     if (ob->type == OB_MESH && armature_exported) {
-      // for skinned mesh we write obmat in <bind_shape_matrix>
+      /* for skinned mesh we write obmat in <bind_shape_matrix> */
       TransformWriter::add_node_transform_identity(colladaNode);
     }
     else {
@@ -135,7 +135,7 @@ void SceneExporter::writeNodes(Object *ob)
                                              this->export_settings->limit_precision);
     }
 
-    // <instance_geometry>
+    /* <instance_geometry> */
     if (ob->type == OB_MESH) {
       bool instance_controller_created = false;
       if (armature_exported) {
@@ -153,27 +153,27 @@ void SceneExporter::writeNodes(Object *ob)
       }
     }
 
-    // <instance_controller>
+    /* <instance_controller> */
     else if (ob->type == OB_ARMATURE) {
       arm_exporter->add_armature_bones(ob, view_layer, this, child_objects);
     }
 
-    // <instance_camera>
+    /* <instance_camera> */
     else if (ob->type == OB_CAMERA) {
       COLLADASW::InstanceCamera instCam(
           mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_camera_id(ob)));
       instCam.add();
     }
 
-    // <instance_light>
+    /* <instance_light> */
     else if (ob->type == OB_LAMP) {
       COLLADASW::InstanceLight instLa(
           mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_light_id(ob)));
       instLa.add();
     }
 
-    // empty object
-    else if (ob->type == OB_EMPTY) {  // TODO: handle groups (OB_DUPLICOLLECTION
+    /* empty object */
+    else if (ob->type == OB_EMPTY) { /* TODO: handle groups (OB_DUPLICOLLECTION */
       if ((ob->transflag & OB_DUPLICOLLECTION) == OB_DUPLICOLLECTION && ob->instance_collection) {
         Collection *collection = ob->instance_collection;
         /* printf("group detected '%s'\n", group->id.name + 2); */
@@ -206,9 +206,9 @@ void SceneExporter::writeNodes(Object *ob)
           colladaNode.addExtraTechniqueChildParameter(
               "blender", con_tag, "lin_error", con->lin_error);
 
-          //not ideal: add the target object name as another parameter.
-          //No real mapping in the .dae
-          //Need support for multiple target objects also.
+          /* not ideal: add the target object name as another parameter.
+           * No real mapping in the .dae
+           * Need support for multiple target objects also. */
           const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
           ListBase targets = {NULL, NULL};
           if (cti && cti->get_constraint_targets) {

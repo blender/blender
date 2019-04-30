@@ -266,9 +266,8 @@ void MeshImporter::print_index_list(COLLADAFW::IndexList &index_list)
 }
 #endif
 
-bool MeshImporter::is_nice_mesh(
-    COLLADAFW::Mesh *
-        mesh)  // checks if mesh has supported primitive types: lines, polylist, triangles, triangle_fans
+/* checks if mesh has supported primitive types: lines, polylist, triangles, triangle_fans */
+bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 {
   COLLADAFW::MeshPrimitiveArray &prim_arr = mesh->getMeshPrimitives();
 

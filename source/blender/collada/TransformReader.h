@@ -35,7 +35,7 @@
 
 #include "collada_internal.h"
 
-//struct Object;
+// struct Object;
 
 class TransformReader {
  protected:

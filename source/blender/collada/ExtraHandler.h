@@ -50,7 +50,8 @@ class ExtraHandler : public COLLADASaxFWL::IExtraDataCallbackHandler {
   /** Receive the data in text format. */
   bool textData(const char *text, size_t textLength);
 
-  /** Method to ask, if the current callback handler want to read the data of the given extra element. */
+  /** Method to ask, if the current callback handler want to read the data of the given extra
+   * element. */
   bool parseElement(const char *profileName,
                     const unsigned long &elementHash,
                     const COLLADAFW::UniqueId &uniqueId,

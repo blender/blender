@@ -246,7 +246,7 @@ void ArmatureExporter::add_bone_node(Bone *bone,
 
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node &node)
 {
-  //bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
+  // bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 
   float mat[4][4];
   float bone_rest_mat[4][4];   /* derived from bone->arm_mat */

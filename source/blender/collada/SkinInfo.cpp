@@ -45,16 +45,16 @@
 #include "SkinInfo.h"
 #include "collada_utils.h"
 
-// use name, or fall back to original id if name not present (name is optional)
+/* use name, or fall back to original id if name not present (name is optional) */
 template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
   return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
-// This is used to store data passed in write_controller_data.
-// Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
-// so that arrays don't get freed until we free them explicitly.
+/* This is used to store data passed in write_controller_data.
+ * Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
+ * so that arrays don't get freed until we free them explicitly. */
 SkinInfo::SkinInfo()
 {
   /* pass */
@@ -79,7 +79,7 @@ SkinInfo::SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL), pa
 {
 }
 
-// nobody owns the data after this, so it should be freed manually with releaseMemory
+/* nobody owns the data after this, so it should be freed manually with releaseMemory */
 template<class T> void SkinInfo::transfer_array_data(T &src, T &dest)
 {
   dest.setData(src.getData(), src.getCount());
@@ -87,7 +87,7 @@ template<class T> void SkinInfo::transfer_array_data(T &src, T &dest)
   dest.yieldOwnerShip();
 }
 
-// when src is const we cannot src.yieldOwnerShip, this is used by copy constructor
+/* when src is const we cannot src.yieldOwnerShip, this is used by copy constructor */
 void SkinInfo::transfer_int_array_data_const(const COLLADAFW::IntValuesArray &src,
                                              COLLADAFW::IntValuesArray &dest)
 {
@@ -109,7 +109,7 @@ void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *
   transfer_array_data((COLLADAFW::IntValuesArray &)skin->getJointIndices(), joint_indices);
   // transfer_array_data(skin->getWeights(), weights);
 
-  // cannot transfer data for FloatOrDoubleArray, copy values manually
+  /* cannot transfer data for FloatOrDoubleArray, copy values manually */
   const COLLADAFW::FloatOrDoubleArray &weight = skin->getWeights();
   for (unsigned int i = 0; i < weight.getValuesCount(); i++)
     weights.push_back(bc_get_float_value(weight, i));
@@ -125,9 +125,9 @@ void SkinInfo::free()
   // weights.releaseMemory();
 }
 
-// using inverse bind matrices to construct armature
-// it is safe to invert them to get the original matrices
-// because if they are inverse matrices, they can be inverted
+/* using inverse bind matrices to construct armature
+ * it is safe to invert them to get the original matrices
+ * because if they are inverse matrices, they can be inverted */
 void SkinInfo::add_joint(const COLLADABU::Math::Matrix4 &matrix)
 {
   JointData jd;
@@ -139,21 +139,21 @@ void SkinInfo::set_controller(const COLLADAFW::SkinController *co)
 {
   controller_uid = co->getUniqueId();
 
-  // fill in joint UIDs
+  /* fill in joint UIDs */
   const COLLADAFW::UniqueIdArray &joint_uids = co->getJoints();
   for (unsigned int i = 0; i < joint_uids.getCount(); i++) {
     joint_data[i].joint_uid = joint_uids[i];
 
-    // // store armature pointer
+    /* store armature pointer */
     // JointData& jd = joint_index_to_joint_info_map[i];
     // jd.ob_arm = ob_arm;
 
-    // now we'll be able to get inv bind matrix from joint id
+    /* now we'll be able to get inv bind matrix from joint id */
     // joint_id_to_joint_index_map[joint_ids[i]] = i;
   }
 }
 
-// called from write_controller
+/* called from write_controller */
 Object *SkinInfo::create_armature(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
   ob_arm = bc_add_object(bmain, scene, view_layer, OB_ARMATURE, NULL);
@@ -193,11 +193,11 @@ const COLLADAFW::UniqueId &SkinInfo::get_controller_uid()
   return controller_uid;
 }
 
-// check if this skin controller references a joint or any descendant of it
-//
-// some nodes may not be referenced by SkinController,
-// in this case to determine if the node belongs to this armature,
-// we need to search down the tree
+/* check if this skin controller references a joint or any descendant of it
+ *
+ * some nodes may not be referenced by SkinController,
+ * in this case to determine if the node belongs to this armature,
+ * we need to search down the tree */
 bool SkinInfo::uses_joint_or_descendant(COLLADAFW::Node *node)
 {
   const COLLADAFW::UniqueId &uid = node->getUniqueId();
@@ -248,17 +248,17 @@ void SkinInfo::link_armature(bContext *C,
 
   amd->deformflag = ARM_DEF_VGROUP;
 
-  // create all vertex groups
+  /* create all vertex groups */
   std::vector<JointData>::iterator it;
   int joint_index;
   for (it = joint_data.begin(), joint_index = 0; it != joint_data.end(); it++, joint_index++) {
     const char *name = "Group";
 
-    // skip joints that have invalid UID
+    /* skip joints that have invalid UID */
     if ((*it).joint_uid == COLLADAFW::UniqueId::INVALID)
       continue;
 
-    // name group by joint node name
+    /* name group by joint node name */
 
     if (joint_by_uid.find((*it).joint_uid) != joint_by_uid.end()) {
       name = bc_get_joint_name(joint_by_uid[(*it).joint_uid]);
@@ -267,16 +267,16 @@ void SkinInfo::link_armature(bContext *C,
     BKE_object_defgroup_add_name(ob, name);
   }
 
-  // <vcount> - number of joints per vertex - joints_per_vertex
-  // <v> - [[bone index, weight index] * joints per vertex] * vertices - weight indices
-  // ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
-
-  // for each vertex in weight indices
-  //  for each bone index in vertex
-  //      add vertex to group at group index
-  //      treat group index -1 specially
-
-  // get def group by index with BLI_findlink
+  /* <vcount> - number of joints per vertex - joints_per_vertex
+   * <v> - [[bone index, weight index] * joints per vertex] * vertices - weight indices
+   * ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
+   *
+   * for each vertex in weight indices
+   *  for each bone index in vertex
+   *      add vertex to group at group index
+   *      treat group index -1 specially
+   *
+   * get def group by index with BLI_findlink */
 
   for (unsigned int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
 
@@ -284,7 +284,7 @@ void SkinInfo::link_armature(bContext *C,
     for (; weight < limit; weight++) {
       int joint = joint_indices[weight], joint_weight = weight_indices[weight];
 
-      // -1 means "weight towards the bind shape", we just don't assign it to any group
+      /* -1 means "weight towards the bind shape", we just don't assign it to any group */
       if (joint != -1) {
         bDeformGroup *def = (bDeformGroup *)BLI_findlink(&ob->defbase, joint);
 
@@ -314,17 +314,17 @@ void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node *> &root_joint
                                 std::vector<COLLADAFW::Node *> &result)
 {
   std::vector<COLLADAFW::Node *>::const_iterator it;
-  // for each root_joint
+  /* for each root_joint */
   for (it = root_joints.begin(); it != root_joints.end(); it++) {
     COLLADAFW::Node *root = *it;
     std::vector<JointData>::iterator ji;
-    //for each joint_data in this skin
+    /* for each joint_data in this skin */
     for (ji = joint_data.begin(); ji != joint_data.end(); ji++) {
       if (joint_by_uid.find((*ji).joint_uid) != joint_by_uid.end()) {
-        //get joint node from joint map
+        /* get joint node from joint map */
         COLLADAFW::Node *joint = joint_by_uid[(*ji).joint_uid];
 
-        //find if joint node is in the tree belonging to the root_joint
+        /* find if joint node is in the tree belonging to the root_joint */
         if (find_node_in_tree(joint, root)) {
           if (std::find(result.begin(), result.end(), root) == result.end())
             result.push_back(root);

@@ -39,7 +39,7 @@ extern "C" {
 #include "collada_utils.h"
 #include "ArmatureImporter.h"
 
-// use node name, or fall back to original id if not present (name is optional)
+/* use node name, or fall back to original id if not present (name is optional) */
 template<class T> static const char *bc_get_joint_name(T *node)
 {
   const std::string &id = node->getName();
@@ -65,7 +65,7 @@ ArmatureImporter::ArmatureImporter(UnitConverter *conv,
 
 ArmatureImporter::~ArmatureImporter()
 {
-  // free skin controller data if we forget to do this earlier
+  /* free skin controller data if we forget to do this earlier */
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
   for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
     it->second.free();
@@ -102,7 +102,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
   float joint_bind_mat[4][4];
   int chain_length = 0;
 
-  //Checking if bone is already made.
+  /* Checking if bone is already made. */
   std::vector<COLLADAFW::Node *>::iterator it;
   it = std::find(finished_joints.begin(), finished_joints.end(), node);
   if (it != finished_joints.end())
@@ -122,10 +122,10 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
     SkinInfo *b = &skin_it->second;
     if (b->get_joint_inv_bind_matrix(joint_inv_bind_mat, node)) {
 
-      // get original world-space matrix
+      /* get original world-space matrix */
       invert_m4_m4(mat, joint_inv_bind_mat);
       copy_m4_m4(joint_bind_mat, mat);
-      // And make local to armature
+      /* And make local to armature */
       Object *ob_arm = skin->BKE_armature_from_object();
       if (ob_arm) {
         float invmat[4][4];
@@ -138,7 +138,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
     }
   }
 
-  // create a bone even if there's no joint data for it (i.e. it has no influence)
+  /* create a bone even if there's no joint data for it (i.e. it has no influence) */
   if (!bone_is_skinned) {
     get_node_mat(mat, node, NULL, NULL, parent_mat);
   }
@@ -185,7 +185,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
     bc_set_IDPropertyMatrix(bone, "rest_mat", rest_mat);
   }
 
-  add_v3_v3v3(bone->tail, bone->head, tail);  //tail must be non zero
+  add_v3_v3v3(bone->tail, bone->head, tail); /* tail must be non zero */
 
   /* find smallest bone length in armature (used later for leaf bone length) */
   if (parent) {
@@ -385,7 +385,7 @@ void ArmatureImporter::set_leaf_bone_shapes(Object *ob_arm)
 
 void ArmatureImporter::set_euler_rotmode()
 {
-  // just set rotmode = ROT_MODE_EUL on pose channel for each joint
+  /* just set rotmode = ROT_MODE_EUL on pose channel for each joint */
 
   std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>::iterator it;
 
@@ -445,14 +445,14 @@ Object *ArmatureImporter::find_armature(COLLADAFW::Node *node)
 
 ArmatureJoints &ArmatureImporter::get_armature_joints(Object *ob_arm)
 {
-  // try finding it
+  /* try finding it */
   std::vector<ArmatureJoints>::iterator it;
   for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
     if ((*it).ob_arm == ob_arm)
       return *it;
   }
 
-  // not found, create one
+  /* not found, create one */
   ArmatureJoints aj;
   aj.ob_arm = ob_arm;
   armature_joints.push_back(aj);
@@ -465,7 +465,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
   std::vector<COLLADAFW::Node *>::iterator ri;
   std::vector<std::string> layer_labels;
 
-  //if there is an armature created for root_joint next root_joint
+  /* if there is an armature created for root_joint next root_joint */
   for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
     if (get_armature_for_joint(*ri) != NULL)
       continue;
@@ -519,12 +519,12 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 
 Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
 {
-  // just do like so:
-  // - get armature
-  // - enter editmode
-  // - add edit bones and head/tail properties using matrices and parent-child info
-  // - exit edit mode
-  // - set a sphere shape to leaf bones
+  /* just do like so:
+   * - get armature
+   * - enter editmode
+   * - add edit bones and head/tail properties using matrices and parent-child info
+   * - exit edit mode
+   * - set a sphere shape to leaf bones */
 
   Object *ob_arm = NULL;
 
@@ -543,8 +543,8 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
    *     for each root in root_joints:
    *         for each joint in joints:
    *             if find_node_in_tree(joint, root):
-   *                 if (std::find(root_joints.begin(), root_joints.end(), root) == root_joints.end())
-   *                     root_joints.push_back(root);
+   *                 if (std::find(root_joints.begin(), root_joints.end(), root) ==
+   * root_joints.end()) root_joints.push_back(root);
    *
    * for (each skin B with armature) {
    *     find all root joints for skin B
@@ -588,13 +588,13 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   }
 
   if (!shared && this->joint_parent_map.size() > 0) {
-    // All armatures have been created while creating the Node tree.
-    // The Collada exporter currently does not create a
-    // strict relationship between geometries and armatures
-    // So when we reimport a Blender collada file, then we have
-    // to guess what is meant.
-    // XXX This is not safe when we have more than one armatures
-    // in the import.
+    /* All armatures have been created while creating the Node tree.
+     * The Collada exporter currently does not create a
+     * strict relationship between geometries and armatures
+     * So when we reimport a Blender collada file, then we have
+     * to guess what is meant.
+     * XXX This is not safe when we have more than one armatures
+     * in the import. */
     shared = this->joint_parent_map.begin()->second;
   }
 
@@ -602,28 +602,29 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
     ob_arm = skin.set_armature(shared);
   }
   else {
-    ob_arm = skin.create_armature(m_bmain, scene, view_layer);  //once for every armature
+    ob_arm = skin.create_armature(m_bmain, scene, view_layer);  // once for every armature
   }
 
-  // enter armature edit mode
+  /* enter armature edit mode */
   bArmature *armature = (bArmature *)ob_arm->data;
   ED_armature_to_edit(armature);
 
   totbone = 0;
-  // bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
+  // bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on
+  /* default row */
 
-  // create bones
+  /* create bones */
   /* TODO:
    * check if bones have already been created for a given joint */
 
   std::vector<COLLADAFW::Node *>::iterator ri;
   for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
-    // for shared armature check if bone tree is already created
+    /* for shared armature check if bone tree is already created */
     if (shared &&
         std::find(skin_root_joints.begin(), skin_root_joints.end(), *ri) != skin_root_joints.end())
       continue;
 
-    // since root_joints may contain joints for multiple controllers, we need to filter
+    /* since root_joints may contain joints for multiple controllers, we need to filter */
     if (skin.uses_joint_or_descendant(*ri)) {
 
       create_bone(
@@ -662,14 +663,14 @@ void ArmatureImporter::set_pose(Object *ob_arm,
   float mat[4][4];
   float obmat[4][4];
 
-  // object-space
+  /* object-space */
   get_node_mat(obmat, root_node, NULL, NULL);
 
-  //if (*edbone)
+  // if (*edbone)
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone_name);
-  //else fprintf ( "",
+  // else fprintf ( "",
 
-  // get world-space
+  /* get world-space */
   if (parentname) {
     mul_m4_m4m4(mat, parent_mat, obmat);
     bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, parentname);
@@ -725,7 +726,7 @@ void ArmatureImporter::add_root_joint(COLLADAFW::Node *node)
 }
 #endif
 
-// here we add bones to armatures, having armatures previously created in write_controller
+/* here we add bones to armatures, having armatures previously created in write_controller */
 void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &objects_to_scale)
 {
   Main *bmain = CTX_data_main(C);
@@ -741,7 +742,7 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 
     Object *ob_arm = create_armature_bones(bmain, skin);
 
-    // link armature with a mesh object
+    /* link armature with a mesh object */
     const COLLADAFW::UniqueId &uid = skin.get_controller_uid();
     const COLLADAFW::UniqueId *guid = get_geometry_uid(uid);
     if (guid != NULL) {
@@ -772,19 +773,19 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
     else
       fprintf(stderr, "Cannot find geometry to link armature with.\n");
 
-    // set armature parent if any
+    /* set armature parent if any */
     Object *par = skin.get_parent();
     if (par)
       bc_set_parent(skin.BKE_armature_from_object(), par, C, false);
 
-    // free memory stolen from SkinControllerData
+    /* free memory stolen from SkinControllerData */
     skin.free();
   }
 
-  //for bones without skins
+  /* for bones without skins */
   create_armature_bones(bmain, ob_arms);
 
-  // Fix bone relations
+  /* Fix bone relations */
   std::vector<Object *>::iterator ob_arm_it;
   for (ob_arm_it = ob_arms.begin(); ob_arm_it != ob_arms.end(); ob_arm_it++) {
 
@@ -802,7 +803,7 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 }
 
 #if 0
-// link with meshes, create vertex groups, assign weights
+/* link with meshes, create vertex groups, assign weights */
 void ArmatureImporter::link_armature(Object *ob_arm,
                                      const COLLADAFW::UniqueId &geom_id,
                                      const COLLADAFW::UniqueId &controller_data_id)
@@ -821,25 +822,25 @@ void ArmatureImporter::link_armature(Object *ob_arm,
 
   SkinInfo &skin = skin_by_data_uid[conroller_data_id];
 
-  // create vertex groups
+  /* create vertex groups */
 }
 #endif
 
 bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControllerData *data)
 {
-  // at this stage we get vertex influence info that should go into me->verts and ob->defbase
-  // there's no info to which object this should be long so we associate it with skin controller data UID
+  /* at this stage we get vertex influence info that should go into me->verts and ob->defbase
+   * there's no info to which object this should be long so we associate it with
+   * skin controller data UID. */
 
-  // don't forget to call defgroup_unique_name before we copy
+  /* don't forget to call defgroup_unique_name before we copy */
 
-  // controller data uid -> [armature] -> joint data,
-  // [mesh object]
-  //
+  /* controller data uid -> [armature] -> joint data,
+   * [mesh object] */
 
   SkinInfo skin(unit_converter);
   skin.borrow_skin_controller_data(data);
 
-  // store join inv bind matrix to use it later in armature construction
+  /* store join inv bind matrix to use it later in armature construction */
   const COLLADAFW::Matrix4Array &inv_bind_mats = data->getInverseBindMatrices();
   for (unsigned int i = 0; i < data->getJointsCount(); i++) {
     skin.add_joint(inv_bind_mats[i]);
@@ -852,12 +853,12 @@ bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControlle
 
 bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 {
-  // - create and store armature object
+  /* - create and store armature object */
   const COLLADAFW::UniqueId &con_id = controller->getUniqueId();
 
   if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
     COLLADAFW::SkinController *co = (COLLADAFW::SkinController *)controller;
-    // to be able to find geom id by controller id
+    /* to be able to find geom id by controller id */
     geom_uid_by_controller_uid[con_id] = co->getSource();
 
     const COLLADAFW::UniqueId &data_uid = co->getSkinControllerData();
@@ -868,12 +869,12 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 
     skin_by_data_uid[data_uid].set_controller(co);
   }
-  // morph controller
+  /* morph controller */
   else if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_MORPH) {
     COLLADAFW::MorphController *co = (COLLADAFW::MorphController *)controller;
-    // to be able to find geom id by controller id
+    /* to be able to find geom id by controller id */
     geom_uid_by_controller_uid[con_id] = co->getSource();
-    //Shape keys are applied in DocumentImporter->finish()
+    /* Shape keys are applied in DocumentImporter->finish() */
     morph_controllers.push_back(co);
   }
 
@@ -887,29 +888,29 @@ void ArmatureImporter::make_shape_keys(bContext *C)
   float weight;
 
   for (mc = morph_controllers.begin(); mc != morph_controllers.end(); mc++) {
-    //Controller data
+    /* Controller data */
     COLLADAFW::UniqueIdArray &morphTargetIds = (*mc)->getMorphTargets();
     COLLADAFW::FloatOrDoubleArray &morphWeights = (*mc)->getMorphWeights();
 
-    //Prereq: all the geometries must be imported and mesh objects must be made
+    /* Prereq: all the geometries must be imported and mesh objects must be made */
     Object *source_ob = this->mesh_importer->get_object_by_geom_uid((*mc)->getSource());
 
     if (source_ob) {
 
       Mesh *source_me = (Mesh *)source_ob->data;
-      //insert key to source mesh
+      /* insert key to source mesh */
       Key *key = source_me->key = BKE_key_add(bmain, (ID *)source_me);
       key->type = KEY_RELATIVE;
       KeyBlock *kb;
 
-      //insert basis key
+      /* insert basis key */
       kb = BKE_keyblock_add_ctime(key, "Basis", false);
       BKE_keyblock_convert_from_mesh(source_me, key, kb);
 
-      //insert other shape keys
+      /* insert other shape keys */
       for (int i = 0; i < morphTargetIds.getCount(); i++) {
-        //better to have a separate map of morph objects,
-        //This'll do for now since only mesh morphing is imported
+        /* better to have a separate map of morph objects,
+         * This'll do for now since only mesh morphing is imported */
 
         Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
 
@@ -920,7 +921,7 @@ void ArmatureImporter::make_shape_keys(bContext *C)
           kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), false);
           BKE_keyblock_convert_from_mesh(me, key, kb);
 
-          //apply weights
+          /* apply weights */
           weight = morphWeights.getFloatValues()->getData()[i];
           kb->curval = weight;
         }
@@ -973,7 +974,7 @@ void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,
   BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bc_get_joint_name(node));
 }
 
-// gives a world-space mat
+/* gives a world-space mat */
 bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 {
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;

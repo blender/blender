@@ -130,7 +130,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 {
   bool container_is_open = false;
 
-  //Transform animations (trans, rot, scale)
+  /* Transform animations (trans, rot, scale). */
   container_is_open = open_animation_container(container_is_open, ob);
 
   /* Now take care of the Object Animations
@@ -141,8 +141,8 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
                           BC_TRANSFORMATION_TYPE_MATRIX;
 
   if (export_as_matrix) {
-    export_matrix_animation(
-        ob, sampler);  // export all transform_curves as one single matrix animation
+    /* export all transform_curves as one single matrix animation */
+    export_matrix_animation(ob, sampler);
   }
 
   export_curve_animation_set(ob, sampler, export_as_matrix);
@@ -237,7 +237,7 @@ void AnimationExporter::export_matrix_animation(Object *ob, BCAnimationSampler &
   }
 }
 
-//write bone animations in transform matrix sources
+/* Write bone animations in transform matrix sources. */
 void AnimationExporter::export_bone_animations_recursive(Object *ob,
                                                          Bone *bone,
                                                          BCAnimationSampler &sampler)
@@ -280,7 +280,7 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
     BCCurveKey key(BC_ANIMATION_TYPE_CAMERA, "xfov", 0);
     mcurve = new BCAnimationCurve(key, ob);
 
-    // now tricky part: transform the fcurve
+    /* now tricky part: transform the fcurve */
     BCValueMap lens_values;
     curve.get_value_map(lens_values);
 
@@ -306,7 +306,8 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
       float value = RAD2DEGF(focallength_to_fov(lens_value, sensor_value));
       mcurve->add_value(value, frame);
     }
-    mcurve->clean_handles();  // to reset the handles
+    /* to reset the handles */
+    mcurve->clean_handles();
   }
   return mcurve;
 }
@@ -322,7 +323,8 @@ void AnimationExporter::export_curve_animation(Object *ob, BCAnimationCurve &cur
    */
 
   int channel_index = curve.get_channel_index();
-  std::string axis = get_axis_name(channel_target, channel_index);  // RGB or XYZ or ""
+  /* RGB or XYZ or "" */
+  std::string axis = get_axis_name(channel_target, channel_index);
 
   std::string action_name;
   bAction *action = bc_getSceneObjectAction(ob);
@@ -365,19 +367,19 @@ void AnimationExporter::export_bone_animation(Object *ob,
 bool AnimationExporter::is_bone_deform_group(Bone *bone)
 {
   bool is_def;
-  //Check if current bone is deform
+  /* Check if current bone is deform */
   if ((bone->flag & BONE_NO_DEFORM) == 0)
     return true;
-  //Check child bones
+  /* Check child bones */
   else {
     for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-      //loop through all the children until deform bone is found, and then return
+      /* loop through all the children until deform bone is found, and then return */
       is_def = is_bone_deform_group(child);
       if (is_def)
         return true;
     }
   }
-  //no deform bone found in children also
+  /* no deform bone found in children also */
   return false;
 }
 
@@ -466,7 +468,7 @@ void AnimationExporter::export_collada_matrix_animation(std::string id,
   sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION,
                    COLLADABU::URI(EMPTY_STRING, interpolation_id));
 
-  // Matrix animation has no tangents
+  /* Matrix animation has no tangents */
 
   addSampler(sampler);
   addChannel(COLLADABU::URI(EMPTY_STRING, sampler_id), target);
@@ -514,7 +516,8 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
         else if (transform) {
           param.push_back("TRANSFORM");
         }
-        else {  //assumes if axis isn't specified all axises are added
+        else {
+          /* assumes if axis isn't specified all axises are added */
           param.push_back("X");
           param.push_back("Y");
           param.push_back("Z");
@@ -641,7 +644,8 @@ std::string AnimationExporter::collada_source_from_values(BCMatrixSampleMap &sam
   source.prepareToAppendValues();
 
   BCMatrixSampleMap::iterator it;
-  int precision = (this->export_settings->limit_precision) ? 6 : -1;  // could be made configurable
+  /* could be made configurable */
+  int precision = (this->export_settings->limit_precision) ? 6 : -1;
   for (it = samples.begin(); it != samples.end(); it++) {
     const BCMatrix *sample = it->second;
     double daemat[4][4];
@@ -686,11 +690,12 @@ std::string AnimationExporter::collada_interpolation_source(const BCAnimationCur
     else if (ipo == BEZT_IPO_CONST) {
       source.appendValues(STEP_NAME);
     }
-    else {  // BEZT_IPO_LIN
+    else {
+      /* BEZT_IPO_LIN */
       source.appendValues(LINEAR_NAME);
     }
   }
-  // unsupported? -- HERMITE, CARDINAL, BSPLINE, NURBS
+  /* unsupported? -- HERMITE, CARDINAL, BSPLINE, NURBS */
 
   source.finish();
 

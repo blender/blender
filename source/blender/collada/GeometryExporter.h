@@ -54,7 +54,7 @@ class Normal {
 
 bool operator<(const Normal &, const Normal &);
 
-// TODO: optimize UV sets by making indexed list with duplicates removed
+/* TODO: optimize UV sets by making indexed list with duplicates removed */
 class GeometryExporter : COLLADASW::LibraryGeometries {
   struct Face {
     unsigned int v1, v2, v3, v4;
@@ -63,7 +63,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
   Normal n;
 
  public:
-  // TODO: optimize UV sets by making indexed list with duplicates removed
+  /* TODO: optimize UV sets by making indexed list with duplicates removed */
   GeometryExporter(BlenderContext &blender_context,
                    COLLADASW::StreamWriter *sw,
                    const ExportSettings *export_settings)
@@ -79,7 +79,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
 
   void createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id);
 
-  // powerful because it handles both cases when there is material and when there's not
+  /* powerful because it handles both cases when there is material and when there's not */
   void create_mesh_primitive_list(short material_index,
                                   bool has_uvs,
                                   bool has_color,
@@ -88,18 +88,18 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
                                   std::string &geom_id,
                                   std::vector<BCPolygonNormalsIndices> &norind);
 
-  // creates <source> for positions
+  /* creates <source> for positions */
   void createVertsSource(std::string geom_id, Mesh *me);
 
   void createVertexColorSource(std::string geom_id, Mesh *me);
 
   std::string makeTexcoordSourceId(std::string &geom_id, int layer_index, bool is_single_layer);
 
-  //creates <source> for texcoords
+  /* creates <source> for texcoords */
   void createTexcoordsSource(std::string geom_id, Mesh *me);
   void createTesselatedTexcoordsSource(std::string geom_id, Mesh *me);
 
-  //creates <source> for normals
+  /* creates <source> for normals */
   void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor);
 
   void create_normals(std::vector<Normal> &nor,
@@ -128,8 +128,8 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
 };
 
 struct GeometryFunctor {
-  // f should have
-  // void operator()(Object *ob)
+  /* f should have
+   * void operator()(Object *ob) */
   template<class Functor>
   void forEachMeshObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
   {

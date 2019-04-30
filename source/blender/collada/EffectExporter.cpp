@@ -92,8 +92,8 @@ void EffectsExporter::exportEffects(bContext *C, Scene *sce)
 
 void EffectsExporter::set_shader_type(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  ep.setShaderType(
-      COLLADASW::EffectProfile::LAMBERT);  //XXX check if BLINN and PHONG can be supported as well
+  /* XXX check if BLINN and PHONG can be supported as well */
+  ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
 }
 
 void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *ma)
@@ -268,7 +268,7 @@ COLLADASW::ColorOrTexture EffectsExporter::createTexture(Image *ima,
 
   COLLADASW::Texture texture(translate_id(id_name(ima)));
   texture.setTexcoord(uv_layer_name);
-  //texture.setSurface(*surface);
+  // texture.setSurface(*surface);
   texture.setSampler(*sampler);
 
   COLLADASW::ColorOrTexture cot(texture);

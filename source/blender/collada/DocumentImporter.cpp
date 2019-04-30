@@ -18,9 +18,9 @@
  * \ingroup collada
  */
 
-// TODO:
-// * name imported objects
-// * import object rotation as euler
+/* TODO:
+ * * name imported objects
+ * * import object rotation as euler */
 
 #include <string>
 #include <map>
@@ -131,7 +131,7 @@ bool DocumentImporter::import()
 
   loader.registerExtraDataCallbackHandler(ehandler);
 
-  // deselect all to select new objects
+  /* deselect all to select new objects */
   BKE_view_layer_base_deselect_all(view_layer);
 
   std::string mFilename = std::string(this->import_settings->filepath);
@@ -165,12 +165,12 @@ bool DocumentImporter::import()
 
 void DocumentImporter::cancel(const COLLADAFW::String &errorMessage)
 {
-  // TODO: if possible show error info
-  //
-  // Should we get rid of invisible Meshes that were created so far
-  // or maybe create objects at coordinate space origin?
-  //
-  // The latter sounds better.
+  /* TODO: if possible show error info
+   *
+   * Should we get rid of invisible Meshes that were created so far
+   * or maybe create objects at coordinate space origin?
+   *
+   * The latter sounds better. */
 }
 
 void DocumentImporter::start()
@@ -183,7 +183,8 @@ void DocumentImporter::finish()
     return;
 
   Main *bmain = CTX_data_main(mContext);
-  // TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
+  /* TODO: create a new scene except the selected <visual_scene> -
+   * use current blender scene for it */
   Scene *sce = CTX_data_scene(mContext);
   unit_converter.calculate_scale(*sce);
 
@@ -195,7 +196,7 @@ void DocumentImporter::finish()
     PointerRNA sceneptr, unit_settings;
     PropertyRNA *system, *scale;
 
-    // for scene unit settings: system, scale_length
+    /* for scene unit settings: system, scale_length */
 
     RNA_id_pointer_create(&sce->id, &sceneptr);
     unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
@@ -220,7 +221,7 @@ void DocumentImporter::finish()
       fprintf(stdout, "Collada: Adjusting Blender units to Importset units: %f.\n", unit_factor);
     }
 
-    // Write nodes to scene
+    /* Write nodes to scene */
     fprintf(stderr, "+-- Import Scene --------\n");
     const COLLADAFW::NodePointerArray &roots = (*sit)->getRootNodes();
     for (unsigned int i = 0; i < roots.getCount(); i++) {
@@ -254,7 +255,7 @@ void DocumentImporter::finish()
   if (libnode_ob.size()) {
 
     fprintf(stderr, "| Cleanup: free %d library nodes\n", (int)libnode_ob.size());
-    // free all library_nodes
+    /* free all library_nodes */
     std::vector<Object *>::iterator it;
     for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
       Object *ob = *it;
@@ -267,7 +268,7 @@ void DocumentImporter::finish()
 
   delete objects_to_scale;
 
-  // update scene
+  /* update scene */
   DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -277,15 +278,15 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node,
                                                 COLLADAFW::Node *par = NULL,
                                                 Object *parob = NULL)
 {
-  // The split in #29246, rootmap must point at actual root when
-  // calculating bones in apply_curves_as_matrix. - actual root is the root node.
-  // This has to do with inverse bind poses being world space
-  // (the sources for skinned bones' restposes) and the way
-  // non-skinning nodes have their "restpose" recursively calculated.
-  // XXX TODO: design issue, how to support unrelated joints taking
-  // part in skinning.
+  /* The split in #29246, rootmap must point at actual root when
+   * calculating bones in apply_curves_as_matrix. - actual root is the root node.
+   * This has to do with inverse bind poses being world space
+   * (the sources for skinned bones' restposes) and the way
+   * non-skinning nodes have their "restpose" recursively calculated.
+   * XXX TODO: design issue, how to support unrelated joints taking
+   * part in skinning. */
   if (par) {  // && par->getType() == COLLADAFW::Node::JOINT) {
-    // par is root if there's no corresp. key in root_map
+    /* par is root if there's no corresp. key in root_map */
     if (root_map.find(par->getUniqueId()) == root_map.end())
       root_map[node->getUniqueId()] = node;
     else
@@ -305,9 +306,9 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node,
   unsigned int i;
 
   if (node->getType() == COLLADAFW::Node::JOINT && par == NULL) {
-    // For Skeletons without root node we have to simulate the
-    // root node here and recursively enter the same function
-    // XXX: maybe this can be made more elegant.
+    /* For Skeletons without root node we have to simulate the
+     * root node here and recursively enter the same function
+     * XXX: maybe this can be made more elegant. */
     translate_anim_recursive(node, node, parob);
   }
   else {
@@ -335,7 +336,7 @@ std::string DocumentImporter::get_import_version(const COLLADAFW::FileInfo *asse
     const COLLADAFW::String &value = valuePair->second;
     if (key == AUTORING_TOOL) {
       if (value.compare(0, BLENDER.length(), BLENDER) == 0) {
-        // Was made with Blender, now get version string
+        /* Was made with Blender, now get version string */
         std::string v = value.substr(BLENDER.length());
         std::string::size_type n = v.find(" ");
         if (n > 0) {
@@ -361,7 +362,7 @@ bool DocumentImporter::writeGlobalAsset(const COLLADAFW::FileInfo *asset)
  * \return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeScene(const COLLADAFW::Scene *scene)
 {
-  // XXX could store the scene id, but do nothing for now
+  /* XXX could store the scene id, but do nothing for now */
   return true;
 }
 Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera, Scene *sce)
@@ -404,7 +405,9 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
                                                Scene *sce,
                                                bool is_library_node)
 {
-  //fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
+  // fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ?
+  // instance_node->getOriginalId().c_str() : NULL, source_node ?
+  // source_node->getOriginalId().c_str() : NULL);
 
   Main *bmain = CTX_data_main(mContext);
   Object *obn = BKE_object_copy(bmain, source_ob);
@@ -413,10 +416,10 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
 
   if (instance_node) {
     anim_importer.read_node_transform(instance_node, obn);
-    // if we also have a source_node (always ;), take its
-    // transformation matrix and apply it to the newly instantiated
-    // object to account for node hierarchy transforms in
-    // .dae
+    /* if we also have a source_node (always ;), take its
+     * transformation matrix and apply it to the newly instantiated
+     * object to account for node hierarchy transforms in
+     * .dae */
     if (source_node) {
       COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
       COLLADABU::Math::Matrix4 bmat4 =
@@ -427,7 +430,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
           mat[i][j] = bmat4[i][j];
         }
       }
-      // calc new matrix and apply
+      /* calc new matrix and apply */
       mul_m4_m4m4(obn->obmat, obn->obmat, mat);
       BKE_object_apply_mat4(obn, obn->obmat, 0, 0);
     }
@@ -467,8 +470,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
   return obn;
 }
 
-// to create constraints off node <extra> tags. Assumes only constraint data in
-// current <extra> with blender profile.
+/* to create constraints off node <extra> tags. Assumes only constraint data in
+ * current <extra> with blender profile. */
 void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 {
   if (et && et->isProfile("blender")) {
@@ -504,7 +507,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
   std::string id = node->getOriginalId();
   std::string name = node->getName();
 
-  // if node has child nodes write them
+  /* if node has child nodes write them */
   COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
 
   std::vector<Object *> *objects_done = new std::vector<Object *>();
@@ -515,8 +518,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
 
   if (is_joint) {
     if (parent_node == NULL && !is_library_node) {
-      // A Joint on root level is a skeleton without root node.
-      // Here we add the armature "on the fly":
+      /* A Joint on root level is a skeleton without root node.
+       * Here we add the armature "on the fly": */
       par = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, std::string("Armature").c_str());
       objects_done->push_back(par);
       root_objects->push_back(par);
@@ -528,8 +531,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     }
 
     if (parent_node == NULL) {
-      // for skeletons without root node all has been done above.
-      // Skeletons with root node are handled further down.
+      /* for skeletons without root node all has been done above.
+       * Skeletons with root node are handled further down. */
       goto finally;
     }
   }
@@ -545,9 +548,9 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     size_t controller_done = 0;
     size_t inst_done = 0;
 
-    // XXX linking object with the first <instance_geometry>, though a node may have more of them...
-    // maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
-    // <instance_geometry>
+    /* XXX linking object with the first <instance_geometry>, though a node may have more of
+     * them... maybe join multiple <instance_...> meshes into 1, and link object with it? not
+     * sure... <instance_geometry> */
     while (geom_done < geom.getCount()) {
       ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map);
       if (ob == NULL) {
@@ -602,7 +605,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
       ++controller_done;
     }
-    // XXX instance_node is not supported yet
+    /* XXX instance_node is not supported yet */
     while (inst_done < inst_node.getCount()) {
       const COLLADAFW::UniqueId &node_id = inst_node[inst_done]->getInstanciatedObjectId();
       if (object_map.find(node_id) == object_map.end()) {
@@ -632,10 +635,10 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       read_transform = false;
     }
 
-    // if node is empty - create empty object
-    // XXX empty node may not mean it is empty object, not sure about this
+    /* if node is empty - create empty object
+     * XXX empty node may not mean it is empty object, not sure about this */
     if ((geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
-      //Check if Object is armature, by checking if immediate child is a JOINT node.
+      /* Check if Object is armature, by checking if immediate child is a JOINT node. */
       if (is_armature(node)) {
         ob = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, name.c_str());
       }
@@ -648,7 +651,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
     }
 
-    // XXX: if there're multiple instances, only one is stored
+    /* XXX: if there're multiple instances, only one is stored */
 
     if (!ob) {
       goto finally;
@@ -666,7 +669,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
         libnode_ob.push_back(ob);
     }
 
-    //create_constraints(et,ob);
+    // create_constraints(et,ob);
   }
 
   for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
@@ -682,7 +685,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
         ob->partype = PAROBJECT;
         ob->parsubstr[0] = 0;
 
-        //bc_set_parent(ob, par, mContext, false);
+        // bc_set_parent(ob, par, mContext, false);
       }
     }
   }
@@ -715,16 +718,17 @@ bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScen
   if (mImportStage == Fetching_Controller_data)
     return true;
 
-  // this method called on post process after writeGeometry, writeMaterial, etc.
+  /* This method called on post process after writeGeometry, writeMaterial, etc. */
 
-  // for each <node> in <visual_scene>:
-  // create an Object
-  // if Mesh (previously created in writeGeometry) to which <node> corresponds exists, link Object with that mesh
-
-  // update: since we cannot link a Mesh with Object in
-  // writeGeometry because <geometry> does not reference <node>,
-  // we link Objects with Meshes here
-
+  /* For each <node> in <visual_scene>:
+   * create an Object
+   * if Mesh (previously created in writeGeometry) to which <node> corresponds exists,
+   * link Object with that mesh.
+   *
+   * Update: since we cannot link a Mesh with Object in
+   * writeGeometry because <geometry> does not reference <node>,
+   * we link Objects with Meshes here.
+   */
   vscenes.push_back(visualScene);
 
   return true;
@@ -819,8 +823,8 @@ bool DocumentImporter::writeEffect(const COLLADAFW::Effect *effect)
     fprintf(stderr, "Couldn't find <profile_COMMON>.\n");
     return true;
   }
-  // XXX TODO: Take all <profile_common>s
-  // Currently only first <profile_common> is supported
+  /* XXX TODO: Take all <profile_common>s
+   * Currently only first <profile_common> is supported */
   COLLADAFW::EffectCommon *ef = common_efs[0];
   write_profile_COMMON(ef, ma);
   this->FW_object_map[effect->getUniqueId()] = effect;
@@ -888,7 +892,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double yfov = camera->getYFov().getValue();
           double aspect = camera->getAspectRatio().getValue();
 
-          // NOTE: Needs more testing (As we curretnly have no official test data for this)
+          /* NOTE: Needs more testing (As we curretnly have no official test data for this) */
 
           double xfov = 2.0f * atanf(aspect * tanf(DEG2RADF(yfov) * 0.5f));
           cam->lens = fov_to_focallength(xfov, cam->sensor_x);
@@ -907,7 +911,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
         case CAM_PERSP:
         default: {
           double x = camera->getXFov().getValue();
-          // x is in degrees, cam->lens is in millimiters
+          /* x is in degrees, cam->lens is in millimiters */
           cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
         } break;
       }
@@ -920,19 +924,19 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
         case CAM_PERSP:
         default: {
           double yfov = camera->getYFov().getValue();
-          // yfov is in degrees, cam->lens is in millimiters
+          /* yfov is in degrees, cam->lens is in millimiters */
           cam->lens = fov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
         } break;
       }
     } break;
     case COLLADAFW::Camera::UNDEFINED:
-      // read nothing, use blender defaults.
+      /* read nothing, use blender defaults. */
       break;
   }
 
   this->uid_camera_map[camera->getUniqueId()] = cam;
   this->FW_object_map[camera->getUniqueId()] = camera;
-  // XXX import camera options
+  /* XXX import camera options */
   return true;
 }
 
@@ -955,7 +959,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
     workpath = absolute_path;
   }
   else {
-    // Maybe imagepath was already absolute ?
+    /* Maybe imagepath was already absolute ? */
     if (!BLI_exists(imagepath.c_str())) {
       fprintf(stderr, "|! Image not found: %s\n", imagepath.c_str());
       return true;
@@ -1006,7 +1010,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     return true;
   }
 
-  // if we find an ExtraTags for this, use that instead.
+  /* if we find an ExtraTags for this, use that instead. */
   if (et && et->isProfile("blender")) {
     et->setData("type", &(lamp->type));
     et->setData("flag", &(lamp->flag));
@@ -1057,7 +1061,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
       att2 = quadatt;
       d = sqrt(1.0f / quadatt);
     }
-    // linear light
+    /* linear light */
     else if (IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
       att1 = linatt;
       d = (1.0f / linatt);
@@ -1066,7 +1070,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
       att1 = 1.0f;
     }
     else {
-      // assuming point light (const att = 1.0);
+      /* assuming point light (const att = 1.0); */
       att1 = 1.0f;
     }
 
@@ -1077,7 +1081,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
     switch (light->getLightType()) {
       case COLLADAFW::Light::AMBIENT_LIGHT: {
-        lamp->type = LA_SUN;  //TODO needs more thoughts
+        lamp->type = LA_SUN;  // TODO needs more thoughts
       } break;
       case COLLADAFW::Light::SPOT_LIGHT: {
         lamp->type = LA_SPOT;
@@ -1115,36 +1119,37 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
   return true;
 }
 
-// this function is called only for animations that pass COLLADAFW::validate
+/* this function is called only for animations that pass COLLADAFW::validate */
 bool DocumentImporter::writeAnimation(const COLLADAFW::Animation *anim)
 {
   if (mImportStage == Fetching_Controller_data)
     return true;
 
-  // return true;
+  /* return true; */
   return anim_importer.write_animation(anim);
 }
 
-// called on post-process stage after writeVisualScenes
+/* called on post-process stage after writeVisualScenes */
 bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animationList)
 {
   if (mImportStage == Fetching_Controller_data)
     return true;
 
-  // return true;
+  /* return true; */
   return anim_importer.write_animation_list(animationList);
 }
 
 #if WITH_OPENCOLLADA_ANIMATION_CLIP
-// Since opencollada 1.6.68
-// called on post-process stage after writeVisualScenes
+/* Since opencollada 1.6.68
+ * called on post-process stage after writeVisualScenes */
 bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animationClip)
 {
   if (mImportStage == Fetching_Controller_data)
     return true;
 
   return true;
-  //return animation_clip_importer.write_animation_clip(animationClip); // TODO: implement import of AnimationClips
+  /* TODO: implement import of AnimationClips */
+  // return animation_clip_importer.write_animation_clip(animationClip);
 }
 #endif
 
@@ -1155,7 +1160,7 @@ bool DocumentImporter::writeSkinControllerData(const COLLADAFW::SkinControllerDa
   return armature_importer.write_skin_controller_data(skin);
 }
 
-// this is called on postprocess, before writeVisualScenes
+/* this is called on postprocess, before writeVisualScenes */
 bool DocumentImporter::writeController(const COLLADAFW::Controller *controller)
 {
   if (mImportStage == Fetching_Controller_data)
@@ -1200,6 +1205,6 @@ bool DocumentImporter::is_armature(COLLADAFW::Node *node)
     }
   }
 
-  //no child is JOINT
+  /* no child is JOINT */
   return false;
 }

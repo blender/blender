@@ -98,7 +98,8 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
   add_transform(node, loc, rot, scale);
 #endif
 
-  /* Export the local Matrix (relative to the object parent, be it an object, bone or vertex(-tices)) */
+  /* Export the local Matrix (relative to the object parent,
+   * be it an object, bone or vertex(-tices)). */
   float f_obmat[4][4];
   BKE_object_matrix_local_get(ob, f_obmat);
 
