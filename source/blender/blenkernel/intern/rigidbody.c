@@ -1455,7 +1455,7 @@ static void rigidbody_update_sim_ob(
   }
 
   /* update rigid body location and rotation for kinematic bodies */
-  if (rbo->flag & RBO_FLAG_KINEMATIC || (is_selected && (G.moving & G_TRANSFORM_OBJ)) {
+  if (rbo->flag & RBO_FLAG_KINEMATIC || (is_selected && (G.moving & G_TRANSFORM_OBJ))) {
     RB_body_activate(rbo->shared->physics_object);
     RB_body_set_loc_rot(rbo->shared->physics_object, loc, rot);
   }
