@@ -1417,6 +1417,10 @@ static void rigidbody_update_sim_ob(
     return;
   }
 
+  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
+  const bool is_selected = base ? (base->flag & BASE_SELECTED) != 0 : false;
+
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
     Mesh *mesh = ob->runtime.mesh_deform_eval;
     if (mesh) {
@@ -1445,13 +1449,13 @@ static void rigidbody_update_sim_ob(
 
   /* Make transformed objects temporarily kinmatic
    * so that they can be moved by the user during simulation. */
-  if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
+  if (is_selected && (G.moving & G_TRANSFORM_OBJ)) {
     RB_body_set_kinematic_state(rbo->shared->physics_object, true);
     RB_body_set_mass(rbo->shared->physics_object, 0.0f);
   }
 
   /* update rigid body location and rotation for kinematic bodies */
-  if (rbo->flag & RBO_FLAG_KINEMATIC || (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
+  if (rbo->flag & RBO_FLAG_KINEMATIC || (is_selected && (G.moving & G_TRANSFORM_OBJ)) {
     RB_body_activate(rbo->shared->physics_object);
     RB_body_set_loc_rot(rbo->shared->physics_object, loc, rot);
   }
@@ -1677,7 +1681,7 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 
   /* use rigid body transform after cache start frame if objects is not being transformed */
   if (BKE_rigidbody_check_sim_running(rbw, ctime) &&
-      !(ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
+      !(ob->base_flag & BASE_SELECTED && G.moving & G_TRANSFORM_OBJ)) {
     float mat[4][4], size_mat[4][4], size[3];
 
     normalize_qt(rbo->orn);  // RB_TODO investigate why quaternion isn't normalized at this point

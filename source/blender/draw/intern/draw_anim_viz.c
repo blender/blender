@@ -184,7 +184,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
   struct DRWTextStore *dt = DRW_text_cache_ensure();
   int txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_ASCII;
   int cfra = (int)DEG_get_ctime(draw_ctx->depsgraph);
-  bool sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->flag & SELECT);
+  bool sel = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->base_flag & BASE_SELECTED);
   bool show_keyframes = (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) != 0;
 
   int sfra, efra, stepsize;

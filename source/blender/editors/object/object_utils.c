@@ -133,7 +133,7 @@ bool ED_object_calc_active_center(Object *ob, const bool select_only, float r_ce
     return false;
   }
   else {
-    if (!select_only || (ob->flag & SELECT)) {
+    if (!select_only || (ob->base_flag & BASE_SELECTED)) {
       copy_v3_v3(r_center, ob->obmat[3]);
       return true;
     }

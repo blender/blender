@@ -36,6 +36,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
@@ -657,7 +658,7 @@ Object *modifiers_isDeformedByArmature(Object *ob)
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
       amd = (ArmatureModifierData *)md;
-      if (amd->object && (amd->object->flag & SELECT)) {
+      if (amd->object && (amd->object->base_flag & BASE_SELECTED)) {
         return amd->object;
       }
     }
@@ -680,7 +681,7 @@ Object *modifiers_isDeformedByMeshDeform(Object *ob)
   for (; md; md = md->next) {
     if (md->type == eModifierType_MeshDeform) {
       mdmd = (MeshDeformModifierData *)md;
-      if (mdmd->object && (mdmd->object->flag & SELECT)) {
+      if (mdmd->object && (mdmd->object->base_flag & BASE_SELECTED)) {
         return mdmd->object;
       }
     }
@@ -706,7 +707,7 @@ Object *modifiers_isDeformedByLattice(Object *ob)
   for (; md; md = md->next) {
     if (md->type == eModifierType_Lattice) {
       lmd = (LatticeModifierData *)md;
-      if (lmd->object && (lmd->object->flag & SELECT)) {
+      if (lmd->object && (lmd->object->base_flag & BASE_SELECTED)) {
         return lmd->object;
       }
     }
@@ -732,7 +733,7 @@ Object *modifiers_isDeformedByCurve(Object *ob)
   for (; md; md = md->next) {
     if (md->type == eModifierType_Curve) {
       cmd = (CurveModifierData *)md;
-      if (cmd->object && (cmd->object->flag & SELECT)) {
+      if (cmd->object && (cmd->object->base_flag & BASE_SELECTED)) {
         return cmd->object;
       }
     }
