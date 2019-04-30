@@ -993,6 +993,8 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_ARM = (1 << 9),
   USER_DUP_ACT = (1 << 10),
   USER_DUP_PSYS = (1 << 11),
+  USER_DUP_LIGHTPROBE = (1 << 12),
+  USER_DUP_GPENCIL = (1 << 13),
 } eDupli_ID_Flags;
 
 /** Max anti alias draw method

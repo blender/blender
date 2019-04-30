@@ -530,6 +530,12 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     }
   }
 
+  /* patch to set Dupli Lightprobes and Grease Pencil */
+  if (!USER_VERSION_ATLEAST(280, 58)) {
+    userdef->dupflag |= USER_DUP_LIGHTPROBE;
+    userdef->dupflag |= USER_DUP_GPENCIL;
+  }
+
   /**
    * Include next version bump.
    */

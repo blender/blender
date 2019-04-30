@@ -4472,6 +4472,16 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Duplicate Particle", "Causes particle systems to be duplicated with the object");
 
+  prop = RNA_def_property(srna, "use_duplicate_lightprobe", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LIGHTPROBE);
+  RNA_def_property_ui_text(
+      prop, "Duplicate Light Probe", "Causes light probe data to be duplicated with the object");
+
+  prop = RNA_def_property(srna, "use_duplicate_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_GPENCIL);
+  RNA_def_property_ui_text(
+      prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
+
   /* Currently only used for insert offset (aka auto-offset),
    * maybe also be useful for later stuff though. */
   prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_NONE);
