@@ -1832,25 +1832,42 @@ bool BKE_animsys_execute_fcurve(PointerRNA *ptr, FCurve *fcu, float curval)
   return ok;
 }
 
+static bool animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA *ptr_orig)
+{
+  *ptr_orig = *ptr;
+  /* NOTE: nlastrip_evaluate_controls() creates PointerRNA with ID of NULL. Technically, this is
+   * not a valid pointer, but there are exceptions in various places of this file which handles
+   * such pointers.
+   * We do special trickery here as well, to quickly go from evaluated to original NlaStrip. */
+  if (ptr->id.data == NULL) {
+    if (ptr->type != &RNA_NlaStrip) {
+      return false;
+    }
+    NlaStrip *strip = ((NlaStrip *)ptr_orig->data);
+    if (strip->orig_strip == NULL) {
+      return false;
+    }
+    ptr_orig->data = strip->orig_strip;
+  }
+  else {
+    ptr_orig->id.data = ((ID *)ptr_orig->id.data)->orig_id;
+    ptr_orig->data = ptr_orig->id.data;
+  }
+  return true;
+}
+
 static void animsys_write_orig_anim_rna(PointerRNA *ptr,
                                         const char *rna_path,
                                         int array_index,
                                         float value)
 {
-  /* Pointer is expected to be an ID pointer, if it's not -- we are doomed.
-   *
-   * NOTE: It is possible to have animation data on NLA strip, see T57360.
-   * TODO(sergey): Find solution for those cases.
-   */
-  if (ptr->id.data == NULL) {
+  PointerRNA ptr_orig;
+  if (!animsys_construct_orig_pointer_rna(ptr, &ptr_orig)) {
     return;
   }
-  PointerRNA orig_ptr = *ptr;
-  orig_ptr.id.data = ((ID *)orig_ptr.id.data)->orig_id;
-  orig_ptr.data = orig_ptr.id.data;
   PathResolvedRNA orig_anim_rna;
-  /* TODO(sergey): Is there a faster way to get anim_rna of original ID? */
-  if (animsys_store_rna_setting(&orig_ptr, rna_path, array_index, &orig_anim_rna)) {
+  /* TODO(sergey): Should be possible to cache resolved path in dependency graph somehow. */
+  if (animsys_store_rna_setting(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
     animsys_write_rna_setting(&orig_anim_rna, value);
   }
 }
