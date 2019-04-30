@@ -2173,8 +2173,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "proportional"))) {
-    RNA_property_enum_set(op->ptr, prop, proportional);
+  if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
+    RNA_property_boolean_set(op->ptr, prop, proportional & PROP_EDIT_USE);
+    RNA_boolean_set(op->ptr, "use_proportional_connected", proportional & PROP_EDIT_CONNECTED);
+    RNA_boolean_set(op->ptr, "use_proportional_projected", proportional & PROP_EDIT_PROJECTED);
     RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
     RNA_float_set(op->ptr, "proportional_size", t->prop_size);
   }
