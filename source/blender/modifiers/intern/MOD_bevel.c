@@ -110,19 +110,19 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   const int miter_inner = bmd->miter_inner;
   const float spread = bmd->spread;
 
-  bm = BKE_mesh_to_bmesh_ex(
-      mesh,
-      &(struct BMeshCreateParams){0},
-      &(struct BMeshFromMeshParams){
-          .calc_face_normal = true,
-          .add_key_index = false,
-          .use_shapekey = false,
-          .active_shapekey = 0,
-          /* XXX We probably can use CD_MASK_BAREMESH_ORIGDINDEX here instead (also for other modifiers cases)? */
-          .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                            .emask = CD_MASK_ORIGINDEX,
-                            .pmask = CD_MASK_ORIGINDEX},
-      });
+  bm = BKE_mesh_to_bmesh_ex(mesh,
+                            &(struct BMeshCreateParams){0},
+                            &(struct BMeshFromMeshParams){
+                                .calc_face_normal = true,
+                                .add_key_index = false,
+                                .use_shapekey = false,
+                                .active_shapekey = 0,
+                                /* XXX We probably can use CD_MASK_BAREMESH_ORIGDINDEX here instead
+                                 * (also for other modifiers cases)? */
+                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
+                                                  .emask = CD_MASK_ORIGINDEX,
+                                                  .pmask = CD_MASK_ORIGINDEX},
+                            });
 
   if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0]) {
     MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);

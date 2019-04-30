@@ -62,13 +62,15 @@ static void generate_vert_coordinates(Mesh *mesh,
     }
   }
 
-  /* Get size (i.e. deformation of the spheroid generating normals), either from target object, or own geometry. */
+  /* Get size (i.e. deformation of the spheroid generating normals),
+   * either from target object, or own geometry. */
   if (r_size != NULL) {
     if (ob_center != NULL) {
       /* Using 'scale' as 'size' here. The input object is typically an empty
        * who's scale is used to define an ellipsoid instead of a simple sphere. */
 
-      /* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
+      /* Not we are not interested in signs here - they are even troublesome actually,
+       * due to security clamping! */
       abs_v3_v3(r_size, ob_center->scale);
     }
     else {
@@ -247,7 +249,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
    * Then, we want to find out for each vert its (a, b, c) triple (proportional to (A, B, C) one).
    *
    * Ellipsoid basic equation: ``(x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1.``
-   * Since we want to find (a, b, c) matching this equation and proportional to (A, B, C), we can do:
+   * Since we want to find (a, b, c) matching this equation and proportional to (A, B, C),
+   * we can do:
    * <pre>
    *     m = B / A
    *     n = C / A
@@ -480,9 +483,11 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     return mesh;
   }
 
-  /* XXX TODO ARG GRRR XYQWNMPRXTYY
-   * Once we fully switch to Mesh evaluation of modifiers, we can expect to get that flag from the COW copy.
-   * But for now, it is lost in the DM intermediate step, so we need to directly check orig object's data. */
+  /* XXX TODO(Rohan Rathi):
+   * Once we fully switch to Mesh evaluation of modifiers,
+   * we can expect to get that flag from the COW copy.
+   * But for now, it is lost in the DM intermediate step,
+   * so we need to directly check orig object's data. */
 #if 0
   if (!(mesh->flag & ME_AUTOSMOOTH))
 #else
@@ -495,7 +500,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   Mesh *result;
   if (mesh->medge == ((Mesh *)ob->data)->medge) {
-    /* We need to duplicate data here, otherwise setting custom normals (which may also affect sharp edges) could
+    /* We need to duplicate data here, otherwise setting custom normals
+     * (which may also affect sharp edges) could
      * modify org mesh, see T43671. */
     BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
   }

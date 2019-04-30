@@ -105,9 +105,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   }
 
   /* Overview of Method:
-   * 1. Get the vertices that are in the vertexgroup of interest
-   * 2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
-   * 3. Make a new mesh containing only the mapping data
+   * 1. Get the vertices that are in the vertexgroup of interest.
+   * 2. Filter out unwanted geometry (i.e. not in vertexgroup),
+   *    by populating mappings with new vs old indices.
+   * 3. Make a new mesh containing only the mapping data.
    */
 
   /* get original number of verts, edges, and faces */
@@ -137,9 +138,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       return mesh;
     }
 
-    /* determine whether each vertexgroup is associated with a selected bone or not
-     * - each cell is a boolean saying whether bone corresponding to the ith group is selected
-     * - groups that don't match a bone are treated as not existing (along with the corresponding ungrouped verts)
+    /* Determine whether each vertexgroup is associated with a selected bone or not:
+     * - Each cell is a boolean saying whether bone corresponding to the ith group is selected.
+     * - Groups that don't match a bone are treated as not existing
+     *   (along with the corresponding ungrouped verts).
      */
     bone_select_array = MEM_malloc_arrayN((size_t)defbase_tot, sizeof(char), "mask array");
 
@@ -154,7 +156,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       }
     }
 
-    /* verthash gives mapping from original vertex indices to the new indices (including selected matches only)
+    /* verthash gives mapping from original vertex indices to the new indices
+     * (including selected matches only):
      * key = oldindex, value = newindex
      */
     vertHash = BLI_ghash_int_new_ex("mask vert gh", (unsigned int)maxVerts);

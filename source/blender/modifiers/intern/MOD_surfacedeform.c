@@ -441,7 +441,8 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
   bwdata->bind_polys = bpoly;
 
-  /* Loop over all adjacent edges, and build the SDefBindPoly data for each poly adjacent to those */
+  /* Loop over all adjacent edges,
+   * and build the SDefBindPoly data for each poly adjacent to those. */
   for (vedge = vert_edges; vedge; vedge = vedge->next) {
     unsigned int edge_ind = vedge->index;
 
@@ -860,7 +861,8 @@ static void bindVert(void *__restrict userdata,
         interp_weights_poly_v2(
             sdbind->vert_weights, bpoly->coords_v2, bpoly->numverts, bpoly->point_v2);
 
-        /* Reproject vert based on weights and original poly verts, to reintroduce poly non-planarity */
+        /* Reproject vert based on weights and original poly verts,
+         * to reintroduce poly non-planarity */
         zero_v3(point_co_proj);
         for (int j = 0; j < bpoly->numverts; j++, loop++) {
           madd_v3_v3fl(point_co_proj, bpoly->coords[j], sdbind->vert_weights[j]);

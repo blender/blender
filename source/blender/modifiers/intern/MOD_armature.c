@@ -93,7 +93,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   if (amd->object != NULL) {
-    /* If not using envelopes, create relations to individual bones for more rigging flexibility. */
+    /* If not using envelopes,
+     * create relations to individual bones for more rigging flexibility. */
     if ((amd->deformflag & ARM_DEF_ENVELOPE) == 0 && (amd->object->pose != NULL) &&
         ELEM(ctx->object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
       /* If neither vertex groups nor envelopes are used, the modifier has no bone dependencies. */

@@ -179,8 +179,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   if (((result == me) || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
-    /* We need to duplicate data here, otherwise setting custom normals, edges' shaprness, etc., could
-     * modify org mesh, see T43671. */
+    /* We need to duplicate data here, otherwise setting custom normals, edges' shaprness, etc.,
+     * could modify org mesh, see T43671. */
     BKE_id_copy_ex(NULL, &me_mod->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
   }
 

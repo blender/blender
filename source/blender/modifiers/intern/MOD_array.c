@@ -148,7 +148,8 @@ static void svert_from_mvert(SortVertsElem *sv,
 /**
  * Take as inputs two sets of verts, to be processed for detection of doubles and mapping.
  * Each set of verts is defined by its start within mverts array and its num_verts;
- * It builds a mapping for all vertices within source, to vertices within target, or -1 if no double found
+ * It builds a mapping for all vertices within source,
+ * to vertices within target, or -1 if no double found.
  * The int doubles_map[num_verts_source] array must have been allocated by caller.
  */
 static void dm_mvert_map_doubles(int *doubles_map,
@@ -220,11 +221,13 @@ static void dm_mvert_map_doubles(int *doubles_map,
       target_scan_completed = true;
       continue;
     }
-    /* Test target candidates starting at the low bound of possible doubles, ordered in terms of sumco */
+    /* Test target candidates starting at the low bound of possible doubles,
+     * ordered in terms of sumco. */
     i_target = i_target_low_bound;
     sve_target = sve_target_low_bound;
 
-    /* i_target will scan vertices in the [v_source_sumco - dist3;  v_source_sumco + dist3] range */
+    /* i_target will scan vertices in the
+     * [v_source_sumco - dist3;  v_source_sumco + dist3] range */
 
     while ((i_target < target_num_verts) && (sve_target->sum_co <= sve_source_sumco + dist3)) {
       /* Testing distance for candidate double in target */
@@ -237,8 +240,9 @@ static void dm_mvert_map_doubles(int *doubles_map,
 
         /* If target is already mapped, we only follow that mapping if final target remains
          * close enough from current vert (otherwise no mapping at all).
-         * Note that if we later find another target closer than this one, then we check it. But if other
-         * potential targets are farther, then there will be no mapping at all for this source. */
+         * Note that if we later find another target closer than this one, then we check it.
+         * But if other potential targets are farther,
+         * then there will be no mapping at all for this source. */
         while (best_target_vertex != -1 &&
                !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex)) {
           if (compare_len_v3v3(mverts[sve_source->vertex_num].co,
@@ -720,7 +724,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     for (i = 0; i < result_nverts; i++) {
       int new_i = full_doubles_map[i];
       if (new_i != -1) {
-        /* We have to follow chains of doubles (merge start/end especially is likely to create some),
+        /* We have to follow chains of doubles
+         * (merge start/end especially is likely to create some),
          * those are not supported at all by BKE_mesh_merge_verts! */
         while (!ELEM(full_doubles_map[new_i], -1, new_i)) {
           new_i = full_doubles_map[new_i];

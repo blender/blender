@@ -208,11 +208,13 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
   }
   else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-    /* TODO(sybren): get evaluated mesh from depsgraph once that's properly generated for curves. */
+    /* TODO(sybren): get evaluated mesh from depsgraph once
+     * that's properly generated for curves. */
     mesh = BKE_mesh_new_nomain_from_curve(ob);
 
     /* Currently, that may not be the case everytime
-     * (texts e.g. tend to give issues, also when deforming curve points instead of generated curve geometry... ). */
+     * (texts e.g. tend to give issues,
+     * also when deforming curve points instead of generated curve geometry... ). */
     if (mesh != NULL && mesh->totvert != num_verts) {
       BKE_id_free(NULL, mesh);
       mesh = NULL;

@@ -743,7 +743,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * have to stop using tessface - campbell */
 
   facepa = MEM_calloc_arrayN((totface + (totfsplit * 2)), sizeof(int), "explode_facepa");
-  //memcpy(facepa, emd->facepa, totface*sizeof(int));
+  // memcpy(facepa, emd->facepa, totface*sizeof(int));
   emd->facepa = facepa;
 
   /* create new verts */
@@ -766,7 +766,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   /* create new faces */
   curdupface = 0;  //=totface;
-  //curdupin=totesplit;
+  // curdupin=totesplit;
   for (i = 0, fs = facesplit; i < totface; i++, fs++) {
     mf = &mesh->mface[i];
 

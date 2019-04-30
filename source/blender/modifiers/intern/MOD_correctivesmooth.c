@@ -307,7 +307,8 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
       /* fast-path */
       for (i = 0; i < numVerts; i++) {
         struct SmoothingData_Weighted *sd = &smooth_data[i];
-        /* divide by sum of all neighbour distances (weighted) and amount of neighbors, (mean average) */
+        /* Divide by sum of all neighbour distances (weighted) and amount of neighbors,
+         * (mean average). */
         const float div = sd->edge_length_sum * vertex_edge_count[i];
         if (div > eps) {
 #if 0

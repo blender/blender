@@ -133,7 +133,7 @@ ModifierTypeInfo modifierType_Triangulate = {
     /* applyModifier */ applyModifier,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,  //requiredDataMask,
+    /* requiredDataMask */ NULL,  // requiredDataMask,
     /* freeData */ NULL,
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,

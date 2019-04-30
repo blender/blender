@@ -380,7 +380,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     /* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
-     * If we also copy data here, then this data get overwritten (and allocated memory becomes memleak). */
+     * If we also copy data here, then this data get overwritten
+     * (and allocated memory becomes memleak). */
 
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numPolys);
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numPolys, (int)numPolys);

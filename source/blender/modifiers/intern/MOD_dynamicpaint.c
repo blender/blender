@@ -129,7 +129,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
             ctx->node, ctx->object, surface->effector_weights, true, 0, "Dynamic Paint Field");
       }
 
-      /* Actual code uses custom loop over group/scene without layer checks in dynamicPaint_doStep */
+      /* Actual code uses custom loop over group/scene
+       * without layer checks in dynamicPaint_doStep. */
       DEG_add_collision_relations(ctx->node,
                                   ctx->object,
                                   surface->brush_group,
@@ -167,7 +168,7 @@ static void foreachTexLink(ModifierData *UNUSED(md),
                            TexWalkFunc UNUSED(walk),
                            void *UNUSED(userData))
 {
-  //walk(userData, ob, md, ""); /* re-enable when possible */
+  // walk(userData, ob, md, ""); /* re-enable when possible */
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {

@@ -214,7 +214,8 @@ static void createVertRingMap(const int mvert_tot,
 }
 
 /**
- * This method computes the Laplacian Matrix and Differential Coordinates for all vertex in the mesh.
+ * This method computes the Laplacian Matrix and Differential Coordinates
+ * for all vertex in the mesh..
  * The Linear system is LV = d
  * Where L is Laplacian Matrix, V as the vertices in Mesh, d is the differential coordinates
  * The Laplacian Matrix is computes as a
@@ -227,18 +228,21 @@ static void createVertRingMap(const int mvert_tot,
  * Where :
  * di is the Differential Coordinate i
  * sum (Wij) is the sum of all weights between vertex Vi and its vertices neighbors (Vj)
- * sum (Wij * Vj) is the sum of the product between vertex neighbor Vj and weight Wij for all neighborhood.
+ * sum (Wij * Vj) is the sum of the product between vertex neighbor Vj and weight Wij
+ *                for all neighborhood.
  *
  * This Laplacian Matrix is described in the paper:
- * Desbrun M. et.al, Implicit fairing of irregular meshes using diffusion and curvature flow, SIGGRAPH '99, pag 317-324,
- * New York, USA
+ * Desbrun M. et.al, Implicit fairing of irregular meshes using diffusion and curvature flow,
+ * SIGGRAPH '99, pag 317-324, New York, USA
  *
- * The computation of Laplace Beltrami operator on Hybrid Triangle/Quad Meshes is described in the paper:
- * Pinzon A., Romero E., Shape Inflation With an Adapted Laplacian Operator For Hybrid Quad/Triangle Meshes,
+ * The computation of Laplace Beltrami operator on Hybrid Triangle/Quad Meshes is described in the
+ * paper: Pinzon A., Romero E., Shape Inflation With an Adapted Laplacian Operator For
+ * Hybrid Quad/Triangle Meshes,
  * Conference on Graphics Patterns and Images, SIBGRAPI, 2013
  *
  * The computation of Differential Coordinates is described in the paper:
- * Sorkine, O. Laplacian Surface Editing. Proceedings of the EUROGRAPHICS/ACM SIGGRAPH Symposium on Geometry Processing,
+ * Sorkine, O. Laplacian Surface Editing.
+ * Proceedings of the EUROGRAPHICS/ACM SIGGRAPH Symposium on Geometry Processing,
  * 2004. p. 179-188.
  */
 static void initLaplacianMatrix(LaplacianSystem *sys)

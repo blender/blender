@@ -345,8 +345,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   /* multiplying the steps is a bit tricky, this works best */
   step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
 
-  /* will the screw be closed?
-   * Note! smaller then FLT_EPSILON * 100 gives problems with float precision so its never closed. */
+  /* Will the screw be closed?
+   * Note! smaller then `FLT_EPSILON * 100`
+   * gives problems with float precision so its never closed. */
   if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
       fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f)) {
     close = 1;
@@ -493,7 +494,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
      */
 
     vert_connect = MEM_malloc_arrayN(totvert, sizeof(ScrewVertConnect), "ScrewVertConnect");
-    //vert_connect = (ScrewVertConnect *) &medge_new[totvert];  /* skip the first slice of verts */
+    /* skip the first slice of verts. */
+    // vert_connect = (ScrewVertConnect *) &medge_new[totvert];
     vc = vert_connect;
 
     /* Copy Vert Locations */
@@ -605,7 +607,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
               /*printf("\t\tVERT: %i\n", lt_iter.v);*/
               if (lt_iter.v_poin->flag) {
                 /*printf("\t\t\tBreaking Found end\n");*/
-                //endpoints[0] = endpoints[1] = SV_UNUSED;
+                // endpoints[0] = endpoints[1] = SV_UNUSED;
                 ed_loop_closed = 1; /* circle */
                 break;
               }

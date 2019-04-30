@@ -435,8 +435,10 @@ static Mesh *fluidsim_read_cache(
     Object *ob, Mesh *orgmesh, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
   int curFrame = framenr /* - 1 */ /*scene->r.sfra*/; /* start with 0 at start frame */
-  /*  why start with 0 as start frame?? Animations + time are frozen for frame 0 anyway. (See physics_fluid.c for that. - DG */
-  /* If we start with frame 0, we need to remap all animation channels, too, because they will all be 1 frame late if using frame-1! - DG */
+  /* why start with 0 as start frame?? Animations + time are frozen for frame 0 anyway.
+   * (See physics_fluid.c for that. - DG) */
+  /* If we start with frame 0, we need to remap all animation channels, too,
+   * because they will all be 1 frame late if using frame-1! - DG */
 
   char targetFile[FILE_MAX];
   FluidsimSettings *fss = fluidmd->fss;

@@ -1216,7 +1216,7 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
   }
 
   /* This case is unlikely now, but could still happen. Should look
-     * into splitting edges to make new faces. */
+   * into splitting edges to make new faces. */
 #if PRINT_HOLE_INFO
   if (!f) {
     printf("no good face found\n");
