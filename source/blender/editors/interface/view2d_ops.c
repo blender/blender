@@ -1785,8 +1785,7 @@ static void scroller_activate_init(bContext *C,
   /* 'zone' depends on where mouse is relative to bubble
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
 
   /* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck T31476. */

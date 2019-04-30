@@ -192,16 +192,8 @@ void UI_view2d_grid_draw_numbers_vertical(const struct Scene *scene,
 void UI_view2d_grid_free(View2DGrid *grid);
 
 /* scrollbar drawing */
-View2DScrollers *UI_view2d_scrollers_calc(const struct bContext *C,
-                                          struct View2D *v2d,
-                                          const struct rcti *mask_custom,
-                                          short xunits,
-                                          short xclamp,
-                                          short yunits,
-                                          short yclamp);
-void UI_view2d_scrollers_draw(const struct bContext *C,
-                              struct View2D *v2d,
-                              View2DScrollers *scrollers);
+View2DScrollers *UI_view2d_scrollers_calc(struct View2D *v2d, const struct rcti *mask_custom);
+void UI_view2d_scrollers_draw(struct View2D *v2d, View2DScrollers *scrollers);
 void UI_view2d_scrollers_free(View2DScrollers *scrollers);
 
 /* list view tools */

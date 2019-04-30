@@ -231,9 +231,8 @@ static void console_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_GRID_CLAMP);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 }
 

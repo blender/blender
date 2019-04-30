@@ -205,9 +205,8 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 }
 
@@ -253,7 +252,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
                              ar->winx,
                              ar->winy);
   UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
-  UI_view2d_grid_free(grid);
 
   ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
@@ -297,10 +295,13 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
+
+  /* frame numbers */
+  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unit, true);
+  UI_view2d_grid_free(grid);
 
   /* draw current frame number-indicator on top of scrollers */
   if ((snla->flag & SNLA_NODRAWCFRANUM) == 0) {

@@ -1312,7 +1312,6 @@ static void step_to_grid(float *step, const int unit, int *r_power)
  *
  * - Currently, will return pointer to View2DGrid struct that needs to
  *   be freed with UI_view2d_grid_free()
- * - Is used for scrollbar drawing too (for units drawing)
  * - Units + clamping args will be checked, to make sure they are valid values that can be used
  *   so it is very possible that we won't return grid at all!
  *
@@ -1753,7 +1752,7 @@ void UI_view2d_grid_draw_numbers_horizontal(const Scene *scene,
   }
 
   float initial_xpos = UI_view2d_view_to_region_x(v2d, grid->startx);
-  float ypos = (float)rect->ymin + 2 * UI_DPI_FAC;
+  float ypos = (float)rect->ymin + 4 * UI_DPI_FAC;
   float initial_value = grid->startx;
   float value_step = grid->dx;
   int brevity_level = grid->powerx;
@@ -1872,21 +1871,10 @@ struct View2DScrollers {
 
   rcti hor, vert;        /* exact size of slider backdrop */
   int horfull, vertfull; /* set if sliders are full, we don't draw them */
-
-  /* scales */
-  View2DGrid *grid;     /* grid for coordinate drawing */
-  short xunits, xclamp; /* units and clamping options for x-axis */
-  short yunits, yclamp; /* units and clamping options for y-axis */
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_scrollers_calc(const bContext *C,
-                                          View2D *v2d,
-                                          const rcti *mask_custom,
-                                          short xunits,
-                                          short xclamp,
-                                          short yunits,
-                                          short yclamp)
+View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers *scrollers;
   rcti vert, hor;
@@ -2014,30 +2002,11 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C,
     }
   }
 
-  /* grid markings on scrollbars */
-  if (scroll & (V2D_SCROLL_SCALE_HORIZONTAL | V2D_SCROLL_SCALE_VERTICAL)) {
-    /* store clamping */
-    scrollers->xclamp = xclamp;
-    scrollers->xunits = xunits;
-    scrollers->yclamp = yclamp;
-    scrollers->yunits = yunits;
-
-    scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C),
-                                          v2d,
-                                          xunits,
-                                          xclamp,
-                                          yunits,
-                                          yclamp,
-                                          BLI_rcti_size_x(&hor),
-                                          BLI_rcti_size_y(&vert));
-  }
-
-  /* return scrollers */
   return scrollers;
 }
 
 /* Draw scrollbars in the given 2d-region */
-void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
+void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
 {
   bTheme *btheme = UI_GetTheme();
   rcti vert, hor;
@@ -2084,13 +2053,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
     }
 
     UI_draw_widget_scroll(&wcol, &hor, &slider, state);
-
-    {
-      if (scroll & V2D_SCROLL_SCALE_HORIZONTAL) {
-        UI_view2d_grid_draw_numbers_horizontal(
-            CTX_data_scene(C), v2d, vs->grid, &vs->hor, vs->xunits, vs->xclamp == V2D_GRID_CLAMP);
-      }
-    }
   }
 
   /* vertical scrollbar */
@@ -2125,17 +2087,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
     }
 
     UI_draw_widget_scroll(&wcol, &vert, &slider, state);
-
-    {
-      if (scroll & V2D_SCROLL_SCALE_VERTICAL) {
-        float text_offset = 0.0f;
-        if (vs->yclamp & V2D_GRID_CLAMP) {
-          text_offset = 0.5f;
-        }
-        UI_view2d_grid_draw_numbers_vertical(
-            CTX_data_scene(C), v2d, vs->grid, &vs->vert, vs->yunits, text_offset);
-      }
-    }
   }
 
   /* Was changed above, so reset. */
@@ -2145,10 +2096,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 /* free temporary memory used for drawing scrollers */
 void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 {
-  /* need to free grid as well... */
-  if (scrollers->grid) {
-    MEM_freeN(scrollers->grid);
-  }
   MEM_freeN(scrollers);
 }
 

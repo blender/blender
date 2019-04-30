@@ -248,9 +248,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
     v2d->tot.xmax += 10.0f;
   }
 
-  /* only free grid after drawing data, as we need to use it to determine sampling rate */
-  UI_view2d_grid_free(grid);
-
   if (((sipo->flag & SIPO_NODRAWCURSOR) == 0) || (sipo->mode == SIPO_MODE_DRIVERS)) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
@@ -324,10 +321,14 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
   /* scrollers */
   // FIXME: args for scrollers depend on the type of data being shown...
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
+
+  /* scale numbers */
+  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unitx, false);
+  UI_view2d_grid_draw_numbers_vertical(scene, v2d, grid, &v2d->vert, unity, 0.0f);
+  UI_view2d_grid_free(grid);
 
   /* draw current frame number-indicator on top of scrollers */
   if ((sipo->mode != SIPO_MODE_DRIVERS) && ((sipo->flag & SIPO_NODRAWCFRANUM) == 0)) {
@@ -381,9 +382,8 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 }
 

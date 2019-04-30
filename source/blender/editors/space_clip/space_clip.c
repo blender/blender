@@ -1017,7 +1017,6 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   View2DScrollers *scrollers;
   SpaceClip *sc = CTX_wm_space_clip(C);
   Scene *scene = CTX_data_scene(C);
-  short unitx, unity;
   short cfra_flag = 0;
 
   if (sc->flag & SC_LOCK_TIMECURSOR) {
@@ -1043,12 +1042,18 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  unitx = (sc->flag & SC_SHOW_SECONDS) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-  unity = V2D_UNIT_VALUES;
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
+
+  /* scale indicators */
+  short unitx = (sc->flag & SC_SHOW_SECONDS) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+  short unity = V2D_UNIT_VALUES;
+  View2DGrid *grid = UI_view2d_grid_calc(
+      scene, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
+  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unitx, false);
+  UI_view2d_grid_draw_numbers_vertical(scene, v2d, grid, &v2d->vert, unity, 0.0);
+  UI_view2d_grid_free(grid);
 
   /* current frame indicator */
   if (sc->flag & SC_SHOW_SECONDS) {
@@ -1083,7 +1088,6 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   grid = UI_view2d_grid_calc(
       scene, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
   UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
-  UI_view2d_grid_free(grid);
 
   /* data... */
   clip_draw_dopesheet_main(sc, ar, scene);
@@ -1098,10 +1102,13 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  scrollers = UI_view2d_scrollers_calc(
-      C, v2d, NULL, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-  UI_view2d_scrollers_draw(C, v2d, scrollers);
+  scrollers = UI_view2d_scrollers_calc(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
+
+  /* frame numbers */
+  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unit, true);
+  UI_view2d_grid_free(grid);
 
   /* current frame number indicator */
   UI_view2d_view_orthoSpecial(ar, v2d, 1);
