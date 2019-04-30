@@ -24,6 +24,9 @@
 #include "BKE_camera.h"
 #include "BKE_studiolight.h"
 
+#include "BLI_rect.h"
+#include "BLI_rand.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_world_types.h"
 
@@ -62,10 +65,27 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 {
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
   Scene *scene = draw_ctx->scene;
+
+  /* Viewport / Ball size. */
+  rcti rect;
+  ED_region_visible_rect(draw_ctx->ar, &rect);
+
+  const int ball_size = max_ii(BLI_rcti_size_x(&rect) * 0.1f, 100.0f) * U.dpi_fac;
+
+  if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
+      rect.ymin != effects->anchor[1]) {
+    /* If ball size or anchor point moves, reset TAA to avoid ghosting issue.
+     * This needs to happen early because we are changing taa_current_sample. */
+    effects->ball_size = ball_size;
+    effects->anchor[0] = rect.xmax;
+    effects->anchor[1] = rect.ymin;
+    EEVEE_temporal_sampling_reset(vedata);
+  }
 
   if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
     StudioLight *sl = BKE_studiolight_find(v3d->shading.lookdev_light,
@@ -157,56 +177,35 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   }
 }
 
-void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
+static void eevee_lookdev_apply_taa(const EEVEE_EffectsInfo *effects,
+                                    int ball_size,
+                                    float winmat[4][4])
+{
+  if (DRW_state_is_image_render() || ((effects->enabled_effects & EFFECT_TAA) != 0)) {
+    double ht_point[2];
+    double ht_offset[2] = {0.0, 0.0};
+    uint ht_primes[2] = {2, 3};
+    float ofs[2];
+
+    BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample, ht_point);
+    EEVEE_temporal_sampling_offset_calc(ht_point, 1.5f, ofs);
+    winmat[3][0] += ofs[0] / ball_size;
+    winmat[3][1] += ofs[1] / ball_size;
+  }
+}
+
+void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
+  EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  if (psl->lookdev_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
-    DRW_stats_group_start("Look Dev");
-    CameraParams params;
-    BKE_camera_params_init(&params);
-    View3D *v3d = draw_ctx->v3d;
-    RegionView3D *rv3d = draw_ctx->rv3d;
-    ARegion *ar = draw_ctx->ar;
-
-    const float *viewport_size = DRW_viewport_size_get();
-    rcti rect;
-    ED_region_visible_rect(draw_ctx->ar, &rect);
-
-    const float viewport_size_target[2] = {
-        viewport_size[0] / 4,
-        viewport_size[1] / 4,
-    };
-    const int viewport_inset[2] = {
-        max_ii(viewport_size_target[0], 300),
-        max_ii(viewport_size_target[0], 300) / 2, /* intentionally use 'x' here for 'y' value. */
-    };
-
-    /* minimum size for preview spheres viewport */
-    const float aspect[2] = {
-        viewport_inset[0] / viewport_size_target[0],
-        viewport_inset[1] / viewport_size_target[1],
-    };
-
-    BKE_camera_params_from_view3d(&params, draw_ctx->depsgraph, v3d, rv3d);
-    params.is_ortho = true;
-    params.ortho_scale = 3.0f;
-    params.zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
-    params.offsetx = 0.0f;
-    params.offsety = 0.0f;
-    params.shiftx = 0.0f;
-    params.shifty = 0.0f;
-    params.clip_start = 0.001f;
-    params.clip_end = 20.0f;
-    BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, aspect[0], aspect[1]);
-    BKE_camera_params_compute_matrix(&params);
-
+  if (psl->lookdev_diffuse_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
+    /* Config renderer. */
     EEVEE_CommonUniformBuffer *common = &sldata->common_data;
     common->la_num_light = 0;
     common->prb_num_planar = 0;
@@ -218,34 +217,53 @@ void EEVEE_lookdev_draw_background(EEVEE_Data *vedata)
     DRW_uniformbuffer_update(sldata->common_ubo, common);
 
     /* override matrices */
-    float winmat[4][4];
-    float winmat_inv[4][4];
-    copy_m4_m4(winmat, params.winmat);
-    invert_m4_m4(winmat_inv, winmat);
-    DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
-    DRW_viewport_matrix_override_set(winmat_inv, DRW_MAT_WININV);
-    float viewmat[4][4];
-    DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-    float persmat[4][4];
-    float persmat_inv[4][4];
-    mul_m4_m4m4(persmat, winmat, viewmat);
-    invert_m4_m4(persmat_inv, persmat);
-    DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
-    DRW_viewport_matrix_override_set(persmat_inv, DRW_MAT_PERSINV);
+    DRWMatrixState matstate;
+    unit_m4(matstate.winmat);
 
-    GPUFrameBuffer *fb = effects->final_fb;
-    GPU_framebuffer_bind(fb);
-    GPU_framebuffer_viewport_set(
-        fb, rect.xmax - viewport_inset[0], rect.ymin, viewport_inset[0], viewport_inset[1]);
-    DRW_draw_pass(psl->lookdev_pass);
+    eevee_lookdev_apply_taa(effects, effects->ball_size, matstate.winmat);
 
-    fb = dfbl->depth_only_fb;
+    /* "Remove" view matrix location. Leaving only rotation. */
+    DRW_viewport_matrix_get(matstate.viewmat, DRW_MAT_VIEW);
+    zero_v3(matstate.viewmat[3]);
+    mul_m4_m4m4(matstate.persmat, matstate.winmat, matstate.viewmat);
+    invert_m4_m4(matstate.wininv, matstate.winmat);
+    invert_m4_m4(matstate.viewinv, matstate.viewmat);
+    invert_m4_m4(matstate.persinv, matstate.persmat);
+
+    DRW_viewport_matrix_override_set_all(&matstate);
+
+    /* Find the right framebuffers to render to. */
+    GPUFrameBuffer *fb = (effects->target_buffer == fbl->effect_color_fb) ? fbl->main_fb :
+                                                                            fbl->effect_fb;
+
+    DRW_stats_group_start("Look Dev");
+
     GPU_framebuffer_bind(fb);
-    GPU_framebuffer_viewport_set(
-        fb, rect.xmax - viewport_inset[0], rect.ymin, viewport_inset[0], viewport_inset[1]);
-    DRW_draw_pass(psl->lookdev_pass);
+
+    const int ball_margin = effects->ball_size / 6.0f;
+    float offset[2] = {0.0f, ball_margin};
+
+    offset[0] = effects->ball_size + ball_margin;
+    GPU_framebuffer_viewport_set(fb,
+                                 effects->anchor[0] - offset[0],
+                                 effects->anchor[1] + offset[1],
+                                 effects->ball_size,
+                                 effects->ball_size);
+
+    DRW_draw_pass(psl->lookdev_diffuse_pass);
+
+    offset[0] = (effects->ball_size + ball_margin) +
+                (ball_margin + effects->ball_size + ball_margin);
+    GPU_framebuffer_viewport_set(fb,
+                                 effects->anchor[0] - offset[0],
+                                 effects->anchor[1] + offset[1],
+                                 effects->ball_size,
+                                 effects->ball_size);
+
+    DRW_draw_pass(psl->lookdev_glossy_pass);
+
+    DRW_stats_group_end();
 
     DRW_viewport_matrix_override_unset_all();
-    DRW_stats_group_end();
   }
 }

@@ -301,10 +301,6 @@ static void eevee_draw_background(void *vedata)
     }
   }
 
-  /* LookDev */
-  EEVEE_lookdev_draw_background(vedata);
-  /* END */
-
   /* Tonemapping and transfer result to default framebuffer. */
   bool use_render_settings = stl->g_data->use_color_render_settings;
 

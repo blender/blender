@@ -17,6 +17,9 @@ void main()
 
   outData = uv - uv_history;
 
+  /* HACK: Reject lookdev spheres from TAA reprojection. */
+  outData = (depth > 0.0) ? outData : vec2(0.0);
+
   /* Encode to unsigned normalized 16bit texture. */
   outData = outData * 0.5 + 0.5;
 }

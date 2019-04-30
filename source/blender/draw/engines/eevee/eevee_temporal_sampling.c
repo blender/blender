@@ -131,6 +131,14 @@ static void eevee_create_cdf_table_temporal_sampling(void)
   e_data.inited = true;
 }
 
+void EEVEE_temporal_sampling_offset_calc(const double ht_point[2],
+                                         const float filter_size,
+                                         float r_offset[2])
+{
+  r_offset[0] = eval_table(e_data.inverted_cdf, (float)(ht_point[0])) * filter_size;
+  r_offset[1] = eval_table(e_data.inverted_cdf, (float)(ht_point[1])) * filter_size;
+}
+
 void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
                                            float viewmat[4][4],
                                            float persmat[4][4],
@@ -141,13 +149,11 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
   Scene *scene = draw_ctx->scene;
   RenderData *rd = &scene->r;
 
-  float filter_size = rd->gauss; /* Sigh.. Stupid legacy naming. */
-
-  float ofs_x = eval_table(e_data.inverted_cdf, (float)(ht_point[0])) * filter_size;
-  float ofs_y = eval_table(e_data.inverted_cdf, (float)(ht_point[1])) * filter_size;
+  float ofs[2];
+  EEVEE_temporal_sampling_offset_calc(ht_point, rd->gauss, ofs);
 
   window_translate_m4(
-      effects->overide_winmat, persmat, ofs_x / viewport_size[0], ofs_y / viewport_size[1]);
+      effects->overide_winmat, persmat, ofs[0] / viewport_size[0], ofs[1] / viewport_size[1]);
 
   mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
   invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
@@ -157,6 +163,7 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
 void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
 {
   vedata->stl->effects->taa_render_sample = 1;
+  vedata->stl->effects->taa_current_sample = 1;
 }
 
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
