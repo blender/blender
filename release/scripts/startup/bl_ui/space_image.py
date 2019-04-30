@@ -504,30 +504,10 @@ class IMAGE_HT_tool_header(Header):
         self.draw_tool_settings(context)
 
         sima = context.space_data
-        show_uvedit = sima.show_uvedit
-        show_maskedit = sima.show_maskedit
 
         layout.separator_spacer()
 
-        if show_uvedit or show_maskedit:
-            layout.prop(sima, "pivot_point", icon_only=True)
-
-        if show_uvedit:
-            tool_settings = context.tool_settings
-
-            # Snap.
-            row = layout.row(align=True)
-            row.prop(tool_settings, "use_snap", text="")
-            row.prop(tool_settings, "snap_uv_element", icon_only=True)
-            if tool_settings.snap_uv_element != 'INCREMENT':
-                row.prop(tool_settings, "snap_target", text="")
-
-            # Proportional Editing
-            row = layout.row(align=True)
-            row.prop(tool_settings, "use_proportional_edit", icon_only=True)
-            sub = row.row(align=True)
-            sub.active = tool_settings.use_proportional_edit
-            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+        IMAGE_HT_header.draw_xform_template(layout, context)
 
         layout.separator_spacer()
 
@@ -616,6 +596,32 @@ class _draw_tool_settings_context_mode:
 class IMAGE_HT_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
 
+    @staticmethod
+    def draw_xform_template(layout, context):
+        sima = context.space_data
+        show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
+
+        if show_uvedit or show_maskedit:
+            layout.prop(sima, "pivot_point", icon_only=True)
+
+        if show_uvedit:
+            tool_settings = context.tool_settings
+
+            # Snap.
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap", text="")
+            row.prop(tool_settings, "snap_uv_element", icon_only=True)
+            if tool_settings.snap_uv_element != 'INCREMENT':
+                row.prop(tool_settings, "snap_target", text="")
+
+            # Proportional Editing
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_proportional_edit", icon_only=True)
+            sub = row.row(align=True)
+            sub.active = tool_settings.use_proportional_edit
+            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
+
     def draw(self, context):
         layout = self.layout
 
@@ -623,12 +629,13 @@ class IMAGE_HT_header(Header):
         ima = sima.image
         iuser = sima.image_user
         tool_settings = context.tool_settings
+        show_region_tool_header = sima.show_region_tool_header
 
         show_render = sima.show_render
         show_uvedit = sima.show_uvedit
         show_maskedit = sima.show_maskedit
 
-        if not sima.show_region_tool_header:
+        if not show_region_tool_header:
             layout.template_header()
 
         if sima.mode != 'UV':
@@ -649,6 +656,9 @@ class IMAGE_HT_header(Header):
         MASK_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator_spacer()
+
+        if not show_region_tool_header:
+            IMAGE_HT_header.draw_xform_template(layout, context)
 
         layout.template_ID(sima, "image", new="image.new", open="image.open")
 
