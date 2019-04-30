@@ -42,7 +42,7 @@ void main()
   else {
     float size = (ProjectionMatrix[3][3] == 0.0) ? (thickness / (gl_Position.z * defaultpixsize)) :
                                                    (thickness / defaultpixsize);
-    finalThickness = max(size * objscale, 1.0); /* minimum 1 pixel */
+    finalThickness = max(size * objscale, 0.5); /* set a minimum size */
   }
 
   /* for wireframe override size and color */
