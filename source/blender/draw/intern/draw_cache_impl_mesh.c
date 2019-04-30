@@ -5112,6 +5112,10 @@ void DRW_mesh_batch_cache_create_requested(
     return;
   }
 
+#ifdef DRW_DEBUG_MESH_CACHE_REQUEST
+  printf("-- %s %s --\n", __func__, ob->id.name + 2);
+#endif
+
   /* Generate MeshRenderData flags */
   eMRDataType mr_flag = 0, mr_edit_flag = 0;
   DRW_ADD_FLAG_FROM_VBO_REQUEST(
@@ -5197,6 +5201,10 @@ void DRW_mesh_batch_cache_create_requested(
 
   Mesh *me_original = me;
   MBC_GET_FINAL_MESH(me);
+
+#ifdef DRW_DEBUG_MESH_CACHE_REQUEST
+  printf("  mr_flag %u, mr_edit_flag %u\n\n", mr_flag, mr_edit_flag);
+#endif
 
   if (me_original == me) {
     mr_flag |= mr_edit_flag;

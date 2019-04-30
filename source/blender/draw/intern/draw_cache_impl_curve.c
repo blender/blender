@@ -988,6 +988,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
     }
   }
 
+#ifdef DRW_DEBUG_MESH_CACHE_REQUEST
+  printf("-- %s %s --\n", __func__, ob->id.name + 2);
+#endif
+
   /* Generate MeshRenderData flags */
   int mr_flag = 0;
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.pos_nor, CU_DATATYPE_SURFACE);
@@ -1010,6 +1014,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
   for (int i = 0; i < cache->mat_len; ++i) {
     DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], CU_DATATYPE_SURFACE);
   }
+
+#ifdef DRW_DEBUG_MESH_CACHE_REQUEST
+  printf("  mr_flag %d\n\n", mr_flag);
+#endif
 
   CurveRenderData *rdata = curve_render_data_create(cu, ob->runtime.curve_cache, mr_flag);
 
