@@ -527,7 +527,7 @@ Curve::point_iterator Curve::points_begin(float step)
   ++second;
   return point_iterator(
       _Vertices.begin(), second, _Vertices.begin(), _Vertices.end(), _nSegments, step, 0.0f, 0.0f);
-  //return point_iterator(_Vertices.begin(), second, _nSegments, step, 0.0f, 0.0f);
+  // return point_iterator(_Vertices.begin(), second, _nSegments, step, 0.0f, 0.0f);
 }
 
 Curve::const_point_iterator Curve::points_begin(float step) const
@@ -536,7 +536,7 @@ Curve::const_point_iterator Curve::points_begin(float step) const
   ++second;
   return const_point_iterator(
       _Vertices.begin(), second, _Vertices.begin(), _Vertices.end(), _nSegments, step, 0.0f, 0.0f);
-  //return const_point_iterator(_Vertices.begin(), second, _nSegments, step, 0.0f, 0.0f);
+  // return const_point_iterator(_Vertices.begin(), second, _nSegments, step, 0.0f, 0.0f);
 }
 
 Curve::point_iterator Curve::points_end(float step)
@@ -549,7 +549,7 @@ Curve::point_iterator Curve::points_end(float step)
                         step,
                         1.0f,
                         _Length);
-  //return point_iterator(_Vertices.end(), _Vertices.end(), _nSegments, step, 1.0f, _Length);
+  // return point_iterator(_Vertices.end(), _Vertices.end(), _nSegments, step, 1.0f, _Length);
 }
 
 Curve::const_point_iterator Curve::points_end(float step) const
@@ -562,7 +562,8 @@ Curve::const_point_iterator Curve::points_end(float step) const
                               step,
                               1.0f,
                               _Length);
-  //return const_point_iterator(_Vertices.end(), _Vertices.end(), _nSegments, step, 1.0f, _Length);
+  // return const_point_iterator(_Vertices.end(), _Vertices.end(), _nSegments, step, 1.0f,
+  // _Length);
 }
 
 // Adavnced Iterators access

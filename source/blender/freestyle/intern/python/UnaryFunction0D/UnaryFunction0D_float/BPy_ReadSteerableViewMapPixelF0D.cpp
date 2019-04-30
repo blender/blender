@@ -69,7 +69,7 @@ static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0
   return 0;
 }
 
-/*-----------------------BPy_ReadSteerableViewMapPixelF0D type definition ------------------------------*/
+/*-----------------------BPy_ReadSteerableViewMapPixelF0D type definition -----------------------*/
 
 PyTypeObject ReadSteerableViewMapPixelF0D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "ReadSteerableViewMapPixelF0D", /* tp_name */

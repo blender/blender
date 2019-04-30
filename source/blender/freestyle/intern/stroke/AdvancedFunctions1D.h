@@ -37,8 +37,9 @@ namespace Functions1D {
 
 // DensityF1D
 /*! Returns the density evaluated for an Interface1D.
- *  The density is evaluated for a set of points along the Interface1D (using the DensityF0D functor) with a
- *  user-defined sampling and then integrated into a single value using a user-defined integration method.
+ *  The density is evaluated for a set of points along the Interface1D (using the DensityF0D
+ * functor) with a user-defined sampling and then integrated into a single value using a
+ * user-defined integration method.
  */
 class DensityF1D : public UnaryFunction1D<double> {
  private:
@@ -51,9 +52,9 @@ class DensityF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    *  \param sampling:
-   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
-   *    the result is obtained by combining the resulting values into a single one, following the method specified
-   *    by iType.
+   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each
+   * sample point and the result is obtained by combining the resulting values into a single one,
+   * following the method specified by iType.
    */
   DensityF1D(double sigma = 2, IntegrationType iType = MEAN, float sampling = 2.0f)
       : UnaryFunction1D<double>(iType), _fun(sigma)
@@ -86,8 +87,9 @@ class DensityF1D : public UnaryFunction1D<double> {
 
 // LocalAverageDepthF1D
 /*! Returns the average depth evaluated for an Interface1D.
- *  The average depth is evaluated for a set of points along the Interface1D (using the LocalAverageDepthF0D functor)
- *  with a user-defined sampling and then integrated into a single value using a user-defined integration method.
+ *  The average depth is evaluated for a set of points along the Interface1D (using the
+ * LocalAverageDepthF0D functor) with a user-defined sampling and then integrated into a single
+ * value using a user-defined integration method.
  */
 class LocalAverageDepthF1D : public UnaryFunction1D<double> {
  public:
@@ -121,8 +123,9 @@ class LocalAverageDepthF1D : public UnaryFunction1D<double> {
 
 // GetCompleteViewMapDensity
 /*! Returns the density evaluated for an Interface1D in the complete viewmap image.
- *  The density is evaluated for a set of points along the Interface1D (using the ReadCompleteViewMapPixelF0D functor)
- *  and then integrated into a single value using a user-defined integration method.
+ *  The density is evaluated for a set of points along the Interface1D (using the
+ * ReadCompleteViewMapPixelF0D functor) and then integrated into a single value using a
+ * user-defined integration method.
  */
 class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double> {
  public:
@@ -162,7 +165,8 @@ class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double> {
 // GetDirectionalViewMapDensity
 /*! Returns the density evaluated for an Interface1D in of the steerable viewmaps image.
  *  The direction telling which Directional map to choose is explicitly specified by the user.
- *  The density is evaluated for a set of points along the Interface1D (using the ReadSteerableViewMapPixelF0D functor)
+ *  The density is evaluated for a set of points along the Interface1D
+ *  (using the ReadSteerableViewMapPixelF0D functor)
  *  and then integrated into a single value using a user-defined integration method.
  */
 class GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double> {
@@ -175,9 +179,9 @@ class GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    *  \param sampling:
-   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
-   *    the result is obtained by combining the resulting values into a single one, following the method specified
-   *    by iType.
+   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at
+   *    each sample point and the result is obtained by combining the resulting values into a
+   *    single one, following the method specified by iType.
    */
   GetDirectionalViewMapDensityF1D(unsigned iOrientation,
                                   unsigned level,
@@ -203,8 +207,8 @@ class GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double> {
 };
 
 // GetSteerableViewMapDensityF1D
-/*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated
- *  in the proper steerable ViewMap depending on its oorientation.
+/*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is
+ * evaluated in the proper steerable ViewMap depending on its oorientation.
  */
 class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double> {
  private:
@@ -218,9 +222,9 @@ class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    *  \param sampling:
-   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
-   *    the result is obtained by combining the resulting values into a single one, following the method specified
-   *    by iType.
+   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each
+   * sample point and the result is obtained by combining the resulting values into a single one,
+   * following the method specified by iType.
    */
   GetSteerableViewMapDensityF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
       : UnaryFunction1D<double>(iType)
@@ -245,8 +249,8 @@ class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double> {
 };
 
 // GetViewMapGradientNormF1D
-/*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is evaluated in
- *  the proper steerable ViewMap depending on its oorientation.
+/*! Returns the density of the viewmap for a given Interface1D. The density of each FEdge is
+ * evaluated in the proper steerable ViewMap depending on its oorientation.
  */
 class GetViewMapGradientNormF1D : public UnaryFunction1D<double> {
  private:
@@ -261,9 +265,9 @@ class GetViewMapGradientNormF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    *  \param sampling:
-   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each sample point and
-   *    the result is obtained by combining the resulting values into a single one, following the method specified
-   *    by iType.
+   *    The resolution used to sample the chain: the corresponding 0D function is evaluated at each
+   *    sample point and the result is obtained by combining the resulting values into a single
+   *    one, following the method specified by iType.
    */
   GetViewMapGradientNormF1D(int level, IntegrationType iType = MEAN, float sampling = 2.0f)
       : UnaryFunction1D<double>(iType), _func(level)

@@ -178,7 +178,7 @@ class WVertex {
     {
     }
 #endif
-    virtual ~incoming_edge_iterator(){};  //soc
+    virtual ~incoming_edge_iterator(){};  // soc
 
    protected:
     friend class WVertex;
@@ -237,7 +237,7 @@ class WVertex {
 
     // dereferencing
     virtual WOEdge *operator*();
-    //virtual WOEdge **operator->();
+    // virtual WOEdge **operator->();
    protected:
     virtual void increment();
 
@@ -266,7 +266,7 @@ class WVertex {
     {
     }
 #endif
-    virtual ~face_iterator(){};  //soc
+    virtual ~face_iterator(){};  // soc
 
    protected:
     friend class WVertex;
@@ -321,7 +321,7 @@ class WVertex {
 
     // dereferencing
     virtual WFace *operator*();
-    //virtual WOEdge **operator->();
+    // virtual WOEdge **operator->();
 
    protected:
     inline void increment()
@@ -401,7 +401,7 @@ class WOEdge {
     userdata = NULL;
   }
 
-  virtual ~WOEdge(){};  //soc
+  virtual ~WOEdge(){};  // soc
 
   /*! copy constructor */
   WOEdge(WOEdge &iBrother);
@@ -1196,10 +1196,9 @@ class WShape {
   /*! adds a new face to the shape
    *  returns the built face.
    *   iVertexList
-   *      List of face's vertices. These vertices are not added to the WShape vertex list; they are supposed to be
-   *      already stored when calling MakeFace.
-   *      The order in which the vertices are stored in the list determines the face's edges orientation and (so) the
-   *      face orientation.
+   *      List of face's vertices. These vertices are not added to the WShape vertex list; they are
+   * supposed to be already stored when calling MakeFace. The order in which the vertices are
+   * stored in the list determines the face's edges orientation and (so) the face orientation.
    *   iMaterialIndex
    *      The material index for this face
    */
@@ -1207,21 +1206,16 @@ class WShape {
                           vector<bool> &iFaceEdgeMarksList,
                           unsigned iMaterialIndex);
 
-  /*! adds a new face to the shape. The difference with the previous method is that this one is designed
-   *  to build a WingedEdge structure for which there are per vertex normals, opposed to per face normals.
-   *  returns the built face.
-   *   iVertexList
-   *      List of face's vertices. These vertices are not added to the WShape vertex list; they are supposed to be
-   *      already stored when calling MakeFace.
-   *      The order in which the vertices are stored in the list determines the face's edges orientation and (so) the
-   *      face orientation.
-   *   iMaterialIndex
-   *      The materialIndex for this face
+  /*! adds a new face to the shape. The difference with the previous method is that this one is
+   * designed to build a WingedEdge structure for which there are per vertex normals, opposed to
+   * per face normals. returns the built face. iVertexList List of face's vertices. These vertices
+   * are not added to the WShape vertex list; they are supposed to be already stored when calling
+   * MakeFace. The order in which the vertices are stored in the list determines the face's edges
+   * orientation and (so) the face orientation. iMaterialIndex The materialIndex for this face
    *   iNormalsList
-   *     The list of normals, iNormalsList[i] corresponding to the normal of the vertex iVertexList[i] for that face.
-   *   iTexCoordsList
-   *     The list of tex coords, iTexCoordsList[i] corresponding to the normal of the vertex iVertexList[i] for
-   *     that face.
+   *     The list of normals, iNormalsList[i] corresponding to the normal of the vertex
+   * iVertexList[i] for that face. iTexCoordsList The list of tex coords, iTexCoordsList[i]
+   * corresponding to the normal of the vertex iVertexList[i] for that face.
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
                           vector<Vec3f> &iNormalsList,
@@ -1300,16 +1294,17 @@ class WShape {
 #endif
 
  protected:
-  /*! Builds the face passed as argument (which as already been allocated)
-   *    iVertexList
-   *      List of face's vertices. These vertices are not added to the WShape vertex list; they are supposed to be
-   *      already stored when calling MakeFace.
-   *      The order in which the vertices are stored in the list determines the face's edges orientation and (so) the
-   *      face orientation.
-   *    iMaterialIndex
-   *      The material index for this face
-   *    face
-   *      The Face that is filled in
+  /*!
+   * Builds the face passed as argument (which as already been allocated)
+   * - iVertexList
+   *   List of face's vertices. These vertices are not added to the WShape vertex list;
+   *   they are supposed to be already stored when calling MakeFace.
+   *   The order in which the vertices are stored in the list determines
+   *   the face's edges orientation and (so) the face orientation.
+   * - iMaterialIndex
+   *   The material index for this face
+   * - face
+   *   The Face that is filled in
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
                           vector<bool> &iFaceEdgeMarksList,

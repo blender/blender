@@ -286,9 +286,9 @@ real FEdge::z_discontinuity() const
   Vec3r bbox_size_vec(box.getMax() - box.getMin());
   real bboxsize = bbox_size_vec.norm();
   if (occludee_empty()) {
-    //return FLT_MAX;
+    // return FLT_MAX;
     return 1.0;
-    //return bboxsize;
+    // return bboxsize;
   }
 
 #if 0
@@ -302,7 +302,7 @@ real FEdge::z_discontinuity() const
   real res = disc_vec.norm() / bboxsize;
 
   return res;
-  //return fabs((middle.z() - _occludeeIntersection.z()));
+  // return fabs((middle.z() - _occludeeIntersection.z()));
 }
 
 #if 0

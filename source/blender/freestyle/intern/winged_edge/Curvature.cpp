@@ -78,7 +78,8 @@ static real cotan(WVertex *vo, WVertex *v1, WVertex *v2)
   udotv = u * v;
   denom = sqrt(u.squareNorm() * v.squareNorm() - udotv * udotv);
 
-  /* denom can be zero if u==v.  Returning 0 is acceptable, based on the callers of this function below. */
+  /* denom can be zero if u==v.  Returning 0 is acceptable, based on the callers of this function
+   * below. */
   if (denom == 0.0)
     return 0.0;
   return (udotv / denom);
@@ -109,9 +110,9 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
  *  Computes the Discrete Mean Curvature Normal approximation at @v.
  *  The mean curvature at @v is half the magnitude of the vector @Kh.
  *
- *  Note: the normal computed is not unit length, and may point either into or out of the surface, depending on
- *  the curvature at @v. It is the responsibility of the caller of the function to use the mean curvature normal
- *  appropriately.
+ *  Note: the normal computed is not unit length, and may point either into or out of the surface,
+ * depending on the curvature at @v. It is the responsibility of the caller of the function to use
+ * the mean curvature normal appropriately.
  *
  *  This approximation is from the paper:
  *      Discrete Differential-Geometry Operators for Triangulated 2-Manifolds
@@ -119,8 +120,8 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
  *      VisMath '02, Berlin (Germany)
  *      http://www-grail.usc.edu/pubs.html
  *
- *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some reason (@v is
- *  boundary or is the endpoint of a non-manifold edge.)
+ *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some
+ * reason (@v is boundary or is the endpoint of a non-manifold edge.)
  */
 bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
 {
@@ -181,8 +182,8 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
  *      VisMath '02, Berlin (Germany)
  *      http://www-grail.usc.edu/pubs.html
  *
- *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some reason (@v is
- * boundary or is the endpoint of a non-manifold edge.)
+ *  Returns: %true if the operator could be evaluated, %false if the evaluation failed for some
+ * reason (@v is boundary or is the endpoint of a non-manifold edge.)
  */
 bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg)
 {
@@ -223,7 +224,8 @@ bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg)
  *  @K1: first principal curvature.
  *  @K2: second principal curvature.
  *
- *  Computes the principal curvatures at a point given the mean and Gaussian curvatures at that point.
+ *  Computes the principal curvatures at a point given the mean and Gaussian curvatures at that
+ * point.
  *
  *  The mean curvature can be computed as one-half the magnitude of the vector computed by
  *  gts_vertex_mean_curvature_normal().
@@ -275,12 +277,12 @@ static void eigenvector(real a, real b, real c, Vec3r e)
  *  @e1: first principal curvature direction (direction of largest curvature).
  *  @e2: second principal curvature direction.
  *
- *  Computes the principal curvature directions at a point given @Kh and @Kg, the mean curvature normal and
- *  Gaussian curvatures at that point, computed with gts_vertex_mean_curvature_normal() and
- *  gts_vertex_gaussian_curvature(), respectively.
+ *  Computes the principal curvature directions at a point given @Kh and @Kg, the mean curvature
+ * normal and Gaussian curvatures at that point, computed with gts_vertex_mean_curvature_normal()
+ * and gts_vertex_gaussian_curvature(), respectively.
  *
- *  Note that this computation is very approximate and tends to be unstable. Smoothing of the surface or the principal
- *  directions may be necessary to achieve reasonable results.
+ *  Note that this computation is very approximate and tends to be unstable. Smoothing of the
+ * surface or the principal directions may be necessary to achieve reasonable results.
  */
 void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, Vec3r &e2)
 {
@@ -306,8 +308,8 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
     Kh.normalize();
   }
   else {
-    /* This vertex is a point of zero mean curvature (flat or saddle point). Compute a normal by averaging
-     * the adjacent triangles
+    /* This vertex is a point of zero mean curvature (flat or saddle point). Compute a normal by
+     * averaging the adjacent triangles
      */
     N[0] = N[1] = N[2] = 0.0;
 
@@ -354,8 +356,9 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
       continue;
     e = *itE;
 
-    /* since this vertex passed the tests in gts_vertex_mean_curvature_normal(), this should be true. */
-    //g_assert(gts_edge_face_number (e, s) == 2);
+    /* since this vertex passed the tests in gts_vertex_mean_curvature_normal(), this should be
+     * true. */
+    // g_assert(gts_edge_face_number (e, s) == 2);
 
     /* identify the two triangles bordering e in s */
     f1 = e->GetaFace();
@@ -365,17 +368,18 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
      *     B = [ a b ; b c ].
      *  The computations here are from section 5 of [Meyer et al 2002].
      *
-     *  The first step is to calculate the linear equations governing the values of (a,b,c). These can be computed
-     *  by setting the derivatives of the error E to zero (section 5.3).
+     *  The first step is to calculate the linear equations governing the values of (a,b,c). These
+     * can be computed by setting the derivatives of the error E to zero (section 5.3).
      *
-     *  Since a + c = norm(Kh), we only compute the linear equations for dE/da and dE/db. (NB: [Meyer et al 2002]
-     *  has the equation a + b = norm(Kh), but I'm almost positive this is incorrect).
+     *  Since a + c = norm(Kh), we only compute the linear equations for dE/da and dE/db. (NB:
+     * [Meyer et al 2002] has the equation a + b = norm(Kh), but I'm almost positive this is
+     * incorrect).
      *
-     *  Note that the w_ij (defined in section 5.2) are all scaled by (1/8*A_mixed). We drop this uniform scale
-     *  factor because the solution of the linear equations doesn't rely on it.
+     *  Note that the w_ij (defined in section 5.2) are all scaled by (1/8*A_mixed). We drop this
+     * uniform scale factor because the solution of the linear equations doesn't rely on it.
      *
-     *  The terms of the linear equations are xterm_dy with x in {a,b,c} and y in {a,b}. There are also const_dy
-     *  terms that are the constant factors in the equations.
+     *  The terms of the linear equations are xterm_dy with x in {a,b,c} and y in {a,b}. There are
+     * also const_dy terms that are the constant factors in the equations.
      */
 
     /* find the vector from v along edge e */
@@ -389,8 +393,9 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 
     /* section 5.2 */
 
-    /* I don't like performing a minimization where some of the weights can be negative (as can be the case
-     *  if f1 or f2 are obtuse). To ensure all-positive weights, we check for obtuseness. */
+    /* I don't like performing a minimization where some of the weights can be negative (as can be
+     * the case if f1 or f2 are obtuse). To ensure all-positive weights, we check for obtuseness.
+     */
     weight = 0.0;
     if (!triangle_obtuse(v, f1)) {
       weight += ve2 *
@@ -471,12 +476,14 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
     eig[1] = 0.0;
   }
 
-  /* Although the eigenvectors of B are good estimates of the principal directions, it seems that which one is
-   * attached to which curvature direction is a bit arbitrary. This may be a bug in my implementation, or just
-   * a side-effect of the inaccuracy of B due to the discrete nature of the sampling.
+  /* Although the eigenvectors of B are good estimates of the principal directions, it seems that
+   * which one is attached to which curvature direction is a bit arbitrary. This may be a bug in my
+   * implementation, or just a side-effect of the inaccuracy of B due to the discrete nature of the
+   * sampling.
    *
-   * To overcome this behavior, we'll evaluate which assignment best matches the given eigenvectors by comparing
-   * the curvature estimates computed above and the curvatures calculated from the discrete differential operators.
+   * To overcome this behavior, we'll evaluate which assignment best matches the given eigenvectors
+   * by comparing the curvature estimates computed above and the curvatures calculated from the
+   * discrete differential operators.
    */
 
   gts_vertex_principal_curvatures(0.5 * normKh, Kg, &K1, &K2);

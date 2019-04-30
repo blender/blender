@@ -27,9 +27,9 @@
 namespace Freestyle {
 
 /*! [ Thickness Shader ].
- *  Assigns thicknesses to the stroke vertices so that the stroke looks like made with a calligraphic tool.
- *  i.e. The stroke will be the thickest in a main direction, the thinest in the direction perpendicular to this one,
- *  and an interpolation inbetween.
+ *  Assigns thicknesses to the stroke vertices so that the stroke looks like made with a
+ * calligraphic tool. i.e. The stroke will be the thickest in a main direction, the thinest in the
+ * direction perpendicular to this one, and an interpolation inbetween.
  */
 class CalligraphicShader : public StrokeShader {
  public:
@@ -103,9 +103,9 @@ class SpatialNoiseShader : public StrokeShader {
 /*! [ Geometry Shader ].
  *  Smoothes the stroke.
  *  (Moves the vertices to make the stroke smoother).
- *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we use is anisotropic
- *  to prevent the diffusion accross corners.
- * \see \htmlonly <a href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
+ *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we
+ * use is anisotropic to prevent the diffusion accross corners. \see \htmlonly <a
+ * href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
 class SmoothingShader : public StrokeShader {
  public:

@@ -187,7 +187,7 @@ class CurvePointIterator : public Interface0DIteratorNested {
     return false;
   }
 
-  //protected:
+  // protected:
   virtual int increment()
   {
     if ((_currentn == _n - 1) && (_t == 1.0f)) {
@@ -223,7 +223,7 @@ class CurvePointIterator : public Interface0DIteratorNested {
     else {
       _t = 1.0f;  // AB is a null segment, we're directly at its end
     }
-    //if normAB ~= 0, we don't change these values
+    // if normAB ~= 0, we don't change these values
     if (_t >= 1) {
       _CurvilinearLength -= normAB * (_t - 1);
       if (_currentn == _n - 1) {
@@ -241,7 +241,7 @@ class CurvePointIterator : public Interface0DIteratorNested {
 
   virtual int decrement()
   {
-    if (_t == 0.0f) {  //we're at the beginning of the edge
+    if (_t == 0.0f) {  // we're at the beginning of the edge
       _t = 1.0f;
       --_currentn;
       --__A;

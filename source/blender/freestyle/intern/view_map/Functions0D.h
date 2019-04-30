@@ -55,9 +55,9 @@ using namespace Geometry;
 
 /*! Base class for Unary Functions (functors) working on Interface0DIterator.
  *  A unary function will be used by calling its operator() on an Interface0DIterator.
- * \attention In the scripting language, there exists several prototypes depending on the returned value type.
- *  For example, you would inherit from a UnaryFunction0DDouble if you wish to define a function that returns a double.
- *  The different existing prototypes are:
+ * \attention In the scripting language, there exists several prototypes depending on the returned
+ * value type. For example, you would inherit from a UnaryFunction0DDouble if you wish to define a
+ * function that returns a double. The different existing prototypes are:
  *    - UnaryFunction0DDouble
  *    - UnaryFunction0DEdgeNature
  *    - UnaryFunction0DFloat
@@ -284,8 +284,9 @@ class GetParameterF0D : public UnaryFunction0D<float> {
 };
 
 // VertexOrientation2DF0D
-/*! Returns a Vec2r giving the 2D oriented tangent to the 1D element to which the Interface0DIterator& belongs to and
- *  evaluated at the Interface0D pointed by this Interface0DIterator&.
+/*! Returns a Vec2r giving the 2D oriented tangent to the 1D element to which the
+ * Interface0DIterator& belongs to and evaluated at the Interface0D pointed by this
+ * Interface0DIterator&.
  */
 class VertexOrientation2DF0D : public UnaryFunction0D<Vec2f> {
  public:
@@ -300,8 +301,9 @@ class VertexOrientation2DF0D : public UnaryFunction0D<Vec2f> {
 };
 
 // VertexOrientation3DF0D
-/*! Returns a Vec3r giving the 3D oriented tangent to the 1D element to which the Interface0DIterator& belongs to and
- *  evaluated at the Interface0D pointed by this Interface0DIterator&.
+/*! Returns a Vec3r giving the 3D oriented tangent to the 1D element to which the
+ * Interface0DIterator& belongs to and evaluated at the Interface0D pointed by this
+ * Interface0DIterator&.
  */
 class VertexOrientation3DF0D : public UnaryFunction0D<Vec3f> {
  public:
@@ -316,8 +318,9 @@ class VertexOrientation3DF0D : public UnaryFunction0D<Vec3f> {
 };
 
 // Curvature2DAngleF0D
-/*! Returns a real giving the 2D curvature (as an angle) of the 1D element to which the Interface0DIterator&
- *  belongs to and evaluated at the Interface0D pointed by this Interface0DIterator&.
+/*! Returns a real giving the 2D curvature (as an angle) of the 1D element to which the
+ * Interface0DIterator& belongs to and evaluated at the Interface0D pointed by this
+ * Interface0DIterator&.
  */
 class Curvature2DAngleF0D : public UnaryFunction0D<double> {
  public:
@@ -332,9 +335,10 @@ class Curvature2DAngleF0D : public UnaryFunction0D<double> {
 };
 
 // ZDiscontinuity
-/*! Returns a real giving the distance between and Interface0D and the shape that lies behind (occludee).
- *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
- *  by the shape to which the Interface0D belongs to, 1 is returned.
+/*! Returns a real giving the distance between and Interface0D and the shape that lies behind
+ * (occludee). This distance is evaluated in the camera space and normalized between 0 and 1.
+ * Therefore, if no object is occluded by the shape to which the Interface0D belongs to, 1 is
+ * returned.
  */
 class ZDiscontinuityF0D : public UnaryFunction0D<double> {
  public:
@@ -349,8 +353,9 @@ class ZDiscontinuityF0D : public UnaryFunction0D<double> {
 };
 
 // Normal2DF0D
-/*! Returns a Vec2f giving the normalized 2D normal to the 1D element to which the Interface0DIterator& belongs to and
- *  evaluated at the Interface0D pointed by this Interface0DIterator&.
+/*! Returns a Vec2f giving the normalized 2D normal to the 1D element to which the
+ * Interface0DIterator& belongs to and evaluated at the Interface0D pointed by this
+ * Interface0DIterator&.
  */
 class Normal2DF0D : public UnaryFunction0D<Vec2f> {
  public:
@@ -367,11 +372,11 @@ class Normal2DF0D : public UnaryFunction0D<Vec2f> {
 // MaterialF0D
 /*! Returns the material of the object evaluated at the Interface0D.
  *  This evaluation can be ambiguous (in the case of a TVertex for example.
- *  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
- *  Interface0DIterator& belongs to and by arbitrary choosing the material of the face that lies on its left when
- *  following the 1D element if there are two different materials on each side of the point.
- *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
- *  should implement its own getMaterial functor.
+ *  This functor tries to remove this ambiguity using the context offered by the 1D element to
+ * which the Interface0DIterator& belongs to and by arbitrary choosing the material of the face
+ * that lies on its left when following the 1D element if there are two different materials on each
+ * side of the point. However, there still can be problematic cases, and the user willing to deal
+ * with this cases in a specific way should implement its own getMaterial functor.
  */
 class MaterialF0D : public UnaryFunction0D<FrsMaterial> {
  public:
@@ -388,10 +393,10 @@ class MaterialF0D : public UnaryFunction0D<FrsMaterial> {
 // ShapeIdF0D
 /*! Returns the Id of the Shape the Interface0D belongs to.
  *  This evaluation can be ambiguous (in the case of a TVertex for example).
- *  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
- *  Interface0DIterator& belongs to.
- *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
- *  should implement its own getShapeIdF0D functor.
+ *  This functor tries to remove this ambiguity using the context offered by the 1D element to
+ * which the Interface0DIterator& belongs to. However, there still can be problematic cases, and
+ * the user willing to deal with this cases in a specific way should implement its own
+ * getShapeIdF0D functor.
  */
 class ShapeIdF0D : public UnaryFunction0D<Id> {
  public:
@@ -408,10 +413,10 @@ class ShapeIdF0D : public UnaryFunction0D<Id> {
 // QiF0D
 /*! Returns the quantitative invisibility of this Interface0D.
  *  This evaluation can be ambiguous (in the case of a TVertex for example).
- *  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
- *  Interface0DIterator& belongs to.
- *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
- *  should implement its own getQIF0D functor.
+ *  This functor tries to remove this ambiguity using the context offered by the 1D element to
+ * which the Interface0DIterator& belongs to. However, there still can be problematic cases, and
+ * the user willing to deal with this cases in a specific way should implement its own getQIF0D
+ * functor.
  */
 class QuantitativeInvisibilityF0D : public UnaryFunction0D<unsigned int> {
  public:

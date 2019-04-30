@@ -62,7 +62,7 @@ static int StrokeTextureStepShader___init__(BPy_StrokeTextureStepShader *self,
   return 0;
 }
 
-/*-----------------------BPy_StrokeTextureStepShader type definition ------------------------------*/
+/*-----------------------BPy_StrokeTextureStepShader type definition ----------------------------*/
 
 PyTypeObject StrokeTextureStepShader_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "StrokeTextureStepShader", /* tp_name */

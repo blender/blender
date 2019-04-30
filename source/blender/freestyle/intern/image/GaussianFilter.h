@@ -46,7 +46,8 @@ class GaussianFilter {
   float _sigma;
   float *_mask;
   int _bound;
-  // the real mask size (must be odd)(the size of the mask we store is ((_maskSize+1)/2)*((_maskSize+1)/2))
+  // the real mask size (must be odd)(the size of the mask we store is
+  // ((_maskSize+1)/2)*((_maskSize+1)/2))
   int _maskSize;
   int _storedMaskSize;  // (_maskSize+1)/2)
 
@@ -56,13 +57,13 @@ class GaussianFilter {
   GaussianFilter &operator=(const GaussianFilter &);
   virtual ~GaussianFilter();
 
-  /*! Returns the value for pixel x,y of image "map" after a gaussian blur, made using the sigma value.
-   *  The sigma value determines the mask size (~ 2 x sigma).
-   *  \param map:
-   *    The image we wish to work on. The Map template must implement the following methods:
-   *    - float pixel(unsigned int x,unsigned int y) const;
-   *    - unsigned width() const;
-   *    - unsigned height() const;
+  /*! Returns the value for pixel x,y of image "map" after a gaussian blur, made using the sigma
+   * value. The sigma value determines the mask size (~ 2 x sigma).
+   * \param map: The image we wish to work on.
+   * The Map template must implement the following methods:
+   * - float pixel(unsigned int x,unsigned int y) const;
+   * - unsigned width() const;
+   * - unsigned height() const;
    *  \param x:
    *    The abscissa of the pixel where we want to evaluate the gaussian blur.
    *  \param y:
@@ -127,8 +128,8 @@ template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int 
 {
   float sum = 0.0f;
   float L = 0.0f;
-  int w = (int)map->width();   //soc
-  int h = (int)map->height();  //soc
+  int w = (int)map->width();   // soc
+  int h = (int)map->height();  // soc
 
   // Current pixel is x,y
   // Sum surrounding pixels L value:
@@ -145,7 +146,7 @@ template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int 
       sum += m;
     }
   }
-  //L /= sum;
+  // L /= sum;
   return L;
 }
 

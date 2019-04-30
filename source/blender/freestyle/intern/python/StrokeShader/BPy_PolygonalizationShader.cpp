@@ -69,7 +69,7 @@ static int PolygonalizationShader___init__(BPy_PolygonalizationShader *self,
   return 0;
 }
 
-/*-----------------------BPy_PolygonalizationShader type definition ------------------------------*/
+/*-----------------------BPy_PolygonalizationShader type definition -----------------------------*/
 
 PyTypeObject PolygonalizationShader_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "PolygonalizationShader", /* tp_name */

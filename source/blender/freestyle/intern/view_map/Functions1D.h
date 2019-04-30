@@ -45,9 +45,9 @@ namespace Freestyle {
 
 /*! Base class for Unary Functions (functors) working on Interface1D.
  *  A unary function will be used by calling its operator() on an Interface1D.
- * \attention In the scripting language, there exists several prototypes depending on the returned value type.
- *  For example, you would inherit from a UnaryFunction1DDouble if you wish to define a function that returns a double.
- *  The different existing prototypes are:
+ * \attention In the scripting language, there exists several prototypes depending on the returned
+ * value type. For example, you would inherit from a UnaryFunction1DDouble if you wish to define a
+ * function that returns a double. The different existing prototypes are:
  *    - UnaryFunction1DDouble
  *    - UnaryFunction1DEdgeNature
  *    - UnaryFunction1DFloat
@@ -73,8 +73,8 @@ template<class T> class UnaryFunction1D {
 
   /*! Builds a UnaryFunction1D from an integration type.
    *  \param iType:
-   *    In case the result for the Interface1D would be obtained by evaluating a 0D function over the different
-   *    Interface0D of the Interface1D, \a iType tells which integration method to use.
+   *    In case the result for the Interface1D would be obtained by evaluating a 0D function over
+   * the different Interface0D of the Interface1D, \a iType tells which integration method to use.
    *    The default integration method is the MEAN.
    */
   UnaryFunction1D(IntegrationType iType)
@@ -379,9 +379,10 @@ class Orientation3DF1D : public UnaryFunction1D<Vec3f> {
 };
 
 // ZDiscontinuityF1D
-/*! Returns a real giving the distance between and Interface1D and the shape that lies behind (occludee).
- *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no object is occluded
- *  by the shape to which the Interface1D belongs to, 1 is returned.
+/*! Returns a real giving the distance between and Interface1D and the shape that lies behind
+ * (occludee). This distance is evaluated in the camera space and normalized between 0 and 1.
+ * Therefore, if no object is occluded by the shape to which the Interface1D belongs to, 1 is
+ * returned.
  */
 class ZDiscontinuityF1D : public UnaryFunction1D<double> {
  private:
@@ -408,9 +409,9 @@ class ZDiscontinuityF1D : public UnaryFunction1D<double> {
 
 // QuantitativeInvisibilityF1D
 /*! Returns the Quantitative Invisibility of an Interface1D element.
- *  If the Interface1D is a ViewEdge, then there is no ambiguity concerning the result. But, if the Interface1D
- *  results of a chaining (chain, stroke), then it might be made of several 1D elements of different
- *  Quantitative Invisibilities.
+ *  If the Interface1D is a ViewEdge, then there is no ambiguity concerning the result. But, if the
+ * Interface1D results of a chaining (chain, stroke), then it might be made of several 1D elements
+ * of different Quantitative Invisibilities.
  */
 class QuantitativeInvisibilityF1D : public UnaryFunction1D<unsigned> {
  private:
@@ -438,8 +439,9 @@ class QuantitativeInvisibilityF1D : public UnaryFunction1D<unsigned> {
 // CurveNatureF1D
 /*! Returns the nature of the Interface1D (silhouette, ridge, crease...).
  *  Except if the Interface1D is a ViewEdge, this result might be ambiguous.
- *  Indeed, the Interface1D might result from the gathering of several 1D elements, each one being of a different
- *  nature. An integration method, such as the MEAN, might give, in this case, irrelevant results.
+ *  Indeed, the Interface1D might result from the gathering of several 1D elements, each one being
+ * of a different nature. An integration method, such as the MEAN, might give, in this case,
+ * irrelevant results.
  */
 class CurveNatureF1D : public UnaryFunction1D<Nature::EdgeNature> {
  private:

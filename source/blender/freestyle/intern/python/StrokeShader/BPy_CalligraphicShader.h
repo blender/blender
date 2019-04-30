@@ -31,7 +31,8 @@ extern "C" {
 
 extern PyTypeObject CalligraphicShader_Type;
 
-#define BPy_CalligraphicShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CalligraphicShader_Type)
+#define BPy_CalligraphicShader_Check(v) \
+  (PyObject_IsInstance((PyObject *)v, (PyObject *)&CalligraphicShader_Type)
 
 /*---------------------------Python BPy_CalligraphicShader structure definition----------*/
 typedef struct {

@@ -34,7 +34,8 @@ extern PyTypeObject QuantitativeInvisibilityF1D_Type;
 #define BPy_QuantitativeInvisibilityF1D_Check(v) \
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&QuantitativeInvisibilityF1D_Type))
 
-/*---------------------------Python BPy_QuantitativeInvisibilityF1D structure definition----------*/
+/*---------------------------Python BPy_QuantitativeInvisibilityF1D structure
+ * definition----------*/
 typedef struct {
   BPy_UnaryFunction1DUnsigned py_uf1D_unsigned;
 } BPy_QuantitativeInvisibilityF1D;

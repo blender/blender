@@ -43,7 +43,7 @@ class AppView {
   virtual ~AppView();
 
  public:
-  //inherited
+  // inherited
   inline unsigned int width()
   {
     return _width;
@@ -246,7 +246,7 @@ class AppView {
  protected:
   float _Fovy;
 
-  //The root node container
+  // The root node container
   NodeGroup _RootNode;
   NodeDrawingStyle *_ModelRootNode;
   NodeDrawingStyle *_SilhouetteRootNode;

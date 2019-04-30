@@ -67,7 +67,7 @@ static int GetViewMapGradientNormF0D___init__(BPy_GetViewMapGradientNormF0D *sel
   return 0;
 }
 
-/*-----------------------BPy_GetViewMapGradientNormF0D type definition ------------------------------*/
+/*-----------------------BPy_GetViewMapGradientNormF0D type definition --------------------------*/
 
 PyTypeObject GetViewMapGradientNormF0D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "GetViewMapGradientNormF0D", /* tp_name */

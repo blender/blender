@@ -81,7 +81,7 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
   return 0;
 }
 
-/*-----------------------BPy_GetSteerableViewMapDensityF1D type definition ------------------------------*/
+/*-----------------------BPy_GetSteerableViewMapDensityF1D type definition ----------------------*/
 
 PyTypeObject GetSteerableViewMapDensityF1D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "GetSteerableViewMapDensityF1D", /* tp_name */

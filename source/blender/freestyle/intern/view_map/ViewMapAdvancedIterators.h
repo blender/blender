@@ -165,7 +165,7 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   {
   }
 
-  //protected://FIXME
+  // protected://FIXME
  public:
 #if 0
   inline edge_iterator_base(
@@ -208,7 +208,7 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   {
     if (_Nature & Nature::T_VERTEX)
       return (_tvertex_iter == _tbegin);
-    //return (_tvertex_iter == _feA);
+    // return (_tvertex_iter == _feA);
     else
       return (_nontvertex_iter == _begin);
   }
@@ -216,7 +216,7 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   virtual bool end() const
   {
     if (_Nature & Nature::T_VERTEX)
-      //return (_tvertex_iter.first == 0);
+      // return (_tvertex_iter.first == 0);
       return (_tvertex_iter == _tend);
     else
       return (_nontvertex_iter == _end);
@@ -257,7 +257,7 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   virtual reference operator*() const
   {
     if (_Nature & Nature::T_VERTEX)
-      //return _tvertex_iter;
+      // return _tvertex_iter;
       return **_tvertex_iter;
     else
       return (*_nontvertex_iter);
@@ -362,8 +362,8 @@ class edge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_
 
  public:
   mutable value_type _ViewEdge;
-  //friend class edge_iterator_base<Nonconst_traits<ViewEdge*> >;
-  //friend class edge_iterator_base<Const_traits<ViewEdge*> >;
+  // friend class edge_iterator_base<Nonconst_traits<ViewEdge*> >;
+  // friend class edge_iterator_base<Const_traits<ViewEdge*> >;
   value_type _first;
   bool _orientation;
   typedef IteratorBase<Traits, BidirectionalIteratorTag_Traits> parent_class;
@@ -392,7 +392,7 @@ class edge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_
     _orientation = iBrother._orientation;
   }
 
-  //protected://FIXME
+  // protected://FIXME
  public:
   inline edge_iterator_base(value_type iEdge, bool orientation = true) : parent_class()
   {
@@ -550,7 +550,7 @@ class fedge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag
     _FEdgeB = iBrother._FEdgeB;
   }
 
-  //protected://FIXME
+  // protected://FIXME
  public:
   inline fedge_iterator_base(value_type iEdge, value_type iFEdgeB) : parent_class()
   {
@@ -687,7 +687,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     _PreviousFEdge = iBrother._PreviousFEdge;
   }
 
-  //protected://FIXME
+  // protected://FIXME
  public:
   inline vertex_iterator_base(value_type iVertex, FEdge *iPreviousFEdge, FEdge *iNextFEdge)
       : parent_class()

@@ -31,7 +31,7 @@ extern "C" {
 #include "StringUtils.h"
 #include "Interpreter.h"
 
-//soc
+// soc
 extern "C" {
 #include "MEM_guardedalloc.h"
 

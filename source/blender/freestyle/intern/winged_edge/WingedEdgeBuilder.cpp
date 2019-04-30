@@ -16,8 +16,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
- *         of a scene graph
+ * \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in
+ * nodes of a scene graph
  */
 
 #include <set>
@@ -42,12 +42,12 @@ void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
     return;
   }
   shape->setId(ifs.getId().getFirst());
-  //ifs.setId(shape->GetId());
+  // ifs.setId(shape->GetId());
 }
 
 void WingedEdgeBuilder::visitNodeShape(NodeShape &ns)
 {
-  //Sets the current material to iShapeode->material:
+  // Sets the current material to iShapeode->material:
   _current_frs_material = &(ns.frs_material());
 }
 
@@ -81,7 +81,7 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
 {
   unsigned int vsize = ifs.vsize();
   unsigned int nsize = ifs.nsize();
-  //soc unused - unsigned tsize = ifs.tsize();
+  // soc unused - unsigned tsize = ifs.tsize();
 
   const float *vertices = ifs.vertices();
   const float *normals = ifs.normals();
@@ -256,7 +256,7 @@ void WingedEdgeBuilder::buildTriangleStrip(const float * /*vertices*/,
 {
   unsigned nDoneVertices = 2;  // number of vertices already treated
   unsigned nTriangle = 0;      // number of the triangle currently being treated
-  //int nVertex = 0;            // vertex number
+  // int nVertex = 0;            // vertex number
 
   WShape *currentShape = _current_wshape;  // the current shape being built
   vector<WVertex *> triangleVertices;
@@ -265,9 +265,9 @@ void WingedEdgeBuilder::buildTriangleStrip(const float * /*vertices*/,
   vector<bool> triangleFaceEdgeMarks;
 
   while (nDoneVertices < nvertices) {
-    //clear the vertices list:
+    // clear the vertices list:
     triangleVertices.clear();
-    //Then rebuild it:
+    // Then rebuild it:
     if (0 == nTriangle % 2) {  // if nTriangle is even
       triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle] / 3]);
       triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle + 1] / 3]);

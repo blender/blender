@@ -57,7 +57,7 @@ using namespace Geometry;
 class ViewMapBuilder {
  private:
   ViewMap *_ViewMap;  // result
-  //SilhouetteGeomEngine _GeomEngine;
+  // SilhouetteGeomEngine _GeomEngine;
   ProgressBar *_pProgressBar;
   RenderMonitor *_pRenderMonitor;
   Vec3r _viewpoint;
@@ -117,8 +117,8 @@ class ViewMapBuilder {
   /*! Compute Cusps */
   void computeCusps(ViewMap *ioViewMap);
 
-  /*! Detects cusps (for a single ViewEdge) among SVertices and builds a ViewVertex on top of each cusp SVertex
-   *  We use a hysteresis approach to avoid noise.
+  /*! Detects cusps (for a single ViewEdge) among SVertices and builds a ViewVertex on top of each
+   * cusp SVertex We use a hysteresis approach to avoid noise.
    */
   void DetectCusps(ViewEdge *ioEdge);
 
@@ -174,10 +174,9 @@ class ViewMapBuilder {
    *    ioViewMap
    *      The view map. It is modified by the method.
    *      The list of all features edges of the scene.
-   *      Each time an intersection is found, the 2 intersecting edges are splitted (creating 2 new vertices)
-   *      At the end, this list is updated with the adding of all new created edges (resulting from splitting).
-   *    iAlgo
-   *      The algo to use for computing the intersections
+   *      Each time an intersection is found, the 2 intersecting edges are splitted (creating 2 new
+   * vertices) At the end, this list is updated with the adding of all new created edges (resulting
+   * from splitting). iAlgo The algo to use for computing the intersections
    */
   void ComputeIntersections(ViewMap *ioViewMap,
                             intersection_algo iAlgo = sweep_line,
@@ -221,14 +220,11 @@ class ViewMapBuilder {
   /*! Computes intersections on all edges of the scene using a sweep line algorithm */
   void ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsilon = 1.0e-6);
 
-  /*! Computes the 2D scene silhouette edges visibility using a ray casting. On each edge, a ray is cast
-   *  to check its quantitative invisibility. The list of occluders are each time stored in the tested edge.
-   *    ioViewMap
-   *      The view map.
-   *      The 2D scene silhouette edges as FEdges.
-   *      These edges have already been splitted at their intersections points.
-   *      Thus, these edges do not intersect anymore.
-   *      The visibility corresponding to each edge of ioScene is set is this edge.
+  /*! Computes the 2D scene silhouette edges visibility using a ray casting. On each edge, a ray is
+   * cast to check its quantitative invisibility. The list of occluders are each time stored in the
+   * tested edge. ioViewMap The view map. The 2D scene silhouette edges as FEdges. These edges have
+   * already been splitted at their intersections points. Thus, these edges do not intersect
+   * anymore. The visibility corresponding to each edge of ioScene is set is this edge.
    */
   void ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilon = 1.0e-6);
   void ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon = 1.0e-6);
@@ -257,10 +253,10 @@ class ViewMapBuilder {
    *      The epsilon used for computation
    *    oShapeId
    *      fe is the border (in 2D) between 2 2D spaces.
-   *      if fe is a silhouette, One of these 2D spaces is occupied by the shape to which fe belongs (on its left)
-   *      and the other one is either occupied by another shape or empty or occupied by the same shape.
-   *      We use this ray csating operation to determine which shape lies on fe's right.
-   *      The result is the shape id stored in oShapeId
+   *      if fe is a silhouette, One of these 2D spaces is occupied by the shape to which fe
+   * belongs (on its left) and the other one is either occupied by another shape or empty or
+   * occupied by the same shape. We use this ray csating operation to determine which shape lies on
+   * fe's right. The result is the shape id stored in oShapeId
    */
   int ComputeRayCastingVisibility(FEdge *fe,
                                   Grid *iGrid,

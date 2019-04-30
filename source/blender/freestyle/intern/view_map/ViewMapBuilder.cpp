@@ -125,7 +125,7 @@ static void findOccludee(FEdge *fe,
       else {
         // check whether the edge and the polygon plane are coincident:
         //-------------------------------------------------------------
-        //first let us compute the plane equation.
+        // first let us compute the plane equation.
         if (GeomUtils::COINCIDENT ==
             GeomUtils::intersectRayPlane(origin, edgeDir, p->getNormal(), d, t, epsilon)) {
 #if LOGGING
@@ -255,8 +255,9 @@ static int computeVisibility(ViewMap *viewMap,
   I occluders(grid, center, epsilon);
 
   for (occluders.initBeforeTarget(); occluders.validBeforeTarget(); occluders.nextOccluder()) {
-    // If we're dealing with an exact silhouette, check whether we must take care of this occluder of not.
-    // (Indeed, we don't consider the occluders that share at least one vertex with the face containing this edge).
+    // If we're dealing with an exact silhouette, check whether we must take care of this occluder
+    // of not. (Indeed, we don't consider the occluders that share at least one vertex with the
+    // face containing this edge).
     //-----------
     oface = occluders.getWFace();
     Polygon3r *p = occluders.getCameraSpacePolygon();
@@ -324,8 +325,8 @@ static int computeVisibility(ViewMap *viewMap,
             continue;
 
           WFace *sface = (*ie)->GetbFace();
-          //WFace *sfacea = (*ie)->GetaFace();
-          //if ((sface == oface) || (sfacea == oface))
+          // WFace *sfacea = (*ie)->GetaFace();
+          // if ((sface == oface) || (sfacea == oface))
           if (sface == oface) {
             skipFace = true;
             break;
@@ -346,7 +347,7 @@ static int computeVisibility(ViewMap *viewMap,
     else {
       // check whether the edge and the polygon plane are coincident:
       //-------------------------------------------------------------
-      //first let us compute the plane equation.
+      // first let us compute the plane equation.
       if (GeomUtils::COINCIDENT ==
           GeomUtils::intersectRayPlane(origin, edgeDir, p->getNormal(), d, t, epsilon)) {
 #if LOGGING
@@ -412,11 +413,12 @@ static int computeVisibility(ViewMap *viewMap,
 
 // computeCumulativeVisibility returns the lowest x such that the majority of FEdges have QI <= x
 //
-// This was probably the original intention of the "normal" algorithm on which computeDetailedVisibility is based.
-// But because the "normal" algorithm chooses the most popular QI, without considering any other values, a ViewEdge
-// with FEdges having QIs of 0, 21, 22, 23, 24 and 25 will end up having a total QI of 0, even though most of the
-// FEdges are heavily occluded. computeCumulativeVisibility will treat this case as a QI of 22 because 3 out of
-// 6 occluders have QI <= 22.
+// This was probably the original intention of the "normal" algorithm on which
+// computeDetailedVisibility is based. But because the "normal" algorithm chooses the most popular
+// QI, without considering any other values, a ViewEdge with FEdges having QIs of 0, 21, 22, 23, 24
+// and 25 will end up having a total QI of 0, even though most of the FEdges are heavily occluded.
+// computeCumulativeVisibility will treat this case as a QI of 22 because 3 out of 6 occluders have
+// QI <= 22.
 
 template<typename G, typename I>
 static void computeCumulativeVisibility(ViewMap *ioViewMap,
@@ -513,7 +515,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         continue;
       }
       if ((maxCard < qiMajority)) {
-        //ARB: change &wFace to wFace and use reference in called function
+        // ARB: change &wFace to wFace and use reference in called function
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 #if LOGGING
@@ -522,11 +524,11 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         }
 #endif
 
-        //ARB: This is an error condition, not an alert condition.
+        // ARB: This is an error condition, not an alert condition.
         // Some sort of recovery or abort is necessary.
         if (tmpQI >= 256) {
           cerr << "Warning: too many occluding levels" << endl;
-          //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+          // ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
           tmpQI = 255;
         }
 
@@ -536,8 +538,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         }
       }
       else {
-        //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-        //ARB: change &wFace to wFace and use reference in called function
+        // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+        // ARB: change &wFace to wFace and use reference in called function
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -589,8 +591,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       }
     }
     // occluders --
-    // I would rather not have to go through the effort of creating this set and then copying out its contents.
-    // Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
+    // I would rather not have to go through the effort of creating this set and then copying out
+    // its contents. Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
     for (set<ViewShape *>::iterator o = foundOccluders.begin(), oend = foundOccluders.end();
          o != oend;
          ++o) {
@@ -710,7 +712,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         continue;
       }
       if ((maxCard < qiMajority)) {
-        //ARB: change &wFace to wFace and use reference in called function
+        // ARB: change &wFace to wFace and use reference in called function
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 #if LOGGING
@@ -719,11 +721,11 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         }
 #endif
 
-        //ARB: This is an error condition, not an alert condition.
+        // ARB: This is an error condition, not an alert condition.
         // Some sort of recovery or abort is necessary.
         if (tmpQI >= 256) {
           cerr << "Warning: too many occluding levels" << endl;
-          //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+          // ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
           tmpQI = 255;
         }
 
@@ -733,8 +735,8 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         }
       }
       else {
-        //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-        //ARB: change &wFace to wFace and use reference in called function
+        // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+        // ARB: change &wFace to wFace and use reference in called function
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -779,8 +781,8 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
     // qi --
     (*ve)->setQI(maxIndex);
     // occluders --
-    // I would rather not have to go through the effort of creating this this set and then copying out its contents.
-    // Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
+    // I would rather not have to go through the effort of creating this this set and then copying
+    // out its contents. Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
     for (set<ViewShape *>::iterator o = foundOccluders.begin(), oend = foundOccluders.end();
          o != oend;
          ++o) {
@@ -877,15 +879,15 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
       }
       if (even_test) {
         if ((maxCard < qiMajority)) {
-          //ARB: change &wFace to wFace and use reference in called function
+          // ARB: change &wFace to wFace and use reference in called function
           tmpQI = computeVisibility<G, I>(
               ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 
-          //ARB: This is an error condition, not an alert condition.
+          // ARB: This is an error condition, not an alert condition.
           // Some sort of recovery or abort is necessary.
           if (tmpQI >= 256) {
             cerr << "Warning: too many occluding levels" << endl;
-            //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+            // ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
             tmpQI = 255;
           }
 
@@ -895,8 +897,8 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
           }
         }
         else {
-          //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-          //ARB: change &wFace to wFace and use reference in called function
+          // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+          // ARB: change &wFace to wFace and use reference in called function
           findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
         }
 
@@ -1008,7 +1010,8 @@ void ViewMapBuilder::BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, unsigned
   Vec3r size;
   for (unsigned int i = 0; i < 3; i++) {
     size[i] = fabs(bbox.getMax()[i] - bbox.getMin()[i]);
-    // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections.
+    // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells
+    // intersections.
     size[i] += size[i] / 10.0;
     if (size[i] == 0) {
       if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -1083,8 +1086,8 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
 
   // Non-displayable view edges will be skipped over during visibility calculation.
 
-  // View edges will be culled according to their position w.r.t. the viewport proscenium (viewport + 5% border,
-  // or some such).
+  // View edges will be culled according to their position w.r.t. the viewport proscenium (viewport
+  // + 5% border, or some such).
 
   // Get proscenium boundary for culling
   GridHelpers::getDefaultViewProscenium(viewProscenium);
@@ -1098,17 +1101,16 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
     cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]" << endl;
   }
 
-  // A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and
-  // expanding as necessary so that it encompasses the center point of at least one feature edge in each retained view
-  // edge.
-  // The occluder proscenium will be used later to cull occluding triangles before they are inserted into the Grid.
-  // The occluder proscenium starts out the same size as the view proscenium
+  // A separate occluder proscenium will also be maintained, starting out the same as the viewport
+  // proscenium, and expanding as necessary so that it encompasses the center point of at least one
+  // feature edge in each retained view edge. The occluder proscenium will be used later to cull
+  // occluding triangles before they are inserted into the Grid. The occluder proscenium starts out
+  // the same size as the view proscenium
   GridHelpers::getDefaultViewProscenium(occluderProscenium);
 
-  // N.B. Freestyle is inconsistent in its use of ViewMap::viewedges_container and vector<ViewEdge*>::iterator.
-  // Probably all occurences of vector<ViewEdge*>::iterator should be replaced ViewMap::viewedges_container
-  // throughout the code.
-  // For each view edge
+  // N.B. Freestyle is inconsistent in its use of ViewMap::viewedges_container and
+  // vector<ViewEdge*>::iterator. Probably all occurences of vector<ViewEdge*>::iterator should be
+  // replaced ViewMap::viewedges_container throughout the code. For each view edge
   ViewMap::viewedges_container::iterator ve, veend;
 
   for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend;
@@ -1130,8 +1132,8 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
     // All ViewEdges start culled
     (*ve)->setIsInImage(false);
 
-    // For simple visibility calculation: mark a feature edge that is known to have a center point inside the
-    // occluder proscenium. Cull all other feature edges.
+    // For simple visibility calculation: mark a feature edge that is known to have a center point
+    // inside the occluder proscenium. Cull all other feature edges.
     do {
       // All FEdges start culled
       fe->setIsInImage(false);
@@ -1165,15 +1167,15 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
       fe = fe->nextEdge();
     } while (fe && fe != festart && !(bestOccluderTargetFound && (*ve)->isInImage()));
 
-    // Either we have run out of FEdges, or we already have the one edge we need to determine visibility
-    // Cull all remaining edges.
+    // Either we have run out of FEdges, or we already have the one edge we need to determine
+    // visibility Cull all remaining edges.
     while (fe && fe != festart) {
       fe->setIsInImage(false);
       fe = fe->nextEdge();
     }
 
-    // If bestOccluderTarget was not found inside the occluder proscenium, we need to expand the occluder
-    // proscenium to include it.
+    // If bestOccluderTarget was not found inside the occluder proscenium, we need to expand the
+    // occluder proscenium to include it.
     if ((*ve)->isInImage() && bestOccluderTarget != NULL && !bestOccluderTargetFound) {
       // Expand occluder proscenium to enclose bestOccluderTarget
       Vec3r point = bestOccluderTarget->center2d();
@@ -1204,14 +1206,15 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
 
   // For "Normal" or "Fast" style visibility computation only:
 
-  // For more detailed visibility calculation, make a second pass through the view map, marking all feature edges
-  // with center points inside the final occluder proscenium. All of these feature edges can be considered during
-  // visibility calculation.
+  // For more detailed visibility calculation, make a second pass through the view map, marking all
+  // feature edges with center points inside the final occluder proscenium. All of these feature
+  // edges can be considered during visibility calculation.
 
-  // So far we have only found one FEdge per ViewEdge.  The "Normal" and "Fast" styles of visibility computation
-  // want to consider many FEdges for each ViewEdge.
-  // Here we re-scan the view map to find any usable FEdges that we skipped on the first pass, or that have become
-  // usable because the occluder proscenium has been expanded since the edge was visited on the first pass.
+  // So far we have only found one FEdge per ViewEdge.  The "Normal" and "Fast" styles of
+  // visibility computation want to consider many FEdges for each ViewEdge. Here we re-scan the
+  // view map to find any usable FEdges that we skipped on the first pass, or that have become
+  // usable because the occluder proscenium has been expanded since the edge was visited on the
+  // first pass.
   if (extensiveFEdgeSearch) {
     // For each view edge,
     for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend;
@@ -1465,15 +1468,15 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
         ComputeDetailedVisibility(ioViewMap, we, bbox, epsilon, true, factory);
       }
       catch (...) {
-        // Last resort catch to make sure RAII semantics hold for OptimizedGrid. Can be replaced with
-        // try...catch block around main() if the program as a whole is converted to RAII
+        // Last resort catch to make sure RAII semantics hold for OptimizedGrid. Can be replaced
+        // with try...catch block around main() if the program as a whole is converted to RAII
 
-        // This is the little-mentioned caveat of RAII: RAII does not work unless destructors are always
-        // called, but destructors are only called if all exceptions are caught (or std::terminate() is
-        // replaced).
+        // This is the little-mentioned caveat of RAII: RAII does not work unless destructors are
+        // always called, but destructors are only called if all exceptions are caught (or
+        // std::terminate() is replaced).
 
-        // We don't actually handle the exception here, so re-throw it now that our destructors have had a
-        // chance to run.
+        // We don't actually handle the exception here, so re-throw it now that our destructors
+        // have had a chance to run.
         throw;
       }
       break;
@@ -1591,11 +1594,11 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
           cout << "\tFEdge: visibility " << tmpQI << endl;
         }
 #endif
-        //ARB: This is an error condition, not an alert condition.
+        // ARB: This is an error condition, not an alert condition.
         // Some sort of recovery or abort is necessary.
         if (tmpQI >= 256) {
           cerr << "Warning: too many occluding levels" << endl;
-          //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+          // ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
           tmpQI = 255;
         }
 
@@ -1605,7 +1608,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
         }
       }
       else {
-        //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+        // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
         FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
 #if LOGGING
         if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -1626,7 +1629,8 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
 #endif
       }
       else {
-        //ARB: We are arbitrarily using the last observed value for occludee (almost always the value observed
+        // ARB: We are arbitrarily using the last observed value for occludee (almost always the
+        // value observed
         //     for the edge before festart). Is that meaningful?
         // ...in fact, _occludeeEmpty seems to be unused.
         fe->setOccludeeEmpty(true);
@@ -1736,11 +1740,11 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
         if ((maxCard < qiMajority)) {
           tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
 
-          //ARB: This is an error condition, not an alert condition.
+          // ARB: This is an error condition, not an alert condition.
           // Some sort of recovery or abort is necessary.
           if (tmpQI >= 256) {
             cerr << "Warning: too many occluding levels" << endl;
-            //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+            // ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
             tmpQI = 255;
           }
 
@@ -1750,7 +1754,7 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
           }
         }
         else {
-          //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+          // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
           FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
         }
 
@@ -1895,7 +1899,7 @@ void ViewMapBuilder::FindOccludee(FEdge *fe,
     for (p = occluders.begin(), pend = occluders.end(); p != pend; p++) {
       // check whether the edge and the polygon plane are coincident:
       //-------------------------------------------------------------
-      //first let us compute the plane equation.
+      // first let us compute the plane equation.
       oface = (WFace *)(*p)->userdata;
       Vec3r v1(((*p)->getVertices())[0]);
       Vec3r normal((*p)->getNormal());
@@ -2022,7 +2026,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
       (center.z() < gridOrigin.z()) || (center.x() > gridExtremity.x()) ||
       (center.y() > gridExtremity.y()) || (center.z() > gridExtremity.z())) {
     cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
-    //return 0;
+    // return 0;
   }
 
 #if 0
@@ -2073,8 +2077,9 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
     face->RetrieveVertexList(faceVertices);
 
   for (p = occluders.begin(), pend = occluders.end(); p != pend; p++) {
-    // If we're dealing with an exact silhouette, check whether we must take care of this occluder of not.
-    // (Indeed, we don't consider the occluders that share at least one vertex with the face containing this edge).
+    // If we're dealing with an exact silhouette, check whether we must take care of this occluder
+    // of not. (Indeed, we don't consider the occluders that share at least one vertex with the
+    // face containing this edge).
     //-----------
     oface = (WFace *)(*p)->userdata;
 #if LOGGING
@@ -2126,8 +2131,8 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
             continue;
 
           WFace *sface = (*ie)->GetbFace();
-          //WFace *sfacea = (*ie)->GetaFace();
-          //if ((sface == oface) || (sfacea == oface)) {
+          // WFace *sfacea = (*ie)->GetaFace();
+          // if ((sface == oface) || (sfacea == oface)) {
           if (sface == oface) {
             skipFace = true;
             break;
@@ -2148,7 +2153,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
     else {
       // check whether the edge and the polygon plane are coincident:
       //-------------------------------------------------------------
-      //first let us compute the plane equation.
+      // first let us compute the plane equation.
 
       if (GeomUtils::COINCIDENT ==
           GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon)) {

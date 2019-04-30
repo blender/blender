@@ -166,7 +166,7 @@ static PyGetSetDef BPy_UnaryFunction1DUnsigned_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-/*-----------------------BPy_UnaryFunction1DUnsigned type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction1DUnsigned type definition ----------------------------*/
 
 PyTypeObject UnaryFunction1DUnsigned_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction1DUnsigned", /* tp_name */

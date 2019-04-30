@@ -58,7 +58,7 @@ class Controller {
   void setPassZ(float *buf, int width, int height);
   void setContext(bContext *C);
 
-  //soc
+  // soc
   void init_options();
 
   int LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph);
@@ -175,15 +175,15 @@ class Controller {
 
  private:
   // Main Window:
-  //AppMainWindow *_pMainWindow;
+  // AppMainWindow *_pMainWindow;
 
   // List of models currently loaded
   vector<string> _ListOfModels;
 
   // Current directories
-  //ConfigIO* _current_dirs;
+  // ConfigIO* _current_dirs;
 
-  //View
+  // View
   // 3D
   AppView *_pView;
 
@@ -195,7 +195,7 @@ class Controller {
 
   RenderMonitor *_pRenderMonitor;
 
-  //Model
+  // Model
   // Drawing Structure
   NodeGroup *_RootNode;
 
@@ -217,7 +217,7 @@ class Controller {
 #endif
 
   // debug
-  //NodeUser<ViewMap> *_ViewMapNode; // FIXME
+  // NodeUser<ViewMap> *_ViewMapNode; // FIXME
 
   // Chronometer:
   Chronometer _Chrono;
@@ -229,7 +229,7 @@ class Controller {
   int _edgeTesselationNature;
 
   FastGrid _Grid;
-  //HashGrid _Grid;
+  // HashGrid _Grid;
 
   BBox<Vec3r> _Scene3dBBox;
   unsigned int _SceneNumFaces;
@@ -241,9 +241,9 @@ class Controller {
 
   int _render_count;
 
-  //AppStyleWindow *_pStyleWindow;
-  //AppOptionsWindow *_pOptionsWindow;
-  //AppDensityCurvesWindow *_pDensityCurvesWindow;
+  // AppStyleWindow *_pStyleWindow;
+  // AppOptionsWindow *_pOptionsWindow;
+  // AppDensityCurvesWindow *_pDensityCurvesWindow;
 
   ViewMapBuilder::visibility_algo _VisibilityAlgo;
 

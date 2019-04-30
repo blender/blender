@@ -64,7 +64,7 @@ static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D *self,
   return 0;
 }
 
-/*-----------------------BPy_VertexOrientation3DF0D type definition ------------------------------*/
+/*-----------------------BPy_VertexOrientation3DF0D type definition -----------------------------*/
 
 PyTypeObject VertexOrientation3DF0D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "VertexOrientation3DF0D", /* tp_name */

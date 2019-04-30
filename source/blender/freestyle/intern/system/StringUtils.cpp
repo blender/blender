@@ -19,7 +19,7 @@
  * \brief String utilities
  */
 
-//soc #include <qfileinfo.h>
+// soc #include <qfileinfo.h>
 
 #include "FreestyleConfig.h"
 #include "StringUtils.h"

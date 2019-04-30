@@ -51,7 +51,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
   typedef vertex_iterator_base<vertex_nonconst_traits> iterator;
   typedef vertex_iterator_base<vertex_const_traits> const_iterator;
 
-  //protected:
+  // protected:
  public:
   vertex_container_iterator _it;
   vertex_container_iterator _begin;
@@ -59,7 +59,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
 
  public:
   friend class Stroke;
-  //friend class vertex_iterator;
+  // friend class vertex_iterator;
 
   inline vertex_iterator_base() : parent_class()
   {
@@ -79,7 +79,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     _end = iBrother._end;
   }
 
-  //protected: //FIXME
+  // protected: //FIXME
  public:
   inline vertex_iterator_base(vertex_container_iterator it,
                               vertex_container_iterator begin,

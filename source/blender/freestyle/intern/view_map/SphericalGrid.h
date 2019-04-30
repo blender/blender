@@ -24,8 +24,9 @@
 
 #define SPHERICAL_GRID_LOGGING 0
 
-// I would like to avoid using deque because including ViewMap.h and <deque> or <vector> separately results in
-// redefinitions of identifiers. ViewMap.h already includes <vector> so it should be a safe fall-back.
+// I would like to avoid using deque because including ViewMap.h and <deque> or <vector> separately
+// results in redefinitions of identifiers. ViewMap.h already includes <vector> so it should be a
+// safe fall-back.
 //#include <vector>
 //#include <deque>
 
@@ -57,9 +58,9 @@ class SphericalGrid {
     Polygon3r poly;
     Polygon3r cameraSpacePolygon;
     real shallowest, deepest;
-    // N.B. We could, of course, store face in poly's userdata member, like the old ViewMapBuilder code does.
-    // However, code comments make it clear that userdata is deprecated, so we avoid the temptation to save
-    // 4 or 8 bytes.
+    // N.B. We could, of course, store face in poly's userdata member, like the old ViewMapBuilder
+    // code does. However, code comments make it clear that userdata is deprecated, so we avoid the
+    // temptation to save 4 or 8 bytes.
     WFace *face;
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -70,8 +71,8 @@ class SphericalGrid {
  private:
   struct Cell {
     // Can't store Cell in a vector without copy and assign
-    //Cell(const Cell& other);
-    //Cell& operator=(const Cell& other);
+    // Cell(const Cell& other);
+    // Cell& operator=(const Cell& other);
 
     explicit Cell();
     ~Cell();
@@ -83,25 +84,28 @@ class SphericalGrid {
     void indexPolygons();
 
     real boundary[4];
-    //deque<OccluderData*> faces;
+    // deque<OccluderData*> faces;
     vector<OccluderData *> faces;
   };
 
  public:
   /*! Iterator needs to allow the user to avoid full 3D comparison in two cases:
    *
-   *  (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of the target point.
+   *  (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of
+   * the target point.
    *
-   *  (2) Where (*current)->shallowest > target[2], where the occluder is unambiguously in back of the target point.
+   *  (2) Where (*current)->shallowest > target[2], where the occluder is unambiguously in back of
+   * the target point.
    *
-   *  In addition, when used by OptimizedFindOccludee, Iterator should stop iterating as soon as it has an occludee
-   *  candidate and (*current)->shallowest > candidate[2], because at that point forward no new occluder could
-   *  possibly be a better occludee.
+   *  In addition, when used by OptimizedFindOccludee, Iterator should stop iterating as soon as it
+   * has an occludee candidate and (*current)->shallowest > candidate[2], because at that point
+   * forward no new occluder could possibly be a better occludee.
    */
 
   class Iterator {
    public:
-    // epsilon is not used in this class, but other grids with the same interface may need an epsilon
+    // epsilon is not used in this class, but other grids with the same interface may need an
+    // epsilon
     explicit Iterator(SphericalGrid &grid, Vec3r &center, real epsilon = 1.0e-06);
     ~Iterator();
     void initBeforeTarget();
@@ -122,7 +126,7 @@ class SphericalGrid {
     Vec3r _target;
     bool _foundOccludee;
     real _occludeeDepth;
-    //deque<OccluderData*>::iterator _current, _occludeeCandidate;
+    // deque<OccluderData*>::iterator _current, _occludeeCandidate;
     vector<OccluderData *>::iterator _current, _occludeeCandidate;
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -171,7 +175,7 @@ class SphericalGrid {
   void getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y);
 
   typedef PointerSequence<vector<Cell *>, Cell *> cellContainer;
-  //typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
+  // typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
   typedef PointerSequence<vector<OccluderData *>, OccluderData *> occluderContainer;
   unsigned _cellsX, _cellsY;
   float _cellSize;
@@ -222,8 +226,8 @@ inline bool SphericalGrid::Iterator::testOccluder(bool wantOccludee)
 {
   // End-of-list is not even a valid iterator position
   if (_current == _cell->faces.end()) {
-    // Returning true seems strange, but it will break us out of whatever loop is calling testOccluder, and
-    // _current=_cell->face.end() will make the calling routine give up.
+    // Returning true seems strange, but it will break us out of whatever loop is calling
+    // testOccluder, and _current=_cell->face.end() will make the calling routine give up.
     return true;
   }
 #if SPHERICAL_GRID_LOGGING
@@ -286,15 +290,17 @@ inline bool SphericalGrid::Iterator::testOccluder(bool wantOccludee)
     return false;
   }
 
-  // We've done all the corner cutting we can. Let the caller work out whether or not the geometry is correct.
+  // We've done all the corner cutting we can. Let the caller work out whether or not the geometry
+  // is correct.
   return true;
 }
 
 inline void SphericalGrid::Iterator::reportDepth(Vec3r origin, Vec3r u, real t)
 {
-  // The reported depth is the length of a ray in camera space. We need to convert it into the distance from viewpoint
-  // If origin is the viewpoint, depth == t. A future optimization could allow the caller to tell us if origin is
-  // viewponit or target, at the cost of changing the OptimizedGrid API.
+  // The reported depth is the length of a ray in camera space. We need to convert it into the
+  // distance from viewpoint If origin is the viewpoint, depth == t. A future optimization could
+  // allow the caller to tell us if origin is viewponit or target, at the cost of changing the
+  // OptimizedGrid API.
   real depth = (origin + u * t).norm();
 #if SPHERICAL_GRID_LOGGING
   if (G.debug & G_DEBUG_FREESTYLE) {

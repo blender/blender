@@ -34,15 +34,14 @@ namespace StrokeInternal {
 /////////////////////////////////////////////////
 
 /*! Class defining an iterator designed to iterate over the StrokeVertex of a Stroke.
- *  An instance of a StrokeVertexIterator can only be obtained from a Stroke by calling strokeVerticesBegin() or
- *  strokeVerticesEnd().
- *  It is iterating over the same vertices as an Interface0DIterator.
- *  The difference resides in the object access. Indeed, an Interface0DIterator allows only an access to an
- *  Interface0D whereas we could need to access the specialized StrokeVertex type. In this case, one
- *  should use a StrokeVertexIterator.
- *  The castToInterface0DIterator() method is useful to get an Interface0DIterator from a StrokeVertexIterator in
- *  order to call any functions of the type UnaryFunction0D.
- * \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
+ *  An instance of a StrokeVertexIterator can only be obtained from a Stroke by calling
+ * strokeVerticesBegin() or strokeVerticesEnd(). It is iterating over the same vertices as an
+ * Interface0DIterator. The difference resides in the object access. Indeed, an Interface0DIterator
+ * allows only an access to an Interface0D whereas we could need to access the specialized
+ * StrokeVertex type. In this case, one should use a StrokeVertexIterator. The
+ * castToInterface0DIterator() method is useful to get an Interface0DIterator from a
+ * StrokeVertexIterator in order to call any functions of the type UnaryFunction0D. \attention In
+ * the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
  * \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
  *  Otherwise, incrementing \a it1 will also increment \a it2.
  */
@@ -84,9 +83,9 @@ class StrokeVertexIterator : public Interface0DIteratorNested {
   }
 
   /*! operator=
-   *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1) \endcode instead of
-   *  \code it2 = it1 \endcode where \a it1 and \a it2 are 2 StrokeVertexIterator.
-   *  Otherwise, incrementing \a it1 will also increment \a it2.
+   *  \attention In the scripting language, you must call \code it2 = StrokeVertexIterator(it1)
+   * \endcode instead of \code it2 = it1 \endcode where \a it1 and \a it2 are 2
+   * StrokeVertexIterator. Otherwise, incrementing \a it1 will also increment \a it2.
    */
   StrokeVertexIterator &operator=(const StrokeVertexIterator &vi)
   {

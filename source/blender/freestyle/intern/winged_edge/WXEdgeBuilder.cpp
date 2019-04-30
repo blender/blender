@@ -16,8 +16,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class inherited from WingedEdgeBuilder and designed to build a WX (WingedEdge + extended info
- *         (silhouette etc...)) structure from a polygonal model
+ * \brief Class inherited from WingedEdgeBuilder and designed to build a WX (WingedEdge + extended
+ * info (silhouette etc...)) structure from a polygonal model
  */
 
 #include "WXEdge.h"
@@ -37,7 +37,7 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
   shape->setId(ifs.getId().getFirst());
   shape->setName(ifs.getName());
   shape->setLibraryPath(ifs.getLibraryPath());
-  //ifs.setId(shape->GetId());
+  // ifs.setId(shape->GetId());
 }
 
 void WXEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)

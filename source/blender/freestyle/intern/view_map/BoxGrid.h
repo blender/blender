@@ -58,9 +58,9 @@ class BoxGrid {
     Polygon3r poly;
     Polygon3r cameraSpacePolygon;
     real shallowest, deepest;
-    // N.B. We could, of course, store face in poly's userdata member, like the old ViewMapBuilder code does.
-    // However, code comments make it clear that userdata is deprecated, so we avoid the temptation
-    // to save 4 or 8 bytes.
+    // N.B. We could, of course, store face in poly's userdata member, like the old ViewMapBuilder
+    // code does. However, code comments make it clear that userdata is deprecated, so we avoid the
+    // temptation to save 4 or 8 bytes.
     WFace *face;
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -84,24 +84,27 @@ class BoxGrid {
     void indexPolygons();
 
     real boundary[4];
-    //deque<OccluderData*> faces;
+    // deque<OccluderData*> faces;
     vector<OccluderData *> faces;
   };
 
  public:
   /* Iterator needs to allow the user to avoid full 3D comparison in two cases:
    *
-   * (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of the target point.
+   * (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of the
+   * target point.
    *
-   * (2) Where (*current)->shallowest > target[2], where the occluder is unambiguously in back of the target point.
+   * (2) Where (*current)->shallowest > target[2], where the occluder is unambiguously in back of
+   * the target point.
    *
-   * In addition, when used by OptimizedFindOccludee, Iterator should stop iterating as soon as it has an
-   * occludee candidate and (*current)->shallowest > candidate[2], because at that point forward no new occluder
-   * could possibly be a better occludee.
+   * In addition, when used by OptimizedFindOccludee, Iterator should stop iterating as soon as it
+   * has an occludee candidate and (*current)->shallowest > candidate[2], because at that point
+   * forward no new occluder could possibly be a better occludee.
    */
   class Iterator {
    public:
-    // epsilon is not used in this class, but other grids with the same interface may need an epsilon
+    // epsilon is not used in this class, but other grids with the same interface may need an
+    // epsilon
     explicit Iterator(BoxGrid &grid, Vec3r &center, real epsilon = 1.0e-06);
     ~Iterator();
     void initBeforeTarget();
@@ -122,7 +125,7 @@ class BoxGrid {
     Vec3r _target;
     bool _foundOccludee;
     real _occludeeDepth;
-    //deque<OccluderData*>::iterator _current, _occludeeCandidate;
+    // deque<OccluderData*>::iterator _current, _occludeeCandidate;
     vector<OccluderData *>::iterator _current, _occludeeCandidate;
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -171,7 +174,7 @@ class BoxGrid {
   void getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y);
 
   typedef PointerSequence<vector<Cell *>, Cell *> cellContainer;
-  //typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
+  // typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
   typedef PointerSequence<vector<OccluderData *>, OccluderData *> occluderContainer;
   unsigned _cellsX, _cellsY;
   float _cellSize;
@@ -222,8 +225,8 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
 {
   // End-of-list is not even a valid iterator position
   if (_current == _cell->faces.end()) {
-    // Returning true seems strange, but it will break us out of whatever loop is calling testOccluder,
-    // and _current = _cell->face.end() will make the calling routine give up.
+    // Returning true seems strange, but it will break us out of whatever loop is calling
+    // testOccluder, and _current = _cell->face.end() will make the calling routine give up.
     return true;
   }
 #if BOX_GRID_LOGGING

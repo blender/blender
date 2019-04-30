@@ -44,20 +44,17 @@ class Stroke;
  *  Any Stroke Shader must inherit from this class and overload the shade() method.
  *  A StrokeShader is designed to modify any Stroke's attribute such as Thickness, Color,
  *  Geometry, Texture, Blending mode...
- *  The basic way to achieve this operation consists in iterating over the StrokeVertices of the Stroke
- *  and to modify each one's StrokeAttribute.
- *  Here is a python code example of such an iteration:
- * \code
- *  it = ioStroke.strokeVerticesBegin()
- *  while not it.isEnd():
- *      att = it.getObject().attribute()
+ *  The basic way to achieve this operation consists in iterating over the StrokeVertices of the
+ * Stroke and to modify each one's StrokeAttribute. Here is a python code example of such an
+ * iteration: \code it = ioStroke.strokeVerticesBegin() while not it.isEnd(): att =
+ * it.getObject().attribute()
  *      ## perform here any attribute modification
  *      it.increment()
  * \endcode
  *  Here is a C++ code example of such an iteration:
  * \code
- *  for (StrokeInternal::StrokeVertexIterator v = ioStroke.strokeVerticesBegin(), vend = ioStroke.strokeVerticesEnd();
- *      v != vend;
+ *  for (StrokeInternal::StrokeVertexIterator v = ioStroke.strokeVerticesBegin(), vend =
+ * ioStroke.strokeVerticesEnd(); v != vend;
  *      ++v)
  *  {
  *      StrokeAttribute& att = v->attribute();

@@ -31,7 +31,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-//ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0)
+// ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0)
 
 static char ViewMapGradientNormBP1D___doc__[] =
     "Class hierarchy: :class:`freestyle.types.BinaryPredicate1D` > "
@@ -82,7 +82,7 @@ static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D *self,
   return 0;
 }
 
-/*-----------------------BPy_ViewMapGradientNormBP1D type definition ------------------------------*/
+/*-----------------------BPy_ViewMapGradientNormBP1D type definition ----------------------------*/
 
 PyTypeObject ViewMapGradientNormBP1D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "ViewMapGradientNormBP1D", /* tp_name */

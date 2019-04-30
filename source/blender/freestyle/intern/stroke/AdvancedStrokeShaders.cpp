@@ -261,7 +261,7 @@ void Smoother::iteration()
                            edgeStopping(diffC2, _anisoCurvature) *
                                diffC2;  //_factorCurvatureDifference;
     motionCurvature *= _factorCurvatureDifference;
-    //motionCurvature = _factorCurvatureDifference * (diffC1 + diffC2);
+    // motionCurvature = _factorCurvatureDifference * (diffC1 + diffC2);
     if (_safeTest)
       _vertex[i] = Vec2r(_vertex[i] + (motionNormal + motionCurvature) * _normal[i]);
     Vec2r v1(_vertex[i - 1] - _vertex[i]);
@@ -283,7 +283,7 @@ void Smoother::iteration()
                            edgeStopping(diffC2, _anisoCurvature) *
                                diffC2;  //_factorCurvatureDifference;
     motionCurvature *= _factorCurvatureDifference;
-    //motionCurvature = _factorCurvatureDifference * (diffC1 + diffC2);
+    // motionCurvature = _factorCurvatureDifference * (diffC1 + diffC2);
     _vertex[0] = Vec2r(_vertex[0] + (motionNormal + motionCurvature) * _normal[0]);
     _vertex[_nbVertices - 1] = _vertex[0];
   }

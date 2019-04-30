@@ -88,8 +88,8 @@ intersection_test intersect2dSeg2dSeg(
   r1 = a2 * p1[0] + b2 * p1[1] + c2;
   r2 = a2 * p2[0] + b2 * p2[1] + c2;
 
-  // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line segment,
-  // the line segments do not intersect.
+  // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line
+  // segment, the line segments do not intersect.
   if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0)
     return (DONT_INTERSECT);
 
@@ -172,8 +172,8 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
   r1 = a2 * p1[0] + b2 * p1[1] + c2;
   r2 = a2 * p2[0] + b2 * p2[1] + c2;
 
-  // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line segment,
-  // the line segments do not intersect.
+  // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line
+  // segment, the line segments do not intersect.
   if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0)
     return (DONT_INTERSECT);
 
@@ -202,8 +202,8 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
 //   2001-03-05: released the code in its first version
 //   2001-06-18: changed the order of the tests, faster
 //
-// Acknowledgement: Many thanks to Pierre Terdiman for suggestions and discussions on how to optimize code.
-// Thanks to David Hunt for finding a ">="-bug!
+// Acknowledgement: Many thanks to Pierre Terdiman for suggestions and discussions on how to
+// optimize code. Thanks to David Hunt for finding a ">="-bug!
 
 #define X 0
 #define Y 1
@@ -337,10 +337,10 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
 // This internal procedure is defined below.
 bool overlapPlaneBox(Vec3r &normal, real d, Vec3r &maxbox);
 
-// Use separating axis theorem to test overlap between triangle and box need to test for overlap in these directions:
-// 1) the {x,y,z}-directions (actually, since we use the AABB of the triangle we do not even need to test these)
-// 2) normal of the triangle
-// 3) crossproduct(edge from tri, {x,y,z}-directin) this gives 3x3=9 more tests
+// Use separating axis theorem to test overlap between triangle and box need to test for overlap in
+// these directions: 1) the {x,y,z}-directions (actually, since we use the AABB of the triangle we
+// do not even need to test these) 2) normal of the triangle 3) crossproduct(edge from tri,
+// {x,y,z}-directin) this gives 3x3=9 more tests
 bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3])
 {
   Vec3r v0, v1, v2, normal, e0, e1, e2;
@@ -382,8 +382,8 @@ bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3])
 
   // Bullet 1:
   // first test overlap in the {x,y,z}-directions
-  // find min, max of the triangle each direction, and test for overlap in that direction -- this is equivalent
-  // to testing a minimal AABB around the triangle against the AABB
+  // find min, max of the triangle each direction, and test for overlap in that direction -- this
+  // is equivalent to testing a minimal AABB around the triangle against the AABB
 
   // test in X-direction
   FINDMINMAX(v0[X], v1[X], v2[X], min, max);
@@ -664,7 +664,7 @@ void fromWorldToImage(const Vec3r &p, Vec3r &q, const real transform[4][4], cons
   // winX:
   q[0] = viewport[0] + viewport[2] * (q[0] + 1.0) / 2.0;
 
-  //winY:
+  // winY:
   q[1] = viewport[1] + viewport[3] * (q[1] + 1.0) / 2.0;
 }
 
@@ -709,10 +709,10 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
 /////////////////////////////////////////////////////////////////////////////
 
 // Copyright 2001, softSurfer (www.softsurfer.com)
-// This code may be freely used and modified for any purpose providing that this copyright notice is included with it.
-// SoftSurfer makes no warranty for this code, and cannot be held liable for any real or imagined damage resulting
-// from its use.
-// Users of this code must verify correctness for their application.
+// This code may be freely used and modified for any purpose providing that this copyright notice
+// is included with it. SoftSurfer makes no warranty for this code, and cannot be held liable for
+// any real or imagined damage resulting from its use. Users of this code must verify correctness
+// for their application.
 
 #define PERP(u, v) ((u)[0] * (v)[1] - (u)[1] * (v)[0])  // 2D perp product
 

@@ -35,8 +35,8 @@ CulledOccluderSource::CulledOccluderSource(const GridHelpers::Transform &t,
 {
   cullViewEdges(viewMap, extensiveFEdgeSearch);
 
-  // If we have not found any visible FEdges during our cull, then there is nothing to iterate over.
-  // Short-circuit everything.
+  // If we have not found any visible FEdges during our cull, then there is nothing to iterate
+  // over. Short-circuit everything.
   valid = gridSpaceOccluderProsceniumInitialized;
 
   if (valid && !testCurrent()) {
@@ -107,8 +107,8 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
 
   // Non-displayable view edges will be skipped over during visibility calculation.
 
-  // View edges will be culled according to their position w.r.t. the viewport proscenium (viewport + 5% border,
-  // or some such).
+  // View edges will be culled according to their position w.r.t. the viewport proscenium (viewport
+  // + 5% border, or some such).
 
   // Get proscenium boundary for culling
   real viewProscenium[4];
@@ -123,17 +123,16 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
     cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]" << endl;
   }
 
-  // A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and
-  // expanding as necessary so that it encompasses the center point of at least one feature edge in each
-  // retained view edge.
-  // The occluder proscenium will be used later to cull occluding triangles before they are inserted into the Grid.
-  // The occluder proscenium starts out the same size as the view proscenium
+  // A separate occluder proscenium will also be maintained, starting out the same as the viewport
+  // proscenium, and expanding as necessary so that it encompasses the center point of at least one
+  // feature edge in each retained view edge. The occluder proscenium will be used later to cull
+  // occluding triangles before they are inserted into the Grid. The occluder proscenium starts out
+  // the same size as the view proscenium
   GridHelpers::getDefaultViewProscenium(occluderProscenium);
 
-  // XXX Freestyle is inconsistent in its use of ViewMap::viewedges_container and vector<ViewEdge*>::iterator.
-  // Probably all occurences of vector<ViewEdge*>::iterator should be replaced ViewMap::viewedges_container
-  // throughout the code.
-  // For each view edge
+  // XXX Freestyle is inconsistent in its use of ViewMap::viewedges_container and
+  // vector<ViewEdge*>::iterator. Probably all occurences of vector<ViewEdge*>::iterator should be
+  // replaced ViewMap::viewedges_container throughout the code. For each view edge
   ViewMap::viewedges_container::iterator ve, veend;
 
   for (ve = viewMap.ViewEdges().begin(), veend = viewMap.ViewEdges().end(); ve != veend; ve++) {
@@ -154,8 +153,8 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
     // All ViewEdges start culled
     (*ve)->setIsInImage(false);
 
-    // For simple visibility calculation: mark a feature edge that is known to have a center point inside
-    // the occluder proscenium. Cull all other feature edges.
+    // For simple visibility calculation: mark a feature edge that is known to have a center point
+    // inside the occluder proscenium. Cull all other feature edges.
     do {
       // All FEdges start culled
       fe->setIsInImage(false);
@@ -190,8 +189,8 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
       fe = fe->nextEdge();
     } while (fe != NULL && fe != festart && !(bestOccluderTargetFound && (*ve)->isInImage()));
 
-    // Either we have run out of FEdges, or we already have the one edge we need to determine visibility
-    // Cull all remaining edges.
+    // Either we have run out of FEdges, or we already have the one edge we need to determine
+    // visibility Cull all remaining edges.
     while (fe != NULL && fe != festart) {
       fe->setIsInImage(false);
       fe = fe->nextEdge();
@@ -229,14 +228,14 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
 
   // For "Normal" or "Fast" style visibility computation only:
 
-  // For more detailed visibility calculation, make a second pass through the view map, marking all feature edges
-  // with center points inside the final occluder proscenium. All of these feature edges can be considered during
-  // visibility calculation.
+  // For more detailed visibility calculation, make a second pass through the view map, marking all
+  // feature edges with center points inside the final occluder proscenium. All of these feature
+  // edges can be considered during visibility calculation.
 
-  // So far we have only found one FEdge per ViewEdge. The "Normal" and "Fast" styles of visibility computation
-  // want to consider many FEdges for each ViewEdge.
-  // Here we re-scan the view map to find any usable FEdges that we skipped on the first pass, or that have become
-  // usable because the occluder proscenium has been expanded since the edge was visited on the first pass.
+  // So far we have only found one FEdge per ViewEdge. The "Normal" and "Fast" styles of visibility
+  // computation want to consider many FEdges for each ViewEdge. Here we re-scan the view map to
+  // find any usable FEdges that we skipped on the first pass, or that have become usable because
+  // the occluder proscenium has been expanded since the edge was visited on the first pass.
   if (extensiveFEdgeSearch) {
     // For each view edge,
     for (ve = viewMap.ViewEdges().begin(), veend = viewMap.ViewEdges().end(); ve != veend; ve++) {
@@ -259,9 +258,9 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
   }
 
   // Up until now, all calculations have been done in camera space.
-  // However, the occluder source's iteration and the grid that consumes the occluders both work in gridspace,
-  // so we need a version of the occluder proscenium in gridspace.
-  // Set the gridspace occlude proscenium
+  // However, the occluder source's iteration and the grid that consumes the occluders both work in
+  // gridspace, so we need a version of the occluder proscenium in gridspace. Set the gridspace
+  // occlude proscenium
 }
 
 void CulledOccluderSource::expandGridSpaceOccluderProscenium(FEdge *fe)

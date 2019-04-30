@@ -293,7 +293,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
       // Adds the edge to the face
       AddEdge(woea);
       (*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
-      //sets these vertices as border:
+      // sets these vertices as border:
       v1->setBorder(true);
       v2->setBorder(true);
       return woea;
@@ -307,7 +307,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
       // Adds the edge to the face
       AddEdge(woeb);
       (*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges() + 1);
-      //sets these vertices as border:
+      // sets these vertices as border:
       v1->setBorder(true);
       v2->setBorder(true);
       return woeb;
@@ -334,7 +334,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
     }
   }
 
-  //DEBUG:
+  // DEBUG:
   if (true == exist) {  // The invert edge already exists
     // Retrieves the corresponding edge
     edge = pInvertEdge->GetOwner();
@@ -347,7 +347,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
   }
   else {  // The invert edge does not exist yet
     // we must create a new edge
-    //edge = new WEdge;
+    // edge = new WEdge;
     edge = instanciateEdge();
 
     // updates the a,b vertex edges list:
@@ -365,7 +365,7 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
     cerr << "Warning: edge " << this << " null with vertex " << v1->GetId() << endl;
 
   edge->AddOEdge(pOEdge);
-  //edge->setNumberOfOEdges(edge->GetNumberOfOEdges() + 1);
+  // edge->setNumberOfOEdges(edge->GetNumberOfOEdges() + 1);
 
   // Add this face (the b face)
   pOEdge->setbFace(this);
@@ -468,7 +468,7 @@ WShape::WShape(WShape &iBrother)
   vector<WVertex *> &vertexList = iBrother.getVertexList();
   vector<WVertex *>::iterator v = vertexList.begin(), vend = vertexList.end();
   for (; v != vend; ++v) {
-    //WVertex *newVertex = new WVertex(*(*v));
+    // WVertex *newVertex = new WVertex(*(*v));
     WVertex *newVertex = (*v)->duplicate();
 
     newVertex->setShape(this);
@@ -478,7 +478,7 @@ WShape::WShape(WShape &iBrother)
   vector<WEdge *> &edgeList = iBrother.getEdgeList();
   vector<WEdge *>::iterator e = edgeList.begin(), eend = edgeList.end();
   for (; e != eend; ++e) {
-    //WEdge *newEdge = new WEdge(*(*e));
+    // WEdge *newEdge = new WEdge(*(*e));
     WEdge *newEdge = (*e)->duplicate();
     AddEdge(newEdge);
   }
@@ -486,7 +486,7 @@ WShape::WShape(WShape &iBrother)
   vector<WFace *> &faceList = iBrother.GetFaceList();
   vector<WFace *>::iterator f = faceList.begin(), fend = faceList.end();
   for (; f != fend; ++f) {
-    //WFace *newFace = new WFace(*(*f));
+    // WFace *newFace = new WFace(*(*f));
     WFace *newFace = (*f)->duplicate();
     AddFace(newFace);
   }
@@ -539,8 +539,8 @@ WShape::WShape(WShape &iBrother)
       WOEdge *current = oedgeList[i];
       oedgedata *currentoedata = (oedgedata *)current->userdata;
       newoedgelist.push_back(currentoedata->_copy);
-      //oedgeList[i] = currentoedata->_copy;
-      //oedgeList[i] = ((oedgedata *)(oedgeList[i]->userdata))->_copy;
+      // oedgeList[i] = currentoedata->_copy;
+      // oedgeList[i] = ((oedgedata *)(oedgeList[i]->userdata))->_copy;
     }
     (*f)->setEdgeList(newoedgelist);
   }
@@ -662,11 +662,11 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
   for (; va != iVertexList.end(); va = vb) {
     ++vb;
     // Adds va to the vertex list:
-    //face->AddVertex(*va);
+    // face->AddVertex(*va);
 
     WOEdge *oedge;
     if (*va == iVertexList.back())
-      oedge = face->MakeEdge(*va, iVertexList.front());  //for the last (closing) edge
+      oedge = face->MakeEdge(*va, iVertexList.front());  // for the last (closing) edge
     else
       oedge = face->MakeEdge(*va, *vb);
 

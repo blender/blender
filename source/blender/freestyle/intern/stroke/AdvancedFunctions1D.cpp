@@ -104,14 +104,14 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
 
 int GetDirectionalViewMapDensityF1D::operator()(Interface1D &inter)
 {
-  //soc unsigned size;
+  // soc unsigned size;
   result = integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
   return 0;
 }
 
 int GetCompleteViewMapDensityF1D::operator()(Interface1D &inter)
 {
-  //soc unsigned size;
+  // soc unsigned size;
   /* Id id = inter.getId(); */ /* UNUSED */
   result = integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
   return 0;

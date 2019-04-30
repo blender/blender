@@ -91,7 +91,7 @@ static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDen
   return 0;
 }
 
-/*-----------------------BPy_GetDirectionalViewMapDensityF1D type definition ------------------------------*/
+/*-----------------------BPy_GetDirectionalViewMapDensityF1D type definition --------------------*/
 
 PyTypeObject GetDirectionalViewMapDensityF1D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "GetDirectionalViewMapDensityF1D", /* tp_name */

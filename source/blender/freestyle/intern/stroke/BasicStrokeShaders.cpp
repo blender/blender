@@ -57,7 +57,8 @@ int ConstantThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of the loop?
+    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // the loop?
     if ((1 == i) || (size - 2 == i))
       v->attribute().setThickness(_thickness / 4.0, _thickness / 4.0);
     if ((0 == i) || (size - 1 == i))
@@ -74,7 +75,8 @@ int ConstantExternThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of the loop?
+    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // the loop?
     if ((1 == i) || (size - 2 == i))
       v->attribute().setThickness(_thickness / 2.0, 0);
     if ((0 == i) || (size - 1 == i))
@@ -109,7 +111,8 @@ int ConstrainedIncreasingThicknessShader::shade(Stroke &stroke) const
   StrokeInternal::StrokeVertexIterator v, vend;
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++i) {
-    // XXX Why not using an if/else here? Else, if last condition is true, everything else is computed for nothing!
+    // XXX Why not using an if/else here? Else, if last condition is true, everything else is
+    // computed for nothing!
     float t;
     if (i < (float)n / 2.0f)
       t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * maxT;
@@ -140,7 +143,8 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of the loop?
+    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // the loop?
     if ((1 == i) || (size - 2 == i))
       v->attribute().setThickness(thickness / 4.0, thickness / 4.0);
     if ((0 == i) || (size - 1 == i))
@@ -337,7 +341,7 @@ int SamplingShader::shade(Stroke &stroke) const
 
 int ExternalContourStretcherShader::shade(Stroke &stroke) const
 {
-  //float l = stroke.getLength2D();
+  // float l = stroke.getLength2D();
   Interface0DIterator it;
   Functions0D::Normal2DF0D fun;
   StrokeVertex *sv;
@@ -362,7 +366,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
   // Build the Bezier curve from this set of data points:
   vector<Vec2d> data;
   StrokeInternal::StrokeVertexIterator v = stroke.strokeVerticesBegin(), vend;
-  data.push_back(Vec2d(v->x(), v->y()));  //first one
+  data.push_back(Vec2d(v->x(), v->y()));  // first one
   StrokeInternal::StrokeVertexIterator previous = v;
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
@@ -562,7 +566,7 @@ int PolygonalizationShader::shade(Stroke &stroke) const
     Vec2d u = (*cp)->B - (*cp)->A;
     Vec2d n(u[1], -u[0]);
     n.normalize();
-    //Vec2d n(0, 0);
+    // Vec2d n(0, 0);
     float offset = ((*cp)->_error);
     StrokeInternal::StrokeVertexIterator v;
     for (v = a; v != b; ++v) {
@@ -653,7 +657,7 @@ int TipRemoverShader::shade(Stroke &stroke) const
   // Resample so that our new stroke have the same number of vertices than before
   stroke.Resample(originalSize);
 
-  if ((int)stroke.strokeVerticesSize() != originalSize)  //soc
+  if ((int)stroke.strokeVerticesSize() != originalSize)  // soc
     cerr << "Warning: resampling problem" << endl;
 
   // assign old attributes to new stroke vertices:

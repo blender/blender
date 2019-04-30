@@ -16,8 +16,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to perform all geometric operations dedicated to silhouette. That, for example, implies that
- *         this geom engine has as member data the viewpoint, transformations, projections...
+ * \brief Class to perform all geometric operations dedicated to silhouette. That, for example,
+ * implies that this geom engine has as member data the viewpoint, transformations, projections...
  */
 
 #include <cstring>
@@ -150,7 +150,8 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
   if (_isOrthographicProjection)
     return t;
 
-  // we need to compute for each parameter t the corresponding parameter T which gives the intersection in 3D.
+  // we need to compute for each parameter t the corresponding parameter T which gives the
+  // intersection in 3D.
   real T;
 
   // suffix w for world, c for camera, r for retina, i for image

@@ -137,8 +137,8 @@ class Canvas {
   }
 
   /* Maps management */
-  /*! Loads an image map. The map will be scaled (without preserving the ratio in order to fit the actual
-   *  canvas size.).
+  /*! Loads an image map. The map will be scaled
+   *  (without preserving the ratio in order to fit the actual canvas size.).
    *  The image must be a gray values image...
    *  \param iFileName:
    *    The name of the image file
@@ -160,9 +160,11 @@ class Canvas {
    *  \param level:
    *    The level of the pyramid from which the pixel must be read.
    *  \param x:
-   *    The abscissa of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
+   *    The abscissa of the desired pixel specified in level0 coordinate system.
+   *    The origin is the lower left corner.
    *  \param y:
-   *    The ordinate of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
+   *    The ordinate of the desired pixel specified in level0 coordinate system.
+   *    The origin is the lower left corner.
    */
   float readMapPixel(const char *iMapName, int level, int x, int y);
 

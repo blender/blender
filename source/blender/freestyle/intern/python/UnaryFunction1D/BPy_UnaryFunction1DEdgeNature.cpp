@@ -166,7 +166,7 @@ static PyGetSetDef BPy_UnaryFunction1DEdgeNature_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-/*-----------------------BPy_UnaryFunction1DEdgeNature type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction1DEdgeNature type definition --------------------------*/
 
 PyTypeObject UnaryFunction1DEdgeNature_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction1DEdgeNature", /* tp_name */

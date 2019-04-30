@@ -38,8 +38,8 @@
 
 #include "BKE_global.h"
 
-//soc #include <qimage.h>
-//soc #include <QString>
+// soc #include <qimage.h>
+// soc #include <QString>
 
 extern "C" {
 #include "IMB_imbuf.h"
@@ -325,7 +325,7 @@ void Canvas::loadMap(const char *iFileName,
     filePath = iFileName;
   }
 
-#if 0  //soc
+#if 0  // soc
   QImage *qimg;
   QImage newMap(filePath.c_str());
   if (newMap.isNull()) {
@@ -402,7 +402,7 @@ void Canvas::loadMap(const char *iFileName,
   GaussianPyramid *pyramid = new GaussianPyramid(tmp, iNbLevels, iSigma);
   int ow = pyramid->width(0);
   int oh = pyramid->height(0);
-  string base(iMapName);  //soc
+  string base(iMapName);  // soc
   for (int i = 0; i < pyramid->getNumberOfLevels(); ++i) {
     // save each image:
 #if 0
@@ -410,19 +410,19 @@ void Canvas::loadMap(const char *iFileName,
     h = pyramid.height(i);
 #endif
 
-    //soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
+    // soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
     ImBuf *qtmp = IMB_allocImBuf(ow, oh, 32, IB_rect);
 
-    //int k = (1 << i);
+    // int k = (1 << i);
     for (y = 0; y < oh; ++y) {
       for (x = 0; x < ow; ++x) {
         int c = pyramid->pixel(x, y, i);  // 255 * pyramid->pixel(x, y, i);
-        //soc qtmp.setPixel(x, y, qRgb(c, c, c));
+        // soc qtmp.setPixel(x, y, qRgb(c, c, c));
         pix = (char *)qtmp->rect + y * rowbytes + x * 4;
         pix[0] = pix[1] = pix[2] = c;
       }
     }
-    //soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");
+    // soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");
     stringstream filename;
     filename << base;
     filename << i << ".bmp";
@@ -443,7 +443,7 @@ void Canvas::loadMap(const char *iFileName,
 #endif
 
   _maps[iMapName] = pyramid;
-  //newMap->save("toto.bmp", "BMP");
+  // newMap->save("toto.bmp", "BMP");
 }
 
 float Canvas::readMapPixel(const char *iMapName, int level, int x, int y)

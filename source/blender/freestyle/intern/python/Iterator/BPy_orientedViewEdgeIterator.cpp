@@ -137,7 +137,7 @@ static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-/*-----------------------BPy_orientedViewEdgeIterator type definition ------------------------------*/
+/*-----------------------BPy_orientedViewEdgeIterator type definition ---------------------------*/
 
 PyTypeObject orientedViewEdgeIterator_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "orientedViewEdgeIterator", /* tp_name */

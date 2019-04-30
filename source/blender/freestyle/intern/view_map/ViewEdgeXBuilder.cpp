@@ -79,8 +79,8 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
         continue;
       if (stopSmoothViewEdge((*sl)))  // has it been parsed already ?
         continue;
-      // here we know that we're dealing with a face layer that has not been processed yet and that contains
-      // a smooth edge.
+      // here we know that we're dealing with a face layer that has not been processed yet and that
+      // contains a smooth edge.
       /* vedge =*//* UNUSED */ BuildSmoothViewEdge(OWXFaceLayer(*sl, true));
     }
   }
@@ -89,7 +89,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
   //----------------------------------
   // Reset all userdata for WXEdge structure
   //----------------------------------------
-  //iWShape->ResetUserData();
+  // iWShape->ResetUserData();
 
   WXEdge *wxe;
   vector<WEdge *> &wedges = iWShape->getEdgeList();
@@ -339,7 +339,8 @@ OWXFaceLayer ViewEdgeXBuilder::FindNextFaceLayer(const OWXFaceLayer &iFaceLayer)
     nextFace = dynamic_cast<WXFace *>(iFaceLayer.fl->getFace()->GetBordingFace(woeend));
     if (!nextFace)
       return OWXFaceLayer(NULL, true);
-    // if the next face layer has either no smooth edge or no smooth edge of same nature, no next face
+    // if the next face layer has either no smooth edge or no smooth edge of same nature, no next
+    // face
     if (!nextFace->hasSmoothEdges())
       return OWXFaceLayer(NULL, true);
     vector<WXFaceLayer *> sameNatureLayers;
@@ -411,7 +412,8 @@ OWXFaceLayer ViewEdgeXBuilder::FindPreviousFaceLayer(const OWXFaceLayer &iFaceLa
     previousFace = dynamic_cast<WXFace *>(iFaceLayer.fl->getFace()->GetBordingFace(woebegin));
     if (0 == previousFace)
       return OWXFaceLayer(NULL, true);
-    // if the next face layer has either no smooth edge or no smooth edge of same nature, no next face
+    // if the next face layer has either no smooth edge or no smooth edge of same nature, no next
+    // face
     if (!previousFace->hasSmoothEdges())
       return OWXFaceLayer(NULL, true);
     vector<WXFaceLayer *> sameNatureLayers;
@@ -688,7 +690,7 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe)
   _pCurrentSShape->AddEdge(fe);
   va->AddFEdge(fe);
   vb->AddFEdge(fe);
-  //Add normals:
+  // Add normals:
   va->AddNormal(normalA);
   va->AddNormal(normalB);
   vb->AddNormal(normalA);

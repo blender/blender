@@ -19,7 +19,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Base class for all shapes. Inherits from BasicObjects for references counter management (addRef, release).
+ * \brief Base class for all shapes.
+ * Inherits from BasicObjects for references counter management (addRef, release).
  */
 
 #include <string>
@@ -111,8 +112,8 @@ class Rep : public BaseObject {
   }
 
   /*! Computes the rep bounding box.
-   *  Each Inherited rep must compute its bbox depending on the way the data are stored. So, each inherited class
-   *  must overload this method
+   *  Each Inherited rep must compute its bbox depending on the way the data are stored. So, each
+   * inherited class must overload this method
    */
   virtual void ComputeBBox() = 0;
 

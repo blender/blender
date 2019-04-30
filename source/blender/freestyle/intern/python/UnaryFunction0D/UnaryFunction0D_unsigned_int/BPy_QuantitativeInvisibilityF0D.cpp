@@ -67,7 +67,7 @@ static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D 
   return 0;
 }
 
-/*-----------------------BPy_QuantitativeInvisibilityF0D type definition ------------------------------*/
+/*-----------------------BPy_QuantitativeInvisibilityF0D type definition ------------------------*/
 
 PyTypeObject QuantitativeInvisibilityF0D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "QuantitativeInvisibilityF0D", /* tp_name */

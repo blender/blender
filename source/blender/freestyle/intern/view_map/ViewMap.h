@@ -75,8 +75,8 @@ class ViewMap {
   fedges_container _FEdges;           // feature edges (embedded edges)
   svertices_container _SVertices;     // embedded vertices
   BBox<Vec3r> _scene3DBBox;
-  // Mapping between the WShape or VShape id to the VShape index in the _VShapes vector. Used in the method
-  // viewShape(int id) to access a shape from its id.
+  // Mapping between the WShape or VShape id to the VShape index in the _VShapes vector. Used in
+  // the method viewShape(int id) to access a shape from its id.
   id_to_index_map _shapeIdToIndex;
 
  public:
@@ -222,16 +222,15 @@ class ViewMap {
                          FEdge *iFEdgeB,
                          const Id &id);
 
-  /* Updates the structures to take into account the fact that a SVertex must now be considered as a ViewVertex
-   *    iVertex
-   *      The SVertex on top of which the ViewVertex is built (it is necessarily a NonTVertex because it is a SVertex)
-   *    newViewEdges
-   *      The new ViewEdges that must be add to the ViewMap
+  /* Updates the structures to take into account the fact that a SVertex must now be considered as
+   * a ViewVertex iVertex The SVertex on top of which the ViewVertex is built (it is necessarily a
+   * NonTVertex because it is a SVertex) newViewEdges The new ViewEdges that must be add to the
+   * ViewMap
    */
   ViewVertex *InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newViewEdges);
 
   /* connects a FEdge to the graph trough a SVertex */
-  //FEdge *Connect(FEdge *ioEdge, SVertex *ioVertex);
+  // FEdge *Connect(FEdge *ioEdge, SVertex *ioVertex);
 
   /* Clean temporary FEdges created by chaining */
   virtual void Clean();
@@ -262,11 +261,12 @@ class orientedViewEdgeIterator;
 }  // namespace ViewVertexInternal
 
 /*! Class to define a view vertex.
- *  A view vertex is a feature vertex corresponding to a point of the image graph, where the characteristics of an
- *  edge might change (nature, visibility, ...).
- *  A ViewVertex can be of two kinds: a TVertex when it corresponds to the intersection between two ViewEdges or a
- *  NonTVertex when it corresponds to a vertex of the initial input mesh (it is the case for vertices such as corners
- *  for example). Thus, this class can be specialized into two classes, the TVertex class and the NonTVertex class.
+ *  A view vertex is a feature vertex corresponding to a point of the image graph, where the
+ * characteristics of an edge might change (nature, visibility, ...). A ViewVertex can be of two
+ * kinds: a TVertex when it corresponds to the intersection between two ViewEdges or a NonTVertex
+ * when it corresponds to a vertex of the initial input mesh (it is the case for vertices such as
+ * corners for example). Thus, this class can be specialized into two classes, the TVertex class
+ * and the NonTVertex class.
  */
 class ViewVertex : public Interface0D {
  public:  // Implementation of Interface0D
@@ -348,8 +348,8 @@ class ViewVertex : public Interface0D {
 
  public:
   /* iterators access */
-  // allows iteration on the edges that comes from/goes to this vertex in CCW order (order defined in 2D in the
-  // image plan)
+  // allows iteration on the edges that comes from/goes to this vertex in CCW order (order defined
+  // in 2D in the image plan)
   virtual edge_iterator edges_begin() = 0;
   virtual const_edge_iterator edges_begin() const = 0;
   virtual edge_iterator edges_end() = 0;
@@ -358,13 +358,14 @@ class ViewVertex : public Interface0D {
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const = 0;
 
   // Iterator access
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to the first
-   *  ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order over these ViewEdges
-   *  and to get the orientation for each ViewEdge (incoming/outgoing).
+  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+   * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
+   * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin() = 0;
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after the last ViewEdge.
+  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+   * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd() = 0;
 
@@ -477,7 +478,8 @@ class TVertex : public ViewVertex {
   directedViewEdge _FrontEdgeB;
   directedViewEdge _BackEdgeA;
   directedViewEdge _BackEdgeB;
-  Id _Id;  // id to identify t vertices . these id will be negative in order not to be mixed with NonTVertex ids.
+  Id _Id;  // id to identify t vertices . these id will be negative in order not to be mixed with
+           // NonTVertex ids.
   edge_pointers_container
       _sortedEdges;  // the list of the four ViewEdges, ordered in CCW order (in the image plan)
 
@@ -606,8 +608,8 @@ class TVertex : public ViewVertex {
   virtual void Replace(ViewEdge *iOld, ViewEdge *iNew);
 
   /*! returns the mate edge of iEdgeA.
-   *  For example, if iEdgeA is frontEdgeA, then frontEdgeB is returned. If iEdgeA is frontEdgeB then frontEdgeA
-   *  is returned. Same for back edges
+   *  For example, if iEdgeA is frontEdgeA, then frontEdgeB is returned. If iEdgeA is frontEdgeB
+   * then frontEdgeA is returned. Same for back edges
    */
   virtual ViewEdge *mate(ViewEdge *iEdgeA)
   {
@@ -630,13 +632,14 @@ class TVertex : public ViewVertex {
   virtual edge_iterator edges_iterator(ViewEdge *iEdge);
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const;
 
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to the first
-   *  ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order over these ViewEdges
-   *  and to get the orientation for each ViewEdge (incoming/outgoing).
+  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+   * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
+   * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin();
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after the last ViewEdge.
+  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+   * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd();
 
@@ -847,13 +850,14 @@ class NonTVertex : public ViewVertex {
   virtual edge_iterator edges_iterator(ViewEdge *iEdge);
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const;
 
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to the first
-   *  ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order over these ViewEdges
-   *  and to get the orientation for each ViewEdge (incoming/outgoing).
+  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+   * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
+   * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin();
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after the last ViewEdge.
+  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+   * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd();
 
@@ -891,8 +895,8 @@ template<class Traits> class vertex_iterator_base;
 
 }  // end of namespace ViewEdgeInternal
 
-/*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two ViewVertex.
- *  It is made by connecting a set of FEdges.
+/*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two
+ * ViewVertex. It is made by connecting a set of FEdges.
  */
 class ViewEdge : public Interface1D {
  public:  // Implementation of Interface0D
@@ -937,9 +941,9 @@ class ViewEdge : public Interface1D {
   FEdge *_FEdgeB;              // last edge of the embedded fedges chain
   Id _Id;
   unsigned _ChainingTimeStamp;
-  // The silhouette view edge separates 2 2D spaces. The one on the left is necessarly the Shape _Shape (the one to
-  // which this edge belongs to) and _aShape is the one on its right
-  // NOT HANDLED BY THE COPY CONSTRUCTOR
+  // The silhouette view edge separates 2 2D spaces. The one on the left is necessarly the Shape
+  // _Shape (the one to which this edge belongs to) and _aShape is the one on its right NOT HANDLED
+  // BY THE COPY CONSTRUCTOR
   ViewShape *_aShape;
   int _qi;
   vector<ViewShape *> _Occluders;
@@ -1016,7 +1020,7 @@ class ViewEdge : public Interface1D {
     UpdateFEdges();  // tells every FEdge between iFEdgeA and iFEdgeB that this is theit ViewEdge
   }
 
-  //soc protected:
+  // soc protected:
   /*! Copy constructor. */
   inline ViewEdge(ViewEdge &iBrother)
   {
@@ -1091,9 +1095,8 @@ class ViewEdge : public Interface1D {
     return _Shape;
   }
 
-  /*! Returns the shape that is occluded by the ViewShape to which this ViewEdge belongs to. If no object is occluded,
-   *  NULL is returned.
-   *  \return The occluded ViewShape.
+  /*! Returns the shape that is occluded by the ViewShape to which this ViewEdge belongs to. If no
+   * object is occluded, NULL is returned. \return The occluded ViewShape.
    */
   inline ViewShape *aShape()
   {
@@ -1316,7 +1319,7 @@ class ViewEdge : public Interface1D {
     return false;
   }
 
-  //inline real z_discontinuity(int iCombination = 0) const;
+  // inline real z_discontinuity(int iCombination = 0) const;
 
   inline Id shape_id() const
   {
@@ -1353,25 +1356,24 @@ class ViewEdge : public Interface1D {
   vertex_iterator vertices_end();
 
   // Iterator access (Interface1D)
-  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this ViewEdge.
-   *  The returned Interface0DIterator points to the first SVertex of the ViewEdge.
+  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
+   * ViewEdge. The returned Interface0DIterator points to the first SVertex of the ViewEdge.
    */
   virtual Interface0DIterator verticesBegin();
 
-  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this ViewEdge.
-   *  The returned Interface0DIterator points after the last SVertex of the ViewEdge.
+  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
+   * ViewEdge. The returned Interface0DIterator points after the last SVertex of the ViewEdge.
    */
   virtual Interface0DIterator verticesEnd();
 
-  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given resolution.
-   *  The returned Interface0DIterator points on the first Point of the ViewEdge.
-   *  \param t:
-   *    the sampling value.
+  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
+   * resolution. The returned Interface0DIterator points on the first Point of the ViewEdge. \param
+   * t: the sampling value.
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given resolution.
-   *  The returned Interface0DIterator points after the last Point of the ViewEdge.
+  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
+   * resolution. The returned Interface0DIterator points after the last Point of the ViewEdge.
    *  \param t:
    *    the sampling value.
    */
@@ -1390,7 +1392,8 @@ class ViewEdge : public Interface1D {
 /*                                */
 /**********************************/
 
-/*! Class gathering the elements of the ViewMap (ViewVertex, ViewEdge) that are issued from the same input shape. */
+/*! Class gathering the elements of the ViewMap (ViewVertex, ViewEdge) that are issued from the
+ * same input shape. */
 class ViewShape {
  private:
   vector<ViewVertex *> _Vertices;
@@ -1520,11 +1523,10 @@ class ViewShape {
    *      The FEdge that gets splitted
    *    iViewVertices
    *      The view vertices corresponding to the different intersections for the edge fe.
-   *      This list need to be sorted such as the first view vertex is the farther away from fe->vertexA.
-   *    ioNewEdges
-   *      The feature edges that are newly created (the initial edges are not included) are added to this list.
-   *    ioNewViewEdges
-   *      The view edges that are newly created (the initial edges are not included) are added to this list.
+   *      This list need to be sorted such as the first view vertex is the farther away from
+   * fe->vertexA. ioNewEdges The feature edges that are newly created (the initial edges are not
+   * included) are added to this list. ioNewViewEdges The view edges that are newly created (the
+   * initial edges are not included) are added to this list.
    */
   inline void SplitEdge(FEdge *fe,
                         const vector<TVertex *> &iViewVertices,
@@ -1608,7 +1610,8 @@ class ViewShape {
     //_SShape->AddNewEdge(iEdge->fedge());
   }
 
-  /* removes the view edge iViewEdge in the View Shape and the associated FEdge chain entry in the underlying SShape
+  /* removes the view edge iViewEdge in the View Shape and the associated FEdge chain entry in the
+   * underlying SShape
    */
   void RemoveEdge(ViewEdge *iViewEdge);
 
@@ -1681,28 +1684,30 @@ void ViewShape::SplitEdge(FEdge *fe,
     ViewEdge *newVEdge;
 
     if ((vva == 0) || (vvb == 0)) {  // that means we're dealing with a closed viewedge (loop)
-      // remove the chain that was starting by the fedge A of vEdge (which is different from fe !!!!)
+      // remove the chain that was starting by the fedge A of vEdge (which is different from fe
+      // !!!!)
       shape->RemoveEdgeFromChain(vEdge->fedgeA());
       // we set
       vEdge->setA(*vv);
       vEdge->setB(*vv);
       vEdge->setFEdgeA(newEdge);
-      //FEdge *previousEdge = newEdge->previousEdge();
+      // FEdge *previousEdge = newEdge->previousEdge();
       vEdge->setFEdgeB(fe);
       newVEdge = vEdge;
       vEdge->fedgeA()->setViewEdge(newVEdge);
     }
     else {
-      // while we create the view edge, it updates the "ViewEdge" pointer of every underlying FEdges to this.
+      // while we create the view edge, it updates the "ViewEdge" pointer of every underlying
+      // FEdges to this.
       newVEdge = new ViewEdge((*vv), vvb);  //, newEdge, vEdge->fedgeB());
       newVEdge->setNature((fe)->getNature());
       newVEdge->setFEdgeA(newEdge);
-      //newVEdge->setFEdgeB(fe);
+      // newVEdge->setFEdgeB(fe);
       // If our original viewedge is made of one FEdge, then
       if ((vEdge->fedgeA() == vEdge->fedgeB()) || (fe == vEdge->fedgeB()))
         newVEdge->setFEdgeB(newEdge);
       else
-        newVEdge->setFEdgeB(vEdge->fedgeB());  //MODIF
+        newVEdge->setFEdgeB(vEdge->fedgeB());  // MODIF
 
       Id *newId = vEdge->splittingId();
       if (newId == 0) {
@@ -1728,7 +1733,7 @@ void ViewShape::SplitEdge(FEdge *fe,
 
       // we split the view edge:
       vEdge->setB((*vv));
-      vEdge->setFEdgeB(fe);  //MODIF
+      vEdge->setFEdgeB(fe);  // MODIF
 
       // Update fedges so that they point to the new viewedge:
       newVEdge->UpdateFEdges();

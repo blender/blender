@@ -65,8 +65,8 @@ class UnaryPredicate0D {
 
   /*! The () operator. Must be overload by inherited classes.
    *  \param it:
-   *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the predicate.
-   *  \return true if the condition is satisfied, false otherwise.
+   *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the
+   * predicate. \return true if the condition is satisfied, false otherwise.
    */
   virtual int operator()(Interface0DIterator &it);
 

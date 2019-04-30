@@ -62,7 +62,7 @@ static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D *sel
   return 0;
 }
 
-/*-----------------------BPy_GetCurvilinearAbscissaF0D type definition ------------------------------*/
+/*-----------------------BPy_GetCurvilinearAbscissaF0D type definition --------------------------*/
 
 PyTypeObject GetCurvilinearAbscissaF0D_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "GetCurvilinearAbscissaF0D", /* tp_name */

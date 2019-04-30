@@ -76,7 +76,7 @@ void Chain::push_viewedge_back(ViewEdge *iViewEdge, bool orientation)
   } while ((v != vend) && (v != vfirst));
 
   if (v == vfirst) {
-    //Add last one:
+    // Add last one:
     current = (*v)->point2d();
     Curve::push_vertex_back(*v);
     //_Length += (current - previous).norm();
@@ -138,7 +138,7 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
   } while ((v != vend) && (v != vfirst));
 
   if (v == vfirst) {
-    //Add last one:
+    // Add last one:
     current = (*v)->point2d();
     Curve::push_vertex_front(*v);
     //_Length += (current - previous).norm();

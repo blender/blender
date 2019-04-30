@@ -20,7 +20,8 @@
 /** \file
  * \ingroup freestyle
  * \brief Class to represent a group node. This node can contains several children.
- * \brief It also contains a transform matrix indicating the transform state of the underlying children.
+ * \brief It also contains a transform matrix indicating the transform state of the underlying
+ * children.
  */
 
 #include <vector>

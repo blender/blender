@@ -28,7 +28,8 @@
 
 #if 0  // soc
 #  if defined(__GNUC__) && (__GNUC__ >= 3)
-//hash_map is not part of the C++ standard anymore; hash_map.h has been kept though for backward compatibility
+/* hash_map is not part of the C++ standard anymore;
+ * hash_map.h has been kept though for backward compatibility */
 #    include <hash_map.h>
 #  else
 #    include <hash_map>
@@ -278,9 +279,9 @@ class ViewEdgeXBuilder {
   /*! instanciate a ViewVertex from a SVertex, if it doesn't exist yet */
   ViewVertex *MakeViewVertex(SVertex *iSVertex);
 
-  //oldtmp values
-  //IdHashTable _hashtable;
-  //VVIdHashTable _multivertexHashTable;
+  // oldtmp values
+  // IdHashTable _hashtable;
+  // VVIdHashTable _multivertexHashTable;
   SVertexMap _SVertexMap;
   SShape *_pCurrentSShape;
   ViewShape *_pCurrentVShape;

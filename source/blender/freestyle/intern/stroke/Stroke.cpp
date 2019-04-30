@@ -484,7 +484,7 @@ void Stroke::setLength(float iLength)
 
 float Stroke::ComputeSampling(int iNVertices)
 {
-  if (iNVertices <= (int)_Vertices.size())  //soc
+  if (iNVertices <= (int)_Vertices.size())  // soc
     return _sampling;
 
   float sampling = _Length / (float)(iNVertices - _Vertices.size() + 1);
@@ -563,7 +563,7 @@ int Stroke::Resample(int iNPoints)
       if (s->_resampled == false) {
         if ((!checkEveryone) && (s->_length < meanlength))
           continue;
-        //resample
+        // resample
         s->_n = s->_n + 1;
         s->_sampling = s->_length / (float)(s->_n + 1);
         s->_resampled = resampled = true;
@@ -577,10 +577,11 @@ int Stroke::Resample(int iNPoints)
     checkEveryone = true;
   }
   if (N < NPointsToAdd) {
-    // fatal error, likely because _Length is inconsistent with the stroke length computed with the vertices
+    // fatal error, likely because _Length is inconsistent with the stroke length computed with the
+    // vertices
     return -1;
   }
-  //actually resample:
+  // actually resample:
   for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end();
        s != send;
        ++s) {
@@ -617,7 +618,7 @@ int Stroke::Resample(int iNPoints)
 
 int Stroke::Resample(float iSampling)
 {
-  //cerr << "old size :" << strokeVerticesSize() << endl;
+  // cerr << "old size :" << strokeVerticesSize() << endl;
   if (iSampling == 0)
     return 0;
   if (iSampling >= _sampling)
@@ -625,7 +626,7 @@ int Stroke::Resample(float iSampling)
 
   _sampling = iSampling;
   // Resample...
-  //real curvilinearLength = 0.0f;
+  // real curvilinearLength = 0.0f;
   vertex_container newVertices;
   real t = 0.0f;
   const real limit = 0.99;
@@ -641,17 +642,17 @@ int Stroke::Resample(float iSampling)
     Vec2r vec_tmp(b - a);
     real norm_var = vec_tmp.norm();
     if (norm_var <= _sampling) {
-      //curvilinearLength += norm_var;
+      // curvilinearLength += norm_var;
       ++it;
       ++next;
       continue;
     }
 
-    //curvilinearLength += _sampling;
+    // curvilinearLength += _sampling;
     t = _sampling / norm_var;
     while (t < limit) {
       newVertex = new StrokeVertex(&(*it), &(*next), t);
-      //newVertex->setCurvilinearAbscissa(curvilinearLength);
+      // newVertex->setCurvilinearAbscissa(curvilinearLength);
       newVertices.push_back(newVertex);
       t = t + _sampling / norm_var;
     }
@@ -798,7 +799,7 @@ Stroke::vertex_iterator Stroke::vertices_begin(float sampling)
   if ((sampling != 0) && (sampling < _sampling))
     Resample(sampling);
   return vertex_iterator(_Vertices.begin(), _Vertices.begin(), _Vertices.end());
-  //return _Vertices.begin();
+  // return _Vertices.begin();
 }
 
 #if 0

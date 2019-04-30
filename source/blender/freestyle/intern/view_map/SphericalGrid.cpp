@@ -187,9 +187,9 @@ void SphericalGrid::distributePolygons(OccluderSource &source)
       }
     }
     catch (...) {
-      // If an exception was thrown, _faces.push_back() cannot have succeeded. Occluder is not owned by anyone,
-      // and must be deleted. If the exception was thrown before or during new OccluderData(), then
-      // occluder is NULL, and this delete is harmless.
+      // If an exception was thrown, _faces.push_back() cannot have succeeded. Occluder is not
+      // owned by anyone, and must be deleted. If the exception was thrown before or during new
+      // OccluderData(), then occluder is NULL, and this delete is harmless.
       delete occluder;
       throw;
     }

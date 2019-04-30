@@ -34,7 +34,8 @@ extern PyTypeObject ReadCompleteViewMapPixelF0D_Type;
 #define BPy_ReadCompleteViewMapPixelF0D_Check(v) \
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ReadCompleteViewMapPixelF0D_Type))
 
-/*---------------------------Python BPy_ReadCompleteViewMapPixelF0D structure definition----------*/
+/*---------------------------Python BPy_ReadCompleteViewMapPixelF0D structure
+ * definition----------*/
 typedef struct {
   BPy_UnaryFunction0DFloat py_uf0D_float;
 } BPy_ReadCompleteViewMapPixelF0D;

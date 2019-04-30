@@ -121,7 +121,7 @@ static PyObject *UnaryFunction0DViewShape___call__(BPy_UnaryFunction0DViewShape 
   return BPy_ViewShape_from_ViewShape(*(self->uf0D_viewshape->result));
 }
 
-/*-----------------------BPy_UnaryFunction0DViewShape type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction0DViewShape type definition ---------------------------*/
 
 PyTypeObject UnaryFunction0DViewShape_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction0DViewShape", /* tp_name */

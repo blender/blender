@@ -184,7 +184,7 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
   // CURVATURE LAYER
   // store all the curvature datas for each vertex
 
-  //soc unused - real K1, K2
+  // soc unused - real K1, K2
   real cos2theta, sin2theta;
   Vec3r e1, n, v;
   // one vertex curvature info :
@@ -206,8 +206,8 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
     ncycle.end();
     C->K1 = ncycle.kmin();
     C->K2 = ncycle.kmax();
-    C->e1 = ncycle.Kmax();  //ncycle.kmin() * ncycle.Kmax();
-    C->e2 = ncycle.Kmin();  //ncycle.kmax() * ncycle.Kmin();
+    C->e1 = ncycle.Kmax();  // ncycle.kmin() * ncycle.Kmax();
+    C->e2 = ncycle.Kmin();  // ncycle.kmax() * ncycle.Kmin();
 
     real absK1 = fabs(C->K1);
     _meanK1 += absK1;
@@ -320,8 +320,8 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
 
   if ((fA->front()) ^
       (fB->front())) {  // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
-    // The only edges we want to set as silhouette edges in this way are the ones with 2 different normals
-    // for 1 vertex for these two faces
+    // The only edges we want to set as silhouette edges in this way are the ones with 2 different
+    // normals for 1 vertex for these two faces
     //--------------------
     // In reality we only test the normals for 1 of the 2 vertices.
     if (fA->GetVertexNormal(iEdge->GetaVertex()) == fB->GetVertexNormal(iEdge->GetaVertex()))
@@ -392,7 +392,7 @@ void FEdgeXDetector::ProcessCreaseEdge(WXEdge *iEdge)
 void FEdgeXDetector::processRidgesAndValleysShape(WXShape *iWShape)
 {
   // Don't forget to add the built layer to the face at the end of the ProcessFace:
-  //iFace->AddSmoothLayer(faceLayer);
+  // iFace->AddSmoothLayer(faceLayer);
 
   if (!_computeViewIndependent)
     return;
@@ -671,7 +671,8 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   }
 
   // At that point, we have the derivatives for each vertex of iFace.
-  // All we have to do now is to use linear interpolation to compute the values at the extremities of the smooth edge.
+  // All we have to do now is to use linear interpolation to compute the values at the extremities
+  // of the smooth edge.
   WXSmoothEdge *sc_edge = sc_layer->getSmoothEdge();
   WOEdge *sc_oedge = sc_edge->woea();
   t = sc_edge->ta();

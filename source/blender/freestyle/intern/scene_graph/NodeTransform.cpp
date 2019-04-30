@@ -35,7 +35,7 @@ void NodeTransform::Translate(real x, real y, real z)
 
 void NodeTransform::Rotate(real iAngle, real x, real y, real z)
 {
-  //Normalize the x,y,z vector;
+  // Normalize the x,y,z vector;
   real norm = (real)sqrt(x * x + y * y + z * z);
   if (0 == norm)
     return;

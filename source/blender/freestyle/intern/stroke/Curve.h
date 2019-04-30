@@ -55,10 +55,10 @@ using namespace Geometry;
 
 /*! Class to represent a point of a curve.
  *  A CurvePoint can be any point of a 1D curve (it doesn't have to be a vertex of the curve).
- *  Any Interface1D is built upon ViewEdges, themselves built upon FEdges. Therefore, a curve is basically
- *  a polyline made of a list SVertex.
- *  Thus, a CurvePoint is built by lineraly interpolating two SVertex.
- *  CurvePoint can be used as virtual points while querying 0D information along a curve at a given resolution.
+ *  Any Interface1D is built upon ViewEdges, themselves built upon FEdges. Therefore, a curve is
+ * basically a polyline made of a list SVertex. Thus, a CurvePoint is built by lineraly
+ * interpolating two SVertex. CurvePoint can be used as virtual points while querying 0D
+ * information along a curve at a given resolution.
  */
 class CurvePoint : public Interface0D {
  public:  // Implementation of Interface0D
@@ -188,7 +188,7 @@ class CurvePoint : public Interface0D {
   SVertex *__A;
   SVertex *__B;
   float _t2d;
-  //float _t3d;
+  // float _t3d;
   Vec3r _Point2d;
   Vec3r _Point3d;
 
@@ -216,7 +216,7 @@ class CurvePoint : public Interface0D {
    */
   CurvePoint(CurvePoint *iA, CurvePoint *iB, float t2d);
 
-  //CurvePoint(SVertex *iA, SVertex *iB, float t2d, float t3d);
+  // CurvePoint(SVertex *iA, SVertex *iB, float t2d, float t3d);
 
   /*! Copy Constructor. */
   CurvePoint(const CurvePoint &iBrother);
@@ -302,12 +302,12 @@ class CurvePoint : public Interface0D {
   }
 
   Vec3r normal() const;
-  //FrsMaterial material() const;
-  //Id shape_id() const;
+  // FrsMaterial material() const;
+  // Id shape_id() const;
   const SShape *shape() const;
-  //float shape_importance() const;
+  // float shape_importance() const;
 
-  //const unsigned qi() const;
+  // const unsigned qi() const;
   occluder_container::const_iterator occluders_begin() const;
   occluder_container::const_iterator occluders_end() const;
   bool occluders_empty() const;
@@ -564,25 +564,25 @@ class Curve : public Interface1D {
   CurveInternal::CurvePointIterator curveVerticesEnd();
 
   // Iterators access
-  /*! Returns an Interface0DIterator pointing onto the first vertex of the Curve and that can iterate
-   *  over the \a vertices of the Curve.
+  /*! Returns an Interface0DIterator pointing onto the first vertex of the Curve and that can
+   * iterate over the \a vertices of the Curve.
    */
   virtual Interface0DIterator verticesBegin();
 
-  /*! Returns an Interface0DIterator pointing after the last vertex of the Curve and that can iterate
-   *  over the \a vertices of the Curve.
+  /*! Returns an Interface0DIterator pointing after the last vertex of the Curve and that can
+   * iterate over the \a vertices of the Curve.
    */
   virtual Interface0DIterator verticesEnd();
 
-  /*! Returns an Interface0DIterator pointing onto the first point of the Curve and that can iterate
-   *  over the \a points of the Curve at any resolution.
-   *  At each iteration a virtual temporary CurvePoint is created.
+  /*! Returns an Interface0DIterator pointing onto the first point of the Curve and that can
+   * iterate over the \a points of the Curve at any resolution. At each iteration a virtual
+   * temporary CurvePoint is created.
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an Interface0DIterator pointing after the last point of the Curve and that can iterate
-   *  over the \a points of the Curve at any resolution.
-   *  At each iteration a virtual temporary CurvePoint is created.
+  /*! Returns an Interface0DIterator pointing after the last point of the Curve and that can
+   * iterate over the \a points of the Curve at any resolution. At each iteration a virtual
+   * temporary CurvePoint is created.
    */
   virtual Interface0DIterator pointsEnd(float t = 0.0f);
 

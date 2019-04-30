@@ -190,7 +190,7 @@ static PyGetSetDef BPy_UnaryFunction1DVectorViewShape_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-/*-----------------------BPy_UnaryFunction1DVectorViewShape type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction1DVectorViewShape type definition ---------------------*/
 
 PyTypeObject UnaryFunction1DVectorViewShape_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction1DVectorViewShape", /* tp_name */

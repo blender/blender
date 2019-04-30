@@ -343,7 +343,7 @@ int GetOccludersF0D::operator()(Interface0DIterator &iter)
   set<ViewShape *> occluders;
   getOccludersF0D(iter, occluders);
   result.clear();
-  //vsOccluders.insert(vsOccluders.begin(), occluders.begin(), occluders.end());
+  // vsOccluders.insert(vsOccluders.begin(), occluders.begin(), occluders.end());
   for (set<ViewShape *>::iterator it = occluders.begin(), itend = occluders.end(); it != itend;
        ++it) {
     result.push_back((*it));

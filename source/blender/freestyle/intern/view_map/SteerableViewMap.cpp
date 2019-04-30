@@ -16,7 +16,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
+ * \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs
+ * to.
  */
 
 #include <sstream>
@@ -146,7 +147,7 @@ double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
 unsigned SteerableViewMap::getSVMNumber(const Vec2f &orient)
 {
   Vec2f dir(orient);
-  //soc unsigned res = 0;
+  // soc unsigned res = 0;
   real norm = dir.norm();
   if (norm < 1.0e-6) {
     return _nbOrientations + 1;
@@ -211,11 +212,11 @@ float SteerableViewMap::readSteerableViewMapPixel(unsigned iOrientation, int iLe
   }
   if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height()))
     return 0;
-  //float v = pyramid->pixel(x, pyramid->height() - 1 - y, iLevel) * 255.0f;
-  // We encode both the directionality and the lines counting on 8 bits (because of frame buffer). Thus, we allow
-  // until 8 lines to pass through the same pixel, so that we can discretize the Pi/_nbOrientations angle into
-  // 32 slices. Therefore, for example, in the vertical direction, a vertical line will have the value 32 on
-  // each pixel it passes through.
+  // float v = pyramid->pixel(x, pyramid->height() - 1 - y, iLevel) * 255.0f;
+  // We encode both the directionality and the lines counting on 8 bits (because of frame buffer).
+  // Thus, we allow until 8 lines to pass through the same pixel, so that we can discretize the
+  // Pi/_nbOrientations angle into 32 slices. Therefore, for example, in the vertical direction, a
+  // vertical line will have the value 32 on each pixel it passes through.
   float v = pyramid->pixel(x, pyramid->height() - 1 - y, iLevel) / 32.0f;
   return v;
 }
@@ -243,31 +244,31 @@ void SteerableViewMap::saveSteerableViewMap() const
     int ow = _imagesPyramids[i]->width(0);
     int oh = _imagesPyramids[i]->height(0);
 
-    //soc QString base("SteerableViewMap");
+    // soc QString base("SteerableViewMap");
     string base("SteerableViewMap");
     stringstream filename;
 
-    for (int j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {  //soc
+    for (int j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {  // soc
       float coeff = 1.0f;  // 1 / 255.0f; // 100 * 255; // * pow(2, j);
-      //soc QImage qtmp(ow, oh, QImage::Format_RGB32);
+      // soc QImage qtmp(ow, oh, QImage::Format_RGB32);
       ImBuf *ibuf = IMB_allocImBuf(ow, oh, 32, IB_rect);
       int rowbytes = ow * 4;
       char *pix;
 
-      for (int y = 0; y < oh; ++y) {    //soc
-        for (int x = 0; x < ow; ++x) {  //soc
+      for (int y = 0; y < oh; ++y) {    // soc
+        for (int x = 0; x < ow; ++x) {  // soc
           int c = (int)(coeff * _imagesPyramids[i]->pixel(x, y, j));
           if (c > 255)
             c = 255;
-          //int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
+          // int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
 
-          //soc qtmp.setPixel(x, y, qRgb(c, c, c));
+          // soc qtmp.setPixel(x, y, qRgb(c, c, c));
           pix = (char *)ibuf->rect + y * rowbytes + x * 4;
           pix[0] = pix[1] = pix[2] = c;
         }
       }
 
-      //soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
+      // soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
       filename << base;
       filename << i << "-" << j << ".png";
       ibuf->ftype = IMB_FTYPE_PNG;

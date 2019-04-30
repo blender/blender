@@ -50,8 +50,8 @@ class CurvePoint_nonconst_traits : public Nonconst_traits<CurvePoint *> {
 /*                                */
 /**********************************/
 
-/*! iterator on a curve. Allows an iterating outside  initial vertices. A CurvePoint is instanciated an returned
- *  when the iterator is dereferenced.
+/*! iterator on a curve. Allows an iterating outside  initial vertices. A CurvePoint is
+ * instanciated an returned when the iterator is dereferenced.
  */
 template<class Traits>
 class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Traits> {
@@ -86,7 +86,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
   friend class __point_iterator<CurvePoint_nonconst_traits>;
   friend class iterator;
 #endif
-  //protected:
+  // protected:
  public:
   float _CurvilinearLength;
   float _step;
@@ -169,7 +169,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
       delete _Point;
   }
 
-  //protected:  //FIXME
+  // protected:  //FIXME
  public:
   inline __point_iterator(vertex_container_iterator iA,
                           vertex_container_iterator iB,
@@ -307,7 +307,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
     else {
       _t = 1.0f;  // AB is a null segment, we're directly at its end
     }
-    //if normAB ~= 0, we don't change these values
+    // if normAB ~= 0, we don't change these values
     if (_t >= 1) {
       _CurvilinearLength -= normAB * (_t - 1);
       if (_currentn == _n - 1) {

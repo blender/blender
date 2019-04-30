@@ -136,7 +136,7 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
-///bool     operator== (const CurvePoint &b)
+/// bool     operator== (const CurvePoint &b)
 
 /*----------------------CurvePoint get/setters ----------------------------*/
 

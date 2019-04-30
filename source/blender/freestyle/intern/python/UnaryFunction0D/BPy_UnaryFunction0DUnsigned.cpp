@@ -115,7 +115,7 @@ static PyObject *UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *s
   return PyLong_FromLong(self->uf0D_unsigned->result);
 }
 
-/*-----------------------BPy_UnaryFunction0DUnsigned type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction0DUnsigned type definition ----------------------------*/
 
 PyTypeObject UnaryFunction0DUnsigned_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction0DUnsigned", /* tp_name */

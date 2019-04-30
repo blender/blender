@@ -105,7 +105,8 @@ bool include2dSeg2dArea(const Vec2r &min, const Vec2r &max, const Vec2r &A, cons
 /*! Box-triangle overlap test, adapted from Tomas Akenine-Möller code */
 bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3]);
 
-/*! Fast, Minimum Storage Ray-Triangle Intersection, adapted from Tomas Möller and Ben Trumbore code. */
+/*! Fast, Minimum Storage Ray-Triangle Intersection, adapted from Tomas Möller and Ben Trumbore
+ * code. */
 bool intersectRayTriangle(const Vec3r &orig,
                           const Vec3r &dir,
                           const Vec3r &v0,
@@ -126,7 +127,8 @@ intersection_test intersectRayPlane(const Vec3r &orig,
                                     const real epsilon = M_EPSILON);  // the epsilon to use
 
 /*! Intersection Ray-Bounding box (axis aligned).
- *  Adapted from Williams et al, "An Efficient Robust Ray-Box Intersection Algorithm", JGT 10:1 (2005), pp. 49-54.
+ *  Adapted from Williams et al, "An Efficient Robust Ray-Box Intersection Algorithm", JGT 10:1
+ * (2005), pp. 49-54.
  */
 bool intersectRayBBox(const Vec3r &orig,
                       const Vec3r &dir,  // ray origin and direction

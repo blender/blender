@@ -114,7 +114,7 @@ static PyObject *UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *s
   return BPy_FrsMaterial_from_FrsMaterial(self->uf0D_material->result);
 }
 
-/*-----------------------BPy_UnaryFunction0DMaterial type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction0DMaterial type definition ----------------------------*/
 
 PyTypeObject UnaryFunction0DMaterial_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction0DMaterial", /* tp_name */

@@ -115,7 +115,7 @@ static PyObject *UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNatur
   return BPy_Nature_from_Nature(self->uf0D_edgenature->result);
 }
 
-/*-----------------------BPy_UnaryFunction0DEdgeNature type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction0DEdgeNature type definition --------------------------*/
 
 PyTypeObject UnaryFunction0DEdgeNature_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction0DEdgeNature", /* tp_name */

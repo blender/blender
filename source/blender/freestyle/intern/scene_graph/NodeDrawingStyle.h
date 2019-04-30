@@ -19,7 +19,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to define a Drawing Style to be applied to the underlying children. Inherits from NodeGroup.
+ * \brief Class to define a Drawing Style to be applied to the underlying children. Inherits from
+ * NodeGroup.
  */
 
 #include "DrawingStyle.h"

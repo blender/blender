@@ -179,7 +179,7 @@ Controller::~Controller()
     _ProgressBar = NULL;
   }
 
-  //delete _current_dirs;
+  // delete _current_dirs;
 }
 
 void Controller::setView(AppView *iView)
@@ -300,7 +300,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
     _RootNode->AddChild(new NodeViewLayer(*re->scene, *view_layer));
 
     sceneHashFunc.reset();
-    //blenderScene->accept(sceneHashFunc);
+    // blenderScene->accept(sceneHashFunc);
     _RootNode->accept(sceneHashFunc);
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Scene hash       : " << sceneHashFunc.toString() << endl;
@@ -626,7 +626,7 @@ void Controller::ComputeViewMap()
 
 void Controller::ComputeSteerableViewMap()
 {
-#if 0  //soc
+#if 0  // soc
   if ((!_Canvas) || (!_ViewMap))
     return;
 

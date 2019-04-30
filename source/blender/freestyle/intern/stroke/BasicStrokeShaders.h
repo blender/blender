@@ -81,9 +81,9 @@ class ConstantThicknessShader : public StrokeShader {
 };
 
 /* [ Thickness Shader ].
- *  Assigns an absolute constant external thickness to every vertices of the Stroke. The external thickness of a point
- *  is its thickness from the point to the strip border in the direction pointing outside the object the
- *  Stroke delimitates.
+ *  Assigns an absolute constant external thickness to every vertices of the Stroke. The external
+ * thickness of a point is its thickness from the point to the strip border in the direction
+ * pointing outside the object the Stroke delimitates.
  */
 class ConstantExternThicknessShader : public StrokeShader {
  public:
@@ -108,10 +108,10 @@ class ConstantExternThicknessShader : public StrokeShader {
 };
 
 /*! [ Thickness Shader ].
- *  Assigns thicknesses values such as the thickness increases from a thickness value A to a thickness value B between
- *  the first vertex to the midpoint vertex and then decreases from B to a A between this midpoint vertex
- *  and the last vertex.
- *  The thickness is linearly interpolated from A to B.
+ *  Assigns thicknesses values such as the thickness increases from a thickness value A to a
+ * thickness value B between the first vertex to the midpoint vertex and then decreases from B to a
+ * A between this midpoint vertex and the last vertex. The thickness is linearly interpolated from
+ * A to B.
  */
 class IncreasingThicknessShader : public StrokeShader {
  public:
@@ -146,8 +146,8 @@ class IncreasingThicknessShader : public StrokeShader {
 };
 
 /*! [ Thickness shader ].
- *  Same as previous but here we allow the user to control the ratio thickness/length so that  we don't get
- *  fat short lines
+ *  Same as previous but here we allow the user to control the ratio thickness/length so that  we
+ * don't get fat short lines
  */
 class ConstrainedIncreasingThicknessShader : public StrokeShader {
  private:
@@ -288,8 +288,8 @@ class ConstantColorShader : public StrokeShader {
 
 /*!  [ Color Shader ].
  *   Assigns a varying color to the stroke.
- *   The user specifies 2 colors A and B. The stroke color will change linearly from A to B between the
- *   first and the last vertex.
+ *   The user specifies 2 colors A and B. The stroke color will change linearly from A to B between
+ * the first and the last vertex.
  */
 class IncreasingColorShader : public StrokeShader {
  private:
@@ -346,7 +346,8 @@ class IncreasingColorShader : public StrokeShader {
 };
 
 /* [ Color Shader ].
- *  Assigns a color to the stroke depending on the material of the shape to which ot belongs to. (Disney shader)
+ *  Assigns a color to the stroke depending on the material of the shape to which ot belongs to.
+ * (Disney shader)
  */
 class MaterialColorShader : public StrokeShader {
  private:
@@ -399,7 +400,8 @@ class ColorNoiseShader : public StrokeShader {
 //
 ///////////////////////////////////////////////////////////////////////////////
 /*! [ Geometry Shader ].
- *  Stretches the stroke at its two extremities and following the respective directions: v(1)v(0) and v(n-1)v(n).
+ *  Stretches the stroke at its two extremities and following the respective directions: v(1)v(0)
+ * and v(n-1)v(n).
  */
 class BackboneStretcherShader : public StrokeShader {
  private:
@@ -471,9 +473,9 @@ class ExternalContourStretcherShader : public StrokeShader {
 
 // Bezier curve stroke shader
 /*! [ Geometry Shader ].
- *  Transforms the stroke backbone geometry so that it corresponds to a Bezier Curve approximation of the
- *  original backbone geometry.
- * \see \htmlonly <a href=bezier/bezier.html>bezier/bezier.html</a> \endhtmlonly
+ *  Transforms the stroke backbone geometry so that it corresponds to a Bezier Curve approximation
+ * of the original backbone geometry. \see \htmlonly <a
+ * href=bezier/bezier.html>bezier/bezier.html</a> \endhtmlonly
  */
 class BezierCurveShader : public StrokeShader {
  private:
@@ -501,8 +503,9 @@ class BezierCurveShader : public StrokeShader {
 
 /*! [ Geometry Shader ].
  *  Shader to modify the Stroke geometry so that it looks more "polygonal".
- *  The basic idea is to start from the minimal stroke approximation consisting in a line joining the first vertex
- *  to the last one and to subdivide using the original stroke vertices until a certain error is reached.
+ *  The basic idea is to start from the minimal stroke approximation consisting in a line joining
+ * the first vertex to the last one and to subdivide using the original stroke vertices until a
+ * certain error is reached.
  */
 class PolygonalizationShader : public StrokeShader {
  private:
@@ -511,9 +514,9 @@ class PolygonalizationShader : public StrokeShader {
  public:
   /*! Builds the shader.
    *  \param iError:
-   *    The error we want our polygonal approximation to have with respect to the original geometry.
-   *    The smaller, the closer the new stroke to the orinal one.
-   *    This error corresponds to the maximum distance between the new stroke and the old one.
+   *    The error we want our polygonal approximation to have with respect to the original
+   * geometry. The smaller, the closer the new stroke to the orinal one. This error corresponds to
+   * the maximum distance between the new stroke and the old one.
    */
   PolygonalizationShader(float iError) : StrokeShader()
   {
@@ -542,8 +545,9 @@ class GuidingLinesShader : public StrokeShader {
  public:
   /*! Builds a Guiding Lines shader
    *    \param iOffset:
-   *      The line that replaces the stroke is initially in the middle of the initial stroke "bbox".
-   *      iOffset is the value of the displacement which is applied to this line along its normal.
+   *      The line that replaces the stroke is initially in the middle of the initial stroke
+   * "bbox". iOffset is the value of the displacement which is applied to this line along its
+   * normal.
    */
   GuidingLinesShader(float iOffset) : StrokeShader()
   {

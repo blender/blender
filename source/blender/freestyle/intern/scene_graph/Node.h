@@ -19,7 +19,8 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Abstract class for scene graph nodes. Inherits from BaseObject which defines the addRef release mechanism.
+ * \brief Abstract class for scene graph nodes. Inherits from BaseObject which defines the addRef
+ * release mechanism.
  */
 
 #include "SceneVisitor.h"

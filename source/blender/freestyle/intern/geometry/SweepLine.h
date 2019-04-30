@@ -188,8 +188,8 @@ template<class T, class Point> class Segment {
 #  pragma warning(pop)
 #endif
 
-/*! defines a binary function that can be overload by the user to specify at each condition the intersection
- *  between 2 edges must be computed
+/*! defines a binary function that can be overload by the user to specify at each condition the
+ * intersection between 2 edges must be computed
  */
 template<class T1, class T2> struct binary_rule {
   binary_rule()

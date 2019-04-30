@@ -17,7 +17,8 @@
 /** \file
  * \ingroup freestyle
  * \brief Class to represent a group node. This node can contains several children.
- * \brief It also contains a transform matrix indicating the transform state of the underlying children.
+ * \brief It also contains a transform matrix indicating the transform state of the underlying
+ * children.
  */
 
 #include "NodeGroup.h"
@@ -36,10 +37,9 @@ void NodeGroup::AddChild(Node *iChild)
 int NodeGroup::destroy()
 {
   /*! Node::destroy makes a release on the object and then returns the reference counter.
-   *  If the reference counter is equal to 0, that means that nobody else is linking this node group and
-   *  that we can destroy the whole underlying tree.
-   *  Else, one or several Node link this node group, and we only returns the reference counter
-   *  decremented by Node::destroy();
+   *  If the reference counter is equal to 0, that means that nobody else is linking this node
+   * group and that we can destroy the whole underlying tree. Else, one or several Node link this
+   * node group, and we only returns the reference counter decremented by Node::destroy();
    */
   int refThis = Node::destroy();
 

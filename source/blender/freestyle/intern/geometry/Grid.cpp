@@ -49,10 +49,10 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
 {
   // check whether the edge and the polygon plane are coincident:
   //-------------------------------------------------------------
-  //first let us compute the plane equation.
+  // first let us compute the plane equation.
   Vec3r v1(((occ)->getVertices())[0]);
   Vec3d normal((occ)->getNormal());
-  //soc unused - double d = -(v1 * normal);
+  // soc unused - double d = -(v1 * normal);
 
   double tmp_u, tmp_v, tmp_t;
   if ((occ)->rayIntersect(ray_org_, ray_dir_, tmp_t, tmp_u, tmp_v)) {
@@ -167,8 +167,9 @@ void Grid::insertOccluder(Polygon3r *occluder)
   getCellCoordinates(min, imin);
 
   // We are now going to fill in the cells overlapping with the polygon bbox.
-  // If the polygon is a triangle (most of cases), we also check for each of these cells if it is overlapping with
-  // the triangle in order to only fill in the ones really overlapping the triangle.
+  // If the polygon is a triangle (most of cases), we also check for each of these cells if it is
+  // overlapping with the triangle in order to only fill in the ones really overlapping the
+  // triangle.
 
   unsigned i, x, y, z;
   vector<Vec3r>::const_iterator it;
@@ -239,8 +240,8 @@ bool Grid::nextRayCell(Vec3u &current_cell, Vec3u &next_cell)
   t_min = FLT_MAX;     // init tmin with handle of the case where one or 2 _u[i] = 0.
   unsigned coord = 0;  // predominant coord(0=x, 1=y, 2=z)
 
-  // using a parametric equation of a line : B = A + t u, we find the tx, ty and tz respectively coresponding
-  // to the intersections with the plans:
+  // using a parametric equation of a line : B = A + t u, we find the tx, ty and tz respectively
+  // coresponding to the intersections with the plans:
   //     x = _cell_size[0], y = _cell_size[1], z = _cell_size[2]
   for (i = 0; i < 3; i++) {
     if (_ray_dir[i] == 0)
@@ -318,8 +319,8 @@ Polygon3r *Grid::castRayToFindFirstIntersection(
   firstIntersectionGridVisitor visitor(orig, dir, _cell_size);
   castRayInternal(visitor);
   // ARB: This doesn't work, because occluders are unordered within any cell
-  // visitor.occluder() will be an occluder, but we have no guarantee it will be the *first* occluder.
-  // I assume that is the reason this code is not actually used for FindOccludee.
+  // visitor.occluder() will be an occluder, but we have no guarantee it will be the *first*
+  // occluder. I assume that is the reason this code is not actually used for FindOccludee.
   occluder = visitor.occluder();
   t = visitor.t_;
   u = visitor.u_;
@@ -337,7 +338,7 @@ void Grid::initRay(const Vec3r &orig, const Vec3r &end, unsigned timestamp)
 
   for (unsigned i = 0; i < 3; i++) {
     _current_cell[i] = (unsigned)floor((orig[i] - _orig[i]) / _cell_size[i]);
-    //soc unused - unsigned u = _current_cell[i];
+    // soc unused - unsigned u = _current_cell[i];
     _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
   }
   //_ray_occluders.clear();
@@ -358,7 +359,7 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
   if (box.inside(orig)) {
     for (unsigned int i = 0; i < 3; i++) {
       _current_cell[i] = (unsigned int)floor((orig[i] - _orig[i]) / _cell_size[i]);
-      //soc unused - unsigned u = _current_cell[i];
+      // soc unused - unsigned u = _current_cell[i];
       _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
     }
   }
@@ -372,7 +373,7 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
         _current_cell[i] = (unsigned)floor((newOrig[i] - _orig[i]) / _cell_size[i]);
         if (_current_cell[i] == _cells_nb[i])
           _current_cell[i] = _cells_nb[i] - 1;
-        //soc unused - unsigned u = _current_cell[i];
+        // soc unused - unsigned u = _current_cell[i];
         _pt[i] = newOrig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
       }
     }

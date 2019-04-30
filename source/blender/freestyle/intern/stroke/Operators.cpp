@@ -278,7 +278,7 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
 
     Chain *new_chain = new Chain(id);
     ++id;
-#  if 0  //FIXME
+#  if 0  // FIXME
     ViewEdgeIterator it_back(it);
     --it_back;
 #  endif
@@ -841,7 +841,7 @@ static int __recursiveSplit(Chain *_curve,
   real _min = FLT_MAX;
   ++it;
   real mean = 0.f;
-  //soc unused - real variance                              = 0.0f;
+  // soc unused - real variance                              = 0.0f;
   unsigned count = 0;
   CurveInternal::CurvePointIterator next = it;
   ++next;
@@ -865,7 +865,7 @@ static int __recursiveSplit(Chain *_curve,
   }
   mean /= (float)count;
 
-  //if ((!bsplit) || (mean - _min > mean)) { // we didn't find any minimum
+  // if ((!bsplit) || (mean - _min > mean)) { // we didn't find any minimum
   if (!bsplit) {  // we didn't find any minimum
     newChains.push_back(_curve);
     return 0;
@@ -1210,7 +1210,7 @@ inline int applyShading(Stroke &stroke, vector<StrokeShader *> &shaders)
 
 int Operators::create(UnaryPredicate1D &pred, vector<StrokeShader *> shaders)
 {
-  //Canvas* canvas = Canvas::getInstance();
+  // Canvas* canvas = Canvas::getInstance();
   if (!_current_set) {
     cerr << "Warning: current set empty" << endl;
     return 0;
@@ -1229,7 +1229,7 @@ int Operators::create(UnaryPredicate1D &pred, vector<StrokeShader *> shaders)
         delete stroke;
         goto error;
       }
-      //canvas->RenderStroke(stroke);
+      // canvas->RenderStroke(stroke);
       new_strokes_set.push_back(stroke);
     }
   }

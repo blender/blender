@@ -113,7 +113,7 @@ static real crossP(const Vec2r &A, const Vec2r &B)
 
 void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
 {
-  //computeParameterization();
+  // computeParameterization();
   if (iStrokeVertices.size() < 2) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Warning: strip has less than 2 vertices" << endl;
@@ -134,11 +134,11 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
   StrokeVertex *sv, *sv2, *svPrev;
   int orientationErrors = 0;
 
-  //special case of first vertex
+  // special case of first vertex
   v2 = v = iStrokeVertices.begin();
   ++v2;
   sv = *v;
-  vPrev = v;  //in case the stroke has only 2 vertices;
+  vPrev = v;  // in case the stroke has only 2 vertices;
   sv2 = *v2;
   Vec2r dir(sv2->getPoint() - sv->getPoint());
   Vec2r orthDir(-dir[1], dir[0]);
@@ -195,7 +195,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     svPrev = (*vPrev);
     Vec2r p(sv->getPoint()), p2(sv2->getPoint()), pPrev(svPrev->getPoint());
 
-    //direction and orthogonal vector to the next segment
+    // direction and orthogonal vector to the next segment
     Vec2r dir(p2 - p);
     float dirNorm = dir.norm();
     dir.normalize();
@@ -215,7 +215,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
       }
     }
 
-    //direction and orthogonal vector to the previous segment
+    // direction and orthogonal vector to the previous segment
     Vec2r dirPrev(p - pPrev);
     float dirPrevNorm = dirPrev.norm();
     dirPrev.normalize();
@@ -287,7 +287,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     }
   }  // end of for
 
-  //special case of last vertex
+  // special case of last vertex
   sv = *v;
   sv2 = *vPrev;
   dir = Vec2r(sv->getPoint() - sv2->getPoint());
@@ -342,7 +342,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
 #endif
 
   _averageThickness /= float(iStrokeVertices.size() - 2);
-  //I did not use the first and last vertex for the average
+  // I did not use the first and last vertex for the average
   if (iStrokeVertices.size() < 3)
     _averageThickness = 0.5 * (thicknessLast[1] + thicknessLast[0] + thickness[0] + thickness[1]);
 
@@ -379,7 +379,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
     }
   }
 
-  //return;
+  // return;
   if (iStrokeVertices.size() < 2)
     return;
   int i = 0, j;
@@ -389,7 +389,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
   bool singu1 = false, singu2 = false;
   int timeSinceSingu1 = 0, timeSinceSingu2 = 0;
 
-  //special case of first vertex
+  // special case of first vertex
   v = iStrokeVertices.begin();
   for (vend = iStrokeVertices.end(); v != vend; v++) {
     v2 = v;
@@ -416,7 +416,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
         int toto = i - timeSinceSingu1;
         if (toto < 0)
           cerr << "Stephane dit \"Toto\"" << endl;
-        //traverse all the vertices of the singularity and average them
+        // traverse all the vertices of the singularity and average them
         Vec2r avP(0.0, 0.0);
         for (j = i - timeSinceSingu1; j <= i; j++)
           avP = Vec2r(avP + _vertices[2 * j]->point2d());
@@ -437,7 +437,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
         int toto = i - timeSinceSingu2;
         if (toto < 0)
           cerr << "Stephane dit \"Toto\"" << endl;
-        //traverse all the vertices of the singularity and average them
+        // traverse all the vertices of the singularity and average them
         Vec2r avP(0.0, 0.0);
         for (j = i - timeSinceSingu2; j <= i; j++)
           avP = Vec2r(avP + _vertices[2 * j + 1]->point2d());
@@ -453,7 +453,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
   }
 
   if (singu1) {
-    //traverse all the vertices of the singularity and average them
+    // traverse all the vertices of the singularity and average them
     Vec2r avP(0.0, 0.0);
     for (j = i - timeSinceSingu1; j < i; j++)
       avP = Vec2r(avP + _vertices[2 * j]->point2d());
@@ -462,7 +462,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
       _vertices[2 * j]->setPoint2d(avP);
   }
   if (singu2) {
-    //traverse all the vertices of the singularity and average them
+    // traverse all the vertices of the singularity and average them
     Vec2r avP(0.0, 0.0);
     for (j = i - timeSinceSingu2; j < i; j++)
       avP = Vec2r(avP + _vertices[2 * j + 1]->point2d());
@@ -760,7 +760,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 
 StrokeRep::StrokeRep(const StrokeRep &iBrother)
 {
-  //soc unused - int i = 0;
+  // soc unused - int i = 0;
   _stroke = iBrother._stroke;
   _strokeType = iBrother._strokeType;
   _textureId = iBrother._textureId;

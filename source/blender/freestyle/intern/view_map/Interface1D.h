@@ -42,24 +42,28 @@ using namespace std;
 namespace Freestyle {
 
 // Integration method
-/*! The different integration methods that can be invoked to integrate into a single value the set of values obtained
- *  from each 0D element of a 1D element.
+/*! The different integration methods that can be invoked to integrate into a single value the set
+ * of values obtained from each 0D element of a 1D element.
  */
 typedef enum {
-  MEAN, /*!< The value computed for the 1D element is the mean of the values obtained for the 0D elements.*/
-  MIN, /*!< The value computed for the 1D element is the minimum of the values obtained for the 0D elements.*/
-  MAX, /*!< The value computed for the 1D element is the maximum of the values obtained for the 0D elements.*/
-  FIRST, /*!< The value computed for the 1D element is the first of the values obtained for the 0D elements.*/
-  LAST, /*!< The value computed for the 1D element is the last of the values obtained for the 0D elements.*/
+  MEAN, /*!< The value computed for the 1D element is the mean of the values obtained for the 0D
+           elements.*/
+  MIN,  /*!< The value computed for the 1D element is the minimum of the values obtained for the 0D
+           elements.*/
+  MAX,  /*!< The value computed for the 1D element is the maximum of the values obtained for the 0D
+           elements.*/
+  FIRST, /*!< The value computed for the 1D element is the first of the values obtained for the 0D
+            elements.*/
+  LAST,  /*!< The value computed for the 1D element is the last of the values obtained for the 0D
+            elements.*/
 } IntegrationType;
 
 /*! Returns a single value from a set of values evaluated at each 0D element of this 1D element.
  * \param fun:
  *    The UnaryFunction0D used to compute a value at each Interface0D.
  * \param it:
- *    The Interface0DIterator used to iterate over the 0D elements of this 1D element. The integration will occur
- *    over the 0D elements starting from the one pointed by it.
- * \param it_end:
+ *    The Interface0DIterator used to iterate over the 0D elements of this 1D element. The
+ * integration will occur over the 0D elements starting from the one pointed by it. \param it_end:
  *    The Interface0DIterator pointing the end of the 0D elements of the 1D element.
  * \param integration_type:
  *    The integration method used to compute a single value from a set of values.
@@ -148,19 +152,17 @@ class Interface1D {
   /*! Returns an iterator over the Interface1D vertices, pointing after the last vertex. */
   virtual Interface0DIterator verticesEnd();
 
-  /*! Returns an iterator over the Interface1D points, pointing to the first point. The difference with
-   *  verticesBegin() is that here we can iterate over points of the 1D element at a any given sampling.
-   *  Indeed, for each iteration, a virtual point is created.
-   *  \param t:
-   *    The sampling with which we want to iterate over points of this 1D element.
+  /*! Returns an iterator over the Interface1D points, pointing to the first point. The difference
+   * with verticesBegin() is that here we can iterate over points of the 1D element at a any given
+   * sampling. Indeed, for each iteration, a virtual point is created. \param t: The sampling with
+   * which we want to iterate over points of this 1D element.
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an iterator over the Interface1D points, pointing after the last point. The difference with
-   *  verticesEnd() is that here we can iterate over points of the 1D element at a any given sampling.
-   *  Indeed, for each iteration, a virtual point is created.
-   *  \param t:
-   *    The sampling with which we want to iterate over points of this 1D element.
+  /*! Returns an iterator over the Interface1D points, pointing after the last point. The
+   * difference with verticesEnd() is that here we can iterate over points of the 1D element at a
+   * any given sampling. Indeed, for each iteration, a virtual point is created. \param t: The
+   * sampling with which we want to iterate over points of this 1D element.
    */
   virtual Interface0DIterator pointsEnd(float t = 0.0f);
 

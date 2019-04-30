@@ -124,7 +124,7 @@ static PyObject *UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVect
   return list;
 }
 
-/*-----------------------BPy_UnaryFunction0DVectorViewShape type definition ------------------------------*/
+/*-----------------------BPy_UnaryFunction0DVectorViewShape type definition ---------------------*/
 
 PyTypeObject UnaryFunction0DVectorViewShape_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "UnaryFunction0DVectorViewShape", /* tp_name */

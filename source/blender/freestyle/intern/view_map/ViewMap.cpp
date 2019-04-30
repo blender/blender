@@ -155,8 +155,8 @@ TVertex *ViewMap::CreateTVertex(const Vec3r &iA3D,
   SVertex *Ia = shapeA->CreateSVertex(iA3D, iA2D, iFEdgeA->vertexA()->getId());
   SVertex *Ib = shapeB->CreateSVertex(iB3D, iB2D, iFEdgeB->vertexA()->getId());
 
-  // depending on which of these 2 svertices is the nearest from the viewpoint, we're going to build the TVertex
-  // by giving them in an order or another (the first one must be the nearest)
+  // depending on which of these 2 svertices is the nearest from the viewpoint, we're going to
+  // build the TVertex by giving them in an order or another (the first one must be the nearest)
   real dista = Ia->point2D()[2];
   real distb = Ib->point2D()[2];
 
@@ -185,8 +185,8 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
   NonTVertex *vva = dynamic_cast<NonTVertex *>(iVertex->viewvertex());
   if (vva)
     return vva;
-  // because it is not already a ViewVertex, this SVertex must have only 2 FEdges. The incoming one still belongs
-  // to ioEdge, the outgoing one now belongs to newVEdge
+  // because it is not already a ViewVertex, this SVertex must have only 2 FEdges. The incoming one
+  // still belongs to ioEdge, the outgoing one now belongs to newVEdge
   const vector<FEdge *> &fedges = iVertex->fedges();
   if (fedges.size() != 2) {
     cerr << "ViewMap warning: Can't split the ViewEdge" << endl;
@@ -235,7 +235,7 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
     ViewEdge *newVEdge = new ViewEdge(vva, ioEdge->B(), fbegin, ioEdge->fedgeB(), vshape);
     newVEdge->setId(Id(ioEdge->getId().getFirst(), ioEdge->getId().getSecond() + 1));
     newVEdge->setNature(ioEdge->getNature());
-    //newVEdge->UpdateFEdges(); // done in the ViewEdge constructor
+    // newVEdge->UpdateFEdges(); // done in the ViewEdge constructor
     // Update old ViewEdge
     ioEdge->setB(vva);
     ioEdge->setFEdgeB(fend);
@@ -253,7 +253,7 @@ ViewVertex *ViewMap::InsertViewVertex(SVertex *iVertex, vector<ViewEdge *> &newV
       vvb->Replace(ioEdge, newVEdge);
 
     // update ViewShape
-    //vshape->AddEdge(newVEdge);
+    // vshape->AddEdge(newVEdge);
     // update SShape
     vshape->sshape()->AddChain(fbegin);
     // update ViewMap
@@ -421,25 +421,27 @@ void TVertex::Replace(ViewEdge *iOld, ViewEdge *iNew)
 /*! iterators access */
 ViewVertex::edge_iterator TVertex::edges_begin()
 {
-  //return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, _FrontEdgeA);
+  // return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, _FrontEdgeA);
   return edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), _sortedEdges.begin());
 }
 
 ViewVertex::const_edge_iterator TVertex::edges_begin() const
 {
-  //return const_edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, _FrontEdgeA);
+  // return const_edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, _FrontEdgeA);
   return const_edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), _sortedEdges.begin());
 }
 
 ViewVertex::edge_iterator TVertex::edges_end()
 {
-  //return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, directedViewEdge(0,true));
+  // return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB,
+  // directedViewEdge(0,true));
   return edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), _sortedEdges.end());
 }
 
 ViewVertex::const_edge_iterator TVertex::edges_end() const
 {
-  //return const_edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, directedViewEdge(0, true));
+  // return const_edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB,
+  // directedViewEdge(0, true));
   return const_edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), _sortedEdges.end());
 }
 

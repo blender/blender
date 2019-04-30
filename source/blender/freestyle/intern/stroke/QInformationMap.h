@@ -38,7 +38,7 @@ class QInformationMap : public InformationMap {
   QInformationMap(const QInformationMap &);
   QInformationMap &operator=(const QInformationMap &);
 
-  //float getSmoothedPixel(int x, int y, float sigma = 0.2f);1
+  // float getSmoothedPixel(int x, int y, float sigma = 0.2f);1
   virtual float getMean(int x, int y);
   virtual void retrieveMeanAndVariance(int x, int y, float &oMean, float &oVariance);
 

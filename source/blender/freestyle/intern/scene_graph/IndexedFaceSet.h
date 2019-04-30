@@ -99,13 +99,11 @@ class IndexedFaceSet : public Rep {
    *    iMISize
    *      The size of iMIndices
    *    iTIndices
-   *      The Texture coordinates indices (per vertex). The integers contained in this array must be multiple of 2.
-   *    iTISize
-   *      The size of iMIndices
-   *    iCopy
-   *      0 : the arrays are not copied. The pointers passed as arguments are used. IndexedFaceSet takes these
-   *          arrays desallocation in charge.
-   *      1 : the arrays are copied. The caller is in charge of the arrays, passed as arguments desallocation.
+   *      The Texture coordinates indices (per vertex). The integers contained in this array must
+   * be multiple of 2. iTISize The size of iMIndices iCopy 0 : the arrays are not copied. The
+   * pointers passed as arguments are used. IndexedFaceSet takes these arrays desallocation in
+   * charge. 1 : the arrays are copied. The caller is in charge of the arrays, passed as arguments
+   * desallocation.
    */
   IndexedFaceSet(float *iVertices,
                  unsigned iVSize,

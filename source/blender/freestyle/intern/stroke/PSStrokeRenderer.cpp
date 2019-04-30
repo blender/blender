@@ -70,8 +70,8 @@ void PSStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
       svRep[2] = *(v[2]);
 
       color[0] = svRep[0]->color();
-      //color[1] = svRep[1]->color();
-      //color[2] = svRep[2]->color();
+      // color[1] = svRep[1]->color();
+      // color[2] = svRep[2]->color();
 
       _ofstream << "newpath" << endl;
       _ofstream << (color[0])[0] << " " << (color[0])[1] << " " << (color[0])[2] << " setrgbcolor"

@@ -31,8 +31,8 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool orientation=true)
-// ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
+// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool
+// orientation=true) ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
              "Class hierarchy: :class:`freestyle.types.Iterator` >\n"
@@ -117,7 +117,7 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
   return 0;
 }
 
-/*-----------------------BPy_ChainSilhouetteIterator type definition ------------------------------*/
+/*-----------------------BPy_ChainSilhouetteIterator type definition ----------------------------*/
 
 PyTypeObject ChainSilhouetteIterator_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "ChainSilhouetteIterator", /* tp_name */

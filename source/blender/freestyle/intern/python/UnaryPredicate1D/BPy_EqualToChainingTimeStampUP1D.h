@@ -34,7 +34,8 @@ extern PyTypeObject EqualToChainingTimeStampUP1D_Type;
 #define BPy_EqualToChainingTimeStampUP1D_Check(v) \
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&EqualToChainingTimeStampUP1D_Type))
 
-/*---------------------------Python BPy_EqualToChainingTimeStampUP1D structure definition----------*/
+/*---------------------------Python BPy_EqualToChainingTimeStampUP1D structure
+ * definition----------*/
 typedef struct {
   BPy_UnaryPredicate1D py_up1D;
 } BPy_EqualToChainingTimeStampUP1D;

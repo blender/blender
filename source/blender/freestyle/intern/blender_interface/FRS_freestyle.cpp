@@ -384,9 +384,10 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
             bool logical_and = ((lineset->flags & FREESTYLE_LINESET_FE_AND) != 0);
             // negation operator
             if (lineset->flags & FREESTYLE_LINESET_FE_NOT) {
-              // convert an Exclusive condition into an Inclusive equivalent using De Morgan's laws:
-              //   NOT (X OR Y) --> (NOT X) AND (NOT Y)
-              //   NOT (X AND Y) --> (NOT X) OR (NOT Y)
+              // convert an Exclusive condition into an
+              // Inclusive equivalent using De Morgan's laws:
+              // - NOT (X OR Y) --> (NOT X) AND (NOT Y)
+              // - NOT (X AND Y) --> (NOT X) OR (NOT Y)
               for (int i = 0; i < num_edge_types; i++)
                 conditions[i].value *= -1;
               logical_and = !logical_and;

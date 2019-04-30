@@ -126,8 +126,8 @@ class Transform {
 
 inline bool insideProscenium(const real proscenium[4], const Polygon3r &polygon)
 {
-  // N.B. The bounding box check is redundant for inserting occluders into cells, because the cell selection code
-  // in insertOccluders has already guaranteed that the bounding boxes will overlap.
+  // N.B. The bounding box check is redundant for inserting occluders into cells, because the cell
+  // selection code in insertOccluders has already guaranteed that the bounding boxes will overlap.
   // First check the viewport edges, since they are the easiest case
   // Check if the bounding box is entirely outside the proscenium
   Vec3r bbMin, bbMax;
