@@ -1655,7 +1655,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   if (op && (prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
     if (RNA_property_is_set(op->ptr, prop)) {
       int proportional = 0;
-      if (RNA_boolean_get(op->ptr, "use_proportional_edit")) {
+      if (RNA_property_boolean_get(op->ptr, prop)) {
         proportional |= PROP_EDIT_USE;
         if (RNA_boolean_get(op->ptr, "use_proportional_connected")) {
           proportional |= PROP_EDIT_CONNECTED;
