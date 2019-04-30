@@ -475,7 +475,7 @@ bool UI_block_is_empty(const uiBlock *block)
 
 bool UI_block_can_add_separator(const uiBlock *block)
 {
-  if (ui_block_is_menu(block)) {
+  if (ui_block_is_menu(block) && !ui_block_is_pie_menu(block)) {
     const uiBut *but = block->buttons.last;
     return (but && !ELEM(but->type, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR));
   }
