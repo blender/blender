@@ -1066,7 +1066,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
              0,
              "");
     UI_block_align_begin(block);
-    const float lim = 10000;
+    const float lim = FLT_MAX;
     for (int i = 0; i < 3; i++) {
       uiBut *but;
       char text[3] = {'X' + i, ':', '\0'};
