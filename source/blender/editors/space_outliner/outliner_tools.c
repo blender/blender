@@ -283,13 +283,22 @@ static void unlink_collection_cb(bContext *C,
 static void unlink_object_cb(bContext *C,
                              ReportList *UNUSED(reports),
                              Scene *UNUSED(scene),
-                             TreeElement *UNUSED(te),
+                             TreeElement *te,
                              TreeStoreElem *tsep,
                              TreeStoreElem *tselem,
                              void *UNUSED(user_data))
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = (Object *)tselem->id;
+
+  if (GS(tsep->id->name) == ID_OB) {
+    /* Parented objects need to find which collection to unlink from. */
+    TreeElement *te_parent = te->parent;
+    while (tsep && GS(tsep->id->name) == ID_OB) {
+      te_parent = te_parent->parent;
+      tsep = te_parent ? TREESTORE(te_parent) : NULL;
+    }
+  }
 
   if (tsep) {
     if (GS(tsep->id->name) == ID_GR) {
