@@ -271,7 +271,7 @@ void ED_operatormacros_object(void)
   if (ot) {
     WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
     otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-    RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
+    RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   }
 
   /* grr, should be able to pass options on... */
@@ -283,7 +283,7 @@ void ED_operatormacros_object(void)
     otmacro = WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
     RNA_boolean_set(otmacro->ptr, "linked", true);
     otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-    RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
+    RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   }
 }
 

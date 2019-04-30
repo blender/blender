@@ -386,7 +386,7 @@ class GPENCIL_MT_pie_tool_palette(Menu):
                 row.operator("transform.resize", text="Scale", icon='MAN_SCALE')
                 row = col.row(align=True)
                 row.label(text="Proportional Edit:")
-                row.prop(context.tool_settings, "proportional_edit", text="", icon_only=True)
+                row.prop(context.tool_settings, "use_proportional_edit", text="", icon_only=True)
                 row.prop(context.tool_settings, "proportional_edit_falloff", text="", icon_only=True)
 
                 # NW - Select (Non-Modal)
@@ -808,7 +808,7 @@ class GreasePencilToolsPanel:
 
         layout.label(text="Proportional Edit:")
         row = layout.row()
-        row.prop(context.tool_settings, "proportional_edit", text="")
+        row.prop(context.tool_settings, "use_proportional_edit", text="")
         row.prop(context.tool_settings, "proportional_edit_falloff", text="")
 
         layout.separator()

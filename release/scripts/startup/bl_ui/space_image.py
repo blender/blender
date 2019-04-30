@@ -265,20 +265,6 @@ class IMAGE_MT_uvs_showhide(Menu):
         layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 
-class IMAGE_MT_uvs_proportional(Menu):
-    bl_label = "Proportional Editing"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.props_enum(context.tool_settings, "proportional_edit")
-
-        layout.separator()
-
-        layout.label(text="Falloff:")
-        layout.props_enum(context.tool_settings, "proportional_edit_falloff")
-
-
 class IMAGE_MT_uvs_transform(Menu):
     bl_label = "Transform"
 
@@ -538,10 +524,9 @@ class IMAGE_HT_tool_header(Header):
 
             # Proportional Editing
             row = layout.row(align=True)
-            row.prop(tool_settings, "proportional_edit", icon_only=True)
-            # if tool_settings.proportional_edit != 'DISABLED':
+            row.prop(tool_settings, "use_proportional_edit", icon_only=True)
             sub = row.row(align=True)
-            sub.active = tool_settings.proportional_edit != 'DISABLED'
+            sub.active = tool_settings.use_proportional_edit
             sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         layout.separator_spacer()
@@ -1588,7 +1573,6 @@ classes = (
     IMAGE_MT_image_invert,
     IMAGE_MT_uvs,
     IMAGE_MT_uvs_showhide,
-    IMAGE_MT_uvs_proportional,
     IMAGE_MT_uvs_transform,
     IMAGE_MT_uvs_snap,
     IMAGE_MT_uvs_mirror,

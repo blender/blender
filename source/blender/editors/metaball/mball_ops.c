@@ -59,7 +59,7 @@ void ED_operatormacros_metaball(void)
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "MBALL_OT_duplicate_metaelems");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
 void ED_keymap_metaball(wmKeyConfig *keyconf)

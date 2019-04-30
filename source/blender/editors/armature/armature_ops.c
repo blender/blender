@@ -161,7 +161,7 @@ void ED_operatormacros_armature(void)
       OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 
   ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_move",
                                     "Extrude",
@@ -170,7 +170,7 @@ void ED_operatormacros_armature(void)
   otmacro = WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
   RNA_boolean_set(otmacro->ptr, "forked", false);
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 
   /* XXX would it be nicer to just be able to have standard extrude_move,
    * but set the forked property separate?
@@ -182,7 +182,7 @@ void ED_operatormacros_armature(void)
   otmacro = WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
   RNA_boolean_set(otmacro->ptr, "forked", true);
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
 void ED_keymap_armature(wmKeyConfig *keyconf)

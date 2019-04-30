@@ -2101,20 +2101,16 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  /* convert flag to enum */
-  switch (t->flag & T_PROP_EDIT_ALL) {
-    case T_PROP_EDIT:
-      proportional = PROP_EDIT_ON;
-      break;
-    case (T_PROP_EDIT | T_PROP_CONNECTED):
-      proportional = PROP_EDIT_CONNECTED;
-      break;
-    case (T_PROP_EDIT | T_PROP_PROJECTED):
-      proportional = PROP_EDIT_PROJECTED;
-      break;
-    default:
-      proportional = PROP_EDIT_OFF;
-      break;
+  if (t->flag & T_PROP_EDIT_ALL) {
+    if (t->flag & T_PROP_EDIT) {
+      proportional |= PROP_EDIT_USE;
+    }
+    if (t->flag & T_PROP_CONNECTED) {
+      proportional |= PROP_EDIT_CONNECTED;
+    }
+    if (t->flag & T_PROP_PROJECTED) {
+      proportional |= PROP_EDIT_PROJECTED;
+    }
   }
 
   // If modal, save settings back in scene if not set as operator argument
@@ -2123,7 +2119,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
     /* skip saving proportional edit if it was not actually used */
     if (!(t->options & CTX_NO_PET)) {
-      if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
+      if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
         if (t->spacetype == SPACE_GRAPH) {
           ts->proportional_fcurve = proportional;
@@ -2132,13 +2128,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           ts->proportional_action = proportional;
         }
         else if (t->obedit_type != -1) {
-          ts->proportional = proportional;
+          ts->proportional_edit = proportional;
         }
         else if (t->options & CTX_MASK) {
-          ts->proportional_mask = (proportional != PROP_EDIT_OFF);
+          ts->proportional_mask = proportional != 0;
         }
         else {
-          ts->proportional_objects = (proportional != PROP_EDIT_OFF);
+          ts->proportional_objects = proportional != 0;
         }
       }
 

@@ -148,22 +148,6 @@ const EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_proportional_editing_items[] = {
-    {PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
-    {PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
-    {PROP_EDIT_PROJECTED,
-     "PROJECTED",
-     ICON_PROP_PROJECTED,
-     "Projected (2D)",
-     "Proportional Editing using screen space locations"},
-    {PROP_EDIT_CONNECTED,
-     "CONNECTED",
-     ICON_PROP_CON,
-     "Connected",
-     "Proportional Editing using connected geometry only"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 /* keep for operators, not used here */
 const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
     {SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
@@ -2798,19 +2782,29 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   /* Transform */
-  prop = RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "proportional");
-  RNA_def_property_enum_items(prop, rna_enum_proportional_editing_items);
-  RNA_def_property_ui_text(prop,
-                           "Proportional Editing",
-                           "Proportional Editing mode, allows transforms with distance fall-off");
+  prop = RNA_def_property(srna, "use_proportional_edit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "proportional_edit", PROP_EDIT_USE);
+  RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional edit mode");
+  RNA_def_property_ui_icon(prop, ICON_PROP_ON, 0);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "use_proportional_edit_objects", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "proportional_objects", 0);
   RNA_def_property_ui_text(
       prop, "Proportional Editing Objects", "Proportional editing object mode");
-  RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
+  RNA_def_property_ui_icon(prop, ICON_PROP_ON, 0);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+  prop = RNA_def_property(srna, "use_proportional_projected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "proportional_edit", PROP_EDIT_PROJECTED);
+  RNA_def_property_ui_text(
+      prop, "Projected from View", "Proportional Editing using screen space locations");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+  prop = RNA_def_property(srna, "use_proportional_connected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "proportional_edit", PROP_EDIT_CONNECTED);
+  RNA_def_property_ui_text(
+      prop, "Connected Only", "Proportional Editing using connected geometry only");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "use_proportional_edit_mask", PROP_BOOLEAN, PROP_NONE);

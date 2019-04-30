@@ -147,7 +147,7 @@ void ED_operatormacros_curve(void)
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "CURVE_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 
   ot = WM_operatortype_append_macro("CURVE_OT_extrude_move",
@@ -156,7 +156,7 @@ void ED_operatormacros_curve(void)
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_enum_set(otmacro->ptr, "proportional", 0);
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 

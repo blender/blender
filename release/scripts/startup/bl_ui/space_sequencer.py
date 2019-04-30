@@ -125,8 +125,8 @@ class SEQUENCER_HT_header(Header):
             # Proportional editing
             if gpd and gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)
-                row.prop(tool_settings, "proportional_edit", icon_only=True)
-                if tool_settings.proportional_edit != 'DISABLED':
+                row.prop(tool_settings, "use_proportional_edit", icon_only=True)
+                if tool_settings.use_proportional_edit:
                     row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
 
