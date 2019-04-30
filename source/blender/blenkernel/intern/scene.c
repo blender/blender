@@ -1751,18 +1751,20 @@ void BKE_scene_base_flag_to_objects(ViewLayer *view_layer)
   }
 }
 
+/**
+ * Synchronize object base flags
+ *
+ * This is usually handled by the depsgraph.
+ * However, in rare occasions we need to use the latest object flags
+ * before depsgraph is fully updated.
+ *
+ * It should (ideally) only run for copy-on-written objects since this is
+ * runtime data generated per-viewlayer.
+ */
 void BKE_scene_object_base_flag_sync_from_base(Base *base)
 {
   Object *ob = base->object;
-
-  ob->flag = base->flag;
-
-  if ((base->flag & BASE_SELECTED) != 0) {
-    ob->flag |= SELECT;
-  }
-  else {
-    ob->flag &= ~SELECT;
-  }
+  ob->base_flag = base->flag;
 }
 
 void BKE_scene_disable_color_management(Scene *scene)
