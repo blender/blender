@@ -1406,24 +1406,10 @@ static void mouse_graph_keys(bAnimContext *ac,
   /* find the beztriple that we're selecting, and the handle that was clicked on */
   nvi = find_nearest_fcurve_vert(ac, mval);
 
-  /* check if anything to select */
-  if (nvi == NULL) {
-    if (deselect_all) {
-      /* Deselect all keyframes (+ F-Curves too). */
-      deselect_graph_keys(ac, 0, SELECT_SUBTRACT, true);
-
-      /* Deselect other channels too, but only do this if selection of channel when
-       * the visibility of keyframes doesn't depend on this.
-       */
-      if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
-        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-      }
-    }
-    return;
-  }
-
-  /* deselect all other curves? */
-  if (select_mode == SELECT_REPLACE) {
+  /* For replacing selection, if we have something to select, we have to clear existing selection.
+   * The same goes if we found nothing to select, and deselect_all is true
+   * (deselect on nothing behavior). */
+  if ((nvi != NULL && select_mode == SELECT_REPLACE) || (nvi == NULL && deselect_all)) {
     /* reset selection mode */
     select_mode = SELECT_ADD;
 
@@ -1437,6 +1423,10 @@ static void mouse_graph_keys(bAnimContext *ac,
     if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
       ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
     }
+  }
+
+  if (nvi == NULL) {
+    return;
   }
 
   /* if points can be selected on this F-Curve */
