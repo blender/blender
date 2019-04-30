@@ -140,8 +140,9 @@ typedef Eigen::SparseMatrix<Scalar> lMatrix;
 
 /* Constructor type that provides more convenient handling of Eigen triplets
  * for efficient construction of sparse 3x3 block matrices.
- * This should be used for building lMatrix instead of writing to such lMatrix directly (which is very inefficient).
- * After all elements have been defined using the set() method, the actual matrix can be filled using construct().
+ * This should be used for building lMatrix instead of writing to such lMatrix directly (which is
+ * very inefficient). After all elements have been defined using the set() method, the actual
+ * matrix can be filled using construct().
  */
 struct lMatrix3fCtor {
   lMatrix3fCtor()

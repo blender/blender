@@ -31,9 +31,11 @@ namespace internal {
  * \param rhs: The right hand side vector b
  * \param x: On input and initial solution, on output the computed solution.
  * \param precond: A preconditioner being able to efficiently solve for an
- *                approximation of Ax=b (regardless of b)
- * \param iters: On input the max number of iteration, on output the number of performed iterations.
- * \param tol_error: On input the tolerance error, on output an estimation of the relative error.
+ * approximation of Ax=b (regardless of b)
+ * \param iters: On input the max number of iteration,
+ * on output the number of performed iterations.
+ * \param tol_error: On input the tolerance error,
+ * on output an estimation of the relative error.
  */
 template<typename MatrixType,
          typename Rhs,
@@ -59,7 +61,7 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
   int n = mat.cols();
 
-  VectorType residual = filter * (rhs - mat * x);  //initial residual
+  VectorType residual = filter * (rhs - mat * x);  // initial residual
 
   RealScalar rhsNorm2 = (filter * rhs).squaredNorm();
   if (rhsNorm2 == 0) {
@@ -78,7 +80,7 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
   }
 
   VectorType p(n);
-  p = filter * precond.solve(residual);  //initial search direction
+  p = filter * precond.solve(residual);  // initial search direction
 
   VectorType z(n), tmp(n);
   RealScalar absNew = numext::real(
@@ -157,17 +159,18 @@ struct traits<
 /** \ingroup IterativeLinearSolvers_Module
  * \brief A conjugate gradient solver for sparse self-adjoint problems with additional constraints
  *
- * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
- * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
+ * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient
+ * algorithm. The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or
+ * sparse.
  *
  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
  *               or Upper. Default is Lower.
  * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
  *
- * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
- * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
- * and NumTraits<Scalar>::epsilon() for the tolerance.
+ * The maximal number of iterations and tolerance value can be controlled via the
+ * setMaxIterations() and setTolerance() methods. The defaults are the size of the problem for the
+ * maximal number of iterations and NumTraits<Scalar>::epsilon() for the tolerance.
  *
  * This class can be used as the direct solver classes. Here is a typical usage example:
  * \code

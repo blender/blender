@@ -766,7 +766,9 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
   }
 }
 
-#  if 0 /* this version of the CG algorithm does not work very well with partial constraints (where S has non-zero elements) */
+/* this version of the CG algorithm does not work very well with partial constraints
+ * (where S has non-zero elements). */
+#  if 0
 static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
   // Solves for unknown X in equation AX=B
@@ -1455,7 +1457,8 @@ static float calc_nor_area_tri(float nor[3],
   return normalize_v3(nor);
 }
 
-/* XXX does not support force jacobians yet, since the effector system does not provide them either */
+/* XXX does not support force jacobians yet, since the effector system does not provide them either
+ */
 void BPH_mass_spring_force_face_wind(
     Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
@@ -1538,7 +1541,7 @@ void BPH_mass_spring_force_vertex_wind(Implicit_Data *data,
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
 {
   // dir is unit length direction, rest is spring's restlength, k is spring constant.
-  //return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
+  // return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
   outerproduct(to, dir, dir);
   sub_m3_m3m3(to, I, to);
 
@@ -1699,7 +1702,8 @@ bool BPH_mass_spring_force_spring_linear(Implicit_Data *data,
     dfdx_spring(dfdx, dir, length, restlen, stiffness_tension);
   }
   else if (new_compress) {
-    /* This is based on the Choi and Ko bending model, which works surprisingly well for compression. */
+    /* This is based on the Choi and Ko bending model,
+     * which works surprisingly well for compression. */
     float kb = stiffness_compression;
     float cb = kb; /* cb equal to kb seems to work, but a factor can be added if necessary */
 
@@ -1828,7 +1832,8 @@ BLI_INLINE void spring_angle(Implicit_Data *data,
   sub_v3_v3(r_vel_b, vel_e);
 }
 
-/* Angular springs roughly based on the bending model proposed by Baraff and Witkin in "Large Steps in Cloth Simulation". */
+/* Angular springs roughly based on the bending model proposed by Baraff and Witkin in "Large Steps
+ * in Cloth Simulation". */
 bool BPH_mass_spring_force_spring_angular(Implicit_Data *data,
                                           int i,
                                           int j,
