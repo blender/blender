@@ -591,6 +591,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
                                               datatoc_lit_surface_frag_glsl,
                                               datatoc_lit_surface_frag_glsl,
                                               datatoc_lit_surface_frag_glsl,
+                                              datatoc_lit_surface_frag_glsl,
                                               datatoc_volumetric_lib_glsl);
 
     e_data.volume_shader_lib = BLI_string_joinN(datatoc_common_view_lib_glsl,

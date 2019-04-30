@@ -3428,15 +3428,18 @@ void node_eevee_specular(vec4 diffuse,
                          out Closure result)
 {
   vec3 out_diff, out_spec, ssr_spec;
-  eevee_closure_default(normal,
-                        diffuse.rgb,
-                        specular.rgb,
-                        int(ssr_id),
-                        roughness,
-                        occlusion,
-                        out_diff,
-                        out_spec,
-                        ssr_spec);
+  eevee_closure_default_clearcoat(normal,
+                                  diffuse.rgb,
+                                  specular.rgb,
+                                  int(ssr_id),
+                                  roughness,
+                                  clearcoat_normal,
+                                  clearcoat * 0.25,
+                                  clearcoat_roughness,
+                                  occlusion,
+                                  out_diff,
+                                  out_spec,
+                                  ssr_spec);
 
   vec3 vN = normalize(mat3(ViewMatrix) * normal);
   result = CLOSURE_DEFAULT;

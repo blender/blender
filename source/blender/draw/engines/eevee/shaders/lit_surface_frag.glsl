@@ -44,6 +44,14 @@ uniform int hairThicknessRes = 1;
 #define CLOSURE_GLOSSY
 #endif /* SURFACE_DEFAULT */
 
+#if !defined(SURFACE_DEFAULT_CLEARCOAT) && !defined(CLOSURE_NAME)
+#define SURFACE_DEFAULT_CLEARCOAT
+#define CLOSURE_NAME eevee_closure_default_clearcoat
+#define CLOSURE_DIFFUSE
+#define CLOSURE_GLOSSY
+#define CLOSURE_CLEARCOAT
+#endif /* SURFACE_DEFAULT_CLEARCOAT */
+
 #if !defined(SURFACE_PRINCIPLED) && !defined(CLOSURE_NAME)
 #define SURFACE_PRINCIPLED
 #define CLOSURE_NAME eevee_closure_principled
