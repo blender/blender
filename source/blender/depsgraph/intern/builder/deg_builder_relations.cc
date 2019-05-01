@@ -2307,15 +2307,25 @@ void DepsgraphRelationBuilder::build_sequencer(Scene *scene)
   /* Make sure dependnecies from sequences data goes to the sequencer evaluation. */
   ComponentKey sequencer_key(&scene->id, NodeType::SEQUENCER);
   Sequence *seq;
+  bool has_audio_strips = false;
   SEQ_BEGIN (scene->ed, seq) {
     if (seq->sound != NULL) {
       build_sound(seq->sound);
       ComponentKey sound_key(&seq->sound->id, NodeType::AUDIO);
       add_relation(sound_key, sequencer_key, "Sound -> Sequencer");
+      has_audio_strips = true;
     }
     /* TODO(sergey): Movie clip, scene, camera, mask. */
   }
   SEQ_END;
+  if (has_audio_strips) {
+    ComponentKey scene_audio_key(&scene->id, NodeType::AUDIO);
+    add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
+  }
+}
+
+void DepsgraphRelationBuilder::build_scene_audio(Scene * /*scene*/)
+{
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

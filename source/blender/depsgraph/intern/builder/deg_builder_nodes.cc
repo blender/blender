@@ -1585,6 +1585,11 @@ void DepsgraphNodeBuilder::build_sequencer(Scene *scene)
   SEQ_END;
 }
 
+void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
+{
+  add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+}
+
 /* **** ID traversal callbacks functions **** */
 
 void DepsgraphNodeBuilder::modifier_walk(void *user_data,

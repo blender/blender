@@ -209,6 +209,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   void build_speaker(Speaker *speaker);
   void build_sound(bSound *sound);
   void build_sequencer(Scene *scene);
+  void build_scene_audio(Scene *scene);
 
   /* Per-ID information about what was already in the dependency graph.
    * Allows to re-use certain values, to speed up following evaluation. */

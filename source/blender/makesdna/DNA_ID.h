@@ -608,6 +608,10 @@ typedef enum IDRecalcFlag {
    * Use this tag with a scene ID which owns the sequences. */
   ID_RECALC_SEQUENCER = (1 << 14),
 
+  /* Frame changed in a way that caused audio jump.
+   * Use this on a scene ID. */
+  ID_RECALC_AUDIO_JUMP = (1 << 15),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */
