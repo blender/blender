@@ -38,8 +38,8 @@ extern "C" {
  * and used as is into any tool, program or plugin.
  * The code is designed to consistently generate the same
  * tangent spaces, for a given mesh, in any tool in which it is used.
- * This is done by performing an internal welding step and subsequently an order-independent evaluation
- * of tangent space for meshes consisting of triangles and quads.
+ * This is done by performing an internal welding step and subsequently an order-independent
+ * evaluation of tangent space for meshes consisting of triangles and quads.
  * This means faces can be received in any order and the same is true for
  * the order of vertices of each face. The generated result will not be affected
  * by such reordering. Additionally, whether degenerate (vertices or texture coordinates)
@@ -88,10 +88,12 @@ typedef struct {
 
   // This function is used to return the tangent and fSign to the application.
   // fvTangent is a unit length vector.
-  // For normal maps it is sufficient to use the following simplified version of the bitangent which is generated at pixel/vertex level.
+  // For normal maps it is sufficient to use the following simplified version of the bitangent
+  // which is generated at pixel/vertex level.
   // bitangent = fSign * cross(vN, tangent);
   // Note that the results are returned unindexed. It is possible to generate a new index list
-  // But averaging/overwriting tangent spaces by using an already existing index list WILL produce INCRORRECT results.
+  // But averaging/overwriting tangent spaces by using an already existing index list WILL produce
+  // INCRORRECT results.
   // DO NOT! use an already existing index list.
   void (*m_setTSpaceBasic)(const SMikkTSpaceContext *pContext,
                            const float fvTangent[],
@@ -104,12 +106,13 @@ typedef struct {
   // true magnitudes which can be used for relief mapping effects.
   // fvBiTangent is the "real" bitangent and thus may not be perpendicular to fvTangent.
   // However, both are perpendicular to the vertex normal.
-  // For normal maps it is sufficient to use the following simplified version of the bitangent which is generated at pixel/vertex level.
+  // For normal maps it is sufficient to use the following simplified version of the bitangent
+  // which is generated at pixel/vertex level.
   // fSign = bIsOrientationPreserving ? 1.0f : (-1.0f);
   // bitangent = fSign * cross(vN, tangent);
   // Note that the results are returned unindexed. It is possible to generate a new index list
-  // But averaging/overwriting tangent spaces by using an already existing index list WILL produce INCRORRECT results.
-  // DO NOT! use an already existing index list.
+  // But averaging/overwriting tangent spaces by using an already existing index list WILL produce
+  // INCRORRECT results. DO NOT! use an already existing index list.
   void (*m_setTSpace)(const SMikkTSpaceContext *pContext,
                       const float fvTangent[],
                       const float fvBiTangent[],
@@ -121,26 +124,27 @@ typedef struct {
 } SMikkTSpaceInterface;
 
 struct SMikkTSpaceContext {
-  SMikkTSpaceInterface *m_pInterface;  // initialized with callback functions
-  void *
-      m_pUserData;  // pointer to client side mesh data etc. (passed as the first parameter with every interface call)
+  // initialized with callback functions
+  SMikkTSpaceInterface *m_pInterface;
+  // pointer to client side mesh data etc.
+  // (passed as the first parameter with every interface call)
+  void *m_pUserData;
 };
 
 // these are both thread safe!
-tbool genTangSpaceDefault(
-    const SMikkTSpaceContext *
-        pContext);  // Default (recommended) fAngularThreshold is 180 degrees (which means threshold disabled)
+// Default (recommended) fAngularThreshold is 180 degrees (which means threshold disabled)
+tbool genTangSpaceDefault(const SMikkTSpaceContext *pContext);
 tbool genTangSpace(const SMikkTSpaceContext *pContext, const float fAngularThreshold);
 
-// To avoid visual errors (distortions/unwanted hard edges in lighting), when using sampled normal maps, the
-// normal map sampler must use the exact inverse of the pixel shader transformation.
-// The most efficient transformation we can possibly do in the pixel shader is
-// achieved by using, directly, the "unnormalized" interpolated tangent, bitangent and vertex normal: vT, vB and vN.
+// To avoid visual errors (distortions/unwanted hard edges in lighting), when using sampled normal
+// maps, the normal map sampler must use the exact inverse of the pixel shader transformation.
+// The most efficient transformation we can possibly do in the pixel shader is achieved by using,
+// directly, the "unnormalized" interpolated tangent, bitangent and vertex normal: vT, vB and vN.
 // pixel shader (fast transform out)
 // vNout = normalize( vNt.x * vT + vNt.y * vB + vNt.z * vN );
 // where vNt is the tangent space normal. The normal map sampler must likewise use the
-// interpolated and "unnormalized" tangent, bitangent and vertex normal to be compliant with the pixel shader.
-// sampler does (exact inverse of pixel shader):
+// interpolated and "unnormalized" tangent, bitangent and vertex normal to be compliant with the
+// pixel shader. sampler does (exact inverse of pixel shader):
 // float3 row0 = cross(vB, vN);
 // float3 row1 = cross(vN, vT);
 // float3 row2 = cross(vT, vB);
@@ -149,12 +153,13 @@ tbool genTangSpace(const SMikkTSpaceContext *pContext, const float fAngularThres
 // where vNout is the sampled normal in some chosen 3D space.
 //
 // Should you choose to reconstruct the bitangent in the pixel shader instead
-// of the vertex shader, as explained earlier, then be sure to do this in the normal map sampler also.
-// Finally, beware of quad triangulations. If the normal map sampler doesn't use the same triangulation of
-// quads as your renderer then problems will occur since the interpolated tangent spaces will differ
-// eventhough the vertex level tangent spaces match. This can be solved either by triangulating before
-// sampling/exporting or by using the order-independent choice of diagonal for splitting quads suggested earlier.
-// However, this must be used both by the sampler and your tools/rendering pipeline.
+// of the vertex shader, as explained earlier, then be sure to do this in the normal map sampler
+// also. Finally, beware of quad triangulations. If the normal map sampler doesn't use the same
+// triangulation of quads as your renderer then problems will occur since the interpolated tangent
+// spaces will differ eventhough the vertex level tangent spaces match. This can be solved either
+// by triangulating before sampling/exporting or by using the order-independent choice of diagonal
+// for splitting quads suggested earlier. However, this must be used both by the sampler and your
+// tools/rendering pipeline.
 
 #ifdef __cplusplus
 }
