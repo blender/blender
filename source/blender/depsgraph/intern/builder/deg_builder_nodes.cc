@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -89,6 +90,7 @@ extern "C" {
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
+#include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
@@ -1564,6 +1566,23 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   add_operation_node(&sound->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
+}
+
+void DepsgraphNodeBuilder::build_sequencer(Scene *scene)
+{
+  if (scene->ed == NULL) {
+    return;
+  }
+  add_operation_node(&scene->id, NodeType::SEQUENCER, OperationCode::SEQUENCES_EVAL);
+  /* Make sure data for sequences is in the graph. */
+  Sequence *seq;
+  SEQ_BEGIN (scene->ed, seq) {
+    if (seq->sound != NULL) {
+      build_sound(seq->sound);
+    }
+    /* TODO(sergey): Movie clip, scene, camera, mask. */
+  }
+  SEQ_END;
 }
 
 /* **** ID traversal callbacks functions **** */

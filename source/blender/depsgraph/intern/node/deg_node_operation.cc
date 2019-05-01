@@ -185,6 +185,9 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Generic datablock. */
     case OperationCode::GENERIC_DATABLOCK_UPDATE:
       return "GENERIC_DATABLOCK_UPDATE";
+    /* Sequencer. */
+    case OperationCode::SEQUENCES_EVAL:
+      return "SEQUENCES_EVAL";
     /* instancing/duplication. */
     case OperationCode::DUPLI:
       return "DUPLI";
