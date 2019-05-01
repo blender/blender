@@ -3751,32 +3751,28 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.flip_normals")
+        layout.operator("mesh.flip_normals", text="Flip")
         layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
-
-        layout.operator("transform.rotate_normal", text="Rotate Normal")
-        layout.operator("mesh.point_normals", text="Point normals to target")
-
+        layout.operator("transform.rotate_normal", text="Rotate")
+        layout.operator("mesh.point_normals", text="Point to Target")
         layout.operator("mesh.merge_normals", text="Merge")
         layout.operator("mesh.split_normals", text="Split")
+        layout.operator("mesh.average_normals", text="Average")
 
-        layout.operator("mesh.average_normals", text="Average Normals")
+        layout.separator()
 
-        layout.label(text="Normal Vector")
+        layout.operator("mesh.normals_tools", text="Copy Vectors").mode = 'COPY'
+        layout.operator("mesh.normals_tools", text="Paste Vectors").mode = 'PASTE'
+        layout.operator("mesh.normals_tools", text="Add Vectors").mode = 'ADD'
+        layout.operator("mesh.normals_tools", text="Multiply Vectors").mode = 'MULTIPLY'
 
-        layout.operator("mesh.normals_tools", text="Copy").mode = 'COPY'
-        layout.operator("mesh.normals_tools", text="Paste").mode = 'PASTE'
+        layout.operator("mesh.smoothen_normals", text="Smoothen Vectors")
+        layout.operator("mesh.normals_tools", text="Reset Vectors").mode = 'RESET'
 
-        layout.operator("mesh.normals_tools", text="Multiply").mode = 'MULTIPLY'
-        layout.operator("mesh.normals_tools", text="Add").mode = 'ADD'
+        layout.separator()
 
-        layout.operator("mesh.normals_tools", text="Reset").mode = 'RESET'
-
-        layout.operator("mesh.smoothen_normals", text="Smoothen")
-
-        layout.label(text="Face Strength")
-        layout.operator("mesh.mod_weighted_strength", text="Face Select", icon='FACESEL').set = False
-        layout.operator("mesh.mod_weighted_strength", text="Set Strength", icon='ADD').set = True
+        layout.operator("mesh.mod_weighted_strength", text="Get Face Strength").set = False
+        layout.operator("mesh.mod_weighted_strength", text="Set Face Strength").set = True
 
 
 class VIEW3D_MT_edit_mesh_shading(Menu):

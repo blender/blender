@@ -1160,7 +1160,7 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 static void TRANSFORM_OT_rotate_normal(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Normal Rotate";
+  ot->name = "Rotate Normals";
   ot->description = "Rotate split normal of selected items";
   ot->idname = OP_NORMAL_ROTATION;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;

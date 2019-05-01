@@ -2209,7 +2209,7 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make Normals Consistent";
+  ot->name = "Recalculate Normals";
   ot->description = "Make face and vertex normals point either outside or inside the mesh";
   ot->idname = "MESH_OT_normals_make_consistent";
 
@@ -8927,7 +8927,7 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
 void MESH_OT_smoothen_normals(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Smoothen Normals";
+  ot->name = "Smooth Normals Vectors";
   ot->description = "Smoothen custom normals based on adjacent vertex normals";
   ot->idname = "MESH_OT_smoothen_normals";
 
@@ -9004,7 +9004,7 @@ static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
 void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Face Strength";
+  ot->name = "Face Normals Strength";
   ot->description = "Set/Get strength of face (used in Weighted Normal modifier)";
   ot->idname = "MESH_OT_mod_weighted_strength";
 
