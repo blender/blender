@@ -5,6 +5,7 @@ uniform sampler2D colorBuffer;
 uniform sampler2D depthBuffer;
 
 uniform vec2 dofParams;
+uniform bool unpremult;
 
 #define dof_mul dofParams.x  /* distance * aperturesize * invsensorsize */
 #define dof_bias dofParams.y /* aperturesize * invsensorsize */
@@ -241,8 +242,12 @@ void main(void)
   fragColor = (far_col + near_col + focus_col) * inv_weight_sum;
 
 #  ifdef USE_ALPHA_DOF
-  /* Unpremult */
-  fragColor.rgb /= (fragColor.a > 0.0) ? fragColor.a : 1.0;
+  /* Sigh... viewport expect premult output but
+   * the final render output needs to be with
+   * associated alpha. */
+  if (unpremult) {
+    fragColor.rgb /= (fragColor.a > 0.0) ? fragColor.a : 1.0;
+  }
 #  endif
 }
 

@@ -311,6 +311,9 @@ static void eevee_draw_background(void *vedata)
   GPU_framebuffer_bind(dfbl->default_fb);
   DRW_transform_to_display(stl->effects->final_tx, true, use_render_settings);
 
+  /* Draw checkerboard with alpha under. */
+  EEVEE_draw_alpha_checker(vedata);
+
   /* Debug : Output buffer to view. */
   switch (G.debug_value) {
     case 1:

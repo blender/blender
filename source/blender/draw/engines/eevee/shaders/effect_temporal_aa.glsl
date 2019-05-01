@@ -39,7 +39,6 @@ vec3 clip_to_aabb(vec3 color, vec3 minimum, vec3 maximum, vec3 average)
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
-  float depth = texelFetch(depthBuffer, texel, 0).r;
   vec2 motion = texelFetch(velocityBuffer, texel, 0).rg;
 
   /* Decode from unsigned normalized 16bit texture. */
@@ -96,6 +95,9 @@ void main()
   color_history = (out_of_view) ? color : color_history;
 
   FragColor = safe_color(color_history);
+  /* There is some ghost issue if we use the alpha
+   * in the viewport. Overwritting alpha fixes it. */
+  FragColor.a = color.a;
 }
 
 #else

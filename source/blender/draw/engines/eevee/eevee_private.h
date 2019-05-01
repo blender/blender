@@ -246,6 +246,7 @@ typedef struct EEVEE_PassList {
   struct DRWPass *color_downsample_cube_ps;
   struct DRWPass *velocity_resolve;
   struct DRWPass *taa_resolve;
+  struct DRWPass *alpha_checker;
 
   /* HiZ */
   struct DRWPass *minz_downlevel_ps;
@@ -537,6 +538,7 @@ typedef enum EEVEE_EffectsFlag {
   EFFECT_VELOCITY_BUFFER = (1 << 12),     /* Not really an effect but a feature */
   EFFECT_TAA_REPROJECT = (1 << 13),       /* should be mutually exclusive with EFFECT_TAA */
   EFFECT_DEPTH_DOUBLE_BUFFER = (1 << 14), /* Not really an effect but a feature */
+  EFFECT_ALPHA_CHECKER = (1 << 15),       /* Not really an effect but a feature */
 } EEVEE_EffectsFlag;
 
 typedef struct EEVEE_EffectsInfo {
@@ -598,6 +600,9 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *dof_coc;
   struct GPUTexture *dof_blur;
   struct GPUTexture *dof_blur_alpha;
+  /* Alpha Checker */
+  float color_checker_dark[4];
+  float color_checker_light[4];
   /* Other */
   float prev_persmat[4][4];
   /* Bloom */
@@ -1073,6 +1078,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUTexture *texture_src, int level);
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUTexture *texture_src, int level);
+void EEVEE_draw_alpha_checker(EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 

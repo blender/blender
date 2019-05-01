@@ -241,6 +241,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 
     if (use_alpha) {
       DRW_shgroup_uniform_texture_ref(grp, "scatterAlphaBuffer", &effects->dof_blur_alpha);
+      DRW_shgroup_uniform_bool_copy(grp, "unpremult", DRW_state_is_image_render());
     }
   }
 }
