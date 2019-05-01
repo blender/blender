@@ -2382,7 +2382,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos,
     if ((te->flag & TE_CHILD_NOT_IN_COLLECTION) == 0) {
       /* Horizontal Line? */
       if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE)) {
-        immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - 1);
+        immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - U.pixelsize);
 
         /* Vertical Line? */
         if (te->idcode == ID_OB) {
@@ -2397,7 +2397,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos,
       /* Horizontal line - dashed. */
       int start = startx;
       for (int i = 0; i < dash.steps_num; i++) {
-        immRecti(pos, start, *starty, start + dash.step_len - dash.gap_len, *starty - 1);
+        immRecti(pos, start, *starty, start + dash.step_len - dash.gap_len, *starty - U.pixelsize);
         start += dash.step_len;
       }
 
@@ -2423,7 +2423,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos,
   /* Vertical line. */
   te = te_vertical_line_last;
   if ((te != NULL) && (te->parent || lb->first != lb->last)) {
-    immRecti(pos, startx, y1 + UI_UNIT_Y, startx + 1, y2);
+    immRecti(pos, startx, y1 + UI_UNIT_Y, startx + U.pixelsize, y2);
   }
 
   /* Children that are not in the collection are always in the end of the subtree.
@@ -2433,7 +2433,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos,
     const int steps_num = ((y1_dashed + UI_UNIT_Y) - y2_dashed) / dash.step_len;
     int start = y1_dashed + UI_UNIT_Y;
     for (int i = 0; i < steps_num; i++) {
-      immRecti(pos, startx, start, startx + 1, start - dash.step_len + dash.gap_len);
+      immRecti(pos, startx, start, startx + U.pixelsize, start - dash.step_len + dash.gap_len);
       start -= dash.step_len;
     }
   }
@@ -2634,7 +2634,7 @@ static void outliner_draw_tree(bContext *C,
   // gray hierarchy lines
 
   starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
-  startx = UI_UNIT_X / 2 - 1.0f;
+  startx = UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(soops, &soops->tree, startx, &starty);
 
   // items themselves
