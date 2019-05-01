@@ -1121,6 +1121,8 @@ static void recalcData_sequencer(TransInfo *t)
     seq_prev = seq;
   }
 
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER);
+
   flushTransSeq(t);
 }
 

@@ -215,6 +215,9 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       /* There is no such node in depsgraph, this tag is to be handled
        * separately. */
       break;
+    case ID_RECALC_SEQUENCER:
+      *component_type = NodeType::SEQUENCER;
+      break;
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
       BLI_assert(!"Should not happen");
@@ -615,6 +618,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "POINT_CACHE";
     case ID_RECALC_EDITORS:
       return "EDITORS";
+    case ID_RECALC_SEQUENCER:
+      return "SEQUENCER";
     case ID_RECALC_ALL:
       return "ALL";
   }

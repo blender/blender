@@ -604,6 +604,10 @@ typedef enum IDRecalcFlag {
    */
   ID_RECALC_COPY_ON_WRITE = (1 << 13),
 
+  /* Sequences in the sequencer did change.
+   * Use this tag with a scene ID which owns the sequences. */
+  ID_RECALC_SEQUENCER = (1 << 14),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */

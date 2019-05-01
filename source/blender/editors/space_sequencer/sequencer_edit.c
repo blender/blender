@@ -64,6 +64,8 @@
 #include "UI_view2d.h"
 #include "UI_interface.h"
 
+#include "DEG_depsgraph.h"
+
 /* own include */
 #include "sequencer_intern.h"
 
@@ -2379,6 +2381,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
     ms = ms->prev;
   }
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
