@@ -7362,7 +7362,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
       link_list(fd, &sconsole->scrollback);
       link_list(fd, &sconsole->history);
 
-      //for (cl= sconsole->scrollback.first; cl; cl= cl->next)
+      // for (cl= sconsole->scrollback.first; cl; cl= cl->next)
       //  cl->line= newdataadr(fd, cl->line);
 
       /* comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,

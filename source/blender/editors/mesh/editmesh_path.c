@@ -434,12 +434,12 @@ static bool facetag_filter_cb(BMFace *f, void *UNUSED(user_data_v))
 {
   return !BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 }
-//static bool facetag_test_cb(Scene *UNUSED(scene), BMesh *UNUSED(bm), BMFace *f)
+// static bool facetag_test_cb(Scene *UNUSED(scene), BMesh *UNUSED(bm), BMFace *f)
 static bool facetag_test_cb(BMFace *f, void *UNUSED(user_data_v))
 {
   return BM_elem_flag_test_bool(f, BM_ELEM_SELECT);
 }
-//static void facetag_set_cb(BMesh *bm, Scene *UNUSED(scene), BMFace *f, const bool val)
+// static void facetag_set_cb(BMesh *bm, Scene *UNUSED(scene), BMFace *f, const bool val)
 static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
 {
   struct UserData *user_data = user_data_v;

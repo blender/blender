@@ -213,7 +213,7 @@ typedef enum eRigidBody_Shape {
   RB_SHAPE_TRIMESH,
 
   /* concave mesh approximated using primitives */
-  //RB_SHAPE_COMPOUND,
+  // RB_SHAPE_COMPOUND,
 } eRigidBody_Shape;
 
 typedef enum eRigidBody_MeshSource {

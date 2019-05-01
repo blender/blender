@@ -712,7 +712,7 @@ static void action_header_region_listener(
           break;
 
         case ND_KEYFRAME: /* new keyframed added -> active action may have changed */
-          //saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+          // saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
           ED_region_tag_redraw(ar);
           break;
       }

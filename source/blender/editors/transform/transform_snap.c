@@ -360,7 +360,7 @@ void applyProject(TransInfo *t)
           }
         }
 
-        //XXX constraintTransLim(t, td);
+        // XXX constraintTransLim(t, td);
       }
     }
   }

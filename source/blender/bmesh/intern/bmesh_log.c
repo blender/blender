@@ -730,8 +730,8 @@ void BM_log_entry_drop(BMLogEntry *entry)
      * Also, design wise, a first entry should not have any deleted vertices since it
      * should not have anything to delete them -from-
      */
-    //bm_log_id_ghash_release(log, entry->deleted_faces);
-    //bm_log_id_ghash_release(log, entry->deleted_verts);
+    // bm_log_id_ghash_release(log, entry->deleted_faces);
+    // bm_log_id_ghash_release(log, entry->deleted_verts);
   }
   else if (!entry->next) {
     /* Release IDs of elements that are added by this entry. Since

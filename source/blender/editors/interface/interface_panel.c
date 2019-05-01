@@ -701,11 +701,10 @@ void ui_draw_aligned_panel(uiStyle *style,
   const bool is_closed_x = (panel->flag & PNL_CLOSEDX) ? true : false;
   const bool is_closed_y = (panel->flag & PNL_CLOSEDY) ? true : false;
   const bool is_subpanel = (panel->type && panel->type->parent);
-  const bool show_drag =
-      (!is_subpanel &&
-       /* FIXME(campbell): currently no background means floating panel which can't be dragged.
-        * This may be changed in future. */
-       show_background);
+  const bool show_drag = (!is_subpanel &&
+                          /* FIXME(campbell): currently no background means floating panel which
+                           * can't be dragged. This may be changed in future. */
+                          show_background);
 
   if (panel->paneltab) {
     return;
@@ -1672,7 +1671,7 @@ static void ui_handle_panel_header(
     if (mx <= block->rect.xmax - 8 - PNL_ICON) {
       button = 2;
     }
-    //else if (mx <= block->rect.xmin + 10 + 2 * PNL_ICON + 2) {
+    // else if (mx <= block->rect.xmin + 10 + 2 * PNL_ICON + 2) {
     //  button = 1;
     //}
   }
@@ -2064,7 +2063,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, M_PI_2);
-  //UI_fontstyle_set(&style->widget);
+  // UI_fontstyle_set(&style->widget);
   ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
   BLF_size(fontid, fstyle_points, U.dpi);
 
@@ -2569,7 +2568,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
        *   is very hard to control and use, and has no real benefit." - BillRey
        * Aligorith, 2009Sep
        */
-      //test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
+      // test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
       check_panel_overlap(ar, NULL); /* clears */
     }
 

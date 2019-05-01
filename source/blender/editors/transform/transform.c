@@ -601,18 +601,18 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
-    //SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
+    // SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    //SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
+    // SpaceGraph *sipo = (SpaceGraph *)t->sa->spacedata.first;
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_NLA) {
     WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
   }
   else if (t->spacetype == SPACE_NODE) {
-    //ED_area_tag_redraw(t->sa);
+    // ED_area_tag_redraw(t->sa);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
   }
   else if (t->spacetype == SPACE_SEQ) {
@@ -3291,7 +3291,7 @@ static void initBend(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT;
 
-  //copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
+  // copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
     calculateCenterCursor(t, t->center_global);
   }

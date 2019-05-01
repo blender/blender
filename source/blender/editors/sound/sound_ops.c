@@ -144,7 +144,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-#else  //WITH_AUDASPACE
+#else  // WITH_AUDASPACE
 
 static int sound_open_exec(bContext *UNUSED(C), wmOperator *op)
 {

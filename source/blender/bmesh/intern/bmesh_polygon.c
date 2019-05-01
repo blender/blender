@@ -1069,10 +1069,10 @@ void BM_face_triangulate(BMesh *bm,
           /* named confusingly, l_v1 is in fact the second vertex */
           if (split_24) {
             l_v1 = l_v4;
-            //l_v2 = l_v2;
+            // l_v2 = l_v2;
           }
           else {
-            //l_v1 = l_v1;
+            // l_v1 = l_v1;
             l_v2 = l_v3;
           }
           break;

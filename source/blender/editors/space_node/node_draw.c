@@ -1309,7 +1309,7 @@ static void node_draw_hidden(const bContext *C,
   nodeLabel(ntree, node, showname, sizeof(showname));
 
   /* XXX - don't print into self! */
-  //if (node->flag & NODE_MUTED)
+  // if (node->flag & NODE_MUTED)
   //  BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
 
   uiBut *but = uiDefBut(node->block,

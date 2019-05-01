@@ -3906,10 +3906,10 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   }
 
   /* macros for less typing
-     * - only evaluate animation data for id if it has users (and not just fake ones)
-     * - whether animdata exists is checked for by the evaluation function, though taking
-     *   this outside of the function may make things slightly faster?
-     */
+   * - only evaluate animation data for id if it has users (and not just fake ones)
+   * - whether animdata exists is checked for by the evaluation function, though taking
+   *   this outside of the function may make things slightly faster?
+   */
 #define EVAL_ANIM_IDS(first, aflag) \
   for (id = first; id; id = id->next) { \
     if (ID_REAL_USERS(id) > 0) { \
@@ -3920,11 +3920,11 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   (void)0
 
   /* another macro for the "embedded" nodetree cases
-     * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
-     *   (i.e. scene/material/texture->nodetree) which we need a special exception
-     *   for, otherwise they'd get skipped
-     * - ntp = "node tree parent" = datablock where node tree stuff resides
-     */
+   * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
+   *   (i.e. scene/material/texture->nodetree) which we need a special exception
+   *   for, otherwise they'd get skipped
+   * - ntp = "node tree parent" = datablock where node tree stuff resides
+   */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
   for (id = first; id; id = id->next) { \
     if (ID_REAL_USERS(id) > 0) { \
@@ -4096,7 +4096,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
       /* evaluate this using values set already in other places
        * NOTE: for 'layering' option later on, we should check if we should remove old value before
        * adding new to only be done when drivers only changed */
-      //printf("\told val = %f\n", fcu->curval);
+      // printf("\told val = %f\n", fcu->curval);
 
       PathResolvedRNA anim_rna;
       if (animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {

@@ -4464,7 +4464,7 @@ void CustomData_external_remove(CustomData *data, ID *id, int type, int totelem)
 {
   CustomDataExternal *external = data->external;
   CustomDataLayer *layer;
-  //char filename[FILE_MAX];
+  // char filename[FILE_MAX];
   int layer_index;  // i, remove_file;
 
   layer_index = CustomData_get_active_layer_index(data, type);
@@ -4526,7 +4526,7 @@ static void copy_bit_flag(void *dst, const void *src, const size_t data_size, co
       COPY_BIT_FLAG(uint64_t, dst, src, flag);
       break;
     default:
-      //CLOG_ERROR(&LOG, "Unknown flags-container size (%zu)", datasize);
+      // CLOG_ERROR(&LOG, "Unknown flags-container size (%zu)", datasize);
       break;
   }
 
@@ -4545,7 +4545,7 @@ static bool check_bit_flag(const void *data, const size_t data_size, const uint6
     case 8:
       return ((*((uint64_t *)data) & ((uint64_t)flag)) != 0);
     default:
-      //CLOG_ERROR(&LOG, "Unknown flags-container size (%zu)", datasize);
+      // CLOG_ERROR(&LOG, "Unknown flags-container size (%zu)", datasize);
       return false;
   }
 }

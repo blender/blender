@@ -371,7 +371,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
         }
         else {
           key->flag |= PEK_HIDE;
-          //key->flag &= ~PEK_SELECT;
+          // key->flag &= ~PEK_SELECT;
         }
       }
     }

@@ -550,8 +550,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
         if (prevLevel == 0) {
           break;
           /* otherwise, this level weaves into another sibling hierarchy to the previous one just
-         * finished, so skip until we get to the parent of this level
-         */
+           * finished, so skip until we get to the parent of this level
+           */
         }
         else {
           continue;
@@ -583,9 +583,10 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
       if (level > matchLevel) {
         ANIM_channel_setting_set(ac, ale, setting, mode);
         /* however, if the level is 'less than or equal to' the channel that was changed,
-       * (i.e. the current channel is as important if not more important than the changed channel)
-       * then we should stop, since we've found the last one of the children we should flush
-       */
+         * (i.e. the current channel is as important if not more important than the changed
+         * channel) then we should stop, since we've found the last one of the children we should
+         * flush
+         */
       }
       else {
         break;

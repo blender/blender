@@ -726,9 +726,9 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
   iwalk = BMW_state_add(walker);
   iwalk->base = owalk.base;
 
-  //if (!BMO_face_flag_test(walker->bm, l->f, walker->restrictflag))
+  // if (!BMO_face_flag_test(walker->bm, l->f, walker->restrictflag))
   //  iwalk->curloop = l->radial_next;
-  iwalk->curloop = l;  //else iwalk->curloop = l;
+  iwalk->curloop = l;  // else iwalk->curloop = l;
   iwalk->lastv = v;
 
   return owalk.curloop;

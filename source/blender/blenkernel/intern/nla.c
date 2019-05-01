@@ -90,7 +90,7 @@ void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip, bool do_id_user)
   }
 
   /* free remapping info */
-  //if (strip->remap)
+  // if (strip->remap)
   //  BKE_animremap_free();
 
   /* free own F-Curves */
@@ -547,7 +547,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
 {
   switch (strip->type) {
     case NLASTRIP_TYPE_META:       /* Meta - for now, does the same as transition
-                              * (is really just an empty container). */
+                                    * (is really just an empty container). */
     case NLASTRIP_TYPE_TRANSITION: /* transition */
       return nlastrip_get_frame_transition(strip, cframe, mode);
 

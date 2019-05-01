@@ -230,7 +230,7 @@ static int rule_avoid_collision(BoidRule *rule,
   int n, neighbors = 0, nearest = 0;
   int ret = 0;
 
-  //check deflector objects first
+  // check deflector objects first
   if (acbr->options & BRULE_ACOLL_WITH_DEFLECTORS && bbd->sim->colliders) {
     ParticleCollision col;
     BVHTreeRayHit hit;
@@ -292,7 +292,7 @@ static int rule_avoid_collision(BoidRule *rule,
     }
   }
 
-  //check boids in own system
+  // check boids in own system
   if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
     neighbors = BLI_kdtree_3d_range_search_with_len_squared_cb(bbd->sim->psys->tree,
                                                                pa->prev_state.co,
@@ -820,11 +820,11 @@ static boid_rule_cb boid_rules[] = {
     rule_follow_leader,
     rule_average_speed,
     rule_fight,
-    //rule_help,
-    //rule_protect,
-    //rule_hide,
-    //rule_follow_path,
-    //rule_follow_wall,
+    // rule_help,
+    // rule_protect,
+    // rule_hide,
+    // rule_follow_path,
+    // rule_follow_wall,
 };
 
 static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *pa)
@@ -1069,7 +1069,7 @@ static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa)
 
   return state;
 }
-//static int boid_condition_is_true(BoidCondition *cond)
+// static int boid_condition_is_true(BoidCondition *cond)
 //{
 //  /* TODO */
 //  return 0;
@@ -1085,7 +1085,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
   BoidParticle *bpa = pa->boid;
   ParticleSystem *psys = bbd->sim->psys;
   int rand;
-  //BoidCondition *cond;
+  // BoidCondition *cond;
 
   if (bpa->data.health <= 0.0f) {
     pa->alive = PARS_DYING;
@@ -1093,9 +1093,9 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
     return;
   }
 
-  //planned for near future
-  //cond = state->conditions.first;
-  //for (; cond; cond=cond->next) {
+  // planned for near future
+  // cond = state->conditions.first;
+  // for (; cond; cond=cond->next) {
   //  if (boid_condition_is_true(cond)) {
   //      pa->boid->state_id = cond->state_id;
   //      state = get_boid_state(boids, pa);
@@ -1420,7 +1420,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
   madd_v3_v3fl(pa->state.vel, acc, dtime);
 
-  //if (bpa->data.mode != eBoidMode_InAir)
+  // if (bpa->data.mode != eBoidMode_InAir)
   bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 
   /* change modes, constrain movement & keep track of down vector */
@@ -1506,20 +1506,20 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
     }
     case eBoidMode_Climbing: {
       boid_climb(boids, pa, ground_co, ground_nor);
-      //float nor[3];
-      //copy_v3_v3(nor, ground_nor);
+      // float nor[3];
+      // copy_v3_v3(nor, ground_nor);
 
       ///* gather apparent gravity to r_ve */
-      //madd_v3_v3fl(pa->r_ve, ground_nor, -1.0);
-      //normalize_v3(pa->r_ve);
+      // madd_v3_v3fl(pa->r_ve, ground_nor, -1.0);
+      // normalize_v3(pa->r_ve);
 
       ///* raise boid it's size from surface */
-      //mul_v3_fl(nor, pa->size * boids->height);
-      //add_v3_v3v3(pa->state.co, ground_co, nor);
+      // mul_v3_fl(nor, pa->size * boids->height);
+      // add_v3_v3v3(pa->state.co, ground_co, nor);
 
       ///* remove normal component from velocity */
-      //project_v3_v3v3(v, pa->state.vel, ground_nor);
-      //sub_v3_v3v3(pa->state.vel, pa->state.vel, v);
+      // project_v3_v3v3(v, pa->state.vel, ground_nor);
+      // sub_v3_v3v3(pa->state.vel, pa->state.vel, v);
       break;
     }
     case eBoidMode_OnLand: {

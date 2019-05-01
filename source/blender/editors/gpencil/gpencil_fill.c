@@ -455,7 +455,7 @@ static void get_pixel(const ImBuf *ibuf, const int idx, float r_col[4])
 /* set pixel data (rgba) at index */
 static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
 {
-  //BLI_assert(idx <= ibuf->x * ibuf->y);
+  // BLI_assert(idx <= ibuf->x * ibuf->y);
   if (ibuf->rect) {
     uint *rrect = &ibuf->rect[idx];
     uchar ccol[4];

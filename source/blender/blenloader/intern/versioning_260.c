@@ -1997,7 +1997,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (bmain->versionfile < 267) {
-    //if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
+    // if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
     Brush *brush;
 
     for (brush = bmain->brushes.first; brush; brush = brush->id.next) {

@@ -174,7 +174,7 @@ typedef struct DynamicPaintCanvasSettings {
 enum {
   /** use particle radius */
   MOD_DPAINT_PART_RAD = 1 << 0,
-  //MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* DNA_DEPRECATED */
+  // MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* DNA_DEPRECATED */
   /** don't increase alpha unless paint alpha is higher than existing */
   MOD_DPAINT_ABS_ALPHA = 1 << 2,
   /** removes paint */

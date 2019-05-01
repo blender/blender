@@ -157,7 +157,7 @@ static bool test_path(char *targetpath,
 #ifdef PATH_DEBUG
     printf("\t%s missing: %s\n", __func__, targetpath);
 #endif
-    //targetpath[0] = '\0';
+    // targetpath[0] = '\0';
     return false;
   }
 }

@@ -63,7 +63,7 @@ double bUnit_BaseScalar(int system, int type);
 bool bUnit_IsValid(int system, int type);
 
 /* loop over scales, could add names later */
-//double bUnit_Iter(void **unit, char **name, int system, int type);
+// double bUnit_Iter(void **unit, char **name, int system, int type);
 
 void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
 int bUnit_GetBaseUnit(const void *usys_pt);

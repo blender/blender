@@ -1455,7 +1455,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       case PADMINUS:
       case MIDDLEMOUSE:
       case MOUSEMOVE:
-        //pld->redraw = PL_PREVIEW_REDRAWHEADER;
+        // pld->redraw = PL_PREVIEW_REDRAWHEADER;
         ret = OPERATOR_PASS_THROUGH;
         break;
 
@@ -1587,7 +1587,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
      */
     case MIDDLEMOUSE:
     case MOUSEMOVE:
-      //pld->redraw = PL_PREVIEW_REDRAWHEADER;
+      // pld->redraw = PL_PREVIEW_REDRAWHEADER;
       ret = OPERATOR_PASS_THROUGH;
       break;
 
@@ -1610,7 +1610,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       }
       else {
         /* view manipulation (see above) */
-        //pld->redraw = PL_PREVIEW_REDRAWHEADER;
+        // pld->redraw = PL_PREVIEW_REDRAWHEADER;
         ret = OPERATOR_PASS_THROUGH;
       }
       break;
@@ -1748,7 +1748,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 
     /* updates */
     if (IS_AUTOKEY_MODE(scene, NORMAL)) {
-      //remake_action_ipos(ob->action);
+      // remake_action_ipos(ob->action);
     }
     else {
       BKE_pose_where_is(CTX_data_depsgraph(C), scene, ob);

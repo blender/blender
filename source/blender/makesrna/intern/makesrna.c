@@ -2731,7 +2731,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
     else if (cptr || (flag & PROP_DYNAMIC)) {
       ptrstr = pout ? "**" : "*";
       /* Fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack,
-     * pass a pointer to it. */
+       * pass a pointer to it. */
     }
     else if (type == PROP_POINTER || dparm->prop->arraydimension) {
       ptrstr = "*";
@@ -2740,7 +2740,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
              !(flag & PROP_THICK_WRAP)) {
       ptrstr = "*";
       /* PROP_THICK_WRAP strings are pre-allocated on the ParameterList stack,
-     * but type name for string props is already (char *), so leave empty */
+       * but type name for string props is already (char *), so leave empty */
     }
     else if (type == PROP_STRING && (flag & PROP_THICK_WRAP)) {
       ptrstr = "";

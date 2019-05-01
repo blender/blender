@@ -2856,7 +2856,7 @@ bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
 
   /* Note: tmax does not need to be updated since we don't use it
    * keeping this here for future reference - jwilkins */
-  //if (tzmax < tmax) tmax = tzmax;
+  // if (tzmax < tmax) tmax = tzmax;
 
   if (tmin_out) {
     (*tmin_out) = tmin;

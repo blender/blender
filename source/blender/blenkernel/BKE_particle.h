@@ -201,21 +201,24 @@ typedef struct ParticleCollisionElement {
   short inv_nor, inside;
 } ParticleCollisionElement;
 
-/* container for moving data between deflet_particle and particle_intersect_face */
+/** Container for moving data between deflet_particle and particle_intersect_face. */
 typedef struct ParticleCollision {
   struct Object *current;
   struct Object *hit;
   struct Object *skip[PARTICLE_COLLISION_MAX_COLLISIONS + 1];
   struct Object *emitter;
 
-  struct CollisionModifierData *md;  // collision modifier for current object;
+  /** Collision modifier for current object. */
+  struct CollisionModifierData *md;
 
-  float f;  // time factor of previous collision, needed for substracting face velocity
+  /** Time factor of previous collision, needed for substracting face velocity. */
+  float f;
   float fac1, fac2;
 
   float cfra, old_cfra;
 
-  float original_ray_length;  //original length of co2-co1, needed for collision time evaluation
+  /** Original length of co2-co1, needed for collision time evaluation. */
+  float original_ray_length;
 
   int skip_count;
 

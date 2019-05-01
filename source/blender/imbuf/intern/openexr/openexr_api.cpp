@@ -1913,7 +1913,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
     const int width = dw.max.x - dw.min.x + 1;
     const int height = dw.max.y - dw.min.y + 1;
 
-    //printf("OpenEXR-load: image data window %d %d %d %d\n",
+    // printf("OpenEXR-load: image data window %d %d %d %d\n",
     //     dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
     if (0) {  // debug

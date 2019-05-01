@@ -1689,14 +1689,13 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
   immUniform1f("dash_width", 12.0f);
   immUniform1f("dash_factor", 0.5f);
 
-  imm_draw_circle_wire_2d(
-      shdr_pos,
-      x,
-      y,
-      radius,
-      /* XXX Dashed shader gives bad results with sets of small segments currently,
-       *     temp hack around the issue. :( */
-      max_ii(8, radius / 2)); /* was fixed 40 */
+  imm_draw_circle_wire_2d(shdr_pos,
+                          x,
+                          y,
+                          radius,
+                          /* XXX Dashed shader gives bad results with sets of small segments
+                           * currently, temp hack around the issue. :( */
+                          max_ii(8, radius / 2)); /* was fixed 40 */
 
   immUnbindProgram();
 
@@ -2514,7 +2513,7 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
           case SEL_SELECT:
             pt->flag |= GP_SPOINT_SELECT;
             break;
-          //case SEL_DESELECT:
+          // case SEL_DESELECT:
           //  pt->flag &= ~GP_SPOINT_SELECT;
           //  break;
           case SEL_INVERT:

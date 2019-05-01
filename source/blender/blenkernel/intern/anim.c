@@ -480,7 +480,7 @@ int where_on_path(Object *ob,
    *       which used to temporary set CU_FOLLOW flag for the curve and no
    *       longer does it (because of threading issues of such a thing.
    */
-  //if (cu->flag & CU_FOLLOW) {
+  // if (cu->flag & CU_FOLLOW) {
 
   key_curve_tangent_weights(1.0f - fac, data, KEY_BSPLINE);
 

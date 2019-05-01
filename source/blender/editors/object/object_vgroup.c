@@ -1299,7 +1299,7 @@ static void getVerticalAndHorizontalChange(const float norm[3],
   dists[index] = dot_v3v3(norm, end) + d;
   /* vertical change */
   changes[index][0] = dists[index] - distToStart;
-  //printf("vc %f %f\n", distance(end, projB, 3) - distance(start, projA, 3), changes[index][0]);
+  // printf("vc %f %f\n", distance(end, projB, 3) - distance(start, projA, 3), changes[index][0]);
   /* horizontal change */
   changes[index][1] = len_v3v3(projA, projB);
 }

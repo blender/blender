@@ -440,7 +440,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
   ot->description = "Extrude region of faces";
 
   /* api callbacks */
-  //ot->invoke = mesh_extrude_region_invoke;
+  // ot->invoke = mesh_extrude_region_invoke;
   ot->exec = edbm_extrude_region_exec;
   ot->poll = ED_operator_editmesh;
 

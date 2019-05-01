@@ -181,7 +181,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
     return NULL;
   }
 
-  //XXX waitcursor(1);
+  // XXX waitcursor(1);
 
   /* convert relative filenames to absolute filenames */
 
@@ -216,7 +216,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
     close(file);
   }
 
-  //XXX waitcursor(0);
+  // XXX waitcursor(0);
 
   return (pf);
 }
@@ -281,7 +281,7 @@ int writePackedFile(ReportList *reports,
   /*      void *data; */
 
   if (guimode) {
-  }  //XXX  waitcursor(1);
+  }  // XXX  waitcursor(1);
 
   BLI_strncpy(name, filename, sizeof(name));
   BLI_path_abs(name, ref_file_name);
@@ -336,7 +336,7 @@ int writePackedFile(ReportList *reports,
   }
 
   if (guimode) {
-  }  //XXX waitcursor(0);
+  }  // XXX waitcursor(0);
 
   return (ret_value);
 }

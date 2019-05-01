@@ -798,7 +798,7 @@ static void template_ID(bContext *C,
     char name[UI_MAX_NAME_STR];
     const bool user_alert = (id->us <= 0);
 
-    //text_idbutton(id, name);
+    // text_idbutton(id, name);
     name[0] = '\0';
     but = uiDefButR(block,
                     UI_BTYPE_TEXT,
@@ -4997,7 +4997,7 @@ static void uilist_filter_items_default(struct uiList *ui_list,
             dyn_data->items_shown++;
             do_order = order_by_name;
           }
-          //printf("%s: '%s' matches '%s'\n", __func__, name, filter);
+          // printf("%s: '%s' matches '%s'\n", __func__, name, filter);
         }
         else if (filter_exclude) {
           dyn_data->items_shown++;
@@ -5321,16 +5321,16 @@ void uiTemplateList(uiLayout *layout,
       dyn_data->items_len = dyn_data->items_shown = RNA_property_collection_length(dataptr, prop);
     }
     else {
-      //printf("%s: filtering...\n", __func__);
+      // printf("%s: filtering...\n", __func__);
       filter_items(ui_list, C, dataptr, propname);
-      //printf("%s: filtering done.\n", __func__);
+      // printf("%s: filtering done.\n", __func__);
     }
 
     items_shown = dyn_data->items_shown;
     if (items_shown >= 0) {
       bool activei_mapping_pending = true;
       items_ptr = MEM_mallocN(sizeof(_uilist_item) * items_shown, __func__);
-      //printf("%s: items shown: %d.\n", __func__, items_shown);
+      // printf("%s: items shown: %d.\n", __func__, items_shown);
       RNA_PROP_BEGIN (dataptr, itemptr, prop) {
         if (!dyn_data->items_filter_flags ||
             ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude)) {
@@ -5342,7 +5342,7 @@ void uiTemplateList(uiLayout *layout,
           else {
             ii = order_reverse ? items_shown - ++idx : idx++;
           }
-          //printf("%s: ii: %d\n", __func__, ii);
+          // printf("%s: ii: %d\n", __func__, ii);
           items_ptr[ii].item = itemptr;
           items_ptr[ii].org_idx = i;
           items_ptr[ii].flt_flag = dyn_data->items_filter_flags ? dyn_data->items_filter_flags[i] :

@@ -174,7 +174,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   /* get editmode results */
   ED_object_editmode_load(bmain, CTX_data_edit_object(C));
 
-  //Scene *scene = CTX_data_scene(C);
+  // Scene *scene = CTX_data_scene(C);
 
   ExportSettings export_settings;
 
@@ -748,7 +748,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
   ot->exec = wm_collada_import_exec;
   ot->poll = WM_operator_winactive;
 
-  //ot->flag |= OPTYPE_PRESET;
+  // ot->flag |= OPTYPE_PRESET;
 
   ot->ui = wm_collada_import_draw;
 

@@ -37,8 +37,8 @@ typedef struct BodyPoint {
   int *springs;
   float choke, choke2, frozen;
   float colball;
-  short loc_flag;  //reserved by locale module specific states
-  //char octantflag;
+  short loc_flag;  // reserved by locale module specific states
+  // char octantflag;
   float mass;
   float springweight;
 } BodyPoint;

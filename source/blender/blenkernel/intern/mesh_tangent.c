@@ -285,7 +285,7 @@ static void dm_ts_GetPosition(const SMikkTSpaceContext *pContext,
                               const int face_num,
                               const int vert_index)
 {
-  //assert(vert_index >= 0 && vert_index < 4);
+  // assert(vert_index >= 0 && vert_index < 4);
   SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
   const MLoopTri *lt;
   uint loop_index;
@@ -319,7 +319,7 @@ static void dm_ts_GetTextureCoordinate(const SMikkTSpaceContext *pContext,
                                        const int face_num,
                                        const int vert_index)
 {
-  //assert(vert_index >= 0 && vert_index < 4);
+  // assert(vert_index >= 0 && vert_index < 4);
   SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
   const MLoopTri *lt;
   uint loop_index;
@@ -358,7 +358,7 @@ static void dm_ts_GetNormal(const SMikkTSpaceContext *pContext,
                             const int face_num,
                             const int vert_index)
 {
-  //assert(vert_index >= 0 && vert_index < 4);
+  // assert(vert_index >= 0 && vert_index < 4);
   SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *)pContext->m_pUserData;
   const MLoopTri *lt;
   uint loop_index;
@@ -421,7 +421,7 @@ static void dm_ts_SetTSpace(const SMikkTSpaceContext *pContext,
                             const int face_num,
                             const int vert_index)
 {
-  //assert(vert_index >= 0 && vert_index < 4);
+  // assert(vert_index >= 0 && vert_index < 4);
   SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *)pContext->m_pUserData;
   const MLoopTri *lt;
   uint loop_index;

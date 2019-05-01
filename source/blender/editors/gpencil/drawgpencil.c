@@ -919,7 +919,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
       }
 
       /* 3D Fill */
-      //if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
+      // if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
       if ((gps->totpoints >= 3) && (tgpw->disable_fill != 1)) {
         /* set color using material, tint color and opacity */
         interp_v3_v3v3(tfill, gp_style->fill_rgba, tgpw->tintcolor, tgpw->tintcolor[3]);

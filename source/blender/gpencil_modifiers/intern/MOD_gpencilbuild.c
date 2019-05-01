@@ -74,7 +74,8 @@ static bool dependsOnTime(GpencilModifierData *UNUSED(md))
 /* Build Modifier - Stroke generation logic
  *
  * There are two modes for how the strokes are sequenced (at a macro-level):
- * - Sequential Mode - Strokes appear/disappear one after the other. Only a single one changes at a time.
+ * - Sequential Mode - Strokes appear/disappear one after the other. Only a single one changes at a
+ * time.
  * - Concurrent Mode - Multiple strokes appear/disappear at once.
  *
  * Assumptions:
@@ -121,8 +122,10 @@ static void reduce_stroke_points(bGPDstroke *gps,
   /* Which end should points be removed from */
   // TODO: free stroke weights
   switch (transition) {
-    case GP_BUILD_TRANSITION_GROW: /* Show in forward order = Remove ungrown-points from end of stroke */
-    case GP_BUILD_TRANSITION_SHRINK: /* Hide in reverse order = Remove dead-points from end of stroke */
+    case GP_BUILD_TRANSITION_GROW:   /* Show in forward order =
+                                      * Remove ungrown-points from end of stroke. */
+    case GP_BUILD_TRANSITION_SHRINK: /* Hide in reverse order =
+                                      * Remove dead-points from end of stroke. */
     {
       /* copy over point data */
       memcpy(new_points, gps->points, sizeof(bGPDspoint) * num_points);
@@ -353,7 +356,8 @@ static void build_concurrent(BuildGpencilModifierData *mmd, bGPDframe *gpf, floa
       }
       case GP_BUILD_TIMEALIGN_END: /* all end on same frame */
       {
-        /* Build effect occurs over  1.0 - relative_len, to 1.0  (i.e. over the end of the range) */
+        /* Build effect occurs over  1.0 - relative_len, to 1.0  (i.e. over the end of the range)
+         */
         const float start_fac = 1.0f - relative_len;
 
         if (fac >= start_fac) {
@@ -408,7 +412,7 @@ static void generateStrokes(GpencilModifierData *md,
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
 
   const float ctime = DEG_get_ctime(depsgraph);
-  //printf("GP Build Modifier - %f\n", ctime);
+  // printf("GP Build Modifier - %f\n", ctime);
 
   /* Early exit if it's an empty frame */
   if (gpf->strokes.first == NULL) {
@@ -463,7 +467,8 @@ static void generateStrokes(GpencilModifierData *md,
   }
 
   /* Early exit if current frame is outside start/end bounds */
-  /* NOTE: If we're beyond the next/prev frames (if existent), then we wouldn't have this problem anyway... */
+  /* NOTE: If we're beyond the next/prev frames (if existent), then we wouldn't have this problem
+   * anyway... */
   if (ctime < start_frame) {
     /* Before Start - Animation hasn't started. Display initial state. */
     if (reverse) {
@@ -501,7 +506,7 @@ static void generateStrokes(GpencilModifierData *md,
 
   /* Determine how far along we are between the keyframes */
   float fac = (ctime - start_frame) / (end_frame - start_frame);
-  //printf("  Progress on %d = %f (%f - %f)\n", gpf->framenum, fac, start_frame, end_frame);
+  // printf("  Progress on %d = %f (%f - %f)\n", gpf->framenum, fac, start_frame, end_frame);
 
   /* Time management mode */
   switch (mmd->mode) {

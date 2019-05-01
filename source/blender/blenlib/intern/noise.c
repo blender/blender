@@ -27,8 +27,8 @@
 
 /* local */
 static float noise3_perlin(float vec[3]);
-//static float turbulence_perlin(const float point[3], float lofreq, float hifreq);
-//static float turbulencep(float noisesize, float x, float y, float z, int nr);
+// static float turbulence_perlin(const float point[3], float lofreq, float hifreq);
+// static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
 /* UNUSED */
 // #define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]

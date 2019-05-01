@@ -1781,8 +1781,8 @@ int imagewraposa(Tex *tex,
 
     if (texres->nor && (tex->imaflag & TEX_NORMALMAP) == 0) {
       /* a bit extra filter */
-      //minx*= 1.35f;
-      //miny*= 1.35f;
+      // minx*= 1.35f;
+      // miny*= 1.35f;
 
       boxsample(
           curibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
@@ -2005,8 +2005,8 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float resu
   AFD.dxt[1] = dx;
   AFD.dyt[0] = dy;
   AFD.dyt[1] = dy;
-  //copy_v2_v2(AFD.dxt, dx);
-  //copy_v2_v2(AFD.dyt, dy);
+  // copy_v2_v2(AFD.dxt, dx);
+  // copy_v2_v2(AFD.dyt, dy);
 
   AFD.intpol = 1;
   AFD.extflag = TXC_EXTD;

@@ -429,7 +429,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_vec_get(op->slots_in, "merge_co", vec);
 
-  //BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
+  // BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
   BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
   slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");

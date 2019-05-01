@@ -117,7 +117,7 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
   if (ac->yscale_fac < 0.1f) {
     ac->yscale_fac = 1.0f;
   }
-  //printf("yscale_fac = %f\n", ac->yscale_fac);
+  // printf("yscale_fac = %f\n", ac->yscale_fac);
 }
 
 /* ----------- Private Stuff - Action Editor ------------- */
@@ -136,7 +136,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
   }
 
   /* XXX pinning is not available in 'ShapeKey' mode... */
-  //if (saction->pin) return NULL;
+  // if (saction->pin) return NULL;
 
   /* shapekey data is stored with geometry data */
   key = BKE_key_from_object(ob);
@@ -218,7 +218,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
     {
       /* TODO, other methods to get the mask */
       // Sequence *seq = BKE_sequencer_active_get(ac->scene);
-      //MovieClip *clip = ac->scene->clip;
+      // MovieClip *clip = ac->scene->clip;
       //          struct Mask *mask = seq ? seq->mask : NULL;
 
       /* update scene-pointer (no need to check for pinning yet, as not implemented) */
@@ -1324,7 +1324,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
   ListBase tmp_data = {NULL, NULL};
   size_t tmp_items = 0;
   size_t items = 0;
-  //int ofilter = filter_mode;
+  // int ofilter = filter_mode;
 
   /* if we care about the selection status of the channels,
    * but the group isn't expanded (1)...
@@ -1384,7 +1384,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
     /* add this group as a channel first */
     if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
       /* restore original filter mode so that this next step works ok... */
-      //filter_mode = ofilter;
+      // filter_mode = ofilter;
 
       /* filter selection of channel specially here again,
        * since may be open and not subject to previous test */

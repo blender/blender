@@ -189,7 +189,7 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 #define PX_SIZE_FADE_MIN 4.0f
 
   Scene *scene = CTX_data_scene(C);
-  //Brush *brush = image_paint_brush(C);
+  // Brush *brush = image_paint_brush(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 

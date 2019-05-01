@@ -500,7 +500,7 @@ static void createTransEdge(TransInfo *t)
       BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
     }
-    else {  //if (t->mode == TFM_CREASE) {
+    else {  // if (t->mode == TFM_CREASE) {
       BLI_assert(t->mode == TFM_CREASE);
       BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_CREASE);
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
@@ -2772,9 +2772,9 @@ static void VertsToTransData(TransInfo *t,
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
 
   td->flag = 0;
-  //if (key)
+  // if (key)
   //  td->loc = key->co;
-  //else
+  // else
   td->loc = eve->co;
   copy_v3_v3(td->iloc, td->loc);
 
@@ -3060,7 +3060,7 @@ static void createTransEditVerts(TransInfo *t)
 
           /* Mirror? */
           if ((mirror > 0 && tob->iloc[0] > 0.0f) || (mirror < 0 && tob->iloc[0] < 0.0f)) {
-            BMVert *vmir = EDBM_verts_mirror_get(em, eve);  //t->obedit, em, eve, tob->iloc, a);
+            BMVert *vmir = EDBM_verts_mirror_get(em, eve);  // t->obedit, em, eve, tob->iloc, a);
             if (vmir && vmir != eve) {
               tob->extra = vmir;
             }
@@ -6859,7 +6859,7 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   if (t->scene->nodetree) {
     /* tracks can be used for stabilization nodes,
      * flush update for such nodes */
-    //if (nodeUpdateID(t->scene->nodetree, &mask->id))
+    // if (nodeUpdateID(t->scene->nodetree, &mask->id))
     {
       WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
     }
@@ -7748,7 +7748,7 @@ static void markerToTransDataInit(TransData *td,
   td->loc = td2d->loc;
   copy_v3_v3(td->iloc, td->loc);
 
-  //copy_v3_v3(td->center, td->loc);
+  // copy_v3_v3(td->center, td->loc);
   td->flag |= TD_INDIVIDUAL_SCALE;
   td->center[0] = marker->pos[0] * aspect[0];
   td->center[1] = marker->pos[1] * aspect[1];
@@ -9342,7 +9342,7 @@ void createTransData(bContext *C, TransInfo *t)
     if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
       sort_trans_data(t);  // makes selected become first in array
       /* don't do that, distance has been set in createTransActionData already */
-      //set_prop_dist(t, false);
+      // set_prop_dist(t, false);
       sort_trans_data_dist(t);
     }
   }

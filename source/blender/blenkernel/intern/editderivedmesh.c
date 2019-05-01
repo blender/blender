@@ -399,7 +399,7 @@ static void statvis_calc_sharp(BMEditMesh *em,
   BMIter iter;
   BMesh *bm = em->bm;
   BMEdge *e;
-  //float f_no[3];
+  // float f_no[3];
   const float minmax_irange = 1.0f / (max - min);
   int i;
 

@@ -619,7 +619,7 @@ static void gp_duplicate_points(const bGPDstroke *gps,
       else if (i == gps->totpoints - 1) {
         len = i - start_idx + 1;
       }
-      //printf("copying from %d to %d = %d\n", start_idx, i, len);
+      // printf("copying from %d to %d = %d\n", start_idx, i, len);
 
       /* make copies of the relevant data */
       if (len) {
@@ -1212,7 +1212,7 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
   ot->poll = gp_stroke_edit_poll;
 
   /* flags */
-  //ot->flag = OPTYPE_REGISTER;
+  // ot->flag = OPTYPE_REGISTER;
 }
 
 /* --------------------- */

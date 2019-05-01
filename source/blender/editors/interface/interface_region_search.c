@@ -598,7 +598,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 
     winx = WM_window_pixels_x(win);
     // winy = WM_window_pixels_y(win);  /* UNUSED */
-    //wm_window_get_size(win, &winx, &winy);
+    // wm_window_get_size(win, &winx, &winy);
 
     if (rect_i.xmax > winx) {
       /* super size */

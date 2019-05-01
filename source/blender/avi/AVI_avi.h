@@ -63,12 +63,18 @@ typedef struct _AviMainHeader {
   int MaxBytesPerSec;   /* MaxBytesPerSec - approx bps system must handle */
   int PaddingGranularity;
   int Flags;
-#define AVIF_HASINDEX 0x00000010      /* had idx1 chunk */
-#define AVIF_MUSTUSEINDEX 0x00000020  /* must use idx1 chunk to determine order */
-#define AVIF_ISINTERLEAVED 0x00000100 /* AVI file is interleaved */
+
+  /** had idx1 chunk */
+#define AVIF_HASINDEX 0x00000010
+  /** must use idx1 chunk to determine order */
+#define AVIF_MUSTUSEINDEX 0x00000020
+  /** AVI file is interleaved */
+#define AVIF_ISINTERLEAVED 0x00000100
 #define AVIF_TRUSTCKTYPE 0x00000800
-#define AVIF_WASCAPTUREFILE 0x00010000 /* specially allocated used for capturing real time video */
-#define AVIF_COPYRIGHTED 0x00020000    /* contains copyrighted data */
+  /** specially allocated used for capturing real time video */
+#define AVIF_WASCAPTUREFILE 0x00010000
+  /** contains copyrighted data */
+#define AVIF_COPYRIGHTED 0x00020000
 
   int TotalFrames;
   int InitialFrames; /* InitialFrames - initial frame before interleaving */

@@ -95,10 +95,10 @@ inline void maskShiftAndSize(uint mask, uint *shift, uint *size)
 
 inline float quantizeCeil(float f, int inbits, int outbits)
 {
-  //uint i = f * (float(1 << inbits) - 1);
-  //i = convert(i, inbits, outbits);
-  //float result = float(i) / (float(1 << outbits) - 1);
-  //nvCheck(result >= f);
+  // uint i = f * (float(1 << inbits) - 1);
+  // i = convert(i, inbits, outbits);
+  // float result = float(i) / (float(1 << outbits) - 1);
+  // nvCheck(result >= f);
   float result;
   int offset = 0;
   do {

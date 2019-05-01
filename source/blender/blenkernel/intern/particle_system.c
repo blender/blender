@@ -567,7 +567,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
   if (ctx->seams) {
     MEM_freeN(ctx->seams);
   }
-  //if (ctx->vertpart) MEM_freeN(ctx->vertpart);
+  // if (ctx->vertpart) MEM_freeN(ctx->vertpart);
   BLI_kdtree_3d_free(ctx->tree);
 
   if (ctx->clumpcurve != NULL) {
@@ -619,7 +619,7 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa)
   pa->hair_index = 0;
   /* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
   /* usage other than straight after distribute has to handle this index by itself - jahka*/
-  //pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we don't have a derived mesh face */
+  // pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we don't have a derived mesh face */
 }
 
 static void initialize_all_particles(ParticleSimulationData *sim)
@@ -2208,7 +2208,7 @@ static void sph_integrate(ParticleSimulationData *sim,
   sphdata->pa = pa;
   sphdata->mass = pa_mass;
   sphdata->pass = 0;
-  //sphdata.element_size and sphdata.flow are set in the callback.
+  // sphdata.element_size and sphdata.flow are set in the callback.
 
   /* restore previous state and treat gravity & effectors as external acceleration*/
   sub_v3_v3v3(effector_acceleration, pa->state.vel, pa->prev_state.vel);
@@ -2300,7 +2300,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
     mul_v3_fl(pa->state.vel, 1.f - part->dampfac * efdata.ptex.damp * 25.f * dtime);
   }
 
-  //copy_v3_v3(pa->state.ave, states->ave);
+  // copy_v3_v3(pa->state.ave, states->ave);
 
   /* finally we do guides */
   time = (cfra - pa->time) / pa->lifetime;
@@ -4201,7 +4201,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
             float wrf;
             gzread(gzf, &wrf, sizeof(wrf));
             pa->state.co[j] = wrf;
-            //fprintf(stderr,"Rj%d ",j);
+            // fprintf(stderr,"Rj%d ",j);
           }
           for (j = 0; j < 3; j++) {
             float wrf;

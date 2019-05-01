@@ -489,7 +489,7 @@ static bool hook_op_edit_poll(bContext *C)
     if (ED_operator_editlattice(C)) {
       return 1;
     }
-    //if (ED_operator_editmball(C)) return 1;
+    // if (ED_operator_editmball(C)) return 1;
   }
 
   return 0;

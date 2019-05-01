@@ -40,7 +40,7 @@ typedef struct SubDParams {
   int smooth_falloff;
   float fractal;
   float along_normal;
-  //int beauty;
+  // int beauty;
   bool use_smooth;
   bool use_smooth_even;
   bool use_sphere;
@@ -391,7 +391,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm,
   /* offset for smooth or sphere or fractal */
   alter_co(v_new, e_orig, params, factor_subd, v_a, v_b);
 
-#if 0  //BMESH_TODO
+#if 0  // BMESH_TODO
   /* clip if needed by mirror modifier */
   if (edge->v1->f2) {
     if (edge->v1->f2 & edge->v2->f2 & 1) {

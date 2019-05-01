@@ -485,7 +485,7 @@ static void bm_grid_fill(BMesh *bm,
 
   const uint xtot = (uint)BM_edgeloop_length_get(estore_a);
   const uint ytot = (uint)BM_edgeloop_length_get(estore_rail_a);
-  //BMVert *v;
+  // BMVert *v;
   uint i;
 #ifdef DEBUG
   uint x, y;

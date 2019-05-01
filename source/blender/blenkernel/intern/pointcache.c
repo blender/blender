@@ -631,7 +631,7 @@ static int ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
     unsigned int in_len = sizeof(float) * (unsigned int)res;
     unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4,
                                                       "pointcache_lzo_buffer");
-    //int mode = res >= 1000000 ? 2 : 1;
+    // int mode = res >= 1000000 ? 2 : 1;
     int mode = 1;  // light
     if (sds->cache_comp == SM_CACHE_HEAVY) {
       mode = 2;  // heavy
@@ -704,7 +704,7 @@ static int ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 
     smoke_turbulence_get_res(sds->wt, res_big_array);
     res_big = res_big_array[0] * res_big_array[1] * res_big_array[2];
-    //mode =  res_big >= 1000000 ? 2 : 1;
+    // mode =  res_big >= 1000000 ? 2 : 1;
     mode = 1;  // light
     if (sds->cache_high_comp == SM_CACHE_HEAVY) {
       mode = 2;  // heavy
@@ -2286,7 +2286,7 @@ static int ptcache_file_compressed_write(
     r = LzmaCompress(out,
                      &out_len,
                      in,
-                     in_len,  //assume sizeof(char)==1....
+                     in_len,  // assume sizeof(char)==1....
                      props,
                      &sizeOfIt,
                      5,

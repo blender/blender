@@ -184,7 +184,7 @@ void MASK_OT_parent_set(wmOperatorType *ot)
   ot->idname = "MASK_OT_parent_set";
 
   /* api callbacks */
-  //ot->invoke = mask_parent_set_invoke;
+  // ot->invoke = mask_parent_set_invoke;
   ot->exec = mask_parent_set_exec;
 
   ot->poll = ED_space_clip_maskedit_mask_poll;

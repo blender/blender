@@ -617,8 +617,8 @@ void BKE_sequencer_cache_put(
   }
 
   /* Set last_key's reference to this key so we can look up chain backwards
-  * Item is already put in cache, so cache->last_key points to current key;
-  */
+   * Item is already put in cache, so cache->last_key points to current key;
+   */
   if (flag & type && temp_last_key) {
     temp_last_key->link_next = cache->last_key;
   }

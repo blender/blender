@@ -746,7 +746,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
       static int hasGivenError = 0;
 
       if (!hasGivenError) {
-        //XXX error("Unrecoverable error in SubSurf calculation,"
+        // XXX error("Unrecoverable error in SubSurf calculation,"
         //      " mesh is inconsistent.");
 
         hasGivenError = 1;

@@ -995,8 +995,8 @@ void ED_scene_draw_fps(Scene *scene, int xoffset, int *yoffset)
   if (tot) {
     fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
 
-    //fpsi->redrawtime_index++;
-    //if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE) {
+    // fpsi->redrawtime_index++;
+    // if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE) {
     //  fpsi->redrawtime = 0;
     //}
 

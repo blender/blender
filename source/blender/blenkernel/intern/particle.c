@@ -1546,7 +1546,7 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
   if (osface_final == NULL) {
     /* Assume we don't need osface_final data, and we get a direct 1-1 mapping... */
     if (findex_orig < totface_final) {
-      //printf("\tNO CD_ORIGSPACE, assuming not needed\n");
+      // printf("\tNO CD_ORIGSPACE, assuming not needed\n");
       return findex_orig;
     }
     else {
@@ -2099,7 +2099,7 @@ int do_guides(Depsgraph *depsgraph,
 
       add_v3_v3(vec_to_point, guidevec);
 
-      //sub_v3_v3v3(pa_loc, pa_loc, pa_zero);
+      // sub_v3_v3v3(pa_loc, pa_loc, pa_zero);
       madd_v3_v3fl(effect, vec_to_point, data->strength);
       madd_v3_v3fl(veffect, guidedir, data->strength);
       totstrength += data->strength;
@@ -2115,7 +2115,7 @@ int do_guides(Depsgraph *depsgraph,
       mul_v3_fl(effect, 1.0f / totstrength);
     }
     CLAMP(totstrength, 0.0f, 1.0f);
-    //add_v3_v3(effect, pa_zero);
+    // add_v3_v3(effect, pa_zero);
     interp_v3_v3v3(state->co, state->co, effect, totstrength);
 
     normalize_v3(veffect);
@@ -4338,7 +4338,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
     }
   }
   else if (totchild) {
-    //invert_m4_m4(imat, ob->obmat);
+    // invert_m4_m4(imat, ob->obmat);
 
     /* interpolate childcache directly if it exists */
     if (psys->childcache) {
@@ -4384,9 +4384,9 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
 
         /* We need to save the actual root position of the child for
          * positioning it accurately to the surface of the emitter. */
-        //copy_v3_v3(cpa_1st, co);
+        // copy_v3_v3(cpa_1st, co);
 
-        //mul_m4_v3(ob->obmat, cpa_1st);
+        // mul_m4_v3(ob->obmat, cpa_1st);
 
         pa = psys->particles + cpa->parent;
 
@@ -4470,7 +4470,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
           w++;
         }
         /* apply offset for correct positioning */
-        //add_v3_v3(state->co, cpa_1st);
+        // add_v3_v3(state->co, cpa_1st);
       }
       else {
         /* offset the child from the parent position */

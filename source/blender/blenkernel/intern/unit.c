@@ -426,8 +426,8 @@ static size_t unit_as_string(char *str,
   value_conv = value / unit->scalar;
 
   /* Adjust precision to expected number of significant digits.
-   * Note that here, we shall not have to worry about very big/small numbers, units are expected to replace
-   * 'scientific notation' in those cases. */
+   * Note that here, we shall not have to worry about very big/small numbers, units are expected to
+   * replace 'scientific notation' in those cases. */
   prec -= integer_digits_d(value_conv);
   CLAMP(prec, 0, 6);
 
@@ -803,7 +803,8 @@ static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys,
 {
   /* Try to find a default unit from current or previous string.
    * This allows us to handle cases like 2 + 2mm, people would expect to get 4mm, not 2.002m!
-   * Note this does not handle corner cases like 2 + 2cm + 1 + 2.5mm... We can't support everything. */
+   * Note this does not handle corner cases like 2 + 2cm + 1 + 2.5mm... We can't support
+   * everything. */
   const bUnitDef *unit = NULL;
 
   /* see which units the new value has */
@@ -889,10 +890,12 @@ bool bUnit_ReplaceString(
   /* Try to find a default unit from current or previous string. */
   default_unit = unit_detect_from_str(usys, str, str_prev);
 
-  /* We apply the default unit to the whole expression (default unit is now the reference '1.0' one). */
+  /* We apply the default unit to the whole expression (default unit is now the reference '1.0'
+   * one). */
   scale_pref_base *= default_unit->scalar;
 
-  /* Apply the default unit on the whole expression, this allows to handle nasty cases like '2+2in'. */
+  /* Apply the default unit on the whole expression, this allows to handle nasty cases like
+   * '2+2in'. */
   if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)*%.9g", str, default_unit->scalar) <
       sizeof(str_tmp)) {
     strncpy(str, str_tmp, len_max);
@@ -913,9 +916,9 @@ bool bUnit_ReplaceString(
 
   {
     /* try other unit systems now, so we can evaluate imperial when metric is set for eg. */
-    /* Note that checking other systems at that point means we do not support their units as 'default' one.
-     * In other words, when in metrics, typing '2+2in' will give 2 meters 2 inches, not 4 inches.
-     * I do think this is the desired behavior!
+    /* Note that checking other systems at that point means we do not support their units as
+     * 'default' one. In other words, when in metrics, typing '2+2in' will give 2 meters 2 inches,
+     * not 4 inches. I do think this is the desired behavior!
      */
     const bUnitCollection *usys_iter;
     int system_iter;

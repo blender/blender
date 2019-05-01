@@ -245,7 +245,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
     MaskSpline *spline;
 
     for (spline = masklay->splines.first; spline; spline = spline->next) {
-      //MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+      // MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
       int i, tot_feather_point;
       float(*feather_points)[2], (*fp)[2];

@@ -715,7 +715,7 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
 
-  //return sequencer_add_movie_strip_exec(C, op);
+  // return sequencer_add_movie_strip_exec(C, op);
 }
 
 static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
@@ -797,7 +797,7 @@ static int sequencer_add_sound_strip_invoke(bContext *C,
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
 
-  //return sequencer_add_sound_strip_exec(C, op);
+  // return sequencer_add_sound_strip_exec(C, op);
 }
 
 void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)

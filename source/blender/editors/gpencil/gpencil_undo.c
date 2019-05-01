@@ -68,7 +68,7 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
   gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
   if (step == 1) { /* undo */
-    //printf("\t\tGP - undo step\n");
+    // printf("\t\tGP - undo step\n");
     if (cur_node->prev) {
       if (!name || STREQ(cur_node->name, name)) {
         cur_node = cur_node->prev;
@@ -77,7 +77,7 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
     }
   }
   else if (step == -1) {
-    //printf("\t\tGP - redo step\n");
+    // printf("\t\tGP - redo step\n");
     if (cur_node->next) {
       if (!name || STREQ(cur_node->name, name)) {
         cur_node = cur_node->next;
@@ -134,7 +134,7 @@ void gpencil_undo_push(bGPdata *gpd)
 {
   bGPundonode *undo_node;
 
-  //printf("\t\tGP - undo push\n");
+  // printf("\t\tGP - undo push\n");
 
   if (cur_node) {
     /* remove all un-done nodes from stack */

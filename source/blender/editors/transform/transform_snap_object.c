@@ -953,7 +953,7 @@ static void cb_mlooptri_edges_get(const int index, int v_index[3], const BVHTree
     const MEdge *ed = &medge[mloop[lt->tri[j]].e];
     unsigned int tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
     if (ELEM(ed->v1, tri_edge[0], tri_edge[1]) && ELEM(ed->v2, tri_edge[0], tri_edge[1])) {
-      //printf("real edge found\n");
+      // printf("real edge found\n");
       v_index[j] = mloop[lt->tri[j]].e;
     }
     else {

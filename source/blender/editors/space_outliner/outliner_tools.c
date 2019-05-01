@@ -1846,8 +1846,8 @@ typedef enum eOutliner_AnimDataOps {
   OUTLINER_ANIMOP_REFRESH_DRV,
   OUTLINER_ANIMOP_CLEAR_DRV
 
-  //OUTLINER_ANIMOP_COPY_DRIVERS,
-  //OUTLINER_ANIMOP_PASTE_DRIVERS
+  // OUTLINER_ANIMOP_COPY_DRIVERS,
+  // OUTLINER_ANIMOP_PASTE_DRIVERS
 } eOutliner_AnimDataOps;
 
 static const EnumPropertyItem prop_animdata_op_types[] = {
@@ -1913,7 +1913,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
           soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb, NULL);
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
-      //ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
+      // ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
       updateDeps = 1;
       break;
 

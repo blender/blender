@@ -974,7 +974,7 @@ static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "To Sphere";
-  //added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()"
+  // added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()"
   ot->description = "Move selected vertices outward in a spherical shape around mesh center";
   ot->idname = OP_TOSPHERE;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;

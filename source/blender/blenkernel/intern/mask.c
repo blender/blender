@@ -1228,7 +1228,7 @@ static void mask_calc_point_handle(MaskSplinePoint *point,
 {
   BezTriple *bezt = &point->bezt;
   BezTriple *bezt_prev = NULL, *bezt_next = NULL;
-  //int handle_type = bezt->h1;
+  // int handle_type = bezt->h1;
 
   if (point_prev) {
     bezt_prev = &point_prev->bezt;

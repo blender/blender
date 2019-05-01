@@ -204,7 +204,7 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
         /* use a small value rather then zero so we don't flip a face in multiple steps
          * (first making it zero area, then flipping again) */
         if (dot_v3v3(cross_exist, cross_optim) <= FLT_EPSILON) {
-          //printf("no flip\n");
+          // printf("no flip\n");
           return true;
         }
 #endif

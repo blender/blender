@@ -840,7 +840,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
       /* Separate items, potentially with a label. */
       if (next_item->identifier) {
         /* Item without identifier but with name:
-        * Add group label for the following items. */
+         * Add group label for the following items. */
         if (item->name) {
           if (!is_first) {
             uiItemS(block->curlayout);

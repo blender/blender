@@ -76,7 +76,7 @@ static const uint FOURCC_RXGB = DDS_MAKEFOURCC('R', 'X', 'G', 'B');
 static const uint FOURCC_ATI1 = DDS_MAKEFOURCC('A', 'T', 'I', '1');
 static const uint FOURCC_ATI2 = DDS_MAKEFOURCC('A', 'T', 'I', '2');
 
-//static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
+// static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
 
 static const uint FOURCC_DX10 = DDS_MAKEFOURCC('D', 'X', '1', '0');
 
@@ -100,25 +100,25 @@ static const uint D3DFMT_X8B8G8R8 = 33;
 static const uint D3DFMT_G16R16 = 34;
 static const uint D3DFMT_A2R10G10B10 = 35;
 
-//static const uint D3DFMT_A16B16G16R16 = 36;
+// static const uint D3DFMT_A16B16G16R16 = 36;
 
 // Palette formats.
-//static const uint D3DFMT_A8P8 = 40;
-//static const uint D3DFMT_P8 = 41;
+// static const uint D3DFMT_A8P8 = 40;
+// static const uint D3DFMT_P8 = 41;
 
 // Luminance formats.
 static const uint D3DFMT_L8 = 50;
-//static const uint D3DFMT_A8L8 = 51;
-//static const uint D3DFMT_A4L4 = 52;
+// static const uint D3DFMT_A8L8 = 51;
+// static const uint D3DFMT_A4L4 = 52;
 static const uint D3DFMT_L16 = 81;
 
 // Floating point formats
-//static const uint D3DFMT_R16F = 111;
-//static const uint D3DFMT_G16R16F = 112;
-//static const uint D3DFMT_A16B16G16R16F = 113;
-//static const uint D3DFMT_R32F = 114;
-//static const uint D3DFMT_G32R32F = 115;
-//static const uint D3DFMT_A32B32G32R32F = 116;
+// static const uint D3DFMT_R16F = 111;
+// static const uint D3DFMT_G16R16F = 112;
+// static const uint D3DFMT_A16B16G16R16F = 113;
+// static const uint D3DFMT_R32F = 114;
+// static const uint D3DFMT_G32R32F = 115;
+// static const uint D3DFMT_A32B32G32R32F = 116;
 
 static const uint DDSD_CAPS = 0x00000001U;
 static const uint DDSD_PIXELFORMAT = 0x00001000U;
@@ -722,7 +722,7 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
   }
 
   // D3DX functions do not like this:
-  this->pf.fourcc = 0;  //findD3D9Format(bitcount, rmask, gmask, bmask, amask);
+  this->pf.fourcc = 0;  // findD3D9Format(bitcount, rmask, gmask, bmask, amask);
 #if 0
   if (this->pf.fourcc) {
     this->pf.flags |= DDPF_FOURCC;
@@ -742,7 +742,7 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 
 void DDSHeader::setDX10Format(uint format)
 {
-  //this->pf.flags = 0;
+  // this->pf.flags = 0;
   this->pf.fourcc = FOURCC_DX10;
   this->header10.dxgiFormat = format;
 }

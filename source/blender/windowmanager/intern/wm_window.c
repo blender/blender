@@ -770,7 +770,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 
     wm_window_swap_buffers(win);
 
-    //GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
+    // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
 
     /* standard state vars for window */
     GPU_state_init();

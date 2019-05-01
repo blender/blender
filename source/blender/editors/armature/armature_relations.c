@@ -296,7 +296,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
       /* Get Pose of current armature */
       opose = ob_iter->pose;
       ob_iter->mode &= ~OB_MODE_POSE;
-      //BASACT->flag &= ~OB_MODE_POSE;
+      // BASACT->flag &= ~OB_MODE_POSE;
 
       /* Find the difference matrix */
       invert_m4_m4(oimat, ob_active->obmat);
@@ -612,7 +612,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     oldob = obedit;
     oldbase = base_iter;
     oldob->mode &= ~OB_MODE_POSE;
-    //oldbase->flag &= ~OB_POSEMODE;
+    // oldbase->flag &= ~OB_POSEMODE;
 
     ED_armature_from_edit(bmain, obedit->data);
     ED_armature_edit_free(obedit->data);

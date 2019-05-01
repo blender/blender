@@ -2787,8 +2787,8 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 
   /* menu is 2nd level or deeper */
   if (flag & UI_BLOCK_POPUP) {
-    //rect->ymin -= 4.0;
-    //rect->ymax += 4.0;
+    // rect->ymin -= 4.0;
+    // rect->ymax += 4.0;
   }
   else if (direction == UI_DIR_DOWN) {
     roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
@@ -4686,7 +4686,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
   }
 
   if (wt) {
-    //rcti disablerect = *rect; /* rect gets clipped smaller for text */
+    // rcti disablerect = *rect; /* rect gets clipped smaller for text */
     int roundboxalign, state, drawflag;
     bool disabled = false;
 

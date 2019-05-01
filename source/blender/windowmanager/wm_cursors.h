@@ -42,7 +42,7 @@ enum {
   CURSOR_COPY,
 };
 
-//typedef struct BCursor_s BCursor;
+// typedef struct BCursor_s BCursor;
 typedef struct BCursor {
 
   char *small_bm;

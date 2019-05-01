@@ -1377,7 +1377,7 @@ void BKE_ocean_bake(struct Ocean *o,
   int res_x = och->resolution_x;
   int res_y = och->resolution_y;
   char string[FILE_MAX];
-  //RNG *rng;
+  // RNG *rng;
 
   if (!o) {
     return;
@@ -1390,7 +1390,7 @@ void BKE_ocean_bake(struct Ocean *o,
     prev_foam = NULL;
   }
 
-  //rng = BLI_rng_new(0);
+  // rng = BLI_rng_new(0);
 
   /* setup image format */
   imf.imtype = R_IMF_IMTYPE_OPENEXR;
@@ -1497,12 +1497,12 @@ void BKE_ocean_bake(struct Ocean *o,
       if (prev_foam) {
         MEM_freeN(prev_foam);
       }
-      //BLI_rng_free(rng);
+      // BLI_rng_free(rng);
       return;
     }
   }
 
-  //BLI_rng_free(rng);
+  // BLI_rng_free(rng);
   if (prev_foam) {
     MEM_freeN(prev_foam);
   }

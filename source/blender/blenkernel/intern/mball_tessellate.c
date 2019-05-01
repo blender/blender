@@ -1291,7 +1291,14 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             /* Rotation of MetaElem is stored in quat */
             quat_to_mat4(rot, ml->quat);
 
-            /* basis object space -> world -> ml object space -> position -> rotation -> ml local space */
+            /* Matrix multiply is as follows:
+             *   basis object space ->
+             *   world ->
+             *   ml object space ->
+             *   position ->
+             *   rotation ->
+             *   ml local space
+             */
             mul_m4_series((float(*)[4])new_ml->mat, obinv, bob->obmat, pos, rot);
             /* ml local space -> basis object space */
             invert_m4_m4((float(*)[4])new_ml->imat, (float(*)[4])new_ml->mat);

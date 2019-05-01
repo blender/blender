@@ -47,7 +47,7 @@
 #include "script_intern.h"  // own include
 #include "GPU_framebuffer.h"
 
-//static script_run_python(char *funcname, )
+// static script_run_python(char *funcname, )
 
 /* ******************** default callbacks for script space ***************** */
 

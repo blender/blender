@@ -365,7 +365,7 @@ int laplacian_system_solve(LaplacianSystem *sys)
 {
   sys->variablesdone = false;
 
-  //EIG_linear_solver_print_matrix(sys->context, );
+  // EIG_linear_solver_print_matrix(sys->context, );
 
   return EIG_linear_solver_solve(sys->context);
 }
@@ -451,7 +451,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 
     BLI_bvhtree_insert(sys->heat.bvhtree, a, bb, 2);
 
-    //Setup inverse pointers to use on isect.orig
+    // Setup inverse pointers to use on isect.orig
     sys->heat.vltree[vtri[0]] = lt;
     sys->heat.vltree[vtri[1]] = lt;
     sys->heat.vltree[vtri[2]] = lt;

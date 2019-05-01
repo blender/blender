@@ -1598,7 +1598,7 @@ static void mouse_action_keys(bAnimContext *ac,
         bGPDlayer *gpl = ale->data;
 
         gpl->flag |= GP_LAYER_SELECT;
-        //gpencil_layer_setactive(gpd, gpl);
+        // gpencil_layer_setactive(gpd, gpl);
       }
     }
     else if (ac->datatype == ANIMCONT_MASK) {
@@ -1610,7 +1610,7 @@ static void mouse_action_keys(bAnimContext *ac,
         MaskLayer *masklay = ale->data;
 
         masklay->flag |= MASK_LAYERFLAG_SELECT;
-        //gpencil_layer_setactive(gpd, gpl);
+        // gpencil_layer_setactive(gpd, gpl);
       }
     }
   }

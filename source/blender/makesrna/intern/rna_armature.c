@@ -1143,7 +1143,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
   prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
   /*RNA_def_property_float_sdna(prop, NULL, "");  */ /* doesn't access any real data */
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
-  //RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
   RNA_def_property_ui_text(
       prop,

@@ -1298,7 +1298,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         ignore_parent_tx(C, bmain, scene, ob);
 
         /* other users? */
-        //CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+        // CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
         //{
 
         /* use existing context looper */
@@ -1324,7 +1324,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
             ignore_parent_tx(C, bmain, scene, ob_other);
           }
         }
-        //CTX_DATA_END;
+        // CTX_DATA_END;
       }
     }
   }

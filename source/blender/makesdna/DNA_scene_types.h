@@ -965,11 +965,11 @@ typedef struct Sculpt {
   Paint paint;
 
   /* For rotating around a pivot point */
-  //float pivot[3]; XXX not used?
+  // float pivot[3]; XXX not used?
   int flags;
 
   /* Control tablet input */
-  //char tablet_size, tablet_strength; XXX not used?
+  // char tablet_size, tablet_strength; XXX not used?
   int radial_symm[3];
 
   /* Maximum edge length for dynamic topology sculpting (in pixels) */

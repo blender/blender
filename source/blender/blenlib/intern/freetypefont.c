@@ -386,7 +386,7 @@ static int check_freetypefont(PackedFile *pf)
   err = FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
   if (err) {
     success = 0;
-    //XXX error("This is not a valid font");
+    // XXX error("This is not a valid font");
   }
   else {
     glyph_index = FT_Get_Char_Index(face, 'A');
@@ -400,7 +400,7 @@ static int check_freetypefont(PackedFile *pf)
         success = 1;
       }
       else {
-        //XXX error("Selected Font has no outline data");
+        // XXX error("Selected Font has no outline data");
         success = 0;
       }
     }

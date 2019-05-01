@@ -2763,7 +2763,7 @@ void draw_outliner(const bContext *C)
   else {
     /* width must take into account restriction columns (if visible)
      * so that entries will still be visible */
-    //outliner_width(soops, &soops->tree, &sizex);
+    // outliner_width(soops, &soops->tree, &sizex);
     // XXX should use outliner_width instead when te->xend will be set correctly...
     outliner_rna_width(soops, &soops->tree, &sizex, 0);
 

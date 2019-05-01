@@ -95,14 +95,14 @@ bool RootPChanMap::has_common_root(const char *bone1, const char *bone2)
 {
   /* Ensure that both are in the map... */
   if (BLI_ghash_haskey(map_, bone1) == false) {
-    //fprintf("RootPChanMap: bone1 '%s' not found (%s => %s)\n", bone1, bone1, bone2);
-    //print_debug();
+    // fprintf("RootPChanMap: bone1 '%s' not found (%s => %s)\n", bone1, bone1, bone2);
+    // print_debug();
     return false;
   }
 
   if (BLI_ghash_haskey(map_, bone2) == false) {
-    //fprintf("RootPChanMap: bone2 '%s' not found (%s => %s)\n", bone2, bone1, bone2);
-    //print_debug();
+    // fprintf("RootPChanMap: bone2 '%s' not found (%s => %s)\n", bone2, bone1, bone2);
+    // print_debug();
     return false;
   }
 
@@ -116,13 +116,13 @@ bool RootPChanMap::has_common_root(const char *bone1, const char *bone2)
       const char *v2 = (const char *)BLI_gsetIterator_getKey(&it2);
 
       if (strcmp(v1, v2) == 0) {
-        //fprintf("RootPchanMap: %s in common for %s => %s\n", v1, bone1, bone2);
+        // fprintf("RootPchanMap: %s in common for %s => %s\n", v1, bone1, bone2);
         return true;
       }
     }
   }
 
-  //fprintf("RootPChanMap: No common root found (%s => %s)\n", bone1, bone2);
+  // fprintf("RootPChanMap: No common root found (%s => %s)\n", bone1, bone2);
   return false;
 }
 

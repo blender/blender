@@ -331,7 +331,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
-  marker = find_nearest_marker(SCE_MARKERS, 1);  //XXX - dummy function for now
+  marker = find_nearest_marker(SCE_MARKERS, 1);  // XXX - dummy function for now
 
   seq = find_nearest_seq(scene, v2d, &hand, event->mval);
 

@@ -162,7 +162,7 @@ static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
   }
 }
 
-}  //namespace DEG
+}  // namespace DEG
 
 /* *************************************************** */
 /* Graph Filtering API */

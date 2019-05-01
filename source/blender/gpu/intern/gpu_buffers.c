@@ -673,7 +673,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
   buffers->gridkey = *key;
   buffers->show_mask = !empty_mask;
 
-  //printf("node updated %p\n", buffers);
+  // printf("node updated %p\n", buffers);
 }
 
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden)

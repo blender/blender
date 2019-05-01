@@ -377,7 +377,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       if (ale->update & ANIM_UPDATE_ORDER) {
         ale->update &= ~ANIM_UPDATE_ORDER;
         if (gpl) {
-          //gpencil_sort_frames(gpl);
+          // gpencil_sort_frames(gpl);
         }
       }
 

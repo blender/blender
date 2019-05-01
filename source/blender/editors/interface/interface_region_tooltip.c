@@ -1063,7 +1063,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     field->geom.x_pos = x_pos;
   }
 
-  //fontw *= aspect;
+  // fontw *= aspect;
 
   BLF_disable(data->fstyle.uifont_id, font_flag);
   BLF_disable(blf_mono_font, font_flag);

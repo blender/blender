@@ -599,7 +599,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 
   if (ob->soft) {
     int nofquads;
-    //float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
+    // float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
 
     nofquads = count_mesh_quads(me);
     if (nofquads) {
@@ -1459,7 +1459,7 @@ static void _scan_for_ext_spring_forces(
                   sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos, &damp, feedback, ob, timenow)) {
             add_v3_v3(bs->ext_force, feedback);
             bs->flag |= BSF_INTERSECT;
-            //bs->cf=damp;
+            // bs->cf=damp;
             bs->cf = sb->choke * 0.01f;
           }
         }
@@ -2466,7 +2466,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
     else {
       *err = maxerrpos;
     }
-    //printf("EP %f EV %f\n", maxerrpos, maxerrvel);
+    // printf("EP %f EV %f\n", maxerrpos, maxerrvel);
     if (fuzzy) {
       *err /= sb->fuzzyness;
     }
@@ -3183,7 +3183,7 @@ void sbFreeSimulation(SoftBody *sb)
 /* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
-  //ob->softflag |= OB_SB_REDO;
+  // ob->softflag |= OB_SB_REDO;
 
   free_softbody_intern(ob->soft);
 }
@@ -3272,7 +3272,7 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   }
 
   vcloud_estimate_transform_v3(sb->totpoint, opos, NULL, rpos, NULL, com, rcom, lrot, lscale);
-  //sub_v3_v3(com, rcom);
+  // sub_v3_v3(com, rcom);
   if (lloc) {
     copy_v3_v3(lloc, com);
   }
@@ -3421,7 +3421,7 @@ static void softbody_step(
         if (forcetime > forcetimemin) {
           forcetime = max_ff(forcetime / 2.0f, forcetimemin);
           softbody_restore_prev_step(ob);
-          //printf("down, ");
+          // printf("down, ");
         }
         else {
           timedone += forcetime;
@@ -3432,7 +3432,7 @@ static void softbody_step(
 
         if (sb->scratch->flag & SBF_DOFUZZY) {
           ///* stay with this stepsize unless err really small */
-          //if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) {
+          // if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) {
           newtime = forcetime;
           //}
         }
@@ -3443,7 +3443,7 @@ static void softbody_step(
         }
         timedone += forcetime;
         newtime = min_ff(forcetimemax, max_ff(newtime, forcetimemin));
-        //if (newtime > forcetime) printf("up, ");
+        // if (newtime > forcetime) printf("up, ");
         if (forcetime > 0.0f) {
           forcetime = min_ff(dtime - timedone, newtime);
         }
@@ -3476,14 +3476,14 @@ static void softbody_step(
   }
   else if (sb->solver_ID == 2) {
     /* do semi "fake" implicit euler */
-    //removed
+    // removed
   } /*SOLVER SELECT*/
   else if (sb->solver_ID == 4) {
     /* do semi "fake" implicit euler */
   } /*SOLVER SELECT*/
   else if (sb->solver_ID == 3) {
     /* do "stupid" semi "fake" implicit euler */
-    //removed
+    // removed
 
   } /*SOLVER SELECT*/
   else {

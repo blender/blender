@@ -2008,7 +2008,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             MEM_freeN(fcolor);
 
             /* Mark tessellated CD layers as dirty. */
-            //result->dirty |= DM_DIRTY_TESS_CDLAYERS;
+            // result->dirty |= DM_DIRTY_TESS_CDLAYERS;
           }
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
@@ -2066,7 +2066,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
     }
 
     if (update_normals) {
-      //result->dirty |= DM_DIRTY_NORMALS;
+      // result->dirty |= DM_DIRTY_NORMALS;
     }
   }
   /* make a copy of mesh to use as brush data */

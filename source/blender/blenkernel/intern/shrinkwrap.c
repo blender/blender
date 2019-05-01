@@ -69,25 +69,25 @@
 #define OUT_OF_MEMORY() ((void)printf("Shrinkwrap: Out of memory\n"))
 
 typedef struct ShrinkwrapCalcData {
-  ShrinkwrapModifierData *smd;  //shrinkwrap modifier data
+  ShrinkwrapModifierData *smd;  // shrinkwrap modifier data
 
-  struct Object *ob;  //object we are applying shrinkwrap to
+  struct Object *ob;  // object we are applying shrinkwrap to
 
-  struct MVert *vert;     //Array of verts being projected (to fetch normals or other data)
-  float (*vertexCos)[3];  //vertexs being shrinkwraped
+  struct MVert *vert;     // Array of verts being projected (to fetch normals or other data)
+  float (*vertexCos)[3];  // vertexs being shrinkwraped
   int numVerts;
 
-  struct MDeformVert *dvert;  //Pointer to mdeform array
-  int vgroup;                 //Vertex group num
+  struct MDeformVert *dvert;  // Pointer to mdeform array
+  int vgroup;                 // Vertex group num
   bool invert_vgroup;         /* invert vertex group influence */
 
-  struct Mesh *target;                 //mesh we are shrinking to
-  struct SpaceTransform local2target;  //transform to move between local and target space
+  struct Mesh *target;                 // mesh we are shrinking to
+  struct SpaceTransform local2target;  // transform to move between local and target space
   struct ShrinkwrapTreeData *tree;     // mesh BVH tree data
 
   struct Object *aux_target;
 
-  float keepDist;  //Distance to keep above target surface (units are in local space)
+  float keepDist;  // Distance to keep above target surface (units are in local space)
 } ShrinkwrapCalcData;
 
 typedef struct ShrinkwrapCalcCBData {

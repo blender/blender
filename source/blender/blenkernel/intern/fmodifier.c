@@ -894,7 +894,7 @@ static void fcm_python_evaluate(FCurve *UNUSED(fcu),
                                 void *UNUSED(storage))
 {
 #ifdef WITH_PYTHON
-  //FMod_Python *data = (FMod_Python *)fcm->data;
+  // FMod_Python *data = (FMod_Python *)fcm->data;
 
   /* FIXME... need to implement this modifier...
    * It will need it execute a script using the custom properties

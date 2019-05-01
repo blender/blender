@@ -628,7 +628,7 @@ void BMO_slot_buffer_from_all(BMesh *bm,
  * don't directly access. */
 typedef struct BMOIter {
   BMOpSlot *slot;
-  int cur;  //for arrays
+  int cur;  // for arrays
   GHashIterator giter;
   void **val;
   char restrictmask; /* bitwise '&' with BMHeader.htype */

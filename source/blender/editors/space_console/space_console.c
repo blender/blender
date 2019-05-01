@@ -77,7 +77,7 @@ static SpaceLink *console_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
 
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-  //ar->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
+  // ar->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
   return (SpaceLink *)sconsole;
 }

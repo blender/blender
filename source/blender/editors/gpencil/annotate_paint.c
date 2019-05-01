@@ -285,17 +285,17 @@ static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float pmval[2
     return true;
 
     /* check if mouse moved at least certain distance on both axes (best case)
-   * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
-   */
+     * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
+     */
   }
   else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX)) {
     return true;
 
     /* Check if the distance since the last point is significant enough:
-   * - Prevents points being added too densely
-   * - Distance here doesn't use sqrt to prevent slowness.
-   *   We should still be safe from overflows though.
-   */
+     * - Prevents points being added too densely
+     * - Distance here doesn't use sqrt to prevent slowness.
+     *   We should still be safe from overflows though.
+     */
   }
   else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
     return true;
@@ -1361,7 +1361,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 
     if (has_layer_to_erase == false) {
       p->status = GP_STATUS_CAPTURE;
-      //if (G.debug & G_DEBUG)
+      // if (G.debug & G_DEBUG)
       printf("Error: Eraser will not be affecting anything (gpencil_paint_init)\n");
       return;
     }
@@ -1544,14 +1544,13 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
     immUniform1f("dash_width", 12.0f);
     immUniform1f("dash_factor", 0.5f);
 
-    imm_draw_circle_wire_2d(
-        shdr_pos,
-        x,
-        y,
-        p->radius,
-        /* XXX Dashed shader gives bad results with sets of small segments currently,
-         *     temp hack around the issue. :( */
-        max_ii(8, p->radius / 2)); /* was fixed 40 */
+    imm_draw_circle_wire_2d(shdr_pos,
+                            x,
+                            y,
+                            p->radius,
+                            /* XXX Dashed shader gives bad results with sets of small segments
+                             * currently, temp hack around the issue. :( */
+                            max_ii(8, p->radius / 2)); /* was fixed 40 */
 
     immUnbindProgram();
 
@@ -2234,7 +2233,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  //printf("\tGP - handle modal event...\n");
+  // printf("\tGP - handle modal event...\n");
 
   /* Exit painting mode (and/or end current stroke)
    *

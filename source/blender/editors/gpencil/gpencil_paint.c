@@ -372,10 +372,10 @@ static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float mvalo[2
     return true;
 
     /* Check if the distance since the last point is significant enough:
-   * - Prevents points being added too densely
-   * - Distance here doesn't use sqrt to prevent slowness.
-   *   We should still be safe from overflows though.
-   */
+     * - Prevents points being added too densely
+     * - Distance here doesn't use sqrt to prevent slowness.
+     *   We should still be safe from overflows though.
+     */
   }
   else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
     return true;
@@ -2319,14 +2319,13 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
     immUniform1f("dash_width", 12.0f);
     immUniform1f("dash_factor", 0.5f);
 
-    imm_draw_circle_wire_2d(
-        shdr_pos,
-        x,
-        y,
-        p->radius,
-        /* XXX Dashed shader gives bad results with sets of small segments currently,
-         *     temp hack around the issue. :( */
-        max_ii(8, p->radius / 2)); /* was fixed 40 */
+    imm_draw_circle_wire_2d(shdr_pos,
+                            x,
+                            y,
+                            p->radius,
+                            /* XXX Dashed shader gives bad results with sets of small segments
+                             * currently, temp hack around the issue. :( */
+                            max_ii(8, p->radius / 2)); /* was fixed 40 */
 
     immUnbindProgram();
 
@@ -3508,7 +3507,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  //printf("\tGP - handle modal event...\n");
+  // printf("\tGP - handle modal event...\n");
 
   /* Exit painting mode (and/or end current stroke).
    *

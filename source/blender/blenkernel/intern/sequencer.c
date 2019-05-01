@@ -2347,7 +2347,7 @@ static void color_balance_byte_byte(StripColorBalance *cb_,
                                     int height,
                                     float mul)
 {
-  //unsigned char cb_tab[3][256];
+  // unsigned char cb_tab[3][256];
   unsigned char *cp = rect;
   unsigned char *e = cp + width * 4 * height;
   unsigned char *m = mask_rect;
@@ -4134,8 +4134,8 @@ static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t wakeup_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t wakeup_cond = PTHREAD_COND_INITIALIZER;
 
-//static pthread_mutex_t prefetch_ready_lock = PTHREAD_MUTEX_INITIALIZER;
-//static pthread_cond_t  prefetch_ready_cond = PTHREAD_COND_INITIALIZER;
+// static pthread_mutex_t prefetch_ready_lock = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_cond_t  prefetch_ready_cond = PTHREAD_COND_INITIALIZER;
 
 static pthread_mutex_t frame_done_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t frame_done_cond = PTHREAD_COND_INITIALIZER;

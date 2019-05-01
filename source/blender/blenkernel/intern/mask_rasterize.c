@@ -1249,7 +1249,7 @@ static float maskrasterize_layer_z_depth_quad(
 {
   float w[4];
   barycentric_weights_v2_quad(v1, v2, v3, v4, pt, w);
-  //return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
+  // return (v1[2] * w[0]) + (v2[2] * w[1]) + (v3[2] * w[2]) + (v4[2] * w[3]);
   return w[2] + w[3]; /* we can make this assumption for small speedup */
 }
 
@@ -1287,7 +1287,7 @@ static float maskrasterize_layer_isect(unsigned int *face,
       /* needs work */
 #if 1
       /* quad check fails for bow-tie, so keep using 2 tri checks */
-      //if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]))
+      // if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]))
       if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]]) ||
           isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]])) {
         return maskrasterize_layer_z_depth_quad(

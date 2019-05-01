@@ -1158,8 +1158,8 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
   WM_operator_call_ex(C, data->op, true);
 
   /* let execute handle freeing it */
-  //data->free_op = false;
-  //data->op = NULL;
+  // data->free_op = false;
+  // data->op = NULL;
 
   /* in this case, wm_operator_ui_popup_cancel wont run */
   MEM_freeN(data);

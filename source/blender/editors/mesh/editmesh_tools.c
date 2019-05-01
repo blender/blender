@@ -2774,7 +2774,7 @@ void MESH_OT_uvs_reverse(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  //RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around");
+  // RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
@@ -3573,7 +3573,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
   float threshold = 0.0;
   int i;
 
-  //threshold = 0.000001; /* tolerance for vertex intersection */
+  // threshold = 0.000001; /* tolerance for vertex intersection */
   // XXX threshold = scene->toolsettings->select_thresh / 100;
 
   /* Get screen coords of verts */
@@ -3715,7 +3715,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
         else {
           perc = (yi - y21) / (y22 - y21); /* lower slope more accurate */
         }
-        //isect = 32768.0 * (perc + 0.0000153); /* Percentage in 1 / 32768ths */
+        // isect = 32768.0 * (perc + 0.0000153); /* Percentage in 1 / 32768ths */
 
         break;
       }

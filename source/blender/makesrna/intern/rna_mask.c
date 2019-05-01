@@ -632,7 +632,7 @@ static void rna_def_maskParent(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, mask_id_type_items);
   RNA_def_property_enum_default(prop, ID_MC);
   RNA_def_property_enum_funcs(prop, NULL, "rna_MaskParent_id_type_set", NULL);
-  //RNA_def_property_editable_func(prop, "rna_MaskParent_id_type_editable");
+  // RNA_def_property_editable_func(prop, "rna_MaskParent_id_type_editable");
   RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
   RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 

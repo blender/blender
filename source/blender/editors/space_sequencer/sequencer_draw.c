@@ -461,7 +461,7 @@ static void draw_seq_handle(View2D *v2d,
                             const short direction,
                             unsigned int pos)
 {
-  float v1[2], v2[2], v3[2], rx1 = 0, rx2 = 0;  //for triangles and rect
+  float v1[2], v2[2], v3[2], rx1 = 0, rx2 = 0;  // for triangles and rect
   float x1, x2, y1, y2;
   unsigned int whichsel = 0;
 
@@ -817,7 +817,7 @@ static void draw_seq_strip(const bContext *C,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* get the correct color per strip type*/
-  //color3ubv_from_seq(scene, seq, col);
+  // color3ubv_from_seq(scene, seq, col);
   color3ubv_from_seq(scene, seq, background_col);
 
   if (seq->flag & SEQ_MUTE) {

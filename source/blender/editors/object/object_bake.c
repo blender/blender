@@ -382,7 +382,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
     bkr.number_of_rays = scene->r.bake_samples;
     bkr.threads = BKE_scene_num_threads(scene);
     bkr.user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
-    //bkr.reports= op->reports;
+    // bkr.reports= op->reports;
 
     /* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
     bkr.ob_image.array = bake_object_image_get_array(ob);
@@ -427,7 +427,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   bkj->number_of_rays = scene->r.bake_samples;
   bkj->threads = BKE_scene_num_threads(scene);
   bkj->user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
-  //bkj->reports = op->reports;
+  // bkj->reports = op->reports;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
     MultiresBakerJobData *data;
@@ -484,7 +484,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
     bkr.mode = bkj->mode;
     bkr.use_lores_mesh = bkj->use_lores_mesh;
     bkr.user_scale = bkj->user_scale;
-    //bkr.reports = bkj->reports;
+    // bkr.reports = bkj->reports;
     bkr.ob_image.array = data->ob_image.array;
     bkr.ob_image.len = data->ob_image.len;
 

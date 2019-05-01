@@ -361,7 +361,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
       offset += (short)(0.7f * U.widget_unit);
 
       /* If not in Action Editor mode, action-groups (and their children)
-     * must carry some offset too. */
+       * must carry some offset too. */
     }
     else if (ac->datatype != ANIMCONT_ACTION) {
       offset += (short)(0.7f * U.widget_unit);
@@ -4526,7 +4526,7 @@ static void draw_setting_widget(bAnimContext *ac,
   /* get the base icon for the setting */
   switch (setting) {
     case ACHANNEL_SETTING_VISIBLE: /* visibility eyes */
-      //icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
+      // icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
       icon = ICON_VISIBLE_IPO_OFF;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -4551,13 +4551,13 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
-      //icon = ((enabled) ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
+      // icon = ((enabled) ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
       icon = ICON_TRIA_RIGHT;
       tooltip = TIP_("Make channels grouped under this channel visible");
       break;
 
     case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
-      //icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
+      // icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
       icon = ICON_SOLO_OFF;
       tooltip = TIP_(
           "NLA Track is the only one evaluated in this animation data-block, with all others "
@@ -4568,7 +4568,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_PROTECT: /* protected lock */
       // TODO: what about when there's no protect needed?
-      //icon = ((enabled) ? ICON_LOCKED : ICON_UNLOCKED);
+      // icon = ((enabled) ? ICON_LOCKED : ICON_UNLOCKED);
       icon = ICON_UNLOCKED;
 
       if (ale->datatype != ALE_NLASTRIP) {
@@ -4599,7 +4599,7 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_PINNED: /* pin icon */
-      //icon = ((enabled) ? ICON_PINNED : ICON_UNPINNED);
+      // icon = ((enabled) ? ICON_PINNED : ICON_UNPINNED);
       icon = ICON_UNPINNED;
 
       if (ale->type == ANIMTYPE_NLAACTION) {

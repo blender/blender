@@ -157,7 +157,7 @@ typedef struct KnifeTool_OpData {
   void *draw_handle; /* for drawing preview loop */
   ViewContext vc;    /* note: _don't_ use 'mval', instead use the one we define below */
   float mval[2];     /* mouse value with snapping applied */
-  //bContext *C;
+  // bContext *C;
 
   Scene *scene;
   Object *ob;

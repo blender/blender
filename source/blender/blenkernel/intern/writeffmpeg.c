@@ -637,7 +637,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   /* Deprecated and not doing anything since July 2015, deleted in recent ffmpeg */
-  //c->me_method = ME_EPZS;
+  // c->me_method = ME_EPZS;
 
   codec = avcodec_find_encoder(c->codec_id);
   if (!codec) {
@@ -787,7 +787,7 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
 
   codec = avcodec_find_encoder(c->codec_id);
   if (!codec) {
-    //XXX error("Couldn't find a valid audio codec");
+    // XXX error("Couldn't find a valid audio codec");
     return NULL;
   }
 
@@ -831,7 +831,7 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   set_ffmpeg_properties(rd, c, "audio", &opts);
 
   if (avcodec_open2(c, codec, &opts) < 0) {
-    //XXX error("Couldn't initialize audio codec");
+    // XXX error("Couldn't initialize audio codec");
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     return NULL;
@@ -1523,7 +1523,6 @@ static IDProperty *BKE_ffmpeg_property_add(RenderData *rd,
           (char
                *)"                                                                               ";
       val.string.len = 80;
-      /*      val.str = (char *)"                                                                               ";*/
       idp_type = IDP_STRING;
       break;
     case AV_OPT_TYPE_CONST:

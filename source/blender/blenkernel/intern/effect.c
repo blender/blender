@@ -698,7 +698,7 @@ int get_effector_data(EffectorCache *eff,
       ret = psys_get_particle_state(&sim, *efd->index, &state, 0);
 
       /* TODO */
-      //if (eff->pd->forcefiled == PFIELD_HARMONIC && ret==0) {
+      // if (eff->pd->forcefiled == PFIELD_HARMONIC && ret==0) {
       //  if (pa->dietime < eff->psys->cfra)
       //      eff->flag |= PE_VELOCITY_TO_IMPULSE;
       //}

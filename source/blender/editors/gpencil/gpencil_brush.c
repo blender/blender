@@ -1326,7 +1326,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
   gpsculpt_brush_header_set(C, gso);
 
   /* setup cursor drawing */
-  //WM_cursor_modal_set(CTX_wm_window(C), BC_CROSSCURSOR);
+  // WM_cursor_modal_set(CTX_wm_window(C), BC_CROSSCURSOR);
   if (gso->sa->spacetype != SPACE_VIEW3D) {
     ED_gpencil_toggle_brush_cursor(C, true, NULL);
   }
@@ -2007,7 +2007,7 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 
       /* Painting mbut release = Stop painting (back to idle) */
       case LEFTMOUSE:
-        //BLI_assert(event->val == KM_RELEASE);
+        // BLI_assert(event->val == KM_RELEASE);
         if (is_modal) {
           /* go back to idling... */
           gso->is_painting = false;

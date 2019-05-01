@@ -1575,7 +1575,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
   }
   else {
     /* this code is not significant until holes actually work */
-    //printf("warning: call to split face euler without holes argument; holes will be tossed.\n");
+    // printf("warning: call to split face euler without holes argument; holes will be tossed.\n");
     for (lst = f->loops.last; lst != f->loops.first; lst = lst2) {
       lst2 = lst->prev;
       BLI_mempool_free(bm->looplistpool, lst);
@@ -1717,7 +1717,7 @@ BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm, BMVert *tv, BMEdge *e, BMEd
     /* verify loop->v and loop->next->v pointers for e */
     for (i = 0, l = e->l; i < radlen; i++, l = l->radial_next) {
       BMESH_ASSERT(l->e == e);
-      //BMESH_ASSERT(l->radial_next == l);
+      // BMESH_ASSERT(l->radial_next == l);
       BMESH_ASSERT(!(l->prev->e != e_new && l->next->e != e_new));
 
       edok = BM_verts_in_edge(l->v, l->next->v, e);

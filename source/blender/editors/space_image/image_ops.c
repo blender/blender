@@ -580,7 +580,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
     zfac = 1.0f + ((fac / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
     /* this is the final zoom, but instead make it into a factor */
-    //zoom = vpd->sima->zoom * zfac;
+    // zoom = vpd->sima->zoom * zfac;
     factor = (vpd->sima->zoom * zfac) / vpd->zoom;
   }
   else {
@@ -1735,7 +1735,7 @@ static int image_save_options_init(Main *bmain,
     }
 
     ///* XXX - this is lame, we need to make these available too! */
-    //opts->subimtype = scene->r.subimtype;
+    // opts->subimtype = scene->r.subimtype;
 
     BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
 

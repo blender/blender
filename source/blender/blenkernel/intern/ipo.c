@@ -511,10 +511,10 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
       return "turbulence";
 
     case TE_NDEPTH:  // XXX texture RNA undefined
-      //poin= &(tex->noisedepth); *type= IPO_SHORT; break;
+      // poin= &(tex->noisedepth); *type= IPO_SHORT; break;
       break;
     case TE_NTYPE:  // XXX texture RNA undefined
-      //poin= &(tex->noisetype); *type= IPO_SHORT; break;
+      // poin= &(tex->noisetype); *type= IPO_SHORT; break;
       break;
 
     case TE_N_BAS1:
@@ -686,7 +686,7 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
   /* result depends on adrcode */
   switch (adrcode) {
     case CAM_LENS:
-#if 0   /* XXX this cannot be resolved easily...
+#if 0   /* XXX this cannot be resolved easily... \
          * perhaps we assume camera is perspective (works for most cases... */
       if (ca->type == CAM_ORTHO)
         return "ortho_scale";
@@ -1001,7 +1001,7 @@ static char *get_rna_access(ID *id,
 
     /* XXX problematic blocktypes */
     case ID_SEQ: /* sequencer strip */
-      //SEQ_FAC1:
+      // SEQ_FAC1:
       switch (adrcode) {
         case SEQ_FAC1:
           propname = "effect_fader";
@@ -1444,8 +1444,8 @@ static void icu_to_fcurves(ID *id,
       else if (icu->bp) {
         /* TODO: need to convert from BPoint type to the more compact FPoint type...
          * but not priority, since no data used this. */
-        //BPoint *bp;
-        //FPoint *fpt;
+        // BPoint *bp;
+        // FPoint *fpt;
       }
 
       /* add new F-Curve to list */
@@ -1506,7 +1506,7 @@ static void icu_to_fcurves(ID *id,
          */
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
             ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))) {
-          const float fac = (float)M_PI / 18.0f;  //10.0f * M_PI/180.0f;
+          const float fac = (float)M_PI / 18.0f;  // 10.0f * M_PI/180.0f;
 
           dst->vec[0][1] *= fac;
           dst->vec[1][1] *= fac;
@@ -1566,8 +1566,8 @@ static void icu_to_fcurves(ID *id,
     else if (icu->bp) {
       /* TODO: need to convert from BPoint type to the more compact FPoint type...
        * but not priority, since no data used this */
-      //BPoint *bp;
-      //FPoint *fpt;
+      // BPoint *bp;
+      // FPoint *fpt;
     }
 
     /* add new F-Curve to list */

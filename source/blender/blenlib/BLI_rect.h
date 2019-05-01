@@ -66,7 +66,7 @@ void BLI_rctf_interp(struct rctf *rect,
                      const struct rctf *rect_a,
                      const struct rctf *rect_b,
                      const float fac);
-//void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
+// void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
 bool BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2]);
 bool BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2]);
 bool BLI_rctf_clamp(struct rctf *rect, const struct rctf *rect_bounds, float r_xy[2]);

@@ -1748,9 +1748,9 @@ void BKE_node_preview_set_pixel(
           rgba_float_to_uchar(tar, col);
         }
       }
-      //else printf("prv out bound x y %d %d\n", x, y);
+      // else printf("prv out bound x y %d %d\n", x, y);
     }
-    //else printf("prv out bound x y %d %d\n", x, y);
+    // else printf("prv out bound x y %d %d\n", x, y);
   }
 }
 

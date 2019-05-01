@@ -5114,7 +5114,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     }
     *size = RNA_raw_type_sizeof(*raw_type);
 
-#if 0 /* works fine but not strictly needed,
+#if 0 /* works fine but not strictly needed, \
        * we could allow RNA_property_collection_raw_* to do the checks */
     if ((*attr_tot) < 1) {
       *attr_tot = 1;
@@ -8785,7 +8785,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 
   PyDict_DelItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna);
   if (PyErr_Occurred()) {
-    PyErr_Clear();  //return NULL;
+    PyErr_Clear();  // return NULL;
   }
 
   Py_RETURN_NONE;

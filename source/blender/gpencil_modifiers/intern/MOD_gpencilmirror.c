@@ -165,7 +165,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
 
 static bool isDisabled(GpencilModifierData *UNUSED(md), int UNUSED(userRenderParams))
 {
-  //MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  // MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
 
   return false;
 }

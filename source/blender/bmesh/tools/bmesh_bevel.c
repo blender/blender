@@ -1855,7 +1855,7 @@ static void bevel_extend_edge_data(BevVert *bv)
           v1 = v2;
         }
         BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
-        e = v1->e;  //Do same as above for first and last vert
+        e = v1->e;  // Do same as above for first and last vert
         while (e->v1 != v3 && e->v2 != v3) {
           if (e->v1 == v1) {
             e = e->v1_disk_link.next;

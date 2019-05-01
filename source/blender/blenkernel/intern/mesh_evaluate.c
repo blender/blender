@@ -1312,11 +1312,11 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
             printf("Invalid clnors in this fan!\n");
           }
           while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
-            //print_v2("org clnor", clnor);
+            // print_v2("org clnor", clnor);
             clnor[0] = (short)clnors_avg[0];
             clnor[1] = (short)clnors_avg[1];
           }
-          //print_v2("new clnors", clnors_avg);
+          // print_v2("new clnors", clnors_avg);
         }
         /* Extra bonus: since smallstack is local to this func,
          * no more need to empty it at all cost! */

@@ -574,7 +574,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View2D *v2d = &ar->v2d;
-  //View2DScrollers *scrollers;
+  // View2DScrollers *scrollers;
   float col[3];
 
   /* XXX This is in order to draw UI batches with the DRW

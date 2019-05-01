@@ -2210,8 +2210,8 @@ static void oceanbake_free(void *customdata)
 /* called by oceanbake, only to check job 'stop' value */
 static int oceanbake_breakjob(void *UNUSED(customdata))
 {
-  //OceanBakeJob *ob = (OceanBakeJob *)customdata;
-  //return *(ob->stop);
+  // OceanBakeJob *ob = (OceanBakeJob *)customdata;
+  // return *(ob->stop);
 
   /* this is not nice yet, need to make the jobs list template better
    * for identifying/acting upon various different jobs */

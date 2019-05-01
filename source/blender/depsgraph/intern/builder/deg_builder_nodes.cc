@@ -1439,7 +1439,7 @@ void DepsgraphNodeBuilder::build_compositor(Scene *scene)
   /* For now, just a plain wrapper? */
   // TODO: create compositing component?
   // XXX: component type undefined!
-  //graph->get_node(&scene->id, NULL, NodeType::COMPOSITING, NULL);
+  // graph->get_node(&scene->id, NULL, NodeType::COMPOSITING, NULL);
 
   /* for now, nodetrees are just parameters; compositing occurs in internals
    * of renderer... */

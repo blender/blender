@@ -515,7 +515,7 @@ static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node)
       if ((node == node->parent->left) && (node->parent == gp->left)) {
         rotate_right(tree, gp);
       }
-      else {  //if ((node == node->parent->right) && (node->parent == gp->right))
+      else {  // if ((node == node->parent->right) && (node->parent == gp->right))
         rotate_left(tree, gp);
       }
     }

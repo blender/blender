@@ -116,7 +116,7 @@ static int report_textview_begin(TextViewContext *tvc)
   // SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
   ReportList *reports = (ReportList *)tvc->arg2;
 
-  tvc->lheight = 14 * UI_DPI_FAC;  //sc->lheight;
+  tvc->lheight = 14 * UI_DPI_FAC;  // sc->lheight;
   tvc->sel_start = 0;
   tvc->sel_end = 0;
 
@@ -256,7 +256,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo,
   /* view */
   tvc.sel_start = 0;
   tvc.sel_end = 0;
-  tvc.lheight = 14 * UI_DPI_FAC;  //sc->lheight;
+  tvc.lheight = 14 * UI_DPI_FAC;  // sc->lheight;
   tvc.ymin = v2d->cur.ymin;
   tvc.ymax = v2d->cur.ymax;
   tvc.winx = ar->winx - V2D_SCROLL_WIDTH;

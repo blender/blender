@@ -3797,7 +3797,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 #endif
 
   /* this makes adjacent blocks auto open from now on */
-  //if (but->block->auto_open == 0) {
+  // if (but->block->auto_open == 0) {
   //  but->block->auto_open = 1;
   //}
 }

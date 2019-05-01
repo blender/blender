@@ -360,12 +360,12 @@ static void outliner_add_object_contents(SpaceOutliner *soops,
         pchan->temp = (void *)ten;
 
         if (pchan->constraints.first) {
-          //Object *target;
+          // Object *target;
           bConstraint *con;
           TreeElement *ten1;
           TreeElement *tenla1 = outliner_add_element(
               soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-          //char *str;
+          // char *str;
 
           tenla1->name = IFACE_("Constraints");
           for (con = pchan->constraints.first; con; con = con->next, const_index++) {
@@ -426,11 +426,11 @@ static void outliner_add_object_contents(SpaceOutliner *soops,
   }
 
   if (ob->constraints.first) {
-    //Object *target;
+    // Object *target;
     bConstraint *con;
     TreeElement *ten;
     TreeElement *tenla = outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
-    //char *str;
+    // char *str;
     int a;
 
     tenla->name = IFACE_("Constraints");
@@ -654,7 +654,7 @@ static void outliner_add_id_contents(SpaceOutliner *soops,
     }
     case ID_AC: {
       // XXX do we want to be exposing the F-Curves here?
-      //bAction *act = (bAction *)id;
+      // bAction *act = (bAction *)id;
       break;
     }
     case ID_AR: {

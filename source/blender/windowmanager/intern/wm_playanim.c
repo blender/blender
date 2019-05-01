@@ -1284,7 +1284,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &maxwinx, &maxwiny);
 
-  //GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
+  // GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
   /* initialize OpenGL immediate mode */
   g_WS.gpu_context = GPU_context_create();

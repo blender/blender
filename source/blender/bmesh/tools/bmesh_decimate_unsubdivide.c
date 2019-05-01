@@ -264,7 +264,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
           }
           else {
             /* works better to allow these verts to be checked again */
-            //BM_elem_index_set(v, VERT_INDEX_IGNORE);  /* set_dirty! */
+            // BM_elem_index_set(v, VERT_INDEX_IGNORE);  /* set_dirty! */
           }
         }
       }

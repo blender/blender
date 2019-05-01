@@ -39,7 +39,7 @@
 static Text *activeToolText = NULL;
 static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static char *documentation = NULL;
-//static int doc_lines = 0;
+// static int doc_lines = 0;
 
 static void txttl_free_suggest(void)
 {

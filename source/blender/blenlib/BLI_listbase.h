@@ -27,8 +27,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "DNA_listBase.h"
-//struct ListBase;
-//struct LinkData;
+// struct ListBase;
+// struct LinkData;
 
 #ifdef __cplusplus
 extern "C" {

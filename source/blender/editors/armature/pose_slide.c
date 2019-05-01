@@ -510,7 +510,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
 
           default:
             /* cannot handle */
-            //printf("Cannot Pose Slide non-numerical property\n");
+            // printf("Cannot Pose Slide non-numerical property\n");
             break;
         }
       }

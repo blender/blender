@@ -400,8 +400,8 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
 
 bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node);
 
-//void BKE_pbvh_node_BB_reset(PBVHNode *node);
-//void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
+// void BKE_pbvh_node_BB_reset(PBVHNode *node);
+// void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 bool pbvh_has_mask(PBVH *bvh);
 void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color);
