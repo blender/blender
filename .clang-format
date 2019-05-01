@@ -98,9 +98,8 @@ SpaceInEmptyParentheses: false
 # Note that this doesn't work for C-style comments.
 SpacesBeforeTrailingComments: 2
 
-# Don't reflow comments, let developers define line breaks.
-# Enabling breaks some ascii art.
-ReflowComments: false
+# Reflow comments, developers must disable formatting as with code to override this.
+ReflowComments: true
 
 # Never use tabs for indentation.
 # Note: TabWidth and IndentWidth must be the same, or strange things happen.
