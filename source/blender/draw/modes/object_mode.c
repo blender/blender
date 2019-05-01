@@ -1502,7 +1502,7 @@ static void OBJECT_cache_init(void *vedata)
     psl->ob_center = DRW_pass_create("Obj Center Pass", state);
 
     outlineWidth = 1.0f * U.pixelsize;
-    size = U.obcenter_dia * U.pixelsize + outlineWidth;
+    size = UI_GetThemeValuef(TH_OBCENTER_DIA) * U.pixelsize + outlineWidth;
 
     GPUShader *sh = GPU_shader_get_builtin_shader_with_config(
         GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA, draw_ctx->sh_cfg);

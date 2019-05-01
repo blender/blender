@@ -300,12 +300,12 @@ typedef struct ThemeSpace {
   char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4],
       keytype_jitter_select[4], keytype_movehold_select[4];
   char keyborder[4], keyborder_select[4];
-  char _pad4[4];
+  char _pad4[3];
 
   char console_output[4], console_input[4], console_info[4], console_error[4];
   char console_cursor[4], console_select[4];
 
-  char vertex_size, outline_width, facedot_size;
+  char vertex_size, outline_width, obcenter_dia, facedot_size;
   char noodle_curving;
 
   /* syntax for textwindow and nodes */
@@ -650,8 +650,7 @@ typedef struct UserDef {
   int prefetchframes;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
   float pad_rot_angle;
-  char _pad12[2];
-  short obcenter_dia;
+  char _pad12[4];
   /** Rotating view icon size. */
   short rvisize;
   /** Rotating view icon brightness. */

@@ -758,7 +758,6 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
 
   short flag = v3d->flag;
   float glalphaclip = U.glalphaclip;
-  int obcenter_dia = U.obcenter_dia;
   /* temp set drawtype to solid */
   /* Setting these temporarily is not nice */
   v3d->flag &= ~V3D_SELECT_OUTLINE;
@@ -766,7 +765,6 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
   /* not that nice but means we wont zoom into billboards */
   U.glalphaclip = alphaoverride ? 0.5f : glalphaclip;
 
-  U.obcenter_dia = 0;
 
   /* Tools may request depth outside of regular drawing code. */
   UI_Theme_Store(&theme_state);
@@ -797,7 +795,6 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
 
   U.glalphaclip = glalphaclip;
   v3d->flag = flag;
-  U.obcenter_dia = obcenter_dia;
 
   UI_Theme_Restore(&theme_state);
 }

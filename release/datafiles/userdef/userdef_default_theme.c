@@ -355,6 +355,7 @@ const bTheme U_theme_default = {
 		.handle_sel_align = RGBA(0xf090a0ff),
 		.vertex_size = 3,
 		.outline_width = 1,
+		.obcenter_dia = 6,
 		.facedot_size = 3,
 		.editmesh_active = RGBA(0xffffff80),
 		.clipping_border_3d = RGBA(0x313131ff),

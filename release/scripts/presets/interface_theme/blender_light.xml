@@ -408,6 +408,7 @@
         paint_curve_handle="#7fff7f7f"
         paint_curve_pivot="#ff7f7f7f"
         outline_width="1"
+        obcenter_dia="6"
         >
         <space>
           <ThemeSpaceGradient

@@ -113,6 +113,15 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_info.info_info);
   }
 
+  /**
+   * Include next version bump.
+   */
+  {
+    if (btheme->space_view3d.obcenter_dia == 0) {
+      btheme->space_view3d.obcenter_dia = U_theme_default.space_view3d.obcenter_dia;
+    }
+  }
+
 #undef FROM_DEFAULT_V4_UCHAR
 
 #undef USER_VERSION_ATLEAST
@@ -212,9 +221,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
   }
   if (!USER_VERSION_ATLEAST(240, 0)) {
     userdef->uiflag |= USER_PLAINMENUS;
-    if (userdef->obcenter_dia == 0) {
-      userdef->obcenter_dia = 6;
-    }
   }
   if (!USER_VERSION_ATLEAST(242, 0)) {
     /* set defaults for 3D View rotating axis indicator */
