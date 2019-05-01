@@ -65,6 +65,7 @@
 #include "DEG_depsgraph.h"
 
 #include "GPU_draw.h"
+#include "GPU_state.h"
 #include "GPU_immediate.h"
 
 #include "IMB_colormanagement.h"
@@ -2760,6 +2761,7 @@ static void image_sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
     glEnable(GL_COLOR_LOGIC_OP);
     glLogicOp(GL_XOR);
+    GPU_line_width(1.0f);
     imm_draw_box_wire_2d(pos,
                          (float)sample_rect_fl.xmin,
                          (float)sample_rect_fl.ymin,
