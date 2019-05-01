@@ -90,6 +90,7 @@ extern "C" {
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
+#include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
@@ -1562,8 +1563,12 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   if (built_map_.checkIsBuiltAndTag(sound)) {
     return;
   }
-  /* Placeholder so we can add relations and tag ID node for update. */
-  add_operation_node(&sound->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+  add_id_node(&sound->id);
+  bSound *sound_cow = get_cow_datablock(sound);
+  add_operation_node(&sound->id,
+                     NodeType::AUDIO,
+                     OperationCode::SOUND_EVAL,
+                     function_bind(BKE_sound_evaluate, _1, bmain_, sound_cow));
   build_animdata(&sound->id);
   build_parameters(&sound->id);
 }
@@ -1573,7 +1578,11 @@ void DepsgraphNodeBuilder::build_sequencer(Scene *scene)
   if (scene->ed == NULL) {
     return;
   }
-  add_operation_node(&scene->id, NodeType::SEQUENCER, OperationCode::SEQUENCES_EVAL);
+  Scene *scene_cow = get_cow_datablock(scene_);
+  add_operation_node(&scene->id,
+                     NodeType::SEQUENCER,
+                     OperationCode::SEQUENCES_EVAL,
+                     function_bind(BKE_scene_eval_sequencer_sequences, _1, scene_cow));
   /* Make sure data for sequences is in the graph. */
   Sequence *seq;
   SEQ_BEGIN (scene->ed, seq) {

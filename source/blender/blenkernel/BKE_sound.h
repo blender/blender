@@ -154,4 +154,10 @@ float BKE_sound_get_length(struct bSound *sound);
 
 char **BKE_sound_get_device_names(void);
 
+/* Evaluation. */
+
+struct Depsgraph;
+
+void BKE_sound_evaluate(struct Depsgraph *depsgraph, struct Main *bmain, struct bSound *sound);
+
 #endif /* __BKE_SOUND_H__ */

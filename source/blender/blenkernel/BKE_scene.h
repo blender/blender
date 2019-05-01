@@ -240,6 +240,14 @@ void BKE_scene_cursor_quat_to_rot(struct View3DCursor *cursor,
                                   const float quat[4],
                                   bool use_compat);
 
+/* Evaluation. */
+
+/* Evaluate parts of sequences which needs to be done as a part of a dependency graph evaluation.
+ * This does NOT include actual rendering of the strips, but rather makes them up-to-date for
+ * animation playback and makes them ready for the sequencer's rendering pipeline to render them.
+ */
+void BKE_scene_eval_sequencer_sequences(struct Depsgraph *depsgraph, struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif

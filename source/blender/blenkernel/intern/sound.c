@@ -55,6 +55,9 @@
 #include "BKE_sequencer.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_AUDASPACE
 /* evil globals ;-) */
 static int sound_cfra;
@@ -1182,4 +1185,16 @@ void BKE_sound_ensure_loaded(Main *bmain, bSound *sound)
     return;
   }
   BKE_sound_load(bmain, sound);
+}
+
+void BKE_sound_evaluate(Depsgraph *depsgraph, Main *bmain, bSound *sound)
+{
+  DEG_debug_print_eval(depsgraph, __func__, sound->id.name, sound);
+  /* TODO(sergey): For now we keep sound handlers in an original IDs, but it
+   * should really be moved to an evaluated one. */
+  if (!DEG_is_active(depsgraph)) {
+    return;
+  }
+  bSound *sound_orig = (bSound *)DEG_get_original_id(&sound->id);
+  BKE_sound_ensure_loaded(bmain, sound_orig);
 }

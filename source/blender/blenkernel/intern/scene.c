@@ -1511,31 +1511,6 @@ static void scene_update_sound(Depsgraph *depsgraph, Main *bmain)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   BKE_sound_ensure_scene(scene);
-  /* Ensure audio for sound datablocks is loaded. */
-  for (bSound *sound = bmain->sounds.first; sound != NULL; sound = sound->id.next) {
-    bSound *sound_eval = (bSound *)DEG_get_evaluated_id(depsgraph, &sound->id);
-    if (sound_eval->playback_handle == NULL) {
-      BKE_sound_load(bmain, sound_eval);
-    }
-  }
-  /* Make sure sequencer audio is up to date. */
-  if (scene->ed != NULL) {
-    Sequence *seq;
-    bool something_loaded = false;
-    SEQ_BEGIN (scene->ed, seq) {
-      if (seq->sound != NULL && seq->scene_sound == NULL) {
-        printf("Loading sequencer sound\n");
-        seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
-        something_loaded = true;
-      }
-    }
-    SEQ_END;
-    if (something_loaded) {
-      BKE_sequencer_update_muting(scene->ed);
-      BKE_sequencer_update_sound_bounds_all(scene);
-    }
-  }
-  /* Update scene sound. */
   BKE_sound_update_scene(bmain, scene);
 }
 
@@ -2417,3 +2392,29 @@ void BKE_scene_cursor_quat_to_rot(View3DCursor *cursor, const float quat[4], boo
 }
 
 /** \} */
+
+/* Evaluation. */
+
+void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
+{
+  DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
+  /* TODO(sergey): For now we keep sound handlers in an original IDs, but it
+   * should really be moved to an evaluated one. */
+  if (!DEG_is_active(depsgraph)) {
+    return;
+  }
+  Scene *scene_orig = (Scene *)DEG_get_original_id(&scene->id);
+  if (scene_orig->ed == NULL) {
+    return;
+  }
+  BKE_sound_ensure_scene(scene_orig);
+  Sequence *seq;
+  SEQ_BEGIN (scene_orig->ed, seq) {
+    if (seq->sound != NULL && seq->scene_sound == NULL) {
+      seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene_orig, seq);
+    }
+  }
+  SEQ_END;
+  BKE_sequencer_update_muting(scene_orig->ed);
+  BKE_sequencer_update_sound_bounds_all(scene_orig);
+}
