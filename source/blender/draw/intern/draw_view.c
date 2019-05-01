@@ -61,19 +61,35 @@ void DRW_draw_region_info(void)
 
 /* ************************* Background ************************** */
 
-void DRW_draw_background(void)
+void DRW_draw_background(bool do_alpha_checker)
 {
   /* Just to make sure */
   glDepthMask(GL_TRUE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   glStencilMask(0xFF);
 
-  if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+  if (do_alpha_checker) {
+    /* Transparent render, do alpha checker. */
+    GPU_depth_test(false);
+
+    GPU_matrix_push();
+    GPU_matrix_identity_set();
+    GPU_matrix_identity_projection_set();
+
+    imm_draw_box_checker_2d(-1.0f, -1.0f, 1.0f, 1.0f);
+
+    GPU_matrix_pop();
+
+    GPU_clear(GPU_DEPTH_BIT | GPU_STENCIL_BIT);
+
+    GPU_depth_test(true);
+  }
+  else if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
     float m[4][4];
     unit_m4(m);
 
     /* Gradient background Color */
-    glDisable(GL_DEPTH_TEST);
+    GPU_depth_test(false);
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -104,14 +120,15 @@ void DRW_draw_background(void)
 
     GPU_matrix_pop();
 
-    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    GPU_clear(GPU_DEPTH_BIT | GPU_STENCIL_BIT);
 
-    glEnable(GL_DEPTH_TEST);
+    GPU_depth_test(true);
   }
   else {
     /* Solid background Color */
     UI_ThemeClearColorAlpha(TH_BACK, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT);
   }
 }
 

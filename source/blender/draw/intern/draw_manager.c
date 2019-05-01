@@ -1136,9 +1136,8 @@ static void drw_engines_draw_background(void)
   }
 
   /* No draw_background found, doing default background */
-  if (DRW_state_draw_background()) {
-    DRW_draw_background();
-  }
+  const bool do_alpha_checker = !DRW_state_draw_background();
+  DRW_draw_background(do_alpha_checker);
 }
 
 static void drw_engines_draw_scene(void)
@@ -1487,6 +1486,7 @@ void DRW_draw_view(const bContext *C)
   drw_state_prepare_clean_for_draw(&DST);
   DST.options.draw_text = ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 &&
                            (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
+  DST.options.draw_background = scene->r.alphamode == R_ADDSKY;
   DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
 
@@ -2730,9 +2730,6 @@ bool DRW_state_draw_support(void)
  */
 bool DRW_state_draw_background(void)
 {
-  if (DRW_state_is_image_render() == false) {
-    return true;
-  }
   return DST.options.draw_background;
 }
 
