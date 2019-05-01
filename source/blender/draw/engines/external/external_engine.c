@@ -54,12 +54,12 @@ typedef struct EXTERNAL_StorageList {
 } EXTERNAL_StorageList;
 
 typedef struct EXTERNAL_FramebufferList {
-  struct GPUFrameBuffer *default_fb;
+  struct GPUFrameBuffer *depth_buffer_fb;
 } EXTERNAL_FramebufferList;
 
 typedef struct EXTERNAL_TextureList {
   /* default */
-  struct GPUTexture *depth;
+  struct GPUTexture *depth_buffer_tx;
 } EXTERNAL_TextureList;
 
 typedef struct EXTERNAL_PassList {
@@ -80,19 +80,60 @@ typedef struct EXTERNAL_Data {
 static struct {
   /* Depth Pre Pass */
   struct GPUShader *depth_sh;
+  bool draw_depth;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct EXTERNAL_PrivateData {
   DRWShadingGroup *depth_shgrp;
+
+  /* Do we need to update the depth or can we reuse the last calculated texture. */
+  bool update_depth;
+  bool view_updated;
+
+  float last_mat[4][4];
+  float curr_mat[4][4];
 } EXTERNAL_PrivateData; /* Transient data */
 
 /* Functions */
 
-static void external_engine_init(void *UNUSED(vedata))
+static void external_engine_init(void *vedata)
 {
+  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  RegionView3D *rv3d = draw_ctx->rv3d;
+
   /* Depth prepass */
   if (!e_data.depth_sh) {
     e_data.depth_sh = DRW_shader_create_3d_depth_only(GPU_SHADER_CFG_DEFAULT);
+  }
+
+  if (!stl->g_data) {
+    /* Alloc transient pointers */
+    stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+    stl->g_data->update_depth = true;
+    stl->g_data->view_updated = false;
+  }
+
+  if (stl->g_data->update_depth == false) {
+    if (rv3d && rv3d->rflag & RV3D_NAVIGATING) {
+      stl->g_data->update_depth = true;
+    }
+  }
+
+  if (stl->g_data->view_updated) {
+    stl->g_data->update_depth = true;
+    stl->g_data->view_updated = false;
+  }
+
+  {
+    float view[4][4];
+    float win[4][4];
+    DRW_viewport_matrix_get(view, DRW_MAT_VIEW);
+    DRW_viewport_matrix_get(win, DRW_MAT_WIN);
+    mul_m4_m4m4(stl->g_data->curr_mat, view, win);
+    if (!equals_m4m4(stl->g_data->curr_mat, stl->g_data->last_mat)) {
+      stl->g_data->update_depth = true;
+    }
   }
 }
 
@@ -100,10 +141,16 @@ static void external_cache_init(void *vedata)
 {
   EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
   EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
+  EXTERNAL_TextureList *txl = ((EXTERNAL_Data *)vedata)->txl;
+  EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
 
-  if (!stl->g_data) {
-    /* Alloc transient pointers */
-    stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+  {
+    DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
+
+    GPU_framebuffer_ensure_config(&fbl->depth_buffer_fb,
+                                  {
+                                      GPU_ATTACHMENT_TEXTURE(txl->depth_buffer_tx),
+                                  });
   }
 
   /* Depth Pass */
@@ -111,6 +158,16 @@ static void external_cache_init(void *vedata)
     psl->depth_pass = DRW_pass_create("Depth Pass",
                                       DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+  }
+
+  /* Do not draw depth pass when overlays are turned off. */
+  e_data.draw_depth = false;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3D *v3d = draw_ctx->v3d;
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+    /* mark `update_depth` for when overlays are turned on again. */
+    stl->g_data->update_depth = true;
+    return;
   }
 }
 
@@ -122,10 +179,20 @@ static void external_cache_populate(void *vedata, Object *ob)
     return;
   }
 
-  struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
-  if (geom) {
-    /* Depth Prepass */
-    DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
+  /* Do not draw depth pass when overlays are turned off. */
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const View3D *v3d = draw_ctx->v3d;
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+    return;
+  }
+
+  if (stl->g_data->update_depth) {
+    e_data.draw_depth = true;
+    struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+    if (geom) {
+      /* Depth Prepass */
+      DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
+    }
   }
 }
 
@@ -181,7 +248,10 @@ static void external_draw_scene_do(void *vedata)
 static void external_draw_scene(void *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
   EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
+  EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
+  const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   /* Will be NULL during OpenGL render.
    * OpenGL render is used for quick preview (thumbnails or sequencer preview)
@@ -189,7 +259,28 @@ static void external_draw_scene(void *vedata)
   if (draw_ctx->evil_C) {
     external_draw_scene_do(vedata);
   }
-  DRW_draw_pass(psl->depth_pass);
+
+  if (e_data.draw_depth) {
+    DRW_draw_pass(psl->depth_pass);
+    // copy result to tmp buffer
+    GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->depth_buffer_fb, 0, GPU_DEPTH_BIT);
+    stl->g_data->update_depth = false;
+  }
+  else {
+    // copy tmp buffer to default
+    GPU_framebuffer_blit(fbl->depth_buffer_fb, 0, dfbl->depth_only_fb, 0, GPU_DEPTH_BIT);
+  }
+
+  copy_m4_m4(stl->g_data->last_mat, stl->g_data->curr_mat);
+}
+
+static void external_view_update(void *vedata)
+{
+  EXTERNAL_Data *data = vedata;
+  EXTERNAL_StorageList *stl = data->stl;
+  if (stl && stl->g_data) {
+    stl->g_data->view_updated = true;
+  }
 }
 
 static void external_engine_free(void)
@@ -211,7 +302,7 @@ static DrawEngineType draw_engine_external_type = {
     &external_cache_finish,
     NULL,
     &external_draw_scene,
-    NULL,
+    &external_view_update,
     NULL,
     NULL,
 };
