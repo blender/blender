@@ -258,6 +258,8 @@ void ED_uvedit_buttons_register(ARegionType *art)
   pt = MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
   strcpy(pt->idname, "IMAGE_PT_uv");
   strcpy(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */
+  /* Could be 'Item' matching 3D view, avoid new tab for two buttons. */
+  strcpy(pt->category, "Image");
   pt->draw = image_panel_uv;
   pt->poll = image_panel_uv_poll;
   BLI_addtail(&art->paneltypes, pt);

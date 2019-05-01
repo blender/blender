@@ -743,6 +743,33 @@ static void image_buttons_region_init(wmWindowManager *wm, ARegion *ar)
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
+static void image_buttons_region_layout(const bContext *C, ARegion *ar)
+{
+  const enum eContextObjectMode mode = CTX_data_mode_enum(C);
+  const char *contexts_base[3] = {NULL};
+
+  const char **contexts = contexts_base;
+
+  SpaceImage *sima = CTX_wm_space_image(C);
+  switch (sima->mode) {
+    case SI_MODE_VIEW:
+      break;
+    case SI_MODE_PAINT:
+      ARRAY_SET_ITEMS(contexts, ".paint_common_2d", ".imagepaint_2d");
+      break;
+    case SI_MODE_MASK:
+      break;
+    case SI_MODE_UV:
+      if (mode == CTX_MODE_EDIT_MESH) {
+        ARRAY_SET_ITEMS(contexts, ".uv_sculpt");
+      }
+      break;
+  }
+
+  const bool vertical = true;
+  ED_region_panels_layout_ex(C, ar, contexts_base, -1, vertical);
+}
+
 static void image_buttons_region_draw(const bContext *C, ARegion *ar)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -769,7 +796,8 @@ static void image_buttons_region_draw(const bContext *C, ARegion *ar)
   }
   ED_space_image_release_buffer(sima, ibuf, lock);
 
-  ED_region_panels(C, ar);
+  /* Layout handles details. */
+  ED_region_panels_draw(C, ar);
 }
 
 static void image_buttons_region_listener(wmWindow *UNUSED(win),
@@ -1014,6 +1042,7 @@ void ED_spacetype_image(void)
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_buttons_region_listener;
   art->init = image_buttons_region_init;
+  art->layout = image_buttons_region_layout;
   art->draw = image_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
 

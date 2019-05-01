@@ -41,18 +41,37 @@ from bpy.app.translations import pgettext_iface as iface_
 
 
 class ImagePaintPanel(UnifiedPaintPanel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
 
 
 class BrushButtonsPanel(UnifiedPaintPanel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
 
     @classmethod
     def poll(cls, context):
         tool_settings = context.tool_settings.image_paint
         return tool_settings.brush
+
+
+class IMAGE_PT_active_tool(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Active Tool"
+    bl_category = "Tool"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Panel display of topbar tool settings.
+        # currently displays in tool settings, keep here since the same functionality is used for the topbar.
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout, show_tool_name=True)
 
 
 class IMAGE_MT_view(Menu):
@@ -677,12 +696,6 @@ class IMAGE_HT_header(Header):
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 
-        row = layout.row()
-        row.popover(
-            panel="IMAGE_PT_view_display",
-            text="Display"
-        )
-
         if ima:
             if ima.is_stereo_3d:
                 row = layout.row()
@@ -804,8 +817,9 @@ class IMAGE_PT_image_properties(Panel):
 
 class IMAGE_PT_view_display(Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'HEADER'
+    bl_region_type = 'UI'
     bl_label = "Display"
+    bl_category = "View"
 
     @classmethod
     def poll(cls, context):
@@ -834,9 +848,10 @@ class IMAGE_PT_view_display(Panel):
 
 class IMAGE_PT_view_display_uv_edit_overlays(Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'HEADER'
+    bl_region_type = 'UI'
     bl_label = "Overlays"
     bl_parent_id = 'IMAGE_PT_view_display'
+    bl_category = "View"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -847,15 +862,15 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         sima = context.space_data
         uvedit = sima.uv_editor
 
         col = layout.column()
 
-        split = col.split(factor=0.6)
-        split.prop(uvedit, "show_edges", text="Edges")
-        split.prop(uvedit, "edge_display_type", text="")
+        col.prop(uvedit, "show_edges", text="Edges")
+        col.prop(uvedit, "edge_display_type", text="Draw Type")
 
         col.prop(uvedit, "show_faces", text="Faces")
 
@@ -866,9 +881,10 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
 
 class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'HEADER'
+    bl_region_type = 'UI'
     bl_label = "Advanced"
     bl_parent_id = 'IMAGE_PT_view_display_uv_edit_overlays'
+    bl_category = "View"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -934,7 +950,7 @@ class IMAGE_PT_render_slots(Panel):
 class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_label = "Brush"
     bl_context = ".paint_common_2d"
-    bl_category = "Tools"
+    bl_category = "Tool"
 
     def draw(self, context):
         layout = self.layout
@@ -953,6 +969,7 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
 
 
 class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
+    bl_category = "Tool"
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint"
     bl_label = "Color Picker"
@@ -976,6 +993,7 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
 
 
 class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
+    bl_category = "Tool"
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint"
     bl_label = "Color Palette"
@@ -999,6 +1017,7 @@ class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
 
 
 class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
+    bl_category = "Tool"
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint"
     bl_label = "Gradient"
@@ -1030,6 +1049,7 @@ class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
 
 
 class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
+    bl_category = "Tool"
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint"
     bl_label = "Clone from Image/UV Map"
@@ -1057,6 +1077,7 @@ class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
 
 
 class IMAGE_PT_paint_options(Panel, ImagePaintPanel):
+    bl_category = "Tool"
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint"
     bl_label = "Options"
@@ -1085,7 +1106,7 @@ class IMAGE_PT_tools_brush_display(BrushButtonsPanel, Panel):
     bl_label = "Display"
     bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Options"
+    bl_category = "Tool"
 
     def draw(self, context):
         layout = self.layout
@@ -1139,6 +1160,7 @@ class IMAGE_PT_tools_brush_display_show_brush(BrushButtonsPanel, Panel):
     bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
     bl_label = "Show Brush"
     bl_parent_id = "IMAGE_PT_tools_brush_display"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -1172,6 +1194,7 @@ class IMAGE_PT_tools_brush_display_custom_icon(BrushButtonsPanel, Panel):
     bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
     bl_label = "Custom Icon"
     bl_parent_id = "IMAGE_PT_tools_brush_display"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -1197,8 +1220,8 @@ class IMAGE_PT_tools_brush_display_custom_icon(BrushButtonsPanel, Panel):
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture"
     bl_context = ".paint_common_2d"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1215,8 +1238,8 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture Mask"
     bl_context = ".paint_common_2d"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1233,8 +1256,8 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
     bl_label = "Stroke"
     bl_context = ".paint_common_2d"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1283,6 +1306,7 @@ class IMAGE_PT_paint_stroke_smooth_stroke(BrushButtonsPanel, Panel):
     bl_context = ".paint_common_2d"  # dot on purpose (access from topbar)
     bl_label = "Smooth Stroke"
     bl_parent_id = "IMAGE_PT_paint_stroke"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1315,8 +1339,8 @@ class IMAGE_PT_paint_stroke_smooth_stroke(BrushButtonsPanel, Panel):
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
     bl_label = "Falloff"
     bl_context = ".paint_common_2d"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1337,9 +1361,9 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
-    bl_category = "Tools"
     bl_context = ".imagepaint_2d"
     bl_label = "Tiling"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1358,7 +1382,7 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
-    bl_category = "Options"
+    bl_category = "Tool"
     bl_label = "UV Sculpt Curve"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1388,7 +1412,7 @@ class IMAGE_PT_uv_sculpt(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
-    bl_category = "Options"
+    bl_category = "Tool"
     bl_label = "UV Sculpt"
 
     @classmethod
@@ -1543,7 +1567,7 @@ class IMAGE_PT_scope_sample(ImageScopesPanel, Panel):
 class IMAGE_PT_uv_cursor(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "View"
     bl_label = "2D Cursor"
 
     @classmethod
@@ -1567,7 +1591,7 @@ class IMAGE_PT_uv_cursor(Panel):
 class IMAGE_PT_grease_pencil(AnnotationDataPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "View"
 
     # NOTE: this is just a wrapper around the generic GP Panel.
 
@@ -1594,6 +1618,7 @@ classes = (
     IMAGE_HT_tool_header,
     IMAGE_HT_header,
     MASK_MT_editor_menus,
+    IMAGE_PT_active_tool,
     IMAGE_PT_mask,
     IMAGE_PT_mask_layers,
     IMAGE_PT_mask_display,
