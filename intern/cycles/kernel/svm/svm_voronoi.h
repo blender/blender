@@ -70,7 +70,8 @@ ccl_device void voronoi_neighbors(
           }
         }
 
-        /* To keep the shortest four distances and associated points we have to keep them in sorted order. */
+        /* To keep the shortest four distances and associated points we have to keep them in sorted
+         * order. */
         if (d < da[0]) {
           da[3] = da[2];
           da[2] = da[1];

@@ -47,7 +47,8 @@ void Profiler::run()
       }
 
       if (cur_shader >= 0 && cur_shader < shader_samples.size()) {
-        /* Only consider the active shader during events whose runtime significantly depends on it. */
+        /* Only consider the active shader during events whose runtime significantly depends on it.
+         */
         if (((cur_event >= PROFILING_SHADER_EVAL) && (cur_event <= PROFILING_SUBSURFACE)) ||
             ((cur_event >= PROFILING_CLOSURE_EVAL) &&
              (cur_event <= PROFILING_CLOSURE_VOLUME_SAMPLE))) {

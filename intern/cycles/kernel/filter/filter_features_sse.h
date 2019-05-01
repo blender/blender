@@ -20,8 +20,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Loop over the pixels in the range [low.x, high.x) x [low.y, high.y), 4 at a time.
  * pixel_buffer always points to the first of the 4 current pixel in the first pass.
- * x4 and y4 contain the coordinates of the four pixels, active_pixels contains a mask that's set for all pixels within the window.
- * Repeat the loop for every secondary frame if there are any. */
+ * x4 and y4 contain the coordinates of the four pixels, active_pixels contains a mask that's set
+ * for all pixels within the window. Repeat the loop for every secondary frame if there are any. */
 #define FOR_PIXEL_WINDOW_SSE \
   for (int frame = 0; frame < tile_info->num_frames; frame++) { \
     pixel.z = tile_info->frames[frame]; \

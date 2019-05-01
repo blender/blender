@@ -437,8 +437,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
         }
 
         /* path termination. this is a strange place to put the termination, it's
-     * mainly due to the mixed in MIS that we use. gives too many unneeded
-     * shader evaluations, only need emission if we are going to terminate */
+         * mainly due to the mixed in MIS that we use. gives too many unneeded
+         * shader evaluations, only need emission if we are going to terminate */
         float probability = path_state_continuation_probability(kg, state, throughput);
 
         if (probability == 0.0f) {
@@ -464,7 +464,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 #    ifdef __SUBSURFACE__
         /* bssrdf scatter to a different location on the same object, replacing
-     * the closures with a diffuse BSDF */
+         * the closures with a diffuse BSDF */
         if (sd->flag & SD_BSSRDF) {
           if (kernel_path_subsurface_scatter(
                   kg, sd, emission_sd, L, state, ray, &throughput, &ss_indirect)) {
@@ -575,8 +575,8 @@ ccl_device_forceinline void kernel_path_integrate(KernelGlobals *kg,
         }
 
         /* path termination. this is a strange place to put the termination, it's
-     * mainly due to the mixed in MIS that we use. gives too many unneeded
-     * shader evaluations, only need emission if we are going to terminate */
+         * mainly due to the mixed in MIS that we use. gives too many unneeded
+         * shader evaluations, only need emission if we are going to terminate */
         float probability = path_state_continuation_probability(kg, state, throughput);
 
         if (probability == 0.0f) {
@@ -601,7 +601,7 @@ ccl_device_forceinline void kernel_path_integrate(KernelGlobals *kg,
 
 #  ifdef __SUBSURFACE__
         /* bssrdf scatter to a different location on the same object, replacing
-     * the closures with a diffuse BSDF */
+         * the closures with a diffuse BSDF */
         if (sd.flag & SD_BSSRDF) {
           if (kernel_path_subsurface_scatter(
                   kg, &sd, emission_sd, L, state, ray, &throughput, &ss_indirect)) {

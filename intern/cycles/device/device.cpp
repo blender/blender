@@ -287,7 +287,8 @@ void Device::draw_pixels(device_memory &rgba,
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-  /* invalidate old contents - avoids stalling if buffer is still waiting in queue to be rendered */
+  /* invalidate old contents - avoids stalling if buffer is still waiting in queue to be rendered
+   */
   glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
 
   float *vpointer = (float *)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);

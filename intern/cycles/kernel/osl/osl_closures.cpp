@@ -497,8 +497,8 @@ class MicrofacetFresnelClosure : public CBSDFClosure {
   MicrofacetBsdf *alloc(ShaderData *sd, int path_flag, float3 weight)
   {
     /* Technically, the MultiGGX Glass closure may also transmit. However,
-    * since this is set statically and only used for caustic flags, this
-    * is probably as good as it gets. */
+     * since this is set statically and only used for caustic flags, this
+     * is probably as good as it gets. */
     if (skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
       return NULL;
     }
@@ -715,8 +715,8 @@ class MicrofacetMultiFresnelClosure : public CBSDFClosure {
   MicrofacetBsdf *alloc(ShaderData *sd, int path_flag, float3 weight)
   {
     /* Technically, the MultiGGX closure may also transmit. However,
-    * since this is set statically and only used for caustic flags, this
-    * is probably as good as it gets. */
+     * since this is set statically and only used for caustic flags, this
+     * is probably as good as it gets. */
     if (skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
       return NULL;
     }

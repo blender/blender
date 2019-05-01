@@ -104,7 +104,8 @@ void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 
 void DenoisingTask::setup_denoising_buffer()
 {
-  /* Expand filter_area by radius pixels and clamp the result to the extent of the neighboring tiles */
+  /* Expand filter_area by radius pixels and clamp the result to the extent of the neighboring
+   * tiles */
   rect = rect_from_shape(filter_area.x, filter_area.y, filter_area.z, filter_area.w);
   rect = rect_expand(rect, radius);
   rect = rect_clip(rect,
@@ -149,16 +150,19 @@ void DenoisingTask::prefilter_shadowing()
   device_sub_ptr buffer_var(buffer.mem, 5 * buffer.pass_stride, buffer.pass_stride);
   device_sub_ptr filtered_var(buffer.mem, 6 * buffer.pass_stride, buffer.pass_stride);
 
-  /* Get the A/B unfiltered passes, the combined sample variance, the estimated variance of the sample variance and the buffer variance. */
+  /* Get the A/B unfiltered passes, the combined sample variance, the estimated variance of the
+   * sample variance and the buffer variance. */
   functions.divide_shadow(*unfiltered_a, *unfiltered_b, *sample_var, *sample_var_var, *buffer_var);
 
-  /* Smooth the (generally pretty noisy) buffer variance using the spatial information from the sample variance. */
+  /* Smooth the (generally pretty noisy) buffer variance using the spatial information from the
+   * sample variance. */
   nlm_state.set_parameters(6, 3, 4.0f, 1.0f, false);
   functions.non_local_means(*buffer_var, *sample_var, *sample_var_var, *filtered_var);
 
   /* Reuse memory, the previous data isn't needed anymore. */
   device_ptr filtered_a = *buffer_var, filtered_b = *sample_var;
-  /* Use the smoothed variance to filter the two shadow half images using each other for weight calculation. */
+  /* Use the smoothed variance to filter the two shadow half images using each other for weight
+   * calculation. */
   nlm_state.set_parameters(5, 3, 1.0f, 0.25f, false);
   functions.non_local_means(*unfiltered_a, *unfiltered_b, *filtered_var, filtered_a);
   functions.non_local_means(*unfiltered_b, *unfiltered_a, *filtered_var, filtered_b);

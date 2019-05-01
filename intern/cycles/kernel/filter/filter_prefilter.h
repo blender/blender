@@ -16,14 +16,19 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* First step of the shadow prefiltering, performs the shadow division and stores all data
+/**
+ * First step of the shadow prefiltering, performs the shadow division and stores all data
  * in a nice and easy rectangular array that can be passed to the NLM filter.
  *
  * Calculates:
- * unfiltered: Contains the two half images of the shadow feature pass
- * sampleVariance: The sample-based variance calculated in the kernel. Note: This calculation is biased in general, and especially here since the variance of the ratio can only be approximated.
- * sampleVarianceV: Variance of the sample variance estimation, quite noisy (since it's essentially the buffer variance of the two variance halves)
- * bufferVariance: The buffer-based variance of the shadow feature. Unbiased, but quite noisy.
+ * \param unfiltered: Contains the two half images of the shadow feature pass
+ * \param sampleVariance: The sample-based variance calculated in the kernel.
+ * Note: This calculation is biased in general,
+ * and especially here since the variance of the ratio can only be approximated.
+ * \param sampleVarianceV: Variance of the sample variance estimation, quite noisy
+ * (since it's essentially the buffer variance of the two variance halves)
+ * \param bufferVariance: The buffer-based variance of the shadow feature.
+ * Unbiased, but quite noisy.
  */
 ccl_device void kernel_filter_divide_shadow(int sample,
                                             CCL_FILTER_TILE_INFO,
@@ -204,10 +209,10 @@ ccl_device void kernel_filter_detect_outliers(int x,
 
   if (L > ref) {
     /* The pixel appears to be an outlier.
-     * However, it may just be a legitimate highlight. Therefore, it is checked how likely it is that the pixel
-     * should actually be at the reference value:
-     * If the reference is within the 3-sigma interval, the pixel is assumed to be a statistical outlier.
-     * Otherwise, it is very unlikely that the pixel should be darker, which indicates a legitimate highlight.
+     * However, it may just be a legitimate highlight. Therefore, it is checked how likely it is
+     * that the pixel should actually be at the reference value: If the reference is within the
+     * 3-sigma interval, the pixel is assumed to be a statistical outlier. Otherwise, it is very
+     * unlikely that the pixel should be darker, which indicates a legitimate highlight.
      */
 
     if (pixel_variance < 0.0f || pixel_variance > 9.0f * max_variance) {
@@ -219,7 +224,8 @@ ccl_device void kernel_filter_detect_outliers(int x,
       float stddev = sqrtf(pixel_variance);
       if (L - 3 * stddev < ref) {
         /* The pixel is an outlier, so negate the depth value to mark it as one.
-        * Also, scale its brightness down to the outlier threshold to avoid trouble with the NLM weights. */
+         * Also, scale its brightness down to the outlier threshold to avoid trouble with the NLM
+         * weights. */
         depth[idx] = -depth[idx];
         float fac = ref / L;
         color *= fac;

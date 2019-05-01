@@ -261,7 +261,7 @@ vector<int> distribute_threads_on_nodes(const int num_threads)
   const int num_nodes = num_per_node_processors.size();
   int thread_index = 0;
   /* First pass: fill in all the nodes to their maximum.
-  *
+   *
    * If there is less threads than the overall nodes capacity, some of the
    * nodes or parts of them will idle.
    *

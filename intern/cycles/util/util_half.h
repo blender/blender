@@ -36,7 +36,8 @@ CCL_NAMESPACE_BEGIN
 
 /* CUDA has its own half data type, no need to define then */
 #  ifndef __KERNEL_CUDA__
-/* Implementing this as a class rather than a typedef so that the compiler can tell it apart from unsigned shorts. */
+/* Implementing this as a class rather than a typedef so that the compiler can tell it apart from
+ * unsigned shorts. */
 class half {
  public:
   half() : v(0)

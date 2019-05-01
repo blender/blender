@@ -1,18 +1,18 @@
 /*
-* Copyright 2018 Blender Foundation
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2018 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 CCL_NAMESPACE_BEGIN
 
@@ -32,7 +32,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer,
     /* If the loop reaches an empty slot, the ID isn't in any slot yet - so add it! */
     if (id_buffer[slot].x == ID_NONE) {
       /* Use an atomic to claim this slot.
-      * If a different thread got here first, try again from this slot on. */
+       * If a different thread got here first, try again from this slot on. */
       float old_id = atomic_compare_and_swap_float(buffer + slot * 2, ID_NONE, id);
       if (old_id != ID_NONE && old_id != id) {
         continue;
@@ -54,7 +54,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer,
       break;
     }
     /* If there already is a slot for that ID, add the weight.
-    * If no slot was found, add it to the last. */
+     * If no slot was found, add it to the last. */
     else if (id_buffer[slot].x == id || slot == num_slots - 1) {
       id_buffer[slot].y += weight;
       break;

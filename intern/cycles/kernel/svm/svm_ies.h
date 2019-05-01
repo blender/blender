@@ -21,12 +21,12 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float interpolate_ies_vertical(
     KernelGlobals *kg, int ofs, int v, int v_num, float v_frac, int h)
 {
-  /* Since lookups are performed in spherical coordinates, clamping the coordinates at the low end of v
-   * (corresponding to the north pole) would result in artifacts.
-   * The proper way of dealing with this would be to lookup the corresponding value on the other side of the pole,
-   * but since the horizontal coordinates might be nonuniform, this would require yet another interpolation.
-   * Therefore, the assumtion is made that the light is going to be symmetrical, which means that we can just take
-   * the corresponding value at the current horizontal coordinate. */
+  /* Since lookups are performed in spherical coordinates, clamping the coordinates at the low end
+   * of v (corresponding to the north pole) would result in artifacts. The proper way of dealing
+   * with this would be to lookup the corresponding value on the other side of the pole, but since
+   * the horizontal coordinates might be nonuniform, this would require yet another interpolation.
+   * Therefore, the assumtion is made that the light is going to be symmetrical, which means that
+   * we can just take the corresponding value at the current horizontal coordinate. */
 
 #define IES_LOOKUP(v) kernel_tex_fetch(__ies, ofs + h * v_num + (v))
   /* If v is zero, assume symmetry and read at v=1 instead of v=-1. */
@@ -66,7 +66,8 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals *kg,
 
   /* Lookup the angles to find the table position. */
   int h_i, v_i;
-  /* TODO(lukas): Consider using bisection. Probably not worth it for the vast majority of IES files. */
+  /* TODO(lukas): Consider using bisection.
+   * Probably not worth it for the vast majority of IES files. */
   for (h_i = 0; IES_LOOKUP_ANGLE_H(h_i + 1) < h_angle; h_i++)
     ;
   for (v_i = 0; IES_LOOKUP_ANGLE_V(v_i + 1) < v_angle; v_i++)
@@ -83,7 +84,8 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals *kg,
 
   /* Perform cubic interpolation along the horizontal coordinate to get the intensity value.
    * If h_i is zero, just wrap around since the horizontal angles always go over the full circle.
-   * However, the last entry (360°) equals the first one, so we need to wrap around to the one before that. */
+   * However, the last entry (360°) equals the first one, so we need to wrap around to the one
+   * before that. */
   float a = interpolate_ies_vertical(
       kg, ofs, v_i, v_num, v_frac, (h_i == 0) ? h_num - 2 : h_i - 1);
   float b = interpolate_ies_vertical(kg, ofs, v_i, v_num, v_frac, h_i);

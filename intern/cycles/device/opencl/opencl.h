@@ -358,8 +358,8 @@ class OpenCLDevice : public Device {
     OpenCLSplitPrograms(OpenCLDevice *device);
     ~OpenCLSplitPrograms();
 
-    /* Load the kernels and put the created kernels in the given `programs`
-       * paramter. */
+    /* Load the kernels and put the created kernels in the given
+     * `programs` paramter. */
     void load_kernels(vector<OpenCLProgram *> &programs,
                       const DeviceRequestedFeatures &requested_features,
                       bool is_preview = false);

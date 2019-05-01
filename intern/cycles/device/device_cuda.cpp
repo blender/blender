@@ -1019,7 +1019,7 @@ class CUDADevice : public Device {
     size_t bytes;
 
     cuda_assert(cuModuleGetGlobal(&mem, &bytes, cuModule, name));
-    //assert(bytes == size);
+    // assert(bytes == size);
     cuda_assert(cuMemcpyHtoD(mem, host, size));
   }
 
@@ -2127,7 +2127,8 @@ class CUDADevice : public Device {
       }
 
       glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-      /* invalidate old contents - avoids stalling if buffer is still waiting in queue to be rendered */
+      /* invalidate old contents -
+       * avoids stalling if buffer is still waiting in queue to be rendered */
       glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
 
       vpointer = (float *)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);

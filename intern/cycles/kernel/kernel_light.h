@@ -524,7 +524,8 @@ ccl_device float background_light_pdf(KernelGlobals *kg, float3 P, float3 direct
     portal_pdf = background_portal_pdf(kg, P, direction, -1, &is_possible) * portal_sampling_pdf;
     if (!is_possible) {
       /* Portal sampling is not possible here because all portals point to the wrong side.
-       * If map sampling is possible, it would be used instead, otherwise fallback sampling is used. */
+       * If map sampling is possible, it would be used instead,
+       * otherwise fallback sampling is used. */
       if (portal_sampling_pdf == 1.0f) {
         return kernel_data.integrator.pdf_lights / M_4PI_F;
       }

@@ -224,7 +224,7 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc,
   fast_sincosf(phi, &sinphi, &cosphi);
   *omega_in = (cosphi * costheta_i) * locy - (sinphi * costheta_i) * locx + (sintheta_i)*Tg;
 
-  //differentials - TODO: find a better approximation for the reflective bounce
+  // differentials - TODO: find a better approximation for the reflective bounce
 #ifdef __RAY_DIFFERENTIALS__
   *domega_in_dx = 2 * dot(locy, dIdx) * locy - dIdx;
   *domega_in_dy = 2 * dot(locy, dIdy) * locy - dIdy;
@@ -285,7 +285,7 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc,
   fast_sincosf(phi, &sinphi, &cosphi);
   *omega_in = (cosphi * costheta_i) * locy - (sinphi * costheta_i) * locx + (sintheta_i)*Tg;
 
-  //differentials - TODO: find a better approximation for the transmission bounce
+  // differentials - TODO: find a better approximation for the transmission bounce
 #ifdef __RAY_DIFFERENTIALS__
   *domega_in_dx = 2 * dot(locy, dIdx) * locy - dIdx;
   *domega_in_dy = 2 * dot(locy, dIdy) * locy - dIdy;

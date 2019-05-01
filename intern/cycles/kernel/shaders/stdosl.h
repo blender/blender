@@ -387,14 +387,14 @@ point rotate(point p, float angle, point a, point b)
   vector axis = normalize(b - a);
   float cosang, sinang;
   /* Older OSX has major issues with sincos() function,
-     * it's likely a big in OSL or LLVM. For until we've
-     * updated to new versions of this libraries we'll
-     * use a workaround to prevent possible crashes on all
-     * the platforms.
-     *
-     * Shouldn't be that bad because it's mainly used for
-     * anisotropic shader where angle is usually constant.
-     */
+   * it's likely a big in OSL or LLVM. For until we've
+   * updated to new versions of this libraries we'll
+   * use a workaround to prevent possible crashes on all
+   * the platforms.
+   *
+   * Shouldn't be that bad because it's mainly used for
+   * anisotropic shader where angle is usually constant.
+   */
 #if 0
   sincos(angle, sinang, cosang);
 #else
@@ -425,7 +425,7 @@ point rotate(point p, float angle, point a, point b)
 normal ensure_valid_reflection(normal Ng, vector I, normal N)
 {
   /* The implementation here mirrors the one in kernel_montecarlo.h,
-     * check there for an explanation of the algorithm. */
+   * check there for an explanation of the algorithm. */
 
   float sqr(float x)
   {

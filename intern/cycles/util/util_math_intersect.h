@@ -163,7 +163,7 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
 
   /* Calculate geometry normal and denominator. */
   const float3 Ng1 = cross(e1, e0);
-  //const Vec3vfM Ng1 = stable_triangle_normal(e2,e1,e0);
+  // const Vec3vfM Ng1 = stable_triangle_normal(e2,e1,e0);
   const float3 Ng = Ng1 + Ng1;
   const float den = dot3(Ng, dir);
   /* Avoid division by 0. */

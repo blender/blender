@@ -333,8 +333,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
           }
 
           /* Eight children are hit, push all onto stack and sort 8
-          * stack items, continue with closest child.
-          */
+           * stack items, continue with closest child.
+           */
           r = __bscf(child_mask);
           int c7 = __float_as_int(cnodes[r]);
           float d7 = ((float *)&dist)[r];
@@ -409,7 +409,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
                       return true;
                     }
                   }
-                }  //for
+                }  // for
               }
               else {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
@@ -430,7 +430,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
                     return true;
                   }
                 }
-              }  //prim count
+              }  // prim count
               break;
             }
 #if BVH_FEATURE(BVH_MOTION)

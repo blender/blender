@@ -19,7 +19,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* parameters used by the split kernels, we use a single struct to avoid passing these to each kernel */
+/* parameters used by the split kernels, we use a single struct to avoid passing these to each
+ * kernel */
 
 typedef struct SplitParams {
   WorkTile tile;
@@ -112,7 +113,8 @@ typedef ccl_global struct SplitBranchedState {
   SPLIT_DATA_BRANCHED_ENTRIES \
   SPLIT_DATA_ENTRY(ShaderData, _sd, 0)
 
-/* entries to be copied to inactive rays when sharing branched samples (TODO: which are actually needed?) */
+/* Entries to be copied to inactive rays when sharing branched samples
+ * (TODO: which are actually needed?) */
 #define SPLIT_DATA_ENTRIES_BRANCHED_SHARED \
   SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
   SPLIT_DATA_ENTRY(PathRadiance, path_radiance, 1) \
@@ -134,8 +136,9 @@ typedef struct SplitData {
   SPLIT_DATA_ENTRIES
 #undef SPLIT_DATA_ENTRY
 
-  /* this is actually in a separate buffer from the rest of the split state data (so it can be read back from
-   * the host easily) but is still used the same as the other data so we have it here in this struct as well
+  /* this is actually in a separate buffer from the rest of the split state data (so it can be read
+   * back from the host easily) but is still used the same as the other data so we have it here in
+   * this struct as well
    */
   ccl_global char *ray_state;
 } SplitData;

@@ -559,7 +559,7 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
     float dt = new_t - t;
 
     /* use random position inside this segment to sample shader,
-    * for last shorter step we remap it to fit within the segment. */
+     * for last shorter step we remap it to fit within the segment. */
     if (new_t == ray->t) {
       step_offset *= (new_t - t) / step_size;
     }
@@ -794,7 +794,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
     float dt = new_t - t;
 
     /* use random position inside this segment to sample shader,
-    * for last shorter step we remap it to fit within the segment. */
+     * for last shorter step we remap it to fit within the segment. */
     if (new_t == ray->t) {
       step_offset *= (new_t - t) / step_size;
     }

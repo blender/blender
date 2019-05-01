@@ -18,18 +18,19 @@
  * It supports triangles, curves, object and deformation blur and instancing.
  * Not supported are thick line segments, those have no native equivalent in Embree.
  * They could be implemented using Embree's thick curves, at the expense of wasted memory.
- * User defined intersections for Embree could also be an option, but since Embree only uses aligned BVHs
- * for user geometry, this would come with reduced performance and/or higher memory usage.
+ * User defined intersections for Embree could also be an option, but since Embree only uses
+ * aligned BVHs for user geometry, this would come with reduced performance and/or higher memory
+ * usage.
  *
- * Since Embree allows object to be either curves or triangles but not both, Cycles object IDs are maapped
- * to Embree IDs by multiplying by two and adding one for curves.
+ * Since Embree allows object to be either curves or triangles but not both, Cycles object IDs are
+ * maapped to Embree IDs by multiplying by two and adding one for curves.
  *
- * This implementation shares RTCDevices between Cycles instances. Eventually each instance should get
- * a separate RTCDevice to correctly keep track of memory usage.
+ * This implementation shares RTCDevices between Cycles instances. Eventually each instance should
+ * get a separate RTCDevice to correctly keep track of memory usage.
  *
- * Vertex and index buffers are duplicated between Cycles device arrays and Embree. These could be merged,
- * which would requrie changes to intersection refinement, shader setup, mesh light sampling and a few
- * other places in Cycles where direct access to vertex data is required.
+ * Vertex and index buffers are duplicated between Cycles device arrays and Embree. These could be
+ * merged, which would requrie changes to intersection refinement, shader setup, mesh light
+ * sampling and a few other places in Cycles where direct access to vertex data is required.
  */
 
 #ifdef WITH_EMBREE
@@ -40,7 +41,8 @@
 
 #  include "bvh/bvh_embree.h"
 
-/* Kernel includes are necessary so that the filter function for Embree can access the packed BVH. */
+/* Kernel includes are necessary so that the filter function for Embree can access the packed BVH.
+ */
 #  include "kernel/bvh/bvh_embree.h"
 #  include "kernel/kernel_compat_cpu.h"
 #  include "kernel/split/kernel_split_data_types.h"

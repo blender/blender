@@ -46,10 +46,10 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
     int sh,
     int offset,
     int stride,
-    ccl_global int *Queue_index, /* Tracks the number of elements in queues */
-    int queuesize,               /* size (capacity) of the queue */
-    ccl_global char *
-        use_queues_flag, /* flag to decide if scene-intersect kernel should use queues to fetch ray index */
+    ccl_global int *Queue_index,      /* Tracks the number of elements in queues */
+    int queuesize,                    /* size (capacity) of the queue */
+    ccl_global char *use_queues_flag, /* flag to decide if scene-intersect kernel should use queues
+                                         to fetch ray index */
     ccl_global unsigned int *work_pools, /* Work pool for each work group */
     unsigned int num_samples,
     ccl_global float *buffer)

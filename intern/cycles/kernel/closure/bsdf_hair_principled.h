@@ -60,7 +60,8 @@ ccl_device_inline float cos_from_sin(const float s)
   return safe_sqrtf(1.0f - s * s);
 }
 
-/* Gives the change in direction in the normal plane for the given angles and p-th-order scattering. */
+/* Gives the change in direction in the normal plane for the given angles and p-th-order
+ * scattering. */
 ccl_device_inline float delta_phi(int p, float gamma_o, float gamma_t)
 {
   return 2.0f * p * gamma_t - 2.0f * gamma_o + p * M_PI_F;

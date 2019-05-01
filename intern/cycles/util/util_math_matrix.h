@@ -110,7 +110,8 @@ ccl_device_inline void math_vec3_add_strided(
 }
 
 /* Elementary matrix operations.
- * Note: TriMatrix refers to a square matrix that is symmetric, and therefore its upper-triangular part isn't stored. */
+ * Note: TriMatrix refers to a square matrix that is symmetric,
+ * and therefore its upper-triangular part isn't stored. */
 
 ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A,
                                                    int n,
@@ -196,7 +197,8 @@ ccl_device void math_trimatrix_cholesky(ccl_global float *A, int n, int stride)
   }
 }
 
-/* Solve A*S=y for S given A and y, where A is symmetrical positive-semidefinite and both inputs are destroyed in the process.
+/* Solve A*S=y for S given A and y,
+ * where A is symmetrical positive-semidefinite and both inputs are destroyed in the process.
  *
  * We can apply Cholesky decomposition to find a lower triangular L so that L*Lt = A.
  * With that we get (L*Lt)*S = L*(Lt*S) = L*b = y, defining b as Lt*S.
@@ -204,15 +206,16 @@ ccl_device void math_trimatrix_cholesky(ccl_global float *A, int n, int stride)
  * Then, the remaining problem is Lt*S = b, which again can be solved easily.
  *
  * This is useful for solving the normal equation S=inv(Xt*W*X)*Xt*W*y, since Xt*W*X is
- * symmetrical positive-semidefinite by construction, so we can just use this function with A=Xt*W*X and y=Xt*W*y. */
+ * symmetrical positive-semidefinite by construction,
+ * so we can just use this function with A=Xt*W*X and y=Xt*W*y. */
 ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A,
                                                  ccl_global float3 *y,
                                                  int n,
                                                  int stride)
 {
   /* Since the first entry of the design row is always 1, the upper-left element of XtWX is a good
-   * heuristic for the amount of pixels considered (with weighting), therefore the amount of correction
-   * is scaled based on it. */
+   * heuristic for the amount of pixels considered (with weighting),
+   * therefore the amount of correction is scaled based on it. */
   math_trimatrix_add_diagonal(A, n, 3e-7f * A[0], stride); /* Improve the numerical stability. */
   math_trimatrix_cholesky(A, n, stride);                   /* Replace A with L so that L*Lt = A. */
 
@@ -234,8 +237,8 @@ ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A,
 }
 
 /* Perform the Jacobi Eigenvalue Methon on matrix A.
- * A is assumed to be a symmetrical matrix, therefore only the lower-triangular part is ever accessed.
- * The algorithm overwrites the contents of A.
+ * A is assumed to be a symmetrical matrix, therefore only the lower-triangular part is ever
+ * accessed. The algorithm overwrites the contents of A.
  *
  * After returning, A will be overwritten with D, which is (almost) diagonal,
  * and V will contain the eigenvectors of the original A in its rows (!),
@@ -263,7 +266,8 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
     }
     if (off_diagonal < 1e-7f) {
       /* The matrix has nearly reached diagonal form.
-       * Since the eigenvalues are only used to determine truncation, their exact values aren't required - a relative error of a few ULPs won't matter at all. */
+       * Since the eigenvalues are only used to determine truncation, their exact values aren't
+       * required - a relative error of a few ULPs won't matter at all. */
       break;
     }
 
@@ -277,7 +281,8 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
         float element = MAT(A, n, row, col);
         float abs_element = fabsf(element);
 
-        /* If we're in a later sweep and the element already is very small, just set it to zero and skip the rotation. */
+        /* If we're in a later sweep and the element already is very small,
+         * just set it to zero and skip the rotation. */
         if (sweep > 3 && abs_element <= singular_epsilon * fabsf(MAT(A, n, row, row)) &&
             abs_element <= singular_epsilon * fabsf(MAT(A, n, col, col))) {
           MAT(A, n, row, col) = 0.0f;
@@ -288,13 +293,16 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
           continue;
         }
 
-        /* If we're in one of the first sweeps and the element is smaller than the threshold, skip it. */
+        /* If we're in one of the first sweeps and the element is smaller than the threshold,
+         * skip it. */
         if (sweep < 3 && (abs_element < threshold)) {
           continue;
         }
 
-        /* Determine rotation: The rotation is characterized by its angle phi - or, in the actual implementation, sin(phi) and cos(phi).
-         * To find those, we first compute their ratio - that might be unstable if the angle approaches 90°, so there's a fallback for that case.
+        /* Determine rotation: The rotation is characterized by its angle phi - or,
+         * in the actual implementation, sin(phi) and cos(phi).
+         * To find those, we first compute their ratio - that might be unstable if the angle
+         * approaches 90°, so there's a fallback for that case.
          * Then, we compute sin(phi) and cos(phi) themselves. */
         float singular_diff = MAT(A, n, row, row) - MAT(A, n, col, col);
         float ratio;
@@ -310,7 +318,8 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
 
         float c = 1.0f / sqrtf(1.0f + ratio * ratio);
         float s = ratio * c;
-        /* To improve numerical stability by avoiding cancellation, the update equations are reformulized to use sin(phi) and tan(phi/2) instead. */
+        /* To improve numerical stability by avoiding cancellation, the update equations are
+         * reformulized to use sin(phi) and tan(phi/2) instead. */
         float tan_phi_2 = s / (1.0f + c);
 
         /* Update the singular values in the diagonal. */
@@ -330,7 +339,8 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A,
     MATS(M, n, r2, c2, stride) += s * (M1 - tan_phi_2 * M2); \
   }
 
-        /* Split into three parts to ensure correct accesses since we only store the lower-triangular part of A. */
+        /* Split into three parts to ensure correct accesses since we only store the
+         * lower-triangular part of A. */
         for (int i = 0; i < col; i++)
           ROT(A, col, i, row, i, 1);
         for (int i = col + 1; i < row; i++)

@@ -199,21 +199,27 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
   float NdotNg = dot(N, Ng);
   float3 X = normalize(N - NdotNg * Ng);
 
+  /* Keep math expressions. */
+  /* clang-format off */
   /* Calculate N.z and N.x in the local coordinate system.
    *
    * The goal of this computation is to find a N' that is rotated towards Ng just enough
    * to lift R' above the threshold (here called t), therefore dot(R', Ng) = t.
    *
-   * According to the standard reflection equation, this means that we want dot(2*dot(N', I)*N' - I, Ng) = t.
+   * According to the standard reflection equation,
+   * this means that we want dot(2*dot(N', I)*N' - I, Ng) = t.
    *
-   * Since the Z axis of our local coordinate system is Ng, dot(x, Ng) is just x.z, so we get 2*dot(N', I)*N'.z - I.z = t.
+   * Since the Z axis of our local coordinate system is Ng, dot(x, Ng) is just x.z, so we get
+   * 2*dot(N', I)*N'.z - I.z = t.
    *
-   * The rotation is simple to express in the coordinate system we formed - since N lies in the X-Z-plane, we know that
-   * N' will also lie in the X-Z-plane, so N'.y = 0 and therefore dot(N', I) = N'.x*I.x + N'.z*I.z .
+   * The rotation is simple to express in the coordinate system we formed -
+   * since N lies in the X-Z-plane, we know that N' will also lie in the X-Z-plane,
+   * so N'.y = 0 and therefore dot(N', I) = N'.x*I.x + N'.z*I.z .
    *
    * Furthermore, we want N' to be normalized, so N'.x = sqrt(1 - N'.z^2).
    *
-   * With these simplifications, we get the final equation 2*(sqrt(1 - N'.z^2)*I.x + N'.z*I.z)*N'.z - I.z = t.
+   * With these simplifications,
+   * we get the final equation 2*(sqrt(1 - N'.z^2)*I.x + N'.z*I.z)*N'.z - I.z = t.
    *
    * The only unknown here is N'.z, so we can solve for that.
    *
@@ -227,8 +233,11 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
    * c = I.z*t + a
    * N'.z = +-sqrt(0.5*(+-b + c)/a)
    *
-   * Two solutions can immediately be discarded because they're negative so N' would lie in the lower hemisphere.
+   * Two solutions can immediately be discarded because they're negative so N' would lie in the
+   * lower hemisphere.
    */
+  /* clang-format on */
+
   float Ix = dot(I, X), Iz = dot(I, Ng);
   float Ix2 = sqr(Ix), Iz2 = sqr(Iz);
   float a = Ix2 + Iz2;
@@ -237,8 +246,9 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
   float c = Iz * threshold + a;
 
   /* Evaluate both solutions.
-   * In many cases one can be immediately discarded (if N'.z would be imaginary or larger than one), so check for that first.
-   * If no option is viable (might happen in extreme cases like N being in the wrong hemisphere), give up and return Ng. */
+   * In many cases one can be immediately discarded (if N'.z would be imaginary or larger than
+   * one), so check for that first. If no option is viable (might happen in extreme cases like N
+   * being in the wrong hemisphere), give up and return Ng. */
   float fac = 0.5f / a;
   float N1_z2 = fac * (b + c), N2_z2 = fac * (-b + c);
   bool valid1 = (N1_z2 > 1e-5f) && (N1_z2 <= (1.0f + 1e-5f));
@@ -256,8 +266,9 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
     valid1 = (R1 >= 1e-5f);
     valid2 = (R2 >= 1e-5f);
     if (valid1 && valid2) {
-      /* If both solutions are valid, return the one with the shallower reflection since it will be closer to the input
-       * (if the original reflection wasn't shallow, we would not be in this part of the function). */
+      /* If both solutions are valid, return the one with the shallower reflection since it will be
+       * closer to the input (if the original reflection wasn't shallow, we would not be in this
+       * part of the function). */
       N_new = (R1 < R2) ? N1 : N2;
     }
     else {

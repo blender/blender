@@ -87,14 +87,17 @@ struct DenoiseImageLayer {
   /* input_to_image_channel of the secondary frames, if any are used. */
   vector<vector<int>> neighbor_input_to_image_channel;
 
-  /* Write i-th channel of the processing output to output_to_image_channel[i]-th channel of the file. */
+  /* Write i-th channel of the processing output to output_to_image_channel[i]-th channel of the
+   * file. */
   vector<int> output_to_image_channel;
 
-  /* Detect whether this layer contains a full set of channels and set up the offsets accordingly. */
+  /* Detect whether this layer contains a full set of channels and set up the offsets accordingly.
+   */
   bool detect_denoising_channels();
 
   /* Map the channels of a secondary frame to the channels that are required for processing,
-   * fill neighbor_input_to_image_channel if all are present or return false if a channel are missing. */
+   * fill neighbor_input_to_image_channel if all are present or return false if a channel are
+   * missing. */
   bool match_channels(int neighbor,
                       const std::vector<string> &channelnames,
                       const std::vector<string> &neighbor_channelnames);
@@ -125,7 +128,8 @@ class DenoiseImage {
 
   void free();
 
-  /* Open the input image, parse its channels, open the output image and allocate the output buffer. */
+  /* Open the input image, parse its channels, open the output image and allocate the output
+   * buffer. */
   bool load(const string &in_filepath, string &error);
 
   /* Load neighboring frames. */
@@ -139,7 +143,8 @@ class DenoiseImage {
   bool save_output(const string &out_filepath, string &error);
 
  protected:
-  /* Parse input file channels, separate them into DenoiseImageLayers, detect DenoiseImageLayers with full channel sets,
+  /* Parse input file channels, separate them into DenoiseImageLayers,
+   * detect DenoiseImageLayers with full channel sets,
    * fill layers and set up the output channels and passthrough map. */
   bool parse_channels(const ImageSpec &in_spec, string &error);
 

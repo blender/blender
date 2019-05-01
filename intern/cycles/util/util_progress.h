@@ -362,7 +362,8 @@ class Progress {
    * It's used to display the sample count if only one tile is active. */
   int current_tile_sample;
   /* Stores the number of tiles that's already finished.
-   * Used to determine whether all but the last tile are finished rendering, in which case the current_tile_sample is displayed. */
+   * Used to determine whether all but the last tile are finished rendering,
+   * in which case the current_tile_sample is displayed. */
   int rendered_tiles, denoised_tiles;
 
   double start_time, render_start_time;

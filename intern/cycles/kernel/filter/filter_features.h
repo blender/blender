@@ -18,8 +18,9 @@ CCL_NAMESPACE_BEGIN
 
 #define ccl_get_feature(buffer, pass) (buffer)[(pass)*pass_stride]
 
-/* Loop over the pixels in the range [low.x, high.x) x [low.y, high.y).+ * pixel_buffer always points to the current pixel in the first pass.
- * Repeat the loop for every secondary frame if there are any. */
+/* Loop over the pixels in the range [low.x, high.x) x [low.y, high.y).+ * pixel_buffer always
+ * points to the current pixel in the first pass. Repeat the loop for every secondary frame if
+ * there are any. */
 #define FOR_PIXEL_WINDOW \
   for (int frame = 0; frame < tile_info->num_frames; frame++) { \
     pixel.z = tile_info->frames[frame]; \

@@ -143,8 +143,10 @@ class Shader : public Node {
   Shader();
   ~Shader();
 
-  /* Checks whether the shader consists of just a emission node with fixed inputs that's connected directly to the output.
-   * If yes, it sets the content of emission to the constant value (color * strength), which is then used for speeding up light evaluation. */
+  /* Checks whether the shader consists of just a emission node with fixed inputs that's connected
+   * directly to the output.
+   * If yes, it sets the content of emission to the constant value (color * strength), which is
+   * then used for speeding up light evaluation. */
   bool is_constant_emission(float3 *emission);
 
   void set_graph(ShaderGraph *graph);

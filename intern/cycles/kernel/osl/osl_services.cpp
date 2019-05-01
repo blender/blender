@@ -1017,7 +1017,7 @@ bool OSLRenderServices::texture(ustring filename,
     PtexPtr<PtexTexture> r(ptex_cache->get(filename.c_str(), error));
 
     if (!r) {
-      //std::cerr << error.c_str() << std::endl;
+      // std::cerr << error.c_str() << std::endl;
       return false;
     }
 

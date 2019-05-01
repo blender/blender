@@ -58,7 +58,8 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
     feature_means[i] = reduce_add(feature_means[i]) * pixel_scale;
   }
 
-  /* === Scale the shifted feature passes to a range of [-1; 1], will be baked into the transform later. === */
+  /* === Scale the shifted feature passes to a range of [-1; 1] ===
+   * Will be baked into the transform later. */
   float4 feature_scale[DENOISE_FEATURES];
   math_vector_zero_sse(feature_scale, num_features);
   FOR_PIXEL_WINDOW_SSE
@@ -72,8 +73,9 @@ ccl_device void kernel_filter_construct_transform(const float *ccl_restrict buff
   filter_calculate_scale_sse(feature_scale, use_time);
 
   /* === Generate the feature transformation. ===
-   * This transformation maps the num_features-dimentional feature space to a reduced feature (r-feature) space
-   * which generally has fewer dimensions. This mainly helps to prevent overfitting. */
+   * This transformation maps the num_features-dimentional feature space to a reduced feature
+   * (r-feature) space which generally has fewer dimensions. This mainly helps to prevent
+   * overfitting. */
   float4 feature_matrix_sse[DENOISE_FEATURES * DENOISE_FEATURES];
   math_matrix_zero_sse(feature_matrix_sse, num_features);
   FOR_PIXEL_WINDOW_SSE

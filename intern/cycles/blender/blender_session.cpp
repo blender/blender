@@ -155,8 +155,8 @@ void BlenderSession::create_session()
   /* There is no single depsgraph to use for the entire render.
    * So we need to handle this differently.
    *
-   * We could loop over the final render result render layers in pipeline and keep Cycles unaware of multiple layers,
-   * or perhaps move syncing further down in the pipeline.
+   * We could loop over the final render result render layers in pipeline and keep Cycles unaware
+   * of multiple layers, or perhaps move syncing further down in the pipeline.
    */
   /* create sync */
   sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
@@ -528,14 +528,15 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     /* Attempt to free all data which is held by Blender side, since at this
      * point we knwo that we've got everything to render current view layer.
      */
-    /* At the moment we only free if we are not doing multi-view (or if we are rendering the last view).
-     * See T58142/D4239 for discussion.
+    /* At the moment we only free if we are not doing multi-view
+     * (or if we are rendering the last view). See T58142/D4239 for discussion.
      */
     if (view_index == num_views - 1) {
       free_blender_memory_if_possible();
     }
 
-    /* Make sure all views have different noise patterns. - hardcoded value just to make it random */
+    /* Make sure all views have different noise patterns. - hardcoded value just to make it random
+     */
     if (view_index != 0) {
       scene->integrator->seed += hash_int_2d(scene->integrator->seed,
                                              hash_int(view_index * 0xdeadbeef));
@@ -1057,8 +1058,9 @@ void BlenderSession::update_status_progress()
   }
 
   double current_time = time_dt();
-  /* When rendering in a window, redraw the status at least once per second to keep the elapsed and remaining time up-to-date.
-   * For headless rendering, only report when something significant changes to keep the console output readable. */
+  /* When rendering in a window, redraw the status at least once per second to keep the elapsed and
+   * remaining time up-to-date. For headless rendering, only report when something significant
+   * changes to keep the console output readable. */
   if (status != last_status || (!headless && (current_time - last_status_time) > 1.0)) {
     b_engine.update_stats("", (timestatus + scene_status + status).c_str());
     b_engine.update_memory_stats(mem_used, mem_peak);

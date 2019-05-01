@@ -155,7 +155,7 @@ interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0
   /* Calculate the fresnel interpolation factor
    * The value from fresnel_dielectric_cos(...) has to be normalized because
    * the cspec0 keeps the F0 color
-  */
+   */
   float F0_norm = 1.0f / (1.0f - F0);
   float FH = (fresnel_dielectric_cos(dot(L, H), ior) - F0) * F0_norm;
 

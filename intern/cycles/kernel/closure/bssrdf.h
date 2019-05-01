@@ -450,7 +450,8 @@ ccl_device void bssrdf_sample(const ShaderClosure *sc, float xi, float *r, float
   else if (bssrdf->type == CLOSURE_BSSRDF_GAUSSIAN_ID) {
     bssrdf_gaussian_sample(radius, xi, r, h);
   }
-  else { /*if(bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID || bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
+  else { /* if (bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID ||
+          *     bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID) */
     bssrdf_burley_sample(radius, xi, r, h);
   }
 }
@@ -466,7 +467,8 @@ ccl_device float bssrdf_channel_pdf(const Bssrdf *bssrdf, float radius, float r)
   else if (bssrdf->type == CLOSURE_BSSRDF_GAUSSIAN_ID) {
     return bssrdf_gaussian_pdf(radius, r);
   }
-  else { /*if(bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID || bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
+  else { /* if (bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID ||
+          *     bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
     return bssrdf_burley_pdf(radius, r);
   }
 }

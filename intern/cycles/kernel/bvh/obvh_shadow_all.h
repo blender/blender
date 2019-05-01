@@ -431,7 +431,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
                 }
 
                 prim_addr++;
-              }  //while
+              }  // while
             }
             else {
               kernel_assert((kernel_tex_fetch(__prim_type, (prim_addr)) & PRIMITIVE_ALL) ==
@@ -568,7 +568,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
               }
 
               prim_addr++;
-            }  //while prim
+            }  // while prim
           }
         }
 #if BVH_FEATURE(BVH_INSTANCING)

@@ -141,7 +141,8 @@ class DebugFlags {
     /* Use debug version of the kernel. */
     bool debug;
 
-    /* TODO(mai): Currently this is only for OpenCL, but we should have it implemented for all devices. */
+    /* TODO(mai): Currently this is only for OpenCL, but we should have it implemented for all
+     * devices. */
     /* Artificial memory limit in bytes (0 if disabled). */
     size_t mem_limit;
   };

@@ -178,7 +178,7 @@ ccl_device_inline int ray_triangle_intersect8(KernelGlobals *kg,
                                                _mm256_cmpeq_epi32(two256, UVW_256_1));
 
   unsigned char mask_minmaxUVW_pos = _mm256_movemask_ps(_mm256_castsi256_ps(mask_minmaxUVW_256));
-  if ((mask_minmaxUVW_pos & prim_num_mask) == prim_num_mask) {  //all bits set
+  if ((mask_minmaxUVW_pos & prim_num_mask) == prim_num_mask) {  // all bits set
     return false;
   }
 
@@ -375,7 +375,7 @@ ccl_device_inline int triangle_intersect8(KernelGlobals *kg,
     tri_b[i] = *(__m128 *)&kg->__prim_tri_verts.data[tri_vindex++];
     tri_c[i] = *(__m128 *)&kg->__prim_tri_verts.data[tri_vindex++];
   }
-  //create 9 or  12 placeholders
+  // create 9 or  12 placeholders
   tri[0] = _mm256_castps128_ps256(tri_a[0]);  //_mm256_zextps128_ps256
   tri[1] = _mm256_castps128_ps256(tri_b[0]);  //_mm256_zextps128_ps256
   tri[2] = _mm256_castps128_ps256(tri_c[0]);  //_mm256_zextps128_ps256
@@ -401,40 +401,40 @@ ccl_device_inline int triangle_intersect8(KernelGlobals *kg,
   }
 
   //------------------------------------------------
-  //0!  Xa0 Ya0 Za0 1 Xa4 Ya4 Za4  1
-  //1!  Xb0 Yb0 Zb0 1 Xb4 Yb4 Zb4 1
-  //2!  Xc0 Yc0 Zc0 1 Xc4 Yc4 Zc4 1
+  // 0!  Xa0 Ya0 Za0 1 Xa4 Ya4 Za4  1
+  // 1!  Xb0 Yb0 Zb0 1 Xb4 Yb4 Zb4 1
+  // 2!  Xc0 Yc0 Zc0 1 Xc4 Yc4 Zc4 1
 
-  //3!  Xa1 Ya1 Za1 1 Xa5 Ya5 Za5 1
-  //4!  Xb1 Yb1 Zb1 1 Xb5 Yb5 Zb5  1
-  //5!  Xc1 Yc1 Zc1 1 Xc5 Yc5 Zc5 1
+  // 3!  Xa1 Ya1 Za1 1 Xa5 Ya5 Za5 1
+  // 4!  Xb1 Yb1 Zb1 1 Xb5 Yb5 Zb5  1
+  // 5!  Xc1 Yc1 Zc1 1 Xc5 Yc5 Zc5 1
 
-  //6!  Xa2 Ya2 Za2 1 Xa6 Ya6 Za6 1
-  //7!  Xb2 Yb2 Zb2 1 Xb6 Yb6 Zb6  1
-  //8!  Xc2 Yc2 Zc2 1 Xc6 Yc6 Zc6 1
+  // 6!  Xa2 Ya2 Za2 1 Xa6 Ya6 Za6 1
+  // 7!  Xb2 Yb2 Zb2 1 Xb6 Yb6 Zb6  1
+  // 8!  Xc2 Yc2 Zc2 1 Xc6 Yc6 Zc6 1
 
-  //9!  Xa3 Ya3 Za3 1 Xa7 Ya7 Za7  1
-  //10! Xb3 Yb3 Zb3 1 Xb7 Yb7 Zb7  1
-  //11! Xc3 Yc3 Zc3 1 Xc7 Yc7 Zc7  1
+  // 9!  Xa3 Ya3 Za3 1 Xa7 Ya7 Za7  1
+  // 10! Xb3 Yb3 Zb3 1 Xb7 Yb7 Zb7  1
+  // 11! Xc3 Yc3 Zc3 1 Xc7 Yc7 Zc7  1
 
   //"transpose"
-  tritmp[0] = _mm256_unpacklo_ps(tri[0], tri[3]);  //0!  Xa0 Xa1 Ya0 Ya1 Xa4 Xa5 Ya4 Ya5
-  tritmp[1] = _mm256_unpackhi_ps(tri[0], tri[3]);  //1!  Za0 Za1 1   1   Za4 Za5  1   1
+  tritmp[0] = _mm256_unpacklo_ps(tri[0], tri[3]);  // 0!  Xa0 Xa1 Ya0 Ya1 Xa4 Xa5 Ya4 Ya5
+  tritmp[1] = _mm256_unpackhi_ps(tri[0], tri[3]);  // 1!  Za0 Za1 1   1   Za4 Za5  1   1
 
-  tritmp[2] = _mm256_unpacklo_ps(tri[6], tri[9]);  //2!  Xa2 Xa3 Ya2 Ya3 Xa6 Xa7 Ya6 Ya7
-  tritmp[3] = _mm256_unpackhi_ps(tri[6], tri[9]);  //3!  Za2 Za3  1   1  Za6 Za7  1   1
+  tritmp[2] = _mm256_unpacklo_ps(tri[6], tri[9]);  // 2!  Xa2 Xa3 Ya2 Ya3 Xa6 Xa7 Ya6 Ya7
+  tritmp[3] = _mm256_unpackhi_ps(tri[6], tri[9]);  // 3!  Za2 Za3  1   1  Za6 Za7  1   1
 
-  tritmp[4] = _mm256_unpacklo_ps(tri[1], tri[4]);  //4!  Xb0 Xb1 Yb0 Yb1 Xb4 Xb5 Yb4 Yb5
-  tritmp[5] = _mm256_unpackhi_ps(tri[1], tri[4]);  //5!  Zb0 Zb1  1  1   Zb4 Zb5  1   1
+  tritmp[4] = _mm256_unpacklo_ps(tri[1], tri[4]);  // 4!  Xb0 Xb1 Yb0 Yb1 Xb4 Xb5 Yb4 Yb5
+  tritmp[5] = _mm256_unpackhi_ps(tri[1], tri[4]);  // 5!  Zb0 Zb1  1  1   Zb4 Zb5  1   1
 
-  tritmp[6] = _mm256_unpacklo_ps(tri[7], tri[10]);  //6!  Xb2 Xb3 Yb2 Yb3 Xb6 Xb7 Yb6 Yb7
-  tritmp[7] = _mm256_unpackhi_ps(tri[7], tri[10]);  //7!  Zb2 Zb3  1    1 Zb6 Zb7  1   1
+  tritmp[6] = _mm256_unpacklo_ps(tri[7], tri[10]);  // 6!  Xb2 Xb3 Yb2 Yb3 Xb6 Xb7 Yb6 Yb7
+  tritmp[7] = _mm256_unpackhi_ps(tri[7], tri[10]);  // 7!  Zb2 Zb3  1    1 Zb6 Zb7  1   1
 
-  tritmp[8] = _mm256_unpacklo_ps(tri[2], tri[5]);  //8!  Xc0 Xc1 Yc0 Yc1 Xc4 Xc5 Yc4 Yc5
-  tritmp[9] = _mm256_unpackhi_ps(tri[2], tri[5]);  //9!  Zc0 Zc1  1   1  Zc4 Zc5  1   1
+  tritmp[8] = _mm256_unpacklo_ps(tri[2], tri[5]);  // 8!  Xc0 Xc1 Yc0 Yc1 Xc4 Xc5 Yc4 Yc5
+  tritmp[9] = _mm256_unpackhi_ps(tri[2], tri[5]);  // 9!  Zc0 Zc1  1   1  Zc4 Zc5  1   1
 
-  tritmp[10] = _mm256_unpacklo_ps(tri[8], tri[11]);  //10! Xc2 Xc3 Yc2 Yc3 Xc6 Xc7 Yc6 Yc7
-  tritmp[11] = _mm256_unpackhi_ps(tri[8], tri[11]);  //11! Zc2 Zc3  1   1  Zc6 Zc7  1   1
+  tritmp[10] = _mm256_unpacklo_ps(tri[8], tri[11]);  // 10! Xc2 Xc3 Yc2 Yc3 Xc6 Xc7 Yc6 Yc7
+  tritmp[11] = _mm256_unpackhi_ps(tri[8], tri[11]);  // 11! Zc2 Zc3  1   1  Zc6 Zc7  1   1
 
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
   triA[0] = _mm256_castpd_ps(
@@ -459,13 +459,13 @@ ccl_device_inline int triangle_intersect8(KernelGlobals *kg,
 
   triC[0] = _mm256_castpd_ps(
       _mm256_unpacklo_pd(_mm256_castps_pd(tritmp[8]),
-                         _mm256_castps_pd(tritmp[10])));  //Xc0 Xc1 Xc2 Xc3 Xc4 Xc5 Xc6 Xc7
+                         _mm256_castps_pd(tritmp[10])));  // Xc0 Xc1 Xc2 Xc3 Xc4 Xc5 Xc6 Xc7
   triC[1] = _mm256_castpd_ps(
       _mm256_unpackhi_pd(_mm256_castps_pd(tritmp[8]),
-                         _mm256_castps_pd(tritmp[10])));  //Yc0 Yc1 Yc2 Yc3 Yc4 Yc5 Yc6 Yc7
+                         _mm256_castps_pd(tritmp[10])));  // Yc0 Yc1 Yc2 Yc3 Yc4 Yc5 Yc6 Yc7
   triC[2] = _mm256_castpd_ps(
       _mm256_unpacklo_pd(_mm256_castps_pd(tritmp[9]),
-                         _mm256_castps_pd(tritmp[11])));  //Zc0 Zc1 Zc2 Zc3 Zc4 Zc5 Zc6 Zc7
+                         _mm256_castps_pd(tritmp[11])));  // Zc0 Zc1 Zc2 Zc3 Zc4 Zc5 Zc6 Zc7
 
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 

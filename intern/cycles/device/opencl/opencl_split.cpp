@@ -265,7 +265,7 @@ void OpenCLDevice::OpenCLSplitPrograms::load_kernels(
     ADD_SPLIT_KERNEL_PROGRAM(shader_eval);
 
     /* Quick kernels bundled in a single program to reduce overhead of starting
-      * Blender processes. */
+     * Blender processes. */
     program_split = OpenCLDevice::OpenCLProgram(
         device,
         "split_bundle",
@@ -668,7 +668,8 @@ OpenCLDevice::OpenCLDevice(DeviceInfo &info, Stats &stats, Profiler &profiler, b
     return;
   }
 
-  /* Allocate this right away so that texture_info is placed at offset 0 in the device memory buffers */
+  /* Allocate this right away so that texture_info
+   * is placed at offset 0 in the device memory buffers. */
   texture_info.resize(1);
   memory_manager.alloc("texture_info", texture_info);
 
@@ -1149,7 +1150,8 @@ void OpenCLDevice::tex_alloc(device_memory &mem)
           << string_human_readable_size(mem.memory_size()) << ")";
 
   memory_manager.alloc(mem.name, mem);
-  /* Set the pointer to non-null to keep code that inspects its value from thinking its unallocated. */
+  /* Set the pointer to non-null to keep code that inspects its value from thinking its
+   * unallocated. */
   mem.device_pointer = 1;
   textures[mem.name] = &mem;
   textures_need_update = true;

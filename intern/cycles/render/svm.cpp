@@ -773,7 +773,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     compile_failed = false;
   }
 
-  /* for bump shaders we fall thru to the surface shader, but if this is any other kind of shader it ends here */
+  /* for bump shaders we fall thru to the surface shader, but if this is any other kind of shader
+   * it ends here */
   if (type != SHADER_TYPE_BUMP) {
     add_node(NODE_END, 0, 0, 0);
   }
@@ -828,7 +829,8 @@ void SVMCompiler::compile(
   {
     scoped_timer timer((summary != NULL) ? &summary->time_generate_surface : NULL);
     compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
-    /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this one if it exists */
+    /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this
+     * one if it exists */
     if (!has_bump) {
       svm_nodes[index].y = svm_nodes.size();
     }

@@ -85,15 +85,11 @@ ccl_device_forceinline float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderCl
     float HdotI = fmaxf(fabsf(dot(H, I)), 1e-6f);
     float HdotN = fmaxf(dot(H, N), 1e-6f);
 
-    float pump =
-        1.0f /
-        fmaxf(
-            1e-6f,
-            (HdotI *
-             fmaxf(
-                 NdotO,
-                 NdotI))); /* pump from original paper (first derivative disc., but cancels the HdotI in the pdf nicely) */
-    /*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */ /* pump from d-brdf paper */
+    /* pump from original paper
+     * (first derivative disc., but cancels the HdotI in the pdf nicely) */
+    float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotO, NdotI)));
+    /* pump from d-brdf paper */
+    /*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */
 
     float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
     float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
@@ -105,9 +101,8 @@ ccl_device_forceinline float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderCl
       float norm = (n_x + 1.0f) / (8.0f * M_PI_F);
 
       out = NdotO * norm * lobe * pump;
-      *pdf =
-          norm * lobe /
-          HdotI; /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper) */
+      /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper). */
+      *pdf = norm * lobe / HdotI;
     }
     else {
       /* anisotropic */

@@ -16,14 +16,14 @@
 
 /* Evaluate the BSDF from wi to wo.
  * Evaluation is split into the analytical single-scattering BSDF and the multi-scattering BSDF,
- * which is evaluated stochastically through a random walk. At each bounce (except for the first one),
- * the amount of reflection from here towards wo is evaluated before bouncing again.
+ * which is evaluated stochastically through a random walk. At each bounce (except for the first
+ * one), the amount of reflection from here towards wo is evaluated before bouncing again.
  *
- * Because of the random walk, the evaluation is not deterministic, but its expected value is equal to
- * the correct BSDF, which is enough for Monte-Carlo rendering. The PDF also can't be determined
- * analytically, so the single-scattering PDF plus a diffuse term to account for the multi-scattered
- * energy is used. In combination with MIS, that is enough to produce an unbiased result, although
- * the balance heuristic isn't necessarily optimal anymore.
+ * Because of the random walk, the evaluation is not deterministic, but its expected value is equal
+ * to the correct BSDF, which is enough for Monte-Carlo rendering. The PDF also can't be determined
+ * analytically, so the single-scattering PDF plus a diffuse term to account for the
+ * multi-scattered energy is used. In combination with MIS, that is enough to produce an unbiased
+ * result, although the balance heuristic isn't necessarily optimal anymore.
  */
 ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
                                                              float3 wo,
@@ -36,7 +36,8 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
                                                              bool use_fresnel,
                                                              const float3 cspec0)
 {
-  /* Evaluating for a shallower incoming direction produces less noise, and the properties of the BSDF guarantee reciprocity. */
+  /* Evaluating for a shallower incoming direction produces less noise, and the properties of the
+   * BSDF guarantee reciprocity. */
   bool swapped = false;
 #ifdef MF_MULTI_GLASS
   if (wi.z * wo.z < 0.0f) {
@@ -180,9 +181,9 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
   return eval;
 }
 
-/* Perform a random walk on the microsurface starting from wi, returning the direction in which the walk
- * escaped the surface in wo. The function returns the throughput between wi and wo.
- * Without reflection losses due to coloring or fresnel absorption in conductors, the sampling is optimal.
+/* Perform a random walk on the microsurface starting from wi, returning the direction in which the
+ * walk escaped the surface in wo. The function returns the throughput between wi and wo. Without
+ * reflection losses due to coloring or fresnel absorption in conductors, the sampling is optimal.
  */
 ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
                                                                float3 *wo,

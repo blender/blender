@@ -127,7 +127,7 @@ ccl_device_inline void qbvh_stack_sort(QBVHStackItem *ccl_restrict s1,
 
 /* Axis-aligned nodes intersection */
 
-//ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *ccl_restrict kg,
+// ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *ccl_restrict kg,
 static int qbvh_aligned_node_intersect(KernelGlobals *ccl_restrict kg,
                                        const ssef &isect_near,
                                        const ssef &isect_far,

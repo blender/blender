@@ -136,8 +136,8 @@ string device_opencl_capabilities()
   }
   string result = "";
   string error_msg = ""; /* Only used by opencl_assert(), but in the future
-                           * it could also be nicely reported to the console.
-                           */
+                          * it could also be nicely reported to the console.
+                          */
   cl_uint num_platforms = 0;
   opencl_assert(device_opencl_get_num_platforms_safe(&num_platforms));
   if (num_platforms == 0) {

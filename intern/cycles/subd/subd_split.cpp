@@ -141,7 +141,7 @@ void DiagSplit::split(QuadDice::SubPatch &sub, QuadDice::EdgeFactors &ef, int de
   bool split_v = (ef.tv0 == DSPLIT_NON_UNIFORM || ef.tv1 == DSPLIT_NON_UNIFORM);
 
   /* Split subpatches such that the ratio of T for opposite edges doesn't
-     * exceed 1.5, this reduces over tessellation for some patches
+   * exceed 1.5, this reduces over tessellation for some patches
    */
   bool tmp_split_v = split_v;
   if (!split_u && min(ef.tu0, ef.tu1) > 8 && min(ef.tu0, ef.tu1) * 1.5f < max(ef.tu0, ef.tu1))

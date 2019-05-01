@@ -386,7 +386,8 @@ ccl_device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 
 ccl_device_inline float3 bvh_clamp_direction(float3 dir)
 {
-  /* clamp absolute values by exp2f(-80.0f) to avoid division by zero when calculating inverse direction */
+  /* clamp absolute values by exp2f(-80.0f) to avoid division by zero when calculating inverse
+   * direction */
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
   const ssef oopes(8.271806E-25f, 8.271806E-25f, 8.271806E-25f, 0.0f);
   const ssef mask = _mm_cmpgt_ps(fabs(dir), oopes);

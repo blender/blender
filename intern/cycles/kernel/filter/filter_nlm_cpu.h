@@ -197,7 +197,8 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx,
                                                            bool use_time)
 {
   int4 clip_area = rect_clip(rect, filter_window);
-  /* fy and fy are in filter-window-relative coordinates, while x and y are in feature-window-relative coordinates. */
+  /* fy and fy are in filter-window-relative coordinates,
+   * while x and y are in feature-window-relative coordinates. */
   for (int y = clip_area.y; y < clip_area.w; y++) {
     for (int x = clip_area.x; x < clip_area.z; x++) {
       const int low = max(rect.x, x - f);
