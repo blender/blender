@@ -3662,6 +3662,12 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
   seqbase = BKE_sequence_seqbase_get(seq, &offset);
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
+
+    if (seq->flag & SEQ_SCENE_STRIPS && seq->scene) {
+      BKE_animsys_evaluate_all_animation(
+          context->bmain, context->depsgraph, seq->scene, nr + offset);
+    }
+
     meta_ibuf = seq_render_strip_stack(context,
                                        state,
                                        seqbase,
@@ -3731,11 +3737,11 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
       else {
         /* scene can be NULL after deletions */
         ibuf = seq_render_scene_strip(context, seq, nr, cfra);
-
-        /* Scene strips update all animation, so we need to restore original state.*/
-        BKE_animsys_evaluate_all_animation(
-            context->bmain, context->depsgraph, context->scene, cfra);
       }
+
+      /* Scene strips update all animation, so we need to restore original state.*/
+      BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, context->scene, cfra);
+
       break;
     }
 
