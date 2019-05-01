@@ -32,11 +32,11 @@
 /**
  * An IK_Qsegment encodes information about a segments
  * local coordinate system.
- * 
+ *
  * These segments always point along the y-axis.
- * 
+ *
  * Here we define the local coordinates of a joint as
- * local_transform = 
+ * local_transform =
  * translate(tr1) * rotation(A) * rotation(q) * translate(0,length,0)
  * You can read this as:
  * - first translate by (0,length,0)

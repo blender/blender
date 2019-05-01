@@ -84,7 +84,7 @@ void bl_locale_set(const char *locale)
   // Specify location of dictionaries.
   gen.add_messages_path(messages_path);
   gen.add_messages_domain(default_domain);
-  //gen.set_default_messages_domain(default_domain);
+  // gen.set_default_messages_domain(default_domain);
 
   try {
     if (locale && locale[0]) {
@@ -103,7 +103,8 @@ void bl_locale_set(const char *locale)
 
     bl_locale_global_cache();
 
-    // Generate the locale string (useful to know which locale we are actually using in case of "default" one).
+    // Generate the locale string
+    // (useful to know which locale we are actually using in case of "default" one).
 #define LOCALE_INFO std::use_facet<boost::locale::info>(_locale)
 
     locale_str = LOCALE_INFO.language();

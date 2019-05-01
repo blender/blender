@@ -23,7 +23,7 @@
  */
 
 /* To compile run:
- * gcc -DWITH_GUARDEDALLOC -I../../ -I../../../atomic/ memtest.c  ../../intern/mallocn.c -o simpletest
+ * gcc -DWITH_GUARDEDALLOC -I../../ -I../../../atomic/ memtest.c  ../../intern/mallocn.c -o memtest
  */
 
 /* Number of chunks to test with */

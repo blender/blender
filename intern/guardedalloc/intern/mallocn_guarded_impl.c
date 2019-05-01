@@ -106,8 +106,8 @@ typedef struct MemHead {
   int tag2;
   short mmap;      /* if true, memory was mmapped */
   short alignment; /* if non-zero aligned alloc was used
-                     * and alignment is stored here.
-                     */
+                    * and alignment is stored here.
+                    */
 #ifdef DEBUG_MEMCOUNTER
   int _count;
 #endif

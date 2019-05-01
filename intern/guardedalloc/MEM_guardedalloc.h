@@ -60,13 +60,13 @@ extern "C" {
 #endif
 
 /** Returns the length of the allocated memory segment pointed at
-   * by vmemh. If the pointer was not previously allocated by this
-   * module, the result is undefined.*/
+ * by vmemh. If the pointer was not previously allocated by this
+ * module, the result is undefined.*/
 extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 
 /**
-   * Release memory previously allocated by this module.
-   */
+ * Release memory previously allocated by this module.
+ */
 extern void (*MEM_freeN)(void *vmemh);
 
 #if 0 /* UNUSED */
@@ -77,23 +77,23 @@ extern short (*MEM_testN)(void *vmemh);
 #endif
 
 /**
-   * Duplicates a block of memory, and returns a pointer to the
-   * newly allocated block.  */
+ * Duplicates a block of memory, and returns a pointer to the
+ * newly allocated block.  */
 extern void *(*MEM_dupallocN)(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 /**
-   * Reallocates a block of memory, and returns pointer to the newly
-   * allocated block, the old one is freed. this is not as optimized
-   * as a system realloc but just makes a new allocation and copies
-   * over from existing memory. */
+ * Reallocates a block of memory, and returns pointer to the newly
+ * allocated block, the old one is freed. this is not as optimized
+ * as a system realloc but just makes a new allocation and copies
+ * over from existing memory. */
 extern void *(*MEM_reallocN_id)(void *vmemh,
                                 size_t len,
                                 const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(2);
 
 /**
-   * A variant of realloc which zeros new bytes
-   */
+ * A variant of realloc which zeros new bytes
+ */
 extern void *(*MEM_recallocN_id)(void *vmemh,
                                  size_t len,
                                  const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
@@ -103,62 +103,62 @@ extern void *(*MEM_recallocN_id)(void *vmemh,
 #define MEM_recallocN(vmemh, len) MEM_recallocN_id(vmemh, len, __func__)
 
 /**
-   * Allocate a block of memory of size len, with tag name str. The
-   * memory is cleared. The name must be static, because only a
-   * pointer to it is stored ! */
+ * Allocate a block of memory of size len, with tag name str. The
+ * memory is cleared. The name must be static, because only a
+ * pointer to it is stored ! */
 extern void *(*MEM_callocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 /**
-   * Allocate a block of memory of size (len * size), with tag name
-   * str, aborting in case of integer overflows to prevent vulnerabilities.
-   * The memory is cleared. The name must be static, because only a
-   * pointer to it is stored ! */
+ * Allocate a block of memory of size (len * size), with tag name
+ * str, aborting in case of integer overflows to prevent vulnerabilities.
+ * The memory is cleared. The name must be static, because only a
+ * pointer to it is stored ! */
 extern void *(*MEM_calloc_arrayN)(size_t len,
                                   size_t size,
                                   const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
 /**
-   * Allocate a block of memory of size len, with tag name str. The
-   * name must be a static, because only a pointer to it is stored !
-   * */
+ * Allocate a block of memory of size len, with tag name str. The
+ * name must be a static, because only a pointer to it is stored !
+ * */
 extern void *(*MEM_mallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 /**
-   * Allocate a block of memory of size (len * size), with tag name str,
-   * aborting in case of integer overflow to prevent vulnerabilities. The
-   * name must be a static, because only a pointer to it is stored !
-   * */
+ * Allocate a block of memory of size (len * size), with tag name str,
+ * aborting in case of integer overflow to prevent vulnerabilities. The
+ * name must be a static, because only a pointer to it is stored !
+ * */
 extern void *(*MEM_malloc_arrayN)(size_t len,
                                   size_t size,
                                   const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
 /**
-   * Allocate an aligned block of memory of size len, with tag name str. The
-   * name must be a static, because only a pointer to it is stored !
-   * */
+ * Allocate an aligned block of memory of size len, with tag name str. The
+ * name must be a static, because only a pointer to it is stored !
+ * */
 extern void *(*MEM_mallocN_aligned)(size_t len,
                                     size_t alignment,
                                     const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 
 /**
-   * Same as callocN, clears memory and uses mmap (disk cached) if supported.
-   * Can be free'd with MEM_freeN as usual.
-   * */
+ * Same as callocN, clears memory and uses mmap (disk cached) if supported.
+ * Can be free'd with MEM_freeN as usual.
+ * */
 extern void *(*MEM_mapallocN)(size_t len,
                               const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 /** Print a list of the names and sizes of all allocated memory
-   * blocks. as a python dict for easy investigation */
+ * blocks. as a python dict for easy investigation */
 extern void (*MEM_printmemlist_pydict)(void);
 
 /** Print a list of the names and sizes of all allocated memory
-   * blocks. */
+ * blocks. */
 extern void (*MEM_printmemlist)(void);
 
 /** calls the function on all allocated memory blocks. */
@@ -171,22 +171,22 @@ extern void (*MEM_printmemlist_stats)(void);
 extern void (*MEM_set_error_callback)(void (*func)(const char *));
 
 /**
-   * Are the start/end block markers still correct ?
-   *
-   * @retval true for correct memory, false for corrupted memory. */
+ * Are the start/end block markers still correct ?
+ *
+ * @retval true for correct memory, false for corrupted memory. */
 extern bool (*MEM_consistency_check)(void);
 
 /** Set thread locking functions for safe memory allocation from multiple
-   * threads, pass NULL pointers to disable thread locking again. */
+ * threads, pass NULL pointers to disable thread locking again. */
 extern void (*MEM_set_lock_callback)(void (*lock)(void), void (*unlock)(void));
 
 /** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 extern void (*MEM_set_memory_debug)(void);
 
 /**
-   * Memory usage stats
-   * - MEM_get_memory_in_use is all memory
-   * - MEM_get_mapped_memory_in_use is a subset of all memory */
+ * Memory usage stats
+ * - MEM_get_memory_in_use is all memory
+ * - MEM_get_mapped_memory_in_use is a subset of all memory */
 extern size_t (*MEM_get_memory_in_use)(void);
 /** Get mapped memory usage. */
 extern size_t (*MEM_get_mapped_memory_in_use)(void);

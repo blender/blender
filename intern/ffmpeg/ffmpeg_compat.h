@@ -1,7 +1,7 @@
 /*
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)
- * it also includes all ffmpeg header files at once, no need to do it 
+ * it also includes all ffmpeg header files at once, no need to do it
  * separately.
  *
  * Copyright (c) 2011 Peter Schlaile
@@ -136,8 +136,8 @@ int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 
 #endif
 
-/* XXX TODO Probably fix to correct modern flags in code? Not sure how old FFMPEG we want to support though,
- * so for now this will do. */
+/* XXX TODO Probably fix to correct modern flags in code? Not sure how old FFMPEG we want to
+ * support though, so for now this will do. */
 
 #ifndef FF_MIN_BUFFER_SIZE
 #  ifdef AV_INPUT_BUFFER_MIN_SIZE
@@ -215,8 +215,8 @@ int av_get_cropped_height_from_codec(AVCodecContext *pCodecCtx)
   /* really bad hack to remove this dreadfull black bar at the bottom
    with Canon footage and old ffmpeg versions.
    (to fix this properly in older ffmpeg versions one has to write a new
-   demuxer...) 
-     
+   demuxer...)
+
    see the actual fix here for reference:
 
    http://git.libav.org/?p=libav.git;a=commit;h=30f515091c323da59c0f1b533703dedca2f4b95d

@@ -496,9 +496,8 @@ int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
   const char *family = (*cs)->getFamily();
 
   if (!strcmp(family, "rrt") || !strcmp(family, "display")) {
-    /* assume display and rrt transformations are not invertible
-     * in fact some of them could be, but it doesn't make much sense to allow use them as invertible
-     */
+    /* assume display and rrt transformations are not invertible in fact some of them could be,
+     * but it doesn't make much sense to allow use them as invertible. */
     return false;
   }
 
@@ -508,7 +507,8 @@ int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
   }
 
   if ((*cs)->getTransform(COLORSPACE_DIR_TO_REFERENCE)) {
-    /* if there's defined transform to reference space, color space could be converted to scene linear */
+    /* if there's defined transform to reference space,
+     * color space could be converted to scene linear. */
     return true;
   }
 

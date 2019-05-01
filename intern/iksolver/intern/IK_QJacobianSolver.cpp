@@ -297,7 +297,7 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
 {
   float scale = ComputeScale();
   bool solved = false;
-  //double dt = analyze_time();
+  // double dt = analyze_time();
 
   Scale(scale, tasks);
 
@@ -359,7 +359,7 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
 
   Scale(1.0f / scale, tasks);
 
-  //analyze_add_run(max_iterations, analyze_time()-dt);
+  // analyze_add_run(max_iterations, analyze_time()-dt);
 
   return solved;
 }

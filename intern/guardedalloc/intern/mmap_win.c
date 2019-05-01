@@ -32,7 +32,7 @@
 #  include "mmap_win.h"
 
 #  ifndef FILE_MAP_EXECUTE
-//not defined in earlier versions of the Platform  SDK (before February 2003)
+// not defined in earlier versions of the Platform  SDK (before February 2003)
 #    define FILE_MAP_EXECUTE 0x0020
 #  endif
 

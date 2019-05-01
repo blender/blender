@@ -70,8 +70,8 @@ typedef struct OCIO_GLSLShader {
 
   /* LUT */
   bool lut3d_texture_allocated; /* boolean flag indicating whether
-                                  * lut texture is allocated
-                                  */
+                                 * lut texture is allocated
+                                 */
   bool lut3d_texture_valid;
 
   GLuint lut3d_texture; /* OGL texture ID for 3D LUT */

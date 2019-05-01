@@ -356,7 +356,8 @@ static void clg_ctx_fatal_action(CLogContext *ctx)
 static void clg_ctx_backtrace(CLogContext *ctx)
 {
   /* Note: we avoid writing fo 'FILE', for backtrace we make an exception,
-   * if necessary we could have a version of the callback that writes to file descriptor all at once. */
+   * if necessary we could have a version of the callback that writes to file
+   * descriptor all at once. */
   ctx->callbacks.backtrace_fn(ctx->output_file);
   fflush(ctx->output_file);
 }
