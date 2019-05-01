@@ -38,8 +38,8 @@ uniform usamplerBuffer hairStrandBuffer;    /* R32UI */
 uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 
 /* Not used, use one buffer per uv layer */
-//uniform samplerBuffer hairUVBuffer; /* RG32F */
-//uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
+// uniform samplerBuffer hairUVBuffer; /* RG32F */
+// uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
 
 /* -- Subdivision stage -- */
 /**

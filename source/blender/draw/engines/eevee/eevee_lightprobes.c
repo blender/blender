@@ -145,7 +145,8 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
           width, height, max_ii(1, num_planar_ref), GPU_DEPTH_COMPONENT24, 0, NULL);
     }
     else if (num_planar_ref == 0) {
-      /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
+      /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still
+       * bound to shader. */
       txl->planar_pool = DRW_texture_create_2d_array(
           1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
       txl->planar_depth = DRW_texture_create_2d_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);

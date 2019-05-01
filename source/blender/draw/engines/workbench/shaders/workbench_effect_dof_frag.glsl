@@ -362,9 +362,9 @@ void main()
   for (int dX = -1; dX <= 1; ++dX) {
     for (int dY = -1; dY <= 1; ++dY) {
       vec2 offset = vec2(float(dX), float(dY));
-      /* If a pixel in the window is located at (x+dX, y+dY), put it at index (dX + R)(2R + 1) + (dY + R) of the
-       * pixel array. This will fill the pixel array, with the top left pixel of the window at pixel[0] and the
-       * bottom right pixel of the window at pixel[N-1]. */
+      /* If a pixel in the window is located at (x+dX, y+dY), put it at index (dX + R)(2R + 1) +
+       * (dY + R) of the pixel array. This will fill the pixel array, with the top left pixel of
+       * the window at pixel[0] and the bottom right pixel of the window at pixel[N-1]. */
       v[(dX + 1) * 3 + (dY + 1)] = toVec(texture(blurTex, uv + offset * pixel_size * rad));
     }
   }

@@ -1072,7 +1072,8 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
       DRW_gpencil_recalc_geometry_caches(ob, gpl, gp_style, src_gps);
     }
 
-    /* if the fill has any value, it's considered a fill and is not drawn if simplify fill is enabled */
+    /* if the fill has any value, it's considered a fill and is not drawn if simplify fill is
+     * enabled */
     if ((stl->storage->simplify_fill) &&
         (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_REMOVE_FILL_LINE)) {
       if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
@@ -1367,7 +1368,8 @@ static void gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
   }
 }
 
-/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
+/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was
+ * modified) */
 void DRW_gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 {
   BLI_assert(gps->totpoints >= 3);

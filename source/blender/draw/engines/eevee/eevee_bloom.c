@@ -206,31 +206,32 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
   if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
     /**  Bloom algorithm
      *
-     * Overview :
+     * Overview:
      * - Downsample the color buffer doing a small blur during each step.
      * - Accumulate bloom color using previously downsampled color buffers
      *   and do an upsample blur for each new accumulated layer.
      * - Finally add accumulation buffer onto the source color buffer.
      *
      *  [1/1] is original copy resolution (can be half or quarter res for performance)
+     * <pre>
+     *                            [DOWNSAMPLE CHAIN]                      [UPSAMPLE CHAIN]
      *
-     *                                [DOWNSAMPLE CHAIN]                      [UPSAMPLE CHAIN]
-     *
-     *  Source Color ── [Blit] ──>  Bright Color Extract [1/1]                  Final Color
-     *                                        |                                      Λ
-     *                                [Downsample First]       Source Color ─> + [Resolve]
-     *                                        v                                      |
-     *                              Color Downsampled [1/2] ────────────> + Accumulation Buffer [1/2]
-     *                                        |                                      Λ
-     *                                       ───                                    ───
-     *                                      Repeat                                 Repeat
-     *                                       ───                                    ───
-     *                                        v                                      |
-     *                              Color Downsampled [1/N-1] ──────────> + Accumulation Buffer [1/N-1]
-     *                                        |                                      Λ
-     *                                   [Downsample]                            [Upsample]
-     *                                        v                                      |
-     *                              Color Downsampled [1/N] ─────────────────────────┘
+     * Source Color ─ [Blit] ─> Bright Color Extract [1/1]                  Final Color
+     *                                    |                                      Λ
+     *                            [Downsample First]       Source Color ─> + [Resolve]
+     *                                    v                                      |
+     *                          Color Downsampled [1/2] ────────────> + Accumulation Buffer [1/2]
+     *                                    |                                      Λ
+     *                                   ───                                    ───
+     *                                  Repeat                                 Repeat
+     *                                   ───                                    ───
+     *                                    v                                      |
+     *                          Color Downsampled [1/N-1] ──────────> + Accumulation Buffer [1/N-1]
+     *                                    |                                      Λ
+     *                               [Downsample]                            [Upsample]
+     *                                    v                                      |
+     *                          Color Downsampled [1/N] ─────────────────────────┘
+     * </pre>
      */
     DRWShadingGroup *grp;
     const bool use_highres = true;

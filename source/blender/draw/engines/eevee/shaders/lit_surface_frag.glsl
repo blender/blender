@@ -282,7 +282,8 @@ void CLOSURE_NAME(vec3 N
   /* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
   /* ---------------------------------------------------------------- */
 
-  /* Accumulate incoming light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
+  /* Accumulate incoming light from all sources until accumulator is full. Then apply Occlusion and
+   * BRDF. */
 #ifdef CLOSURE_GLOSSY
   vec4 spec_accum = vec4(0.0);
 #endif

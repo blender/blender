@@ -259,7 +259,8 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
       else if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
         bMotionPathVert *mpvP = (mpv - stepsize);
         bMotionPathVert *mpvN = (mpv + stepsize);
-        /* only draw framenum if several consecutive highlighted points don't occur on same point */
+        /* only draw framenum if several consecutive highlighted points don't occur on same point
+         */
         if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
           numstr_len = sprintf(numstr, " %d", frame);
           DRW_text_cache_add(dt, mpv->co, numstr, numstr_len, 0, 0, txt_flag, col);

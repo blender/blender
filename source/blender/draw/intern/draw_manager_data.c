@@ -161,7 +161,8 @@ void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, con
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
-/* Same as DRW_shgroup_uniform_texture but is guaranteed to be bound if shader does not change between shgrp. */
+/* Same as DRW_shgroup_uniform_texture but is guaranteed to be bound if shader does not change
+ * between shgrp. */
 void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup,
                                             const char *name,
                                             const GPUTexture *tex)
@@ -178,7 +179,8 @@ void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
 }
 
-/* Same as DRW_shgroup_uniform_block but is guaranteed to be bound if shader does not change between shgrp. */
+/* Same as DRW_shgroup_uniform_block but is guaranteed to be bound if shader does not change
+ * between shgrp. */
 void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup,
                                           const char *name,
                                           const GPUUniformBuffer *ubo)
@@ -1178,7 +1180,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct GPUBatch *batch
   /* PERF : This destroys the vaos cache so better check if it's necessary. */
   /* Note: This WILL break if batch->verts[0] is destroyed and reallocated
    * at the same address. Bindings/VAOs would remain obsolete. */
-  //if (shgroup->instancing_geom->inst != batch->verts[0])
+  // if (shgroup->instancing_geom->inst != batch->verts[0])
   GPU_batch_instbuf_set(shgroup->instance_geom, batch->verts[0], false);
 
 #ifdef USE_GPU_SELECT

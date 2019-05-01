@@ -3017,7 +3017,8 @@ GPUBatch *DRW_cache_bone_dof_lines_get(void)
  * We could make these more generic functions.
  * although filling 1d lines is not common.
  *
- * \note Use x coordinate to identify the vertex the vertex shader take care to place it appropriately.
+ * \note Use x coordinate to identify the vertex the vertex shader take care to place it
+ * appropriately.
  */
 
 static const float camera_coords_frame_bounds[5] = {

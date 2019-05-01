@@ -680,7 +680,8 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
             80.0f; /* XXX : Empirical, Fit cycles power */
     if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
-      /* Scale power to account for the lower area of the ellipse compared to the surrounding rectangle. */
+      /* Scale power to account for the lower area of the ellipse compared to the surrounding
+       * rectangle. */
       power *= 4.0f / M_PI;
     }
   }
@@ -693,8 +694,9 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   }
   else {
     power = 1.0f / (evli->radius * evli->radius * M_PI); /* 1/(r²*Pi) */
-    /* Make illumation power closer to cycles for bigger radii. Cycles uses a cos^3 term that we cannot reproduce
-     * so we account for that by scaling the light power. This function is the result of a rough manual fitting. */
+    /* Make illumation power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
+     * cannot reproduce so we account for that by scaling the light power. This function is the
+     * result of a rough manual fitting. */
     power += 1.0f / (2.0f * M_PI); /* power *= 1 + r²/2 */
   }
   return power;
@@ -1383,7 +1385,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       DRW_draw_pass(psl->shadow_pass);
     }
 
-    /* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
+    /* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big.
+     */
     float filter_texture_size = la->soft * 0.001f;
     float filter_pixel_size = ceil(filter_texture_size / srd->cube_texel_size);
     linfo->filter_size = srd->cube_texel_size * ((filter_pixel_size > 1.0f) ? 1.5f : 0.0f);

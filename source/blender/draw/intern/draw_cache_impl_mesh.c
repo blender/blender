@@ -325,8 +325,8 @@ typedef enum eMRDataType {
 #define MR_DATATYPE_LOOSE_VERT_EGDE (MR_DATATYPE_LOOSE_VERT | MR_DATATYPE_LOOSE_EDGE)
 
 /**
- * These functions look like they would be slow but they will typically return true on the first iteration.
- * Only false when all attached elements are hidden.
+ * These functions look like they would be slow but they will typically return true on the first
+ * iteration. Only false when all attached elements are hidden.
  */
 static bool bm_vert_has_visible_edge(const BMVert *v)
 {
@@ -1159,7 +1159,8 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
           /* note: BKE_editmesh_loop_tangent_calc calculates 'CD_TANGENT',
            * not 'CD_MLOOPTANGENT' (as done below). It's OK, they're compatible. */
 
-          /* note: normally we'd use 'i_src' here, but 'i_dst' is in sync with 'rdata->cd.output' */
+          /* note: normally we'd use 'i_src' here, but 'i_dst' is in sync with 'rdata->cd.output'
+           */
           rdata->cd.layers.tangent[i_dst] = CustomData_get_layer_n(
               &rdata->cd.output.ldata, CD_TANGENT, i_dst);
           if (rdata->tri_len != 0) {

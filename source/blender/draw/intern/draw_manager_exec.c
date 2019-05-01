@@ -445,8 +445,9 @@ void DRW_state_clip_planes_set_from_rv3d(RegionView3D *rv3d)
 
 /* Extract the 8 corners from a Projection Matrix.
  * Although less accurate, this solution can be simplified as follows:
- * BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
- * for (int i = 0; i < 8; i++) {mul_project_m4_v3(projinv, bbox.vec[i]);}
+ * BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const
+ * float[3]){1.0f, 1.0f, 1.0f}); for (int i = 0; i < 8; i++) {mul_project_m4_v3(projinv,
+ * bbox.vec[i]);}
  */
 static void draw_frustum_boundbox_calc(const float (*projmat)[4], BoundBox *r_bbox)
 {

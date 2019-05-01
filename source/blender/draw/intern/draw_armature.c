@@ -1185,8 +1185,8 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
   size_to_mat4(s, (const float[3]){xwidth, length / bbone_segments, zwidth});
 
   /* Compute BBones segment matrices... */
-  /* Note that we need this even for one-segment bones, because box drawing need specific weirdo matrix for the box,
-   * that we cannot use to draw end points & co. */
+  /* Note that we need this even for one-segment bones, because box drawing need specific weirdo
+   * matrix for the box, that we cannot use to draw end points & co. */
   if (pchan) {
     Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
     if (bbone_segments > 1) {
@@ -1797,7 +1797,8 @@ static void draw_bone_relations(EditBone *ebone,
     }
     else if (pchan && pchan->parent) {
       if (do_relations) {
-        /* Only draw if bone or its parent is selected - reduces viewport complexity with complex rigs */
+        /* Only draw if bone or its parent is selected - reduces viewport complexity with complex
+         * rigs */
         if ((boneflag & BONE_SELECTED) ||
             (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED))) {
           if ((boneflag & BONE_CONNECTED) == 0) {

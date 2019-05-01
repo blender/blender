@@ -126,7 +126,7 @@ static void EDIT_METABALL_cache_init(void *vedata)
 /* Add geometry to shadingGroups. Execute for each objects */
 static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 {
-  //EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
+  // EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
   EDIT_METABALL_StorageList *stl = ((EDIT_METABALL_Data *)vedata)->stl;
 
   if (ob->type == OB_MBALL) {

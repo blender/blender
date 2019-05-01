@@ -200,7 +200,8 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
       sculpt_update_pbvh_normals(ob);
 
       /* XXX, needed for dyntopo-undo (which clears).
-       * probably depsgraph should handlle? in 2.7x getting derived-mesh does this (mesh_build_data) */
+       * probably depsgraph should handlle? in 2.7x
+       * getting derived-mesh does this (mesh_build_data). */
       if (ob->sculpt->pbvh == NULL) {
         /* create PBVH immediately (would be created on the fly too,
          * but this avoids waiting on first stroke) */

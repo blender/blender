@@ -36,7 +36,8 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 }
 
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
-/* http://advances.realtimerendering.com/s2009/SIGGRAPH%202009%20-%20Lighting%20Research%20at%20Bungie.pdf Slide 55*/
+/* http://advances.realtimerendering.com/s2009/SIGGRAPH%202009%20-%20Lighting%20Research%20at%20Bungie.pdf
+ * Slide 55. */
 #define ln_space_prefilter_step(ref, sample) exp(sample - ref)
 #define ln_space_prefilter_finalize(ref, sum) (ref + log(shadowInvSampleCount * sum))
 

@@ -14,7 +14,8 @@ vec4 safe_color(vec4 c)
 
 /**
  * Adapted from https://casual-effects.com/g3d/G3D10/data-files/shader/Film/Film_temporalAA.pix
- * which is adapted from https://github.com/gokselgoktas/temporal-anti-aliasing/blob/master/Assets/Resources/Shaders/TemporalAntiAliasing.cginc
+ * which is adapted from
+ * https://github.com/gokselgoktas/temporal-anti-aliasing/blob/master/Assets/Resources/Shaders/TemporalAntiAliasing.cginc
  * which is adapted from https://github.com/playdeadgames/temporal
  * Optimization by Stubbesaurus and epsilon adjustment to avoid division by zero.
  *

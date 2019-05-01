@@ -180,7 +180,8 @@ void main()
     gl_FragDepth = min(-0.05, (gl_FragCoord.z / gl_FragCoord.w));
   }
   else if (xraymode == GP_XRAY_3DSPACE) {
-    /* if 3D mode, move slightly the fill to avoid z-fighting between stroke and fill on same stroke */
+    /* if 3D mode, move slightly the fill to avoid z-fighting between stroke and fill on same
+     * stroke */
     if (drawmode == GP_DRAWMODE_3D) {
       gl_FragDepth = gl_FragCoord.z * 1.0001;
     }

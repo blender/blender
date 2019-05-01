@@ -64,7 +64,8 @@ float max_v3(vec3 v)
 
 float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
 {
-  /* https://seblagarde.wordpress.com/2012/09/29/image-based-lighting-approaches-and-parallax-corrected-cubemap/ */
+  /* https://seblagarde.wordpress.com/2012/09/29/image-based-lighting-approaches-and-parallax-corrected-cubemap/
+   */
   vec3 firstplane = (vec3(1.0) - lineorigin) / linedirection;
   vec3 secondplane = (vec3(-1.0) - lineorigin) / linedirection;
   vec3 furthestplane = min(firstplane, secondplane);

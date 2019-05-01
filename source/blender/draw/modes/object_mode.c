@@ -953,7 +953,8 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     return;
   }
 
-  /* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead, see: T59347 */
+  /* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead,
+   * see: T59347 */
   int size[2] = {0};
 
   const bool use_alpha_blend = (ob->empty_image_flag & OB_EMPTY_IMAGE_USE_ALPHA_BLEND) != 0;

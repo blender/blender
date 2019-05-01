@@ -570,7 +570,8 @@ static void EDIT_MESH_cache_init(void *vedata)
                                                            &stl->g_data->vert_shgrp);
   }
   else {
-    /* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
+    /* We render all wires with depth and opaque to a new fbo and blend the result based on depth
+     * values */
     psl->edit_face_occluded = edit_mesh_create_overlay_pass(&zero,
                                                             stl->g_data->data_mask,
                                                             stl->g_data->do_edges,

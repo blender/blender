@@ -1409,9 +1409,9 @@ static void material_opaque(Material *ma,
           }
           else {
             if (use_translucency) {
-              /* NOTE: This is a nasty workaround, because the sss profile might not have been generated
-               * but the UBO is still declared in this case even if not used. But rendering without a
-               * bound UBO might result in crashes on certain platform. */
+              /* NOTE: This is a nasty workaround, because the sss profile might not have been
+               * generated but the UBO is still declared in this case even if not used.
+               * But rendering without a bound UBO might result in crashes on certain platform. */
               DRW_shgroup_uniform_block(*shgrp, "sssProfile", e_data.dummy_sss_profile);
             }
           }

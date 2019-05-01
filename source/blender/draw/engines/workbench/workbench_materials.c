@@ -43,7 +43,8 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Material *mat,
                                     WORKBENCH_MaterialData *data)
 {
-  /* When V3D_SHADING_TEXTURE_COLOR is active, use V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
+  /* When V3D_SHADING_TEXTURE_COLOR is active, use V3D_SHADING_MATERIAL_COLOR as fallback when no
+   * texture could be determined */
   int color_type = wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR ?
                        V3D_SHADING_MATERIAL_COLOR :
                        wpd->shading.color_type;

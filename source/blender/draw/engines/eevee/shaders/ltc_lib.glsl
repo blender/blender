@@ -164,8 +164,8 @@ void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
   corners[3] = normalize(Minv * corners[3]);
 }
 
-/* If corners have already pass through ltc_transform_quad(), then N **MUST** be vec3(0.0, 0.0, 1.0),
- * corresponding to the Up axis of the shading basis. */
+/* If corners have already pass through ltc_transform_quad(),
+ * then N **MUST** be vec3(0.0, 0.0, 1.0), corresponding to the Up axis of the shading basis. */
 float ltc_evaluate_quad(vec3 corners[4], vec3 N)
 {
   /* Approximation using a sphere of the same solid angle than the quad.

@@ -243,9 +243,10 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
     /* TODO(fclem) deduplicate with eevee */
 
     /* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
-     * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
-     * because the shader reads coordinates in world space, which is in blender units.
-     * Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
+     * unit.scale_length is how many meters per blender unit we have. We want to convert to blender
+     * units though because the shader reads coordinates in world space, which is in blender units.
+     * Note however that focus_distance is already in blender units and shall not be scaled here
+     * (see T48157). */
     float scale = (scene_eval->unit.system) ? scene_eval->unit.scale_length : 1.0f;
     float scale_camera = 0.001f / scale;
     /* we want radius here for the aperture number  */

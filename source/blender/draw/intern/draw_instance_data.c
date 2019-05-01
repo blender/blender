@@ -22,11 +22,11 @@
 
 /**
  * DRW Instance Data Manager
- * This is a special memory manager that keeps memory blocks ready to send as vbo data in one continuous allocation.
- * This way we avoid feeding gawain each instance data one by one and unnecessary memcpy.
- * Since we loose which memory block was used each #DRWShadingGroup we need to redistribute them in the same order/size
- * to avoid to realloc each frame.
- * This is why #DRWInstanceDatas are sorted in a list for each different data size.
+ * This is a special memory manager that keeps memory blocks ready to send as vbo data in one
+ * continuous allocation. This way we avoid feeding gawain each instance data one by one and
+ * unnecessary memcpy. Since we loose which memory block was used each #DRWShadingGroup we need to
+ * redistribute them in the same order/size to avoid to realloc each frame. This is why
+ * #DRWInstanceDatas are sorted in a list for each different data size.
  */
 
 #include "draw_instance_data.h"

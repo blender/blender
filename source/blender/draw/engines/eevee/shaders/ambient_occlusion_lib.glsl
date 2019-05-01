@@ -1,7 +1,8 @@
 
 /* Based on Practical Realtime Strategies for Accurate Indirect Occlusion
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pdf
- * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pptx */
+ * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pptx
+ */
 
 #if defined(MESH_SHADER)
 #  if !defined(USE_ALPHA_HASH)

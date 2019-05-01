@@ -90,8 +90,8 @@ void DRW_globals_update(void)
       dot_v3v3(gb->colorEditMeshMiddle, (float[3]){0.3333f, 0.3333f, 0.3333f})); /* Desaturate */
 
   interp_v4_v4v4(gb->colorDupliSelect, gb->colorBackground, gb->colorSelect, 0.5f);
-  /* Was 50% in 2.7x since the background was lighter making it easier to tell the color from black,
-   * with a darker background we need a more faded color. */
+  /* Was 50% in 2.7x since the background was lighter making it easier to tell the color from
+   * black, with a darker background we need a more faded color. */
   interp_v4_v4v4(gb->colorDupli, gb->colorBackground, gb->colorWire, 0.3f);
 
 #ifdef WITH_FREESTYLE
@@ -1045,7 +1045,7 @@ struct GPUShader *volume_velocity_shader_get(bool use_needle)
   }
 }
 
-/* ******************************************** COLOR UTILS *********************************************** */
+/* ******************************************** COLOR UTILS ************************************ */
 
 /* TODO FINISH */
 /**

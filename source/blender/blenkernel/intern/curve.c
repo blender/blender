@@ -3928,6 +3928,8 @@ static bool tridiagonal_solve_with_limits(
   return true;
 }
 
+/* Keep ascii art. */
+/* clang-format off */
 /*
  * This function computes the handles of a series of auto bezier points
  * on the basis of 'no acceleration discontinuities' at the points.
@@ -3979,6 +3981,7 @@ static bool tridiagonal_solve_with_limits(
  * 4. The equations for zero acceleration border conditions are basically the above
  *    equation with parts omitted, so the handle size correction also applies.
  */
+/* clang-format on */
 
 static void bezier_eq_continuous(
     float *a, float *b, float *c, float *d, float *dy, float *l, int i)

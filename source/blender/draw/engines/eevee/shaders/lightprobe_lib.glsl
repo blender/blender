@@ -161,7 +161,8 @@ vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
 
   /* From Frostbite PBR Course
    * Distance based roughness
-   * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
+   * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+   */
   float original_roughness = roughness;
   float linear_roughness = sqrt(roughness);
   float distance_roughness = saturate(dist * linear_roughness / length(intersection));

@@ -193,7 +193,8 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", part->rad_tip * part->rad_scale * 0.5f);
   DRW_shgroup_uniform_bool_copy(
       shgrp, "hairCloseTip", (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0);
-  /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass culling test. */
+  /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass culling
+   * test. */
   DRW_shgroup_call_object_add_no_cull(
       shgrp, hair_cache->final[subdiv].proc_hairs[thickness_res - 1], object);
 

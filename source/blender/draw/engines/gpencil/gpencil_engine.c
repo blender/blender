@@ -328,7 +328,8 @@ void GPENCIL_cache_init(void *vedata)
   stl->g_data->shgrps_edit_point = NULL;
 
   if (!stl->shgroups) {
-    /* Alloc maximum size because count strokes is very slow and can be very complex due onion skinning.
+    /* Alloc maximum size because count strokes is very slow and can be very complex due onion
+     * skinning.
      */
     stl->shgroups = MEM_mallocN(sizeof(GPENCIL_shgroup) * GPENCIL_MAX_SHGROUPS, "GPENCIL_shgroup");
   }
