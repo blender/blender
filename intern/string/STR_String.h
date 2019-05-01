@@ -312,7 +312,7 @@ class STR_String {
   }
 
   // serializing
-  //int           Serialize(pCStream stream);
+  // int           Serialize(pCStream stream);
 
  protected:
   // Implementation
@@ -334,7 +334,7 @@ class STR_String {
   }
 
   char *m_data;  // -> STR_String data
-  int m_len;     //z Data length
+  int m_len;     // z Data length
   int m_max;     // Space in data buffer
 
 #ifdef WITH_CXX_GUARDEDALLOC

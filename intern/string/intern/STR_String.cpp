@@ -336,7 +336,7 @@ int STR_String::FindOneOf(const char *set, int pos) const
 //
 void STR_String::Replace(int pos, rcSTR_String str)
 {
-  //bounds(pos, 0, Length()-1);
+  // bounds(pos, 0, Length()-1);
 
   if (str.Length() < 1) {
     // Remove one character from the string
@@ -358,8 +358,8 @@ void STR_String::Replace(int pos, rcSTR_String str)
 //
 void STR_String::Replace(int pos, int num, rcSTR_String str)
 {
-  //bounds(pos, 0, Length()-1);
-  //bounds(pos+num, 0, Length());
+  // bounds(pos, 0, Length()-1);
+  // bounds(pos+num, 0, Length());
   assertd(num >= 1);
 
   if (str.Length() < num) {
@@ -385,7 +385,8 @@ void STR_String::Replace(int pos, int num, rcSTR_String str)
 -------------------------------------------------------------------------------------------------*/
 
 //
-// Compare two strings and return the result, <0 if *this<rhs, >0 if *this>rhs or 0 if *this==rhs
+// Compare two strings and return the result,
+// <0 if *this<rhs, >0 if *this>rhs or 0 if *this==rhs
 //
 int STR_String::Compare(rcSTR_String rhs) const
 {
@@ -393,7 +394,8 @@ int STR_String::Compare(rcSTR_String rhs) const
 }
 
 //
-// Compare two strings without respecting case and return the result, <0 if *this<rhs, >0 if *this>rhs or 0 if *this==rhs
+// Compare two strings without respecting case and return the result,
+// <0 if *this<rhs, >0 if *this>rhs or 0 if *this==rhs
 //
 int STR_String::CompareNoCase(rcSTR_String rhs) const
 {
@@ -608,7 +610,7 @@ std::vector<STR_String> STR_String::Explode(char c) const
     }
   }
 
-  //uc. -= STR_String("");
+  // uc. -= STR_String("");
 
   return uc;
 }
