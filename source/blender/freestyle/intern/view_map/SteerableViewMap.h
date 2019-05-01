@@ -43,8 +43,8 @@ class FEdge;
 class ImagePyramid;
 class GrayImage;
 
-/*! This class checks for every FEdge in which steerable it belongs and stores the mapping allowing
- * to retrieve this information from the FEdge Id.
+/*! This class checks for every FEdge in which steerable it belongs and stores the mapping
+ *  allowing to retrieve this information from the FEdge Id.
  */
 class SteerableViewMap {
  protected:
@@ -68,7 +68,7 @@ class SteerableViewMap {
 
   /*! Adds a FEdge to steerable VM.
    *  Returns the nbOrientations weights corresponding to the FEdge contributions to the
-   * nbOrientations directional maps.
+   *  nbOrientations directional maps.
    */
   double *AddFEdge(FEdge *iFEdge);
 
@@ -88,12 +88,18 @@ class SteerableViewMap {
   unsigned getSVMNumber(unsigned id);
 
   /*! Builds _nbOrientations+1 pyramids of images from the _nbOrientations+1 base images of the
-   * steerable viewmap. \param steerableBases: The _nbOrientations+1 images constituting the basis
-   * for the steerable pyramid. \param copy: If false, the data is not duplicated, and Canvas deals
-   * with the memory management of these _nbOrientations+1 images. If true, data is copied, and
-   * it's up to the caller to delete the images. \param iNbLevels: The number of levels desired for
-   * each pyramid. If iNbLevels == 0, the complete pyramid is built. \param iSigma: The sigma that
-   * will be used for the gaussian blur
+   *  steerable viewmap.
+   *  \param steerableBases:
+   *    The _nbOrientations+1 images constituting the basis for the steerable pyramid.
+   *  \param copy:
+   *    If false, the data is not duplicated, and Canvas deals with the memory management of these
+   *    _nbOrientations+1 images. If true, data is copied, and it's up to the caller to delete
+   *    the images.
+   *  \param iNbLevels:
+   *    The number of levels desired for each pyramid.
+   *    If iNbLevels == 0, the complete pyramid is built.
+   *  \param iSigma:
+   *    The sigma that will be used for the gaussian blur
    */
   void buildImagesPyramids(GrayImage **steerableBases,
                            bool copy = false,
@@ -113,15 +119,18 @@ class SteerableViewMap {
    *  \param iLevel:
    *    The level of the pyramid we want to read
    *  \param x:
-   *    The abscissa of the desired pixel specified in level0 coordinate system. The origin is the
-   * lower left corner. \param y: The ordinate of the desired pixel specified in level0 coordinate
-   * system. The origin is the lower left corner.
+   *    The abscissa of the desired pixel specified in level0 coordinate system.
+   *    The origin is the lower left corner.
+   *  \param y:
+   *    The ordinate of the desired pixel specified in level0 coordinate system.
+   *    The origin is the lower left corner.
    */
   float readSteerableViewMapPixel(unsigned iOrientation, int iLevel, int x, int y);
 
-  /*! Reads a pixel in the one of the level of the pyramid containing the images of the complete
-   * ViewMap. Returns a value between 0 and 1. Equivalent to :
-   * readSteerableViewMapPixel(nbOrientations, x, y)
+  /*! Reads a pixel in the one of the level of the pyramid containing the images
+   *  of the complete ViewMap.
+   *  Returns a value between 0 and 1.
+   *  Equivalent to : readSteerableViewMapPixel(nbOrientations, x, y)
    */
   float readCompleteViewMapPixel(int iLevel, int x, int y);
 

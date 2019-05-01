@@ -98,8 +98,8 @@ class AdjacencyIterator : public Iterator {
     return _internalIterator.isBegin();
   }
 
-  /*! Returns true if the current ViewEdge is coming towards the iteration vertex. False otherwise.
-   */
+  /*! Returns true if the current ViewEdge is coming towards the iteration vertex.
+   * False otherwise. */
   bool isIncoming() const;
 
   /*! Returns a *pointer* to the pointed ViewEdge. */
@@ -145,9 +145,9 @@ class AdjacencyIterator : public Iterator {
  *  It makes the works of chaining rules description easier.
  *  The two main methods that need to overloaded are traverse() and init().
  *  traverse() tells which ViewEdge to follow, among the adjacent ones.
- *  If you specify restriction rules (such as "Chain only ViewEdges of the selection"), they will
- * be included in the adjacency iterator. (i.e, the adjacent iterator will only stop on "valid"
- * edges).
+ *  If you specify restriction rules (such as "Chain only ViewEdges of the selection"),
+ *  they will be included in the adjacency iterator.
+ *  (i.e, the adjacent iterator will only stop on "valid" edges).
  */
 class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
  protected:
@@ -161,11 +161,15 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
 
   /*! Builds a Chaining Iterator from the first ViewEdge used for iteration and its orientation.
    *  \param iRestrictToSelection:
-   *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or
-   * not. \param iRestrictToUnvisited: Indicates whether a ViewEdge that has already been chained
-   * must be ignored ot not. \param begin: The ViewEdge from which to start the chain. \param
-   * orientation: The direction to follow to explore the graph. If true, the direction indicated by
-   * the first ViewEdge is used.
+   *    Indicates whether to force the chaining to stay within
+   *    the set of selected ViewEdges or not.
+   *  \param iRestrictToUnvisited:
+   *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
+   *  \param begin:
+   *    The ViewEdge from which to start the chain.
+   *  \param orientation:
+   *    The direction to follow to explore the graph. If true,
+   *    the direction indicated by the first ViewEdge is used.
    */
   ChainingIterator(bool iRestrictToSelection = true,
                    bool iRestrictToUnvisited = true,
@@ -201,11 +205,11 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
   virtual int init();
 
   /*! This method iterates over the potential next ViewEdges and returns the one that will be
-   * followed next. returns the next ViewEdge to follow or 0 when the end of the chain is reached.
+   *  followed next. returns the next ViewEdge to follow or 0 when the end of the chain is reached.
    *  \param it:
    *    The iterator over the ViewEdges adjacent to the end vertex of the current ViewEdge.
    *    The Adjacency iterator reflects the restriction rules by only iterating over the valid
-   * ViewEdges.
+   *    ViewEdges.
    */
   virtual int traverse(const AdjacencyIterator &it);
 
@@ -254,17 +258,22 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
 /*! A ViewEdge Iterator used to follow ViewEdges the most naturally.
  *  For example, it will follow visible ViewEdges of same nature.
  *  As soon, as the nature or the visibility changes, the iteration stops (by setting the pointed
- * ViewEdge to 0). In the case of an iteration over a set of ViewEdge that are both Silhouette and
- * Crease, there will be a precedence of the silhouette over the crease criterion.
+ *  ViewEdge to 0). In the case of an iteration over a set of ViewEdge that are both Silhouette
+ *  and Crease, there will be a precedence of the silhouette over the crease criterion.
  */
 class ChainSilhouetteIterator : public ChainingIterator {
  public:
   /*! Builds a ChainSilhouetteIterator from the first ViewEdge used for iteration and its
-   * orientation. \param iRestrictToSelection: Indicates whether to force the chaining to stay
-   * within the set of selected ViewEdges or not. \param begin: The ViewEdge from where to start
-   * the iteration. \param orientation: If true, we'll look for the next ViewEdge among the
-   * ViewEdges that surround the ending ViewVertex of begin. If false, we'll search over the
-   * ViewEdges surrounding the ending ViewVertex of begin.
+   *  orientation.
+   *  \param iRestrictToSelection:
+   *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or
+   *    not.
+   *  \param begin:
+   *    The ViewEdge from where to start the iteration.
+   *  \param orientation:
+   *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending
+   *    ViewVertex of begin. If false, we'll search over the ViewEdges surrounding the ending
+   *    ViewVertex of begin.
    */
   ChainSilhouetteIterator(bool iRestrictToSelection = true,
                           ViewEdge *begin = NULL,
@@ -285,7 +294,8 @@ class ChainSilhouetteIterator : public ChainingIterator {
   }
 
   /*! This method iterates over the potential next ViewEdges and returns the one that will be
-   * followed next. When reaching the end of a chain, 0 is returned.
+   *  followed next.
+   *  When reaching the end of a chain, 0 is returned.
    */
   virtual int traverse(const AdjacencyIterator &it);
 
@@ -302,12 +312,13 @@ class ChainSilhouetteIterator : public ChainingIterator {
 ///////////////////////////////////////////////////////////
 
 /*! A "generic" user-controlled ViewEdge iterator. This iterator is in particular built from a
- * unary predicate and a binary predicate. First, the unary predicate is evaluated for all
- * potential next ViewEdges in order to only keep the ones respecting a certain constraint. Then,
- * the binary predicate is evaluated on the current ViewEdge together with each ViewEdge of the
- * previous selection. The first ViewEdge respecting both the unary predicate and the binary
- * predicate is kept as the next one. If none of the potential next ViewEdge respects these 2
- * predicates, 0 is returned.
+ *  unary predicate and a binary predicate.
+ *  First, the unary predicate is evaluated for all potential next ViewEdges in order to only
+ *  keep the ones respecting a certain constraint.
+ *  Then, the binary predicate is evaluated on the current ViewEdge together with each ViewEdge
+ *  of the previous selection. The first ViewEdge respecting both the unary predicate and the
+ *  binary predicate is kept as the next one. If none of the potential next ViewEdge respects
+ *  these 2 predicates, 0 is returned.
  */
 class ChainPredicateIterator : public ChainingIterator {
  protected:
@@ -318,12 +329,16 @@ class ChainPredicateIterator : public ChainingIterator {
  public:
   /*! Builds a ChainPredicateIterator from a starting ViewEdge and its orientation.
    *  \param iRestrictToSelection:
-   *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or
-   * not. \param iRestrictToUnvisited: Indicates whether a ViewEdge that has already been chained
-   * must be ignored ot not. \param begin: The ViewEdge from where to start the iteration. \param
-   * orientation: If true, we'll look for the next ViewEdge among the ViewEdges that surround the
-   * ending ViewVertex of begin. If false, we'll search over the ViewEdges surrounding the ending
-   * ViewVertex of begin.
+   *    Indicates whether to force the chaining to stay
+   *    within the set of selected ViewEdges or not.
+   *  \param iRestrictToUnvisited:
+   *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
+   *  \param begin:
+   *    The ViewEdge from where to start the iteration.
+   *  \param orientation:
+   *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending
+   *    ViewVertex of begin. If false, we'll search over the ViewEdges surrounding the ending
+   *    ViewVertex of begin.
    */
   ChainPredicateIterator(bool iRestrictToSelection = true,
                          bool iRestrictToUnvisited = true,
@@ -336,17 +351,23 @@ class ChainPredicateIterator : public ChainingIterator {
   }
 
   /*! Builds a ChainPredicateIterator from a unary predicate, a binary predicate, a starting
-   * ViewEdge and its orientation. \param iRestrictToSelection: Indicates whether to force the
-   * chaining to stay within the set of selected ViewEdges or not. \param iRestrictToUnvisited:
+   *  ViewEdge and its orientation.
+   *  \param iRestrictToSelection:
+   *    Indicates whether to force the chaining to stay
+   *    within the set of selected ViewEdges or not.
+   *  \param iRestrictToUnvisited:
    *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
    *  \param upred:
    *    The unary predicate that the next ViewEdge must satisfy.
    *  \param bpred:
    *    The binary predicate that the next ViewEdge must satisfy together with the actual pointed
-   * ViewEdge. \param begin: The ViewEdge from where to start the iteration. \param orientation: If
-   * true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex
-   * of begin. If false, we'll search over the ViewEdges surrounding the ending ViewVertex of
-   * begin.
+   *    ViewEdge.
+   *  \param begin:
+   *    The ViewEdge from where to start the iteration.
+   *  \param orientation:
+   *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending
+   *    ViewVertex of begin. If false, we'll search over the ViewEdges surrounding the ending
+   *    ViewVertex of begin.
    */
   ChainPredicateIterator(UnaryPredicate1D &upred,
                          BinaryPredicate1D &bpred,
@@ -381,7 +402,7 @@ class ChainPredicateIterator : public ChainingIterator {
   }
 
   /*! This method iterates over the potential next ViewEdges and returns the one that will be
-   * followed next. When reaching the end of a chain, 0 is returned.
+   *  followed next. When reaching the end of a chain, 0 is returned.
    */
   virtual int traverse(const AdjacencyIterator &it);
 
