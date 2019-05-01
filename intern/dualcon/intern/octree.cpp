@@ -531,9 +531,11 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *&paths
 
     findPaths((Node **)nf, lf, df, nstf, depth - 1, cellProcFaceMask[i][2], conn[i]);
 
-    //if(conn[i]) {
-    //      printPath(conn[i]);
-    //}
+#if 0
+    if (conn[i]) {
+      printPath(conn[i]);
+    }
+#endif
   }
 
   // Connect paths
@@ -1045,14 +1047,19 @@ Node *Octree::patchSplitSingle(Node *newnode,
   PathElement *pre2 = NULL;
   int side = findPair(head, st[dir] + len / 2, dir, pre1, pre2);
 
-  /*
-     if(pre1 == pre2) {
-      int edgelen =(dimen >> maxDepth);
-      dc_printf("Location: %d %d %d Direction: %d Reso: %d\n", st[0]/edgelen, st[1]/edgelen, st[2]/edgelen, dir, len/edgelen);
-      printPath(head);
-      exit(0);
-     }
-   */
+#if 0
+  if (pre1 == pre2) {
+    int edgelen = (dimen >> maxDepth);
+    dc_printf("Location: %d %d %d Direction: %d Reso: %d\n",
+              st[0] / edgelen,
+              st[1] / edgelen,
+              st[2] / edgelen,
+              dir,
+              len / edgelen);
+    printPath(head);
+    exit(0);
+  }
+#endif
 
   if (side) {
     // Entirely on one side
@@ -1247,9 +1254,11 @@ Node *Octree::connectFace(
       spt[(dir + walkdir) % 3] += mindimen;
     }
 
-    // dc_printf("new x,y: %d %d\n", ori[xdir] / edgelen, ori[ydir] / edgelen);
-    // dc_printf("nori: %d %d %d alpha: %f walkdir: %d\n", nori[0], nori[1], nori[2], alpha, walkdir);
-    // dc_printf("%f %f %f\n", spt[0], spt[1], spt[2]);
+#if 0
+    dc_printf("new x,y: %d %d\n", ori[xdir] / edgelen, ori[ydir] / edgelen);
+    dc_printf("nori: %d %d %d alpha: %f walkdir: %d\n", nori[0], nori[1], nori[2], alpha, walkdir);
+    dc_printf("%f %f %f\n", spt[0], spt[1], spt[2]);
+#endif
 
     // Locate the current cells on both sides
     newnode = locateCell(&newnode->internal, st, len, nori, dir, 1, nodeN, stN, lenN);
@@ -1436,8 +1445,20 @@ Node *Octree::locateCell(InternalNode *node,
   }
 
 #ifdef IN_DEBUG_MODE
-  // dc_printf("In LOCATECELL index of ori(%d %d %d) with dir %d side %d in st(%d %d %d, %d) is: %d\n",
-  //  ori[0], ori[1], ori[2], dir, side, st[0], st[1], st[2], len, ind);
+#  if 0
+  dc_printf(
+      "In LOCATECELL index of ori(%d %d %d) with dir %d side %d in st(%d %d %d, %d) is: %d\n",
+      ori[0],
+      ori[1],
+      ori[2],
+      dir,
+      side,
+      st[0],
+      st[1],
+      st[2],
+      len,
+      ind);
+#  endif
 #endif
 
   rst[0] = st[0] + vertmap[ind][0] * len;
@@ -1481,12 +1502,15 @@ Node *Octree::locateCell(InternalNode *node,
 
 void Octree::checkElement(PathElement * /*ele*/)
 {
-  /*
-     if(ele != NULL && locateLeafCheck(ele->pos) != ele->node) {
-      dc_printf("Screwed! at pos: %d %d %d\n", ele->pos[0]>>minshift, ele->pos[1]>>minshift, ele->pos[2]>>minshift);
-      exit(0);
-     }
-   */
+#if 0
+  if (ele != NULL && locateLeafCheck(ele->pos) != ele->node) {
+    dc_printf("Screwed! at pos: %d %d %d\n",
+              ele->pos[0] >> minshift,
+              ele->pos[1] >> minshift,
+              ele->pos[2] >> minshift);
+    exit(0);
+  }
+#endif
 }
 
 void Octree::checkPath(PathElement *path)
@@ -1564,9 +1588,9 @@ void Octree::getFacePoint(PathElement *leaf, int dir, int &x, int &y, float &p, 
     avg[1] /= num;
     avg[2] /= num;
 
-    //avg[0] =(float) leaf->pos[0];
-    //avg[1] =(float) leaf->pos[1];
-    //avg[2] =(float) leaf->pos[2];
+    // avg[0] =(float) leaf->pos[0];
+    // avg[1] =(float) leaf->pos[1];
+    // avg[2] =(float) leaf->pos[2];
   }
 
   int xdir = (dir + 1) % 3;
@@ -1578,32 +1602,48 @@ void Octree::getFacePoint(PathElement *leaf, int dir, int &x, int &y, float &p, 
 #ifdef IN_DEBUG_MODE
   // Is it outside?
   // PathElement* leaf = leaf1->len < leaf2->len ? leaf1 : leaf2;
-  /*
-     float* m =(leaf == leaf1 ? m1 : m2);
-     if(xf < leaf->pos[xdir] ||
-       yf < leaf->pos[ydir] ||
-       xf > leaf->pos[xdir] + leaf->len ||
-       yf > leaf->pos[ydir] + leaf->len) {
-      dc_printf("Outside cube(%d %d %d), %d : %d %d %f %f\n", leaf->pos[0], leaf->pos[1], leaf->pos[2], leaf->len,
-                      pos, dir, xf, yf);
+#  if 0
+  float *m = (leaf == leaf1 ? m1 : m2);
+  if (xf < leaf->pos[xdir] || yf < leaf->pos[ydir] || xf > leaf->pos[xdir] + leaf->len ||
+      yf > leaf->pos[ydir] + leaf->len) {
+    dc_printf("Outside cube(%d %d %d), %d : %d %d %f %f\n",
+              leaf->pos[0],
+              leaf->pos[1],
+              leaf->pos[2],
+              leaf->len,
+              pos,
+              dir,
+              xf,
+              yf);
 
-      // For now, snap to cell
-      xf = m[xdir];
-      yf = m[ydir];
-     }
-   */
+    // For now, snap to cell
+    xf = m[xdir];
+    yf = m[ydir];
+  }
+#  endif
 
-  /*
-     if(alpha < 0 || alpha > 1 ||
-       xf < leaf->pos[xdir] || xf > leaf->pos[xdir] + leaf->len ||
-       yf < leaf->pos[ydir] || yf > leaf->pos[ydir] + leaf->len) {
-      dc_printf("Alpha: %f Address: %d and %d\n", alpha, leaf1->node, leaf2->node);
-      dc_printf("GETFACEPOINT result:(%d %d %d) %d min:(%f %f %f);(%d %d %d) %d min:(%f %f %f).\n",
-          leaf1->pos[0], leaf1->pos[1], leaf1->pos[2], leaf1->len, m1[0], m1[1], m1[2],
-          leaf2->pos[0], leaf2->pos[1], leaf2->pos[2], leaf2->len, m2[0], m2[1], m2[2]);
-      dc_printf("Face point at dir %d pos %d: %f %f\n", dir, pos, xf, yf);
-     }
-   */
+#  if 0
+  if (alpha < 0 || alpha > 1 || xf < leaf->pos[xdir] || xf > leaf->pos[xdir] + leaf->len ||
+      yf < leaf->pos[ydir] || yf > leaf->pos[ydir] + leaf->len) {
+    dc_printf("Alpha: %f Address: %d and %d\n", alpha, leaf1->node, leaf2->node);
+    dc_printf("GETFACEPOINT result:(%d %d %d) %d min:(%f %f %f);(%d %d %d) %d min:(%f %f %f).\n",
+              leaf1->pos[0],
+              leaf1->pos[1],
+              leaf1->pos[2],
+              leaf1->len,
+              m1[0],
+              m1[1],
+              m1[2],
+              leaf2->pos[0],
+              leaf2->pos[1],
+              leaf2->pos[2],
+              leaf2->len,
+              m2[0],
+              m2[1],
+              m2[2]);
+    dc_printf("Face point at dir %d pos %d: %f %f\n", dir, pos, xf, yf);
+  }
+#  endif
 #endif
 
   // Get the integer and float part
@@ -1860,7 +1900,13 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
       // Queue processing
       int nst[3], dir;
       while (queue->popQueue(nst, dir) == 1) {
-        // dc_printf("nst: %d %d %d, dir: %d\n", nst[0]/mindimen, nst[1]/mindimen, nst[2]/mindimen, dir);
+#if 0
+        dc_printf("nst: %d %d %d, dir: %d\n",
+                  nst[0] / mindimen,
+                  nst[1] / mindimen,
+                  nst[2] / mindimen,
+                  dir);
+#endif
         // locations
         int stMask[3][3] = {{0, 0 - len, 0 - len}, {0 - len, 0, 0 - len}, {0 - len, 0 - len, 0}};
         int cst[2][3];
@@ -1920,7 +1966,13 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
             if (isInProcess(cs[cind], edge) == 0) {
               setInProcessAll(est, edir);
               queue->pushQueue(est, edir);
-              // dc_printf("Pushed: est: %d %d %d, edir: %d\n", est[0]/len, est[1]/len, est[2]/len, edir);
+#if 0
+              dc_printf("Pushed: est: %d %d %d, edir: %d\n",
+                        est[0] / len,
+                        est[1] / len,
+                        est[2] / len,
+                        edir);
+#endif
               total++;
             }
           }
@@ -1957,7 +2009,13 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
 
       // Queue processing
       while (queue->popQueue(nst, dir) == 1) {
-        // dc_printf("nst: %d %d %d, dir: %d\n", nst[0]/mindimen, nst[1]/mindimen, nst[2]/mindimen, dir);
+#if 0
+        dc_printf("nst: %d %d %d, dir: %d\n",
+                  nst[0] / mindimen,
+                  nst[1] / mindimen,
+                  nst[2] / mindimen,
+                  dir);
+#endif
         // locations
         int stMask[3][3] = {{0, 0 - len, 0 - len}, {0 - len, 0, 0 - len}, {0 - len, 0 - len, 0}};
         int cst[2][3];
@@ -2016,7 +2074,13 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
             if (getEdgeParity(cs[cind], edge) == 1) {
               flipParityAll(est, edir);
               queue->pushQueue(est, edir);
-              // dc_printf("Pushed: est: %d %d %d, edir: %d\n", est[0]/len, est[1]/len, est[2]/len, edir);
+#if 0
+              dc_printf("Pushed: est: %d %d %d, edir: %d\n",
+                        est[0] / len,
+                        est[1] / len,
+                        est[2] / len,
+                        edir);
+#endif
               total++;
             }
           }
@@ -2283,10 +2347,10 @@ void Octree::generateMinimizer(Node *node, int st[3], int len, int height, int &
     computeMinimizer(&node->leaf, st, len, rvalue);
 
     // Update
-    //float fnst[3];
+    // float fnst[3];
     for (j = 0; j < 3; j++) {
       rvalue[j] = rvalue[j] * range / dimen + origin[j];
-      //fnst[j] = st[j] * range / dimen + origin[j];
+      // fnst[j] = st[j] * range / dimen + origin[j];
     }
 
     int mult = 0, smask = getSignMask(&node->leaf);
@@ -2329,7 +2393,7 @@ void Octree::generateMinimizer(Node *node, int st[3], int len, int height, int &
 
 void Octree::processEdgeWrite(Node *node[4], int /*depth*/[4], int /*maxdep*/, int dir)
 {
-  //int color = 0;
+  // int color = 0;
 
   int i = 3;
   {

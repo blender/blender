@@ -32,11 +32,11 @@
 #endif
 
 /**
-* Structures and classes for computing projections of triangles onto
-* separating axes during scan conversion
-*
-* @author Tao Ju
-*/
+ * Structures and classes for computing projections of triangles onto
+ * separating axes during scan conversion
+ *
+ * @author Tao Ju
+ */
 
 extern const int vertmap[8][3];
 extern const int centmap[3][3][3][2];
@@ -45,9 +45,9 @@ extern const int facemap[6][4];
 
 /* Axes:
  *  0,  1,  2: cube face normals
- *    
+ *
  *          3: triangle normal
- *          
+ *
  *  4,  5,  6,
  *  7,  8,  9,
  * 10, 11, 12: cross of each triangle edge vector with each cube

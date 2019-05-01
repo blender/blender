@@ -81,8 +81,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   int available;
 
   /**
- * Allocate a memory block
- */
+   * Allocate a memory block
+   */
   void allocateDataBlock()
   {
     // Allocate a data block
@@ -98,8 +98,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * Allocate a stack block, to store more deallocated objects
- */
+   * Allocate a stack block, to store more deallocated objects
+   */
   void allocateStackBlock()
   {
     // Allocate a stack block
@@ -111,8 +111,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
 
  public:
   /**
- * Constructor
- */
+   * Constructor
+   */
   MemoryAllocator()
   {
     HEAP_UNIT = 1 << HEAP_BASE;
@@ -134,8 +134,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * Destructor
- */
+   * Destructor
+   */
   void destroy()
   {
     int i;
@@ -150,8 +150,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * Allocation method
- */
+   * Allocation method
+   */
   void *allocate()
   {
     if (available == 0) {
@@ -164,8 +164,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * De-allocation method
- */
+   * De-allocation method
+   */
   void deallocate(void *obj)
   {
     if (available == stacksize) {
@@ -179,8 +179,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * Print information
- */
+   * Print information
+   */
   void printInfo()
   {
     printf("Bytes: %d Used: %d Allocated: %d Maxfree: %d\n",
@@ -191,8 +191,8 @@ template<int N> class MemoryAllocator : public VirtualMemoryAllocator {
   }
 
   /**
- * Query methods
- */
+   * Query methods
+   */
   int getAllocated()
   {
     return HEAP_UNIT * datablocknum - available;
