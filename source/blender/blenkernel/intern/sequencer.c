@@ -3720,6 +3720,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
            */
           SeqRenderData local_context = *context;
           local_context.scene = seq->scene;
+          local_context.skip_cache = true;
 
           ibuf = do_render_strip_seqbase(&local_context, state, seq, nr, use_preprocess);
 
