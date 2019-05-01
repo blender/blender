@@ -92,6 +92,8 @@ enum class NodeType {
   /* Used by all operations which are updating object when something is
    * changed in view layer. */
   OBJECT_FROM_LAYER,
+  /* Audio-related evaluation. */
+  AUDIO,
   /* Un-interestying datablock, which is a part of dependency graph, but does
    * not have very distinctive update procedure.  */
   GENERIC_DATABLOCK,

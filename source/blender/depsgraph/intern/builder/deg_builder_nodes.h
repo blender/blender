@@ -32,6 +32,7 @@
 #include "DEG_depsgraph.h"
 
 struct Base;
+struct bSound;
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -206,6 +207,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   void build_movieclip(MovieClip *clip);
   void build_lightprobe(LightProbe *probe);
   void build_speaker(Speaker *speaker);
+  void build_sound(bSound *sound);
 
   /* Per-ID information about what was already in the dependency graph.
    * Allows to re-use certain values, to speed up following evaluation. */

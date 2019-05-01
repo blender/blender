@@ -448,7 +448,9 @@ typedef enum ID_Type {
 
 /* No copy-on-write for these types.
  * Keep in sync with check_datablocks_copy_on_writable and deg_copy_on_write_is_needed */
-#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM))
+/* TODO(sergey): Make Sound copyable. It is here only because the code for dependency graph is
+ * being work in progress. */
+#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM, ID_SO))
 
 #ifdef GS
 #  undef GS

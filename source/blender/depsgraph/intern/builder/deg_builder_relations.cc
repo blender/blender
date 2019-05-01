@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
@@ -487,6 +488,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_SPK:
       build_speaker((Speaker *)id);
       break;
+    case ID_SO:
+      build_sound((bSound *)id);
+      break;
     case ID_TXT:
       /* Not a part of dependency graph. */
       break;
@@ -766,9 +770,9 @@ void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
 {
   Speaker *speaker = (Speaker *)object->data;
   build_speaker(speaker);
-  OperationKey probe_key(&speaker->id, NodeType::PARAMETERS, OperationCode::SPEAKER_EVAL);
-  OperationKey object_key(&object->id, NodeType::PARAMETERS, OperationCode::SPEAKER_EVAL);
-  add_relation(probe_key, object_key, "Speaker Update");
+  ComponentKey speaker_key(&speaker->id, NodeType::AUDIO);
+  ComponentKey object_key(&object->id, NodeType::AUDIO);
+  add_relation(speaker_key, object_key, "Speaker Update");
 }
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
@@ -2276,6 +2280,21 @@ void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
   }
   build_animdata(&speaker->id);
   build_parameters(&speaker->id);
+  if (speaker->sound != NULL) {
+    build_sound(speaker->sound);
+    ComponentKey speaker_key(&speaker->id, NodeType::AUDIO);
+    ComponentKey sound_key(&speaker->sound->id, NodeType::AUDIO);
+    add_relation(sound_key, speaker_key, "Sound -> Speaker");
+  }
+}
+
+void DepsgraphRelationBuilder::build_sound(bSound *sound)
+{
+  if (built_map_.checkIsBuiltAndTag(sound)) {
+    return;
+  }
+  build_animdata(&sound->id);
+  build_parameters(&sound->id);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

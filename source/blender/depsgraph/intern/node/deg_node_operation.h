@@ -106,6 +106,7 @@ enum class OperationCode {
   /* Object data. --------------------------------------------------------- */
   LIGHT_PROBE_EVAL,
   SPEAKER_EVAL,
+  SOUND_EVAL,
   ARMATURE_EVAL,
 
   /* Pose. ---------------------------------------------------------------- */

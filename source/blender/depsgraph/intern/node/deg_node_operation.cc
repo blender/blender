@@ -100,6 +100,8 @@ const char *operationCodeAsString(OperationCode opcode)
       return "LIGHT_PROBE_EVAL";
     case OperationCode::SPEAKER_EVAL:
       return "SPEAKER_EVAL";
+    case OperationCode::SOUND_EVAL:
+      return "SOUND_EVAL";
     case OperationCode::ARMATURE_EVAL:
       return "ARMATURE_EVAL";
     /* Pose. */

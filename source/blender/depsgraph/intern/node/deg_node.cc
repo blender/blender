@@ -101,13 +101,12 @@ const char *nodeTypeAsString(NodeType type)
       return "POINT_CACHE";
     case NodeType::BATCH_CACHE:
       return "BATCH_CACHE";
-    /* Duplication. */
     case NodeType::DUPLI:
       return "DUPLI";
-    /* Synchronization. */
     case NodeType::SYNCHRONIZATION:
       return "SYNCHRONIZATION";
-    /* Generic datablock. */
+    case NodeType::AUDIO:
+      return "AUDIO";
     case NodeType::GENERIC_DATABLOCK:
       return "GENERIC_DATABLOCK";
 

@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
@@ -443,6 +444,9 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_SPK:
       build_speaker((Speaker *)id);
       break;
+    case ID_SO:
+      build_sound((bSound *)id);
+      break;
     case ID_TXT:
       /* Not a part of dependency graph. */
       break;
@@ -708,7 +712,7 @@ void DepsgraphNodeBuilder::build_object_data_speaker(Object *object)
 {
   Speaker *speaker = (Speaker *)object->data;
   build_speaker(speaker);
-  add_operation_node(&object->id, NodeType::PARAMETERS, OperationCode::SPEAKER_EVAL);
+  add_operation_node(&object->id, NodeType::AUDIO, OperationCode::SPEAKER_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_object_transform(Object *object)
@@ -1543,9 +1547,23 @@ void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
     return;
   }
   /* Placeholder so we can add relations and tag ID node for update. */
-  add_operation_node(&speaker->id, NodeType::PARAMETERS, OperationCode::SPEAKER_EVAL);
+  add_operation_node(&speaker->id, NodeType::AUDIO, OperationCode::SPEAKER_EVAL);
   build_animdata(&speaker->id);
   build_parameters(&speaker->id);
+  if (speaker->sound != NULL) {
+    build_sound(speaker->sound);
+  }
+}
+
+void DepsgraphNodeBuilder::build_sound(bSound *sound)
+{
+  if (built_map_.checkIsBuiltAndTag(sound)) {
+    return;
+  }
+  /* Placeholder so we can add relations and tag ID node for update. */
+  add_operation_node(&sound->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+  build_animdata(&sound->id);
+  build_parameters(&sound->id);
 }
 
 /* **** ID traversal callbacks functions **** */
