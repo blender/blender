@@ -611,38 +611,19 @@ static short apply_targetless_ik(Object *ob)
         /* apply and decompose, doesn't work for constraints or non-uniform scale well */
         {
           float rmat3[3][3], qrmat[3][3], imat3[3][3], smat[3][3];
-
           copy_m3_m4(rmat3, rmat);
 
           /* rotation */
           /* [#22409] is partially caused by this, as slight numeric error introduced during
            * the solving process leads to locked-axis values changing. However, we cannot modify
            * the values here, or else there are huge discrepancies between IK-solver (interactive)
-           * and applied poses.
-           */
-          if (parchan->rotmode > 0) {
-            mat3_to_eulO(parchan->eul, parchan->rotmode, rmat3);
-          }
-          else if (parchan->rotmode == ROT_MODE_AXISANGLE) {
-            mat3_to_axis_angle(parchan->rotAxis, &parchan->rotAngle, rmat3);
-          }
-          else {
-            mat3_to_quat(parchan->quat, rmat3);
-          }
+           * and applied poses. */
+          BKE_pchan_mat3_to_rot(parchan, rmat3, false);
 
           /* for size, remove rotation */
           /* causes problems with some constraints (so apply only if needed) */
           if (data->flag & CONSTRAINT_IK_STRETCH) {
-            if (parchan->rotmode > 0) {
-              eulO_to_mat3(qrmat, parchan->eul, parchan->rotmode);
-            }
-            else if (parchan->rotmode == ROT_MODE_AXISANGLE) {
-              axis_angle_to_mat3(qrmat, parchan->rotAxis, parchan->rotAngle);
-            }
-            else {
-              quat_to_mat3(qrmat, parchan->quat);
-            }
-
+            BKE_pchan_rot_to_mat3(parchan, qrmat);
             invert_m3_m3(imat3, qrmat);
             mul_m3_m3m3(smat, rmat3, imat3);
             mat3_to_size(parchan->size, smat);
