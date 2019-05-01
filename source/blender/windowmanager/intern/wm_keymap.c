@@ -39,6 +39,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
@@ -1048,8 +1050,71 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 
 /* ***************** get string from key events **************** */
 
+/* if try_unicode see if fancy glyph is in the font, otherwise return text fallback */
+static const char *key_event_icon_or_text(const bool try_unicode,
+                                          const int font_id,
+                                          const char *icon,
+                                          const char *text)
+{
+  return (try_unicode && BLF_has_glyph(font_id, icon)) ? icon : text;
+}
+
 const char *WM_key_event_string(const short type, const bool compact)
 {
+  if (compact) {
+    int font_id = BLF_default();
+    bool is_macos = false;
+    bool is_windows = false;
+
+#ifdef __APPLE__
+    is_macos = true;
+#endif
+#ifdef WIN32
+    is_windows = true;
+#endif
+
+    switch (type) {
+      case LEFTSHIFTKEY:
+      case RIGHTSHIFTKEY:
+        return key_event_icon_or_text(is_macos, font_id, "\xe2\x87\xa7\x00", IFACE_("Shift"));
+      case LEFTCTRLKEY:
+      case RIGHTCTRLKEY:
+        return (is_macos) ? "^" : IFACE_("Ctrl");
+      case LEFTALTKEY:
+      case RIGHTALTKEY:
+        return key_event_icon_or_text(is_macos, font_id, "\xe2\x8c\xa5\x00", IFACE_("Alt"));
+      case OSKEY: {
+        if (is_macos) {
+          return key_event_icon_or_text(true, font_id, "\xe2\x8c\x98\x00", IFACE_("Cmd"));
+        }
+        else if (is_windows) {
+          return key_event_icon_or_text(true, font_id, "\xe2\x8a\x9e\x00", IFACE_("Win"));
+        }
+        else {
+          return IFACE_("OSkey");
+        }
+      } break;
+      case TABKEY:
+        return key_event_icon_or_text(is_macos, font_id, "\xe2\x86\xb9\x00", IFACE_("Tab"));
+      case BACKSPACEKEY:
+        return key_event_icon_or_text(true, font_id, "\xe2\x8c\xab\x00", IFACE_("Bksp"));
+      case ESCKEY:
+        return key_event_icon_or_text(false, font_id, "\xe2\x8e\x8b\x00", IFACE_("Esc"));
+      case RETKEY:
+        return key_event_icon_or_text(is_macos, font_id, "\xe2\x8f\x8e\x00", IFACE_("Enter"));
+      case SPACEKEY:
+        return key_event_icon_or_text(false, font_id, "\xe2\x90\xa3\x00", IFACE_("Space"));
+      case LEFTARROWKEY:
+        return key_event_icon_or_text(true, font_id, "\xe2\x86\x90\x00", IFACE_("Left"));
+      case UPARROWKEY:
+        return key_event_icon_or_text(true, font_id, "\xe2\x86\x91\x00", IFACE_("Up"));
+      case RIGHTARROWKEY:
+        return key_event_icon_or_text(true, font_id, "\xe2\x86\x92\x00", IFACE_("Right"));
+      case DOWNARROWKEY:
+        return key_event_icon_or_text(true, font_id, "\xe2\x86\x93\x00", IFACE_("Down"));
+    }
+  }
+
   const EnumPropertyItem *it;
   const int i = RNA_enum_from_value(rna_enum_event_type_items, (int)type);
 
@@ -1097,22 +1162,22 @@ int WM_keymap_item_raw_to_string(const short shift,
   else {
     if (shift) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, IFACE_("Shift"));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTSHIFTKEY, true));
     }
 
     if (ctrl) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, IFACE_("Ctrl"));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTCTRLKEY, true));
     }
 
     if (alt) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, IFACE_("Alt"));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(LEFTALTKEY, true));
     }
 
     if (oskey) {
       ADD_SEP;
-      p += BLI_strcpy_rlen(p, IFACE_("Cmd"));
+      p += BLI_strcpy_rlen(p, WM_key_event_string(OSKEY, true));
     }
   }
 
