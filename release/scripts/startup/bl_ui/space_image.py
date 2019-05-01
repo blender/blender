@@ -554,9 +554,9 @@ class IMAGE_HT_tool_header(Header):
 
         if tool_mode == 'PAINT':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common_2d", category="")
+                layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".paint_common_2d", category="")
         elif context.uv_sculpt_object is not None:
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
+            layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".uv_sculpt", category="")
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -568,7 +568,7 @@ class IMAGE_HT_tool_header(Header):
         tool_mode = context.mode if tool is None else tool.mode
 
         if tool_mode == 'PAINT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint_2d", category="")
+            layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".imagepaint_2d", category="")
 
 
 class _draw_tool_settings_context_mode:
@@ -1379,8 +1379,8 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_uv_sculpt_curve(Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
     bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
     bl_category = "Tool"
     bl_label = "UV Sculpt Curve"
@@ -1397,20 +1397,21 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
         uvsculpt = tool_settings.uv_sculpt
         brush = uvsculpt.brush
 
-        layout.template_curve_mapping(brush, "curve")
+        if brush is not None:
+            layout.template_curve_mapping(brush, "curve")
 
-        row = layout.row(align=True)
-        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
-        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
-        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
-        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
-        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+            row = layout.row(align=True)
+            row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+            row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+            row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+            row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+            row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+            row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
 class IMAGE_PT_uv_sculpt(Panel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
     bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
     bl_category = "Tool"
     bl_label = "UV Sculpt"
