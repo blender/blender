@@ -71,7 +71,9 @@ void BKE_sound_cache(struct bSound *sound);
 
 void BKE_sound_delete_cache(struct bSound *sound);
 
+void BKE_sound_reset_pointers(struct bSound *sound);
 void BKE_sound_load(struct Main *main, struct bSound *sound);
+void BKE_sound_ensure_loaded(struct Main *bmain, struct bSound *sound);
 
 void BKE_sound_free(struct bSound *sound);
 
@@ -86,7 +88,9 @@ void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const bool l
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
+void BKE_sound_reset_scene_pointers(struct Scene *scene);
 void BKE_sound_create_scene(struct Scene *scene);
+void BKE_sound_ensure_scene(struct Scene *scene);
 
 void BKE_sound_destroy_scene(struct Scene *scene);
 

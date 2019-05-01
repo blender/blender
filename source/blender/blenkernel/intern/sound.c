@@ -463,8 +463,6 @@ void BKE_sound_load(Main *bmain, bSound *sound)
     else {
       sound->playback_handle = sound->handle;
     }
-
-    BKE_sound_update_sequencer(bmain, sound);
   }
 }
 
@@ -1155,3 +1153,33 @@ char **BKE_sound_get_device_names(void)
 }
 
 #endif /* WITH_AUDASPACE */
+
+void BKE_sound_reset_scene_pointers(Scene *scene)
+{
+  scene->sound_scene = NULL;
+  scene->playback_handle = NULL;
+  scene->sound_scrub_handle = NULL;
+  scene->speaker_handles = NULL;
+}
+
+void BKE_sound_ensure_scene(struct Scene *scene)
+{
+  if (scene->sound_scene != NULL) {
+    return;
+  }
+  BKE_sound_create_scene(scene);
+}
+
+void BKE_sound_reset_pointers(bSound *sound)
+{
+  sound->cache = NULL;
+  sound->playback_handle = NULL;
+}
+
+void BKE_sound_ensure_loaded(Main *bmain, bSound *sound)
+{
+  if (sound->cache != NULL) {
+    return;
+  }
+  BKE_sound_load(bmain, sound);
+}

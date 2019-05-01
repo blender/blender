@@ -5747,10 +5747,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
     seqn->strip->stripdata = MEM_dupallocN(seq->strip->stripdata);
-    if (seq->scene_sound) {
-      seqn->scene_sound = BKE_sound_add_scene_sound_defaults(scene_dst, seqn);
-    }
-
+    seqn->scene_sound = NULL;
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)seqn->sound);
     }
