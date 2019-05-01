@@ -1873,6 +1873,33 @@ void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, float mat[3][3], bool use_compat
 }
 
 /**
+ * Same as #BKE_object_rot_to_mat3().
+ */
+void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float mat[3][3])
+{
+  /* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+  if (pchan->rotmode > 0) {
+    /* euler rotations (will cause gimble lock,
+     * but this can be alleviated a bit with rotation orders) */
+    eulO_to_mat3(mat, pchan->eul, pchan->rotmode);
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    /* axis-angle - not really that great for 3D-changing orientations */
+    axis_angle_to_mat3(mat, pchan->rotAxis, pchan->rotAngle);
+  }
+  else {
+    /* quats are normalized before use to eliminate scaling issues */
+    float quat[4];
+
+    /* NOTE: we now don't normalize the stored values anymore,
+     * since this was kindof evil in some cases but if this proves to be too problematic,
+     * switch back to the old system of operating directly on the stored copy. */
+    normalize_qt_qt(quat, pchan->quat);
+    quat_to_mat3(mat, quat);
+  }
+}
+
+/**
  * Apply a 4x4 matrix to the pose bone,
  * similar to #BKE_object_apply_mat4().
  */
@@ -2468,7 +2495,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 /* ********************** THE POSE SOLVER ******************* */
 
 /* loc/rot/size to given mat4 */
-void BKE_pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
+void BKE_pchan_to_mat4(const bPoseChannel *pchan, float chan_mat[4][4])
 {
   float smat[3][3];
   float rmat[3][3];
@@ -2477,26 +2504,8 @@ void BKE_pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
   /* get scaling matrix */
   size_to_mat3(smat, pchan->size);
 
-  /* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
-  if (pchan->rotmode > 0) {
-    /* euler rotations (will cause gimble lock,
-     * but this can be alleviated a bit with rotation orders) */
-    eulO_to_mat3(rmat, pchan->eul, pchan->rotmode);
-  }
-  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-    /* axis-angle - not really that great for 3D-changing orientations */
-    axis_angle_to_mat3(rmat, pchan->rotAxis, pchan->rotAngle);
-  }
-  else {
-    /* quats are normalized before use to eliminate scaling issues */
-    float quat[4];
-
-    /* NOTE: we now don't normalize the stored values anymore,
-     * since this was kindof evil in some cases but if this proves to be too problematic,
-     * switch back to the old system of operating directly on the stored copy. */
-    normalize_qt_qt(quat, pchan->quat);
-    quat_to_mat3(rmat, quat);
-  }
+  /* get rotation matrix */
+  BKE_pchan_rot_to_mat3(pchan, rmat);
 
   /* calculate matrix of bone (as 3x3 matrix, but then copy the 4x4) */
   mul_m3_m3m3(tmat, rmat, smat);

@@ -153,7 +153,7 @@ struct Object *BKE_object_duplicate(struct Main *bmain,
 void BKE_object_obdata_size_init(struct Object *ob, const float scale);
 
 void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_rot_to_mat3(struct Object *ob, float mat[3][3], bool use_drot);
+void BKE_object_rot_to_mat3(const struct Object *ob, float mat[3][3], bool use_drot);
 void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat);
 void BKE_object_to_mat3(struct Object *ob, float mat[3][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
