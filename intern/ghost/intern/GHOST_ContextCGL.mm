@@ -291,7 +291,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   }
 
 #ifdef GHOST_MULTITHREADED_OPENGL
-  //Switch openGL to multhreaded mode
+  // Switch openGL to multhreaded mode
   if (CGLEnable(CGLGetCurrentContext(), kCGLCEMPEngine) == kCGLNoError)
     if (m_debug)
       fprintf(stderr, "\nSwitched OpenGL to multithreaded mode\n");

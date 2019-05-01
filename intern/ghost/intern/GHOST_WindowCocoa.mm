@@ -115,7 +115,8 @@
   //Send event only once, at end of resize operation (when user has released mouse button)
   systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
   //}
-  /* Live resize, send event, gets handled in wm_window.c. Needed because live resize runs in a modal loop, not letting main loop run */
+  /* Live resize, send event, gets handled in wm_window.c.
+   * Needed because live resize runs in a modal loop, not letting main loop run */
   if ([[notification object] inLiveResize]) {
     systemCocoa->dispatchEvents();
   }
@@ -136,7 +137,8 @@
 @end
 
 #pragma mark NSWindow subclass
-//We need to subclass it to tell that even borderless (fullscreen), it can become key (receive user events)
+// We need to subclass it to tell that even borderless (fullscreen),
+// it can become key (receive user events)
 @interface CocoaWindow : NSWindow
 {
   GHOST_SystemCocoa *systemCocoa;
@@ -540,7 +542,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  //Creates the window
+  // Creates the window
   NSRect rect;
   NSSize minSize;
 
@@ -563,12 +565,12 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   [m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 
-  //Forbid to resize the window below the blender defined minimum one
+  // Forbid to resize the window below the blender defined minimum one
   minSize.width = 320;
   minSize.height = 240;
   [m_window setContentMinSize:minSize];
 
-  //Creates the OpenGL View inside the window
+  // Creates the OpenGL View inside the window
   m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect];
 
   if (m_systemCocoa->m_nativePixel) {
@@ -670,7 +672,7 @@ void GHOST_WindowCocoa::setTitle(const STR_String &title)
 
   NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
 
-  //Set associated file if applicable
+  // Set associated file if applicable
   if (windowTitle && [windowTitle hasPrefix:@"Blender"]) {
     NSRange fileStrRange;
     NSString *associatedFileName;
@@ -684,7 +686,7 @@ void GHOST_WindowCocoa::setTitle(const STR_String &title)
       associatedFileName = [windowTitle substringWithRange:fileStrRange];
       [m_window setTitle:[associatedFileName lastPathComponent]];
 
-      //Blender used file open/save functions converte file names into legal URL ones
+      // Blender used file open/save functions converte file names into legal URL ones
       associatedFileName = [associatedFileName
           stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
       @try {
@@ -751,7 +753,7 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect &bounds) const
 
   NSRect screenSize = [[m_window screen] visibleFrame];
 
-  //Max window contents as screen size (excluding title bar...)
+  // Max window contents as screen size (excluding title bar...)
   NSRect contentRect = [CocoaWindow
       contentRectForFrameRect:screenSize
                     styleMask:(NSTitledWindowMask | NSClosableWindowMask |
@@ -999,7 +1001,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
     [m_window orderBack:nil];
 
-    //Check for other blender opened windows and make the frontmost key
+    // Check for other blender opened windows and make the frontmost key
     windowsList = [NSApp orderedWindows];
     if ([windowsList count]) {
       [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
@@ -1227,7 +1229,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
   GHOST_TSuccess err = GHOST_kSuccess;
 
   if (mode != GHOST_kGrabDisable) {
-    //No need to perform grab without warp as it is always on in OS X
+    // No need to perform grab without warp as it is always on in OS X
     if (mode != GHOST_kGrabNormal) {
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -1238,7 +1240,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
         setWindowCursorVisibility(false);
       }
 
-      //Make window key if it wasn't to get the mouse move events
+      // Make window key if it wasn't to get the mouse move events
       [m_window makeKeyWindow];
 
       [pool drain];
@@ -1250,7 +1252,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
       setWindowCursorVisibility(true);
     }
 
-    /* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+    /* Almost works without but important otherwise the mouse GHOST location
+     * can be incorrect on exit. */
     setCursorGrabAccum(0, 0);
     m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1; /* disable */
   }
@@ -1350,7 +1353,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
   hotSpotPoint.x = hotX;
   hotSpotPoint.y = hotY;
 
-  //foreground and background color parameter is not handled for now (10.6)
+  // foreground and background color parameter is not handled for now (10.6)
   m_customCursor = [[NSCursor alloc] initWithImage:cursorImage hotSpot:hotSpotPoint];
 
   [cursorImageRep release];

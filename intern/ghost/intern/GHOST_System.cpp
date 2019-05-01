@@ -138,11 +138,11 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting &setting
       m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
                                                  m_preFullScreenSetting);
 
-      //GHOST_PRINT("GHOST_System::beginFullScreen(): activating new display settings\n");
+      // GHOST_PRINT("GHOST_System::beginFullScreen(): activating new display settings\n");
       success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
                                                            setting);
       if (success == GHOST_kSuccess) {
-        //GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
+        // GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
         success = createFullScreenWindow(
             (GHOST_Window **)window, setting, stereoVisual, alphaBackground);
         if (success == GHOST_kSuccess) {
@@ -181,11 +181,11 @@ GHOST_TSuccess GHOST_System::endFullScreen(void)
   GHOST_TSuccess success = GHOST_kFailure;
   GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager");
   if (m_windowManager->getFullScreen()) {
-    //GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
-    //GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
+    // GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
+    // GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
     success = m_windowManager->endFullScreen();
     GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager");
-    //GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
+    // GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
     success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
                                                          m_preFullScreenSetting);
   }
@@ -365,7 +365,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
    * be zoomed in and the desktop may be bigger then the viewport. */
   GHOST_ASSERT(m_displayManager,
                "GHOST_System::createFullScreenWindow(): invalid display manager");
-  //GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
+  // GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
   *window = (GHOST_Window *)createWindow(STR_String(""),
                                          0,
                                          0,

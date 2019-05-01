@@ -166,8 +166,8 @@ typedef struct tagPOINTER_TOUCH_INFO {
 } POINTER_TOUCH_INFO;
 
 /*
-  * Macros to retrieve information from pointer input message parameters
-  */
+ * Macros to retrieve information from pointer input message parameters
+ */
 #define GET_POINTERID_WPARAM(wParam) (LOWORD(wParam))
 #define IS_POINTER_FLAG_SET_WPARAM(wParam, flag) (((DWORD)HIWORD(wParam) & (flag)) == (flag))
 #define IS_POINTER_NEW_WPARAM(wParam) IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_NEW)
@@ -270,7 +270,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Returns the window rectangle dimensions.
-   * The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.
+   * The dimensions are given in screen coordinates that are
+   * relative to the upper-left corner of the screen.
    * \param bounds The bounding rectangle of the window.
    */
   void getWindowBounds(GHOST_Rect &bounds) const;

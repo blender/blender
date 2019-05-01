@@ -226,11 +226,11 @@ static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredP
   return iPixelFormat;
 }
 
-/*
+/**
  * Clone a window for the purpose of creating a temporary context to initialize WGL extensions.
- * There is no generic way to clone the lpParam parameter, so the caller is responsible for cloning it themselves.
+ * There is no generic way to clone the lpParam parameter,
+ * so the caller is responsible for cloning it themselves.
  */
-
 static HWND clone_window(HWND hWnd, LPVOID lpParam)
 {
   int count;

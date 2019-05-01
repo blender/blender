@@ -119,7 +119,8 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grfKeyState, POINTL pt, 
   }
   else {
     *pdwEffect = DROPEFFECT_NONE;
-    // *pdwEffect = DROPEFFECT_COPY; // XXX Uncomment to test drop. Drop will not be called if pdwEffect == DROPEFFECT_NONE.
+    // XXX Uncomment to test drop. Drop will not be called if pdwEffect == DROPEFFECT_NONE.
+    // *pdwEffect = DROPEFFECT_COPY;
   }
   m_system->pushDragDropEvent(
       GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
@@ -205,7 +206,7 @@ void *GHOST_DropTargetWin32::getGhostData(IDataObject *pDataObject)
       return getDropDataAsString(pDataObject);
       break;
     case GHOST_kDragnDropTypeBitmap:
-      //return getDropDataAsBitmap(pDataObject);
+      // return getDropDataAsBitmap(pDataObject);
       break;
     default:
 #ifdef GHOST_DEBUG
@@ -322,10 +323,10 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
 {
   int size;
-  out = NULL;  //caller should free if != NULL
+  out = NULL;  // caller should free if != NULL
 
   // Get the required size.
-  size = ::WideCharToMultiByte(CP_ACP,      //System Default Codepage
+  size = ::WideCharToMultiByte(CP_ACP,      // System Default Codepage
                                0x00000400,  // WC_NO_BEST_FIT_CHARS
                                in,
                                -1,  //-1 null terminated, makes output null terminated too.
@@ -352,7 +353,7 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
   if (!size) {
 #ifdef GHOST_DEBUG
     ::printLastError();
-#endif  //GHOST_DEBUG
+#endif  // GHOST_DEBUG
     ::free(out);
     out = NULL;
   }

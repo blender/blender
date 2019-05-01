@@ -313,7 +313,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       SDL_WindowEvent &sdl_sub_evt = sdl_event->window;
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      //assert(window != NULL); // can be NULL on close window.
+      // assert(window != NULL); // can be NULL on close window.
 
       switch (sdl_sub_evt.event) {
         case SDL_WINDOWEVENT_EXPOSED:
@@ -453,7 +453,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       assert(window != NULL);
 
       GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
-      /* note, the sdl_sub_evt.keysym.sym is truncated, for unicode support ghost has to be modified */
+      /* note, the sdl_sub_evt.keysym.sym is truncated,
+       * for unicode support ghost has to be modified */
       /* printf("%d\n", sym); */
       if (sym > 127) {
         switch (sym) {
@@ -631,7 +632,7 @@ bool GHOST_SystemSDL::generateWindowExposeEvents()
     (*w_start)->validate();
 
     if (g_event) {
-      //printf("Expose events pushed\n");
+      // printf("Expose events pushed\n");
       pushEvent(g_event);
       anyProcessed = true;
     }
@@ -656,7 +657,7 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
 
       if (next == GHOST_kFireTimeNever) {
         SDL_WaitEventTimeout(NULL, -1);
-        //SleepTillEvent(m_display, -1);
+        // SleepTillEvent(m_display, -1);
       }
       else {
         GHOST_TInt64 maxSleep = next - getMilliSeconds();

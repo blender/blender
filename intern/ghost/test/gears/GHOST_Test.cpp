@@ -678,11 +678,12 @@ int main(int /*argc*/, char ** /*argv*/)
     LONG lresult;
     HKEY hkey = 0;
     DWORD dwd = 0;
-    //unsigned char buffer[128];
+    // unsigned char buffer[128];
 
     CRegKey regkey;
-    //DWORD keyValue;
-    //      lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable");
+    // DWORD keyValue;
+    // lresult = regkey.Open(
+    //     HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable");
     lresult = regkey.Open(HKEY_LOCAL_MACHINE,
                           "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
                           KEY_ALL_ACCESS);
@@ -718,7 +719,7 @@ int main(int /*argc*/, char ** /*argv*/)
 
     // Enter main loop
     while (!app.m_exitRequested) {
-      //printf("main: loop\n");
+      // printf("main: loop\n");
       fSystem->processEvents(true);
       fSystem->dispatchEvents();
     }

@@ -128,7 +128,8 @@ class GHOST_SystemX11 : public GHOST_System {
    * Create a new window.
    * The new window is added to the list of windows managed.
    * Never explicitly delete the window, use disposeWindow() instead.
-   * \param   title   The name of the window (displayed in the title bar of the window if the OS supports it).
+   * \param   title   The name of the window
+   * (displayed in the title bar of the window if the OS supports it).
    * \param   left        The coordinate of the left edge of the window.
    * \param   top     The coordinate of the top edge of the window.
    * \param   width       The width the window.
@@ -241,7 +242,8 @@ class GHOST_SystemX11 : public GHOST_System {
    * Creates a drag'n'drop event and pushes it immediately onto the event queue.
    * Called by GHOST_DropTargetX11 class.
    * \param eventType The type of drag'n'drop event
-   * \param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
+   * \param draggedObjectType The type object concerned
+   * (currently array of file names, string, ?bitmap)
    * \param mouseX x mouse coordinate (in window coordinates)
    * \param mouseY y mouse coordinate
    * \param window The window on which the event occurred

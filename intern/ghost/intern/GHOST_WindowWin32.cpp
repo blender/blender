@@ -261,7 +261,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       ::UpdateWindow(m_hWnd);
     }
     else {
-      //invalidate the window
+      // invalidate the window
       ::DestroyWindow(m_hWnd);
       m_hWnd = NULL;
     }
@@ -656,7 +656,8 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #if defined(WITH_GL_PROFILE_CORE)
     /* - AMD and Intel give us exactly this version
      * - NVIDIA gives at least this version <-- desired behavior
-     * So we ask for 4.5, 4.4 ... 3.3 in descending order to get the best version on the user's system. */
+     * So we ask for 4.5, 4.4 ... 3.3 in descending order
+     * to get the best version on the user's system. */
     for (int minor = 5; minor >= 0; --minor) {
       context = new GHOST_ContextWGL(m_wantStereoVisual,
                                      m_wantAlphaBackground,
@@ -700,7 +701,8 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     }
 
 #elif defined(WITH_GL_PROFILE_COMPAT)
-    // ask for 2.1 context, driver gives any GL version >= 2.1 (hopefully the latest compatibility profile)
+    // ask for 2.1 context, driver gives any GL version >= 2.1
+    // (hopefully the latest compatibility profile)
     // 2.1 ignores the profile bit & is incompatible with core profile
     context = new GHOST_ContextWGL(m_wantStereoVisual,
                                    m_wantAlphaBackground,
@@ -894,7 +896,8 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
       m_system->setCursorPosition(pos[0], pos[1]);
     }
 
-    /* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+    /* Almost works without but important otherwise the mouse GHOST location
+     * can be incorrect on exit. */
     setCursorGrabAccum(0, 0);
     m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1; /* disable */
     registerMouseClickEvent(3);

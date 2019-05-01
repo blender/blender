@@ -86,7 +86,7 @@ static GHOST_TButtonMask convertButton(int button)
  */
 static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 {
-  //printf("\nrecvchar %c 0x%x",recvChar,recvChar);
+  // printf("\nrecvchar %c 0x%x",recvChar,recvChar);
   switch (rawCode) {
     /*Physical keycodes not used due to map changes in int'l keyboards
     case kVK_ANSI_A:    return GHOST_kKeyA;
@@ -341,7 +341,8 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 static bool g_hasFirstFile = false;
 static char g_firstFileBuf[512];
 
-//TODO:Need to investigate this. Function called too early in creator.c to have g_hasFirstFile == true
+// TODO: Need to investigate this.
+// Function called too early in creator.c to have g_hasFirstFile == true
 extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   if (g_hasFirstFile) {
@@ -423,8 +424,9 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
-  //TODO: implement graceful termination through Cocoa mechanism to avoid session log off to be canceled
-  //Note that Cmd+Q is already handled by keyhandler
+  /* TODO: implement graceful termination through Cocoa mechanism
+   * to avoid session log off to be canceled. */
+  /* Note that Cmd+Q is already handled by keyhandler. */
   if (systemCocoa->handleQuitRequest() == GHOST_kExitNow)
     return NSTerminateCancel;  //NSTerminateNow;
   else
@@ -514,7 +516,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
   m_displayManager->initialize();
 
-  //NSEvent timeStamp is given in system uptime, state start date is boot time
+  // NSEvent timeStamp is given in system uptime, state start date is boot time
   mib[0] = CTL_KERN;
   mib[1] = KERN_BOOTTIME;
   len = sizeof(struct timeval);
@@ -522,7 +524,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   sysctl(mib, 2, &boottime, &len, NULL, 0);
   m_start_time = ((boottime.tv_sec * 1000) + (boottime.tv_usec / 1000));
 
-  //Detect multitouch trackpad
+  // Detect multitouch trackpad
   mib[0] = CTL_HW;
   mib[1] = HW_MODEL;
   sysctl(mib, 2, NULL, &len, NULL, 0);
@@ -550,9 +552,9 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
     m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
 #endif
 
-    //ProcessSerialNumber psn;
+    // ProcessSerialNumber psn;
 
-    //Carbon stuff to move window & menu to foreground
+    // Carbon stuff to move window & menu to foreground
     /*if (!GetCurrentProcess(&psn)) {
       TransformProcessType(&psn, kProcessTransformToForegroundApplication);
       SetFrontProcess(&psn);
@@ -567,7 +569,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
       NSMenu *windowMenu;
       NSMenu *appMenu;
 
-      //Create the application menu
+      // Create the application menu
       appMenu = [[NSMenu alloc] initWithTitle:@"Blender"];
 
       [appMenu addItemWithTitle:@"About Blender"
@@ -599,10 +601,10 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
       [mainMenubar addItem:menuItem];
       [menuItem release];
-      [NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu];  //Needed for 10.5
+      [NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu];  // Needed for 10.5
       [appMenu release];
 
-      //Create the window menu
+      // Create the window menu
       windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
 
       menuItem = [windowMenu addItemWithTitle:@"Minimize"
@@ -650,19 +652,19 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 {
-  //Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
+  // Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
   struct timeval currentTime;
 
   gettimeofday(&currentTime, NULL);
 
-  //Return timestamp of system uptime
+  // Return timestamp of system uptime
 
   return ((currentTime.tv_sec * 1000) + (currentTime.tv_usec / 1000) - m_start_time);
 }
 
 GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
 {
-  //Note that OS X supports monitor hot plug
+  // Note that OS X supports monitor hot plug
   // We do not support multiple monitors at the moment
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -675,10 +677,10 @@ GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
 void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  //Get visible frame, that is frame excluding dock and top menu bar
+  // Get visible frame, that is frame excluding dock and top menu bar
   NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
-  //Returns max window contents (excluding title bar...)
+  // Returns max window contents (excluding title bar...)
   NSRect contentRect = [NSWindow
       contentRectForFrameRect:frame
                     styleMask:(NSTitledWindowMask | NSClosableWindowMask |
@@ -710,7 +712,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   GHOST_IWindow *window = NULL;
 
-  //Get the available rect for including window contents
+  // Get the available rect for including window contents
   NSRect frame = [[NSScreen mainScreen] visibleFrame];
   NSRect contentRect = [NSWindow
       contentRectForFrameRect:frame
@@ -719,7 +721,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
 
   GHOST_TInt32 bottom = (contentRect.size.height - 1) - height - top;
 
-  //Ensures window top left is inside this available rect
+  // Ensures window top left is inside this available rect
   left = left > contentRect.origin.x ? left : contentRect.origin.x;
   // Add contentRect.origin.y to respect docksize
   bottom = bottom > contentRect.origin.y ? bottom + contentRect.origin.y : contentRect.origin.y;
@@ -740,7 +742,8 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
     GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
     m_windowManager->addWindow(window);
     m_windowManager->setActiveWindow(window);
-    //Need to tell window manager the new window is the active one (Cocoa does not send the event activate upon window creation)
+    /* Need to tell window manager the new window is the active one
+     * (Cocoa does not send the event activate upon window creation). */
     pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
     pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
   }
@@ -819,13 +822,13 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
   if (!window)
     return GHOST_kFailure;
 
-  //Cursor and mouse dissociation placed here not to interfere with continuous grab
+  // Cursor and mouse dissociation placed here not to interfere with continuous grab
   // (in cont. grab setMouseCursorPosition is directly called)
   CGAssociateMouseAndMouseCursorPosition(false);
   setMouseCursorPosition(x, y);
   CGAssociateMouseAndMouseCursorPosition(true);
 
-  //Force mouse move event (not pushed by Cocoa)
+  // Force mouse move event (not pushed by Cocoa)
   pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x, y));
   m_outsideLoopEventProcessed = true;
 
@@ -843,11 +846,11 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_T
   NSScreen *windowScreen = window->getScreen();
   NSRect screenRect = [windowScreen frame];
 
-  //Set position relative to current screen
+  // Set position relative to current screen
   xf -= screenRect.origin.x;
   yf -= screenRect.origin.y;
 
-  //Quartz Display Services uses the old coordinates (top left origin)
+  // Quartz Display Services uses the old coordinates (top left origin)
   yf = screenRect.size.height - yf;
 
   CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription]
@@ -899,7 +902,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   NSEvent *event;
 
   //  SetMouseCoalescingEnabled(false, NULL);
-  //TODO : implement timer ??
+  // TODO : implement timer ??
 #if 0
   do {
     GHOST_TimerManager* timerMgr = getTimerManager();
@@ -979,11 +982,11 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   return anyProcessed;
 }
 
-//Note: called from NSApplication delegate
+// Note: called from NSApplication delegate
 GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 {
-  //Update the modifiers key mask, as its status may have changed when the application was not active
-  //(that is when update events are sent to another application)
+  // Update the modifiers key mask, as its status may have changed when the application
+  // was not active (that is when update events are sent to another application).
   unsigned int modifiers;
   GHOST_IWindow *window = m_windowManager->getActiveWindow();
 
@@ -1036,7 +1039,7 @@ void GHOST_SystemCocoa::notifyExternalEventProcessed()
   m_outsideLoopEventProcessed = true;
 }
 
-//Note: called from NSWindow delegate
+// Note: called from NSWindow delegate
 GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
                                                     GHOST_WindowCocoa *window)
 {
@@ -1077,13 +1080,15 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
       break;
     case GHOST_kEventWindowSize:
       if (!m_ignoreWindowSizedMessages) {
-        //Enforce only one resize message per event loop (coalescing all the live resize messages)
+        // Enforce only one resize message per event loop
+        // (coalescing all the live resize messages)
         window->updateDrawingContext();
         pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
-        //Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
+        // Mouse up event is trapped by the resizing event loop,
+        // so send it anyway to the window manager.
         pushEvent(new GHOST_EventButton(
             getMilliSeconds(), GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft));
-        //m_ignoreWindowSizedMessages = true;
+        // m_ignoreWindowSizedMessages = true;
       }
       break;
     case GHOST_kEventNativeResolutionChange:
@@ -1102,7 +1107,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
   return GHOST_kSuccess;
 }
 
-//Note: called from NSWindow subclass
+// Note: called from NSWindow subclass
 GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType,
                                                       GHOST_TDragnDropTypes draggedObjectType,
                                                       GHOST_WindowCocoa *window,
@@ -1238,7 +1243,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             /* As Core Graphics does not support contextes with non premutliplied alpha,
              we need to get alpha key values in a separate batch */
 
-            /* First get RGB values w/o Alpha to avoid pre-multiplication, 32bit but last byte is unused */
+            /* First get RGB values w/o Alpha to avoid pre-multiplication,
+             * 32bit but last byte is unused */
             blBitmapFormatImageRGB = [[NSBitmapImageRep alloc]
                 initWithBitmapDataPlanes:NULL
                               pixelsWide:imgSize.width
@@ -1340,11 +1346,11 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 {
   GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
 
-  //Discard quit event if we are in cursor grab sequence
+  // Discard quit event if we are in cursor grab sequence
   if (window && window->getCursorGrabModeIsWarp())
     return GHOST_kExitCancel;
 
-  //Check open windows if some changes are not saved
+  // Check open windows if some changes are not saved
   if (m_windowManager->getAnyModifiedState()) {
     int shouldQuit = NSRunAlertPanel(
         @"Exit Blender",
@@ -1357,14 +1363,14 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
       return GHOST_kExitNow;
     }
     else {
-      //Give back focus to the blender window if user selected cancel quit
+      // Give back focus to the blender window if user selected cancel quit
       NSArray *windowsList = [NSApp orderedWindows];
       if ([windowsList count]) {
         [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
-        //Handle the modifiers keyes changed state issue
-        //as recovering from the quit dialog is like application
-        //gaining focus back.
-        //Main issue fixed is Cmd modifier not being cleared
+        // Handle the modifiers keyes changed state issue
+        // as recovering from the quit dialog is like application
+        // gaining focus back.
+        // Main issue fixed is Cmd modifier not being cleared
         handleApplicationBecomeActiveEvent();
       }
     }
@@ -1391,11 +1397,12 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     return NO;
   }
 
-  //Discard event if we are in cursor grab sequence, it'll lead to "stuck cursor" situation if the alert panel is raised
+  /* Discard event if we are in cursor grab sequence,
+   * it'll lead to "stuck cursor" situation if the alert panel is raised */
   if (window && window->getCursorGrabModeIsWarp())
     return GHOST_kExitCancel;
 
-  //Check open windows if some changes are not saved
+  // Check open windows if some changes are not saved
   if (m_windowManager->getAnyModifiedState()) {
     confirmOpen = NSRunAlertPanel(
         [NSString stringWithFormat:@"Opening %@", [filepath lastPathComponent]],
@@ -1405,7 +1412,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
         nil);
   }
 
-  //Give back focus to the blender window
+  // Give back focus to the blender window
   windowsList = [NSApp orderedWindows];
   if ([windowsList count]) {
     [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
@@ -1440,7 +1447,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 
   window = m_windowManager->getWindowAssociatedWithOSWindow((void *)[event window]);
   if (!window) {
-    //printf("\nW failure for event 0x%x",[event type]);
+    // printf("\nW failure for event 0x%x",[event type]);
     return GHOST_kFailure;
   }
 
@@ -1464,7 +1471,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
       ct.Xtilt = 0;
       ct.Ytilt = 0;
       if ([event isEnteringProximity]) {
-        //pointer is entering tablet area proximity
+        // pointer is entering tablet area proximity
         switch ([event pointingDeviceType]) {
           case NSPenPointingDevice:
             ct.Active = GHOST_kTabletModeStylus;
@@ -1505,7 +1512,7 @@ bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
       handleTabletEvent(eventPtr, NSTabletProximity);
       return true;
     default:
-      //No tablet event included : do nothing
+      // No tablet event included : do nothing
       return false;
   }
 }
@@ -1524,7 +1531,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
   if (!window) {
     window = (GHOST_WindowCocoa *)m_windowManager->getActiveWindow();
     if (!window) {
-      //printf("\nW failure for event 0x%x",[event type]);
+      // printf("\nW failure for event 0x%x",[event type]);
       return GHOST_kFailure;
     }
   }
@@ -1535,43 +1542,43 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
     case NSLeftMouseDown:
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSRightMouseDown:
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSOtherMouseDown:
       pushEvent(new GHOST_EventButton([event timestamp] * 1000,
                                       GHOST_kEventButtonDown,
                                       window,
                                       convertButton([event buttonNumber])));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
 
     case NSLeftMouseUp:
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSRightMouseUp:
       pushEvent(new GHOST_EventButton(
           [event timestamp] * 1000, GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
     case NSOtherMouseUp:
       pushEvent(new GHOST_EventButton([event timestamp] * 1000,
                                       GHOST_kEventButtonUp,
                                       window,
                                       convertButton([event buttonNumber])));
-      handleTabletEvent(event);  //Handle tablet events combined with mouse events
+      handleTabletEvent(event);  // Handle tablet events combined with mouse events
       break;
 
     case NSLeftMouseDragged:
     case NSRightMouseDragged:
     case NSOtherMouseDragged:
-      //Handle tablet events combined with mouse events
+      // Handle tablet events combined with mouse events
       handleTabletEvent(event);
 
     case NSMouseMoved: {
@@ -1585,7 +1592,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       }
 
       switch (grab_mode) {
-        case GHOST_kGrabHide:  //Cursor hidden grab operation : no cursor move
+        case GHOST_kGrabHide:  // Cursor hidden grab operation : no cursor move
         {
           GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;
 
@@ -1595,7 +1602,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           window->getCursorGrabAccum(x_accum, y_accum);
           x_accum += [event deltaX];
           y_accum += -[event
-              deltaY];  //Strange Apple implementation (inverted coordinates for the deltaY) ...
+              deltaY];  // Strange Apple implementation (inverted coordinates for the deltaY) ...
           window->setCursorGrabAccum(x_accum, y_accum);
 
           window->clientToScreenIntern(x_warp + x_accum, y_warp + y_accum, x, y);
@@ -1603,7 +1610,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
               [event timestamp] * 1000, GHOST_kEventCursorMove, window, x, y));
           break;
         }
-        case GHOST_kGrabWrap:  //Wrap cursor at area/window boundaries
+        case GHOST_kGrabWrap:  // Wrap cursor at area/window boundaries
         {
           NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
           GHOST_TInt32 x_mouse = mousePos.x;
@@ -1614,23 +1621,24 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           if (window->getCursorGrabBounds(bounds) == GHOST_kFailure)
             window->getClientBounds(bounds);
 
-          //Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
+          /* Switch back to Cocoa coordinates orientation
+           * (y=0 at botton,the same as blender internal btw!), and to client coordinates. */
           window->getClientBounds(windowBounds);
           window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
           window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
           correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
           correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 
-          //Get accumulation from previous mouse warps
+          // Get accumulation from previous mouse warps
           GHOST_TInt32 x_accum, y_accum;
           window->getCursorGrabAccum(x_accum, y_accum);
 
-          //Warp mouse cursor if needed
+          // Warp mouse cursor if needed
           GHOST_TInt32 warped_x_mouse = x_mouse;
           GHOST_TInt32 warped_y_mouse = y_mouse;
           correctedBounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4);
 
-          //Set new cursor position
+          // Set new cursor position
           if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
             GHOST_TInt32 warped_x, warped_y;
             window->clientToScreenIntern(warped_x_mouse, warped_y_mouse, warped_x, warped_y);
@@ -1639,7 +1647,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                        y_accum + (y_mouse - warped_y_mouse));
           }
 
-          //Generate event
+          // Generate event
           GHOST_TInt32 x, y;
           window->clientToScreenIntern(x_mouse + x_accum, y_mouse + y_accum, x, y);
           pushEvent(new GHOST_EventCursor(
@@ -1647,7 +1655,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           break;
         }
         default: {
-          //Normal cursor operation: send mouse position in window
+          // Normal cursor operation: send mouse position in window
           NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
           GHOST_TInt32 x, y;
 
@@ -1669,9 +1677,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         phase = [event phase];
 
       /* when pressing a key while momentum scrolling continues after
-         * lifting fingers off the trackpad, the action can unexpectedly
-         * change from e.g. scrolling to zooming. this works around the
-         * issue by ignoring momentum scroll after a key press */
+       * lifting fingers off the trackpad, the action can unexpectedly
+       * change from e.g. scrolling to zooming. this works around the
+       * issue by ignoring momentum scroll after a key press */
       if (momentumPhase) {
         if (m_ignoreMomentumScroll)
           break;
@@ -1681,14 +1689,15 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       }
 
       /* we assume phases are only set for gestures from trackpad or magic
-         * mouse events. note that using tablet at the same time may not work
-         * since this is a static variable */
+       * mouse events. note that using tablet at the same time may not work
+       * since this is a static variable */
       if (phase == NSEventPhaseBegan)
         m_multiTouchScroll = true;
       else if (phase == NSEventPhaseEnded)
         m_multiTouchScroll = false;
 
-      /* standard scrollwheel case, if no swiping happened, and no momentum (kinetic scroll) works */
+      /* Standard scrollwheel case, if no swiping happened,
+       * and no momentum (kinetic scroll) works. */
       if (!m_multiTouchScroll && momentumPhase == NSEventPhaseNone) {
         GHOST_TInt32 delta;
 
@@ -1697,7 +1706,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         if (deltaF == 0.0)
           deltaF = [event deltaX];  // make blender decide if it's horizontal scroll
         if (deltaF == 0.0)
-          break;  //discard trackpad delta=0 events
+          break;  // discard trackpad delta=0 events
 
         delta = deltaF > 0.0 ? 1 : -1;
         pushEvent(new GHOST_EventWheel([event timestamp] * 1000, window, delta));
@@ -1712,7 +1721,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         dx = [event scrollingDeltaX];
         dy = [event scrollingDeltaY];
 
-        /* however, wacom tablet (intuos5) needs old deltas, it then has momentum and phase at zero */
+        /* However, wacom tablet (intuos5) needs old deltas,
+         * it then has momentum and phase at zero. */
         if (phase == NSEventPhaseNone && momentumPhase == NSEventPhaseNone) {
           dx = [event deltaX];
           dy = [event deltaY];
@@ -1770,7 +1780,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
   window = m_windowManager->getWindowAssociatedWithOSWindow((void *)[event window]);
   if (!window) {
-    //printf("\nW failure for event 0x%x",[event type]);
+    // printf("\nW failure for event 0x%x",[event type]);
     return GHOST_kFailure;
   }
 
@@ -1815,7 +1825,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
         utf8_buf[0] = '\0';
 
       if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
-        break;  //Cmd-Q is directly handled by Cocoa
+        break;  // Cmd-Q is directly handled by Cocoa
 
       /* ascii is a subset of unicode */
       if (utf8_buf[0] && !utf8_buf[1]) {
@@ -1825,12 +1835,30 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
       if ([event type] == NSKeyDown) {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf));
-        //printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
+#if 0
+        printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",
+               [event keyCode],
+               [charsIgnoringModifiers length] > 0 ? [charsIgnoringModifiers characterAtIndex:0] :
+                                                     ' ',
+               keyCode,
+               ascii,
+               ascii,
+               utf8_buf);
+#endif
       }
       else {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, 0, NULL));
-        //printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
+#if 0
+        printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",
+               [event keyCode],
+               [charsIgnoringModifiers length] > 0 ? [charsIgnoringModifiers characterAtIndex:0] :
+                                                     ' ',
+               keyCode,
+               ascii,
+               ascii,
+               utf8_buf);
+#endif
       }
       m_ignoreMomentumScroll = true;
       break;

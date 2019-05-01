@@ -49,7 +49,7 @@
 #  include <X11/extensions/XInput2.h>
 #endif
 
-//For DPI value
+// For DPI value
 #include <X11/Xresource.h>
 
 #include <cstring>
@@ -132,7 +132,7 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
         display, DefaultScreen(display), glx_attribs, &nbfbconfig);
 
     /* Any sample level or even zero, which means oversampling disabled, is good
-             * but we need a valid visual to continue */
+     * but we need a valid visual to continue */
     if (nbfbconfig > 0) {
       /* take a frame buffer config that has alpha cap */
       for (int i = 0; i < nbfbconfig; i++) {
@@ -140,7 +140,7 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
         if (!visual)
           continue;
         /* if we don't need a alpha background, the first config will do, otherwise
-                     * test the alphaMask as it won't necessarily be present */
+         * test the alphaMask as it won't necessarily be present */
         if (needAlpha) {
           XRenderPictFormat *pict_format = XRenderFindVisualFormat(display, visual->visual);
           if (!pict_format)
@@ -167,7 +167,7 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
     XVisualInfo *visual = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
 
     /* Any sample level or even zero, which means oversampling disabled, is good
-       * but we need a valid visual to continue */
+     * but we need a valid visual to continue */
     if (visual != NULL) {
       return visual;
     }
@@ -1449,7 +1449,8 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
       setWindowCursorVisibility(true);
     }
 
-    /* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+    /* Almost works without but important
+     * otherwise the mouse GHOST location can be incorrect on exit. */
     setCursorGrabAccum(0, 0);
     m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1; /* disable */
 #ifdef GHOST_X11_GRAB

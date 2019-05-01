@@ -17,7 +17,7 @@
  * All rights reserved.
  *
  * The Original Code is: some of this file.
-*/
+ */
 
 /** \file
  * \ingroup GHOST

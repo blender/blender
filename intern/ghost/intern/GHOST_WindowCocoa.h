@@ -98,7 +98,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   /**
    * Returns the window rectangle dimensions.
-   * The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.
+   * The dimensions are given in screen coordinates that are
+   * relative to the upper-left corner of the screen.
    * \param bounds The bounding rectangle of the window.
    */
   void getWindowBounds(GHOST_Rect &bounds) const;

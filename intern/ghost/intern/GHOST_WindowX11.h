@@ -46,7 +46,8 @@ class GHOST_DropTargetX11;
 
 /**
  * X11 implementation of GHOST_IWindow.
- * Dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.
+ * Dimensions are given in screen coordinates that are
+ * relative to the upper-left corner of the screen.
  */
 
 class GHOST_WindowX11 : public GHOST_Window {

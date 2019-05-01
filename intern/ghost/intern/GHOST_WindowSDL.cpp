@@ -621,7 +621,7 @@ static void sdl_cursor_init(void)
   DEF_CURSOR(bottom_right_corner, GHOST_kStandardCursorBottomRightCorner);
   DEF_CURSOR(bottom_left_corner, GHOST_kStandardCursorBottomLeftCorner);
   DEF_CURSOR(arrow, GHOST_kStandardCursorCopy);
-  //DEF_CURSOR(arrow, GHOST_kStandardCursorCustom);
+  // DEF_CURSOR(arrow, GHOST_kStandardCursorCustom);
   DEF_CURSOR(arrow, GHOST_kStandardCursorPencil);
 
 #undef DEF_CURSOR

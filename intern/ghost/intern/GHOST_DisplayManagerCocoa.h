@@ -87,11 +87,11 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
                                           const GHOST_DisplaySetting &setting);
 
  protected:
-  //Do not cache values as OS X supports screen hot plug
+  // Do not cache values as OS X supports screen hot plug
   /** Cached number of displays. */
-  //CGDisplayCount m_numDisplays;
+  // CGDisplayCount m_numDisplays;
   /** Cached display id's for each display. */
-  //CGDirectDisplayID* m_displayIDs;
+  // CGDirectDisplayID* m_displayIDs;
 };
 
 #endif  // __GHOST_DISPLAYMANAGERCOCOA_H__

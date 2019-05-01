@@ -42,7 +42,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(GHOST_TUns8 &numDisplay
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(GHOST_TUns8 display,
                                                                 GHOST_TInt32 &numSettings) const
 {
-  numSettings = (GHOST_TInt32)3;  //Width, Height, BitsPerPixel
+  numSettings = (GHOST_TInt32)3;  // Width, Height, BitsPerPixel
 
   return GHOST_kSuccess;
 }
@@ -55,7 +55,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(GHOST_TUns8 display,
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  if (display == kMainDisplay)  //Screen #0 may not be the main one
+  if (display == kMainDisplay)  // Screen #0 may not be the main one
     askedDisplay = [NSScreen mainScreen];
   else
     askedDisplay = [[NSScreen screens] objectAtIndex:display];
@@ -71,7 +71,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(GHOST_TUns8 display,
 
   setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
 
-  setting.frequency = 0;  //No more CRT display...
+  setting.frequency = 0;  // No more CRT display...
 
 #ifdef GHOST_DEBUG
   printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
@@ -96,7 +96,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  if (display == kMainDisplay)  //Screen #0 may not be the main one
+  if (display == kMainDisplay)  // Screen #0 may not be the main one
     askedDisplay = [NSScreen mainScreen];
   else
     askedDisplay = [[NSScreen screens] objectAtIndex:display];
@@ -112,7 +112,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 
   setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
 
-  setting.frequency = 0;  //No more CRT display...
+  setting.frequency = 0;  // No more CRT display...
 
 #ifdef GHOST_DEBUG
   printf("current display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
@@ -141,7 +141,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
   printf("  setting.frequency=%d\n", setting.frequency);
 #endif  // GHOST_DEBUG
 
-  //Display configuration is no more available in 10.6
+  // Display configuration is no more available in 10.6
 
   /*  CFDictionaryRef displayModeValues = ::CGDisplayBestModeForParametersAndRefreshRate(
     m_displayIDs[display],
@@ -159,7 +159,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
   printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate)); */
 #endif  // GHOST_DEBUG
 
-  //CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
+  // CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
 
   return /*err == CGDisplayNoErr ?*/ GHOST_kSuccess /*: GHOST_kFailure*/;
 }
