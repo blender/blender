@@ -89,16 +89,16 @@ struct IK_Target {
   iTaSC::ConstraintSet *constraint;
   struct bConstraint *blenderConstraint;
   struct bPoseChannel *rootChannel;
-  Object *owner;  //for auto IK
+  Object *owner;  // for auto IK
   ErrorCallback errorCallback;
   std::string targetName;
   std::string constraintName;
   unsigned short controlType;
-  short channel;       //index in IK channel array of channel on which this target is defined
-  short ee;            //end effector number
-  bool simulation;     //true when simulation mode is used (update feedback)
-  bool eeBlend;        //end effector affected by enforce blending
-  float eeRest[4][4];  //end effector initial pose relative to armature
+  short channel;       // index in IK channel array of channel on which this target is defined
+  short ee;            // end effector number
+  bool simulation;     // true when simulation mode is used (update feedback)
+  bool eeBlend;        // end effector affected by enforce blending
+  float eeRest[4][4];  // end effector initial pose relative to armature
 
   IK_Target()
   {
@@ -289,7 +289,8 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
   /* create a target */
   target = (PoseTarget *)MEM_callocN(sizeof(PoseTarget), "posetarget");
   target->con = con;
-  // by contruction there can be only one tree per channel and each channel can be part of at most one tree.
+  // by contruction there can be only one tree per channel
+  // and each channel can be part of at most one tree.
   tree = (PoseTree *)pchan_root->iktree.first;
 
   if (tree == NULL) {
@@ -377,7 +378,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 
 static bool is_cartesian_constraint(bConstraint *con)
 {
-  //bKinematicConstraint* data=(bKinematicConstraint *)con->data;
+  // bKinematicConstraint* data=(bKinematicConstraint *)con->data;
 
   return true;
 }
@@ -656,7 +657,8 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
                                      1.0);
     // convert to armature space
     mul_m4_m4m4(polemat, imat, mat);
-    // get the target in world space (was computed before as target object are defined before base object)
+    // get the target in world space
+    // (was computed before as target object are defined before base object).
     iktarget->target->getPose().getValue(mat[0]);
     // convert to armature space
     mul_m4_m4m4(goalmat, imat, mat);
@@ -849,11 +851,13 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
     float rmat[3][3];
 
     if (chan->rotmode > 0) {
-      /* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
+      /* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation
+       * orders) */
       eulO_to_mat3(rmat, chan->eul, chan->rotmode);
     }
     else if (chan->rotmode == ROT_MODE_AXISANGLE) {
-      /* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
+      /* axis-angle - stored in quaternion data,
+       * but not really that great for 3D-changing orientations */
       axis_angle_to_mat3(rmat, &chan->quat[1], chan->quat[0]);
     }
     else {
@@ -936,7 +940,8 @@ static int convert_channels(struct Depsgraph *depsgraph,
     // joint angles and can't be applied to the iTaSC armature dynamically
     if (!(pchan->flag & POSE_DONE))
       BKE_pose_where_is_bone(depsgraph, ikscene->blscene, ikscene->blArmature, pchan, ctime, 1);
-    // tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is()
+    // tell blender that this channel was controlled by IK,
+    // it's cleared on each BKE_pose_where_is()
     pchan->flag |= (POSE_DONE | POSE_CHAIN);
 
     /* set DoF flag */
@@ -1645,8 +1650,9 @@ static void execute_scene(struct Depsgraph *depsgraph,
   IK_Channel *ikchan;
   if (ikparam->flag & ITASC_SIMULATION) {
     for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; i++, ++ikchan) {
-      // In simulation mode we don't allow external contraint to change our bones, mark the channel done
-      // also tell Blender that this channel is part of IK tree (cleared on each BKE_pose_where_is()
+      // In simulation mode we don't allow external contraint to change our bones, mark the channel
+      // done also tell Blender that this channel is part of IK tree
+      // (cleared on each BKE_pose_where_is()
       ikchan->pchan->flag |= (POSE_DONE | POSE_CHAIN);
       ikchan->jointValid = 0;
     }
@@ -1656,7 +1662,8 @@ static void execute_scene(struct Depsgraph *depsgraph,
     for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; i++, ++ikchan) {
       if (!(ikchan->pchan->flag & POSE_DONE))
         BKE_pose_where_is_bone(depsgraph, blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
-      // tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is()
+      // tell blender that this channel was controlled by IK,
+      // it's cleared on each BKE_pose_where_is()
       ikchan->pchan->flag |= (POSE_DONE | POSE_CHAIN);
       ikchan->jointValid = 0;
     }
@@ -1906,8 +1913,8 @@ void itasc_update_param(struct bPose *pose)
             CONSTRAINT_ID_ALL, iTaSC::Armature::ID_JOINT, iTaSC::ACT_FEEDBACK, ikparam->feedback);
       }
       else {
-        // in animation mode timestep is 1s by convention =>
-        // qmax becomes radiant and feedback becomes fraction of error gap corrected in one iteration
+        // in animation mode timestep is 1s by convention => qmax becomes radiant and feedback
+        // becomes fraction of error gap corrected in one iteration.
         ikscene->scene->setParam(iTaSC::Scene::MIN_TIMESTEP, 1.0);
         ikscene->scene->setParam(iTaSC::Scene::MAX_TIMESTEP, 1.0);
         ikscene->solver->setParam(iTaSC::Solver::DLS_QMAX, 0.52);

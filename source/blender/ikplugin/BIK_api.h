@@ -68,9 +68,18 @@ void BIK_clear_cache(struct bPose *pose);
 void BIK_update_param(struct bPose *pose);
 void BIK_test_constraint(struct Object *ob, struct bConstraint *cons);
 // not yet implemented
-// int BIK_get_constraint_param(struct bPose *pose, struct bConstraint *cons, int id, BIK_ParamValue *value);
-// int BIK_get_channel_param(struct bPose *pose, struct bPoseChannel *pchan, int id, BIK_ParamValue *value);
-// int BIK_get_solver_param(struct bPose *pose, struct bPoseChannel *pchan, int id, BIK_ParamValue *value);
+// int BIK_get_constraint_param(struct bPose *pose,
+//                              struct bConstraint *cons,
+//                              int id,
+//                              BIK_ParamValue *value);
+// int BIK_get_channel_param(struct bPose *pose,
+//                           struct bPoseChannel *pchan,
+//                           int id,
+//                           BIK_ParamValue *value);
+// int BIK_get_solver_param(struct bPose *pose,
+//                          struct bPoseChannel *pchan,
+//                          int id,
+//                          BIK_ParamValue *value);
 
 // number of solver available
 // 0 = iksolver

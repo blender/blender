@@ -47,7 +47,8 @@
 /* ********************** THE IK SOLVER ******************* */
 
 /* allocates PoseTree, and links that to root bone/channel */
-/* Note: detecting the IK chain is duplicate code... in drawarmature.c and in transform_conversions.c */
+/* Note: detecting the IK chain is duplicate code...
+ * in drawarmature.c and in transform_conversions.c */
 static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
   bPoseChannel *curchan, *pchan_root = NULL, *chanlist[256], **oldchan;
@@ -575,7 +576,8 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
     for (a = 0; a < tree->totchannel; a++) {
       if (!(tree->pchan[a]->flag & POSE_DONE))  // successive trees can set the flag
         BKE_pose_where_is_bone(depsgraph, scene, ob, tree->pchan[a], ctime, 1);
-      /* tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is() */
+      /* Tell blender that this channel was controlled by IK,
+       * it's cleared on each BKE_pose_where_is(). */
       tree->pchan[a]->flag |= POSE_CHAIN;
     }
 
