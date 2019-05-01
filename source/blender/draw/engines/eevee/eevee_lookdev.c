@@ -71,20 +71,22 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   View3D *v3d = draw_ctx->v3d;
   Scene *scene = draw_ctx->scene;
 
-  /* Viewport / Ball size. */
-  rcti rect;
-  ED_region_visible_rect(draw_ctx->ar, &rect);
+  if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
+    /* Viewport / Ball size. */
+    rcti rect;
+    ED_region_visible_rect(draw_ctx->ar, &rect);
 
-  const int ball_size = max_ii(BLI_rcti_size_x(&rect) * 0.1f, 100.0f) * U.dpi_fac;
+    const int ball_size = max_ii(BLI_rcti_size_x(&rect) * 0.1f, 100.0f) * U.dpi_fac;
 
-  if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
-      rect.ymin != effects->anchor[1]) {
-    /* If ball size or anchor point moves, reset TAA to avoid ghosting issue.
+    if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
+        rect.ymin != effects->anchor[1]) {
+      /* If ball size or anchor point moves, reset TAA to avoid ghosting issue.
      * This needs to happen early because we are changing taa_current_sample. */
-    effects->ball_size = ball_size;
-    effects->anchor[0] = rect.xmax;
-    effects->anchor[1] = rect.ymin;
-    EEVEE_temporal_sampling_reset(vedata);
+      effects->ball_size = ball_size;
+      effects->anchor[0] = rect.xmax;
+      effects->anchor[1] = rect.ymin;
+      EEVEE_temporal_sampling_reset(vedata);
+    }
   }
 
   if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
