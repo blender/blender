@@ -39,7 +39,7 @@ extern "C" {
 #include "IMB_imbuf_types.h"
 }
 
-/************************************  OpenEXR Singlelayer Multiview *****************************************/
+/************************************ OpenEXR Singlelayer Multiview ******************************/
 
 OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOperation(
     const RenderData *rd,
@@ -142,7 +142,7 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinitExecution()
   }
 }
 
-/************************************  OpenEXR Multilayer Multiview *****************************************/
+/************************************ OpenEXR Multilayer Multiview *******************************/
 
 OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOperation(
     const RenderData *rd,

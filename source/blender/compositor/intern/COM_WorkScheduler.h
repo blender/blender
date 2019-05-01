@@ -67,9 +67,10 @@ class WorkScheduler {
    *
    * during initialization the mutexes are initialized.
    * there are two mutexes (for every device type one)
-   * After mutex initialization the system is queried in order to count the number of CPUDevices and GPUDevices to be created.
-   * For every hardware thread a CPUDevice and for every OpenCL GPU device a OpenCLDevice is created.
-   * these devices are stored in a separate list (cpudevices & gpudevices)
+   * After mutex initialization the system is queried in order to count the number of CPUDevices
+   * and GPUDevices to be created. For every hardware thread a CPUDevice and for every OpenCL GPU
+   * device a OpenCLDevice is created. these devices are stored in a separate list (cpudevices &
+   * gpudevices)
    *
    * This function can be called multiple times to lazily initialize OpenCL.
    */

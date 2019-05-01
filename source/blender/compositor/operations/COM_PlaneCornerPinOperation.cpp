@@ -223,5 +223,8 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
   output->xmax = getInputOperation(0)->getWidth();
   output->ymax = getInputOperation(0)->getHeight();
   return true;
-  //  return PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(input, readOperation, output);
+#if 0
+  return PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
+      input, readOperation, output);
+#endif
 }

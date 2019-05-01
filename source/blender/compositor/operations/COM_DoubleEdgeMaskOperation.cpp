@@ -950,12 +950,16 @@ static void do_createEdgeLocationBuffer(unsigned int t,
 
   unsigned int rsl;  // long used for finding fast 1.0/sqrt
   unsigned int gradientFillOffset;
-  unsigned int innerAccum =
-      0;  // for looping inner edge pixel indexes, represents current position from offset
-  unsigned int outerAccum =
-      0;  // for looping outer edge pixel indexes, represents current position from offset
-  unsigned int gradientAccum =
-      0;  // for looping gradient pixel indexes, represents current position from offset
+
+  /* For looping inner edge pixel indexes, represents current position from offset. */
+  unsigned int innerAccum = 0;
+  /* For looping outer edge pixel indexes, represents current position from offset. */
+  unsigned int outerAccum = 0;
+  /* For looping gradient pixel indexes, represents current position from offset. */
+  unsigned int gradientAccum = 0;
+
+  /*  */
+  /* clang-format off */
   /*
    * Here we compute the size of buffer needed to hold (row,col) coordinates
    * for each pixel previously determined to be either gradient, inner edge,
@@ -1017,6 +1021,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    * each iteration of the final gradient calculation than it is to deconstruct
    * a memory location into x,y pairs each round.
    */
+  /* clang-format on */
 
   gradientFillOffset = 0;  // since there are likely "more" of these, put it first. :)
   *innerEdgeOffset = gradientFillOffset + gsz;     // set start of inner edge indexes
@@ -1025,7 +1030,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
   gradientAccum = gradientFillOffset;  // each accumulator variable starts at its respective
   innerAccum = *innerEdgeOffset;       // section's offset so when we start filling, each
   outerAccum = *outerEdgeOffset;       // section fills up it's allocated space in gbuf
-  //uses dmin=row, rsl=col
+  // uses dmin=row, rsl=col
   for (x = 0, dmin = 0; x < t; x += rw, dmin++) {
     for (rsl = 0; rsl < rw; rsl++) {
       a = x + rsl;
@@ -1187,7 +1192,7 @@ static void do_fillGradientBuffer(unsigned int rw,
      * Pixel Index = Pixel Column + ( Pixel Row * Row Width )
      */
     res[gbuf[gradientFillOffset + 1] + (gbuf[gradientFillOffset] * rw)] =
-        (idist / (idist + odist));  //set intensity
+        (idist / (idist + odist));  // set intensity
   }
 }
 

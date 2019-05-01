@@ -53,7 +53,7 @@ void WrapOperation::executePixelSampled(float output[4], float x, float y, Pixel
   MemoryBufferExtend extend_x = COM_MB_CLIP, extend_y = COM_MB_CLIP;
   switch (m_wrappingType) {
     case CMP_NODE_WRAP_NONE:
-      //Intentionally empty, originalXPos and originalYPos have been set before
+      // Intentionally empty, originalXPos and originalYPos have been set before
       break;
     case CMP_NODE_WRAP_X:
       // wrap only on the x-axis

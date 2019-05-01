@@ -70,7 +70,7 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   CLAMP(y3, 0, getHeight() - 1);
   float value[4];
   this->m_inputValueOperation->read(value, x2, y2, NULL);
-  //const float mval = 1.0f - value[0];
+  // const float mval = 1.0f - value[0];
 
   this->m_inputOperation->read(color_org, x2, y2, NULL);
 
@@ -115,7 +115,7 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   COLOR_ADD(TOT_DIV_CNR)
 
   mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
-  //mul_v4_fl(color_mid, 1.0f / w);
+  // mul_v4_fl(color_mid, 1.0f / w);
 
   if ((w != 0.0f) && ((w / WTOT) > (this->m_threshold_neighbor)) &&
       color_diff(color_mid, color_org, this->m_threshold)) {

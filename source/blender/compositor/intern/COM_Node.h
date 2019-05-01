@@ -112,7 +112,8 @@ class Node {
 
   /**
    * \brief set the reference to the bNode
-   * \note used in Node instances to receive the storage/settings and complex node for highlight during execution
+   * \note used in Node instances to receive the storage/settings and complex
+   * node for highlight during execution.
    * \param bNode:
    */
   void setbNode(bNode *node)

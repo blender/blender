@@ -92,7 +92,8 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     converter.addOperation(operationx);
 
     converter.mapInputSocket(getInputSocket(0), operationx->getInputSocket(0));
-    // converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1)); // no size input yet
+    // converter.mapInputSocket(getInputSocket(1), operationx->getInputSocket(1)); // no size input
+    // yet
 
     GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
     operationy->setData(&m_alpha_blur);
@@ -101,7 +102,8 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     converter.addOperation(operationy);
 
     converter.addLink(operationx->getOutputSocket(), operationy->getInputSocket(0));
-    // converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1)); // no size input yet
+    // converter.mapInputSocket(getInputSocket(1), operationy->getInputSocket(1)); // no size input
+    // yet
     converter.mapOutputSocket(getOutputSocket(0), operationy->getOutputSocket());
 
     converter.addPreview(operationy->getOutputSocket());

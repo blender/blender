@@ -146,8 +146,8 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
    * Perform the actual accumulation along a ray segment from source to pt.
    * Only pixels within dist_min..dist_max contribute.
    *
-   * The loop runs backwards(!) over the primary sector space axis u, i.e. increasing distance to pt.
-   * After each step it decrements v by dv < 1, adding a buffer shift when necessary.
+   * The loop runs backwards(!) over the primary sector space axis u, i.e. increasing distance to
+   * pt. After each step it decrements v by dv < 1, adding a buffer shift when necessary.
    */
   static void eval(MemoryBuffer *input,
                    float output[4],
@@ -229,11 +229,12 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 };
 
 /**
- * Dispatch function which selects an appropriate accumulator based on the sector of the target point,
- * relative to the source.
+ * Dispatch function which selects an appropriate accumulator based on the sector of the target
+ * point, relative to the source.
  *
  * The BufferLineAccumulator defines the actual loop over the buffer, with an efficient inner loop
- * due to using compile time constants instead of a local matrix variable defining the sector space.
+ * due to using compile time constants instead of a local matrix variable defining the sector
+ * space.
  */
 static void accumulate_line(MemoryBuffer *input,
                             float output[4],

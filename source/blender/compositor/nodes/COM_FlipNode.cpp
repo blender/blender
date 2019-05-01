@@ -33,7 +33,8 @@ void FlipNode::convertToOperations(NodeConverter &converter,
   NodeOutput *outputSocket = this->getOutputSocket(0);
   FlipOperation *operation = new FlipOperation();
   switch (this->getbNode()->custom1) {
-    case 0:  /// \TODO: I didn't find any constants in the old implementation, should I introduce them.
+    case 0:  /// \TODO: I didn't find any constants in the old implementation, should I introduce
+             /// them.
       operation->setFlipX(true);
       operation->setFlipY(false);
       break;

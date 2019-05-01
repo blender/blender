@@ -55,7 +55,8 @@ typedef enum ChunkExecutionState {
 
 /**
  * \brief Class ExecutionGroup is a group of Operations that are executed as one.
- * This grouping is used to combine Operations that can be executed as one whole when multi-processing.
+ * This grouping is used to combine Operations that can be executed as one whole when
+ * multi-processing.
  * \ingroup Execution
  */
 class ExecutionGroup {
@@ -72,7 +73,8 @@ class ExecutionGroup {
 
   /**
    * \brief is this ExecutionGroup an input ExecutionGroup
-   * an input execution group is a group that is at the end of the calculation (the output is important for the user)
+   * an input execution group is a group that is at the end of the calculation
+   * (the output is important for the user).
    */
   int m_isOutput;
 
@@ -134,8 +136,9 @@ class ExecutionGroup {
   Operations m_cachedReadOperations;
 
   /**
-   * \brief reference to the original bNodeTree, this field is only set for the 'top' execution group.
-   * \note can only be used to call the callbacks for progress, status and break
+   * \brief reference to the original bNodeTree,
+   * this field is only set for the 'top' execution group.
+   * \note can only be used to call the callbacks for progress, status and break.
    */
   const bNodeTree *m_bTree;
 
@@ -154,7 +157,8 @@ class ExecutionGroup {
 
   /**
    * \brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
-   * \note When building the ExecutionGroup Operations are added via recursion. First a WriteBufferOperations is added, then the
+   * \note When building the ExecutionGroup Operations are added via recursion.
+   * First a WriteBufferOperations is added, then the.
    * \note Operation containing the settings that is important for the ExecutiongGroup is added,
    * \note When this occurs, these settings are copied over from the node to the ExecutionGroup
    * \note and the Initialized flag is set to true.
@@ -204,7 +208,8 @@ class ExecutionGroup {
 
   /**
    * \brief try to schedule a specific chunk.
-   * \note scheduling succeeds when all input requirements are met and the chunks hasn't been scheduled yet.
+   * \note scheduling succeeds when all input requirements are met and the chunks hasn't been
+   * scheduled yet.
    * \param graph:
    * \param xChunk:
    * \param yChunk:
@@ -375,9 +380,11 @@ class ExecutionGroup {
 
   /**
    * \brief schedule an ExecutionGroup
-   * \note this method will return when all chunks have been calculated, or the execution has breaked (by user)
+   * \note this method will return when all chunks have been calculated, or the execution has
+   * breaked (by user)
    *
-   * first the order of the chunks will be determined. This is determined by finding the ViewerOperation and get the relevant information from it.
+   * first the order of the chunks will be determined. This is determined by finding the
+   * ViewerOperation and get the relevant information from it.
    *   - ChunkOrdering
    *   - CenterX
    *   - CenterY

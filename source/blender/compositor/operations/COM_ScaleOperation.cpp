@@ -155,7 +155,7 @@ void ScaleAbsoluteOperation::executePixelSampled(float output[4],
 
   const float width = this->getWidth();
   const float height = this->getHeight();
-  //div
+  // div
   float relativeXScale = scx / width;
   float relativeYScale = scy / height;
 
@@ -181,7 +181,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
     const float scy = scaleY[0];
     const float width = this->getWidth();
     const float height = this->getHeight();
-    //div
+    // div
     float relateveXScale = scx / width;
     float relateveYScale = scy / height;
 

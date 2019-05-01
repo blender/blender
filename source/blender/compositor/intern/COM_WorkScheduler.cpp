@@ -58,7 +58,8 @@ static ThreadQueue *g_gpuqueue;
 #  ifdef COM_OPENCL_ENABLED
 static cl_context g_context;
 static cl_program g_program;
-/// \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is created
+/// \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is
+/// created
 static vector<OpenCLDevice *> g_gpudevices;
 /// \brief list of all thread for every GPUDevice in cpudevices a thread exists
 static ListBase g_gputhreads;

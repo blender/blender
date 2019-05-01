@@ -97,7 +97,7 @@ void ZCombineOperation::deinitExecution()
 // MASK combine
 ZCombineMaskOperation::ZCombineMaskOperation() : NodeOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);  //mask
+  this->addInputSocket(COM_DT_VALUE);  // mask
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

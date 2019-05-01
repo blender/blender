@@ -53,17 +53,21 @@ class NodeOperationOutput;
  * \ingroup Model
  */
 typedef enum InputResizeMode {
-  /** \brief Center the input image to the center of the working area of the node, no resizing occurs */
+  /** \brief Center the input image to the center of the working area of the node, no resizing
+     occurs */
   COM_SC_CENTER = NS_CR_CENTER,
-  /** \brief The bottom left of the input image is the bottom left of the working area of the node, no resizing occurs */
+  /** \brief The bottom left of the input image is the bottom left of the working area of the node,
+     no resizing occurs */
   COM_SC_NO_RESIZE = NS_CR_NONE,
   /** \brief Fit the width of the input image to the width of the working area of the node */
   COM_SC_FIT_WIDTH = NS_CR_FIT_WIDTH,
   /** \brief Fit the height of the input image to the height of the working area of the node */
   COM_SC_FIT_HEIGHT = NS_CR_FIT_HEIGHT,
-  /** \brief Fit the width or the height of the input image to the width or height of the working area of the node, image will be larger than the working area */
+  /** \brief Fit the width or the height of the input image to the width or height of the working
+     area of the node, image will be larger than the working area */
   COM_SC_FIT = NS_CR_FIT,
-  /** \brief Fit the width and the height of the input image to the width and height of the working area of the node, image will be equally larger than the working area */
+  /** \brief Fit the width and the height of the input image to the width and height of the working
+     area of the node, image will be equally larger than the working area */
   COM_SC_STRETCH = NS_CR_STRETCH,
 } InputResizeMode;
 
@@ -158,9 +162,11 @@ class NodeOperation : public SocketReader {
                                    unsigned int preferredResolution[2]);
 
   /**
-   * \brief isOutputOperation determines whether this operation is an output of the ExecutionSystem during rendering or editing.
+   * \brief isOutputOperation determines whether this operation is an output of the ExecutionSystem
+   * during rendering or editing.
    *
-   * Default behavior if not overridden, this operation will not be evaluated as being an output of the ExecutionSystem.
+   * Default behavior if not overridden, this operation will not be evaluated as being an output of
+   * the ExecutionSystem.
    *
    * \see ExecutionSystem
    * \group check
@@ -218,7 +224,8 @@ class NodeOperation : public SocketReader {
   }
 
   /**
-   * \brief custom handle to add new tasks to the OpenCL command queue in order to execute a chunk on an GPUDevice
+   * \brief custom handle to add new tasks to the OpenCL command queue
+   * in order to execute a chunk on an GPUDevice.
    * \ingroup execution
    * \param context: the OpenCL context
    * \param program: the OpenCL program containing all compositor kernels
@@ -226,8 +233,10 @@ class NodeOperation : public SocketReader {
    * \param outputMemoryBuffer: the allocated memory buffer in main CPU memory
    * \param clOutputBuffer: the allocated memory buffer in OpenCLDevice memory
    * \param inputMemoryBuffers: all input MemoryBuffer's needed
-   * \param clMemToCleanUp: all created cl_mem references must be added to this list. Framework will clean this after execution
-   * \param clKernelsToCleanUp: all created cl_kernel references must be added to this list. Framework will clean this after execution
+   * \param clMemToCleanUp: all created cl_mem references must be added to this list.
+   * Framework will clean this after execution
+   * \param clKernelsToCleanUp: all created cl_kernel references must be added to this list.
+   * Framework will clean this after execution
    */
   virtual void executeOpenCL(OpenCLDevice * /*device*/,
                              MemoryBuffer * /*outputMemoryBuffer*/,
@@ -297,7 +306,8 @@ class NodeOperation : public SocketReader {
 
   /**
    * \brief is this operation the active viewer output
-   * user can select an ViewerNode to be active (the result of this node will be drawn on the backdrop)
+   * user can select an ViewerNode to be active
+   * (the result of this node will be drawn on the backdrop).
    * \return [true:false]
    * \see BaseViewerOperation
    */

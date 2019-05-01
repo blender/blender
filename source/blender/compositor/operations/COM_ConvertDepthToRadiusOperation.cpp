@@ -95,7 +95,8 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
 #endif
     radius = 0.5f * fabsf(this->m_aperture *
                           (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.0f));
-    // 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
+    // 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates
+    // the problem
     if (radius < 0.0f) {
       radius = 0.0f;
     }

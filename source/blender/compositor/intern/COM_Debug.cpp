@@ -367,8 +367,12 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           system, operation, group, str + len, maxlen > len ? maxlen - len : 0);
     }
 
-    //      len += snprintf(str+len, maxlen>len ? maxlen-len : 0, "//  OUTPUTOPERATION: %p\r\n", group->getOutputOperation());
-    //      len += snprintf(str+len, maxlen>len ? maxlen-len : 0, " O_%p\r\n", group->getOutputOperation());
+    // len += snprintf(str+len,
+    //     maxlen>len ? maxlen-len : 0,
+    //     "//  OUTPUTOPERATION: %p\r\n", group->getOutputOperation());
+    // len += snprintf(
+    //     str+len, maxlen>len ? maxlen-len : 0,
+    //     " O_%p\r\n", group->getOutputOperation());
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
   }
 

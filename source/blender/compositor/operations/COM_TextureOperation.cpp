@@ -29,8 +29,8 @@ extern "C" {
 
 TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {
-  this->addInputSocket(COM_DT_VECTOR);  //offset
-  this->addInputSocket(COM_DT_VECTOR);  //size
+  this->addInputSocket(COM_DT_VECTOR);  // offset
+  this->addInputSocket(COM_DT_VECTOR);  // size
   this->m_texture = NULL;
   this->m_inputSize = NULL;
   this->m_inputOffset = NULL;

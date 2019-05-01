@@ -24,7 +24,8 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
   /* 1:1 match with the sequencer with linear/srgb conversions, the conversion isnt pretty
    * but best keep it this way, sice testing for durian shows a similar calculation
    * without lin/srgb conversions gives bad results (over-saturated shadows) with colors
-   * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or lighter tones - campbell */
+   * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or
+   * lighter tones - campbell */
   float x = (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
 
   /* prevent NaN */

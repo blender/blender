@@ -147,7 +147,8 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   }
 
   // see "Recursive Gabor Filtering" by Young/VanVliet
-  // all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
+  // all factors here in double.prec.
+  // Required, because for single.prec it seems to blow up if sigma > ~200
   if (sigma >= 3.556f) {
     q = 0.9804f * (sigma - 3.556f) + 2.5091f;
   }

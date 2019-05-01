@@ -46,7 +46,7 @@ VectorBlurOperation::VectorBlurOperation() : NodeOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);  // ZBUF
-  this->addInputSocket(COM_DT_COLOR);  //SPEED
+  this->addInputSocket(COM_DT_COLOR);  // SPEED
   this->addOutputSocket(COM_DT_COLOR);
   this->m_settings = NULL;
   this->m_cachedInstance = NULL;
@@ -409,7 +409,8 @@ static void zbuf_fill_in_rgba(
 }
 
 /* char value==255 is filled in, rest should be zero */
-/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbor */
+/* returns alpha values,
+ * but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbor. */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 {
   char *row1, *row2, *row3;

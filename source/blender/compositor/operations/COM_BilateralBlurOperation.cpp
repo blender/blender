@@ -44,7 +44,8 @@ void BilateralBlurOperation::initExecution()
 
 void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
-  // read the determinator color at x, y, this will be used as the reference color for the determinator
+  // read the determinator color at x, y, this will be used as the reference color for the
+  // determinator
   float determinatorReferenceColor[4];
   float determinator[4];
   float tempColor[4];

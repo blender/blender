@@ -41,7 +41,8 @@ class Converter {
    *
    * For all nodetypes a wrapper class is created.
    *
-   * \note When adding a new node to blender, this method needs to be changed to return the correct Node instance.
+   * \note When adding a new node to blender, this method needs to be changed to return the correct
+   * Node instance.
    *
    * \see Node
    */
@@ -55,7 +56,8 @@ class Converter {
   static bool is_fast_node(bNode *b_node);
 
   /**
-   * \brief This method will add a datetype conversion rule when the to-socket does not support the from-socket actual data type.
+   * \brief This method will add a datetype conversion rule when the to-socket does not support the
+   * from-socket actual data type.
    *
    * \note this method is called when conversion is needed.
    *

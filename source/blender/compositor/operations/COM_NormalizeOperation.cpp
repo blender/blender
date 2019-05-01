@@ -80,7 +80,8 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   return false;
 }
 
-/* The code below assumes all data is inside range +- this, and that input buffer is single channel */
+/* The code below assumes all data is inside range +- this, and that input buffer is single channel
+ */
 #define BLENDER_ZMAX 10000.0f
 
 void *NormalizeOperation::initializeTileData(rcti *rect)

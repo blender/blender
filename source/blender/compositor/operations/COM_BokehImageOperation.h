@@ -21,8 +21,8 @@
 #include "COM_NodeOperation.h"
 
 /**
- * \brief The BokehImageOperation class is an operation that creates an image useful to mimic the internals
- *of a camera.
+ * \brief The BokehImageOperation class is an operation that creates an image useful to mimic the
+ *internals of a camera.
  *
  * features:
  *  - number of flaps
@@ -31,20 +31,21 @@
  *  - simulate catadioptric
  *  - simulate lensshift
  *
- * Per pixel the algorithm determines the edge of the bokeh on the same line as the center of the image and the pixel
- * is evaluating.
+ * Per pixel the algorithm determines the edge of the bokeh on the same line as the center of the
+ *image and the pixel is evaluating.
  *
- * The edge is detected by finding the closest point on the direct line between the two nearest flap-corners.
- * this edge is interpolated with a full circle.
- * Result of this edge detection is stored as the distance between the center of the image and the edge.
+ * The edge is detected by finding the closest point on the direct line between the two nearest
+ *flap-corners. this edge is interpolated with a full circle. Result of this edge detection is
+ *stored as the distance between the center of the image and the edge.
  *
- * catadioptric lenses are simulated to interpolate between the center of the image and the distance of the edge.
- * We now have three distances:
+ * catadioptric lenses are simulated to interpolate between the center of the image and the
+ *distance of the edge. We now have three distances:
  *  - distance between the center of the image and the pixel to be evaluated
  *  - distance between the center of the image and the outer-edge
  *  - distance between the center of the image and the inner-edge
  *
- * With a simple compare it can be detected if the evaluated pixel is between the outer and inner edge.
+ * With a simple compare it can be detected if the evaluated pixel is between the outer and inner
+ *edge.
  */
 class BokehImageOperation : public NodeOperation {
  private:
@@ -95,7 +96,8 @@ class BokehImageOperation : public NodeOperation {
   /**
    * \brief Determine if a coordinate is inside the bokeh image
    *
-   * \param distance: the distance that will be used. This parameter is modified a bit to mimic lens shifts
+   * \param distance: the distance that will be used.
+   * This parameter is modified a bit to mimic lens shifts.
    * \param x: the x coordinate of the pixel to evaluate
    * \param y: the y coordinate of the pixel to evaluate
    * \return float range 0..1 0 is completely outside
@@ -121,9 +123,8 @@ class BokehImageOperation : public NodeOperation {
   void deinitExecution();
 
   /**
-   * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS, COM_BLUR_BOKEH_PIXELS]
-   * \param resolution:
-   * \param preferredResolution:
+   * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS,
+   * COM_BLUR_BOKEH_PIXELS] \param resolution: \param preferredResolution:
    */
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 

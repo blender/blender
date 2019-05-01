@@ -86,7 +86,8 @@ bool ExecutionGroup::canContainOperation(NodeOperation *operation)
   if (m_complex) {
     return false;
   }
-  /* complex ops can't be added to other groups (except their own, which they initialize, see above) */
+  /* complex ops can't be added to other groups (except their own, which they initialize, see
+   * above) */
   if (operation->isComplex()) {
     return false;
   }
@@ -188,7 +189,8 @@ void ExecutionGroup::determineNumberOfChunks()
 }
 
 /**
- * this method is called for the top execution groups. containing the compositor node or the preview node or the viewer node)
+ * this method is called for the top execution groups. containing the compositor node or the
+ * preview node or the viewer node)
  */
 void ExecutionGroup::execute(ExecutionSystem *graph)
 {
