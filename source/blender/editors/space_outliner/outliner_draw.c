@@ -2263,26 +2263,6 @@ static void outliner_draw_tree_element(bContext *C,
 
           GPU_blend(true);
 
-          /* divider */
-          {
-            GPUVertFormat *format = immVertexFormat();
-            uint pos = GPU_vertformat_attr_add(
-                format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-            unsigned char col[4];
-
-            immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-            UI_GetThemeColorShade4ubv(TH_BACK, -40, col);
-            col[3] *= alpha_fac;
-
-            immUniformColor4ubv(col);
-            immRecti(pos,
-                     tempx - 10.0f * ufac,
-                     *starty + 4.0f * ufac,
-                     tempx - 8.0f * ufac,
-                     *starty + UI_UNIT_Y - 4.0f * ufac);
-            immUnbindProgram();
-          }
-
           MergedIconRow merged = {{0}};
           outliner_draw_iconrow(C,
                                 block,
@@ -2696,29 +2676,6 @@ static void outliner_back(ARegion *ar)
   immUnbindProgram();
 }
 
-static void outliner_draw_restrictcols(ARegion *ar)
-{
-  GPU_line_width(1.0f);
-
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
-  immBegin(GPU_PRIM_LINES, 6);
-
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymax);
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymin);
-
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymax);
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymin);
-
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymax);
-  immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymin);
-
-  immEnd();
-  immUnbindProgram();
-}
-
 /* ****************************************************** */
 /* Main Entrypoint - Draw contents of Outliner editor */
 
@@ -2806,13 +2763,10 @@ void draw_outliner(const bContext *C)
   }
   else if ((soops->outlinevis == SO_ID_ORPHANS) && has_restrict_icons) {
     /* draw user toggle columns */
-    outliner_draw_restrictcols(ar);
     outliner_draw_userbuts(block, ar, soops, &soops->tree);
   }
   else if (has_restrict_icons) {
     /* draw restriction columns */
-    outliner_draw_restrictcols(ar);
-
     outliner_draw_restrictbuts(block, scene, view_layer, ar, soops, &soops->tree);
   }
 
