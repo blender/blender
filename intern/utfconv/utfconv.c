@@ -2,7 +2,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@
  *
  * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
- * 
+ *
  */
 
 #include "utfconv.h"
@@ -83,22 +83,22 @@ size_t count_utf_16_from_8(const char *string8)
         count++;
         u32 = 0;
         continue;
-      }  //1 utf-8 char
+      }  // 1 utf-8 char
       if ((u & 0x07 << 5) == 0xC0) {
         type = 1;
         u32 = u & 0x1F;
         continue;
-      }  //2 utf-8 char
+      }  // 2 utf-8 char
       if ((u & 0x0F << 4) == 0xE0) {
         type = 2;
         u32 = u & 0x0F;
         continue;
-      }  //3 utf-8 char
+      }  // 3 utf-8 char
       if ((u & 0x1F << 3) == 0xF0) {
         type = 3;
         u32 = u & 0x07;
         continue;
-      }  //4 utf-8 char
+      }  // 4 utf-8 char
       continue;
     }
     else {
@@ -204,22 +204,22 @@ int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16)
         out16++;
         u32 = 0;
         continue;
-      }  //1 utf-8 char
+      }  // 1 utf-8 char
       if ((u & 0x07 << 5) == 0xC0) {
         type = 1;
         u32 = u & 0x1F;
         continue;
-      }  //2 utf-8 char
+      }  // 2 utf-8 char
       if ((u & 0x0F << 4) == 0xE0) {
         type = 2;
         u32 = u & 0x0F;
         continue;
-      }  //3 utf-8 char
+      }  // 3 utf-8 char
       if ((u & 0x1F << 3) == 0xF0) {
         type = 3;
         u32 = u & 0x07;
         continue;
-      }  //4 utf-8 char
+      }  // 4 utf-8 char
       err |= UTF_ERROR_ILLCHAR;
       continue;
     }

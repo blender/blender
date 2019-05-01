@@ -2,7 +2,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@
  *
  * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
- * 
+ *
  */
 
 #ifndef __UTFCONV_H__
@@ -81,12 +81,14 @@ char *alloc_utf_8_from_16(const wchar_t *in16, size_t add);
 /**
  * Allocates and converts the utf-16 string from utf-8
  * @param in8 utf-8 string to convert
- * @param add any additional size which will be allocated for new utf-16 string in wchar_t (two bytes)
+ * @param add any additional size which will be allocated for new utf-16 string
+ * in wchar_t (two bytes)
  * @return New allocated and converted utf-16 string or NULL if in8 is 0.
  */
 wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
 
-/* Easy allocation and conversion of new utf-16 string. New string has _16 suffix. Must be deallocated with UTF16_UN_ENCODE in right order*/
+/* Easy allocation and conversion of new utf-16 string. New string has _16 suffix.
+ * Must be deallocated with UTF16_UN_ENCODE in right order. */
 #define UTF16_ENCODE(in8str) \
   if (1) { \
     wchar_t *in8str##_16 = alloc_utf16_from_8((const char *)in8str, 0)
