@@ -1312,7 +1312,7 @@ ListBase *BKE_sequence_seqbase_get(Sequence *seq, int *r_offset)
       break;
     }
     case SEQ_TYPE_SCENE: {
-      if (seq->flag & SEQ_SCENE_STRIPS) {
+      if (seq->flag & SEQ_SCENE_STRIPS && seq->scene) {
         Editing *ed = BKE_sequencer_editing_get(seq->scene, false);
         if (ed) {
           seqbase = &ed->seqbase;
