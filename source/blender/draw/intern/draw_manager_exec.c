@@ -205,7 +205,7 @@ void drw_state_set(DRWState state)
     int test;
     if (CHANGED_ANY_STORE_VAR(DRW_STATE_BLEND | DRW_STATE_BLEND_PREMUL | DRW_STATE_ADDITIVE |
                                   DRW_STATE_MULTIPLY | DRW_STATE_ADDITIVE_FULL |
-                                  DRW_STATE_BLEND_OIT,
+                                  DRW_STATE_BLEND_OIT | DRW_STATE_BLEND_PREMUL_UNDER,
                               test)) {
       if (test) {
         glEnable(GL_BLEND);
@@ -215,6 +215,9 @@ void drw_state_set(DRWState state)
                               GL_ONE_MINUS_SRC_ALPHA, /* RGB */
                               GL_ONE,
                               GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
+        }
+        else if ((state & DRW_STATE_BLEND_PREMUL_UNDER) != 0) {
+          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
         }
         else if ((state & DRW_STATE_BLEND_PREMUL) != 0) {
           glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

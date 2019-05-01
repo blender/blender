@@ -329,7 +329,7 @@ typedef enum {
   DRW_STATE_BLEND = (1 << 15),
   DRW_STATE_ADDITIVE = (1 << 16),
   DRW_STATE_MULTIPLY = (1 << 17),
-  /* DRW_STATE_TRANSMISSION  = (1 << 18), */ /* Not used */
+  DRW_STATE_BLEND_PREMUL_UNDER = (1 << 18),
   DRW_STATE_CLIP_PLANES = (1 << 19),
   /** Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
   DRW_STATE_ADDITIVE_FULL = (1 << 20),
