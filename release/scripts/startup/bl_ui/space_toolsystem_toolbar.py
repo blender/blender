@@ -1171,12 +1171,33 @@ class _defs_image_uv_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
+        def draw_cursor(context, _tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            tool_settings = context.tool_settings
+            uv_sculpt = tool_settings.uv_sculpt
+            if not uv_sculpt.show_brush:
+                return
+            ups = tool_settings.unified_paint_settings
+            if ups.use_unified_size:
+                radius = ups.size
+            else:
+                brush = tool_settings.uv_sculpt.brush
+                if brush is None:
+                    return
+                radius = brush.size
+            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+
         return generate_from_enum_ex(
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="brush.uv_sculpt.",
-            type=bpy.types.ToolSettings,
+            type=bpy.types.Brush,
             attr="uv_sculpt_tool",
+            tooldef_keywords=dict(
+                operator="sculpt.uv_sculpt_stroke",
+                keymap="Image Editor Tool: Uv, Sculpt Stroke",
+                draw_cursor=draw_cursor,
+            ),
         )
 
 

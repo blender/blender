@@ -98,7 +98,6 @@ const char *screen_context_dir[] = {
     "weight_paint_object",
     "image_paint_object",
     "particle_edit_object",
-    "uv_sculpt_object",
     "pose_object",
     "sequences",
     "selected_sequences",
@@ -518,22 +517,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       CTX_data_id_pointer_set(result, &obact->id);
     }
 
-    return 1;
-  }
-  else if (CTX_data_equals(member, "uv_sculpt_object")) {
-    /* TODO(campbell): most likely we change rules for uv_sculpt. */
-    if (obact && (obact->mode & OB_MODE_EDIT)) {
-      const ToolSettings *ts = scene->toolsettings;
-      if (ts->use_uv_sculpt) {
-        if (ED_uvedit_test(obedit)) {
-          WorkSpace *workspace = CTX_wm_workspace(C);
-          if ((workspace->tools_space_type == SPACE_IMAGE) &&
-              (workspace->tools_mode == SI_MODE_UV)) {
-            CTX_data_id_pointer_set(result, &obact->id);
-          }
-        }
-      }
-    }
     return 1;
   }
   else if (CTX_data_equals(member, "pose_object")) {

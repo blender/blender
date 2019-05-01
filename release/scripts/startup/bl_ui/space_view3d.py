@@ -2651,6 +2651,7 @@ class VIEW3D_MT_brush_paint_modes(Menu):
         brush = settings.brush
 
         layout.prop(brush, "use_paint_sculpt", text="Sculpt")
+        layout.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
         layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
         layout.prop(brush, "use_paint_weight", text="Weight Paint")
         layout.prop(brush, "use_paint_image", text="Texture Paint")

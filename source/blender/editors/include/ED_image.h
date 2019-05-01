@@ -71,9 +71,6 @@ void ED_space_image_scopes_update(const struct bContext *C,
 void ED_space_image_paint_update(struct Main *bmain,
                                  struct wmWindowManager *wm,
                                  struct Scene *scene);
-void ED_space_image_uv_sculpt_update(struct Main *bmain,
-                                     struct wmWindowManager *wm,
-                                     struct Scene *scene);
 
 void ED_image_get_uv_aspect(struct Image *ima, struct ImageUser *iuser, float *aspx, float *aspy);
 void ED_image_mouse_pos(struct SpaceImage *sima,

@@ -145,6 +145,7 @@ void BKE_paint_runtime_init(const struct ToolSettings *ts, struct Paint *paint);
 void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode);
+bool BKE_paint_ensure_from_paintmode(struct Scene *sce, ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 const struct EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode);

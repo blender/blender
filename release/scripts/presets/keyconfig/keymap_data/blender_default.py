@@ -863,8 +863,6 @@ def km_uv_editor(params):
             ("uv.minimize_stretch", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
             ("uv.pack_islands", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
             ("uv.average_islands_scale", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
-            ("wm.context_toggle", {"type": 'Q', "value": 'PRESS'},
-             {"properties": [("data_path", 'tool_settings.use_uv_sculpt')]}),
         ])
 
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
@@ -873,39 +871,6 @@ def km_uv_editor(params):
         items.extend([
             op_tool_cycle("builtin.select_box", {"type": 'W', "value": 'PRESS'}),
         ])
-
-    return keymap
-
-
-def km_uv_sculpt(_params):
-    items = []
-    keymap = (
-        "UV Sculpt",
-        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
-    )
-
-    items.extend([
-        ("wm.context_toggle", {"type": 'Q', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_uv_sculpt')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("mode", 'NORMAL')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("mode", 'INVERT')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("mode", 'RELAX')]}),
-        ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
-         {"properties": [("scalar", 0.9)]}),
-        ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
-         {"properties": [("scalar", 1.0 / 0.9)]}),
-        *_template_paint_radial_control("uv_sculpt"),
-        ("brush.uv_sculpt_tool_set", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("tool", 'RELAX')]}),
-        ("brush.uv_sculpt_tool_set", {"type": 'P', "value": 'PRESS'},
-         {"properties": [("tool", 'PINCH')]}),
-        ("brush.uv_sculpt_tool_set", {"type": 'G', "value": 'PRESS'},
-         {"properties": [("tool", 'GRAB')]}),
-    ])
 
     return keymap
 
@@ -5277,6 +5242,25 @@ def km_image_editor_tool_uv_select_lasso(params):
     )
 
 
+def km_image_editor_tool_uv_sculpt_stroke(params):
+    return (
+        "Image Editor Tool: Uv, Sculpt Stroke",
+        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.uv_sculpt_stroke", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("sculpt.uv_sculpt_stroke", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("mode", 'INVERT')]}),
+            ("sculpt.uv_sculpt_stroke", {"type": params.tool_mouse, "value": 'PRESS', "shift": True},
+             {"properties": [("mode", 'RELAX')]}),
+            ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
+             {"properties": [("scalar", 0.9)]}),
+            ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
+             {"properties": [("scalar", 1.0 / 0.9)]}),
+            *_template_paint_radial_control("uv_sculpt"),
+        ]},
+    )
+
+
 def km_node_editor_tool_select(params):
     return (
         "Node Tool: Select",
@@ -6117,7 +6101,6 @@ def generate_keymaps(params=None):
         # Editors.
         km_outliner(params),
         km_uv_editor(params),
-        km_uv_sculpt(params),
         km_view3d_generic(params),
         km_view3d(params),
         km_mask_editing(params),
@@ -6245,6 +6228,7 @@ def generate_keymaps(params=None):
         km_image_editor_tool_uv_select_box(params),
         km_image_editor_tool_uv_select_circle(params),
         km_image_editor_tool_uv_select_lasso(params),
+        km_image_editor_tool_uv_sculpt_stroke(params),
         km_node_editor_tool_select(params),
         km_node_editor_tool_select_box(params),
         km_node_editor_tool_select_lasso(params),

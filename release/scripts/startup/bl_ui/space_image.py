@@ -364,10 +364,6 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
-        layout.prop(tool_settings, "use_uv_sculpt")
-
-        layout.separator()
-
         layout.prop(uv, "use_live_unwrap")
         layout.operator("uv.unwrap")
 
@@ -555,8 +551,9 @@ class IMAGE_HT_tool_header(Header):
         if tool_mode == 'PAINT':
             if (tool is not None) and tool.has_datablock:
                 layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".paint_common_2d", category="")
-        elif context.uv_sculpt_object is not None:
-            layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".uv_sculpt", category="")
+        elif tool_mode == 'UV':
+            if (tool is not None) and tool.has_datablock:
+                layout.popover_group(space_type='IMAGE_EDITOR', region_type='UI', context=".uv_sculpt", category="")
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -573,10 +570,10 @@ class IMAGE_HT_tool_header(Header):
 
 class _draw_tool_settings_context_mode:
     @staticmethod
-    def VIEW(context, layout, _tool):
-        tool_settings = context.tool_settings
-        if tool_settings.use_uv_sculpt:
+    def UV(context, layout, tool):
+        if tool and tool.has_datablock:
             if context.mode == 'EDIT_MESH':
+                tool_settings = context.tool_settings
                 uv_sculpt = tool_settings.uv_sculpt
                 brush = uv_sculpt.brush
                 if brush:
@@ -1378,17 +1375,67 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
 
 
+class IMAGE_PT_uv_sculpt_brush(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
+    bl_category = "Tool"
+    bl_label = "Brush"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        # TODO(campbell): nicer way to check if we're in uv sculpt mode.
+        if sima and sima.show_uvedit:
+            from .space_toolsystem_common import ToolSelectPanelHelper
+            tool = ToolSelectPanelHelper.tool_active_from_context(context)
+            if tool.has_datablock:
+                return True
+        return False
+
+    def draw(self, context):
+        from .properties_paint_common import UnifiedPaintPanel
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        uvsculpt = tool_settings.uv_sculpt
+
+        layout.template_ID(uvsculpt, "brush")
+
+        brush = uvsculpt.brush
+
+        if not self.is_popover:
+            if brush:
+                col = layout.column()
+
+                row = col.row(align=True)
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
+
+                row = col.row(align=True)
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
+
+        col = layout.column()
+        col.prop(tool_settings, "uv_sculpt_lock_borders")
+        col.prop(tool_settings, "uv_sculpt_all_islands")
+
+        if brush:
+            if brush.uv_sculpt_tool == 'RELAX':
+                col.prop(tool_settings, "uv_relax_method")
+
+        col.prop(uvsculpt, "show_brush")
+
+
 class IMAGE_PT_uv_sculpt_curve(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
     bl_category = "Tool"
-    bl_label = "UV Sculpt Curve"
+    bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        return (context.uv_sculpt_object is not None)
+    poll = IMAGE_PT_uv_sculpt_brush.poll
 
     def draw(self, context):
         layout = self.layout
@@ -1408,47 +1455,6 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
             row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
             row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
-
-class IMAGE_PT_uv_sculpt(Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
-    bl_category = "Tool"
-    bl_label = "UV Sculpt"
-
-    @classmethod
-    def poll(cls, context):
-        return (context.uv_sculpt_object is not None)
-
-    def draw(self, context):
-        from .properties_paint_common import UnifiedPaintPanel
-        layout = self.layout
-
-        tool_settings = context.tool_settings
-        uvsculpt = tool_settings.uv_sculpt
-        brush = uvsculpt.brush
-
-        if not self.is_popover:
-            if brush:
-                col = layout.column()
-
-                row = col.row(align=True)
-                UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
-                UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size", text="")
-
-                row = col.row(align=True)
-                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True)
-                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength", text="")
-
-        col = layout.column()
-        col.prop(tool_settings, "uv_sculpt_lock_borders")
-        col.prop(tool_settings, "uv_sculpt_all_islands")
-
-        col.prop(tool_settings, "uv_sculpt_tool")
-        if tool_settings.uv_sculpt_tool == 'RELAX':
-            col.prop(tool_settings, "uv_relax_method")
-
-        col.prop(uvsculpt, "show_brush")
 
 
 class ImageScopesPanel:
@@ -1646,7 +1652,7 @@ classes = (
     IMAGE_PT_tools_brush_display_show_brush,
     IMAGE_PT_tools_brush_display_custom_icon,
     IMAGE_PT_tools_imagepaint_symmetry,
-    IMAGE_PT_uv_sculpt,
+    IMAGE_PT_uv_sculpt_brush,
     IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_histogram,
     IMAGE_PT_view_waveform,

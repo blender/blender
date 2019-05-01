@@ -139,121 +139,6 @@ typedef struct UvSculptData {
   char invert;
 } UvSculptData;
 
-static Brush *uv_sculpt_brush(bContext *C)
-{
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *settings = scene->toolsettings;
-
-  if (!settings->uvsculpt) {
-    return NULL;
-  }
-  return BKE_paint_brush(&settings->uvsculpt->paint);
-}
-
-static bool uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
-{
-  BMEditMesh *em;
-  int ret;
-  Object *obedit = CTX_data_edit_object(C);
-  SpaceImage *sima = CTX_wm_space_image(C);
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *toolsettings = scene->toolsettings;
-
-  if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH || !sima ||
-      ED_space_image_show_render(sima) || (sima->mode == SI_MODE_PAINT)) {
-    return 0;
-  }
-
-  em = BKE_editmesh_from_object(obedit);
-  ret = EDBM_uv_check(em);
-
-  if (ret) {
-    ARegion *ar = CTX_wm_region(C);
-    if ((!toolsettings->use_uv_sculpt) ||
-        (check_region && ar && (ar->regiontype != RGN_TYPE_WINDOW))) {
-      ret = 0;
-    }
-  }
-
-  return ret;
-}
-
-static bool uv_sculpt_brush_poll(bContext *C)
-{
-  return uv_sculpt_brush_poll_do(C, true);
-}
-
-static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(customdata))
-{
-#define PX_SIZE_FADE_MAX 12.0f
-#define PX_SIZE_FADE_MIN 4.0f
-
-  Scene *scene = CTX_data_scene(C);
-  // Brush *brush = image_paint_brush(C);
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *brush = BKE_paint_brush(paint);
-
-  if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
-    const float size = (float)BKE_brush_size_get(scene, brush);
-    float alpha = 0.5f;
-
-    /* fade out the brush (cheap trick to work around brush interfering with sampling [#])*/
-    if (size < PX_SIZE_FADE_MIN) {
-      return;
-    }
-    else if (size < PX_SIZE_FADE_MAX) {
-      alpha *= (size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
-    }
-
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor3fvAlpha(brush->add_col, alpha);
-
-    GPU_line_smooth(true);
-    GPU_blend(true);
-    imm_draw_circle_wire_2d(pos, (float)x, (float)y, size, 40);
-    GPU_blend(false);
-    GPU_line_smooth(false);
-
-    immUnbindProgram();
-  }
-#undef PX_SIZE_FADE_MAX
-#undef PX_SIZE_FADE_MIN
-}
-
-void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *scene)
-{
-  ToolSettings *settings = scene->toolsettings;
-  if (settings->use_uv_sculpt) {
-    if (settings->uvsculpt == NULL) {
-      settings->uv_sculpt_tool = UV_SCULPT_TOOL_GRAB;
-      settings->uv_sculpt_settings = UV_SCULPT_LOCK_BORDERS | UV_SCULPT_ALL_ISLANDS;
-      settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
-    }
-    BKE_paint_ensure(settings, (Paint **)&settings->uvsculpt);
-    BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT_UV, PAINT_CURSOR_SCULPT);
-
-    settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(
-        wm, SPACE_IMAGE, RGN_TYPE_WINDOW, uv_sculpt_brush_poll, brush_drawcursor_uvsculpt, NULL);
-  }
-  else {
-    if (settings->uvsculpt) {
-      WM_paint_cursor_end(wm, settings->uvsculpt->paint.paint_cursor);
-      settings->uvsculpt->paint.paint_cursor = NULL;
-    }
-  }
-}
-
-bool uv_sculpt_poll(bContext *C)
-{
-  return uv_sculpt_brush_poll_do(C, true);
-}
-
-bool uv_sculpt_keymap_poll(bContext *C)
-{
-  return uv_sculpt_brush_poll_do(C, false);
-}
-
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
  * adapted to uv smoothing by Antony Riakiatakis                           *
@@ -631,8 +516,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     int island_index = 0;
     /* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
     int *uniqueUv;
-    data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ? UV_SCULPT_TOOL_RELAX :
-                                                                          ts->uv_sculpt_tool;
+    data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
+                     UV_SCULPT_TOOL_RELAX :
+                     ts->uvsculpt->paint.brush->uv_sculpt_tool;
     data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT) ? 1 : 0;
 
     data->uvsculpt = &ts->uvsculpt->paint;
@@ -951,7 +837,7 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = uv_sculpt_stroke_invoke;
   ot->modal = uv_sculpt_stroke_modal;
-  ot->poll = uv_sculpt_poll;
+  ot->poll = ED_operator_uvedit_space_image;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

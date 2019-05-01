@@ -106,13 +106,6 @@ static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
 };
 #endif
 
-const EnumPropertyItem rna_enum_uv_sculpt_tool_items[] = {
-    {UV_SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pinch UVs"},
-    {UV_SCULPT_TOOL_RELAX, "RELAX", 0, "Relax", "Relax UVs"},
-    {UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 const EnumPropertyItem rna_enum_snap_target_items[] = {
     {SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
     {SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
@@ -706,13 +699,6 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
   if ((settings->type == GP_IPO_CURVEMAP) && (settings->custom_ipo == NULL)) {
     settings->custom_ipo = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   }
-}
-
-static void rna_SpaceImageEditor_uv_sculpt_update(Main *bmain,
-                                                  Scene *scene,
-                                                  PointerRNA *UNUSED(ptr))
-{
-  ED_space_image_uv_sculpt_update(bmain, bmain->wm.first, scene);
 }
 
 /* Read-only Iterator of all the scene objects. */
@@ -2751,13 +2737,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "particle");
   RNA_def_property_ui_text(prop, "Particle Edit", "");
 
-  prop = RNA_def_property(srna, "use_uv_sculpt", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_uv_sculpt", 1);
-  RNA_def_property_ui_text(prop, "UV Sculpt", "Enable brush for UV sculpting");
-  RNA_def_property_ui_icon(prop, ICON_TPAINT_HLT, 0);
-  RNA_def_property_update(
-      prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_uv_sculpt_update");
-
   prop = RNA_def_property(srna, "uv_sculpt_lock_borders", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_LOCK_BORDERS);
   RNA_def_property_ui_text(prop, "Lock Borders", "Disable editing of boundary edges");
@@ -2765,11 +2744,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "uv_sculpt_all_islands", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uv_sculpt_settings", UV_SCULPT_ALL_ISLANDS);
   RNA_def_property_ui_text(prop, "Sculpt All Islands", "Brush operates on all islands");
-
-  prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "uv_sculpt_tool");
-  RNA_def_property_enum_items(prop, rna_enum_uv_sculpt_tool_items);
-  RNA_def_property_ui_text(prop, "UV Sculpt Tools", "Select Tools for the UV sculpt brushes");
 
   prop = RNA_def_property(srna, "uv_relax_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "uv_relax_method");

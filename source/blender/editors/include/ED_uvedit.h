@@ -178,7 +178,6 @@ void ED_uvedit_add_simple_uvs(struct Main *bmain, struct Scene *scene, struct Ob
 /* uvedit_draw.c */
 void ED_image_draw_cursor(struct ARegion *ar, const float cursor[2]);
 void ED_uvedit_draw_main(struct SpaceImage *sima,
-                         struct ARegion *ar,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,
                          struct Object *obedit,

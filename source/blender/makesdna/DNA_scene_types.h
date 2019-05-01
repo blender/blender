@@ -803,11 +803,6 @@ typedef struct RenderProfile {
 #define UV_SCULPT_LOCK_BORDERS 1
 #define UV_SCULPT_ALL_ISLANDS 2
 
-/* ToolSettings.uv_sculpt_tool */
-#define UV_SCULPT_TOOL_PINCH 1
-#define UV_SCULPT_TOOL_RELAX 2
-#define UV_SCULPT_TOOL_GRAB 3
-
 /* ToolSettings.uv_relax_method */
 #define UV_SCULPT_TOOL_RELAX_LAPLACIAN 1
 #define UV_SCULPT_TOOL_RELAX_HC 2
@@ -1488,10 +1483,8 @@ typedef struct ToolSettings {
   char vgroupsubset;
 
   /* UV painting */
-  char _pad2[1];
-  char use_uv_sculpt;
+  char _pad2[3];
   char uv_sculpt_settings;
-  char uv_sculpt_tool;
   char uv_relax_method;
   /* XXX: these sculpt_paint_* fields are deprecated, use the
    * unified_paint_settings field instead! */

@@ -263,6 +263,8 @@ typedef struct Brush {
 
   /** Active sculpt tool. */
   char sculpt_tool;
+  /** Active sculpt tool. */
+  char uv_sculpt_tool;
   /** Active vertex paint. */
   char vertexpaint_tool;
   /** Active weight paint. */
@@ -273,7 +275,7 @@ typedef struct Brush {
   char mask_tool;
   /** Active grease pencil tool. */
   char gpencil_tool;
-  char _pad0[2];
+  char _pad0[1];
 
   float autosmooth_factor;
 
@@ -436,6 +438,13 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_CLAY_STRIPS = 18,
   SCULPT_TOOL_MASK = 19,
 } eBrushSculptTool;
+
+/* Brush.uv_sculpt_tool */
+typedef enum eBrushUVSculptTool {
+  UV_SCULPT_TOOL_GRAB = 0,
+  UV_SCULPT_TOOL_RELAX = 1,
+  UV_SCULPT_TOOL_PINCH = 2,
+} eBrushUVSculptTool;
 
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \

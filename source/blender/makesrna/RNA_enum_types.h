@@ -114,6 +114,7 @@ extern const EnumPropertyItem rna_enum_operator_return_items[];
 extern const EnumPropertyItem rna_enum_operator_property_tags[];
 
 extern const EnumPropertyItem rna_enum_brush_sculpt_tool_items[];
+extern const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_vertex_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_weight_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_gpencil_types_items[];

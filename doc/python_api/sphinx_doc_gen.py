@@ -1054,7 +1054,6 @@ context_type_map = {
     "texture_slot": ("MaterialTextureSlot", False),
     "texture_user": ("ID", False),
     "texture_user_property": ("Property", False),
-    "uv_sculpt_object": ("Object", False),
     "vertex_paint_object": ("Object", False),
     "view_layer": ("ViewLayer", False),
     "visible_bases": ("ObjectBase", True),

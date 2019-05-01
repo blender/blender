@@ -387,6 +387,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     copy_v2_fl2(scene->safe_areas.action, 0.035f, 0.035f);
   }
 
+  if (app_template == NULL) {
+    /* Enable for UV sculpt (other brush types will be created as needed),
+     * without this the grab brush will be active but not selectable from the list. */
+    Brush *brush = BLI_findstring(&bmain->brushes, "Grab", offsetof(ID, name) + 2);
+    brush->ob_mode |= OB_MODE_EDIT;
+  }
+
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
     brush->blur_kernel_radius = 2;
   }

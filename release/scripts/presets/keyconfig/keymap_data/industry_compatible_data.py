@@ -546,38 +546,6 @@ def km_uv_editor(params):
     return keymap
 
 
-def km_uv_sculpt(params):
-    items = []
-    keymap = (
-        "UV Sculpt",
-        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
-    )
-
-    items.extend([
-        ("wm.context_toggle", {"type": 'Q', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_uv_sculpt')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("mode", 'NORMAL')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("mode", 'INVERT')]}),
-        ("sculpt.uv_sculpt_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("mode", 'RELAX')]}),
-        ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
-         {"properties": [("scalar", 0.9)]}),
-        ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
-         {"properties": [("scalar", 1.0 / 0.9)]}),
-        *_template_paint_radial_control("uv_sculpt"),
-        ("brush.uv_sculpt_tool_set", {"type": 'S', "value": 'PRESS'},
-         {"properties": [("tool", 'RELAX')]}),
-        ("brush.uv_sculpt_tool_set", {"type": 'P', "value": 'PRESS'},
-         {"properties": [("tool", 'PINCH')]}),
-        ("brush.uv_sculpt_tool_set", {"type": 'G', "value": 'PRESS'},
-         {"properties": [("tool", 'GRAB')]}),
-    ])
-
-    return keymap
-
 # 3D View: all regions.
 def km_view3d_generic(_params):
     items = []
@@ -3582,7 +3550,6 @@ def generate_keymaps(params=None):
         # Editors.
         km_outliner(params),
         km_uv_editor(params),
-        km_uv_sculpt(params),
         km_view3d_generic(params),
         km_view3d(params),
         km_mask_editing(params),

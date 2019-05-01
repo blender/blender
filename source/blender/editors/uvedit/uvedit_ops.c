@@ -128,15 +128,6 @@ bool ED_uvedit_test(Object *obedit)
   return ret;
 }
 
-static bool ED_operator_uvedit_can_uv_sculpt(struct bContext *C)
-{
-  SpaceImage *sima = CTX_wm_space_image(C);
-  ToolSettings *toolsettings = CTX_data_tool_settings(C);
-  Object *obedit = CTX_data_edit_object(C);
-
-  return ED_space_image_show_uvedit(sima, obedit) && !(toolsettings->use_uv_sculpt);
-}
-
 static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -5013,7 +5004,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
   wmKeyMap *keymap;
 
   keymap = WM_keymap_ensure(keyconf, "UV Editor", 0, 0);
-  keymap->poll = ED_operator_uvedit_can_uv_sculpt;
+  keymap->poll = ED_operator_uvedit;
 }
 
 /** \} */

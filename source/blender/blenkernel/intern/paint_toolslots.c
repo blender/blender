@@ -70,6 +70,7 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain)
     paint_toolslots_init(bmain, &ts->sculpt->paint);
     paint_toolslots_init(bmain, &ts->vpaint->paint);
     paint_toolslots_init(bmain, &ts->wpaint->paint);
+    paint_toolslots_init(bmain, &ts->uvsculpt->paint);
     paint_toolslots_init(bmain, &ts->gp_paint->paint);
   }
 }

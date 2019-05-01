@@ -365,6 +365,12 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
     }
     mode = OB_MODE_SCULPT;
   }
+  else if (paint_contains_brush_slot(&ts->uvsculpt->paint, tslot, &slot_index)) {
+    if (slot_index != brush->uv_sculpt_tool) {
+      return false;
+    }
+    mode = OB_MODE_EDIT;
+  }
   else if (paint_contains_brush_slot(&ts->vpaint->paint, tslot, &slot_index)) {
     if (slot_index != brush->vertexpaint_tool) {
       return false;

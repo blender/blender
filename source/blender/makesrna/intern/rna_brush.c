@@ -94,6 +94,13 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[] = {
+    {UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
+    {UV_SCULPT_TOOL_RELAX, "RELAX", 0, "Relax", "Relax UVs"},
+    {UV_SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pinch UVs"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_brush_vertex_tool_items[] = {
     {VPAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
     {VPAINT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
@@ -1575,6 +1582,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sculpt Tool", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
 
+  prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_brush_uv_sculpt_tool_items);
+  RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
+
   prop = RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "vertexpaint_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_vertex_tool_items);
@@ -2104,6 +2116,10 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_paint_sculpt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_SCULPT);
   RNA_def_property_ui_text(prop, "Use Sculpt", "Use this brush in sculpt mode");
+
+  prop = RNA_def_property(srna, "use_paint_uv_sculpt", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_EDIT);
+  RNA_def_property_ui_text(prop, "Use UV Sculpt", "Use this brush in UV sculpt mode");
 
   prop = RNA_def_property(srna, "use_paint_vertex", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_VERTEX_PAINT);

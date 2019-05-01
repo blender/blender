@@ -140,6 +140,40 @@ void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag)
   overlay_flags &= ~(flag);
 }
 
+bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
+{
+  ToolSettings *ts = sce->toolsettings;
+  Paint **paint_ptr = NULL;
+
+  switch (mode) {
+    case PAINT_MODE_SCULPT:
+      paint_ptr = (Paint **)&ts->sculpt;
+      break;
+    case PAINT_MODE_VERTEX:
+      paint_ptr = (Paint **)&ts->vpaint;
+      break;
+    case PAINT_MODE_WEIGHT:
+      paint_ptr = (Paint **)&ts->wpaint;
+      break;
+    case PAINT_MODE_TEXTURE_2D:
+    case PAINT_MODE_TEXTURE_3D:
+      break;
+    case PAINT_MODE_SCULPT_UV:
+      paint_ptr = (Paint **)&ts->uvsculpt;
+      break;
+    case PAINT_MODE_GPENCIL:
+      paint_ptr = (Paint **)&ts->gp_paint;
+      break;
+    case PAINT_MODE_INVALID:
+      break;
+  }
+  if (paint_ptr && (*paint_ptr == NULL)) {
+    BKE_paint_ensure(ts, paint_ptr);
+    return true;
+  }
+  return false;
+}
+
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 {
   if (sce) {
@@ -182,6 +216,7 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
     case PAINT_MODE_TEXTURE_3D:
       return rna_enum_brush_image_tool_items;
     case PAINT_MODE_SCULPT_UV:
+      return rna_enum_brush_uv_sculpt_tool_items;
       return NULL;
     case PAINT_MODE_GPENCIL:
       return rna_enum_brush_gpencil_types_items;
@@ -203,6 +238,8 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
     case PAINT_MODE_TEXTURE_2D:
     case PAINT_MODE_TEXTURE_3D:
       return "image_tool";
+    case PAINT_MODE_SCULPT_UV:
+      return "uv_sculpt_tool";
     case PAINT_MODE_GPENCIL:
       return "gpencil_tool";
     default:
@@ -229,10 +266,7 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
         case OB_MODE_PAINT_GPENCIL:
           return &ts->gp_paint->paint;
         case OB_MODE_EDIT:
-          if (ts->use_uv_sculpt) {
-            return &ts->uvsculpt->paint;
-          }
-          return &ts->imapaint.paint;
+          return &ts->uvsculpt->paint;
         default:
           break;
       }
@@ -264,7 +298,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
         }
-        else if (ts->use_uv_sculpt) {
+        else if (sima->mode == SI_MODE_UV) {
           return &ts->uvsculpt->paint;
         }
       }
@@ -287,7 +321,6 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
   SpaceImage *sima;
 
   if (sce && view_layer) {
-    ToolSettings *ts = sce->toolsettings;
     Object *obact = NULL;
 
     if (view_layer->basact && view_layer->basact->object) {
@@ -299,7 +332,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return PAINT_MODE_TEXTURE_2D;
         }
-        else if (ts->use_uv_sculpt) {
+        else if (sima->mode == SI_MODE_UV) {
           return PAINT_MODE_SCULPT_UV;
         }
       }
@@ -318,10 +351,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_TEXTURE_PAINT:
           return PAINT_MODE_TEXTURE_3D;
         case OB_MODE_EDIT:
-          if (ts->use_uv_sculpt) {
-            return PAINT_MODE_SCULPT_UV;
-          }
-          return PAINT_MODE_TEXTURE_2D;
+          return PAINT_MODE_SCULPT_UV;
         default:
           return PAINT_MODE_TEXTURE_2D;
       }
@@ -355,6 +385,8 @@ ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
     switch (tref->mode) {
       case SI_MODE_PAINT:
         return PAINT_MODE_TEXTURE_2D;
+      case SI_MODE_UV:
+        return PAINT_MODE_SCULPT_UV;
     }
   }
 
@@ -395,14 +427,13 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.tool_offset = offsetof(Brush, weightpaint_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
+  else if (paint == &ts->uvsculpt->paint) {
+    paint->runtime.tool_offset = offsetof(Brush, uv_sculpt_tool);
+    paint->runtime.ob_mode = OB_MODE_EDIT;
+  }
   else if (paint == &ts->gp_paint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
     paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL;
-  }
-  else if (paint == &ts->uvsculpt->paint) {
-    /* We don't use these yet. */
-    paint->runtime.tool_offset = 0;
-    paint->runtime.ob_mode = 0;
   }
   else {
     BLI_assert(0);
@@ -421,9 +452,10 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode)
       return offsetof(Brush, vertexpaint_tool);
     case PAINT_MODE_WEIGHT:
       return offsetof(Brush, weightpaint_tool);
+    case PAINT_MODE_SCULPT_UV:
+      return offsetof(Brush, uv_sculpt_tool);
     case PAINT_MODE_GPENCIL:
       return offsetof(Brush, gpencil_tool);
-    case PAINT_MODE_SCULPT_UV:
     case PAINT_MODE_INVALID:
       break; /* We don't use these yet. */
   }

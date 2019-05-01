@@ -479,14 +479,12 @@ static void draw_uv_shadows_get(
 }
 
 void ED_uvedit_draw_main(SpaceImage *sima,
-                         ARegion *ar,
                          Scene *scene,
                          ViewLayer *view_layer,
                          Object *obedit,
                          Object *obact,
                          Depsgraph *depsgraph)
 {
-  ToolSettings *toolsettings = scene->toolsettings;
   bool show_uvedit, show_uvshadow, show_texpaint_uvshadow;
 
   show_uvedit = ED_space_image_show_uvedit(sima, obedit);
@@ -508,10 +506,6 @@ void ED_uvedit_draw_main(SpaceImage *sima,
     }
     else {
       draw_uvs_texpaint(scene, obact, depsgraph);
-    }
-
-    if (show_uvedit && !(toolsettings->use_uv_sculpt)) {
-      ED_image_draw_cursor(ar, sima->cursor);
     }
   }
 }
