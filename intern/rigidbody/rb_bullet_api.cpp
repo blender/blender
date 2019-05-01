@@ -23,26 +23,28 @@
  */
 
 /*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+ * Bullet Continuous Collision Detection and Physics Library
+ * Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+ *
+ * This software is provided 'as-is', without any express or implied warranty. In no event will the
+ * authors be held liable for any damages arising from the use of this software. Permission is
+ * granted to anyone to use this software for any purpose, including commercial applications, and
+ * to alter it and redistribute it freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not claim that you wrote the
+ *    original software. If you use this software in a product, an acknowledgment in the product
+ *    documentation would be appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be misrepresented as
+ *    being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
 
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-*/
-
-/* This file defines the "RigidBody interface" for the 
+/* This file defines the "RigidBody interface" for the
  * Bullet Physics Engine. This API is designed to be used
  * from C-code in Blender as part of the Rigid Body simulation
  * system.
  *
- * It is based on the Bullet C-API, but is heavily modified to 
+ * It is based on the Bullet C-API, but is heavily modified to
  * give access to more data types and to offer a nicer interface.
  *
  * -- Joshua Leung, June 2010
@@ -221,7 +223,7 @@ void RB_dworld_step_simulation(rbDynamicsWorld *world,
  */
 void RB_dworld_export(rbDynamicsWorld *world, const char *filename)
 {
-  //create a large enough buffer. There is no method to pre-calculate the buffer size yet.
+  // create a large enough buffer. There is no method to pre-calculate the buffer size yet.
   int maxSerializeBufferSize = 1024 * 1024 * 5;
 
   btDefaultSerializer *serializer = new btDefaultSerializer(maxSerializeBufferSize);
@@ -358,7 +360,8 @@ void RB_body_delete(rbRigidBody *object)
 
   /* body itself */
 
-  /* manually remove constraint refs of the rigid body, normally this happens when removing constraints from the world
+  /* manually remove constraint refs of the rigid body, normally this happens when removing
+   * constraints from the world
    * but since we delete everything when the world is rebult, we need to do it manually here */
   for (int i = body->getNumConstraintRefs() - 1; i >= 0; i--) {
     btTypedConstraint *con = body->getConstraintRef(i);
@@ -388,8 +391,8 @@ float RB_body_get_mass(rbRigidBody *object)
 {
   btRigidBody *body = object->body;
 
-  /* there isn't really a mass setting, but rather 'inverse mass'  
-   * which we convert back to mass by taking the reciprocal again 
+  /* there isn't really a mass setting, but rather 'inverse mass'
+   * which we convert back to mass by taking the reciprocal again
    */
   float value = (float)body->getInvMass();
 
@@ -572,7 +575,7 @@ void RB_body_deactivate(rbRigidBody *object)
 
 /* Simulation ----------------------- */
 
-/* The transform matrices Blender uses are OpenGL-style matrices, 
+/* The transform matrices Blender uses are OpenGL-style matrices,
  * while Bullet uses the Right-Handed coordinate system style instead.
  */
 
@@ -711,7 +714,8 @@ rbCollisionShape *RB_shape_new_convex_hull(
 
 /* Setup (Triangle Mesh) ---------- */
 
-/* Need to call RB_trimesh_finish() after creating triangle mesh and adding vertices and triangles */
+/* Need to call RB_trimesh_finish() after creating triangle mesh and adding vertices and triangles
+ */
 
 rbMeshData *RB_trimesh_data_new(int num_tris, int num_verts)
 {

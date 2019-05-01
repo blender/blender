@@ -83,7 +83,8 @@ void RB_dworld_set_split_impulse(rbDynamicsWorld *world, int split_impulse);
 
 /* Simulation ----------------------- */
 
-/* Step the simulation by the desired amount (in seconds) with extra controls on substep sizes and maximum substeps */
+/* Step the simulation by the desired amount (in seconds) with extra controls on substep sizes and
+ * maximum substeps */
 void RB_dworld_step_simulation(rbDynamicsWorld *world,
                                float timeStep,
                                int maxSubSteps,
