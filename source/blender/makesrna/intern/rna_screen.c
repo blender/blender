@@ -149,11 +149,16 @@ static void rna_Area_type_set(PointerRNA *ptr, int value)
 
 static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win;
   bScreen *sc = (bScreen *)ptr->id.data;
   ScrArea *sa = (ScrArea *)ptr->data;
 
+  /* Running update without having called 'set', see: T64049 */
+  if (sa->butspacetype == SPACE_EMPTY) {
+    return;
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win;
   /* XXX this call still use context, so we trick it to work in the right context */
   for (win = wm->windows.first; win; win = win->next) {
     if (sc == WM_window_get_active_screen(win)) {
