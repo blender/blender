@@ -61,7 +61,7 @@ static int sound_cfra;
 static char **audio_device_names = NULL;
 #endif
 
-bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 {
   bSound *sound;
   const char *path;
@@ -82,7 +82,7 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
   return sound;
 }
 
-bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists)
+bSound *BKE_sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   bSound *sound;
   char str[FILE_MAX], strtest[FILE_MAX];
@@ -110,7 +110,7 @@ bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, b
   return BKE_sound_new_file(bmain, filepath);
 }
 
-bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath)
 {
   return BKE_sound_new_file_exists_ex(bmain, filepath, NULL);
 }
@@ -198,8 +198,8 @@ static void sound_sync_callback(void *data, int mode, float time)
     return;
   }
 
-  struct Main *bmain = (struct Main *)data;
-  struct Scene *scene;
+  Main *bmain = (Main *)data;
+  Scene *scene;
 
   scene = bmain->scenes.first;
   while (scene) {
@@ -237,7 +237,7 @@ void *BKE_sound_get_device(void)
   return sound_device;
 }
 
-void BKE_sound_init(struct Main *bmain)
+void BKE_sound_init(Main *bmain)
 {
   /* Make sure no instance of the sound system is running, otherwise we get leaks. */
   BKE_sound_exit();
@@ -291,7 +291,7 @@ void BKE_sound_init(struct Main *bmain)
   BKE_sound_init_main(bmain);
 }
 
-void BKE_sound_init_main(struct Main *bmain)
+void BKE_sound_init_main(Main *bmain)
 {
 #  ifdef WITH_JACK
   if (sound_device) {
@@ -326,7 +326,7 @@ void BKE_sound_exit_once(void)
 
 /* XXX unused currently */
 #  if 0
-bSound *BKE_sound_new_buffer(struct Main *bmain, bSound *source)
+bSound *BKE_sound_new_buffer(Main *bmain, bSound *source)
 {
   bSound *sound = NULL;
 
@@ -344,7 +344,7 @@ bSound *BKE_sound_new_buffer(struct Main *bmain, bSound *source)
   return sound;
 }
 
-bSound *BKE_sound_new_limiter(struct Main *bmain, bSound *source, float start, float end)
+bSound *BKE_sound_new_limiter(Main *bmain, bSound *source, float start, float end)
 {
   bSound *sound = NULL;
 
@@ -391,7 +391,7 @@ void BKE_sound_delete_cache(bSound *sound)
   }
 }
 
-void BKE_sound_load(struct Main *bmain, bSound *sound)
+void BKE_sound_load(Main *bmain, bSound *sound)
 {
   if (sound) {
     if (sound->cache) {
@@ -468,12 +468,12 @@ void BKE_sound_load(struct Main *bmain, bSound *sound)
   }
 }
 
-AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
+AUD_Device *BKE_sound_mixdown(Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
   return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);
 }
 
-void BKE_sound_create_scene(struct Scene *scene)
+void BKE_sound_create_scene(Scene *scene)
 {
   /* should be done in version patch, but this gets called before */
   if (scene->r.frs_sec_base == 0) {
@@ -489,7 +489,7 @@ void BKE_sound_create_scene(struct Scene *scene)
   scene->speaker_handles = NULL;
 }
 
-void BKE_sound_destroy_scene(struct Scene *scene)
+void BKE_sound_destroy_scene(Scene *scene)
 {
   if (scene->playback_handle) {
     AUD_Handle_stop(scene->playback_handle);
@@ -505,7 +505,7 @@ void BKE_sound_destroy_scene(struct Scene *scene)
   }
 }
 
-void BKE_sound_reset_scene_specs(struct Scene *scene)
+void BKE_sound_reset_scene_specs(Scene *scene)
 {
   AUD_Specs specs;
 
@@ -515,14 +515,14 @@ void BKE_sound_reset_scene_specs(struct Scene *scene)
   AUD_Sequence_setSpecs(scene->sound_scene, specs);
 }
 
-void BKE_sound_mute_scene(struct Scene *scene, int muted)
+void BKE_sound_mute_scene(Scene *scene, int muted)
 {
   if (scene->sound_scene) {
     AUD_Sequence_setMuted(scene->sound_scene, muted);
   }
 }
 
-void BKE_sound_update_fps(struct Scene *scene)
+void BKE_sound_update_fps(Scene *scene)
 {
   if (scene->sound_scene) {
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
@@ -531,7 +531,7 @@ void BKE_sound_update_fps(struct Scene *scene)
   BKE_sequencer_refresh_sound_length(scene);
 }
 
-void BKE_sound_update_scene_listener(struct Scene *scene)
+void BKE_sound_update_scene_listener(Scene *scene)
 {
   AUD_Sequence_setSpeedOfSound(scene->sound_scene, scene->audio.speed_of_sound);
   AUD_Sequence_setDopplerFactor(scene->sound_scene, scene->audio.doppler_factor);
@@ -539,7 +539,7 @@ void BKE_sound_update_scene_listener(struct Scene *scene)
 }
 
 void *BKE_sound_scene_add_scene_sound(
-    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
 {
   if (sequence->scene && scene != sequence->scene) {
     const double fps = FPS;
@@ -552,7 +552,7 @@ void *BKE_sound_scene_add_scene_sound(
   return NULL;
 }
 
-void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence)
+void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_scene_add_scene_sound(scene,
                                          sequence,
@@ -562,7 +562,7 @@ void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Seque
 }
 
 void *BKE_sound_add_scene_sound(
-    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
 {
   /* Happens when sequence's sound datablock was removed. */
   if (sequence->sound == NULL) {
@@ -581,7 +581,7 @@ void *BKE_sound_add_scene_sound(
   return handle;
 }
 
-void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence)
+void *BKE_sound_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
@@ -590,7 +590,7 @@ void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence *s
                                    sequence->startofs + sequence->anim_startofs);
 }
 
-void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle)
+void BKE_sound_remove_scene_sound(Scene *scene, void *handle)
 {
   AUD_Sequence_remove(scene->sound_scene, handle);
 }
@@ -601,13 +601,13 @@ void BKE_sound_mute_scene_sound(void *handle, char mute)
 }
 
 void BKE_sound_move_scene_sound(
-    struct Scene *scene, void *handle, int startframe, int endframe, int frameskip)
+    Scene *scene, void *handle, int startframe, int endframe, int frameskip)
 {
   const double fps = FPS;
   AUD_SequenceEntry_move(handle, startframe / fps, endframe / fps, frameskip / fps);
 }
 
-void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence)
+void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   if (sequence->scene_sound) {
     BKE_sound_move_scene_sound(scene,
@@ -628,7 +628,7 @@ void BKE_sound_set_cfra(int cfra)
   sound_cfra = cfra;
 }
 
-void BKE_sound_set_scene_volume(struct Scene *scene, float volume)
+void BKE_sound_set_scene_volume(Scene *scene, float volume)
 {
   AUD_Sequence_setAnimationData(scene->sound_scene,
                                 AUD_AP_VOLUME,
@@ -653,16 +653,16 @@ void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
 }
 
-void BKE_sound_update_sequencer(struct Main *main, bSound *sound)
+void BKE_sound_update_sequencer(Main *main, bSound *sound)
 {
-  struct Scene *scene;
+  Scene *scene;
 
   for (scene = main->scenes.first; scene; scene = scene->id.next) {
     BKE_sequencer_update_sound(scene, sound);
   }
 }
 
-static void sound_start_play_scene(struct Scene *scene)
+static void sound_start_play_scene(Scene *scene)
 {
   if (scene->playback_handle) {
     AUD_Handle_stop(scene->playback_handle);
@@ -675,7 +675,7 @@ static void sound_start_play_scene(struct Scene *scene)
   }
 }
 
-void BKE_sound_play_scene(struct Scene *scene)
+void BKE_sound_play_scene(Scene *scene)
 {
   AUD_Status status;
   const float cur_time = (float)((double)CFRA / FPS);
@@ -706,7 +706,7 @@ void BKE_sound_play_scene(struct Scene *scene)
   AUD_Device_unlock(sound_device);
 }
 
-void BKE_sound_stop_scene(struct Scene *scene)
+void BKE_sound_stop_scene(Scene *scene)
 {
   if (scene->playback_handle) {
     AUD_Handle_pause(scene->playback_handle);
@@ -717,7 +717,7 @@ void BKE_sound_stop_scene(struct Scene *scene)
   }
 }
 
-void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
+void BKE_sound_seek_scene(Main *bmain, Scene *scene)
 {
   AUD_Status status;
   bScreen *screen;
@@ -781,7 +781,7 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
   AUD_Device_unlock(sound_device);
 }
 
-float BKE_sound_sync_scene(struct Scene *scene)
+float BKE_sound_sync_scene(Scene *scene)
 {
   // Ugly: Blender doesn't like it when the animation is played back during rendering
   if (G.is_rendering) {
@@ -799,7 +799,7 @@ float BKE_sound_sync_scene(struct Scene *scene)
   return NAN_FLT;
 }
 
-int BKE_sound_scene_playing(struct Scene *scene)
+int BKE_sound_scene_playing(Scene *scene)
 {
   // Ugly: Blender doesn't like it when the animation is played back during rendering
   if (G.is_rendering) {
@@ -1016,7 +1016,7 @@ void BKE_sound_force_device(const char *UNUSED(device))
 void BKE_sound_init_once(void)
 {
 }
-void BKE_sound_init(struct Main *UNUSED(bmain))
+void BKE_sound_init(Main *UNUSED(bmain))
 {
 }
 void BKE_sound_exit(void)
@@ -1025,110 +1025,107 @@ void BKE_sound_exit(void)
 void BKE_sound_exit_once(void)
 {
 }
-void BKE_sound_cache(struct bSound *UNUSED(sound))
+void BKE_sound_cache(bSound *UNUSED(sound))
 {
 }
-void BKE_sound_delete_cache(struct bSound *UNUSED(sound))
+void BKE_sound_delete_cache(bSound *UNUSED(sound))
 {
 }
-void BKE_sound_load(struct Main *UNUSED(bmain), struct bSound *UNUSED(sound))
+void BKE_sound_load(Main *UNUSED(bmain), bSound *UNUSED(sound))
 {
 }
-void BKE_sound_create_scene(struct Scene *UNUSED(scene))
+void BKE_sound_create_scene(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_destroy_scene(struct Scene *UNUSED(scene))
+void BKE_sound_destroy_scene(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_reset_scene_specs(struct Scene *UNUSED(scene))
+void BKE_sound_reset_scene_specs(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_mute_scene(struct Scene *UNUSED(scene), int UNUSED(muted))
+void BKE_sound_mute_scene(Scene *UNUSED(scene), int UNUSED(muted))
 {
 }
-void *BKE_sound_scene_add_scene_sound(struct Scene *UNUSED(scene),
-                                      struct Sequence *UNUSED(sequence),
+void *BKE_sound_scene_add_scene_sound(Scene *UNUSED(scene),
+                                      Sequence *UNUSED(sequence),
                                       int UNUSED(startframe),
                                       int UNUSED(endframe),
                                       int UNUSED(frameskip))
 {
   return NULL;
 }
-void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *UNUSED(scene),
-                                               struct Sequence *UNUSED(sequence))
+void *BKE_sound_scene_add_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence))
 {
   return NULL;
 }
-void *BKE_sound_add_scene_sound(struct Scene *UNUSED(scene),
-                                struct Sequence *UNUSED(sequence),
+void *BKE_sound_add_scene_sound(Scene *UNUSED(scene),
+                                Sequence *UNUSED(sequence),
                                 int UNUSED(startframe),
                                 int UNUSED(endframe),
                                 int UNUSED(frameskip))
 {
   return NULL;
 }
-void *BKE_sound_add_scene_sound_defaults(struct Scene *UNUSED(scene),
-                                         struct Sequence *UNUSED(sequence))
+void *BKE_sound_add_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence))
 {
   return NULL;
 }
-void BKE_sound_remove_scene_sound(struct Scene *UNUSED(scene), void *UNUSED(handle))
+void BKE_sound_remove_scene_sound(Scene *UNUSED(scene), void *UNUSED(handle))
 {
 }
 void BKE_sound_mute_scene_sound(void *UNUSED(handle), char UNUSED(mute))
 {
 }
-void BKE_sound_move_scene_sound(struct Scene *UNUSED(scene),
+void BKE_sound_move_scene_sound(Scene *UNUSED(scene),
                                 void *UNUSED(handle),
                                 int UNUSED(startframe),
                                 int UNUSED(endframe),
                                 int UNUSED(frameskip))
 {
 }
-void BKE_sound_move_scene_sound_defaults(struct Scene *UNUSED(scene),
-                                         struct Sequence *UNUSED(sequence))
+void BKE_sound_move_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence))
 {
 }
-void BKE_sound_play_scene(struct Scene *UNUSED(scene))
+void BKE_sound_play_scene(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_stop_scene(struct Scene *UNUSED(scene))
+void BKE_sound_stop_scene(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene))
+void BKE_sound_seek_scene(Main *UNUSED(bmain), Scene *UNUSED(scene))
 {
 }
-float BKE_sound_sync_scene(struct Scene *UNUSED(scene))
+float BKE_sound_sync_scene(Scene *UNUSED(scene))
 {
   return NAN_FLT;
 }
-int BKE_sound_scene_playing(struct Scene *UNUSED(scene))
+int BKE_sound_scene_playing(Scene *UNUSED(scene))
 {
   return -1;
 }
-void BKE_sound_read_waveform(struct bSound *sound, short *stop)
+void BKE_sound_read_waveform(bSound *sound, short *stop)
 {
   UNUSED_VARS(sound, stop);
 }
-void BKE_sound_init_main(struct Main *UNUSED(bmain))
+void BKE_sound_init_main(Main *UNUSED(bmain))
 {
 }
 void BKE_sound_set_cfra(int UNUSED(cfra))
 {
 }
-void BKE_sound_update_sequencer(struct Main *UNUSED(main), struct bSound *UNUSED(sound))
+void BKE_sound_update_sequencer(Main *UNUSED(main), bSound *UNUSED(sound))
 {
 }
-void BKE_sound_update_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene))
+void BKE_sound_update_scene(Main *UNUSED(bmain), Scene *UNUSED(scene))
 {
 }
-void BKE_sound_update_scene_sound(void *UNUSED(handle), struct bSound *UNUSED(sound))
+void BKE_sound_update_scene_sound(void *UNUSED(handle), bSound *UNUSED(sound))
 {
 }
-void BKE_sound_update_scene_listener(struct Scene *UNUSED(scene))
+void BKE_sound_update_scene_listener(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_update_fps(struct Scene *UNUSED(scene))
+void BKE_sound_update_fps(Scene *UNUSED(scene))
 {
 }
 void BKE_sound_set_scene_sound_volume(void *UNUSED(handle),
@@ -1139,7 +1136,7 @@ void BKE_sound_set_scene_sound_volume(void *UNUSED(handle),
 void BKE_sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char UNUSED(animated))
 {
 }
-void BKE_sound_set_scene_volume(struct Scene *UNUSED(scene), float UNUSED(volume))
+void BKE_sound_set_scene_volume(Scene *UNUSED(scene), float UNUSED(volume))
 {
 }
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
@@ -1147,7 +1144,7 @@ void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
                                      char UNUSED(animated))
 {
 }
-float BKE_sound_get_length(struct bSound *UNUSED(sound))
+float BKE_sound_get_length(bSound *UNUSED(sound))
 {
   return 0;
 }
