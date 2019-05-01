@@ -126,15 +126,17 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new);
 
 ATOMIC_INLINE float atomic_cas_float(float *v, float old, float _new);
 
-/* WARNING! Float 'atomics' are really faked ones, those are actually closer to some kind of spinlock-sync'ed operation,
- *          which means they are only efficient if collisions are highly unlikely (i.e. if probability of two threads
- *          working on the same pointer at the same time is very low). */
+/* WARNING! Float 'atomics' are really faked ones, those are actually closer to some kind of
+ * spinlock-sync'ed operation, which means they are only efficient if collisions are highly
+ * unlikely (i.e. if probability of two threads working on the same pointer at the same time is
+ * very low). */
 ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x);
 
 /******************************************************************************/
 /* Include system-dependent implementations. */
 
-/* Note that we are using _unix flavor as fallback here (it will raise precompiler errors as needed). */
+/* Note that we are using _unix flavor as fallback here
+ * (it will raise precompiler errors as needed). */
 #if defined(_MSC_VER)
 #  include "intern/atomic_ops_msvc.h"
 #else
