@@ -1693,7 +1693,7 @@ static void do_render_all_options(Render *re)
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  BKE_sequencer_all_free_anim_ibufs(re->main, re->r.cfra);
+  BKE_sequencer_all_free_anim_ibufs(re->scene, re->r.cfra);
 
   /* Update for sequencer and compositing animation.
    * TODO: ideally we would create a depsgraph with a copy of the scene

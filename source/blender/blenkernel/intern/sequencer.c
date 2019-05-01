@@ -5999,15 +5999,12 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
   }
 }
 
-void BKE_sequencer_all_free_anim_ibufs(Main *bmain, int cfra)
+void BKE_sequencer_all_free_anim_ibufs(Scene *scene, int cfra)
 {
-  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-    Editing *ed = BKE_sequencer_editing_get(scene, false);
-    if (ed == NULL) {
-      /* Ignore scenes without sequencer. */
-      continue;
-    }
-    sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
-    BKE_sequencer_cache_cleanup(scene);
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  if (ed == NULL) {
+    return;
   }
+  sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
+  BKE_sequencer_cache_cleanup(scene);
 }

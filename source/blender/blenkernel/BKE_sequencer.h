@@ -566,6 +566,6 @@ void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb,
                                        bool make_float,
                                        struct ImBuf *mask_input);
 
-void BKE_sequencer_all_free_anim_ibufs(struct Main *bmain, int cfra);
+void BKE_sequencer_all_free_anim_ibufs(struct Scene *scene, int cfra);
 
 #endif /* __BKE_SEQUENCER_H__ */
