@@ -1581,7 +1581,7 @@ static void rna_def_userdef_theme_spaces_vertex(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Vertex Select", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "vertex_size", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "vertex_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 32);
   RNA_def_property_ui_text(prop, "Vertex Size", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -1656,7 +1656,7 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Face Dot Selected", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "facedot_size", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "facedot_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 10);
   RNA_def_property_ui_text(prop, "Face Dot Size", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -1803,7 +1803,7 @@ static void rna_def_userdef_theme_spaces_curves(
     RNA_def_property_ui_text(prop, "Handle Vertex Select", "");
     RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-    prop = RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
+    prop = RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_PIXEL);
     RNA_def_property_range(prop, 1, 100);
     RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
     RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -1824,7 +1824,7 @@ static void rna_def_userdef_theme_spaces_gpencil(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Grease Pencil Vertex Select", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "gp_vertex_size", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "gp_vertex_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 10);
   RNA_def_property_ui_text(prop, "Grease Pencil Vertex Size", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -2027,7 +2027,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 
   rna_def_userdef_theme_spaces_paint_curves(srna);
 
-  prop = RNA_def_property(srna, "outline_width", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "outline_width", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 5);
   RNA_def_property_ui_text(prop, "Outline Width", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -4071,7 +4071,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "Show a small rotating 3D axes in the top right corner of the 3D View");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "rvisize");
   RNA_def_property_range(prop, 10, 64);
   RNA_def_property_ui_text(prop, "Mini Axes Size", "The axes icon's size");
