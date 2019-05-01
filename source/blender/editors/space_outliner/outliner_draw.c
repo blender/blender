@@ -2519,7 +2519,7 @@ static void outliner_draw_highlights_recursive(unsigned pos,
     /* selection status */
     if (tselem->flag & TSE_SELECTED) {
       immUniformColor4fv(col_selection);
-      immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+      immRecti(pos, 0, start_y, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y);
     }
 
     /* highlights */
@@ -2533,15 +2533,15 @@ static void outliner_draw_highlights_recursive(unsigned pos,
 
         if (tselem->flag & TSE_DRAG_BEFORE) {
           immUniformColor4fv(col);
-          immRecti(pos, start_x, start_y + UI_UNIT_Y - 1, end_x, start_y + UI_UNIT_Y + 1);
+          immRecti(pos, start_x, start_y + UI_UNIT_Y, end_x, start_y + UI_UNIT_Y);
         }
         else if (tselem->flag & TSE_DRAG_AFTER) {
           immUniformColor4fv(col);
-          immRecti(pos, start_x, start_y - 1, end_x, start_y + 1);
+          immRecti(pos, start_x, start_y, end_x, start_y);
         }
         else {
           immUniformColor3fvAlpha(col, col[3] * 0.5f);
-          immRecti(pos, start_x, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+          immRecti(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
         }
       }
       else {
@@ -2550,12 +2550,12 @@ static void outliner_draw_highlights_recursive(unsigned pos,
            *   we don't expand items when searching in the datablocks but we
            *   still want to highlight any filter matches. */
           immUniformColor4fv(col_searchmatch);
-          immRecti(pos, start_x, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+          immRecti(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
         }
         else if (tselem->flag & TSE_HIGHLIGHTED) {
           /* mouse hover highlight */
           immUniformColor4fv(col_highlight);
-          immRecti(pos, 0, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+          immRecti(pos, 0, start_y, end_x, start_y + UI_UNIT_Y);
         }
       }
     }
