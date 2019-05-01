@@ -932,9 +932,15 @@ static short copy_graph_keys(bAnimContext *ac)
   /* clear buffer first */
   ANIM_fcurves_copybuf_free();
 
-  /* filter data */
+  /* filter data
+   * - First time we try to filter more strictly, allowing only selected channels
+   *   to allow copying animation between channels
+   */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0) {
+    ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  }
 
   /* copy keyframes */
   ok = copy_animedit_keys(ac, &anim_data);
