@@ -40,6 +40,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_paint.h"
 #include "BKE_pointcache.h"
 
 #include "draw_manager.h"
@@ -210,6 +211,11 @@ bool DRW_object_use_hide_faces(const struct Object *ob)
   }
 
   return false;
+}
+
+bool DRW_object_use_pbvh_drawing(const struct Object *ob)
+{
+  return ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT);
 }
 
 bool DRW_object_is_visible_psys_in_active_context(const Object *object, const ParticleSystem *psys)
