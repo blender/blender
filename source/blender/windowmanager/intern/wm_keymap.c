@@ -145,7 +145,7 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
   }
 }
 
-static void wm_keyconfig_properties_update_ot(ListBase *km_lb)
+static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb)
 {
   wmKeyMap *km;
   wmKeyMapItem *kmi;
@@ -184,7 +184,7 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
 }
 
 /* properties can be NULL, otherwise the arg passed is used and ownership is given to the kmi */
-void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
+void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
 {
   if (LIKELY(kmi->ptr)) {
     WM_operator_properties_free(kmi->ptr);
@@ -198,7 +198,7 @@ void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties
   wm_keymap_item_properties_set(kmi);
 }
 
-int WM_keymap_map_type_get(wmKeyMapItem *kmi)
+int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi)
 {
   if (ISTIMER(kmi->type)) {
     return KMI_TYPE_TIMER;
@@ -1868,11 +1868,11 @@ void WM_keyconfig_update(wmWindowManager *wm)
     int i;
 
     for (i = 0; keymaps_lb[i]; i++) {
-      wm_keyconfig_properties_update_ot(keymaps_lb[i]);
+      wm_keymap_item_properties_update_ot_from_list(keymaps_lb[i]);
     }
 
     for (kc = wm->keyconfigs.first; kc; kc = kc->next) {
-      wm_keyconfig_properties_update_ot(&kc->keymaps);
+      wm_keymap_item_properties_update_ot_from_list(&kc->keymaps);
     }
 
     wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
@@ -1984,7 +1984,7 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
  * In the keymap editor the user key configuration is edited.
  * \{ */
 
-void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapItem *kmi)
+void WM_keymap_item_restore_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmKeyMap *defaultmap, *addonmap;
@@ -2011,7 +2011,7 @@ void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
     /* restore to original */
     if (!STREQ(orig->idname, kmi->idname)) {
       BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
-      WM_keymap_properties_reset(kmi, NULL);
+      WM_keymap_item_properties_reset(kmi, NULL);
     }
 
     if (orig->properties) {

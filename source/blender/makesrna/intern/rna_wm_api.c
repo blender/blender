@@ -82,7 +82,7 @@ static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
 
 static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyMapItem *kmi)
 {
-  WM_keymap_restore_item_to_default(C, km, kmi);
+  WM_keymap_item_restore_to_default(C, km, kmi);
 }
 
 static void rna_Operator_report(wmOperator *op, int type, const char *msg)

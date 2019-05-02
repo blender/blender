@@ -847,7 +847,7 @@ static int rna_wmKeyMapItem_map_type_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = ptr->data;
 
-  return WM_keymap_map_type_get(kmi);
+  return WM_keymap_item_map_type_get(kmi);
 }
 
 static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
@@ -1169,7 +1169,7 @@ static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
   if (!STREQ(idname, kmi->idname)) {
     BLI_strncpy(kmi->idname, idname, sizeof(kmi->idname));
 
-    WM_keymap_properties_reset(kmi, NULL);
+    WM_keymap_item_properties_reset(kmi, NULL);
   }
 }
 

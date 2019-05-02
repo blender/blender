@@ -148,7 +148,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
   if (prop) {
     prop = IDP_CopyProperty(prop);
   }
-  WM_keymap_properties_reset(kmi, prop);
+  WM_keymap_item_properties_reset(kmi, prop);
 
   /* update and get pointers again */
   WM_keyconfig_update(wm);

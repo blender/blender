@@ -149,11 +149,11 @@ void WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 /* Keymap Editor */
 
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap, struct bContext *C);
-void WM_keymap_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
-void WM_keymap_restore_item_to_default(struct bContext *C,
+void WM_keymap_item_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
+void WM_keymap_item_restore_to_default(struct bContext *C,
                                        struct wmKeyMap *keymap,
                                        struct wmKeyMapItem *kmi);
-int WM_keymap_map_type_get(struct wmKeyMapItem *kmi);
+int WM_keymap_item_map_type_get(const struct wmKeyMapItem *kmi);
 
 /* Key Event */
 
