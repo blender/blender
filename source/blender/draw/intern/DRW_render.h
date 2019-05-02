@@ -659,8 +659,6 @@ void DRW_state_reset_ex(DRWState state);
 void DRW_state_reset(void);
 void DRW_state_lock(DRWState state);
 
-void DRW_state_invert_facing(void);
-
 void DRW_state_clip_planes_len_set(uint plane_len);
 void DRW_state_clip_planes_reset(void);
 void DRW_state_clip_planes_set_from_rv3d(struct RegionView3D *rv3d);

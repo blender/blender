@@ -404,13 +404,6 @@ void DRW_state_reset(void)
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-/* NOTE : Make sure to reset after use! */
-void DRW_state_invert_facing(void)
-{
-  SWAP(GLenum, DST.backface, DST.frontface);
-  glFrontFace(DST.frontface);
-}
-
 /**
  * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
  * and if the shaders have support for it (see usage of gl_ClipDistance).
