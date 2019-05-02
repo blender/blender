@@ -3358,7 +3358,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             # Removal Operators
             if selected_verts_len > 1:
-                col.operator("mesh.merge", text="Merge Vertices...")
+                col.operator_menu_enum("mesh.merge", "type", text="Merge Vertices")
                 col.operator("mesh.remove_doubles", text="Remove Double Vertices")
             col.operator("mesh.dissolve_verts")
             col.operator("mesh.delete", text="Delete Vertices").type = 'VERT'
@@ -3562,7 +3562,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.merge", text="Merge Vertices")
+        layout.operator_menu_enum("mesh.merge", "type", text="Merge Vertices")
         layout.operator("mesh.remove_doubles", text="Remove Double Vertices")
 
         layout.separator()
