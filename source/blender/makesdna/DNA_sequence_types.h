@@ -134,7 +134,7 @@ typedef struct Sequence {
   /** SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
   char name[64];
 
-  /**fLags bitmap (see below) and the type of sequenc.e*/
+  /** Flags bitmap (see below) and the type of sequence. */
   int flag, type;
   /** The length of the contents of this strip - before handles are applied. */
   int len;
@@ -155,7 +155,7 @@ typedef struct Sequence {
   int startstill, endstill;
   /** Machine: the strip channel, depth the depth in the sequence when dealing with metastrips. */
   int machine, depth;
-  /** Starting and ending points of the strip in the sequenc.e*/
+  /** Starting and ending points of the strip in the sequence. */
   int startdisp, enddisp;
   float sat;
   float mul, handsize;
