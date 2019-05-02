@@ -764,11 +764,11 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   else if (arm->flag & ARM_MIRROR_EDIT) {
-    /* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
-     * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone
+    /* For X-Axis Mirror Editing option, we may need a mirror copy of actbone:
+     * - If there's a mirrored copy of selbone, try to find a mirrored copy of actbone
      *   (i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-     * This is useful for arm-chains, for example parenting lower arm to upper arm
-     * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+     *   This is useful for arm-chains, for example parenting lower arm to upper arm.
+     * - If there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
      *   then just use actbone. Useful when doing upper arm to spine.
      */
     actmirb = ED_armature_ebone_get_mirrored(arm->edbo, actbone);
@@ -777,10 +777,22 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* if there is only 1 selected bone, we assume that that is the active bone,
-   * since a user will need to have clicked on a bone (thus selecting it) to make it active
-   */
-  if (CTX_DATA_COUNT(C, selected_editable_bones) <= 1) {
+  /* If there is only 1 selected bone, we assume that that is the active bone,
+   * since a user will need to have clicked on a bone (thus selecting it) to make it active. */
+  bool is_active_only_selected = false;
+  if (actbone->flag & BONE_SELECTED) {
+    is_active_only_selected = true;
+    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+      if (EBONE_EDITABLE(ebone) && (ebone->flag & BONE_SELECTED)) {
+        if (ebone != actbone) {
+          is_active_only_selected = false;
+          break;
+        }
+      }
+    }
+  }
+
+  if (is_active_only_selected) {
     /* When only the active bone is selected, and it has a parent,
      * connect it to the parent, as that is the only possible outcome.
      */
@@ -793,26 +805,31 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    /* Parent 'selected' bones to the active one
-     * - the context iterator contains both selected bones and their mirrored copies,
-     *   so we assume that unselected bones are mirrored copies of some selected bone
-     * - since the active one (and/or its mirror) will also be selected, we also need
+    /* Parent 'selected' bones to the active one:
+     * - The context iterator contains both selected bones and their mirrored copies,
+     *   so we assume that unselected bones are mirrored copies of some selected bone.
+     * - Since the active one (and/or its mirror) will also be selected, we also need
      *   to check that we are not trying to operate on them, since such an operation
-     *   would cause errors
+     *   would cause errors.
      */
 
-    /* parent selected bones to the active one */
-    CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
-      if (ELEM(ebone, actbone, actmirb) == 0) {
-        if (ebone->flag & BONE_SELECTED) {
+    /* Parent selected bones to the active one. */
+    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+      if (EBONE_EDITABLE(ebone) && (ebone->flag & BONE_SELECTED)) {
+        if (ebone != actbone) {
           bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
         }
-        else {
-          bone_connect_to_new_parent(arm->edbo, ebone, actmirb, val);
+
+        if (arm->flag & ARM_MIRROR_EDIT) {
+          EditBone *ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          if (ebone_mirror && (ebone_mirror->flag & BONE_SELECTED) == 0) {
+            if (ebone_mirror != actmirb) {
+              bone_connect_to_new_parent(arm->edbo, ebone_mirror, actmirb, val);
+            }
+          }
         }
       }
     }
-    CTX_DATA_END;
   }
 
   /* note, notifier might evolve */
@@ -825,25 +842,29 @@ static int armature_parent_set_invoke(bContext *C,
                                       wmOperator *UNUSED(op),
                                       const wmEvent *UNUSED(event))
 {
-  EditBone *actbone = CTX_data_active_bone(C);
-  uiPopupMenu *pup = UI_popup_menu_begin(
-      C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-  int allchildbones = 0;
-
-  CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
-    if (ebone != actbone) {
-      if (ebone->parent != actbone) {
-        allchildbones = 1;
+  bool all_childbones = false;
+  {
+    Object *ob = CTX_data_edit_object(C);
+    bArmature *arm = ob->data;
+    EditBone *actbone = arm->act_edbone;
+    for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+      if (EBONE_EDITABLE(ebone) && (ebone->flag & BONE_SELECTED)) {
+        if (ebone != actbone) {
+          if (ebone->parent != actbone) {
+            all_childbones = true;
+            break;
+          }
+        }
       }
     }
   }
-  CTX_DATA_END;
 
+  uiPopupMenu *pup = UI_popup_menu_begin(
+      C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
+  uiLayout *layout = UI_popup_menu_layout(pup);
   uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_CONNECT);
-
-  /* ob becomes parent, make the associated menus */
-  if (allchildbones) {
+  if (all_childbones) {
+    /* Object becomes parent, make the associated menus. */
     uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);
   }
 
