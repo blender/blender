@@ -670,7 +670,7 @@ typedef struct RenderData {
   /**
    * The number of samples to use per pixel.
    */
-  short osa;
+  short osa DNA_DEPRECATED;
 
   short frs_sec;
   char _pad[6];
@@ -1566,6 +1566,11 @@ typedef struct SceneDisplay {
   float matcap_ssao_attenuation;
   int matcap_ssao_samples;
 
+  /** Method of AA for viewport rendering and image rendering */
+  char viewport_aa;
+  char render_aa;
+  char _pad[6];
+
   /** OpenGL render engine settings. */
   View3DShading shading;
 } SceneDisplay;
@@ -1772,7 +1777,7 @@ typedef struct Scene {
 #define SCER_SHOW_SUBFRAME (1 << 3)
 
 /* RenderData.mode */
-#define R_OSA (1 << 0)
+#define R_MODE_UNUSED_0 (1 << 0) /* cleared */
 #define R_MODE_UNUSED_1 (1 << 1) /* cleared */
 #define R_MODE_UNUSED_2 (1 << 2) /* cleared */
 #define R_MODE_UNUSED_3 (1 << 3) /* cleared */
@@ -2395,6 +2400,17 @@ enum {
   SHADOW_ESM = 1,
   SHADOW_VSM = 2,
   SHADOW_METHOD_MAX = 3,
+};
+
+/* SceneDisplay->render_aa, SceneDisplay->viewport_aa */
+enum {
+  SCE_DISPLAY_AA_OFF = 0,
+  SCE_DISPLAY_AA_FXAA = 1,
+  SCE_DISPLAY_AA_SAMPLES_5 = 5,
+  SCE_DISPLAY_AA_SAMPLES_8 = 8,
+  SCE_DISPLAY_AA_SAMPLES_11 = 11,
+  SCE_DISPLAY_AA_SAMPLES_16 = 16,
+  SCE_DISPLAY_AA_SAMPLES_32 = 32,
 };
 
 #ifdef __cplusplus

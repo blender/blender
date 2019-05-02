@@ -192,6 +192,45 @@ static const EnumPropertyItem snap_uv_element_items[] = {
     {SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
     {0, NULL, 0, NULL, NULL},
 };
+
+const EnumPropertyItem rna_enum_scene_display_aa_methods[] = {
+    {SCE_DISPLAY_AA_OFF,
+     "OFF",
+     0,
+     "No Anti-Aliasing",
+     "Scene will be rendering without any anti-aliasing"},
+    {SCE_DISPLAY_AA_FXAA,
+     "FXAA",
+     0,
+     "Single Pass Anti-Aliasing",
+     "Scene will be rendered using a single pass anti-aliasing method (FXAA)"},
+    {SCE_DISPLAY_AA_SAMPLES_5,
+     "5",
+     0,
+     "5 Samples",
+     "Scene will be rendered using 5 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_8,
+     "8",
+     0,
+     "8 Samples",
+     "Scene will be rendered using 8 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_11,
+     "11",
+     0,
+     "11 Samples",
+     "Scene will be rendered using 11 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_16,
+     "16",
+     0,
+     "16 Samples",
+     "Scene will be rendered using 16 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_32,
+     "32",
+     0,
+     "32 Samples",
+     "Scene will be rendered using 32 anti-aliasing samples"},
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 
 const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
@@ -5477,14 +5516,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem fixed_oversample_items[] = {
-      {5, "5", 0, "5", ""},
-      {8, "8", 0, "8", ""},
-      {11, "11", 0, "11", ""},
-      {16, "16", 0, "16", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem threads_mode_items[] = {
       {0,
        "AUTO",
@@ -5685,21 +5716,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Alpha Mode", "Representation of alpha information in the RGBA pixels");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-
-  prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "mode", R_OSA);
-  RNA_def_property_ui_text(
-      prop,
-      "Anti-Aliasing",
-      "Render and combine multiple samples per pixel to prevent jagged edges");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
-  prop = RNA_def_property(srna, "antialiasing_samples", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "osa");
-  RNA_def_property_enum_items(prop, fixed_oversample_items);
-  RNA_def_property_ui_text(
-      prop, "Anti-Aliasing Samples", "Amount of anti-aliasing samples per pixel");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -6572,6 +6588,17 @@ static void rna_def_scene_display(BlenderRNA *brna)
   RNA_def_property_int_default(prop, 16);
   RNA_def_property_ui_text(prop, "Samples", "Number of samples");
   RNA_def_property_range(prop, 1, 500);
+
+  prop = RNA_def_property(srna, "render_aa", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_scene_display_aa_methods);
+  RNA_def_property_ui_text(prop, "Render Anti-Aliasing", "Method of anti-aliasing when rendering");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "viewport_aa", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_scene_display_aa_methods);
+  RNA_def_property_ui_text(
+      prop, "Viewport Anti-Aliasing", "Method of anti-aliasing in 3d viewport");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   /* OpenGL render engine settings. */
   prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);

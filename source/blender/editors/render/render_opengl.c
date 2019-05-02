@@ -489,8 +489,6 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {
       context.view_id = view_id;
       context.gpu_offscreen = oglrender->ofs;
-      context.gpu_full_samples = oglrender->ofs_full_samples;
-
       oglrender->seq_data.ibufs_arr[view_id] = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
     }
   }
@@ -517,24 +515,6 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
   }
 }
 
-static bool screen_opengl_fullsample_enabled(Scene *scene)
-{
-  if (scene->r.scemode & R_FULL_SAMPLE) {
-    return true;
-  }
-  else {
-    /* XXX TODO:
-     * Technically if the hardware supports MSAA we could keep using Blender 2.7x approach.
-     * However anti-aliasing without full_sample is not playing well even in 2.7x.
-     *
-     * For example, if you enable depth of field, there is aliasing, even if the viewport is fine.
-     * For 2.8x this is more complicated because so many things rely on shader.
-     * So until we fix the gpu_framebuffer anti-aliasing suupport we need to force full sample.
-     */
-    return true;
-  }
-}
-
 static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 {
   /* new render clears all callbacks */
@@ -548,8 +528,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   GPUOffScreen *ofs;
   OGLRender *oglrender;
   int sizex, sizey;
-  const int samples = (scene->r.mode & R_OSA) ? scene->r.osa : 0;
-  const bool full_samples = (samples != 0) && screen_opengl_fullsample_enabled(scene);
   bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
@@ -598,7 +576,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Offscreen creation needs to be done in DRW context. */
-  ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, true, true, err_out);
+  ofs = GPU_offscreen_create(sizex, sizey, 0, true, true, err_out);
   DRW_opengl_context_disable();
 
   if (!ofs) {
@@ -611,8 +589,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   op->customdata = oglrender;
 
   oglrender->ofs = ofs;
-  oglrender->ofs_samples = samples;
-  oglrender->ofs_full_samples = full_samples;
   oglrender->sizex = sizex;
   oglrender->sizey = sizey;
   oglrender->bmain = CTX_data_main(C);

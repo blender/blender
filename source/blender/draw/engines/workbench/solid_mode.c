@@ -61,8 +61,12 @@ static void workbench_solid_cache_finish(void *vedata)
 static void workbench_solid_draw_background(void *vedata)
 {
   WORKBENCH_Data *data = vedata;
-  workbench_deferred_draw_background(data);
-  workbench_deferred_draw_scene(data);
+  const int num_samples = workbench_num_viewport_rendering_iterations(data);
+
+  for (int sample = 0; sample < num_samples; sample++) {
+    workbench_deferred_draw_background(data);
+    workbench_deferred_draw_scene(data);
+  }
   workbench_deferred_draw_finish(data);
 }
 

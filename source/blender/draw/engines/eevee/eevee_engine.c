@@ -180,12 +180,13 @@ static void eevee_draw_background(void *vedata)
   /* Sort transparents before the loop. */
   DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
-  /* Number of iteration: needed for all temporal effect (SSR, volumetrics)
-   * when using opengl render. */
-  int loop_len = (DRW_state_is_image_render() &&
-                  (stl->effects->enabled_effects & (EFFECT_VOLUMETRIC | EFFECT_SSR)) != 0) ?
-                     4 :
-                     1;
+  /* Number of iteration: Use viewport taa_samples when using viewport rendering */
+  int loop_len = 1;
+  if (DRW_state_is_image_render()) {
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const Scene *scene = draw_ctx->scene;
+    loop_len = MAX2(1, scene->eevee.taa_samples);
+  }
 
   while (loop_len--) {
     float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};

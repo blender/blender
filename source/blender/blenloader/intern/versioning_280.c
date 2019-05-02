@@ -3287,6 +3287,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+    if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "char", "render_aa")) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
+        scene->display.viewport_aa = SCE_DISPLAY_AA_FXAA;
+      }
+    }
 
     /* Split bbone_scalein/bbone_scaleout into x and y fields. */
     if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "scale_out_y")) {

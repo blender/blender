@@ -682,7 +682,7 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
   WORKBENCH_PrivateData *wpd = stl->g_data;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  if (TAA_ENABLED(wpd)) {
+  if (workbench_is_taa_enabled(wpd)) {
     workbench_taa_draw_scene_start(vedata);
   }
 

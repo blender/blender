@@ -449,7 +449,7 @@ static Scene *preview_prepare_scene(
         }
       }
       else {
-        sce->r.mode &= ~(R_OSA);
+        sce->display.render_aa = SCE_DISPLAY_AA_OFF;
       }
 
       for (Base *base = view_layer->object_bases.first; base; base = base->next) {
@@ -861,7 +861,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
   if (sp->pr_method == PR_ICON_RENDER) {
     sce->r.scemode |= R_NO_IMAGE_LOAD;
-    sce->r.mode |= R_OSA;
+    sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
   }
   else if (sp->pr_method == PR_NODE_RENDER) {
     if (idtype == ID_MA) {
@@ -870,10 +870,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     else if (idtype == ID_TE) {
       sce->r.scemode |= R_TEXNODE_PREVIEW;
     }
-    sce->r.mode &= ~R_OSA;
+    sce->display.render_aa = SCE_DISPLAY_AA_OFF;
   }
   else { /* PR_BUTS_RENDER */
-    sce->r.mode |= R_OSA;
+    sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
   }
 
   /* callbacs are cleared on GetRender() */

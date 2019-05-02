@@ -59,8 +59,12 @@ static void workbench_transparent_cache_finish(void *vedata)
 static void workbench_transparent_draw_background(void *vedata)
 {
   WORKBENCH_Data *data = vedata;
-  workbench_forward_draw_background(data);
-  workbench_forward_draw_scene(data);
+  const int num_samples = workbench_num_viewport_rendering_iterations(data);
+
+  for (int sample = 0; sample < num_samples; sample++) {
+    workbench_forward_draw_background(data);
+    workbench_forward_draw_scene(data);
+  }
   workbench_forward_draw_finish(data);
 }
 

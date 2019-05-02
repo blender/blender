@@ -566,7 +566,7 @@ void BKE_scene_init(Scene *sce)
   sce->cursor.rotation_quaternion[0] = 1.0f;
   sce->cursor.rotation_axis[1] = 1.0f;
 
-  sce->r.mode = R_OSA;
+  sce->r.mode = 0;
   sce->r.cfra = 1;
   sce->r.sfra = 1;
   sce->r.efra = 250;
@@ -767,7 +767,6 @@ void BKE_scene_init(Scene *sce)
   BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
   BLI_rctf_init(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
-  sce->r.osa = 8;
 
   /* Note; in header_info.c the scene copy happens...,
    * if you add more to renderdata it has to be checked there. */
@@ -904,6 +903,9 @@ void BKE_scene_init(Scene *sce)
   sce->display.matcap_ssao_distance = 0.2f;
   sce->display.matcap_ssao_attenuation = 1.0f;
   sce->display.matcap_ssao_samples = 16;
+
+  sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
+  sce->display.viewport_aa = SCE_DISPLAY_AA_FXAA;
 
   /* OpenGL Render. */
   BKE_screen_view3d_shading_init(&sce->display.shading);

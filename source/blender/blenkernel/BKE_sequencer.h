@@ -100,8 +100,8 @@ typedef struct SeqRenderData {
 
   /* special case for OpenGL render */
   struct GPUOffScreen *gpu_offscreen;
-  int gpu_samples;
-  bool gpu_full_samples;
+  // int gpu_samples;
+  // bool gpu_full_samples;
 } SeqRenderData;
 
 void BKE_sequencer_new_render_data(struct Main *bmain,

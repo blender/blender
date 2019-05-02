@@ -75,18 +75,7 @@
 
 #define IS_NAVIGATING(wpd) \
   ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
-#define FXAA_ENABLED(wpd) \
-  ((!DRW_state_is_opengl_render()) && \
-   (IN_RANGE(wpd->preferences->gpu_viewport_quality, \
-             GPU_VIEWPORT_QUALITY_FXAA, \
-             GPU_VIEWPORT_QUALITY_TAA8) || \
-    ((IS_NAVIGATING(wpd) || wpd->is_playback) && \
-     (wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8))))
-#define TAA_ENABLED(wpd) \
-  ((DRW_state_is_image_render() && DRW_context_state_get()->scene->r.mode & R_OSA) || \
-   (!DRW_state_is_image_render() && \
-    wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd) && \
-    !wpd->is_playback))
+
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) \
   (STUDIOLIGHT_ENABLED(wpd) && (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && \
    (!STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)))
@@ -326,6 +315,35 @@ typedef struct WORKBENCH_ObjectData {
   int object_id;
 } WORKBENCH_ObjectData;
 
+/* inline helper functions */
+BLI_INLINE bool workbench_is_taa_enabled(WORKBENCH_PrivateData *wpd)
+{
+  if (DRW_state_is_image_render()) {
+    return DRW_context_state_get()->scene->display.render_aa > SCE_DISPLAY_AA_FXAA;
+  }
+  else {
+    return DRW_context_state_get()->scene->display.viewport_aa > SCE_DISPLAY_AA_FXAA &&
+           wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 &&
+           !wpd->is_playback;
+  }
+}
+
+BLI_INLINE bool workbench_is_fxaa_enabled(WORKBENCH_PrivateData *wpd)
+{
+  if (DRW_state_is_image_render()) {
+    return DRW_context_state_get()->scene->display.render_aa == SCE_DISPLAY_AA_FXAA;
+  }
+  else {
+    if (wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_FXAA &&
+        DRW_context_state_get()->scene->display.viewport_aa == SCE_DISPLAY_AA_FXAA) {
+      return true;
+    }
+
+    /* when navigating or animation playback use FXAA. */
+    return (IS_NAVIGATING(wpd) || wpd->is_playback) && workbench_is_taa_enabled(wpd);
+  }
+}
+
 /* workbench_deferred.c */
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);
@@ -375,6 +393,7 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata);
 void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata);
 void workbench_taa_view_updated(WORKBENCH_Data *vedata);
 int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
+int workbench_num_viewport_rendering_iterations(WORKBENCH_Data *vedata);
 
 /* workbench_effect_dof.c */
 void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera);

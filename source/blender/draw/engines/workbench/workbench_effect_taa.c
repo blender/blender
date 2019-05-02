@@ -90,26 +90,40 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 {
   WORKBENCH_StorageList *stl = vedata->stl;
   WORKBENCH_PrivateData *wpd = stl->g_data;
-  int result = 1;
-  if (TAA_ENABLED(wpd)) {
+  const Scene *scene = DRW_context_state_get()->scene;
+  int result = scene->display.viewport_aa;
+  if (workbench_is_taa_enabled(wpd)) {
     if (DRW_state_is_image_render()) {
-      const Scene *scene = DRW_context_state_get()->scene;
-      result = (scene->r.mode & R_OSA) ? scene->r.osa : 1;
+      result = scene->display.render_aa;
     }
     else if (IN_RANGE_INCL(wpd->preferences->gpu_viewport_quality,
                            GPU_VIEWPORT_QUALITY_TAA8,
                            GPU_VIEWPORT_QUALITY_TAA16)) {
-      result = 8;
+      result = MIN2(result, 8);
     }
     else if (IN_RANGE_INCL(wpd->preferences->gpu_viewport_quality,
                            GPU_VIEWPORT_QUALITY_TAA16,
                            GPU_VIEWPORT_QUALITY_TAA32)) {
-      result = 16;
+      result = MIN2(result, 16);
     }
     else {
-      result = 32;
+      result = MIN2(result, 32);
     }
   }
+  else {
+    /* when no TAA is disabled return 1 to render a single sample
+     * see `workbench_render.c` */
+    result = 1;
+  }
+  return result;
+}
+
+int workbench_num_viewport_rendering_iterations(WORKBENCH_Data *UNUSED(vedata))
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
+  int result = DRW_state_is_image_render() ? scene->display.viewport_aa : 1;
+  result = MAX2(result, 1);
   return result;
 }
 

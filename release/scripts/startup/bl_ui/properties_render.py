@@ -541,6 +541,27 @@ class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
         layout.prop(rd, "hair_subdiv")
 
 
+class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
+    bl_label = "Sampling"
+    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        props = scene.display
+
+        col = layout.column()
+        col.prop(props, "render_aa", text="Render")
+        col.prop(props, "viewport_aa", text="Viewport")
+
+
 class RENDER_PT_opengl_film(RenderButtonsPanel, Panel):
     bl_label = "Film"
     bl_options = {'DEFAULT_CLOSED'}
@@ -552,10 +573,6 @@ class RENDER_PT_opengl_film(RenderButtonsPanel, Panel):
         layout.use_property_decorate = False  # No animation.
 
         rd = context.scene.render
-
-        layout.prop(rd, "use_antialiasing")
-
-        layout.prop(rd, "antialiasing_samples")
         layout.prop(rd, "alpha_mode")
 
 
@@ -704,6 +721,7 @@ classes = (
     RENDER_PT_eevee_indirect_lighting_display,
     RENDER_PT_eevee_film,
     RENDER_PT_eevee_film_overscan,
+    RENDER_PT_opengl_sampling,
     RENDER_PT_opengl_lighting,
     RENDER_PT_opengl_color,
     RENDER_PT_opengl_options,
