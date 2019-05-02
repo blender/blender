@@ -273,6 +273,15 @@ static void rna_Main_materials_gpencil_data(Main *UNUSED(bmain), PointerRNA *id_
   BKE_material_init_gpencil_settings(ma);
 }
 
+static void rna_Main_materials_gpencil_remove(Main *UNUSED(bmain), PointerRNA *id_ptr)
+{
+  ID *id = id_ptr->data;
+  Material *ma = (Material *)id;
+  if (ma->gp_style) {
+    MEM_SAFE_FREE(ma->gp_style);
+  }
+}
+
 static const EnumPropertyItem *rna_Main_nodetree_type_itemf(bContext *UNUSED(C),
                                                             PointerRNA *UNUSED(ptr),
                                                             PropertyRNA *UNUSED(prop),
@@ -847,6 +856,11 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "create_gpencil_data", "rna_Main_materials_gpencil_data");
   RNA_def_function_ui_description(func, "Add grease pencil material settings");
+  parm = RNA_def_pointer(func, "material", "Material", "", "Material");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+
+  func = RNA_def_function(srna, "remove_gpencil_data", "rna_Main_materials_gpencil_remove");
+  RNA_def_function_ui_description(func, "Remove grease pencil material settings");
   parm = RNA_def_pointer(func, "material", "Material", "", "Material");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
