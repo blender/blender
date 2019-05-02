@@ -93,7 +93,7 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
   }
   BLI_spin_unlock(&spin);
 #else
-  UNUSED_VARS(reader, object, object_path);
+  UNUSED_VARS(cache_file, reader, object, object_path);
 #endif
 }
 
