@@ -25,6 +25,7 @@
 
 #include <string.h>
 
+#include "render/colorspace.h"
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
@@ -1116,6 +1117,9 @@ bool OSLRenderServices::texture(ustring filename,
          * other nasty stuff happening. */
         ts->geterror();
       }
+      else if (handle && handle->processor) {
+        ColorSpaceManager::to_scene_linear(handle->processor, result, nchannels);
+      }
       break;
     }
   }
@@ -1213,6 +1217,9 @@ bool OSLRenderServices::texture3d(ustring filename,
          * other nasty stuff happening. */
         ts->geterror();
       }
+      else if (handle && handle->processor) {
+        ColorSpaceManager::to_scene_linear(handle->processor, result, nchannels);
+      }
       break;
     }
     case OSLTextureHandle::IES:
@@ -1286,6 +1293,9 @@ bool OSLRenderServices::environment(ustring filename,
       if (nchannels == 4)
         result[3] = 1.0f;
     }
+  }
+  else if (handle && handle->processor) {
+    ColorSpaceManager::to_scene_linear(handle->processor, result, nchannels);
   }
 
   return status;

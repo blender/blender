@@ -20,6 +20,8 @@
 #include "device/device.h"
 #include "device/device_memory.h"
 
+#include "render/colorspace.h"
+
 #include "util/util_image.h"
 #include "util/util_string.h"
 #include "util/util_thread.h"
@@ -32,6 +34,7 @@ class Device;
 class Progress;
 class RenderStats;
 class Scene;
+class ColorSpaceProcessor;
 
 class ImageMetaData {
  public:
@@ -43,13 +46,29 @@ class ImageMetaData {
 
   /* Automatically set. */
   ImageDataType type;
-  bool is_linear;
+  ustring colorspace;
+  bool compress_as_srgb;
+
+  ImageMetaData()
+      : is_float(false),
+        is_half(false),
+        channels(0),
+        width(0),
+        height(0),
+        depth(0),
+        builtin_free_cache(NULL),
+        type(IMAGE_DATA_NUM_TYPES),
+        colorspace(u_colorspace_raw),
+        compress_as_srgb(false)
+  {
+  }
 
   bool operator==(const ImageMetaData &other) const
   {
     return is_float == other.is_float && is_half == other.is_half && channels == other.channels &&
            width == other.width && height == other.height && depth == other.depth &&
-           type == other.type && is_linear == other.is_linear;
+           type == other.type && colorspace == other.colorspace &&
+           compress_as_srgb == other.compress_as_srgb;
   }
 };
 
@@ -65,19 +84,25 @@ class ImageManager {
                 InterpolationType interpolation,
                 ExtensionType extension,
                 bool use_alpha,
+                ustring colorspace,
                 ImageMetaData &metadata);
   void remove_image(int flat_slot);
   void remove_image(const string &filename,
                     void *builtin_data,
                     InterpolationType interpolation,
                     ExtensionType extension,
-                    bool use_alpha);
+                    bool use_alpha,
+                    ustring colorspace);
   void tag_reload_image(const string &filename,
                         void *builtin_data,
                         InterpolationType interpolation,
                         ExtensionType extension,
-                        bool use_alpha);
-  bool get_image_metadata(const string &filename, void *builtin_data, ImageMetaData &metadata);
+                        bool use_alpha,
+                        ustring colorspace);
+  bool get_image_metadata(const string &filename,
+                          void *builtin_data,
+                          ustring colorspace,
+                          ImageMetaData &metadata);
   bool get_image_metadata(int flat_slot, ImageMetaData &metadata);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
@@ -120,6 +145,7 @@ class ImageManager {
     void *builtin_data;
     ImageMetaData metadata;
 
+    ustring colorspace;
     bool use_alpha;
     bool need_load;
     bool animated;
@@ -151,6 +177,8 @@ class ImageManager {
                        ImageDataType type,
                        int texture_limit,
                        device_vector<DeviceType> &tex_img);
+
+  void metadata_detect_colorspace(ImageMetaData &metadata, const char *file_format);
 
   void device_load_image(
       Device *device, Scene *scene, ImageDataType type, int slot, Progress *progress);

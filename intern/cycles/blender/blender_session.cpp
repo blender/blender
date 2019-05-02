@@ -16,12 +16,13 @@
 
 #include <stdlib.h>
 
+#include "device/device.h"
 #include "render/background.h"
 #include "render/buffers.h"
 #include "render/camera.h"
-#include "device/device.h"
-#include "render/integrator.h"
+#include "render/colorspace.h"
 #include "render/film.h"
+#include "render/integrator.h"
 #include "render/light.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -1158,6 +1159,12 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
     metadata.height = b_image.size()[1];
     metadata.depth = 1;
     metadata.channels = b_image.channels();
+
+    if (metadata.is_float) {
+      /* Float images are already converted on the Blender side,
+       * no need to do anything in Cycles. */
+      metadata.colorspace = u_colorspace_raw;
+    }
   }
   else if (b_id.is_a(&RNA_Object)) {
     /* smoke volume data */

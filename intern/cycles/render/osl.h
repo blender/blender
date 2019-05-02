@@ -153,7 +153,8 @@ class OSLCompiler {
 
   void parameter_attribute(const char *name, ustring s);
 
-  void parameter_texture(const char *name, ustring filename, int svm_slot);
+  void parameter_texture(const char *name, ustring filename, ustring colorspace);
+  void parameter_texture(const char *name, int svm_slot);
   void parameter_texture_ies(const char *name, int svm_slot);
 
   ShaderType output_type()

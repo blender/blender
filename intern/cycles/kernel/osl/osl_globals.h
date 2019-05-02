@@ -37,6 +37,7 @@ using std::isfinite;
 CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
+class ColorSpaceProcessor;
 
 /* OSL Texture Handle
  *
@@ -53,21 +54,15 @@ class OSLRenderServices;
 struct OSLTextureHandle : public OIIO::RefCnt {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
-  OSLTextureHandle() : type(OIIO), svm_slot(-1), oiio_handle(NULL)
-  {
-  }
-
-  OSLTextureHandle(Type type) : type(type), svm_slot(-1), oiio_handle(NULL)
-  {
-  }
-
-  OSLTextureHandle(Type type, int svm_slot) : type(type), svm_slot(svm_slot), oiio_handle(NULL)
+  OSLTextureHandle(Type type = OIIO, int svm_slot = -1)
+      : type(type), svm_slot(svm_slot), oiio_handle(NULL), processor(NULL)
   {
   }
 
   Type type;
   int svm_slot;
   OSL::TextureSystem::TextureHandle *oiio_handle;
+  ColorSpaceProcessor *processor;
 };
 
 typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;

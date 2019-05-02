@@ -15,6 +15,7 @@
  */
 
 #include "render/background.h"
+#include "render/colorspace.h"
 #include "render/graph.h"
 #include "render/light.h"
 #include "render/nodes.h"
@@ -665,7 +666,14 @@ static ShaderNode *add_node(Scene *scene,
       }
 #endif
     }
-    image->color_space = (NodeImageColorSpace)b_image_node.color_space();
+    switch (b_image_node.color_space()) {
+      case BL::ShaderNodeTexImage::color_space_NONE:
+        image->colorspace = u_colorspace_raw;
+        break;
+      case BL::ShaderNodeTexImage::color_space_COLOR:
+        image->colorspace = u_colorspace_auto;
+        break;
+    }
     image->projection = (NodeImageProjection)b_image_node.projection();
     image->interpolation = get_image_interpolation(b_image_node);
     image->extension = get_image_extension(b_image_node);
@@ -710,7 +718,14 @@ static ShaderNode *add_node(Scene *scene,
       }
 #endif
     }
-    env->color_space = (NodeImageColorSpace)b_env_node.color_space();
+    switch (b_env_node.color_space()) {
+      case BL::ShaderNodeTexEnvironment::color_space_NONE:
+        env->colorspace = u_colorspace_raw;
+        break;
+      case BL::ShaderNodeTexEnvironment::color_space_COLOR:
+        env->colorspace = u_colorspace_auto;
+        break;
+    }
     env->interpolation = get_image_interpolation(b_env_node);
     env->projection = (NodeEnvironmentProjection)b_env_node.projection();
     BL::TexMapping b_texture_mapping(b_env_node.texture_mapping());
@@ -861,7 +876,8 @@ static ShaderNode *add_node(Scene *scene,
                                              point_density->builtin_data,
                                              point_density->interpolation,
                                              EXTENSION_CLIP,
-                                             true);
+                                             true,
+                                             u_colorspace_raw);
     }
     node = point_density;
 
