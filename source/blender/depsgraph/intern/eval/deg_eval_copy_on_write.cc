@@ -1516,9 +1516,7 @@ bool deg_copy_on_write_is_expanded(const ID *id_cow)
 bool deg_copy_on_write_is_needed(const ID *id_orig)
 {
   const ID_Type id_type = GS(id_orig->name);
-  /* TODO(sergey): Make Sound copyable. It is here only because the code for dependency graph is
-   * being work in progress. */
-  return !ELEM(id_type, ID_IM, ID_SO);
+  return !ELEM(id_type, ID_IM);
 }
 
 }  // namespace DEG

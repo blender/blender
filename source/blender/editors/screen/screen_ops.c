@@ -67,6 +67,7 @@
 #include "WM_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -2832,7 +2833,8 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
     areas_do_frame_follow(C, true);
 
-    BKE_sound_seek_scene(bmain, scene);
+    /* TODO(sergey): Make more reusable. */
+    BKE_sound_seek_scene(bmain, DEG_get_evaluated_scene(CTX_data_depsgraph(C)));
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }
@@ -4523,11 +4525,12 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
   bScreen *screen = CTX_wm_screen(C);
   Scene *scene = CTX_data_scene(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(CTX_data_depsgraph(C));
 
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     /* stop playback now */
     ED_screen_animation_timer(C, 0, 0, 0, 0);
-    BKE_sound_stop_scene(scene);
+    BKE_sound_stop_scene(scene_eval);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }
@@ -4536,7 +4539,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
     int refresh = SPACE_ACTION;
 
     if (mode == 1) { /* XXX only play audio forwards!? */
-      BKE_sound_play_scene(scene);
+      BKE_sound_play_scene(scene_eval);
     }
 
     ED_screen_animation_timer(C, screen->redraws_flag, refresh, sync, mode);

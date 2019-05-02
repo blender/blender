@@ -2391,6 +2391,10 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
         (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
+    /* TODO(sergey): Needs better solution for this. */
+    if (id_type == ID_SO) {
+      rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+    }
     /* Notes on exceptions:
      * - Parameters component is where drivers are living. Changing any
      *   of the (custom) properties in the original datablock (even the

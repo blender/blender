@@ -71,11 +71,16 @@ void BKE_sound_cache(struct bSound *sound);
 
 void BKE_sound_delete_cache(struct bSound *sound);
 
-void BKE_sound_reset_pointers(struct bSound *sound);
+void BKE_sound_reset_runtime(struct bSound *sound);
 void BKE_sound_load(struct Main *main, struct bSound *sound);
 void BKE_sound_ensure_loaded(struct Main *bmain, struct bSound *sound);
 
 void BKE_sound_free(struct bSound *sound);
+
+/* Is used by sequencer to temporarily load audio to access information about channels and
+ * duration. */
+void BKE_sound_load_audio(struct Main *main, struct bSound *sound);
+void BKE_sound_free_audio(struct bSound *sound);
 
 void BKE_sound_copy_data(struct Main *bmain,
                          struct bSound *sound_dst,
@@ -88,7 +93,7 @@ void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const bool l
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
-void BKE_sound_reset_scene_pointers(struct Scene *scene);
+void BKE_sound_reset_scene_runtime(struct Scene *scene);
 void BKE_sound_create_scene(struct Scene *scene);
 void BKE_sound_ensure_scene(struct Scene *scene);
 
@@ -153,6 +158,11 @@ void *BKE_sound_get_factory(void *sound);
 float BKE_sound_get_length(struct bSound *sound);
 
 char **BKE_sound_get_device_names(void);
+
+typedef void (*SoundJackSyncCallback)(struct Main *bmain, int mode, float time);
+
+void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback);
+void BKE_sound_jack_scene_update(struct Scene *scene, int mode, float time);
 
 /* Evaluation. */
 

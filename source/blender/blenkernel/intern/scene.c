@@ -309,7 +309,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
                                                             flag_subdata);
   }
 
-  BKE_sound_reset_scene_pointers(sce_dst);
+  BKE_sound_reset_scene_runtime(sce_dst);
 
   /* Copy sequencer, this is local data! */
   if (sce_src->ed) {
@@ -399,7 +399,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
       sce_copy->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
     }
 
-    BKE_sound_reset_scene_pointers(sce_copy);
+    BKE_sound_reset_scene_runtime(sce_copy);
 
     /* grease pencil */
     sce_copy->gpd = NULL;
@@ -779,7 +779,7 @@ void BKE_scene_init(Scene *sce)
   srv = sce->r.views.last;
   BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
 
-  BKE_sound_reset_scene_pointers(sce);
+  BKE_sound_reset_scene_runtime(sce);
 
   /* color management */
   colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
@@ -1509,7 +1509,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
 
 static void scene_update_sound(Depsgraph *depsgraph, Main *bmain)
 {
-  Scene *scene = DEG_get_input_scene(depsgraph);
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
   BKE_sound_ensure_scene(scene);
   BKE_sound_update_scene(bmain, scene);
 }
@@ -2398,23 +2398,17 @@ void BKE_scene_cursor_quat_to_rot(View3DCursor *cursor, const float quat[4], boo
 void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
 {
   DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
-  /* TODO(sergey): For now we keep sound handlers in an original IDs, but it
-   * should really be moved to an evaluated one. */
-  if (!DEG_is_active(depsgraph)) {
+  if (scene->ed == NULL) {
     return;
   }
-  Scene *scene_orig = (Scene *)DEG_get_original_id(&scene->id);
-  if (scene_orig->ed == NULL) {
-    return;
-  }
-  BKE_sound_ensure_scene(scene_orig);
+  BKE_sound_ensure_scene(scene);
   Sequence *seq;
-  SEQ_BEGIN (scene_orig->ed, seq) {
+  SEQ_BEGIN (scene->ed, seq) {
     if (seq->sound != NULL && seq->scene_sound == NULL) {
-      seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene_orig, seq);
+      seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
     }
   }
   SEQ_END;
-  BKE_sequencer_update_muting(scene_orig->ed);
-  BKE_sequencer_update_sound_bounds_all(scene_orig);
+  BKE_sequencer_update_muting(scene->ed);
+  BKE_sequencer_update_sound_bounds_all(scene);
 }

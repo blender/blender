@@ -52,6 +52,9 @@
 #include "ED_sequencer.h"
 #include "ED_util.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "anim_intern.h"
 
 /* ********************** frame change operator ***************************/
@@ -88,7 +91,6 @@ static bool change_frame_poll(bContext *C)
 /* Set the new frame number */
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   float frame = RNA_float_get(op->ptr, "frame");
   bool do_snap = RNA_boolean_get(op->ptr, "snap");
@@ -114,7 +116,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(CFRA);
 
   /* do updates */
-  BKE_sound_seek_scene(bmain, scene);
+  BKE_sound_seek_scene(CTX_data_main(C), DEG_get_evaluated_scene(CTX_data_depsgraph(C)));
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

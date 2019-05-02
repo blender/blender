@@ -6678,7 +6678,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
   memset(&sce->customdata_mask, 0, sizeof(sce->customdata_mask));
   memset(&sce->customdata_mask_modal, 0, sizeof(sce->customdata_mask_modal));
 
-  BKE_sound_reset_scene_pointers(sce);
+  BKE_sound_reset_scene_runtime(sce);
 
   /* set users to one by default, not in lib-link, this will increase it for compo nodes */
   id_us_ensure_real(&sce->id);
@@ -8423,7 +8423,7 @@ static void lib_link_sound(FileData *fd, Main *main)
       sound->ipo = newlibadr_us(
           fd, sound->id.lib, sound->ipo);  // XXX deprecated - old animation system
 
-      BKE_sound_reset_pointers(sound);
+      BKE_sound_reset_runtime(sound);
 
       sound->id.tag &= ~LIB_TAG_NEED_LINK;
     }
