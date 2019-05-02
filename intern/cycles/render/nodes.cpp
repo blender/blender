@@ -374,18 +374,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
     is_linear = metadata.is_linear;
   }
 
-  if (slot == -1) {
-    compiler.parameter(this, "filename");
-  }
-  else {
-    /* TODO(sergey): It's not so simple to pass custom attribute
-     * to the texture() function in order to make builtin images
-     * support more clear. So we use special file name which is
-     * "@i<slot_number>" and check whether file name matches this
-     * mask in the OSLRenderServices::texture().
-     */
-    compiler.parameter("filename", string_printf("@i%d", slot).c_str());
-  }
+  compiler.parameter_texture("filename", filename, slot);
   if (is_linear || color_space != NODE_COLOR_SPACE_COLOR)
     compiler.parameter("color_space", "linear");
   else
@@ -556,12 +545,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
     is_linear = metadata.is_linear;
   }
 
-  if (slot == -1) {
-    compiler.parameter(this, "filename");
-  }
-  else {
-    compiler.parameter("filename", string_printf("@i%d", slot).c_str());
-  }
+  compiler.parameter_texture("filename", filename, slot);
   compiler.parameter(this, "projection");
   if (is_linear || color_space != NODE_COLOR_SPACE_COLOR)
     compiler.parameter("color_space", "linear");
@@ -1080,7 +1064,7 @@ void IESLightNode::compile(OSLCompiler &compiler)
 
   tex_mapping.compile(compiler);
 
-  compiler.parameter("slot", slot);
+  compiler.parameter_texture_ies("filename", slot);
   compiler.add(this, "node_ies_light");
 }
 
@@ -1567,9 +1551,7 @@ void PointDensityTextureNode::compile(OSLCompiler &compiler)
   if (use_density || use_color) {
     add_image();
 
-    if (slot != -1) {
-      compiler.parameter("filename", string_printf("@i%d", slot).c_str());
-    }
+    compiler.parameter_texture("filename", ustring(), slot);
     if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
       compiler.parameter("mapping", tfm);
       compiler.parameter("use_mapping", 1);

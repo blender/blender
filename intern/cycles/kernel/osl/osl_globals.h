@@ -21,10 +21,14 @@
 
 #  include <OSL/oslexec.h>
 
+#  include <OpenImageIO/refcnt.h>
+#  include <OpenImageIO/unordered_map_concurrent.h>
+
 #  include "util/util_map.h"
 #  include "util/util_param.h"
 #  include "util/util_thread.h"
 #  include "util/util_vector.h"
+#  include "util/util_unique_ptr.h"
 
 #  ifndef WIN32
 using std::isfinite;
@@ -33,6 +37,48 @@ using std::isfinite;
 CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
+
+/* OSL Texture Handle
+ *
+ * OSL texture lookups are string based. If those strings are known at compile
+ * time, the OSL compiler can cache a texture handle to use instead of a string.
+ *
+ * By default it uses TextureSystem::TextureHandle. But since we want to support
+ * different kinds of textures and color space conversions, this is our own handle
+ * with additional data.
+ *
+ * These are stored in a concurrent hash map, because OSL can compile multiple
+ * shaders in parallel. */
+
+struct OSLTextureHandle : public OIIO::RefCnt {
+  enum Type { OIIO, SVM, IES, BEVEL, AO };
+
+  OSLTextureHandle() : type(OIIO), svm_slot(-1), oiio_handle(NULL)
+  {
+  }
+
+  OSLTextureHandle(Type type) : type(type), svm_slot(-1), oiio_handle(NULL)
+  {
+  }
+
+  OSLTextureHandle(Type type, int svm_slot) : type(type), svm_slot(svm_slot), oiio_handle(NULL)
+  {
+  }
+
+  Type type;
+  int svm_slot;
+  OSL::TextureSystem::TextureHandle *oiio_handle;
+};
+
+typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
+typedef OIIO::unordered_map_concurrent<ustring, OSLTextureHandleRef, ustringHash>
+    OSLTextureHandleMap;
+
+/* OSL Globals
+ *
+ * Data needed by OSL render services, that is global to a rendering session.
+ * This includes all OSL shaders, name to attribute mapping and texture handles.
+ * */
 
 struct OSLGlobals {
   OSLGlobals()
@@ -70,6 +116,9 @@ struct OSLGlobals {
   vector<AttributeMap> attribute_map;
   ObjectNameMap object_name_map;
   vector<ustring> object_names;
+
+  /* textures */
+  OSLTextureHandleMap textures;
 };
 
 /* trace() call result */

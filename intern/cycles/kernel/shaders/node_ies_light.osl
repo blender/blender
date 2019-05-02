@@ -21,7 +21,7 @@
 
 shader node_ies_light(int use_mapping = 0,
                       matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                      int slot = 0,
+                      string filename = "",
                       float Strength = 1.0,
                       point Vector = I,
                       output float Fac = 0.0)
@@ -37,5 +37,5 @@ shader node_ies_light(int use_mapping = 0,
   float v_angle = acos(-p[2]);
   float h_angle = atan2(p[0], p[1]) + M_PI;
 
-  Fac = Strength * texture(format("@l%d", slot), h_angle, v_angle);
+  Fac = Strength * texture(filename, h_angle, v_angle);
 }
