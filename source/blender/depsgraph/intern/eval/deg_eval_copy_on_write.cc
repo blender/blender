@@ -59,6 +59,7 @@ extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
@@ -424,6 +425,25 @@ void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,
    * Still not an excuse to have those. */
 }
 
+void update_sequence_orig_pointers(const ListBase *sequences_orig, ListBase *sequences_cow)
+{
+  Sequence *sequence_orig = reinterpret_cast<Sequence *>(sequences_orig->first);
+  Sequence *sequence_cow = reinterpret_cast<Sequence *>(sequences_cow->first);
+  while (sequence_orig != NULL) {
+    update_sequence_orig_pointers(&sequence_orig->seqbase, &sequence_cow->seqbase);
+    sequence_cow->orig_sequence = sequence_orig;
+    sequence_cow = sequence_cow->next;
+    sequence_orig = sequence_orig->next;
+  }
+}
+
+void update_scene_orig_pointers(const Scene *scene_orig, Scene *scene_cow)
+{
+  if (scene_orig->ed != NULL) {
+    update_sequence_orig_pointers(&scene_orig->ed->seqbase, &scene_cow->ed->seqbase);
+  }
+}
+
 /* Check whether given ID is expanded or still a shallow copy. */
 BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
 {
@@ -708,6 +728,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_cow->toolsettings = scene_orig->toolsettings;
       scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
+      update_scene_orig_pointers(scene_orig, scene_cow);
       break;
     }
     default:

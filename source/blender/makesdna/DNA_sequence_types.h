@@ -232,6 +232,9 @@ typedef struct Sequence {
 
   int cache_flag;
   int _pad2[3];
+
+  struct Sequence *orig_sequence;
+  void *_pad3;
 } Sequence;
 
 typedef struct MetaStack {
