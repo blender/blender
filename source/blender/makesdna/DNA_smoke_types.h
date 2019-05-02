@@ -276,13 +276,13 @@ typedef struct SmokeDomainSettings {
 
 /* flags */
 enum {
-  /**old style emission*/
+  /** Old style emission. */
   MOD_SMOKE_FLOW_ABSOLUTE = (1 << 1),
-  /** passes particles speed to the smoke */
+  /** Passes particles speed to the smoke. */
   MOD_SMOKE_FLOW_INITVELOCITY = (1 << 2),
-  /** use texture to control emission speed */
+  /** Use texture to control emission speed. */
   MOD_SMOKE_FLOW_TEXTUREEMIT = (1 << 3),
-  /** use specific size for particles instead of closest cell */
+  /** Use specific size for particles instead of closest cell. */
   MOD_SMOKE_FLOW_USE_PART_SIZE = (1 << 4),
 };
 

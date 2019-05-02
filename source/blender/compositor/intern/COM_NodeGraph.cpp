@@ -304,7 +304,7 @@ void NodeGraph::add_proxies_group(const CompositorContext &context,
   /* missing node group datablock can happen with library linking */
   if (!b_group_tree) {
     /* This error case its handled in convertToOperations()
-     * so we don't get un-convertred sockets. */
+     * so we don't get un-converted sockets. */
     return;
   }
 

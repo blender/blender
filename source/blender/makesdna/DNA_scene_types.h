@@ -1474,7 +1474,7 @@ typedef struct ToolSettings {
   /** Lock marker editing. */
   char lock_markers;
 
-  /**aUto normalizing mode in wpain.t*/
+  /** Auto normalizing mode in wpaint. */
   char auto_normalize;
   /** Paint multiple bones in wpaint. */
   char multipaint;

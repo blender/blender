@@ -2211,7 +2211,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* passthrough allows tweaks
+  /* Pass-through allows tweaks
    * FINISHED to signal one operator worked
    * */
   if (retval) {
