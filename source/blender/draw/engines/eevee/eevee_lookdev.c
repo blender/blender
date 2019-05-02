@@ -81,7 +81,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
     if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
         rect.ymin != effects->anchor[1]) {
       /* If ball size or anchor point moves, reset TAA to avoid ghosting issue.
-     * This needs to happen early because we are changing taa_current_sample. */
+       * This needs to happen early because we are changing taa_current_sample. */
       effects->ball_size = ball_size;
       effects->anchor[0] = rect.xmax;
       effects->anchor[1] = rect.ymin;

@@ -765,7 +765,6 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
   /* not that nice but means we wont zoom into billboards */
   U.glalphaclip = alphaoverride ? 0.5f : glalphaclip;
 
-
   /* Tools may request depth outside of regular drawing code. */
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);

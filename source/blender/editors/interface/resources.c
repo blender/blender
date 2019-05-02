@@ -367,7 +367,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = &ts->outline_width;
           break;
         case TH_OBCENTER_DIA:
-          cp = &ts->obcenter_dia; break;
+          cp = &ts->obcenter_dia;
+          break;
           break;
         case TH_EDGE:
           cp = ts->edge;
