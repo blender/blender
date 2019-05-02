@@ -49,7 +49,7 @@ void OSLShader::thread_init(KernelGlobals *kg,
 
   /* per thread kernel data init*/
   kg->osl = osl_globals;
-  kg->osl->services->thread_init(kernel_globals, osl_globals->ts);
+  kg->osl->services->thread_init(kernel_globals, osl_globals, osl_globals->ts);
 
   OSL::ShadingSystem *ss = kg->osl->ss;
   OSLThreadData *tdata = new OSLThreadData();
@@ -129,13 +129,13 @@ static void shaderdata_to_shaderglobals(
   tdata->tracedata.init = false;
 
   /* used by renderservices */
-  sd->osl_globals = kg;
   sd->osl_path_state = state;
 }
 
 /* Surface */
 
-static void flatten_surface_closure_tree(ShaderData *sd,
+static void flatten_surface_closure_tree(KernelGlobals *kg,
+                                         ShaderData *sd,
                                          int path_flag,
                                          const OSL::ClosureColor *closure,
                                          float3 weight = make_float3(1.0f, 1.0f, 1.0f))
@@ -146,13 +146,14 @@ static void flatten_surface_closure_tree(ShaderData *sd,
   switch (closure->id) {
     case OSL::ClosureColor::MUL: {
       OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
-      flatten_surface_closure_tree(sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
+      flatten_surface_closure_tree(
+          kg, sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
       break;
     }
     case OSL::ClosureColor::ADD: {
       OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
-      flatten_surface_closure_tree(sd, path_flag, add->closureA, weight);
-      flatten_surface_closure_tree(sd, path_flag, add->closureB, weight);
+      flatten_surface_closure_tree(kg, sd, path_flag, add->closureA, weight);
+      flatten_surface_closure_tree(kg, sd, path_flag, add->closureB, weight);
       break;
     }
     default: {
@@ -163,7 +164,7 @@ static void flatten_surface_closure_tree(ShaderData *sd,
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
         weight = weight * TO_FLOAT3(comp->w);
 #endif
-        prim->setup(sd, path_flag, weight);
+        prim->setup(kg, sd, path_flag, weight);
       }
       break;
     }
@@ -234,12 +235,13 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state
 
   /* flatten closure tree */
   if (globals->Ci)
-    flatten_surface_closure_tree(sd, path_flag, globals->Ci);
+    flatten_surface_closure_tree(kg, sd, path_flag, globals->Ci);
 }
 
 /* Background */
 
-static void flatten_background_closure_tree(ShaderData *sd,
+static void flatten_background_closure_tree(KernelGlobals *kg,
+                                            ShaderData *sd,
                                             const OSL::ClosureColor *closure,
                                             float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
@@ -250,14 +252,14 @@ static void flatten_background_closure_tree(ShaderData *sd,
   switch (closure->id) {
     case OSL::ClosureColor::MUL: {
       OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
-      flatten_background_closure_tree(sd, mul->closure, weight * TO_FLOAT3(mul->weight));
+      flatten_background_closure_tree(kg, sd, mul->closure, weight * TO_FLOAT3(mul->weight));
       break;
     }
     case OSL::ClosureColor::ADD: {
       OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
 
-      flatten_background_closure_tree(sd, add->closureA, weight);
-      flatten_background_closure_tree(sd, add->closureB, weight);
+      flatten_background_closure_tree(kg, sd, add->closureA, weight);
+      flatten_background_closure_tree(kg, sd, add->closureB, weight);
       break;
     }
     default: {
@@ -268,7 +270,7 @@ static void flatten_background_closure_tree(ShaderData *sd,
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
         weight = weight * TO_FLOAT3(comp->w);
 #endif
-        prim->setup(sd, 0, weight);
+        prim->setup(kg, sd, 0, weight);
       }
       break;
     }
@@ -292,12 +294,13 @@ void OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, PathState *st
 
   /* return background color immediately */
   if (globals->Ci)
-    flatten_background_closure_tree(sd, globals->Ci);
+    flatten_background_closure_tree(kg, sd, globals->Ci);
 }
 
 /* Volume */
 
-static void flatten_volume_closure_tree(ShaderData *sd,
+static void flatten_volume_closure_tree(KernelGlobals *kg,
+                                        ShaderData *sd,
                                         const OSL::ClosureColor *closure,
                                         float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
@@ -307,13 +310,13 @@ static void flatten_volume_closure_tree(ShaderData *sd,
   switch (closure->id) {
     case OSL::ClosureColor::MUL: {
       OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
-      flatten_volume_closure_tree(sd, mul->closure, TO_FLOAT3(mul->weight) * weight);
+      flatten_volume_closure_tree(kg, sd, mul->closure, TO_FLOAT3(mul->weight) * weight);
       break;
     }
     case OSL::ClosureColor::ADD: {
       OSL::ClosureAdd *add = (OSL::ClosureAdd *)closure;
-      flatten_volume_closure_tree(sd, add->closureA, weight);
-      flatten_volume_closure_tree(sd, add->closureB, weight);
+      flatten_volume_closure_tree(kg, sd, add->closureA, weight);
+      flatten_volume_closure_tree(kg, sd, add->closureB, weight);
       break;
     }
     default: {
@@ -324,7 +327,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 #ifdef OSL_SUPPORTS_WEIGHTED_CLOSURE_COMPONENTS
         weight = weight * TO_FLOAT3(comp->w);
 #endif
-        prim->setup(sd, 0, weight);
+        prim->setup(kg, sd, 0, weight);
       }
     }
   }
@@ -348,7 +351,7 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state,
 
   /* flatten closure tree */
   if (globals->Ci)
-    flatten_volume_closure_tree(sd, globals->Ci);
+    flatten_volume_closure_tree(kg, sd, globals->Ci);
 }
 
 /* Displacement */

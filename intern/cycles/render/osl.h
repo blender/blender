@@ -129,9 +129,10 @@ class OSLCompiler {
  public:
   OSLCompiler(void *manager,
               void *shadingsys,
+              OSLGlobals *osl_globals,
               ImageManager *image_manager,
               LightManager *light_manager);
-  void compile(Scene *scene, OSLGlobals *og, Shader *shader);
+  void compile(Scene *scene, Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
@@ -175,6 +176,7 @@ class OSLCompiler {
 
   void *shadingsys;
   void *manager;
+  OSLGlobals *osl_globals;
   ShaderType current_type;
   Shader *current_shader;
 };

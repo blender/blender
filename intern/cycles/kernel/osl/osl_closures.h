@@ -42,6 +42,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+struct KernelGlobals;
+
 OSL::ClosureParam *closure_emission_params();
 OSL::ClosureParam *closure_background_params();
 OSL::ClosureParam *closure_holdout_params();
@@ -111,7 +113,7 @@ void closure_bsdf_principled_hair_prepare(OSL::RendererServices *, int id, void 
 
 class CClosurePrimitive {
  public:
-  virtual void setup(ShaderData *sd, int path_flag, float3 weight) = 0;
+  virtual void setup(const KernelGlobals *kg, ShaderData *sd, int path_flag, float3 weight) = 0;
 
   OSL::ustring label;
 };
@@ -120,7 +122,7 @@ class CClosurePrimitive {
 
 class CBSDFClosure : public CClosurePrimitive {
  public:
-  bool skip(const ShaderData *sd, int path_flag, int scattering);
+  bool skip(const KernelGlobals *kg, const ShaderData *sd, int path_flag, int scattering);
 };
 
 #define BSDF_CLOSURE_CLASS_BEGIN(Upper, lower, structname, TYPE) \
@@ -130,9 +132,9 @@ class CBSDFClosure : public CClosurePrimitive {
     structname params; \
     float3 unused; \
 \
-    void setup(ShaderData *sd, int path_flag, float3 weight) \
+    void setup(const KernelGlobals *kg, ShaderData *sd, int path_flag, float3 weight) \
     { \
-      if (!skip(sd, path_flag, TYPE)) { \
+      if (!skip(kg, sd, path_flag, TYPE)) { \
         structname *bsdf = (structname *)bsdf_alloc_osl(sd, sizeof(structname), weight, &params); \
         sd->flag |= (bsdf) ? bsdf_##lower##_setup(bsdf) : 0; \
       } \

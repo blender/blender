@@ -45,7 +45,7 @@ class OSLRenderServices : public OSL::RendererServices {
   OSLRenderServices();
   ~OSLRenderServices();
 
-  void thread_init(KernelGlobals *kernel_globals, OSL::TextureSystem *ts);
+  void thread_init(KernelGlobals *kernel_globals, OSLGlobals *osl_globals, OSL::TextureSystem *ts);
 
   bool get_matrix(OSL::ShaderGlobals *sg,
                   OSL::Matrix44 &result,
@@ -257,6 +257,7 @@ class OSLRenderServices : public OSL::RendererServices {
 
  private:
   KernelGlobals *kernel_globals;
+  OSLGlobals *osl_globals;
   OSL::TextureSystem *osl_ts;
 #ifdef WITH_PTEX
   PtexCache *ptex_cache;

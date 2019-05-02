@@ -104,6 +104,11 @@ void OSLShaderManager::device_update(Device *device,
   /* create shaders */
   OSLGlobals *og = (OSLGlobals *)device->osl_memory();
 
+  /* Partial thread init of services, the OSL compiler can query data like
+   * constant texture handles. This will be done again right before rendering
+   * with full data available. */
+  services->thread_init(NULL, og, ts);
+
   foreach (Shader *shader, scene->shaders) {
     assert(shader->graph);
 
@@ -115,9 +120,9 @@ void OSLShaderManager::device_update(Device *device,
      * compile shaders alternating */
     thread_scoped_lock lock(ss_mutex);
 
-    OSLCompiler compiler((void *)this, (void *)ss, scene->image_manager, scene->light_manager);
+    OSLCompiler compiler((void *)this, (void *)ss, og, scene->image_manager, scene->light_manager);
     compiler.background = (shader == scene->default_background);
-    compiler.compile(scene, og, shader);
+    compiler.compile(scene, shader);
 
     if (shader->use_mis && shader->has_surface_emission)
       scene->light_manager->need_update = true;
@@ -557,11 +562,13 @@ OSLNode *OSLShaderManager::osl_node(const std::string &filepath,
 
 OSLCompiler::OSLCompiler(void *manager_,
                          void *shadingsys_,
+                         OSLGlobals *osl_globals_,
                          ImageManager *image_manager_,
                          LightManager *light_manager_)
 {
   manager = manager_;
   shadingsys = shadingsys_;
+  osl_globals = osl_globals_;
   image_manager = image_manager_;
   light_manager = light_manager_;
   current_type = SHADER_TYPE_SURFACE;
@@ -1123,7 +1130,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
   return group;
 }
 
-void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
+void OSLCompiler::compile(Scene *scene, Shader *shader)
 {
   if (shader->need_update) {
     ShaderGraph *graph = shader->graph;
@@ -1188,10 +1195,10 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
   }
 
   /* push state to array for lookup */
-  og->surface_state.push_back(shader->osl_surface_ref);
-  og->volume_state.push_back(shader->osl_volume_ref);
-  og->displacement_state.push_back(shader->osl_displacement_ref);
-  og->bump_state.push_back(shader->osl_surface_bump_ref);
+  osl_globals->surface_state.push_back(shader->osl_surface_ref);
+  osl_globals->volume_state.push_back(shader->osl_volume_ref);
+  osl_globals->displacement_state.push_back(shader->osl_displacement_ref);
+  osl_globals->bump_state.push_back(shader->osl_surface_bump_ref);
 }
 
 #else

@@ -54,7 +54,7 @@ using namespace OSL;
 ///
 class GenericEmissiveClosure : public CClosurePrimitive {
  public:
-  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(const KernelGlobals *, ShaderData *sd, int /* path_flag */, float3 weight)
   {
     emission_setup(sd, weight);
   }
