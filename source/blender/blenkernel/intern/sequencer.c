@@ -3640,7 +3640,7 @@ finally:
 
 #ifdef DURIAN_CAMERA_SWITCH
   /* stooping to new low's in hackyness :( */
-  scene->r.mode &= ~(orig_data.mode & R_NO_CAMERA_SWITCH);
+  scene->r.mode &= orig_data.mode | ~R_NO_CAMERA_SWITCH;
 #endif
 
   return ibuf;

@@ -6867,6 +6867,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
     }
   }
 
+#ifdef DURIAN_CAMERA_SWITCH
+  /* Runtime */
+  sce->r.mode &= ~R_NO_CAMERA_SWITCH;
+#endif
+
   sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
   if (sce->r.avicodecdata) {
     sce->r.avicodecdata->lpFormat = newdataadr(fd, sce->r.avicodecdata->lpFormat);
