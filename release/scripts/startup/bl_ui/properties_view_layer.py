@@ -56,7 +56,6 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
     bl_label = "Passes"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
