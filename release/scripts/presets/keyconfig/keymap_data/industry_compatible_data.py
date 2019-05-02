@@ -2686,7 +2686,7 @@ def km_curve(params):
         ("curve.select_more", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
         ("curve.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
         ("curve.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
-        ("curve.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True}, None),
+        ("curve.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True, "shift": True}, None),
         ("curve.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         op_menu("VIEW3D_MT_edit_curve_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_curve_delete", {"type": 'DEL', "value": 'PRESS'}),
@@ -2993,14 +2993,17 @@ def km_mesh(params):
     )
 
     items.extend([
-
+        # Selection
         ("mesh.loop_select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
         ("mesh.loop_select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True), ("deselect", False), ("toggle", False)]}),
         ("mesh.loop_select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "ctrl": True},
          {"properties": [("extend", False), ("deselect", True), ("toggle", False)]}),
-        # Selection
+
+        ("mesh.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("use_fill", False)]}),
+
         ("mesh.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("mesh.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("mesh.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
@@ -3057,6 +3060,7 @@ def km_armature(params):
         ("armature.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("armature.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("armature.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+
         ("armature.select_hierarchy", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
          {"properties": [("direction", 'PARENT'), ("extend", False)]}),
         ("armature.select_hierarchy", {"type": 'LEFT_BRACKET', "value": 'PRESS', "shift": True},
@@ -3065,11 +3069,16 @@ def km_armature(params):
          {"properties": [("direction", 'CHILD'), ("extend", False)]}),
         ("armature.select_hierarchy", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("direction", 'CHILD'), ("extend", True)]}),
+
         ("armature.select_more", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
         ("armature.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
+
         ("armature.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         ("armature.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("deselect", False)]}),
+
+        ("armature.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
+
         # Editing.
         op_menu("VIEW3D_MT_edit_armature_delete", {"type": 'DEL', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_armature_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
