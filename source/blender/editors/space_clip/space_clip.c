@@ -1047,13 +1047,9 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* scale indicators */
-  short unitx = (sc->flag & SC_SHOW_SECONDS) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-  short unity = V2D_UNIT_VALUES;
-  View2DGrid *grid = UI_view2d_grid_calc(
-      scene, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
-  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unitx, false);
-  UI_view2d_grid_draw_numbers_vertical(scene, v2d, grid, &v2d->vert, unity, 0.0);
-  UI_view2d_grid_free(grid);
+  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
+      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS);
+  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert);
 
   /* current frame indicator */
   if (sc->flag & SC_SHOW_SECONDS) {
@@ -1069,9 +1065,8 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   View2D *v2d = &ar->v2d;
-  View2DGrid *grid;
   View2DScrollers *scrollers;
-  short unit = 0, cfra_flag = 0;
+  short cfra_flag = 0;
 
   if (clip) {
     BKE_tracking_dopesheet_update(&clip->tracking);
@@ -1084,10 +1079,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  unit = (sc->flag & SC_SHOW_SECONDS) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-  grid = UI_view2d_grid_calc(
-      scene, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
-  UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
+  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, sc->flag & SC_SHOW_SECONDS);
 
   /* data... */
   clip_draw_dopesheet_main(sc, ar, scene);
@@ -1107,8 +1099,8 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* frame numbers */
-  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unit, true);
-  UI_view2d_grid_free(grid);
+  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
+      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS);
 
   /* current frame number indicator */
   UI_view2d_view_orthoSpecial(ar, v2d, 1);

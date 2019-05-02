@@ -1563,24 +1563,11 @@ static void applyGridIncrement(
     /* custom aspect for fcurve */
     if (t->spacetype == SPACE_GRAPH) {
       View2D *v2d = &t->ar->v2d;
-      View2DGrid *grid;
+      Scene *scene = t->scene;
       SpaceGraph *sipo = t->sa->spacedata.first;
-      int unity = V2D_UNIT_VALUES;
-      int unitx = (sipo->flag & SIPO_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
-
-      /* grid */
-      grid = UI_view2d_grid_calc(t->scene,
-                                 v2d,
-                                 unitx,
-                                 V2D_GRID_NOCLAMP,
-                                 unity,
-                                 V2D_GRID_NOCLAMP,
-                                 t->ar->winx,
-                                 t->ar->winy);
-
-      UI_view2d_grid_size(grid, &asp_local[0], &asp_local[1]);
-      UI_view2d_grid_free(grid);
-
+      asp_local[0] = UI_view2d_grid_resolution_x__frames_or_seconds(
+          v2d, scene, sipo->flag & SIPO_DRAWTIME);
+      asp_local[1] = UI_view2d_grid_resolution_y__values(v2d);
       asp = asp_local;
     }
   }

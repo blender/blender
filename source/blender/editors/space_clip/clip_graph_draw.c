@@ -339,14 +339,10 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   View2D *v2d = &ar->v2d;
-  View2DGrid *grid;
-  short unitx = V2D_UNIT_FRAMESCALE, unity = V2D_UNIT_VALUES;
 
   /* grid */
-  grid = UI_view2d_grid_calc(
-      scene, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
-  UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
-  UI_view2d_grid_free(grid);
+  UI_view2d_draw_lines_x__values(v2d);
+  UI_view2d_draw_lines_y__values(v2d);
 
   if (clip) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

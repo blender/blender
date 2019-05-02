@@ -56,40 +56,7 @@ enum eView2D_CommonViewTypes {
   V2D_COMMONVIEW_PANELS_UI,
 };
 
-/* ---- Defines for Scroller/Grid Arguments ----- */
-
-/* 'dummy' argument to pass when argument is irrelevant */
-#define V2D_ARG_DUMMY -1
-
-/* Grid units */
-enum eView2D_Units {
-  /* for drawing time */
-  V2D_UNIT_SECONDS = 0,
-  V2D_UNIT_FRAMES,
-  V2D_UNIT_FRAMESCALE,
-
-  /* for drawing values */
-  V2D_UNIT_VALUES,
-};
-
-/* clamping of grid values to whole numbers */
-enum eView2D_Clamp {
-  V2D_GRID_NOCLAMP = 0,
-  V2D_GRID_CLAMP,
-};
-
-/* flags for grid-lines to draw */
-enum eView2D_Gridlines {
-  V2D_HORIZONTAL_LINES = (1 << 0),
-  V2D_VERTICAL_LINES = (1 << 1),
-  V2D_HORIZONTAL_AXIS = (1 << 2),
-  V2D_VERTICAL_AXIS = (1 << 3),
-  V2D_HORIZONTAL_FINELINES = (1 << 4),
-
-  V2D_GRIDLINES_MAJOR = (V2D_VERTICAL_LINES | V2D_VERTICAL_AXIS | V2D_HORIZONTAL_LINES |
-                         V2D_HORIZONTAL_AXIS),
-  V2D_GRIDLINES_ALL = (V2D_GRIDLINES_MAJOR | V2D_HORIZONTAL_FINELINES),
-};
+/* ---- Defines for Scroller Arguments ----- */
 
 /* ------ Defines for Scrollers ----- */
 
@@ -124,7 +91,6 @@ enum eView2D_Gridlines {
 /* Type definitions:                          */
 
 struct View2D;
-struct View2DGrid;
 struct View2DScrollers;
 
 struct ARegion;
@@ -135,7 +101,6 @@ struct bScreen;
 struct rctf;
 struct wmKeyConfig;
 
-typedef struct View2DGrid View2DGrid;
 typedef struct View2DScrollers View2DScrollers;
 
 /* ----------------------------------------- */
@@ -159,37 +124,58 @@ bool UI_view2d_tab_set(struct View2D *v2d, int tab);
 void UI_view2d_zoom_cache_reset(void);
 
 /* view matrix operations */
-void UI_view2d_view_ortho(struct View2D *v2d);
+void UI_view2d_view_ortho(const struct View2D *v2d);
 void UI_view2d_view_orthoSpecial(struct ARegion *ar, struct View2D *v2d, const bool xaxis);
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-View2DGrid *UI_view2d_grid_calc(struct Scene *scene,
-                                struct View2D *v2d,
-                                short xunits,
-                                short xclamp,
-                                short yunits,
-                                short yclamp,
-                                int winx,
-                                int winy);
-void UI_view2d_grid_draw(struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_constant_grid_draw(struct View2D *v2d, float step);
 void UI_view2d_multi_grid_draw(
     struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
-void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy);
-void UI_view2d_grid_draw_numbers_horizontal(const struct Scene *scene,
-                                            const struct View2D *v2d,
-                                            const View2DGrid *grid,
-                                            const struct rcti *rect,
-                                            int unit,
-                                            bool whole_numbers_only);
-void UI_view2d_grid_draw_numbers_vertical(const struct Scene *scene,
-                                          const struct View2D *v2d,
-                                          const View2DGrid *grid,
-                                          const struct rcti *rect,
-                                          int unit,
-                                          float text_offset);
-void UI_view2d_grid_free(View2DGrid *grid);
+
+void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
+void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
+void UI_view2d_draw_lines_x__discrete_values(const struct View2D *v2d);
+void UI_view2d_draw_lines_x__discrete_time(const struct View2D *v2d, const struct Scene *scene);
+void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const struct View2D *v2d,
+                                                        const struct Scene *scene,
+                                                        bool display_seconds);
+void UI_view2d_draw_lines_x__frames_or_seconds(const struct View2D *v2d,
+                                               const struct Scene *scene,
+                                               bool display_seconds);
+
+float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
+                                                     const struct Scene *scene,
+                                                     bool display_seconds);
+float UI_view2d_grid_resolution_y__values(const struct View2D *v2d);
+
+/* scale indicator text drawing */
+void UI_view2d_draw_scale_y__values(const struct ARegion *ar,
+                                    const struct View2D *v2d,
+                                    const struct rcti *rect);
+void UI_view2d_draw_scale_y__block(const struct ARegion *ar,
+                                   const struct View2D *v2d,
+                                   const struct rcti *rect);
+void UI_view2d_draw_scale_x__values(const struct ARegion *ar,
+                                    const struct View2D *v2d,
+                                    const struct rcti *rect);
+void UI_view2d_draw_scale_x__discrete_values(const struct ARegion *ar,
+                                             const struct View2D *v2d,
+                                             const struct rcti *rect);
+void UI_view2d_draw_scale_x__discrete_time(const struct ARegion *ar,
+                                           const struct View2D *v2d,
+                                           const struct rcti *rect,
+                                           const struct Scene *scene);
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *ar,
+                                                        const struct View2D *v2d,
+                                                        const struct rcti *rect,
+                                                        const struct Scene *scene,
+                                                        bool display_seconds);
+void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *ar,
+                                               const struct View2D *v2d,
+                                               const struct rcti *rect,
+                                               const struct Scene *scene,
+                                               bool display_seconds);
 
 /* scrollbar drawing */
 View2DScrollers *UI_view2d_scrollers_calc(struct View2D *v2d, const struct rcti *mask_custom);

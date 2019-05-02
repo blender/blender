@@ -28,7 +28,6 @@ struct ARegion;
 struct ARegionType;
 struct ScrArea;
 struct SpaceGraph;
-struct View2DGrid;
 struct bAnimContext;
 struct bAnimListElem;
 struct bContext;
@@ -42,7 +41,6 @@ void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struc
 void graph_draw_curves(struct bAnimContext *ac,
                        struct SpaceGraph *sipo,
                        struct ARegion *ar,
-                       struct View2DGrid *grid,
                        short sel);
 void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceGraph *sipo, struct ARegion *ar);
 

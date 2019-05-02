@@ -1996,7 +1996,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &ar->v2d;
   View2DScrollers *scrollers;
-  short unit = 0, cfra_flag = 0;
+  short cfra_flag = 0;
   float col[3];
 
   /* clear and setup matrix */
@@ -2087,17 +2087,14 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  unit = (sseq->flag & SEQ_DRAWFRAMES) ? V2D_UNIT_FRAMES : V2D_UNIT_SECONDS;
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 
   /* scale numbers */
-  View2DGrid *grid = UI_view2d_grid_calc(
-      scene, v2d, unit, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP, ar->winx, ar->winy);
-  UI_view2d_grid_draw_numbers_horizontal(scene, v2d, grid, &v2d->hor, unit, true);
-  UI_view2d_grid_draw_numbers_vertical(scene, v2d, grid, &v2d->vert, V2D_UNIT_VALUES, 0.5f);
-  UI_view2d_grid_free(grid);
+  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
+      ar, v2d, &v2d->hor, scene, !(sseq->flag & SEQ_DRAWFRAMES));
+  UI_view2d_draw_scale_y__block(ar, v2d, &v2d->vert);
 
   /* draw current frame number-indicator on top of scrollers */
   if ((sseq->flag & SEQ_NO_DRAW_CFRANUM) == 0) {
