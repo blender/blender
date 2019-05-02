@@ -41,7 +41,6 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
 #include "BLF_api.h"
@@ -189,11 +188,10 @@ int BLF_default(void)
   return global_font_default;
 }
 
-bool BLF_has_glyph(int fontid, const char *utf8)
+bool BLF_has_glyph(int fontid, unsigned int unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    unsigned int unicode = BLI_str_utf8_as_unicode(utf8);
     return FT_Get_Char_Index(font->face, unicode) != 0;
   }
   return false;

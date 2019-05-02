@@ -1051,67 +1051,89 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 /* ***************** get string from key events **************** */
 
 /* if try_unicode see if fancy glyph is in the font, otherwise return text fallback */
-static const char *key_event_icon_or_text(const bool try_unicode,
-                                          const int font_id,
-                                          const char *icon,
-                                          const char *text)
+static const char *key_event_icon_or_text(const int font_id, const char *text, const char *icon)
 {
-  return (try_unicode && BLF_has_glyph(font_id, icon)) ? icon : text;
+  BLI_assert(icon == NULL || (BLI_strlen_utf8(icon) == 1));
+  return (icon && BLF_has_glyph(font_id, BLI_str_utf8_as_unicode(icon))) ? icon : text;
 }
 
 const char *WM_key_event_string(const short type, const bool compact)
 {
   if (compact) {
+    /* String storing a single unicode character or NULL. */
+    const char *icon_glyph = NULL;
     int font_id = BLF_default();
-    bool is_macos = false;
-    bool is_windows = false;
+    const enum {
+      UNIX,
+      MACOS,
+      MSWIN,
+    } platform =
 
-#ifdef __APPLE__
-    is_macos = true;
+#if defined(__APPLE__)
+        MACOS
+#elif defined(_WIN32)
+        MSWIN
+#else
+        UNIX
 #endif
-#ifdef WIN32
-    is_windows = true;
-#endif
+        ;
 
     switch (type) {
       case LEFTSHIFTKEY:
-      case RIGHTSHIFTKEY:
-        return key_event_icon_or_text(is_macos, font_id, "\xe2\x87\xa7\x00", IFACE_("Shift"));
+      case RIGHTSHIFTKEY: {
+        if (platform == MACOS) {
+          icon_glyph = "\xe2\x87\xa7";
+        }
+        return key_event_icon_or_text(font_id, IFACE_("Shift"), icon_glyph);
+      }
       case LEFTCTRLKEY:
       case RIGHTCTRLKEY:
-        return (is_macos) ? "^" : IFACE_("Ctrl");
+        if (platform == MACOS) {
+          return "^";
+        }
+        return IFACE_("Ctrl");
       case LEFTALTKEY:
-      case RIGHTALTKEY:
-        return key_event_icon_or_text(is_macos, font_id, "\xe2\x8c\xa5\x00", IFACE_("Alt"));
+      case RIGHTALTKEY: {
+        if (platform == MACOS) {
+          icon_glyph = "\xe2\x8c\xa5";
+        }
+        return key_event_icon_or_text(font_id, IFACE_("Alt"), icon_glyph);
+      }
       case OSKEY: {
-        if (is_macos) {
-          return key_event_icon_or_text(true, font_id, "\xe2\x8c\x98\x00", IFACE_("Cmd"));
+        if (platform == MACOS) {
+          return key_event_icon_or_text(font_id, IFACE_("Cmd"), "\xe2\x8c\x98");
         }
-        else if (is_windows) {
-          return key_event_icon_or_text(true, font_id, "\xe2\x8a\x9e\x00", IFACE_("Win"));
+        else if (platform == MSWIN) {
+          return key_event_icon_or_text(font_id, IFACE_("Win"), "\xe2\x8a\x9e");
         }
-        else {
-          return IFACE_("OSkey");
-        }
+        return IFACE_("OSkey");
       } break;
-      case TABKEY:
-        return key_event_icon_or_text(is_macos, font_id, "\xe2\x86\xb9\x00", IFACE_("Tab"));
+      case TABKEY: {
+        if (platform == MACOS) {
+          icon_glyph = "\xe2\x86\xb9";
+        }
+        return key_event_icon_or_text(font_id, IFACE_("Tab"), icon_glyph);
+      }
       case BACKSPACEKEY:
-        return key_event_icon_or_text(true, font_id, "\xe2\x8c\xab\x00", IFACE_("Bksp"));
+        return key_event_icon_or_text(font_id, IFACE_("Bksp"), "\xe2\x8c\xab");
       case ESCKEY:
-        return key_event_icon_or_text(false, font_id, "\xe2\x8e\x8b\x00", IFACE_("Esc"));
-      case RETKEY:
-        return key_event_icon_or_text(is_macos, font_id, "\xe2\x8f\x8e\x00", IFACE_("Enter"));
+        return key_event_icon_or_text(font_id, IFACE_("Esc"), NULL /* "\xe2\x8e\x8b" */);
+      case RETKEY: {
+        if (platform == MACOS) {
+          icon_glyph = "\xe2\x8f\x8e";
+        }
+        return key_event_icon_or_text(font_id, IFACE_("Enter"), icon_glyph);
+      }
       case SPACEKEY:
-        return key_event_icon_or_text(false, font_id, "\xe2\x90\xa3\x00", IFACE_("Space"));
+        return key_event_icon_or_text(font_id, IFACE_("Space"), NULL /* "\xe2\x90\xa3" */);
       case LEFTARROWKEY:
-        return key_event_icon_or_text(true, font_id, "\xe2\x86\x90\x00", IFACE_("Left"));
+        return key_event_icon_or_text(font_id, IFACE_("Left"), "\xe2\x86\x90");
       case UPARROWKEY:
-        return key_event_icon_or_text(true, font_id, "\xe2\x86\x91\x00", IFACE_("Up"));
+        return key_event_icon_or_text(font_id, IFACE_("Up"), "\xe2\x86\x91");
       case RIGHTARROWKEY:
-        return key_event_icon_or_text(true, font_id, "\xe2\x86\x92\x00", IFACE_("Right"));
+        return key_event_icon_or_text(font_id, IFACE_("Right"), "\xe2\x86\x92");
       case DOWNARROWKEY:
-        return key_event_icon_or_text(true, font_id, "\xe2\x86\x93\x00", IFACE_("Down"));
+        return key_event_icon_or_text(font_id, IFACE_("Down"), "\xe2\x86\x93");
     }
   }
 
