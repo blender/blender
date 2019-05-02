@@ -1826,15 +1826,14 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
     ui_id_icon_render(C, id, true);
   }
   else {
-    WorkSpace *workspace = CTX_wm_workspace(C);
     Object *ob = CTX_data_active_object(C);
     const EnumPropertyItem *items = NULL;
     ePaintMode paint_mode = PAINT_MODE_INVALID;
     ScrArea *sa = CTX_wm_area(C);
     char space_type = sa->spacetype;
-    /* When in an unsupported space. */
-    if (!ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE)) {
-      space_type = workspace->tools_space_type;
+    /* Fallback to 3D view. */
+    if (space_type == SPACE_PROPERTIES) {
+      space_type = SPACE_VIEW3D;
     }
 
     /* XXX: this is not nice, should probably make brushes
@@ -1856,17 +1855,11 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       }
     }
     else if (space_type == SPACE_IMAGE) {
-      int sima_mode;
       if (sa->spacetype == space_type) {
-        SpaceImage *sima = sa->spacedata.first;
-        sima_mode = sima->mode;
-      }
-      else {
-        sima_mode = workspace->tools_mode;
-      }
-
-      if (sima_mode == SI_MODE_PAINT) {
-        paint_mode = PAINT_MODE_TEXTURE_2D;
+        const SpaceImage *sima = sa->spacedata.first;
+        if (sima->mode == SI_MODE_PAINT) {
+          paint_mode = PAINT_MODE_TEXTURE_2D;
+        }
       }
     }
 

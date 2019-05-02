@@ -362,10 +362,6 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
 
   STRNCPY(tref->idname, idname);
 
-  /* BAD DESIGN WARNING: used for topbar. */
-  workspace->tools_space_type = tref->space_type;
-  workspace->tools_mode = tref->mode;
-
   if (tref->runtime == NULL) {
     tref->runtime = MEM_callocN(sizeof(*tref->runtime), __func__);
   }
@@ -558,30 +554,23 @@ void WM_toolsystem_refresh_active(bContext *C)
       WorkSpace *workspace = WM_window_get_active_workspace(win);
       bScreen *screen = WM_window_get_active_screen(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-      int mode_other = 0;
-      enum { UNSET = -1, CHANGE = 0, MATCH = 1 } mode_match = UNSET;
       /* Could skip loop for modes that don't depend on space type. */
+      int space_type_mask_handled = 0;
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
         /* Don't change the space type of the active tool, only update it's mode. */
-        if (sa->spacetype == workspace->tools_space_type) {
-          const int mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype);
-          if (workspace->tools_mode == mode) {
-            mode_match = MATCH;
-            break;
-          }
-          else if (mode_match == -1) {
-            mode_match = CHANGE;
-            mode_other = mode;
+        const int space_type_mask = (1 << sa->spacetype);
+        if ((space_type_mask & WM_TOOLSYSTEM_SPACE_MASK) &&
+            ((space_type_mask_handled & space_type_mask) == 0)) {
+          space_type_mask_handled |= space_type_mask;
+          const bToolKey tkey = {
+              .space_type = sa->spacetype,
+              .mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
+          };
+          bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+          if (tref != sa->runtime.tool) {
+            toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
           }
         }
-      }
-
-      if (mode_match == CHANGE) {
-        const bToolKey tkey = {
-            .space_type = workspace->tools_space_type,
-            .mode = mode_other,
-        };
-        toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
       }
     }
   }
