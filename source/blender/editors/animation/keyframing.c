@@ -2209,6 +2209,11 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
           changed = true;
         }
       }
+
+      /* Delete the action itself if it is empty. */
+      if (ANIM_remove_empty_action_from_animdata(adt)) {
+        changed = true;
+      }
     }
   }
   CTX_DATA_END;

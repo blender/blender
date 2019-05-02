@@ -612,6 +612,9 @@ void ANIM_set_active_channel(bAnimContext *ac,
  * as appropriate according to animation context */
 void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, struct FCurve *fcu);
 
+/* Unlink the action from animdata if it's empty. */
+bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt);
+
 /* ************************************************ */
 /* DRAWING API */
 /* anim_draw.c */

@@ -649,14 +649,28 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
      * channel list that are empty, and linger around long after the data they
      * are for has disappeared (and probably won't come back).
      */
-    if (BLI_listbase_is_empty(&act->curves) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
-      id_us_min(&act->id);
-      adt->action = NULL;
-    }
+    ANIM_remove_empty_action_from_animdata(adt);
   }
 
   /* free the F-Curve itself */
   free_fcurve(fcu);
+}
+
+/* If the action has no F-Curves, unlink it from AnimData if it did not
+ * come from a NLA Strip being tweaked. */
+bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt)
+{
+  if (adt->action != NULL) {
+    bAction *act = adt->action;
+
+    if (BLI_listbase_is_empty(&act->curves) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
+      id_us_min(&act->id);
+      adt->action = NULL;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /* ************************************************************************** */
