@@ -3407,7 +3407,7 @@ void world_normals_get(out vec3 N)
     /* Shade as a cylinder. */
     cos_theta = hairThickTime / hairThickness;
   }
-  float sin_theta = sqrt(max(0.0, 1.0f - cos_theta * cos_theta));
+  float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
   N = normalize(worldNormal * sin_theta + B * cos_theta);
 #  else
   N = gl_FrontFacing ? worldNormal : -worldNormal;

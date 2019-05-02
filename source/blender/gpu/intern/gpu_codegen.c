@@ -892,7 +892,13 @@ static char *code_generate_fragment(GPUMaterial *material,
     BLI_dynstr_append(ds, "\t#define invlocaltoviewmat ModelViewMatrixInverse\n");
   }
   if (builtins & GPU_VIEW_NORMAL) {
+    BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
+    BLI_dynstr_append(ds, "\tvec3 n;\n");
+    BLI_dynstr_append(ds, "\tworld_normals_get(n);\n");
+    BLI_dynstr_append(ds, "\tvec3 facingnormal = transform_direction(ViewMatrix, n);\n");
+    BLI_dynstr_append(ds, "#else\n");
     BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
+    BLI_dynstr_append(ds, "#endif\n");
   }
   if (builtins & GPU_VIEW_POSITION) {
     BLI_dynstr_append(ds, "\t#define viewposition viewPosition\n");

@@ -1881,6 +1881,13 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
 
               shgrp = DRW_shgroup_material_hair_create(ob, psys, md, psl->material_pass, gpumat);
 
+              if (!use_diffuse && !use_glossy && !use_refract) {
+                /* FIXME: Small hack to avoid issue when utilTex is needed for
+                 * world_normals_get and none of the bsdfs that need it are present.
+                 * This can try to bind utilTex even if not needed. */
+                DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
+              }
+
               add_standard_uniforms(shgrp,
                                     sldata,
                                     vedata,
