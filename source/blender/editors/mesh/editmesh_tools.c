@@ -3169,8 +3169,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Doubles";
-  ot->description = "Remove duplicate vertices";
+  ot->name = "Merge by Distance";
+  ot->description = "Merge vertices based on their proximity";
   ot->idname = "MESH_OT_remove_doubles";
 
   /* api callbacks */

@@ -2203,7 +2203,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 static void UV_OT_remove_doubles(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Doubles UV";
+  ot->name = "Merge UVs by Distance";
   ot->description =
       "Selected UV vertices that are within a radius of each other are welded together";
   ot->idname = "UV_OT_remove_doubles";
