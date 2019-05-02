@@ -745,7 +745,6 @@ class CYCLES_RENDER_PT_override(CyclesButtonsPanel, Panel):
 class CYCLES_RENDER_PT_passes(CyclesButtonsPanel, Panel):
     bl_label = "Passes"
     bl_context = "view_layer"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         pass
@@ -2131,13 +2130,13 @@ classes = (
     CYCLES_RENDER_PT_performance_acceleration_structure,
     CYCLES_RENDER_PT_performance_final_render,
     CYCLES_RENDER_PT_performance_viewport,
-    CYCLES_RENDER_PT_filter,
-    CYCLES_RENDER_PT_override,
     CYCLES_RENDER_PT_passes,
     CYCLES_RENDER_PT_passes_data,
     CYCLES_RENDER_PT_passes_light,
     CYCLES_RENDER_PT_passes_crypto,
     CYCLES_RENDER_PT_passes_debug,
+    CYCLES_RENDER_PT_filter,
+    CYCLES_RENDER_PT_override,
     CYCLES_RENDER_PT_denoising,
     CYCLES_PT_post_processing,
     CYCLES_CAMERA_PT_dof,
