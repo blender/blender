@@ -63,8 +63,11 @@ struct wmKeyMapItemFind_Params {
   void *user_data;
 };
 
-/******************************* Keymap Item **********************************
- * Item in a keymap, that maps from an event to an operator or modal map item */
+/* -------------------------------------------------------------------- */
+/** \name Keymap Item
+ *
+ * Item in a keymap, that maps from an event to an operator or modal map item.
+ * \{ */
 
 static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
 {
@@ -221,8 +224,13 @@ int WM_keymap_map_type_get(wmKeyMapItem *kmi)
   return KMI_TYPE_KEYBOARD;
 }
 
-/**************************** Keymap Diff Item *********************************
- * Item in a diff keymap, used for saving diff of keymaps in user preferences */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Diff Item
+ *
+ * Item in a diff keymap, used for saving diff of keymaps in user preferences.
+ * \{ */
 
 static wmKeyMapDiffItem *wm_keymap_diff_item_copy(wmKeyMapDiffItem *kmdi)
 {
@@ -251,9 +259,15 @@ static void wm_keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
   }
 }
 
-/***************************** Key Configuration ******************************
- * List of keymaps for all editors, modes, ... . There is a builtin default key
- * configuration, a user key configuration, and other preset configurations. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Key Configuration
+ *
+ * List of keymaps for all editors, modes, etc.
+ * There is a builtin default key configuration,
+ * a user key configuration, and other preset configurations.
+ * \{ */
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined)
 {
@@ -351,8 +365,13 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
   WM_keyconfig_update(wm);
 }
 
-/********************************** Keymap *************************************
- * List of keymap items for one editor, mode, modal operator, ... */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap
+ *
+ * List of keymap items for one editor, mode, modal operator.
+ * \{ */
 
 static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
 {
@@ -556,11 +575,16 @@ bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-/************************** Keymap Diff and Patch ****************************
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Diff and Patch
+ *
  * Rather than saving the entire keymap for user preferences, we only save a
  * diff so that changes in the defaults get synced. This system is not perfect
  * but works better than overriding the keymap entirely when only few items
- * are changed. */
+ * are changed.
+ * \{ */
 
 static void wm_keymap_addon_add(wmKeyMap *keymap, wmKeyMap *addonmap)
 {
@@ -826,11 +850,16 @@ static void wm_keymap_diff_update(ListBase *lb,
   }
 }
 
-/* ****************** storage in WM ************ */
+/** \} */
 
-/* name id's are for storing general or multiple keymaps,
- * space/region ids are same as DNA_space_types.h */
-/* gets freed in wm.c */
+/* -------------------------------------------------------------------- */
+/** \name Storage in WM
+ *
+ * Name id's are for storing general or multiple keymaps.
+ *
+ * - Space/region ids are same as DNA_space_types.h
+ * - Gets freed in wm.c
+ * \{ */
 
 wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid)
 {
@@ -896,10 +925,14 @@ wmKeyMap *WM_keymap_find_all_spaceid_or_empty(const bContext *C,
   return WM_keymap_list_find_spaceid_or_empty(&wm->userconf->keymaps, idname, spaceid, regionid);
 }
 
-/* ****************** modal keymaps ************ */
+/** \} */
 
-/* Modal key-maps get linked to a running operator,
- * and filter the keys before sending to modal() callback. */
+/* -------------------------------------------------------------------- */
+/** \name Modal Keymaps
+ *
+ * Modal key-maps get linked to a running operator,
+ * and filter the keys before sending to #wmOperatorType.modal callback.
+ * \{ */
 
 wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf,
                              const char *idname,
@@ -1048,9 +1081,12 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
   }
 }
 
-/* ***************** get string from key events **************** */
+/** \} */
 
-/* if try_unicode see if fancy glyph is in the font, otherwise return text fallback */
+/* -------------------------------------------------------------------- */
+/** \name Text from Key Events
+ * \{ */
+
 static const char *key_event_icon_or_text(const int font_id, const char *text, const char *icon)
 {
   BLI_assert(icon == NULL || (BLI_strlen_utf8(icon) == 1));
@@ -1304,6 +1340,8 @@ char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
 
   return ret;
 }
+
+/** \} */
 
 static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const char *opname,
@@ -1732,10 +1770,15 @@ bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
   return 1;
 }
 
-/************************* Update Final Configuration *************************
- * On load or other changes, the final user key configuration is rebuilt from
- * the preset, addon and user preferences keymaps. We also test if the final
- * configuration changed and write the changes to the user preferences. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Final Configuration
+ *
+ * On load or other changes, the final user key configuration is rebuilt from the preset,
+ * add-on and user preferences keymaps. We also test if the final configuration changed and write
+ * the changes to the user preferences.
+ * \{ */
 
 /* so operator removal can trigger update */
 enum {
@@ -1905,10 +1948,14 @@ void WM_keyconfig_update(wmWindowManager *wm)
   }
 }
 
-/********************************* Event Handling *****************************
- * Handlers have pointers to the keymap in the default configuration. During
- * event handling this function is called to get the keymap from the final
- * configuration. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Handling
+ *
+ * Handlers have pointers to the keymap in the default configuration.
+ * During event handling this function is called to get the keymap from the final configuration.
+ * \{ */
 
 wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
 {
@@ -1929,8 +1976,13 @@ wmKeyMap *WM_keymap_active(wmWindowManager *wm, wmKeyMap *keymap)
   return keymap;
 }
 
-/******************************* Keymap Editor ********************************
- * In the keymap editor the user key configuration is edited. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Editor
+ *
+ * In the keymap editor the user key configuration is edited.
+ * \{ */
 
 void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
@@ -2028,3 +2080,5 @@ const char *WM_bool_as_string(bool test)
 {
   return test ? IFACE_("ON") : IFACE_("OFF");
 }
+
+/** \} */
