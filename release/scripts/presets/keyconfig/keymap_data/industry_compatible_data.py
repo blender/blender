@@ -1076,7 +1076,7 @@ def km_node_editor(params):
         ("node.clear_viewer_border", {"type": 'Z', "value": 'PRESS', "alt": True}, None),
         ("node.translate_attach", {"type": 'W', "value": 'PRESS'}, None),
         ("node.translate_attach", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("node.translate_attach", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("node.translate_attach", {"type": 'EVT_TWEAK_M', "value": 'ANY'}, None),
         ("transform.translate", {"type": 'W', "value": 'PRESS'},
          {"properties": [("release_confirm", True)]}),
         ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
