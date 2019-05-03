@@ -1161,7 +1161,7 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
   /* This is an exit operation for the entire key datablock, is what is used
    * as dependency for modifiers evaluation. */
   add_operation_node(&key->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_SHAPEKEY);
-  /* Create per-key block properties, allowing tricky inter-dependnecies for
+  /* Create per-key block properties, allowing tricky inter-dependencies for
    * drivers evaluation. */
   LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
     add_operation_node(

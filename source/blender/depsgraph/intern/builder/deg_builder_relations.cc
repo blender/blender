@@ -2304,7 +2304,7 @@ void DepsgraphRelationBuilder::build_sequencer(Scene *scene)
   if (scene->ed == NULL) {
     return;
   }
-  /* Make sure dependnecies from sequences data goes to the sequencer evaluation. */
+  /* Make sure dependencies from sequences data goes to the sequencer evaluation. */
   ComponentKey sequencer_key(&scene->id, NodeType::SEQUENCER);
   Sequence *seq;
   bool has_audio_strips = false;

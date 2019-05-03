@@ -68,7 +68,7 @@ void DEG_debug_stats_gnuplot(const struct Depsgraph *graph,
 /* Compare two dependency graphs. */
 bool DEG_debug_compare(const struct Depsgraph *graph1, const struct Depsgraph *graph2);
 
-/* Check that dependnecies in the graph are really up to date. */
+/* Check that dependencies in the graph are really up to date. */
 bool DEG_debug_graph_relations_validate(struct Depsgraph *graph,
                                         struct Main *bmain,
                                         struct Scene *scene,
