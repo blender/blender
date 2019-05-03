@@ -1685,7 +1685,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,
         ),
-        _defs_view3d_generic.ruler,
     )
 
     _tools_gpencil_select = (
@@ -1704,6 +1703,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         *_tools_transform,
         None,
         *_tools_annotate,
+        _defs_view3d_generic.ruler,
     )
 
     _tools = {
@@ -1812,6 +1812,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_view3d_generic.cursor,
             None,
             *_tools_annotate,
+            _defs_view3d_generic.ruler,
         ],
         'PARTICLE': [
             *_tools_select,
@@ -1824,6 +1825,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.hide_border,
             _defs_sculpt.mask_border,
+            None,
+            *_tools_annotate,
         ],
         'PAINT_TEXTURE': [
             _defs_texture_paint.generate_from_brushes,
@@ -1833,6 +1836,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 if _defs_texture_paint.poll_select_mask(context)
                 else ()
             ),
+            *_tools_annotate,
         ],
         'PAINT_VERTEX': [
             _defs_vertex_paint.generate_from_brushes,
@@ -1842,6 +1846,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 if _defs_vertex_paint.poll_select_mask(context)
                 else ()
             ),
+            *_tools_annotate,
         ],
         'PAINT_WEIGHT': [
             _defs_weight_paint.generate_from_brushes,
@@ -1863,6 +1868,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 if _defs_weight_paint.poll_select_mask(context)
                 else ()
             ),
+            *_tools_annotate,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,
