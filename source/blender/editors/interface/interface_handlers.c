@@ -3949,6 +3949,9 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
       return WM_UI_HANDLER_CONTINUE;
     }
+    else if (event->type == UNKNOWNKEY) {
+      return WM_UI_HANDLER_CONTINUE;
+    }
 
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       /* only cancel if click outside the button */
