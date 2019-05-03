@@ -265,7 +265,7 @@ static void image_changed(Main *bmain, Image *ima)
 
   /* textures */
   for (tex = bmain->textures.first; tex; tex = tex->id.next) {
-    if (tex->ima == ima) {
+    if (tex->type == TEX_IMAGE && tex->ima == ima) {
       texture_changed(bmain, tex);
     }
   }
