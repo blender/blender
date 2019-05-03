@@ -321,7 +321,7 @@ class CPUDevice : public Device {
   ~CPUDevice()
   {
 #ifdef WITH_OSL
-    delete osl_globals;
+    util_aligned_delete(osl_globals);
 #endif
     task_pool.stop();
     texture_info.free();

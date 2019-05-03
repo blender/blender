@@ -37,6 +37,14 @@ template<typename T> T *util_aligned_new()
   return new (mem) T();
 }
 
+template<typename T> void util_aligned_delete(T *t)
+{
+  if (t) {
+    t->~T();
+    util_aligned_free(t);
+  }
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_ALIGNED_MALLOC_H__ */
