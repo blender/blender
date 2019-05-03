@@ -68,6 +68,11 @@ void BLO_update_defaults_userpref_blend(void)
   U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
 
+  /* Transform tweak with single click and drag. */
+  U.flag |= USER_RELEASECONFIRM;
+
+  U.flag &= ~(USER_DEVELOPER_UI | USER_TOOLTIPS_PYTHON);
+
   /* Clear addon preferences. */
   for (bAddon *addon = U.addons.first, *addon_next; addon != NULL; addon = addon_next) {
     addon_next = addon->next;
@@ -78,9 +83,6 @@ void BLO_update_defaults_userpref_blend(void)
       addon->prop = NULL;
     }
   }
-
-  /* Transform tweak with single click and drag. */
-  U.flag |= USER_RELEASECONFIRM;
 
   /* Ignore the theme saved in the blend file,
    * instead use the theme from 'userdef_default_theme.c' */
