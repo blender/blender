@@ -230,7 +230,6 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   KeyframeEditFunc ok_cb, select_cb;
   View2D *v2d = &ac->ar->v2d;
   rctf rectf;
-  float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
@@ -254,12 +253,14 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   /* init editing data */
   memset(&ked, 0, sizeof(KeyframeEditData));
 
+  float ymax = ACHANNEL_FIRST_TOP(ac);
+
   /* loop over data, doing box select */
-  for (ale = anim_data.first; ale; ale = ale->next) {
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     /* get new vertical minimum extent of channel */
-    ymin = ymax - ACHANNEL_STEP(ac);
+    float ymin = ymax - ACHANNEL_STEP(ac);
 
     /* set horizontal range (if applicable) */
     if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
@@ -314,9 +315,6 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
         }
       }
     }
-
-    /* set minimum extent to be the maximum of the next channel */
-    ymax = ymin;
   }
 
   /* cleanup */
@@ -418,7 +416,6 @@ static void region_select_action_keys(
   KeyframeEditFunc ok_cb, select_cb;
   View2D *v2d = &ac->ar->v2d;
   rctf rectf, scaled_rectf;
-  float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
@@ -448,15 +445,17 @@ static void region_select_action_keys(
     ked.data = &scaled_rectf;
   }
 
+  float ymax = ACHANNEL_FIRST_TOP(ac);
+
   /* loop over data, doing region select */
-  for (ale = anim_data.first; ale; ale = ale->next) {
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     /* get new vertical minimum extent of channel */
-    ymin = ymax - ACHANNEL_STEP(ac);
+    float ymin = ymax - ACHANNEL_STEP(ac);
 
     /* compute midpoint of channel (used for testing if the key is in the region or not) */
-    ked.channel_y = ymin + ACHANNEL_HEIGHT_HALF(ac);
+    ked.channel_y = (ymin + ymax) / 2.0f;
 
     /* if channel is mapped in NLA, apply correction
      * - Apply to the bounds being checked, not all the keyframe points,
@@ -520,9 +519,6 @@ static void region_select_action_keys(
           break;
       }
     }
-
-    /* set minimum extent to be the maximum of the next channel */
-    ymax = ymin;
   }
 
   /* cleanup */
@@ -1453,7 +1449,7 @@ static void mouse_action_keys(bAnimContext *ac,
   /* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
   UI_view2d_listview_view_to_cell(
-      v2d, 0, ACHANNEL_STEP(ac), 0, (float)ACHANNEL_HEIGHT_HALF(ac), x, y, NULL, &channel_index);
+      0, ACHANNEL_STEP(ac), 0, ACHANNEL_FIRST_TOP(ac), x, y, NULL, &channel_index);
 
   /* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale
    * (in screen/region-space), on either side of mouse click (size of keyframe icon).

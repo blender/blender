@@ -1230,9 +1230,8 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
   int filter;
 
   View2D *v2d = &ar->v2d;
-  float y = 0.0f, height;
+  float height;
   size_t items;
-  int i = 0;
 
   /* build list of channels to draw */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -1240,62 +1239,47 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 
   /* Update max-extent of channels here (taking into account scrollers):
    * - this is done to allow the channel list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because channels list is drawn first
-   * - offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
-   *   start of list offset, and the second is as a correction for the scrollers.
-   */
-  height = (float)((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac) * 2));
-  UI_view2d_totRect_set(v2d, BLI_rcti_size_x(&ar->v2d.mask), height);
+   *   to avoid regenerating the list again and/or also because channels list is drawn first */
+  height = ACHANNEL_TOT_HEIGHT(ac, items);
+  v2d->tot.ymin = -height;
 
   /* loop through channels, and set up drawing depending on their type  */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
+    float ymax = ACHANNEL_FIRST_TOP(ac);
 
-    y = (float)ACHANNEL_FIRST(ac);
-
-    for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
-      const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
-      const float ymaxc = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
+      float ymin = ymax - ACHANNEL_HEIGHT(ac);
 
       /* check if visible */
-      if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+      if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
         /* draw all channels using standard channel-drawing API */
-        ANIM_channel_draw(ac, ale, yminc, ymaxc, channel_index);
+        ANIM_channel_draw(ac, ale, ymin, ymax, channel_index);
       }
-
-      /* adjust y-position for next one */
-      y -= ACHANNEL_STEP(ac);
-      channel_index++;
     }
   }
   { /* second pass: widgets */
     uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
     size_t channel_index = 0;
-
-    y = (float)ACHANNEL_FIRST(ac);
+    float ymax = ACHANNEL_FIRST_TOP(ac);
 
     /* set blending again, as may not be set in previous step */
     GPU_blend_set_func_separate(
         GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
     GPU_blend(true);
 
-    for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
-      const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
-      const float ymaxc = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
+    for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
+      float ymin = ymax - ACHANNEL_HEIGHT(ac);
 
       /* check if visible */
-      if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+      if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
         /* draw all channels using standard channel-drawing API */
         rctf channel_rect;
-        BLI_rctf_init(&channel_rect, 0, v2d->cur.xmax - V2D_SCROLL_WIDTH, yminc, ymaxc);
+        BLI_rctf_init(&channel_rect, 0, v2d->cur.xmax - V2D_SCROLL_WIDTH, ymin, ymax);
         ANIM_channel_draw_widgets(C, ac, ale, block, &channel_rect, channel_index);
       }
-
-      /* adjust y-position for next one */
-      y -= ACHANNEL_STEP(ac);
-      channel_index++;
     }
 
     UI_block_end(C, block);

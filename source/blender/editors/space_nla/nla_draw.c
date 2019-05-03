@@ -689,23 +689,19 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
    * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
    *   start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = ((items * NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla) * 2));
-
-  /* don't use totrect set, as the width stays the same
-   * (NOTE: this is ok here, the configuration is pretty straightforward)
-   */
-  v2d->tot.ymin = (float)(-height);
+  int height = NLACHANNEL_TOT_HEIGHT(snla, items);
+  v2d->tot.ymin = -height;
 
   /* loop through channels, and set up drawing depending on their type  */
-  float y = (float)(-NLACHANNEL_HEIGHT(snla));
+  float ymax = NLACHANNEL_FIRST_TOP(snla);
 
-  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
-    const float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
-    const float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
+  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
+    float ymin = ymax - NLACHANNEL_HEIGHT(snla);
+    float ycenter = (ymax + ymin) / 2.0f;
 
     /* check if visible */
-    if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
       /* data to draw depends on the type of channel */
       switch (ale->type) {
         case ANIMTYPE_NLATRACK: {
@@ -721,18 +717,18 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
               const float xmaxc = strip->end + text_margin_x;
 
               /* draw the visualization of the strip */
-              nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
+              nla_draw_strip(snla, adt, nlt, strip, v2d, ymin, ymax);
 
               /* add the text for this strip to the cache */
               if (xminc < xmaxc) {
-                nla_draw_strip_text(adt, nlt, strip, index, v2d, xminc, xmaxc, yminc, ymaxc);
+                nla_draw_strip_text(adt, nlt, strip, index, v2d, xminc, xmaxc, ymin, ymax);
               }
 
               /* if transforming strips (only real reason for temp-metas currently),
                * add to the cache the frame numbers of the strip's extents
                */
               if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
-                nla_draw_strip_frames_text(nlt, strip, v2d, yminc, ymaxc);
+                nla_draw_strip_frames_text(nlt, strip, v2d, ymin, ymax);
               }
             }
           }
@@ -761,27 +757,27 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
            * but also slightly shorter for some more contrast when viewing the strips
            */
           immRectf(
-              pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc - NLACHANNEL_SKIP);
+              pos, v2d->cur.xmin, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
 
           /* draw 'embossed' lines above and below the strip for effect */
           /* white base-lines */
           GPU_line_width(2.0f);
           immUniformColor4f(1.0f, 1.0f, 1.0f, 0.3f);
           immBegin(GPU_PRIM_LINES, 4);
-          immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmax, yminc + NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmin, ymaxc - NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmax, ymaxc - NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmin, ymin + NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmax, ymin + NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmin, ymax - NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
           immEnd();
 
           /* black top-lines */
           GPU_line_width(1.0f);
           immUniformColor3f(0.0f, 0.0f, 0.0f);
           immBegin(GPU_PRIM_LINES, 4);
-          immVertex2f(pos, v2d->cur.xmin, yminc + NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmax, yminc + NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmin, ymaxc - NLACHANNEL_SKIP);
-          immVertex2f(pos, v2d->cur.xmax, ymaxc - NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmin, ymin + NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmax, ymin + NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmin, ymax - NLACHANNEL_SKIP);
+          immVertex2f(pos, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
           immEnd();
 
           /* TODO: these lines but better --^ */
@@ -790,16 +786,13 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 
           /* draw keyframes in the action */
           nla_action_draw_keyframes(
-              v2d, adt, ale->data, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
+              v2d, adt, ale->data, ycenter, ymin + NLACHANNEL_SKIP, ymax - NLACHANNEL_SKIP);
 
           GPU_blend(false);
           break;
         }
       }
     }
-
-    /* adjust y-position for next one */
-    y -= NLACHANNEL_STEP(snla);
   }
 
   /* free tempolary channels */
@@ -817,7 +810,6 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
   View2D *v2d = &ar->v2d;
-  float y = 0.0f;
   size_t items;
 
   /* build list of channels to draw */
@@ -830,11 +822,9 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
    * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
    *  start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = ((items * NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla) * 2));
-  /* don't use totrect set, as the width stays the same
-   * (NOTE: this is ok here, the configuration is pretty straightforward)
-   */
-  v2d->tot.ymin = (float)(-height);
+  int height = NLACHANNEL_TOT_HEIGHT(snla, items);
+  v2d->tot.ymin = -height;
+
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
   UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
@@ -842,30 +832,24 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
   /* draw channels */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
+    float ymax = NLACHANNEL_FIRST_TOP(snla);
 
-    y = (float)(-NLACHANNEL_HEIGHT(snla));
-
-    for (ale = anim_data.first; ale; ale = ale->next) {
-      float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
-      float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
+    for (ale = anim_data.first; ale;
+         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
+      float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
       /* check if visible */
-      if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+      if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
         /* draw all channels using standard channel-drawing API */
-        ANIM_channel_draw(ac, ale, yminc, ymaxc, channel_index);
+        ANIM_channel_draw(ac, ale, ymin, ymax, channel_index);
       }
-
-      /* adjust y-position for next one */
-      y -= NLACHANNEL_STEP(snla);
-      channel_index++;
     }
   }
   { /* second pass: UI widgets */
     uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
     size_t channel_index = 0;
-
-    y = (float)(-NLACHANNEL_HEIGHT(snla));
+    float ymax = NLACHANNEL_FIRST_TOP(snla);
 
     /* set blending again, as may not be set in previous step */
     GPU_blend_set_func_separate(
@@ -873,22 +857,18 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
     GPU_blend(true);
 
     /* loop through channels, and set up drawing depending on their type  */
-    for (ale = anim_data.first; ale; ale = ale->next) {
-      const float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
-      const float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
+    for (ale = anim_data.first; ale;
+         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
+      float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
       /* check if visible */
-      if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-          IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax)) {
+      if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
         /* draw all channels using standard channel-drawing API */
         rctf channel_rect;
-        BLI_rctf_init(&channel_rect, 0, v2d->cur.xmax, yminc, ymaxc);
+        BLI_rctf_init(&channel_rect, 0, v2d->cur.xmax, ymin, ymax);
         ANIM_channel_draw_widgets(C, ac, ale, block, &channel_rect, channel_index);
       }
-
-      /* adjust y-position for next one */
-      y -= NLACHANNEL_STEP(snla);
-      channel_index++;
     }
 
     UI_block_end(C, block);

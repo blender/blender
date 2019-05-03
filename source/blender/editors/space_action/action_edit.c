@@ -325,24 +325,23 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 
   /* NOTE: not bool, since we want prioritise individual channels over expanders */
   short found = 0;
-  float y;
 
   /* get all items - we need to do it this way */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* loop through all channels, finding the first one that's selected */
-  y = (float)ACHANNEL_FIRST(ac);
+  float ymax = ACHANNEL_FIRST_TOP(ac);
 
-  for (ale = anim_data.first; ale; ale = ale->next) {
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac)) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
     /* must be selected... */
     if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) &&
         ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT)) {
       /* update best estimate */
-      *min = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
-      *max = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
+      *min = ymax - ACHANNEL_HEIGHT(ac);
+      *max = ymax;
 
       /* is this high enough priority yet? */
       found = acf->channel_role;
@@ -354,9 +353,6 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
         break;
       }
     }
-
-    /* adjust y-position for next one */
-    y -= ACHANNEL_STEP(ac);
   }
 
   /* free all temp data */

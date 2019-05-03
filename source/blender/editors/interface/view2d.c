@@ -1644,59 +1644,6 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 /* *********************************************************************** */
 /* List View Utilities */
 
-/** Get the view-coordinates of the nominated cell
- *
- * \param columnwidth, rowheight: size of each 'cell'
- * \param startx, starty: coordinates (in 'tot' rect space) that the list starts from.
- * This should be (0,0) for most views. However, for those where the starting row was offsetted
- * (like for Animation Editor channel lists, to make the first entry more visible), these will be
- * the min-coordinates of the first item.
- * \param column, row: The 2d-coordinates
- * (in 2D-view / 'tot' rect space) the cell exists at
- * \param rect:  coordinates of the cell
- * (passed as single var instead of 4 separate, as it's more useful this way)
- */
-void UI_view2d_listview_cell_to_view(View2D *v2d,
-                                     float columnwidth,
-                                     float rowheight,
-                                     float startx,
-                                     float starty,
-                                     int column,
-                                     int row,
-                                     rctf *rect)
-{
-  /* sanity checks */
-  if (ELEM(NULL, v2d, rect)) {
-    return;
-  }
-
-  if ((columnwidth <= 0) && (rowheight <= 0)) {
-    rect->xmin = rect->xmax = 0.0f;
-    rect->ymin = rect->ymax = 0.0f;
-    return;
-  }
-
-  /* x-coordinates */
-  rect->xmin = startx + (float)(columnwidth * column);
-  rect->xmax = startx + (float)(columnwidth * (column + 1));
-
-  if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
-    /* simply negate the values for the coordinates if in negative half */
-    rect->xmin = -rect->xmin;
-    rect->xmax = -rect->xmax;
-  }
-
-  /* y-coordinates */
-  rect->ymin = starty + (float)(rowheight * row);
-  rect->ymax = starty + (float)(rowheight * (row + 1));
-
-  if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
-    /* simply negate the values for the coordinates if in negative half */
-    rect->ymin = -rect->ymin;
-    rect->ymax = -rect->ymax;
-  }
-}
-
 /**
  * Get the 'cell' (row, column) that the given 2D-view coordinates
  * (i.e. in 'tot' rect space) lie in.
@@ -1709,8 +1656,7 @@ void UI_view2d_listview_cell_to_view(View2D *v2d,
  * \param viewx, viewy: 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
  * \param r_column, r_row: the 'coordinates' of the relevant 'cell'
  */
-void UI_view2d_listview_view_to_cell(View2D *v2d,
-                                     float columnwidth,
+void UI_view2d_listview_view_to_cell(float columnwidth,
                                      float rowheight,
                                      float startx,
                                      float starty,
@@ -1719,80 +1665,24 @@ void UI_view2d_listview_view_to_cell(View2D *v2d,
                                      int *r_column,
                                      int *r_row)
 {
-  /* adjust view coordinates to be all positive ints, corrected for the start offset */
-  const int x = (int)(floorf(fabsf(viewx) + 0.5f) - startx);
-  const int y = (int)(floorf(fabsf(viewy) + 0.5f) - starty);
-
-  /* sizes must not be negative */
-  if ((v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0))) {
-    if (r_column) {
+  if (r_column) {
+    if (columnwidth > 0) {
+      /* Columns go from left to right (x increases). */
+      *r_column = floorf((viewx - startx) / columnwidth);
+    }
+    else {
       *r_column = 0;
     }
-    if (r_row) {
+  }
+
+  if (r_row) {
+    if (rowheight > 0) {
+      /* Rows got from top to bottom (y decreases). */
+      *r_row = floorf((starty - viewy) / rowheight);
+    }
+    else {
       *r_row = 0;
     }
-
-    return;
-  }
-
-  /* get column */
-  if ((r_column) && (columnwidth > 0)) {
-    *r_column = x / columnwidth;
-  }
-  else if (r_column) {
-    *r_column = 0;
-  }
-
-  /* get row */
-  if ((r_row) && (rowheight > 0)) {
-    *r_row = y / rowheight;
-  }
-  else if (r_row) {
-    *r_row = 0;
-  }
-}
-
-/**
- * Get the 'extreme' (min/max) column and row indices which are visible within the 'cur' rect
- *
- * \param columnwidth, rowheight: Size of each 'cell'
- * \param startx, starty: Coordinates that the list starts from,
- * which should be (0,0) for most views.
- * \param column_min, column_max, row_min, row_max: The starting and ending column/row indices
- */
-void UI_view2d_listview_visible_cells(View2D *v2d,
-                                      float columnwidth,
-                                      float rowheight,
-                                      float startx,
-                                      float starty,
-                                      int *column_min,
-                                      int *column_max,
-                                      int *row_min,
-                                      int *row_max)
-{
-  /* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
-  if (v2d) {
-    /* min */
-    UI_view2d_listview_view_to_cell(v2d,
-                                    columnwidth,
-                                    rowheight,
-                                    startx,
-                                    starty,
-                                    v2d->cur.xmin,
-                                    v2d->cur.ymin,
-                                    column_min,
-                                    row_min);
-
-    /* max*/
-    UI_view2d_listview_view_to_cell(v2d,
-                                    columnwidth,
-                                    rowheight,
-                                    startx,
-                                    starty,
-                                    v2d->cur.xmax,
-                                    v2d->cur.ymax,
-                                    column_max,
-                                    row_max);
   }
 }
 

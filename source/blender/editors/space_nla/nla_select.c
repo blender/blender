@@ -541,15 +541,8 @@ static void mouse_nla_strips(
   /* use View2D to determine the index of the channel
    * (i.e a row in the list) where keyframe was */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-  UI_view2d_listview_view_to_cell(v2d,
-                                  0,
-                                  NLACHANNEL_STEP(snla),
-                                  0,
-                                  (float)NLACHANNEL_HEIGHT_HALF(snla),
-                                  x,
-                                  y,
-                                  NULL,
-                                  &channel_index);
+  UI_view2d_listview_view_to_cell(
+      0, NLACHANNEL_STEP(snla), 0, NLACHANNEL_FIRST_TOP(snla), x, y, NULL, &channel_index);
 
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
    * (that is the size of keyframe icons, so user should be expecting similar tolerances)

@@ -2531,17 +2531,6 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   SpaceNla *snla = (SpaceNla *)ac->sl;
   View2D *v2d = &ac->ar->v2d;
   rctf rectf;
-  float ymin, ymax;
-
-  /* set initial y extents */
-  if (ac->datatype == ANIMCONT_NLA) {
-    ymin = (float)(-NLACHANNEL_HEIGHT(snla));
-    ymax = 0.0f;
-  }
-  else {
-    ymin = 0.0f;
-    ymax = (float)(-ACHANNEL_HEIGHT(ac));
-  }
 
   /* convert border-region to view coordinates */
   UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin + 2, &rectf.xmin, &rectf.ymin);
@@ -2551,8 +2540,17 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
+  float ymax;
+  if (ac->datatype == ANIMCONT_NLA) {
+    ymax = NLACHANNEL_FIRST_TOP(snla);
+  }
+  else {
+    ymax = ACHANNEL_FIRST_TOP(ac);
+  }
+
   /* loop over data, doing box select */
   for (ale = anim_data.first; ale; ale = ale->next) {
+    float ymin;
     if (ac->datatype == ANIMCONT_NLA) {
       ymin = ymax - NLACHANNEL_STEP(snla);
     }
@@ -2729,32 +2727,25 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
   ar = ac->ar;
   v2d = &ar->v2d;
 
-  /* Figure out which channel user clicked in.
-   *
-   * Note: although channels technically start at (y = ACHANNEL_FIRST),
-   * we need to adjust by half a channel's height so that the tops of channels get caught ok.
-   * Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use ACHANNEL_HEIGHT_HALF.
-   */
+  /* Figure out which channel user clicked in. */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
   if (ac->datatype == ANIMCONT_NLA) {
     SpaceNla *snla = (SpaceNla *)ac->sl;
-    UI_view2d_listview_view_to_cell(v2d,
-                                    NLACHANNEL_NAMEWIDTH,
+    UI_view2d_listview_view_to_cell(NLACHANNEL_NAMEWIDTH,
                                     NLACHANNEL_STEP(snla),
                                     0,
-                                    (float)NLACHANNEL_HEIGHT_HALF(snla),
+                                    NLACHANNEL_FIRST_TOP(snla),
                                     x,
                                     y,
                                     NULL,
                                     &channel_index);
   }
   else {
-    UI_view2d_listview_view_to_cell(v2d,
-                                    ACHANNEL_NAMEWIDTH,
+    UI_view2d_listview_view_to_cell(ACHANNEL_NAMEWIDTH,
                                     ACHANNEL_STEP(ac),
                                     0,
-                                    (float)ACHANNEL_HEIGHT_HALF(ac),
+                                    ACHANNEL_FIRST_TOP(ac),
                                     x,
                                     y,
                                     NULL,
@@ -3206,19 +3197,12 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
     selectmode = SELECT_REPLACE;
   }
 
-  /* figure out which channel user clicked in
-   *
-   * Note:
-   * although channels technically start at (y = ACHANNEL_FIRST),
-   * we need to adjust by half a channel's height so that the tops of channels get caught ok.
-   * Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use ACHANNEL_HEIGHT_HALF.
-   */
+  /* figure out which channel user clicked in */
   UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  UI_view2d_listview_view_to_cell(v2d,
-                                  ACHANNEL_NAMEWIDTH,
+  UI_view2d_listview_view_to_cell(ACHANNEL_NAMEWIDTH,
                                   ACHANNEL_STEP(&ac),
                                   0,
-                                  (float)ACHANNEL_HEIGHT_HALF(&ac),
+                                  ACHANNEL_FIRST_TOP(&ac),
                                   x,
                                   y,
                                   NULL,
