@@ -236,6 +236,12 @@ ccl_device float3 color_linear_to_srgb_v3(float3 c)
       color_linear_to_srgb(c.x), color_linear_to_srgb(c.y), color_linear_to_srgb(c.z));
 }
 
+ccl_device float4 color_linear_to_srgb_v4(float4 c)
+{
+  return make_float4(
+      color_linear_to_srgb(c.x), color_linear_to_srgb(c.y), color_linear_to_srgb(c.z), c.w);
+}
+
 ccl_device float4 color_srgb_to_linear_v4(float4 c)
 {
 #ifdef __KERNEL_SSE2__

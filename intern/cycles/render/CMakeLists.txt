@@ -14,6 +14,7 @@ set(SRC
   bake.cpp
   buffers.cpp
   camera.cpp
+  colorspace.cpp
   constant_fold.cpp
   coverage.cpp
   denoising.cpp
@@ -48,6 +49,7 @@ set(SRC_HEADERS
   background.h
   buffers.h
   camera.h
+  colorspace.h
   constant_fold.h
   coverage.h
   denoising.h

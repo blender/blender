@@ -21,6 +21,7 @@
 
 #  include <OpenImageIO/imageio.h>
 
+#  include "util/util_half.h"
 #  include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
