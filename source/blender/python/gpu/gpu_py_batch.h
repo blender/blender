@@ -30,9 +30,9 @@ extern PyTypeObject BPyGPUBatch_Type;
 #define BPyGPUBatch_Check(v) (Py_TYPE(v) == &BPyGPUBatch_Type)
 
 typedef struct BPyGPUBatch {
-  PyObject_VAR_HEAD;
-  /* The batch is owned, we may support thin wrapped batches later. */
-  struct GPUBatch *batch;
+  PyObject_VAR_HEAD
+      /* The batch is owned, we may support thin wrapped batches later. */
+      struct GPUBatch *batch;
 #ifdef USE_GPU_PY_REFERENCES
   /* Just to keep a user to prevent freeing buf's we're using */
   PyObject *references;

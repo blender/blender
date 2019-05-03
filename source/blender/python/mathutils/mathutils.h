@@ -53,8 +53,7 @@ enum {
 
 #define BASE_MATH_MEMBERS(_data) \
   /** Array of data (alias), wrapped status depends on wrapped status. */ \
-  PyObject_VAR_HEAD; \
-  float *_data; \
+  PyObject_VAR_HEAD float *_data; \
   /** If this vector references another object, otherwise NULL, *Note* this owns its reference */ \
   PyObject *cb_user; \
   /** Which user funcs do we adhere to, RNA, etc */ \
