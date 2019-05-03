@@ -241,7 +241,7 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 
   /* frame numbers */
   UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, saction->flag & SACTION_DRAWTIME);
+      ar, v2d, &v2d->hor, scene, saction->flag & SACTION_DRAWTIME, TH_TEXT);
 
   /* draw current frame number-indicator on top of scrollers */
   if ((saction->flag & SACTION_NODRAWCFRANUM) == 0) {

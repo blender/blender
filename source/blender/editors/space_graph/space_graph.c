@@ -316,8 +316,8 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* scale numbers */
-  UI_view2d_draw_scale_x__frames_or_seconds(ar, v2d, &v2d->hor, scene, display_seconds);
-  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert);
+  UI_view2d_draw_scale_x__frames_or_seconds(ar, v2d, &v2d->hor, scene, display_seconds, TH_TEXT);
+  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert, TH_TEXT);
 
   /* draw current frame number-indicator on top of scrollers */
   if ((sipo->mode != SIPO_MODE_DRIVERS) && ((sipo->flag & SIPO_NODRAWCFRANUM) == 0)) {

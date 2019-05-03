@@ -1048,8 +1048,8 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
 
   /* scale indicators */
   UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS);
-  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert);
+      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS, TH_TEXT);
+  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert, TH_TEXT);
 
   /* current frame indicator */
   if (sc->flag & SC_SHOW_SECONDS) {
@@ -1100,7 +1100,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
 
   /* frame numbers */
   UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS);
+      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS, TH_TEXT);
 
   /* current frame number indicator */
   UI_view2d_view_orthoSpecial(ar, v2d, 1);

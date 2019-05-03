@@ -152,30 +152,24 @@ float UI_view2d_grid_resolution_y__values(const struct View2D *v2d);
 /* scale indicator text drawing */
 void UI_view2d_draw_scale_y__values(const struct ARegion *ar,
                                     const struct View2D *v2d,
-                                    const struct rcti *rect);
+                                    const struct rcti *rect,
+                                    int colorid);
 void UI_view2d_draw_scale_y__block(const struct ARegion *ar,
                                    const struct View2D *v2d,
-                                   const struct rcti *rect);
-void UI_view2d_draw_scale_x__values(const struct ARegion *ar,
-                                    const struct View2D *v2d,
-                                    const struct rcti *rect);
-void UI_view2d_draw_scale_x__discrete_values(const struct ARegion *ar,
-                                             const struct View2D *v2d,
-                                             const struct rcti *rect);
-void UI_view2d_draw_scale_x__discrete_time(const struct ARegion *ar,
-                                           const struct View2D *v2d,
-                                           const struct rcti *rect,
-                                           const struct Scene *scene);
+                                   const struct rcti *rect,
+                                   int colorid);
 void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *ar,
                                                         const struct View2D *v2d,
                                                         const struct rcti *rect,
                                                         const struct Scene *scene,
-                                                        bool display_seconds);
+                                                        bool display_seconds,
+                                                        int colorid);
 void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *ar,
                                                const struct View2D *v2d,
                                                const struct rcti *rect,
                                                const struct Scene *scene,
-                                               bool display_seconds);
+                                               bool display_seconds,
+                                               int colorid);
 
 /* scrollbar drawing */
 View2DScrollers *UI_view2d_scrollers_calc(struct View2D *v2d, const struct rcti *mask_custom);
