@@ -2513,11 +2513,15 @@ static void outliner_draw_highlights_recursive(unsigned pos,
 
         if (tselem->flag & TSE_DRAG_BEFORE) {
           immUniformColor4fv(col);
-          immRecti(pos, start_x, start_y + UI_UNIT_Y, end_x, start_y + UI_UNIT_Y);
+          immRecti(pos,
+                   start_x,
+                   start_y + UI_UNIT_Y - U.pixelsize,
+                   end_x,
+                   start_y + UI_UNIT_Y + U.pixelsize);
         }
         else if (tselem->flag & TSE_DRAG_AFTER) {
           immUniformColor4fv(col);
-          immRecti(pos, start_x, start_y, end_x, start_y);
+          immRecti(pos, start_x, start_y - U.pixelsize, end_x, start_y + U.pixelsize);
         }
         else {
           immUniformColor3fvAlpha(col, col[3] * 0.5f);
