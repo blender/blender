@@ -532,12 +532,14 @@ void BKE_sound_reset_scene_specs(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
-  AUD_Specs specs;
+  if (scene->sound_scene) {
+    AUD_Specs specs;
 
-  specs.channels = AUD_Device_getChannels(sound_device);
-  specs.rate = AUD_Device_getRate(sound_device);
+    specs.channels = AUD_Device_getChannels(sound_device);
+    specs.rate = AUD_Device_getRate(sound_device);
 
-  AUD_Sequence_setSpecs(scene->sound_scene, specs);
+    AUD_Sequence_setSpecs(scene->sound_scene, specs);
+  }
 }
 
 void BKE_sound_mute_scene(Scene *scene, int muted)
