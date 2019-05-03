@@ -1110,7 +1110,7 @@ static int rct_fits(const rcti *rect, char dir, int size)
 static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 {
   ARegion *ar1;
-  const int align = ar->alignment & ~RGN_SPLIT_PREV;
+  const int align = RGN_ALIGN_ENUM_FROM_MASK(ar->alignment);
   int align1 = 0;
 
   /* find overlapping previous region on same place */
@@ -1227,7 +1227,7 @@ static void region_rect_recursive(
     }
   }
 
-  int alignment = ar->alignment & ~RGN_SPLIT_PREV;
+  int alignment = RGN_ALIGN_ENUM_FROM_MASK(ar->alignment);
 
   /* set here, assuming userpref switching forces to call this again */
   ar->overlap = ED_region_is_overlap(sa->spacetype, ar->regiontype);
@@ -1690,7 +1690,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
     }
 
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
-    region_azones_add(screen, area, ar, ar->alignment & ~RGN_SPLIT_PREV);
+    region_azones_add(screen, area, ar, RGN_ALIGN_ENUM_FROM_MASK(ar->alignment));
   }
   ED_area_azones_update(area, &win->eventstate->x);
 
@@ -1761,7 +1761,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
     }
 
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
-    region_azones_add(screen, sa, ar, ar->alignment & ~RGN_SPLIT_PREV);
+    region_azones_add(screen, sa, ar, RGN_ALIGN_ENUM_FROM_MASK(ar->alignment));
   }
 
   /* Avoid re-initializing tools while resizing the window. */

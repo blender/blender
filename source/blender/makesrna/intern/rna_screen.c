@@ -93,7 +93,7 @@ static bool rna_Screen_is_animation_playing_get(PointerRNA *UNUSED(ptr))
 static int rna_region_alignment_get(PointerRNA *ptr)
 {
   ARegion *region = ptr->data;
-  return (region->alignment & ~RGN_SPLIT_PREV);
+  return RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
 }
 
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
