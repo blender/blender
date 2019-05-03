@@ -82,8 +82,11 @@ static eOverlayControlFlags overlay_flags = 0;
 void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
   Paint *p = BKE_paint_get_active(scene, view_layer);
-  Brush *br = p->brush;
+  if (!p) {
+    return;
+  }
 
+  Brush *br = p->brush;
   if (!br) {
     return;
   }
