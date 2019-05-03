@@ -457,19 +457,6 @@ void ED_area_do_msg_notify_tag_refresh(
   ED_area_tag_refresh(sa);
 }
 
-static void region_do_msg_notify_tag_redraw(
-    /* Follow wmMsgNotifyFn spec */
-    bContext *UNUSED(C),
-    wmMsgSubscribeKey *UNUSED(msg_key),
-    wmMsgSubscribeValue *msg_val)
-{
-  ARegion *ar = msg_val->owner;
-  ED_region_tag_redraw(ar);
-
-  /* FIXME(campbell): shouldn't be needed. */
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
-}
-
 void ED_area_do_mgs_subscribe_for_tool_header(
     /* Follow ARegionType.message_subscribe */
     const struct bContext *UNUSED(C),
@@ -483,10 +470,7 @@ void ED_area_do_mgs_subscribe_for_tool_header(
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = ar,
       .user_data = ar,
-      /* TODO(campbell): investigate why
-       * ED_region_do_msg_notify_tag_redraw doesn't work here. */
-      // .notify = ED_region_do_msg_notify_tag_redraw,
-      .notify = region_do_msg_notify_tag_redraw,
+      .notify = ED_region_do_msg_notify_tag_redraw,
   };
   WM_msg_subscribe_rna_prop(
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);

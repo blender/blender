@@ -1537,7 +1537,7 @@ void ED_spacetype_view3d(void)
   art->listener = view3d_header_region_listener;
   art->init = view3d_header_region_init;
   art->draw = view3d_header_region_draw;
-  art->message_subscribe = view3d_header_region_message_subscribe;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
@@ -1548,7 +1548,7 @@ void ED_spacetype_view3d(void)
   art->listener = view3d_header_region_listener;
   art->init = view3d_header_region_init;
   art->draw = view3d_header_region_draw;
-  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
+  art->message_subscribe = view3d_header_region_message_subscribe;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: hud */
