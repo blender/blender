@@ -142,6 +142,13 @@ void ED_area_do_mgs_subscribe_for_tool_header(const struct bContext *C,
                                               struct ScrArea *sa,
                                               struct ARegion *ar,
                                               struct wmMsgBus *mbus);
+void ED_area_do_mgs_subscribe_for_tool_ui(const struct bContext *C,
+                                          struct WorkSpace *workspace,
+                                          struct Scene *scene,
+                                          struct bScreen *screen,
+                                          struct ScrArea *sa,
+                                          struct ARegion *ar,
+                                          struct wmMsgBus *mbus);
 
 /* message bus */
 void ED_region_message_subscribe(struct bContext *C,

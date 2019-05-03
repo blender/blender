@@ -467,6 +467,7 @@ void ED_area_do_mgs_subscribe_for_tool_header(
     struct ARegion *ar,
     struct wmMsgBus *mbus)
 {
+  BLI_assert(ar->regiontype == RGN_TYPE_TOOL_HEADER);
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
       .owner = ar,
       .user_data = ar,
@@ -474,6 +475,29 @@ void ED_area_do_mgs_subscribe_for_tool_header(
   };
   WM_msg_subscribe_rna_prop(
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
+}
+
+void ED_area_do_mgs_subscribe_for_tool_ui(
+    /* Follow ARegionType.message_subscribe */
+    const struct bContext *UNUSED(C),
+    struct WorkSpace *workspace,
+    struct Scene *UNUSED(scene),
+    struct bScreen *UNUSED(screen),
+    struct ScrArea *UNUSED(sa),
+    struct ARegion *ar,
+    struct wmMsgBus *mbus)
+{
+  BLI_assert(ar->regiontype == RGN_TYPE_UI);
+  const char *category = UI_panel_category_active_get(ar, false);
+  if (category && STREQ(category, "Tool")) {
+    wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+        .owner = ar,
+        .user_data = ar,
+        .notify = ED_region_do_msg_notify_tag_redraw,
+    };
+    WM_msg_subscribe_rna_prop(
+        mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
+  }
 }
 
 /**

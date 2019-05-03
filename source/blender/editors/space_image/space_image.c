@@ -1038,6 +1038,7 @@ void ED_spacetype_image(void)
   art->prefsizex = 220;  // XXX
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_buttons_region_listener;
+  art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->init = image_buttons_region_init;
   art->layout = image_buttons_region_layout;
   art->draw = image_buttons_region_draw;
