@@ -866,9 +866,8 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
 
         col = layout.column()
 
+        col.prop(uvedit, "edge_display_type", text="Display As")
         col.prop(uvedit, "show_edges", text="Edges")
-        col.prop(uvedit, "edge_display_type", text="Draw Type")
-
         col.prop(uvedit, "show_faces", text="Faces")
 
         col = layout.column()
@@ -876,10 +875,10 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
         col.prop(uvedit, "show_modified_edges", text="Modified")
 
 
-class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
+class IMAGE_PT_view_display_uv_edit_overlays_stretch(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Advanced"
+    bl_label = "Stretching"
     bl_parent_id = 'IMAGE_PT_view_display_uv_edit_overlays'
     bl_category = "View"
     bl_options = {'DEFAULT_CLOSED'}
@@ -889,6 +888,11 @@ class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
         sima = context.space_data
         return (sima and (sima.show_uvedit))
 
+    def draw_header(self, context):
+        sima = context.space_data
+        uvedit = sima.uv_editor
+        self.layout.prop(uvedit, "show_stretch", text="")
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -896,12 +900,8 @@ class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
         sima = context.space_data
         uvedit = sima.uv_editor
 
-        col = layout.column()
-        col.prop(uvedit, "show_stretch", text="Stretch")
-
-        sub = col.column()
-        sub.active = uvedit.show_stretch
-        sub.prop(uvedit, "display_stretch_type", text="Type")
+        layout.active = uvedit.show_stretch
+        layout.prop(uvedit, "display_stretch_type", text="Type")
 
 
 class IMAGE_UL_render_slots(UIList):
@@ -1636,7 +1636,7 @@ classes = (
     IMAGE_PT_render_slots,
     IMAGE_PT_view_display,
     IMAGE_PT_view_display_uv_edit_overlays,
-    IMAGE_PT_view_display_uv_edit_overlays_advanced,
+    IMAGE_PT_view_display_uv_edit_overlays_stretch,
     IMAGE_PT_paint,
     IMAGE_PT_paint_color,
     IMAGE_PT_paint_swatches,
