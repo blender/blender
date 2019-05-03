@@ -522,15 +522,6 @@ void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
   drw_shgroup_call_procedural_add_ex(shgroup, GPU_PRIM_TRIS, tria_count * 3, obmat, NULL);
 }
 
-/* TODO (fclem): this is a sign that the api is starting to be limiting.
- * Maybe add special function that general purpose for special cases. */
-void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup,
-                                                             uint tria_count,
-                                                             Object *ob)
-{
-  drw_shgroup_call_procedural_add_ex(shgroup, GPU_PRIM_TRIS, tria_count * 3, NULL, ob);
-}
-
 /* These calls can be culled and are optimized for redraw */
 void DRW_shgroup_call_object_add_ex(
     DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob, Material *ma, bool bypass_culling)

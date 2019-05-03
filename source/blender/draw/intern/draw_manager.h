@@ -142,8 +142,6 @@ typedef enum {
   DRW_CALL_RANGE,
   /** Draw instances without any instancing attributes. */
   DRW_CALL_INSTANCES,
-  /** Uses a callback to draw with any number of batches. */
-  DRW_CALL_GENERATE,
   /** Generate a drawcall without any #GPUBatch. */
   DRW_CALL_PROCEDURAL,
 } DRWCallType;
@@ -166,10 +164,6 @@ typedef struct DRWCall {
       /* Count can be adjusted between redraw. If needed, we can add fixed count. */
       uint *count;
     } instances;
-    struct { /* type == DRW_CALL_GENERATE */
-      DRWCallGenerateFn *geometry_fn;
-      void *user_data;
-    } generate;
     struct { /* type == DRW_CALL_PROCEDURAL */
       uint vert_count;
       GPUPrimType prim_type;

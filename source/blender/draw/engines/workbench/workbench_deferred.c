@@ -941,7 +941,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
     bool has_transp_mat = false;
 
-    if (!is_sculpt_mode && me && me->mloopuv && TEXTURE_DRAWING_ENABLED(wpd)) {
+    if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && me && me->mloopuv) {
       /* Draw textured */
       struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
       for (int i = 0; i < materials_len; i++) {

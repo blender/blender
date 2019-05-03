@@ -401,10 +401,6 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
                                                        DRWPass *pass,
                                                        struct GPUVertBuf *tf_target);
 
-typedef void(DRWCallGenerateFn)(DRWShadingGroup *shgroup,
-                                void (*draw_fn)(DRWShadingGroup *shgroup, struct GPUBatch *geom),
-                                void *user_data);
-
 /* return final visibility */
 typedef bool(DRWCallVisibilityFn)(bool vis_in, void *user_data);
 
@@ -422,9 +418,6 @@ void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
                                                uint tria_count,
                                                float (*obmat)[4]);
-void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup,
-                                                             uint tria_count,
-                                                             struct Object *ob);
 void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
                                     struct GPUBatch *geom,
                                     struct Object *ob,

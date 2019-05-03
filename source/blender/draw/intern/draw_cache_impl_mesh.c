@@ -4455,25 +4455,6 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
   return DRW_batch_request(&cache->batch.wire_loops);
 }
 
-/**
- * Needed for when we draw with shaded data.
- */
-void DRW_mesh_cache_sculpt_coords_ensure(Mesh *UNUSED(me))
-{
-#if 0 /* Unused for now */
-  if (me->runtime.batch_cache) {
-    MeshBatchCache *cache = mesh_batch_cache_get(me);
-    if (cache && cache->pos_with_normals && cache->is_sculpt_points_tag) {
-      /* XXX Force update of all the batches that contains the pos_with_normals buffer.
-       * TODO(fclem): Ideally, Gawain should provide a way to update a buffer without destroying it. */
-      mesh_batch_cache_clear_selective(me, cache->pos_with_normals);
-      GPU_VERTBUF_DISCARD_SAFE(cache->pos_with_normals);
-    }
-    cache->is_sculpt_points_tag = false;
-  }
-#endif
-}
-
 /* Compute 3D & 2D areas and their sum. */
 BLI_INLINE void edit_uv_preprocess_stretch_area(BMFace *efa,
                                                 const int cd_loop_uv_offset,

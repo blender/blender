@@ -159,8 +159,6 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 
-void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
-
 /* Edit mesh bitflags (is this the right place?) */
 enum {
   VFLAG_VERT_ACTIVE = 1 << 0,
