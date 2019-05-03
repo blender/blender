@@ -661,19 +661,15 @@ typedef struct RenderData {
    */
   int mode;
 
+  short frs_sec;
+
   /**
    * What to do with the sky/background.
    * Picks sky/premul blending for the background.
    */
-  short alphamode;
+  char alphamode;
 
-  /**
-   * The number of samples to use per pixel.
-   */
-  short osa DNA_DEPRECATED;
-
-  short frs_sec;
-  char _pad[6];
+  char _pad0[1];
 
   /* safety, border and display rect */
   rctf safety, border;
@@ -1645,7 +1641,7 @@ typedef struct TransformOrientationSlot {
   char _pad0[7];
 } TransformOrientationSlot;
 
-/* Indices when used in Scene.orientation. */
+/** Indices when used in #Scene.orientation_slots */
 enum {
   SCE_ORIENT_DEFAULT = 0,
   SCE_ORIENT_TRANSLATE = 1,
@@ -1728,7 +1724,7 @@ typedef struct Scene {
   /* Units */
   struct UnitSettings unit;
 
-  /* Grease Pencil - Annotations */
+  /** Grease Pencil - Annotations */
   struct bGPdata *gpd;
 
   /* Movie Tracking */
@@ -1769,15 +1765,15 @@ typedef struct Scene {
 
 /* **************** RENDERDATA ********************* */
 
-/* RenderData.flag */
+/** #RenderData.flag */
 /* use preview range */
 #define SCER_PRV_RANGE (1 << 0)
 #define SCER_LOCK_FRAME_SELECTION (1 << 1)
 /* show/use subframes (for checking motion blur) */
 #define SCER_SHOW_SUBFRAME (1 << 3)
 
-/* RenderData.mode */
-#define R_MODE_UNUSED_0 (1 << 0) /* cleared */
+/** #RenderData.mode */
+#define R_MODE_UNUSED_0 (1 << 0) /* dirty */
 #define R_MODE_UNUSED_1 (1 << 1) /* cleared */
 #define R_MODE_UNUSED_2 (1 << 2) /* cleared */
 #define R_MODE_UNUSED_3 (1 << 3) /* cleared */
@@ -1809,7 +1805,7 @@ typedef struct Scene {
 #define R_PERSISTENT_DATA (1 << 26) /* keep data around for re-render */
 #define R_MODE_UNUSED_27 (1 << 27)  /* cleared */
 
-/* RenderData.seq_flag */
+/** #RenderData.seq_flag */
 enum {
   R_SEQ_UNUSED_0 = (1 << 0), /* cleared */
   R_SEQ_UNUSED_1 = (1 << 1), /* cleared */
@@ -1819,14 +1815,14 @@ enum {
   R_SEQ_OVERRIDE_SCENE_SETTINGS = (1 << 5),
 };
 
-/* RenderData.displaymode */
+/** #RenderData.displaymode */
 #define R_OUTPUT_SCREEN 0
 #define R_OUTPUT_AREA 1
 #define R_OUTPUT_WINDOW 2
 #define R_OUTPUT_NONE 3
 /*#define R_OUTPUT_FORKED   4*/
 
-/* RenderData.filtertype (used for nodes) */
+/** #RenderData.filtertype (used for nodes) */
 #define R_FILTER_BOX 0
 #define R_FILTER_TENT 1
 #define R_FILTER_QUAD 2
@@ -1836,7 +1832,7 @@ enum {
 #define R_FILTER_MITCH 6
 #define R_FILTER_FAST_GAUSS 7
 
-/* RenderData.scemode */
+/** #RenderData.scemode */
 #define R_DOSEQ (1 << 0)
 #define R_BG_RENDER (1 << 1)
 /* passepartout is camera option now, keep this for backward compatibility */
@@ -1861,7 +1857,7 @@ enum {
 #define R_EXR_CACHE_FILE (1 << 20)
 #define R_MULTIVIEW (1 << 21)
 
-/* RenderData.stamp */
+/** #RenderData.stamp */
 #define R_STAMP_TIME (1 << 0)
 #define R_STAMP_FRAME (1 << 1)
 #define R_STAMP_DATE (1 << 2)
@@ -1886,10 +1882,12 @@ enum {
    R_STAMP_HOSTNAME)
 
 /** #RenderData.alphamode */
-#define R_ADDSKY 0
-#define R_ALPHAPREMUL 1
+enum {
+  R_ADDSKY = 0,
+  R_ALPHAPREMUL = 1,
+};
 
-/* RenderData.color_mgt_flag */
+/** #RenderData.color_mgt_flag */
 enum {
   /** deprecated, should only be used in versioning code only */
   R_COLOR_MANAGEMENT = (1 << 0),
