@@ -39,20 +39,23 @@ extern PyTypeObject BPy_BMLayerItem_Type;
 
 /* all layers for vert/edge/face/loop */
 typedef struct BPy_BMLayerAccess {
-  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  PyObject_VAR_HEAD;
+  struct BMesh *bm; /* keep first */
   char htype;
 } BPy_BMLayerAccess;
 
 /* access different layer types deform/uv/vertexcolor */
 typedef struct BPy_BMLayerCollection {
-  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  PyObject_VAR_HEAD;
+  struct BMesh *bm; /* keep first */
   char htype;
   int type; /* customdata type - CD_XXX */
 } BPy_BMLayerCollection;
 
 /* access a specific layer directly */
 typedef struct BPy_BMLayerItem {
-  PyObject_VAR_HEAD struct BMesh *bm; /* keep first */
+  PyObject_VAR_HEAD;
+  struct BMesh *bm; /* keep first */
   char htype;
   int type;  /* customdata type - CD_XXX */
   int index; /* index of this layer type */

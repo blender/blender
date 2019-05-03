@@ -37,19 +37,22 @@ extern PyTypeObject BPy_IDGroup_Type;
 #define BPy_IDGroup_CheckExact(v) (Py_TYPE(v) == &BPy_IDGroup_Type)
 
 typedef struct BPy_IDProperty {
-  PyObject_VAR_HEAD struct ID *id; /* can be NULL */
-  struct IDProperty *prop;         /* must be second member */
+  PyObject_VAR_HEAD;
+  struct ID *id;           /* can be NULL */
+  struct IDProperty *prop; /* must be second member */
   struct IDProperty *parent;
   PyObject *data_wrap;
 } BPy_IDProperty;
 
 typedef struct BPy_IDArray {
-  PyObject_VAR_HEAD struct ID *id; /* can be NULL */
-  struct IDProperty *prop;         /* must be second member */
+  PyObject_VAR_HEAD;
+  struct ID *id;           /* can be NULL */
+  struct IDProperty *prop; /* must be second member */
 } BPy_IDArray;
 
 typedef struct BPy_IDGroup_Iter {
-  PyObject_VAR_HEAD BPy_IDProperty *group;
+  PyObject_VAR_HEAD;
+  BPy_IDProperty *group;
   struct IDProperty *cur;
   int mode;
 } BPy_IDGroup_Iter;
