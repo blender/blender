@@ -566,69 +566,78 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool is_sculpt_mode = DRW_object_use_pbvh_drawing(ob);
-    bool is_drawn = false;
+    const int materials_len = MAX2(1, ob->totcol);
+    const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
 
-    if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && ELEM(ob->type, OB_MESH)) {
-      const Mesh *me = ob->data;
-      if (me->mloopuv) {
-        const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
-        struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
-        for (int i = 0; i < materials_len; i++) {
-          Material *mat;
-          Image *image;
-          ImageUser *iuser;
-          int interp;
-          workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
-          int color_type = workbench_material_determine_color_type(wpd, image, ob, is_sculpt_mode);
-          material = workbench_forward_get_or_create_material_data(
-              vedata, ob, mat, image, iuser, color_type, interp, is_sculpt_mode);
-          DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
-          DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
-        }
-        is_drawn = true;
+    if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && me && me->mloopuv) {
+      struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
+      for (int i = 0; i < materials_len; i++) {
+        Material *mat;
+        Image *image;
+        ImageUser *iuser;
+        int interp;
+        workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
+        int color_type = workbench_material_determine_color_type(wpd, image, ob, is_sculpt_mode);
+        material = workbench_forward_get_or_create_material_data(
+            vedata, ob, mat, image, iuser, color_type, interp, is_sculpt_mode);
+        DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
+        DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
       }
     }
+    else if (ELEM(wpd->shading.color_type,
+                  V3D_SHADING_SINGLE_COLOR,
+                  V3D_SHADING_OBJECT_COLOR,
+                  V3D_SHADING_RANDOM_COLOR,
+                  V3D_SHADING_VERTEX_COLOR)) {
+      /* No material split needed */
+      int color_type = workbench_material_determine_color_type(wpd, NULL, ob, is_sculpt_mode);
 
-    /* Fallback from not drawn OB_TEXTURE mode or just OB_SOLID mode */
-    if (!is_drawn) {
-      if (ELEM(wpd->shading.color_type,
-               V3D_SHADING_SINGLE_COLOR,
-               V3D_SHADING_OBJECT_COLOR,
-               V3D_SHADING_RANDOM_COLOR,
-               V3D_SHADING_VERTEX_COLOR)) {
-        /* No material split needed */
-        int color_type = workbench_material_determine_color_type(wpd, NULL, ob, is_sculpt_mode);
-
-        struct GPUBatch *geom;
-        if (color_type == V3D_SHADING_VERTEX_COLOR) {
-          geom = DRW_cache_mesh_surface_vertpaint_get(ob);
-        }
-        else {
-          geom = DRW_cache_object_surface_get(ob);
-        }
-        if (geom) {
-          material = workbench_forward_get_or_create_material_data(
-              vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
-          if (is_sculpt_mode) {
-            DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
-            if (!is_wire) {
-              DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
-            }
-          }
-          else {
-            DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
-            if (!is_wire) {
-              DRW_shgroup_call_object_add(material->shgrp, geom, ob);
-            }
-          }
+      if (is_sculpt_mode) {
+        material = workbench_forward_get_or_create_material_data(
+            vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
+        bool use_vcol = (color_type == V3D_SHADING_VERTEX_COLOR);
+        /* TODO(fclem) make this call optional */
+        DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, false, false, false);
+        if (!is_wire) {
+          DRW_shgroup_call_sculpt_add(material->shgrp, ob, false, false, use_vcol);
         }
       }
       else {
-        const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
-        struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
-        for (int i = 0; i < materials_len; i++) {
-          gpumat_array[i] = NULL;
+        struct GPUBatch *geom = (color_type == V3D_SHADING_VERTEX_COLOR) ?
+                                    DRW_cache_mesh_surface_vertpaint_get(ob) :
+                                    DRW_cache_object_surface_get(ob);
+        if (geom) {
+          material = workbench_forward_get_or_create_material_data(
+              vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
+          /* TODO(fclem) make this call optional */
+          DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
+          if (!is_wire) {
+            DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+          }
         }
+      }
+    }
+    else {
+      /* Draw material color */
+      if (is_sculpt_mode) {
+        struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
+        struct Material **mats = BLI_array_alloca(mats, materials_len);
+
+        for (int i = 0; i < materials_len; ++i) {
+          mats[i] = give_current_material(ob, i + 1);
+          material = workbench_forward_get_or_create_material_data(
+              vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+          shgrps[i] = material->shgrp;
+        }
+        /* TODO(fclem) make this call optional */
+        DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, false, false, false);
+        if (!is_wire) {
+          DRW_shgroup_call_sculpt_with_materials_add(shgrps, mats, ob, false);
+        }
+      }
+      else {
+        struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+        memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
 
         struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
             ob, gpumat_array, materials_len, NULL, NULL, NULL);
@@ -641,17 +650,10 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
             Material *mat = give_current_material(ob, i + 1);
             material = workbench_forward_get_or_create_material_data(
                 vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
-            if (is_sculpt_mode) {
-              DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
-              if (!is_wire) {
-                DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
-              }
-            }
-            else {
-              DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
-              if (!is_wire) {
-                DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
-              }
+            /* TODO(fclem) make this call optional */
+            DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
+            if (!is_wire) {
+              DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
             }
           }
         }

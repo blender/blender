@@ -2202,26 +2202,17 @@ bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
   return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
-struct PBVHNodeDrawCallbackData {
-  void (*draw_fn)(void *user_data, GPUBatch *batch);
+typedef struct PBVHNodeDrawCallbackData {
+  void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers);
   void *user_data;
-  bool fast;
-  bool only_mask; /* Only draw nodes that have mask data. */
-  bool wires;
-};
+} PBVHNodeDrawCallbackData;
 
 static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 {
-  struct PBVHNodeDrawCallbackData *data = data_v;
+  PBVHNodeDrawCallbackData *data = data_v;
 
   if (!(node->flag & PBVH_FullyHidden)) {
-    GPUBatch *batch = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast, data->wires);
-    bool show_mask = GPU_pbvh_buffers_has_mask(node->draw_buffers);
-    if (!data->only_mask || show_mask) {
-      if (batch != NULL) {
-        data->draw_fn(data->user_data, batch);
-      }
-    }
+    data->draw_fn(data->user_data, node->draw_buffers);
   }
 }
 
@@ -2231,20 +2222,10 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       float (*planes)[4],
                       float (*fnors)[3],
-                      bool fast,
-                      bool wires,
-                      bool only_mask,
                       bool show_vcol,
-                      void (*draw_fn)(void *user_data, GPUBatch *batch),
+                      void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data)
 {
-  struct PBVHNodeDrawCallbackData draw_data = {
-      .only_mask = only_mask,
-      .fast = fast,
-      .wires = wires,
-      .draw_fn = draw_fn,
-      .user_data = user_data,
-  };
   PBVHNode **nodes;
   int totnode;
 
@@ -2261,6 +2242,11 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
     MEM_freeN(nodes);
   }
 
+  PBVHNodeDrawCallbackData draw_data = {
+      .draw_fn = draw_fn,
+      .user_data = user_data,
+  };
+
   if (planes) {
     BKE_pbvh_search_callback(
         bvh, BKE_pbvh_node_planes_contain_AABB, planes, pbvh_node_draw_cb, &draw_data);
@@ -2268,10 +2254,18 @@ void BKE_pbvh_draw_cb(PBVH *bvh,
   else {
     BKE_pbvh_search_callback(bvh, NULL, NULL, pbvh_node_draw_cb, &draw_data);
   }
-#if 0
-  if (G.debug_value == 14)
-    pbvh_draw_BB(bvh);
-#endif
+}
+
+void BKE_pbvh_draw_debug_cb(
+    PBVH *bvh,
+    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
+    void *user_data)
+{
+  for (int a = 0; a < bvh->totnode; a++) {
+    PBVHNode *node = &bvh->nodes[a];
+
+    draw_fn(user_data, node->vb.bmin, node->vb.bmax, node->flag);
+  }
 }
 
 void BKE_pbvh_grids_update(

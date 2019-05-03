@@ -38,6 +38,8 @@
 #include "BLI_link_utils.h"
 #include "BLI_mempool.h"
 
+#include "GPU_buffers.h"
+
 #include "intern/gpu_codegen.h"
 
 struct GPUVertFormat *g_pos_format = NULL;
@@ -616,110 +618,150 @@ void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
   BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
-void DRW_shgroup_call_generate_add(DRWShadingGroup *shgroup,
-                                   DRWCallGenerateFn *geometry_fn,
-                                   void *user_data,
-                                   float (*obmat)[4])
-{
-  BLI_assert(geometry_fn != NULL);
-  BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
+// #define SCULPT_DEBUG_BUFFERS
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
-  call->state = drw_call_state_create(shgroup, obmat, NULL);
-  call->type = DRW_CALL_GENERATE;
-  call->generate.geometry_fn = geometry_fn;
-  call->generate.user_data = user_data;
-#ifdef USE_GPU_SELECT
-  call->select_id = DST.select_id;
+typedef struct DRWSculptCallbackData {
+  Object *ob;
+  DRWShadingGroup **shading_groups;
+  Material **materials;
+  bool use_wire;
+  bool use_mats;
+  bool use_mask;
+  bool fast_mode; /* Set by draw manager. Do not init. */
+#ifdef SCULPT_DEBUG_BUFFERS
+  int node_nr;
+#endif
+} DRWSculptCallbackData;
+
+#ifdef SCULPT_DEBUG_BUFFERS
+#  define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
+static float sculpt_debug_colors[9][4] = {
+    {1.0f, 0.2f, 0.2f, 1.0f},
+    {0.2f, 1.0f, 0.2f, 1.0f},
+    {0.2f, 0.2f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 0.2f, 1.0f},
+    {0.2f, 1.0f, 1.0f, 1.0f},
+    {1.0f, 0.2f, 1.0f, 1.0f},
+    {1.0f, 0.7f, 0.2f, 1.0f},
+    {0.2f, 1.0f, 0.7f, 1.0f},
+    {0.7f, 0.2f, 1.0f, 1.0f},
+};
 #endif
 
-  BLI_LINKS_APPEND(&shgroup->calls, call);
+static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
+{
+  GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
+  Material *ma = NULL;
+  short index = 0;
+
+  /* Meh... use_mask is a bit misleading here. */
+  if (scd->use_mask && !GPU_pbvh_buffers_has_mask(buffers)) {
+    return;
+  }
+
+  if (scd->use_mats) {
+    index = GPU_pbvh_buffers_material_index_get(buffers);
+    ma = scd->materials[index];
+  }
+
+  DRWShadingGroup *shgrp = scd->shading_groups[index];
+  if (geom != NULL && shgrp != NULL) {
+#ifdef SCULPT_DEBUG_BUFFERS
+    /* Color each buffers in different colors. Only work in solid/Xray mode. */
+    shgrp = DRW_shgroup_create_sub(shgrp);
+    DRW_shgroup_uniform_vec3(shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->node_nr++), 1);
+#endif
+    /* DRW_shgroup_call_object_add_ex reuses matrices calculations for all the drawcalls of this
+     * object. */
+    DRW_shgroup_call_object_add_ex(shgrp, geom, scd->ob, ma, true);
+  }
 }
 
-/* This function tests if the current draw engine draws the vertex colors
- * It is used when drawing sculpts
- *
- * XXX: should we use a callback to a the draw engine to retrieve this
- *      setting, this makes the draw manager more clean? */
-static bool DRW_draw_vertex_color_active(const DRWContextState *draw_ctx)
+#ifdef SCULPT_DEBUG_BUFFERS
+static void sculpt_debug_cb(void *user_data,
+                            const float bmin[3],
+                            const float bmax[3],
+                            PBVHNodeFlags flag)
 {
-  View3D *v3d = draw_ctx->v3d;
-  return v3d->shading.type == OB_SOLID && v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR;
+  int *node_nr = (int *)user_data;
+  BoundBox bb;
+  BKE_boundbox_init_from_minmax(&bb, bmin, bmax);
+
+#  if 0 /* Nodes hierarchy. */
+  if (flag & PBVH_Leaf) {
+    DRW_debug_bbox(&bb, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
+  }
+  else {
+    DRW_debug_bbox(&bb, (float[4]){0.5f, 0.5f, 0.5f, 0.6f});
+  }
+#  else /* Color coded leaf bounds. */
+  if (flag & PBVH_Leaf) {
+    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*node_nr)++));
+  }
+#  endif
 }
+#endif
 
-static void sculpt_draw_cb(DRWShadingGroup *shgroup,
-                           void (*draw_fn)(DRWShadingGroup *shgroup, GPUBatch *geom),
-                           void *user_data)
+static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
 {
-  Object *ob = user_data;
-
   /* XXX should be ensured before but sometime it's not... go figure (see T57040). */
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, ob);
+  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, scd->ob);
+  if (!pbvh) {
+    return;
+  }
+
+  float(*planes)[4] = NULL; /* TODO proper culling. */
+  scd->fast_mode = false;
 
   const DRWContextState *drwctx = DRW_context_state_get();
-  int fast_mode = 0;
-
   if (drwctx->evil_C != NULL) {
     Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
     if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
-      fast_mode = drwctx->rv3d->rflag & RV3D_NAVIGATING;
+      scd->fast_mode = (drwctx->rv3d->rflag & RV3D_NAVIGATING) != 0;
     }
   }
 
-  if (pbvh) {
-    const bool show_vcol = DRW_draw_vertex_color_active(drwctx);
-    BKE_pbvh_draw_cb(pbvh,
-                     NULL,
-                     NULL,
-                     fast_mode,
-                     false,
-                     false,
-                     show_vcol,
-                     (void (*)(void *, GPUBatch *))draw_fn,
-                     shgroup);
-  }
+  BKE_pbvh_draw_cb(
+      pbvh, planes, NULL, use_vcol, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
+
+#ifdef SCULPT_DEBUG_BUFFERS
+  int node_nr = 0;
+  DRW_debug_modelmat(scd->ob->obmat);
+  BKE_pbvh_draw_debug_cb(
+      pbvh,
+      (void (*)(void *d, const float min[3], const float max[3], PBVHNodeFlags f))sculpt_debug_cb,
+      &node_nr);
+#endif
 }
 
-static void sculpt_draw_wires_cb(DRWShadingGroup *shgroup,
-                                 void (*draw_fn)(DRWShadingGroup *shgroup, GPUBatch *geom),
-                                 void *user_data)
+void DRW_shgroup_call_sculpt_add(
+    DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask, bool use_vcol)
 {
-  Object *ob = user_data;
-
-  /* XXX should be ensured before but sometime it's not... go figure (see T57040). */
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, ob);
-
-  const DRWContextState *drwctx = DRW_context_state_get();
-  int fast_mode = 0;
-
-  if (drwctx->evil_C != NULL) {
-    Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
-    if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
-      fast_mode = drwctx->rv3d->rflag & RV3D_NAVIGATING;
-    }
-  }
-
-  if (pbvh) {
-    BKE_pbvh_draw_cb(pbvh,
-                     NULL,
-                     NULL,
-                     fast_mode,
-                     true,
-                     false,
-                     false,
-                     (void (*)(void *, GPUBatch *))draw_fn,
-                     shgroup);
-  }
+  DRWSculptCallbackData scd = {
+      .ob = ob,
+      .shading_groups = &shgroup,
+      .materials = NULL,
+      .use_wire = use_wire,
+      .use_mats = false,
+      .use_mask = use_mask,
+  };
+  drw_sculpt_generate_calls(&scd, use_vcol);
 }
 
-void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, Object *ob, float (*obmat)[4])
+void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
+                                                Material **materials,
+                                                Object *ob,
+                                                bool use_vcol)
 {
-  DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, obmat);
-}
-
-void DRW_shgroup_call_sculpt_wires_add(DRWShadingGroup *shgroup, Object *ob, float (*obmat)[4])
-{
-  DRW_shgroup_call_generate_add(shgroup, sculpt_draw_wires_cb, ob, obmat);
+  DRWSculptCallbackData scd = {
+      .ob = ob,
+      .shading_groups = shgroups,
+      .materials = materials,
+      .use_wire = false,
+      .use_mats = true,
+      .use_mask = false,
+  };
+  drw_sculpt_generate_calls(&scd, use_vcol);
 }
 
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup,

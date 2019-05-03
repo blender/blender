@@ -937,7 +937,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     const bool is_active = (ob == draw_ctx->obact);
     const bool is_sculpt_mode = DRW_object_use_pbvh_drawing(ob);
     const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
-    const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+    const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
     bool has_transp_mat = false;
 
@@ -983,8 +983,10 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         /* Draw solid color */
         material = get_or_create_material_data(vedata, ob, NULL, NULL, NULL, color_type, 0);
       }
+
       if (is_sculpt_mode) {
-        DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+        bool use_vcol = (color_type == V3D_SHADING_VERTEX_COLOR);
+        DRW_shgroup_call_sculpt_add(material->shgrp, ob, false, false, use_vcol);
       }
       else {
         struct GPUBatch *geom;
@@ -1003,11 +1005,25 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     else {
       /* Draw material color */
       if (is_sculpt_mode) {
-        /* Multiple materials are not supported in sculpt mode yet. */
-        Material *mat = give_current_material(ob, 1);
-        material = get_or_create_material_data(
-            vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
-        DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+        struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
+        struct Material **mats = BLI_array_alloca(mats, materials_len);
+
+        for (int i = 0; i < materials_len; ++i) {
+          mats[i] = give_current_material(ob, i + 1);
+          if (mats[i] != NULL && mats[i]->a < 1.0f) {
+            /* Hack */
+            wpd->shading.xray_alpha = mats[i]->a;
+            material = workbench_forward_get_or_create_material_data(
+                vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+            has_transp_mat = true;
+          }
+          else {
+            material = get_or_create_material_data(
+                vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
+          }
+          shgrps[i] = material->shgrp;
+        }
+        DRW_shgroup_call_sculpt_with_materials_add(shgrps, mats, ob, false);
       }
       else {
         struct GPUBatch **geoms;

@@ -389,7 +389,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
         }
 
         if (is_sculpt_mode) {
-          DRW_shgroup_call_sculpt_wires_add(shgrp, ob, ob->obmat);
+          DRW_shgroup_call_sculpt_add(shgrp, ob, true, false, false);
         }
         else {
           DRW_shgroup_call_add(shgrp, geom, ob->obmat);

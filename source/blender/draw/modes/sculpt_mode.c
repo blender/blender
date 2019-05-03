@@ -98,6 +98,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 typedef struct SCULPT_PrivateData {
+  DRWShadingGroup *mask_overlay_grp;
   /* This keeps the references of the shading groups for
    * easy access in SCULPT_cache_populate() */
   DRWShadingGroup *group_flat;
@@ -143,7 +144,7 @@ static void SCULPT_cache_init(void *vedata)
 
     DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.shader_smooth, psl->pass);
     DRW_shgroup_uniform_float(shgrp, "maskOpacity", &v3d->overlay.sculpt_mode_mask_opacity, 1);
-    stl->g_data->group_smooth = shgrp;
+    stl->g_data->mask_overlay_grp = shgrp;
   }
 }
 
@@ -213,8 +214,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 
       PBVH *pbvh = ob->sculpt->pbvh;
       if (pbvh && pbvh_has_mask(pbvh)) {
-        DRW_shgroup_call_generate_add(
-            stl->g_data->group_smooth, sculpt_draw_mask_cb, ob, ob->obmat);
+        DRW_shgroup_call_sculpt_add(stl->g_data->mask_overlay_grp, ob, false, true, false);
       }
     }
   }
