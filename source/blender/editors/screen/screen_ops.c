@@ -4404,7 +4404,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     }
 
     if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
-      BKE_sound_seek_scene(bmain, scene);
+      BKE_sound_seek_scene(bmain, scene_eval);
 #ifdef PROFILE_AUDIO_SYNCH
       old_frame = CFRA;
 #endif
