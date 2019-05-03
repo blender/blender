@@ -2393,7 +2393,7 @@ void BKE_scene_cursor_quat_to_rot(View3DCursor *cursor, const float quat[4], boo
 
 /** \} */
 
-/* Evaluation. */
+/* Dependency graph evaluation. */
 
 void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
 {

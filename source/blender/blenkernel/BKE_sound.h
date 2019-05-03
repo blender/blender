@@ -164,7 +164,7 @@ typedef void (*SoundJackSyncCallback)(struct Main *bmain, int mode, float time);
 void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback);
 void BKE_sound_jack_scene_update(struct Scene *scene, int mode, float time);
 
-/* Evaluation. */
+/* Dependency graph evaluation. */
 
 struct Depsgraph;
 
