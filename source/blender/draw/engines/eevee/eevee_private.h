@@ -147,26 +147,25 @@ enum {
   VAR_MAT_MESH = (1 << 0),
   VAR_MAT_PROBE = (1 << 1),
   VAR_MAT_HAIR = (1 << 2),
-  VAR_MAT_FLAT = (1 << 3),
-  VAR_MAT_BLEND = (1 << 4),
-  VAR_MAT_VSM = (1 << 5),
-  VAR_MAT_ESM = (1 << 6),
-  VAR_MAT_VOLUME = (1 << 7),
-  VAR_MAT_LOOKDEV = (1 << 8),
+  VAR_MAT_BLEND = (1 << 3),
+  VAR_MAT_VSM = (1 << 4),
+  VAR_MAT_ESM = (1 << 5),
+  VAR_MAT_VOLUME = (1 << 6),
+  VAR_MAT_LOOKDEV = (1 << 7),
   /* Max number of variation */
   /* IMPORTANT : Leave it last and set
    * it's value accordingly. */
-  VAR_MAT_MAX = (1 << 9),
+  VAR_MAT_MAX = (1 << 8),
   /* These are options that are not counted in VAR_MAT_MAX
    * because they are not cumulative with the others above. */
-  VAR_MAT_CLIP = (1 << 10),
-  VAR_MAT_HASH = (1 << 11),
-  VAR_MAT_MULT = (1 << 12),
-  VAR_MAT_SHADOW = (1 << 13),
-  VAR_MAT_REFRACT = (1 << 14),
-  VAR_MAT_SSS = (1 << 15),
-  VAR_MAT_TRANSLUC = (1 << 16),
-  VAR_MAT_SSSALBED = (1 << 17),
+  VAR_MAT_CLIP = (1 << 9),
+  VAR_MAT_HASH = (1 << 10),
+  VAR_MAT_MULT = (1 << 11),
+  VAR_MAT_SHADOW = (1 << 12),
+  VAR_MAT_REFRACT = (1 << 13),
+  VAR_MAT_SSS = (1 << 14),
+  VAR_MAT_TRANSLUC = (1 << 15),
+  VAR_MAT_SSSALBED = (1 << 16),
 };
 
 /* ************ PROBE UBO ************* */

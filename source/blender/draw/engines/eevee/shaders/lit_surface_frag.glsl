@@ -13,13 +13,8 @@ uniform sampler2DArray utilTex;
 in vec3 worldPosition;
 in vec3 viewPosition;
 
-#ifdef USE_FLAT_NORMAL
-flat in vec3 worldNormal;
-flat in vec3 viewNormal;
-#else
 in vec3 worldNormal;
 in vec3 viewNormal;
-#endif
 
 #ifdef HAIR_SHADER
 in vec3 hairTangent; /* world space */

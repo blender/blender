@@ -296,9 +296,6 @@ static char *eevee_get_defines(int options)
   if ((options & VAR_MAT_PROBE) != 0) {
     BLI_dynstr_append(ds, "#define PROBE_CAPTURE\n");
   }
-  if ((options & VAR_MAT_FLAT) != 0) {
-    BLI_dynstr_append(ds, "#define USE_FLAT_NORMAL\n");
-  }
   if ((options & VAR_MAT_CLIP) != 0) {
     BLI_dynstr_append(ds, "#define USE_ALPHA_CLIP\n");
   }
@@ -905,7 +902,6 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(EEVEE_ViewLaye
                                                                   EEVEE_Data *vedata,
                                                                   DRWPass *pass,
                                                                   bool is_hair,
-                                                                  bool is_flat_normal,
                                                                   bool use_blend,
                                                                   bool use_ssr,
                                                                   int shadow_method)
@@ -917,9 +913,6 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(EEVEE_ViewLaye
 
   if (is_hair) {
     options |= VAR_MAT_HAIR;
-  }
-  if (is_flat_normal) {
-    options |= VAR_MAT_FLAT;
   }
   if (use_blend) {
     options |= VAR_MAT_BLEND;
@@ -949,7 +942,6 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
                                                                ParticleSystem *psys,
                                                                ModifierData *md,
                                                                bool is_hair,
-                                                               bool is_flat_normal,
                                                                bool use_ssr,
                                                                int shadow_method)
 {
@@ -961,9 +953,6 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
 
   if (is_hair) {
     options |= VAR_MAT_HAIR;
-  }
-  if (is_flat_normal) {
-    options |= VAR_MAT_FLAT;
   }
 
   options |= eevee_material_shadow_option(shadow_method);
@@ -1217,7 +1206,6 @@ static void material_opaque(Material *ma,
                             EEVEE_ViewLayerData *sldata,
                             EEVEE_Data *vedata,
                             bool do_cull,
-                            bool use_flat_nor,
                             struct GPUMaterial **gpumat,
                             struct GPUMaterial **gpumat_depth,
                             struct DRWShadingGroup **shgrp,
@@ -1437,7 +1425,7 @@ static void material_opaque(Material *ma,
   if (*shgrp == NULL) {
     bool use_ssr = ((effects->enabled_effects & EFFECT_SSR) != 0);
     *shgrp = EEVEE_default_shading_group_get(
-        sldata, vedata, NULL, NULL, NULL, false, use_flat_nor, use_ssr, linfo->shadow_method);
+        sldata, vedata, NULL, NULL, NULL, false, use_ssr, linfo->shadow_method);
     DRW_shgroup_uniform_vec3(*shgrp, "basecol", color_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "metallic", metal_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "specular", spec_p, 1);
@@ -1470,7 +1458,6 @@ static void material_transparent(Material *ma,
                                  EEVEE_ViewLayerData *sldata,
                                  EEVEE_Data *vedata,
                                  bool do_cull,
-                                 bool use_flat_nor,
                                  struct GPUMaterial **gpumat,
                                  struct DRWShadingGroup **shgrp,
                                  struct DRWShadingGroup **shgrp_depth)
@@ -1543,14 +1530,8 @@ static void material_transparent(Material *ma,
 
   /* Fallback to default shader */
   if (*shgrp == NULL) {
-    *shgrp = EEVEE_default_shading_group_create(sldata,
-                                                vedata,
-                                                psl->transparent_pass,
-                                                false,
-                                                use_flat_nor,
-                                                true,
-                                                false,
-                                                linfo->shadow_method);
+    *shgrp = EEVEE_default_shading_group_create(
+        sldata, vedata, psl->transparent_pass, false, true, false, linfo->shadow_method);
     DRW_shgroup_uniform_vec3(*shgrp, "basecol", color_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "metallic", metal_p, 1);
     DRW_shgroup_uniform_float(*shgrp, "specular", spec_p, 1);
@@ -1641,7 +1622,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
     struct GPUMaterial **gpumat_depth_array = BLI_array_alloca(gpumat_array, materials_len);
     struct Material **ma_array = BLI_array_alloca(ma_array, materials_len);
 
-    bool use_flat_nor = false;
     for (int i = 0; i < materials_len; ++i) {
       ma_array[i] = eevee_object_material_get(ob, i);
       gpumat_array[i] = NULL;
@@ -1659,7 +1639,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                           sldata,
                           vedata,
                           do_cull,
-                          use_flat_nor,
                           &gpumat_array[i],
                           &gpumat_depth_array[i],
                           &shgrp_array[i],
@@ -1673,7 +1652,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                                sldata,
                                vedata,
                                do_cull,
-                               use_flat_nor,
                                &gpumat_array[i],
                                &shgrp_array[i],
                                &shgrp_depth_array[i]);
@@ -1682,10 +1660,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           BLI_assert(0);
           break;
       }
-    }
-
-    if (is_sculpt_mode && is_sculpt_mode_draw == false) {
-      DRW_cache_mesh_sculpt_coords_ensure(ob);
     }
 
     /* Only support single volume material for now. */
@@ -1702,7 +1676,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       int auto_layer_count;
       struct GPUBatch **mat_geom = NULL;
 
-      if (!is_sculpt_mode_draw) {
+      if (!is_sculpt_mode) {
         mat_geom = DRW_cache_object_surface_material_get(ob,
                                                          gpumat_array,
                                                          materials_len,
@@ -1892,7 +1866,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
         /* Fallback to default shader */
         if (shgrp == NULL) {
           shgrp = EEVEE_default_shading_group_get(
-              sldata, vedata, ob, psys, md, true, false, use_ssr, sldata->lights->shadow_method);
+              sldata, vedata, ob, psys, md, true, use_ssr, sldata->lights->shadow_method);
           DRW_shgroup_uniform_vec3(shgrp, "basecol", color_p, 1);
           DRW_shgroup_uniform_float(shgrp, "metallic", metal_p, 1);
           DRW_shgroup_uniform_float(shgrp, "specular", spec_p, 1);

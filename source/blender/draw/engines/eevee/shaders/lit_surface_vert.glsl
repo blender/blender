@@ -23,13 +23,8 @@ layout(std140) uniform clip_block
   vec4 ClipPlanes[1];
 };
 
-#ifdef USE_FLAT_NORMAL
-flat out vec3 worldNormal;
-flat out vec3 viewNormal;
-#else
 out vec3 worldNormal;
 out vec3 viewNormal;
-#endif
 
 #ifdef HAIR_SHADER
 out vec3 hairTangent;
