@@ -4289,7 +4289,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
   if (screen->animtimer && screen->animtimer == event->customdata) {
     Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     wmTimer *wt = screen->animtimer;
     ScreenAnimData *sad = wt->customdata;
     wmWindowManager *wm = CTX_wm_manager(C);
@@ -4310,7 +4311,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     }
 
     if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-        isfinite(time = BKE_sound_sync_scene(scene))) {
+        isfinite(time = BKE_sound_sync_scene(scene_eval))) {
       double newfra = (double)time * FPS;
 
       /* give some space here to avoid jumps */
