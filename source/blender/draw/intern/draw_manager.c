@@ -1558,22 +1558,25 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     drw_engines_cache_init();
     drw_engines_world_update(scene);
 
-    const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-    const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                          DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                          DEG_ITER_OBJECT_FLAG_DUPLI;
-    DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flag) {
-      if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
-        continue;
+    /* Only iterate over objects for internal engines or when overlays are enabled */
+    if ((engine_type->flag & RE_INTERNAL) != 0 || (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+      const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
+      const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+      DEG_OBJECT_ITER_BEGIN (depsgraph, ob, iter_flag) {
+        if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
+          continue;
+        }
+        if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+          continue;
+        }
+        DST.dupli_parent = data_.dupli_parent;
+        DST.dupli_source = data_.dupli_object_current;
+        drw_engines_cache_populate(ob);
       }
-      if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
-        continue;
-      }
-      DST.dupli_parent = data_.dupli_parent;
-      DST.dupli_source = data_.dupli_object_current;
-      drw_engines_cache_populate(ob);
+      DEG_OBJECT_ITER_END;
     }
-    DEG_OBJECT_ITER_END;
 
     drw_engines_cache_finish();
 
