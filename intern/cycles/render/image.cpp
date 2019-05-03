@@ -194,7 +194,7 @@ bool ImageManager::get_image_metadata(const string &filename,
                                       ustring colorspace,
                                       ImageMetaData &metadata)
 {
-  memset(&metadata, 0, sizeof(metadata));
+  metadata = ImageMetaData();
   metadata.colorspace = colorspace;
 
   if (builtin_data) {
