@@ -153,6 +153,12 @@ static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
                                           float *r_first,
                                           uint *r_steps)
 {
+  if (region_start >= region_end) {
+    *r_first = 0;
+    *r_steps = 0;
+    return;
+  }
+
   BLI_assert(lines->distance > 0);
   BLI_assert(region_start <= region_end);
 
