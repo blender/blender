@@ -1847,7 +1847,6 @@ static bool draw_cache_view_cb(
         color[2] = 0.2f;
         stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
                     v2d->cur.ymin;
-        ;
         stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_TEXT);
         stripe_top = stripe_bot + stripe_ht;
         break;

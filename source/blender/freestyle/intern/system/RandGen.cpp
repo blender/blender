@@ -49,7 +49,8 @@ namespace Freestyle {
     long l = (long)(x) * (long)(y); \
     (z)[0] = LOW(l); \
     (z)[1] = HIGH(l); \
-  }
+  } \
+  ((void)0)
 
 #define CARRY(x, y) ((unsigned long)((long)(x) + (long)(y)) > MASK)
 #define ADDEQU(x, y, z) (z = CARRY(x, (y)), x = LOW(x + (y)))

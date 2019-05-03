@@ -154,7 +154,7 @@ static void FHT2D(
     for (i = 0; stm > 0; i++) {
 #define PRED(k) (((k & Nym) << Mx) + (k >> My))
       for (j = PRED(i); j > i; j = PRED(j)) {
-        ;
+        /* pass */
       }
       if (j < i) {
         continue;

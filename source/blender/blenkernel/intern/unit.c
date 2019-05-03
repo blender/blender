@@ -663,7 +663,7 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
         }
         /* If str_found is not a valid unit, we have to check further in the string... */
         for (str_found++; isalpha_or_utf8(*str_found); str_found++) {
-          ;
+          /* pass */
         }
         str = str_found;
       }

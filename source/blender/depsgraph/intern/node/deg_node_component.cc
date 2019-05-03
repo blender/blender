@@ -131,7 +131,6 @@ string ComponentNode::identifier() const
   const string typebuf = "" + to_string(static_cast<int>(type)) + ")";
   return typebuf + name + " : " + idname +
          "( affects_directly_visible: " + (affects_directly_visible ? "true" : "false") + ")";
-  ;
 }
 
 OperationNode *ComponentNode::find_operation(OperationIDKey key) const

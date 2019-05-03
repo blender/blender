@@ -354,7 +354,7 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
         for (cnt = 1; (cnt < 127) && ((beg + cnt) < width) &&
                       (rgbe_scan[beg + cnt][i] == rgbe_scan[beg][i]);
              cnt++) {
-          ;
+          /* pass */
         }
         if (cnt >= MINRUN) {
           break; /* long enough */

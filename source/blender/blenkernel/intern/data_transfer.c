@@ -585,7 +585,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
 
       /* Find last source actually used! */
       while (idx_src-- && !use_layers_src[idx_src]) {
-        ;
+        /* pass */
       }
       idx_src++;
 

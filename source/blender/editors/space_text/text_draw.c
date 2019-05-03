@@ -1186,7 +1186,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
   /* Set the top 'item' of the visible list */
   for (i = 0, item = first; i < *top && item->next; i++, item = item->next) {
-    ;
+    /* pass */
   }
 
   for (i = 0; i < SUGG_LIST_SIZE && item; i++, item = item->next) {

@@ -193,7 +193,7 @@ static const EnumPropertyItem snap_uv_element_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_scene_display_aa_methods[] = {
+static const EnumPropertyItem rna_enum_scene_display_aa_methods[] = {
     {SCE_DISPLAY_AA_OFF,
      "OFF",
      0,

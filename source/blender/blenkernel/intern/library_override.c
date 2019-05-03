@@ -81,7 +81,7 @@ IDOverrideStatic *BKE_override_static_init(ID *local_id, ID *reference_id)
   for (ancestor_id = reference_id; ancestor_id != NULL && ancestor_id->override_static != NULL &&
                                    ancestor_id->override_static->reference != NULL;
        ancestor_id = ancestor_id->override_static->reference) {
-    ;
+    /* pass */
   }
 
   if (ancestor_id != NULL && ancestor_id->override_static != NULL) {

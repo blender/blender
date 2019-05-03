@@ -181,10 +181,10 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis, float 
   int i = lo, j = hi;
   for (;;) {
     for (; prim_bbc[prim_indices[i]].bcentroid[axis] < mid; i++) {
-      ;
+      /* pass */
     }
     for (; mid < prim_bbc[prim_indices[j]].bcentroid[axis]; j--) {
-      ;
+      /* pass */
     }
 
     if (!(i < j)) {
@@ -216,18 +216,18 @@ static int partition_indices_material(PBVH *bvh, int lo, int hi)
   for (;;) {
     if (bvh->looptri) {
       for (; face_materials_match(first, &mpoly[looptri[indices[i]].poly]); i++) {
-        ;
+        /* pass */
       }
       for (; !face_materials_match(first, &mpoly[looptri[indices[j]].poly]); j--) {
-        ;
+        /* pass */
       }
     }
     else {
       for (; grid_materials_match(first, &flagmats[indices[i]]); i++) {
-        ;
+        /* pass */
       }
       for (; !grid_materials_match(first, &flagmats[indices[j]]); j--) {
-        ;
+        /* pass */
       }
     }
 

@@ -5393,7 +5393,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
       const uint8_t epointlock_bitmask = 1 << (n_trgt & 7); /* 7 == 0b111 */
       while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) &
              epointlock_bitmask) {
-        ;
+        /* pass */
       }
 
       PaintPoint *ePoint = &((PaintPoint *)sData->type_data)[n_trgt];
@@ -5440,7 +5440,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
     const uint8_t ppointlock_bitmask = 1 << (index & 7); /* 7 == 0b111 */
     while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) &
            ppointlock_bitmask) {
-      ;
+      /* pass */
     }
 
     pPoint->wetness -= ppoint_wetness_diff;

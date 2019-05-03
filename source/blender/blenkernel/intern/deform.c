@@ -1124,7 +1124,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
       /* Find last source actually used! */
       idx_src = num_layers_src;
       while (idx_src-- && !use_layers_src[idx_src]) {
-        ;
+        /* pass */
       }
       idx_src++;
 

@@ -1895,7 +1895,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
   /* other thread may be initializing the tile so wait here */
   while (projima->undoRect[tile_index] == TILE_PENDING) {
-    ;
+    /* pass */
   }
 
   BLI_assert(tile_index < (IMAPAINT_TILE_NUMBER(ibuf->x) * IMAPAINT_TILE_NUMBER(ibuf->y)));

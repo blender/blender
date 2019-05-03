@@ -74,7 +74,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 
   /* Count the visible lines to the cursor */
   for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++) {
-    ;
+    /* pass */
   }
   if (l < 0) {
     return 0;
@@ -101,7 +101,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 
   /* Work out which of the items is at the top of the visible list */
   for (i = 0, item = first; i < *top && item->next; i++, item = item->next) {
-    ;
+    /* pass */
   }
 
   /* Work out the target item index in the visible list */
@@ -111,7 +111,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
   }
 
   for (i = tgti; i > 0 && item->next; i--, item = item->next) {
-    ;
+    /* pass */
   }
   if (item) {
     texttool_suggest_select(item);

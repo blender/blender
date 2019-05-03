@@ -1170,7 +1170,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   int i_mapped = 0;
 
   for (i = 0; i < totelem && element_weight[i] == 0.0f; i++) {
-    ;
+    /* pass */
   }
   element_sum[i_mapped] = element_weight[i] * inv_totweight;
   element_map[i_mapped] = i;
@@ -1216,7 +1216,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     for (i = 0, p = 0; p < totpart; p++, pos += step) {
       for (; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++) {
-        ;
+        /* pass */
       }
 
       particle_element[p] = element_map[i];

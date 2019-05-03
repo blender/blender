@@ -275,10 +275,10 @@ static int search_closest_marker_index(MovieTrackingTrack *track, int ref_frame)
   i = MAX2(0, i);
   i = MIN2(i, end - 1);
   for (; i < end - 1 && markers[i].framenr <= ref_frame; ++i) {
-    ;
+    /* pass */
   }
   for (; 0 < i && markers[i].framenr > ref_frame; --i) {
-    ;
+    /* pass */
   }
 
   track->last_marker = i;

@@ -156,7 +156,7 @@ void imb_tile_cache_tile_free(ImBuf *ibuf, int tx, int ty)
   if (gtile) {
     /* in case another thread is loading this */
     while (gtile->loading) {
-      ;
+      /* pass */
     }
 
     BLI_ghash_remove(GLOBAL_CACHE.tilehash, gtile, NULL, NULL);
@@ -295,7 +295,7 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf,
     BLI_mutex_unlock(&GLOBAL_CACHE.mutex);
 
     while (gtile->loading) {
-      ;
+      /* pass */
     }
   }
   else {

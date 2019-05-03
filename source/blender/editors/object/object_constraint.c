@@ -160,7 +160,7 @@ static void validate_pyconstraint_cb(Main *bmain, void *arg1, void *arg2)
   if (index) {
     /* innovative use of a for...loop to search */
     for (text = bmain->texts.first, i = 1; text && index != i; i++, text = text->id.next) {
-      ;
+      /* pass */
     }
   }
   data->text = text;

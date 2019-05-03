@@ -600,7 +600,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
           if (do_island_optimization && (element->island != island_index)) {
             /* skip this uv if not on the active island */
             for (; element->next && !(element->next->separate); element = element->next) {
-              ;
+              /* pass */
             }
             continue;
           }
