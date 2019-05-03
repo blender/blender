@@ -761,7 +761,6 @@ def km_markers(params):
     )
 
     items.extend([
-        op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("anim.change_frame", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("graph.cursor_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
