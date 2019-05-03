@@ -65,7 +65,7 @@
 
 #include "armature_intern.h"
 
-#define DEBUG_TIME
+#undef DEBUG_TIME
 
 #include "PIL_time.h"
 #ifdef DEBUG_TIME
@@ -196,38 +196,6 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ListBase targets = {NULL, NULL};
   bool free_depsgraph = false;
-
-  /* Override depsgraph with a filtered, simpler copy */
-  if (!current_frame_only && G.debug_value != -1) {
-    DEG_FilterQuery query = {{0}};
-
-    DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
-    dft_ob->id = &ob->id;
-    BLI_addtail(&query.targets, dft_ob);
-
-#ifdef DEBUG_TIME
-    TIMEIT_START(filter_pose_depsgraph);
-#endif
-
-    depsgraph = DEG_graph_filter(depsgraph, bmain, &query);
-
-#ifdef DEBUG_TIME
-    TIMEIT_END(filter_pose_depsgraph);
-#endif
-
-    free_depsgraph = true;
-    MEM_freeN(dft_ob);
-
-#ifdef DEBUG_TIME
-    TIMEIT_START(filter_pose_update);
-#endif
-
-    BKE_scene_graph_update_tagged(depsgraph, bmain);
-
-#ifdef DEBUG_TIME
-    TIMEIT_END(filter_pose_update);
-#endif
-  }
 
   /* set flag to force recalc, then grab the relevant bones to target */
   ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;

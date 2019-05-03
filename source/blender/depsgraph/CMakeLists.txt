@@ -69,7 +69,6 @@ set(SRC
   intern/depsgraph_eval.cc
   intern/depsgraph_physics.cc
   intern/depsgraph_query.cc
-  intern/depsgraph_query_filter.cc
   intern/depsgraph_query_foreach.cc
   intern/depsgraph_query_iter.cc
   intern/depsgraph_tag.cc
