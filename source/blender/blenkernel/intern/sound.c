@@ -1213,6 +1213,19 @@ char **BKE_sound_get_device_names(void)
 
 #endif /* WITH_AUDASPACE */
 
+void BKE_sound_update_and_seek(Main *bmain, Depsgraph *depsgraph)
+{
+  Scene *scene_orig = DEG_get_input_scene(depsgraph);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  /* NOTE: We don't do copy-on-write or anything like that here because we need to know scene's
+   * flags like "scrubbing" in the BKE_sound_seek_scene(). So we simply update frame to which
+   * seek needs to happen.
+   *
+   * TODO(sergey): Might change API so the frame is passes explicitly. */
+  scene_eval->r.cfra = scene_orig->r.cfra;
+  BKE_sound_seek_scene(bmain, scene_eval);
+}
+
 void BKE_sound_reset_scene_runtime(Scene *scene)
 {
   scene->sound_scene = NULL;

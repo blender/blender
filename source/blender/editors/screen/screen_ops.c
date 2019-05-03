@@ -2771,7 +2771,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   areas_do_frame_follow(C, false);
 
-  BKE_sound_seek_scene(bmain, scene);
+  BKE_sound_update_and_seek(bmain, CTX_data_depsgraph(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -2833,8 +2833,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
     areas_do_frame_follow(C, true);
 
-    /* TODO(sergey): Make more reusable. */
-    BKE_sound_seek_scene(bmain, DEG_get_evaluated_scene(CTX_data_depsgraph(C)));
+    BKE_sound_update_and_seek(bmain, CTX_data_depsgraph(C));
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }
@@ -2950,7 +2949,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   else {
     areas_do_frame_follow(C, true);
 
-    BKE_sound_seek_scene(bmain, scene);
+    BKE_sound_update_and_seek(bmain, CTX_data_depsgraph(C));
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -3017,7 +3016,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 
     areas_do_frame_follow(C, true);
 
-    BKE_sound_seek_scene(bmain, scene);
+    BKE_sound_update_and_seek(bmain, CTX_data_depsgraph(C));
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -4404,7 +4403,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     }
 
     if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
-      BKE_sound_seek_scene(bmain, scene_eval);
+      BKE_sound_update_and_seek(bmain, depsgraph);
 #ifdef PROFILE_AUDIO_SYNCH
       old_frame = CFRA;
 #endif
