@@ -175,7 +175,8 @@ void BKE_sound_free_audio(bSound *sound)
   }
 
   BKE_sound_free_waveform(sound);
-
+#else
+  UNUSED_VARS(sound);
 #endif /* WITH_AUDASPACE */
 }
 
@@ -313,7 +314,7 @@ void BKE_sound_init_main(Main *bmain)
     AUD_setSynchronizerCallback(sound_sync_callback, bmain);
   }
 #  else
-  (void)bmain; /* unused */
+  UNUSED_VARS(bmain);
 #  endif
 }
 
@@ -1263,7 +1264,7 @@ void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback)
 #if defined(WITH_AUDASPACE) && defined(WITH_JACK)
   sound_jack_sync_callback = callback;
 #else
-  (void)callback;
+  UNUSED_VARS(callback);
 #endif
 }
 
@@ -1286,6 +1287,8 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, float time)
   if (scene->playback_handle != NULL) {
     AUD_Handle_setPosition(scene->playback_handle, time);
   }
+#else
+  UNUSED_VARS(time);
 #endif
 }
 
