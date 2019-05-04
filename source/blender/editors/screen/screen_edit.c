@@ -1195,10 +1195,9 @@ bool ED_screen_set(bContext *C, bScreen *sc)
 		return true;
 	}
 
-	if (ELEM(sc->state, SCREENMAXIMIZED, SCREENFULL)) {
-		/* find associated full */
-		bScreen *sc1;
-		for (sc1 = bmain->screen.first; sc1; sc1 = sc1->id.next) {
+	/* find associated full */
+	for (bScreen *sc1 = bmain->screen.first; sc1; sc1 = sc1->id.next) {
+		if ((sc1 != sc) && ELEM(sc1->state, SCREENMAXIMIZED, SCREENFULL)) {
 			ScrArea *sa = sc1->areabase.first;
 			if (sa->full == sc) {
 				sc = sc1;
