@@ -8403,10 +8403,9 @@ static void direct_link_sound(FileData *fd, bSound *sound)
     sound->waveform = NULL;
   }
 
-  if (sound->spinlock) {
-    sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
-    BLI_spin_init(sound->spinlock);
-  }
+  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  BLI_spin_init(sound->spinlock);
+
   /* clear waveform loading flag */
   sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 

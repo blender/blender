@@ -259,11 +259,6 @@ static void drawseqwave(View2D *v2d,
       return;
     }
 
-    if (!sound->spinlock) {
-      sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
-      BLI_spin_init(sound->spinlock);
-    }
-
     BLI_spin_lock(sound->spinlock);
     if (!sound->waveform) {
       if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {

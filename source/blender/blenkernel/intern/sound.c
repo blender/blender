@@ -152,6 +152,7 @@ void BKE_sound_free(bSound *sound)
   }
 
   BKE_sound_free_audio(sound);
+  BKE_sound_free_waveform(sound);
 
   if (sound->spinlock) {
     BLI_spin_end(sound->spinlock);
@@ -173,8 +174,6 @@ void BKE_sound_free_audio(bSound *sound)
     AUD_Sound_free(sound->cache);
     sound->cache = NULL;
   }
-
-  BKE_sound_free_waveform(sound);
 #else
   UNUSED_VARS(sound);
 #endif /* WITH_AUDASPACE */
@@ -199,8 +198,8 @@ void BKE_sound_copy_data(Main *UNUSED(bmain),
   sound_dst->cache = NULL;
   sound_dst->waveform = NULL;
   sound_dst->playback_handle = NULL;
-  sound_dst->spinlock =
-      NULL; /* Think this is OK? Otherwise, easy to create new spinlock here... */
+  sound_dst->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  BLI_spin_init(sound_dst->spinlock);
 
   /* Just to be sure, should not have any value actually after reading time. */
   sound_dst->ipo = NULL;
@@ -882,10 +881,11 @@ void BKE_sound_free_waveform(bSound *sound)
   sound->tags &= ~SOUND_TAGS_WAVEFORM_NO_RELOAD;
 }
 
+/* TODO(sergey): Consider mamakinging this function fully autonomous, as in, not require having
+ * an existing playback handle. That would make it easy to read waveforms, which doesn't seem to
+ * be affected by evaluated scene (waveworm comes from file). */
 void BKE_sound_read_waveform(bSound *sound, short *stop)
 {
-  sound_verify_evaluated_id(&sound->id);
-
   AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
   SoundWaveform *waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");
 
