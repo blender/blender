@@ -3235,6 +3235,11 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
   return block;
 }
 
+char UI_block_emboss_get(uiBlock *block)
+{
+  return block->dt;
+}
+
 void UI_block_emboss_set(uiBlock *block, char dt)
 {
   block->dt = dt;

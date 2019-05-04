@@ -463,7 +463,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collection,
                                             Collection *collection)
 {
-  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_VIEW :
+  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_INSTANCE :
                                                                   COLLECTION_RESTRICT_RENDER;
   const bool is_collection_restricted = (collection->flag & restrict_flag);
   const bool is_collection_visible = !is_collection_restricted && is_parent_collection_visible_;

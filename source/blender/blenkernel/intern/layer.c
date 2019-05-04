@@ -693,7 +693,7 @@ static short layer_collection_sync(ViewLayer *view_layer,
       lc->runtime_flag = child_runtime_flag;
     }
 
-    if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
+    if (((child_restrict & COLLECTION_RESTRICT_INSTANCE) == 0) &&
         ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0)) {
       lc->runtime_flag |= LAYER_COLLECTION_VISIBLE;
     }
@@ -723,7 +723,7 @@ static short layer_collection_sync(ViewLayer *view_layer,
         BLI_addtail(new_object_bases, base);
       }
 
-      if ((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) {
+      if ((child_restrict & COLLECTION_RESTRICT_INSTANCE) == 0) {
         base->flag_from_collection |= BASE_ENABLED_VIEWPORT;
         if ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0) {
           base->flag_from_collection |= BASE_VISIBLE;
@@ -1014,8 +1014,8 @@ bool BKE_layer_collection_isolate(Scene *scene,
   bool hide_it = extend && (lc->runtime_flag & LAYER_COLLECTION_VISIBLE);
 
   if ((!ID_IS_LINKED(lc->collection) && !hide_it)) {
-    if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
-      lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+    if (lc->collection->flag & COLLECTION_RESTRICT_INSTANCE) {
+      lc->collection->flag &= ~COLLECTION_RESTRICT_INSTANCE;
       depsgraph_need_update = true;
     }
   }
@@ -1044,8 +1044,8 @@ bool BKE_layer_collection_isolate(Scene *scene,
 
     while (lc_parent != lc) {
       if (!ID_IS_LINKED(lc_parent->collection)) {
-        if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) {
-          lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+        if (lc_parent->collection->flag & COLLECTION_RESTRICT_INSTANCE) {
+          lc_parent->collection->flag &= ~COLLECTION_RESTRICT_INSTANCE;
           depsgraph_need_update = true;
         }
       }
@@ -1109,8 +1109,8 @@ bool BKE_layer_collection_set_visible(ViewLayer *view_layer,
   bool depsgraph_changed = false;
 
   if (visible && (!ID_IS_LINKED(lc->collection)) &&
-      ((lc->collection->flag & COLLECTION_RESTRICT_VIEW) != 0)) {
-    lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+      ((lc->collection->flag & COLLECTION_RESTRICT_INSTANCE) != 0)) {
+    lc->collection->flag &= ~COLLECTION_RESTRICT_INSTANCE;
     depsgraph_changed = true;
   }
 
@@ -1491,7 +1491,7 @@ void BKE_base_eval_flags(Base *base)
 
   /* Apply object restrictions. */
   const int object_restrict = base->object->restrictflag;
-  if (object_restrict & OB_RESTRICT_VIEW) {
+  if (object_restrict & OB_RESTRICT_INSTANCE) {
     base->flag &= ~BASE_ENABLED_VIEWPORT;
   }
   if (object_restrict & OB_RESTRICT_RENDER) {

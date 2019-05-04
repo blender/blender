@@ -86,7 +86,7 @@ void AbcTransformWriter::do_write()
         m_xform, m_xform.getSchema().getTimeSampling());
   }
 
-  m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_VIEW));
+  m_visibility.set(!(ob_eval->restrictflag & OB_RESTRICT_INSTANCE));
 
   if (!m_first_frame && !m_is_animated) {
     return;

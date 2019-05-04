@@ -1025,8 +1025,8 @@ int common_restrict_check(bContext *C, Object *ob)
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit == ob) {
     /* found object is hidden, reset */
-    if (ob->restrictflag & OB_RESTRICT_VIEW) {
-      ob->restrictflag &= ~OB_RESTRICT_VIEW;
+    if (ob->restrictflag & OB_RESTRICT_INSTANCE) {
+      ob->restrictflag &= ~OB_RESTRICT_INSTANCE;
     }
     /* found object is unselectable, reset */
     if (ob->restrictflag & OB_RESTRICT_SELECT) {

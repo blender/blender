@@ -342,7 +342,7 @@ bool ED_operator_console_active(bContext *C)
 static bool ed_object_hidden(Object *ob)
 {
   /* if hidden but in edit mode, we still display, can happen with animation */
-  return ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT));
+  return ((ob->restrictflag & OB_RESTRICT_INSTANCE) && !(ob->mode & OB_MODE_EDIT));
 }
 
 bool ED_operator_object_active(bContext *C)

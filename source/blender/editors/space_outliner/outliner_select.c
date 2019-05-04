@@ -1271,8 +1271,7 @@ static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops,
                                                    const ARegion *ar,
                                                    float view_co_x)
 {
-  return ((soops->outlinevis != SO_DATA_API) && !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
-          (view_co_x > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX));
+  return (view_co_x > ar->v2d.cur.xmax - outliner_restrict_columns_width(soops));
 }
 
 /**

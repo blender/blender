@@ -247,7 +247,7 @@ typedef struct SpaceOutliner {
   short flag, outlinevis, storeflag, search_flags;
   int filter;
   char filter_state;
-  char _pad;
+  char show_restrict_flags;
   short filter_id_type;
 
   /**
@@ -260,7 +260,7 @@ typedef struct SpaceOutliner {
 typedef enum eSpaceOutliner_Flag {
   SO_TESTBLOCKS = (1 << 0),
   SO_NEWSELECTED = (1 << 1),
-  SO_HIDE_RESTRICTCOLS = (1 << 2),
+  SO_FLAG_UNUSED_1 = (1 << 2), /* cleared */
   SO_HIDE_KEYINGSETINFO = (1 << 3),
   SO_SKIP_SORT_ALPHA = (1 << 4),
 } eSpaceOutliner_Flag;
@@ -308,6 +308,17 @@ typedef enum eSpaceOutliner_StateFilter {
   SO_FILTER_OB_SELECTED = 2,
   SO_FILTER_OB_ACTIVE = 3,
 } eSpaceOutliner_StateFilter;
+
+/* SpaceOutliner.show_restrict_flags */
+typedef enum eSpaceOutliner_ShowRestrictFlag {
+  SO_RESTRICT_ENABLE = (1 << 0),
+  SO_RESTRICT_SELECTABLE = (1 << 1),
+  SO_RESTRICT_INSTANCE = (1 << 2),
+  SO_RESTRICT_VIEWPORT = (1 << 3),
+  SO_RESTRICT_RENDER = (1 << 4),
+  SO_RESTRICT_HOLDOUT = (1 << 5),
+  SO_RESTRICT_INDIRECT_ONLY = (1 << 6),
+} eSpaceOutliner_Restrict;
 
 /* SpaceOutliner.outlinevis */
 typedef enum eSpaceOutliner_Mode {

@@ -302,6 +302,8 @@ static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
   soutliner = MEM_callocN(sizeof(SpaceOutliner), "initoutliner");
   soutliner->spacetype = SPACE_OUTLINER;
   soutliner->filter_id_type = ID_GR;
+  soutliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_SELECTABLE |
+                                   SO_RESTRICT_VIEWPORT;
 
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for outliner");

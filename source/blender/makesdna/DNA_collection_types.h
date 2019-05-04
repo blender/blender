@@ -76,7 +76,7 @@ typedef struct Collection {
 
 /* Collection->flag */
 enum {
-  COLLECTION_RESTRICT_VIEW = (1 << 0),       /* Hidden in viewport. */
+  COLLECTION_RESTRICT_INSTANCE = (1 << 0),   /* Hidden in viewport. */
   COLLECTION_RESTRICT_SELECT = (1 << 1),     /* Not selectable in viewport. */
   COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* Not used anymore */
   COLLECTION_RESTRICT_RENDER = (1 << 3),     /* Hidden in renders. */

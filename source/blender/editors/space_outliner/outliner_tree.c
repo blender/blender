@@ -1370,6 +1370,12 @@ static void outliner_add_layer_collections_recursive(SpaceOutliner *soops,
                                                      const bool show_objects)
 {
   for (LayerCollection *lc = layer_collections->first; lc; lc = lc->next) {
+    const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
+
+    if (exclude && ((soops->show_restrict_flags & SO_RESTRICT_ENABLE) == 0)) {
+      continue;
+    }
+
     ID *id = &lc->collection->id;
     TreeElement *ten = outliner_add_element(soops, tree, id, parent_ten, TSE_LAYER_COLLECTION, 0);
 
@@ -1382,8 +1388,7 @@ static void outliner_add_layer_collections_recursive(SpaceOutliner *soops,
       tselem->flag &= ~TSE_CLOSED;
     }
 
-    const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
-    if (exclude || ((lc->runtime_flag & LAYER_COLLECTION_VISIBLE) == 0)) {
+    if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE) == 0) {
       ten->flag |= TE_DISABLED;
     }
 

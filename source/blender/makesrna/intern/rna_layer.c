@@ -187,6 +187,15 @@ static void rna_ObjectBase_select_update(Main *UNUSED(bmain),
   ED_object_base_select(base, mode);
 }
 
+static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA *UNUSED(ptr))
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_layer_collection_sync(scene, view_layer);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+}
+
 static void rna_LayerCollection_name_get(struct PointerRNA *ptr, char *value)
 {
   ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
@@ -199,11 +208,28 @@ int rna_LayerCollection_name_length(PointerRNA *ptr)
   return strlen(id->name + 2);
 }
 
+static void rna_LayerCollection_exclude_update_recursive(ListBase *lb, const bool exclude)
+{
+  for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+    if (exclude) {
+      lc->flag |= LAYER_COLLECTION_EXCLUDE;
+    }
+    else {
+      lc->flag &= ~LAYER_COLLECTION_EXCLUDE;
+    }
+    rna_LayerCollection_exclude_update_recursive(&lc->layer_collections, exclude);
+  }
+}
+
 static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
   LayerCollection *lc = (LayerCollection *)ptr->data;
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
+
+  /* Set/Unset it recursively to match the behaviour of excluding via the menu or shortcuts. */
+  rna_LayerCollection_exclude_update_recursive(&lc->layer_collections,
+                                               (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0);
 
   BKE_layer_collection_sync(scene, view_layer);
 
@@ -266,21 +292,26 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "LayerCollection");
   RNA_def_property_ui_text(prop, "Children", "Child layer collections");
 
+  /* Restriction flags. */
   prop = RNA_def_property(srna, "exclude", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_EXCLUDE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Exclude", "Exclude collection from view layer");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_exclude_update");
 
   prop = RNA_def_property(srna, "holdout", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_HOLDOUT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_icon(prop, ICON_CLIPUV_HLT, -1);
   RNA_def_property_ui_text(prop, "Holdout", "Mask out objects in collection from view layer");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_update");
 
   prop = RNA_def_property(srna, "indirect_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_INDIRECT_ONLY);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_icon(prop, ICON_MOD_PHYSICS, 0);
   RNA_def_property_ui_text(
       prop,
       "Indirect Only",
@@ -291,12 +322,12 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_RESTRICT_VIEW);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
   RNA_def_property_ui_text(
       prop, "Disable Viewport", "Disable collection in viewport for this view layer");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_update");
 
+  /* Run-time flags. */
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "runtime_flag", LAYER_COLLECTION_VISIBLE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -374,6 +405,15 @@ static void rna_def_object_base(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BASE_SELECTED);
   RNA_def_property_ui_text(prop, "Select", "Object base selection state");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ObjectBase_select_update");
+
+  prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BASE_HIDDEN);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
+  RNA_def_property_ui_text(
+      prop, "Disable Viewport", "Disable object base in viewport for this view layer");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ObjectBase_hide_viewport_update");
 }
 
 void RNA_def_view_layer(BlenderRNA *brna)

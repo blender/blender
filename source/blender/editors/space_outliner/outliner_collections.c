@@ -1163,12 +1163,12 @@ static bool collection_flag_poll(bContext *C, bool clear, int flag)
 
 static bool collection_enable_poll(bContext *C)
 {
-  return collection_flag_poll(C, true, COLLECTION_RESTRICT_VIEW);
+  return collection_flag_poll(C, true, COLLECTION_RESTRICT_INSTANCE);
 }
 
 static bool collection_disable_poll(bContext *C)
 {
-  return collection_flag_poll(C, false, COLLECTION_RESTRICT_VIEW);
+  return collection_flag_poll(C, false, COLLECTION_RESTRICT_INSTANCE);
 }
 
 static bool collection_enable_render_poll(bContext *C)
@@ -1188,7 +1188,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   const bool is_render = strstr(op->idname, "render");
   const bool clear = strstr(op->idname, "show") || strstr(op->idname, "enable");
-  int flag = is_render ? COLLECTION_RESTRICT_RENDER : COLLECTION_RESTRICT_VIEW;
+  int flag = is_render ? COLLECTION_RESTRICT_RENDER : COLLECTION_RESTRICT_INSTANCE;
   struct CollectionEditData data = {
       .scene = scene,
       .soops = soops,

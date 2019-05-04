@@ -602,7 +602,7 @@ enum {
 
 /* ob->restrictflag */
 enum {
-  OB_RESTRICT_VIEW = 1 << 0,
+  OB_RESTRICT_INSTANCE = 1 << 0,
   OB_RESTRICT_SELECT = 1 << 1,
   OB_RESTRICT_RENDER = 1 << 2,
 };

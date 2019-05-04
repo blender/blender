@@ -1823,7 +1823,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
           }
 
           /* outliner restrict-flag */
-          if (ob->restrictflag & OB_RESTRICT_VIEW) {
+          if (ob->restrictflag & OB_RESTRICT_INSTANCE) {
             continue;
           }
         }
@@ -3022,7 +3022,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
     }
 
     /* outliner restrict-flag */
-    if (ob->restrictflag & OB_RESTRICT_VIEW) {
+    if (ob->restrictflag & OB_RESTRICT_INSTANCE) {
       return false;
     }
   }

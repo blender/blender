@@ -434,8 +434,8 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 
     int object_restrict = base->object->restrictflag;
 
-    if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
-        ((object_restrict & OB_RESTRICT_VIEW) == 0)) {
+    if (((child_restrict & COLLECTION_RESTRICT_INSTANCE) == 0) &&
+        ((object_restrict & OB_RESTRICT_INSTANCE) == 0)) {
       base->flag |= BASE_ENABLED_VIEWPORT;
     }
 
@@ -964,6 +964,11 @@ static bool collection_find_child_recursive(Collection *parent, Collection *coll
   }
 
   return false;
+}
+
+bool BKE_collection_has_collection(Collection *parent, Collection *collection)
+{
+  return collection_find_child_recursive(parent, collection);
 }
 
 static CollectionParent *collection_find_parent(Collection *child, Collection *collection)

@@ -427,7 +427,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
           collections[layer] = collection;
 
           if (!(scene->lay & (1 << layer))) {
-            collection->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
+            collection->flag |= COLLECTION_RESTRICT_INSTANCE | COLLECTION_RESTRICT_RENDER;
           }
         }
 
@@ -728,7 +728,7 @@ void do_versions_after_linking_280(Main *bmain)
       /* Add fake user for all existing groups. */
       id_fake_user_set(&collection->id);
 
-      if (collection->flag & (COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER)) {
+      if (collection->flag & (COLLECTION_RESTRICT_INSTANCE | COLLECTION_RESTRICT_RENDER)) {
         continue;
       }
 
@@ -754,7 +754,8 @@ void do_versions_after_linking_280(Main *bmain)
             char name[MAX_ID_NAME];
             BLI_snprintf(name, sizeof(name), DATA_("Hidden %d"), coll_idx + 1);
             *collection_hidden = BKE_collection_add(bmain, collection, name);
-            (*collection_hidden)->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
+            (*collection_hidden)->flag |= COLLECTION_RESTRICT_INSTANCE |
+                                          COLLECTION_RESTRICT_RENDER;
           }
 
           BKE_collection_object_add(bmain, *collection_hidden, ob);
@@ -3360,7 +3361,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 61)) {
     /* Added a power option to Copy Scale. */
     if (!DNA_struct_elem_find(fd->filesdna, "bSizeLikeConstraint", "float", "power")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -3398,6 +3399,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+        for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+          if (sl->spacetype != SPACE_OUTLINER) {
+            continue;
+          }
+          SpaceOutliner *so = (SpaceOutliner *)sl;
+          so->filter &= ~SO_FLAG_UNUSED_1;
+          so->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_SELECTABLE |
+                                    SO_RESTRICT_VIEWPORT;
+        }
+      }
+    }
+  }
+
+  {
     /* Versioning code until next subversion bump goes here. */
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       arm->flag &= ~(ARM_FLAG_UNUSED_7 | ARM_FLAG_UNUSED_9);

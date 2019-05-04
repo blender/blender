@@ -47,7 +47,7 @@ class OUTLINER_HT_header(Header):
         layout.separator_spacer()
 
         row = layout.row(align=True)
-        if display_mode in {'VIEW_LAYER'}:
+        if display_mode in {'SCENES', 'VIEW_LAYER'}:
             row.popover(
                 panel="OUTLINER_PT_filter",
                 text="",
@@ -303,16 +303,38 @@ class OUTLINER_PT_filter(Panel):
         space = context.space_data
         display_mode = space.display_mode
 
+        if display_mode == 'VIEW_LAYER':
+            layout.label(text="Restriction Toggles:")
+            row = layout.row(align=True)
+            row.prop(space, "show_restrict_column_enable", text="")
+            row.prop(space, "show_restrict_column_selectable", text="")
+            row.prop(space, "show_restrict_column_instance", text="")
+            row.prop(space, "show_restrict_column_viewport", text="")
+            row.prop(space, "show_restrict_column_render", text="")
+            row.prop(space, "show_restrict_column_holdout", text="")
+            row.prop(space, "show_restrict_column_indirect_only", text="")
+            layout.separator()
+        elif display_mode == 'SCENES':
+            layout.label(text="Restriction Toggles:")
+            row = layout.row(align=True)
+            row.prop(space, "show_restrict_column_selectable", text="")
+            row.prop(space, "show_restrict_column_instance", text="")
+            row.prop(space, "show_restrict_column_viewport", text="")
+            row.prop(space, "show_restrict_column_render", text="")
+            layout.separator()
+
         if display_mode != 'DATA_API':
             col = layout.column(align=True)
             col.prop(space, "use_sort_alpha")
-            col.prop(space, "show_restrict_columns")
             layout.separator()
 
         col = layout.column(align=True)
         col.label(text="Search:")
         col.prop(space, "use_filter_complete", text="Exact Match")
         col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
+
+        if display_mode != 'VIEW_LAYER':
+            return
 
         layout.separator()
 

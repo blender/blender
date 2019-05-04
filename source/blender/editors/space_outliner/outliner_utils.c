@@ -31,6 +31,7 @@
 #include "ED_armature.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "outliner_intern.h"
 
@@ -260,4 +261,43 @@ bool outliner_tree_traverse(const SpaceOutliner *soops,
   }
 
   return true;
+}
+
+float outliner_restrict_columns_width(const SpaceOutliner *soops)
+{
+  int num_columns = 0;
+
+  switch (soops->outlinevis) {
+    case SO_DATA_API:
+    case SO_SEQUENCE:
+      return 0.0f;
+    case SO_ID_ORPHANS:
+      num_columns = 3;
+      break;
+    case SO_VIEW_LAYER:
+      if (soops->show_restrict_flags & SO_RESTRICT_HOLDOUT) {
+        num_columns++;
+      }
+      if (soops->show_restrict_flags & SO_RESTRICT_INDIRECT_ONLY) {
+        num_columns++;
+      }
+      ATTR_FALLTHROUGH;
+    case SO_SCENES:
+      if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+        num_columns++;
+      }
+      if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+        num_columns++;
+      }
+      if (soops->show_restrict_flags & SO_RESTRICT_INSTANCE) {
+        num_columns++;
+      }
+      if (soops->show_restrict_flags & SO_RESTRICT_RENDER) {
+        num_columns++;
+      }
+      break;
+    case SO_LIBRARIES:
+      return 0.0f;
+  }
+  return (num_columns * UI_UNIT_X + V2D_SCROLL_WIDTH);
 }
