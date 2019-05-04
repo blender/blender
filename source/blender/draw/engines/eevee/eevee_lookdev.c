@@ -76,7 +76,11 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
     rcti rect;
     ED_region_visible_rect(draw_ctx->ar, &rect);
 
-    const int ball_size = max_ii(BLI_rcti_size_x(&rect) * 0.1f, 100.0f) * U.dpi_fac;
+    /* Make the viewport width scale the lookdev balls a bit.
+     * Scale between 1000px and 2000px. */
+    const float viewport_scale = clamp_f(
+        BLI_rcti_size_x(&rect) / (2000.0f * U.dpi_fac), 0.5f, 1.0f);
+    const int ball_size = U.lookdev_ball_size * U.dpi_fac * viewport_scale;
 
     if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
         rect.ymin != effects->anchor[1]) {

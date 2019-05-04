@@ -579,7 +579,9 @@ class USERPREF_PT_viewport_display(PreferencePanel, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(view, "gizmo_size", text="Gizmo Size")
+        col = flow.column()
+        col.prop(view, "gizmo_size")
+        col.prop(view, "lookdev_ball_size")
 
         flow.separator()
 

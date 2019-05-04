@@ -551,6 +551,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
       userdef->vbocollectrate = 60;
       userdef->vbotimeout = 120;
     }
+
+    if (userdef->lookdev_ball_size == 0) {
+      userdef->lookdev_ball_size = 150;
+    }
   }
 
   if (userdef->pixelsize == 0.0f) {
