@@ -1162,8 +1162,9 @@ vec3 cellnoise_color(vec3 p)
 
 float floorfrac(float x, out int i)
 {
-  i = floor_to_int(x);
-  return x - i;
+  float x_floor = floor(x);
+  i = int(x_floor);
+  return x - x_floor;
 }
 
 /* bsdfs */
