@@ -165,7 +165,9 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
   }
 
   screen_new = screen_change_prepare(screen_old, screen_new, bmain, C, win);
-  BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
+  if (BKE_workspace_layout_screen_get(layout_new) != screen_new) {
+    layout_new = BKE_workspace_layout_find(workspace_new, screen_new);
+  }
 
   if (screen_new == NULL) {
     return false;
