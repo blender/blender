@@ -1686,10 +1686,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       }
 
       if (is_sculpt_mode) {
-        /* TODO(fclem): Support Vcol. */
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_array, ma_array, ob, false);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_array, ma_array, ob, false);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_clip_array, ma_array, ob, false);
+        /* Vcol is not supported in the modes that require PBVH drawing. */
+        bool use_vcol = false;
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_array, ma_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_array, ma_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_clip_array, ma_array, ob, use_vcol);
         /* TODO(fclem): Support shadows in sculpt mode. */
       }
       else if (mat_geom) {
