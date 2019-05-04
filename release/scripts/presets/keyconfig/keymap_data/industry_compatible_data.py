@@ -535,6 +535,8 @@ def km_uv_editor(params):
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
         op_menu("IMAGE_MT_uvs_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Tools
         op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool("builtin.transform", {"type": 'W', "value": 'PRESS'}),
@@ -698,7 +700,8 @@ def km_mask_editing(params):
     items.extend([
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("mask.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit_mask')]}),
         ("mask.add_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("mask.add_feather_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("mask.delete", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
@@ -881,6 +884,8 @@ def km_graph_editor(params):
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_fcurve')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'RET', "value": 'PRESS'}, None),
     ])
@@ -1358,6 +1363,8 @@ def km_dopesheet(params):
          {"properties": [("mode", 'TIME_SCALE')]}),
         ("transform.transform", {"type": 'T', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'TIME_SLIDE')]}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_action')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'RET', "value": 'PRESS'}, None),
         ("anim.start_frame_set", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True}, None),
@@ -2282,6 +2289,8 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.move_to_layer", {"type": 'G', "value": 'PRESS'}, None),
         # Transform tools
         ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Vertex group menu
         op_menu("GPENCIL_MT_gpencil_vertex_group", {"type": 'G', "value": 'PRESS', "ctrl": True}),
         # Select mode
@@ -2604,6 +2613,7 @@ def km_object_mode(params):
 
     items.extend([
         *_template_items_animation(),
+        #Selection
         ("object.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("object.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("object.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
@@ -2619,6 +2629,9 @@ def km_object_mode(params):
         ("object.select_hierarchy", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("direction", 'CHILD'), ("extend", True)]}),
         ("object.parent_set", {"type": 'P', "value": 'PRESS'}, None),
+
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit_objects')]}),
         ("object.parent_clear", {"type": 'P', "value": 'PRESS', "shift": True}, None),
         ("object.location_clear", {"type": 'W', "value": 'PRESS', "alt": True},
          {"properties": [("clear_delta", False)]}),
@@ -2726,8 +2739,11 @@ def km_curve(params):
         ("curve.hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         op_menu("VIEW3D_MT_edit_curve_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Tools
         *_template_items_basic_tools(),
+        op_tool("builtin.extrude", {"type": 'E', "value": 'PRESS', "ctrl": True}),
         op_tool("builtin.tilt", {"type": 'Y', "value": 'PRESS'}),
         op_tool("builtin.radius", {"type": 'U', "value": 'PRESS'}),
 
@@ -3049,11 +3065,13 @@ def km_mesh(params):
         op_menu("VIEW3D_MT_edit_mesh_delete", {"type": 'DEL', "value": 'PRESS'}),
         ("mesh.dissolve_mode", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Menus.
         op_menu("VIEW3D_MT_edit_mesh_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         #Tools
         *_template_items_basic_tools(),
-        op_tool("builtin.bevel", {"type": 'B', "value": 'PRESS'}),
+        op_tool("builtin.bevel", {"type": 'B', "value": 'PRESS', "ctrl": True}),
         op_tool("builtin.inset_faces", {"type": 'I', "value": 'PRESS'}),
         op_tool("builtin.extrude_region", {"type": 'E', "value": 'PRESS', "ctrl": True}),
         op_tool("builtin.knife", {"type": 'K', "value": 'PRESS'}),
@@ -3148,6 +3166,8 @@ def km_metaball(params):
         ("mball.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         ("mball.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         op_menu("VIEW3D_MT_edit_metaball_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Tools
         *_template_items_basic_tools(),
     ])
@@ -3172,7 +3192,8 @@ def km_lattice(params):
         ("lattice.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         op_menu("VIEW3D_MT_edit_lattice_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
-
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
             # Tools
         op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
         op_tool("builtin.move", {"type": 'W', "value": 'PRESS'}),
@@ -3218,6 +3239,8 @@ def km_particle(params):
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.size')]}),
         ("wm.radial_control", {"type": 'U', "value": 'PRESS', "shift": True},
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
+        ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         op_menu("VIEW3D_MT_particle_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
