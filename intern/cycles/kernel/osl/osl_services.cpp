@@ -1313,7 +1313,7 @@ bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg,
 
   /* No texture info for other texture types. */
   if (handle && handle->type != OSLTextureHandle::OIIO) {
-    return NULL;
+    return false;
   }
 
   /* Get texture info from OpenImageIO. */
