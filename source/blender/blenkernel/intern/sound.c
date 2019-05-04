@@ -103,6 +103,9 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   BLI_strncpy(sound->name, filepath, FILE_MAX);
   /* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
+  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  BLI_spin_init(sound->spinlock);
+
   BKE_sound_reset_runtime(sound);
 
   return sound;
