@@ -105,7 +105,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
     }
 
     SUBFRA = 0.0f;
-    BKE_sound_seek_scene(bmain, scene);
+    BKE_sound_update_and_seek(bmain, CTX_data_depsgraph(C));
   }
 
   /* set the cursor value */
