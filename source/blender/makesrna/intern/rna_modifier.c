@@ -445,6 +445,8 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
 
+#  include "BLI_sort_utils.h"
+
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
@@ -741,12 +743,79 @@ RNA_MOD_OBJECT_SET(SurfaceDeform, target, OB_MESH);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
+  Object *owner = (Object *)ptr->id.data;
   HookModifierData *hmd = ptr->data;
   Object *ob = (Object *)value.data;
 
   hmd->object = ob;
   id_lib_extern((ID *)ob);
-  BKE_object_modifier_hook_reset(ob, hmd);
+  BKE_object_modifier_hook_reset(owner, hmd);
+}
+
+static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
+{
+  Object *owner = (Object *)ptr->id.data;
+  HookModifierData *hmd = ptr->data;
+
+  BLI_strncpy(hmd->subtarget, value, sizeof(hmd->subtarget));
+  BKE_object_modifier_hook_reset(owner, hmd);
+}
+
+static int rna_HookModifier_vertex_indices_get_length(PointerRNA *ptr,
+                                                      int length[RNA_MAX_ARRAY_DIMENSION])
+{
+  HookModifierData *hmd = ptr->data;
+  int totindex = hmd->indexar ? hmd->totindex : 0;
+  return (length[0] = totindex);
+}
+
+static void rna_HookModifier_vertex_indices_get(PointerRNA *ptr, int *values)
+{
+  HookModifierData *hmd = ptr->data;
+  if (hmd->indexar != NULL) {
+    memcpy(values, hmd->indexar, sizeof(int) * hmd->totindex);
+  }
+}
+
+static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
+                                                ReportList *reports,
+                                                int indices_len,
+                                                int *indices)
+{
+  if (indices_len == 0) {
+    MEM_SAFE_FREE(hmd->indexar);
+    hmd->totindex = 0;
+  }
+  else {
+    /* Reject negative indices. */
+    for (int i = 0; i < indices_len; i++) {
+      if (indices[i] < 0) {
+        BKE_reportf(reports, RPT_ERROR, "Negative vertex index in vertex_indices_set");
+        return;
+      }
+    }
+
+    /* Copy and sort the index array. */
+    size_t size = sizeof(int) * indices_len;
+    int *buffer = MEM_mallocN(size, "hook indexar");
+    memcpy(buffer, indices, size);
+
+    qsort(buffer, indices_len, sizeof(int), BLI_sortutil_cmp_int);
+
+    /* Reject duplicate indices. */
+    for (int i = 1; i < indices_len; i++) {
+      if (buffer[i] == buffer[i - 1]) {
+        BKE_reportf(reports, RPT_ERROR, "Duplicate index %d in vertex_indices_set", buffer[i]);
+        MEM_freeN(buffer);
+        return;
+      }
+    }
+
+    /* Success - save the new array. */
+    MEM_SAFE_FREE(hmd->indexar);
+    hmd->indexar = buffer;
+    hmd->totindex = indices_len;
+  }
 }
 
 static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
@@ -2149,6 +2218,8 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
+  PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "HookModifier", "Modifier");
   RNA_def_struct_ui_text(
@@ -2181,9 +2252,10 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, NULL, "cent");
-  RNA_def_property_ui_text(prop, "Hook Center", "");
+  RNA_def_property_ui_text(
+      prop, "Hook Center", "Center of the hook, used for falloff and display");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "matrix_inverse", PROP_FLOAT, PROP_MATRIX);
@@ -2206,6 +2278,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
       prop,
       "Sub-Target",
       "Name of Parent Bone for hook (if applicable), also recalculates and clears offset");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_HookModifier_subtarget_set");
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
   prop = RNA_def_property(srna, "use_falloff_uniform", PROP_BOOLEAN, PROP_NONE);
@@ -2221,6 +2294,26 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
       "Name of Vertex Group which determines influence of modifier per point");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_HookModifier_name_set");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "vertex_indices", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_array(prop, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_property_flag(prop, PROP_DYNAMIC);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_dynamic_array_funcs(prop, "rna_HookModifier_vertex_indices_get_length");
+  RNA_def_property_int_funcs(prop, "rna_HookModifier_vertex_indices_get", NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "Vertex Indices",
+                           "Indices of vertices bound to the modifier. For bezier curves, "
+                           "handles count as additional vertices");
+
+  func = RNA_def_function(srna, "vertex_indices_set", "rna_HookModifier_vertex_indices_set");
+  RNA_def_function_ui_description(
+      func, "Validates and assigns the array of vertex indices bound to the modifier");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(
+      func, "indices", 1, NULL, INT_MIN, INT_MAX, "", "Vertex Indices", 0, INT_MAX);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 }
 
 static void rna_def_modifier_softbody(BlenderRNA *brna)

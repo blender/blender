@@ -2024,7 +2024,7 @@ static void rna_def_function_funcs_header(FILE *f, StructRNA *srna, FunctionDefR
   char funcname[2048];
 
   rna_construct_wrapper_function_name(
-      funcname, sizeof(funcname), srna->identifier, func->identifier, NULL);
+      funcname, sizeof(funcname), srna->identifier, func->identifier, "func");
   rna_generate_static_parameter_prototypes(f, srna, dfunc, funcname, 1);
 }
 
@@ -2452,7 +2452,7 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
   int first = 1;
 
   rna_construct_wrapper_function_name(
-      funcname, sizeof(funcname), srna->identifier, func->identifier, NULL);
+      funcname, sizeof(funcname), srna->identifier, func->identifier, "func");
 
   fprintf(f, "%s(", funcname);
 
@@ -2615,7 +2615,7 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
   }
 
   rna_construct_wrapper_function_name(
-      funcname, sizeof(funcname), srna->identifier, func->identifier, NULL);
+      funcname, sizeof(funcname), srna->identifier, func->identifier, "func");
 
   rna_generate_static_parameter_prototypes(f, srna, dfunc, funcname, 0);
 
