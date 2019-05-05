@@ -544,6 +544,8 @@ static bool gpu_texture_check_capacity(
           return false;
         }
         ATTR_FALLTHROUGH;
+      default:
+        break;
     }
 
     return true;
