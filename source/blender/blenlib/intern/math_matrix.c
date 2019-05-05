@@ -1018,6 +1018,78 @@ bool invert_m4(float m[4][4])
   return success;
 }
 
+/* computes the inverse of mat and puts it in inverse.  Returns
+ * true on success (i.e. can always find a pivot) and false on failure.
+ * Uses Gaussian Elimination with partial (maximal column) pivoting.
+ * Mark Segal - 1992
+ * note this is less performant than EIG_invert_m4_m4 (Eigen), but e.g.
+ * for non-invertible scale matrices, findinging a partial solution can
+ * be useful to have a valid local transform center, see T57767 */
+bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
+{
+  if (EIG_invert_m4_m4(inverse, mat)) {
+    return true;
+  }
+
+  int i, j, k;
+  double temp;
+  float tempmat[4][4];
+  float max;
+  int maxj;
+
+  BLI_assert(inverse != mat);
+
+  /* Set inverse to identity */
+  for (i = 0; i < 4; i++)
+    for (j = 0; j < 4; j++)
+      inverse[i][j] = 0;
+  for (i = 0; i < 4; i++)
+    inverse[i][i] = 1;
+
+  /* Copy original matrix so we don't mess it up */
+  for (i = 0; i < 4; i++)
+    for (j = 0; j < 4; j++)
+      tempmat[i][j] = mat[i][j];
+
+  for (i = 0; i < 4; i++) {
+    /* Look for row with max pivot */
+    max = fabsf(tempmat[i][i]);
+    maxj = i;
+    for (j = i + 1; j < 4; j++) {
+      if (fabsf(tempmat[j][i]) > max) {
+        max = fabsf(tempmat[j][i]);
+        maxj = j;
+      }
+    }
+    /* Swap rows if necessary */
+    if (maxj != i) {
+      for (k = 0; k < 4; k++) {
+        SWAP(float, tempmat[i][k], tempmat[maxj][k]);
+        SWAP(float, inverse[i][k], inverse[maxj][k]);
+      }
+    }
+
+    if (UNLIKELY(tempmat[i][i] == 0.0f)) {
+      return false;  /* No non-zero pivot */
+    }
+    temp = (double)tempmat[i][i];
+    for (k = 0; k < 4; k++) {
+      tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
+      inverse[i][k] = (float)((double)inverse[i][k] / temp);
+    }
+    for (j = 0; j < 4; j++) {
+      if (j != i) {
+        temp = tempmat[j][i];
+        for (k = 0; k < 4; k++) {
+          tempmat[j][k] -= (float)((double)tempmat[i][k] * temp);
+          inverse[j][k] -= (float)((double)inverse[i][k] * temp);
+        }
+      }
+    }
+  }
+  return true;
+}
+
 bool invert_m4_m4(float inverse[4][4], const float mat[4][4])
 {
   /* Use optimized matrix inverse from Eigen, since performance

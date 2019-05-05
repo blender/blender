@@ -1363,7 +1363,9 @@ void initTransDataContainers_FromObjectData(TransInfo *t,
         BLI_assert((t->flag & T_2D_EDIT) == 0);
         copy_m4_m4(tc->mat, objects[i]->obmat);
         copy_m3_m4(tc->mat3, tc->mat);
-        invert_m4_m4(tc->imat, tc->mat);
+        /* for non-invertible scale matrices, invert_m4_m4_fallback()
+         * can still provide a valid pivot */
+        invert_m4_m4_fallback(tc->imat, tc->mat);
         invert_m3_m3(tc->imat3, tc->mat3);
         normalize_m3_m3(tc->mat3_unit, tc->mat3);
       }

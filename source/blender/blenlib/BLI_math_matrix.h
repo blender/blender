@@ -209,6 +209,7 @@ bool invert_m3(float R[3][3]);
 bool invert_m3_m3(float R[3][3], const float A[3][3]);
 bool invert_m4(float R[4][4]);
 bool invert_m4_m4(float R[4][4], const float A[4][4]);
+bool invert_m4_m4_fallback(float R[4][4], const float A[4][4]);
 
 /* double arithmetic (mixed float/double) */
 void mul_m4_v4d(const float M[4][4], double r[4]);
