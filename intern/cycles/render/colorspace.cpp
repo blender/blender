@@ -114,11 +114,11 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
     }
 
     /* Detect if it matches a simple builtin colorspace. */
-    bool is_no_op, is_srgb;
-    is_builtin_colorspace(colorspace, is_no_op, is_srgb);
+    bool is_scene_linear, is_srgb;
+    is_builtin_colorspace(colorspace, is_scene_linear, is_srgb);
 
     thread_scoped_lock cache_lock(cache_mutex);
-    if (is_no_op) {
+    if (is_scene_linear) {
       VLOG(1) << "Colorspace " << colorspace.string() << " is no-op";
       cached_colorspaces[colorspace] = u_colorspace_raw;
       return u_colorspace_raw;
@@ -154,17 +154,19 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   }
 }
 
-void ColorSpaceManager::is_builtin_colorspace(ustring colorspace, bool &is_no_op, bool &is_srgb)
+void ColorSpaceManager::is_builtin_colorspace(ustring colorspace,
+                                              bool &is_scene_linear,
+                                              bool &is_srgb)
 {
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)get_processor(colorspace);
   if (!processor) {
-    is_no_op = false;
+    is_scene_linear = false;
     is_srgb = false;
     return;
   }
 
-  is_no_op = true;
+  is_scene_linear = true;
   is_srgb = true;
   for (int i = 0; i < 256; i++) {
     float v = i / 255.0f;
@@ -181,27 +183,27 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace, bool &is_no_op
     /* Make sure that there is no channel crosstalk. */
     if (fabsf(cR[1]) > 1e-5f || fabsf(cR[2]) > 1e-5f || fabsf(cG[0]) > 1e-5f ||
         fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f) {
-      is_no_op = false;
+      is_scene_linear = false;
       is_srgb = false;
       break;
     }
     /* Make sure that the three primaries combine linearly. */
     if (!compare_floats(cR[0], cW[0], 1e-6f, 64) || !compare_floats(cG[1], cW[1], 1e-6f, 64) ||
         !compare_floats(cB[2], cW[2], 1e-6f, 64)) {
-      is_no_op = false;
+      is_scene_linear = false;
       is_srgb = false;
       break;
     }
     /* Make sure that the three channels behave identically. */
     if (!compare_floats(cW[0], cW[1], 1e-6f, 64) || !compare_floats(cW[1], cW[2], 1e-6f, 64)) {
-      is_no_op = false;
+      is_scene_linear = false;
       is_srgb = false;
       break;
     }
 
     float out_v = average(make_float3(cW[0], cW[1], cW[2]));
     if (!compare_floats(v, out_v, 1e-6f, 64)) {
-      is_no_op = false;
+      is_scene_linear = false;
     }
     if (!compare_floats(color_srgb_to_linear(v), out_v, 1e-6f, 64)) {
       is_srgb = false;
@@ -209,7 +211,7 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace, bool &is_no_op
   }
 #else
   (void)colorspace;
-  is_no_op = false;
+  is_scene_linear = false;
   is_srgb = false;
 #endif
 }

@@ -174,6 +174,14 @@ int OCIO_colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs)
   return impl->colorSpaceIsData(cs);
 }
 
+void OCIO_colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
+                              OCIO_ConstColorSpaceRcPtr *cs,
+                              bool *is_scene_linear,
+                              bool *is_srgb)
+{
+  impl->colorSpaceIsBuiltin(config, cs, *is_scene_linear, *is_srgb);
+}
+
 void OCIO_colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)
 {
   impl->colorSpaceRelease(cs);

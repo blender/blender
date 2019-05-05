@@ -130,6 +130,10 @@ int OCIO_configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *
 
 int OCIO_colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
 int OCIO_colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
+void OCIO_colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
+                              OCIO_ConstColorSpaceRcPtr *cs,
+                              bool *is_scene_linear,
+                              bool *is_srgb);
 
 void OCIO_colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
 

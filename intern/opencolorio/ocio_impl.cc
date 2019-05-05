@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <math.h>
 #include <sstream>
 #include <string.h>
 
@@ -33,6 +34,8 @@
 using namespace OCIO_NAMESPACE;
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_math_color.h"
 
 #include "ocio_impl.h"
 
@@ -518,6 +521,86 @@ int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
 int OCIOImpl::colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs)
 {
   return (*(ConstColorSpaceRcPtr *)cs)->isData();
+}
+
+static float compare_floats(float a, float b, float abs_diff, int ulp_diff)
+{
+  /* Returns true if the absolute difference is smaller than abs_diff (for numbers near zero)
+   * or their relative difference is less than ulp_diff ULPs. Based on:
+   * https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/ */
+  if (fabsf(a - b) < abs_diff) {
+    return true;
+  }
+
+  if ((a < 0.0f) != (b < 0.0f)) {
+    return false;
+  }
+
+  return (abs((*(int *)&a) - (*(int *)&b)) < ulp_diff);
+}
+
+void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
+                                   OCIO_ConstColorSpaceRcPtr *cs_,
+                                   bool &is_scene_linear,
+                                   bool &is_srgb)
+{
+  ConstConfigRcPtr *config = (ConstConfigRcPtr *)config_;
+  ConstColorSpaceRcPtr *cs = (ConstColorSpaceRcPtr *)cs_;
+  ConstProcessorRcPtr processor;
+
+  try {
+    processor = (*config)->getProcessor((*cs)->getName(), "scene_linear");
+  }
+  catch (Exception &exception) {
+    OCIO_reportException(exception);
+    is_scene_linear = false;
+    is_srgb = false;
+    return;
+  }
+
+  is_scene_linear = true;
+  is_srgb = true;
+  for (int i = 0; i < 256; i++) {
+    float v = i / 255.0f;
+
+    float cR[3] = {v, 0, 0};
+    float cG[3] = {0, v, 0};
+    float cB[3] = {0, 0, v};
+    float cW[3] = {v, v, v};
+    processor->applyRGB(cR);
+    processor->applyRGB(cG);
+    processor->applyRGB(cB);
+    processor->applyRGB(cW);
+
+    /* Make sure that there is no channel crosstalk. */
+    if (fabsf(cR[1]) > 1e-5f || fabsf(cR[2]) > 1e-5f || fabsf(cG[0]) > 1e-5f ||
+        fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f) {
+      is_scene_linear = false;
+      is_srgb = false;
+      break;
+    }
+    /* Make sure that the three primaries combine linearly. */
+    if (!compare_floats(cR[0], cW[0], 1e-6f, 64) || !compare_floats(cG[1], cW[1], 1e-6f, 64) ||
+        !compare_floats(cB[2], cW[2], 1e-6f, 64)) {
+      is_scene_linear = false;
+      is_srgb = false;
+      break;
+    }
+    /* Make sure that the three channels behave identically. */
+    if (!compare_floats(cW[0], cW[1], 1e-6f, 64) || !compare_floats(cW[1], cW[2], 1e-6f, 64)) {
+      is_scene_linear = false;
+      is_srgb = false;
+      break;
+    }
+
+    float out_v = (cW[0] + cW[1] + cW[2]) * (1.0f / 3.0f);
+    if (!compare_floats(v, out_v, 1e-6f, 64)) {
+      is_scene_linear = false;
+    }
+    if (!compare_floats(srgb_to_linearrgb(v), out_v, 1e-6f, 64)) {
+      is_srgb = false;
+    }
+  }
 }
 
 void OCIOImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)

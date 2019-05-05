@@ -363,6 +363,25 @@ int FallbackImpl::colorSpaceIsData(OCIO_ConstColorSpaceRcPtr * /*cs*/)
   return 0;
 }
 
+void FallbackImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr * /*config*/,
+                                       OCIO_ConstColorSpaceRcPtr *cs,
+                                       bool &is_scene_linear,
+                                       bool &is_srgb)
+{
+  if (cs == COLORSPACE_LINEAR) {
+    is_scene_linear = true;
+    is_srgb = false;
+  }
+  else if (cs == COLORSPACE_SRGB) {
+    is_scene_linear = false;
+    is_srgb = true;
+  }
+  else {
+    is_scene_linear = false;
+    is_srgb = false;
+  }
+}
+
 void FallbackImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
 }

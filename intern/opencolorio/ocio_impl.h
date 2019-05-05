@@ -44,6 +44,10 @@ class IOCIOImpl {
 
   virtual int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) = 0;
   virtual int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) = 0;
+  virtual void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
+                                   OCIO_ConstColorSpaceRcPtr *cs,
+                                   bool &is_scene_linear,
+                                   bool &is_srgb) = 0;
 
   virtual void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs) = 0;
 
@@ -160,6 +164,10 @@ class FallbackImpl : public IOCIOImpl {
 
   int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
   int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
+  void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
+                           OCIO_ConstColorSpaceRcPtr *cs,
+                           bool &is_scene_linear,
+                           bool &is_srgb);
 
   void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
 
@@ -266,6 +274,10 @@ class OCIOImpl : public IOCIOImpl {
 
   int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
   int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
+  void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
+                           OCIO_ConstColorSpaceRcPtr *cs,
+                           bool &is_scene_linear,
+                           bool &is_srgb);
 
   void colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs);
 
