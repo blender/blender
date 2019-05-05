@@ -260,6 +260,7 @@ float determinant_m2(float a, float b, float c, float d);
 float determinant_m3(
     float a, float b, float c, float d, float e, float f, float g, float h, float i);
 float determinant_m3_array(const float m[3][3]);
+float determinant_m4_mat3_array(const float m[4][4]);
 float determinant_m4(const float A[4][4]);
 
 #define PSEUDOINVERSE_EPSILON 1e-8f
@@ -276,6 +277,9 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4]);
 
 void scale_m3_fl(float R[3][3], float scale);
 void scale_m4_fl(float R[4][4], float scale);
+
+float mat3_to_volume_scale(const float M[3][3]);
+float mat4_to_volume_scale(const float M[4][4]);
 
 float mat3_to_scale(const float M[3][3]);
 float mat4_to_scale(const float M[4][4]);

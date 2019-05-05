@@ -931,6 +931,13 @@ float determinant_m3_array(const float m[3][3])
           m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
 }
 
+float determinant_m4_mat3_array(const float m[4][4])
+{
+  return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+          m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
+          m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
+}
+
 bool invert_m3_ex(float m[3][3], const float epsilon)
 {
   float tmp[3][3];
@@ -1639,6 +1646,19 @@ void mat4_to_size(float size[3], const float mat[4][4])
   size[0] = len_v3(mat[0]);
   size[1] = len_v3(mat[1]);
   size[2] = len_v3(mat[2]);
+}
+
+/* This computes the overall volume scale factor of a transformation matrix.
+ * For an orthogonal matrix, it is the product of all three scale values.
+ * Returns a negative value if the transform is flipped by negative scale. */
+float mat3_to_volume_scale(const float mat[3][3])
+{
+  return determinant_m3_array(mat);
+}
+
+float mat4_to_volume_scale(const float mat[4][4])
+{
+  return determinant_m4_mat3_array(mat);
 }
 
 /* this gets the average scale of a matrix, only use when your scaling

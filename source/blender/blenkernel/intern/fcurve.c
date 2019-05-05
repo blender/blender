@@ -1707,6 +1707,11 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     /* not valid channel */
     return 0.0f;
   }
+  else if (dtar->transChan == DTAR_TRANSCHAN_SCALE_AVG) {
+    /* Cubic root of the change in volume, equal to the geometric mean
+     * of scale over all three axes unless the matrix includes shear. */
+    return cbrtf(mat4_to_volume_scale(mat));
+  }
   else if (dtar->transChan >= DTAR_TRANSCHAN_SCALEX) {
     /* Extract scale, and choose the right axis,
      * inline 'mat4_to_size'. */

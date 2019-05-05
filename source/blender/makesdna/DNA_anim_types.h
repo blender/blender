@@ -357,6 +357,7 @@ typedef enum eDriverTarget_TransformChannels {
   DTAR_TRANSCHAN_SCALEX,
   DTAR_TRANSCHAN_SCALEY,
   DTAR_TRANSCHAN_SCALEZ,
+  DTAR_TRANSCHAN_SCALE_AVG,
 
   MAX_DTAR_TRANSCHAN_TYPES,
 } eDriverTarget_TransformChannels;
