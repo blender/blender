@@ -747,6 +747,16 @@ void colormanagement_exit(void)
 
 /*********************** Internal functions *************************/
 
+static bool colormanage_compatible_look(ColorManagedLook *look, const char *view_name)
+{
+  if (look->is_noop) {
+    return true;
+  }
+
+  /* Skip looks only relevant to specific view transforms. */
+  return (look->view[0] == 0 || (view_name && STREQ(look->view, view_name)));
+}
+
 void colormanage_cache_free(ImBuf *ibuf)
 {
   if (ibuf->display_buffer_flags) {
@@ -840,7 +850,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *loo
   OCIO_displayTransformSetView(dt, view_transform);
   OCIO_displayTransformSetDisplay(dt, display);
 
-  if (look_descr->is_noop == false) {
+  if (look_descr->is_noop == false && colormanage_compatible_look(look_descr, view_transform)) {
     OCIO_displayTransformSetLooksOverrideEnabled(dt, true);
     OCIO_displayTransformSetLooksOverride(dt, look);
   }
@@ -989,9 +999,9 @@ static OCIO_ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedD
 void IMB_colormanagement_init_default_view_settings(
     ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
-  /* First, try use "Default" view transform of the requested device. */
+  /* First, try use "Standard" view transform of the requested device. */
   ColorManagedView *default_view = colormanage_view_get_named_for_display(
-      display_settings->display_device, "Default");
+      display_settings->display_device, "Standard");
   /* If that fails, we fall back to the default view transform of the display
    * as per OCIO configuration. */
   if (default_view == NULL) {
@@ -3215,17 +3225,9 @@ void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items,
                                         const char *view_name)
 {
   ColorManagedLook *look;
-  const char *view_filter = NULL;
-
-  /* Test if this view transform is limited to specific looks. */
-  for (look = global_looks.first; look; look = look->next) {
-    if (STREQ(look->view, view_name)) {
-      view_filter = view_name;
-    }
-  }
 
   for (look = global_looks.first; look; look = look->next) {
-    if (!look->is_noop && view_filter && !STREQ(look->view, view_filter)) {
+    if (!colormanage_compatible_look(look, view_name)) {
       continue;
     }
 

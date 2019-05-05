@@ -45,32 +45,20 @@ roles:
 
 displays:
   sRGB:
-    - !<View> {name: Default, colorspace: sRGB}
+    - !<View> {name: Standard, colorspace: sRGB}
     - !<View> {name: Filmic, colorspace: Filmic sRGB}
-    - !<View> {name: RRT, colorspace: rrt_srgb}
-    - !<View> {name: Film, colorspace: srgb8}
+    - !<View> {name: Filmic Log, colorspace: Filmic Log}
     - !<View> {name: Raw, colorspace: Raw}
-    - !<View> {name: Log, colorspace: lg10}
     - !<View> {name: False Color, colorspace: False Color}
-  DCI-P3:
-    - !<View> {name: RRT, colorspace: rrt_p3dci}
-    - !<View> {name: Film, colorspace: p3dci8}
-    - !<View> {name: Raw, colorspace: Raw}
-    - !<View> {name: Log, colorspace: adx10}
-  Rec709:
-    - !<View> {name: Default, colorspace: nuke_rec709}
-    - !<View> {name: RRT, colorspace: rrt_rec709}
   XYZ:
-    - !<View> {name: Default, colorspace: XYZ}
-    - !<View> {name: RRT, colorspace: rrt_xyz}
+    - !<View> {name: Standard, colorspace: XYZ}
     - !<View> {name: DCI, colorspace: dci_xyz}
     - !<View> {name: Raw, colorspace: Raw}
-    - !<View> {name: Log, colorspace: adx10}
   None:
-    - !<View> {name: Default, colorspace: Raw}
+    - !<View> {name: Standard, colorspace: Raw}
 
-active_displays: [sRGB, DCIP3, Rec709, XYZ, None]
-active_views: [Default, Filmic, RRT, Raw, Log]
+active_displays: [sRGB, XYZ, None]
+active_views: [Standard, Filmic, Filmic Log, Raw]
 
 colorspaces:
   - !<ColorSpace>
@@ -94,26 +82,6 @@ colorspaces:
     allocationvars: [0, 1]
 
   - !<ColorSpace>
-    name: adx10
-    family: display
-    equalitygroup:
-    bitdepth: 10ui
-    description: |
-      Film Scan, using the 10-bit Academy Density Encoding
-
-    isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
-    to_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: adx_adx10_to_cdd.spimtx}
-        - !<FileTransform> {src: adx_cdd_to_cid.spimtx}
-        - !<FileTransform> {src: adx_cid_to_rle.spi1d, interpolation: linear}
-        - !<LogTransform> {base: 10, direction: inverse}
-        - !<FileTransform> {src: adx_exp_to_aces.spimtx}
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
-
-  - !<ColorSpace>
     name: Linear ACES
     family: linear
     equalitygroup:
@@ -124,20 +92,6 @@ colorspaces:
     allocation: lg2
     allocationvars: [-8.5, 5]
     to_reference: !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: linear, direction: inverse}
-
-  - !<ColorSpace>
-    name: rrt_srgb
-    family: display
-    equalitygroup:
-    bitdepth: 32f
-    isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: nuke_rec709
@@ -154,34 +108,6 @@ colorspaces:
         - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
 
   - !<ColorSpace>
-    name: rrt_rec709
-    family: display
-    equalitygroup:
-    bitdepth: 32f
-    isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        - !<FileTransform> {src: rrt_ut33_rec709.spi3d, interpolation: tetrahedral}
-
-  - !<ColorSpace>
-    name: rrt_p3dci
-    family: display
-    equalitygroup:
-    bitdepth: 32f
-    isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
-
-  - !<ColorSpace>
     name: XYZ
     family: linear
     equalitygroup:
@@ -192,20 +118,6 @@ colorspaces:
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
-
-  - !<ColorSpace>
-    name: rrt_xyz
-    family: display
-    equalitygroup:
-    bitdepth: 32f
-    isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
-        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
-        - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
 
   - !<ColorSpace>
     name: dci_xyz
@@ -236,20 +148,6 @@ colorspaces:
         - !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
 
   - !<ColorSpace>
-    name: srgb8
-    family: display
-    equalitygroup:
-    bitdepth: 8ui
-    description: |
-      RGB display space for the sRGB standard.
-    isdata: false
-    allocation: uniform
-    from_reference: !<GroupTransform>
-      children:
-        - !<ColorSpaceTransform> {src: Linear, dst: lg10}
-        - !<FileTransform> {src: spi_ocio_srgb_test.spi3d, interpolation: linear}
-
-  - !<ColorSpace>
     name: sRGB
     family:
     equalitygroup:
@@ -263,19 +161,6 @@ colorspaces:
     from_reference: !<FileTransform> {src: srgb_inv.spi1d, interpolation: linear}
 
   - !<ColorSpace>
-    name: VD16
-    family: vd
-    equalitygroup:
-    bitdepth: 16ui
-    description: |
-      The simple video conversion from a gamma 2.2 sRGB space
-    isdata: false
-    allocation: uniform
-    to_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: vd16.spi1d, interpolation: nearest}
-
-  - !<ColorSpace>
     name: Non-Color
     family: raw
     description: |
@@ -285,20 +170,6 @@ colorspaces:
     isdata: true
     allocation: uniform
     allocationvars: [0, 1]
-
-  - !<ColorSpace>
-    name: p3dci8
-    family: display
-    equalitygroup:
-    bitdepth: 8ui
-    description: |
-      p3dci8 :rgb display space for gamma 2.6 P3 projection.
-    isdata: false
-    allocation: uniform
-    from_reference: !<GroupTransform>
-      children:
-        - !<ColorSpaceTransform> {src: Linear, dst: lg10}
-        - !<FileTransform> {src: colorworks_filmlg_to_p3.3dl, interpolation: linear}
 
   - !<ColorSpace>
     name: Filmic Log
@@ -372,7 +243,7 @@ looks:
             - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Filmic - Base Contrast
+    name: Filmic - Medium Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
         children:
@@ -402,537 +273,55 @@ looks:
             - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor Futura 100
-    process_space: linear
+    name: Standard - Very High Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_1.20_1-00.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor Futura 200
-    process_space: linear
+    name: Standard - High Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_0.99_1-0075.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor Futura 400
-    process_space: linear
+    name: Standard - Medium High Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: best}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor Futura II 100
-    process_space: linear
+    name: Standard - Base Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
 
   - !<Look>
-    name: Agfa Agfacolor Futura II 200
-    process_space: linear
+    name: Standard - Medium Low Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_0-60_1-04.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor Futura II 400
-    process_space: linear
+    name: Standard - Low Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_futura_ii_400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_0-48_1-09.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
-    name: Agfa Agfacolor HDC 100 plus
-    process_space: linear
+    name: Standard - Very Low Contrast
+    process_space: Filmic Log
     transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_100_plus.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor HDC 400 plus
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_400_plus.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor HDC 200 plus
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_hdc_200_plus.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Optima II 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_optima_ii_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Optima II 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_optima_ii_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Ultra 050
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_ultra_050.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Vista 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Vista 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Vista 400
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfacolor Vista 800
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfacolor_vista_800.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfachrome CT Precisa 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfachrome_ct_precisa_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfachrome CT Precisa 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfachrome_ct_precisa_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfachrome RSX2 050
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_050.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfachrome RSX2 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Agfachrome RSX2 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_agfachrome_rsx2_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Advantix 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_advantix_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Advantix 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_advantix_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Agfa Advantix 400
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/agfa_advantix_400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Gold 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_gold_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Gold 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_gold_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Max Zoom 800
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_max_zoom_800.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 100T
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_100t.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 160NC
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_160nc.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 160VC
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_160vc.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 800
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_800.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 400VC
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_400vc.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Portra 400NC
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_portra_400nc.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 100 plus
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_100_plus.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 320T
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_320t.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 400X
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_400x.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 64
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_64.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 64T
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_64t.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome E100S
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_e100s.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Ektachrome 100
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_ektachrome_100.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Kodachrome 200
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kodachrome_200.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Kodachrome 25
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kodachrome_25.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak Kodachrome 64
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kodachrome_64.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3151
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3151.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3152
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3152.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3153
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3153.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3154
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3154.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3155
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3155.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak DSCS 3156
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_dscs_3156.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak KAI-0311
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kai-0311.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak KAF-2001
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kaf-2001.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak KAF-3000
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kaf-3000.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak KAI-0372
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kai-0372.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Kodak KAI-1010
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/kodak_kai-1010.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 12min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/eastman_double_x_neg_12min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 6min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/eastman_double_x_neg_6min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 5min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/eastman_double_x_neg_5min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Eastman Double X Neg 4min
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/eastman_double_x_neg_4min.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-125
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/fujifilm_f-125.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-250
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/fujifilm_f-250.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm F-400
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/fujifilm_f-400.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm FCI
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/fujifilm_fci.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Fujifilm FP2900Z
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/fujifilm_fp2900z.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Canon Optura 981111
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/canon_optura_981111.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Canon Optura 981113
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/canon_optura_981113.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Canon Optura 981114
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/canon_optura_981114.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-
-  - !<Look>
-    name: Canon Optura 981111.SLRR
-    process_space: linear
-    transform: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: film_response/canon_optura_981111.slrr.spi1d, interpolation: linear}
-        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+        children:
+            - !<FileTransform> {src: filmic_to_0-35_1-30.spi1d, interpolation: linear}
+            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}

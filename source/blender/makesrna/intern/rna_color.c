@@ -1136,7 +1136,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem display_device_items[] = {
-      {0, "DEFAULT", 0, "Default", ""},
+      {0, "NONE", 0, "None", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

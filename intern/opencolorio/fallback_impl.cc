@@ -283,7 +283,7 @@ const char *FallbackImpl::configGetDisplay(OCIO_ConstConfigRcPtr * /*config*/, i
 const char *FallbackImpl::configGetDefaultView(OCIO_ConstConfigRcPtr * /*config*/,
                                                const char * /*display*/)
 {
-  return "Default";
+  return "Standard";
 }
 
 int FallbackImpl::configGetNumViews(OCIO_ConstConfigRcPtr * /*config*/, const char * /*display*/)
@@ -296,7 +296,7 @@ const char *FallbackImpl::configGetView(OCIO_ConstConfigRcPtr * /*config*/,
                                         int index)
 {
   if (index == 0) {
-    return "Default";
+    return "Standard";
   }
   return NULL;
 }
