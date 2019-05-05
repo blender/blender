@@ -433,6 +433,14 @@ static void rna_Object_shape_key_remove(Object *ob,
   RNA_POINTER_INVALIDATE(kb_ptr);
 }
 
+static void rna_Object_shape_key_clear(Object *ob, Main *bmain)
+{
+  BKE_object_shapekey_free(bmain, ob);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+}
+
 #  if 0
 static void rna_Mesh_assign_verts_to_group(
     Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
@@ -920,6 +928,10 @@ void RNA_api_object(StructRNA *srna)
   parm = RNA_def_pointer(func, "key", "ShapeKey", "", "Keyblock to be removed");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+  func = RNA_def_function(srna, "shape_key_clear", "rna_Object_shape_key_clear");
+  RNA_def_function_ui_description(func, "Remove all Shape Keys from this object");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
 
   /* Ray Cast */
   func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");
