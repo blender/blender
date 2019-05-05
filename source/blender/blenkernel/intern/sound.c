@@ -1217,6 +1217,14 @@ char **BKE_sound_get_device_names(void)
   return names;
 }
 
+void BKE_sound_free_waveform(bSound *UNUSED(sound))
+{
+}
+
+void BKE_sound_load_audio(Main *UNUSED(bmain), bSound *UNUSED(sound))
+{
+}
+
 #endif /* WITH_AUDASPACE */
 
 void BKE_sound_update_and_seek(Main *bmain, Depsgraph *depsgraph)
