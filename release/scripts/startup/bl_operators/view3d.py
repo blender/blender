@@ -24,7 +24,7 @@ from bpy.props import BoolProperty
 
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
-    """Extrude individual elements and move"""
+    """Extrude each individual face separately along local normals"""
     bl_label = "Extrude Individual and Move"
     bl_idname = "view3d.edit_mesh_extrude_individual_move"
 
@@ -65,7 +65,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
 
 
 class VIEW3D_OT_edit_mesh_extrude_move(Operator):
-    """Extrude and move along normals"""
+    """Extrude region together along the average normal"""
     bl_label = "Extrude and Move on Normals"
     bl_idname = "view3d.edit_mesh_extrude_move_normal"
 
@@ -123,7 +123,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
 
 class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
-    """Extrude and move along individual normals"""
+    """Extrude region together along local normals"""
     bl_label = "Extrude and Move on Individual Normals"
     bl_idname = "view3d.edit_mesh_extrude_move_shrink_fatten"
 

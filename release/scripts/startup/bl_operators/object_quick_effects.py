@@ -54,6 +54,7 @@ class ObjectModeOperator:
 
 
 class QuickFur(ObjectModeOperator, Operator):
+    """Add fur setup to the selected objects"""
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
@@ -119,6 +120,7 @@ class QuickFur(ObjectModeOperator, Operator):
 
 
 class QuickExplode(ObjectModeOperator, Operator):
+    """Make selected objects explode"""
     bl_idname = "object.quick_explode"
     bl_label = "Quick Explode"
     bl_options = {'REGISTER', 'UNDO'}
@@ -325,6 +327,7 @@ def grid_location(x, y):
 
 
 class QuickSmoke(ObjectModeOperator, Operator):
+    """Use selected objects as smoke emitters"""
     bl_idname = "object.quick_smoke"
     bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
@@ -429,6 +432,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
 
 
 class QuickFluid(ObjectModeOperator, Operator):
+    """Use selected objects in a fluid simulation"""
     bl_idname = "object.quick_fluid"
     bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}

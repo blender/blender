@@ -336,6 +336,7 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Subdivide Edge-Ring";
+  ot->description = "Subdivide perpendicular edges to the selected edge ring";
   ot->idname = "MESH_OT_subdivide_edgering";
 
   /* api callbacks */
@@ -6793,7 +6794,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Bridge Edge Loops";
-  ot->description = "Make faces between two or more edge loops";
+  ot->description = "Create a bridge of faces between two or more selected edge loops";
   ot->idname = "MESH_OT_bridge_edge_loops";
 
   /* api callbacks */

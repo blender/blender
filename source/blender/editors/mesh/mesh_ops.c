@@ -274,7 +274,7 @@ void ED_operatormacros_mesh(void)
 
   ot = WM_operatortype_append_macro("MESH_OT_extrude_context_move",
                                     "Extrude Region and Move",
-                                    "Extrude context and move result",
+                                    "Extrude region together along the average normal",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_context");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -283,7 +283,7 @@ void ED_operatormacros_mesh(void)
 
   ot = WM_operatortype_append_macro("MESH_OT_extrude_region_shrink_fatten",
                                     "Extrude Region and Shrink/Fatten",
-                                    "Extrude along normals and move result",
+                                    "Extrude region together along local normals",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
@@ -292,7 +292,7 @@ void ED_operatormacros_mesh(void)
 
   ot = WM_operatortype_append_macro("MESH_OT_extrude_faces_move",
                                     "Extrude Individual Faces and Move",
-                                    "Extrude faces and move result",
+                                    "Extrude each individual face separately along local normals",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_faces_indiv");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
