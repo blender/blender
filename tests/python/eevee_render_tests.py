@@ -28,7 +28,7 @@ def setup():
 
     for mat in bpy.data.materials:
         mat.use_screen_refraction = True
-        mat.use_screen_subsurface = True
+        mat.use_sss_translucency = True
 
 
 # When run from inside Blender, render and exit.
