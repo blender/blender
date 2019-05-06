@@ -344,11 +344,11 @@ void WM_operator_properties_gesture_box(wmOperatorType *ot)
 void WM_operator_properties_select_operation(wmOperatorType *ot)
 {
   static const EnumPropertyItem select_mode_items[] = {
-      {SEL_OP_SET, "SET", 0, "New", ""},
-      {SEL_OP_ADD, "ADD", 0, "Add", ""},
-      {SEL_OP_SUB, "SUB", 0, "Subtract", ""},
-      {SEL_OP_XOR, "XOR", 0, "Difference", ""},
-      {SEL_OP_AND, "AND", 0, "Intersect", ""},
+      {SEL_OP_SET, "SET", ICON_SELECT_SET, "New", ""},
+      {SEL_OP_ADD, "ADD", ICON_SELECT_EXTEND, "Add", ""},
+      {SEL_OP_SUB, "SUB", ICON_SELECT_SUBTRACT, "Subtract", ""},
+      {SEL_OP_XOR, "XOR", ICON_SELECT_DIFFERENCE, "Difference", ""},
+      {SEL_OP_AND, "AND", ICON_SELECT_INTERSECT, "Intersect", ""},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_SET, "Mode", "");
@@ -359,9 +359,9 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
 {
   static const EnumPropertyItem select_mode_items[] = {
-      {SEL_OP_SET, "SET", 0, "New", ""},
-      {SEL_OP_ADD, "ADD", 0, "Add", ""},
-      {SEL_OP_SUB, "SUB", 0, "Subtract", ""},
+      {SEL_OP_SET, "SET", ICON_SELECT_SET, "New", ""},
+      {SEL_OP_ADD, "ADD", ICON_SELECT_EXTEND, "Add", ""},
+      {SEL_OP_SUB, "SUB", ICON_SELECT_SUBTRACT, "Subtract", ""},
       {0, NULL, 0, NULL, NULL},
   };
   PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_SET, "Mode", "");

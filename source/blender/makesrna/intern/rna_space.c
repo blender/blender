@@ -5146,7 +5146,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
        "Show/hide Paint Curve data-blocks"},
       {FILTER_ID_LP,
        "LIGHT_PROBE",
-       ICON_LIGHTPROBE_CUBEMAP,
+       ICON_OUTLINER_DATA_LIGHTPROBE,
        "Light Probes",
        "Show/hide Light Probe data-blocks"},
       {FILTER_ID_SCE, "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide Scene data-blocks"},

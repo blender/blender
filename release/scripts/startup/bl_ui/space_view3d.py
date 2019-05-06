@@ -474,10 +474,14 @@ class VIEW3D_HT_header(Header):
             else:
                 attr = "use_proportional_edit"
 
-                if tool_settings.use_proportional_connected:
-                    kw["icon"] = 'PROP_CON'
-                elif tool_settings.use_proportional_projected:
-                    kw["icon"] = 'PROP_PROJECTED'
+                if tool_settings.use_proportional_edit == False:
+                    kw["icon"] = 'PROP_OFF'
+                else:
+                    kw["icon"] = 'PROP_ON'
+                    if tool_settings.use_proportional_connected:
+                        kw["icon"] = 'PROP_CON'
+                    elif tool_settings.use_proportional_projected:
+                        kw["icon"] = 'PROP_PROJECTED'
 
             row.prop(tool_settings, attr, icon_only=True, **kw)
             sub = row.row(align=True)
@@ -627,7 +631,7 @@ class VIEW3D_HT_header(Header):
         # Gizmo toggle & popover.
         row = layout.row(align=True)
         # FIXME: place-holder icon.
-        row.prop(view, "show_gizmo", text="", toggle=True, icon='EMPTY_DATA')
+        row.prop(view, "show_gizmo", text="", toggle=True, icon='GIZMO')
         sub = row.row(align=True)
         sub.active = view.show_gizmo
         sub.popover(

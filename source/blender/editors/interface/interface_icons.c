@@ -2057,7 +2057,7 @@ int UI_idcode_icon_get(const int idcode)
     case ID_PC:
       return ICON_CURVE_BEZCURVE; /* TODO! this would need its own icon! */
     case ID_LP:
-      return ICON_LIGHTPROBE_CUBEMAP;
+      return ICON_OUTLINER_DATA_LIGHTPROBE;
     case ID_SCE:
       return ICON_SCENE_DATA;
     case ID_SPK:
