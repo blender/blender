@@ -307,6 +307,9 @@ void RE_RenderFreestyleStrokes(struct Render *re,
 void RE_RenderFreestyleExternal(struct Render *re);
 #endif
 
+/* Free memory and clear runtime data which is only needed during rendering. */
+void RE_CleanAfterRender(struct Render *re);
+
 void RE_SetActiveRenderView(struct Render *re, const char *viewname);
 const char *RE_GetActiveRenderView(struct Render *re);
 

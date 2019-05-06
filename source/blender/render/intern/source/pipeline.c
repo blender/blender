@@ -2126,8 +2126,7 @@ void RE_RenderFrame(Render *re,
   BLI_callback_exec(
       re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
 
-  /* Destroy the opengl context in the correct thread. */
-  RE_gl_context_destroy(re);
+  RE_CleanAfterRender(re);
 
   /* UGLY WARNING */
   G.is_rendering = false;
@@ -2713,8 +2712,7 @@ void RE_RenderAnim(Render *re,
       re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
   BKE_sound_reset_scene_specs(scene);
 
-  /* Destroy the opengl context in the correct thread. */
-  RE_gl_context_destroy(re);
+  RE_CleanAfterRender(re);
 
   /* UGLY WARNING */
   G.is_rendering = false;
@@ -2737,6 +2735,12 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
   RE_SetCamera(re, camera);
 
   do_render_3d(re);
+}
+
+void RE_CleanAfterRender(Render *re)
+{
+  /* Destroy the opengl context in the correct thread. */
+  RE_gl_context_destroy(re);
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
