@@ -528,14 +528,14 @@ function(add_python_test testname testscript)
   endif()
 endfunction()
 
-if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
+if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/shader")
   macro(add_cycles_render_test subject)
     if(WITH_CYCLES)
       add_python_test(
         cycles_${subject}
         ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
         -blender "$<TARGET_FILE:blender>"
-        -testdir "${TEST_SRC_DIR}/render/ctests/${subject}"
+        -testdir "${TEST_SRC_DIR}/render/${subject}"
         -idiff "${OPENIMAGEIO_IDIFF}"
         -outdir "${TEST_OUT_DIR}/cycles"
       )
@@ -546,9 +546,18 @@ if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
         eevee_${subject}_test
         ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
         -blender "$<TARGET_FILE:blender>"
-        -testdir "${TEST_SRC_DIR}/render/ctests/${subject}"
+        -testdir "${TEST_SRC_DIR}/render/${subject}"
         -idiff "${OPENIMAGEIO_IDIFF}"
         -outdir "${TEST_OUT_DIR}/eevee"
+      )
+
+      add_python_test(
+        workbench_${subject}_test
+        ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
+        -blender "$<TARGET_FILE:blender>"
+        -testdir "${TEST_SRC_DIR}/render/${subject}"
+        -idiff "${OPENIMAGEIO_IDIFF}"
+        -outdir "${TEST_OUT_DIR}/workbench"
       )
     endif()
   endmacro()
