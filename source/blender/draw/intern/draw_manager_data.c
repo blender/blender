@@ -400,7 +400,7 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   if (obmat != NULL) {
     copy_m4_m4(state->model, obmat);
 
-    if (is_negative_m4(state->model)) {
+    if (ob && (ob->transflag & OB_NEG_SCALE)) {
       state->flag |= DRW_CALL_NEGSCALE;
     }
   }
