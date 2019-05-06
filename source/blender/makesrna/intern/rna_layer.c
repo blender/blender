@@ -428,7 +428,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   /* layer options */
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", VIEW_LAYER_RENDER);
-  RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render layer");
+  RNA_def_property_ui_text(prop, "Enabled", "Enable or disable rendering of this View Layer");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER, NULL);
 
   prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
