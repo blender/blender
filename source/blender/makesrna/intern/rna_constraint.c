@@ -1346,10 +1346,31 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem volume_items[] = {
+  static const EnumPropertyItem axis_items[] = {
       {SAMEVOL_X, "SAMEVOL_X", 0, "X", ""},
       {SAMEVOL_Y, "SAMEVOL_Y", 0, "Y", ""},
       {SAMEVOL_Z, "SAMEVOL_Z", 0, "Z", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem mode_items[] = {
+      {SAMEVOL_STRICT,
+       "STRICT",
+       0,
+       "Strict",
+       "Volume is strictly preserved, overriding the scaling of non-free axes"},
+      {SAMEVOL_UNIFORM,
+       "UNIFORM",
+       0,
+       "Uniform",
+       "Volume is preserved when the object is scaled uniformly. "
+       "Deviations from uniform scale on non-free axes are passed through"},
+      {SAMEVOL_SINGLE_AXIS,
+       "SINGLE_AXIS",
+       0,
+       "Single Axis",
+       "Volume is preserved when the object is scaled only on the free axis. "
+       "Non-free axis scaling is passed through"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1360,9 +1381,16 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
   RNA_def_struct_sdna_from(srna, "bSameVolumeConstraint", "data");
 
   prop = RNA_def_property(srna, "free_axis", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "flag");
-  RNA_def_property_enum_items(prop, volume_items);
+  RNA_def_property_enum_sdna(prop, NULL, "free_axis");
+  RNA_def_property_enum_items(prop, axis_items);
   RNA_def_property_ui_text(prop, "Free Axis", "The free scaling axis of the object");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(
+      prop, "Mode", "The way the constraint treats original non-free axis scaling");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_DISTANCE);

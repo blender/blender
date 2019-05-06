@@ -296,7 +296,9 @@ typedef struct bSizeLikeConstraint {
 
 /* Maintain Volume Constraint */
 typedef struct bSameVolumeConstraint {
-  int flag;
+  char free_axis;
+  char mode;
+  char _pad[2];
   float volume;
 } bSameVolumeConstraint;
 
@@ -758,12 +760,22 @@ typedef enum eTransform_ToFrom {
   TRANS_SCALE = 2,
 } eTransform_ToFrom;
 
-/* bSameVolumeConstraint.flag */
-typedef enum eSameVolume_Modes {
+/* bSameVolumeConstraint.free_axis */
+typedef enum eSameVolume_Axis {
   SAMEVOL_X = 0,
   SAMEVOL_Y = 1,
   SAMEVOL_Z = 2,
-} eSameVolume_Modes;
+} eSameVolume_Axis;
+
+/* bSameVolumeConstraint.mode */
+typedef enum eSameVolume_Mode {
+  /* Strictly maintain the volume, overriding non-free axis scale. */
+  SAMEVOL_STRICT = 0,
+  /* Maintain the volume when scale is uniform, pass non-uniform other axis scale through. */
+  SAMEVOL_UNIFORM = 1,
+  /* Maintain the volume when scaled only on the free axis, pass other axis scale through. */
+  SAMEVOL_SINGLE_AXIS = 2,
+} eSameVolume_Mode;
 
 /* bActionConstraint.flag */
 typedef enum eActionConstraint_Flags {

@@ -430,6 +430,8 @@ class ConstraintButtonsPanel:
 
     def MAINTAIN_VOLUME(self, _context, layout, con):
 
+        layout.prop(con, "mode")
+
         row = layout.row()
         row.label(text="Free:")
         row.prop(con, "free_axis", expand=True)
