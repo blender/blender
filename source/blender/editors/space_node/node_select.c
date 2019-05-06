@@ -449,32 +449,38 @@ static int node_mouse_select(Main *bmain,
   /* first do socket selection, these generally overlap with nodes. */
   if (socket_select) {
     if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
-      node_socket_toggle(node, sock, 1);
+      /* NOTE: SOCK_IN does not take into account the extend case...
+       * This feature is not really used anyway currently? */
+      node_socket_toggle(node, sock, true);
       selected = true;
     }
     else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
       if (sock->flag & SELECT) {
         if (extend) {
-          node_socket_deselect(node, sock, 1);
+          node_socket_deselect(node, sock, true);
         }
         else {
           selected = true;
         }
       }
       else {
-        /* only allow one selected output per node, for sensible linking.
-         * allows selecting outputs from different nodes though. */
+        /* Only allow one selected output per node, for sensible linking.
+         * Allow selecting outputs from different nodes though, if extend is true. */
         if (node) {
           for (tsock = node->outputs.first; tsock; tsock = tsock->next) {
-            node_socket_deselect(node, tsock, 1);
+            if (tsock == sock) {
+              continue;
+            }
+            node_socket_deselect(node, tsock, true);
           }
         }
-        if (extend) {
-          /* only allow one selected output per node, for sensible linking.
-           * allows selecting outputs from different nodes though. */
-          for (tsock = node->outputs.first; tsock; tsock = tsock->next) {
-            if (tsock != sock) {
-              node_socket_deselect(node, tsock, 1);
+        if (!extend) {
+          for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+            if (tnode == node) {
+              continue;
+            }
+            for (tsock = tnode->outputs.first; tsock; tsock = tsock->next) {
+              node_socket_deselect(tnode, tsock, true);
             }
           }
         }
@@ -485,26 +491,20 @@ static int node_mouse_select(Main *bmain,
   }
 
   if (!sock) {
-    if (extend) {
-      /* find the closest visible node */
-      node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
+    /* find the closest visible node */
+    node = node_under_mouse_select(snode->edittree, (int)cursor[0], (int)cursor[1]);
 
-      if (node) {
-        if ((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0) {
-          /* if node is selected but not active make it active */
-          ED_node_set_active(bmain, snode->edittree, node);
-        }
-        else {
+    if (extend) {
+      if (node != NULL) {
+        /* If node is selected but not active, we want to make it active,
+         * but not toggle (deselect) it. */
+        if (!((node->flag & SELECT) && (node->flag & NODE_ACTIVE) == 0)) {
           node_toggle(node);
-          ED_node_set_active(bmain, snode->edittree, node);
         }
         selected = true;
       }
     }
     else {
-      /* find the closest visible node */
-      node = node_under_mouse_select(snode->edittree, cursor[0], cursor[1]);
-
       if (node != NULL || deselect_all) {
         for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
           nodeSetSelected(tnode, false);
@@ -512,7 +512,6 @@ static int node_mouse_select(Main *bmain,
         selected = true;
         if (node != NULL) {
           nodeSetSelected(node, true);
-          ED_node_set_active(bmain, snode->edittree, node);
         }
       }
     }
@@ -520,6 +519,9 @@ static int node_mouse_select(Main *bmain,
 
   /* update node order */
   if (selected) {
+    if (node != NULL) {
+      ED_node_set_active(bmain, snode->edittree, node);
+    }
     ED_node_set_active_viewer_key(snode);
     ED_node_sort(snode->edittree);
   }
