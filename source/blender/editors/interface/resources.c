@@ -1357,8 +1357,7 @@ bool UI_GetIconThemeColor4fv(int colorid, float col[4])
    * to stay monochrome and out of the way except a few places where it
    * is important to communicate different data types. */
   if (!((theme_spacetype == SPACE_OUTLINER && theme_regionid == RGN_TYPE_WINDOW) ||
-        (theme_spacetype == SPACE_PROPERTIES && theme_regionid == RGN_TYPE_NAV_BAR) ||
-        (theme_regionid == RGN_TYPE_TEMPORARY))) {
+        (theme_spacetype == SPACE_PROPERTIES && theme_regionid == RGN_TYPE_NAV_BAR))) {
     return false;
   }
 
