@@ -3572,9 +3572,9 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         re = RE_NewSceneRender(scene);
       }
 
-      RE_BlenderFrame(re, context->bmain, scene, view_layer, camera, frame, false);
+      RE_RenderFrame(re, context->bmain, scene, view_layer, camera, frame, false);
 
-      /* restore previous state after it was toggled on & off by RE_BlenderFrame */
+      /* restore previous state after it was toggled on & off by RE_RenderFrame */
       G.is_rendering = is_rendering;
     }
 

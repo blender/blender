@@ -2072,13 +2072,13 @@ void RE_SetReports(Render *re, ReportList *reports)
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re,
-                     Main *bmain,
-                     Scene *scene,
-                     ViewLayer *single_layer,
-                     Object *camera_override,
-                     int frame,
-                     const bool write_still)
+void RE_RenderFrame(Render *re,
+                    Main *bmain,
+                    Scene *scene,
+                    ViewLayer *single_layer,
+                    Object *camera_override,
+                    int frame,
+                    const bool write_still)
 {
   BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
@@ -2461,14 +2461,14 @@ static void re_movie_free_all(Render *re, bMovieHandle *mh, int totvideos)
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re,
-                    Main *bmain,
-                    Scene *scene,
-                    ViewLayer *single_layer,
-                    Object *camera_override,
-                    int sfra,
-                    int efra,
-                    int tfra)
+void RE_RenderAnim(Render *re,
+                   Main *bmain,
+                   Scene *scene,
+                   ViewLayer *single_layer,
+                   Object *camera_override,
+                   int sfra,
+                   int efra,
+                   int tfra)
 {
   RenderData rd = scene->r;
   bMovieHandle *mh = NULL;

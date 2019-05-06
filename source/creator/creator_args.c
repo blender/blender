@@ -1520,7 +1520,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
         }
 
         for (int frame = frame_range_arr[i][0]; frame <= frame_range_arr[i][1]; frame++) {
-          RE_BlenderAnim(re, bmain, scene, NULL, NULL, frame, frame, scene->r.frame_step);
+          RE_RenderAnim(re, bmain, scene, NULL, NULL, frame, frame, scene->r.frame_step);
         }
       }
       RE_SetReports(re, NULL);
@@ -1553,8 +1553,7 @@ static int arg_handle_render_animation(int UNUSED(argc), const char **UNUSED(arg
     BLI_threaded_malloc_begin();
     BKE_reports_init(&reports, RPT_STORE);
     RE_SetReports(re, &reports);
-    RE_BlenderAnim(
-        re, bmain, scene, NULL, NULL, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+    RE_RenderAnim(re, bmain, scene, NULL, NULL, scene->r.sfra, scene->r.efra, scene->r.frame_step);
     RE_SetReports(re, NULL);
     BKE_reports_clear(&reports);
     BLI_threaded_malloc_end();
