@@ -431,7 +431,7 @@ class TOPBAR_MT_edit(Menu):
         layout.separator()
 
         # Mainly to expose shortcut since this depends on the context.
-        props = layout.operator("wm.call_panel", text="Rename Active Item...", icon='OUTLINER_DATA_FONT')
+        props = layout.operator("wm.call_panel", text="Rename Active Item...")
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
 
