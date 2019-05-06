@@ -6624,6 +6624,13 @@ static void direct_link_paint(FileData *fd, const Scene *scene, Paint *p)
 
   p->tool_slots = newdataadr(fd, p->tool_slots);
 
+  /* Workaround for invalid data written in older versions. */
+  const size_t expected_size = sizeof(PaintToolSlot) * p->tool_slots_len;
+  if (p->tool_slots && MEM_allocN_len(p->tool_slots) < expected_size) {
+    MEM_freeN(p->tool_slots);
+    p->tool_slots = MEM_callocN(expected_size, "PaintToolSlot");
+  }
+
   BKE_paint_runtime_init(scene->toolsettings, p);
 }
 

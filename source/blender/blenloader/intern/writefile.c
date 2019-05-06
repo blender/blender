@@ -2416,7 +2416,7 @@ static void write_paint(WriteData *wd, Paint *p)
   if (p->cavity_curve) {
     write_curvemapping(wd, p->cavity_curve);
   }
-  writedata(wd, DATA, sizeof(PaintToolSlot) * p->tool_slots_len, p->tool_slots);
+  writestruct(wd, DATA, PaintToolSlot, p->tool_slots_len, p->tool_slots);
 }
 
 static void write_layer_collections(WriteData *wd, ListBase *lb)
