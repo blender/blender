@@ -567,7 +567,8 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
   Object *obedit = CTX_data_edit_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Mask *mask = NULL;
-  bool curve = false;
+  bool show_uvedit = false;
+  bool show_curve = false;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View2D *v2d = &ar->v2d;
@@ -609,13 +610,13 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 
   /* check for mask (delay draw) */
   if (ED_space_image_show_uvedit(sima, obedit)) {
-    /* pass */
+    show_uvedit = true;
   }
   else if (sima->mode == SI_MODE_MASK) {
     mask = ED_space_image_get_mask(sima);
   }
   else if (ED_space_image_paint_curve(C)) {
-    curve = true;
+    show_curve = true;
   }
 
   ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -669,12 +670,9 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
                         false,
                         NULL,
                         C);
-
-    UI_view2d_view_ortho(v2d);
-    ED_image_draw_cursor(ar, sima->cursor);
-    UI_view2d_view_restore(C);
   }
-  else if (curve) {
+
+  if (show_uvedit || mask || show_curve) {
     UI_view2d_view_ortho(v2d);
     ED_image_draw_cursor(ar, sima->cursor);
     UI_view2d_view_restore(C);
