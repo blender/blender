@@ -366,7 +366,9 @@ class OUTLINER_PT_filter(Panel):
                 bpy.data.fonts or
                 bpy.data.speakers
         ):
-            sub.prop(space, "use_filter_object_others", text="Others")
+            row = sub.row()
+            row.label(icon='BLANK1')
+            row.prop(space, "use_filter_object_others", text="Others")
 
 
 classes = (
