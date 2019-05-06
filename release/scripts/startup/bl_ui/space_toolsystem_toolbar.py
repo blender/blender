@@ -312,7 +312,9 @@ class _defs_view3d_select:
     def box():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("view3d.select_box")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
         return dict(
             idname="builtin.select_box",
             label="Select Box",
@@ -326,7 +328,9 @@ class _defs_view3d_select:
     def lasso():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("view3d.select_lasso")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
         return dict(
             idname="builtin.select_lasso",
             label="Select Lasso",
@@ -340,7 +344,9 @@ class _defs_view3d_select:
     def circle():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("view3d.select_circle")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
 
         def draw_cursor(_context, tool, xy):
@@ -1127,7 +1133,9 @@ class _defs_image_uv_select:
     def box():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("uv.select_box")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
         return dict(
             idname="builtin.select_box",
             label="Select Box",
@@ -1141,7 +1149,9 @@ class _defs_image_uv_select:
     def lasso():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("uv.select_lasso")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
         return dict(
             idname="builtin.select_lasso",
             label="Select Lasso",
@@ -1155,7 +1165,9 @@ class _defs_image_uv_select:
     def circle():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("uv.select_circle")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
         return dict(
             idname="builtin.select_circle",
@@ -1311,7 +1323,9 @@ class _defs_gpencil_edit:
     def box_select():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("gpencil.select_box")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
         return dict(
             idname="builtin.select_box",
@@ -1326,7 +1340,9 @@ class _defs_gpencil_edit:
     def lasso_select():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("gpencil.select_lasso")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
         return dict(
             idname="builtin.select_lasso",
@@ -1341,7 +1357,9 @@ class _defs_gpencil_edit:
     def circle_select():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("gpencil.select_circle")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
             layout.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
         return dict(
@@ -1444,7 +1462,9 @@ class _defs_node_select:
     def box():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("node.select_box")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             pass
         return dict(
             idname="builtin.select_box",
@@ -1459,7 +1479,9 @@ class _defs_node_select:
     def lasso():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("node.select_lasso")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
         return dict(
             idname="builtin.select_lasso",
             label="Select Lasso",
@@ -1473,7 +1495,9 @@ class _defs_node_select:
     def circle():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("node.select_circle")
-            layout.prop(props, "mode", text="")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
         return dict(
             idname="builtin.select_circle",
