@@ -4042,6 +4042,11 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *ar, void *cumap_
   return curvemap_tools_func(C, ar, cumap_v, false, UICURVE_FUNC_RESET_NEG);
 }
 
+static uiBlock *curvemap_brush_tools_negslope_func(bContext *C, ARegion *ar, void *cumap_v)
+{
+  return curvemap_tools_func(C, ar, cumap_v, false, UICURVE_FUNC_RESET_POS);
+}
+
 static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
   ED_region_tag_redraw(CTX_wm_region(C));
@@ -4217,7 +4222,19 @@ static void curvemap_buttons_layout(uiLayout *layout,
                     TIP_("Zoom out"));
   UI_but_func_set(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
-  if (brush) {
+  if (brush && neg_slope) {
+    bt = uiDefIconBlockBut(block,
+                           curvemap_brush_tools_negslope_func,
+                           cumap,
+                           0,
+                           ICON_DOWNARROW_HLT,
+                           0,
+                           0,
+                           dx,
+                           dx,
+                           TIP_("Tools"));
+  }
+  else if (brush) {
     bt = uiDefIconBlockBut(block,
                            curvemap_brush_tools_func,
                            cumap,
