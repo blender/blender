@@ -52,7 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
-#include "BKE_sound.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
@@ -74,6 +73,7 @@
 
 #include "PIL_time.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "clip_intern.h"  // own include
@@ -971,7 +971,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   SUBFRA = 0.0f;
 
   /* do updates */
-  BKE_sound_update_and_seek(CTX_data_main(C), CTX_data_depsgraph(C));
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

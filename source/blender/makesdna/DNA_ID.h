@@ -604,7 +604,13 @@ typedef enum IDRecalcFlag {
 
   /* Sequences in the sequencer did change.
    * Use this tag with a scene ID which owns the sequences. */
-  ID_RECALC_SEQUENCER = (1 << 14),
+  ID_RECALC_SEQUENCER_STRIPS = (1 << 14),
+
+  ID_RECALC_AUDIO_SEEK = (1 << 15),
+  ID_RECALC_AUDIO_FPS = (1 << 16),
+  ID_RECALC_AUDIO_VOLUME = (1 << 17),
+  ID_RECALC_AUDIO_MUTE = (1 << 18),
+  ID_RECALC_AUDIO_LISTENER = (1 << 19),
 
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without

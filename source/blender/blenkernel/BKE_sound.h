@@ -144,10 +144,6 @@ void BKE_sound_stop_scene(struct Scene *scene);
 
 void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene);
 
-/* Use this after original scene's frame has been changed. It will take care of doing all the
- * updates required for BKE_sound_seek_scene(). */
-void BKE_sound_update_and_seek(struct Main *bmain, struct Depsgraph *depsgraph);
-
 float BKE_sound_sync_scene(struct Scene *scene);
 
 int BKE_sound_scene_playing(struct Scene *scene);

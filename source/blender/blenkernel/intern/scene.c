@@ -1510,7 +1510,24 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
 static void scene_update_sound(Depsgraph *depsgraph, Main *bmain)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  const int recalc = scene->id.recalc;
   BKE_sound_ensure_scene(scene);
+  if (recalc & ID_RECALC_AUDIO_SEEK) {
+    BKE_sound_seek_scene(bmain, scene);
+  }
+  if (recalc & ID_RECALC_AUDIO_FPS) {
+    BKE_sound_update_fps(scene);
+  }
+  if (recalc & ID_RECALC_AUDIO_VOLUME) {
+    BKE_sound_set_scene_volume(scene, scene->audio.volume);
+  }
+  if (recalc & ID_RECALC_AUDIO_MUTE) {
+    const bool is_mute = (scene->audio.flag & AUDIO_MUTE);
+    BKE_sound_mute_scene(scene, is_mute);
+  }
+  if (recalc & ID_RECALC_AUDIO_LISTENER) {
+    BKE_sound_update_scene_listener(scene);
+  }
   BKE_sound_update_scene(bmain, scene);
 }
 
@@ -2406,6 +2423,14 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
   SEQ_BEGIN (scene->ed, seq) {
     if (seq->sound != NULL && seq->scene_sound == NULL) {
       seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
+    }
+    if (seq->scene_sound) {
+      BKE_sound_set_scene_sound_volume(
+          seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
+      BKE_sound_set_scene_sound_pitch(
+          seq->scene_sound, seq->pitch, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+      BKE_sound_set_scene_sound_pan(
+          seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
     }
   }
   SEQ_END;

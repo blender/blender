@@ -57,7 +57,6 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_AUDASPACE
 /* evil globals ;-) */
@@ -689,7 +688,6 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
 
 void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
 {
-  printf("%s\n", __func__);
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
 }
 
@@ -798,10 +796,9 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
     }
   }
 
-  Scene *scene_orig = (Scene *)DEG_get_original_id(&scene->id);
-  if (scene_orig->audio.flag & AUDIO_SCRUB && !animation_playing) {
+  if (scene->audio.flag & AUDIO_SCRUB && !animation_playing) {
     AUD_Handle_setPosition(scene->playback_handle, cur_time);
-    if (scene_orig->audio.flag & AUDIO_SYNC) {
+    if (scene->audio.flag & AUDIO_SYNC) {
       AUD_seekSynchronizer(scene->playback_handle, cur_time);
     }
     AUD_Handle_resume(scene->playback_handle);
@@ -817,7 +814,7 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
     }
   }
   else {
-    if (scene_orig->audio.flag & AUDIO_SYNC) {
+    if (scene->audio.flag & AUDIO_SYNC) {
       AUD_seekSynchronizer(scene->playback_handle, cur_time);
     }
     else {
@@ -1226,19 +1223,6 @@ void BKE_sound_load_audio(Main *UNUSED(bmain), bSound *UNUSED(sound))
 }
 
 #endif /* WITH_AUDASPACE */
-
-void BKE_sound_update_and_seek(Main *bmain, Depsgraph *depsgraph)
-{
-  Scene *scene_orig = DEG_get_input_scene(depsgraph);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  /* NOTE: We don't do copy-on-write or anything like that here because we need to know scene's
-   * flags like "scrubbing" in the BKE_sound_seek_scene(). So we simply update frame to which
-   * seek needs to happen.
-   *
-   * TODO(sergey): Might change API so the frame is passes explicitly. */
-  scene_eval->r.cfra = scene_orig->r.cfra;
-  BKE_sound_seek_scene(bmain, scene_eval);
-}
 
 void BKE_sound_reset_scene_runtime(Scene *scene)
 {

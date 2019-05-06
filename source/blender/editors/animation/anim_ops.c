@@ -36,7 +36,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_sound.h"
 #include "BKE_scene.h"
 
 #include "UI_view2d.h"
@@ -116,7 +115,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(CFRA);
 
   /* do updates */
-  BKE_sound_update_and_seek(CTX_data_main(C), CTX_data_depsgraph(C));
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

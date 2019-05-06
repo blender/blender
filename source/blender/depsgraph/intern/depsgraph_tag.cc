@@ -215,8 +215,15 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       /* There is no such node in depsgraph, this tag is to be handled
        * separately. */
       break;
-    case ID_RECALC_SEQUENCER:
+    case ID_RECALC_SEQUENCER_STRIPS:
       *component_type = NodeType::SEQUENCER;
+      break;
+    case ID_RECALC_AUDIO_SEEK:
+    case ID_RECALC_AUDIO_FPS:
+    case ID_RECALC_AUDIO_VOLUME:
+    case ID_RECALC_AUDIO_MUTE:
+    case ID_RECALC_AUDIO_LISTENER:
+      *component_type = NodeType::AUDIO;
       break;
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
@@ -618,8 +625,18 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "POINT_CACHE";
     case ID_RECALC_EDITORS:
       return "EDITORS";
-    case ID_RECALC_SEQUENCER:
-      return "SEQUENCER";
+    case ID_RECALC_SEQUENCER_STRIPS:
+      return "SEQUENCER_STRIPS";
+    case ID_RECALC_AUDIO_SEEK:
+      return "AUDIO_SEEK";
+    case ID_RECALC_AUDIO_FPS:
+      return "AUDIO_FPS";
+    case ID_RECALC_AUDIO_VOLUME:
+      return "AUDIO_VOLUME";
+    case ID_RECALC_AUDIO_MUTE:
+      return "AUDIO_MUTE";
+    case ID_RECALC_AUDIO_LISTENER:
+      return "AUDIO_LISTENER";
     case ID_RECALC_ALL:
       return "ALL";
   }
