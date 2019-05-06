@@ -303,34 +303,60 @@ class OUTLINER_PT_filter(Panel):
         space = context.space_data
         display_mode = space.display_mode
 
-        layout.prop(space, "use_filter_complete", text="Exact Match Search")
-        layout.prop(space, "use_filter_case_sensitive", text="Case Sensitive Search")
-
-        layout.separator()
-
         if display_mode != 'DATA_API':
-            layout.prop(space, "use_sort_alpha")
-            layout.prop(space, "show_restrict_columns")
+            col = layout.column(align=True)
+            col.prop(space, "use_sort_alpha")
+            col.prop(space, "show_restrict_columns")
             layout.separator()
 
         col = layout.column(align=True)
+        col.label(text="Search:")
+        col.prop(space, "use_filter_complete", text="Exact Match")
+        col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
-        col.prop(space, "use_filter_collection", text="Collections", icon='GROUP')
-        col.prop(space, "use_filter_object", text="Objects", icon='OBJECT_DATAMODE')
+        layout.separator()
+
+        layout.label(text="Filter:")
+
+        col = layout.column(align=True)
+
+        row = col.row()
+        row.label(icon='GROUP')
+        row.prop(space, "use_filter_collection", text="Collections")
+        row = col.row()
+        row.label(icon='OBJECT_DATAMODE')
+        row.prop(space, "use_filter_object", text="Objects")
+        row.prop(space, "filter_state", text="")
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object
 
-        if bpy.data.meshes:
-            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon='MESH_DATA')
-        if bpy.data.armatures:
-            sub.prop(space, "use_filter_object_armature", text="Armatures", icon='ARMATURE_DATA')
-        if bpy.data.lights:
-            sub.prop(space, "use_filter_object_light", text="Lights", icon='LIGHT_DATA')
-        if bpy.data.cameras:
-            sub.prop(space, "use_filter_object_camera", text="Cameras", icon='CAMERA_DATA')
+        row = sub.row()
+        row.label(icon='BLANK1')
+        row.prop(space, "use_filter_object_content", text="Object Contents")
+        row = sub.row()
+        row.label(icon='BLANK1')
+        row.prop(space, "use_filter_children", text="Object Children")
 
-        sub.prop(space, "use_filter_object_empty", text="Empties", icon='EMPTY_DATA')
+        if bpy.data.meshes:
+            row = sub.row()
+            row.label(icon='MESH_DATA')
+            row.prop(space, "use_filter_object_mesh", text="Meshes")
+        if bpy.data.armatures:
+            row = sub.row()
+            row.label(icon='ARMATURE_DATA')
+            row.prop(space, "use_filter_object_armature", text="Armatures")
+        if bpy.data.lights:
+            row = sub.row()
+            row.label(icon='LIGHT_DATA')
+            row.prop(space, "use_filter_object_light", text="Lights")
+        if bpy.data.cameras:
+            row = sub.row()
+            row.label(icon='CAMERA_DATA')
+            row.prop(space, "use_filter_object_camera", text="Cameras")
+        row = sub.row()
+        row.label(icon='EMPTY_DATA')
+        row.prop(space, "use_filter_object_empty", text="Empties")
 
         if (
                 bpy.data.curves or
@@ -341,11 +367,6 @@ class OUTLINER_PT_filter(Panel):
                 bpy.data.speakers
         ):
             sub.prop(space, "use_filter_object_others", text="Others")
-
-        subsub = sub.column(align=False)
-        subsub.prop(space, "filter_state", text="")
-        subsub.prop(space, "use_filter_object_content", text="Object Contents")
-        subsub.prop(space, "use_filter_children", text="Object Children")
 
 
 classes = (
