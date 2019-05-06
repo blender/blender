@@ -1988,7 +1988,7 @@ const char *RE_GetActiveRenderView(Render *re)
 
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re,
-                                       RenderData *rd,
+                                       const RenderData *rd,
                                        Main *bmain,
                                        Scene *scene,
                                        ViewLayer *single_layer,
@@ -2426,7 +2426,10 @@ static int do_write_image_or_movie(Render *re,
   return ok;
 }
 
-static void get_videos_dimensions(Render *re, RenderData *rd, size_t *r_width, size_t *r_height)
+static void get_videos_dimensions(const Render *re,
+                                  const RenderData *rd,
+                                  size_t *r_width,
+                                  size_t *r_height)
 {
   size_t width, height;
   if (re->r.mode & R_BORDER) {
@@ -2469,7 +2472,7 @@ void RE_RenderAnim(Render *re,
                    int efra,
                    int tfra)
 {
-  RenderData rd = scene->r;
+  const RenderData rd = scene->r;
   bMovieHandle *mh = NULL;
   int cfrao = scene->r.cfra;
   int nfra, totrendered = 0, totskipped = 0;
