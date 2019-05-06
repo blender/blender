@@ -2118,7 +2118,8 @@ void RE_RenderFrame(Render *re,
       }
     }
 
-    BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+    /* keep after file save */
+    BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST);
     if (write_still) {
       BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
     }
@@ -2692,8 +2693,8 @@ void RE_RenderAnim(Render *re,
       }
 
       if (G.is_break == false) {
-        BLI_callback_exec(
-            re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
+        /* keep after file save */
+        BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST);
         BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
       }
     }
