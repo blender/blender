@@ -3091,8 +3091,12 @@ void wm_event_do_handlers(bContext *C)
       wm_event_free_all(win);
     }
     else {
-      Depsgraph *depsgraph = CTX_data_depsgraph(C);
       Scene *scene = WM_window_get_active_scene(win);
+
+      CTX_wm_window_set(C, win);
+      CTX_data_scene_set(C, scene);
+
+      Depsgraph *depsgraph = CTX_data_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
       if (scene) {
@@ -3100,8 +3104,6 @@ void wm_event_do_handlers(bContext *C)
 
         if (is_playing_sound != -1) {
           bool is_playing_screen;
-          CTX_wm_window_set(C, win);
-          CTX_data_scene_set(C, scene);
 
           is_playing_screen = (ED_screen_animation_playing(wm) != NULL);
 
@@ -3121,12 +3123,12 @@ void wm_event_do_handlers(bContext *C)
               }
             }
           }
-
-          CTX_data_scene_set(C, NULL);
-          CTX_wm_screen_set(C, NULL);
-          CTX_wm_window_set(C, NULL);
         }
       }
+
+      CTX_data_scene_set(C, NULL);
+      CTX_wm_screen_set(C, NULL);
+      CTX_wm_window_set(C, NULL);
     }
 
     while ((event = win->queue.first)) {
