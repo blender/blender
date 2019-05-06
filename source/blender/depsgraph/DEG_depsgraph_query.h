@@ -72,10 +72,15 @@ void DEG_get_customdata_mask_for_object(const struct Depsgraph *graph,
                                         struct Object *object,
                                         struct CustomData_MeshMasks *r_mask);
 
-/* Get scene the despgraph is created for. */
+/* Get scene at its evaluated state.
+ *
+ * Technically, this is a copied-on-written and fully evaluated version of the input scene.
+ * This function will check that the datablock has been expanded (and copied) from the original
+ * one. Assert will happen if it's not. */
 struct Scene *DEG_get_evaluated_scene(const struct Depsgraph *graph);
 
-/* Get scene layer the despgraph is created for. */
+/* Get view layer at its evaluated state.
+ * This is a shortcut for accessing active view layer from evaluated scene. */
 struct ViewLayer *DEG_get_evaluated_view_layer(const struct Depsgraph *graph);
 
 /* Get evaluated version of object for given original one. */
