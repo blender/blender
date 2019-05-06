@@ -503,9 +503,6 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(
       mat, vedata->psl->volumetric_objects_ps, sldata->common_data.vol_tex_size[2]);
 
-  /* Making sure it's updated. */
-  invert_m4_m4(ob->imat, ob->obmat);
-
   BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
 
   float(*imat)[4] = ob->imat;

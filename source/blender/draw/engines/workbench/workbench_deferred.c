@@ -1072,7 +1072,6 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
           if (studiolight_object_cast_visible_shadow(wpd, ob, engine_object_data)) {
 
-            invert_m4_m4(ob->imat, ob->obmat);
             mul_v3_mat3_m4v3(
                 engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
 
