@@ -3568,7 +3568,8 @@ static void rna_def_unit_settings(BlenderRNA *brna)
   /* Units */
   prop = RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, unit_systems);
-  RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for user interface controls");
+  RNA_def_property_ui_text(
+      prop, "Unit System", "The unit system to use for user interface controls");
   RNA_def_property_update(prop, NC_WINDOW, "rna_UnitSettings_system_update");
 
   prop = RNA_def_property(srna, "system_rotation", PROP_ENUM, PROP_NONE);

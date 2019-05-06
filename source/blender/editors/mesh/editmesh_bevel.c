@@ -907,7 +907,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Bevel";
-  ot->description = "Cut into selected items at an angle to create flat or rounded bevel or chamfer";
+  ot->description =
+      "Cut into selected items at an angle to create flat or rounded bevel or chamfer";
   ot->idname = "MESH_OT_bevel";
 
   /* api callbacks */

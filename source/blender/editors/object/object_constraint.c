@@ -2025,8 +2025,8 @@ static const EnumPropertyItem *object_constraint_add_itemf(bContext *UNUSED(C),
   EnumPropertyItem *object_constraint_items = NULL;
   int totitem = 0;
 
-  while(item->identifier) {
-    if((item->value != CONSTRAINT_TYPE_KINEMATIC) && (item->value != CONSTRAINT_TYPE_SPLINEIK)) {
+  while (item->identifier) {
+    if ((item->value != CONSTRAINT_TYPE_KINEMATIC) && (item->value != CONSTRAINT_TYPE_SPLINEIK)) {
       RNA_enum_item_add(&object_constraint_items, &totitem, item);
     }
     item++;

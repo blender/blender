@@ -654,7 +654,8 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
 /* Compares two floats.
  * Returns true if their absolute difference is smaller than abs_diff (for numbers near zero)
  * or their relative difference is less than ulp_diff ULPs.
- * Based on https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+ * Based on
+ * https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
 
 ccl_device_inline float compare_floats(float a, float b, float abs_diff, int ulp_diff)
