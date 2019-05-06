@@ -2090,6 +2090,7 @@ void RE_RenderFrame(Render *re,
 
   if (render_initialize_from_main(
           re, &scene->r, bmain, scene, single_layer, camera_override, 0, 0)) {
+    const RenderData rd = scene->r;
     MEM_reset_peak_memory();
 
     BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
@@ -2097,18 +2098,18 @@ void RE_RenderFrame(Render *re,
     do_render_all_options(re);
 
     if (write_still && !G.is_break) {
-      if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+      if (BKE_imtype_is_movie(rd.im_format.imtype)) {
         /* operator checks this but in case its called from elsewhere */
         printf("Error: cant write single images with a movie format!\n");
       }
       else {
         char name[FILE_MAX];
         BKE_image_path_from_imformat(name,
-                                     scene->r.pic,
+                                     rd.pic,
                                      BKE_main_blendfile_path(bmain),
                                      scene->r.cfra,
-                                     &scene->r.im_format,
-                                     (scene->r.scemode & R_EXTENSION) != 0,
+                                     &rd.im_format,
+                                     (rd.scemode & R_EXTENSION) != 0,
                                      false,
                                      NULL);
 
@@ -2474,12 +2475,12 @@ void RE_RenderAnim(Render *re,
 {
   const RenderData rd = scene->r;
   bMovieHandle *mh = NULL;
-  int cfrao = scene->r.cfra;
+  const int cfrao = rd.cfra;
   int nfra, totrendered = 0, totskipped = 0;
   const int totvideos = BKE_scene_multiview_num_videos_get(&rd);
-  const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
-  const bool is_multiview_name = ((scene->r.scemode & R_MULTIVIEW) != 0 &&
-                                  (scene->r.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
+  const bool is_movie = BKE_imtype_is_movie(rd.im_format.imtype);
+  const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
+                                  (rd.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
 
   BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
@@ -2495,7 +2496,7 @@ void RE_RenderAnim(Render *re,
 
     get_videos_dimensions(re, &rd, &width, &height);
 
-    mh = BKE_movie_handle_get(scene->r.im_format.imtype);
+    mh = BKE_movie_handle_get(rd.im_format.imtype);
     if (mh == NULL) {
       BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
       return;
@@ -2567,18 +2568,18 @@ void RE_RenderAnim(Render *re,
 
       /* Touch/NoOverwrite options are only valid for image's */
       if (is_movie == false) {
-        if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH)) {
+        if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
           BKE_image_path_from_imformat(name,
-                                       scene->r.pic,
+                                       rd.pic,
                                        BKE_main_blendfile_path(bmain),
                                        scene->r.cfra,
-                                       &scene->r.im_format,
-                                       (scene->r.scemode & R_EXTENSION) != 0,
+                                       &rd.im_format,
+                                       (rd.scemode & R_EXTENSION) != 0,
                                        true,
                                        NULL);
         }
 
-        if (scene->r.mode & R_NO_OVERWRITE) {
+        if (rd.mode & R_NO_OVERWRITE) {
           if (!is_multiview_name) {
             if (BLI_exists(name)) {
               printf("skipping existing frame \"%s\"\n", name);
@@ -2611,7 +2612,7 @@ void RE_RenderAnim(Render *re,
           }
         }
 
-        if (scene->r.mode & R_TOUCH) {
+        if (rd.mode & R_TOUCH) {
           if (!is_multiview_name) {
             if (!BLI_exists(name)) {
               BLI_make_existing_file(name); /* makes the dir if its not there */
@@ -2660,7 +2661,7 @@ void RE_RenderAnim(Render *re,
       if (G.is_break == true) {
         /* remove touched file */
         if (is_movie == false) {
-          if ((scene->r.mode & R_TOUCH)) {
+          if ((rd.mode & R_TOUCH)) {
             if (!is_multiview_name) {
               if ((BLI_file_size(name) == 0)) {
                 /* BLI_exists(name) is implicit */
