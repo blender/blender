@@ -1359,6 +1359,13 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
+  prop = RNA_def_property(srna, "use_mirror_relative", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_MIRROR_RELATIVE);
+  RNA_def_property_ui_text(
+      prop, "Relative Mirror", "Apply relative transformations in X-mirror mode");
+  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   prop = RNA_def_property(srna, "use_auto_ik", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_AUTO_IK);
   RNA_def_property_ui_text(

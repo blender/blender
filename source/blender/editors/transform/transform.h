@@ -383,6 +383,30 @@ typedef struct BoneInitData {
   float zwidth;
 } BoneInitData;
 
+typedef struct PoseInitData_Mirror {
+  /** Points to the bone which this info is initialized & restored to.
+   * A NULL value is used to terminate the array. */
+  struct bPoseChannel *pchan;
+  struct {
+    float loc[3];
+    float size[3];
+    union {
+      float eul[3];
+      float quat[4];
+      float axis_angle[4];
+    };
+    float curve_in_x;
+    float curve_out_x;
+    float roll1;
+    float roll2;
+  } orig;
+  /**
+   * An extra offset to apply after mirroring.
+   * Use with #ARM_MIRROR_RELATIVE.
+   */
+  float offset_mtx[4][4];
+} PoseInitData_Mirror;
+
 typedef struct TransData {
   /** Distance needed to affect element (for Proportionnal Editing). */
   float dist;
@@ -892,6 +916,7 @@ void flushTransSeq(TransInfo *t);
 void flushTransTracking(TransInfo *t);
 void flushTransMasking(TransInfo *t);
 void flushTransPaintCurve(TransInfo *t);
+void restoreMirrorPoseBones(TransDataContainer *tc);
 void restoreBones(TransDataContainer *tc);
 
 /*********************** transform_gizmo.c ********** */

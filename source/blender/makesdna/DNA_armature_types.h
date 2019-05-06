@@ -144,7 +144,7 @@ typedef enum eArmature_Flag {
   ARM_POSEMODE = (1 << 4),
   ARM_FLAG_UNUSED_5 = (1 << 5), /* cleared */
   ARM_DELAYDEFORM = (1 << 6),
-  ARM_FLAG_UNUSED_7 = (1 << 7), /* cleared */
+  ARM_MIRROR_RELATIVE = (1 << 7),
   ARM_MIRROR_EDIT = (1 << 8),
   ARM_AUTO_IK = (1 << 9),
   /** made option negative, for backwards compat */

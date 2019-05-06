@@ -781,6 +781,45 @@ static void recalcData_spaceclip(TransInfo *t)
   }
 }
 
+/**
+ * if pose bone (partial) selected, copy data.
+ * context; posemode armature, with mirror editing enabled.
+ *
+ * \param pid: Optional, apply relative transform when set.
+ */
+static void pose_transform_mirror_update(Object *ob, PoseInitData_Mirror *pid)
+{
+  float flip_mtx[4][4];
+  unit_m4(flip_mtx);
+  flip_mtx[0][0] = -1;
+
+  for (bPoseChannel *pchan_orig = ob->pose->chanbase.first; pchan_orig;
+       pchan_orig = pchan_orig->next) {
+    /* no layer check, correct mirror is more important */
+    if (pchan_orig->bone->flag & BONE_TRANSFORM) {
+      bPoseChannel *pchan = BKE_pose_channel_get_mirrored(ob->pose, pchan_orig->name);
+
+      if (pchan) {
+        /* we assume X-axis flipping for now */
+        pchan->curve_in_x = pchan_orig->curve_in_x * -1;
+        pchan->curve_out_x = pchan_orig->curve_out_x * -1;
+        pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
+        pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
+
+        float pchan_mtx_final[4][4];
+        BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
+        mul_m4_m4m4(pchan_mtx_final, pchan_mtx_final, flip_mtx);
+        mul_m4_m4m4(pchan_mtx_final, flip_mtx, pchan_mtx_final);
+        if (pid) {
+          mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
+          pid++;
+        }
+        BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
+      }
+    }
+  }
+}
+
 /* helper for recalcData() - for object transforms, typically in the 3D view */
 static void recalcData_objects(TransInfo *t)
 {
@@ -991,6 +1030,19 @@ static void recalcData_objects(TransInfo *t)
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bArmature *arm = ob->data;
+
+      if (arm->flag & ARM_MIRROR_EDIT) {
+        if (t->state != TRANS_CANCEL) {
+          PoseInitData_Mirror *pid = NULL;
+          if (arm->flag & ARM_MIRROR_RELATIVE) {
+            pid = tc->custom.type.data;
+          }
+          pose_transform_mirror_update(ob, pid);
+        }
+        else {
+          restoreMirrorPoseBones(tc);
+        }
+      }
 
       /* if animtimer is running, and the object already has animation data,
        * check if the auto-record feature means that we should record 'samples'

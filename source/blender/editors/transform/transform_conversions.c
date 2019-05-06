@@ -1201,6 +1201,74 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
   return (tot_ik) ? 1 : 0;
 }
 
+static void pose_mirror_info_init(PoseInitData_Mirror *pid,
+                                  bPoseChannel *pchan,
+                                  bPoseChannel *pchan_orig,
+                                  bool is_mirror_relative)
+{
+  pid->pchan = pchan;
+  copy_v3_v3(pid->orig.loc, pchan->loc);
+  copy_v3_v3(pid->orig.size, pchan->size);
+  pid->orig.curve_in_x = pchan->curve_in_x;
+  pid->orig.curve_out_x = pchan->curve_out_x;
+  pid->orig.roll1 = pchan->roll1;
+  pid->orig.roll2 = pchan->roll2;
+
+  if (pchan->rotmode > 0) {
+    copy_v3_v3(pid->orig.eul, pchan->eul);
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    copy_v3_v3(pid->orig.axis_angle, pchan->rotAxis);
+    pid->orig.axis_angle[3] = pchan->rotAngle;
+  }
+  else {
+    copy_qt_qt(pid->orig.quat, pchan->quat);
+  }
+
+  if (is_mirror_relative) {
+    float pchan_mtx[4][4];
+    float pchan_mtx_mirror[4][4];
+
+    float flip_mtx[4][4];
+    unit_m4(flip_mtx);
+    flip_mtx[0][0] = -1;
+
+    BKE_pchan_to_mat4(pchan_orig, pchan_mtx_mirror);
+    BKE_pchan_to_mat4(pchan, pchan_mtx);
+
+    mul_m4_m4m4(pchan_mtx_mirror, pchan_mtx_mirror, flip_mtx);
+    mul_m4_m4m4(pchan_mtx_mirror, flip_mtx, pchan_mtx_mirror);
+
+    invert_m4(pchan_mtx_mirror);
+    mul_m4_m4m4(pid->offset_mtx, pchan_mtx, pchan_mtx_mirror);
+  }
+  else {
+    unit_m4(pid->offset_mtx);
+  }
+}
+
+static void pose_mirror_info_restore(const PoseInitData_Mirror *pid)
+{
+  bPoseChannel *pchan = pid->pchan;
+  copy_v3_v3(pchan->loc, pid->orig.loc);
+  copy_v3_v3(pchan->size, pid->orig.size);
+  pchan->curve_in_x = pid->orig.curve_in_x;
+  pchan->curve_out_x = pid->orig.curve_out_x;
+  pchan->roll1 = pid->orig.roll1;
+  pchan->roll2 = pid->orig.roll2;
+
+  if (pchan->rotmode > 0) {
+    copy_v3_v3(pchan->eul, pid->orig.eul);
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    copy_v3_v3(pchan->rotAxis, pid->orig.axis_angle);
+    pchan->rotAngle = pid->orig.axis_angle[3];
+  }
+  else {
+    copy_qt_qt(pchan->quat, pid->orig.quat);
+  }
+}
+
 /**
  * When objects array is NULL, use 't->data_container' as is.
  */
@@ -1225,6 +1293,8 @@ static void createTransPose(TransInfo *t)
       continue;
     }
 
+    const bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+
     /* set flags and count total */
     tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
     if (tc->data_len == 0) {
@@ -1246,6 +1316,25 @@ static void createTransPose(TransInfo *t)
         t->flag |= T_AUTOIK;
         has_translate_rotate[0] = true;
       }
+    }
+
+    if (mirror) {
+      int total_mirrored = 0;
+      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+        if ((pchan->bone->flag & BONE_TRANSFORM) &&
+            BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) {
+          total_mirrored++;
+        }
+      }
+
+      PoseInitData_Mirror *pid = MEM_mallocN((total_mirrored + 1) * sizeof(PoseInitData_Mirror),
+                                            "PoseInitData_Mirror");
+
+      /* Trick to terminate iteration. */
+      pid[total_mirrored].pchan = NULL;
+
+      tc->custom.type.data = pid;
+      tc->custom.type.use_free = true;
     }
   }
 
@@ -1269,6 +1358,19 @@ static void createTransPose(TransInfo *t)
     short ik_on = 0;
     int i;
 
+    PoseInitData_Mirror *pid = tc->custom.type.data;
+    int pid_index = 0;
+    bArmature *arm;
+
+    /* check validity of state */
+    arm = BKE_armature_from_object(tc->poseobj);
+    if ((arm == NULL) || (ob->pose == NULL)) {
+      continue;
+    }
+
+    const bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+    const bool is_mirror_relative = ((arm->flag & ARM_MIRROR_RELATIVE) != 0);
+
     tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
 
     /* init trans data */
@@ -1285,6 +1387,15 @@ static void createTransPose(TransInfo *t)
     for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
         add_pose_transdata(t, pchan, ob, tc, td);
+
+        if (mirror) {
+          bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
+          if (pchan_mirror) {
+            pose_mirror_info_init(&pid[pid_index], pchan_mirror, pchan, is_mirror_relative);
+            pid_index++;
+          }
+        }
+
         td++;
       }
     }
@@ -1302,6 +1413,27 @@ static void createTransPose(TransInfo *t)
   t->flag |= T_POSE;
   /* disable PET, its not usable in pose mode yet [#32444] */
   t->flag &= ~T_PROP_EDIT_ALL;
+}
+
+void restoreMirrorPoseBones(TransDataContainer *tc)
+{
+  bArmature *arm;
+
+  if (tc->obedit) {
+    arm = tc->obedit->data;
+  }
+  else {
+    BLI_assert(tc->poseobj != NULL);
+    arm = tc->poseobj->data;
+  }
+
+  if (!(arm->flag & ARM_MIRROR_EDIT)) {
+    return;
+  }
+
+  for (PoseInitData_Mirror *pid = tc->custom.type.data; pid->pchan; pid++) {
+    pose_mirror_info_restore(pid);
+  }
 }
 
 void restoreBones(TransDataContainer *tc)
