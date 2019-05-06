@@ -314,7 +314,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   /* if brush doesn't exist, create a new one */
   Paint *paint = &ts->gp_paint->paint;
   /* if not exist, create a new one */
-  if (paint->brush == NULL) {
+  if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
     BKE_brush_gpencil_presets(C);
   }

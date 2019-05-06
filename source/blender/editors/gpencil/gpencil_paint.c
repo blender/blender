@@ -1819,7 +1819,7 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
   Paint *paint = &ts->gp_paint->paint;
   bool changed = false;
   /* if not exist, create a new one */
-  if (paint->brush == NULL) {
+  if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     /* create new brushes */
     BKE_brush_gpencil_presets(C);
     changed = true;
