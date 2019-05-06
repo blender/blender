@@ -103,7 +103,7 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
 bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel *pchan)
 {
   BLI_assert(object->type == OB_ARMATURE);
-  if (pchan->bone == NULL) {
+  if (pchan == NULL || pchan->bone == NULL) {
     return false;
   }
   /* We don't really care whether segments are higher than 1 due to static user input (as in,
