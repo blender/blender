@@ -3097,9 +3097,9 @@ void wm_event_do_handlers(bContext *C)
       CTX_data_scene_set(C, scene);
 
       Depsgraph *depsgraph = CTX_data_depsgraph(C);
-      Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+      Scene *scene_eval = DEG_get_evaluated_scene_if_exists(depsgraph);
 
-      if (scene) {
+      if (scene_eval) {
         const int is_playing_sound = BKE_sound_scene_playing(scene_eval);
 
         if (is_playing_sound != -1) {
