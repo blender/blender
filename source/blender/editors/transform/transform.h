@@ -525,7 +525,7 @@ typedef struct TransDataContainer {
   struct Object *obedit;
 
   /**
-   * Use when #T_LOCAL_MATRIX is set.
+   * Store matrix, this avoids having to have duplicate check all over
    * Typically: 'obedit->obmat' or 'poseobj->obmat', but may be used elsewhere too.
    */
   bool use_local_mat;
@@ -739,10 +739,8 @@ enum {
   T_CURSOR = 1 << 5,
   /** Transform points, having no rotation/scale. */
   T_POINTS = 1 << 6,
-  /**
-   * Apply matrix #TransDataContainer.matrix, this avoids having to have duplicate check all over
-   * that happen to apply to specific modes (edit & pose for eg). */
-  T_LOCAL_MATRIX = 1 << 7,
+
+  /* empty slot - (1 << 7) */
 
   /** restrictions flags */
   T_NO_CONSTRAINT = 1 << 8,
