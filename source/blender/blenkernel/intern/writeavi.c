@@ -118,7 +118,6 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
   mh.start_movie = start_stub;
   mh.append_movie = append_stub;
   mh.end_movie = end_stub;
-  mh.get_next_frame = NULL;
   mh.get_movie_path = NULL;
   mh.context_create = context_create_stub;
   mh.context_free = context_free_stub;

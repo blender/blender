@@ -2530,23 +2530,6 @@ void RE_RenderAnim(Render *re,
     for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
       char name[FILE_MAX];
 
-      /* Special case for 'mh->get_next_frame'
-       * this overrides regular frame stepping logic */
-      if (mh && mh->get_next_frame) {
-        while (G.is_break == false) {
-          int nfra_test = mh->get_next_frame(re->movie_ctx_arr[0], &re->r, re->reports);
-          if (nfra_test >= 0 && nfra_test >= sfra && nfra_test <= efra) {
-            nfra = nfra_test;
-            break;
-          }
-          else {
-            if (re->test_break(re->tbh)) {
-              G.is_break = true;
-            }
-          }
-        }
-      }
-
       /* Here is a feedback loop exists -- render initialization requires updated
        * render layers settings which could be animated, but scene evaluation for
        * the frame happens later because it depends on what layers are visible to
