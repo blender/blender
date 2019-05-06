@@ -116,11 +116,24 @@ class FILEBROWSER_UL_dir(UIList):
             layout.prop(direntry, "path", text="")
 
 
-class FILEBROWSER_PT_system_folders(Panel):
+
+class FILEBROWSER_PT_bookmarks(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
-    bl_label = "System"
+    bl_label = "Bookmarks"
+
+    def draw(self, context):
+        pass
+
+
+class FILEBROWSER_PT_bookmarks_volumes(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_parent_id = "FILEBROWSER_PT_bookmarks"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Bookmarks"
+    bl_label = "Volumes"
 
     def draw(self, context):
         layout = self.layout
@@ -132,11 +145,12 @@ class FILEBROWSER_PT_system_folders(Panel):
                               space, "system_folders_active", item_dyntip_propname="path", rows=1, maxrows=10)
 
 
-class FILEBROWSER_PT_system_bookmarks(Panel):
+class FILEBROWSER_PT_bookmarks_system(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
+    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
-    bl_label = "System Bookmarks"
+    bl_label = "System"
 
     @classmethod
     def poll(cls, context):
@@ -164,11 +178,12 @@ class FILEBROWSER_MT_bookmarks_context_menu(Menu):
         layout.operator("file.bookmark_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").direction = 'BOTTOM'
 
 
-class FILEBROWSER_PT_bookmarks(Panel):
+class FILEBROWSER_PT_bookmarks_favorites(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
+    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
-    bl_label = "Bookmarks"
+    bl_label = "Favorites"
 
     def draw(self, context):
         layout = self.layout
@@ -194,11 +209,13 @@ class FILEBROWSER_PT_bookmarks(Panel):
             layout.operator("file.bookmark_add", icon='ADD')
 
 
-class FILEBROWSER_PT_recent_folders(Panel):
+class FILEBROWSER_PT_bookmarks_recents(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
+    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
-    bl_label = "Recent"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_label = "Recents"
 
     @classmethod
     def poll(cls, context):
@@ -220,6 +237,7 @@ class FILEBROWSER_PT_recent_folders(Panel):
 class FILEBROWSER_PT_advanced_filter(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
+    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Filter"
     bl_label = "Advanced Filter"
 
@@ -260,11 +278,12 @@ class FILEBROWSER_MT_view(Menu):
 classes = (
     FILEBROWSER_HT_header,
     FILEBROWSER_UL_dir,
-    FILEBROWSER_PT_system_folders,
-    FILEBROWSER_PT_system_bookmarks,
-    FILEBROWSER_MT_bookmarks_context_menu,
     FILEBROWSER_PT_bookmarks,
-    FILEBROWSER_PT_recent_folders,
+    FILEBROWSER_PT_bookmarks_volumes,
+    FILEBROWSER_PT_bookmarks_system,
+    FILEBROWSER_MT_bookmarks_context_menu,
+    FILEBROWSER_PT_bookmarks_favorites,
+    FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_MT_view,
 )
