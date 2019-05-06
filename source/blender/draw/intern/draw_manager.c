@@ -1621,10 +1621,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   drw_engines_draw_scene();
 
-#ifdef __APPLE__
-  /* Fix 3D view being "laggy" on macos. (See T56996) */
+  /* Fix 3D view being "laggy" on macos and win+nvidia. (See T56996, T61474) */
   GPU_flush();
-#endif
 
   /* annotations - temporary drawing buffer (3d space) */
   /* XXX: Or should we use a proper draw/overlay engine for this case? */
