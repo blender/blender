@@ -3748,6 +3748,41 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.menu("VIEW3D_MT_edit_mesh_faces_data")
 
+class VIEW3D_MT_edit_mesh_normals_select_strength(Menu):
+    bl_label = "Select by Face Strength"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Weak")
+        op.set = False
+        op.face_strength = 'WEAK'
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Medium")
+        op.set = False
+        op.face_strength = 'MEDIUM'
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Strong")
+        op.set = False
+        op.face_strength = 'STRONG'
+
+class VIEW3D_MT_edit_mesh_normals_set_strength(Menu):
+    bl_label = "Select by Face Strength"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Weak")
+        op.set = True
+        op.face_strength = 'WEAK'
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Medium")
+        op.set = True
+        op.face_strength = 'MEDIUM'
+
+        op = layout.operator("mesh.mod_weighted_strength", text="Strong")
+        op.set = True
+        op.face_strength = 'STRONG'
 
 class VIEW3D_MT_edit_mesh_normals(Menu):
     bl_label = "Normals"
@@ -3780,8 +3815,8 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.mod_weighted_strength", text="Get Face Strength").set = False
-        layout.operator("mesh.mod_weighted_strength", text="Set Face Strength").set = True
+        layout.menu("VIEW3D_MT_edit_mesh_normals_select_strength", text="Select by Face Strength")
+        layout.menu("VIEW3D_MT_edit_mesh_normals_set_strength", text="Set Face Strength")
 
 
 class VIEW3D_MT_edit_mesh_shading(Menu):
@@ -6450,6 +6485,8 @@ classes = (
     VIEW3D_MT_edit_mesh_faces,
     VIEW3D_MT_edit_mesh_faces_data,
     VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_normals_select_strength,
+    VIEW3D_MT_edit_mesh_normals_set_strength,
     VIEW3D_MT_edit_mesh_shading,
     VIEW3D_MT_edit_mesh_weights,
     VIEW3D_MT_edit_mesh_clean,

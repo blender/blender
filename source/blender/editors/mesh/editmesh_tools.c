@@ -8973,7 +8973,7 @@ static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
   const int cd_prop_int_offset = CustomData_get_n_offset(
       &bm->pdata, CD_PROP_INT, cd_prop_int_index);
 
-  const int face_strength = scene->toolsettings->face_strength;
+  const int face_strength = RNA_enum_get(op->ptr, "face_strength");
   const bool set = RNA_boolean_get(op->ptr, "set");
   BM_mesh_elem_index_ensure(bm, BM_FACE);
 
@@ -9002,6 +9002,13 @@ static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static const EnumPropertyItem prop_mesh_face_strength_types[] = {
+    {FACE_STRENGTH_WEAK, "WEAK", 0, "Weak", ""},
+    {FACE_STRENGTH_MEDIUM, "MEDIUM", 0, "Medium", ""},
+    {FACE_STRENGTH_STRONG, "STRONG", 0, "Strong", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -9017,5 +9024,12 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->prop = RNA_def_boolean(ot->srna, "set", 0, "Set value", "Set Value of faces");
-  RNA_def_property_flag(ot->prop, PROP_HIDDEN);
+
+  ot->prop = RNA_def_enum(
+      ot->srna,
+      "face_strength",
+      prop_mesh_face_strength_types,
+      FACE_STRENGTH_MEDIUM,
+      "Face Strength",
+      "Strength to use for assigning or selecting face influence for weighted normal modifier");
 }
