@@ -397,6 +397,8 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   state->visibility_cb = NULL;
   state->matflag = 0;
 
+  drw_call_state_update_matflag(state, shgroup, ob);
+
   /* Matrices */
   if (obmat != NULL) {
     copy_m4_m4(state->model, obmat);
@@ -423,8 +425,6 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
     state->bsphere.radius = -1.0f;
   }
 
-  drw_call_state_update_matflag(state, shgroup, ob);
-
   return state;
 }
 
@@ -447,14 +447,14 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obma
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_range_add(
@@ -465,6 +465,8 @@ void DRW_shgroup_call_range_add(
   BLI_assert(v_count);
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_RANGE;
   call->range.geometry = geom;
@@ -473,8 +475,6 @@ void DRW_shgroup_call_range_add(
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
@@ -486,20 +486,15 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
-  if (ob) {
-    call->state = drw_call_state_object(shgroup, ob->obmat, ob);
-  }
-  else {
-    call->state = drw_call_state_create(shgroup, obmat, NULL);
-  }
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
+  call->state = drw_call_state_object(shgroup, ob ? ob->obmat : obmat, ob);
   call->type = DRW_CALL_PROCEDURAL;
   call->procedural.prim_type = prim_type;
   call->procedural.vert_count = vert_count;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup,
@@ -531,18 +526,17 @@ void DRW_shgroup_call_object_add_ex(
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
+  /* NOTE this will disable culling for the whole object. */
+  call->state->flag |= (bypass_culling) ? DRW_CALL_BYPASS_CULLING : 0;
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
   call->single.ma_index = ma ? ma->index : 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  /* NOTE this will disable culling for the whole object. */
-  call->state->flag |= (bypass_culling) ? DRW_CALL_BYPASS_CULLING : 0;
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
@@ -556,6 +550,8 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->state->visibility_cb = callback;
   call->state->user_data = user_data;
@@ -565,8 +561,6 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
@@ -578,6 +572,8 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_INSTANCES;
   call->instances.geometry = geom;
@@ -585,8 +581,6 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 /* These calls can be culled and are optimized for redraw */
@@ -599,6 +593,8 @@ void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
+  BLI_LINKS_APPEND(&shgroup->calls, call);
+
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->type = DRW_CALL_INSTANCES;
   call->instances.geometry = geom;
@@ -606,8 +602,6 @@ void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
-
-  BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 // #define SCULPT_DEBUG_BUFFERS
