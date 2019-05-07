@@ -60,6 +60,7 @@
 #include "ED_mask.h"
 #include "ED_sequencer.h"
 #include "ED_screen.h"
+#include "ED_scrubbing.h"
 #include "ED_space_api.h"
 
 #include "BIF_glutil.h"
@@ -2085,19 +2086,14 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
+  /* scrubbing region */
+  ED_scrubbing_draw(ar, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
+
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 
-  /* scale numbers */
-  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, !(sseq->flag & SEQ_DRAWFRAMES), TH_TEXT);
-  UI_view2d_draw_scale_y__block(ar, v2d, &v2d->vert, TH_TEXT);
-
-  /* draw current frame number-indicator on top of scrollers */
-  if ((sseq->flag & SEQ_NO_DRAW_CFRANUM) == 0) {
-    UI_view2d_view_orthoSpecial(ar, v2d, 1);
-    ANIM_draw_cfra_number(C, v2d, cfra_flag);
-  }
+  /* channel numbers */
+  UI_view2d_draw_scale_y__block(ar, v2d, &v2d->vert, TH_SCROLL_TEXT);
 }

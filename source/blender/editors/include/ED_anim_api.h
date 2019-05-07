@@ -403,7 +403,8 @@ typedef enum eAnimFilter_Flags {
 /* -------------- Channel Defines -------------- */
 
 /* channel heights */
-#define ACHANNEL_FIRST_TOP(ac) (-0.4f * (ac)->yscale_fac * U.widget_unit)
+#define ACHANNEL_FIRST_TOP(ac) \
+  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_SCRUBBING_MARGIN_Y - ACHANNEL_SKIP)
 #define ACHANNEL_HEIGHT(ac) (0.8f * (ac)->yscale_fac * U.widget_unit)
 #define ACHANNEL_SKIP (0.1f * U.widget_unit)
 #define ACHANNEL_STEP(ac) (ACHANNEL_HEIGHT(ac) + ACHANNEL_SKIP)
@@ -420,14 +421,15 @@ typedef enum eAnimFilter_Flags {
 /* -------------- NLA Channel Defines -------------- */
 
 /* NLA channel heights */
-#define NLACHANNEL_FIRST_TOP(snla) (-0.4f * U.widget_unit)
+#define NLACHANNEL_FIRST_TOP(ac) \
+  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_SCRUBBING_MARGIN_Y - NLACHANNEL_SKIP)
 #define NLACHANNEL_HEIGHT(snla) \
   ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : (1.2f * U.widget_unit))
 #define NLACHANNEL_SKIP (0.1f * U.widget_unit)
 #define NLACHANNEL_STEP(snla) (NLACHANNEL_HEIGHT(snla) + NLACHANNEL_SKIP)
 /* Additional offset to give some room at the end. */
-#define NLACHANNEL_TOT_HEIGHT(snla, item_amount) \
-  (-NLACHANNEL_FIRST_TOP(snla) + NLACHANNEL_STEP(snla) * (item_amount + 1))
+#define NLACHANNEL_TOT_HEIGHT(ac, item_amount) \
+  (-NLACHANNEL_FIRST_TOP(ac) + NLACHANNEL_STEP(((SpaceNla *)(ac)->sl)) * (item_amount + 1))
 
 /* channel widths */
 #define NLACHANNEL_NAMEWIDTH (10 * U.widget_unit)

@@ -120,6 +120,18 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
     if (btheme->space_view3d.obcenter_dia == 0) {
       btheme->space_view3d.obcenter_dia = U_theme_default.space_view3d.obcenter_dia;
     }
+
+    FROM_DEFAULT_V4_UCHAR(space_graph.text);
+    FROM_DEFAULT_V4_UCHAR(space_action.text);
+    FROM_DEFAULT_V4_UCHAR(space_nla.text);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.text);
+    FROM_DEFAULT_V4_UCHAR(space_clip.text);
+
+    FROM_DEFAULT_V4_UCHAR(space_graph.scrubbing_background);
+    FROM_DEFAULT_V4_UCHAR(space_action.scrubbing_background);
+    FROM_DEFAULT_V4_UCHAR(space_nla.scrubbing_background);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.scrubbing_background);
+    FROM_DEFAULT_V4_UCHAR(space_clip.scrubbing_background);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

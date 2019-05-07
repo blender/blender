@@ -47,6 +47,7 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "nla_intern.h"  // own include
 
@@ -542,7 +543,7 @@ static void mouse_nla_strips(
    * (i.e a row in the list) where keyframe was */
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
   UI_view2d_listview_view_to_cell(
-      0, NLACHANNEL_STEP(snla), 0, NLACHANNEL_FIRST_TOP(snla), x, y, NULL, &channel_index);
+      0, NLACHANNEL_STEP(snla), 0, NLACHANNEL_FIRST_TOP(ac), x, y, NULL, &channel_index);
 
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
    * (that is the size of keyframe icons, so user should be expecting similar tolerances)

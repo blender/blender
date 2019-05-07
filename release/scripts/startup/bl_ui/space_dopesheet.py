@@ -31,7 +31,7 @@ from bpy.types import (
 # used for DopeSheet, NLA, and Graph Editors
 
 
-def dopesheet_filter(layout, context, generic_filters_only=False):
+def dopesheet_filter(layout, context):
     dopesheet = context.space_data.dopesheet
     is_nla = context.area.type == 'NLA_EDITOR'
 
@@ -43,18 +43,6 @@ def dopesheet_filter(layout, context, generic_filters_only=False):
         row.prop(dopesheet, "show_missing_nla", text="")
     else:  # graph and dopesheet editors - F-Curves and drivers only
         row.prop(dopesheet, "show_only_errors", text="")
-
-    if not generic_filters_only:
-        if bpy.data.collections:
-            row = layout.row(align=True)
-            row.prop(dopesheet, "filter_collection", text="")
-
-    if not is_nla:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "filter_fcurve_name", text="")
-    else:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "filter_text", text="")
 
 #######################################
 # Dopesheet Filtering Popovers
@@ -260,9 +248,7 @@ class DOPESHEET_HT_editor_buttons(Header):
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
         elif st.mode == 'ACTION':
-            # 'generic_filters_only' limits the options to only the relevant 'generic' subset of
-            # filters which will work here and are useful (especially for character animation)
-            dopesheet_filter(layout, context, generic_filters_only=True)
+            dopesheet_filter(layout, context)
         elif st.mode == 'GPENCIL':
             row = layout.row(align=True)
             row.prop(st.dopesheet, "show_gpencil_3d_only", text="Active Only")

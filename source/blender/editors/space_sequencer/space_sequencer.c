@@ -816,7 +816,7 @@ void ED_spacetype_sequencer(void)
   art->draw = sequencer_main_region_draw;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
-  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
+  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
 
   BLI_addhead(&st->regiontypes, art);
 

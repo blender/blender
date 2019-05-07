@@ -185,6 +185,13 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
       v2d->vert.xmin = v2d->vert.xmax - scroll_width;
     }
 
+    /* Currently, all regions that have vertical scale text,
+     * also have the scrubbing area at the top.
+     * So the scrollbar has to move down a bit. */
+    if (scroll & V2D_SCROLL_SCALE_VERTICAL) {
+      v2d->vert.ymax -= UI_SCRUBBING_MARGIN_Y;
+    }
+
     /* horizontal scroller */
     if (scroll & (V2D_SCROLL_BOTTOM)) {
       /* on bottom edge of region */

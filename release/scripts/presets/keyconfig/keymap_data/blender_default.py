@@ -1307,6 +1307,22 @@ def km_markers(params):
     return keymap
 
 
+def km_scrubbing(params):
+    items = []
+    keymap = (
+        "Scrubbing",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("anim.change_frame", {"type": "LEFTMOUSE", "value": 'PRESS'}, None),
+        ("graph.cursor_set", {"type": "LEFTMOUSE", "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_graph_editor_generic(_params):
     items = []
     keymap = (
@@ -6105,6 +6121,7 @@ def generate_keymaps(params=None):
         km_view3d(params),
         km_mask_editing(params),
         km_markers(params),
+        km_scrubbing(params),
         km_graph_editor_generic(params),
         km_graph_editor(params),
         km_image_generic(params),

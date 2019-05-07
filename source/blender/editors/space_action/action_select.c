@@ -47,6 +47,7 @@
 #include "BKE_gpencil.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"

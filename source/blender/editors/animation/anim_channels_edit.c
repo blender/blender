@@ -55,6 +55,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -2542,7 +2543,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
 
   float ymax;
   if (ac->datatype == ANIMCONT_NLA) {
-    ymax = NLACHANNEL_FIRST_TOP(snla);
+    ymax = NLACHANNEL_FIRST_TOP(ac);
   }
   else {
     ymax = ACHANNEL_FIRST_TOP(ac);
@@ -2735,7 +2736,7 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
     UI_view2d_listview_view_to_cell(NLACHANNEL_NAMEWIDTH,
                                     NLACHANNEL_STEP(snla),
                                     0,
-                                    NLACHANNEL_FIRST_TOP(snla),
+                                    NLACHANNEL_FIRST_TOP(ac),
                                     x,
                                     y,
                                     NULL,

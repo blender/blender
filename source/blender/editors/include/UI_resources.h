@@ -105,6 +105,7 @@ typedef enum ThemeColorID {
   TH_FACE_DOT,
   TH_FACEDOT_SIZE,
   TH_CFRAME,
+  TH_SCRUBBING_BACKGROUND,
   TH_TIME_KEYFRAME,
   TH_TIME_GP_KEYFRAME,
   TH_NURB_ULINE,
@@ -266,6 +267,8 @@ typedef enum ThemeColorID {
   TH_ICON_OBJECT_DATA,
   TH_ICON_MODIFIER,
   TH_ICON_SHADING,
+
+  TH_SCROLL_TEXT,
 
   TH_NLA_TWEAK,       /* 'tweaking' track in NLA */
   TH_NLA_TWEAK_DUPLI, /* error/warning flag for other strips referencing dupli strip */

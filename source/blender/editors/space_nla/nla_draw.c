@@ -689,11 +689,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
    * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
    *   start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = NLACHANNEL_TOT_HEIGHT(snla, items);
+  int height = NLACHANNEL_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
   /* loop through channels, and set up drawing depending on their type  */
-  float ymax = NLACHANNEL_FIRST_TOP(snla);
+  float ymax = NLACHANNEL_FIRST_TOP(ac);
 
   for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
     float ymin = ymax - NLACHANNEL_HEIGHT(snla);
@@ -822,7 +822,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
    * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
    *  start of list offset, and the second is as a correction for the scrollers.
    */
-  int height = NLACHANNEL_TOT_HEIGHT(snla, items);
+  int height = NLACHANNEL_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
@@ -832,7 +832,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
   /* draw channels */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
-    float ymax = NLACHANNEL_FIRST_TOP(snla);
+    float ymax = NLACHANNEL_FIRST_TOP(ac);
 
     for (ale = anim_data.first; ale;
          ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
@@ -849,7 +849,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
   { /* second pass: UI widgets */
     uiBlock *block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
     size_t channel_index = 0;
-    float ymax = NLACHANNEL_FIRST_TOP(snla);
+    float ymax = NLACHANNEL_FIRST_TOP(ac);
 
     /* set blending again, as may not be set in previous step */
     GPU_blend_set_func_separate(

@@ -44,6 +44,7 @@ set(SRC
   anim_markers.c
   anim_motion_paths.c
   anim_ops.c
+  anim_scrubbing.c
   drivers.c
   fmodifier_ui.c
   keyframes_draw.c

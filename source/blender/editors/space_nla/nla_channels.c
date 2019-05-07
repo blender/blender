@@ -52,6 +52,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
@@ -389,7 +391,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
   UI_view2d_listview_view_to_cell(NLACHANNEL_NAMEWIDTH,
                                   NLACHANNEL_STEP(snla),
                                   0,
-                                  NLACHANNEL_FIRST_TOP(snla),
+                                  NLACHANNEL_FIRST_TOP(&ac),
                                   x,
                                   y,
                                   NULL,

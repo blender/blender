@@ -309,6 +309,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_GRID:
           cp = ts->grid;
           break;
+        case TH_SCRUBBING_BACKGROUND:
+          cp = ts->scrubbing_background;
+          break;
         case TH_VIEW_OVERLAY:
           cp = ts->view_overlay;
           break;
@@ -879,6 +882,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_ICON_SHADING:
           cp = btheme->tui.icon_shading;
+          break;
+
+        case TH_SCROLL_TEXT:
+          cp = btheme->tui.wcol_scroll.text;
           break;
 
         case TH_INFO_SELECTED:

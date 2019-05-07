@@ -485,14 +485,8 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 {
   if (name) {
-    BLI_strncpy(name, IFACE_("Dope Sheet Summary"), ANIM_CHAN_NAME_SIZE);
+    BLI_strncpy(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
   }
-}
-
-// FIXME: this is really a temp icon I think
-static int acf_summary_icon(bAnimListElem *UNUSED(ale))
-{
-  return ICON_BORDERMOVE;
 }
 
 /* check if some setting exists for this channel */
@@ -557,7 +551,7 @@ static bAnimChannelType ACF_SUMMARY = {
 
     acf_summary_name, /* name */
     NULL,             /* name prop */
-    acf_summary_icon, /* icon */
+    NULL,             /* icon */
 
     acf_summary_setting_valid, /* has setting */
     acf_summary_setting_flag,  /* flag for setting */

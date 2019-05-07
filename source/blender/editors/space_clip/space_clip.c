@@ -47,6 +47,7 @@
 #include "ED_mask.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_scrubbing.h"
 #include "ED_select_utils.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
@@ -1041,22 +1042,16 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
+  /* time-scrubbing */
+  ED_scrubbing_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
+
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
 
   /* scale indicators */
-  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS, TH_TEXT);
   UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert, TH_TEXT);
-
-  /* current frame indicator */
-  if (sc->flag & SC_SHOW_SECONDS) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
-  UI_view2d_view_orthoSpecial(ar, v2d, 1);
-  ANIM_draw_cfra_number(C, v2d, cfra_flag);
 }
 
 static void dopesheet_region_draw(const bContext *C, ARegion *ar)
@@ -1093,18 +1088,13 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
+  /* time-scrubbing */
+  ED_scrubbing_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
+
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
-
-  /* frame numbers */
-  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, sc->flag & SC_SHOW_SECONDS, TH_TEXT);
-
-  /* current frame number indicator */
-  UI_view2d_view_orthoSpecial(ar, v2d, 1);
-  ANIM_draw_cfra_number(C, v2d, cfra_flag);
 }
 
 static void clip_preview_region_draw(const bContext *C, ARegion *ar)

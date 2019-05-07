@@ -47,11 +47,13 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"
+#include "ED_scrubbing.h"
 
 #include "action_intern.h" /* own include */
 #include "GPU_framebuffer.h"
@@ -234,20 +236,13 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
+  /* scrubbing region */
+  ED_scrubbing_draw(ar, scene, saction->flag & SACTION_DRAWTIME, true);
+
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
   UI_view2d_scrollers_draw(v2d, scrollers);
   UI_view2d_scrollers_free(scrollers);
-
-  /* frame numbers */
-  UI_view2d_draw_scale_x__discrete_frames_or_seconds(
-      ar, v2d, &v2d->hor, scene, saction->flag & SACTION_DRAWTIME, TH_TEXT);
-
-  /* draw current frame number-indicator on top of scrollers */
-  if ((saction->flag & SACTION_NODRAWCFRANUM) == 0) {
-    UI_view2d_view_orthoSpecial(ar, v2d, 1);
-    ANIM_draw_cfra_number(C, v2d, cfra_flag);
-  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -284,6 +279,9 @@ static void action_channel_region_draw(const bContext *C, ARegion *ar)
   if (ANIM_animdata_get_context(C, &ac)) {
     draw_channel_names((bContext *)C, &ac, ar);
   }
+
+  /* channel filter next to scrubbing area */
+  ED_channel_search_draw(C, ar, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -869,7 +867,7 @@ void ED_spacetype_action(void)
   art->draw = action_main_region_draw;
   art->listener = action_main_region_listener;
   art->message_subscribe = saction_main_region_message_subscribe;
-  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
+  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);
 
