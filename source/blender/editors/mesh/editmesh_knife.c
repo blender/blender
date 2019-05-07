@@ -2811,6 +2811,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
       {KNF_MODAL_CUT_THROUGH_TOGGLE, "CUT_THROUGH_TOGGLE", 0, "Toggle Cut Through", ""},
       {KNF_MODAL_NEW_CUT, "NEW_CUT", 0, "End Current Cut", ""},
       {KNF_MODAL_ADD_CUT, "ADD_CUT", 0, "Add Cut", ""},
+      {KNF_MODAL_ADD_CUT_CLOSED, "ADD_CUT_CLOSED", 0, "Add Cut Closed", ""},
       {KNF_MODAL_PANNING, "PANNING", 0, "Panning", ""},
       {0, NULL, 0, NULL, NULL},
   };
