@@ -118,7 +118,7 @@ GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport);
 GPUTexture *GPU_viewport_texture_pool_query(
     GPUViewport *viewport, void *engine, int width, int height, int format);
 
-bool GPU_viewport_engines_data_validate(GPUViewport *viewport, unsigned int hash);
+bool GPU_viewport_engines_data_validate(GPUViewport *viewport, void **engine_handle_array);
 void GPU_viewport_cache_release(GPUViewport *viewport);
 
 #endif  // __GPU_VIEWPORT_H__

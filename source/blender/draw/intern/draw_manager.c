@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_memblock.h"
 #include "BLI_rect.h"
@@ -30,6 +31,7 @@
 
 #include "BLF_api.h"
 
+#include "BKE_anim.h"
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
@@ -1108,7 +1110,7 @@ static void drw_engines_cache_populate(Object *ob)
 
   /* TODO: in the future it would be nice to generate once for all viewports.
    * But we need threaded DRW manager first. */
-  drw_batch_cache_generate_requested(ob);
+  drw_batch_cache_generate_requested(DST.dupli_source ? DST.dupli_source->ob : ob);
 
   /* ... and clearing it here too because theses draw data are
    * from a mempool and must not be free individually by depsgraph. */
@@ -1402,17 +1404,19 @@ static void drw_engines_disable(void)
   BLI_freelistN(&DST.enabled_engines);
 }
 
-static uint DRW_engines_get_hash(void)
+static void drw_engines_data_validate(void)
 {
-  uint hash = 0;
-  /* The cache depends on enabled engines */
-  /* FIXME : if collision occurs ... segfault */
+  int enabled_engines = BLI_listbase_count(&DST.enabled_engines);
+  void **engine_handle_array = BLI_array_alloca(engine_handle_array, enabled_engines + 1);
+  int i = 0;
+
   for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
     DrawEngineType *engine = link->data;
-    hash += BLI_ghashutil_strhash_p(engine->idname);
+    engine_handle_array[i++] = engine;
   }
+  engine_handle_array[i] = NULL;
 
-  return hash;
+  GPU_viewport_engines_data_validate(DST.viewport, engine_handle_array);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1525,8 +1529,6 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DST.viewport = viewport;
 
   /* Setup viewport */
-  GPU_viewport_engines_data_validate(DST.viewport, DRW_engines_get_hash());
-
   DST.draw_ctx = (DRWContextState){
       .ar = ar,
       .rv3d = rv3d,
@@ -1545,6 +1547,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   /* Get list of enabled engines */
   drw_engines_enable(view_layer, engine_type);
+
+  drw_engines_data_validate();
 
   /* Update ubos */
   DRW_globals_update();
@@ -2029,7 +2033,7 @@ void DRW_render_object_iter(
       DST.ob_state = NULL;
       callback(vedata, ob, engine, depsgraph);
 
-      drw_batch_cache_generate_requested(ob);
+      drw_batch_cache_generate_requested(DST.dupli_source ? DST.dupli_source->ob : ob);
     }
   }
   DEG_OBJECT_ITER_END;
@@ -2262,14 +2266,10 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     drw_engines_world_update(scene);
 
     if (use_obedit) {
-#  if 0
-      drw_engines_cache_populate(obact);
-#  else
       FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
         drw_engines_cache_populate(ob_iter);
       }
       FOREACH_OBJECT_IN_MODE_END;
-#  endif
     }
     else {
       const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |

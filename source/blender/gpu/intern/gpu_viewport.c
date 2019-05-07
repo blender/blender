@@ -48,6 +48,8 @@
 static const int default_fbl_len = (sizeof(DefaultFramebufferList)) / sizeof(void *);
 static const int default_txl_len = (sizeof(DefaultTextureList)) / sizeof(void *);
 
+#define MAX_ENABLE_ENGINE 8
+
 /* Maximum number of simultaneous engine enabled at the same time.
  * Setting it lower than the real number will do lead to
  * higher VRAM usage due to sub-efficient buffer reuse. */
@@ -64,8 +66,11 @@ struct GPUViewport {
   int samples;
   int flag;
 
-  ListBase data;  /* ViewportEngineData wrapped in LinkData */
-  uint data_hash; /* If hash mismatch we free all ViewportEngineData in this viewport */
+  /* If engine_handles mismatch we free all ViewportEngineData in this viewport */
+  struct {
+    void *handle;
+    ViewportEngineData *data;
+  } engine_data[MAX_ENABLE_ENGINE];
 
   DefaultFramebufferList *fbl;
   DefaultTextureList *txl;
@@ -172,7 +177,6 @@ void GPU_viewport_clear_from_offscreen(GPUViewport *viewport)
 
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
 {
-  LinkData *ld = MEM_callocN(sizeof(LinkData), "LinkData");
   ViewportEngineData *data = MEM_callocN(sizeof(ViewportEngineData), "ViewportEngineData");
   int fbl_len, txl_len, psl_len, stl_len;
 
@@ -185,20 +189,25 @@ void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
   data->psl = MEM_callocN((sizeof(void *) * psl_len) + sizeof(PassList), "PassList");
   data->stl = MEM_callocN((sizeof(void *) * stl_len) + sizeof(StorageList), "StorageList");
 
-  ld->data = data;
-  BLI_addtail(&viewport->data, ld);
+  for (int i = 0; i < MAX_ENABLE_ENGINE; i++) {
+    if (viewport->engine_data[i].handle == NULL) {
+      viewport->engine_data[i].handle = engine_type;
+      viewport->engine_data[i].data = data;
+      return data;
+    }
+  }
 
-  return data;
+  BLI_assert(!"Too many draw engines enabled at the same time");
+  return NULL;
 }
 
 static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 {
   int fbl_len, txl_len, psl_len, stl_len;
 
-  LinkData *next;
-  for (LinkData *link = viewport->data.first; link; link = next) {
-    next = link->next;
-    ViewportEngineData *data = link->data;
+  for (int i = 0; i < MAX_ENABLE_ENGINE && viewport->engine_data[i].handle; i++) {
+    ViewportEngineData *data = viewport->engine_data[i].data;
+
     DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, &psl_len, &stl_len);
 
     gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
@@ -219,19 +228,20 @@ static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 
     MEM_freeN(data);
 
-    BLI_remlink(&viewport->data, link);
-    MEM_freeN(link);
+    /* Mark as unused*/
+    viewport->engine_data[i].handle = NULL;
   }
 
   gpu_viewport_texture_pool_free(viewport);
 }
 
-void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type)
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_handle)
 {
-  for (LinkData *link = viewport->data.first; link; link = link->next) {
-    ViewportEngineData *vdata = link->data;
-    if (vdata->engine_type == engine_type) {
-      return vdata;
+  BLI_assert(engine_handle != NULL);
+
+  for (int i = 0; i < MAX_ENABLE_ENGINE; i++) {
+    if (viewport->engine_data[i].handle == engine_handle) {
+      return viewport->engine_data[i].data;
     }
   }
   return NULL;
@@ -352,24 +362,22 @@ static void gpu_viewport_texture_pool_free(GPUViewport *viewport)
   BLI_freelistN(&viewport->tex_pool);
 }
 
-bool GPU_viewport_engines_data_validate(GPUViewport *viewport, uint hash)
+/* Takes an NULL terminated array of engine_handle. Returns true is data is still valid. */
+bool GPU_viewport_engines_data_validate(GPUViewport *viewport, void **engine_handle_array)
 {
-  bool dirty = false;
-
-  if (viewport->data_hash != hash) {
-    gpu_viewport_engines_data_free(viewport);
-    dirty = true;
+  for (int i = 0; i < MAX_ENABLE_ENGINE && engine_handle_array[i]; i++) {
+    if (viewport->engine_data[i].handle != engine_handle_array[i]) {
+      gpu_viewport_engines_data_free(viewport);
+      return false;
+    }
   }
-
-  viewport->data_hash = hash;
-
-  return dirty;
+  return true;
 }
 
 void GPU_viewport_cache_release(GPUViewport *viewport)
 {
-  for (LinkData *link = viewport->data.first; link; link = link->next) {
-    ViewportEngineData *data = link->data;
+  for (int i = 0; i < MAX_ENABLE_ENGINE && viewport->engine_data[i].handle; i++) {
+    ViewportEngineData *data = viewport->engine_data[i].data;
     int psl_len;
     DRW_engine_viewport_data_size_get(data->engine_type, NULL, NULL, &psl_len, NULL);
     gpu_viewport_passes_free(data->psl, psl_len);
@@ -468,8 +476,8 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
                                 (TextureList *)viewport->txl,
                                 default_txl_len);
 
-      for (LinkData *link = viewport->data.first; link; link = link->next) {
-        ViewportEngineData *data = link->data;
+      for (int i = 0; i < MAX_ENABLE_ENGINE && viewport->engine_data[i].handle; i++) {
+        ViewportEngineData *data = viewport->engine_data[i].data;
         DRW_engine_viewport_data_size_get(data->engine_type, &fbl_len, &txl_len, NULL, NULL);
         gpu_viewport_buffers_free(data->fbl, fbl_len, data->txl, txl_len);
       }
