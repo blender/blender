@@ -329,6 +329,9 @@ typedef struct DRWManager {
   uchar state_cache_id; /* Could be larger but 254 view changes is already a lot! */
   struct DupliObject *dupli_source;
   struct Object *dupli_parent;
+  struct Object *dupli_origin;
+  struct GHash *dupli_ghash;
+  void **dupli_datas; /* Array of dupli_data (one for each enabled engine) to handle duplis. */
 
   /* Rendering state */
   GPUShader *shader;
@@ -365,6 +368,7 @@ typedef struct DRWManager {
 
   ListBase enabled_engines; /* RenderEngineType */
   void **vedata_array;      /* ViewportEngineData */
+  int enabled_engine_count; /* Length of enabled_engines list. */
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 

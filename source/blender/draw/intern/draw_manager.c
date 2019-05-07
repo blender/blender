@@ -790,6 +790,69 @@ void DRW_viewport_request_redraw(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Duplis
+ * \{ */
+
+static void drw_duplidata_load(DupliObject *dupli)
+{
+  if (dupli == NULL) {
+    return;
+  }
+
+  if (DST.dupli_origin != dupli->ob) {
+    DST.dupli_origin = dupli->ob;
+  }
+  else {
+    /* Same data as previous iter. No need to poll ghash for this. */
+    return;
+  }
+
+  if (DST.dupli_ghash == NULL) {
+    DST.dupli_ghash = BLI_ghash_ptr_new(__func__);
+  }
+
+  void **value;
+  if (!BLI_ghash_ensure_p(DST.dupli_ghash, DST.dupli_origin, &value)) {
+    *value = MEM_callocN(sizeof(void *) * DST.enabled_engine_count, __func__);
+  }
+  DST.dupli_datas = *(void ***)value;
+}
+
+static void duplidata_value_free(void *val)
+{
+  void **dupli_datas = val;
+  for (int i = 0; i < DST.enabled_engine_count; i++) {
+    MEM_SAFE_FREE(dupli_datas[i]);
+  }
+  MEM_freeN(val);
+}
+
+static void drw_duplidata_free(void)
+{
+  if (DST.dupli_ghash != NULL) {
+    BLI_ghash_free(DST.dupli_ghash, NULL, duplidata_value_free);
+    DST.dupli_ghash = NULL;
+  }
+}
+
+/* Return NULL if not a dupli or a pointer of pointer to the engine data */
+void **DRW_duplidata_get(void *vedata)
+{
+  if (DST.dupli_source == NULL) {
+    return NULL;
+  }
+  /* XXX Search engine index by using vedata array */
+  for (int i = 0; i < DST.enabled_engine_count; i++) {
+    if (DST.vedata_array[i] == vedata) {
+      return &DST.dupli_datas[i];
+    }
+  }
+  return NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name ViewLayers (DRW_scenelayer)
  * \{ */
 
@@ -1045,8 +1108,8 @@ static void drw_engines_init(void)
 
 static void drw_engines_cache_init(void)
 {
-  int enabled_engine_count = BLI_listbase_count(&DST.enabled_engines);
-  DST.vedata_array = MEM_mallocN(sizeof(void *) * enabled_engine_count, __func__);
+  DST.enabled_engine_count = BLI_listbase_count(&DST.enabled_engines);
+  DST.vedata_array = MEM_mallocN(sizeof(void *) * DST.enabled_engine_count, __func__);
 
   int i = 0;
   for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
@@ -1586,11 +1649,13 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
         }
         DST.dupli_parent = data_.dupli_parent;
         DST.dupli_source = data_.dupli_object_current;
+        drw_duplidata_load(DST.dupli_source);
         drw_engines_cache_populate(ob);
       }
       DEG_OBJECT_ITER_END;
     }
 
+    drw_duplidata_free();
     drw_engines_cache_finish();
 
     DRW_render_instance_buffer_finish();
@@ -2304,12 +2369,14 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
           }
           DST.dupli_parent = data_.dupli_parent;
           DST.dupli_source = data_.dupli_object_current;
+          drw_duplidata_load(DST.dupli_source);
           drw_engines_cache_populate(ob);
         }
       }
       DEG_OBJECT_ITER_END;
     }
 
+    drw_duplidata_free();
     drw_engines_cache_finish();
 
     DRW_render_instance_buffer_finish();
@@ -2404,10 +2471,12 @@ static void drw_draw_depth_loop_imp(void)
 
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
+      drw_duplidata_load(DST.dupli_source);
       drw_engines_cache_populate(ob);
     }
     DEG_OBJECT_ITER_END;
 
+    drw_duplidata_free();
     drw_engines_cache_finish();
 
     DRW_render_instance_buffer_finish();
