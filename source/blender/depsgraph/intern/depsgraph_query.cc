@@ -152,19 +152,6 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
   return scene_cow;
 }
 
-Scene *DEG_get_evaluated_scene_if_exists(const Depsgraph *graph)
-{
-  if (graph == NULL) {
-    return NULL;
-  }
-  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-  Scene *scene_cow = deg_graph->scene_cow;
-  if (scene_cow == NULL || !DEG::deg_copy_on_write_is_expanded(&scene_cow->id)) {
-    return NULL;
-  }
-  return scene_cow;
-}
-
 ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);

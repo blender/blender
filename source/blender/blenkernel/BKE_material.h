@@ -113,7 +113,7 @@ void free_matcopybuf(void);
 void copy_matcopybuf(struct Main *bmain, struct Material *ma);
 void paste_matcopybuf(struct Main *bmain, struct Material *ma);
 
-/* Dependency graph evaluation. */
+/* Evaluation. */
 
 struct Depsgraph;
 

@@ -33,6 +33,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_sound.h"
 
 #include "UI_view2d.h"
 
@@ -47,8 +48,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -75,6 +74,7 @@ static bool graphview_cursor_poll(bContext *C)
 /* Set the new frame number */
 static void graphview_cursor_apply(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   /* this isn't technically "frame", but it'll do... */
@@ -105,7 +105,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
     }
 
     SUBFRA = 0.0f;
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    BKE_sound_seek_scene(bmain, scene);
   }
 
   /* set the cursor value */

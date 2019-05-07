@@ -808,7 +808,10 @@ void BKE_sequence_calc_disp(Scene *scene, Sequence *seq)
     seq->handsize = (float)((seq->enddisp - seq->startdisp) / 25);
   }
 
-  if (seq->type == SEQ_TYPE_META) {
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
+    BKE_sequencer_update_sound_bounds(scene, seq);
+  }
+  else if (seq->type == SEQ_TYPE_META) {
     seq_update_sound_bounds_recursive(scene, seq);
   }
 }
@@ -5488,17 +5491,16 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
   Strip *strip;
   StripElem *se;
 
+  AUD_SoundInfo info;
+
   sound = BKE_sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
-  /* Load the original sound, so we can access number of channels and length information.
-   * We free the sound handle on the original bSound datablock before existing this function, it is
-   * to be allocated on an evaluated version after this. */
-  BKE_sound_load_audio(bmain, sound);
-  AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
   if (sound->playback_handle == NULL) {
     BKE_id_free(bmain, sound);
     return NULL;
   }
+
+  info = AUD_getInfo(sound->playback_handle);
 
   if (info.specs.channels == AUD_CHANNELS_INVALID) {
     BKE_id_free(bmain, sound);
@@ -5524,7 +5526,8 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   BLI_split_dirfile(seq_load->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
-  seq->scene_sound = NULL;
+  seq->scene_sound = BKE_sound_add_scene_sound(
+      scene, seq, seq_load->start_frame, seq_load->start_frame + seq->len, 0);
 
   BKE_sequence_calc_disp(scene, seq);
 
@@ -5532,11 +5535,6 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
   BLI_strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR);
 
   seq_load_apply(bmain, scene, seq, seq_load);
-
-  BKE_sound_free_audio(sound);
-
-  /* TODO(sergey): Shall we tag here or in the oeprator? */
-  DEG_relations_tag_update(bmain);
 
   return seq;
 }
@@ -5749,7 +5747,10 @@ static Sequence *seq_dupli(const Scene *scene_src,
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
     seqn->strip->stripdata = MEM_dupallocN(seq->strip->stripdata);
-    seqn->scene_sound = NULL;
+    if (seq->scene_sound) {
+      seqn->scene_sound = BKE_sound_add_scene_sound_defaults(scene_dst, seqn);
+    }
+
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)seqn->sound);
     }

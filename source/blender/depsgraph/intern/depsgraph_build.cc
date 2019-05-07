@@ -249,7 +249,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
    * order. */
   DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph, &builder_cache);
   relation_builder.begin_build();
-  relation_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
+  relation_builder.build_view_layer(scene, view_layer);
   relation_builder.build_copy_on_write_relations();
   /* Detect and solve cycles. */
   DEG::deg_graph_detect_cycles(deg_graph);

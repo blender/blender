@@ -62,8 +62,6 @@
 #  include <AUD_Special.h>
 #endif
 
-#include "DEG_depsgraph_query.h"
-
 #include "ED_sound.h"
 #include "ED_util.h"
 
@@ -90,6 +88,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
   bSound *sound;
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
+  AUD_SoundInfo info;
   Main *bmain = CTX_data_main(C);
 
   RNA_string_get(op->ptr, "filepath", path);
@@ -99,8 +98,29 @@ static int sound_open_exec(bContext *C, wmOperator *op)
     sound_open_init(C, op);
   }
 
+  if (sound->playback_handle == NULL) {
+    if (op->customdata) {
+      MEM_freeN(op->customdata);
+    }
+    BKE_id_free(bmain, sound);
+    BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+    return OPERATOR_CANCELLED;
+  }
+
+  info = AUD_getInfo(sound->playback_handle);
+
+  if (info.specs.channels == AUD_CHANNELS_INVALID) {
+    BKE_id_free(bmain, sound);
+    if (op->customdata) {
+      MEM_freeN(op->customdata);
+    }
+    BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+    return OPERATOR_CANCELLED;
+  }
+
   if (RNA_boolean_get(op->ptr, "mono")) {
     sound->flags |= SOUND_FLAGS_MONO;
+    BKE_sound_load(bmain, sound);
   }
 
   if (RNA_boolean_get(op->ptr, "cache")) {
@@ -119,8 +139,6 @@ static int sound_open_exec(bContext *C, wmOperator *op)
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }
-
-  DEG_relations_tag_update(bmain);
 
   MEM_freeN(op->customdata);
   return OPERATOR_FINISHED;
@@ -343,9 +361,8 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 #ifdef WITH_AUDASPACE
   char path[FILE_MAX];
   char filename[FILE_MAX];
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Main *bmain = CTX_data_main(C);
+  Scene *scene;
+  Main *bmain;
   int split;
 
   int bitrate, accuracy;
@@ -363,20 +380,18 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
   container = RNA_enum_get(op->ptr, "container");
   codec = RNA_enum_get(op->ptr, "codec");
   split = RNA_boolean_get(op->ptr, "split_channels");
-  specs.channels = scene_eval->r.ffcodecdata.audio_channels;
-  specs.rate = scene_eval->r.ffcodecdata.audio_mixrate;
+  scene = CTX_data_scene(C);
+  bmain = CTX_data_main(C);
+  specs.channels = scene->r.ffcodecdata.audio_channels;
+  specs.rate = scene->r.ffcodecdata.audio_mixrate;
 
   BLI_strncpy(filename, path, sizeof(filename));
   BLI_path_abs(filename, BKE_main_blendfile_path(bmain));
 
-  const double fps = (((double)scene_eval->r.frs_sec) / (double)scene_eval->r.frs_sec_base);
-  const int start_frame = scene_eval->r.sfra;
-  const int end_frame = scene_eval->r.efra;
-
   if (split) {
-    result = AUD_mixdown_per_channel(scene_eval->sound_scene,
-                                     start_frame * specs.rate / fps,
-                                     (end_frame - start_frame + 1) * specs.rate / fps,
+    result = AUD_mixdown_per_channel(scene->sound_scene,
+                                     SFRA * specs.rate / FPS,
+                                     (EFRA - SFRA + 1) * specs.rate / FPS,
                                      accuracy,
                                      filename,
                                      specs,
@@ -385,9 +400,9 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                                      bitrate);
   }
   else {
-    result = AUD_mixdown(scene_eval->sound_scene,
-                         start_frame * specs.rate / fps,
-                         (end_frame - start_frame + 1) * specs.rate / fps,
+    result = AUD_mixdown(scene->sound_scene,
+                         SFRA * specs.rate / FPS,
+                         (EFRA - SFRA + 1) * specs.rate / FPS,
                          accuracy,
                          filename,
                          specs,
@@ -396,7 +411,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                          bitrate);
   }
 
-  BKE_sound_reset_scene_specs(scene_eval);
+  BKE_sound_reset_scene_specs(scene);
 
   if (result) {
     BKE_report(op->reports, RPT_ERROR, result);

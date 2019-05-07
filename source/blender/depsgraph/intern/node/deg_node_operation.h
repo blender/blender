@@ -185,15 +185,11 @@ enum class OperationCode {
   /* Images. -------------------------------------------------------------- */
   IMAGE_ANIMATION,
 
-  /* Synchronization. ----------------------------------------------------- */
+  /* Synchronization clips. ----------------------------------------------- */
   SYNCHRONIZE_TO_ORIGINAL,
 
   /* Generic datablock ---------------------------------------------------- */
   GENERIC_DATABLOCK_UPDATE,
-
-  /* Sequencer. ----------------------------------------------------------- */
-
-  SEQUENCES_EVAL,
 
   /* Duplication/instancing system. --------------------------------------- */
   DUPLI,
