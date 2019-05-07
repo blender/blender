@@ -2036,13 +2036,12 @@ typedef struct MeshBatchCache {
   DRWBatchFlag batch_ready;
 
   /* settings to determine if cache is invalid */
-  bool is_maybe_dirty;
-  bool is_dirty; /* Instantly invalidates cache, skipping mesh check */
   int edge_len;
   int tri_len;
   int poly_len;
   int vert_len;
   int mat_len;
+  bool is_dirty; /* Instantly invalidates cache, skipping mesh check */
   bool is_editmode;
   bool is_uvsyncsel;
 
@@ -2071,10 +2070,6 @@ static bool mesh_batch_cache_valid(Mesh *me)
     return false;
   }
 
-  if (cache->mat_len != mesh_render_mat_len_get(me)) {
-    return false;
-  }
-
   if (cache->is_editmode != (me->edit_mesh != NULL)) {
     return false;
   }
@@ -2083,20 +2078,15 @@ static bool mesh_batch_cache_valid(Mesh *me)
     return false;
   }
 
-  if (cache->is_maybe_dirty == false) {
-    return true;
+  if (cache->is_editmode) {
+    return false;
   }
-  else {
-    if (cache->is_editmode) {
-      return false;
-    }
-    else if ((cache->vert_len != mesh_render_verts_len_get(me)) ||
-             (cache->edge_len != mesh_render_edges_len_get(me)) ||
-             (cache->tri_len != mesh_render_looptri_len_get(me)) ||
-             (cache->poly_len != mesh_render_polys_len_get(me)) ||
-             (cache->mat_len != mesh_render_mat_len_get(me))) {
-      return false;
-    }
+  else if ((cache->vert_len != mesh_render_verts_len_get(me)) ||
+           (cache->edge_len != mesh_render_edges_len_get(me)) ||
+           (cache->tri_len != mesh_render_looptri_len_get(me)) ||
+           (cache->poly_len != mesh_render_polys_len_get(me)) ||
+           (cache->mat_len != mesh_render_mat_len_get(me))) {
+    return false;
   }
 
   return true;
@@ -2127,7 +2117,6 @@ static void mesh_batch_cache_init(Mesh *me)
                                          __func__);
   cache->surf_per_mat = MEM_callocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
 
-  cache->is_maybe_dirty = false;
   cache->is_dirty = false;
 
   drw_mesh_weight_state_clear(&cache->weight_state);
@@ -2217,9 +2206,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
     return;
   }
   switch (mode) {
-    case BKE_MESH_BATCH_DIRTY_MAYBE_ALL:
-      cache->is_maybe_dirty = true;
-      break;
     case BKE_MESH_BATCH_DIRTY_SELECT:
       GPU_VERTBUF_DISCARD_SAFE(cache->edit.loop_data);
       GPU_VERTBUF_DISCARD_SAFE(cache->edit.facedots_pos_nor_data);
