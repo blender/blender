@@ -386,6 +386,10 @@ static ParamHandle *construct_param_handle_multi(Scene *scene,
 
     const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
+    if (cd_loop_uv_offset == -1) {
+      continue;
+    }
+
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
       if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
