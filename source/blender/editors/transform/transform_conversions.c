@@ -1328,7 +1328,7 @@ static void createTransPose(TransInfo *t)
       }
 
       PoseInitData_Mirror *pid = MEM_mallocN((total_mirrored + 1) * sizeof(PoseInitData_Mirror),
-                                            "PoseInitData_Mirror");
+                                             "PoseInitData_Mirror");
 
       /* Trick to terminate iteration. */
       pid[total_mirrored].pchan = NULL;
