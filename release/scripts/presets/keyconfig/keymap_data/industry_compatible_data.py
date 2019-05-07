@@ -765,12 +765,9 @@ def km_markers(params):
 
     items.extend([
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
-        ("anim.change_frame", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
-        ("graph.cursor_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.move", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
         ("marker.duplicate", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
-
         ("marker.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("marker.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
