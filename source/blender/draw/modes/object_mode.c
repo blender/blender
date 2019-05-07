@@ -316,6 +316,13 @@ typedef struct OBJECT_PrivateData {
   bool xray_enabled_and_not_wire;
 } OBJECT_PrivateData; /* Transient data */
 
+typedef struct OBJECT_DupliData {
+  DRWShadingGroup *outline_shgrp;
+  GPUBatch *outline_geom;
+  DRWShadingGroup *extra_shgrp;
+  GPUBatch *extra_geom;
+} OBJECT_DupliData;
+
 static struct {
   /* Instance Data format */
   struct GPUVertFormat *particle_format;
@@ -3096,6 +3103,24 @@ static void OBJECT_gpencil_color_names(Object *ob, struct DRWTextStore *dt, ucha
   }
 }
 
+BLI_INLINE OBJECT_DupliData *OBJECT_duplidata_get(Object *ob, void *vedata, bool *init)
+{
+  OBJECT_DupliData **dupli_data = (OBJECT_DupliData **)DRW_duplidata_get(vedata);
+  *init = false;
+  if (!ELEM(ob->type, OB_MESH, OB_SURF, OB_LATTICE, OB_CURVE, OB_FONT)) {
+    return NULL;
+  }
+
+  if (dupli_data) {
+    if (*dupli_data == NULL) {
+      *dupli_data = MEM_callocN(sizeof(OBJECT_DupliData), "OBJECT_DupliData");
+      *init = true;
+    }
+    return *dupli_data;
+  }
+  return NULL;
+}
+
 static void OBJECT_cache_populate(void *vedata, Object *ob)
 {
   OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
@@ -3132,10 +3157,15 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
        /* Show if this is the camera we're looking through since it's useful for selecting. */
        (((rv3d->persp == RV3D_CAMOB) && ((ID *)v3d->camera == ob->id.orig_id)) == 0));
 
+  /* Fast path for duplis. */
+  bool init_duplidata;
+  OBJECT_DupliData *dupli_data = OBJECT_duplidata_get(ob, vedata, &init_duplidata);
+
   if (do_outlines) {
     if (!BKE_object_is_in_editmode(ob) &&
         !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
       struct GPUBatch *geom;
+      DRWShadingGroup *shgroup = NULL;
 
       /* This fixes only the biggest case which is a plane in ortho view. */
       int flat_axis = 0;
@@ -3143,185 +3173,211 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
                                               DRW_object_is_flat(ob, &flat_axis) &&
                                               DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
-      if (stl->g_data->xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
-        geom = DRW_cache_object_edge_detection_get(ob, NULL);
+      if (dupli_data && !init_duplidata) {
+        geom = dupli_data->outline_geom;
+        shgroup = dupli_data->outline_shgrp;
       }
       else {
-        geom = DRW_cache_object_surface_get(ob);
+        if (stl->g_data->xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
+          geom = DRW_cache_object_edge_detection_get(ob, NULL);
+        }
+        else {
+          geom = DRW_cache_object_surface_get(ob);
+        }
+
+        if (geom) {
+          theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+          shgroup = shgroup_theme_id_to_outline_or_null(stl, theme_id, ob->base_flag);
+        }
       }
 
-      if (geom) {
-        theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-        DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or_null(
-            stl, theme_id, ob->base_flag);
-        if (shgroup != NULL) {
-          DRW_shgroup_call_object_add(shgroup, geom, ob);
-        }
+      if (shgroup && geom) {
+        DRW_shgroup_call_object_add(shgroup, geom, ob);
+      }
+
+      if (init_duplidata) {
+        dupli_data->outline_shgrp = shgroup;
+        dupli_data->outline_geom = geom;
       }
     }
   }
 
-  switch (ob->type) {
-    case OB_MESH: {
-      if (hide_object_extra) {
-        break;
-      }
-      Mesh *me = ob->data;
-      if (!is_edit_mode && me->totedge == 0) {
-        struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
-        if (geom) {
-          if (theme_id == TH_UNDEFINED) {
-            theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-          }
-          DRWShadingGroup *shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
-          DRW_shgroup_call_object_add(shgroup, geom, ob);
+  if (dupli_data && !init_duplidata) {
+    if (dupli_data->extra_shgrp && dupli_data->extra_geom) {
+      DRW_shgroup_call_object_add(dupli_data->extra_shgrp, dupli_data->extra_geom, ob);
+    }
+  }
+  else {
+    struct GPUBatch *geom = NULL;
+    DRWShadingGroup *shgroup = NULL;
+    switch (ob->type) {
+      case OB_MESH: {
+        if (hide_object_extra) {
+          break;
         }
-      }
-      else {
-        bool has_edit_mesh_cage = false;
-        /* TODO: Should be its own function. */
-        if (is_edit_mode) {
-          BMEditMesh *embm = me->edit_mesh;
-          has_edit_mesh_cage = embm->mesh_eval_cage &&
-                               (embm->mesh_eval_cage != embm->mesh_eval_final);
-        }
-        if ((!is_edit_mode && me->totedge > 0) || has_edit_mesh_cage) {
-          struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
+        Mesh *me = ob->data;
+        if (!is_edit_mode && me->totedge == 0) {
+          geom = DRW_cache_mesh_all_verts_get(ob);
           if (geom) {
             if (theme_id == TH_UNDEFINED) {
               theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
             }
-            DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+            shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
             DRW_shgroup_call_object_add(shgroup, geom, ob);
           }
         }
-      }
-      break;
-    }
-    case OB_SURF: {
-      if (hide_object_extra) {
+        else {
+          bool has_edit_mesh_cage = false;
+          /* TODO: Should be its own function. */
+          if (is_edit_mode) {
+            BMEditMesh *embm = me->edit_mesh;
+            has_edit_mesh_cage = embm->mesh_eval_cage &&
+                                 (embm->mesh_eval_cage != embm->mesh_eval_final);
+          }
+          if ((!is_edit_mode && me->totedge > 0) || has_edit_mesh_cage) {
+            geom = DRW_cache_mesh_loose_edges_get(ob);
+            if (geom) {
+              if (theme_id == TH_UNDEFINED) {
+                theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+              }
+              shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+              DRW_shgroup_call_object_add(shgroup, geom, ob);
+            }
+          }
+        }
         break;
       }
-      struct GPUBatch *geom = DRW_cache_surf_edge_wire_get(ob);
-      if (geom == NULL) {
-        break;
-      }
-      if (theme_id == TH_UNDEFINED) {
-        theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-      }
-      DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-      DRW_shgroup_call_object_add(shgroup, geom, ob);
-      break;
-    }
-    case OB_LATTICE: {
-      if (!is_edit_mode) {
+      case OB_SURF: {
         if (hide_object_extra) {
           break;
         }
-        struct GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
-        if (theme_id == TH_UNDEFINED) {
-          theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-        }
-
-        DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-        DRW_shgroup_call_object_add(shgroup, geom, ob);
-      }
-      break;
-    }
-    case OB_CURVE: {
-      if (!is_edit_mode) {
-        if (hide_object_extra) {
+        geom = DRW_cache_surf_edge_wire_get(ob);
+        if (geom == NULL) {
           break;
         }
-        struct GPUBatch *geom = DRW_cache_curve_edge_wire_get(ob);
         if (theme_id == TH_UNDEFINED) {
           theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
         }
-        DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+        shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
         DRW_shgroup_call_object_add(shgroup, geom, ob);
-      }
-      break;
-    }
-    case OB_MBALL: {
-      if (!is_edit_mode) {
-        DRW_shgroup_mball_handles(sgl, ob, view_layer);
-      }
-      break;
-    }
-    case OB_LAMP:
-      if (hide_object_extra) {
         break;
       }
-      DRW_shgroup_light(sgl, ob, view_layer);
-      break;
-    case OB_CAMERA:
-      if (hide_object_extra) {
-        break;
-      }
-      DRW_shgroup_camera(sgl, ob, view_layer);
-      break;
-    case OB_EMPTY:
-      if (hide_object_extra) {
-        break;
-      }
-      DRW_shgroup_empty(sh_data, sgl, ob, view_layer, rv3d, draw_ctx->sh_cfg);
-      break;
-    case OB_SPEAKER:
-      if (hide_object_extra) {
-        break;
-      }
-      DRW_shgroup_speaker(sgl, ob, view_layer);
-      break;
-    case OB_LIGHTPROBE:
-      if (hide_object_extra) {
-        break;
-      }
-      DRW_shgroup_lightprobe(sh_data, stl, psl, ob, view_layer);
-      break;
-    case OB_ARMATURE: {
-      if ((v3d->flag2 & V3D_HIDE_OVERLAYS) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) ||
-          ((ob->dt < OB_WIRE) && !DRW_state_is_select())) {
-        break;
-      }
-      bArmature *arm = ob->data;
-      if (arm->edbo == NULL) {
-        if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-          bool is_wire = (v3d->shading.type == OB_WIRE) || (ob->dt <= OB_WIRE) ||
-                         XRAY_FLAG_ENABLED(v3d);
-          DRWArmaturePasses passes = {
-              .bone_solid = (is_wire) ? NULL : sgl->bone_solid,
-              .bone_outline = sgl->bone_outline,
-              .bone_wire = sgl->bone_wire,
-              .bone_envelope = sgl->bone_envelope,
-              .bone_axes = sgl->bone_axes,
-              .relationship_lines = NULL, /* Don't draw relationship lines */
-              .custom_shapes = stl->g_data->custom_shapes,
-          };
-          DRW_shgroup_armature_object(ob, view_layer, passes, is_wire);
-        }
-      }
-      break;
-    }
-    case OB_FONT: {
-      if (hide_object_extra) {
-        break;
-      }
-      Curve *cu = (Curve *)ob->data;
-      bool has_surface = (cu->flag & (CU_FRONT | CU_BACK)) || cu->ext1 != 0.0f || cu->ext2 != 0.0f;
-      if (!has_surface) {
-        struct GPUBatch *geom = DRW_cache_text_edge_wire_get(ob);
-        if (geom) {
+      case OB_LATTICE: {
+        if (!is_edit_mode) {
+          if (hide_object_extra) {
+            break;
+          }
+          geom = DRW_cache_lattice_wire_get(ob, false);
           if (theme_id == TH_UNDEFINED) {
             theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
           }
-          DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+
+          shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
           DRW_shgroup_call_object_add(shgroup, geom, ob);
         }
+        break;
       }
-      break;
+      case OB_CURVE: {
+        if (!is_edit_mode) {
+          if (hide_object_extra) {
+            break;
+          }
+          geom = DRW_cache_curve_edge_wire_get(ob);
+          if (theme_id == TH_UNDEFINED) {
+            theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+          }
+          shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+          DRW_shgroup_call_object_add(shgroup, geom, ob);
+        }
+        break;
+      }
+      case OB_MBALL: {
+        if (!is_edit_mode) {
+          DRW_shgroup_mball_handles(sgl, ob, view_layer);
+        }
+        break;
+      }
+      case OB_LAMP:
+        if (hide_object_extra) {
+          break;
+        }
+        DRW_shgroup_light(sgl, ob, view_layer);
+        break;
+      case OB_CAMERA:
+        if (hide_object_extra) {
+          break;
+        }
+        DRW_shgroup_camera(sgl, ob, view_layer);
+        break;
+      case OB_EMPTY:
+        if (hide_object_extra) {
+          break;
+        }
+        DRW_shgroup_empty(sh_data, sgl, ob, view_layer, rv3d, draw_ctx->sh_cfg);
+        break;
+      case OB_SPEAKER:
+        if (hide_object_extra) {
+          break;
+        }
+        DRW_shgroup_speaker(sgl, ob, view_layer);
+        break;
+      case OB_LIGHTPROBE:
+        if (hide_object_extra) {
+          break;
+        }
+        DRW_shgroup_lightprobe(sh_data, stl, psl, ob, view_layer);
+        break;
+      case OB_ARMATURE: {
+        if ((v3d->flag2 & V3D_HIDE_OVERLAYS) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) ||
+            ((ob->dt < OB_WIRE) && !DRW_state_is_select())) {
+          break;
+        }
+        bArmature *arm = ob->data;
+        if (arm->edbo == NULL) {
+          if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
+            bool is_wire = (v3d->shading.type == OB_WIRE) || (ob->dt <= OB_WIRE) ||
+                           XRAY_FLAG_ENABLED(v3d);
+            DRWArmaturePasses passes = {
+                .bone_solid = (is_wire) ? NULL : sgl->bone_solid,
+                .bone_outline = sgl->bone_outline,
+                .bone_wire = sgl->bone_wire,
+                .bone_envelope = sgl->bone_envelope,
+                .bone_axes = sgl->bone_axes,
+                .relationship_lines = NULL, /* Don't draw relationship lines */
+                .custom_shapes = stl->g_data->custom_shapes,
+            };
+            DRW_shgroup_armature_object(ob, view_layer, passes, is_wire);
+          }
+        }
+        break;
+      }
+      case OB_FONT: {
+        if (hide_object_extra) {
+          break;
+        }
+        Curve *cu = (Curve *)ob->data;
+        bool has_surface = (cu->flag & (CU_FRONT | CU_BACK)) || cu->ext1 != 0.0f ||
+                           cu->ext2 != 0.0f;
+        if (!has_surface) {
+          geom = DRW_cache_text_edge_wire_get(ob);
+          if (geom) {
+            if (theme_id == TH_UNDEFINED) {
+              theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+            }
+            shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
+            DRW_shgroup_call_object_add(shgroup, geom, ob);
+          }
+        }
+        break;
+      }
+      default:
+        break;
     }
-    default:
-      break;
+
+    if (init_duplidata) {
+      dupli_data->extra_shgrp = shgroup;
+      dupli_data->extra_geom = geom;
+    }
   }
 
   if (ob->pd && ob->pd->forcefield) {
