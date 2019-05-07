@@ -1141,7 +1141,7 @@ typedef enum eGraphVertIndex {
 
 /* Tolerance for absolute radius (in pixels) of the vert from the cursor to use */
 // TODO: perhaps this should depend a bit on the size that the user set the vertices to be?
-#define GVERTSEL_TOL 10
+#define GVERTSEL_TOL (10 * U.pixelsize)
 
 /* ....... */
 
