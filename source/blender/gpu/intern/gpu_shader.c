@@ -729,23 +729,28 @@ void GPU_shader_uniform_vector(
     return;
   }
 
-  if (length == 1) {
-    glUniform1fv(location, arraysize, value);
-  }
-  else if (length == 2) {
-    glUniform2fv(location, arraysize, value);
-  }
-  else if (length == 3) {
-    glUniform3fv(location, arraysize, value);
-  }
-  else if (length == 4) {
-    glUniform4fv(location, arraysize, value);
-  }
-  else if (length == 9) {
-    glUniformMatrix3fv(location, arraysize, 0, value);
-  }
-  else if (length == 16) {
-    glUniformMatrix4fv(location, arraysize, 0, value);
+  switch (length) {
+    case 1:
+      glUniform1fv(location, arraysize, value);
+      break;
+    case 2:
+      glUniform2fv(location, arraysize, value);
+      break;
+    case 3:
+      glUniform3fv(location, arraysize, value);
+      break;
+    case 4:
+      glUniform4fv(location, arraysize, value);
+      break;
+    case 9:
+      glUniformMatrix3fv(location, arraysize, 0, value);
+      break;
+    case 16:
+      glUniformMatrix4fv(location, arraysize, 0, value);
+      break;
+    default:
+      BLI_assert(0);
+      break;
   }
 }
 
@@ -756,17 +761,22 @@ void GPU_shader_uniform_vector_int(
     return;
   }
 
-  if (length == 1) {
-    glUniform1iv(location, arraysize, value);
-  }
-  else if (length == 2) {
-    glUniform2iv(location, arraysize, value);
-  }
-  else if (length == 3) {
-    glUniform3iv(location, arraysize, value);
-  }
-  else if (length == 4) {
-    glUniform4iv(location, arraysize, value);
+  switch (length) {
+    case 1:
+      glUniform1iv(location, arraysize, value);
+      break;
+    case 2:
+      glUniform2iv(location, arraysize, value);
+      break;
+    case 3:
+      glUniform3iv(location, arraysize, value);
+      break;
+    case 4:
+      glUniform4iv(location, arraysize, value);
+      break;
+    default:
+      BLI_assert(0);
+      break;
   }
 }
 
