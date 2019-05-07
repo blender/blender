@@ -2435,7 +2435,7 @@ def km_sequencer(params):
         ("sequencer.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         op_menu("SEQUENCER_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         op_menu("SEQUENCER_MT_change", {"type": 'C', "value": 'PRESS'}),
-        op_menu("SEQUENCER_MT_channel_context_menu", params.context_menu_event),
+        op_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
         ("sequencer.slip", {"type": 'S', "value": 'PRESS'}, None),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'scene.sequence_editor.overlay_frame'), ("value", 0)]}),
