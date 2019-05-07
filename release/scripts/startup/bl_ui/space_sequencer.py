@@ -606,8 +606,11 @@ class SEQUENCER_MT_context_menu(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("sequencer.copy", text="Copy")
-        layout.operator("sequencer.paste", text="Paste")
+        layout.operator("sequencer.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("sequencer.paste", text="Paste", icon='PASTEDOWN')
+
+        layout.separator()
+
         layout.operator("sequencer.duplicate_move")
         layout.operator("sequencer.delete", text="Delete...")
 
@@ -620,7 +623,6 @@ class SEQUENCER_MT_context_menu(Menu):
 
         layout.operator("sequencer.snap")
         layout.operator("sequencer.offset_clear")
-
 
         strip = act_strip(context)
 
