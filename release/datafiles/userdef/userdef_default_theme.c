@@ -705,7 +705,7 @@ const bTheme U_theme_default = {
 		},
 		.shade2 = RGBA(0x5680c2e6),
 		.hilite = RGBA(0xff0000ff),
-		.grid = RGBA(0x313133ff),
+		.grid = RGBA(0x202020ff),
 		.vertex_size = 3,
 		.outline_width = 1,
 		.facedot_size = 4,
