@@ -1299,6 +1299,12 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 
 /********************** frame jump operator *********************/
 
+static bool frame_jump_poll(bContext *C)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  return space_clip != NULL;
+}
+
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1377,7 +1383,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = frame_jump_exec;
-  ot->poll = ED_space_clip_poll;
+  ot->poll = frame_jump_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -955,10 +955,10 @@ static bool change_frame_poll(bContext *C)
 {
   /* prevent changes during render */
   if (G.is_rendering) {
-    return 0;
+    return false;
   }
-
-  return ED_space_clip_poll(C);
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  return space_clip != NULL;
 }
 
 static void change_frame_apply(bContext *C, wmOperator *op)
