@@ -364,6 +364,7 @@ typedef struct DRWManager {
   struct DRWTextStore **text_store_p;
 
   ListBase enabled_engines; /* RenderEngineType */
+  void **vedata_array;      /* ViewportEngineData */
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 

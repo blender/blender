@@ -1043,9 +1043,14 @@ static void drw_engines_init(void)
 
 static void drw_engines_cache_init(void)
 {
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+  int enabled_engine_count = BLI_listbase_count(&DST.enabled_engines);
+  DST.vedata_array = MEM_mallocN(sizeof(void *) * enabled_engine_count, __func__);
+
+  int i = 0;
+  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
     DrawEngineType *engine = link->data;
     ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+    DST.vedata_array[i] = data;
 
     if (data->text_draw_cache) {
       DRW_text_cache_destroy(data->text_draw_cache);
@@ -1087,9 +1092,10 @@ static void drw_engines_cache_populate(Object *ob)
    * ourselves here. */
   drw_drawdata_unlink_dupli((ID *)ob);
 
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+  int i = 0;
+  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
     DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+    ViewportEngineData *data = DST.vedata_array[i];
 
     if (engine->id_update) {
       engine->id_update(data, &ob->id);
@@ -1111,14 +1117,16 @@ static void drw_engines_cache_populate(Object *ob)
 
 static void drw_engines_cache_finish(void)
 {
-  for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+  int i = 0;
+  for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
     DrawEngineType *engine = link->data;
-    ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+    ViewportEngineData *data = DST.vedata_array[i];
 
     if (engine->cache_finish) {
       engine->cache_finish(data);
     }
   }
+  MEM_freeN(DST.vedata_array);
 }
 
 static void drw_engines_draw_background(void)
