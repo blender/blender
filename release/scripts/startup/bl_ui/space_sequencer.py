@@ -598,6 +598,66 @@ class SEQUENCER_MT_strip(Menu):
         layout.menu("SEQUENCER_MT_strip_lock_mute")
 
 
+class SEQUENCER_MT_context_menu(Menu):
+    bl_label = "Sequencer Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("sequencer.copy", text="Copy")
+        layout.operator("sequencer.paste", text="Paste")
+        layout.operator("sequencer.duplicate_move")
+        layout.operator("sequencer.delete", text="Delete...")
+
+        layout.separator()
+
+        layout.operator("sequencer.cut", text="Cut (Hard) at frame").type = 'HARD'
+        layout.operator("sequencer.cut", text="Cut (Soft) at frame").type = 'SOFT'
+
+        layout.separator()
+
+        layout.operator("sequencer.snap")
+        layout.operator("sequencer.offset_clear")
+
+
+        strip = act_strip(context)
+
+        if strip:
+            stype = strip.type
+
+            if stype in {
+                    'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                    'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
+                    'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
+                    'GAUSSIAN_BLUR', 'TEXT',
+            }:
+                layout.separator()
+                layout.operator_menu_enum("sequencer.change_effect_input", "swap")
+                layout.operator_menu_enum("sequencer.change_effect_type", "type")
+                layout.operator("sequencer.reassign_inputs")
+                layout.operator("sequencer.swap_inputs")
+            elif stype in {'IMAGE', 'MOVIE'}:
+                layout.separator()
+                layout.operator("sequencer.rendersize")
+                layout.operator("sequencer.images_separate")
+            elif stype == 'SOUND':
+                layout.separator()
+                layout.operator("sequencer.crossfade_sounds")
+            elif stype == 'META':
+                layout.separator()
+                layout.operator("sequencer.meta_separate")
+
+        layout.separator()
+
+        layout.operator("sequencer.meta_make")
+
+        layout.separator()
+
+        layout.menu("SEQUENCER_MT_strip_input")
+
+
 class SequencerButtonsPanel:
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -1486,6 +1546,7 @@ classes = (
     SEQUENCER_MT_strip_transform,
     SEQUENCER_MT_strip_input,
     SEQUENCER_MT_strip_lock_mute,
+    SEQUENCER_MT_context_menu,
     SEQUENCER_PT_edit,
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input,
