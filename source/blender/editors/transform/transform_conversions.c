@@ -9558,21 +9558,30 @@ void createTransData(bContext *C, TransInfo *t)
 
     t->flag |= T_EDIT | T_POINTS;
 
-    if (t->data_len_all && t->flag & T_PROP_EDIT) {
-      if (ELEM(t->obedit_type, OB_CURVE, OB_MESH)) {
-        sort_trans_data(t);  // makes selected become first in array
-        if ((t->obedit_type == OB_MESH) && (t->flag & T_PROP_CONNECTED)) {
-          /* already calculated by editmesh_set_connectivity_distance */
+    if (t->data_len_all) {
+      if (t->flag & T_PROP_EDIT) {
+        if (ELEM(t->obedit_type, OB_CURVE, OB_MESH)) {
+          sort_trans_data(t);  // makes selected become first in array
+          if ((t->obedit_type == OB_MESH) && (t->flag & T_PROP_CONNECTED)) {
+            /* already calculated by editmesh_set_connectivity_distance */
+          }
+          else {
+            set_prop_dist(t, 0);
+          }
+          sort_trans_data_dist(t);
         }
         else {
-          set_prop_dist(t, 0);
+          sort_trans_data(t);  // makes selected become first in array
+          set_prop_dist(t, 1);
+          sort_trans_data_dist(t);
         }
-        sort_trans_data_dist(t);
       }
       else {
-        sort_trans_data(t);  // makes selected become first in array
-        set_prop_dist(t, 1);
-        sort_trans_data_dist(t);
+        if (ELEM(t->obedit_type, OB_CURVE)) {
+          /* Needed because bezier handles can be partially selected
+           * and are still added into transform data. */
+          sort_trans_data(t);  // makes selected become first in array
+        }
       }
     }
 
