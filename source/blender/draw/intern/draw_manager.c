@@ -1883,9 +1883,9 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
 
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph)
 {
-  /* This function is only valid for Cycles
-   * Eevee done all work in the Eevee render directly.
-   * Maybe it can be done equal for both engines?
+  /* This function is only valid for Cycles & Workbench
+   * Eevee does all work in the Eevee render directly.
+   * Maybe it can be done equal for all engines?
    */
   if (STREQ(engine->type->name, "Eevee")) {
     return;
@@ -1952,7 +1952,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   }
 
   RenderResult *render_result = RE_engine_get_result(engine);
-  RenderLayer *render_layer = render_result->layers.first;
+  RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
 
   DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
 
