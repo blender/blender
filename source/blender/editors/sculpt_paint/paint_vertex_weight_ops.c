@@ -880,7 +880,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
   ot->cancel = WM_gesture_straightline_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
   prop = RNA_def_enum(ot->srna, "type", gradient_types, 0, "Type", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
