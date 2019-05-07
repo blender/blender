@@ -37,6 +37,7 @@
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_mempool.h"
+#include "BLI_memblock.h"
 
 #include "GPU_buffers.h"
 
@@ -76,7 +77,7 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
                                           int length,
                                           int arraysize)
 {
-  DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
+  DRWUniform *uni = BLI_memblock_alloc(DST.vmempool->uniforms);
   uni->location = loc;
   uni->type = type;
   uni->length = length;
@@ -390,7 +391,7 @@ static void drw_call_state_update_matflag(DRWCallState *state,
 
 static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obmat)[4], Object *ob)
 {
-  DRWCallState *state = BLI_mempool_alloc(DST.vmempool->states);
+  DRWCallState *state = BLI_memblock_alloc(DST.vmempool->states);
   state->flag = 0;
   state->cache_id = 0;
   state->visibility_cb = NULL;
@@ -445,7 +446,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obma
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
@@ -463,7 +464,7 @@ void DRW_shgroup_call_range_add(
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
   BLI_assert(v_count);
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_RANGE;
   call->range.geometry = geom;
@@ -484,7 +485,7 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
 {
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   if (ob) {
     call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   }
@@ -529,7 +530,7 @@ void DRW_shgroup_call_object_add_ex(
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
@@ -554,7 +555,7 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->state->visibility_cb = callback;
   call->state->user_data = user_data;
@@ -576,7 +577,7 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_create(shgroup, obmat, NULL);
   call->type = DRW_CALL_INSTANCES;
   call->instances.geometry = geom;
@@ -597,7 +598,7 @@ void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
-  DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->type = DRW_CALL_INSTANCES;
   call->instances.geometry = geom;
@@ -963,7 +964,7 @@ static void drw_shgroup_batching_init(DRWShadingGroup *shgroup,
 
 static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass *pass)
 {
-  DRWShadingGroup *shgroup = BLI_mempool_alloc(DST.vmempool->shgroups);
+  DRWShadingGroup *shgroup = BLI_memblock_alloc(DST.vmempool->shgroups);
 
   BLI_LINKS_APPEND(&pass->shgroups, shgroup);
 
@@ -1016,7 +1017,7 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp,
       GPUTexture *tex = NULL;
 
       if (input->ima) {
-        GPUTexture **tex_ref = BLI_mempool_alloc(DST.vmempool->images);
+        GPUTexture **tex_ref = BLI_memblock_alloc(DST.vmempool->images);
 
         *tex_ref = tex = GPU_texture_from_blender(
             input->ima, input->iuser, GL_TEXTURE_2D, input->image_isdata);
@@ -1268,7 +1269,7 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
   /* Remove this assertion if needed but implement the other cases first! */
   BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
-  DRWShadingGroup *shgroup_new = BLI_mempool_alloc(DST.vmempool->shgroups);
+  DRWShadingGroup *shgroup_new = BLI_memblock_alloc(DST.vmempool->shgroups);
 
   *shgroup_new = *shgroup;
   shgroup_new->uniforms = NULL;
@@ -1288,7 +1289,7 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 
 DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
-  DRWPass *pass = BLI_mempool_alloc(DST.vmempool->passes);
+  DRWPass *pass = BLI_memblock_alloc(DST.vmempool->passes);
   pass->state = state;
   if (((G.debug_value > 20) && (G.debug_value < 30)) || (G.debug & G_DEBUG)) {
     BLI_strncpy(pass->name, name, MAX_PASS_NAME);

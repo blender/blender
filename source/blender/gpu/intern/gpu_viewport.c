@@ -27,7 +27,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_mempool.h"
+#include "BLI_memblock.h"
 
 #include "BIF_gl.h"
 
@@ -618,28 +618,28 @@ void GPU_viewport_free(GPUViewport *viewport)
   MEM_freeN(viewport->txl);
 
   if (viewport->vmempool.calls != NULL) {
-    BLI_mempool_destroy(viewport->vmempool.calls);
+    BLI_memblock_destroy(viewport->vmempool.calls);
   }
   if (viewport->vmempool.states != NULL) {
-    BLI_mempool_destroy(viewport->vmempool.states);
+    BLI_memblock_destroy(viewport->vmempool.states);
   }
   if (viewport->vmempool.shgroups != NULL) {
-    BLI_mempool_destroy(viewport->vmempool.shgroups);
+    BLI_memblock_destroy(viewport->vmempool.shgroups);
   }
   if (viewport->vmempool.uniforms != NULL) {
-    BLI_mempool_destroy(viewport->vmempool.uniforms);
+    BLI_memblock_destroy(viewport->vmempool.uniforms);
   }
   if (viewport->vmempool.passes != NULL) {
-    BLI_mempool_destroy(viewport->vmempool.passes);
+    BLI_memblock_destroy(viewport->vmempool.passes);
   }
   if (viewport->vmempool.images != NULL) {
-    BLI_mempool_iter iter;
+    BLI_memblock_iter iter;
     GPUTexture **tex;
-    BLI_mempool_iternew(viewport->vmempool.images, &iter);
-    while ((tex = BLI_mempool_iterstep(&iter))) {
+    BLI_memblock_iternew(viewport->vmempool.images, &iter);
+    while ((tex = BLI_memblock_iterstep(&iter))) {
       GPU_texture_free(*tex);
     }
-    BLI_mempool_destroy(viewport->vmempool.images);
+    BLI_memblock_destroy(viewport->vmempool.images);
   }
 
   DRW_instance_data_list_free(viewport->idatalist);

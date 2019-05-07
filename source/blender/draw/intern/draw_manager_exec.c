@@ -23,7 +23,7 @@
 #include "draw_manager.h"
 
 #include "BLI_math_bits.h"
-#include "BLI_mempool.h"
+#include "BLI_memblock.h"
 
 #include "BKE_global.h"
 
@@ -1392,10 +1392,10 @@ static void drw_update_view(void)
       DST.state_cache_id = 1;
       /* We must reset all CallStates to ensure that not
        * a single one stayed with cache_id equal to 1. */
-      BLI_mempool_iter iter;
+      BLI_memblock_iter iter;
       DRWCallState *state;
-      BLI_mempool_iternew(DST.vmempool->states, &iter);
-      while ((state = BLI_mempool_iterstep(&iter))) {
+      BLI_memblock_iternew(DST.vmempool->states, &iter);
+      while ((state = BLI_memblock_iterstep(&iter))) {
         state->cache_id = 0;
       }
     }
