@@ -273,11 +273,12 @@ static void splineik_evaluate_bone(
   /* first, adjust the point positions on the curve */
   float curveLen = tree->points[index] - tree->points[index + 1];
   float pointStart = state->curve_position;
+  float poseScale = len_v3v3(poseHead, poseTail) / pchan->bone->length;
   float baseScale = 1.0f;
 
   if (ikData->yScaleMode == CONSTRAINT_SPLINEIK_YS_ORIGINAL) {
     /* Carry over the bone Y scale to the curve range. */
-    baseScale = len_v3v3(poseHead, poseTail) / pchan->bone->length;
+    baseScale = poseScale;
   }
 
   float pointEnd = pointStart + curveLen * baseScale * state->curve_scale;
@@ -394,24 +395,31 @@ static void splineik_evaluate_bone(
   }
 
   /* step 4: set the scaling factors for the axes */
-  {
-    /* only multiply the y-axis by the scaling factor to get nice volume-preservation */
-    mul_v3_fl(poseMat[1], scaleFac);
 
-    /* set the scaling factors of the x and z axes from... */
+  /* Always multiply the y-axis by the scaling factor to get the correct length. */
+  mul_v3_fl(poseMat[1], scaleFac);
+
+  /* After that, apply x/z scaling modes. */
+  if (ikData->xzScaleMode != CONSTRAINT_SPLINEIK_XZS_NONE) {
+    /* First, apply the original scale if enabled. */
+    if (ikData->xzScaleMode == CONSTRAINT_SPLINEIK_XZS_ORIGINAL ||
+        (ikData->flag & CONSTRAINT_SPLINEIK_USE_ORIGINAL_SCALE) != 0) {
+      float scale;
+
+      /* x-axis scale */
+      scale = len_v3(pchan->pose_mat[0]);
+      mul_v3_fl(poseMat[0], scale);
+      /* z-axis scale */
+      scale = len_v3(pchan->pose_mat[2]);
+      mul_v3_fl(poseMat[2], scale);
+
+      /* Adjust the scale factor used for volume preservation
+       * to consider the pre-IK scaling as the initial volume. */
+      scaleFac /= poseScale;
+    }
+
+    /* Apply volume preservation. */
     switch (ikData->xzScaleMode) {
-      case CONSTRAINT_SPLINEIK_XZS_ORIGINAL: {
-        /* original scales get used */
-        float scale;
-
-        /* x-axis scale */
-        scale = len_v3(pchan->pose_mat[0]);
-        mul_v3_fl(poseMat[0], scale);
-        /* z-axis scale */
-        scale = len_v3(pchan->pose_mat[2]);
-        mul_v3_fl(poseMat[2], scale);
-        break;
-      }
       case CONSTRAINT_SPLINEIK_XZS_INVERSE: {
         /* old 'volume preservation' method using the inverse scale */
         float scale;
@@ -483,14 +491,14 @@ static void splineik_evaluate_bone(
         break;
       }
     }
+  }
 
-    /* finally, multiply the x and z scaling by the radius of the curve too,
-     * to allow automatic scales to get tweaked still
-     */
-    if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_CURVERAD) == 0) {
-      mul_v3_fl(poseMat[0], radius);
-      mul_v3_fl(poseMat[2], radius);
-    }
+  /* Finally, multiply the x and z scaling by the radius of the curve too,
+   * to allow automatic scales to get tweaked still.
+   */
+  if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_CURVERAD) == 0) {
+    mul_v3_fl(poseMat[0], radius);
+    mul_v3_fl(poseMat[2], radius);
   }
 
   /* Blend the scaling of the matrix according to the influence. */

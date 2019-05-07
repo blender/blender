@@ -2604,6 +2604,13 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
                            "on top of the shape and scaling of the curve itself");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+  /* take original scaling of the bone into account in volume preservation */
+  prop = RNA_def_property(srna, "use_original_scale", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_USE_ORIGINAL_SCALE);
+  RNA_def_property_ui_text(
+      prop, "Use Original Scale", "Apply volume preservation over the original scaling");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
   /* volume presevation for "volumetric" scale mode */
   prop = RNA_def_property(srna, "bulge", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 100.f);

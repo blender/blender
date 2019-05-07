@@ -801,6 +801,9 @@ class ConstraintButtonsPanel:
         layout.prop(con, "y_scale_mode")
         layout.prop(con, "xz_scale_mode")
 
+        if con.xz_scale_mode in {'INVERSE_PRESERVE', 'VOLUME_PRESERVE'}:
+            layout.prop(con, "use_original_scale")
+
         if con.xz_scale_mode == 'VOLUME_PRESERVE':
             layout.prop(con, "bulge", text="Volume Variation")
             split = layout.split()
