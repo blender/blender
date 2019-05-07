@@ -1001,7 +1001,7 @@ class WM_OT_doc_view_manual(Operator):
 
 
 class WM_OT_doc_view(Operator):
-    """Open online reference docs in.a web browser"""
+    """Open online reference docs in a web browser"""
     bl_idname = "wm.doc_view"
     bl_label = "View Documentation"
 

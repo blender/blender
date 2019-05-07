@@ -474,14 +474,15 @@ class VIEW3D_HT_header(Header):
             else:
                 attr = "use_proportional_edit"
 
-                if tool_settings.use_proportional_edit == False:
-                    kw["icon"] = 'PROP_OFF'
-                else:
-                    kw["icon"] = 'PROP_ON'
+                if tool_settings.use_proportional_edit:
                     if tool_settings.use_proportional_connected:
                         kw["icon"] = 'PROP_CON'
                     elif tool_settings.use_proportional_projected:
                         kw["icon"] = 'PROP_PROJECTED'
+                    else:
+                        kw["icon"] = 'PROP_ON'
+                else:
+                    kw["icon"] = 'PROP_OFF'
 
             row.prop(tool_settings, attr, icon_only=True, **kw)
             sub = row.row(align=True)
