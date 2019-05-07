@@ -285,6 +285,26 @@ function(blender_add_lib
   set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()
 
+# Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.
+function(setup_heavy_lib_pool)
+  if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    if(WITH_CYCLES)
+      list(APPEND _HEAVY_LIBS "cycles_device" "cycles_kernel")
+    endif()
+    if(WITH_LIBMV)
+      list(APPEND _HEAVY_LIBS "bf_intern_libmv")
+    endif()
+    if(WITH_OPENVDB)
+      list(APPEND _HEAVY_LIBS "bf_intern_openvdb")
+    endif()
+
+    foreach(TARGET ${_HEAVY_LIBS})
+      if(TARGET ${TARGET})
+        set_property(TARGET ${TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
+      endif()
+    endforeach()
+  endif()
+endfunction()
 
 function(SETUP_LIBDIRS)
 
