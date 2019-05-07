@@ -121,6 +121,34 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
             layout.prop(world, "color")
 
 
+class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        world = context.world
+        return world and world.use_nodes and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+        ntree = world.node_tree
+        node = ntree.get_output_node('EEVEE')
+
+        if node:
+            input = find_node_input(node, 'Volume')
+            if input:
+                layout.template_node_view(ntree, node, input)
+            else:
+                layout.label(text="Incompatible output node")
+        else:
+            layout.label(text="No output node")
+
+
 class WORLD_PT_viewport_display(WorldButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -139,6 +167,7 @@ class WORLD_PT_viewport_display(WorldButtonsPanel, Panel):
 classes = (
     WORLD_PT_context_world,
     EEVEE_WORLD_PT_surface,
+    EEVEE_WORLD_PT_volume,
     EEVEE_WORLD_PT_mist,
     WORLD_PT_viewport_display,
     WORLD_PT_custom_props,
