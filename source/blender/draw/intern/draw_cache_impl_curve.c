@@ -42,6 +42,8 @@
 
 #include "DRW_render.h"
 
+#include "draw_cache_inline.h"
+
 #include "draw_cache_impl.h" /* own include */
 
 #define SELECT 1

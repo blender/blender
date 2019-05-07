@@ -61,6 +61,8 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
+#include "draw_cache_inline.h"
+
 #include "draw_cache_impl.h" /* own include */
 
 static void mesh_batch_cache_clear(Mesh *me);

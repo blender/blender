@@ -131,6 +131,7 @@ set(SRC
   intern/DRW_render.h
   intern/draw_cache.h
   intern/draw_cache_impl.h
+  intern/draw_cache_inline.h
   intern/draw_common.h
   intern/draw_debug.h
   intern/draw_hair_private.h

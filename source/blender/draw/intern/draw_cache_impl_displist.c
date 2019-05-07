@@ -37,6 +37,8 @@
 #include "GPU_batch.h"
 #include "GPU_extensions.h"
 
+#include "draw_cache_inline.h"
+
 #include "draw_cache_impl.h" /* own include */
 
 static int dl_vert_len(const DispList *dl)
