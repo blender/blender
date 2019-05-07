@@ -1276,9 +1276,6 @@ void BKE_sculpt_update_mesh_elements(
       }
     }
   }
-
-  /* 2.8x - avoid full mesh update! */
-  BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_SCULPT_COORDS);
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
