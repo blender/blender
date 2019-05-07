@@ -8954,7 +8954,6 @@ void MESH_OT_smoothen_normals(struct wmOperatorType *ot)
 
 static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;

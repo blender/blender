@@ -1018,13 +1018,16 @@ bool invert_m4(float m[4][4])
   return success;
 }
 
-/* computes the inverse of mat and puts it in inverse.  Returns
- * true on success (i.e. can always find a pivot) and false on failure.
+/**
+ * Computes the inverse of mat and puts it in inverse.
  * Uses Gaussian Elimination with partial (maximal column) pivoting.
- * Mark Segal - 1992
- * note this is less performant than EIG_invert_m4_m4 (Eigen), but e.g.
+ * \return true on success (i.e. can always find a pivot) and false on failure.
+ * Mark Segal - 1992.
+ *
+ * \note this is less performant than #EIG_invert_m4_m4 (Eigen), but e.g.
  * for non-invertible scale matrices, findinging a partial solution can
- * be useful to have a valid local transform center, see T57767 */
+ * be useful to have a valid local transform center, see T57767.
+ */
 bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
 {
   if (EIG_invert_m4_m4(inverse, mat)) {
@@ -1070,7 +1073,7 @@ bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
     }
 
     if (UNLIKELY(tempmat[i][i] == 0.0f)) {
-      return false;  /* No non-zero pivot */
+      return false; /* No non-zero pivot */
     }
     temp = (double)tempmat[i][i];
     for (k = 0; k < 4; k++) {
@@ -1720,9 +1723,11 @@ void mat4_to_size(float size[3], const float mat[4][4])
   size[2] = len_v3(mat[2]);
 }
 
-/* This computes the overall volume scale factor of a transformation matrix.
+/**
+ * This computes the overall volume scale factor of a transformation matrix.
  * For an orthogonal matrix, it is the product of all three scale values.
- * Returns a negative value if the transform is flipped by negative scale. */
+ * Returns a negative value if the transform is flipped by negative scale.
+ */
 float mat3_to_volume_scale(const float mat[3][3])
 {
   return determinant_m3_array(mat);
@@ -1733,9 +1738,11 @@ float mat4_to_volume_scale(const float mat[4][4])
   return determinant_m4_mat3_array(mat);
 }
 
-/* this gets the average scale of a matrix, only use when your scaling
+/**
+ * This gets the average scale of a matrix, only use when your scaling
  * data that has no idea of scale axis, examples are bone-envelope-radius
- * and curve radius */
+ * and curve radius.
+ */
 float mat3_to_scale(const float mat[3][3])
 {
   /* unit length vector */
@@ -2095,10 +2102,12 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4])
           equals_v4v4(mat1[2], mat2[2]) && equals_v4v4(mat1[3], mat2[3]));
 }
 
-/* make a 4x4 matrix out of 3 transform components */
-/* matrices are made in the order: scale * rot * loc */
-/* TODO: need to have a version that allows for rotation order... */
-
+/**
+ * Make a 4x4 matrix out of 3 transform components.
+ * Matrices are made in the order: `scale * rot * loc`
+ *
+ * TODO: need to have a version that allows for rotation order...
+ */
 void loc_eul_size_to_mat4(float mat[4][4],
                           const float loc[3],
                           const float eul[3],
@@ -2123,9 +2132,10 @@ void loc_eul_size_to_mat4(float mat[4][4],
   mat[3][2] = loc[2];
 }
 
-/* make a 4x4 matrix out of 3 transform components */
-
-/* matrices are made in the order: scale * rot * loc */
+/**
+ * Make a 4x4 matrix out of 3 transform components.
+ * Matrices are made in the order: `scale * rot * loc`
+ */
 void loc_eulO_size_to_mat4(float mat[4][4],
                            const float loc[3],
                            const float eul[3],
@@ -2151,9 +2161,10 @@ void loc_eulO_size_to_mat4(float mat[4][4],
   mat[3][2] = loc[2];
 }
 
-/* make a 4x4 matrix out of 3 transform components */
-
-/* matrices are made in the order: scale * rot * loc */
+/**
+ * Make a 4x4 matrix out of 3 transform components.
+ * Matrices are made in the order: `scale * rot * loc`
+ */
 void loc_quat_size_to_mat4(float mat[4][4],
                            const float loc[3],
                            const float quat[4],
