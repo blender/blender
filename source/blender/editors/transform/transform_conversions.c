@@ -198,7 +198,10 @@ void sort_trans_data_dist(TransInfo *t)
   }
 }
 
-static void sort_trans_data_container(TransDataContainer *tc)
+/**
+ * Make #TD_SELECTED first in the array.
+ */
+static void sort_trans_data_selected_first_container(TransDataContainer *tc)
 {
   TransData *sel, *unsel;
   TransData temp;
@@ -225,10 +228,10 @@ static void sort_trans_data_container(TransDataContainer *tc)
     unsel++;
   }
 }
-static void sort_trans_data(TransInfo *t)
+static void sort_trans_data_selected_first(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    sort_trans_data_container(tc);
+    sort_trans_data_selected_first_container(tc);
   }
 }
 
@@ -9385,7 +9388,7 @@ void createTransData(bContext *C, TransInfo *t)
     countAndCleanTransDataContainer(t);
 
     if (t->data_len_all && t->flag & T_PROP_EDIT) {
-      sort_trans_data(t);  // makes selected become first in array
+      sort_trans_data_selected_first(t);
       set_prop_dist(t, 1);
       sort_trans_data_dist(t);
     }
@@ -9399,7 +9402,7 @@ void createTransData(bContext *C, TransInfo *t)
     countAndCleanTransDataContainer(t);
 
     if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-      sort_trans_data(t);  // makes selected become first in array
+      sort_trans_data_selected_first(t);
       set_prop_dist(t, 1);
       sort_trans_data_dist(t);
     }
@@ -9413,7 +9416,7 @@ void createTransData(bContext *C, TransInfo *t)
       countAndCleanTransDataContainer(t);
 
       if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-        sort_trans_data(t);  // makes selected become first in array
+        sort_trans_data_selected_first(t);
         set_prop_dist(t, true);
         sort_trans_data_dist(t);
       }
@@ -9436,7 +9439,7 @@ void createTransData(bContext *C, TransInfo *t)
       t->flag |= T_EDIT;
 
       if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-        sort_trans_data(t);  // makes selected become first in array
+        sort_trans_data_selected_first(t);
         set_prop_dist(t, 1);
         sort_trans_data_dist(t);
       }
@@ -9453,7 +9456,7 @@ void createTransData(bContext *C, TransInfo *t)
     countAndCleanTransDataContainer(t);
 
     if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-      sort_trans_data(t);  // makes selected become first in array
+      sort_trans_data_selected_first(t);
       /* don't do that, distance has been set in createTransActionData already */
       // set_prop_dist(t, false);
       sort_trans_data_dist(t);
@@ -9483,7 +9486,7 @@ void createTransData(bContext *C, TransInfo *t)
 
     if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
       /* makes selected become first in array */
-      sort_trans_data(t);
+      sort_trans_data_selected_first(t);
 
       /* don't do that, distance has been set in createTransGraphEditData already */
       set_prop_dist(t, false);
@@ -9499,7 +9502,7 @@ void createTransData(bContext *C, TransInfo *t)
     countAndCleanTransDataContainer(t);
 
     if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-      sort_trans_data(t);  // makes selected become first in array
+      sort_trans_data_selected_first(t);
       set_prop_dist(t, 1);
       sort_trans_data_dist(t);
     }
@@ -9518,7 +9521,7 @@ void createTransData(bContext *C, TransInfo *t)
       countAndCleanTransDataContainer(t);
 
       if (t->data_len_all && (t->flag & T_PROP_EDIT)) {
-        sort_trans_data(t);  // makes selected become first in array
+        sort_trans_data_selected_first(t);
         set_prop_dist(t, true);
         sort_trans_data_dist(t);
       }
@@ -9561,7 +9564,7 @@ void createTransData(bContext *C, TransInfo *t)
     if (t->data_len_all) {
       if (t->flag & T_PROP_EDIT) {
         if (ELEM(t->obedit_type, OB_CURVE, OB_MESH)) {
-          sort_trans_data(t);  // makes selected become first in array
+          sort_trans_data_selected_first(t);
           if ((t->obedit_type == OB_MESH) && (t->flag & T_PROP_CONNECTED)) {
             /* already calculated by editmesh_set_connectivity_distance */
           }
@@ -9571,7 +9574,7 @@ void createTransData(bContext *C, TransInfo *t)
           sort_trans_data_dist(t);
         }
         else {
-          sort_trans_data(t);  // makes selected become first in array
+          sort_trans_data_selected_first(t);
           set_prop_dist(t, 1);
           sort_trans_data_dist(t);
         }
@@ -9580,7 +9583,7 @@ void createTransData(bContext *C, TransInfo *t)
         if (ELEM(t->obedit_type, OB_CURVE)) {
           /* Needed because bezier handles can be partially selected
            * and are still added into transform data. */
-          sort_trans_data(t);  // makes selected become first in array
+          sort_trans_data_selected_first(t);
         }
       }
     }
@@ -9635,7 +9638,7 @@ void createTransData(bContext *C, TransInfo *t)
     t->flag |= T_POINTS;
 
     if (t->data_len_all && t->flag & T_PROP_EDIT) {
-      sort_trans_data(t);  // makes selected become first in array
+      sort_trans_data_selected_first(t);
       set_prop_dist(t, 1);
       sort_trans_data_dist(t);
     }
