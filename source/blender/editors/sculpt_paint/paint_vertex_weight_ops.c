@@ -161,7 +161,7 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
   ot->poll = weight_from_bones_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
   /* properties */
   ot->prop = RNA_def_enum(
