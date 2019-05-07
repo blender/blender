@@ -146,6 +146,8 @@ void ED_operatortypes_armature(void)
   /* POSE SLIDING */
   WM_operatortype_append(POSE_OT_push);
   WM_operatortype_append(POSE_OT_relax);
+  WM_operatortype_append(POSE_OT_push_rest);
+  WM_operatortype_append(POSE_OT_relax_rest);
   WM_operatortype_append(POSE_OT_breakdown);
 }
 
