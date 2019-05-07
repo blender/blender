@@ -38,7 +38,8 @@ ustring u_colorspace_srgb("__builtin_srgb");
 
 /* Cached data. */
 #ifdef WITH_OCIO
-static thread_mutex cache_mutex;
+static thread_mutex cache_colorspaces_mutex;
+static thread_mutex cache_processors_mutex;
 static unordered_map<ustring, ustring, ustringHash> cached_colorspaces;
 static unordered_map<ustring, OCIO::ConstProcessorRcPtr, ustringHash> cached_processors;
 #endif
@@ -60,7 +61,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 
   /* Cache processor until free_memory(), memory overhead is expected to be
    * small and the processor is likely to be reused. */
-  thread_scoped_lock cache_lock(cache_mutex);
+  thread_scoped_lock cache_processors_lock(cache_processors_mutex);
   if (cached_processors.find(colorspace) == cached_processors.end()) {
     try {
       cached_processors[colorspace] = config->getProcessor(colorspace.c_str(), "scene_linear");
@@ -106,7 +107,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
     /* Use OpenColorIO. */
 #ifdef WITH_OCIO
     {
-      thread_scoped_lock cache_lock(cache_mutex);
+      thread_scoped_lock cache_lock(cache_colorspaces_mutex);
       /* Cached lookup. */
       if (cached_colorspaces.find(colorspace) != cached_colorspaces.end()) {
         return cached_colorspaces[colorspace];
@@ -117,7 +118,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
     bool is_scene_linear, is_srgb;
     is_builtin_colorspace(colorspace, is_scene_linear, is_srgb);
 
-    thread_scoped_lock cache_lock(cache_mutex);
+    thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     if (is_scene_linear) {
       VLOG(1) << "Colorspace " << colorspace.string() << " is no-op";
       cached_colorspaces[colorspace] = u_colorspace_raw;
