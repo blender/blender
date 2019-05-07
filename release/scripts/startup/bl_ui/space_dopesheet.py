@@ -79,7 +79,6 @@ class DopesheetFilterPopoverBase:
         is_nla = context.area.type == 'NLA_EDITOR'
 
         col = layout.column(align=True)
-        col.label(text="With Name:")
         if not is_nla:
             row = col.row(align=True)
             row.prop(dopesheet, "filter_fcurve_name", text="")
@@ -89,7 +88,6 @@ class DopesheetFilterPopoverBase:
 
         if (not generic_filters_only) and (bpy.data.collections):
             col = layout.column(align=True)
-            col.label(text="In Collection:")
             col.prop(dopesheet, "filter_collection", text="")
 
     # Standard = Present in all panels
