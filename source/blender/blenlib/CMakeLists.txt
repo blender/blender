@@ -48,6 +48,7 @@ set(SRC
   intern/BLI_linklist.c
   intern/BLI_linklist_lockfree.c
   intern/BLI_memarena.c
+  intern/BLI_memblock.c
   intern/BLI_memiter.c
   intern/BLI_mempool.c
   intern/BLI_timer.c
@@ -194,6 +195,7 @@ set(SRC
   BLI_math_statistics.h
   BLI_math_vector.h
   BLI_memarena.h
+  BLI_memblock.h
   BLI_memiter.h
   BLI_memory_utils.h
   BLI_mempool.h
