@@ -196,11 +196,30 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       /* Bone - generally, we just want the bone component. */
       node_identifier.type = NodeType::BONE;
       node_identifier.component_name = pchan->name;
-      /* But B-Bone properties should connect to the actual operation. */
-      Object *object = reinterpret_cast<Object *>(node_identifier.id);
-      if (!ELEM(NULL, pchan->bone, prop) && STRPREFIX(RNA_property_identifier(prop), "bbone_") &&
-          builder_->check_pchan_has_bbone_segments(object, pchan)) {
-        node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
+      /* However check property name for special handling. */
+      if (prop != NULL) {
+        Object *object = reinterpret_cast<Object *>(node_identifier.id);
+        const char *prop_name = RNA_property_identifier(prop);
+        /* B-Bone properties should connect to the final operation. */
+        if (STRPREFIX(prop_name, "bbone_")) {
+          if (builder_->check_pchan_has_bbone_segments(object, pchan)) {
+            node_identifier.operation_code = OperationCode::BONE_SEGMENTS;
+          }
+          else {
+            node_identifier.operation_code = OperationCode::BONE_DONE;
+          }
+        }
+        /* Final transform properties go to the Done node for the exit. */
+        else if (STREQ(prop_name, "head") || STREQ(prop_name, "tail") ||
+                 STRPREFIX(prop_name, "matrix")) {
+          if (source == RNAPointerSource::EXIT) {
+            node_identifier.operation_code = OperationCode::BONE_DONE;
+          }
+        }
+        /* And other properties can always go to the entry operation. */
+        else {
+          node_identifier.operation_code = OperationCode::BONE_LOCAL;
+        }
       }
     }
     return node_identifier;
