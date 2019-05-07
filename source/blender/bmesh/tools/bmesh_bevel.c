@@ -5222,7 +5222,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
   BMIter iter;
   EdgeHalf *e;
   float weight, z;
-  float vert_axis[3];
+  float vert_axis[3] = {0, 0, 0};
   int i, ccw_test_sum;
   int nsel = 0;
   int ntot = 0;
@@ -5357,7 +5357,6 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         normalize_v3(edge_dir);
         add_v3_v3v3(vert_axis, vert_axis, edge_dir);
       }
-      mul_v3_fl(vert_axis, 1 / ntot);
     }
   }
 
@@ -5430,8 +5429,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         case BEVEL_AMT_WIDTH: {
           v2 = BM_edge_other_vert(e->e, bv->v);
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
-          normalize_v3(edge_dir);
-          z = fabsf(2.0f * sinf(angle_normalized_v3v3(vert_axis, edge_dir)));
+          z = fabsf(2.0f * sinf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
             e->offset_l_spec = 0.01f * bp->offset; /* undefined behavior, so tiny bevel. */
           }
@@ -5443,8 +5441,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         case BEVEL_AMT_DEPTH: {
           v2 = BM_edge_other_vert(e->e, bv->v);
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
-          normalize_v3(edge_dir);
-          z = fabsf(cosf(angle_normalized_v3v3(vert_axis, edge_dir)));
+          z = fabsf(cosf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
             e->offset_l_spec = 0.01f * bp->offset; /* undefined behavior, so tiny bevel. */
           }
