@@ -2095,12 +2095,16 @@ static void mesh_batch_cache_init(Mesh *me)
   drw_mesh_weight_state_clear(&cache->weight_state);
 }
 
-static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
+void DRW_mesh_batch_cache_validate(Mesh *me)
 {
   if (!mesh_batch_cache_valid(me)) {
     mesh_batch_cache_clear(me);
     mesh_batch_cache_init(me);
   }
+}
+
+static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
+{
   return me->runtime.batch_cache;
 }
 

@@ -1157,6 +1157,8 @@ static void drw_engines_cache_populate(Object *ob)
    * ourselves here. */
   drw_drawdata_unlink_dupli((ID *)ob);
 
+  drw_batch_cache_validate(ob);
+
   int i = 0;
   for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
     DrawEngineType *engine = link->data;
@@ -2096,6 +2098,9 @@ void DRW_render_object_iter(
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
       DST.ob_state = NULL;
+
+      drw_batch_cache_validate(ob);
+
       callback(vedata, ob, engine, depsgraph);
 
       drw_batch_cache_generate_requested(DST.dupli_source ? DST.dupli_source->ob : ob);

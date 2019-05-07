@@ -3953,6 +3953,28 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 /** \name Batch Cache Impl. common
  * \{ */
 
+void drw_batch_cache_validate(Object *ob)
+{
+  switch (ob->type) {
+    case OB_MESH:
+      DRW_mesh_batch_cache_validate((Mesh *)ob->data);
+      break;
+    case OB_CURVE:
+    case OB_FONT:
+    case OB_SURF:
+      DRW_curve_batch_cache_validate((Curve *)ob->data);
+      break;
+    case OB_MBALL:
+      DRW_mball_batch_cache_validate((MetaBall *)ob->data);
+      break;
+    case OB_LATTICE:
+      DRW_lattice_batch_cache_validate((Lattice *)ob->data);
+      break;
+    default:
+      break;
+  }
+}
+
 void drw_batch_cache_generate_requested(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();

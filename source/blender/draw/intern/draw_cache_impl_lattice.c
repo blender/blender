@@ -340,12 +340,16 @@ static void lattice_batch_cache_init(Lattice *lt)
   cache->is_dirty = false;
 }
 
-static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
+void DRW_lattice_batch_cache_validate(Lattice *lt)
 {
   if (!lattice_batch_cache_valid(lt)) {
     lattice_batch_cache_clear(lt);
     lattice_batch_cache_init(lt);
   }
+}
+
+static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
+{
   return lt->batch_cache;
 }
 

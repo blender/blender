@@ -98,12 +98,16 @@ static void metaball_batch_cache_init(MetaBall *mb)
   cache->is_manifold = false;
 }
 
-static MetaBallBatchCache *metaball_batch_cache_get(MetaBall *mb)
+void DRW_mball_batch_cache_validate(MetaBall *mb)
 {
   if (!metaball_batch_cache_valid(mb)) {
     metaball_batch_cache_clear(mb);
     metaball_batch_cache_init(mb);
   }
+}
+
+static MetaBallBatchCache *metaball_batch_cache_get(MetaBall *mb)
+{
   return mb->batch_cache;
 }
 
