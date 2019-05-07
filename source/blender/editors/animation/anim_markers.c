@@ -481,7 +481,9 @@ static void draw_markers_background(rctf *rect)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  const unsigned char shade[4] = {0, 0, 0, 16};
+  const unsigned char shade[4];
+  UI_GetThemeColor4ubv(TH_SCRUBBING_BACKGROUND, shade);
+
   immUniformColor4ubv(shade);
 
   GPU_blend(true);
