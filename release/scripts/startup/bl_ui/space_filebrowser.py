@@ -117,20 +117,9 @@ class FILEBROWSER_UL_dir(UIList):
 
 
 
-class FILEBROWSER_PT_bookmarks(Panel):
-    bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'TOOLS'
-    bl_category = "Bookmarks"
-    bl_label = "Bookmarks"
-
-    def draw(self, context):
-        pass
-
-
 class FILEBROWSER_PT_bookmarks_volumes(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
-    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Bookmarks"
     bl_label = "Volumes"
@@ -148,7 +137,6 @@ class FILEBROWSER_PT_bookmarks_volumes(Panel):
 class FILEBROWSER_PT_bookmarks_system(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
-    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
     bl_label = "System"
 
@@ -181,7 +169,6 @@ class FILEBROWSER_MT_bookmarks_context_menu(Menu):
 class FILEBROWSER_PT_bookmarks_favorites(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
-    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
     bl_label = "Favorites"
 
@@ -212,9 +199,7 @@ class FILEBROWSER_PT_bookmarks_favorites(Panel):
 class FILEBROWSER_PT_bookmarks_recents(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
-    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Bookmarks"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Recents"
 
     @classmethod
@@ -237,7 +222,6 @@ class FILEBROWSER_PT_bookmarks_recents(Panel):
 class FILEBROWSER_PT_advanced_filter(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
-    bl_parent_id = "FILEBROWSER_PT_bookmarks"
     bl_category = "Filter"
     bl_label = "Advanced Filter"
 
@@ -278,7 +262,6 @@ class FILEBROWSER_MT_view(Menu):
 classes = (
     FILEBROWSER_HT_header,
     FILEBROWSER_UL_dir,
-    FILEBROWSER_PT_bookmarks,
     FILEBROWSER_PT_bookmarks_volumes,
     FILEBROWSER_PT_bookmarks_system,
     FILEBROWSER_MT_bookmarks_context_menu,
