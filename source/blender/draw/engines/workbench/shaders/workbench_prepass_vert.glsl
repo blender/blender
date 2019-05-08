@@ -1,10 +1,7 @@
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewProjectionMatrix;
-uniform mat4 ViewMatrixInverse;
-uniform mat3 NormalMatrix;
+
+uniform mat4 ModelViewProjectionMatrix;
 
 #ifndef HAIR_SHADER
 in vec3 pos;
@@ -91,7 +88,7 @@ void main()
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-  normal_viewport = NormalMatrix * nor;
+  normal_viewport = transform_normal_object_to_view(nor);
 #  ifndef HAIR_SHADER
   normal_viewport = normalize(normal_viewport);
 #  endif

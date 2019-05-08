@@ -1,8 +1,5 @@
 out vec4 fragColor;
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewMatrixInverse;
-
 uniform usampler2D objectId;
 uniform sampler2D materialBuffer;
 uniform sampler2D normalBuffer;

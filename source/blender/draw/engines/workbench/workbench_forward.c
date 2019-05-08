@@ -68,6 +68,7 @@ static struct {
 
 /* Shaders */
 extern char datatoc_common_hair_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 
 extern char datatoc_workbench_forward_composite_frag_glsl[];
 extern char datatoc_workbench_forward_depth_frag_glsl[];
@@ -88,6 +89,7 @@ static char *workbench_build_forward_vert(bool is_hair)
   if (is_hair) {
     BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
   }
+  BLI_dynstr_append(ds, datatoc_common_view_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
 
   char *str = BLI_dynstr_get_cstring(ds);
@@ -99,6 +101,7 @@ static char *workbench_build_forward_transparent_accum_frag(void)
 {
   DynStr *ds = BLI_dynstr_new();
 
+  BLI_dynstr_append(ds, datatoc_common_view_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_world_light_lib_glsl);

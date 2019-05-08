@@ -4,8 +4,6 @@ uniform sampler2D image;
 uniform bool imageSrgb;
 uniform bool imageNearest;
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewMatrixInverse;
 uniform float alpha = 0.5;
 uniform vec2 invertedViewportSize;
 uniform vec4 viewvecs[3];
