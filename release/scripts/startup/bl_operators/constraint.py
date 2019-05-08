@@ -69,13 +69,13 @@ class CONSTRAINT_OT_normalize_target_weights(Operator):
         return {'FINISHED'}
 
 
-
 class CONSTRAINT_OT_disable_keep_transform(Operator):
+    """Set the influence of this constraint to zero while """ \
+    """trying to maintain the object's transformation. Other active """ \
+    """constraints can still influence the final transformation"""
+
     bl_idname = "constraint.disable_keep_transform"
     bl_label = "Disable and Keep Transform"
-    bl_description = ("Set the influence of this constraint to zero while "
-        "trying to maintain the object's transformation. Other active "
-        "constraints can still influence the final transformation")
     bl_options = {'UNDO', 'INTERNAL'}
 
     @classmethod
@@ -95,20 +95,20 @@ class CONSTRAINT_OT_disable_keep_transform(Operator):
 
         # Get the matrix in world space.
         is_bone_constraint = context.space_data.context == 'BONE_CONSTRAINT'
+        ob = context.object
         if is_bone_constraint:
-            armature = context.object
             bone = context.pose_bone
-            mat = armature.matrix_world @ bone.matrix
+            mat = ob.matrix_world @ bone.matrix
         else:
-            mat = context.object.matrix_world
+            mat = ob.matrix_world
 
         context.constraint.influence = 0.0
 
         # Set the matrix.
         if is_bone_constraint:
-            bone.matrix = armature.matrix_world.inverted() @ mat
+            bone.matrix = ob.matrix_world.inverted() @ mat
         else:
-            context.object.matrix_world = mat
+            ob.matrix_world = mat
 
         return {'FINISHED'}
 
