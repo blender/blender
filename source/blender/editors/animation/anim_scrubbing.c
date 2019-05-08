@@ -155,6 +155,13 @@ void ED_scrubbing_draw(const ARegion *ar,
   GPU_matrix_pop_projection();
 }
 
+bool ED_event_in_scrubbing_region(const ARegion *ar, const wmEvent *event)
+{
+  rcti rect = ar->winrct;
+  rect.ymin = rect.ymax - UI_SCRUBBING_MARGIN_Y;
+  return BLI_rcti_isect_pt(&rect, event->x, event->y);
+}
+
 void ED_channel_search_draw(const bContext *C, ARegion *ar, bDopeSheet *dopesheet)
 {
   GPU_matrix_push_projection();

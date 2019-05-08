@@ -1002,8 +1002,12 @@ static void clip_preview_region_init(wmWindowManager *wm, ARegion *ar)
   UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
   /* own keymap */
+
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
   WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Scrubbing", SPACE_CLIP, RGN_TYPE_PREVIEW);
+  WM_event_add_keymap_handler_poll(&ar->handlers, keymap, ED_event_in_scrubbing_region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
   WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);

@@ -1322,6 +1322,20 @@ def km_scrubbing(params):
 
     return keymap
 
+def km_scrubbing_clip(params):
+    items = []
+    keymap = (
+        "Clip Scrubbing",
+        {"space_type": 'CLIP_EDITOR', "region_type": 'PREVIEW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("clip.change_frame", {"type": "LEFTMOUSE", "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
 
 def km_graph_editor_generic(_params):
     items = []
@@ -6165,6 +6179,7 @@ def generate_keymaps(params=None):
         km_mask_editing(params),
         km_markers(params),
         km_scrubbing(params),
+        km_scrubbing_clip(params),
         km_graph_editor_generic(params),
         km_graph_editor(params),
         km_image_generic(params),

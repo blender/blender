@@ -50,6 +50,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
+#include "ED_scrubbing.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -1566,13 +1567,6 @@ static bool event_in_markers_region(const ARegion *ar, const wmEvent *event)
   return BLI_rcti_isect_pt(&rect, event->x, event->y);
 }
 
-static bool event_in_scrubbing_region(const ARegion *ar, const wmEvent *event)
-{
-  rcti rect = ar->winrct;
-  rect.ymin = rect.ymax - UI_SCRUBBING_MARGIN_Y;
-  return BLI_rcti_isect_pt(&rect, event->x, event->y);
-}
-
 /**
  * \param ar: Region, may be NULL when adding handlers for \a sa.
  */
@@ -1620,7 +1614,7 @@ static void ed_default_handlers(
 
     /* time-scrubbing */
     keymap = WM_keymap_ensure(wm->defaultconf, "Scrubbing", 0, 0);
-    WM_event_add_keymap_handler_poll(handlers, keymap, event_in_scrubbing_region);
+    WM_event_add_keymap_handler_poll(handlers, keymap, ED_event_in_scrubbing_region);
 
     /* frame changing and timeline operators (for time spaces) */
     keymap = WM_keymap_ensure(wm->defaultconf, "Animation", 0, 0);

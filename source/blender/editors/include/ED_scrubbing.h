@@ -27,11 +27,14 @@
 struct bContext;
 struct View2DGrid;
 struct bDopeSheet;
+struct wmEvent;
 
 void ED_scrubbing_draw(const struct ARegion *ar,
                        const struct Scene *scene,
                        bool display_seconds,
                        bool discrete_frames);
+
+bool ED_event_in_scrubbing_region(const struct ARegion *ar, const struct wmEvent *event);
 
 void ED_channel_search_draw(const struct bContext *C,
                             struct ARegion *ar,
