@@ -836,18 +836,22 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
   cl.radiance /= max(1e-8, cl.opacity);
 
 #  ifdef USE_SSS
-  cl.sss_data.rgb = mix(cl1.sss_data.rgb, cl2.sss_data.rgb, fac);
-  cl.sss_data.a = (cl1.sss_data.a > 0.0) ? cl1.sss_data.a : cl2.sss_data.a;
+  /* Apply Mix on input */
+  cl1.sss_data.rgb *= 1.0 - fac;
+  cl2.sss_data.rgb *= fac;
+
+  /* Select biggest radius. */
+  bool use_cl1 = (cl1.sss_data.a > cl2.sss_data.a);
+  cl.sss_data = (use_cl1) ? cl1.sss_data : cl2.sss_data;
 
 #    ifdef USE_SSS_ALBEDO
   /* TODO Find a solution to this. Dither? */
-  cl.sss_albedo = (cl1.sss_data.a > 0.0) ? cl1.sss_albedo : cl2.sss_albedo;
+  cl.sss_albedo = (use_cl1) ? cl1.sss_albedo : cl2.sss_albedo;
   /* Add radiance that was supposed to be filtered but was rejected. */
-  cl.radiance += (cl1.sss_data.a > 0.0) ? cl2.sss_data.rgb * cl2.sss_albedo :
-                                          cl1.sss_data.rgb * cl1.sss_albedo;
+  cl.radiance += (use_cl1) ? cl2.sss_data.rgb * cl2.sss_albedo : cl1.sss_data.rgb * cl1.sss_albedo;
 #    else
   /* Add radiance that was supposed to be filtered but was rejected. */
-  cl.radiance += (cl1.sss_data.a > 0.0) ? cl2.sss_data.rgb : cl1.sss_data.rgb;
+  cl.radiance += (use_cl1) ? cl2.sss_data.rgb : cl1.sss_data.rgb;
 #    endif
 #  endif
 
