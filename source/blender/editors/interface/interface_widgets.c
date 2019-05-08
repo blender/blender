@@ -3494,8 +3494,11 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
       wcol->item[3] = 255;
 
       if (horizontal) {
-        shape_preset_init_scroll_circle(&wtb.tria1, slider, 0.6f, 'l');
-        shape_preset_init_scroll_circle(&wtb.tria2, slider, 0.6f, 'r');
+        rcti slider_inset = *slider;
+        slider_inset.xmin += 0.05 * U.widget_unit;
+        slider_inset.xmax -= 0.05 * U.widget_unit;
+        shape_preset_init_scroll_circle(&wtb.tria1, &slider_inset, 0.6f, 'l');
+        shape_preset_init_scroll_circle(&wtb.tria2, &slider_inset, 0.6f, 'r');
       }
       else {
         shape_preset_init_scroll_circle(&wtb.tria1, slider, 0.6f, 'b');

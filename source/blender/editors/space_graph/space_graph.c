@@ -58,6 +58,7 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "graph_intern.h"  // own include
 
@@ -125,8 +126,8 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
   ar->v2d.max[0] = MAXFRAMEF;
   ar->v2d.max[1] = FLT_MAX;
 
-  ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
-  ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_SCALE_VERTICAL);
+  ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+  ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
 
   ar->v2d.keeptot = 0;
 
@@ -320,7 +321,15 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* scale numbers */
-  UI_view2d_draw_scale_y__values(ar, v2d, &v2d->vert, TH_SCROLL_TEXT);
+  {
+    rcti rect;
+    BLI_rcti_init(&rect,
+                  0,
+                  15 * UI_DPI_FAC,
+                  15 * UI_DPI_FAC,
+                  UI_DPI_FAC * ar->sizey - UI_SCRUBBING_MARGIN_Y);
+    UI_view2d_draw_scale_y__values(ar, v2d, &rect, TH_SCROLL_TEXT);
+  }
 }
 
 static void graph_channel_region_init(wmWindowManager *wm, ARegion *ar)

@@ -151,10 +151,10 @@ enum {
   V2D_SCROLL_BOTTOM = (1 << 3),
   /* UNUSED                    = (1 << 4), */
   V2D_SCROLL_HORIZONTAL = (V2D_SCROLL_TOP | V2D_SCROLL_BOTTOM),
-  /* scale markings - vertical */
-  V2D_SCROLL_SCALE_VERTICAL = (1 << 5),
-  /* scale markings - horizontal */
-  V2D_SCROLL_SCALE_HORIZONTAL = (1 << 6),
+  /* display vertical scale handles */
+  V2D_SCROLL_VERTICAL_HANDLES = (1 << 5),
+  /* display horizontal scale handles */
+  V2D_SCROLL_HORIZONTAL_HANDLES = (1 << 6),
   /* induce hiding of scrollbars - set by region drawing in response to size of region */
   V2D_SCROLL_VERTICAL_HIDE = (1 << 7),
   V2D_SCROLL_HORIZONTAL_HIDE = (1 << 8),

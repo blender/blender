@@ -961,7 +961,7 @@ static void draw_seq_strip(const bContext *C,
   x1 = seq->startdisp + handsize_clamped;
   x2 = seq->enddisp - handsize_clamped;
 
-  float scroller_vert_xoffs = (V2D_SCROLL_WIDTH_TEXT + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
+  float scroller_vert_xoffs = (V2D_SCROLL_WIDTH_HANDLES + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
 
   /* info text on the strip */
   if (x1 < v2d->cur.xmin + scroller_vert_xoffs) {
@@ -1848,7 +1848,7 @@ static bool draw_cache_view_cb(
         color[2] = 0.2f;
         stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
                     v2d->cur.ymin;
-        stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_TEXT);
+        stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_HANDLES);
         stripe_top = stripe_bot + stripe_ht;
         break;
       }
@@ -1927,7 +1927,7 @@ static void draw_cache_view(const bContext *C)
                     v2d->cur.ymin;
 
   if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
-    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_TEXT);
+    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_HANDLES);
     stripe_top = stripe_bot + stripe_ht;
     float bg_color[4] = {1.0f, 0.4f, 0.2f, 0.1f};
 
@@ -2095,5 +2095,13 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   UI_view2d_scrollers_free(scrollers);
 
   /* channel numbers */
-  UI_view2d_draw_scale_y__block(ar, v2d, &v2d->vert, TH_SCROLL_TEXT);
+  {
+    rcti rect;
+    BLI_rcti_init(&rect,
+                  0,
+                  15 * UI_DPI_FAC,
+                  15 * UI_DPI_FAC,
+                  UI_DPI_FAC * ar->sizey - UI_SCRUBBING_MARGIN_Y);
+    UI_view2d_draw_scale_y__block(ar, v2d, &rect, TH_SCROLL_TEXT);
+  }
 }

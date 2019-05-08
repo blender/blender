@@ -411,7 +411,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
     }
 
     GPU_matrix_push();
-    GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HEIGHT_TEXT + yoffs);
+    GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HEIGHT_HANDLES + yoffs);
     GPU_matrix_scale_2f(1.0, cache_draw_height);
 
     switch (pid->type) {

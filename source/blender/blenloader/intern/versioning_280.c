@@ -3370,6 +3370,31 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+        if (ELEM(sa->spacetype, SPACE_CLIP, SPACE_GRAPH, SPACE_SEQ)) {
+          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+            ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+
+            ARegion *ar = NULL;
+            if (sa->spacetype == SPACE_CLIP) {
+              if (((SpaceClip *)sl)->view == SC_VIEW_GRAPH) {
+                ar = do_versions_find_region(regionbase, RGN_TYPE_PREVIEW);
+              }
+            }
+            else {
+              ar = do_versions_find_region(regionbase, RGN_TYPE_WINDOW);
+            }
+
+            if (ar != NULL) {
+              ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
+              ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+            }
+          }
+        }
+      }
+    }
+
     /* Versioning code until next subversion bump goes here. */
   }
 }

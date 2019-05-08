@@ -2032,8 +2032,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
      * NOTE: see view2d.c for latest conditions, and keep this in sync with that
      */
     if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
-      if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) == 0) ||
-          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) == 0)) {
+      if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0) ||
+          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
         /* switch to bar (i.e. no scaling gets handled) */
         vsm->zone = SCROLLHANDLE_BAR;
       }

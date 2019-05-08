@@ -1059,11 +1059,11 @@ static void region_azones_scrollbars_initialize(ScrArea *sa, ARegion *ar)
 {
   const View2D *v2d = &ar->v2d;
 
-  if ((v2d->scroll & V2D_SCROLL_VERTICAL) && ((v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) == 0)) {
+  if ((v2d->scroll & V2D_SCROLL_VERTICAL) && ((v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
     region_azone_scrollbar_initialize(sa, ar, AZ_SCROLL_VERT);
   }
   if ((v2d->scroll & V2D_SCROLL_HORIZONTAL) &&
-      ((v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) == 0)) {
+      ((v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0)) {
     region_azone_scrollbar_initialize(sa, ar, AZ_SCROLL_HOR);
   }
 }

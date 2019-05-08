@@ -285,8 +285,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
         memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
 
         /* init mainarea view2d */
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
-        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_SCALE_VERTICAL);
+        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
 
         ar->v2d.min[0] = FLT_MIN;
         ar->v2d.min[1] = FLT_MIN;
@@ -304,7 +304,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
         ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
         ar->v2d.tot.ymax = 0.0f;
 
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
+        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
         ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
         ar->v2d.align = V2D_ALIGN_NO_POS_Y;
         ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
@@ -330,7 +330,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 
         ar->v2d.minzoom = 0.01f;
         ar->v2d.maxzoom = 50;
-        ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
+        ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
         ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
         ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
         ar->v2d.align = V2D_ALIGN_NO_POS_Y;
@@ -349,8 +349,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
         SpaceSeq *sseq = (SpaceSeq *)sl;
         memcpy(&ar->v2d, &sseq->v2d, sizeof(View2D));
 
-        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
-        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_SCALE_VERTICAL);
+        ar->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
+        ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
         ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
         ar->v2d.flag |= V2D_IS_INITIALISED;
         break;

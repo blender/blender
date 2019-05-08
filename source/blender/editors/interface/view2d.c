@@ -138,7 +138,7 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
   if (check_scrollers) {
     /* check size if hiding flag is set: */
     if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
-      if (!(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)) {
+      if (!(v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES)) {
         if (BLI_rctf_size_x(&v2d->tot) > BLI_rctf_size_x(&v2d->cur)) {
           v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
         }
@@ -148,7 +148,7 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
       }
     }
     if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
-      if (!(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)) {
+      if (!(v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES)) {
         if (BLI_rctf_size_y(&v2d->tot) + 0.01f > BLI_rctf_size_y(&v2d->cur)) {
           v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
         }
@@ -166,10 +166,11 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
    * - if they overlap, they must not occupy the corners (which are reserved for other widgets)
    */
   if (scroll) {
-    const int scroll_width = (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ? V2D_SCROLL_WIDTH_TEXT :
-                                                                         V2D_SCROLL_WIDTH;
-    const int scroll_height = (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ?
-                                  V2D_SCROLL_HEIGHT_TEXT :
+    const int scroll_width = (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) ?
+                                 V2D_SCROLL_WIDTH_HANDLES :
+                                 V2D_SCROLL_WIDTH;
+    const int scroll_height = (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) ?
+                                  V2D_SCROLL_HEIGHT_HANDLES :
                                   V2D_SCROLL_HEIGHT;
 
     /* vertical scroller */
@@ -185,10 +186,10 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
       v2d->vert.xmin = v2d->vert.xmax - scroll_width;
     }
 
-    /* Currently, all regions that have vertical scale text,
+    /* Currently, all regions that have vertical scale handles,
      * also have the scrubbing area at the top.
      * So the scrollbar has to move down a bit. */
-    if (scroll & V2D_SCROLL_SCALE_VERTICAL) {
+    if (scroll & V2D_SCROLL_VERTICAL_HANDLES) {
       v2d->vert.ymax -= UI_SCRUBBING_MARGIN_Y;
     }
 
@@ -1596,7 +1597,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
      *   (workaround to make sure that button windows don't show these,
      *   and only the time-grids with their zoomability can do so)
      */
-    if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
+    if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
         (BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE)) {
       state |= UI_SCROLL_ARROWS;
     }
@@ -1630,7 +1631,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
      *   (workaround to make sure that button windows don't show these,
      *   and only the time-grids with their zoomability can do so)
      */
-    if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
+    if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
         (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE)) {
       state |= UI_SCROLL_ARROWS;
     }
