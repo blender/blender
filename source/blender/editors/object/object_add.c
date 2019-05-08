@@ -1656,7 +1656,7 @@ static void make_object_duplilist_real(
 
   for (dob = lb_duplis->first; dob; dob = dob->next) {
     Object *ob_src = DEG_get_original_object(dob->ob);
-    Object *ob_dst = ID_NEW_SET(dob->ob, BKE_object_copy(bmain, ob_src));
+    Object *ob_dst = ID_NEW_SET(ob_src, BKE_object_copy(bmain, ob_src));
     Base *base_dst;
 
     /* font duplis can have a totcol without material, we get them from parent
