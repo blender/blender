@@ -371,12 +371,21 @@ static void drw_call_state_update_matflag(DRWCallState *state,
    * This is the opposite of what draw_matrices_model_prepare() does. */
   state->matflag |= shgroup->matflag;
 
+  if (new_flags & DRW_CALL_MODELINVERSE) {
+    if (ob) {
+      copy_m4_m4(state->modelinverse, ob->imat);
+    }
+    else {
+      invert_m4_m4(state->modelinverse, state->model);
+    }
+  }
+
   /* Orco factors: We compute this at creation to not have to save the *ob_data */
-  if ((new_flags & DRW_CALL_ORCOTEXFAC) != 0) {
+  if (new_flags & DRW_CALL_ORCOTEXFAC) {
     drw_call_calc_orco(ob, state->orcotexfac);
   }
 
-  if ((new_flags & DRW_CALL_OBJECTINFO) != 0) {
+  if (new_flags & DRW_CALL_OBJECTINFO) {
     state->objectinfo[0] = ob ? ob->index : 0;
     uint random;
     if (DST.dupli_source) {

@@ -818,10 +818,6 @@ static void draw_matrices_model_prepare(DRWCallState *st)
     mul_m3_v3(st->normalviewinverse, st->eyevec);
   }
   /* Non view dependent */
-  if (st->matflag & DRW_CALL_MODELINVERSE) {
-    invert_m4_m4(st->modelinverse, st->model);
-    st->matflag &= ~DRW_CALL_MODELINVERSE;
-  }
   if (st->matflag & DRW_CALL_NORMALWORLD) {
     copy_m3_m4(st->normalworld, st->model);
     invert_m3(st->normalworld);
