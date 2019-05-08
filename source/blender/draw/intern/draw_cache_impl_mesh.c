@@ -2118,6 +2118,8 @@ static void mesh_batch_cache_init(Mesh *me)
   cache->surf_per_mat = MEM_callocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
 
   cache->is_dirty = false;
+  cache->batch_ready = 0;
+  cache->batch_requested = 0;
 
   drw_mesh_weight_state_clear(&cache->weight_state);
 }
@@ -4902,6 +4904,9 @@ void DRW_mesh_batch_cache_create_requested(
 
   /* Early out */
   if (cache->batch_requested == 0) {
+#ifdef DEBUG
+    goto check;
+#endif
     return;
   }
 
@@ -4954,7 +4959,7 @@ void DRW_mesh_batch_cache_create_requested(
         GPU_BATCH_CLEAR_SAFE(cache->surf_per_mat[i]);
       }
       GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
-      cache->batch_ready = ~(MBC_SURFACE | MBC_SURF_PER_MAT);
+      cache->batch_ready &= ~(MBC_SURFACE | MBC_SURF_PER_MAT);
 
       mesh_cd_layers_type_merge(&cache->cd_used, cache->cd_needed);
     }
@@ -4991,10 +4996,14 @@ void DRW_mesh_batch_cache_create_requested(
 
   /* Second chance to early out */
   if ((cache->batch_requested & ~cache->batch_ready) == 0) {
+#ifdef DEBUG
+    goto check;
+#endif
     return;
   }
 
   cache->batch_ready |= cache->batch_requested;
+  cache->batch_requested = 0;
 
   /* Init batches and request VBOs & IBOs */
   if (DRW_batch_requested(cache->batch.surface, GPU_PRIM_TRIS)) {
@@ -5386,6 +5395,7 @@ void DRW_mesh_batch_cache_create_requested(
   }
 
 #ifdef DEBUG
+check:
   /* Make sure all requested batches have been setup. */
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
