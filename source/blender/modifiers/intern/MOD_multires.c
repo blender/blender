@@ -195,7 +195,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
      * Annoying and not so much black-boxed as far as sculpting goes, and
      * surely there is a better way of solving this. */
     if (ctx->object->sculpt != NULL) {
-      ctx->object->sculpt->subdiv_ccg = result->runtime.subdiv_ccg;
+      SculptSession *sculpt_session = ctx->object->sculpt;
+      sculpt_session->subdiv_ccg = result->runtime.subdiv_ccg;
+      sculpt_session->multires = mmd;
+      sculpt_session->totvert = mesh->totvert;
+      sculpt_session->totpoly = mesh->totpoly;
+      sculpt_session->mvert = NULL;
+      sculpt_session->mpoly = NULL;
+      sculpt_session->mloop = NULL;
     }
     /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
      * this pointer. Not sure if it's needed, but might have a second look
