@@ -1910,7 +1910,6 @@ def km_dopesheet_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
-            toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
