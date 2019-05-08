@@ -202,19 +202,12 @@ class CLIP_HT_header(Header):
 
                 row = layout.row(align=True)
 
-                if sc.show_filters:
-                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN',
-                             text="Filters")
+                sub = row.row(align=True)
+                sub.active = clip.tracking.reconstruction.is_valid
+                sub.prop(sc, "show_graph_frames", icon='SEQUENCE', text="")
 
-                    sub = row.row(align=True)
-                    sub.active = clip.tracking.reconstruction.is_valid
-                    sub.prop(sc, "show_graph_frames", icon='SEQUENCE', text="")
-
-                    row.prop(sc, "show_graph_tracks_motion", icon='GRAPH', text="")
-                    row.prop(sc, "show_graph_tracks_error", icon='ANIM', text="")
-                else:
-                    row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
-                             text="Filters")
+                row.prop(sc, "show_graph_tracks_motion", icon='GRAPH', text="")
+                row.prop(sc, "show_graph_tracks_error", icon='ANIM', text="")
 
             elif sc.view == 'DOPESHEET':
                 dopesheet = tracking.dopesheet
