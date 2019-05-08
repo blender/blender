@@ -60,6 +60,7 @@ extern char datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl[];
 extern char datatoc_edit_normals_vert_glsl[];
 extern char datatoc_edit_normals_geom_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
@@ -207,6 +208,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 
     char *lib = BLI_string_joinN(sh_cfg_data->lib,
                                  datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
                                  datatoc_edit_mesh_overlay_common_lib_glsl);
     /* Use geometry shader to draw edge wireframe. This ensure us
      * the same result accross platforms and more flexibility. But
@@ -265,26 +267,30 @@ static void EDIT_MESH_engine_init(void *vedata)
     sh_data->overlay_mix = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl,
                                                         NULL);
 
+    lib = BLI_string_joinN(sh_cfg_data->lib, datatoc_common_view_lib_glsl);
+
     sh_data->normals_face = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
-        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
+        .vert = (const char *[]){lib, datatoc_edit_normals_vert_glsl, NULL},
+        .geom = (const char *[]){lib, datatoc_edit_normals_geom_glsl, NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, "#define FACE_NORMALS\n", NULL},
     });
 
     sh_data->normals_loop = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
-        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
+        .vert = (const char *[]){lib, datatoc_edit_normals_vert_glsl, NULL},
+        .geom = (const char *[]){lib, datatoc_edit_normals_geom_glsl, NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, "#define LOOP_NORMALS\n", NULL},
     });
 
     sh_data->normals = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
-        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
+        .vert = (const char *[]){lib, datatoc_edit_normals_vert_glsl, NULL},
+        .geom = (const char *[]){lib, datatoc_edit_normals_geom_glsl, NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
+
+    MEM_freeN(lib);
 
     /* Mesh Analysis */
     sh_data->mesh_analysis_face = GPU_shader_create_from_arrays({

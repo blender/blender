@@ -233,6 +233,7 @@ extern char datatoc_armature_stick_frag_glsl[];
 extern char datatoc_armature_dof_vert_glsl[];
 
 extern char datatoc_common_globals_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
@@ -826,8 +827,14 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass,
   if (sh_data->shape_outline == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     sh_data->shape_outline = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_outline_vert_glsl, NULL},
-        .geom = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_outline_geom_glsl, NULL},
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_armature_shape_outline_vert_glsl,
+                                 NULL},
+        .geom = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_armature_shape_outline_geom_glsl,
+                                 NULL},
         .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
@@ -857,7 +864,10 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass,
   if (sh_data->shape_solid == NULL) {
     const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
     sh_data->shape_solid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_solid_vert_glsl, NULL},
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_armature_shape_solid_vert_glsl,
+                                 NULL},
         .frag = (const char *[]){datatoc_armature_shape_solid_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });

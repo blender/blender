@@ -1,11 +1,4 @@
 
-uniform mat3 NormalMatrix;
-uniform mat4 ViewMatrixInverse;
-uniform mat4 ViewProjectionMatrix;
-
-uniform mat4 ViewMatrix;
-uniform mat4 ProjectionMatrix;
-
 /* ---- Instantiated Attrs ---- */
 in vec3 pos;
 in vec3 nor;
@@ -19,8 +12,10 @@ out vec4 finalColor;
 
 void main()
 {
-  mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
-  vec3 normal = normalize(NormalMatrix * nor);
+  /* This is slow and run per vertex, but it's still faster than
+   * doing it per instance on CPU and sending it on via instance attribute. */
+  mat3 normal_mat = transpose(inverse(mat3(InstanceModelMatrix)));
+  vec3 normal = normalize(transform_normal_world_to_view(normal_mat * nor));
 
   /* Do lighting at an angle to avoid flat shading on front facing bone. */
   const vec3 light = vec3(0.1, 0.1, 0.8);

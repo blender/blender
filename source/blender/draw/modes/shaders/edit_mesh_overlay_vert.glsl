@@ -1,9 +1,9 @@
 
-uniform mat3 NormalMatrix;
-uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
+uniform mat4 ModelMatrixInverse;
+
 uniform float faceAlphaMod;
 uniform ivec4 dataMask = ivec4(0xFF);
 uniform float ofs;
@@ -77,7 +77,7 @@ void main()
 #if !defined(FACE)
   /* Facing based color blend */
   vec4 vpos = ModelViewMatrix * vec4(pos, 1.0);
-  vec3 view_normal = normalize(NormalMatrix * vnor + 1e-4);
+  vec3 view_normal = normalize(transform_normal_object_to_view(vnor) + 1e-4);
   vec3 view_vec = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos.xyz) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;

@@ -1,8 +1,4 @@
 
-uniform mat3 NormalMatrix;
-
-uniform mat4 ViewMatrix;
-uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 
 /* ---- Instantiated Attrs ---- */
@@ -27,20 +23,19 @@ vec2 proj(vec4 pos)
 
 void main()
 {
-  /* This is slow and run per vertex, but it's still faster than
-   * doing it per instance on CPU and sending it on via instance attribute. */
-  mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
-
   vec4 worldPosition = InstanceModelMatrix * vec4(pos, 1.0);
   vec4 viewpos = ViewMatrix * worldPosition;
 
   vPos = viewpos.xyz;
   pPos = ProjectionMatrix * viewpos;
 
+  /* This is slow and run per vertex, but it's still faster than
+   * doing it per instance on CPU and sending it on via instance attribute. */
+  mat3 normal_mat = transpose(inverse(mat3(InstanceModelMatrix)));
   /* TODO FIX: there is still a problem with this vector
    * when the bone is scaled or in persp mode. But it's
    * barelly visible at the outline corners. */
-  ssNor = normalize((NormalMatrix * snor).xy);
+  ssNor = normalize(transform_normal_world_to_view(normal_mat * snor).xy);
 
   ssPos = proj(pPos);
 

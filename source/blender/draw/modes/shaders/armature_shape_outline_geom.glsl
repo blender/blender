@@ -9,7 +9,6 @@ in vec2 ssNor[];
 in vec4 vColSize[];
 
 flat out vec4 finalColor;
-uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 uniform float lineThickness = 2.0;
 
