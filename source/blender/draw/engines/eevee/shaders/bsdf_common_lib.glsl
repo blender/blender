@@ -15,7 +15,7 @@ uniform sampler2D maxzBuffer;
 uniform sampler2D minzBuffer;
 uniform sampler2DArray planarDepth;
 
-#define cameraForward normalize(ViewMatrixInverse[2].xyz)
+#define cameraForward ViewMatrixInverse[2].xyz
 #define cameraPos ViewMatrixInverse[3].xyz
 #define cameraVec \
   ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
