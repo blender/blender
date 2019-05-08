@@ -1559,7 +1559,10 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     drw_engines_world_update(scene);
 
     /* Only iterate over objects for internal engines or when overlays are enabled */
-    if ((engine_type->flag & RE_INTERNAL) != 0 || (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+    const bool internal_engine = (engine_type->flag & RE_INTERNAL) != 0;
+    const bool draw_type_render = v3d->shading.type == OB_RENDER;
+    const bool overlays_on = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
+    if (internal_engine || overlays_on || !draw_type_render) {
       const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
       const int iter_flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
