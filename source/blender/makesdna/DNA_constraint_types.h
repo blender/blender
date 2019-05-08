@@ -289,7 +289,7 @@ typedef struct bLocateLikeConstraint {
 typedef struct bSizeLikeConstraint {
   struct Object *tar;
   int flag;
-  int reserved1;
+  float power;
   /** MAX_ID_NAME-2. */
   char subtarget[64];
 } bSizeLikeConstraint;

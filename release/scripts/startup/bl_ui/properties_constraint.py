@@ -430,6 +430,8 @@ class ConstraintButtonsPanel:
         row.prop(con, "use_y", text="Y")
         row.prop(con, "use_z", text="Z")
 
+        layout.prop(con, "power")
+
         row = layout.row()
         row.prop(con, "use_offset")
         row = row.row()

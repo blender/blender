@@ -1327,6 +1327,13 @@ static void rna_def_constraint_size_like(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z scale");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+  prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "power");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
+  RNA_def_property_ui_text(prop, "Power", "Raise the target's scale to the specified power");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
   prop = RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_OFFSET);
   RNA_def_property_ui_text(prop, "Offset", "Combine original scale with copied scale");

@@ -702,6 +702,16 @@ static void do_version_constraints_maintain_volume_mode_uniform(ListBase *lb)
   }
 }
 
+static void do_version_constraints_copy_scale_power(ListBase *lb)
+{
+  for (bConstraint *con = lb->first; con; con = con->next) {
+    if (con->type == CONSTRAINT_TYPE_SIZELIKE) {
+      bSizeLikeConstraint *data = (bSizeLikeConstraint *)con->data;
+      data->power = 1.0f;
+    }
+  }
+}
+
 void do_versions_after_linking_280(Main *bmain)
 {
   bool use_collection_compat_28 = true;
@@ -3348,6 +3358,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   {
+    /* Added a power option to Copy Scale. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bSizeLikeConstraint", "float", "power")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        do_version_constraints_copy_scale_power(&ob->constraints);
+        if (ob->pose) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            do_version_constraints_copy_scale_power(&pchan->constraints);
+          }
+        }
+      }
+    }
+
     /* Versioning code until next subversion bump goes here. */
   }
 }
