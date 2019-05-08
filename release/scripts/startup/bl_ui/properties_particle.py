@@ -1610,9 +1610,6 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
             col.separator()
             col.prop(part, "child_radius", text="Radius")
             col.prop(part, "child_roundness", text="Roundness", slider=True)
-        elif part.virtual_parents > 0.0:
-            sub = col.column(align=True)
-            sub.label(text="Parting not available with virtual parents")
 
 
 class PARTICLE_PT_children_parting(ParticleButtonsPanel, Panel):
@@ -1630,13 +1627,20 @@ class PARTICLE_PT_children_parting(ParticleButtonsPanel, Panel):
         layout = self.layout
 
         part = particle_get_settings(context)
+        is_virtual = part.virtual_parents > 0.0
 
         layout.use_property_split = True
 
+        if is_virtual:
+            layout.label(text="Parting not available with virtual parents")
+
         col = layout.column()
+        col.active = not is_virtual
         col.prop(part, "child_parting_factor", text="Parting", slider=True)
-        col.prop(part, "child_parting_min", text="Min")
-        col.prop(part, "child_parting_max", text="Max")
+
+        sub = col.column(align=True)
+        sub.prop(part, "child_parting_min", text="Min")
+        sub.prop(part, "child_parting_max", text="Max")
 
 
 class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
