@@ -2386,7 +2386,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
           /* This relies on dupli instances being after their instancing object. */
           if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {
             Object *ob_orig = DEG_get_original_object(ob);
-            DRW_select_load_id(ob_orig->select_id);
+            DRW_select_load_id(ob_orig->runtime.select_id);
           }
           DST.dupli_parent = data_.dupli_parent;
           DST.dupli_source = data_.dupli_object_current;

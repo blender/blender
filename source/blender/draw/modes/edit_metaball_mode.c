@@ -26,6 +26,8 @@
 
 #include "BKE_object.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "ED_mball.h"
 
 /* If builtin shaders are needed */
@@ -160,7 +162,8 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
         copy_v3_v3(draw_scale_xform[2], scamat[2]);
       }
 
-      int select_id = ob->select_id;
+      const Object *orig_object = DEG_get_original_object(ob);
+      int select_id = orig_object->runtime.select_id;
       for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next, select_id += 0x10000) {
         float world_pos[3];
         mul_v3_m4v3(world_pos, ob->obmat, &ml->x);

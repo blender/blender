@@ -4487,3 +4487,14 @@ void BKE_object_type_set_empty_for_versioning(Object *ob)
   }
   ob->mode = OB_MODE_OBJECT;
 }
+
+/* Updates select_id of all objects in the given bmain. */
+void BKE_object_update_select_id(struct Main *bmain)
+{
+  Object *ob = bmain->objects.first;
+  int select_id = 1;
+  while (ob) {
+    ob->runtime.select_id = select_id++;
+    ob = ob->id.next;
+  }
+}

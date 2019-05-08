@@ -70,7 +70,7 @@ Base *ED_armature_base_and_ebone_from_select_buffer(Base **bases,
   EditBone *ebone = NULL;
   /* TODO(campbell): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->select_id == hit_object) {
+    if (bases[base_index]->object->runtime.select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -94,7 +94,7 @@ Object *ED_armature_object_and_ebone_from_select_buffer(Object **objects,
   EditBone *ebone = NULL;
   /* TODO(campbell): optimize, eg: sort & binary search. */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    if (objects[ob_index]->select_id == hit_object) {
+    if (objects[ob_index]->runtime.select_id == hit_object) {
       ob = objects[ob_index];
       break;
     }
@@ -118,7 +118,7 @@ Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
   Bone *bone = NULL;
   /* TODO(campbell): optimize, eg: sort & binary search. */
   for (uint base_index = 0; base_index < bases_len; base_index++) {
-    if (bases[base_index]->object->select_id == hit_object) {
+    if (bases[base_index]->object->runtime.select_id == hit_object) {
       base = bases[base_index];
       break;
     }
@@ -300,6 +300,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
   const bool sel = !RNA_boolean_get(op->ptr, "deselect");
 
   view3d_operator_needs_opengl(C);
+  BKE_object_update_select_id(CTX_data_main(C));
 
   Base *base = NULL;
   bone = get_nearest_bone(C, event->mval, true, &base);
@@ -1817,6 +1818,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
   Base *base_dst = NULL;
 
   view3d_operator_needs_opengl(C);
+  BKE_object_update_select_id(CTX_data_main(C));
 
   ebone_src = arm->act_edbone;
   ebone_dst = get_nearest_bone(C, event->mval, false, &base_dst);

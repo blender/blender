@@ -1925,13 +1925,14 @@ static void camera_view3d_stereoscopy_display_extra(OBJECT_ShadingGroupList *sgl
 static void camera_view3d_reconstruction(OBJECT_ShadingGroupList *sgl,
                                          Scene *scene,
                                          View3D *v3d,
-                                         const Object *camera_object,
+                                         Object *camera_object,
                                          Object *ob,
                                          const float color[4],
                                          const bool is_select)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Camera *cam = ob->data;
+  const Object *orig_camera_object = DEG_get_original_object(camera_object);
 
   if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) == 0) {
     return;
@@ -2012,7 +2013,7 @@ static void camera_view3d_reconstruction(OBJECT_ShadingGroupList *sgl,
       }
 
       if (is_select) {
-        DRW_select_load_id(camera_object->select_id | (track_index << 16));
+        DRW_select_load_id(orig_camera_object->runtime.select_id | (track_index << 16));
         track_index++;
       }
 
@@ -2078,7 +2079,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
   RegionView3D *rv3d = draw_ctx->rv3d;
 
   Camera *cam = ob->data;
-  const Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+  Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
   const bool is_select = DRW_state_is_select();
   const bool is_active = (ob == camera_object);
   const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));
