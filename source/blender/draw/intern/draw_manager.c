@@ -814,6 +814,10 @@ static void drw_duplidata_load(DupliObject *dupli)
   void **value;
   if (!BLI_ghash_ensure_p(DST.dupli_ghash, DST.dupli_origin, &value)) {
     *value = MEM_callocN(sizeof(void *) * DST.enabled_engine_count, __func__);
+
+    /* TODO: Meh a bit out of place but this is nice as it is
+     * only done once per "original" object. */
+    drw_batch_cache_validate(DST.dupli_origin);
   }
   DST.dupli_datas = *(void ***)value;
 }
@@ -830,7 +834,9 @@ static void duplidata_value_free(void *val)
 static void drw_duplidata_free(void)
 {
   if (DST.dupli_ghash != NULL) {
-    BLI_ghash_free(DST.dupli_ghash, NULL, duplidata_value_free);
+    BLI_ghash_free(DST.dupli_ghash,
+                   (void (*)(void *key))drw_batch_cache_generate_requested,
+                   duplidata_value_free);
     DST.dupli_ghash = NULL;
   }
 }
@@ -1157,7 +1163,10 @@ static void drw_engines_cache_populate(Object *ob)
    * ourselves here. */
   drw_drawdata_unlink_dupli((ID *)ob);
 
-  drw_batch_cache_validate(ob);
+  /* Validation for dupli objects happen elsewhere. */
+  if (!DST.dupli_source) {
+    drw_batch_cache_validate(ob);
+  }
 
   int i = 0;
   for (LinkData *link = DST.enabled_engines.first; link; link = link->next, i++) {
@@ -1175,7 +1184,9 @@ static void drw_engines_cache_populate(Object *ob)
 
   /* TODO: in the future it would be nice to generate once for all viewports.
    * But we need threaded DRW manager first. */
-  drw_batch_cache_generate_requested(DST.dupli_source ? DST.dupli_source->ob : ob);
+  if (!DST.dupli_source) {
+    drw_batch_cache_generate_requested(ob);
+  }
 
   /* ... and clearing it here too because theses draw data are
    * from a mempool and must not be free individually by depsgraph. */
@@ -2098,15 +2109,20 @@ void DRW_render_object_iter(
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
       DST.ob_state = NULL;
+      drw_duplidata_load(DST.dupli_source);
 
-      drw_batch_cache_validate(ob);
-
+      if (!DST.dupli_source) {
+        drw_batch_cache_validate(ob);
+      }
       callback(vedata, ob, engine, depsgraph);
-
-      drw_batch_cache_generate_requested(DST.dupli_source ? DST.dupli_source->ob : ob);
+      if (!DST.dupli_source) {
+        drw_batch_cache_generate_requested(ob);
+      }
     }
   }
   DEG_OBJECT_ITER_END;
+
+  drw_duplidata_free();
 }
 
 /* Assume a valid gl context is bound (and that the gl_context_mutex has been acquired).
