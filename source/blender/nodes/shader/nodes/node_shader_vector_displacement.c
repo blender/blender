@@ -61,7 +61,7 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat,
                           in,
                           out,
                           GPU_attribute(CD_TANGENT, ""),
-                          GPU_builtin(GPU_VIEW_NORMAL),
+                          GPU_builtin(GPU_WORLD_NORMAL),
                           GPU_builtin(GPU_OBJECT_MATRIX),
                           GPU_builtin(GPU_VIEW_MATRIX));
   }

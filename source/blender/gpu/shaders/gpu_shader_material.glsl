@@ -2013,18 +2013,13 @@ void tangent_orco_z(vec3 orco_in, out vec3 orco_out)
   orco_out = orco_in.yxz * vec3(-0.5, 0.5, 0.0) + vec3(0.25, -0.25, 0.0);
 }
 
-void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
+void node_tangentmap(vec4 attr_tangent, out vec3 tangent)
 {
-  tangent = normalize((toworld * vec4(attr_tangent.xyz, 0.0)).xyz);
+  tangent = normalize(attr_tangent.xyz);
 }
 
-void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
+void node_tangent(vec3 N, vec3 orco, mat4 objmat, out vec3 T)
 {
-#ifndef VOLUMETRICS
-  N = normalize(gl_FrontFacing ? worldNormal : -worldNormal);
-#else
-  N = (toworld * vec4(N, 0.0)).xyz;
-#endif
   T = (objmat * vec4(orco, 0.0)).xyz;
   T = cross(N, normalize(cross(T, N)));
 }
@@ -2068,7 +2063,7 @@ void node_geometry(vec3 I,
   true_normal = normal;
 #  endif
   tangent_orco_z(orco, orco);
-  node_tangent(N, orco, objmat, toworld, tangent);
+  node_tangent(N, orco, objmat, tangent);
 
   parametric = vec3(barycentric, 0.0);
   backfacing = (gl_FrontFacing) ? 0.0 : 1.0;
@@ -3334,6 +3329,7 @@ void node_vector_displacement_tangent(vec4 vector,
                                       mat4 viewmat,
                                       out vec3 result)
 {
+  /* TODO(fclem) this is broken. revisit latter. */
   vec3 N_object = normalize(((vec4(normal, 0.0) * viewmat) * obmat).xyz);
   vec3 T_object = normalize(((vec4(tangent.xyz, 0.0) * viewmat) * obmat).xyz);
   vec3 B_object = tangent.w * normalize(cross(N_object, T_object));

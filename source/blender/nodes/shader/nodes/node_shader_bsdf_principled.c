@@ -114,10 +114,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     GPU_link(mat, "tangent_orco_z", orco, &in[19].link);
     GPU_link(mat,
              "node_tangent",
-             GPU_builtin(GPU_VIEW_NORMAL),
+             GPU_builtin(GPU_WORLD_NORMAL),
              in[19].link,
              GPU_builtin(GPU_OBJECT_MATRIX),
-             GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
              &in[19].link);
   }
 

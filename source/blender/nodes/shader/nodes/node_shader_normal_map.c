@@ -84,52 +84,33 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
     realnorm = GPU_constant(in[1].vec);
   }
 
-  negnorm = GPU_builtin(GPU_VIEW_NORMAL);
+  negnorm = GPU_builtin(GPU_WORLD_NORMAL);
   GPU_link(mat, "math_max", strength, GPU_constant(d), &strength);
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";
   if (nm->space == SHD_SPACE_BLENDER_OBJECT || nm->space == SHD_SPACE_BLENDER_WORLD) {
     color_to_normal_fnc_name = "color_to_blender_normal_new_shading";
   }
+
+  GPU_link(mat, color_to_normal_fnc_name, realnorm, &realnorm);
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
-      GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);
       GPU_link(mat,
                "node_normal_map",
                GPU_builtin(GPU_OBJECT_INFO),
                GPU_attribute(CD_TANGENT, nm->uv_map),
-               negnorm,
+               GPU_builtin(GPU_WORLD_NORMAL),
                realnorm,
                &realnorm);
-      GPU_link(
-          mat, "vec_math_mix", strength, realnorm, GPU_builtin(GPU_VIEW_NORMAL), &out[0].link);
-      /* for uniform scale this is sufficient to match Cycles */
-      GPU_link(mat,
-               "direction_transform_m4v3",
-               out[0].link,
-               GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
-               &out[0].link);
-      GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
-      return true;
+      break;
     case SHD_SPACE_OBJECT:
     case SHD_SPACE_BLENDER_OBJECT:
-      GPU_link(mat,
-               "direction_transform_m4v3",
-               negnorm,
-               GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
-               &negnorm);
-      GPU_link(mat, color_to_normal_fnc_name, realnorm, &realnorm);
       GPU_link(
           mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_OBJECT_MATRIX), &realnorm);
       break;
     case SHD_SPACE_WORLD:
     case SHD_SPACE_BLENDER_WORLD:
-      GPU_link(mat,
-               "direction_transform_m4v3",
-               negnorm,
-               GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
-               &negnorm);
-      GPU_link(mat, color_to_normal_fnc_name, realnorm, &realnorm);
+      /* Nothing to do. */
       break;
   }
 
