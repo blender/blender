@@ -1,10 +1,8 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
-uniform mat3 WorldNormalMatrix;
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;
-uniform mat3 NormalMatrix;
 uniform mat4 ModelMatrixInverse;
 #endif
 
@@ -67,8 +65,10 @@ void main()
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
   viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
   worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
-  worldNormal = normalize(WorldNormalMatrix * nor);
-  viewNormal = normalize(NormalMatrix * nor);
+
+  worldNormal = normalize(transform_normal_object_to_world(nor));
+  /* No need to normalize since this is just a rotation. */
+  viewNormal = transform_normal_world_to_view(worldNormal);
 #endif
 
   /* Used for planar reflections */

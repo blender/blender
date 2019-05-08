@@ -2,10 +2,8 @@
 uniform mat4 ModelViewProjectionMatrix;
 #ifdef MESH_SHADER
 uniform mat4 ModelViewMatrix;
-uniform mat3 WorldNormalMatrix;
 #  ifndef USE_ATTR
 uniform mat4 ModelMatrix;
-uniform mat3 NormalMatrix;
 #  endif
 #endif
 
@@ -25,8 +23,10 @@ void main()
 #ifdef MESH_SHADER
   viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
   worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
-  viewNormal = normalize(NormalMatrix * nor);
-  worldNormal = normalize(WorldNormalMatrix * nor);
+
+  worldNormal = normalize(transform_normal_object_to_world(nor));
+  /* No need to normalize since this is just a rotation. */
+  viewNormal = transform_normal_world_to_view(worldNormal);
 #  ifdef USE_ATTR
   pass_attr(pos);
 #  endif

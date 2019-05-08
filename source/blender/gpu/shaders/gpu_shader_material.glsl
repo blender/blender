@@ -1,7 +1,6 @@
 
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewMatrixInverse;
-uniform mat3 NormalMatrix;
 
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;

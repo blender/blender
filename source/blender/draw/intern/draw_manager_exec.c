@@ -806,13 +806,6 @@ static void draw_matrices_model_prepare(DRWCallState *st)
     invert_m3(st->normalview);
     transpose_m3(st->normalview);
   }
-  /* Non view dependent */
-  if (st->matflag & DRW_CALL_NORMALWORLD) {
-    copy_m3_m4(st->normalworld, st->model);
-    invert_m3(st->normalworld);
-    transpose_m3(st->normalworld);
-    st->matflag &= ~DRW_CALL_NORMALWORLD;
-  }
 }
 
 static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
@@ -847,10 +840,6 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
       GPU_shader_uniform_vector(
           shgroup->shader, shgroup->normalview, 9, 1, (float *)state->normalview);
     }
-    if (shgroup->normalworld != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->normalworld, 9, 1, (float *)state->normalworld);
-    }
     if (shgroup->objectinfo != -1) {
       float objectinfo[4];
       objectinfo[0] = state->objectinfo[0];
@@ -865,7 +854,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
     }
   }
   else {
-    BLI_assert((shgroup->normalview == -1) && (shgroup->normalworld == -1));
+    BLI_assert((shgroup->normalview == -1));
     /* For instancing and batching. */
     float unitmat[4][4];
     unit_m4(unitmat);
