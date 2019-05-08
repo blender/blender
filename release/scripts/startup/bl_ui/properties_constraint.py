@@ -34,8 +34,18 @@ class ConstraintButtonsPanel:
             # match enum type to our functions, avoids a lookup table.
             getattr(self, con.type)(context, box, con)
 
-            if con.type not in {'RIGID_BODY_JOINT', 'NULL'}:
+            if con.type in {'RIGID_BODY_JOINT', 'NULL'}:
+                return
+
+            if con.type in {'IK', 'SPLINE_IK'}:
+                # constraint.disable_keep_transform doesn't work well
+                # for these constraints.
                 box.prop(con, "influence")
+            else:
+                row = box.row(align=True)
+                row.prop(con, "influence")
+                row.operator("constraint.disable_keep_transform",
+                    text='', icon='CANCEL')
 
     @staticmethod
     def space_template(layout, con, target=True, owner=True):

@@ -69,8 +69,53 @@ class CONSTRAINT_OT_normalize_target_weights(Operator):
         return {'FINISHED'}
 
 
+
+class CONSTRAINT_OT_disable_keep_transform(Operator):
+    bl_idname = "constraint.disable_keep_transform"
+    bl_label = "Disable and Keep Transform"
+    bl_description = ("Set the influence of this constraint to zero while "
+        "trying to maintain the object's transformation. Other active "
+        "constraints can still influence the final transformation")
+    bl_options = {'UNDO', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        constraint = getattr(context, "constraint", None)
+        return constraint and constraint.influence > 0.0
+
+    def execute(self, context):
+        """Disable constraint while maintaining the visual transform."""
+
+        # This works most of the time, but when there are multiple constraints active
+        # there could still be one that overrides the visual transform.
+        #
+        # Note that executing this operator and then increasing the constraint
+        # influence may move the object; this happens when the constraint is
+        # additive rather than replacing the transform entirely.
+
+        # Get the matrix in world space.
+        is_bone_constraint = context.space_data.context == 'BONE_CONSTRAINT'
+        if is_bone_constraint:
+            armature = context.object
+            bone = context.pose_bone
+            mat = armature.matrix_world @ bone.matrix
+        else:
+            mat = context.object.matrix_world
+
+        context.constraint.influence = 0.0
+
+        # Set the matrix.
+        if is_bone_constraint:
+            bone.matrix = armature.matrix_world.inverted() @ mat
+        else:
+            context.object.matrix_world = mat
+
+        return {'FINISHED'}
+
+
 classes = (
     CONSTRAINT_OT_add_target,
     CONSTRAINT_OT_remove_target,
     CONSTRAINT_OT_normalize_target_weights,
+    CONSTRAINT_OT_disable_keep_transform,
 )
