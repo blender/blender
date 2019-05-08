@@ -111,7 +111,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   }
 
   GPUNodeLink *norm, *col1, *col2, *col3, *input_coords, *gpu_image;
-  GPUNodeLink *vnor, *nor_mat_inv, *blend;
+  GPUNodeLink *vnor, *ob_mat, *blend;
   GPUNodeLink **texco = &in[0].link;
 
   int isdata = tex->color_space == SHD_COLORSPACE_NONE;
@@ -146,12 +146,13 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       break;
 
     case SHD_PROJ_BOX:
-      vnor = GPU_builtin(GPU_VIEW_NORMAL);
-      nor_mat_inv = GPU_builtin(GPU_INVERSE_NORMAL_MATRIX);
+      vnor = GPU_builtin(GPU_WORLD_NORMAL);
+      ob_mat = GPU_builtin(GPU_OBJECT_MATRIX);
       blend = GPU_uniform(&tex->projection_blend);
       gpu_image = GPU_image(ima, iuser, isdata);
 
-      GPU_link(mat, "mat3_mul", vnor, nor_mat_inv, &norm);
+      /* equivalent to transform_normal_world_to_object */
+      GPU_link(mat, "normal_transform_transposed_m4v3", vnor, ob_mat, &norm);
       GPU_link(
           mat, gpu_node_name, *texco, norm, GPU_image(ima, iuser, isdata), &col1, &col2, &col3);
       if (do_color_correction) {

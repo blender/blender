@@ -2,7 +2,6 @@
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewMatrixInverse;
 uniform mat3 NormalMatrix;
-uniform mat3 NormalMatrixInverse;
 
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;
@@ -204,9 +203,9 @@ void direction_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
   vout = (mat * vec4(vin, 0.0)).xyz;
 }
 
-void mat3_mul(vec3 vin, mat3 mat, out vec3 vout)
+void normal_transform_transposed_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 {
-  vout = mat * vin;
+  vout = transpose(mat3(mat)) * vin;
 }
 
 void point_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
@@ -2092,9 +2091,7 @@ void generated_texco(vec3 I, vec3 attr_orco, out vec3 generated)
 }
 
 void node_tex_coord(vec3 I,
-                    vec3 N,
-                    mat4 viewinvmat,
-                    mat4 obinvmat,
+                    vec3 wN,
                     vec4 camerafac,
                     vec3 attr_orco,
                     vec3 attr_uv,
@@ -2107,22 +2104,17 @@ void node_tex_coord(vec3 I,
                     out vec3 reflection)
 {
   generated = attr_orco;
-  normal = normalize(NormalMatrixInverse * N);
+  normal = normalize(transform_normal_world_to_object(wN));
   uv = attr_uv;
-  object = (obinvmat * (viewinvmat * vec4(I, 1.0))).xyz;
+  object = transform_point_view_to_object(I);
   camera = vec3(I.xy, -I.z);
   vec4 projvec = ProjectionMatrix * vec4(I, 1.0);
   window = vec3(mtex_2d_mapping(projvec.xyz / projvec.w).xy * camerafac.xy + camerafac.zw, 0.0);
-
-  vec3 shade_I = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
-  vec3 view_reflection = reflect(shade_I, normalize(N));
-  reflection = (viewinvmat * vec4(view_reflection, 0.0)).xyz;
+  reflection = reflect(cameraVec, normalize(wN));
 }
 
 void node_tex_coord_background(vec3 I,
                                vec3 N,
-                               mat4 viewinvmat,
-                               mat4 obinvmat,
                                vec4 camerafac,
                                vec3 attr_orco,
                                vec3 attr_uv,
@@ -2141,11 +2133,7 @@ void node_tex_coord_background(vec3 I,
 
   co = normalize(co);
 
-#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
   vec3 coords = (ViewMatrixInverse * co).xyz;
-#else
-  vec3 coords = (ModelViewMatrixInverse * co).xyz;
-#endif
 
   generated = coords;
   normal = -coords;

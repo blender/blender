@@ -107,7 +107,7 @@ typedef enum eGPUBuiltin {
   GPU_VOLUME_TEMPERATURE = (1 << 18),
   GPU_BARYCENTRIC_TEXCO = (1 << 19),
   GPU_BARYCENTRIC_DIST = (1 << 20),
-  GPU_INVERSE_NORMAL_MATRIX = (1 << 21),
+  GPU_WORLD_NORMAL = (1 << 21),
 } eGPUBuiltin;
 
 typedef enum eGPUMatFlag {

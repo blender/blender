@@ -838,7 +838,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->modelviewinverse = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV);
   shgroup->modelviewprojection = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP);
   shgroup->normalview = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_NORMAL);
-  shgroup->normalviewinverse = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_NORMAL_INV);
   shgroup->normalworld = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_WORLDNORMAL);
   shgroup->orcotexfac = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_ORCO);
   shgroup->objectinfo = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_INFO);
@@ -859,9 +858,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   }
   if (shgroup->normalview > -1) {
     shgroup->matflag |= DRW_CALL_NORMALVIEW;
-  }
-  if (shgroup->normalviewinverse > -1) {
-    shgroup->matflag |= DRW_CALL_NORMALVIEWINVERSE;
   }
   if (shgroup->normalworld > -1) {
     shgroup->matflag |= DRW_CALL_NORMALWORLD;

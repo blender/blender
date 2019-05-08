@@ -520,9 +520,6 @@ const char *GPU_builtin_name(eGPUBuiltin builtin)
   else if (builtin == GPU_INVERSE_OBJECT_MATRIX) {
     return "unfinvobmat";
   }
-  else if (builtin == GPU_INVERSE_NORMAL_MATRIX) {
-    return "unfinvnormat";
-  }
   else if (builtin == GPU_LOC_TO_VIEW_MATRIX) {
     return "unflocaltoviewmat";
   }
@@ -531,6 +528,9 @@ const char *GPU_builtin_name(eGPUBuiltin builtin)
   }
   else if (builtin == GPU_VIEW_POSITION) {
     return "varposition";
+  }
+  else if (builtin == GPU_WORLD_NORMAL) {
+    return "varwnormal";
   }
   else if (builtin == GPU_VIEW_NORMAL) {
     return "varnormal";
@@ -786,14 +786,14 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
         else if (input->builtin == GPU_INVERSE_OBJECT_MATRIX) {
           BLI_dynstr_append(ds, "objinv");
         }
-        else if (input->builtin == GPU_INVERSE_NORMAL_MATRIX) {
-          BLI_dynstr_append(ds, "norinv");
-        }
         else if (input->builtin == GPU_VIEW_POSITION) {
           BLI_dynstr_append(ds, "viewposition");
         }
         else if (input->builtin == GPU_VIEW_NORMAL) {
           BLI_dynstr_append(ds, "facingnormal");
+        }
+        else if (input->builtin == GPU_WORLD_NORMAL) {
+          BLI_dynstr_append(ds, "facingwnormal");
         }
         else {
           BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
@@ -879,9 +879,6 @@ static char *code_generate_fragment(GPUMaterial *material,
   if (builtins & GPU_INVERSE_OBJECT_MATRIX) {
     BLI_dynstr_append(ds, "\t#define objinv ModelMatrixInverse\n");
   }
-  if (builtins & GPU_INVERSE_NORMAL_MATRIX) {
-    BLI_dynstr_append(ds, "\t#define norinv NormalMatrixInverse\n");
-  }
   if (builtins & GPU_INVERSE_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "\t#define viewinv ViewMatrixInverse\n");
   }
@@ -897,8 +894,21 @@ static char *code_generate_fragment(GPUMaterial *material,
     BLI_dynstr_append(ds, "\tworld_normals_get(n);\n");
     BLI_dynstr_append(ds, "\tvec3 facingnormal = transform_direction(ViewMatrix, n);\n");
     BLI_dynstr_append(ds, "#else\n");
-    BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
+    BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing ? viewNormal: -viewNormal;\n");
     BLI_dynstr_append(ds, "#endif\n");
+  }
+  if (builtins & GPU_WORLD_NORMAL) {
+    BLI_dynstr_append(ds, "\tvec3 facingwnormal;\n");
+    if (builtins & GPU_VIEW_NORMAL) {
+      BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
+      BLI_dynstr_append(ds, "\tfacingwnormal = n;\n");
+      BLI_dynstr_append(ds, "#else\n");
+      BLI_dynstr_append(ds, "\tworld_normals_get(facingwnormal);\n");
+      BLI_dynstr_append(ds, "#endif\n");
+    }
+    else {
+      BLI_dynstr_append(ds, "\tworld_normals_get(facingwnormal);\n");
+    }
   }
   if (builtins & GPU_VIEW_POSITION) {
     BLI_dynstr_append(ds, "\t#define viewposition viewPosition\n");
