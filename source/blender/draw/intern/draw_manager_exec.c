@@ -792,8 +792,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
     return;
   }
   /* Order matters */
-  if (st->matflag &
-      (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE | DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC)) {
+  if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE | DRW_CALL_NORMALVIEW)) {
     mul_m4_m4m4(st->modelview, DST.view_data.matstate.mat[DRW_MAT_VIEW], st->model);
   }
   if (st->matflag & DRW_CALL_MODELVIEWINVERSE) {
@@ -802,20 +801,13 @@ static void draw_matrices_model_prepare(DRWCallState *st)
   if (st->matflag & DRW_CALL_MODELVIEWPROJECTION) {
     mul_m4_m4m4(st->modelviewprojection, DST.view_data.matstate.mat[DRW_MAT_PERS], st->model);
   }
-  if (st->matflag & (DRW_CALL_NORMALVIEW | DRW_CALL_NORMALVIEWINVERSE | DRW_CALL_EYEVEC)) {
+  if (st->matflag & (DRW_CALL_NORMALVIEW | DRW_CALL_NORMALVIEWINVERSE)) {
     copy_m3_m4(st->normalview, st->modelview);
     invert_m3(st->normalview);
     transpose_m3(st->normalview);
   }
-  if (st->matflag & (DRW_CALL_NORMALVIEWINVERSE | DRW_CALL_EYEVEC)) {
+  if (st->matflag & (DRW_CALL_NORMALVIEWINVERSE)) {
     invert_m3_m3(st->normalviewinverse, st->normalview);
-  }
-  /* TODO remove eye vec (unused) */
-  if (st->matflag & DRW_CALL_EYEVEC) {
-    /* Used by orthographic wires */
-    copy_v3_fl3(st->eyevec, 0.0f, 0.0f, 1.0f);
-    /* set eye vector, transformed to object coords */
-    mul_m3_v3(st->normalviewinverse, st->eyevec);
   }
   /* Non view dependent */
   if (st->matflag & DRW_CALL_NORMALWORLD) {
@@ -878,13 +870,9 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
       GPU_shader_uniform_vector(
           shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)state->orcotexfac);
     }
-    if (shgroup->eye != -1) {
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->eye, 3, 1, (float *)state->eyevec);
-    }
   }
   else {
-    BLI_assert((shgroup->normalview == -1) && (shgroup->normalworld == -1) &&
-               (shgroup->eye == -1));
+    BLI_assert((shgroup->normalview == -1) && (shgroup->normalworld == -1));
     /* For instancing and batching. */
     float unitmat[4][4];
     unit_m4(unitmat);

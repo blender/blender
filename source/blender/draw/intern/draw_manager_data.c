@@ -842,7 +842,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->normalworld = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_WORLDNORMAL);
   shgroup->orcotexfac = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_ORCO);
   shgroup->objectinfo = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_INFO);
-  shgroup->eye = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_EYE);
   shgroup->callid = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CALLID);
 
   shgroup->matflag = 0;
@@ -872,9 +871,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   }
   if (shgroup->objectinfo > -1) {
     shgroup->matflag |= DRW_CALL_OBJECTINFO;
-  }
-  if (shgroup->eye > -1) {
-    shgroup->matflag |= DRW_CALL_EYEVEC;
   }
 }
 

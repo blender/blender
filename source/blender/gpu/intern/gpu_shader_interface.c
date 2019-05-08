@@ -67,7 +67,6 @@ static const char *BuiltinUniform_name(GPUUniformBuiltin u)
       [GPU_UNIFORM_ORCO] = "OrcoTexCoFactors",
 
       [GPU_UNIFORM_COLOR] = "color",
-      [GPU_UNIFORM_EYE] = "eye",
       [GPU_UNIFORM_CALLID] = "callId",
       [GPU_UNIFORM_OBJECT_INFO] = "unfobjectinfo",
 
