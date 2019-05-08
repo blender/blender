@@ -13,3 +13,9 @@ layout(std140) uniform viewBlock
 
   vec4 clipPlanes[2];
 };
+
+/* Transform shortcuts. */
+#define transform_normal_object_to_world(nor) (transpose(mat3(ModelMatrixInverse)) * nor)
+#define transform_normal_world_to_object(nor) (transpose(mat3(ModelMatrix)) * nor)
+#define transform_point_view_to_object(point) \
+  ((ModelMatrixInverse * (ViewMatrixInverse * vec4(point, 1.0))).xyz)
