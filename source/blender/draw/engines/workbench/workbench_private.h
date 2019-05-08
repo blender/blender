@@ -319,23 +319,32 @@ typedef struct WORKBENCH_ObjectData {
 BLI_INLINE bool workbench_is_taa_enabled(WORKBENCH_PrivateData *wpd)
 {
   if (DRW_state_is_image_render()) {
-    return DRW_context_state_get()->scene->display.render_aa > SCE_DISPLAY_AA_FXAA;
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    if (draw_ctx->v3d) {
+      return draw_ctx->scene->display.viewport_aa > SCE_DISPLAY_AA_FXAA;
+    }
+    else {
+      return draw_ctx->scene->display.render_aa > SCE_DISPLAY_AA_FXAA;
+    }
   }
   else {
-    return DRW_context_state_get()->scene->display.viewport_aa > SCE_DISPLAY_AA_FXAA &&
-           wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 &&
-           !wpd->is_playback;
+    return wpd->preferences->viewport_aa > SCE_DISPLAY_AA_FXAA && !wpd->is_playback;
   }
 }
 
 BLI_INLINE bool workbench_is_fxaa_enabled(WORKBENCH_PrivateData *wpd)
 {
   if (DRW_state_is_image_render()) {
-    return DRW_context_state_get()->scene->display.render_aa == SCE_DISPLAY_AA_FXAA;
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    if (draw_ctx->v3d) {
+      return draw_ctx->scene->display.viewport_aa == SCE_DISPLAY_AA_FXAA;
+    }
+    else {
+      return draw_ctx->scene->display.render_aa == SCE_DISPLAY_AA_FXAA;
+    }
   }
   else {
-    if (wpd->preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_FXAA &&
-        DRW_context_state_get()->scene->display.viewport_aa == SCE_DISPLAY_AA_FXAA) {
+    if (wpd->preferences->viewport_aa == SCE_DISPLAY_AA_FXAA) {
       return true;
     }
 

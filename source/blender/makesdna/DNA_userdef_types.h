@@ -38,11 +38,6 @@ struct ColorBand;
 
 #define MAX_STYLE_NAME 64
 
-#define GPU_VIEWPORT_QUALITY_FXAA 0.10f
-#define GPU_VIEWPORT_QUALITY_TAA8 0.25f
-#define GPU_VIEWPORT_QUALITY_TAA16 0.6f
-#define GPU_VIEWPORT_QUALITY_TAA32 0.8f
-
 /** default offered by Blender.
  * #uiFont.uifont_id */
 typedef enum eUIFont_ID {
@@ -635,7 +630,7 @@ typedef struct UserDef {
   short undosteps;
   char _pad1[2];
   int undomemory;
-  float gpu_viewport_quality;
+  float gpu_viewport_quality DNA_DEPRECATED;
   short gp_manhattendist, gp_euclideandist, gp_eraser;
   /** #eGP_UserdefSettings. */
   short gp_settings;
@@ -763,7 +758,9 @@ typedef struct UserDef {
 
   char factor_display_type;
 
-  char _pad5[3];
+  char viewport_aa;
+
+  char _pad5[2];
 } UserDef;
 
 /* from blenkernel blender.c */

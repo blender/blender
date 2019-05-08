@@ -611,7 +611,7 @@ class USERPREF_PT_viewport_quality(PreferencePanel, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(system, "gpu_viewport_quality")
+        flow.prop(system, "viewport_aa")
         flow.prop(system, "multi_sample", text="Multisampling")
         flow.prop(system, "gpencil_multi_sample", text="Grease Pencil Multisampling")
         flow.prop(system, "use_edit_mode_smooth_wire")

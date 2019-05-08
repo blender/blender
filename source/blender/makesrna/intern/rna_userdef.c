@@ -99,6 +99,45 @@ static const EnumPropertyItem rna_enum_studio_light_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
+    {SCE_DISPLAY_AA_OFF,
+     "OFF",
+     0,
+     "No Anti-Aliasing",
+     "Scene will be rendering without any anti-aliasing"},
+    {SCE_DISPLAY_AA_FXAA,
+     "FXAA",
+     0,
+     "Single Pass Anti-Aliasing",
+     "Scene will be rendered using a single pass anti-aliasing method (FXAA)"},
+    {SCE_DISPLAY_AA_SAMPLES_5,
+     "5",
+     0,
+     "5 Samples",
+     "Scene will be rendered using 5 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_8,
+     "8",
+     0,
+     "8 Samples",
+     "Scene will be rendered using 8 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_11,
+     "11",
+     0,
+     "11 Samples",
+     "Scene will be rendered using 11 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_16,
+     "16",
+     0,
+     "16 Samples",
+     "Scene will be rendered using 16 anti-aliasing samples"},
+    {SCE_DISPLAY_AA_SAMPLES_32,
+     "32",
+     0,
+     "32 Samples",
+     "Scene will be rendered using 32 anti-aliasing samples"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
@@ -4731,12 +4770,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop, "Region Overlap", "Draw tool/property regions over the main region");
   RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
-  prop = RNA_def_property(srna, "gpu_viewport_quality", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, NULL, "gpu_viewport_quality");
-  RNA_def_property_float_default(prop, 0.6f);
-  RNA_def_property_range(prop, 0.0f, 1.0f);
+  prop = RNA_def_property(srna, "viewport_aa", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_userdef_viewport_aa_items);
   RNA_def_property_ui_text(
-      prop, "Viewport Quality", "Quality setting for Solid mode rendering in the 3d viewport");
+      prop, "Viewport Anti-Aliasing", "Method of anti-aliasing in 3d viewport");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
