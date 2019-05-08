@@ -1038,7 +1038,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
   BLI_dynstr_append(ds,
                     "#define USE_ATTR\n"
-                    "uniform mat3 NormalMatrix;\n"
                     "uniform mat4 ModelMatrixInverse;\n"
                     "uniform mat4 ModelMatrix;\n"
                     "vec3 srgb_to_linear_attr(vec3 c) {\n"
