@@ -754,7 +754,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
 
   static const EnumPropertyItem point_cache_compress_items[] = {
       {PTCACHE_COMPRESS_NO, "NO", 0, "None", "No compression"},
-      {PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Light", "Fast but not so effective compression"},
+      {PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Lite", "Fast but not so effective compression"},
       {PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
       {0, NULL, 0, NULL, NULL},
   };
