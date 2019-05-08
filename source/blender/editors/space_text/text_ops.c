@@ -101,7 +101,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
   }
 
   /* Allocate output before with extra space for expanded tabs. */
-  const int out_size = strlen(in_buf) + num_tabs * (tab_size - 1);
+  const int out_size = strlen(in_buf) + num_tabs * (tab_size - 1) + 1;
   char *out_buf = MEM_mallocN(out_size * sizeof(char), __func__);
 
   /* Fill output buffer. */
