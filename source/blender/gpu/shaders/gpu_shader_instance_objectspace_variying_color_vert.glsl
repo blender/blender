@@ -1,5 +1,5 @@
 
-uniform mat4 ViewMatrix;
+uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
 
 /* ---- Instantiated Attrs ---- */
@@ -15,13 +15,12 @@ flat out vec4 finalColor;
 
 void main()
 {
-  mat4 ModelViewProjectionMatrix = ViewProjectionMatrix * InstanceModelMatrix;
-  /* This is slow and run per vertex, but it's still faster than
-   * doing it per instance on CPU and sending it on via instance attr. */
-  mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
+  gl_Position = ViewProjectionMatrix * (InstanceModelMatrix * vec4(pos, 1.0));
 
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-  normal = NormalMatrix * nor;
+  /* This is slow and run per vertex, but it's still faster than
+   * doing it per instance on CPU and sending it on via instance attribute. */
+  mat3 normal_mat = transpose(inverse(mat3(InstanceModelMatrix)));
+  normal = normalize((transpose(mat3(ViewMatrixInverse)) * (normal_mat * nor)));
 
   finalColor = color;
 }
