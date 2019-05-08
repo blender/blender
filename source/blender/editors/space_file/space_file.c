@@ -83,7 +83,6 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
   BLI_addtail(&sfile->regionbase, ar);
   ar->regiontype = RGN_TYPE_TOOL_PROPS;
   ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* ui list region */
   ar = MEM_callocN(sizeof(ARegion), "ui region for file");
