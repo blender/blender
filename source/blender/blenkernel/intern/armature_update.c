@@ -340,8 +340,8 @@ static void splineik_evaluate_bone(
   sub_v3_v3v3(splineVec, poseTail, poseHead);
   scaleFac = len_v3(splineVec) / pchan->bone->length;
 
-  /* Adjust the scale factor towards the neutral state when rolling off the curve end. */
-  scaleFac = interpf(scaleFac, baseScale, tailBlendFac);
+  /* Extrapolate the full length of the bone as it rolls off the end of the curve. */
+  scaleFac = (tailBlendFac < 1e-5f) ? baseScale : scaleFac / tailBlendFac;
 
   /* Step 3: compute the shortest rotation needed
    * to map from the bone rotation to the current axis.
