@@ -145,17 +145,8 @@ extern char datatoc_gpu_shader_selection_id_frag_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_geom_glsl[];
-extern char datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl[];
 extern char datatoc_gpu_shader_3D_line_dashed_uniform_color_vert_glsl[];
 
-extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
-extern char datatoc_gpu_shader_edges_front_back_persp_geom_glsl[];
-extern char datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl[];
-extern char datatoc_gpu_shader_edges_front_back_ortho_vert_glsl[];
-extern char datatoc_gpu_shader_edges_overlay_vert_glsl[];
-extern char datatoc_gpu_shader_edges_overlay_geom_glsl[];
-extern char datatoc_gpu_shader_edges_overlay_simple_geom_glsl[];
-extern char datatoc_gpu_shader_edges_overlay_frag_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_geom_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
@@ -842,30 +833,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .vert = datatoc_gpu_shader_keyframe_diamond_vert_glsl,
             .frag = datatoc_gpu_shader_keyframe_diamond_frag_glsl,
         },
-    /*  This version is magical but slow!  */
-    [GPU_SHADER_EDGES_FRONT_BACK_PERSP] =
-        {
-            .vert = datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
-            .geom = datatoc_gpu_shader_edges_front_back_persp_geom_glsl,
-            .frag = datatoc_gpu_shader_flat_color_frag_glsl,
-        },
-    [GPU_SHADER_EDGES_FRONT_BACK_ORTHO] =
-        {
-            .vert = datatoc_gpu_shader_edges_front_back_ortho_vert_glsl,
-            .frag = datatoc_gpu_shader_flat_color_frag_glsl,
-        },
-    [GPU_SHADER_EDGES_OVERLAY_SIMPLE] =
-        {
-            .vert = datatoc_gpu_shader_3D_vert_glsl,
-            .geom = datatoc_gpu_shader_edges_overlay_simple_geom_glsl,
-            .frag = datatoc_gpu_shader_edges_overlay_frag_glsl,
-        },
-    [GPU_SHADER_EDGES_OVERLAY] =
-        {
-            .vert = datatoc_gpu_shader_edges_overlay_vert_glsl,
-            .geom = datatoc_gpu_shader_edges_overlay_geom_glsl,
-            .frag = datatoc_gpu_shader_edges_overlay_frag_glsl,
-        },
     [GPU_SHADER_SIMPLE_LIGHTING] =
         {
             .vert = datatoc_gpu_shader_3D_normal_vert_glsl,
@@ -1332,27 +1299,7 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
   GPUShader **sh_p = &builtin_shaders[sh_cfg][shader];
 
   if (*sh_p == NULL) {
-    GPUShaderStages stages_legacy = {NULL};
     const GPUShaderStages *stages = &builtin_shader_stages[shader];
-
-    if (shader == GPU_SHADER_EDGES_FRONT_BACK_PERSP) {
-      /* TODO: remove after switch to core profile (maybe) */
-      if (!GLEW_VERSION_3_2) {
-        stages_legacy.vert = datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl;
-        stages_legacy.frag = datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl;
-        stages = &stages_legacy;
-      }
-    }
-    else if (shader == GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR) {
-      /* Dashed need geometry shader, which are not supported by legacy OpenGL,
-       * fallback to solid lines. */
-      /* TODO: remove after switch to core profile (maybe) */
-      if (!GLEW_VERSION_3_2) {
-        stages_legacy.vert = datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl;
-        stages_legacy.frag = datatoc_gpu_shader_2D_line_dashed_frag_glsl;
-        stages = &stages_legacy;
-      }
-    }
 
     /* common case */
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {
