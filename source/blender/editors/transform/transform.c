@@ -4917,8 +4917,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3])
   }
   else if (t->spacetype == SPACE_NODE) {
     r_snap[0] = 0.0f;
-    r_snap[1] = ED_node_grid_size();
-    r_snap[2] = ED_node_grid_size();
+    r_snap[1] = r_snap[2] = ED_node_grid_size();
   }
   else if (t->spacetype == SPACE_GRAPH) {
     r_snap[0] = 0.0f;
