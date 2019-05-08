@@ -281,16 +281,44 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      /* Hide channels in timelines. */
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        SpaceAction *saction = (sa->spacetype == SPACE_ACTION) ? sa->spacedata.first : NULL;
+        if (sa->spacetype == SPACE_ACTION) {
+          /* Show marker lines, hide channels and collapse summary in timelines. */
+          SpaceAction *saction = sa->spacedata.first;
+          saction->flag |= SACTION_SHOW_MARKER_LINES;
 
-        if (saction && saction->mode == SACTCONT_TIMELINE) {
-          for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-            if (ar->regiontype == RGN_TYPE_CHANNELS) {
-              ar->flag |= RGN_FLAG_HIDDEN;
+          if (saction->mode == SACTCONT_TIMELINE) {
+            saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
+
+            for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+              if (ar->regiontype == RGN_TYPE_CHANNELS) {
+                ar->flag |= RGN_FLAG_HIDDEN;
+              }
             }
           }
+        }
+        else if (sa->spacetype == SPACE_GRAPH) {
+          SpaceGraph *sipo = sa->spacedata.first;
+          sipo->flag |= SIPO_MARKER_LINES;
+        }
+        else if (sa->spacetype == SPACE_NLA) {
+          SpaceNla *snla = sa->spacedata.first;
+          snla->flag |= SNLA_SHOW_MARKER_LINES;
+        }
+        else if (sa->spacetype == SPACE_TEXT) {
+          /* Show syntax and line numbers in Script workspace text editor. */
+          SpaceText *stext = sa->spacedata.first;
+          stext->showsyntax = true;
+          stext->showlinenrs = true;
+        }
+        else if (sa->spacetype == SPACE_VIEW3D) {
+          /* Screen space cavity by default for faster performance. */
+          View3D *v3d = sa->spacedata.first;
+          v3d->shading.cavity_type = V3D_SHADING_CAVITY_CURVATURE;
+        }
+        else if (sa->spacetype == SPACE_CLIP) {
+          SpaceClip *sclip = sa->spacedata.first;
+          sclip->around = V3D_AROUND_CENTER_MEDIAN;
         }
       }
     }

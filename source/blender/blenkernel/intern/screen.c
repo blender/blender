@@ -859,6 +859,7 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
   shading->xray_alpha_wire = 0.5f;
   shading->cavity_valley_factor = 1.0f;
   shading->cavity_ridge_factor = 1.0f;
+  shading->cavity_type = V3D_SHADING_CAVITY_CURVATURE;
   shading->curvature_ridge_factor = 1.0f;
   shading->curvature_valley_factor = 1.0f;
   copy_v3_fl(shading->single_color, 0.8f);

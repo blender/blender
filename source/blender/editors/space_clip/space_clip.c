@@ -250,7 +250,7 @@ static SpaceLink *clip_new(const ScrArea *sa, const Scene *scene)
   sc->zoom = 1.0f;
   sc->path_length = 20;
   sc->scopes.track_preview_height = 120;
-  sc->around = V3D_AROUND_LOCAL_ORIGINS;
+  sc->around = V3D_AROUND_CENTER_MEDIAN;
 
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for clip");

@@ -70,6 +70,7 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 
   /* set auto-snapping settings */
   snla->autosnap = SACTSNAP_FRAME;
+  snla->flag = SNLA_SHOW_MARKER_LINES;
 
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for nla");

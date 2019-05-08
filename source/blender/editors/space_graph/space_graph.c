@@ -81,7 +81,7 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
   /* settings for making it easier by default to just see what you're interested in tweaking */
   sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
-  sipo->flag |= SIPO_SELVHANDLESONLY;
+  sipo->flag |= SIPO_SELVHANDLESONLY | SIPO_MARKER_LINES;
 
   /* header */
   ar = MEM_callocN(sizeof(ARegion), "header for graphedit");
