@@ -1440,7 +1440,6 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
      * Note that this is On² piece of code,
      * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most.*/
-    printf("using face history selection\n");
     /* Goes from last selected to the first selected element. */
     for (ese = bm->selected.last; ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {
@@ -1473,7 +1472,6 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
   else {
     if (sel_faces) {
       /* Only select all loops of selected faces. */
-      printf("using face selection\n");
       BMLoop *l;
       BMFace *f;
       BMIter liter, fiter;
@@ -1487,7 +1485,6 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
     }
     if (sel_edges) {
       /* Only select all loops of selected edges. */
-      printf("using edge selection\n");
       BMLoop *l;
       BMEdge *e;
       BMIter liter, eiter;
@@ -1510,7 +1507,6 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
     }
     if (sel_verts) {
       /* Select all loops of selected verts. */
-      printf("using vert selection\n");
       BMLoop *l;
       BMVert *v;
       BMIter liter, viter;

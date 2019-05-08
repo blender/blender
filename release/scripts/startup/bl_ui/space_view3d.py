@@ -3786,6 +3786,16 @@ class VIEW3D_MT_edit_mesh_normals_set_strength(Menu):
         op.set = True
         op.face_strength = 'STRONG'
 
+class VIEW3D_MT_edit_mesh_normals_average(Menu):
+    bl_label = "Average"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("mesh.average_normals", text="Custom Normal").average_type = 'CUSTOM_NORMAL'
+        layout.operator("mesh.average_normals", text="Face Area").average_type = 'FACE_AREA'
+        layout.operator("mesh.average_normals", text="Corner Angle").average_type = 'CORNER_ANGLE'
+
 class VIEW3D_MT_edit_mesh_normals(Menu):
     bl_label = "Normals"
 
@@ -3803,7 +3813,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.operator("mesh.point_normals", text="Point to Target")
         layout.operator("mesh.merge_normals", text="Merge")
         layout.operator("mesh.split_normals", text="Split")
-        layout.operator("mesh.average_normals", text="Average")
+        layout.menu("VIEW3D_MT_edit_mesh_normals_average", text="Average")
 
         layout.separator()
 
@@ -6489,6 +6499,7 @@ classes = (
     VIEW3D_MT_edit_mesh_normals,
     VIEW3D_MT_edit_mesh_normals_select_strength,
     VIEW3D_MT_edit_mesh_normals_set_strength,
+    VIEW3D_MT_edit_mesh_normals_average,
     VIEW3D_MT_edit_mesh_shading,
     VIEW3D_MT_edit_mesh_weights,
     VIEW3D_MT_edit_mesh_clean,
