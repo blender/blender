@@ -1316,12 +1316,6 @@ void DRW_pass_state_remove(DRWPass *pass, DRWState state)
   pass->state &= ~state;
 }
 
-void DRW_pass_free(DRWPass *pass)
-{
-  pass->shgroups.first = NULL;
-  pass->shgroups.last = NULL;
-}
-
 void DRW_pass_foreach_shgroup(DRWPass *pass,
                               void (*callback)(void *userData, DRWShadingGroup *shgrp),
                               void *userData)

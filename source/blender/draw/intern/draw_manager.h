@@ -220,10 +220,10 @@ struct DRWShadingGroup {
   /* Watch this! Can be nasty for debugging. */
   union {
     struct {                 /* DRW_SHG_NORMAL */
-      DRWCall *first, *last; /* Linked list of DRWCall or DRWCallDynamic depending of type */
+      DRWCall *first, *last; /* Linked list of DRWCall */
     } calls;
-    struct {                 /* DRW_SHG_FEEDBACK_TRANSFORM */
-      DRWCall *first, *last; /* Linked list of DRWCall or DRWCallDynamic depending of type */
+    struct {                               /* DRW_SHG_FEEDBACK_TRANSFORM */
+      DRWCall *first, *last;               /* Linked list of DRWCall. */
       struct GPUVertBuf *tfeedback_target; /* Transform Feedback target. */
     };
     struct {                       /* DRW_SHG_***_BATCH */
@@ -280,6 +280,18 @@ struct DRWPass {
   DRWState state;
   char name[MAX_PASS_NAME];
 };
+
+/* TODO(fclem): Future awaits */
+#if 0
+typedef struct DRWView {
+  /* Culling function, culling result etc...*/
+} DRWView;
+
+typedef struct ModelUboStorage {
+  float model[4][4];
+  float modelinverse[4][4];
+} ModelUboStorage;
+#endif
 
 typedef struct ViewUboStorage {
   DRWMatrixState matstate;

@@ -146,7 +146,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 void DRW_gpencil_freecache(struct Object *ob);
 
 /* This is here because GPUViewport needs it */
-void DRW_pass_free(struct DRWPass *pass);
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);
 void DRW_instance_data_list_free(struct DRWInstanceDataList *idatalist);
 
