@@ -2446,6 +2446,7 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 
   /* id-props */
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_enum_funcs(ot->prop, nla_fmodifier_itemf);
 
   RNA_def_boolean(ot->srna,
