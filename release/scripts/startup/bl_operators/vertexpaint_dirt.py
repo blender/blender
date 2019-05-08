@@ -125,7 +125,6 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     return {'FINISHED'}
 
 
-import bpy
 from bpy.types import Operator
 from bpy.props import FloatProperty, IntProperty, BoolProperty
 from math import pi

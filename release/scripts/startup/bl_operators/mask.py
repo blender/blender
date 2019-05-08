@@ -25,7 +25,7 @@ class MASK_MT_add(Menu):
     bl_idname = "MASK_MT_add"
     bl_label = "Add"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'

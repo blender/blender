@@ -824,7 +824,7 @@ class WM_OT_url_open(Operator):
         description="URL to open",
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import webbrowser
         webbrowser.open(self.url)
         return {'FINISHED'}
@@ -841,7 +841,7 @@ class WM_OT_path_open(Operator):
         options={'SKIP_SAVE'},
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import sys
         import os
         import subprocess
@@ -978,7 +978,7 @@ class WM_OT_doc_view_manual(Operator):
                 url = prefix + rna_ref
                 return url
 
-    def execute(self, context):
+    def execute(self, _context):
         rna_id = _wm_doc_get_id(self.doc_id, do_url=False)
         if rna_id is None:
             return {'PASS_THROUGH'}
@@ -1011,7 +1011,7 @@ class WM_OT_doc_view(Operator):
     else:
         _prefix = ("https://docs.blender.org/api/master")
 
-    def execute(self, context):
+    def execute(self, _context):
         url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix)
         if url is None:
             return {'PASS_THROUGH'}
@@ -1213,7 +1213,7 @@ class WM_OT_properties_edit(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         from rna_prop_ui import rna_idprop_ui_prop_get
 
         data_path = self.data_path
@@ -1261,7 +1261,7 @@ class WM_OT_properties_edit(Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-    def check(self, context):
+    def check(self, _context):
         cmp_props = self._cmp_props_get()
         changed = False
         if self._cmp_props != cmp_props:
@@ -1289,7 +1289,7 @@ class WM_OT_properties_edit(Operator):
 
         return changed
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.prop(self, "property")
         layout.prop(self, "value")
@@ -1399,12 +1399,12 @@ class WM_OT_sysinfo(Operator):
         options={'SKIP_SAVE'},
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import sys_info
         sys_info.write_sysinfo(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, _context, _event):
         import os
 
         if not self.filepath:
@@ -1421,7 +1421,7 @@ class WM_OT_operator_cheat_sheet(Operator):
     bl_idname = "wm.operator_cheat_sheet"
     bl_label = "Operator Cheat Sheet"
 
-    def execute(self, context):
+    def execute(self, _context):
         op_strings = []
         tot = 0
         for op_module_name in dir(bpy.ops):
@@ -1739,11 +1739,11 @@ class WM_OT_drop_blend_file(Operator):
 
     filepath: StringProperty()
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')
         return {'FINISHED'}
 
-    def draw_menu(self, menu, context):
+    def draw_menu(self, menu, _context):
         layout = menu.layout
 
         col = layout.column()

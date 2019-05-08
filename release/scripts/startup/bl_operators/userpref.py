@@ -58,7 +58,7 @@ class PREFERENCES_OT_keyconfig_activate(Operator):
         subtype='FILE_PATH',
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         if bpy.utils.keyconfig_set(self.filepath, report=self.report):
             return {'FINISHED'}
         else:
@@ -87,7 +87,7 @@ class PREFERENCES_OT_copy_prev(Operator):
         return bpy.utils.resource_path('USER')
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         import os
 
         old = cls._old_path()
@@ -109,7 +109,7 @@ class PREFERENCES_OT_copy_prev(Operator):
         new_userpref = os.path.join(new, "config", "userpref.blend")
         return os.path.isfile(old_userpref) and not os.path.isfile(new_userpref)
 
-    def execute(self, context):
+    def execute(self, _context):
         import shutil
 
         shutil.copytree(self._old_path(), self._new_path(), symlinks=True)
@@ -173,7 +173,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         default=True,
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import os
         from os.path import basename
         import shutil
@@ -202,7 +202,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         else:
             return {'CANCELLED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -260,7 +260,7 @@ class PREFERENCES_OT_keyconfig_export(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -388,7 +388,7 @@ class PREFERENCES_OT_addon_enable(Operator):
         description="Module name of the add-on to enable",
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import addon_utils
 
         err_str = ""
@@ -434,7 +434,7 @@ class PREFERENCES_OT_addon_disable(Operator):
         description="Module name of the add-on to disable",
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import addon_utils
 
         err_str = ""
@@ -476,7 +476,7 @@ class PREFERENCES_OT_theme_install(Operator):
         options={'HIDDEN'},
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import os
         import shutil
         import traceback
@@ -509,7 +509,7 @@ class PREFERENCES_OT_theme_install(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -520,7 +520,7 @@ class PREFERENCES_OT_addon_refresh(Operator):
     bl_idname = "preferences.addon_refresh"
     bl_label = "Refresh"
 
-    def execute(self, context):
+    def execute(self, _context):
         import addon_utils
 
         addon_utils.modules_refresh()
@@ -680,7 +680,7 @@ class PREFERENCES_OT_addon_install(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -735,12 +735,12 @@ class PREFERENCES_OT_addon_remove(Operator):
         return {'FINISHED'}
 
     # lame confirmation check
-    def draw(self, context):
+    def draw(self, _context):
         self.layout.label(text="Remove Add-on: %r?" % self.module)
         path, _isdir = PREFERENCES_OT_addon_remove.path_from_addon(self.module)
         self.layout.label(text="Path: %r" % path)
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 
@@ -756,7 +756,7 @@ class PREFERENCES_OT_addon_expand(Operator):
         description="Module name of the add-on to expand",
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import addon_utils
 
         module_name = self.module
@@ -825,7 +825,7 @@ class PREFERENCES_OT_app_template_install(Operator):
         options={'HIDDEN'},
     )
 
-    def execute(self, context):
+    def execute(self, _context):
         import traceback
         import zipfile
         import os
@@ -893,7 +893,7 @@ class PREFERENCES_OT_app_template_install(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -955,7 +955,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
         self.report({'INFO'}, msg)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
 
         if self.type == 'STUDIO':
@@ -1009,14 +1009,14 @@ class PREFERENCES_OT_studiolight_new(Operator):
         self.report({'INFO'}, msg)
         return {'FINISHED'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         if self.ask_overide:
             layout.label(text="Warning, file already exists. Overwrite existing file?")
         else:
             layout.prop(self, "filename")
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 

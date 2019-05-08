@@ -201,7 +201,7 @@ class BakeToKeyframes(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         scene = context.scene
         self.frame_start = scene.frame_start
         self.frame_end = scene.frame_end

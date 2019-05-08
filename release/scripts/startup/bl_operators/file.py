@@ -92,7 +92,7 @@ class WM_OT_previews_batch_generate(Operator):
         description="Keep a backup (.blend1) version of the files when saving with generated previews",
     )
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -202,7 +202,7 @@ class WM_OT_previews_batch_clear(Operator):
         description="Keep a backup (.blend1) version of the files when saving with cleared previews",
     )
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -291,7 +291,7 @@ class WM_OT_blend_strings_utf8_validate(Operator):
                     changed |= self.validate_strings(it, done_items)
         return changed
 
-    def execute(self, context):
+    def execute(self, _context):
         changed = False
         done_items = set()
         for prop in bpy.data.bl_rna.properties:

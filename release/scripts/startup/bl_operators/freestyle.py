@@ -212,13 +212,13 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
         view_layer = context.view_layer
         return view_layer and view_layer.freestyle_settings.mode == 'SCRIPT'
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         self.freestyle_module = context.freestyle_module
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def execute(self, context):
+    def execute(self, _context):
         text = bpy.data.texts.load(self.filepath, self.make_internal)
         self.freestyle_module.script = text
         return {'FINISHED'}

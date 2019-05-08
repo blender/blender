@@ -209,10 +209,10 @@ class AddPresetBase:
 
         return {'FINISHED'}
 
-    def check(self, context):
+    def check(self, _context):
         self.name = self.as_filename(self.name.strip())
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         if not (self.remove_active or self.remove_name):
             wm = context.window_manager
             return wm.invoke_props_dialog(self)
@@ -535,7 +535,7 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
 
-    def add(self, context, filepath):
+    def add(self, _context, filepath):
         bpy.ops.preferences.keyconfig_export(filepath=filepath)
         bpy.utils.keyconfig_set(filepath)
 

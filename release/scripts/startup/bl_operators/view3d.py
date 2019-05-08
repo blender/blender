@@ -20,7 +20,6 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty
 
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
@@ -60,7 +59,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
         # and cause this one not to be freed. [#24671]
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         return self.execute(context)
 
 
@@ -118,7 +117,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     def execute(self, context):
         return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, False)
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         return self.execute(context)
 
 
@@ -135,7 +134,7 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
     def execute(self, context):
         return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True)
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         return self.execute(context)
 
 

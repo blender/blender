@@ -89,7 +89,7 @@ class EditExternally(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         import os
         sd = context.space_data
         try:
@@ -121,7 +121,7 @@ class SaveDirty(Operator):
     bl_label = "Save Dirty"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
+    def execute(self, _context):
         unique_paths = set()
         for image in bpy.data.images:
             if image.is_dirty:
@@ -227,7 +227,7 @@ class ProjectApply(Operator):
     bl_label = "Project Apply"
     bl_options = {'REGISTER'}
 
-    def execute(self, context):
+    def execute(self, _context):
         image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
 
         try:

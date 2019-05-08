@@ -18,7 +18,6 @@
 
 # <pep8-80 compliant>
 
-import bpy
 from bpy.types import (
     Operator,
 )

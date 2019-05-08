@@ -191,7 +191,7 @@ class ANIM_OT_keying_set_export(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -285,7 +285,7 @@ class NLA_OT_bake(Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         scene = context.scene
         self.frame_start = scene.frame_start
         self.frame_end = scene.frame_end
@@ -309,10 +309,10 @@ class ClearUselessActions(Operator):
     )
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return bool(bpy.data.actions)
 
-    def execute(self, context):
+    def execute(self, _context):
         removed = 0
 
         for action in bpy.data.actions:

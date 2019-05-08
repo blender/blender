@@ -304,7 +304,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         self.frame_start = context.scene.frame_current
         self.frame_end = self.frame_start + self.frame_duration
         return self.execute(context)

@@ -1033,7 +1033,7 @@ class SmartProject(Operator):
              )
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
