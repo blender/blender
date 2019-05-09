@@ -16,12 +16,13 @@
         gizmo_secondary="#63ffff"
         gizmo_a="#4da84d"
         gizmo_b="#a33535"
-        icon_scene="#000000ff"
-        icon_collection="#000000ff"
-        icon_object="#000000ff"
-        icon_object_data="#000000ff"
-        icon_modifier="#000000ff"
-        icon_shading="#000000ff"
+        icon_scene="#e6e6e6ff"
+        icon_collection="#e6e6e6ff"
+        icon_object="#e49759ff"
+        icon_object_data="#89e689ff"
+        icon_modifier="#84b8ffff"
+        icon_shading="#ff6060ff"
+        icon_border_intensity="0.75"
         >
         <wcol_regular>
           <ThemeWidgetColors

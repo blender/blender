@@ -42,6 +42,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "UI_interface_icons.h"
+
 #include "rna_internal.h"
 
 #include "WM_api.h"
@@ -193,6 +195,12 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   WM_reinit_gizmomap_all(bmain);
 
   rna_userdef_update(bmain, scene, ptr);
+}
+
+static void rna_userdef_theme_update_icons(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  UI_icons_reload_internal_textures();
+  rna_userdef_theme_update(bmain, scene, ptr);
 }
 
 /* also used by buffer swap switching */
@@ -1412,6 +1420,13 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Shading", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "icon_border_intensity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "icon_border_intensity");
+  RNA_def_property_ui_text(
+      prop, "Icon Border", "Control the intensity of the border around themes icons");
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update_icons");
 }
 
 static void rna_def_userdef_theme_space_common(StructRNA *srna)

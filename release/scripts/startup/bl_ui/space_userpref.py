@@ -895,6 +895,7 @@ class USERPREF_PT_theme_interface_icons(PreferencePanel, Panel):
         flow.prop(ui, "icon_object_data")
         flow.prop(ui, "icon_modifier")
         flow.prop(ui, "icon_shading")
+        flow.prop(ui, "icon_border_intensity")
 
 
 class USERPREF_PT_theme_text_style(PreferencePanel, Panel):
