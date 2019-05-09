@@ -162,7 +162,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     """
     use_time = use_class_register_check = _bpy.app.debug_python
     use_user = not _is_factory_startup
-    is_background = _bpy.app.background
 
     if use_time:
         import time

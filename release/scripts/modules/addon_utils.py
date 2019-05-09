@@ -295,7 +295,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     from bpy_restrict_state import RestrictBlend
 
     if handle_error is None:
-        def handle_error(ex):
+        def handle_error(_ex):
             import traceback
             traceback.print_exc()
 
@@ -420,7 +420,7 @@ def disable(module_name, *, default_set=False, handle_error=None):
     import sys
 
     if handle_error is None:
-        def handle_error(ex):
+        def handle_error(_ex):
             import traceback
             traceback.print_exc()
 

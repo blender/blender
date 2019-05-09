@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 
-import bpy
 from mathutils import Color, Vector
 
 __all__ = (
@@ -501,7 +500,7 @@ class ShaderImageTextureWrapper():
         *NODES_LIST,
     )
 
-    def __new__(cls, owner_shader: ShaderWrapper, node_dst, socket_dst, *args, **kwargs):
+    def __new__(cls, owner_shader: ShaderWrapper, node_dst, socket_dst, *_args, **_kwargs):
         instance = owner_shader._textures.get((node_dst, socket_dst), None)
         if instance is not None:
             return instance
@@ -520,7 +519,7 @@ class ShaderImageTextureWrapper():
         self._node_image = ...
         self._node_mapping = ...
 
-        tree = node_dst.id_data
+        # tree = node_dst.id_data
         # nodes = tree.nodes
         # links = tree.links
 

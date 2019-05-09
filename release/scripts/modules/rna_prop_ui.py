@@ -283,7 +283,7 @@ class PropertyPanel:
 
     @classmethod
     def poll(cls, context):
-        rna_item, context_member = rna_idprop_context_value(context, cls._context_path, cls._property_type)
+        rna_item, _context_member = rna_idprop_context_value(context, cls._context_path, cls._property_type)
         return bool(rna_item)
 
     """

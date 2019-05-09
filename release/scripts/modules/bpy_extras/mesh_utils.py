@@ -116,7 +116,7 @@ def mesh_linked_triangles(mesh):
     while ok:
         ok = False
 
-        for i, t in enumerate(mesh.loop_triangles):
+        for t in mesh.loop_triangles:
             mapped_index = tri_mapping[t.index]
             mapped_group = tri_groups[mapped_index]
 

@@ -69,7 +69,7 @@ class ExportHelper:
     # True == use ext, False == no ext, None == do nothing.
     check_extension = True
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         import os
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
@@ -83,7 +83,7 @@ class ExportHelper:
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def check(self, context):
+    def check(self, _context):
         import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
@@ -113,11 +113,11 @@ class ImportHelper:
         subtype='FILE_PATH',
     )
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def check(self, context):
+    def check(self, _context):
         return _check_axis_conversion(self)
 
 
@@ -132,7 +132,7 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
         if "__annotations__" not in cls.__dict__:
             setattr(cls, "__annotations__", {})
 
-        def _update_axis_forward(self, context):
+        def _update_axis_forward(self, _context):
             if self.axis_forward[-1] == self.axis_up[-1]:
                 self.axis_up = (self.axis_up[0:-1] +
                                 'XYZ'[('XYZ'.index(self.axis_up[-1]) + 1) % 3])
@@ -151,7 +151,7 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
             update=_update_axis_forward,
         )
 
-        def _update_axis_up(self, context):
+        def _update_axis_up(self, _context):
             if self.axis_up[-1] == self.axis_forward[-1]:
                 self.axis_forward = (self.axis_forward[0:-1] +
                                      'XYZ'[('XYZ'.index(self.axis_forward[-1]) + 1) % 3])

@@ -56,7 +56,7 @@ def path_add_property(path, prop):
 
 
 # selected objects (active object must be in object mode)
-def RKS_POLL_selected_objects(ksi, context):
+def RKS_POLL_selected_objects(_ksi, context):
     ob = context.active_object
     if ob:
         return ob.mode == 'OBJECT'
@@ -65,7 +65,7 @@ def RKS_POLL_selected_objects(ksi, context):
 
 
 # selected bones
-def RKS_POLL_selected_bones(ksi, context):
+def RKS_POLL_selected_bones(_ksi, context):
     # we must be in Pose Mode, and there must be some bones selected
     ob = context.active_object
     if ob and ob.mode == 'POSE':
@@ -112,7 +112,7 @@ def RKS_ITER_selected_bones(ksi, context, ks):
 
 
 # 'Available' F-Curves
-def RKS_GEN_available(ksi, context, ks, data):
+def RKS_GEN_available(_ksi, _context, ks, data):
     # try to get the animation data associated with the closest
     # ID-block to the data (neither of which may exist/be easy to find)
     id_block = data.id_data
@@ -170,7 +170,7 @@ def get_transform_generators_base_info(data):
 
 
 # Location
-def RKS_GEN_location(ksi, context, ks, data):
+def RKS_GEN_location(_ksi, _context, ks, data):
     # get id-block and path info
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
@@ -185,7 +185,7 @@ def RKS_GEN_location(ksi, context, ks, data):
 
 
 # Rotation
-def RKS_GEN_rotation(ksi, context, ks, data):
+def RKS_GEN_rotation(_ksi, _context, ks, data):
     # get id-block and path info
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
@@ -206,7 +206,7 @@ def RKS_GEN_rotation(ksi, context, ks, data):
 
 
 # Scaling
-def RKS_GEN_scaling(ksi, context, ks, data):
+def RKS_GEN_scaling(_ksi, _context, ks, data):
     # get id-block and path info
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
@@ -244,7 +244,7 @@ bbone_property_ids = (
 
 
 # Add Keying Set entries for bendy bones
-def RKS_GEN_bendy_bones(ksi, context, ks, data):
+def RKS_GEN_bendy_bones(_ksi, _context, ks, data):
     # get id-block and path info
     # NOTE: This assumes that we're dealing with a bone here...
     id_block, base_path, grouping = get_transform_generators_base_info(data)

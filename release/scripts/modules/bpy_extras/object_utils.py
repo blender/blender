@@ -168,7 +168,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 
 class AddObjectHelper:
-    def view_align_update_callback(self, context):
+    def view_align_update_callback(self, _context):
         if not self.view_align:
             self.rotation.zero()
 

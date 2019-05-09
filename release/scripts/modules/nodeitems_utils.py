@@ -22,7 +22,7 @@ import bpy
 
 class NodeCategory:
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return True
 
     def __init__(self, identifier, name, description="", items=None):
@@ -80,7 +80,7 @@ class NodeItem:
     # NB: is a staticmethod because called with an explicit self argument
     # NodeItemCustom sets this as a variable attribute in __init__
     @staticmethod
-    def draw(self, layout, context):
+    def draw(self, layout, _context):
         props = layout.operator("node.add_node", text=self.label, text_ctxt=self.translation_context)
         props.type = self.nodetype
         props.use_transform = True

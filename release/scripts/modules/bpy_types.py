@@ -905,7 +905,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props = row.operator(add_operator, text="", icon='ADD')
             props.name = wm.preset_name
 
-    def draw_preset(self, context):
+    def draw_preset(self, _context):
         """
         Define these on the subclass:
         - preset_operator (string)
@@ -945,7 +945,7 @@ class Node(StructRNA, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
     @classmethod
-    def poll(cls, ntree):
+    def poll(cls, _ntree):
         return True
 
 
