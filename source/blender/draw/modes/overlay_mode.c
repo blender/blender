@@ -126,8 +126,10 @@ static void overlay_engine_init(void *vedata)
   if (!sh_data->face_orientation) {
     /* Face orientation */
     sh_data->face_orientation = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){sh_cfg_data->lib, datatoc_overlay_face_orientation_vert_glsl, NULL},
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_overlay_face_orientation_vert_glsl,
+                                 NULL},
         .frag = (const char *[]){datatoc_overlay_face_orientation_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });

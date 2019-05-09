@@ -37,6 +37,7 @@
 #include "draw_common.h"
 #include "draw_mode_engines.h"
 
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
@@ -111,8 +112,11 @@ static void SCULPT_engine_init(void *vedata)
   UNUSED_VARS(txl, fbl, stl);
 
   if (!e_data.shader_mask) {
-    e_data.shader_mask = DRW_shader_create(
-        datatoc_sculpt_mask_vert_glsl, NULL, datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL);
+    e_data.shader_mask = DRW_shader_create_with_lib(datatoc_sculpt_mask_vert_glsl,
+                                                    NULL,
+                                                    datatoc_gpu_shader_3D_smooth_color_frag_glsl,
+                                                    datatoc_common_view_lib_glsl,
+                                                    NULL);
   }
 }
 

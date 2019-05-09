@@ -1,6 +1,6 @@
 /* Draw Curve Normals */
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
+
 uniform float normalSize;
 
 in vec3 pos;
@@ -18,10 +18,10 @@ void main()
     final_pos += normalSize * rad * (flip * nor - tan);
   }
 
-  vec4 final_pos_4d = vec4(final_pos, 1.0);
-  gl_Position = ModelViewProjectionMatrix * final_pos_4d;
+  vec3 world_pos = point_object_to_world(final_pos);
+  gl_Position = point_world_to_ndc(world_pos);
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * final_pos_4d).xyz);
+  world_clip_planes_calc_clip_distance(world_pos);
 #endif
 }

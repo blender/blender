@@ -1,5 +1,5 @@
 
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 
 uniform sampler3D velocityX;
 uniform sampler3D velocityY;
@@ -109,5 +109,6 @@ void main()
   pos += (((gl_VertexID % 2) == 1) ? velocity : vec3(0.0)) * displaySize * voxel_size;
 #endif
 
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  vec3 world_pos = point_object_to_world(pos);
+  gl_Position = point_world_to_ndc(world_pos);
 }

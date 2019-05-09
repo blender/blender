@@ -1,5 +1,4 @@
 
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 
@@ -25,10 +24,14 @@ flat out vec4 v2;
 
 void main()
 {
-  v1 = ModelViewProjectionMatrix * vec4(pos, 1.0);
-  vec3 n = normalize(normal_object_to_view(nor));
-  v2 = v1 + ProjectionMatrix * vec4(n * normalSize, 0.0);
+  vec3 n = normalize(normal_object_to_world(nor));
+
+  vec3 world_pos = point_object_to_world(pos);
+
+  v1 = point_world_to_ndc(world_pos);
+  v2 = point_world_to_ndc(world_pos + n * normalSize);
+
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance(world_pos);
 #endif
 }

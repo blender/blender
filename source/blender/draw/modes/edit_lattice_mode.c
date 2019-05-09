@@ -32,6 +32,7 @@
 #include "draw_mode_engines.h"
 
 extern char datatoc_common_globals_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 
 extern char datatoc_edit_lattice_overlay_loosevert_vert_glsl[];
 extern char datatoc_edit_lattice_overlay_frag_glsl[];
@@ -152,6 +153,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
     sh_data->overlay_vert = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
                                  datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
                                  datatoc_edit_lattice_overlay_loosevert_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_common_globals_lib_glsl,

@@ -15,6 +15,6 @@ void main()
   pPos.z -= 1e-3;
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos).xyz);
+  world_clip_planes_calc_clip_distance(world_pos);
 #endif
 }

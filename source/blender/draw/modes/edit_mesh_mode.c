@@ -198,6 +198,7 @@ static void EDIT_MESH_engine_init(void *vedata)
     sh_data->weight_face = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
                                  datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
                                  datatoc_paint_weight_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_common_globals_lib_glsl,
@@ -290,23 +291,19 @@ static void EDIT_MESH_engine_init(void *vedata)
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
 
-    MEM_freeN(lib);
-
     /* Mesh Analysis */
     sh_data->mesh_analysis_face = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl,
-                                 NULL},
+        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl, NULL},
         .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, "#define FACE_COLOR\n", NULL},
     });
     sh_data->mesh_analysis_vertex = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl,
-                                 NULL},
+        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl, NULL},
         .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, "#define VERTEX_COLOR\n", NULL},
     });
+
+    MEM_freeN(lib);
 
     sh_data->depth = DRW_shader_create_3d_depth_only(draw_ctx->sh_cfg);
   }

@@ -468,12 +468,18 @@ static void OBJECT_engine_init(void *vedata)
               "#define DEPTH_BACK " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_BACK) "\n");
 
       sh_data->object_empty_image = GPU_shader_create_from_arrays({
-          .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_empty_image_vert_glsl, NULL},
+          .vert = (const char *[]){sh_cfg_data->lib,
+                                   datatoc_common_view_lib_glsl,
+                                   datatoc_object_empty_image_vert_glsl,
+                                   NULL},
           .frag = (const char *[]){datatoc_object_empty_image_frag_glsl, NULL},
           .defs = (const char *[]){sh_cfg_data->def, empty_image_defs, NULL},
       });
       sh_data->object_empty_image_wire = GPU_shader_create_from_arrays({
-          .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_empty_image_vert_glsl, NULL},
+          .vert = (const char *[]){sh_cfg_data->lib,
+                                   datatoc_common_view_lib_glsl,
+                                   datatoc_object_empty_image_vert_glsl,
+                                   NULL},
           .frag = (const char *[]){datatoc_object_empty_image_frag_glsl, NULL},
           .defs = (const char *[]){sh_cfg_data->def, "#define USE_WIRE\n", empty_image_defs, NULL},
       });

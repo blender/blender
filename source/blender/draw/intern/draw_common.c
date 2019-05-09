@@ -1038,18 +1038,23 @@ struct GPUShader *volume_velocity_shader_get(bool use_needle)
   COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
   if (use_needle) {
     if (sh_data->volume_velocity_needle_sh == NULL) {
-      sh_data->volume_velocity_needle_sh = DRW_shader_create(
+      sh_data->volume_velocity_needle_sh = DRW_shader_create_with_lib(
           datatoc_volume_velocity_vert_glsl,
           NULL,
           datatoc_gpu_shader_flat_color_frag_glsl,
+          datatoc_common_view_lib_glsl,
           "#define USE_NEEDLE");
     }
     return sh_data->volume_velocity_needle_sh;
   }
   else {
     if (sh_data->volume_velocity_sh == NULL) {
-      sh_data->volume_velocity_sh = DRW_shader_create(
-          datatoc_volume_velocity_vert_glsl, NULL, datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+      sh_data->volume_velocity_sh = DRW_shader_create_with_lib(
+          datatoc_volume_velocity_vert_glsl,
+          NULL,
+          datatoc_gpu_shader_flat_color_frag_glsl,
+          datatoc_common_view_lib_glsl,
+          NULL);
     }
     return sh_data->volume_velocity_sh;
   }

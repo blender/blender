@@ -1,4 +1,3 @@
-uniform mat4 ModelViewProjectionMatrix;
 
 in vec4 finalColor;
 #ifdef USE_POINTS

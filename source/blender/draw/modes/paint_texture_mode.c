@@ -27,6 +27,8 @@
 
 #include "BKE_node.h"
 
+#include "BLI_string_utils.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -39,6 +41,7 @@
 #include "DEG_depsgraph_query.h"
 
 extern char datatoc_common_globals_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_paint_texture_vert_glsl[];
 extern char datatoc_paint_texture_frag_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
@@ -132,26 +135,31 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
   if (!e_data.fallback_sh) {
     e_data.fallback_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
-    e_data.image_sh = DRW_shader_create_with_lib(datatoc_paint_texture_vert_glsl,
-                                                 NULL,
-                                                 datatoc_paint_texture_frag_glsl,
-                                                 datatoc_common_globals_lib_glsl,
-                                                 NULL);
+    char *lib = BLI_string_joinN(datatoc_common_globals_lib_glsl, datatoc_common_view_lib_glsl);
+
+    e_data.image_sh = DRW_shader_create_with_lib(
+        datatoc_paint_texture_vert_glsl, NULL, datatoc_paint_texture_frag_glsl, lib, NULL);
 
     e_data.image_masking_sh = DRW_shader_create_with_lib(datatoc_paint_texture_vert_glsl,
                                                          NULL,
                                                          datatoc_paint_texture_frag_glsl,
-                                                         datatoc_common_globals_lib_glsl,
+                                                         lib,
                                                          "#define TEXTURE_PAINT_MASK\n");
 
     e_data.wire_overlay_shader = DRW_shader_create_with_lib(datatoc_paint_wire_vert_glsl,
                                                             NULL,
                                                             datatoc_paint_wire_frag_glsl,
-                                                            datatoc_common_globals_lib_glsl,
+                                                            lib,
                                                             "#define VERTEX_MODE\n");
 
-    e_data.face_overlay_shader = DRW_shader_create(
-        datatoc_paint_face_vert_glsl, NULL, datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
+    e_data.face_overlay_shader = DRW_shader_create_with_lib(
+        datatoc_paint_face_vert_glsl,
+        NULL,
+        datatoc_gpu_shader_uniform_color_frag_glsl,
+        datatoc_common_view_lib_glsl,
+        NULL);
+
+    MEM_freeN(lib);
   }
 }
 
