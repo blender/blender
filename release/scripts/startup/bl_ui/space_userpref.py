@@ -24,6 +24,7 @@ from bpy.types import (
     Panel,
 )
 from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import contexts as i18n_contexts
 
 
 class USERPREF_HT_header(Header):
@@ -169,6 +170,7 @@ class USERPREF_PT_interface_text(PreferencePanel, Panel):
 
 class USERPREF_PT_interface_translation(PreferencePanel, Panel):
     bl_label = "Translation"
+    bl_translation_context = i18n_contexts.id_windowmanager
 
     @classmethod
     def poll(cls, context):
