@@ -35,7 +35,7 @@ void main()
   /* TODO FIX: there is still a problem with this vector
    * when the bone is scaled or in persp mode. But it's
    * barelly visible at the outline corners. */
-  ssNor = normalize(transform_normal_world_to_view(normal_mat * snor).xy);
+  ssNor = normalize(normal_world_to_view(normal_mat * snor).xy);
 
   ssPos = proj(pPos);
 

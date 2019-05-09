@@ -15,7 +15,7 @@ void main()
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
   mat3 normal_mat = transpose(inverse(mat3(InstanceModelMatrix)));
-  vec3 normal = normalize(transform_normal_world_to_view(normal_mat * nor));
+  vec3 normal = normalize(normal_world_to_view(normal_mat * nor));
 
   /* Do lighting at an angle to avoid flat shading on front facing bone. */
   const vec3 light = vec3(0.1, 0.1, 0.8);

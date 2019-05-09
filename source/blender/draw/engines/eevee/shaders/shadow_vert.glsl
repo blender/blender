@@ -24,9 +24,9 @@ void main()
   viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
   worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
 
-  worldNormal = normalize(transform_normal_object_to_world(nor));
+  worldNormal = normalize(normal_object_to_world(nor));
   /* No need to normalize since this is just a rotation. */
-  viewNormal = transform_normal_world_to_view(worldNormal);
+  viewNormal = normal_world_to_view(worldNormal);
 #  ifdef USE_ATTR
   pass_attr(pos);
 #  endif

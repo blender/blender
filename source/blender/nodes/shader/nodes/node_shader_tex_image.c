@@ -151,7 +151,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       blend = GPU_uniform(&tex->projection_blend);
       gpu_image = GPU_image(ima, iuser, isdata);
 
-      /* equivalent to transform_normal_world_to_object */
+      /* equivalent to normal_world_to_object */
       GPU_link(mat, "normal_transform_transposed_m4v3", vnor, ob_mat, &norm);
       GPU_link(
           mat, gpu_node_name, *texco, norm, GPU_image(ima, iuser, isdata), &col1, &col2, &col3);

@@ -2099,7 +2099,7 @@ void node_tex_coord(vec3 I,
                     out vec3 reflection)
 {
   generated = attr_orco;
-  normal = normalize(transform_normal_world_to_object(wN));
+  normal = normalize(normal_world_to_object(wN));
   uv = attr_uv;
   object = (obmatinv * (ViewMatrixInverse * vec4(I, 1.0))).xyz;
   camera = vec3(I.xy, -I.z);

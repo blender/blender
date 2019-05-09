@@ -63,12 +63,12 @@ void main()
   viewNormal = mat3(ViewMatrix) * worldNormal;
 #else
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-  viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
-  worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
+  worldPosition = point_object_to_world(pos);
+  viewPosition = point_world_to_view(worldPosition);
 
-  worldNormal = normalize(transform_normal_object_to_world(nor));
+  worldNormal = normalize(normal_object_to_world(nor));
   /* No need to normalize since this is just a rotation. */
-  viewNormal = transform_normal_world_to_view(worldNormal);
+  viewNormal = normal_world_to_view(worldNormal);
 #endif
 
   /* Used for planar reflections */
