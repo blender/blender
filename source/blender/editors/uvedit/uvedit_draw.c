@@ -170,6 +170,7 @@ static void uvedit_get_batches(Object *ob,
   const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
   const bool draw_faces = (sima->flag & SI_NO_DRAWFACES) == 0;
 
+  DRW_mesh_batch_cache_validate(ob->data);
   *edges = DRW_mesh_batch_cache_get_edituv_edges(ob->data);
   *verts = DRW_mesh_batch_cache_get_edituv_verts(ob->data);
 
