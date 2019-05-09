@@ -1030,11 +1030,12 @@ static void recalcData_objects(TransInfo *t)
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bArmature *arm = ob->data;
+      bPose *pose = ob->pose;
 
-      if (arm->flag & ARM_MIRROR_EDIT) {
+      if (pose->flag & POSE_MIRROR_EDIT) {
         if (t->state != TRANS_CANCEL) {
           PoseInitData_Mirror *pid = NULL;
-          if (arm->flag & ARM_MIRROR_RELATIVE) {
+          if (pose->flag & POSE_MIRROR_RELATIVE) {
             pid = tc->custom.type.data;
           }
           pose_transform_mirror_update(ob, pid);

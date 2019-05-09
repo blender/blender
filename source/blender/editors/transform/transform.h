@@ -402,7 +402,7 @@ typedef struct PoseInitData_Mirror {
   } orig;
   /**
    * An extra offset to apply after mirroring.
-   * Use with #ARM_MIRROR_RELATIVE.
+   * Use with #POSE_MIRROR_RELATIVE.
    */
   float offset_mtx[4][4];
 } PoseInitData_Mirror;

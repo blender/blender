@@ -122,6 +122,11 @@ static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
   BIK_clear_data(ob->pose);
 }
 
+static char *rna_Pose_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("pose");
+}
+
 static char *rna_PoseBone_path(PointerRNA *ptr)
 {
   bPoseChannel *pchan = ptr->data;
@@ -1550,6 +1555,31 @@ static void rna_def_pose(BlenderRNA *brna)
       prop, "rna_Pose_ikparam_get", NULL, "rna_Pose_ikparam_typef", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "IK Param", "Parameters for IK solver");
+
+  /* pose edit options */
+  prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", POSE_MIRROR_EDIT);
+  RNA_def_property_ui_text(
+      prop, "X-Axis Mirror", "Apply changes to matching bone on opposite side of X-Axis");
+  RNA_def_struct_path_func(srna, "rna_Pose_path");
+  RNA_def_property_update(prop, 0, "rna_Pose_update");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+
+  prop = RNA_def_property(srna, "use_mirror_relative", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", POSE_MIRROR_RELATIVE);
+  RNA_def_property_ui_text(
+      prop, "Relative Mirror", "Apply relative transformations in X-mirror mode");
+  RNA_def_struct_path_func(srna, "rna_Pose_path");
+  RNA_def_property_update(prop, 0, "rna_Pose_update");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+
+  prop = RNA_def_property(srna, "use_auto_ik", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", POSE_AUTO_IK);
+  RNA_def_property_ui_text(
+      prop, "Auto IK", "Add temporary IK constraints while grabbing bones in Pose Mode");
+  RNA_def_struct_path_func(srna, "rna_Pose_path");
+  RNA_def_property_update(prop, 0, "rna_Pose_update");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
   /* animviz */
   rna_def_animviz_common(srna);

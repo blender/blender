@@ -512,6 +512,12 @@ typedef enum ePose_Flags {
   POSE_FLAG_DEPRECATED = (1 << 6), /* deprecated. */
   /* pose constraint flags needs to be updated */
   POSE_CONSTRAINTS_NEED_UPDATE_FLAGS = (1 << 7),
+  /* Use auto IK in pose mode */
+  POSE_AUTO_IK = (1 << 8),
+  /* Use x-axis mirror in pose mode */
+  POSE_MIRROR_EDIT = (1 << 9),
+  /* Use relative mirroring in mirror mode */
+  POSE_MIRROR_RELATIVE = (1 << 10),
 } ePose_Flags;
 
 /* IK Solvers ------------------------------------ */

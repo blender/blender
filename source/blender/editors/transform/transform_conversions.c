@@ -1286,17 +1286,18 @@ static void createTransPose(TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Object *ob = tc->poseobj;
+    bPose *pose = ob->pose;
 
     bArmature *arm;
     short ik_on = 0;
 
     /* check validity of state */
     arm = BKE_armature_from_object(tc->poseobj);
-    if ((arm == NULL) || (ob->pose == NULL)) {
+    if ((arm == NULL) || (pose == NULL)) {
       continue;
     }
 
-    const bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+    const bool mirror = ((pose->flag & POSE_MIRROR_EDIT) != 0);
 
     /* set flags and count total */
     tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
@@ -1313,7 +1314,7 @@ static void createTransPose(TransInfo *t)
     }
 
     /* do we need to add temporal IK chains? */
-    if ((arm->flag & ARM_AUTO_IK) && t->mode == TFM_TRANSLATION) {
+    if ((pose->flag & POSE_AUTO_IK) && t->mode == TFM_TRANSLATION) {
       ik_on = pose_grab_with_ik(bmain, ob);
       if (ik_on) {
         t->flag |= T_AUTOIK;
@@ -1363,16 +1364,14 @@ static void createTransPose(TransInfo *t)
 
     PoseInitData_Mirror *pid = tc->custom.type.data;
     int pid_index = 0;
-    bArmature *arm;
+    bPose *pose = ob->pose;
 
-    /* check validity of state */
-    arm = BKE_armature_from_object(tc->poseobj);
-    if ((arm == NULL) || (ob->pose == NULL)) {
+    if (pose == NULL) {
       continue;
     }
 
-    const bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
-    const bool is_mirror_relative = ((arm->flag & ARM_MIRROR_RELATIVE) != 0);
+    const bool mirror = ((pose->flag & POSE_MIRROR_EDIT) != 0);
+    const bool is_mirror_relative = ((pose->flag & POSE_MIRROR_RELATIVE) != 0);
 
     tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
 
@@ -1420,17 +1419,9 @@ static void createTransPose(TransInfo *t)
 
 void restoreMirrorPoseBones(TransDataContainer *tc)
 {
-  bArmature *arm;
+  bPose *pose = tc->poseobj->pose;
 
-  if (tc->obedit) {
-    arm = tc->obedit->data;
-  }
-  else {
-    BLI_assert(tc->poseobj != NULL);
-    arm = tc->poseobj->data;
-  }
-
-  if (!(arm->flag & ARM_MIRROR_EDIT)) {
+  if (!(pose->flag & POSE_MIRROR_EDIT)) {
     return;
   }
 

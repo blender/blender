@@ -191,14 +191,14 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
     bl_label = "Pose Options"
 
     def draw(self, context):
-        arm = context.active_object.data
+        pose = context.active_object.pose
         layout = self.layout
 
-        layout.prop(arm, "use_auto_ik")
-        layout.prop(arm, "use_mirror_x")
+        layout.prop(pose, "use_auto_ik")
+        layout.prop(pose, "use_mirror_x")
         col = layout.column()
-        col.active = arm.use_mirror_x
-        col.prop(arm, "use_mirror_relative")
+        col.active = pose.use_mirror_x
+        col.prop(pose, "use_mirror_relative")
 
 # ********** default tools for paint modes ****************
 
