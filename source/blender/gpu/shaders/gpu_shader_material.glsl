@@ -2086,6 +2086,7 @@ void generated_texco(vec3 I, vec3 attr_orco, out vec3 generated)
 
 void node_tex_coord(vec3 I,
                     vec3 wN,
+                    mat4 obmatinv,
                     vec4 camerafac,
                     vec3 attr_orco,
                     vec3 attr_uv,
@@ -2100,7 +2101,7 @@ void node_tex_coord(vec3 I,
   generated = attr_orco;
   normal = normalize(transform_normal_world_to_object(wN));
   uv = attr_uv;
-  object = transform_point_view_to_object(I);
+  object = (obmatinv * (ViewMatrixInverse * vec4(I, 1.0))).xyz;
   camera = vec3(I.xy, -I.z);
   vec4 projvec = ProjectionMatrix * vec4(I, 1.0);
   window = vec3(mtex_2d_mapping(projvec.xyz / projvec.w).xy * camerafac.xy + camerafac.zw, 0.0);
@@ -2109,6 +2110,7 @@ void node_tex_coord(vec3 I,
 
 void node_tex_coord_background(vec3 I,
                                vec3 N,
+                               mat4 obmatinv,
                                vec4 camerafac,
                                vec3 attr_orco,
                                vec3 attr_uv,

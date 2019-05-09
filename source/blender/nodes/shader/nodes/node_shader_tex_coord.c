@@ -42,10 +42,6 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
 {
   Object *ob = (Object *)node->id;
 
-  if (ob != NULL) {
-    invert_m4_m4(ob->imat, ob->obmat);
-  }
-
   GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) :
                                           GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
@@ -61,7 +57,6 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
                         out,
                         GPU_builtin(GPU_VIEW_POSITION),
                         GPU_builtin(GPU_WORLD_NORMAL),
-                        GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
                         inv_obmat,
                         GPU_builtin(GPU_CAMERA_TEXCO_FACTORS),
                         orco,
