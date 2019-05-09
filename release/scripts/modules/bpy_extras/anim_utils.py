@@ -158,7 +158,8 @@ def bake_action_iter(
         'bbone_curveinx', 'bbone_curveoutx',
         'bbone_curveiny', 'bbone_curveouty',
         'bbone_rollin', 'bbone_rollout',
-        'bbone_scalein', 'bbone_scaleout',
+        'bbone_scaleinx', 'bbone_scaleoutx',
+        'bbone_scaleiny', 'bbone_scaleouty',
         'bbone_easein', 'bbone_easeout'
     ]
 
