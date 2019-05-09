@@ -56,6 +56,7 @@ void UI_icons_reload_internal_textures(void);
 
 int UI_icon_get_width(int icon_id);
 int UI_icon_get_height(int icon_id);
+bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
 
 void UI_id_icon_render(const struct bContext *C,
                        struct Scene *scene,
@@ -74,7 +75,8 @@ void UI_icon_draw_ex(float x,
                      float aspect,
                      float alpha,
                      float desaturate,
-                     const char mono_color[4]);
+                     const char mono_color[4],
+                     const bool mono_border);
 
 void UI_icon_draw_desaturate(float x,
                              float y,

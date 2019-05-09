@@ -1357,7 +1357,7 @@ void UI_GetThemeColorType4ubv(int colorid, int spacetype, uchar col[4])
   col[3] = cp[3];
 }
 
-bool UI_GetIconThemeColor4fv(int colorid, float col[4])
+bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
 {
   if (colorid == 0) {
     return false;
@@ -1371,12 +1371,11 @@ bool UI_GetIconThemeColor4fv(int colorid, float col[4])
     return false;
   }
 
-  const uchar *cp;
-  cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-  col[0] = ((float)cp[0]) / 255.0f;
-  col[1] = ((float)cp[1]) / 255.0f;
-  col[2] = ((float)cp[2]) / 255.0f;
-  col[3] = ((float)cp[3]) / 255.0f;
+  const uchar *cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+  col[0] = cp[0];
+  col[1] = cp[1];
+  col[2] = cp[2];
+  col[3] = cp[3];
 
   return true;
 }

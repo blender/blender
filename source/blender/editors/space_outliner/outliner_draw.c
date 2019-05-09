@@ -1801,7 +1801,13 @@ static void tselem_draw_icon(uiBlock *block,
 
     /* restrict column clip... it has been coded by simply overdrawing,
      * doesn't work for buttons */
-    UI_icon_draw_alpha(x, y, data.icon, alpha);
+    char color[4];
+    if (UI_icon_get_theme_color(data.icon, (uchar *)color)) {
+      UI_icon_draw_ex(x, y, data.icon, 1.0f / UI_DPI_FAC, alpha, 0.0f, color, true);
+    }
+    else {
+      UI_icon_draw_ex(x, y, data.icon, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL, false);
+    }
   }
   else {
     uiDefIconBut(block,

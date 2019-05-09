@@ -1506,20 +1506,27 @@ static void widget_draw_icon(
       ys = (int)(ys + 0.1f);
     }
 
+    /* Get theme color. */
+    char color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
+    bool has_theme = UI_icon_get_theme_color(icon, (uchar *)color);
+
     /* to indicate draggable */
     if (but->dragpoin && (but->flag & UI_ACTIVE)) {
-      UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, mono_color);
+      UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme);
     }
     else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, mono_color);
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, has_theme);
     }
     else if (!UI_but_is_tool(but)) {
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, mono_color);
+      if (has_theme) {
+        alpha *= 0.8f;
+      }
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, has_theme);
     }
     else {
       const bTheme *btheme = UI_GetTheme();
       const float desaturate = 1.0 - btheme->tui.icon_saturation;
-      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, desaturate, mono_color);
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, desaturate, color, has_theme);
     }
   }
 
@@ -1586,7 +1593,8 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
   BLI_assert(str[0]);
 
   /* If the trailing ellipsis takes more than 20% of all available width, just cut the string
-   * (as using the ellipsis would remove even more useful chars, and we cannot show much already!).
+   * (as using the ellipsis would remove even more useful chars, and we cannot show much
+   * already!).
    */
   if (sep_strwidth / okwidth > 0.2f) {
     l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, &tmp);
@@ -1701,7 +1709,8 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
         /* Corner case, the str already takes all available mem,
          * and the ellipsis chars would actually add more chars.
          * Better to just trim one or two letters to the right in this case...
-         * Note: with a single-char ellipsis, this should never happen! But better be safe here...
+         * Note: with a single-char ellipsis, this should never happen! But better be safe
+         * here...
          */
         ui_text_clip_right_ex(
             fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
@@ -5203,7 +5212,7 @@ void ui_draw_menu_item(
 
     GPU_blend(true);
     /* XXX scale weak get from fstyle? */
-    UI_icon_draw_ex(xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text);
+    UI_icon_draw_ex(xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text, false);
     GPU_blend(false);
   }
 }

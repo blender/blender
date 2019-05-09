@@ -1222,6 +1222,17 @@ int UI_icon_get_height(int icon_id)
   return 0;
 }
 
+bool UI_icon_get_theme_color(int icon_id, uchar color[4])
+{
+  Icon *icon = BKE_icon_get(icon_id);
+  if (icon == NULL) {
+    return false;
+  }
+
+  DrawInfo *di = icon_ensure_drawinfo(icon);
+  return UI_GetIconThemeColor4ubv(di->data.texture.theme_color, color);
+}
+
 void UI_icons_init()
 {
 #ifndef WITH_HEADLESS
@@ -1762,7 +1773,8 @@ static void icon_draw_size(float x,
                            enum eIconSizes size,
                            int draw_size,
                            const float desaturate,
-                           const char mono_rgba[4])
+                           const char mono_rgba[4],
+                           const bool mono_border)
 {
   bTheme *btheme = UI_GetTheme();
   Icon *icon = NULL;
@@ -1843,19 +1855,14 @@ static void icon_draw_size(float x,
                       false);
   }
   else if (di->type == ICON_TYPE_MONO_TEXTURE) {
-    /* icon that matches text color, assumed to be white */
-    bool with_border = false;
+    /* Monochrome icon that uses text or theme color. */
+    bool with_border = mono_border && (btheme->tui.icon_border_intensity > 0.0f);
     float color[4];
-    if (!UI_GetIconThemeColor4fv(di->data.texture.theme_color, color)) {
-      if (mono_rgba) {
-        rgba_uchar_to_float(color, (const uchar *)mono_rgba);
-      }
-      else {
-        UI_GetThemeColor4fv(TH_TEXT, color);
-      }
+    if (mono_rgba) {
+      rgba_uchar_to_float(color, (const uchar *)mono_rgba);
     }
     else {
-      with_border = (btheme->tui.icon_border_intensity > 0.0f);
+      UI_GetThemeColor4fv(TH_TEXT, color);
     }
 
     mul_v4_fl(color, alpha);
@@ -2233,17 +2240,17 @@ int UI_idcode_icon_get(const int idcode)
 /* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
-  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f, 0.0f, NULL);
+  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f, 0.0f, NULL, false);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
-  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL);
+  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL, false);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
-  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_PREVIEW, size, false, NULL);
+  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_PREVIEW, size, false, NULL, false);
 }
 
 void UI_icon_draw_ex(float x,
@@ -2252,8 +2259,18 @@ void UI_icon_draw_ex(float x,
                      float aspect,
                      float alpha,
                      float desaturate,
-                     const char mono_color[4])
+                     const char mono_color[4],
+                     const bool mono_border)
 {
   int draw_size = get_draw_size(ICON_SIZE_ICON);
-  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, draw_size, desaturate, mono_color);
+  icon_draw_size(x,
+                 y,
+                 icon_id,
+                 aspect,
+                 alpha,
+                 ICON_SIZE_ICON,
+                 draw_size,
+                 desaturate,
+                 mono_color,
+                 mono_border);
 }
