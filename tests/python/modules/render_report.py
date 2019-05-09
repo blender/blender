@@ -11,6 +11,8 @@ import subprocess
 import sys
 import time
 
+from . import global_report
+
 
 class COLORS_ANSI:
     RED = '\033[00;31m'
@@ -72,19 +74,16 @@ def test_get_images(output_dir, filepath, reference_dir):
 
     ref_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "ref")
     ref_img = os.path.join(ref_dirpath, testname + ".png")
-    if not os.path.exists(ref_dirpath):
-        os.makedirs(ref_dirpath)
+    os.makedirs(ref_dirpath, exist_ok=True)
     if os.path.exists(old_img):
         shutil.copy(old_img, ref_img)
 
     new_dirpath = os.path.join(output_dir, os.path.basename(dirpath))
-    if not os.path.exists(new_dirpath):
-        os.makedirs(new_dirpath)
+    os.makedirs(new_dirpath, exist_ok=True)
     new_img = os.path.join(new_dirpath, testname + ".png")
 
     diff_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "diff")
-    if not os.path.exists(diff_dirpath):
-        os.makedirs(diff_dirpath)
+    os.makedirs(diff_dirpath, exist_ok=True)
     diff_img = os.path.join(diff_dirpath, testname + ".diff.png")
 
     return old_img, ref_img, new_img, diff_img
@@ -124,8 +123,7 @@ class Report:
         self.passed_tests = ""
         self.compare_tests = ""
 
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
     def set_pixelated(self, pixelated):
         self.pixelated = pixelated
@@ -149,8 +147,7 @@ class Report:
     def _write_data(self, dirname):
         # Write intermediate data for single test.
         outdir = os.path.join(self.output_dir, dirname)
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
+        os.makedirs(outdir, exist_ok=True)
 
         filepath = os.path.join(outdir, "failed.data")
         pathlib.Path(filepath).write_text(self.failed_tests)
@@ -189,7 +186,8 @@ class Report:
         else:
             image_rendering = 'auto'
 
-        if len(failed_tests) > 0:
+        failed = len(failed_tests) > 0
+        if failed:
             message = "<p>Run <tt>BLENDER_TEST_UPDATE=1 ctest</tt> to create or update reference images for failed tests.</p>"
         else:
             message = ""
@@ -258,6 +256,13 @@ class Report:
 
         print_message("Report saved to: " + pathlib.Path(filepath).as_uri())
 
+
+        # Update global report
+        link_name = "Renders" if not comparison else "Comparison"
+        global_output_dir = os.path.dirname(self.output_dir)
+        global_failed = failed if not comparison else None
+        global_report.add(global_output_dir, self.title, link_name, filepath, global_failed)
+
     def _relative_url(self, filepath):
         relpath = os.path.relpath(filepath, self.output_dir)
         return pathlib.Path(relpath).as_posix()
@@ -316,8 +321,7 @@ class Report:
 
         # Create reference render directory.
         old_dirpath = os.path.dirname(old_img)
-        if not os.path.exists(old_dirpath):
-            os.makedirs(old_dirpath)
+        os.makedirs(old_dirpath, exist_ok=True)
 
         # Copy temporary to new image.
         if os.path.exists(new_img):
