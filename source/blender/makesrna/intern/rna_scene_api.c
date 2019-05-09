@@ -116,23 +116,6 @@ static void rna_Scene_uvedit_aspect(Scene *scene, Object *ob, float *aspect)
   aspect[0] = aspect[1] = 1.0f;
 }
 
-static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
-{
-#  ifdef WITH_PYTHON
-  BPy_BEGIN_ALLOW_THREADS;
-#  endif
-
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
-       view_layer = view_layer->next) {
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-    BKE_scene_graph_update_tagged(depsgraph, bmain);
-  }
-
-#  ifdef WITH_PYTHON
-  BPy_END_ALLOW_THREADS;
-#  endif
-}
-
 static void rna_SceneRender_get_frame_path(
     RenderData *rd, Main *bmain, int frame, bool preview, const char *view, char *name)
 {
@@ -301,11 +284,6 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_float(
       func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
-
-  func = RNA_def_function(srna, "update", "rna_Scene_update_tagged");
-  RNA_def_function_ui_description(
-      func, "Update data tagged to be updated from previous access to data or operators");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
 
   func = RNA_def_function(srna, "uvedit_aspect", "rna_Scene_uvedit_aspect");

@@ -88,15 +88,17 @@ class CyclesRender(bpy.types.RenderEngine):
 
     # viewport render
     def view_update(self, context):
+        depsgraph = context.evaluated_depsgraph_get()
         if not self.session:
             engine.create(self, context.blend_data,
                           context.region, context.space_data, context.region_data)
 
-        engine.reset(self, context.blend_data, context.depsgraph)
-        engine.sync(self, context.depsgraph, context.blend_data)
+        engine.reset(self, context.blend_data, depsgraph)
+        engine.sync(self, depsgraph, context.blend_data)
 
     def view_draw(self, context):
-        engine.draw(self, context.depsgraph, context.region, context.space_data, context.region_data)
+        depsgraph = context.evaluated_depsgraph_get()
+        engine.draw(self, depsgraph, context.region, context.space_data, context.region_data)
 
     def update_script_node(self, node):
         if engine.with_osl():

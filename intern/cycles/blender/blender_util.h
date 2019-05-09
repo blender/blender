@@ -45,8 +45,8 @@ void python_thread_state_restore(void **python_thread_state);
 
 static inline BL::Mesh object_to_mesh(BL::BlendData &data,
                                       BL::Object &object,
-                                      BL::Depsgraph &depsgraph,
-                                      bool calc_undeformed,
+                                      BL::Depsgraph & /*depsgraph*/,
+                                      bool /*calc_undeformed*/,
                                       Mesh::SubdivisionType subdivision_type)
 {
   /* TODO: make this work with copy-on-write, modifiers are already evaluated. */
@@ -75,11 +75,11 @@ static inline BL::Mesh object_to_mesh(BL::BlendData &data,
      * UV are not empty. */
     if (mesh.is_editmode() ||
         (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
-      mesh = data.meshes.new_from_object(depsgraph, object, false, false);
+      mesh = data.meshes.new_from_object(object);
     }
   }
   else {
-    mesh = data.meshes.new_from_object(depsgraph, object, true, calc_undeformed);
+    mesh = data.meshes.new_from_object(object);
   }
 
 #if 0

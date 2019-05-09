@@ -41,6 +41,7 @@
 
 #  include "BKE_anim.h"
 #  include "BKE_object.h"
+#  include "BKE_scene.h"
 
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_debug.h"
@@ -254,6 +255,11 @@ static void rna_Depsgraph_debug_stats(Depsgraph *depsgraph, char *result)
                ops,
                rels,
                outer);
+}
+
+static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain)
+{
+  BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
 /* Iteration over objects, simple version */
@@ -635,6 +641,15 @@ static void rna_def_depsgraph(BlenderRNA *brna)
   parm = RNA_def_string(func, "result", NULL, STATS_MAX_SIZE, "result", "");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
   RNA_def_function_output(func, parm);
+
+  /* Updates. */
+
+  func = RNA_def_function(srna, "update", "rna_Depsgraph_update");
+  RNA_def_function_ui_description(
+      func,
+      "Re-evaluate any modified data-blocks, for example for animation or modifiers. "
+      "This invalidates all references to evaluated data-blocks from this dependency graph.");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
 
   /* Queries for original datablockls (the ones depsgraph is built for). */
 

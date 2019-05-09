@@ -208,12 +208,7 @@ float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
-struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
-                                      struct Main *bmain,
-                                      struct Scene *sce,
-                                      struct Object *ob,
-                                      const bool apply_modifiers,
-                                      const bool calc_undeformed);
+struct Mesh *BKE_mesh_new_from_object(struct Main *bmain, struct Object *object);
 struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
                                                   struct Object *ob_eval,

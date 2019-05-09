@@ -375,18 +375,11 @@ static void rna_Object_camera_fit_coords(
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-/* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_to_mesh(Object *ob,
-                                bContext *C,
-                                ReportList *reports,
-                                Depsgraph *depsgraph,
-                                bool apply_modifiers,
-                                bool calc_undeformed)
+static Mesh *rna_Object_to_mesh(Object *object, bContext *C, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
 
-  return rna_Main_meshes_new_from_object(
-      bmain, reports, depsgraph, ob, apply_modifiers, calc_undeformed);
+  return rna_Main_meshes_new_from_object(bmain, reports, object);
 }
 
 static PointerRNA rna_Object_shape_key_add(
@@ -882,21 +875,9 @@ void RNA_api_object(StructRNA *srna)
 
   /* mesh */
   func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
-  RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
+  RNA_def_function_ui_description(func,
+                                  "Create a Mesh data-block from the current state of the object");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-  parm = RNA_def_pointer(func,
-                         "depsgraph",
-                         "Depsgraph",
-                         "Dependency Graph",
-                         "Evaluated dependency graph within which to evaluate modifiers");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_boolean(func,
-                  "calc_undeformed",
-                  false,
-                  "Calculate Undeformed",
-                  "Calculate undeformed vertex coordinates");
   parm = RNA_def_pointer(func,
                          "mesh",
                          "Mesh",

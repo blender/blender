@@ -1315,6 +1315,14 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
   return BKE_scene_get_depsgraph(scene, view_layer, true);
 }
 
+Depsgraph *CTX_data_evaluated_depsgraph(const bContext *C)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Main *bmain = CTX_data_main(C);
+  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  return depsgraph;
+}
+
 Depsgraph *CTX_data_depsgraph_on_load(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);

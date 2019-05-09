@@ -435,6 +435,11 @@ StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)
   return ptr->type;
 }
 
+static ID *rna_ID_evaluated_get(ID *id, struct Depsgraph *depsgraph)
+{
+  return DEG_get_evaluated_id(depsgraph, id);
+}
+
 static ID *rna_ID_copy(ID *id, Main *bmain)
 {
   ID *newid;
@@ -1446,6 +1451,15 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_IDPreview_get", NULL, NULL, NULL);
 
   /* functions */
+  func = RNA_def_function(srna, "evaluated_get", "rna_ID_evaluated_get");
+  RNA_def_function_ui_description(
+      func, "Get corresponding evaluated ID from the given dependency graph");
+  parm = RNA_def_pointer(
+      func, "depsgraph", "Depsgraph", "", "Dependency graph to perform lookup in");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
+  RNA_def_function_return(func, parm);
+
   func = RNA_def_function(srna, "copy", "rna_ID_copy");
   RNA_def_function_ui_description(
       func, "Create a copy of this data-block (not supported for all data-blocks)");

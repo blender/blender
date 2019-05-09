@@ -92,8 +92,10 @@ class SimpleImportTest(AbstractAlembicTest):
         # translates to "no parent" in Blender.
         self.assertIsNone(objects['locator2'].parent)
 
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+
         # Shouldn't have inherited the ABC parent's transform.
-        loc2 = bpy.context.depsgraph.id_eval_get(objects['locator2'])
+        loc2 = depsgraph.id_eval_get(objects['locator2'])
         x, y, z = objects['locator2'].matrix_world.to_translation()
         self.assertAlmostEqual(0, x)
         self.assertAlmostEqual(0, y)
@@ -103,7 +105,7 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertEqual(objects['locator2'], objects['locatorShape2'].parent)
 
         # Should have inherited its ABC parent's transform.
-        locshp2 = bpy.context.depsgraph.id_eval_get(objects['locatorShape2'])
+        locshp2 = depsgraph.id_eval_get(objects['locatorShape2'])
         x, y, z = locshp2.matrix_world.to_translation()
         self.assertAlmostEqual(0, x)
         self.assertAlmostEqual(0, y)
@@ -142,9 +144,11 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertEqual({'FINISHED'}, res)
         cube = bpy.context.active_object
 
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(10)
-        cube = bpy.context.depsgraph.id_eval_get(cube)
+        cube = depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, 0)
         self.assertAlmostEqual(y, 0)
@@ -155,7 +159,7 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath
         bpy.context.scene.frame_set(10)
 
-        cube = bpy.context.depsgraph.id_eval_get(cube)
+        cube = depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, 0)
         self.assertAlmostEqual(y, 0)
@@ -163,9 +167,9 @@ class SimpleImportTest(AbstractAlembicTest):
 
         # Replace the Alembic file; this should apply new animation.
         bpy.data.cache_files[fname].filepath = relpath.replace('1.abc', '2.abc')
-        bpy.context.scene.update()
+        depsgraph.update()
 
-        cube = bpy.context.depsgraph.id_eval_get(cube)
+        cube = depsgraph.id_eval_get(cube)
         x, y, z = cube.matrix_world.to_euler('XYZ')
         self.assertAlmostEqual(x, math.pi / 2, places=5)
         self.assertAlmostEqual(y, 0)
@@ -180,10 +184,13 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertEqual({'FINISHED'}, res)
         plane = bpy.context.active_object
 
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
         scene = bpy.context.scene
-        mesh = plane.to_mesh(bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
+        plane_eval = plane.evaluated_get(depsgraph)
+        mesh = plane_eval.to_mesh()
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
@@ -193,7 +200,8 @@ class SimpleImportTest(AbstractAlembicTest):
         bpy.data.cache_files[fname].filepath = relpath
         scene.frame_set(6)
 
-        mesh = plane.to_mesh(bpy.context.depsgraph, apply_modifiers=True, calc_undeformed=False)
+        plane_eval = plane.evaluated_get(depsgraph)
+        mesh = plane_eval.to_mesh()
         self.assertAlmostEqual(1, mesh.vertices[3].co.x)
         self.assertAlmostEqual(1, mesh.vertices[3].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
