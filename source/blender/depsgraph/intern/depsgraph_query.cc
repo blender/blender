@@ -263,3 +263,43 @@ ID *DEG_get_original_id(ID *id)
   BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) != 0);
   return (ID *)id->orig_id;
 }
+
+bool DEG_is_original_id(ID *id)
+{
+  /* Some explanation of the logic.
+   *
+   * What we want here is to be able to tell whether given ID is a result of dependency graph
+   * evaluation or not.
+   *
+   * All the datablocks which are created by copy-on-write mechanism will have will be tagged with
+   * LIB_TAG_COPIED_ON_WRITE tag. Those datablocks can not be original.
+   *
+   * Modifier stack evaluation might create special datablocks which have all the modifiers
+   * applied, and those will be tagged with LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT. Such datablocks
+   * can not be original as well.
+   *
+   * Localization is usually happening from evaluated datablock, or will have some special pointer
+   * magic which will make them to act as evaluated.
+   *
+   * NOTE: We conder ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
+  if (id->tag &
+      (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_LOCALIZED)) {
+    return false;
+  }
+  return true;
+}
+
+bool DEG_is_original_object(Object *object)
+{
+  return DEG_is_original_id(&object->id);
+}
+
+bool DEG_is_evaluated_id(ID *id)
+{
+  return !DEG_is_original_id(id);
+}
+
+bool DEG_is_evaluated_object(Object *object)
+{
+  return !DEG_is_original_object(object);
+}
