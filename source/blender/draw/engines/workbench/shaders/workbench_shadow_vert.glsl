@@ -1,6 +1,6 @@
 #define INFINITE 1000.0
 
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
 uniform float lightDistance = 1e4;
@@ -18,6 +18,6 @@ vData;
 void main()
 {
   vData.pos = pos;
-  vData.frontPosition = ModelViewProjectionMatrix * vec4(pos, 1.0);
-  vData.backPosition = ModelViewProjectionMatrix * vec4(pos + lightDirection * lightDistance, 1.0);
+  vData.frontPosition = point_object_to_ndc(pos);
+  vData.backPosition = point_object_to_ndc(pos + lightDirection * lightDistance);
 }
