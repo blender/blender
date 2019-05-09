@@ -48,6 +48,7 @@
 static struct {
   char *frag_shader_lib;
   char *vert_shader_str;
+  char *vert_shadow_shader_str;
   char *volume_shader_lib;
 
   struct GPUShader *default_prepass_sh;
@@ -609,17 +610,19 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     e_data.vert_shader_str = BLI_string_joinN(
         datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_lit_surface_vert_glsl);
 
+    e_data.vert_shadow_shader_str = BLI_string_joinN(
+        datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_shadow_vert_glsl);
+
     e_data.default_background = DRW_shader_create(
         datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
 
-    e_data.default_prepass_sh = DRW_shader_create(
-        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl, NULL);
-
-    e_data.default_prepass_clip_sh = DRW_shader_create(
-        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl, "#define CLIP_PLANES\n");
-
     char *vert_str = BLI_string_joinN(
         datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_prepass_vert_glsl);
+
+    e_data.default_prepass_sh = DRW_shader_create(vert_str, NULL, datatoc_prepass_frag_glsl, NULL);
+
+    e_data.default_prepass_clip_sh = DRW_shader_create(
+        vert_str, NULL, datatoc_prepass_frag_glsl, "#define CLIP_PLANES\n");
 
     e_data.default_hair_prepass_sh = DRW_shader_create(
         vert_str, NULL, datatoc_prepass_frag_glsl, "#define HAIR_SHADER\n");
@@ -853,7 +856,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene,
                                         ma,
                                         engine,
                                         options,
-                                        (is_shadow) ? datatoc_shadow_vert_glsl :
+                                        (is_shadow) ? e_data.vert_shadow_shader_str :
                                                       e_data.vert_shader_str,
                                         NULL,
                                         frag_str,
@@ -1896,6 +1899,7 @@ void EEVEE_materials_free(void)
   }
   MEM_SAFE_FREE(e_data.frag_shader_lib);
   MEM_SAFE_FREE(e_data.vert_shader_str);
+  MEM_SAFE_FREE(e_data.vert_shadow_shader_str);
   MEM_SAFE_FREE(e_data.volume_shader_lib);
   DRW_SHADER_FREE_SAFE(e_data.default_hair_prepass_sh);
   DRW_SHADER_FREE_SAFE(e_data.default_hair_prepass_clip_sh);

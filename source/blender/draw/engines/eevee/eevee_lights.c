@@ -53,6 +53,8 @@ extern char datatoc_shadow_store_frag_glsl[];
 extern char datatoc_shadow_copy_frag_glsl[];
 extern char datatoc_concentric_samples_lib_glsl[];
 
+extern char datatoc_common_view_lib_glsl[];
+
 /* Prototypes */
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli);
 static float light_attenuation_radius_get(Light *la, float light_threshold);
@@ -111,8 +113,11 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (!e_data.shadow_sh) {
-    e_data.shadow_sh = DRW_shader_create(
-        datatoc_shadow_vert_glsl, NULL, datatoc_shadow_frag_glsl, NULL);
+    e_data.shadow_sh = DRW_shader_create_with_lib(datatoc_shadow_vert_glsl,
+                                                  NULL,
+                                                  datatoc_shadow_frag_glsl,
+                                                  datatoc_common_view_lib_glsl,
+                                                  NULL);
   }
 
   if (!sldata->lights) {

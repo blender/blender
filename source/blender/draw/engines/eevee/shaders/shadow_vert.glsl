@@ -1,10 +1,6 @@
 
-uniform mat4 ModelViewProjectionMatrix;
-#ifdef MESH_SHADER
-uniform mat4 ModelViewMatrix;
-#  ifndef USE_ATTR
+#ifndef USE_ATTR
 uniform mat4 ModelMatrix;
-#  endif
 #endif
 
 in vec3 pos;
@@ -19,10 +15,11 @@ out vec3 viewNormal;
 
 void main()
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  vec3 world_pos = point_object_to_world(pos);
+  gl_Position = point_world_to_ndc(world_pos);
 #ifdef MESH_SHADER
-  viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
-  worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
+  worldPosition = world_pos;
+  viewPosition = point_world_to_view(worldPosition);
 
   worldNormal = normalize(normal_object_to_world(nor));
   /* No need to normalize since this is just a rotation. */

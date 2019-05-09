@@ -1,6 +1,4 @@
 
-uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ModelViewMatrix;
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
@@ -55,21 +53,19 @@ void main()
                               hairThickness,
                               hairThickTime);
 
-  gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
-  viewPosition = (ViewMatrix * vec4(pos, 1.0)).xyz;
-  worldPosition = pos;
   hairTangent = normalize(hairTangent);
   worldNormal = cross(binor, hairTangent);
-  viewNormal = mat3(ViewMatrix) * worldNormal;
+  worldPosition = pos;
 #else
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
   worldPosition = point_object_to_world(pos);
-  viewPosition = point_world_to_view(worldPosition);
-
   worldNormal = normalize(normal_object_to_world(nor));
+#endif
+
   /* No need to normalize since this is just a rotation. */
   viewNormal = normal_world_to_view(worldNormal);
-#endif
+
+  viewPosition = point_world_to_view(worldPosition);
+  gl_Position = point_world_to_ndc(worldPosition);
 
   /* Used for planar reflections */
   gl_ClipDistance[0] = dot(vec4(worldPosition, 1.0), ClipPlanes[0]);
