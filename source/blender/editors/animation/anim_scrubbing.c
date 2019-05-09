@@ -101,24 +101,34 @@ static void draw_current_frame(const Scene *scene,
   char frame_str[64];
   get_current_time_str(scene, display_seconds, current_frame, sizeof(frame_str), frame_str);
   float text_width = UI_fontstyle_string_width(fstyle, frame_str);
-  float box_width = text_width + 10 * UI_DPI_FAC;
+  float box_width = MAX2(text_width + 8 * UI_DPI_FAC, 24 * UI_DPI_FAC);
   float box_padding = 3 * UI_DPI_FAC;
 
   float bg_color[4];
-  UI_GetThemeColor4fv(TH_CFRAME, bg_color);
-  bg_color[3] = 8.0f;
+  UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(true,
-                      frame_x - box_width / 2,
+
+  UI_draw_roundbox_3fvAlpha(true,
+                            frame_x - box_width / 2 + U.pixelsize / 2,
+                            scrubbing_region_rect->ymin + box_padding,
+                            frame_x + box_width / 2 + U.pixelsize / 2,
+                            scrubbing_region_rect->ymax - box_padding,
+                            4 * UI_DPI_FAC,
+                            bg_color,
+                            1.0f);
+
+  UI_GetThemeColorShade4fv(TH_CFRAME, 5, bg_color);
+  UI_draw_roundbox_aa(false,
+                      frame_x - box_width / 2 + U.pixelsize / 2,
                       scrubbing_region_rect->ymin + box_padding,
-                      frame_x + box_width / 2,
+                      frame_x + box_width / 2 + U.pixelsize / 2,
                       scrubbing_region_rect->ymax - box_padding,
-                      5 * UI_DPI_FAC,
+                      4 * UI_DPI_FAC,
                       bg_color);
 
   UI_fontstyle_draw_simple(fstyle,
-                           frame_x - text_width / 2,
+                           frame_x - text_width / 2 + U.pixelsize / 2,
                            get_centered_text_y(scrubbing_region_rect),
                            frame_str,
                            color);
