@@ -891,11 +891,11 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
     } gzop_actions[] = {
         {
             .part = gz->highlight_part,
-            .prefix = use_drag ? TIP_("Click") : NULL,
+            .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Click") : NULL,
         },
         {
             .part = use_drag ? gz->drag_part : -1,
-            .prefix = use_drag ? TIP_("Drag") : NULL,
+            .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Drag") : NULL,
         },
     };
 
