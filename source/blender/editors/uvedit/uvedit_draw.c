@@ -207,6 +207,7 @@ static void draw_uvs_shadow(SpaceImage *UNUSED(sima),
   float col[4];
   UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
+  DRW_mesh_batch_cache_validate(me);
   GPUBatch *edges = DRW_mesh_batch_cache_get_uv_edges(me);
   DRW_mesh_batch_cache_create_requested(eval_ob, me, scene->toolsettings, false, false);
 
@@ -229,6 +230,7 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
     return;
   }
 
+  DRW_mesh_batch_cache_validate(me);
   GPUBatch *geom = DRW_mesh_batch_cache_get_uv_edges(me);
   DRW_mesh_batch_cache_create_requested(eval_ob, me, scene->toolsettings, false, false);
 

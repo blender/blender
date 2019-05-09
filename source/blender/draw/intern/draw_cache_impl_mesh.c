@@ -4922,7 +4922,7 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
 
-  if (cache->batch_requested & (MBC_SURFACE | MBC_SURF_PER_MAT)) {
+  if (cache->batch_requested & (MBC_SURFACE | MBC_SURF_PER_MAT | MBC_WIRE_LOOPS_UVS)) {
     /* Optimization : Only create orco layer if mesh is deformed. */
     if (cache->cd_needed.orco != 0) {
       CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
