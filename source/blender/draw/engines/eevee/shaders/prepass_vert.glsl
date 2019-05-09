@@ -1,5 +1,4 @@
 
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 

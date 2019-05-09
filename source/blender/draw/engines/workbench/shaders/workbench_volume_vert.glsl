@@ -1,5 +1,6 @@
 
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
+
 uniform vec3 OrcoTexCoFactors[2];
 uniform float slicePosition;
 uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
@@ -29,5 +30,5 @@ void main()
   vec3 final_pos = pos;
 #endif
   final_pos = ((final_pos * 0.5 + 0.5) - OrcoTexCoFactors[0]) / OrcoTexCoFactors[1];
-  gl_Position = ModelViewProjectionMatrix * vec4(final_pos, 1.0);
+  gl_Position = point_object_to_ndc(final_pos);
 }

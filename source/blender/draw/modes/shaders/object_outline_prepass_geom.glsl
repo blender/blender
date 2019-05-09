@@ -2,8 +2,6 @@
 layout(lines_adjacency) in;
 layout(line_strip, max_vertices = 2) out;
 
-uniform mat4 ProjectionMatrix;
-
 in vec4 pPos[];
 in vec3 vPos[];
 

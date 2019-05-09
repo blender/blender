@@ -1205,6 +1205,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct GPUBatch *batch
   /* Note: This WILL break if batch->verts[0] is destroyed and reallocated
    * at the same address. Bindings/VAOs would remain obsolete. */
   // if (shgroup->instancing_geom->inst != batch->verts[0])
+  /* XXX FIXME: THIS IS BROKEN BECAUSE OVEWRITTEN BY DRW_instance_buffer_finish(). */
   GPU_batch_instbuf_set(shgroup->instance_geom, batch->verts[0], false);
 
 #ifdef USE_GPU_SELECT

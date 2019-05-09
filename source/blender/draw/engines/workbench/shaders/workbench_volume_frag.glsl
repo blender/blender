@@ -1,8 +1,7 @@
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ModelMatrixInverse;
-uniform mat4 ModelViewMatrixInverse;
 uniform mat4 ModelMatrix;
+uniform mat4 ModelMatrixInverse;
+
 uniform vec3 OrcoTexCoFactors[2];
 
 uniform sampler2D depthBuffer;
@@ -219,9 +218,11 @@ void main()
   vec3 vs_ray_dir = (is_persp) ? (vs_ray_end - vs_ray_ori) : vec3(0.0, 0.0, -1.0);
   vs_ray_dir /= abs(vs_ray_dir.z);
 
-  vec3 ls_ray_dir = mat3(ModelViewMatrixInverse) * vs_ray_dir * OrcoTexCoFactors[1] * 2.0;
-  vec3 ls_ray_ori = (ModelViewMatrixInverse * vec4(vs_ray_ori, 1.0)).xyz;
-  vec3 ls_ray_end = (ModelViewMatrixInverse * vec4(vs_ray_end, 1.0)).xyz;
+  /* TODO(fclem) Precompute the matrix/ */
+  vec3 ls_ray_dir = vs_ray_dir * OrcoTexCoFactors[1] * 2.0;
+  ls_ray_dir = mat3(ModelMatrixInverse) * (mat3(ViewMatrixInverse) * ls_ray_dir);
+  vec3 ls_ray_ori = point_view_to_object(vs_ray_ori);
+  vec3 ls_ray_end = point_view_to_object(vs_ray_end);
 
   ls_ray_ori = (OrcoTexCoFactors[0] + ls_ray_ori * OrcoTexCoFactors[1]) * 2.0 - 1.0;
   ls_ray_end = (OrcoTexCoFactors[0] + ls_ray_end * OrcoTexCoFactors[1]) * 2.0 - 1.0;

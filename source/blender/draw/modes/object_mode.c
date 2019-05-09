@@ -419,8 +419,14 @@ static void OBJECT_engine_init(void *vedata)
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
     sh_data->outline_prepass_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_outline_prepass_vert_glsl, NULL},
-        .geom = (const char *[]){sh_cfg_data->lib, datatoc_object_outline_prepass_geom_glsl, NULL},
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_object_outline_prepass_vert_glsl,
+                                 NULL},
+        .geom = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_object_outline_prepass_geom_glsl,
+                                 NULL},
         .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
@@ -486,18 +492,23 @@ static void OBJECT_engine_init(void *vedata)
     });
 
     /* Particles */
-    sh_data->part_prim = DRW_shader_create(datatoc_object_particle_prim_vert_glsl,
-                                           NULL,
-                                           datatoc_gpu_shader_flat_color_frag_glsl,
-                                           NULL);
+    sh_data->part_prim = DRW_shader_create_with_lib(datatoc_object_particle_prim_vert_glsl,
+                                                    NULL,
+                                                    datatoc_gpu_shader_flat_color_frag_glsl,
+                                                    datatoc_common_view_lib_glsl,
+                                                    NULL);
 
-    sh_data->part_axis = DRW_shader_create(datatoc_object_particle_prim_vert_glsl,
-                                           NULL,
-                                           datatoc_gpu_shader_flat_color_frag_glsl,
-                                           "#define USE_AXIS\n");
+    sh_data->part_axis = DRW_shader_create_with_lib(datatoc_object_particle_prim_vert_glsl,
+                                                    NULL,
+                                                    datatoc_gpu_shader_flat_color_frag_glsl,
+                                                    datatoc_common_view_lib_glsl,
+                                                    "#define USE_AXIS\n");
 
-    sh_data->part_dot = DRW_shader_create(
-        datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
+    sh_data->part_dot = DRW_shader_create_with_lib(datatoc_object_particle_dot_vert_glsl,
+                                                   NULL,
+                                                   datatoc_object_particle_dot_frag_glsl,
+                                                   datatoc_common_view_lib_glsl,
+                                                   NULL);
 
     /* Lightprobes */
     sh_data->lightprobe_grid = DRW_shader_create(datatoc_object_lightprobe_grid_vert_glsl,
@@ -2990,7 +3001,6 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
     if (draw_as != PART_DRAW_PATH) {
       struct GPUBatch *geom = DRW_cache_particles_get_dots(ob, psys);
       DRWShadingGroup *shgrp = NULL;
-      static int screen_space[2] = {0, 1};
       static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
       static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
 
@@ -3016,7 +3026,9 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
                                               e_data.particle_format);
           DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
           DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-          DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+          DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
+          DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", false);
+          DRW_shgroup_instance_batch(shgrp, geom);
           break;
         case PART_DRAW_CIRC:
           shgrp = DRW_shgroup_instance_create(sh_data->part_prim,
@@ -3025,24 +3037,21 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
                                               e_data.particle_format);
           DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
           DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-          DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
+          DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
+          DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", true);
+          DRW_shgroup_instance_batch(shgrp, geom);
           break;
         case PART_DRAW_AXIS:
           shgrp = DRW_shgroup_instance_create(sh_data->part_axis,
                                               psl->particle,
                                               DRW_cache_particles_get_prim(PART_DRAW_AXIS),
                                               e_data.particle_format);
-          DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+          DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
+          DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", false);
+          DRW_shgroup_instance_batch(shgrp, geom);
           break;
         default:
           break;
-      }
-
-      if (shgrp) {
-        if (draw_as != PART_DRAW_DOT) {
-          DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
-          DRW_shgroup_instance_batch(shgrp, geom);
-        }
       }
     }
   }

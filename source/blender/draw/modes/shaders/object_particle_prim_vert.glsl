@@ -1,18 +1,19 @@
 
-uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ViewProjectionMatrix;
-uniform mat4 ModelViewMatrix;
-uniform mat4 ProjectionMatrix;
-uniform int screen_space;
+uniform mat4 ModelMatrix;
+
+uniform bool screen_space;
 uniform float draw_size;
 uniform vec3 color;
 uniform sampler1D ramp;
 
+/* ---- Instantiated Attrs ---- */
+in vec3 inst_pos;
+in int axis;
+
+/* ---- Per instance Attrs ---- */
 in vec3 pos;
 in vec4 rot;
 in float val;
-in vec3 inst_pos;
-in int axis;
 
 flat out vec4 finalColor;
 
@@ -24,8 +25,9 @@ vec3 rotate(vec3 vec, vec4 quat)
 
 void main()
 {
-  if (screen_space == 1) {
-    gl_Position = ModelViewMatrix * vec4(pos, 1.0) + vec4(inst_pos * draw_size, 0.0);
+  if (screen_space) {
+    gl_Position = ViewMatrix * (ModelMatrix * vec4(pos, 1.0));
+    gl_Position.xyz += inst_pos * draw_size;
     gl_Position = ProjectionMatrix * gl_Position;
   }
   else {
@@ -35,7 +37,8 @@ void main()
       size *= 2;
     }
 
-    gl_Position = ModelViewProjectionMatrix * vec4(pos + rotate(inst_pos * size, rot), 1.0);
+    vec3 pos_rot = pos + rotate(inst_pos * size, rot);
+    gl_Position = point_object_to_ndc(pos_rot);
   }
 
 #ifdef USE_AXIS

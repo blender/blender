@@ -1,6 +1,4 @@
 
-uniform mat4 ModelViewMatrix;
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 
@@ -25,14 +23,17 @@ out int selectOveride;
 
 void main()
 {
+  vec4 world_pos = ModelMatrix * vec4(pos, 1.0);
+
 #if !defined(FACE)
+  /* TODO override the ViewProjection Matrix for this case. */
   mat4 projmat = ProjectionMatrix;
   projmat[3][2] -= ofs;
 
-  gl_Position = projmat * (ModelViewMatrix * vec4(pos, 1.0));
+  gl_Position = projmat * (ViewMatrix * world_pos);
 #else
 
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ViewProjectionMatrix * world_pos;
 #endif
 
   ivec4 m_data = data & dataMask;
@@ -76,17 +77,16 @@ void main()
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec4 vpos = ModelViewMatrix * vec4(pos, 1.0);
+  vec3 vpos = point_world_to_view(world_pos.xyz);
   vec3 view_normal = normalize(normal_object_to_view(vnor) + 1e-4);
-  vec3 view_vec = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos.xyz) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 
   finalColor.rgb = mix(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
-
 #endif
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance(world_pos.xyz);
 #endif
 }
