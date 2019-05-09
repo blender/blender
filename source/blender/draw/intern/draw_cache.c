@@ -3955,6 +3955,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 
 void drw_batch_cache_validate(Object *ob)
 {
+  struct Mesh *mesh_eval = ob->runtime.mesh_eval;
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_validate((Mesh *)ob->data);
@@ -3962,6 +3963,9 @@ void drw_batch_cache_validate(Object *ob)
     case OB_CURVE:
     case OB_FONT:
     case OB_SURF:
+      if (mesh_eval != NULL) {
+        DRW_mesh_batch_cache_validate(mesh_eval);
+      }
       DRW_curve_batch_cache_validate((Curve *)ob->data);
       break;
     case OB_MBALL:
