@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.utils import PresetPanel
 
 from .properties_physics_common import (
@@ -1562,6 +1563,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
     bl_label = "Children"
+    bl_translation_context = i18n_contexts.id_particlesettings
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
