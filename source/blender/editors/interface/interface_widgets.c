@@ -1421,7 +1421,7 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
     int x = rect->xmin + w / 2 - size / 2;
     int y = rect->ymin + h / 2 - size / 2;
 
-    UI_icon_draw_preview_aspect_size(x, y, icon, 1.0f, alpha, size);
+    UI_icon_draw_preview(x, y, icon, 1.0f, alpha, size);
   }
 }
 
@@ -1508,16 +1508,18 @@ static void widget_draw_icon(
 
     /* to indicate draggable */
     if (but->dragpoin && (but->flag & UI_ACTIVE)) {
-      float rgb[3] = {1.25f, 1.25f, 1.25f};
-      UI_icon_draw_aspect_color(xs, ys, icon, aspect, rgb, mono_color);
+      UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, mono_color);
     }
-    else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) || !UI_but_is_tool(but)) {
-      UI_icon_draw_aspect(xs, ys, icon, aspect, alpha, mono_color);
+    else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, mono_color);
+    }
+    else if (!UI_but_is_tool(but)) {
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, mono_color);
     }
     else {
       const bTheme *btheme = UI_GetTheme();
-      UI_icon_draw_desaturate(
-          xs, ys, icon, aspect, alpha, 1.0 - btheme->tui.icon_saturation, mono_color);
+      const float desaturate = 1.0 - btheme->tui.icon_saturation;
+      UI_icon_draw_ex(xs, ys, icon, aspect, alpha, desaturate, mono_color);
     }
   }
 
@@ -5201,7 +5203,7 @@ void ui_draw_menu_item(
 
     GPU_blend(true);
     /* XXX scale weak get from fstyle? */
-    UI_icon_draw_aspect(xs, ys, iconid, aspect, 1.0f, wt->wcol.text);
+    UI_icon_draw_ex(xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text);
     GPU_blend(false);
   }
 }

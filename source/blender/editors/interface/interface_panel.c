@@ -765,12 +765,13 @@ void ui_draw_aligned_panel(uiStyle *style,
     panel_title_color_get(show_background, col_title);
 
     GPU_blend(true);
-    UI_icon_draw_aspect(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect),
-                        headrect.ymin + (5.0f / block->aspect),
-                        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-                        (block->aspect / UI_DPI_FAC),
-                        1.0f,
-                        (const char *)col_title);
+    UI_icon_draw_ex(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect),
+                    headrect.ymin + (5.0f / block->aspect),
+                    (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
+                    (block->aspect / UI_DPI_FAC),
+                    1.0f,
+                    0.0f,
+                    (const char *)col_title);
     GPU_blend(false);
   }
 

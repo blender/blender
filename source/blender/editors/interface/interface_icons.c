@@ -1467,7 +1467,6 @@ static void icon_draw_rect(float x,
                            int rh,
                            uint *rect,
                            float alpha,
-                           const float rgb[3],
                            const float desaturate)
 {
   ImBuf *ima = NULL;
@@ -1484,12 +1483,6 @@ static void icon_draw_rect(float x,
   }
   /* modulate color */
   float col[4] = {1.0f, 1.0f, 1.0f, alpha};
-
-  if (rgb) {
-    col[0] = rgb[0];
-    col[1] = rgb[1];
-    col[2] = rgb[2];
-  }
 
   /* rect contains image in 'rendersize', we only scale if needed */
   if (rw != w || rh != h) {
@@ -1766,7 +1759,6 @@ static void icon_draw_size(float x,
                            int icon_id,
                            float aspect,
                            float alpha,
-                           const float rgb[3],
                            enum eIconSizes size,
                            int draw_size,
                            const float desaturate,
@@ -1827,7 +1819,7 @@ static void icon_draw_size(float x,
 
     GPU_blend_set_func_separate(
         GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-    icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, desaturate);
+    icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, desaturate);
     GPU_blend_set_func_separate(
         GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
   }
@@ -1847,7 +1839,7 @@ static void icon_draw_size(float x,
                       di->data.texture.w,
                       di->data.texture.h,
                       alpha,
-                      rgb,
+                      NULL,
                       false);
   }
   else if (di->type == ICON_TYPE_MONO_TEXTURE) {
@@ -1864,10 +1856,6 @@ static void icon_draw_size(float x,
     }
     else {
       with_border = (btheme->tui.icon_border_intensity > 0.0f);
-    }
-
-    if (rgb) {
-      mul_v3_v3(color, rgb);
     }
 
     mul_v4_fl(color, alpha);
@@ -1903,7 +1891,7 @@ static void icon_draw_size(float x,
       return;
     }
 
-    icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, desaturate);
+    icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, desaturate);
   }
   else if (di->type == ICON_TYPE_PREVIEW) {
     PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
@@ -1920,7 +1908,7 @@ static void icon_draw_size(float x,
       GPU_blend_set_func_separate(
           GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
       icon_draw_rect(
-          x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, desaturate);
+          x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, desaturate);
       GPU_blend_set_func_separate(
           GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
     }
@@ -2242,71 +2230,30 @@ int UI_idcode_icon_get(const int idcode)
   }
 }
 
-static void icon_draw_at_size(float x,
-                              float y,
-                              int icon_id,
-                              float aspect,
-                              float alpha,
-                              enum eIconSizes size,
-                              const float desaturate,
-                              const char mono_color[4])
-{
-  int draw_size = get_draw_size(size);
-  icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, desaturate, mono_color);
-}
-
-void UI_icon_draw_aspect(
-    float x, float y, int icon_id, float aspect, float alpha, const char mono_color[4])
-{
-  icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, 0.0f, mono_color);
-}
-
-void UI_icon_draw_aspect_color(
-    float x, float y, int icon_id, float aspect, const float rgb[3], const char mono_color[4])
-{
-  int draw_size = get_draw_size(ICON_SIZE_ICON);
-  icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, false, mono_color);
-}
-
-void UI_icon_draw_desaturate(float x,
-                             float y,
-                             int icon_id,
-                             float aspect,
-                             float alpha,
-                             float desaturate,
-                             const char mono_color[4])
-{
-  icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, desaturate, mono_color);
-}
-
 /* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
-  UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f, NULL);
+  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f, 0.0f, NULL);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
-  UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha, NULL);
+  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL);
 }
 
-void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
+void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
-  icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, false, NULL);
+  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_PREVIEW, size, false, NULL);
 }
 
-void UI_icon_draw_preview(float x, float y, int icon_id)
+void UI_icon_draw_ex(float x,
+                     float y,
+                     int icon_id,
+                     float aspect,
+                     float alpha,
+                     float desaturate,
+                     const char mono_color[4])
 {
-  icon_draw_at_size(x, y, icon_id, 1.0f, 1.0f, ICON_SIZE_PREVIEW, false, NULL);
-}
-
-void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
-{
-  icon_draw_at_size(x, y, icon_id, aspect, 1.0f, ICON_SIZE_PREVIEW, false, NULL);
-}
-
-void UI_icon_draw_preview_aspect_size(
-    float x, float y, int icon_id, float aspect, float alpha, int size)
-{
-  icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false, NULL);
+  int draw_size = get_draw_size(ICON_SIZE_ICON);
+  icon_draw_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, draw_size, desaturate, mono_color);
 }

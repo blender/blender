@@ -478,7 +478,7 @@ static void file_draw_preview(uiBlock *block,
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
   if (icon) {
-    UI_icon_draw_aspect((float)xco, (float)yco, icon, icon_aspect, 1.0f, NULL);
+    UI_icon_draw_ex((float)xco, (float)yco, icon, icon_aspect, 1.0f, 0.0f, NULL);
   }
 
   /* border */
