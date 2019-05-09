@@ -16,6 +16,7 @@
         gizmo_secondary="#63ffff"
         gizmo_a="#4da84d"
         gizmo_b="#a33535"
+        icon_scene="#000000ff"
         icon_collection="#000000ff"
         icon_object="#000000ff"
         icon_object_data="#000000ff"

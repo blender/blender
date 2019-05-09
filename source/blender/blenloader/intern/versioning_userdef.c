@@ -118,6 +118,8 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
    * Include next version bump.
    */
   {
+    FROM_DEFAULT_V4_UCHAR(tui.icon_scene);
+
     if (btheme->space_view3d.obcenter_dia == 0) {
       btheme->space_view3d.obcenter_dia = U_theme_default.space_view3d.obcenter_dia;
     }

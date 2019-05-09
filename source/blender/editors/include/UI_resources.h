@@ -262,6 +262,7 @@ typedef enum ThemeColorID {
   TH_ANIM_INACTIVE,      /* no active action */
   TH_ANIM_PREVIEW_RANGE, /* preview range overlay */
 
+  TH_ICON_SCENE,
   TH_ICON_COLLECTION,
   TH_ICON_OBJECT,
   TH_ICON_OBJECT_DATA,

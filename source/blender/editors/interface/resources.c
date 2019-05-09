@@ -868,6 +868,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->tui.gizmo_b;
           break;
 
+        case TH_ICON_SCENE:
+          cp = btheme->tui.icon_scene;
+          break;
         case TH_ICON_COLLECTION:
           cp = btheme->tui.icon_collection;
           break;

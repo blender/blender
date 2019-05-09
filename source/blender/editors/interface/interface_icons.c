@@ -160,6 +160,7 @@ static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 static const IconType icontypes[] = {
 #  define DEF_ICON(name) {ICON_TYPE_MONO_TEXTURE, 0},
+#  define DEF_ICON_SCENE(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_SCENE},
 #  define DEF_ICON_COLLECTION(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_COLLECTION},
 #  define DEF_ICON_OBJECT(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_OBJECT},
 #  define DEF_ICON_OBJECT_DATA(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_OBJECT_DATA},
