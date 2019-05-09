@@ -367,7 +367,9 @@ static void overlay_cache_populate(void *vedata, Object *ob)
         *dupli_data = MEM_callocN(sizeof(OVERLAY_DupliData), "OVERLAY_DupliData");
       }
       else {
-        DRW_shgroup_call_object_add((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
+        if ((*dupli_data)->shgrp && (*dupli_data)->geom) {
+          DRW_shgroup_call_object_add((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
+        }
         return;
       }
     }
