@@ -400,9 +400,6 @@ static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
 
 static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *ar)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
-  WM_event_add_keymap_handler(&ar->handlers, keymap);
-
   ar->flag |= RGN_FLAG_PREFSIZE_OR_HIDDEN;
 
   ED_region_panels_init(wm, ar);
@@ -749,7 +746,7 @@ void ED_spacetype_buttons(void)
   art->regionid = RGN_TYPE_NAV_BAR;
   art->prefsizex = AREAMINX - 3; /* XXX Works and looks best,
                                   * should we update AREAMINX accordingly? */
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES | ED_KEYMAP_NAVBAR;
   art->init = buttons_navigation_bar_region_init;
   art->draw = buttons_navigation_bar_region_draw;
   art->message_subscribe = buttons_navigation_bar_region_message_subscribe;

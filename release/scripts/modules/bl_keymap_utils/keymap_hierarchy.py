@@ -54,8 +54,7 @@ _km_hierarchy = [
     ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
         ('Screen Editing', 'EMPTY', 'WINDOW', []),    # re-sizing, action corners
-        ('Header', 'EMPTY', 'WINDOW', []),            # header stuff (per region)
-        ('Footer', 'EMPTY', 'WINDOW', []),            # footer stuff (per region)
+        ('Region Context Menu', 'EMPTY', 'WINDOW', []),      # header/footer/navigation_bar stuff (per region)
     ]),
 
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)

@@ -56,15 +56,10 @@
 
 static int context_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-  const ARegion *ar = CTX_wm_region(C);
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Context Menu"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   uiItemM(layout, "INFO_MT_area", NULL, ICON_NONE);
-  if (ar->regiontype == RGN_TYPE_NAV_BAR) {
-    ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
-  }
-
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;

@@ -3955,10 +3955,10 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Header Tools Operator
+/** \name Region Context Menu Operator (Header/Footer/Navbar)
  * \{ */
 
-static bool header_context_menu_poll(bContext *C)
+static bool screen_region_context_menu_poll(bContext *C)
 {
   ScrArea *sa = CTX_wm_area(C);
   return (sa && sa->spacetype != SPACE_STATUSBAR);
@@ -4008,33 +4008,82 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
   }
 }
 
-static int header_context_menu_invoke(bContext *C,
+void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
+{
+  ScrArea *sa = CTX_wm_area(C);
+  ARegion *ar = CTX_wm_region(C);
+  const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
+                                                                IFACE_("Flip to Top");
+
+  uiItemO(layout, IFACE_("Toggle Footer"), ICON_NONE, "SCREEN_OT_footer");
+
+  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+
+  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+
+  /* file browser should be fullscreen all the time, topbar should
+   * never be. But other regions can be maximized/restored... */
+  if (!ELEM(sa->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
+    uiItemS(layout);
+
+    const char *but_str = sa->full ? IFACE_("Tile Area") : IFACE_("Maximize Area");
+    uiItemO(layout, but_str, ICON_NONE, "SCREEN_OT_screen_full_area");
+  }
+}
+
+void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
+{
+  const ARegion *ar = CTX_wm_region(C);
+  const char *but_flip_str = (ar->alignment == RGN_ALIGN_LEFT) ? IFACE_("Flip to Right") :
+                                                                 IFACE_("Flip to Left");
+
+  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+
+  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+}
+
+static int screen_context_menu_invoke(bContext *C,
                                       wmOperator *UNUSED(op),
                                       const wmEvent *UNUSED(event))
 {
   uiPopupMenu *pup;
   uiLayout *layout;
+  const ARegion *ar = CTX_wm_region(C);
 
-  pup = UI_popup_menu_begin(C, IFACE_("Header"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
-
-  ED_screens_header_tools_menu_create(C, layout, NULL);
-
-  UI_popup_menu_end(C, pup);
+  if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+    pup = UI_popup_menu_begin(C, IFACE_("Header"), ICON_NONE);
+    layout = UI_popup_menu_layout(pup);
+    ED_screens_header_tools_menu_create(C, layout, NULL);
+    UI_popup_menu_end(C, pup);
+  }
+  else if (ar->regiontype == RGN_TYPE_FOOTER) {
+    pup = UI_popup_menu_begin(C, IFACE_("Footer"), ICON_NONE);
+    layout = UI_popup_menu_layout(pup);
+    ED_screens_footer_tools_menu_create(C, layout, NULL);
+    UI_popup_menu_end(C, pup);
+  }
+  else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
+    pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
+    layout = UI_popup_menu_layout(pup);
+    ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
+    UI_popup_menu_end(C, pup);
+  }
 
   return OPERATOR_INTERFACE;
 }
 
-static void SCREEN_OT_header_context_menu(wmOperatorType *ot)
+static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Header Context Menu";
-  ot->description = "Display header region context menu";
-  ot->idname = "SCREEN_OT_header_context_menu";
+  ot->name = "Region Context Menu";
+  ot->description = "Display region context menu";
+  ot->idname = "SCREEN_OT_region_context_menu";
 
   /* api callbacks */
-  ot->poll = header_context_menu_poll;
-  ot->invoke = header_context_menu_invoke;
+  ot->poll = screen_region_context_menu_poll;
+  ot->invoke = screen_context_menu_invoke;
 }
 
 /** \} */
@@ -4069,89 +4118,6 @@ static void SCREEN_OT_footer(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = footer_exec;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Footer Tools Operator
- * \{ */
-
-static bool footer_context_menu_poll(bContext *C)
-{
-  ScrArea *sa = CTX_wm_area(C);
-  return sa;
-}
-
-void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
-{
-  ScrArea *sa = CTX_wm_area(C);
-  ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
-                                                                IFACE_("Flip to Top");
-
-  uiItemO(layout, IFACE_("Toggle Footer"), ICON_NONE, "SCREEN_OT_footer");
-
-  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-
-  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
-
-  /* file browser should be fullscreen all the time, topbar should
-   * never be. But other regions can be maximized/restored... */
-  if (!ELEM(sa->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
-    uiItemS(layout);
-
-    const char *but_str = sa->full ? IFACE_("Tile Area") : IFACE_("Maximize Area");
-    uiItemO(layout, but_str, ICON_NONE, "SCREEN_OT_screen_full_area");
-  }
-}
-
-static int footer_context_menu_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      const wmEvent *UNUSED(event))
-{
-  uiPopupMenu *pup;
-  uiLayout *layout;
-
-  pup = UI_popup_menu_begin(C, IFACE_("Footer"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
-
-  ED_screens_footer_tools_menu_create(C, layout, NULL);
-
-  UI_popup_menu_end(C, pup);
-
-  return OPERATOR_INTERFACE;
-}
-
-static void SCREEN_OT_footer_context_menu(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Footer Context Menu";
-  ot->description = "Display footer region context menu";
-  ot->idname = "SCREEN_OT_footer_context_menu";
-
-  /* api callbacks */
-  ot->poll = footer_context_menu_poll;
-  ot->invoke = footer_context_menu_invoke;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Navigation Bar Tools Menu
- * \{ */
-
-void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
-{
-  const ARegion *ar = CTX_wm_region(C);
-  const char *but_flip_str = (ar->alignment == RGN_ALIGN_LEFT) ? IFACE_("Flip to Right") :
-                                                                 IFACE_("Flip to Left");
-
-  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-
-  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
 }
 
 /** \} */
@@ -5299,9 +5265,8 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_region_scale);
   WM_operatortype_append(SCREEN_OT_region_flip);
   WM_operatortype_append(SCREEN_OT_header_toggle_menus);
-  WM_operatortype_append(SCREEN_OT_header_context_menu);
+  WM_operatortype_append(SCREEN_OT_region_context_menu);
   WM_operatortype_append(SCREEN_OT_footer);
-  WM_operatortype_append(SCREEN_OT_footer_context_menu);
   WM_operatortype_append(SCREEN_OT_screen_set);
   WM_operatortype_append(SCREEN_OT_screen_full_area);
   WM_operatortype_append(SCREEN_OT_back_to_previous);

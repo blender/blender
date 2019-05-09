@@ -1627,13 +1627,18 @@ static void ed_default_handlers(
   }
   if (flag & ED_KEYMAP_HEADER) {
     /* standard keymap for headers regions */
-    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Header", 0, 0);
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap);
   }
   if (flag & ED_KEYMAP_FOOTER) {
     /* standard keymap for footer regions */
-    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Footer", 0, 0);
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap);
+  }
+  if (flag & ED_KEYMAP_NAVBAR) {
+    /* standard keymap for Navigation bar regions */
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
+    WM_event_add_keymap_handler(&ar->handlers, keymap);
   }
 
   /* Keep last because of LMB/RMB handling, see: T57527. */

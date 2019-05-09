@@ -249,7 +249,7 @@ void ED_spacetype_userpref(void)
   art->init = userpref_navigation_region_init;
   art->draw = userpref_navigation_region_draw;
   art->listener = userpref_navigation_region_listener;
-  art->keymapflag = ED_KEYMAP_UI;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_NAVBAR;
 
   BLI_addhead(&st->regiontypes, art);
 

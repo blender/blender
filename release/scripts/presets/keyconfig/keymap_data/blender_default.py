@@ -525,31 +525,16 @@ def km_screen_editing(params):
     return keymap
 
 
-def km_header(_params):
+def km_screen_region_context_menu(_params):
     items = []
     keymap = (
-        "Header",
+        "Region Context Menu",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": items},
     )
 
     items.extend([
-        ("screen.header_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
-    ])
-
-    return keymap
-
-
-def km_footer(_params):
-    items = []
-    keymap = (
-        "Footer",
-        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
-    )
-
-    items.extend([
-        ("screen.footer_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
+        ("screen.region_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -6038,8 +6023,7 @@ def generate_keymaps(params=None):
         km_window(params),
         km_screen(params),
         km_screen_editing(params),
-        km_header(params),
-        km_footer(params),
+        km_screen_region_context_menu(params),
         km_view2d(params),
         km_view2d_buttons_list(params),
         km_user_interface(params),
