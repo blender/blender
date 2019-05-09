@@ -353,10 +353,11 @@ def script_paths(subdir=None, user_pref=True, check_all=False, use_user=True):
             *base_paths,
         )
 
-    if use_user:
-        test_paths = (*base_paths, script_path_user(), script_path_pref())
-    else:
-        test_paths = (*base_paths, script_path_pref())
+    test_paths = (
+        *base_paths,
+        *((script_path_user(),) if use_user else ()),
+        *((script_path_pref(),) if user_pref else ()),
+    )
 
     for path in test_paths:
         if path:
