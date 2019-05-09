@@ -1,4 +1,3 @@
-uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
 
 layout(points) in;

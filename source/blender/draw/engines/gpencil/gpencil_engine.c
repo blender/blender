@@ -61,6 +61,8 @@ extern char datatoc_gpencil_edit_point_geom_glsl[];
 extern char datatoc_gpencil_edit_point_frag_glsl[];
 extern char datatoc_gpencil_blend_frag_glsl[];
 
+extern char datatoc_common_view_lib_glsl[];
+
 /* *********** STATIC *********** */
 static GPENCIL_e_data e_data = {NULL}; /* Engine data */
 
@@ -167,31 +169,37 @@ static void GPENCIL_create_shaders(void)
 {
   /* normal fill shader */
   if (!e_data.gpencil_fill_sh) {
-    e_data.gpencil_fill_sh = DRW_shader_create(
-        datatoc_gpencil_fill_vert_glsl, NULL, datatoc_gpencil_fill_frag_glsl, NULL);
+    e_data.gpencil_fill_sh = DRW_shader_create_with_lib(datatoc_gpencil_fill_vert_glsl,
+                                                        NULL,
+                                                        datatoc_gpencil_fill_frag_glsl,
+                                                        datatoc_common_view_lib_glsl,
+                                                        NULL);
   }
 
   /* normal stroke shader using geometry to display lines (line mode) */
   if (!e_data.gpencil_stroke_sh) {
-    e_data.gpencil_stroke_sh = DRW_shader_create(datatoc_gpencil_stroke_vert_glsl,
-                                                 datatoc_gpencil_stroke_geom_glsl,
-                                                 datatoc_gpencil_stroke_frag_glsl,
-                                                 NULL);
+    e_data.gpencil_stroke_sh = DRW_shader_create_with_lib(datatoc_gpencil_stroke_vert_glsl,
+                                                          datatoc_gpencil_stroke_geom_glsl,
+                                                          datatoc_gpencil_stroke_frag_glsl,
+                                                          datatoc_common_view_lib_glsl,
+                                                          NULL);
   }
 
   /* dot/rectangle mode for normal strokes using geometry */
   if (!e_data.gpencil_point_sh) {
-    e_data.gpencil_point_sh = DRW_shader_create(datatoc_gpencil_point_vert_glsl,
-                                                datatoc_gpencil_point_geom_glsl,
-                                                datatoc_gpencil_point_frag_glsl,
-                                                NULL);
+    e_data.gpencil_point_sh = DRW_shader_create_with_lib(datatoc_gpencil_point_vert_glsl,
+                                                         datatoc_gpencil_point_geom_glsl,
+                                                         datatoc_gpencil_point_frag_glsl,
+                                                         datatoc_common_view_lib_glsl,
+                                                         NULL);
   }
   /* used for edit points or strokes with one point only */
   if (!e_data.gpencil_edit_point_sh) {
-    e_data.gpencil_edit_point_sh = DRW_shader_create(datatoc_gpencil_edit_point_vert_glsl,
-                                                     datatoc_gpencil_edit_point_geom_glsl,
-                                                     datatoc_gpencil_edit_point_frag_glsl,
-                                                     NULL);
+    e_data.gpencil_edit_point_sh = DRW_shader_create_with_lib(datatoc_gpencil_edit_point_vert_glsl,
+                                                              datatoc_gpencil_edit_point_geom_glsl,
+                                                              datatoc_gpencil_edit_point_frag_glsl,
+                                                              datatoc_common_view_lib_glsl,
+                                                              NULL);
   }
 
   /* used for edit lines for edit modes */

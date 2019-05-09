@@ -1,5 +1,4 @@
-uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ProjectionMatrix;
+uniform mat4 ModelMatrix;
 
 uniform float pixsize; /* rv3d->pixsize */
 uniform int keep_size;
@@ -30,7 +29,7 @@ float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 void main(void)
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = point_object_to_ndc(pos);
   finalColor = color;
 
   if (keep_size == TRUE) {
