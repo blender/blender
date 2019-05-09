@@ -2240,12 +2240,12 @@ int UI_idcode_icon_get(const int idcode)
 /* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
-  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f, 0.0f, NULL, false);
+  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, NULL, false);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
-  UI_icon_draw_ex(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL, false);
+  UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, alpha, 0.0f, NULL, false);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)

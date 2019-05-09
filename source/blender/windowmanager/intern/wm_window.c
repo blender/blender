@@ -672,6 +672,7 @@ void WM_window_set_dpi(wmWindow *win)
   U.dpi = dpi / pixelsize;
   U.virtual_pixel = (pixelsize == 1) ? VIRTUAL_PIXEL_NATIVE : VIRTUAL_PIXEL_DOUBLE;
   U.dpi_fac = ((U.pixelsize * (float)U.dpi) / 72.0f);
+  U.inv_dpi_fac = 1.0f / U.dpi_fac;
 
   /* Set user preferences globals for drawing, and for forward compatibility. */
   U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;

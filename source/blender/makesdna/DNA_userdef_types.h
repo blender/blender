@@ -602,6 +602,7 @@ typedef struct UserDef {
   int dpi;
   /** Runtime, multiplier to scale UI elements based on DPI. */
   float dpi_fac;
+  float inv_dpi_fac;
   /** Runtime, line width and point size based on DPI. */
   float pixelsize;
   /** Deprecated, for forward compatibility. */
@@ -611,7 +612,7 @@ typedef struct UserDef {
   int scrollback;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
   char node_margin;
-  char _pad2[5];
+  char _pad2[1];
   /** #eUserpref_Translation_Flags. */
   short transopts;
   short menuthreshold1, menuthreshold2;

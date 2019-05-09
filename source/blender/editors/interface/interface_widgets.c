@@ -1450,7 +1450,7 @@ static void widget_draw_icon(
     return;
   }
 
-  aspect = but->block->aspect / UI_DPI_FAC;
+  aspect = but->block->aspect * U.inv_dpi_fac;
   height = ICON_DEFAULT_HEIGHT / aspect;
 
   /* calculate blend color */
@@ -1537,7 +1537,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
                                      const rcti *rect,
                                      const uiWidgetColors *wcol)
 {
-  const float aspect = but->block->aspect / UI_DPI_FAC;
+  const float aspect = but->block->aspect * U.inv_dpi_fac;
   const int tria_height = (int)(ICON_DEFAULT_HEIGHT / aspect);
   const int tria_width = (int)(ICON_DEFAULT_WIDTH / aspect) - 2 * U.pixelsize;
   const int xs = rect->xmax - tria_width;
@@ -2357,7 +2357,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
     const BIFIconID icon = widget_icon_id(but);
     int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
-    const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
+    const float icon_size = icon_size_init / (but->block->aspect * U.inv_dpi_fac);
     const float icon_padding = 2 * UI_DPI_FAC;
 
 #ifdef USE_UI_TOOLBAR_HACK

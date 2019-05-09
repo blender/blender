@@ -442,7 +442,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
         drag_rect_minmax(rect, x, y, x + iconsize, y + iconsize);
       }
       else {
-        UI_icon_draw_ex(x, y, drag->icon, 1.0f / UI_DPI_FAC, 0.8, 0.0f, text_col, false);
+        UI_icon_draw_ex(x, y, drag->icon, U.inv_dpi_fac, 0.8, 0.0f, text_col, false);
       }
     }
 

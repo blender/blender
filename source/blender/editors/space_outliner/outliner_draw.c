@@ -1803,10 +1803,10 @@ static void tselem_draw_icon(uiBlock *block,
      * doesn't work for buttons */
     char color[4];
     if (UI_icon_get_theme_color(data.icon, (uchar *)color)) {
-      UI_icon_draw_ex(x, y, data.icon, 1.0f / UI_DPI_FAC, alpha, 0.0f, color, true);
+      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
     }
     else {
-      UI_icon_draw_ex(x, y, data.icon, 1.0f / UI_DPI_FAC, alpha, 0.0f, NULL, false);
+      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, NULL, false);
     }
   }
   else {
