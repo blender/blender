@@ -1497,8 +1497,6 @@ class VIEW3D_MT_edit_text_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout = self.layout
-
         layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("font.text_cut", text="Cut")
@@ -1522,6 +1520,11 @@ class VIEW3D_MT_select_edit_text(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
+
         layout.operator("font.text_cut", text="Cut")
         layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
         layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
@@ -1534,7 +1537,9 @@ class VIEW3D_MT_select_edit_text(Menu):
 
         layout.operator("font.select_all")
 
-        layout.menu("VIEW3D_MT_edit_font")
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_text_chars")
 
 
 class VIEW3D_MT_select_edit_metaball(Menu):
@@ -4122,17 +4127,10 @@ class VIEW3D_MT_edit_font(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
-        layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
-
-        layout.separator()
-
-        layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
-        layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_edit_text_chars")
+        layout.operator("font.style_toggle", text="Toggle Bold", icon='BOLD').style = 'BOLD'
+        layout.operator("font.style_toggle", text="Toggle Italic", icon='ITALIC').style = 'ITALIC'
+        layout.operator("font.style_toggle", text="Toggle Underline", icon='UNDERLINE').style = 'UNDERLINE'
+        layout.operator("font.style_toggle", text="Toggle Small Caps", icon='SMALL_CAPS').style = 'SMALL_CAPS'
 
 
 class VIEW3D_MT_edit_text_chars(Menu):
