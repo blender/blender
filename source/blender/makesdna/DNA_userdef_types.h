@@ -645,7 +645,7 @@ typedef struct UserDef {
   char _pad3[4];
   short gizmo_flag, gizmo_size;
   short edit_studio_light;
-  short lookdev_ball_size;
+  short lookdev_sphere_size;
   short vbotimeout, vbocollectrate;
   short textimeout, texcollectrate;
   int memcachelimit;

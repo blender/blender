@@ -4134,12 +4134,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* Lookdev */
-  prop = RNA_def_property(srna, "lookdev_ball_size", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "lookdev_ball_size");
+  prop = RNA_def_property(srna, "lookdev_sphere_size", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_sdna(prop, NULL, "lookdev_sphere_size");
   RNA_def_property_range(prop, 50, 400);
   RNA_def_property_int_default(prop, 150);
   RNA_def_property_ui_text(
-      prop, "LookDev Balls Size", "Maximum diameter of the LookDev balls size");
+      prop, "Look Dev Spheres Size", "Maximum diameter of the look development sphere size");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* View2D Grid Displays */

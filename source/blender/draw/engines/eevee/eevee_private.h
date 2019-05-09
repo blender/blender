@@ -606,7 +606,7 @@ typedef struct EEVEE_EffectsInfo {
   /* Other */
   float prev_persmat[4][4];
   /* Lookdev */
-  int ball_size;
+  int sphere_size;
   int anchor[2];
   /* Bloom */
   int bloom_iteration_len;

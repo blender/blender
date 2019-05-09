@@ -72,21 +72,21 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   Scene *scene = draw_ctx->scene;
 
   if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
-    /* Viewport / Ball size. */
+    /* Viewport / Spheres size. */
     rcti rect;
     ED_region_visible_rect(draw_ctx->ar, &rect);
 
-    /* Make the viewport width scale the lookdev balls a bit.
+    /* Make the viewport width scale the lookdev spheres a bit.
      * Scale between 1000px and 2000px. */
     const float viewport_scale = clamp_f(
         BLI_rcti_size_x(&rect) / (2000.0f * U.dpi_fac), 0.5f, 1.0f);
-    const int ball_size = U.lookdev_ball_size * U.dpi_fac * viewport_scale;
+    const int sphere_size = U.lookdev_sphere_size * U.dpi_fac * viewport_scale;
 
-    if (ball_size != effects->ball_size || rect.xmax != effects->anchor[0] ||
+    if (sphere_size != effects->sphere_size || rect.xmax != effects->anchor[0] ||
         rect.ymin != effects->anchor[1]) {
-      /* If ball size or anchor point moves, reset TAA to avoid ghosting issue.
+      /* If sphere size or anchor point moves, reset TAA to avoid ghosting issue.
        * This needs to happen early because we are changing taa_current_sample. */
-      effects->ball_size = ball_size;
+      effects->sphere_size = sphere_size;
       effects->anchor[0] = rect.xmax;
       effects->anchor[1] = rect.ymin;
       EEVEE_temporal_sampling_reset(vedata);
@@ -184,7 +184,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 }
 
 static void eevee_lookdev_apply_taa(const EEVEE_EffectsInfo *effects,
-                                    int ball_size,
+                                    int sphere_size,
                                     float winmat[4][4])
 {
   if (DRW_state_is_image_render() || ((effects->enabled_effects & EFFECT_TAA) != 0)) {
@@ -195,8 +195,8 @@ static void eevee_lookdev_apply_taa(const EEVEE_EffectsInfo *effects,
 
     BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample, ht_point);
     EEVEE_temporal_sampling_offset_calc(ht_point, 1.5f, ofs);
-    winmat[3][0] += ofs[0] / ball_size;
-    winmat[3][1] += ofs[1] / ball_size;
+    winmat[3][0] += ofs[0] / sphere_size;
+    winmat[3][1] += ofs[1] / sphere_size;
   }
 }
 
@@ -226,7 +226,7 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
     DRWMatrixState matstate;
     unit_m4(matstate.winmat);
 
-    eevee_lookdev_apply_taa(effects, effects->ball_size, matstate.winmat);
+    eevee_lookdev_apply_taa(effects, effects->sphere_size, matstate.winmat);
 
     /* "Remove" view matrix location. Leaving only rotation. */
     DRW_viewport_matrix_get(matstate.viewmat, DRW_MAT_VIEW);
@@ -246,25 +246,25 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
     GPU_framebuffer_bind(fb);
 
-    const int ball_margin = effects->ball_size / 6.0f;
-    float offset[2] = {0.0f, ball_margin};
+    const int sphere_margin = effects->sphere_size / 6.0f;
+    float offset[2] = {0.0f, sphere_margin};
 
-    offset[0] = effects->ball_size + ball_margin;
+    offset[0] = effects->sphere_size + sphere_margin;
     GPU_framebuffer_viewport_set(fb,
                                  effects->anchor[0] - offset[0],
                                  effects->anchor[1] + offset[1],
-                                 effects->ball_size,
-                                 effects->ball_size);
+                                 effects->sphere_size,
+                                 effects->sphere_size);
 
     DRW_draw_pass(psl->lookdev_diffuse_pass);
 
-    offset[0] = (effects->ball_size + ball_margin) +
-                (ball_margin + effects->ball_size + ball_margin);
+    offset[0] = (effects->sphere_size + sphere_margin) +
+                (sphere_margin + effects->sphere_size + sphere_margin);
     GPU_framebuffer_viewport_set(fb,
                                  effects->anchor[0] - offset[0],
                                  effects->anchor[1] + offset[1],
-                                 effects->ball_size,
-                                 effects->ball_size);
+                                 effects->sphere_size,
+                                 effects->sphere_size);
 
     DRW_draw_pass(psl->lookdev_glossy_pass);
 

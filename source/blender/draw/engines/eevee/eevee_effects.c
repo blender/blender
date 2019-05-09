@@ -572,7 +572,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
   /* NOTE: Lookdev drawing happens before TAA but after
    * motion blur and dof to avoid distortions.
    * Velocity resolve use a hack to exclude lookdev
-   * balls from creating shimering reprojection vectors. */
+   * spheres from creating shimering reprojection vectors. */
   EEVEE_lookdev_draw(vedata);
   EEVEE_velocity_resolve(vedata);
 
