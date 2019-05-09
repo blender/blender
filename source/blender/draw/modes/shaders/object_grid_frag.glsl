@@ -8,9 +8,6 @@ in vec3 local_pos;
 
 out vec4 FragColor;
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewMatrixInverse;
-uniform vec3 cameraPos;
 uniform vec3 planeAxes;
 uniform vec4 gridSettings;
 uniform float meshSize;
@@ -22,6 +19,8 @@ uniform sampler2D depthBuffer;
 #define gridResolution gridSettings.y
 #define gridScale gridSettings.z
 #define gridSubdiv gridSettings.w
+
+#define cameraPos (ViewMatrixInverse[3].xyz)
 
 uniform int gridFlag;
 
