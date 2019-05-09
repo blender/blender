@@ -870,6 +870,7 @@ static void gpencil_add_stroke_vertexdata(GpencilBatchCache *cache,
   float ink[4];
   short sthickness;
   MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
+  const bool follow = ((gp_style) && (gp_style->flag & GP_STYLE_COLOR_LOCK_DOTS)) ? 0 : 1;
 
   /* set color using base color, tint color and opacity */
   if (cache->is_dirty) {
@@ -919,7 +920,7 @@ static void gpencil_add_stroke_vertexdata(GpencilBatchCache *cache,
     else {
       /* create vertex data */
       const int old_len = cache->b_point.vbo_len;
-      DRW_gpencil_get_point_geom(&cache->b_point, gps, sthickness, ink);
+      DRW_gpencil_get_point_geom(&cache->b_point, gps, sthickness, ink, follow);
 
       /* add to list of groups */
       if (old_len < cache->b_point.vbo_len) {

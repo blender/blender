@@ -437,7 +437,8 @@ void DRW_gpencil_multisample_ensure(struct GPENCIL_Data *vedata, int rect_w, int
 void DRW_gpencil_get_point_geom(struct GpencilBatchCacheElem *be,
                                 struct bGPDstroke *gps,
                                 short thickness,
-                                const float ink[4]);
+                                const float ink[4],
+                                const bool follow);
 void DRW_gpencil_get_stroke_geom(struct GpencilBatchCacheElem *be,
                                  struct bGPDstroke *gps,
                                  short thickness,

@@ -133,7 +133,8 @@ static void gpencil_vbo_ensure_size(GpencilBatchCacheElem *be, int totvertex)
 void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be,
                                 bGPDstroke *gps,
                                 short thickness,
-                                const float ink[4])
+                                const float ink[4],
+                                const bool follow)
 {
   int totvertex = gps->totpoints;
   if (be->vbo == NULL) {
@@ -177,26 +178,34 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be,
     /* use previous point to determine stroke direction */
     bGPDspoint *pt2 = NULL;
     float fpt[3];
-    if (i == 0) {
-      if (gps->totpoints > 1) {
-        /* extrapolate a point before first point */
-        pt2 = &gps->points[1];
-        interp_v3_v3v3(fpt, &pt2->x, &pt->x, 1.5f);
-        GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
-      }
-      else {
-        /* add small offset to get a vector */
-        copy_v3_v3(fpt, &pt->x);
-        fpt[0] += 0.00001f;
-        fpt[1] += 0.00001f;
-        GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
-      }
+    if (!follow) {
+      /* add small offset to get a vector */
+      copy_v3_v3(fpt, &pt->x);
+      fpt[0] += 0.00001f;
+      fpt[1] += 0.00001f;
+      GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
     }
     else {
-      pt2 = &gps->points[i - 1];
-      GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, &pt2->x);
+      if (i == 0) {
+        if (gps->totpoints > 1) {
+          /* extrapolate a point before first point */
+          pt2 = &gps->points[1];
+          interp_v3_v3v3(fpt, &pt2->x, &pt->x, 1.5f);
+          GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
+        }
+        else {
+          /* add small offset to get a vector */
+          copy_v3_v3(fpt, &pt->x);
+          fpt[0] += 0.00001f;
+          fpt[1] += 0.00001f;
+          GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, fpt);
+        }
+      }
+      else {
+        pt2 = &gps->points[i - 1];
+        GPU_vertbuf_attr_set(be->vbo, be->prev_pos_id, be->vbo_len, &pt2->x);
+      }
     }
-
     be->vbo_len++;
   }
 }
