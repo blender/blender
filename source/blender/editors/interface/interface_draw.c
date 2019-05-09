@@ -1599,8 +1599,8 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
     return;
   }
 
-  float x1 = rect->xmin;
-  float sizex = rect->xmax - x1;
+  float x1 = rect->xmin + (0.25f * UI_UNIT_X);
+  float sizex = rect->xmax - x1 - (0.30f * UI_UNIT_X);
   float sizey = BLI_rcti_size_y(rect);
   float sizey_solid = sizey * 0.25f;
   float y1 = rect->ymin;
