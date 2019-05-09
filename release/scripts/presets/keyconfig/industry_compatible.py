@@ -46,25 +46,6 @@ def update_fn(_self, _context):
     load()
 
 
-def keyconfig_data_oskey_from_ctrl(keyconfig_data_src):
-    # TODO, make into more generic event transforming function.
-    keyconfig_data_dst = []
-    for km_name, km_parms, km_items_data_src in keyconfig_data_src:
-        km_items_data_dst = km_items_data_src.copy()
-        items_dst = []
-        km_items_data_dst["items"] = items_dst
-        for item_src in km_items_data_src["items"]:
-            item_op, item_event, item_prop = item_src
-            if "ctrl" in item_event:
-                item_event = item_event.copy()
-                item_event["oskey"] = item_event["ctrl"]
-                del item_event["ctrl"]
-                items_dst.append((item_op, item_event, item_prop))
-            items_dst.append(item_src)
-        keyconfig_data_dst.append((km_name, km_parms, km_items_data_dst))
-    return keyconfig_data_dst
-
-
 industry_compatible = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "industry_compatible_data.py"))
 
 
@@ -79,7 +60,8 @@ def load():
     keyconfig_data = industry_compatible.generate_keymaps(params)
 
     if platform == 'darwin':
-        keyconfig_data = keyconfig_data_oskey_from_ctrl(keyconfig_data)
+        from bl_keymap_utils.platform_helpers import keyconfig_data_oskey_from_ctrl_for_macos
+        keyconfig_data = keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data)
 
     keyconfig_init_from_data(kc, keyconfig_data)
 

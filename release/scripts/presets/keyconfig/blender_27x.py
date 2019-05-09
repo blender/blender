@@ -42,6 +42,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
 blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
 
 def load():
+    from sys import platform
     from bpy import context
     from bl_keymap_utils.io import keyconfig_init_from_data
 
@@ -58,6 +59,12 @@ def load():
             legacy=True,
         ),
     )
+
+    if platform == 'darwin':
+        from bl_keymap_utils.platform_helpers import keyconfig_data_oskey_from_ctrl_for_macos
+        keyconfig_data = keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data)
+
+
     keyconfig_init_from_data(kc, keyconfig_data)
 
 
