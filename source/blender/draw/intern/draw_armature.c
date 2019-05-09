@@ -336,6 +336,7 @@ static void drw_shgroup_bone_envelope(const float (*bone_mat)[4],
 
 /* Custom (geometry) */
 
+extern void drw_batch_cache_validate(Object *custom);
 extern void drw_batch_cache_generate_requested(Object *custom);
 
 static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
@@ -345,6 +346,10 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4],
                                           const eGPUShaderConfig sh_cfg,
                                           Object *custom)
 {
+  /* TODO(fclem) arg... less than ideal but we never iter on this object
+   * to assure batch cache is valid. */
+  drw_batch_cache_validate(custom);
+
   struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
   struct GPUBatch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
   struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
@@ -408,6 +413,10 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4],
                                          const float color[4],
                                          Object *custom)
 {
+  /* TODO(fclem) arg... less than ideal but we never iter on this object
+   * to assure batch cache is valid. */
+  drw_batch_cache_validate(custom);
+
   struct GPUBatch *geom = DRW_cache_object_all_edges_get(custom);
 
   if (geom) {
