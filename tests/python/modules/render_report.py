@@ -134,10 +134,10 @@ class Report:
     def set_compare_engines(self, engine, other_engine):
         self.compare_engines = (engine, other_engine)
 
-    def run(self, dirpath, render_cb):
+    def run(self, dirpath, blender, arguments_cb, batch=False):
         # Run tests and output report.
         dirname = os.path.basename(dirpath)
-        ok = self._run_all_tests(dirname, dirpath, render_cb)
+        ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch)
         self._write_data(dirname)
         self._write_html()
         if self.compare_engines:
@@ -399,43 +399,81 @@ class Report:
 
         return not failed
 
-    def _run_test(self, filepath, render_cb):
-        testname = test_get_name(filepath)
-        print_message(testname, 'SUCCESS', 'RUN')
-        time_start = time.time()
-        tmp_filepath = os.path.join(self.output_dir, "tmp_" + testname)
+    def _run_tests(self, filepaths, blender, arguments_cb, batch):
+        # Run multiple tests in a single Blender process since startup can be
+        # a significant factor. In case of crashes, re-run the remaining tests.
+        verbose = os.environ.get("BLENDER_VERBOSE") is not None
 
-        error = render_cb(filepath, tmp_filepath)
-        status = "FAIL"
-        if not error:
-            if not self._diff_output(filepath, tmp_filepath):
-                error = "VERIFY"
+        remaining_filepaths = filepaths[:]
+        errors = []
 
-        if os.path.exists(tmp_filepath):
-            os.remove(tmp_filepath)
+        while len(remaining_filepaths) > 0:
+            command = [blender]
+            output_filepaths = []
 
-        time_end = time.time()
-        elapsed_ms = int((time_end - time_start) * 1000)
-        if not error:
-            print_message("{} ({} ms)" . format(testname, elapsed_ms),
-                          'SUCCESS', 'OK')
-        else:
-            if error == "NO_ENGINE":
-                print_message("Can't perform tests because the render engine failed to load!")
-                return error
-            elif error == "NO_START":
-                print_message('Can not perform tests because blender fails to start.',
-                              'Make sure INSTALL target was run.')
-                return error
-            elif error == 'VERIFY':
-                print_message("Rendered result is different from reference image")
-            else:
-                print_message("Unknown error %r" % error)
-            print_message("{} ({} ms)" . format(testname, elapsed_ms),
-                          'FAILURE', 'FAILED')
-        return error
+            # Construct output filepaths and command to run
+            for filepath in remaining_filepaths:
+                testname = test_get_name(filepath)
+                print_message(testname, 'SUCCESS', 'RUN')
 
-    def _run_all_tests(self, dirname, dirpath, render_cb):
+                base_output_filepath = os.path.join(self.output_dir, "tmp_" + testname)
+                output_filepath = base_output_filepath + '0001.png'
+                output_filepaths.append(output_filepath)
+
+                if os.path.exists(output_filepath):
+                    os.remove(output_filepath)
+
+                command.extend(arguments_cb(filepath, base_output_filepath))
+
+                # Only chain multiple commands for batch
+                if not batch:
+                    break
+
+            # Run process
+            crash = False
+            try:
+                output = subprocess.check_output(command)
+            except subprocess.CalledProcessError as e:
+                crash = True
+            except BaseException as e:
+                crash = True
+
+            if verbose:
+                print(" ".join(command))
+                print(output.decode("utf-8"))
+
+            # Detect missing filepaths and consider those errors
+            for filepath, output_filepath in zip(remaining_filepaths[:], output_filepaths):
+                remaining_filepaths.pop(0)
+
+                if crash:
+                    # In case of crash, stop after missing files and re-render remaing
+                    if not os.path.exists(output_filepath):
+                        errors.append("CRASH")
+                        print_message("Crash running Blender")
+                        print_message(testname, 'FAILURE', 'FAILED')
+                        break
+
+                testname = test_get_name(filepath)
+
+                if not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
+                    errors.append("NO OUTPUT")
+                    print_message("No render result file found")
+                    print_message(testname, 'FAILURE', 'FAILED')
+                elif not self._diff_output(filepath, output_filepath):
+                    errors.append("VERIFY")
+                    print_message("Render result is different from reference image")
+                    print_message(testname, 'FAILURE', 'FAILED')
+                else:
+                    errors.append(None)
+                    print_message(testname, 'SUCCESS', 'OK')
+
+                if os.path.exists(output_filepath):
+                    os.remove(output_filepath)
+
+        return errors
+
+    def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch):
         passed_tests = []
         failed_tests = []
         all_files = list(blend_list(dirpath))
@@ -444,8 +482,8 @@ class Report:
                       format(len(all_files)),
                       'SUCCESS', "==========")
         time_start = time.time()
-        for filepath in all_files:
-            error = self._run_test(filepath, render_cb)
+        errors = self._run_tests(all_files, blender, arguments_cb, batch)
+        for filepath, error in zip(all_files, errors):
             testname = test_get_name(filepath)
             if error:
                 if error == "NO_ENGINE":

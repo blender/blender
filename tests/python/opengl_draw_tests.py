@@ -31,9 +31,8 @@ if inside_blender:
     sys.exit(0)
 
 
-def render_file(filepath, output_filepath):
-    command = (
-        BLENDER,
+def get_arguments(filepath, output_filepath):
+    return [
         "--no-window-focus",
         "--window-geometry",
         "0", "0", "1024", "768",
@@ -44,28 +43,7 @@ def render_file(filepath, output_filepath):
         "-P",
         os.path.realpath(__file__),
         "--",
-        output_filepath)
-
-    try:
-        # Success
-        output = subprocess.check_output(command)
-        if VERBOSE:
-            print(output.decode("utf-8"))
-        return None
-    except subprocess.CalledProcessError as e:
-        # Error
-        if os.path.exists(output_filepath):
-            os.remove(output_filepath)
-        if VERBOSE:
-            print(e.output.decode("utf-8"))
-        return "CRASH"
-    except BaseException as e:
-        # Crash
-        if os.path.exists(output_filepath):
-            os.remove(output_filepath)
-        if VERBOSE:
-            print(e)
-        return "CRASH"
+        output_filepath + '0001.png']
 
 
 def create_argparse():
@@ -81,18 +59,14 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    global BLENDER, VERBOSE
-
-    BLENDER = args.blender[0]
-    VERBOSE = os.environ.get("BLENDER_VERBOSE") is not None
-
+    blender = args.blender[0]
     test_dir = args.testdir[0]
     idiff = args.idiff[0]
     output_dir = args.outdir[0]
 
     from modules import render_report
     report = render_report.Report("OpenGL Draw", output_dir, idiff)
-    ok = report.run(test_dir, render_file)
+    ok = report.run(test_dir, blender, get_arguments)
 
     sys.exit(not ok)
 

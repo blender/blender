@@ -33,15 +33,8 @@ if inside_blender:
         sys.exit(1)
 
 
-def render_file(filepath, output_filepath):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
-    subject = os.path.basename(dirname)
-
-    frame_filepath = output_filepath + '0001.png'
-
-    command = [
-        BLENDER,
+def get_arguments(filepath, output_filepath):
+    return [
         "--background",
         "-noaudio",
         "--factory-startup",
@@ -53,37 +46,6 @@ def render_file(filepath, output_filepath):
         "-o", output_filepath,
         "-F", "PNG",
         "-f", "1"]
-
-    try:
-        # Success
-        output = subprocess.check_output(command)
-        if os.path.exists(frame_filepath):
-            shutil.copy(frame_filepath, output_filepath)
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(output.decode("utf-8"))
-        return None
-    except subprocess.CalledProcessError as e:
-        # Error
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(e.output.decode("utf-8"))
-        if b"Error: engine not found" in e.output:
-            return "NO_ENGINE"
-        elif b"blender probably wont start" in e.output:
-            return "NO_START"
-        return "CRASH"
-    except BaseException as e:
-        # Crash
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(e)
-        return "CRASH"
 
 
 def create_argparse():
@@ -99,11 +61,7 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    global BLENDER, VERBOSE
-
-    BLENDER = args.blender[0]
-    VERBOSE = os.environ.get("BLENDER_VERBOSE") is not None
-
+    blender = args.blender[0]
     test_dir = args.testdir[0]
     idiff = args.idiff[0]
     output_dir = args.outdir[0]
@@ -113,7 +71,7 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
     report.set_compare_engines('workbench', 'eevee')
-    ok = report.run(test_dir, render_file)
+    ok = report.run(test_dir, blender, get_arguments, batch=True)
 
     sys.exit(not ok)
 

@@ -9,14 +9,13 @@ import subprocess
 import sys
 
 
-def render_file(filepath, output_filepath):
+def get_arguments(filepath, output_filepath):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)
     subject = os.path.basename(dirname)
 
-    frame_filepath = output_filepath + '0001.png'
-
-    common_args = [
+    args = [
+        "--background",
         "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
@@ -29,57 +28,17 @@ def render_file(filepath, output_filepath):
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
     custom_args = os.getenv('CYCLESTEST_ARGS')
-    custom_args = shlex.split(custom_args) if custom_args else []
-    common_args += custom_args
+    if custom_args:
+        args.extend(shlex.split(custom_args))
 
-    if subject == 'opengl':
-        command = [BLENDER, "--window-geometry", "0", "0", "1", "1"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_opengl.py")]
-    elif subject == 'bake':
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_bake.py")]
+    if subject == 'bake':
+        args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
     elif subject == 'denoise_animation':
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_denoise.py")]
+        args.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
     else:
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ["-f", "1"]
+        args.extend(["-f", "1"])
 
-    try:
-        # Success
-        output = subprocess.check_output(command)
-        if os.path.exists(frame_filepath):
-            shutil.copy(frame_filepath, output_filepath)
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(output.decode("utf-8"))
-        return None
-    except subprocess.CalledProcessError as e:
-        # Error
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(e.output.decode("utf-8"))
-        if b"Error: engine not found" in e.output:
-            return "NO_ENGINE"
-        elif b"blender probably wont start" in e.output:
-            return "NO_START"
-        return "CRASH"
-    except BaseException as e:
-        # Crash
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
-        if VERBOSE:
-            print(" ".join(command))
-            print(e)
-        return "CRASH"
-
+    return args
 
 def create_argparse():
     parser = argparse.ArgumentParser()
@@ -94,11 +53,7 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    global BLENDER, VERBOSE
-
-    BLENDER = args.blender[0]
-    VERBOSE = os.environ.get("BLENDER_VERBOSE") is not None
-
+    blender = args.blender[0]
     test_dir = args.testdir[0]
     idiff = args.idiff[0]
     output_dir = args.outdir[0]
@@ -108,7 +63,7 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     report.set_compare_engines('cycles', 'eevee')
-    ok = report.run(test_dir, render_file)
+    ok = report.run(test_dir, blender, get_arguments, batch=True)
 
     sys.exit(not ok)
 
