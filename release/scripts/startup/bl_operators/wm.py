@@ -1404,7 +1404,7 @@ class WM_OT_sysinfo(Operator):
         sys_info.write_sysinfo(self.filepath)
         return {'FINISHED'}
 
-    def invoke(self, _context, _event):
+    def invoke(self, context, _event):
         import os
 
         if not self.filepath:
