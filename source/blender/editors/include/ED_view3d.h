@@ -730,4 +730,9 @@ void ED_view3d_gizmo_mesh_preselect_get_active(struct bContext *C,
                                                struct Base **r_base,
                                                struct BMElem **r_ele);
 
+/* space_view3d.c */
+void ED_view3d_buttons_region_layout_ex(const struct bContext *C,
+                                        struct ARegion *ar,
+                                        const char *category_override);
+
 #endif /* __ED_VIEW3D_H__ */

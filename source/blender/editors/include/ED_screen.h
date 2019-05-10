@@ -87,9 +87,12 @@ void ED_region_panels_ex(const struct bContext *C,
 void ED_region_panels(const struct bContext *C, struct ARegion *ar);
 void ED_region_panels_layout_ex(const struct bContext *C,
                                 struct ARegion *ar,
+                                struct ListBase *paneltypes,
                                 const char *contexts[],
                                 int contextnr,
-                                const bool vertical);
+                                const bool vertical,
+                                const char *category_override);
+
 void ED_region_panels_layout(const struct bContext *C, struct ARegion *ar);
 void ED_region_panels_draw(const struct bContext *C, struct ARegion *ar);
 

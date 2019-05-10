@@ -1200,9 +1200,106 @@ static void view3d_buttons_region_init(wmWindowManager *wm, ARegion *ar)
   WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void view3d_buttons_region_draw(const bContext *C, ARegion *ar)
+void ED_view3d_buttons_region_layout_ex(const bContext *C,
+                                        ARegion *ar,
+                                        const char *category_override)
 {
-  ED_region_panels_ex(C, ar, (const char *[]){CTX_data_mode_string(C), NULL}, -1, true);
+  const enum eContextObjectMode mode = CTX_data_mode_enum(C);
+
+  const char *contexts_base[4] = {NULL};
+  contexts_base[0] = CTX_data_mode_string(C);
+
+  const char **contexts = &contexts_base[1];
+
+  switch (mode) {
+    case CTX_MODE_EDIT_MESH:
+      ARRAY_SET_ITEMS(contexts, ".mesh_edit");
+      break;
+    case CTX_MODE_EDIT_CURVE:
+      ARRAY_SET_ITEMS(contexts, ".curve_edit");
+      break;
+    case CTX_MODE_EDIT_SURFACE:
+      ARRAY_SET_ITEMS(contexts, ".curve_edit");
+      break;
+    case CTX_MODE_EDIT_TEXT:
+      ARRAY_SET_ITEMS(contexts, ".text_edit");
+      break;
+    case CTX_MODE_EDIT_ARMATURE:
+      ARRAY_SET_ITEMS(contexts, ".armature_edit");
+      break;
+    case CTX_MODE_EDIT_METABALL:
+      ARRAY_SET_ITEMS(contexts, ".mball_edit");
+      break;
+    case CTX_MODE_EDIT_LATTICE:
+      ARRAY_SET_ITEMS(contexts, ".lattice_edit");
+      break;
+    case CTX_MODE_POSE:
+      ARRAY_SET_ITEMS(contexts, ".posemode");
+      break;
+    case CTX_MODE_SCULPT:
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".sculpt_mode");
+      break;
+    case CTX_MODE_PAINT_WEIGHT:
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".weightpaint");
+      break;
+    case CTX_MODE_PAINT_VERTEX:
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".vertexpaint");
+      break;
+    case CTX_MODE_PAINT_TEXTURE:
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".imagepaint");
+      break;
+    case CTX_MODE_PARTICLE:
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".particlemode");
+      break;
+    case CTX_MODE_OBJECT:
+      ARRAY_SET_ITEMS(contexts, ".objectmode");
+      break;
+    case CTX_MODE_PAINT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_paint");
+      break;
+    case CTX_MODE_SCULPT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_sculpt");
+      break;
+    case CTX_MODE_WEIGHT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
+      break;
+    default:
+      break;
+  }
+
+  switch (mode) {
+    case CTX_MODE_PAINT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_paint");
+      break;
+    case CTX_MODE_SCULPT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_sculpt");
+      break;
+    case CTX_MODE_WEIGHT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
+      break;
+    case CTX_MODE_EDIT_GPENCIL:
+      ARRAY_SET_ITEMS(contexts, ".greasepencil_edit");
+      break;
+    default:
+      break;
+  }
+
+  ListBase *paneltypes = &ar->type->paneltypes;
+
+  /* Allow drawing 3D view toolbar from non 3D view space type. */
+  if (category_override != NULL) {
+    SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
+    ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_UI);
+    paneltypes = &art->paneltypes;
+  }
+
+  const bool vertical = true;
+  ED_region_panels_layout_ex(C, ar, paneltypes, contexts_base, -1, vertical, category_override);
+}
+
+static void view3d_buttons_region_layout(const bContext *C, ARegion *ar)
+{
+  ED_view3d_buttons_region_layout_ex(C, ar, NULL);
 }
 
 static void view3d_buttons_region_listener(wmWindow *UNUSED(win),
@@ -1512,7 +1609,8 @@ void ED_spacetype_view3d(void)
   art->listener = view3d_buttons_region_listener;
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->init = view3d_buttons_region_init;
-  art->draw = view3d_buttons_region_draw;
+  art->layout = view3d_buttons_region_layout;
+  art->draw = ED_region_panels_draw;
   BLI_addhead(&st->regiontypes, art);
 
   view3d_buttons_register(art);

@@ -4717,6 +4717,7 @@ class VIEW3D_PT_active_tool(Panel):
 
     def draw(self, context):
         layout = self.layout
+        tool_mode = context.mode
 
         # Panel display of topbar tool settings.
         # currently displays in tool settings, keep here since the same functionality is used for the topbar.
@@ -4725,7 +4726,12 @@ class VIEW3D_PT_active_tool(Panel):
         layout.use_property_decorate = False
 
         from .space_toolsystem_common import ToolSelectPanelHelper
-        ToolSelectPanelHelper.draw_active_tool_header(context, layout, show_tool_name=True)
+        ToolSelectPanelHelper.draw_active_tool_header(
+            context,
+            layout,
+            show_tool_name=True,
+            tool_key=('VIEW_3D', tool_mode),
+        )
 
 
 class VIEW3D_PT_view3d_properties(Panel):

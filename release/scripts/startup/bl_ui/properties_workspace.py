@@ -24,11 +24,15 @@ from bpy.types import (
 
 from rna_prop_ui import PropertyPanel
 
-
 class WorkSpaceButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = ".workspace"
+    # bl_space_type = 'PROPERTIES'
+    # bl_region_type = 'WINDOW'
+    # bl_context = ".workspace"
+
+    # Developer note: this is displayed in tool settings as well as the 3D view.
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
 
 
 class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):

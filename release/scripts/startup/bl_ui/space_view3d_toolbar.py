@@ -38,8 +38,8 @@ from bl_ui.utils import PresetPanel
 
 
 class View3DPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
 
 
 # **************** standard tool clusters ******************
@@ -82,7 +82,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
     bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
     bl_label = "Options"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -204,8 +203,9 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
 
 class View3DPaintPanel(UnifiedPaintPanel):
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tool"
 
 
 class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
@@ -576,6 +576,7 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
 
 
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
+    bl_category = "Tool"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Texture Slots"
 
@@ -650,6 +651,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
+    bl_category = "Tool"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"
     bl_options = {'DEFAULT_CLOSED'}
@@ -789,6 +791,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
+    bl_category = "Tool"
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1523,6 +1526,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
 # TODO, move to space_view3d.py
 class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
     """Default tools for particle mode"""
+    bl_category = "Options"
     bl_context = ".particlemode"
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1572,6 +1576,7 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
     """Default tools for particle mode"""
+    bl_category = "Options"
     bl_parent_id = "VIEW3D_PT_tools_particlemode_options"
     bl_label = "Cut Particles to Shape"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1590,6 +1595,7 @@ class VIEW3D_PT_tools_particlemode_options_shapecut(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
     """Default tools for particle mode"""
+    bl_category = "Options"
     bl_parent_id = "VIEW3D_PT_tools_particlemode_options"
     bl_label = "Viewport Display"
 
@@ -1616,7 +1622,7 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
 
 
 class VIEW3D_PT_tools_meshedit_normal(View3DPanel, Panel):
-    bl_category = ""
+    bl_category = "Options"
     bl_context = ".mesh_edit"
     bl_label = "Normals"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1639,6 +1645,7 @@ class VIEW3D_PT_tools_meshedit_normal(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Brush"
+    bl_category = "Tool"
 
     @classmethod
     def poll(cls, context):
@@ -1695,6 +1702,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Options"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1744,6 +1752,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
     bl_label = "Stabilize"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1773,6 +1782,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
     bl_label = "Post-Processing"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1814,6 +1824,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_option'
     bl_label = "Randomize"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1848,6 +1859,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Curves"
+    bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1862,6 +1874,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Sensitivity"
+    bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     def draw(self, context):
@@ -1878,6 +1891,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Strength"
+    bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     def draw(self, context):
@@ -1894,6 +1908,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Jitter"
+    bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     def draw(self, context):
@@ -1910,6 +1925,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
 # Grease Pencil stroke editing tools
 class VIEW3D_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
     bl_space_type = 'VIEW_3D'
+    bl_category = "Tool"
 
 
 # Grease Pencil stroke interpolation tools
@@ -1964,6 +1980,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, View3D
     bl_context = ".greasepencil_sculpt"
     bl_category = "Tools"
     bl_label = "Brush"
+    bl_category = "Tool"
 
 
 # Grease Pencil weight painting tools
@@ -1971,6 +1988,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
     bl_context = ".greasepencil_weight"
     bl_category = "Tools"
     bl_label = "Brush"
+    bl_category = "Tool"
 
     def draw(self, context):
         layout = self.layout
@@ -1995,22 +2013,26 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Display"
+    bl_category = "Tool"
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_sculpt"
     bl_label = "Display"
+    bl_category = "Tool"
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPanel, View3DPanel, Panel):
     bl_context = ".greasepencil_sculpt"
     bl_label = "Sculpt Strokes"
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt'
+    bl_category = "Tool"
 
 
 class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_weight"
     bl_label = "Display"
+    bl_category = "Tool"
 
 
 class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):

@@ -762,7 +762,7 @@ static void image_buttons_region_layout(const bContext *C, ARegion *ar)
   }
 
   const bool vertical = true;
-  ED_region_panels_layout_ex(C, ar, contexts_base, -1, vertical);
+  ED_region_panels_layout_ex(C, ar, &ar->type->paneltypes, contexts_base, -1, vertical, NULL);
 }
 
 static void image_buttons_region_draw(const bContext *C, ARegion *ar)
