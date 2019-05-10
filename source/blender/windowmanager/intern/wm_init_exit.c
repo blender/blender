@@ -52,6 +52,7 @@
 #include "BLO_writefile.h"
 #include "BLO_undofile.h"
 
+#include "BKE_blendfile.h"
 #include "BKE_blender.h"
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
@@ -468,6 +469,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
+    }
+
+    if (U.runtime.is_dirty) {
+      BKE_blendfile_userdef_write_all(NULL);
     }
   }
 
