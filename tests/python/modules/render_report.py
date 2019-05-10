@@ -374,41 +374,48 @@ class Report:
 
         return not failed
 
-    def _run_test(self, filepath, render_cb):
-        testname = test_get_name(filepath)
-        print_message(testname, 'SUCCESS', 'RUN')
-        time_start = time.time()
-        tmp_filepath = os.path.join(self.output_dir, "tmp_" + testname)
+    def _run_tests(self, filepaths, render_cb):
+        # Run all tests together for performance, since Blender
+        # startup time is a significant factor.
+        tmp_filepaths = []
+        for filepath in filepaths:
+            testname = test_get_name(filepath)
+            print_message(testname, 'SUCCESS', 'RUN')
+            tmp_filepaths.append(os.path.join(self.output_dir, "tmp_" + testname))
 
-        error = render_cb(filepath, tmp_filepath)
-        status = "FAIL"
-        if not error:
-            if not self._diff_output(filepath, tmp_filepath):
-                error = "VERIFY"
+        run_errors = render_cb(filepaths, tmp_filepaths)
+        errors = []
 
-        if os.path.exists(tmp_filepath):
-            os.remove(tmp_filepath)
+        for error, filepath, tmp_filepath in zip(run_errors, filepaths, tmp_filepaths):
+            if not error:
+                if os.path.getsize(tmp_filepath) == 0:
+                    error = "VERIFY"
+                elif not self._diff_output(filepath, tmp_filepath):
+                    error = "VERIFY"
 
-        time_end = time.time()
-        elapsed_ms = int((time_end - time_start) * 1000)
-        if not error:
-            print_message("{} ({} ms)" . format(testname, elapsed_ms),
-                          'SUCCESS', 'OK')
-        else:
-            if error == "NO_ENGINE":
-                print_message("Can't perform tests because the render engine failed to load!")
-                return error
-            elif error == "NO_START":
-                print_message('Can not perform tests because blender fails to start.',
-                              'Make sure INSTALL target was run.')
-                return error
-            elif error == 'VERIFY':
-                print_message("Rendered result is different from reference image")
+            if os.path.exists(tmp_filepath):
+                os.remove(tmp_filepath)
+
+            errors.append(error)
+
+            testname = test_get_name(filepath)
+            if not error:
+                print_message(testname, 'SUCCESS', 'OK')
             else:
-                print_message("Unknown error %r" % error)
-            print_message("{} ({} ms)" . format(testname, elapsed_ms),
-                          'FAILURE', 'FAILED')
-        return error
+                if error == "SKIPPED":
+                    print_message("Skipped after previous render caused error")
+                elif error == "NO_ENGINE":
+                    print_message("Can't perform tests because the render engine failed to load!")
+                elif error == "NO_START":
+                    print_message('Can not perform tests because blender fails to start.',
+                                  'Make sure INSTALL target was run.')
+                elif error == 'VERIFY':
+                    print_message("Rendered result is different from reference image")
+                else:
+                    print_message("Unknown error %r" % error)
+                print_message(testname, 'FAILURE', 'FAILED')
+
+        return errors
 
     def _run_all_tests(self, dirname, dirpath, render_cb):
         passed_tests = []
@@ -419,8 +426,8 @@ class Report:
                       format(len(all_files)),
                       'SUCCESS', "==========")
         time_start = time.time()
-        for filepath in all_files:
-            error = self._run_test(filepath, render_cb)
+        errors = self._run_tests(all_files, render_cb)
+        for filepath, error in zip(all_files, errors):
             testname = test_get_name(filepath)
             if error:
                 if error == "NO_ENGINE":

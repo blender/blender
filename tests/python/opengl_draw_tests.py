@@ -31,41 +31,48 @@ if inside_blender:
     sys.exit(0)
 
 
-def render_file(filepath, output_filepath):
-    command = (
-        BLENDER,
-        "--no-window-focus",
-        "--window-geometry",
-        "0", "0", "1024", "768",
-        "-noaudio",
-        "--factory-startup",
-        "--enable-autoexec",
-        filepath,
-        "-P",
-        os.path.realpath(__file__),
-        "--",
-        output_filepath)
+def render_files(filepaths, output_filepaths):
+    errors = []
 
-    try:
-        # Success
-        output = subprocess.check_output(command)
-        if VERBOSE:
-            print(output.decode("utf-8"))
-        return None
-    except subprocess.CalledProcessError as e:
-        # Error
-        if os.path.exists(output_filepath):
-            os.remove(output_filepath)
-        if VERBOSE:
-            print(e.output.decode("utf-8"))
-        return "CRASH"
-    except BaseException as e:
-        # Crash
-        if os.path.exists(output_filepath):
-            os.remove(output_filepath)
-        if VERBOSE:
-            print(e)
-        return "CRASH"
+    for filepath, output_filepath in zip(filepaths, output_filepaths):
+        command = (
+            BLENDER,
+            "--no-window-focus",
+            "--window-geometry",
+            "0", "0", "1024", "768",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-P",
+            os.path.realpath(__file__),
+            "--",
+            output_filepath)
+
+        error = None
+        try:
+            # Success
+            output = subprocess.check_output(command)
+            if VERBOSE:
+                print(output.decode("utf-8"))
+        except subprocess.CalledProcessError as e:
+            # Error
+            if os.path.exists(output_filepath):
+                os.remove(output_filepath)
+            if VERBOSE:
+                print(e.output.decode("utf-8"))
+            error = "CRASH"
+        except BaseException as e:
+            # Crash
+            if os.path.exists(output_filepath):
+                os.remove(output_filepath)
+            if VERBOSE:
+                print(e)
+            error = "CRASH"
+
+        errors.append(error)
+
+    return errors
 
 
 def create_argparse():
@@ -92,7 +99,7 @@ def main():
 
     from modules import render_report
     report = render_report.Report("OpenGL Draw Test Report", output_dir, idiff)
-    ok = report.run(test_dir, render_file)
+    ok = report.run(test_dir, render_files)
 
     sys.exit(not ok)
 

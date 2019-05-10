@@ -9,77 +9,76 @@ import subprocess
 import sys
 
 
-def render_file(filepath, output_filepath):
-    dirname = os.path.dirname(filepath)
-    basedir = os.path.dirname(dirname)
-    subject = os.path.basename(dirname)
-
-    frame_filepath = output_filepath + '0001.png'
-
-    common_args = [
-        "-noaudio",
-        "--factory-startup",
-        "--enable-autoexec",
-        filepath,
-        "-E", "CYCLES",
-        "-o", output_filepath,
-        "-F", "PNG"]
+def render_files(filepaths, output_filepaths):
+    command = [BLENDER, "--background"]
 
     # OSL and GPU examples
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
     custom_args = os.getenv('CYCLESTEST_ARGS')
     custom_args = shlex.split(custom_args) if custom_args else []
-    common_args += custom_args
 
-    if subject == 'opengl':
-        command = [BLENDER, "--window-geometry", "0", "0", "1", "1"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_opengl.py")]
-    elif subject == 'bake':
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_bake.py")]
-    elif subject == 'denoise_animation':
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ['--python', os.path.join(basedir, "util", "render_denoise.py")]
-    else:
-        command = [BLENDER, "--background"]
-        command += common_args
-        command += ["-f", "1"]
+    for filepath, output_filepath in zip(filepaths, output_filepaths):
+        dirname = os.path.dirname(filepath)
+        basedir = os.path.dirname(dirname)
+        subject = os.path.basename(dirname)
 
+        frame_filepath = output_filepath + '0001.png'
+
+        common_args = [
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-E", "CYCLES",
+            "-o", output_filepath,
+            "-F", "PNG"]
+
+        common_args += custom_args
+
+        if subject == 'bake':
+            command.extend(common_args)
+            command.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
+        elif subject == 'denoise_animation':
+            command.extend(common_args)
+            command.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
+        else:
+            command.extend(common_args)
+            command.extend(["-f", "1"])
+
+    error = None
     try:
         # Success
         output = subprocess.check_output(command)
-        if os.path.exists(frame_filepath):
-            shutil.copy(frame_filepath, output_filepath)
-            os.remove(frame_filepath)
         if VERBOSE:
             print(" ".join(command))
             print(output.decode("utf-8"))
-        return None
     except subprocess.CalledProcessError as e:
         # Error
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
         if VERBOSE:
             print(" ".join(command))
             print(e.output.decode("utf-8"))
-        if b"Error: engine not found" in e.output:
-            return "NO_ENGINE"
-        elif b"blender probably wont start" in e.output:
-            return "NO_START"
-        return "CRASH"
+        error = "CRASH"
     except BaseException as e:
         # Crash
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
         if VERBOSE:
             print(" ".join(command))
-            print(e)
-        return "CRASH"
+            print(e.decode("utf-8"))
+        error = "CRASH"
 
+    # Detect missing filepaths and consider those errors
+    errors = []
+    for output_filepath in output_filepaths:
+        frame_filepath = output_filepath + '0001.png'
+        if os.path.exists(frame_filepath):
+            shutil.copy(frame_filepath, output_filepath)
+            os.remove(frame_filepath)
+            errors.append(None)
+        else:
+            errors.append(error)
+            error = 'SKIPPED'
+
+    return errors
 
 def create_argparse():
     parser = argparse.ArgumentParser()
@@ -108,7 +107,7 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     report.set_compare_engines('cycles', 'eevee')
-    ok = report.run(test_dir, render_file)
+    ok = report.run(test_dir, render_files)
 
     sys.exit(not ok)
 
