@@ -87,11 +87,8 @@ typedef struct RenderEngineType {
                struct Object *object,
                const int pass_type,
                const int pass_filter,
-               const int object_id,
-               const struct BakePixel *pixel_array,
-               const int num_pixels,
-               const int depth,
-               void *result);
+               const int width,
+               const int height);
 
   void (*view_update)(struct RenderEngine *engine,
                       const struct bContext *context,
@@ -139,6 +136,13 @@ typedef struct RenderEngine {
   int resolution_x, resolution_y;
 
   struct ReportList *reports;
+
+  struct {
+    const struct BakePixel *pixels;
+    float *result;
+    int width, height, depth;
+    int object_id;
+  } bake;
 
   /* Depsgraph */
   struct Depsgraph *depsgraph;

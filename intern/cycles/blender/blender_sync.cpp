@@ -481,6 +481,9 @@ PassType BlenderSync::get_pass_type(BL::RenderPass &b_pass)
   MAP_PASS("AO", PASS_AO);
   MAP_PASS("Shadow", PASS_SHADOW);
 
+  MAP_PASS("BakePrimitive", PASS_BAKE_PRIMITIVE);
+  MAP_PASS("BakeDifferential", PASS_BAKE_DIFFERENTIAL);
+
 #ifdef __KERNEL_DEBUG__
   MAP_PASS("Debug BVH Traversed Nodes", PASS_BVH_TRAVERSED_NODES);
   MAP_PASS("Debug BVH Traversed Instances", PASS_BVH_TRAVERSED_INSTANCES);

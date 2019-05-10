@@ -213,12 +213,12 @@ static void set_pass_full_name(
 
 /********************************** New **************************************/
 
-static RenderPass *render_layer_add_pass(RenderResult *rr,
-                                         RenderLayer *rl,
-                                         int channels,
-                                         const char *name,
-                                         const char *viewname,
-                                         const char *chan_id)
+RenderPass *render_layer_add_pass(RenderResult *rr,
+                                  RenderLayer *rl,
+                                  int channels,
+                                  const char *name,
+                                  const char *viewname,
+                                  const char *chan_id)
 {
   const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
   RenderPass *rpass = MEM_callocN(sizeof(RenderPass), name);
@@ -279,12 +279,6 @@ static RenderPass *render_layer_add_pass(RenderResult *rr,
   BLI_addtail(&rl->passes, rpass);
 
   return rpass;
-}
-/* wrapper called from render_opengl */
-RenderPass *gp_add_pass(
-    RenderResult *rr, RenderLayer *rl, int channels, const char *name, const char *viewname)
-{
-  return render_layer_add_pass(rr, rl, channels, name, viewname, "RGBA");
 }
 
 /* called by main render as well for parts */

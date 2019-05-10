@@ -188,6 +188,7 @@ class CPUDevice : public Device {
       convert_to_byte_kernel;
   KernelFunctions<void (*)(KernelGlobals *, uint4 *, float4 *, int, int, int, int, int)>
       shader_kernel;
+  KernelFunctions<void (*)(KernelGlobals *, float *, int, int, int, int, int)> bake_kernel;
 
   KernelFunctions<void (*)(
       int, TileInfo *, int, int, float *, float *, float *, float *, float *, int *, int, int)>
@@ -270,6 +271,7 @@ class CPUDevice : public Device {
         REGISTER_KERNEL(convert_to_half_float),
         REGISTER_KERNEL(convert_to_byte),
         REGISTER_KERNEL(shader),
+        REGISTER_KERNEL(bake),
         REGISTER_KERNEL(filter_divide_shadow),
         REGISTER_KERNEL(filter_get_feature),
         REGISTER_KERNEL(filter_write_feature),
@@ -895,7 +897,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void path_trace(DeviceTask &task, RenderTile &tile, KernelGlobals *kg)
+  void render(DeviceTask &task, RenderTile &tile, KernelGlobals *kg)
   {
     const bool use_coverage = kernel_data.film.cryptomatte_passes & CRYPT_ACCURATE;
 
@@ -919,12 +921,21 @@ class CPUDevice : public Device {
           break;
       }
 
-      for (int y = tile.y; y < tile.y + tile.h; y++) {
-        for (int x = tile.x; x < tile.x + tile.w; x++) {
-          if (use_coverage) {
-            coverage.init_pixel(x, y);
+      if (tile.task == RenderTile::PATH_TRACE) {
+        for (int y = tile.y; y < tile.y + tile.h; y++) {
+          for (int x = tile.x; x < tile.x + tile.w; x++) {
+            if (use_coverage) {
+              coverage.init_pixel(x, y);
+            }
+            path_trace_kernel()(kg, render_buffer, sample, x, y, tile.offset, tile.stride);
           }
-          path_trace_kernel()(kg, render_buffer, sample, x, y, tile.offset, tile.stride);
+        }
+      }
+      else {
+        for (int y = tile.y; y < tile.y + tile.h; y++) {
+          for (int x = tile.x; x < tile.x + tile.w; x++) {
+            bake_kernel()(kg, render_buffer, sample, x, y, tile.offset, tile.stride);
+          }
         }
       }
       tile.sample = sample + 1;
@@ -1019,8 +1030,11 @@ class CPUDevice : public Device {
           split_kernel->path_trace(&task, tile, kgbuffer, void_buffer);
         }
         else {
-          path_trace(task, tile, kg);
+          render(task, tile, kg);
         }
+      }
+      else if (tile.task == RenderTile::BAKE) {
+        render(task, tile, kg);
       }
       else if (tile.task == RenderTile::DENOISE) {
         denoise(denoising, tile);

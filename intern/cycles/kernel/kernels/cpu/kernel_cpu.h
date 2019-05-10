@@ -46,6 +46,9 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
                                        int offset,
                                        int sample);
 
+void KERNEL_FUNCTION_FULL_NAME(bake)(
+    KernelGlobals *kg, float *buffer, int sample, int x, int y, int offset, int stride);
+
 /* Split kernels */
 
 void KERNEL_FUNCTION_FULL_NAME(data_init)(KernelGlobals *kg,

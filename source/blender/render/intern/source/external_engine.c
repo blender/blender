@@ -31,6 +31,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -167,6 +168,89 @@ void RE_engine_free(RenderEngine *engine)
   MEM_freeN(engine);
 }
 
+/* Bake Render Results */
+
+static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y, int w, int h)
+{
+  /* Create render result with specified size. */
+  RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
+
+  rr->rectx = w;
+  rr->recty = h;
+  rr->tilerect.xmin = x;
+  rr->tilerect.ymin = y;
+  rr->tilerect.xmax = x + w;
+  rr->tilerect.ymax = y + h;
+
+  /* Add single baking render layer. */
+  RenderLayer *rl = MEM_callocN(sizeof(RenderLayer), "bake render layer");
+  rl->rectx = w;
+  rl->recty = h;
+  BLI_addtail(&rr->layers, rl);
+
+  /* Add render passes. */
+  render_layer_add_pass(rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA");
+  RenderPass *primitive_pass = render_layer_add_pass(rr, rl, 4, "BakePrimitive", "", "RGBA");
+  RenderPass *differential_pass = render_layer_add_pass(rr, rl, 4, "BakeDifferential", "", "RGBA");
+
+  /* Fill render passes from bake pixel array, to be read by the render engine. */
+  for (int ty = 0; ty < h; ty++) {
+    size_t offset = ty * w * 4;
+    float *primitive = primitive_pass->rect + offset;
+    float *differential = differential_pass->rect + offset;
+
+    size_t bake_offset = (y + ty) * engine->bake.width + x;
+    const BakePixel *bake_pixel = engine->bake.pixels + bake_offset;
+
+    for (int tx = 0; tx < w; tx++) {
+      if (bake_pixel->object_id != engine->bake.object_id) {
+        primitive[0] = int_as_float(-1);
+        primitive[1] = int_as_float(-1);
+      }
+      else {
+        primitive[0] = int_as_float(bake_pixel->object_id);
+        primitive[1] = int_as_float(bake_pixel->primitive_id);
+        primitive[2] = bake_pixel->uv[0];
+        primitive[3] = bake_pixel->uv[1];
+
+        differential[0] = bake_pixel->du_dx;
+        differential[1] = bake_pixel->du_dy;
+        differential[2] = bake_pixel->dv_dx;
+        differential[3] = bake_pixel->dv_dy;
+      }
+
+      primitive += 4;
+      differential += 4;
+      bake_pixel++;
+    }
+  }
+
+  return rr;
+}
+
+static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
+{
+  RenderPass *rpass = RE_pass_find_by_name(rr->layers.first, RE_PASSNAME_COMBINED, "");
+
+  if (!rpass) {
+    return;
+  }
+
+  /* Copy from tile render result to full image bake result. */
+  int x = rr->tilerect.xmin;
+  int y = rr->tilerect.ymin;
+  int w = rr->tilerect.xmax - rr->tilerect.xmin;
+  int h = rr->tilerect.ymax - rr->tilerect.ymin;
+
+  for (int ty = 0; ty < h; ty++) {
+    size_t offset = ty * w * engine->bake.depth;
+    size_t bake_offset = ((y + ty) * engine->bake.width + x) * engine->bake.depth;
+    size_t size = w * engine->bake.depth * sizeof(float);
+
+    memcpy(engine->bake.result + bake_offset, rpass->rect + offset, size);
+  }
+}
+
 /* Render Results */
 
 static RenderPart *get_part_from_result(Render *re, RenderResult *result)
@@ -180,6 +264,12 @@ static RenderPart *get_part_from_result(Render *re, RenderResult *result)
 RenderResult *RE_engine_begin_result(
     RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname)
 {
+  if (engine->bake.pixels) {
+    RenderResult *result = render_result_from_bake(engine, x, y, w, h);
+    BLI_addtail(&engine->fullresult, result);
+    return result;
+  }
+
   Render *re = engine->re;
   RenderResult *result;
   rcti disprect;
@@ -237,6 +327,11 @@ RenderResult *RE_engine_begin_result(
 
 void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 {
+  if (engine->bake.pixels) {
+    /* No interactive baking updates for now. */
+    return;
+  }
+
   Render *re = engine->re;
 
   if (result) {
@@ -267,6 +362,13 @@ void RE_engine_end_result(
   Render *re = engine->re;
 
   if (!result) {
+    return;
+  }
+
+  if (engine->bake.pixels) {
+    render_result_to_bake(engine, result);
+    BLI_remlink(&engine->fullresult, result);
+    render_result_free(result);
     return;
   }
 
@@ -574,7 +676,7 @@ bool RE_bake_engine(Render *re,
                     Object *object,
                     const int object_id,
                     const BakePixel pixel_array[],
-                    const size_t num_pixels,
+                    const BakeImages *bake_images,
                     const int depth,
                     const eScenePassType pass_type,
                     const int pass_filter,
@@ -619,16 +721,21 @@ bool RE_bake_engine(Render *re,
       type->update(engine, re->main, engine->depsgraph);
     }
 
-    type->bake(engine,
-               engine->depsgraph,
-               object,
-               pass_type,
-               pass_filter,
-               object_id,
-               pixel_array,
-               num_pixels,
-               depth,
-               result);
+    for (int i = 0; i < bake_images->size; i++) {
+      const BakeImage *image = bake_images->data + i;
+
+      engine->bake.pixels = pixel_array + image->offset;
+      engine->bake.result = result + image->offset * depth;
+      engine->bake.width = image->width;
+      engine->bake.height = image->height;
+      engine->bake.depth = depth;
+      engine->bake.object_id = object_id;
+
+      type->bake(
+          engine, engine->depsgraph, object, pass_type, pass_filter, image->width, image->height);
+
+      memset(&engine->bake, 0, sizeof(engine->bake));
+    }
 
     engine->depsgraph = NULL;
   }

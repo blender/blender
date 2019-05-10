@@ -586,20 +586,23 @@ void CUDADevice::reserve_local_memory(const DeviceRequestedFeatures &requested_f
   cuMemGetInfo(&free_before, &total);
 
   /* Get kernel function. */
-  CUfunction cuPathTrace;
+  CUfunction cuRender;
 
-  if (requested_features.use_integrator_branched) {
-    cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
+  if (requested_features.use_baking) {
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_bake"));
+  }
+  else if (requested_features.use_integrator_branched) {
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_branched_path_trace"));
   }
   else {
-    cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"));
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_path_trace"));
   }
 
-  cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
+  cuda_assert(cuFuncSetCacheConfig(cuRender, CU_FUNC_CACHE_PREFER_L1));
 
   int min_blocks, num_threads_per_block;
-  cuda_assert(cuOccupancyMaxPotentialBlockSize(
-      &min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+  cuda_assert(
+      cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuRender, NULL, 0, 0));
 
   /* Launch kernel, using just 1 block appears sufficient to reserve
    * memory for all multiprocessors. It would be good to do this in
@@ -609,7 +612,7 @@ void CUDADevice::reserve_local_memory(const DeviceRequestedFeatures &requested_f
 
   void *args[] = {&d_work_tiles, &total_work_size};
 
-  cuda_assert(cuLaunchKernel(cuPathTrace, 1, 1, 1, num_threads_per_block, 1, 1, 0, 0, args, 0));
+  cuda_assert(cuLaunchKernel(cuRender, 1, 1, 1, num_threads_per_block, 1, 1, 0, 0, args, 0));
 
   cuda_assert(cuCtxSynchronize());
 
@@ -1780,9 +1783,7 @@ void CUDADevice::adaptive_sampling_post(RenderTile &rtile,
                              0));
 }
 
-void CUDADevice::path_trace(DeviceTask &task,
-                            RenderTile &rtile,
-                            device_vector<WorkTile> &work_tiles)
+void CUDADevice::render(DeviceTask &task, RenderTile &rtile, device_vector<WorkTile> &work_tiles)
 {
   scoped_timer timer(&rtile.buffers->render_time);
 
@@ -1790,21 +1791,24 @@ void CUDADevice::path_trace(DeviceTask &task,
     return;
 
   CUDAContextScope scope(this);
-  CUfunction cuPathTrace;
+  CUfunction cuRender;
 
   /* Get kernel function. */
-  if (task.integrator_branched) {
-    cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
+  if (rtile.task == RenderTile::BAKE) {
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_bake"));
+  }
+  else if (task.integrator_branched) {
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_branched_path_trace"));
   }
   else {
-    cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"));
+    cuda_assert(cuModuleGetFunction(&cuRender, cuModule, "kernel_cuda_path_trace"));
   }
 
   if (have_error()) {
     return;
   }
 
-  cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
+  cuda_assert(cuFuncSetCacheConfig(cuRender, CU_FUNC_CACHE_PREFER_L1));
 
   /* Allocate work tile. */
   work_tiles.alloc(1);
@@ -1822,8 +1826,8 @@ void CUDADevice::path_trace(DeviceTask &task,
    * remain conservative for GPUs connected to a display to avoid driver
    * timeouts and display freezing. */
   int min_blocks, num_threads_per_block;
-  cuda_assert(cuOccupancyMaxPotentialBlockSize(
-      &min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+  cuda_assert(
+      cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuRender, NULL, 0, 0));
   if (!info.display_device) {
     min_blocks *= 8;
   }
@@ -1851,7 +1855,7 @@ void CUDADevice::path_trace(DeviceTask &task,
     void *args[] = {&d_work_tiles, &total_work_size};
 
     cuda_assert(
-        cuLaunchKernel(cuPathTrace, num_blocks, 1, 1, num_threads_per_block, 1, 1, 0, 0, args, 0));
+        cuLaunchKernel(cuRender, num_blocks, 1, 1, num_threads_per_block, 1, 1, 0, 0, args, 0));
 
     /* Run the adaptive sampling kernels at selected samples aligned to step samples. */
     uint filter_sample = sample + wtile->num_samples - 1;
@@ -1957,10 +1961,7 @@ void CUDADevice::shader(DeviceTask &task)
   CUdeviceptr d_output = (CUdeviceptr)task.shader_output;
 
   /* get kernel function */
-  if (task.shader_eval_type >= SHADER_EVAL_BAKE) {
-    cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_bake"));
-  }
-  else if (task.shader_eval_type == SHADER_EVAL_DISPLACE) {
+  if (task.shader_eval_type == SHADER_EVAL_DISPLACE) {
     cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_displace"));
   }
   else {
@@ -2297,8 +2298,11 @@ void CUDADevice::thread_run(DeviceTask *task)
           split_kernel->path_trace(task, tile, void_buffer, void_buffer);
         }
         else {
-          path_trace(*task, tile, work_tiles);
+          render(*task, tile, work_tiles);
         }
+      }
+      else if (tile.task == RenderTile::BAKE) {
+        render(*task, tile, work_tiles);
       }
       else if (tile.task == RenderTile::DENOISE) {
         tile.sample = tile.start_sample + tile.num_samples;

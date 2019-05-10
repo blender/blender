@@ -84,11 +84,12 @@ void render_result_exr_file_begin(struct Render *re, struct RenderEngine *engine
 void render_result_exr_file_end(struct Render *re, struct RenderEngine *engine);
 
 /* render pass wrapper for gpencil */
-struct RenderPass *gp_add_pass(struct RenderResult *rr,
-                               struct RenderLayer *rl,
-                               int channels,
-                               const char *name,
-                               const char *viewname);
+struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
+                                         struct RenderLayer *rl,
+                                         int channels,
+                                         const char *name,
+                                         const char *viewname,
+                                         const char *chanid);
 
 void render_result_exr_file_merge(struct RenderResult *rr,
                                   struct RenderResult *rrpart,

@@ -132,6 +132,18 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
 #  endif /* KERNEL_STUB */
 }
 
+/* Bake */
+
+void KERNEL_FUNCTION_FULL_NAME(bake)(
+    KernelGlobals *kg, float *buffer, int sample, int x, int y, int offset, int stride)
+{
+#  ifdef KERNEL_STUB
+  STUB_ASSERT(KERNEL_ARCH, bake);
+#  else
+  kernel_bake_evaluate(kg, buffer, sample, x, y, offset, stride);
+#  endif /* KERNEL_STUB */
+}
+
 /* Shader Evaluate */
 
 void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
@@ -146,12 +158,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 #  ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, shader);
 #  else
-  if (type >= SHADER_EVAL_BAKE) {
-#    ifdef __BAKING__
-    kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, filter, i, offset, sample);
-#    endif
-  }
-  else if (type == SHADER_EVAL_DISPLACE) {
+  if (type == SHADER_EVAL_DISPLACE) {
     kernel_displace_evaluate(kg, input, output, i);
   }
   else {

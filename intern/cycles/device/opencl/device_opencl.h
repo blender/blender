@@ -451,6 +451,7 @@ class OpenCLDevice : public Device {
                     device_ptr rgba_half);
   void shader(DeviceTask &task);
   void update_adaptive(DeviceTask &task, RenderTile &tile, int sample);
+  void bake(DeviceTask &task, RenderTile &tile);
 
   void denoise(RenderTile &tile, DenoisingTask &denoising);
 

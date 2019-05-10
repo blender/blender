@@ -247,9 +247,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
 
 void BlenderSession::free_session()
 {
-  if (sync)
-    delete sync;
-
+  delete sync;
   delete session;
 }
 
@@ -317,6 +315,7 @@ static void end_render_result(BL::RenderEngine &b_engine,
 
 void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
                                                  bool do_update_only,
+                                                 bool do_read_only,
                                                  bool highlight)
 {
   int x = rtile.x - session->tile_manager.params.full_x;
@@ -342,7 +341,23 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
 
   BL::RenderLayer b_rlay = *b_single_rlay;
 
-  if (do_update_only) {
+  if (do_read_only) {
+    /* copy each pass */
+    BL::RenderLayer::passes_iterator b_iter;
+
+    for (b_rlay.passes.begin(b_iter); b_iter != b_rlay.passes.end(); ++b_iter) {
+      BL::RenderPass b_pass(*b_iter);
+
+      /* find matching pass type */
+      PassType pass_type = BlenderSync::get_pass_type(b_pass);
+      int components = b_pass.channels();
+
+      rtile.buffers->set_pass_rect(pass_type, components, (float *)b_pass.rect());
+    }
+
+    end_render_result(b_engine, b_rr, false, false, false);
+  }
+  else if (do_update_only) {
     /* Sample would be zero at initial tile update, which is only needed
      * to tag tile form blender side as IN PROGRESS for proper highlight
      * no buffers should be sent to blender yet. For denoise we also
@@ -362,9 +377,14 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
   }
 }
 
+void BlenderSession::read_render_tile(RenderTile &rtile)
+{
+  do_write_update_render_tile(rtile, false, true, false);
+}
+
 void BlenderSession::write_render_tile(RenderTile &rtile)
 {
-  do_write_update_render_tile(rtile, false, false);
+  do_write_update_render_tile(rtile, false, false, false);
 }
 
 void BlenderSession::update_render_tile(RenderTile &rtile, bool highlight)
@@ -374,9 +394,9 @@ void BlenderSession::update_render_tile(RenderTile &rtile, bool highlight)
    * would need to be investigated a bit further, but for now shall be fine
    */
   if (!b_engine.is_preview())
-    do_write_update_render_tile(rtile, true, highlight);
+    do_write_update_render_tile(rtile, true, false, highlight);
   else
-    do_write_update_render_tile(rtile, false, false);
+    do_write_update_render_tile(rtile, false, false, false);
 }
 
 static void add_cryptomatte_layer(BL::RenderResult &b_rr, string name, string manifest)
@@ -593,25 +613,6 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 #endif
 }
 
-static void populate_bake_data(BakeData *data,
-                               const int object_id,
-                               BL::BakePixel &pixel_array,
-                               const int num_pixels)
-{
-  BL::BakePixel bp = pixel_array;
-
-  int i;
-  for (i = 0; i < num_pixels; i++) {
-    if (bp.object_id() == object_id) {
-      data->set(i, bp.primitive_id(), bp.uv(), bp.du_dx(), bp.du_dy(), bp.dv_dx(), bp.dv_dy());
-    }
-    else {
-      data->set_null(i);
-    }
-    bp = bp.next();
-  }
-}
-
 static int bake_pass_filter_get(const int pass_filter)
 {
   int flag = BAKE_FILTER_NONE;
@@ -642,43 +643,26 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
                           BL::Object &b_object,
                           const string &pass_type,
                           const int pass_filter,
-                          const int object_id,
-                          BL::BakePixel &pixel_array,
-                          const size_t num_pixels,
-                          const int /*depth*/,
-                          float result[])
+                          const int bake_width,
+                          const int bake_height)
 {
   b_depsgraph = b_depsgraph_;
 
   ShaderEvalType shader_type = get_shader_type(pass_type);
-
-  /* Set baking flag in advance, so kernel loading can check if we need
-   * any baking capabilities.
-   */
-  scene->bake_manager->set_baking(true);
-
-  /* ensure kernels are loaded before we do any scene updates */
-  session->load_kernels();
-
-  if (shader_type == SHADER_EVAL_UV) {
-    /* force UV to be available */
-    Pass::add(PASS_UV, scene->film->passes);
-  }
-
   int bake_pass_filter = bake_pass_filter_get(pass_filter);
-  bake_pass_filter = BakeManager::shader_type_to_pass_filter(shader_type, bake_pass_filter);
 
-  /* force use_light_pass to be true if we bake more than just colors */
-  if (bake_pass_filter & ~BAKE_FILTER_COLOR) {
-    Pass::add(PASS_LIGHT, scene->film->passes);
-  }
+  /* Initialize bake manager, before we load the baking kernels. */
+  scene->bake_manager->set(scene, b_object.name(), shader_type, bake_pass_filter);
 
-  /* create device and update scene */
-  scene->film->tag_update(scene);
-  scene->integrator->tag_update(scene);
+  /* Passes are identified by name, so in order to return the combined pass we need to set the
+   * name. */
+  Pass::add(PASS_COMBINED, scene->film->passes, "Combined");
+
+  session->read_bake_tile_cb = function_bind(&BlenderSession::read_render_tile, this, _1);
+  session->write_render_tile_cb = function_bind(&BlenderSession::write_render_tile, this, _1);
 
   if (!session->progress.get_cancel()) {
-    /* update scene */
+    /* Sync scene. */
     BL::Object b_camera_override(b_engine.camera_override());
     sync->sync_camera(b_render, b_camera_override, width, height, "");
     sync->sync_data(
@@ -686,75 +670,43 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     builtin_images_load();
   }
 
-  BakeData *bake_data = NULL;
+  /* Object might have been disabled for rendering or excluded in some
+   * other way, in that case Blender will report a warning afterwards. */
+  bool object_found = false;
+  foreach (Object *ob, scene->objects) {
+    if (ob->name == b_object.name()) {
+      object_found = true;
+      break;
+    }
+  }
 
-  if (!session->progress.get_cancel()) {
-    /* get buffer parameters */
+  if (object_found && !session->progress.get_cancel()) {
+    /* Get session and buffer parameters. */
     SessionParams session_params = BlenderSync::get_session_params(
         b_engine, b_userpref, b_scene, background);
-    BufferParams buffer_params = BlenderSync::get_buffer_params(
-        b_scene, b_render, b_v3d, b_rv3d, scene->camera, width, height);
+    session_params.progressive_refine = false;
 
-    scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
+    BufferParams buffer_params;
+    buffer_params.width = bake_width;
+    buffer_params.height = bake_height;
+    buffer_params.passes = scene->film->passes;
 
-    /* set number of samples */
+    /* Update session. */
     session->tile_manager.set_samples(session_params.samples);
     session->reset(buffer_params, session_params.samples);
-    session->update_scene();
-
-    /* find object index. todo: is arbitrary - copied from mesh_displace.cpp */
-    size_t object_index = OBJECT_NONE;
-    int tri_offset = 0;
-
-    for (size_t i = 0; i < scene->objects.size(); i++) {
-      const Object *object = scene->objects[i];
-      const Geometry *geom = object->geometry;
-      if (object->name == b_object.name() && geom->type == Geometry::MESH) {
-        const Mesh *mesh = static_cast<const Mesh *>(geom);
-        object_index = i;
-        tri_offset = mesh->prim_offset;
-        break;
-      }
-    }
-
-    /* Object might have been disabled for rendering or excluded in some
-     * other way, in that case Blender will report a warning afterwards. */
-    if (object_index != OBJECT_NONE) {
-      int object = object_index;
-
-      bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
-      populate_bake_data(bake_data, object_id, pixel_array, num_pixels);
-    }
-
-    /* set number of samples */
-    session->tile_manager.set_samples(session_params.samples);
-    session->reset(buffer_params, session_params.samples);
-    session->update_scene();
 
     session->progress.set_update_callback(
         function_bind(&BlenderSession::update_bake_progress, this));
   }
 
   /* Perform bake. Check cancel to avoid crash with incomplete scene data. */
-  if (!session->progress.get_cancel() && bake_data) {
-    scene->bake_manager->bake(scene->device,
-                              &scene->dscene,
-                              scene,
-                              session->progress,
-                              shader_type,
-                              bake_pass_filter,
-                              bake_data,
-                              result);
+  if (object_found && !session->progress.get_cancel()) {
+    session->start();
+    session->wait();
   }
 
-  /* free all memory used (host and device), so we wouldn't leave render
-   * engine with extra memory allocated
-   */
-
-  session->device_free();
-
-  delete sync;
-  sync = NULL;
+  session->read_bake_tile_cb = function_null;
+  session->write_render_tile_cb = function_null;
 }
 
 void BlenderSession::do_write_update_render_result(BL::RenderLayer &b_rlay,

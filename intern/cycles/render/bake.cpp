@@ -15,6 +15,7 @@
  */
 
 #include "render/bake.h"
+#include "render/buffers.h"
 #include "render/integrator.h"
 #include "render/mesh.h"
 #include "render/object.h"
@@ -24,235 +25,13 @@
 
 CCL_NAMESPACE_BEGIN
 
-BakeData::BakeData(const int object, const size_t tri_offset, const size_t num_pixels)
-    : m_object(object), m_tri_offset(tri_offset), m_num_pixels(num_pixels)
-{
-  m_primitive.resize(num_pixels);
-  m_u.resize(num_pixels);
-  m_v.resize(num_pixels);
-  m_dudx.resize(num_pixels);
-  m_dudy.resize(num_pixels);
-  m_dvdx.resize(num_pixels);
-  m_dvdy.resize(num_pixels);
-}
-
-BakeData::~BakeData()
-{
-  m_primitive.clear();
-  m_u.clear();
-  m_v.clear();
-  m_dudx.clear();
-  m_dudy.clear();
-  m_dvdx.clear();
-  m_dvdy.clear();
-}
-
-void BakeData::set(int i, int prim, float uv[2], float dudx, float dudy, float dvdx, float dvdy)
-{
-  m_primitive[i] = (prim == -1 ? -1 : m_tri_offset + prim);
-  m_u[i] = uv[0];
-  m_v[i] = uv[1];
-  m_dudx[i] = dudx;
-  m_dudy[i] = dudy;
-  m_dvdx[i] = dvdx;
-  m_dvdy[i] = dvdy;
-}
-
-void BakeData::set_null(int i)
-{
-  m_primitive[i] = -1;
-}
-
-int BakeData::object()
-{
-  return m_object;
-}
-
-size_t BakeData::size()
-{
-  return m_num_pixels;
-}
-
-bool BakeData::is_valid(int i)
-{
-  return m_primitive[i] != -1;
-}
-
-uint4 BakeData::data(int i)
-{
-  return make_uint4(m_object, m_primitive[i], __float_as_int(m_u[i]), __float_as_int(m_v[i]));
-}
-
-uint4 BakeData::differentials(int i)
-{
-  return make_uint4(__float_as_int(m_dudx[i]),
-                    __float_as_int(m_dudy[i]),
-                    __float_as_int(m_dvdx[i]),
-                    __float_as_int(m_dvdy[i]));
-}
-
-BakeManager::BakeManager()
-{
-  m_bake_data = NULL;
-  m_is_baking = false;
-  need_update = true;
-  m_shader_limit = 512 * 512;
-}
-
-BakeManager::~BakeManager()
-{
-  if (m_bake_data)
-    delete m_bake_data;
-}
-
-bool BakeManager::get_baking()
-{
-  return m_is_baking;
-}
-
-void BakeManager::set_baking(const bool value)
-{
-  m_is_baking = value;
-}
-
-BakeData *BakeManager::init(const int object, const size_t tri_offset, const size_t num_pixels)
-{
-  m_bake_data = new BakeData(object, tri_offset, num_pixels);
-  return m_bake_data;
-}
-
-void BakeManager::set_shader_limit(const size_t x, const size_t y)
-{
-  m_shader_limit = x * y;
-  m_shader_limit = (size_t)pow(2, std::ceil(log(m_shader_limit) / log(2)));
-}
-
-bool BakeManager::bake(Device *device,
-                       DeviceScene *dscene,
-                       Scene *scene,
-                       Progress &progress,
-                       ShaderEvalType shader_type,
-                       const int pass_filter,
-                       BakeData *bake_data,
-                       float result[])
-{
-  size_t num_pixels = bake_data->size();
-
-  int num_samples = aa_samples(scene, bake_data, shader_type);
-
-  /* calculate the total pixel samples for the progress bar */
-  total_pixel_samples = 0;
-  for (size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
-    size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
-    total_pixel_samples += shader_size * num_samples;
-  }
-  progress.reset_sample();
-  progress.set_total_pixel_samples(total_pixel_samples);
-
-  /* needs to be up to date for baking specific AA samples */
-  dscene->data.integrator.aa_samples = num_samples;
-  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
-  for (size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
-    size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
-
-    /* setup input for device task */
-    device_vector<uint4> d_input(device, "bake_input", MEM_READ_ONLY);
-    uint4 *d_input_data = d_input.alloc(shader_size * 2);
-    size_t d_input_size = 0;
-
-    for (size_t i = shader_offset; i < (shader_offset + shader_size); i++) {
-      d_input_data[d_input_size++] = bake_data->data(i);
-      d_input_data[d_input_size++] = bake_data->differentials(i);
-    }
-
-    if (d_input_size == 0) {
-      m_is_baking = false;
-      return false;
-    }
-
-    /* run device task */
-    device_vector<float4> d_output(device, "bake_output", MEM_READ_WRITE);
-    d_output.alloc(shader_size);
-    d_output.zero_to_device();
-    d_input.copy_to_device();
-
-    DeviceTask task(DeviceTask::SHADER);
-    task.shader_input = d_input.device_pointer;
-    task.shader_output = d_output.device_pointer;
-    task.shader_eval_type = shader_type;
-    task.shader_filter = pass_filter;
-    task.shader_x = 0;
-    task.offset = shader_offset;
-    task.shader_w = d_output.size();
-    task.num_samples = num_samples;
-    task.get_cancel = function_bind(&Progress::get_cancel, &progress);
-    task.update_progress_sample = function_bind(&Progress::add_samples_update, &progress, _1, _2);
-
-    device->task_add(task);
-    device->task_wait();
-
-    if (progress.get_cancel()) {
-      d_input.free();
-      d_output.free();
-      m_is_baking = false;
-      return false;
-    }
-
-    d_output.copy_from_device(0, 1, d_output.size());
-    d_input.free();
-
-    /* read result */
-    int k = 0;
-
-    float4 *offset = d_output.data();
-
-    size_t depth = 4;
-    for (size_t i = shader_offset; i < (shader_offset + shader_size); i++) {
-      size_t index = i * depth;
-      float4 out = offset[k++];
-
-      if (bake_data->is_valid(i)) {
-        for (size_t j = 0; j < 4; j++) {
-          result[index + j] = out[j];
-        }
-      }
-    }
-
-    d_output.free();
-  }
-
-  m_is_baking = false;
-  return true;
-}
-
-void BakeManager::device_update(Device * /*device*/,
-                                DeviceScene * /*dscene*/,
-                                Scene * /*scene*/,
-                                Progress &progress)
-{
-  if (!need_update)
-    return;
-
-  if (progress.get_cancel())
-    return;
-
-  need_update = false;
-}
-
-void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
-{
-}
-
-int BakeManager::aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType type)
+static int aa_samples(Scene *scene, Object *object, ShaderEvalType type)
 {
   if (type == SHADER_EVAL_UV || type == SHADER_EVAL_ROUGHNESS) {
     return 1;
   }
   else if (type == SHADER_EVAL_NORMAL) {
     /* Only antialias normal if mesh has bump mapping. */
-    Object *object = scene->objects[bake_data->object()];
-
     if (object->geometry) {
       foreach (Shader *shader, object->geometry->used_shaders) {
         if (shader->has_bump) {
@@ -269,7 +48,7 @@ int BakeManager::aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType ty
 }
 
 /* Keep it synced with kernel_bake.h logic */
-int BakeManager::shader_type_to_pass_filter(ShaderEvalType type, const int pass_filter)
+static int shader_type_to_pass_filter(ShaderEvalType type, int pass_filter)
 {
   const int component_flags = pass_filter &
                               (BAKE_FILTER_DIRECT | BAKE_FILTER_INDIRECT | BAKE_FILTER_COLOR);
@@ -290,6 +69,86 @@ int BakeManager::shader_type_to_pass_filter(ShaderEvalType type, const int pass_
     default:
       return 0;
   }
+}
+
+BakeManager::BakeManager()
+{
+  type = SHADER_EVAL_BAKE;
+  pass_filter = 0;
+
+  need_update = true;
+}
+
+BakeManager::~BakeManager()
+{
+}
+
+bool BakeManager::get_baking()
+{
+  return !object_name.empty();
+}
+
+void BakeManager::set(Scene *scene,
+                      const std::string &object_name_,
+                      ShaderEvalType type_,
+                      int pass_filter_)
+{
+  object_name = object_name_;
+  type = type_;
+  pass_filter = shader_type_to_pass_filter(type_, pass_filter_);
+
+  Pass::add(PASS_BAKE_PRIMITIVE, scene->film->passes);
+  Pass::add(PASS_BAKE_DIFFERENTIAL, scene->film->passes);
+
+  if (type == SHADER_EVAL_UV) {
+    /* force UV to be available */
+    Pass::add(PASS_UV, scene->film->passes);
+  }
+
+  /* force use_light_pass to be true if we bake more than just colors */
+  if (pass_filter & ~BAKE_FILTER_COLOR) {
+    Pass::add(PASS_LIGHT, scene->film->passes);
+  }
+
+  /* create device and update scene */
+  scene->film->tag_update(scene);
+  scene->integrator->tag_update(scene);
+
+  need_update = true;
+}
+
+void BakeManager::device_update(Device * /*device*/,
+                                DeviceScene *dscene,
+                                Scene *scene,
+                                Progress & /* progress */)
+{
+  if (!need_update)
+    return;
+
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+  KernelBake *kbake = &dscene->data.bake;
+
+  kbake->type = type;
+  kbake->pass_filter = pass_filter;
+
+  int object_index = 0;
+  foreach (Object *object, scene->objects) {
+    const Geometry *geom = object->geometry;
+    if (object->name == object_name && geom->type == Geometry::MESH) {
+      kbake->object_index = object_index;
+      kbake->tri_offset = geom->prim_offset;
+      kintegrator->aa_samples = aa_samples(scene, object, type);
+      break;
+    }
+
+    object_index++;
+  }
+
+  need_update = false;
+}
+
+void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
+{
 }
 
 CCL_NAMESPACE_END

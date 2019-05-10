@@ -148,6 +148,7 @@ class Session {
 
   function<void(RenderTile &)> write_render_tile_cb;
   function<void(RenderTile &, bool)> update_render_tile_cb;
+  function<void(RenderTile &)> read_bake_tile_cb;
 
   explicit Session(const SessionParams &params);
   ~Session();

@@ -223,7 +223,7 @@ class CUDADevice : public Device {
                               CUdeviceptr d_wtile,
                               CUstream stream = 0);
 
-  void path_trace(DeviceTask &task, RenderTile &rtile, device_vector<WorkTile> &work_tiles);
+  void render(DeviceTask &task, RenderTile &rtile, device_vector<WorkTile> &work_tiles);
 
   void film_convert(DeviceTask &task,
                     device_ptr buffer,

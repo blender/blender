@@ -410,7 +410,16 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   rtile.num_samples = tile_manager.state.num_samples;
   rtile.resolution = tile_manager.state.resolution_divider;
   rtile.tile_index = tile->index;
-  rtile.task = tile->state == Tile::DENOISE ? RenderTile::DENOISE : RenderTile::PATH_TRACE;
+
+  if (tile->state == Tile::DENOISE) {
+    rtile.task = RenderTile::DENOISE;
+  }
+  else if (read_bake_tile_cb) {
+    rtile.task = RenderTile::BAKE;
+  }
+  else {
+    rtile.task = RenderTile::PATH_TRACE;
+  }
 
   tile_lock.unlock();
 
@@ -451,11 +460,20 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   rtile.buffers = tile->buffers;
   rtile.sample = tile_manager.state.sample;
 
-  /* this will tag tile as IN PROGRESS in blender-side render pipeline,
-   * which is needed to highlight currently rendering tile before first
-   * sample was processed for it
-   */
-  update_tile_sample(rtile);
+  if (read_bake_tile_cb) {
+    /* This will read any passes needed as input for baking. */
+    {
+      thread_scoped_lock tile_lock(tile_mutex);
+      read_bake_tile_cb(rtile);
+    }
+    rtile.buffers->buffer.copy_to_device();
+  }
+  else {
+    /* This will tag tile as IN PROGRESS in blender-side render pipeline,
+     * which is needed to highlight currently rendering tile before first
+     * sample was processed for it. */
+    update_tile_sample(rtile);
+  }
 
   return true;
 }
@@ -484,6 +502,7 @@ void Session::release_tile(RenderTile &rtile, const bool need_denoise)
   bool delete_tile;
 
   if (tile_manager.finish_tile(rtile.tile_index, need_denoise, delete_tile)) {
+    /* Finished tile pixels write. */
     if (write_render_tile_cb && params.progressive_refine == false) {
       write_render_tile_cb(rtile);
     }
@@ -494,6 +513,7 @@ void Session::release_tile(RenderTile &rtile, const bool need_denoise)
     }
   }
   else {
+    /* In progress tile pixels update. */
     if (update_render_tile_cb && params.progressive_refine == false) {
       update_render_tile_cb(rtile, false);
     }
