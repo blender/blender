@@ -62,6 +62,8 @@ struct UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
 bool BKE_blendfile_userdef_write(const char *filepath, struct ReportList *reports);
 bool BKE_blendfile_userdef_write_app_template(const char *filepath, struct ReportList *reports);
 
+bool BKE_blendfile_userdef_write_all(struct ReportList *reports);
+
 struct WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
                                                                     const void *filebuf,
                                                                     int filelength,

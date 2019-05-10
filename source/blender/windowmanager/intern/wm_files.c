@@ -716,26 +716,6 @@ const char *WM_init_state_app_template_get(void)
   return wm_init_state_app_template.override ? wm_init_state_app_template.app_template : NULL;
 }
 
-static bool wm_app_template_has_userpref(const char *app_template)
-{
-  /* Test if app template provides a userpref.blend. If not, we will
-   * share user preferences with the rest of Blender. */
-  if (!app_template && app_template[0]) {
-    return false;
-  }
-
-  char app_template_path[FILE_MAX];
-  if (!BKE_appdir_app_template_id_search(
-          app_template, app_template_path, sizeof(app_template_path))) {
-    return false;
-  }
-
-  char userpref_path[FILE_MAX];
-  BLI_path_join(
-      userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE, NULL);
-  return BLI_exists(userpref_path);
-}
-
 /**
  * Called on startup, (context entirely filled with NULLs)
  * or called for 'New File' both startup.blend and userpref.blend are checked.
@@ -1694,57 +1674,11 @@ void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
 static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  char filepath[FILE_MAX];
-  const char *cfgdir;
-  bool ok = true;
-  bool use_template_userpref = wm_app_template_has_userpref(U.app_template);
 
-  /* update keymaps in user preferences */
+  /* Update keymaps in user preferences. */
   WM_keyconfig_update(wm);
 
-  if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL))) {
-    bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
-
-    printf("Writing userprefs: '%s' ", filepath);
-    if (use_template_userpref) {
-      ok_write = BKE_blendfile_userdef_write_app_template(filepath, op->reports);
-    }
-    else {
-      ok_write = BKE_blendfile_userdef_write(filepath, op->reports);
-    }
-
-    if (ok_write) {
-      printf("ok\n");
-    }
-    else {
-      printf("fail\n");
-      ok = false;
-    }
-  }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Unable to create userpref path");
-  }
-
-  if (use_template_userpref) {
-    if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
-      /* Also save app-template prefs */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
-
-      printf("Writing userprefs app-template: '%s' ", filepath);
-      if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
-        printf("ok\n");
-      }
-      else {
-        printf("fail\n");
-        ok = false;
-      }
-    }
-    else {
-      BKE_report(op->reports, RPT_ERROR, "Unable to create app-template userpref path");
-      ok = false;
-    }
-  }
+  const bool ok = BKE_blendfile_userdef_write_all(op->reports);
 
   return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1822,8 +1756,8 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = app_template_buf;
 
     /* Always load preferences when switching templates with own preferences. */
-    use_userdef = wm_app_template_has_userpref(app_template) ||
-                  wm_app_template_has_userpref(U.app_template);
+    use_userdef = BKE_appdir_app_template_has_userpref(app_template) ||
+                  BKE_appdir_app_template_has_userpref(U.app_template);
 
     /* Turn override off, since we're explicitly loading a different app-template. */
     WM_init_state_app_template_set(NULL);

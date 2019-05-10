@@ -838,6 +838,26 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
   return false;
 }
 
+bool BKE_appdir_app_template_has_userpref(const char *app_template)
+{
+  /* Test if app template provides a userpref.blend.
+   * If not, we will share user preferences with the rest of Blender. */
+  if (!app_template && app_template[0]) {
+    return false;
+  }
+
+  char app_template_path[FILE_MAX];
+  if (!BKE_appdir_app_template_id_search(
+          app_template, app_template_path, sizeof(app_template_path))) {
+    return false;
+  }
+
+  char userpref_path[FILE_MAX];
+  BLI_path_join(
+      userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE, NULL);
+  return BLI_exists(userpref_path);
+}
+
 void BKE_appdir_app_templates(ListBase *templates)
 {
   BLI_listbase_clear(templates);
