@@ -98,6 +98,25 @@ static bool wm_scene_is_visible(wmWindowManager *wm, Scene *scene)
   return false;
 }
 
+static void setup_app_userdef(BlendFileData *bfd)
+{
+  if (bfd->user) {
+    /* only here free userdef themes... */
+    BKE_blender_userdef_data_set_and_free(bfd->user);
+    bfd->user = NULL;
+
+    /* Security issue: any blend file could include a USER block.
+     *
+     * Currently we load prefs from BLENDER_STARTUP_FILE and later on load BLENDER_USERPREF_FILE,
+     * to load the preferences defined in the users home dir.
+     *
+     * This means we will never accidentally (or maliciously)
+     * enable scripts auto-execution by loading a '.blend' file.
+     */
+    U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
+  }
+}
+
 /**
  * Context matching, handle no-ui case
  *
@@ -235,25 +254,9 @@ static void setup_app_data(bContext *C,
   RNA_property_update_cache_free();
 
   bmain = G_MAIN = bfd->main;
+  bfd->main = NULL;
 
   CTX_data_main_set(C, bmain);
-
-  if (bfd->user) {
-
-    /* only here free userdef themes... */
-    BKE_blender_userdef_data_set_and_free(bfd->user);
-    bfd->user = NULL;
-
-    /* Security issue: any blend file could include a USER block.
-     *
-     * Currently we load prefs from BLENDER_STARTUP_FILE and later on load BLENDER_USERPREF_FILE,
-     * to load the preferences defined in the users home dir.
-     *
-     * This means we will never accidentally (or maliciously)
-     * enable scripts auto-execution by loading a '.blend' file.
-     */
-    U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
-  }
 
   /* case G_FILE_NO_UI or no screens in file */
   if (mode != LOAD_UI) {
@@ -356,8 +359,20 @@ static void setup_app_data(bContext *C,
     /* TODO(sergey): Can this be also move above? */
     RE_FreeAllPersistentData();
   }
+}
 
-  MEM_freeN(bfd);
+static void setup_app_blend_file_data(bContext *C,
+                                      BlendFileData *bfd,
+                                      const char *filepath,
+                                      const struct BlendFileReadParams *params,
+                                      ReportList *reports)
+{
+  if ((params->skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
+    setup_app_userdef(bfd);
+  }
+  if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+    setup_app_data(C, bfd, filepath, params->is_startup, reports);
+  }
 }
 
 static int handle_subversion_warning(Main *main, ReportList *reports)
@@ -400,7 +415,8 @@ int BKE_blendfile_read(bContext *C,
       retval = BKE_BLENDFILE_READ_FAIL;
     }
     else {
-      setup_app_data(C, bfd, filepath, params->is_startup, reports);
+      setup_app_blend_file_data(C, bfd, filepath, params, reports);
+      BLO_blendfiledata_free(bfd);
     }
   }
   else {
@@ -424,7 +440,9 @@ bool BKE_blendfile_read_from_memory(bContext *C,
     if (update_defaults) {
       BLO_update_defaults_startup_blend(bfd->main, NULL);
     }
-    setup_app_data(C, bfd, "<memory2>", params->is_startup, reports);
+
+    setup_app_blend_file_data(C, bfd, "<memory2>", params, reports);
+    BLO_blendfiledata_free(bfd);
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
@@ -453,7 +471,8 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
       BKE_id_free(bfd->main, bfd->main->screens.first);
     }
 
-    setup_app_data(C, bfd, "<memory1>", params->is_startup, reports);
+    setup_app_blend_file_data(C, bfd, "<memory1>", params, reports);
+    BLO_blendfiledata_free(bfd);
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
