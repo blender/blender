@@ -578,7 +578,7 @@ if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/shader")
   add_cycles_render_test(sss)
   add_cycles_render_test(volume)
 elseif(WITH_CYCLES)
-  MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
+  MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist at ${TEST_SRC_DIR}")
 endif()
 
 if(WITH_OPENGL_DRAW_TESTS)
