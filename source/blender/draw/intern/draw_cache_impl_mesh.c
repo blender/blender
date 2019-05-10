@@ -2078,17 +2078,6 @@ static bool mesh_batch_cache_valid(Mesh *me)
     return false;
   }
 
-  if (cache->is_editmode) {
-    return false;
-  }
-  else if ((cache->vert_len != mesh_render_verts_len_get(me)) ||
-           (cache->edge_len != mesh_render_edges_len_get(me)) ||
-           (cache->tri_len != mesh_render_looptri_len_get(me)) ||
-           (cache->poly_len != mesh_render_polys_len_get(me)) ||
-           (cache->mat_len != mesh_render_mat_len_get(me))) {
-    return false;
-  }
-
   return true;
 }
 
