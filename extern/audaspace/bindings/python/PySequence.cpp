@@ -100,7 +100,7 @@ Sequence_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
 PyDoc_STRVAR(M_aud_Sequence_add_doc,
 			 "add()\n\n"
-			 "Adds a new entry to the scene.\n"
+			 "Adds a new entry to the sequence.\n\n"
 			 ":arg sound: The sound this entry should play.\n"
 			 ":type sound: :class:`Sound`\n"
 			 ":arg begin: The start time.\n"
@@ -151,8 +151,8 @@ Sequence_add(Sequence* self, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sequence_remove_doc,
-			 "reomve()\n\n"
-			 "Adds a new entry to the scene.\n"
+			 "remove()\n\n"
+			 "Removes an entry from the sequence.\n\n"
 			 ":arg entry: The entry to remove.\n"
 			 ":type entry: :class:`SequenceEntry`\n");
 
@@ -579,7 +579,7 @@ static PyGetSetDef Sequence_properties[] = {
 };
 
 PyDoc_STRVAR(M_aud_Sequence_doc,
-			 "This sound represents sequenced entries to play a sound scene.");
+			 "This sound represents sequenced entries to play a sound sequence.");
 
 extern PyTypeObject SoundType;
 

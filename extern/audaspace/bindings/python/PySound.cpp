@@ -470,14 +470,22 @@ Sound_sawtooth(PyTypeObject* type, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Sound_silence_doc,
-			 "silence()\n\n"
+			 "silence(rate=48000)\n\n"
 			 "Creates a silence sound which plays simple silence.\n\n"
+			 ":arg rate: The sampling rate in Hz. It's recommended to set this "
+			 "value to the playback device's samling rate to avoid resamping.\n"
+			 ":type rate: int\n"
 			 ":return: The created :class:`Sound` object.\n"
 			 ":rtype: :class:`Sound`");
 
 static PyObject *
-Sound_silence(PyTypeObject* type)
+Sound_silence(PyTypeObject* type, PyObject* args)
 {
+	double rate = 48000;
+
+	if(!PyArg_ParseTuple(args, "|d:sawtooth", &rate))
+		return nullptr;
+
 	Sound* self;
 
 	self = (Sound*)type->tp_alloc(type, 0);
@@ -485,7 +493,7 @@ Sound_silence(PyTypeObject* type)
 	{
 		try
 		{
-			self->sound = new std::shared_ptr<ISound>(new Silence());
+			self->sound = new std::shared_ptr<ISound>(new Silence((SampleRate)rate));
 		}
 		catch(Exception& e)
 		{
@@ -1788,7 +1796,7 @@ static PyMethodDef Sound_methods[] = {
 	{"sawtooth", (PyCFunction)Sound_sawtooth, METH_VARARGS | METH_CLASS,
 	 M_aud_Sound_sawtooth_doc
 	},
-	{"silence", (PyCFunction)Sound_silence, METH_NOARGS | METH_CLASS,
+	{"silence", (PyCFunction)Sound_silence, METH_VARARGS | METH_CLASS,
 	 M_aud_Sound_silence_doc
 	},
 	{"sine", (PyCFunction)Sound_sine, METH_VARARGS | METH_CLASS,

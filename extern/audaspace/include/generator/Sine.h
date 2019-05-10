@@ -53,8 +53,7 @@ public:
 	 * \param frequency The desired frequency.
 	 * \param sampleRate The target sample rate for playback.
 	 */
-	Sine(float frequency,
-					 SampleRate sampleRate = RATE_48000);
+	Sine(float frequency, SampleRate sampleRate = RATE_48000);
 
 	/**
 	 * Returns the frequency of the sine wave.

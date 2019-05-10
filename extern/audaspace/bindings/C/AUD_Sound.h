@@ -113,9 +113,10 @@ extern AUD_API AUD_Sound* AUD_Sound_sawtooth(float frequency, AUD_SampleRate rat
 
 /**
  * Creates a quiet sound.
+ * \param rate The sample rate of the silence sound.
  * \return A handle of the sound.
  */
-extern AUD_API AUD_Sound* AUD_Sound_silence();
+extern AUD_API AUD_Sound* AUD_Sound_silence(AUD_SampleRate rate);
 
 /**
  * Creates a sine sound.

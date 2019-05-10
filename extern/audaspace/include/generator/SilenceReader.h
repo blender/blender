@@ -38,6 +38,11 @@ private:
 	 */
 	int m_position;
 
+	/**
+	 * The sample rate for the output.
+	 */
+	const SampleRate m_sampleRate;
+
 	// delete copy constructor and operator=
 	SilenceReader(const SilenceReader&) = delete;
 	SilenceReader& operator=(const SilenceReader&) = delete;
@@ -45,8 +50,9 @@ private:
 public:
 	/**
 	 * Creates a new reader.
+	 * \param sampleRate The output sample rate.
 	 */
-	SilenceReader();
+	SilenceReader(SampleRate sampleRate);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

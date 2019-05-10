@@ -19,13 +19,14 @@
 
 AUD_NAMESPACE_BEGIN
 
-Silence::Silence()
+Silence::Silence(SampleRate sampleRate) :
+	m_sampleRate(sampleRate)
 {
 }
 
 std::shared_ptr<IReader> Silence::createReader()
 {
-	return std::shared_ptr<IReader>(new SilenceReader());
+	return std::shared_ptr<IReader>(new SilenceReader(m_sampleRate));
 }
 
 AUD_NAMESPACE_END

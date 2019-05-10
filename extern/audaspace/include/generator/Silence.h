@@ -23,6 +23,7 @@
  */
 
 #include "ISound.h"
+#include "respec/Specification.h"
 
 AUD_NAMESPACE_BEGIN
 
@@ -32,6 +33,11 @@ AUD_NAMESPACE_BEGIN
 class AUD_API Silence : public ISound
 {
 private:
+	/**
+	 * The target sample rate for output.
+	 */
+	const SampleRate m_sampleRate;
+
 	// delete copy constructor and operator=
 	Silence(const Silence&) = delete;
 	Silence& operator=(const Silence&) = delete;
@@ -39,8 +45,9 @@ private:
 public:
 	/**
 	 * Creates a new silence sound.
+	 * \param sampleRate The target sample rate for playback.
 	 */
-	Silence();
+	Silence(SampleRate sampleRate = RATE_48000);
 
 	virtual std::shared_ptr<IReader> createReader();
 };

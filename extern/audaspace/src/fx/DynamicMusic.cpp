@@ -15,9 +15,6 @@
 ******************************************************************************/
 
 #include "fx/DynamicMusic.h"
-#include "generator/Silence.h"
-#include "fx/Fader.h"
-#include "fx/Limiter.h"
 
 #include <mutex>
 #include <condition_variable>

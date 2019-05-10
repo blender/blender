@@ -177,10 +177,10 @@ static void pauseSound(AUD_Handle* handle)
 
 AUD_API AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds)
 {
-	std::shared_ptr<ISound> silence = std::shared_ptr<ISound>(new Silence);
-	std::shared_ptr<ISound> limiter = std::shared_ptr<ISound>(new Limiter(silence, 0, seconds));
-
 	auto device = DeviceManager::getDevice();
+
+	std::shared_ptr<ISound> silence = std::shared_ptr<ISound>(new Silence(device->getSpecs().rate));
+	std::shared_ptr<ISound> limiter = std::shared_ptr<ISound>(new Limiter(silence, 0, seconds));
 
 	std::lock_guard<ILockable> lock(*device);
 

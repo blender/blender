@@ -277,9 +277,9 @@ AUD_API AUD_Sound* AUD_Sound_sawtooth(float frequency, AUD_SampleRate rate)
 	return new AUD_Sound(new Sawtooth(frequency, rate));
 }
 
-AUD_API AUD_Sound*AUD_Sound_silence()
+AUD_API AUD_Sound* AUD_Sound_silence(AUD_SampleRate rate)
 {
-	return new AUD_Sound(new Silence());
+	return new AUD_Sound(new Silence(rate));
 }
 
 AUD_API AUD_Sound* AUD_Sound_sine(float frequency, AUD_SampleRate rate)

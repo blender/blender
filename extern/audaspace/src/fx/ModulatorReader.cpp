@@ -48,7 +48,7 @@ int ModulatorReader::getLength() const
 	int len2 = m_reader2->getLength();
 	if((len1 < 0) || (len2 < 0))
 		return -1;
-	return std::min(len1, len2);
+	return std::max(len1, len2);
 }
 
 int ModulatorReader::getPosition() const

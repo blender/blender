@@ -20,8 +20,9 @@
 
 AUD_NAMESPACE_BEGIN
 
-SilenceReader::SilenceReader() :
-	m_position(0)
+SilenceReader::SilenceReader(SampleRate sampleRate) :
+	m_position(0),
+	m_sampleRate(sampleRate)
 {
 }
 
@@ -48,7 +49,7 @@ int SilenceReader::getPosition() const
 Specs SilenceReader::getSpecs() const
 {
 	Specs specs;
-	specs.rate = RATE_48000;
+	specs.rate = m_sampleRate;
 	specs.channels = CHANNELS_MONO;
 	return specs;
 }
