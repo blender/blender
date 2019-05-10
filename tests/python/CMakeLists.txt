@@ -15,8 +15,6 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 # ***** END GPL LICENSE BLOCK *****
 
-# --env-system-scripts allows to run without the install target.
-
 # Use '--write-blend=/tmp/test.blend' to view output
 
 # Some tests are interesting but take too long to run
@@ -35,12 +33,10 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 #~  endif()
 
 # all calls to blender use this
-if(APPLE)
-  if(${CMAKE_GENERATOR} MATCHES "Xcode")
-    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
-  else()
-    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
-  endif()
+# --env-system-scripts allows to run without the install target, but does
+# not work for all configurations.
+if(WITH_CYCLES OR (APPLE AND (${CMAKE_GENERATOR} MATCHES "Xcode")))
+  set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
 else()
   set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 endif()
