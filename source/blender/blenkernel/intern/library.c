@@ -1860,7 +1860,7 @@ static void library_make_local_copying_check(ID *id,
  * (except group and objects ones).
  */
 /* Note: Old (2.77) version was simply making (tagging) data-blocks as local,
- * without actually making any check whether * they were also indirectly used or not...
+ * without actually making any check whether they were also indirectly used or not...
  *
  * Current version uses regular id_make_local callback, with advanced pre-processing step to detect
  * all cases of IDs currently indirectly used, but which will be used by local data only once this

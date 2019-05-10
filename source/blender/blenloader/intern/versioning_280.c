@@ -421,6 +421,9 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;
+          if (collection->id.lib != NULL) {
+            collection->id.tag |= LIB_TAG_INDIRECT;
+          }
           collections[layer] = collection;
 
           if (!(scene->lay & (1 << layer))) {
