@@ -1859,16 +1859,6 @@ void BKE_displist_make_curveTypes_forRender(Depsgraph *depsgraph,
                             r_final);
 }
 
-void BKE_displist_make_curveTypes_forOrco(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase, LinkNode *ob_cyclic_list)
-{
-  if (ob->runtime.curve_cache == NULL) {
-    ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
-  }
-
-  do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, 1, 1, 1, ob_cyclic_list, NULL);
-}
-
 void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {
   DispList *dl;
