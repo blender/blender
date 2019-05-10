@@ -12,6 +12,9 @@ import sys
 def setup():
     import bpy
 
+    for scene in bpy.data.scenes:
+        scene.render.engine = 'BLENDER_WORKBENCH'
+
     scene = bpy.context.scene
     scene.display.shading.color_type = 'TEXTURE'
 

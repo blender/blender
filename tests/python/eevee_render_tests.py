@@ -12,6 +12,9 @@ import sys
 def setup():
     import bpy
 
+    for scene in bpy.data.scenes:
+        scene.render.engine = 'BLENDER_EEVEE'
+
     # Enable Eevee features
     scene = bpy.context.scene
     eevee = scene.eevee
