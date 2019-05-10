@@ -4296,7 +4296,7 @@ GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me)
 GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
-  mesh_batch_cache_add_request(cache, MBC_LOOSE_EDGES);
+  mesh_batch_cache_add_request(cache, MBC_SURFACE_WEIGHTS);
   return DRW_batch_request(&cache->batch.surface_weights);
 }
 
@@ -4912,7 +4912,7 @@ void DRW_mesh_batch_cache_create_requested(
 
   if (cache->batch_requested & MBC_SURFACE_WEIGHTS) {
     /* Check vertex weights. */
-    if ((cache->batch.surface_weights != 0) && (ts != NULL)) {
+    if ((cache->batch.surface_weights != NULL) && (ts != NULL)) {
       struct DRW_MeshWeightState wstate;
       BLI_assert(ob->type == OB_MESH);
       drw_mesh_weight_state_extract(ob, me, ts, is_paint_mode, &wstate);
