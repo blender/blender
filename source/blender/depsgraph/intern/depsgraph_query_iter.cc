@@ -158,7 +158,13 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
       continue;
     }
 
+    /* This could be avoided by refactoring make_dupli() in order to track all negative scaling
+     * recursively. */
+    bool is_neg_scale = is_negative_m4(dob->mat);
+    SET_FLAG_FROM_TEST(data->temp_dupli_object.transflag, is_neg_scale, OB_NEG_SCALE);
+
     copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
+    invert_m4_m4(data->temp_dupli_object.imat, data->temp_dupli_object.obmat);
     iter->current = &data->temp_dupli_object;
     BLI_assert(DEG::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
     return true;
