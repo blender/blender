@@ -58,30 +58,90 @@
 /** \name Button Context Menu
  * \{ */
 
+static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
+{
+  /* Compute data path from context to property. */
+  const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
+  const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
+  const char *member_id_data_path = member_id;
+
+  if (data_path) {
+    member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
+    MEM_freeN((void *)data_path);
+  }
+
+  const char *prop_id = RNA_property_identifier(but->rnaprop);
+  const char *final_data_path = BLI_sprintfN("%s.%s", member_id_data_path, prop_id);
+
+  if (member_id != member_id_data_path) {
+    MEM_freeN((void *)member_id_data_path);
+  }
+
+  /* Create ID property of data path, to pass to the operator. */
+  IDProperty *prop;
+  IDPropertyTemplate val = {0};
+  prop = IDP_New(IDP_GROUP, &val, __func__);
+  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path", strlen(final_data_path) + 1));
+
+  MEM_freeN((void *)final_data_path);
+
+  return prop;
+}
+
+static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDProperty **prop)
+{
+  if (but->optype) {
+    /* Operator */
+    *prop = (but->opptr) ? IDP_CopyProperty(but->opptr->data) : NULL;
+    return but->optype->idname;
+  }
+  else if (but->rnaprop) {
+    if (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) {
+      /* Boolean */
+      *prop = shortcut_property_from_rna(C, but);
+      return "WM_OT_context_toggle";
+    }
+    else if (RNA_property_type(but->rnaprop) == PROP_ENUM) {
+      /* Enum */
+      *prop = shortcut_property_from_rna(C, but);
+      return "WM_OT_context_menu_enum";
+    }
+  }
+
+  *prop = NULL;
+  return NULL;
+}
+
+static void shortcut_free_operator_property(IDProperty *prop)
+{
+  if (prop) {
+    IDP_FreeProperty(prop);
+    MEM_freeN(prop);
+  }
+}
+
 static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 {
   uiBut *but = (uiBut *)arg1;
+  char shortcut_str[128];
 
-  if (but->optype) {
-    char shortcut_str[128];
-
-    IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
-
-    /* complex code to change name of button */
-    if (WM_key_event_operator_string(C,
-                                     but->optype->idname,
-                                     but->opcontext,
-                                     prop,
-                                     true,
-                                     shortcut_str,
-                                     sizeof(shortcut_str))) {
-      ui_but_add_shortcut(but, shortcut_str, true);
-    }
-    else {
-      /* simply strip the shortcut */
-      ui_but_add_shortcut(but, NULL, true);
-    }
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
+  if (idname == NULL) {
+    return;
   }
+
+  /* complex code to change name of button */
+  if (WM_key_event_operator_string(
+          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str))) {
+    ui_but_add_shortcut(but, shortcut_str, true);
+  }
+  else {
+    /* simply strip the shortcut */
+    ui_but_add_shortcut(but, NULL, true);
+  }
+
+  shortcut_free_operator_property(prop);
 }
 
 static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
@@ -94,10 +154,11 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
   PointerRNA ptr;
   uiLayout *layout;
   uiStyle *style = UI_style_get_dpi();
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
 
   kmi = WM_key_event_operator(C,
-                              but->optype->idname,
+                              idname,
                               but->opcontext,
                               prop,
                               EVT_TYPE_MASK_HOTKEY_INCLUDE,
@@ -118,6 +179,8 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 
   UI_block_bounds_set_popup(block, 6, (const int[2]){-50, 26});
 
+  shortcut_free_operator_property(prop);
+
   return block;
 }
 
@@ -135,25 +198,23 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
   PointerRNA ptr;
   uiLayout *layout;
   uiStyle *style = UI_style_get_dpi();
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
   int kmi_id;
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
 
   /* XXX this guess_opname can potentially return a different keymap
    * than being found on adding later... */
-  km = WM_keymap_guess_opname(C, but->optype->idname);
-  kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
+  km = WM_keymap_guess_opname(C, idname);
+  kmi = WM_keymap_add_item(km, idname, AKEY, KM_PRESS, 0, 0);
   kmi_id = kmi->id;
 
-  /* copy properties, prop can be NULL for reset */
-  if (prop) {
-    prop = IDP_CopyProperty(prop);
-  }
+  /* This takes ownership of prop, or prop can be NULL for reset. */
   WM_keymap_item_properties_reset(kmi, prop);
 
   /* update and get pointers again */
   WM_keyconfig_update(wm);
 
-  km = WM_keymap_guess_opname(C, but->optype->idname);
+  km = WM_keymap_guess_opname(C, idname);
   kmi = WM_keymap_item_find_id(km, kmi_id);
 
   RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
@@ -179,19 +240,20 @@ static void menu_add_shortcut_cancel(struct bContext *C, void *arg1)
   uiBut *but = (uiBut *)arg1;
   wmKeyMap *km;
   wmKeyMapItem *kmi;
-#ifndef USE_KEYMAP_ADD_HACK
-  IDProperty *prop;
-#endif
   int kmi_id;
 
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
+
 #ifdef USE_KEYMAP_ADD_HACK
-  km = WM_keymap_guess_opname(C, but->optype->idname);
+  km = WM_keymap_guess_opname(C, idname);
   kmi_id = g_kmi_id_hack;
   UNUSED_VARS(but);
 #else
-  prop = (but->opptr) ? but->opptr->data : NULL;
-  kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, true, &km);
+  kmi_id = WM_key_event_operator_id(C, idname, but->opcontext, prop, true, &km);
 #endif
+
+  shortcut_free_operator_property(prop);
 
   kmi = WM_keymap_item_find_id(km, kmi_id);
   WM_keymap_remove_item(km, kmi);
@@ -208,10 +270,11 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
   uiBut *but = (uiBut *)arg1;
   wmKeyMap *km;
   wmKeyMapItem *kmi;
-  IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
 
   kmi = WM_key_event_operator(C,
-                              but->optype->idname,
+                              idname,
                               but->opcontext,
                               prop,
                               EVT_TYPE_MASK_HOTKEY_INCLUDE,
@@ -221,6 +284,7 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 
   WM_keymap_remove_item(km, kmi);
 
+  shortcut_free_operator_property(prop);
   but_shortcut_name_func(C, but, 0);
 }
 
@@ -890,16 +954,18 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     uiItemS(layout);
   }
 
-  /* Operator buttons */
-  if (but->optype) {
+  /* Shortcut menu */
+  IDProperty *prop;
+  const char *idname = shortcut_get_operator_property(C, but, &prop);
+  if (idname != NULL) {
     uiBlock *block = uiLayoutGetBlock(layout);
     uiBut *but2;
-    IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
     int w = uiLayoutGetWidth(layout);
     wmKeyMap *km;
+
     /* We want to know if this op has a shortcut, be it hotkey or not. */
     wmKeyMapItem *kmi = WM_key_event_operator(
-        C, but->optype->idname, but->opcontext, prop, EVT_TYPE_MASK_ALL, 0, &km);
+        C, idname, but->opcontext, prop, EVT_TYPE_MASK_ALL, 0, &km);
 
     /* We do have a shortcut, but only keyboard ones are editable that way... */
     if (kmi) {
@@ -971,7 +1037,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
       }
     }
     /* only show 'assign' if there's a suitable key map for it to go in */
-    else if (WM_keymap_guess_opname(C, but->optype->idname)) {
+    else if (WM_keymap_guess_opname(C, idname)) {
       but2 = uiDefIconTextBut(block,
                               UI_BTYPE_BUT,
                               0,
@@ -989,6 +1055,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
                               "");
       UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
     }
+
+    shortcut_free_operator_property(prop);
 
     /* Set the operator pointer for python access */
     uiLayoutSetContextFromBut(layout, but);
