@@ -617,6 +617,9 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
     }
   }
 
+  if (ok) {
+    U.runtime.is_dirty = false;
+  }
   return ok;
 }
 

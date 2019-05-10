@@ -184,8 +184,11 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
   value[2] = userdef->subversionfile;
 }
 
-static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
+  UserDef *userdef = (UserDef *)ptr->data;
+  userdef->runtime.is_dirty = true;
+
   WM_main_add_notifier(NC_WINDOW, NULL);
 }
 

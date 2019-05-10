@@ -7566,6 +7566,11 @@ static void button_activate_exit(
     if (block->flag & UI_BLOCK_POPUP_MEMORY) {
       ui_popup_menu_memory_set(block, but);
     }
+
+    /* Not very elegant, but ensures preference changes force re-save. */
+    if (but->rnaprop && (but->rnapoin.data == &U)) {
+      U.runtime.is_dirty = true;
+    }
   }
 
   /* disable tooltips until mousemove + last active flag */
