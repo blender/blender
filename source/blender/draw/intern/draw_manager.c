@@ -2760,7 +2760,8 @@ void DRW_state_dfdy_factors_get(float dfdyfac[2])
  */
 bool DRW_state_is_fbo(void)
 {
-  return ((DST.default_framebuffer != NULL) || DST.options.is_image_render);
+  return ((DST.default_framebuffer != NULL) || DST.options.is_image_render) &&
+         !DRW_state_is_depth() && !DRW_state_is_select();
 }
 
 /**
