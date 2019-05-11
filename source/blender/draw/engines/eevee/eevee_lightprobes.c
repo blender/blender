@@ -444,19 +444,6 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
   else {
     stl->g_data->planar_display_shgrp = NULL;
   }
-
-  {
-    psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample",
-                                                      DRW_STATE_WRITE_COLOR);
-
-    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_planar_downsample_sh_get(),
-                                              psl->probe_planar_downsample_ps);
-
-    DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
-    DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
-    DRW_shgroup_call_instances_add(
-        grp, DRW_cache_fullscreen_quad_get(), NULL, (uint *)&pinfo->num_planar);
-  }
 }
 
 static bool eevee_lightprobes_culling_test(Object *ob)
@@ -771,6 +758,20 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
         WM_event_add_notifier(draw_ctx->evil_C, NC_LIGHTPROBE, scene_orig);
       }
     }
+  }
+
+  if (pinfo->num_planar) {
+    EEVEE_PassList *psl = vedata->psl;
+    EEVEE_TextureList *txl = vedata->txl;
+    psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample",
+                                                      DRW_STATE_WRITE_COLOR);
+
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_planar_downsample_sh_get(),
+                                              psl->probe_planar_downsample_ps);
+
+    DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
+    DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
+    DRW_shgroup_call_procedural_triangles_add(grp, pinfo->num_planar, NULL);
   }
 }
 
