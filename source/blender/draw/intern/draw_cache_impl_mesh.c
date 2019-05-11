@@ -4729,14 +4729,18 @@ static void uvedit_fill_buffer_data(MeshRenderData *rdata,
           GPU_indexbuf_add_generic_vert(elb_face, vidx);
           GPU_indexbuf_add_primitive_restart(elb_face);
         }
-        if (elb_edge && e_origindex[l[i].e] != ORIGINDEX_NONE) {
+        if (elb_edge) {
           for (i = 0; i < mpoly->totloop; ++i) {
-            GPU_indexbuf_add_line_verts(elb_edge, vidx + i, vidx + (i + 1) % mpoly->totloop);
+            if (e_origindex[l[i].e] != ORIGINDEX_NONE) {
+              GPU_indexbuf_add_line_verts(elb_edge, vidx + i, vidx + (i + 1) % mpoly->totloop);
+            }
           }
         }
-        if (elb_vert && v_origindex[l[i].v] != ORIGINDEX_NONE) {
+        if (elb_vert) {
           for (i = 0; i < mpoly->totloop; ++i) {
-            GPU_indexbuf_add_generic_vert(elb_vert, vidx + i);
+            if (v_origindex[l[i].v] != ORIGINDEX_NONE) {
+              GPU_indexbuf_add_generic_vert(elb_vert, vidx + i);
+            }
           }
         }
       }
