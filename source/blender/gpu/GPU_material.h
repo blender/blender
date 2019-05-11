@@ -177,6 +177,7 @@ GPUMaterial *GPU_material_from_nodetree_find(struct ListBase *gpumaterials,
                                              const void *engine_type,
                                              int options);
 GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
+                                        struct Material *ma,
                                         struct bNodeTree *ntree,
                                         struct ListBase *gpumaterials,
                                         const void *engine_type,
@@ -194,6 +195,7 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
+struct Material *GPU_material_get_material(GPUMaterial *material);
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);

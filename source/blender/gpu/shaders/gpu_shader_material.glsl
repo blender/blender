@@ -3234,6 +3234,7 @@ void node_light_falloff(
 
 void node_object_info(mat4 obmat,
                       vec4 info,
+                      float mat_index,
                       out vec3 location,
                       out float object_index,
                       out float material_index,
@@ -3241,7 +3242,7 @@ void node_object_info(mat4 obmat,
 {
   location = obmat[3].xyz;
   object_index = info.x;
-  material_index = info.y;
+  material_index = mat_index;
   random = info.z;
 }
 

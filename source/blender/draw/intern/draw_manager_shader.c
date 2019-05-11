@@ -394,6 +394,7 @@ GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
   if (mat == NULL) {
     scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
     mat = GPU_material_from_nodetree(scene,
+                                     NULL,
                                      wo->nodetree,
                                      &wo->gpumaterial,
                                      engine_type,
@@ -430,6 +431,7 @@ GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
   if (mat == NULL) {
     scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
     mat = GPU_material_from_nodetree(scene,
+                                     ma,
                                      ma->nodetree,
                                      &ma->gpumaterial,
                                      engine_type,

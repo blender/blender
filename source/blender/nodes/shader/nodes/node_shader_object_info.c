@@ -35,13 +35,17 @@ static int node_shader_gpu_object_info(GPUMaterial *mat,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
+  Material *ma = GPU_material_get_material(mat);
+  /* Convert to float. */
+  float index = ma ? ma->index : 0;
   return GPU_stack_link(mat,
                         node,
                         "node_object_info",
                         in,
                         out,
                         GPU_builtin(GPU_OBJECT_MATRIX),
-                        GPU_builtin(GPU_OBJECT_INFO));
+                        GPU_builtin(GPU_OBJECT_INFO),
+                        GPU_constant(&index));
 }
 
 static void node_shader_exec_object_info(void *UNUSED(data),

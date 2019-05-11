@@ -231,6 +231,12 @@ ListBase *GPU_material_get_inputs(GPUMaterial *material)
   return &material->inputs;
 }
 
+/* Return can be NULL if it's a world material. */
+Material *GPU_material_get_material(GPUMaterial *material)
+{
+  return material->ma;
+}
+
 GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
   return material->ubo;
@@ -637,6 +643,7 @@ GPUMaterial *GPU_material_from_nodetree_find(ListBase *gpumaterials,
  * so only do this when they are needed.
  */
 GPUMaterial *GPU_material_from_nodetree(Scene *scene,
+                                        struct Material *ma,
                                         struct bNodeTree *ntree,
                                         ListBase *gpumaterials,
                                         const void *engine_type,
@@ -655,6 +662,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
 
   /* allocate material */
   GPUMaterial *mat = MEM_callocN(sizeof(GPUMaterial), "GPUMaterial");
+  mat->ma = ma;
   mat->scene = scene;
   mat->engine_type = engine_type;
   mat->options = options;
