@@ -1030,44 +1030,6 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
   return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_material_instance_create(
-    struct GPUMaterial *material, DRWPass *pass, GPUBatch *geom, Object *ob, GPUVertFormat *format)
-{
-  GPUPass *gpupass = GPU_material_get_pass(material);
-  DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
-
-  if (shgroup) {
-    shgroup->type = DRW_SHG_INSTANCE;
-    shgroup->instance_geom = geom;
-    drw_call_calc_orco(ob, shgroup->instance_orcofac);
-    drw_shgroup_instance_init(shgroup, GPU_pass_shader_get(gpupass), geom, format);
-    drw_shgroup_material_inputs(shgroup, material);
-  }
-
-  return shgroup;
-}
-
-DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(struct GPUMaterial *material,
-                                                             DRWPass *pass,
-                                                             int tri_count)
-{
-#ifdef USE_GPU_SELECT
-  BLI_assert((G.f & G_FLAG_PICKSEL) == 0);
-#endif
-  GPUPass *gpupass = GPU_material_get_pass(material);
-  DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
-
-  if (shgroup) {
-    /* Calling drw_shgroup_init will cause it to call GPU_draw_primitive(). */
-    drw_shgroup_init(shgroup, GPU_pass_shader_get(gpupass));
-    shgroup->type = DRW_SHG_TRIANGLE_BATCH;
-    shgroup->instance_count = tri_count * 3;
-    drw_shgroup_material_inputs(shgroup, material);
-  }
-
-  return shgroup;
-}
-
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 {
   DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
@@ -1118,29 +1080,6 @@ DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass
   DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTR_FLOAT, 3}});
 
   return DRW_shgroup_line_batch_create_with_format(shader, pass, g_pos_format);
-}
-
-/**
- * Very special batch. Use this if you position
- * your vertices with the vertex shader
- * and dont need any VBO attribute.
- */
-DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader,
-                                                    DRWPass *pass,
-                                                    int tri_count)
-{
-#ifdef USE_GPU_SELECT
-  BLI_assert((G.f & G_FLAG_PICKSEL) == 0);
-#endif
-  DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
-
-  /* Calling drw_shgroup_init will cause it to call GPU_draw_primitive(). */
-  drw_shgroup_init(shgroup, shader);
-
-  shgroup->type = DRW_SHG_TRIANGLE_BATCH;
-  shgroup->instance_count = tri_count * 3;
-
-  return shgroup;
 }
 
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,

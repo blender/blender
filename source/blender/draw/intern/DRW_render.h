@@ -377,14 +377,7 @@ struct GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFor
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup);
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
-DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material,
-                                                      DRWPass *pass,
-                                                      struct GPUBatch *geom,
-                                                      struct Object *ob,
-                                                      struct GPUVertFormat *format);
-DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(struct GPUMaterial *material,
-                                                             DRWPass *pass,
-                                                             int size);
+
 DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader,
                                              DRWPass *pass,
                                              struct GPUBatch *geom,
@@ -394,9 +387,6 @@ DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(struct GPUShader *sha
                                                            DRWPass *pass,
                                                            struct GPUVertFormat *format);
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
-DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader,
-                                                    DRWPass *pass,
-                                                    int size);
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
                                                        DRWPass *pass,
                                                        struct GPUVertBuf *tf_target);
