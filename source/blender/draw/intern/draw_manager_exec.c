@@ -791,13 +791,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
   if ((st->flag & DRW_CALL_CULLED) != 0 && (st->flag & DRW_CALL_BYPASS_CULLING) == 0) {
     return;
   }
-  /* Order matters */
-  if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE)) {
-    mul_m4_m4m4(st->modelview, DST.view_data.matstate.mat[DRW_MAT_VIEW], st->model);
-  }
-  if (st->matflag & DRW_CALL_MODELVIEWINVERSE) {
-    invert_m4_m4(st->modelviewinverse, st->modelview);
-  }
+
   if (st->matflag & DRW_CALL_MODELVIEWPROJECTION) {
     mul_m4_m4m4(st->modelviewprojection, DST.view_data.matstate.mat[DRW_MAT_PERS], st->model);
   }
@@ -815,14 +809,6 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
     if (shgroup->modelinverse != -1) {
       GPU_shader_uniform_vector(
           shgroup->shader, shgroup->modelinverse, 16, 1, (float *)state->modelinverse);
-    }
-    if (shgroup->modelview != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->modelview, 16, 1, (float *)state->modelview);
-    }
-    if (shgroup->modelviewinverse != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->modelviewinverse, 16, 1, (float *)state->modelviewinverse);
     }
     if (shgroup->modelviewprojection != -1) {
       GPU_shader_uniform_vector(shgroup->shader,
@@ -854,20 +840,6 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
     }
     if (shgroup->modelinverse != -1) {
       GPU_shader_uniform_vector(shgroup->shader, shgroup->modelinverse, 16, 1, (float *)unitmat);
-    }
-    if (shgroup->modelview != -1) {
-      GPU_shader_uniform_vector(shgroup->shader,
-                                shgroup->modelview,
-                                16,
-                                1,
-                                (float *)DST.view_data.matstate.mat[DRW_MAT_VIEW]);
-    }
-    if (shgroup->modelviewinverse != -1) {
-      GPU_shader_uniform_vector(shgroup->shader,
-                                shgroup->modelviewinverse,
-                                16,
-                                1,
-                                (float *)DST.view_data.matstate.mat[DRW_MAT_VIEWINV]);
     }
     if (shgroup->modelviewprojection != -1) {
       GPU_shader_uniform_vector(shgroup->shader,

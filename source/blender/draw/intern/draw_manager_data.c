@@ -832,10 +832,12 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
         shgroup, GPU_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
   }
 
+  /* Not supported. */
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV) == -1);
+  BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW) == -1);
+
   shgroup->model = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODEL);
   shgroup->modelinverse = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODEL_INV);
-  shgroup->modelview = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW);
-  shgroup->modelviewinverse = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV);
   shgroup->modelviewprojection = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP);
   shgroup->orcotexfac = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_ORCO);
   shgroup->objectinfo = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_INFO);
@@ -847,12 +849,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   shgroup->matflag = 0;
   if (shgroup->modelinverse > -1) {
     shgroup->matflag |= DRW_CALL_MODELINVERSE;
-  }
-  if (shgroup->modelview > -1) {
-    shgroup->matflag |= DRW_CALL_MODELVIEW;
-  }
-  if (shgroup->modelviewinverse > -1) {
-    shgroup->matflag |= DRW_CALL_MODELVIEWINVERSE;
   }
   if (shgroup->modelviewprojection > -1) {
     shgroup->matflag |= DRW_CALL_MODELVIEWPROJECTION;
