@@ -4669,6 +4669,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
         break;
 
       case UI_BTYPE_CURVE:
+        /* do not draw right to edge of rect */
+        rect->xmin += (0.2f * UI_UNIT_X);
+        rect->xmax -= (0.2f * UI_UNIT_X);
         ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
         break;
 
