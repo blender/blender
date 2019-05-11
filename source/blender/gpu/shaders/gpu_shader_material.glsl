@@ -1,7 +1,4 @@
 
-uniform mat4 ModelViewMatrix;
-uniform mat4 ModelViewMatrixInverse;
-
 #ifndef USE_ATTR
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
@@ -1734,11 +1731,11 @@ void node_tex_environment_texco(vec3 viewvec, out vec3 worldvec)
   vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
   vec4 co_homogenous = (ProjectionMatrixInverse * v);
 
-  vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+  vec3 co = co_homogenous.xyz / co_homogenous.w;
 #  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
-  worldvec = (ViewMatrixInverse * co).xyz;
+  worldvec = mat3(ViewMatrixInverse) * co;
 #  else
-  worldvec = (ModelViewMatrixInverse * co).xyz;
+  worldvec = mat3(ModelMatrixInverse) * (mat3(ViewMatrixInverse) * co);
 #  endif
 #endif
 }

@@ -883,10 +883,11 @@ static char *code_generate_fragment(GPUMaterial *material,
     BLI_dynstr_append(ds, "\t#define viewinv ViewMatrixInverse\n");
   }
   if (builtins & GPU_LOC_TO_VIEW_MATRIX) {
-    BLI_dynstr_append(ds, "\t#define localtoviewmat ModelViewMatrix\n");
+    BLI_dynstr_append(ds, "\t#define localtoviewmat (ViewMatrix * ModelMatrix)\n");
   }
   if (builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX) {
-    BLI_dynstr_append(ds, "\t#define invlocaltoviewmat ModelViewMatrixInverse\n");
+    BLI_dynstr_append(ds,
+                      "\t#define invlocaltoviewmat (ModelMatrixInverse * ViewMatrixInverse)\n");
   }
   if (builtins & GPU_VIEW_NORMAL) {
     BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");

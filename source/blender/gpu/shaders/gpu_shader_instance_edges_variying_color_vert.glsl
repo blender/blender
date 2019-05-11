@@ -35,12 +35,12 @@ void main()
 {
   vec3 eye;
 
-  mat4 ModelViewMatrix = ViewMatrix * InstanceModelMatrix;
+  mat4 model_view_matrix = ViewMatrix * InstanceModelMatrix;
 
   vec4 pos_4d = vec4(pos, 1.0);
-  MV_pos = ModelViewMatrix * pos_4d;
+  MV_pos = model_view_matrix * pos_4d;
 
-  mat3 normal_matrix = transpose(inverse(mat3(ModelViewMatrix)));
+  mat3 normal_matrix = transpose(inverse(mat3(model_view_matrix)));
 
   /* if persp */
   if (ProjectionMatrix[3][3] == 0.0) {
