@@ -124,40 +124,15 @@ typedef struct DRWCallState {
   float ob_random;
 } DRWCallState;
 
-typedef enum {
-  /** A single batch. */
-  DRW_CALL_SINGLE,
-  /** Like single but only draw a range of vertices/indices. */
-  DRW_CALL_RANGE,
-  /** Draw instances without any instancing attributes. */
-  DRW_CALL_INSTANCES,
-  /** Generate a drawcall without any #GPUBatch. */
-  DRW_CALL_PROCEDURAL,
-} DRWCallType;
-
 typedef struct DRWCall {
   struct DRWCall *next;
   DRWCallState *state;
 
-  union {
-    struct { /* type == DRW_CALL_SINGLE */
-      GPUBatch *geometry;
-    } single;
-    struct { /* type == DRW_CALL_RANGE */
-      GPUBatch *geometry;
-      uint start, count;
-    } range;
-    struct { /* type == DRW_CALL_INSTANCES */
-      GPUBatch *geometry;
-      uint count;
-    } instances;
-    struct { /* type == DRW_CALL_PROCEDURAL */
-      GPUBatch *geometry;
-      uint vert_count;
-    } procedural;
-  };
+  GPUBatch *batch;
+  uint vert_first;
+  uint vert_count;
+  uint inst_count;
 
-  DRWCallType type;
 #ifdef USE_GPU_SELECT
   int select_id;
 #endif
@@ -198,9 +173,11 @@ struct DRWUniform {
 
 typedef enum {
   DRW_SHG_NORMAL,
+
   DRW_SHG_POINT_BATCH,
   DRW_SHG_LINE_BATCH,
   DRW_SHG_TRIANGLE_BATCH,
+
   DRW_SHG_INSTANCE,
   DRW_SHG_INSTANCE_EXTERNAL,
   DRW_SHG_FEEDBACK_TRANSFORM,

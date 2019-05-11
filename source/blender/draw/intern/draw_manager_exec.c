@@ -1265,23 +1265,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
       draw_geometry_prepare(shgroup, call);
 
-      switch (call->type) {
-        case DRW_CALL_SINGLE:
-          draw_geometry_execute(shgroup, call->single.geometry, 0, 0, false);
-          break;
-        case DRW_CALL_RANGE:
-          draw_geometry_execute(
-              shgroup, call->range.geometry, call->range.start, call->range.count, false);
-          break;
-        case DRW_CALL_INSTANCES:
-          draw_geometry_execute(shgroup, call->instances.geometry, 0, call->instances.count, true);
-          break;
-        case DRW_CALL_PROCEDURAL:
-          draw_geometry_execute(
-              shgroup, call->procedural.geometry, 0, call->procedural.vert_count, false);
-          break;
-        default:
-          BLI_assert(0);
+      /* TODO revisit when DRW_SHG_INSTANCE and the like is gone. */
+      if (call->inst_count == 0) {
+        draw_geometry_execute(shgroup, call->batch, call->vert_first, call->vert_count, false);
+      }
+      else {
+        draw_geometry_execute(shgroup, call->batch, 0, call->inst_count, true);
       }
     }
     /* Reset state */

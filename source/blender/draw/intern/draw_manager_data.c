@@ -459,8 +459,10 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obma
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
   call->state = drw_call_state_create(shgroup, obmat, NULL);
-  call->type = DRW_CALL_SINGLE;
-  call->single.geometry = geom;
+  call->batch = geom;
+  call->vert_first = 0;
+  call->vert_count = 0; /* Auto from batch. */
+  call->inst_count = 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -477,10 +479,10 @@ void DRW_shgroup_call_range_add(
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
   call->state = drw_call_state_create(shgroup, obmat, NULL);
-  call->type = DRW_CALL_RANGE;
-  call->range.geometry = geom;
-  call->range.start = v_sta;
-  call->range.count = v_count;
+  call->batch = geom;
+  call->vert_first = v_sta;
+  call->vert_count = v_count;
+  call->inst_count = 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -497,9 +499,10 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
   call->state = drw_call_state_object(shgroup, obmat, NULL);
-  call->type = DRW_CALL_PROCEDURAL;
-  call->procedural.geometry = geom;
-  call->procedural.vert_count = vert_count;
+  call->batch = geom;
+  call->vert_first = 0;
+  call->vert_count = vert_count;
+  call->inst_count = 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -544,8 +547,10 @@ void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   /* NOTE this will disable culling for the whole object. */
   call->state->flag |= (bypass_culling) ? DRW_CALL_BYPASS_CULLING : 0;
-  call->type = DRW_CALL_SINGLE;
-  call->single.geometry = geom;
+  call->batch = geom;
+  call->vert_first = 0;
+  call->vert_count = 0; /* Auto from batch. */
+  call->inst_count = 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -566,8 +571,10 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
   call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->state->visibility_cb = callback;
   call->state->user_data = user_data;
-  call->type = DRW_CALL_SINGLE;
-  call->single.geometry = geom;
+  call->batch = geom;
+  call->vert_first = 0;
+  call->vert_count = 0; /* Auto from batch. */
+  call->inst_count = 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -585,9 +592,10 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
   call->state = drw_call_state_create(shgroup, obmat, NULL);
-  call->type = DRW_CALL_INSTANCES;
-  call->instances.geometry = geom;
-  call->instances.count = count;
+  call->batch = geom;
+  call->vert_first = 0;
+  call->vert_count = 0; /* Auto from batch. */
+  call->inst_count = count;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
