@@ -515,7 +515,7 @@ void GPENCIL_render_to_image(void *vedata,
 /* Use of multisample framebuffers. */
 #define MULTISAMPLE_GP_SYNC_ENABLE(lvl, fbl) \
   { \
-    if ((lvl > 0) && (fbl->multisample_fb != NULL)) { \
+    if ((lvl > 0) && (fbl->multisample_fb != NULL) && (DRW_state_is_fbo())) { \
       DRW_stats_query_start("GP Multisample Blit"); \
       GPU_framebuffer_bind(fbl->multisample_fb); \
       GPU_framebuffer_clear_color_depth(fbl->multisample_fb, (const float[4]){0.0f}, 1.0f); \
@@ -526,7 +526,7 @@ void GPENCIL_render_to_image(void *vedata,
 
 #define MULTISAMPLE_GP_SYNC_DISABLE(lvl, fbl, fb, txl) \
   { \
-    if ((lvl > 0) && (fbl->multisample_fb != NULL)) { \
+    if ((lvl > 0) && (fbl->multisample_fb != NULL) && (DRW_state_is_fbo())) { \
       DRW_stats_query_start("GP Multisample Resolve"); \
       GPU_framebuffer_bind(fb); \
       DRW_multisamples_resolve(txl->multisample_depth, txl->multisample_color, true); \
