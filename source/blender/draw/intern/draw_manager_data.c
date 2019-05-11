@@ -574,7 +574,7 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
                                     GPUBatch *geom,
                                     float (*obmat)[4],
-                                    uint *count)
+                                    uint count)
 {
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
@@ -583,27 +583,6 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
   call->state = drw_call_state_create(shgroup, obmat, NULL);
-  call->type = DRW_CALL_INSTANCES;
-  call->instances.geometry = geom;
-  call->instances.count = count;
-#ifdef USE_GPU_SELECT
-  call->select_id = DST.select_id;
-#endif
-}
-
-/* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
-                                           GPUBatch *geom,
-                                           Object *ob,
-                                           uint *count)
-{
-  BLI_assert(geom != NULL);
-  BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
-
-  DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
-  BLI_LINKS_APPEND(&shgroup->calls, call);
-
-  call->state = drw_call_state_object(shgroup, ob->obmat, ob);
   call->type = DRW_CALL_INSTANCES;
   call->instances.geometry = geom;
   call->instances.count = count;

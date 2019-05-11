@@ -279,9 +279,8 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
       DRW_shgroup_call_add(wire_shgrp, geom, ob->obmat);
 
       if ((cu->flag & CU_3D) && (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0) {
-        static uint instance_len = 2;
         geom = DRW_cache_curve_edge_normal_get(ob);
-        DRW_shgroup_call_instances_add(wire_normals_shgrp, geom, ob->obmat, &instance_len);
+        DRW_shgroup_call_instances_add(wire_normals_shgrp, geom, ob->obmat, 2);
       }
 
       geom = DRW_cache_curve_edge_overlay_get(ob);

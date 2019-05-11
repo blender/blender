@@ -445,11 +445,7 @@ void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
 void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
                                     struct GPUBatch *geom,
                                     float (*obmat)[4],
-                                    uint *count);
-void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
-                                           struct GPUBatch *geom,
-                                           struct Object *ob,
-                                           uint *count);
+                                    uint count);
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup,
                                         const void *attr[],
                                         uint attr_len);

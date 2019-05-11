@@ -149,8 +149,7 @@ typedef struct DRWCall {
     } range;
     struct { /* type == DRW_CALL_INSTANCES */
       GPUBatch *geometry;
-      /* Count can be adjusted between redraw. If needed, we can add fixed count. */
-      uint *count;
+      uint count;
     } instances;
     struct { /* type == DRW_CALL_PROCEDURAL */
       uint vert_count;

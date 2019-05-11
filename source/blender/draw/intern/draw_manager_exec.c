@@ -1289,7 +1289,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
           break;
         case DRW_CALL_INSTANCES:
           draw_geometry_execute_ex(
-              shgroup, call->instances.geometry, 0, *call->instances.count, true);
+              shgroup, call->instances.geometry, 0, call->instances.count, true);
           break;
         case DRW_CALL_PROCEDURAL:
           GPU_draw_primitive(call->procedural.prim_type, call->procedural.vert_count);
