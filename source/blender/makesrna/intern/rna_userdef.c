@@ -184,10 +184,11 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
   value[2] = userdef->subversionfile;
 }
 
-static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-  UserDef *userdef = (UserDef *)ptr->data;
-  userdef->runtime.is_dirty = true;
+  /* We can't use 'ptr->data' because this update function
+   * is used for themes and other nested data. */
+  U.runtime.is_dirty = true;
 
   WM_main_add_notifier(NC_WINDOW, NULL);
 }
