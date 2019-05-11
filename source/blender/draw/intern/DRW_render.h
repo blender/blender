@@ -421,16 +421,14 @@ void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
                                     struct GPUBatch *geom,
                                     struct Object *ob,
-                                    struct Material *ma,
                                     bool bypass_culling);
 #define DRW_shgroup_call_object_add(shgroup, geom, ob) \
-  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, NULL, false)
+  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, false)
 #define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) \
-  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, NULL, true)
+  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, true)
 void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
                                                struct GPUBatch *geom,
                                                struct Object *ob,
-                                               struct Material *ma,
                                                DRWCallVisibilityFn *callback,
                                                void *user_data);
 
@@ -440,7 +438,6 @@ void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shading_group,
                                  bool use_mask,
                                  bool use_vert_color);
 void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
-                                                Material **materials,
                                                 Object *ob,
                                                 bool use_vcol);
 

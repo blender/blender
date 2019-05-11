@@ -386,7 +386,7 @@ static void drw_call_state_update_matflag(DRWCallState *state,
   }
 
   if (new_flags & DRW_CALL_OBJECTINFO) {
-    state->objectinfo[0] = ob ? ob->index : 0;
+    state->ob_index = ob ? ob->index : 0;
     uint random;
     if (DST.dupli_source) {
       random = DST.dupli_source->random_id;
@@ -394,7 +394,7 @@ static void drw_call_state_update_matflag(DRWCallState *state,
     else {
       random = BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
     }
-    state->objectinfo[1] = random * (1.0f / (float)0xFFFFFFFF);
+    state->ob_random = random * (1.0f / (float)0xFFFFFFFF);
   }
 }
 
@@ -528,8 +528,10 @@ void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
 }
 
 /* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_add_ex(
-    DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob, Material *ma, bool bypass_culling)
+void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
+                                    GPUBatch *geom,
+                                    Object *ob,
+                                    bool bypass_culling)
 {
   BLI_assert(geom != NULL);
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
@@ -542,7 +544,6 @@ void DRW_shgroup_call_object_add_ex(
   call->state->flag |= (bypass_culling) ? DRW_CALL_BYPASS_CULLING : 0;
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
-  call->single.ma_index = ma ? ma->index : 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -551,7 +552,6 @@ void DRW_shgroup_call_object_add_ex(
 void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
                                                GPUBatch *geom,
                                                Object *ob,
-                                               Material *ma,
                                                DRWCallVisibilityFn *callback,
                                                void *user_data)
 {
@@ -566,7 +566,6 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
   call->state->user_data = user_data;
   call->type = DRW_CALL_SINGLE;
   call->single.geometry = geom;
-  call->single.ma_index = ma ? ma->index : 0;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
 #endif
@@ -618,7 +617,6 @@ void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup,
 typedef struct DRWSculptCallbackData {
   Object *ob;
   DRWShadingGroup **shading_groups;
-  Material **materials;
   bool use_wire;
   bool use_mats;
   bool use_mask;
@@ -646,7 +644,6 @@ static float sculpt_debug_colors[9][4] = {
 static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
 {
   GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
-  Material *ma = NULL;
   short index = 0;
 
   /* Meh... use_mask is a bit misleading here. */
@@ -656,7 +653,6 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
 
   if (scd->use_mats) {
     index = GPU_pbvh_buffers_material_index_get(buffers);
-    ma = scd->materials[index];
   }
 
   DRWShadingGroup *shgrp = scd->shading_groups[index];
@@ -668,7 +664,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
 #endif
     /* DRW_shgroup_call_object_add_ex reuses matrices calculations for all the drawcalls of this
      * object. */
-    DRW_shgroup_call_object_add_ex(shgrp, geom, scd->ob, ma, true);
+    DRW_shgroup_call_object_add_ex(shgrp, geom, scd->ob, true);
   }
 }
 
@@ -735,7 +731,6 @@ void DRW_shgroup_call_sculpt_add(
   DRWSculptCallbackData scd = {
       .ob = ob,
       .shading_groups = &shgroup,
-      .materials = NULL,
       .use_wire = use_wire,
       .use_mats = false,
       .use_mask = use_mask,
@@ -744,14 +739,12 @@ void DRW_shgroup_call_sculpt_add(
 }
 
 void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
-                                                Material **materials,
                                                 Object *ob,
                                                 bool use_vcol)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
       .shading_groups = shgroups,
-      .materials = materials,
       .use_wire = false,
       .use_mats = true,
       .use_mask = false,

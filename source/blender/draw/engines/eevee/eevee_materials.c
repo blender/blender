@@ -1180,21 +1180,21 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-#define ADD_SHGROUP_CALL(shgrp, ob, ma, geom, oedata) \
+#define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) \
   do { \
     if (oedata) { \
       DRW_shgroup_call_object_add_with_callback( \
-          shgrp, geom, ob, ma, EEVEE_lightprobes_obj_visibility_cb, oedata); \
+          shgrp, geom, ob, EEVEE_lightprobes_obj_visibility_cb, oedata); \
     } \
     else { \
-      DRW_shgroup_call_object_add_ex(shgrp, geom, ob, ma, false); \
+      DRW_shgroup_call_object_add_ex(shgrp, geom, ob, false); \
     } \
   } while (0)
 
-#define ADD_SHGROUP_CALL_SAFE(shgrp, ob, ma, geom, oedata) \
+#define ADD_SHGROUP_CALL_SAFE(shgrp, ob, geom, oedata) \
   do { \
     if (shgrp) { \
-      ADD_SHGROUP_CALL(shgrp, ob, ma, geom, oedata); \
+      ADD_SHGROUP_CALL(shgrp, ob, geom, oedata); \
     } \
   } while (0)
 
@@ -1691,9 +1691,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       if (is_sculpt_mode) {
         /* Vcol is not supported in the modes that require PBVH drawing. */
         bool use_vcol = false;
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_array, ma_array, ob, use_vcol);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_array, ma_array, ob, use_vcol);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_clip_array, ma_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_clip_array, ob, use_vcol);
         /* TODO(fclem): Support shadows in sculpt mode. */
       }
       else if (mat_geom) {
@@ -1718,9 +1718,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
             oedata->test_data = &sldata->probes->vis_data;
           }
 
-          ADD_SHGROUP_CALL(shgrp_array[i], ob, ma_array[i], mat_geom[i], oedata);
-          ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, ma_array[i], mat_geom[i], oedata);
-          ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, ma_array[i], mat_geom[i], oedata);
+          ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i], oedata);
+          ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, mat_geom[i], oedata);
+          ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i], oedata);
 
           char *name = auto_layer_names;
           for (int j = 0; j < auto_layer_count; ++j) {

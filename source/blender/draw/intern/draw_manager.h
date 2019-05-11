@@ -100,9 +100,9 @@ enum {
 /* Used by DRWCallState.matflag */
 enum {
   DRW_CALL_MODELINVERSE = (1 << 0),
-  DRW_CALL_MODELVIEWPROJECTION = (1 << 3),
-  DRW_CALL_ORCOTEXFAC = (1 << 7),
-  DRW_CALL_OBJECTINFO = (1 << 8),
+  DRW_CALL_MODELVIEWPROJECTION = (1 << 1),
+  DRW_CALL_ORCOTEXFAC = (1 << 2),
+  DRW_CALL_OBJECTINFO = (1 << 3),
 };
 
 typedef struct DRWCallState {
@@ -110,8 +110,9 @@ typedef struct DRWCallState {
   void *user_data;
 
   uchar flag;
-  uchar cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
-  uint16_t matflag; /* Which matrices to compute. */
+  uchar cache_id; /* Compared with DST.state_cache_id to see if matrices are still valid. */
+  uchar matflag;  /* Which matrices to compute. */
+  short ob_index;
   /* Culling: Using Bounding Sphere for now for faster culling.
    * Not ideal for planes. */
   BoundSphere bsphere;
@@ -120,7 +121,7 @@ typedef struct DRWCallState {
   float modelinverse[4][4];
   float modelviewprojection[4][4];
   float orcotexfac[2][3]; /* Not view dependent */
-  float objectinfo[2];
+  float ob_random;
 } DRWCallState;
 
 typedef enum {
@@ -141,7 +142,6 @@ typedef struct DRWCall {
   union {
     struct { /* type == DRW_CALL_SINGLE */
       GPUBatch *geometry;
-      short ma_index;
     } single;
     struct { /* type == DRW_CALL_RANGE */
       GPUBatch *geometry;
@@ -250,7 +250,7 @@ struct DRWShadingGroup {
   int orcotexfac;
   int callid;
   int objectinfo;
-  uint16_t matflag; /* Matrices needed, same as DRWCall.flag */
+  uchar matflag; /* Matrices needed, same as DRWCall.flag */
 
   DRWPass *pass_parent; /* backlink to pass we're in */
 #ifndef NDEBUG

@@ -1036,24 +1036,23 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       /* Draw material color */
       if (is_sculpt_mode) {
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
-        struct Material **mats = BLI_array_alloca(mats, materials_len);
 
         for (int i = 0; i < materials_len; ++i) {
-          mats[i] = give_current_material(ob, i + 1);
-          if (mats[i] != NULL && mats[i]->a < 1.0f) {
+          struct Material *mat = give_current_material(ob, i + 1);
+          if (mat != NULL && mat->a < 1.0f) {
             /* Hack */
-            wpd->shading.xray_alpha = mats[i]->a;
+            wpd->shading.xray_alpha = mat->a;
             material = workbench_forward_get_or_create_material_data(
-                vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+                vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
             has_transp_mat = true;
           }
           else {
             material = get_or_create_material_data(
-                vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
+                vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
           }
           shgrps[i] = material->shgrp;
         }
-        DRW_shgroup_call_sculpt_with_materials_add(shgrps, mats, ob, false);
+        DRW_shgroup_call_sculpt_with_materials_add(shgrps, ob, false);
       }
       else {
         struct GPUBatch **geoms;

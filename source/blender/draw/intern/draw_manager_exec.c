@@ -818,12 +818,12 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
                                 (float *)state->modelviewprojection);
     }
     if (shgroup->objectinfo != -1) {
-      float objectinfo[4];
-      objectinfo[0] = state->objectinfo[0];
-      objectinfo[1] = call->single.ma_index; /* WATCH this is only valid for single drawcalls. */
-      objectinfo[2] = state->objectinfo[1];
-      objectinfo[3] = (state->flag & DRW_CALL_NEGSCALE) ? -1.0f : 1.0f;
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)objectinfo);
+      float infos[4];
+      infos[0] = state->ob_index;
+      // infos[1]; /* UNUSED. */
+      infos[2] = state->ob_random;
+      infos[3] = (state->flag & DRW_CALL_NEGSCALE) ? -1.0f : 1.0f;
+      GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)infos);
     }
     if (shgroup->orcotexfac != -1) {
       GPU_shader_uniform_vector(

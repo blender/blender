@@ -623,18 +623,17 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       /* Draw material color */
       if (is_sculpt_mode) {
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
-        struct Material **mats = BLI_array_alloca(mats, materials_len);
 
         for (int i = 0; i < materials_len; ++i) {
-          mats[i] = give_current_material(ob, i + 1);
+          struct Material *mat = give_current_material(ob, i + 1);
           material = workbench_forward_get_or_create_material_data(
-              vedata, ob, mats[i], NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+              vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
           shgrps[i] = material->shgrp;
         }
         /* TODO(fclem) make this call optional */
         DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, false, false, false);
         if (!is_wire) {
-          DRW_shgroup_call_sculpt_with_materials_add(shgrps, mats, ob, false);
+          DRW_shgroup_call_sculpt_with_materials_add(shgrps, ob, false);
         }
       }
       else {
