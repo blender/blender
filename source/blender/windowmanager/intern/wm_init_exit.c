@@ -471,9 +471,12 @@ void WM_exit_ext(bContext *C, const bool do_python)
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
     }
 
+    /* Disable until we have a revert button. */
+#if 0
     if (U.runtime.is_dirty) {
       BKE_blendfile_userdef_write_all(NULL);
     }
+#endif
   }
 
   BLI_timer_free();
