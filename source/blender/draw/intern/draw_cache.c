@@ -46,6 +46,9 @@
 
 /* Batch's only (free'd as an array) */
 static struct DRWShapeCache {
+  GPUBatch *drw_procedural_verts;
+  GPUBatch *drw_procedural_lines;
+  GPUBatch *drw_procedural_tris;
   GPUBatch *drw_single_vertice;
   GPUBatch *drw_cursor;
   GPUBatch *drw_cursor_only_circle;
@@ -136,6 +139,54 @@ void DRW_shape_cache_reset(void)
     batch++;
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Procedural Batches
+ * \{ */
+
+GPUBatch *drw_cache_procedural_points_get(void)
+{
+  if (!SHC.drw_procedural_verts) {
+    /* TODO(fclem) get rid of this dummy VBO. */
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(vbo, 1);
+
+    SHC.drw_procedural_verts = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+  }
+  return SHC.drw_procedural_verts;
+}
+
+GPUBatch *drw_cache_procedural_lines_get(void)
+{
+  if (!SHC.drw_procedural_lines) {
+    /* TODO(fclem) get rid of this dummy VBO. */
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(vbo, 1);
+
+    SHC.drw_procedural_lines = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
+  }
+  return SHC.drw_procedural_lines;
+}
+
+GPUBatch *drw_cache_procedural_triangles_get(void)
+{
+  if (!SHC.drw_procedural_tris) {
+    /* TODO(fclem) get rid of this dummy VBO. */
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(vbo, 1);
+
+    SHC.drw_procedural_tris = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+  }
+  return SHC.drw_procedural_tris;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Helper functions

@@ -487,19 +487,18 @@ void DRW_shgroup_call_range_add(
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
-                                               GPUPrimType prim_type,
+                                               GPUBatch *geom,
                                                uint vert_count,
-                                               float (*obmat)[4],
-                                               Object *ob)
+                                               float (*obmat)[4])
 {
   BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
 
   DRWCall *call = BLI_memblock_alloc(DST.vmempool->calls);
   BLI_LINKS_APPEND(&shgroup->calls, call);
 
-  call->state = drw_call_state_object(shgroup, ob ? ob->obmat : obmat, ob);
+  call->state = drw_call_state_object(shgroup, obmat, NULL);
   call->type = DRW_CALL_PROCEDURAL;
-  call->procedural.prim_type = prim_type;
+  call->procedural.geometry = geom;
   call->procedural.vert_count = vert_count;
 #ifdef USE_GPU_SELECT
   call->select_id = DST.select_id;
@@ -510,21 +509,24 @@ void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup,
                                             uint point_len,
                                             float (*obmat)[4])
 {
-  drw_shgroup_call_procedural_add_ex(shgroup, GPU_PRIM_POINTS, point_len, obmat, NULL);
+  struct GPUBatch *geom = drw_cache_procedural_points_get();
+  drw_shgroup_call_procedural_add_ex(shgroup, geom, point_len, obmat);
 }
 
 void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup,
                                            uint line_count,
                                            float (*obmat)[4])
 {
-  drw_shgroup_call_procedural_add_ex(shgroup, GPU_PRIM_LINES, line_count * 2, obmat, NULL);
+  struct GPUBatch *geom = drw_cache_procedural_lines_get();
+  drw_shgroup_call_procedural_add_ex(shgroup, geom, line_count * 2, obmat);
 }
 
 void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
                                                uint tria_count,
                                                float (*obmat)[4])
 {
-  drw_shgroup_call_procedural_add_ex(shgroup, GPU_PRIM_TRIS, tria_count * 3, obmat, NULL);
+  struct GPUBatch *geom = drw_cache_procedural_triangles_get();
+  drw_shgroup_call_procedural_add_ex(shgroup, geom, tria_count * 3, obmat);
 }
 
 /* These calls can be culled and are optimized for redraw */

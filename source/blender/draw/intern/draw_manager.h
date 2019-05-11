@@ -152,8 +152,8 @@ typedef struct DRWCall {
       uint count;
     } instances;
     struct { /* type == DRW_CALL_PROCEDURAL */
+      GPUBatch *geometry;
       uint vert_count;
-      GPUPrimType prim_type;
     } procedural;
   };
 
@@ -437,6 +437,11 @@ void drw_debug_init(void);
 
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(struct Object *ob);
+
+/* Procedural Drawing */
+GPUBatch *drw_cache_procedural_points_get(void);
+GPUBatch *drw_cache_procedural_lines_get(void);
+GPUBatch *drw_cache_procedural_triangles_get(void);
 
 extern struct GPUVertFormat *g_pos_format;
 
