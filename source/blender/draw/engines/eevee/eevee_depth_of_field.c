@@ -222,12 +222,13 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     const float *viewport_size = DRW_viewport_size_get();
     const int sprite_len = ((int)viewport_size[0] / 2) *
                            ((int)viewport_size[1] / 2); /* brackets matters */
-    grp = DRW_shgroup_empty_tri_batch_create(
-        e_data.dof_scatter_sh[use_alpha], psl->dof_scatter, sprite_len);
+    grp = DRW_shgroup_create(e_data.dof_scatter_sh[use_alpha], psl->dof_scatter);
     DRW_shgroup_uniform_texture_ref(grp, "nearBuffer", &effects->dof_down_near);
     DRW_shgroup_uniform_texture_ref(grp, "farBuffer", &effects->dof_down_far);
     DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
     DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 2);
+
+    DRW_shgroup_call_procedural_triangles_add(grp, sprite_len, NULL);
 
     psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 

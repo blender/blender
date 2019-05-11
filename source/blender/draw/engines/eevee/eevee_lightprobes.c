@@ -386,8 +386,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
     /* Cube Display */
     if (scene_eval->eevee.flag & SCE_EEVEE_SHOW_CUBEMAPS && lcache->cube_len > 1) {
       int cube_len = lcache->cube_len - 1; /* don't count the world. */
-      DRWShadingGroup *grp = DRW_shgroup_empty_tri_batch_create(
-          EEVEE_shaders_probe_cube_display_sh_get(), psl->probe_display, cube_len * 2);
+      DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_cube_display_sh_get(),
+                                                psl->probe_display);
 
       DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &lcache->cube_tx.tex);
       DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
@@ -398,6 +398,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       /* TODO (fclem) get rid of those UBO. */
       DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
       DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+
+      DRW_shgroup_call_procedural_triangles_add(grp, cube_len * 2, NULL);
     }
 
     /* Grid Display */
