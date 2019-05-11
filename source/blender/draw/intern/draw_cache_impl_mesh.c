@@ -4892,14 +4892,17 @@ void DRW_mesh_batch_cache_create_requested(
   MeshBatchCache *cache = mesh_batch_cache_get(me);
 
   /* Early out */
-  if (cache->batch_requested == 0) {
+  if (batch_requested == 0) {
 #ifdef DEBUG
     goto check;
 #endif
     return;
   }
 
-  if (cache->batch_requested & MBC_SURFACE_WEIGHTS) {
+  DRWBatchFlag batch_requested = cache->batch_requested;
+  cache->batch_requested = 0;
+
+  if (batch_requested & MBC_SURFACE_WEIGHTS) {
     /* Check vertex weights. */
     if ((cache->batch.surface_weights != NULL) && (ts != NULL)) {
       struct DRW_MeshWeightState wstate;
@@ -4911,7 +4914,7 @@ void DRW_mesh_batch_cache_create_requested(
     }
   }
 
-  if (cache->batch_requested & (MBC_SURFACE | MBC_SURF_PER_MAT | MBC_WIRE_LOOPS_UVS)) {
+  if (batch_requested & (MBC_SURFACE | MBC_SURF_PER_MAT | MBC_WIRE_LOOPS_UVS)) {
     /* Optimization : Only create orco layer if mesh is deformed. */
     if (cache->cd_needed.orco != 0) {
       CustomData *cd_vdata = (me->edit_mesh) ? &me->edit_mesh->bm->vdata : &me->vdata;
@@ -4956,7 +4959,7 @@ void DRW_mesh_batch_cache_create_requested(
     mesh_cd_layers_type_clear(&cache->cd_needed);
   }
 
-  if (cache->batch_requested & MBC_EDITUV) {
+  if (batch_requested & MBC_EDITUV) {
     /* Discard UV batches if sync_selection changes */
     if (ts != NULL) {
       const bool is_uvsyncsel = (ts->uv_flag & UV_SYNC_SELECTION);
@@ -4984,15 +4987,14 @@ void DRW_mesh_batch_cache_create_requested(
   }
 
   /* Second chance to early out */
-  if ((cache->batch_requested & ~cache->batch_ready) == 0) {
+  if ((batch_requested & ~cache->batch_ready) == 0) {
 #ifdef DEBUG
     goto check;
 #endif
     return;
   }
 
-  cache->batch_ready |= cache->batch_requested;
-  cache->batch_requested = 0;
+  cache->batch_ready |= batch_requested;
 
   /* Init batches and request VBOs & IBOs */
   if (DRW_batch_requested(cache->batch.surface, GPU_PRIM_TRIS)) {
