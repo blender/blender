@@ -2453,8 +2453,6 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
  */
 static void drw_draw_depth_loop_imp(void)
 {
-  DRW_opengl_context_enable();
-
   /* Setup framebuffer */
   DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(
       DST.viewport);
@@ -2517,9 +2515,6 @@ static void drw_draw_depth_loop_imp(void)
   /* TODO: Reading depth for operators should be done here. */
 
   GPU_framebuffer_restore();
-
-  /* Changin context */
-  DRW_opengl_context_disable();
 }
 
 /**
@@ -2534,6 +2529,8 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RegionView3D *rv3d = ar->regiondata;
+
+  DRW_opengl_context_enable();
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -2569,6 +2566,9 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
   /* Avoid accidental reuse. */
   drw_state_ensure_not_reused(&DST);
 #endif
+
+  /* Changin context */
+  DRW_opengl_context_disable();
 }
 
 /**
@@ -2582,6 +2582,8 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RegionView3D *rv3d = ar->regiondata;
+
+  DRW_opengl_context_enable();
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -2608,6 +2610,9 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
   /* Avoid accidental reuse. */
   drw_state_ensure_not_reused(&DST);
 #endif
+
+  /* Changin context */
+  DRW_opengl_context_disable();
 }
 
 /**
