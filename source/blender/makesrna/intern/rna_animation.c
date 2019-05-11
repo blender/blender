@@ -72,6 +72,43 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+/* Contains additional flags suitable for use in Python API functions. */
+const EnumPropertyItem rna_enum_keying_flag_items_api[] = {
+    {INSERTKEY_NEEDED,
+     "INSERTKEY_NEEDED",
+     0,
+     "Only Needed",
+     "Only insert keyframes where they're needed in the relevant F-Curves"},
+    {INSERTKEY_MATRIX,
+     "INSERTKEY_VISUAL",
+     0,
+     "Visual Keying",
+     "Insert keyframes based on 'visual transforms'"},
+    {INSERTKEY_XYZ2RGB,
+     "INSERTKEY_XYZ_TO_RGB",
+     0,
+     "XYZ=RGB Colors",
+     "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
+     "and also Color is based on the transform axis"},
+    {INSERTKEY_REPLACE,
+     "INSERTKEY_REPLACE",
+     0,
+     "Replace Existing",
+     "Only replace existing keyframes"},
+    {INSERTKEY_AVAILABLE,
+     "INSERTKEY_AVAILABLE",
+     0,
+     "Only Available",
+     "Don't create F-Curves when they don't already exist"},
+    {INSERTKEY_CYCLE_AWARE,
+     "INSERTKEY_CYCLE_AWARE",
+     0,
+     "Cycle Aware Keying",
+     "When inserting into a curve with cyclic extrapolation, remap the keyframe inside "
+     "the cycle time range, and if changing an end key, also update the other one"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_base.h"

@@ -96,6 +96,7 @@ extern const EnumPropertyItem rna_enum_keyblock_type_items[];
 
 extern const EnumPropertyItem rna_enum_keyingset_path_grouping_items[];
 extern const EnumPropertyItem rna_enum_keying_flag_items[];
+extern const EnumPropertyItem rna_enum_keying_flag_items_api[];
 
 extern const EnumPropertyItem rna_enum_keyframe_paste_offset_items[];
 extern const EnumPropertyItem rna_enum_keyframe_paste_merge_items[];

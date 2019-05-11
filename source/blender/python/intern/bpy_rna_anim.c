@@ -263,8 +263,9 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
 
   /* flag may be null (no option currently for remove keyframes e.g.). */
   if (r_options) {
-    if (pyoptions && (pyrna_set_to_enum_bitfield(
-                          rna_enum_keying_flag_items, pyoptions, r_options, error_prefix) == -1)) {
+    if (pyoptions &&
+        (pyrna_set_to_enum_bitfield(
+             rna_enum_keying_flag_items_api, pyoptions, r_options, error_prefix) == -1)) {
       return -1;
     }
 
@@ -299,8 +300,11 @@ char pyrna_struct_keyframe_insert_doc[] =
     "F-Curves.\n"
     "      - ``INSERTKEY_VISUAL`` Insert keyframes based on 'visual transforms'.\n"
     "      - ``INSERTKEY_XYZ_TO_RGB`` Color for newly added transformation F-Curves (Location, "
-    "Rotation, Scale)\n"
-    "         and also Color is based on the transform axis.\n"
+    "Rotation, Scale) is based on the transform axis.\n"
+    "      - ``INSERTKEY_REPLACE`` Only replace already exising keyframes.\n"
+    "      - ``INSERTKEY_AVAILABLE`` Only insert into already existing F-Curves.\n"
+    "      - ``INSERTKEY_CYCLE_AWARE`` Take cyclic extrapolation into account "
+    "(Cycle-Aware Keying option).\n"
     "   :type flag: set\n"
     "   :return: Success of keyframe insertion.\n"
     "   :rtype: boolean\n";

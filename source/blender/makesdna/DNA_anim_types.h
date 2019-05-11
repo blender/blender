@@ -970,6 +970,8 @@ typedef enum eInsertKeyFlags {
   INSERTKEY_DRIVER = (1 << 8),
   /** for cyclic FCurves, adjust key timing to preserve the cycle period and flow */
   INSERTKEY_CYCLE_AWARE = (1 << 9),
+  /** don't create new F-Curves (implied by INSERTKEY_REPLACE) */
+  INSERTKEY_AVAILABLE = (1 << 10),
 } eInsertKeyFlags;
 
 /* ************************************************ */
