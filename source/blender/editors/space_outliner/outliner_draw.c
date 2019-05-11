@@ -858,21 +858,21 @@ static void outliner_draw_restrictbuts(uiBlock *block,
   static struct RestrictProperties {
     bool initialized;
 
-    PropertyRNA *object_hide_instance, *object_hide_select, *object_hide_render;
+    PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render;
     PropertyRNA *base_hide_viewport;
-    PropertyRNA *collection_hide_instance, *collection_hide_select, *collection_hide_render;
+    PropertyRNA *collection_hide_viewport, *collection_hide_select, *collection_hide_render;
     PropertyRNA *layer_collection_holdout, *layer_collection_indirect_only,
         *layer_collection_hide_viewport;
     PropertyRNA *modifier_show_viewport, *modifier_show_render;
   } props = {false};
 
   if (!props.initialized) {
-    props.object_hide_instance = RNA_struct_type_find_property(&RNA_Object, "hide_instance");
+    props.object_hide_viewport = RNA_struct_type_find_property(&RNA_Object, "hide_viewport");
     props.object_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
     props.object_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
     props.base_hide_viewport = RNA_struct_type_find_property(&RNA_ObjectBase, "hide_viewport");
-    props.collection_hide_instance = RNA_struct_type_find_property(&RNA_Collection,
-                                                                   "hide_instance");
+    props.collection_hide_viewport = RNA_struct_type_find_property(&RNA_Collection,
+                                                                   "hide_viewport");
     props.collection_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
     props.collection_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
     props.layer_collection_holdout = RNA_struct_type_find_property(&RNA_LayerCollection,
@@ -995,7 +995,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
                                     &ptr,
-                                    props.object_hide_instance,
+                                    props.object_hide_viewport,
                                     -1,
                                     0,
                                     0,
@@ -1036,7 +1036,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
                                   &ptr,
-                                  props.object_hide_instance,
+                                  props.object_hide_viewport,
                                   -1,
                                   0,
                                   0,
@@ -1357,7 +1357,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
                                     &collection_ptr,
-                                    props.collection_hide_instance,
+                                    props.collection_hide_viewport,
                                     -1,
                                     0,
                                     0,
@@ -1370,13 +1370,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
               UI_but_func_set(bt,
                               view_layer__collection_set_flag_recursive_cb,
                               layer_collection,
-                              (char *)"hide_instance");
+                              (char *)"hide_viewport");
             }
             else {
               UI_but_func_set(bt,
                               scenes__collection_set_flag_recursive_cb,
                               collection,
-                              (char *)"hide_instance");
+                              (char *)"hide_viewport");
             }
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           }
