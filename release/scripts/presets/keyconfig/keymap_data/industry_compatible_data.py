@@ -92,7 +92,7 @@ def _template_items_object_subdivision_set():
 
 def _template_items_gizmo_tweak_value():
     return [
-        ("gizmogroup.gizmo_tweak", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("gizmogroup.gizmo_tweak", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": False}, None),
     ]
 
 
@@ -3531,6 +3531,30 @@ def km_transform_modal_map(_params):
 
 
 # ------------------------------------------------------------------------------
+# Gizmo System Keymaps
+
+def km_gizmos(_params):
+    items = []
+    keymap = (
+        "Gizmos",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    return keymap
+
+
+def km_transform_gizmo(_params):
+    keymap = (
+        "Transform Gizmo",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value()},
+    )
+
+    return keymap
+
+
+# ------------------------------------------------------------------------------
 # Tool System Keymaps
 
 
@@ -3716,6 +3740,10 @@ def generate_keymaps(params=None):
         km_eyedropper_modal_map(params),
         km_eyedropper_colorramp_pointsampling_map(params),
         km_transform_modal_map(params),
+
+        # Gizmos.
+        km_gizmos(params),
+        km_transform_gizmo(params),
 
         # Tool System.
         km_3d_view_tool_move(params),
