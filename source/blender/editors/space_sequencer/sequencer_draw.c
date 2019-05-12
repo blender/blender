@@ -1922,9 +1922,13 @@ static void draw_cache_view(const bContext *C)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  float stripe_bot, stripe_top, stripe_offs;
+  float stripe_bot, stripe_top;
+  float stripe_offs = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
   float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
                     v2d->cur.ymin;
+
+  CLAMP_MAX(stripe_ht, 0.2f);
+  CLAMP_MIN(stripe_offs, stripe_ht / 2);
 
   if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HEIGHT_HANDLES);
@@ -1943,10 +1947,6 @@ static void draw_cache_view(const bContext *C)
     if (seq->startdisp > v2d->cur.xmax || seq->enddisp < v2d->cur.xmin) {
       continue;
     }
-
-    CLAMP_MAX(stripe_ht, 0.2f);
-    stripe_offs = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
-    CLAMP_MIN(stripe_offs, stripe_ht / 2);
 
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_offs;
     stripe_top = stripe_bot + stripe_ht;
