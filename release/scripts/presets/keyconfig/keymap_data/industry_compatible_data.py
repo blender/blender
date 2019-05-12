@@ -2321,7 +2321,7 @@ def km_grease_pencil_stroke_paint_mode(params):
 
     items.extend([
         # Brush strength
-        ("wm.radial_control", {"type": 'U', "value": 'PRESS', "shift": True},
+        ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')]}),
         # Brush size
         ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
@@ -2331,6 +2331,12 @@ def km_grease_pencil_stroke_paint_mode(params):
         # Draw delete menu
         op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
         op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'DEL', "value": 'PRESS'}),
+        # Tools
+        op_tool("builtin_brush.Draw", {"type": 'D', "value": 'PRESS'}),
+        op_tool("builtin_brush.Fill", {"type": 'F', "value": 'PRESS'}),
+        op_tool("builtin_brush.Erase", {"type": 'E', "value": 'PRESS'}),
+        op_tool("builtin.cutter", {"type": 'K', "value": 'PRESS'}),
+        op_tool("builtin.cursor", {"type": 'C', "value": 'PRESS'}),
     ])
 
     return keymap
@@ -2351,7 +2357,7 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
         # Draw - straight lines
-        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
         # Draw - poly lines
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
@@ -2381,7 +2387,7 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         # may still want to use that as their primary pointing device!
         ("gpencil.draw", {"type": 'ERASER', "value": 'PRESS'},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        # Selected (used by eraser)
+
     ])
 
     return keymap
@@ -2428,7 +2434,7 @@ def km_grease_pencil_stroke_paint_fill(params):
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True)]}),
         # If press alternative key, the brush now it's for drawing lines
-        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_fill", True)]}),
         # Lasso select
         ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
