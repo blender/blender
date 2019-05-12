@@ -39,6 +39,8 @@ static bNodeSocketTemplate sh_node_bsdf_principled_in[] = {
     {SOCK_FLOAT, 1, N_("IOR"), 1.45f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
     {SOCK_FLOAT, 1, N_("Transmission"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, 1, N_("Transmission Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, 1, N_("Emission"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+    {SOCK_FLOAT, 1, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_VECTOR,
      1,
      N_("Normal"),
@@ -99,25 +101,25 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   GPUNodeLink *sss_scale;
 
   /* Normals */
-  if (!in[17].link) {
-    GPU_link(mat, "world_normals_get", &in[17].link);
+  if (!in[19].link) {
+    GPU_link(mat, "world_normals_get", &in[19].link);
   }
 
   /* Clearcoat Normals */
-  if (!in[18].link) {
-    GPU_link(mat, "world_normals_get", &in[18].link);
+  if (!in[20].link) {
+    GPU_link(mat, "world_normals_get", &in[20].link);
   }
 
   /* Tangents */
-  if (!in[19].link) {
+  if (!in[21].link) {
     GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
-    GPU_link(mat, "tangent_orco_z", orco, &in[19].link);
+    GPU_link(mat, "tangent_orco_z", orco, &in[21].link);
     GPU_link(mat,
              "node_tangent",
              GPU_builtin(GPU_WORLD_NORMAL),
-             in[19].link,
+             in[21].link,
              GPU_builtin(GPU_OBJECT_MATRIX),
-             &in[19].link);
+             &in[21].link);
   }
 
   /* SSS Profile */

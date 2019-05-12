@@ -1242,6 +1242,8 @@ void node_bsdf_principled(vec4 base_color,
                           float ior,
                           float transmission,
                           float transmission_roughness,
+                          vec4 emission,
+                          float alpha,
                           vec3 N,
                           vec3 CN,
                           vec3 T,
@@ -1321,6 +1323,8 @@ void node_bsdf_principled(vec4 base_color,
 #    endif
   result.sss_data.rgb *= (1.0 - transmission);
 #  endif
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_principled_dielectric(vec4 base_color,
@@ -1340,6 +1344,8 @@ void node_bsdf_principled_dielectric(vec4 base_color,
                                      float ior,
                                      float transmission,
                                      float transmission_roughness,
+                                     vec4 emission,
+                                     float alpha,
                                      vec3 N,
                                      vec3 CN,
                                      vec3 T,
@@ -1369,6 +1375,8 @@ void node_bsdf_principled_dielectric(vec4 base_color,
   result.ssr_data = vec4(ssr_spec, roughness);
   result.ssr_normal = normal_encode(vN, viewCameraVec);
   result.ssr_id = int(ssr_id);
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_principled_metallic(vec4 base_color,
@@ -1388,6 +1396,8 @@ void node_bsdf_principled_metallic(vec4 base_color,
                                    float ior,
                                    float transmission,
                                    float transmission_roughness,
+                                   vec4 emission,
+                                   float alpha,
                                    vec3 N,
                                    vec3 CN,
                                    vec3 T,
@@ -1408,6 +1418,8 @@ void node_bsdf_principled_metallic(vec4 base_color,
   result.ssr_data = vec4(ssr_spec, roughness);
   result.ssr_normal = normal_encode(vN, viewCameraVec);
   result.ssr_id = int(ssr_id);
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_principled_clearcoat(vec4 base_color,
@@ -1427,6 +1439,8 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
                                     float ior,
                                     float transmission,
                                     float transmission_roughness,
+                                    vec4 emission,
+                                    float alpha,
                                     vec3 N,
                                     vec3 CN,
                                     vec3 T,
@@ -1456,6 +1470,8 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
   result.ssr_data = vec4(ssr_spec, roughness);
   result.ssr_normal = normal_encode(vN, viewCameraVec);
   result.ssr_id = int(ssr_id);
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_principled_subsurface(vec4 base_color,
@@ -1475,6 +1491,8 @@ void node_bsdf_principled_subsurface(vec4 base_color,
                                      float ior,
                                      float transmission,
                                      float transmission_roughness,
+                                     vec4 emission,
+                                     float alpha,
                                      vec3 N,
                                      vec3 CN,
                                      vec3 T,
@@ -1529,6 +1547,8 @@ void node_bsdf_principled_subsurface(vec4 base_color,
   result.radiance += (out_diff + out_trans) * mixed_ss_base_color;
 #  endif
   result.radiance += out_diff * out_sheen;
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_principled_glass(vec4 base_color,
@@ -1548,6 +1568,8 @@ void node_bsdf_principled_glass(vec4 base_color,
                                 float ior,
                                 float transmission,
                                 float transmission_roughness,
+                                vec4 emission,
+                                float alpha,
                                 vec3 N,
                                 vec3 CN,
                                 vec3 T,
@@ -1582,6 +1604,8 @@ void node_bsdf_principled_glass(vec4 base_color,
   result.ssr_data = vec4(ssr_spec, roughness);
   result.ssr_normal = normal_encode(vN, viewCameraVec);
   result.ssr_id = int(ssr_id);
+  result.radiance += emission.rgb;
+  result.opacity = alpha;
 }
 
 void node_bsdf_translucent(vec4 color, vec3 N, out Closure result)

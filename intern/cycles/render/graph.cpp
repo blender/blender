@@ -127,6 +127,12 @@ ShaderOutput *ShaderNode::output(ustring name)
   return NULL;
 }
 
+void ShaderNode::remove_input(ShaderInput *input)
+{
+  assert(input->link == NULL);
+  inputs.erase(remove(inputs.begin(), inputs.end(), input), inputs.end());
+}
+
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   foreach (ShaderInput *input, inputs) {
@@ -297,6 +303,28 @@ void ShaderGraph::disconnect(ShaderInput *to)
   from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
 }
 
+void ShaderGraph::relink(ShaderInput *from, ShaderInput *to)
+{
+  ShaderOutput *out = from->link;
+  if (out) {
+    disconnect(from);
+    connect(out, to);
+  }
+  to->parent->copy_value(to->socket_type, *(from->parent), from->socket_type);
+}
+
+void ShaderGraph::relink(ShaderOutput *from, ShaderOutput *to)
+{
+  /* Copy because disconnect modifies this list. */
+  vector<ShaderInput *> outputs = from->links;
+
+  foreach (ShaderInput *sock, outputs) {
+    disconnect(sock);
+    if (to)
+      connect(to, sock);
+  }
+}
+
 void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
 {
   simplified = false;
@@ -320,6 +348,7 @@ void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
 void ShaderGraph::simplify(Scene *scene)
 {
   if (!simplified) {
+    expand();
     default_inputs(scene->shader_manager->use_osl());
     clean(scene);
     refine_bump_nodes();
@@ -778,6 +807,14 @@ void ShaderGraph::clean(Scene *scene)
   }
 
   nodes = newnodes;
+}
+
+void ShaderGraph::expand()
+{
+  /* Call expand on all nodes, to generate additional nodes. */
+  foreach (ShaderNode *node, nodes) {
+    node->expand(this);
+  }
 }
 
 void ShaderGraph::default_inputs(bool do_osl)

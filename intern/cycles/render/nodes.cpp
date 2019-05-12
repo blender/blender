@@ -2427,6 +2427,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
   SOCKET_IN_FLOAT(transmission_roughness, "Transmission Roughness", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
+  SOCKET_IN_COLOR(emission, "Emission", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
   SOCKET_IN_NORMAL(clearcoat_normal,
                    "Clearcoat Normal",
@@ -2445,6 +2447,48 @@ PrincipledBsdfNode::PrincipledBsdfNode() : BsdfBaseNode(node_type)
   closure = CLOSURE_BSDF_PRINCIPLED_ID;
   distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
   distribution_orig = NBUILTIN_CLOSURES;
+}
+
+void PrincipledBsdfNode::expand(ShaderGraph *graph)
+{
+  ShaderOutput *principled_out = output("BSDF");
+
+  ShaderInput *emission_in = input("Emission");
+  if (emission_in->link || emission != make_float3(0.0f, 0.0f, 0.0f)) {
+    /* Create add closure and emission. */
+    AddClosureNode *add = new AddClosureNode();
+    EmissionNode *emission_node = new EmissionNode();
+    ShaderOutput *new_out = add->output("Closure");
+
+    graph->add(add);
+    graph->add(emission_node);
+
+    emission_node->strength = 1.0f;
+    graph->relink(emission_in, emission_node->input("Color"));
+    graph->relink(principled_out, new_out);
+    graph->connect(emission_node->output("Emission"), add->input("Closure1"));
+    graph->connect(principled_out, add->input("Closure2"));
+
+    principled_out = new_out;
+  }
+
+  ShaderInput *alpha_in = input("Alpha");
+  if (alpha_in->link || alpha != 1.0f) {
+    /* Create mix and transparent BSDF for alpha transparency. */
+    MixClosureNode *mix = new MixClosureNode();
+    TransparentBsdfNode *transparent = new TransparentBsdfNode();
+
+    graph->add(mix);
+    graph->add(transparent);
+
+    graph->relink(alpha_in, mix->input("Fac"));
+    graph->relink(principled_out, mix->output("Closure"));
+    graph->connect(transparent->output("BSDF"), mix->input("Closure1"));
+    graph->connect(principled_out, mix->input("Closure2"));
+  }
+
+  remove_input(emission_in);
+  remove_input(alpha_in);
 }
 
 bool PrincipledBsdfNode::has_surface_bssrdf()
@@ -2627,7 +2671,7 @@ NODE_DEFINE(TransparentBsdfNode)
 {
   NodeType *type = NodeType::add("transparent_bsdf", create, NodeType::SHADER);
 
-  SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
+  SOCKET_IN_COLOR(color, "Color", make_float3(1.0f, 1.0f, 1.0f));
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
