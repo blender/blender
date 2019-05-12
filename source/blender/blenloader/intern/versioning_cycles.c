@@ -49,6 +49,12 @@ static float *cycles_node_socket_float_value(bNodeSocket *socket)
   return &socket_data->value;
 }
 
+static float *cycles_node_socket_rgba_value(bNodeSocket *socket)
+{
+  bNodeSocketValueRGBA *socket_data = socket->default_value;
+  return socket_data->value;
+}
+
 static IDProperty *cycles_properties_from_ID(ID *id)
 {
   IDProperty *idprop = IDP_GetProperties(id, false);
@@ -291,6 +297,87 @@ static void image_node_colorspace(bNode *node)
   }
 }
 
+static void light_emission_node_to_energy(Light *light, float *energy, float color[3])
+{
+  *energy = 1.0;
+  copy_v3_fl(color, 1.0f);
+
+  /* If nodetree has animation or drivers, don't try to convert. */
+  bNodeTree *ntree = light->nodetree;
+  if (ntree == NULL || ntree->adt) {
+    return;
+  }
+
+  /* Find emission node */
+  bNode *output_node = ntreeShaderOutputNode(ntree, SHD_OUTPUT_CYCLES);
+  if (output_node == NULL) {
+    return;
+  }
+
+  bNode *emission_node = NULL;
+  for (bNodeLink *link = ntree->links.first; link; link = link->next) {
+    if (link->tonode == output_node && link->fromnode->type == SH_NODE_EMISSION) {
+      emission_node = link->fromnode;
+      break;
+    }
+  }
+
+  if (emission_node == NULL) {
+    return;
+  }
+
+  /* Don't convert if anything is linked */
+  bNodeSocket *strength_socket = nodeFindSocket(emission_node, SOCK_IN, "Strength");
+  bNodeSocket *color_socket = nodeFindSocket(emission_node, SOCK_IN, "Color");
+
+  if ((strength_socket->flag & SOCK_IN_USE) || (color_socket->flag & SOCK_IN_USE)) {
+    return;
+  }
+
+  float *strength_value = cycles_node_socket_float_value(strength_socket);
+  float *color_value = cycles_node_socket_rgba_value(color_socket);
+
+  *energy = *strength_value;
+  copy_v3_v3(color, color_value);
+
+  *strength_value = 1.0f;
+  copy_v4_fl(color_value, 1.0f);
+  light->use_nodes = false;
+}
+
+static void light_emission_unify(Light *light, const char *engine)
+{
+  if (light->type != LA_SUN) {
+    light->energy *= 100.0f;
+  }
+
+  /* Attempt to extract constant energy and color from nodes. */
+  bool use_nodes = light->use_nodes;
+  float energy, color[3];
+  light_emission_node_to_energy(light, &energy, color);
+
+  if (STREQ(engine, "CYCLES")) {
+    if (use_nodes) {
+      /* Energy extracted from nodes */
+      light->energy = energy;
+      copy_v3_v3(&light->r, color);
+    }
+    else {
+      /* Default cycles multipliers if there are no nodes */
+      if (light->type == LA_SUN) {
+        light->energy = 1.0f;
+      }
+      else {
+        light->energy = 100.0f;
+      }
+    }
+  }
+  else {
+    /* Disable nodes if scene was configured for Eevee */
+    light->use_nodes = false;
+  }
+}
+
 void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bmain)
 {
   /* Particle shape shared with Eevee. */
@@ -363,5 +450,15 @@ void do_versions_after_linking_cycles(Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 64)) {
+    /* Unfiy Cycles and Eevee settings. */
+    Scene *scene = bmain->scenes.first;
+    const char *engine = (scene) ? scene->r.engine : "CYCLES";
+
+    for (Light *light = bmain->lights.first; light; light = light->id.next) {
+      light_emission_unify(light, engine);
+    }
   }
 }

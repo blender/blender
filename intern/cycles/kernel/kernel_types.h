@@ -1455,6 +1455,8 @@ typedef struct KernelLight {
   int samples;
   float max_bounces;
   float random;
+  float strength[3];
+  float pad1;
   Transform tfm;
   Transform itfm;
   union {

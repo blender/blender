@@ -645,7 +645,7 @@ float light_attenuation_radius_get(Light *la, float light_threshold)
 
   /* Compute max light power. */
   float power = max_fff(la->r, la->g, la->b);
-  power *= fabsf(la->energy);
+  power *= fabsf(la->energy / 100.0f);
   power *= max_ff(1.0f, la->spec_fac);
   /* Compute the distance (using the inverse square law)
    * at which the light power reaches the light_threshold. */
@@ -683,7 +683,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   /* Make illumination power constant */
   if (la->type == LA_AREA) {
     power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
-            80.0f; /* XXX : Empirical, Fit cycles power */
+            0.8f; /* XXX : Empirical, Fit cycles power */
     if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
       /* Scale power to account for the lower area of the ellipse compared to the surrounding
        * rectangle. */
@@ -691,8 +691,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     }
   }
   else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
-    power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(4*r²*Pi²) */
-            M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
+    power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI); /* 1/(4*r²*Pi²) */
 
     /* for point lights (a.k.a radius == 0.0) */
     // power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */

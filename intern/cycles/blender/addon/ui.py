@@ -1341,6 +1341,10 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
 
         col = layout.column()
 
+        col.prop(light, "color")
+        col.prop(light, "energy")
+        col.separator()
+
         if light.type in {'POINT', 'SUN', 'SPOT'}:
             col.prop(light, "shadow_soft_size", text="Size")
         elif light.type == 'AREA':
@@ -1384,8 +1388,7 @@ class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         light = context.light
-        if not panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface'):
-            layout.prop(light, "color")
+        panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface')
 
 
 class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):

@@ -90,6 +90,11 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 
   eval *= ls->eval_fac;
 
+  if (ls->lamp != LAMP_NONE) {
+    const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, ls->lamp);
+    eval *= make_float3(klight->strength[0], klight->strength[1], klight->strength[2]);
+  }
+
   return eval;
 }
 

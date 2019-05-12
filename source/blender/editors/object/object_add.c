@@ -1176,7 +1176,6 @@ static const char *get_light_defname(int type)
 
 static int object_light_add_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Object *ob;
   Light *la;
   int type = RNA_enum_get(op->ptr, "type");
@@ -1206,11 +1205,6 @@ static int object_light_add_exec(bContext *C, wmOperator *op)
 
   la = (Light *)ob->data;
   la->type = type;
-
-  if (BKE_scene_uses_cycles(scene)) {
-    ED_node_shader_default(C, &la->id);
-    la->use_nodes = true;
-  }
 
   return OPERATOR_FINISHED;
 }

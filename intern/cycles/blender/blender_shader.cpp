@@ -1409,16 +1409,9 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
         add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
       }
       else {
-        float strength = 1.0f;
-
-        if (b_light.type() == BL::Light::type_POINT || b_light.type() == BL::Light::type_SPOT ||
-            b_light.type() == BL::Light::type_AREA) {
-          strength = 100.0f;
-        }
-
         EmissionNode *emission = new EmissionNode();
-        emission->color = get_float3(b_light.color());
-        emission->strength = strength;
+        emission->color = make_float3(1.0f, 1.0f, 1.0f);
+        emission->strength = 1.0f;
         graph->add(emission);
 
         ShaderNode *out = graph->output();

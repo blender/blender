@@ -182,6 +182,10 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     }
   }
 
+  /* strength */
+  light->strength = get_float3(b_light.color());
+  light->strength *= BL::PointLight(b_light).energy();
+
   /* location and (inverted!) direction */
   light->co = transform_get_column(&tfm, 3);
   light->dir = -transform_get_column(&tfm, 2);
