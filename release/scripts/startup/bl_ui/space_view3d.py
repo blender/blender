@@ -33,6 +33,7 @@ from .properties_grease_pencil_common import (
 )
 from bpy.app.translations import contexts as i18n_contexts
 
+
 class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOL_HEADER"
@@ -693,17 +694,17 @@ class VIEW3D_MT_editor_menus(Menu):
         if gp_edit:
             pass
         elif mode_string == 'OBJECT':
-            layout.menu("VIEW3D_MT_add", text="Add")
+            layout.menu("VIEW3D_MT_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_MESH':
-            layout.menu("VIEW3D_MT_mesh_add", text="Add")
+            layout.menu("VIEW3D_MT_mesh_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_CURVE':
-            layout.menu("VIEW3D_MT_curve_add", text="Add")
+            layout.menu("VIEW3D_MT_curve_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_SURFACE':
-            layout.menu("VIEW3D_MT_surface_add", text="Add")
+            layout.menu("VIEW3D_MT_surface_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_METABALL':
-            layout.menu("VIEW3D_MT_metaball_add", text="Add")
+            layout.menu("VIEW3D_MT_metaball_add", text="Add", text_ctxt=i18n_contexts.operator_default)
         elif mode_string == 'EDIT_ARMATURE':
-            layout.menu("TOPBAR_MT_edit_armature_add", text="Add")
+            layout.menu("TOPBAR_MT_edit_armature_add", text="Add", text_ctxt=i18n_contexts.operator_default)
 
         if gp_edit:
             if obj and obj.mode == 'PAINT_GPENCIL':
@@ -1866,6 +1867,7 @@ class VIEW3D_MT_metaball_add(Menu):
 class TOPBAR_MT_edit_curve_add(Menu):
     bl_idname = "TOPBAR_MT_edit_curve_add"
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
         is_surf = context.active_object.type == 'SURFACE'
@@ -1935,6 +1937,7 @@ class VIEW3D_MT_camera_add(Menu):
 
 class VIEW3D_MT_add(Menu):
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
         layout = self.layout
@@ -2184,7 +2187,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         '''
         if selected_objects_len == 0:
 
-            layout.menu("VIEW3D_MT_add", text="Add")
+            layout.menu("VIEW3D_MT_add", text="Add", text_ctxt=i18n_contexts.operator_default)
             layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
 
             return
@@ -3321,7 +3324,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
         '''
         # If nothing is selected
         if not (selected_verts_len or selected_edges_len or selected_faces_len):
-            layout.menu("VIEW3D_MT_mesh_add", text="Add")
+            layout.menu("VIEW3D_MT_mesh_add", text="Add", text_ctxt=i18n_contexts.operator_default)
 
             return
         '''

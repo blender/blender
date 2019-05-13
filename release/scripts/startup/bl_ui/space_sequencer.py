@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -356,6 +357,7 @@ class SEQUENCER_MT_frame(Menu):
 
 class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
 

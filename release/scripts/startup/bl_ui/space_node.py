@@ -21,6 +21,7 @@ import bpy
 import nodeitems_utils
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.utils import PresetPanel
 from .properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -190,6 +191,7 @@ class NODE_MT_editor_menus(Menu):
 class NODE_MT_add(bpy.types.Menu):
     bl_space_type = 'NODE_EDITOR'
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
         layout = self.layout

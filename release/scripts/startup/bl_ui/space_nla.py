@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 from bpy.types import Header, Menu, Panel
+from bpy.app.translations import contexts as i18n_contexts
 from .space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
@@ -197,6 +198,7 @@ class NLA_MT_edit(Menu):
 
 class NLA_MT_add(Menu):
     bl_label = "Add"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, _context):
         layout = self.layout
