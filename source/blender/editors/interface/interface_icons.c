@@ -895,7 +895,7 @@ void UI_icons_reload_internal_textures(void)
     icongltex.num_textures = need_icons_with_border ? 2 : 1;
     glGenTextures(icongltex.num_textures, icongltex.id);
 
-    if (icongltex.id) {
+    if (icongltex.id[0]) {
       icongltex.w = b32buf->x;
       icongltex.h = b32buf->y;
       icongltex.invw = 1.0f / b32buf->x;
