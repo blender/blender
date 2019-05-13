@@ -268,7 +268,7 @@ ShaderNode *ImageTextureNode::clone() const
   node->slot = -1;
   node->is_float = -1;
   node->compress_as_srgb = false;
-  node->colorspace = u_colorspace_raw;
+  node->colorspace = colorspace;
   return node;
 }
 
@@ -453,7 +453,7 @@ ShaderNode *EnvironmentTextureNode::clone() const
   node->slot = -1;
   node->is_float = -1;
   node->compress_as_srgb = false;
-  node->colorspace = u_colorspace_raw;
+  node->colorspace = colorspace;
   return node;
 }
 
