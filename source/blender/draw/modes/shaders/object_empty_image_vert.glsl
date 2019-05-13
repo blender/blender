@@ -1,7 +1,6 @@
 uniform mat4 ModelMatrix;
 
-uniform float aspectX;
-uniform float aspectY;
+uniform vec2 aspect;
 uniform float size;
 uniform vec2 offset;
 #ifdef USE_WIRE
@@ -21,7 +20,7 @@ out vec2 texCoord_interp;
 
 void main()
 {
-  vec3 pos = vec3((pos + offset) * (size * vec2(aspectX, aspectY)), 0.0);
+  vec3 pos = vec3((pos + offset) * (size * aspect), 0.0);
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
 #ifdef USE_WIRE

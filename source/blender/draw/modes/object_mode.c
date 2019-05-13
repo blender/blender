@@ -1010,9 +1010,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
 
   {
     DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image_wire, sgl->non_meshes);
-    /* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
-    DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
-    DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
+    DRW_shgroup_uniform_vec2_copy(grp, "aspect", image_aspect);
     DRW_shgroup_uniform_int_copy(grp, "depthMode", depth_mode);
     DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
     DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
@@ -1030,8 +1028,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
   if (tex && ((ob->color[3] > 0.0f) || !use_alpha_blend)) {
     DRWShadingGroup *grp = DRW_shgroup_create(
         sh_data->object_empty_image, (use_alpha_blend) ? sgl->image_empties : sgl->non_meshes);
-    DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
-    DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
+    DRW_shgroup_uniform_vec2_copy(grp, "aspect", image_aspect);
     DRW_shgroup_uniform_int_copy(grp, "depthMode", depth_mode);
     DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
     DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);

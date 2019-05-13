@@ -509,6 +509,7 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value);
 void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value);
 void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value);
+void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
 
