@@ -38,7 +38,10 @@ class USERPREF_HT_header(Header):
 
         layout.separator_spacer()
 
-        layout.operator("wm.save_userpref")
+        row = layout.row(align=True)
+        row.operator("wm.save_userpref")
+        row.operator("wm.read_userpref")
+        row.operator("wm.read_factory_userpref")
 
 
 class USERPREF_PT_navigation_bar(Panel):
