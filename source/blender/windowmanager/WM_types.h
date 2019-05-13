@@ -605,7 +605,7 @@ typedef struct wmOperatorType {
    * that the operator might still fail to execute even if this return true */
   bool (*poll)(struct bContext *) ATTR_WARN_UNUSED_RESULT;
 
-  /* Use to check of properties should be displayed in auto-generated UI.
+  /* Use to check if properties should be displayed in auto-generated UI.
    * Use 'check' callback to enforce refreshing. */
   bool (*poll_property)(const struct bContext *C,
                         struct wmOperator *op,
