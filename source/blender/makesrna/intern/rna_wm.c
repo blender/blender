@@ -2106,6 +2106,7 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "shift", 1);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Shift", "True when the Shift key is held");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
 
   prop = RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "ctrl", 1);
@@ -2602,6 +2603,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   /*  RNA_def_property_enum_sdna(prop, NULL, "shift"); */
   /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
   RNA_def_property_ui_text(prop, "Shift", "Shift key pressed");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "ctrl", PROP_BOOLEAN, PROP_NONE);

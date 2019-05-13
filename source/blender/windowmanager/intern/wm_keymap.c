@@ -1120,7 +1120,8 @@ const char *WM_key_event_string(const short type, const bool compact)
         if (platform == MACOS) {
           icon_glyph = "\xe2\x87\xa7";
         }
-        return key_event_icon_or_text(font_id, IFACE_("Shift"), icon_glyph);
+        return key_event_icon_or_text(
+            font_id, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Shift"), icon_glyph);
       }
       case LEFTCTRLKEY:
       case RIGHTCTRLKEY:
