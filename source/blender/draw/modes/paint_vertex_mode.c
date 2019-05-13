@@ -312,24 +312,24 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
       }
     }
     if (geom != NULL) {
-      DRW_shgroup_call_add(stl->g_data->by_mode[draw_mode].color_shgrp, geom, ob->obmat);
+      DRW_shgroup_call(stl->g_data->by_mode[draw_mode].color_shgrp, geom, ob->obmat);
     }
 
     if (use_face_sel || use_wire) {
       DRWShadingGroup *shgrp = use_face_sel ? stl->g_data->by_mode[draw_mode].lwire_select_shgrp :
                                               stl->g_data->by_mode[draw_mode].lwire_shgrp;
       geom = DRW_cache_mesh_surface_edges_get(ob);
-      DRW_shgroup_call_add(shgrp, geom, ob->obmat);
+      DRW_shgroup_call(shgrp, geom, ob->obmat);
     }
 
     if (use_face_sel) {
       geom = DRW_cache_mesh_surface_get(ob);
-      DRW_shgroup_call_add(stl->g_data->face_select_shgrp, geom, ob->obmat);
+      DRW_shgroup_call(stl->g_data->face_select_shgrp, geom, ob->obmat);
     }
 
     if (use_vert_sel) {
       geom = DRW_cache_mesh_all_verts_get(ob);
-      DRW_shgroup_call_add(stl->g_data->vert_select_shgrp, geom, ob->obmat);
+      DRW_shgroup_call(stl->g_data->vert_select_shgrp, geom, ob->obmat);
     }
   }
 }

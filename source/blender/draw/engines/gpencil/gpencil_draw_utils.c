@@ -1544,9 +1544,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
         }
 
         /* buffer strokes, must show stroke always */
-        DRW_shgroup_call_add(stl->g_data->shgrps_drawing_stroke,
-                             e_data->batch_buffer_stroke,
-                             stl->storage->unit_matrix);
+        DRW_shgroup_call(stl->g_data->shgrps_drawing_stroke,
+                         e_data->batch_buffer_stroke,
+                         stl->storage->unit_matrix);
 
         if ((gpd->runtime.sbuffer_size >= 3) &&
             (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
@@ -1568,9 +1568,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
           }
 
           e_data->batch_buffer_fill = DRW_gpencil_get_buffer_fill_geom(gpd);
-          DRW_shgroup_call_add(stl->g_data->shgrps_drawing_fill,
-                               e_data->batch_buffer_fill,
-                               stl->storage->unit_matrix);
+          DRW_shgroup_call(stl->g_data->shgrps_drawing_fill,
+                           e_data->batch_buffer_fill,
+                           stl->storage->unit_matrix);
           stl->storage->buffer_fill = true;
         }
         stl->storage->buffer_stroke = true;
@@ -1600,7 +1600,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
 
     e_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
 
-    DRW_shgroup_call_add(shgrp, e_data->batch_buffer_ctrlpoint, stl->storage->unit_matrix);
+    DRW_shgroup_call(shgrp, e_data->batch_buffer_ctrlpoint, stl->storage->unit_matrix);
 
     stl->storage->buffer_ctrlpoint = true;
   }
@@ -1722,12 +1722,12 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                   scale,
                                                   cache_ob->shading_type);
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_add(shgrp,
-                                     cache->b_stroke.batch,
-                                     (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
-                                                              cache_ob->obmat,
-                                     start_stroke,
-                                     len);
+          DRW_shgroup_call_range(shgrp,
+                                 cache->b_stroke.batch,
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                                          cache_ob->obmat,
+                                 start_stroke,
+                                 len);
         }
         stl->storage->shgroup_id++;
         start_stroke = elm->vertex_idx;
@@ -1751,12 +1751,12 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                  cache_ob->shading_type);
 
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_add(shgrp,
-                                     cache->b_point.batch,
-                                     (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
-                                                              cache_ob->obmat,
-                                     start_point,
-                                     len);
+          DRW_shgroup_call_range(shgrp,
+                                 cache->b_point.batch,
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                                          cache_ob->obmat,
+                                 start_point,
+                                 len);
         }
         stl->storage->shgroup_id++;
         start_point = elm->vertex_idx;
@@ -1777,12 +1777,12 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                 cache_ob->shading_type);
 
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_add(shgrp,
-                                     cache->b_fill.batch,
-                                     (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
-                                                              cache_ob->obmat,
-                                     start_fill,
-                                     len);
+          DRW_shgroup_call_range(shgrp,
+                                 cache->b_fill.batch,
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                                          cache_ob->obmat,
+                                 start_fill,
+                                 len);
         }
         stl->storage->shgroup_id++;
         start_fill = elm->vertex_idx;
@@ -1792,12 +1792,12 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if (stl->g_data->shgrps_edit_point) {
           const int len = elm->vertex_idx - start_edit;
           /* use always the same group */
-          DRW_shgroup_call_range_add(stl->g_data->shgrps_edit_point,
-                                     cache->b_edit.batch,
-                                     (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
-                                                              cache_ob->obmat,
-                                     start_edit,
-                                     len);
+          DRW_shgroup_call_range(stl->g_data->shgrps_edit_point,
+                                 cache->b_edit.batch,
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                                          cache_ob->obmat,
+                                 start_edit,
+                                 len);
 
           start_edit = elm->vertex_idx;
         }
@@ -1807,12 +1807,12 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if (stl->g_data->shgrps_edit_line) {
           const int len = elm->vertex_idx - start_edlin;
           /* use always the same group */
-          DRW_shgroup_call_range_add(stl->g_data->shgrps_edit_line,
-                                     cache->b_edlin.batch,
-                                     (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
-                                                              cache_ob->obmat,
-                                     start_edlin,
-                                     len);
+          DRW_shgroup_call_range(stl->g_data->shgrps_edit_line,
+                                 cache->b_edlin.batch,
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                                          cache_ob->obmat,
+                                 start_edlin,
+                                 len);
 
           start_edlin = elm->vertex_idx;
         }

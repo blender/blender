@@ -401,7 +401,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "transparentRevealage", &e_data.transparent_revealage_tx);
     DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
     DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   /* TODO(campbell): displays but masks geometry,
@@ -413,7 +413,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
     GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND);
     grp = DRW_shgroup_create(shader, psl->background_pass);
     wpd->world_clip_planes_batch = DRW_draw_background_clipping_batch_from_rv3d(draw_ctx->rv3d);
-    DRW_shgroup_call_add(grp, wpd->world_clip_planes_batch, NULL);
+    DRW_shgroup_call(grp, wpd->world_clip_planes_batch, NULL);
     DRW_shgroup_uniform_vec4(grp, "color", &wpd->world_clip_planes_color[0], 1);
   }
 
@@ -443,7 +443,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
     int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
     psl->checker_depth_pass = DRW_pass_create("Checker Depth", state);
     grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
     DRW_shgroup_uniform_float_copy(grp, "threshold", blend_threshold);
     DRW_shgroup_uniform_float_copy(grp, "offset", noise_offset);
   }
@@ -582,8 +582,8 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         int color_type = workbench_material_determine_color_type(wpd, image, ob, is_sculpt_mode);
         material = workbench_forward_get_or_create_material_data(
             vedata, ob, mat, image, iuser, color_type, interp, is_sculpt_mode);
-        DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
-        DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
+        DRW_shgroup_call_object(material->shgrp_object_outline, geom_array[i], ob);
+        DRW_shgroup_call_object(material->shgrp, geom_array[i], ob);
       }
     }
     else if (ELEM(wpd->shading.color_type,
@@ -599,9 +599,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
             vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
         bool use_vcol = (color_type == V3D_SHADING_VERTEX_COLOR);
         /* TODO(fclem) make this call optional */
-        DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, false, false, false);
+        DRW_shgroup_call_sculpt(material->shgrp_object_outline, ob, false, false, false);
         if (!is_wire) {
-          DRW_shgroup_call_sculpt_add(material->shgrp, ob, false, false, use_vcol);
+          DRW_shgroup_call_sculpt(material->shgrp, ob, false, false, use_vcol);
         }
       }
       else {
@@ -612,9 +612,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           material = workbench_forward_get_or_create_material_data(
               vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
           /* TODO(fclem) make this call optional */
-          DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
+          DRW_shgroup_call_object(material->shgrp_object_outline, geom, ob);
           if (!is_wire) {
-            DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+            DRW_shgroup_call_object(material->shgrp, geom, ob);
           }
         }
       }
@@ -631,9 +631,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           shgrps[i] = material->shgrp;
         }
         /* TODO(fclem) make this call optional */
-        DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, false, false, false);
+        DRW_shgroup_call_sculpt(material->shgrp_object_outline, ob, false, false, false);
         if (!is_wire) {
-          DRW_shgroup_call_sculpt_with_materials_add(shgrps, ob, false);
+          DRW_shgroup_call_sculpt_with_materials(shgrps, ob, false);
         }
       }
       else {
@@ -652,9 +652,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
             material = workbench_forward_get_or_create_material_data(
                 vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
             /* TODO(fclem) make this call optional */
-            DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
+            DRW_shgroup_call_object(material->shgrp_object_outline, mat_geom[i], ob);
             if (!is_wire) {
-              DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+              DRW_shgroup_call_object(material->shgrp, mat_geom[i], ob);
             }
           }
         }

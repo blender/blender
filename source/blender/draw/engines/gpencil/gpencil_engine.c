@@ -462,7 +462,7 @@ void GPENCIL_cache_init(void *vedata)
                                     DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
                                         DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.gpencil_fullscreen_sh, psl->mix_pass);
-    DRW_shgroup_call_add(mix_shgrp, quad, NULL);
+    DRW_shgroup_call(mix_shgrp, quad, NULL);
     DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeColor", &e_data.input_color_tx);
     DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeDepth", &e_data.input_depth_tx);
     DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
@@ -480,7 +480,7 @@ void GPENCIL_cache_init(void *vedata)
                                                 DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *mix_shgrp_noblend = DRW_shgroup_create(e_data.gpencil_fullscreen_sh,
                                                             psl->mix_pass_noblend);
-    DRW_shgroup_call_add(mix_shgrp_noblend, quad, NULL);
+    DRW_shgroup_call(mix_shgrp_noblend, quad, NULL);
     DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeColor", &e_data.input_color_tx);
     DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeDepth", &e_data.input_depth_tx);
     DRW_shgroup_uniform_int(mix_shgrp_noblend, "tonemapping", &stl->storage->tonemapping, 1);
@@ -498,7 +498,7 @@ void GPENCIL_cache_init(void *vedata)
                                                DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *background_shgrp = DRW_shgroup_create(e_data.gpencil_background_sh,
                                                            psl->background_pass);
-    DRW_shgroup_call_add(background_shgrp, quad, NULL);
+    DRW_shgroup_call(background_shgrp, quad, NULL);
     DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeColor", &e_data.background_color_tx);
     DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeDepth", &e_data.background_depth_tx);
 
@@ -511,7 +511,7 @@ void GPENCIL_cache_init(void *vedata)
       psl->paper_pass = DRW_pass_create("GPencil Paper Pass",
                                         DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
       DRWShadingGroup *paper_shgrp = DRW_shgroup_create(e_data.gpencil_paper_sh, psl->paper_pass);
-      DRW_shgroup_call_add(paper_shgrp, quad, NULL);
+      DRW_shgroup_call(paper_shgrp, quad, NULL);
       DRW_shgroup_uniform_vec3(paper_shgrp, "color", v3d->shading.background_color, 1);
       DRW_shgroup_uniform_float(paper_shgrp, "opacity", &v3d->overlay.gpencil_paper_opacity, 1);
     }
@@ -530,7 +530,7 @@ void GPENCIL_cache_init(void *vedata)
                                           DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *blend_shgrp = DRW_shgroup_create(e_data.gpencil_blend_fullscreen_sh,
                                                       psl->blend_pass);
-    DRW_shgroup_call_add(blend_shgrp, quad, NULL);
+    DRW_shgroup_call(blend_shgrp, quad, NULL);
     DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeColor", &e_data.temp_color_tx_a);
     DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeDepth", &e_data.temp_depth_tx_a);
     DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendColor", &e_data.temp_color_tx_fx);
@@ -682,7 +682,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
         copy_v3_v3(stl->storage->grid_matrix[3], ob->obmat[3]);
       }
 
-      DRW_shgroup_call_add(stl->g_data->shgrps_grid, e_data.batch_grid, stl->storage->grid_matrix);
+      DRW_shgroup_call(stl->g_data->shgrps_grid, e_data.batch_grid, stl->storage->grid_matrix);
     }
   }
 }

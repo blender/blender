@@ -416,7 +416,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
         DRW_shgroup_uniform_texture(grp, "sampflame", e_data.dummy_flame);
         DRW_shgroup_uniform_vec2(grp, "unftemperature", (float[2]){0.0f, 1.0f}, 1);
 
-        DRW_shgroup_call_procedural_triangles_add(grp, common_data->vol_tex_size[2], NULL);
+        DRW_shgroup_call_procedural_triangles(grp, common_data->vol_tex_size[2], NULL);
       }
     }
 
@@ -426,7 +426,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
       DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-      DRW_shgroup_call_procedural_triangles_add(grp, common_data->vol_tex_size[2], NULL);
+      DRW_shgroup_call_procedural_triangles(grp, common_data->vol_tex_size[2], NULL);
     }
 
     /* Volumetric Objects */
@@ -452,7 +452,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-    DRW_shgroup_call_procedural_triangles_add(grp, common_data->vol_tex_size[2], NULL);
+    DRW_shgroup_call_procedural_triangles(grp, common_data->vol_tex_size[2], NULL);
 
     psl->volumetric_integration_ps = DRW_pass_create("Volumetric Integration",
                                                      DRW_STATE_WRITE_COLOR);
@@ -461,7 +461,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "volumeExtinction", &txl->volume_transmittance);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-    DRW_shgroup_call_procedural_triangles_add(grp, common_data->vol_tex_size[2], NULL);
+    DRW_shgroup_call_procedural_triangles(grp, common_data->vol_tex_size[2], NULL);
 
     psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(e_data.volumetric_resolve_sh, psl->volumetric_resolve_ps);
@@ -470,7 +470,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "inSceneColor", &e_data.color_src);
     DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 }
 
@@ -580,7 +580,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
   /* TODO Reduce to number of slices intersecting. */
   /* TODO Preemptive culling. */
-  DRW_shgroup_call_procedural_triangles_add(grp, sldata->common_data.vol_tex_size[2], NULL);
+  DRW_shgroup_call_procedural_triangles(grp, sldata->common_data.vol_tex_size[2], NULL);
 }
 
 void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

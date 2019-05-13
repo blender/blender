@@ -158,7 +158,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
     if (ob->sculpt && (ob == draw_ctx->obact)) {
       PBVH *pbvh = ob->sculpt->pbvh;
       if (pbvh && pbvh_has_mask(pbvh)) {
-        DRW_shgroup_call_sculpt_add(stl->g_data->mask_overlay_grp, ob, false, true, false);
+        DRW_shgroup_call_sculpt(stl->g_data->mask_overlay_grp, ob, false, true, false);
       }
     }
   }

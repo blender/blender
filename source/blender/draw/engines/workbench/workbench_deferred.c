@@ -579,7 +579,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
                                               DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.ghost_resolve_sh, psl->ghost_resolve_pass);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.ghost_depth_tx);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   {
@@ -613,7 +613,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
       DRW_shgroup_uniform_vec2(grp, "curvature_settings", &wpd->world_data.curvature_ridge, 1);
     }
 
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 }
 
@@ -724,13 +724,13 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
     if (OBJECT_OUTLINE_ENABLED(wpd)) {
       DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
     }
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
     if (draw_ctx->rv3d && (draw_ctx->rv3d->rflag & RV3D_CLIPPING) && draw_ctx->rv3d->clipbb) {
       GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND);
       grp = DRW_shgroup_create(shader, psl->background_pass);
       wpd->world_clip_planes_batch = DRW_draw_background_clipping_batch_from_rv3d(draw_ctx->rv3d);
-      DRW_shgroup_call_add(grp, wpd->world_clip_planes_batch, NULL);
+      DRW_shgroup_call(grp, wpd->world_clip_planes_batch, NULL);
       DRW_shgroup_uniform_vec4(grp, "color", &wpd->world_clip_planes_color[0], 1);
     }
   }
@@ -750,7 +750,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
       DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
       DRW_shgroup_uniform_float_copy(grp, "shadowShift", scene->display.shadow_shift);
       DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
-      DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+      DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
       /* Stencil Shadow passes. */
 #ifdef DEBUG_SHADOW_VOLUME
@@ -795,7 +795,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
       DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
       DRW_shgroup_uniform_float_copy(grp, "shadowShift", scene->display.shadow_shift);
       DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
-      DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+      DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
     }
     else {
@@ -803,7 +803,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
                                             DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_GREATER);
       grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
       workbench_composite_uniforms(wpd, grp);
-      DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+      DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
     }
   }
 
@@ -837,7 +837,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
       DRW_shgroup_uniform_texture_ref(grp, "transparentAccum", &e_data.oit_accum_tx);
       DRW_shgroup_uniform_texture_ref(grp, "transparentRevealage", &e_data.oit_revealage_tx);
       DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
-      DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+      DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
     }
   }
 }
@@ -991,7 +991,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
             material = get_or_create_material_data(
                 vedata, ob, mat, image, iuser, color_type, interp);
           }
-          DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
+          DRW_shgroup_call_object(material->shgrp, geom_array[i], ob);
         }
       }
     }
@@ -1016,7 +1016,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
       if (is_sculpt_mode) {
         bool use_vcol = (color_type == V3D_SHADING_VERTEX_COLOR);
-        DRW_shgroup_call_sculpt_add(material->shgrp, ob, false, false, use_vcol);
+        DRW_shgroup_call_sculpt(material->shgrp, ob, false, false, use_vcol);
       }
       else {
         struct GPUBatch *geom;
@@ -1028,7 +1028,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         }
 
         if (geom) {
-          DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+          DRW_shgroup_call_object(material->shgrp, geom, ob);
         }
       }
     }
@@ -1052,7 +1052,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           }
           shgrps[i] = material->shgrp;
         }
-        DRW_shgroup_call_sculpt_with_materials_add(shgrps, ob, false);
+        DRW_shgroup_call_sculpt_with_materials(shgrps, ob, false);
       }
       else {
         struct GPUBatch **geoms;
@@ -1075,7 +1075,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
               material = get_or_create_material_data(
                   vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
             }
-            DRW_shgroup_call_object_add(material->shgrp, geoms[i], ob);
+            DRW_shgroup_call_object(material->shgrp, geoms[i], ob);
           }
         }
       }
@@ -1089,7 +1089,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           /* Currently unsupported in sculpt mode. We could revert to the slow
            * method in this case but I'm not sure if it's a good idea given that
            * sculpted meshes are heavy to begin with. */
-          // DRW_shgroup_call_sculpt_add(wpd->shadow_shgrp, ob, ob->obmat);
+          // DRW_shgroup_call_sculpt(wpd->shadow_shgrp, ob, ob->obmat);
         }
         else {
           WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
@@ -1118,7 +1118,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
               }
               DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
               DRW_shgroup_uniform_float_copy(grp, "lightDistance", 1e5f);
-              DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+              DRW_shgroup_call(grp, geom_shadow, ob->obmat);
 #ifdef DEBUG_SHADOW_VOLUME
               DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){1.0f, 0.0f, 0.0f, 1.0f});
 #endif
@@ -1140,7 +1140,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
                 }
                 DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
                 DRW_shgroup_uniform_float_copy(grp, "lightDistance", extrude_distance);
-                DRW_shgroup_call_add(grp, DRW_cache_object_surface_get(ob), ob->obmat);
+                DRW_shgroup_call(grp, DRW_cache_object_surface_get(ob), ob->obmat);
               }
 
               if (is_manifold) {
@@ -1152,7 +1152,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
               }
               DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
               DRW_shgroup_uniform_float_copy(grp, "lightDistance", extrude_distance);
-              DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+              DRW_shgroup_call(grp, geom_shadow, ob->obmat);
 #ifdef DEBUG_SHADOW_VOLUME
               DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
 #endif

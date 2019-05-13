@@ -226,10 +226,10 @@ static void POSE_cache_populate(void *vedata, Object *ob)
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
     if (geom) {
       if (POSE_is_driven_by_active_armature(ob)) {
-        DRW_shgroup_call_object_add(ppd->bone_selection_shgrp, geom, ob);
+        DRW_shgroup_call_object(ppd->bone_selection_shgrp, geom, ob);
       }
       else {
-        DRW_shgroup_call_object_add(ppd->bone_selection_invert_shgrp, geom, ob);
+        DRW_shgroup_call_object(ppd->bone_selection_invert_shgrp, geom, ob);
       }
     }
   }

@@ -159,7 +159,7 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
     DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
     DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
   else {
     /* Cleanup to release memory */
@@ -196,7 +196,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &effects->ao_src_depth);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     psl->ao_horizon_search_layer = DRW_pass_create("GTAO Horizon Search Layer",
                                                    DRW_STATE_WRITE_COLOR);
@@ -206,7 +206,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "depthBufferLayered", &effects->ao_src_depth);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_int(grp, "layer", &stl->effects->ao_depth_layer, 1);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     if (G.debug_value == 6) {
       psl->ao_horizon_debug = DRW_pass_create("GTAO Horizon Debug", DRW_STATE_WRITE_COLOR);
@@ -217,7 +217,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
       DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
       DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-      DRW_shgroup_call_add(grp, quad, NULL);
+      DRW_shgroup_call(grp, quad, NULL);
     }
   }
 }

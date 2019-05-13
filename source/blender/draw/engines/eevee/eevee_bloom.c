@@ -186,7 +186,7 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
   *pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 
   DRWShadingGroup *grp = DRW_shgroup_create(sh, *pass);
-  DRW_shgroup_call_add(grp, quad, NULL);
+  DRW_shgroup_call(grp, quad, NULL);
   DRW_shgroup_uniform_texture_ref(grp, "sourceBuffer", &effects->unf_source_buffer);
   DRW_shgroup_uniform_vec2(grp, "sourceBufferTexelSize", effects->unf_source_texel_size, 1);
   if (upsample) {

@@ -134,7 +134,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 
   struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-  DRW_shgroup_call_add(grp, geom, NULL);
+  DRW_shgroup_call(grp, geom, NULL);
 
   float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
 
@@ -197,7 +197,7 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
   DRW_shgroup_uniform_texture(grp, "utilTex", e_data.util_tex);
 
   struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-  DRW_shgroup_call_add(grp, geom, NULL);
+  DRW_shgroup_call(grp, geom, NULL);
 
   float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
 
@@ -1035,7 +1035,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
             DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
             DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
             DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-            DRW_shgroup_call_add(grp, geom, NULL);
+            DRW_shgroup_call(grp, geom, NULL);
             break;
           case GPU_MAT_QUEUED:
             /* TODO Bypass probe compilation. */
@@ -1054,7 +1054,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       grp = DRW_shgroup_create(e_data.default_background, psl->background_pass);
       DRW_shgroup_uniform_vec3(grp, "color", col, 1);
       DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-      DRW_shgroup_call_add(grp, geom, NULL);
+      DRW_shgroup_call(grp, geom, NULL);
     }
   }
 
@@ -1143,7 +1143,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.update_noise_sh, psl->update_noise_pass);
     DRW_shgroup_uniform_texture(grp, "blueNoise", e_data.noise_tex);
     DRW_shgroup_uniform_vec3(grp, "offsets", e_data.noise_offsets, 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   if (LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
@@ -1168,7 +1168,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_float_copy(shgrp, "metallic", 0.0f);
     DRW_shgroup_uniform_float_copy(shgrp, "specular", 0.5f);
     DRW_shgroup_uniform_float_copy(shgrp, "roughness", 1.0f);
-    DRW_shgroup_call_add(shgrp, sphere, NULL);
+    DRW_shgroup_call(shgrp, sphere, NULL);
 
     psl->lookdev_glossy_pass = DRW_pass_create("LookDev Glossy Pass", state);
     shgrp = DRW_shgroup_create(e_data.default_lit[options], psl->lookdev_glossy_pass);
@@ -1176,18 +1176,18 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_vec3(shgrp, "basecol", color_chrome, 1);
     DRW_shgroup_uniform_float_copy(shgrp, "metallic", 1.0f);
     DRW_shgroup_uniform_float_copy(shgrp, "roughness", 0.0f);
-    DRW_shgroup_call_add(shgrp, sphere, NULL);
+    DRW_shgroup_call(shgrp, sphere, NULL);
   }
 }
 
 #define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) \
   do { \
     if (oedata) { \
-      DRW_shgroup_call_object_add_with_callback( \
+      DRW_shgroup_call_object_with_callback( \
           shgrp, geom, ob, EEVEE_lightprobes_obj_visibility_cb, oedata); \
     } \
     else { \
-      DRW_shgroup_call_object_add_ex(shgrp, geom, ob, false); \
+      DRW_shgroup_call_object_ex(shgrp, geom, ob, false); \
     } \
   } while (0)
 
@@ -1691,9 +1691,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
       if (is_sculpt_mode) {
         /* Vcol is not supported in the modes that require PBVH drawing. */
         bool use_vcol = false;
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_array, ob, use_vcol);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_array, ob, use_vcol);
-        DRW_shgroup_call_sculpt_with_materials_add(shgrp_depth_clip_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(shgrp_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(shgrp_depth_array, ob, use_vcol);
+        DRW_shgroup_call_sculpt_with_materials(shgrp_depth_clip_array, ob, use_vcol);
         /* TODO(fclem): Support shadows in sculpt mode. */
       }
       else if (mat_geom) {

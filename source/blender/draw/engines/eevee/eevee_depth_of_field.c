@@ -212,7 +212,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
     DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     psl->dof_scatter = DRW_pass_create("DoF Scatter",
                                        DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL);
@@ -228,7 +228,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
     DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 2);
 
-    DRW_shgroup_call_procedural_triangles_add(grp, sprite_len, NULL);
+    DRW_shgroup_call_procedural_triangles(grp, sprite_len, NULL);
 
     psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 
@@ -238,7 +238,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
     DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     if (use_alpha) {
       DRW_shgroup_uniform_texture_ref(grp, "scatterAlphaBuffer", &effects->dof_blur_alpha);

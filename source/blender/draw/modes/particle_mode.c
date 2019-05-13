@@ -150,15 +150,15 @@ static void particle_edit_cache_populate(void *vedata,
   {
     struct GPUBatch *strands = DRW_cache_particles_get_edit_strands(
         object, psys, edit, use_weight);
-    DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);
+    DRW_shgroup_call(stl->g_data->strands_group, strands, NULL);
   }
   if (pset->selectmode == SCE_SELECT_POINT) {
     struct GPUBatch *points = DRW_cache_particles_get_edit_inner_points(object, psys, edit);
-    DRW_shgroup_call_add(stl->g_data->inner_points_group, points, NULL);
+    DRW_shgroup_call(stl->g_data->inner_points_group, points, NULL);
   }
   if (ELEM(pset->selectmode, SCE_SELECT_POINT, SCE_SELECT_END)) {
     struct GPUBatch *points = DRW_cache_particles_get_edit_tip_points(object, psys, edit);
-    DRW_shgroup_call_add(stl->g_data->tip_points_group, points, NULL);
+    DRW_shgroup_call(stl->g_data->tip_points_group, points, NULL);
   }
 }
 

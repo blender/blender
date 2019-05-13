@@ -249,7 +249,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
     struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-    DRW_shgroup_call_add(grp, geom, NULL);
+    DRW_shgroup_call(grp, geom, NULL);
   }
 
   {
@@ -272,7 +272,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
     struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-    DRW_shgroup_call_add(grp, geom, NULL);
+    DRW_shgroup_call(grp, geom, NULL);
   }
 
   {
@@ -294,7 +294,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
     struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-    DRW_shgroup_call_add(grp, geom, NULL);
+    DRW_shgroup_call(grp, geom, NULL);
   }
 
   {
@@ -306,7 +306,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &light_cache->grid_tx.tex);
 
     struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-    DRW_shgroup_call_add(grp, geom, NULL);
+    DRW_shgroup_call(grp, geom, NULL);
   }
 }
 
@@ -360,7 +360,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
             DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
             DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
             DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-            DRW_shgroup_call_add(grp, geom, NULL);
+            DRW_shgroup_call(grp, geom, NULL);
             break;
           default:
             col = error_col;
@@ -374,7 +374,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       grp = DRW_shgroup_create(EEVEE_shaders_probe_default_sh_get(), psl->probe_background);
       DRW_shgroup_uniform_vec3(grp, "color", col, 1);
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
-      DRW_shgroup_call_add(grp, geom, NULL);
+      DRW_shgroup_call(grp, geom, NULL);
     }
   }
 
@@ -399,7 +399,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
       DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 
-      DRW_shgroup_call_procedural_triangles_add(grp, cube_len * 2, NULL);
+      DRW_shgroup_call_procedural_triangles(grp, cube_len * 2, NULL);
     }
 
     /* Grid Display */
@@ -425,7 +425,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
         DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
         DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
         int tri_count = egrid->resolution[0] * egrid->resolution[1] * egrid->resolution[2] * 2;
-        DRW_shgroup_call_procedural_triangles_add(shgrp, tri_count, NULL);
+        DRW_shgroup_call_procedural_triangles(shgrp, tri_count, NULL);
       }
     }
 
@@ -440,7 +440,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
                                               psl->probe_display);
     DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &txl->planar_pool);
 
-    stl->g_data->planar_display_shgrp = DRW_shgroup_call_buffer_instance_add(
+    stl->g_data->planar_display_shgrp = DRW_shgroup_call_buffer_instance(
         grp, e_data.format_probe_display_planar, DRW_cache_quad_get());
   }
   else {
@@ -773,7 +773,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
     DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
     DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
-    DRW_shgroup_call_procedural_triangles_add(grp, pinfo->num_planar, NULL);
+    DRW_shgroup_call_procedural_triangles(grp, pinfo->num_planar, NULL);
   }
 }
 

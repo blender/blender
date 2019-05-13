@@ -287,7 +287,7 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
     else {
       DRW_shgroup_uniform_float(grp, "alpha", &effects->taa_alpha, 1);
     }
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 }
 

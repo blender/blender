@@ -201,7 +201,7 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
   DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", color_buffer_tx);
   DRW_shgroup_uniform_texture_ref(grp, "historyBuffer", &txl->history_buffer_tx);
   DRW_shgroup_uniform_float(grp, "mixFactor", &effect_info->taa_mix_factor, 1);
-  DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+  DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
   /*
    * Set the offset for the cavity shader so every iteration different

@@ -263,7 +263,7 @@ static DRWPass *eevee_lights_cube_store_pass_get(EEVEE_PassList *psl,
     DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_cube_blur);
     DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
     DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
   return *pass;
 }
@@ -285,7 +285,7 @@ static DRWPass *eevee_lights_cascade_store_pass_get(EEVEE_PassList *psl,
     DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
     DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);
     DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
   return *pass;
 }
@@ -327,7 +327,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
     DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
     DRW_shgroup_uniform_int(grp, "faceId", &linfo->current_shadow_face, 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   {
@@ -340,7 +340,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
     DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
     DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);
-    DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   }
 
   {
@@ -454,7 +454,7 @@ void EEVEE_lights_cache_shcaster_add(EEVEE_ViewLayerData *UNUSED(sldata),
                                      struct GPUBatch *geom,
                                      Object *ob)
 {
-  DRW_shgroup_call_object_add(stl->g_data->shadow_shgrp, geom, ob);
+  DRW_shgroup_call_object(stl->g_data->shadow_shgrp, geom, ob);
 }
 
 void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
@@ -484,7 +484,7 @@ void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
   }
 
-  DRW_shgroup_call_object_add(grp, geom, ob);
+  DRW_shgroup_call_object(grp, geom, ob);
 }
 
 /* Make that object update shadow casting lights inside its influence bounding box. */

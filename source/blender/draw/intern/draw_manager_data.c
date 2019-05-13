@@ -448,7 +448,7 @@ static DRWCallState *drw_call_state_object(DRWShadingGroup *shgroup, float (*obm
   return DST.ob_state;
 }
 
-void DRW_shgroup_call_add(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obmat)[4])
+void DRW_shgroup_call(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obmat)[4])
 {
   BLI_assert(geom != NULL);
 
@@ -466,7 +466,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, GPUBatch *geom, float (*obma
 #endif
 }
 
-void DRW_shgroup_call_range_add(
+void DRW_shgroup_call_range(
     DRWShadingGroup *shgroup, GPUBatch *geom, float (*obmat)[4], uint v_sta, uint v_count)
 {
   BLI_assert(geom != NULL);
@@ -506,35 +506,35 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
 #endif
 }
 
-void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup,
-                                            uint point_len,
-                                            float (*obmat)[4])
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup,
+                                        uint point_len,
+                                        float (*obmat)[4])
 {
   struct GPUBatch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, point_len, obmat);
 }
 
-void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup,
-                                           uint line_count,
-                                           float (*obmat)[4])
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup,
+                                       uint line_count,
+                                       float (*obmat)[4])
 {
   struct GPUBatch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, line_count * 2, obmat);
 }
 
-void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup,
-                                               uint tria_count,
-                                               float (*obmat)[4])
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup,
+                                           uint tria_count,
+                                           float (*obmat)[4])
 {
   struct GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, tria_count * 3, obmat);
 }
 
 /* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
-                                    GPUBatch *geom,
-                                    Object *ob,
-                                    bool bypass_culling)
+void DRW_shgroup_call_object_ex(DRWShadingGroup *shgroup,
+                                GPUBatch *geom,
+                                Object *ob,
+                                bool bypass_culling)
 {
   BLI_assert(geom != NULL);
 
@@ -554,11 +554,11 @@ void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
 #endif
 }
 
-void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
-                                               GPUBatch *geom,
-                                               Object *ob,
-                                               DRWCallVisibilityFn *callback,
-                                               void *user_data)
+void DRW_shgroup_call_object_with_callback(DRWShadingGroup *shgroup,
+                                           GPUBatch *geom,
+                                           Object *ob,
+                                           DRWCallVisibilityFn *callback,
+                                           void *user_data)
 {
   BLI_assert(geom != NULL);
 
@@ -578,10 +578,10 @@ void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
 #endif
 }
 
-void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
-                                    GPUBatch *geom,
-                                    float (*obmat)[4],
-                                    uint count)
+void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
+                                GPUBatch *geom,
+                                float (*obmat)[4],
+                                uint count)
 {
   BLI_assert(geom != NULL);
 
@@ -599,10 +599,10 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
 #endif
 }
 
-void DRW_shgroup_call_instances_with_attribs_add(DRWShadingGroup *shgroup,
-                                                 struct GPUBatch *geom,
-                                                 float (*obmat)[4],
-                                                 struct GPUBatch *inst_attributes)
+void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
+                                             struct GPUBatch *geom,
+                                             float (*obmat)[4],
+                                             struct GPUBatch *inst_attributes)
 {
   BLI_assert(geom != NULL);
   BLI_assert(inst_attributes->verts[0] != NULL);
@@ -673,9 +673,9 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
     shgrp = DRW_shgroup_create_sub(shgrp);
     DRW_shgroup_uniform_vec3(shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->node_nr++), 1);
 #endif
-    /* DRW_shgroup_call_object_add_ex reuses matrices calculations for all the drawcalls of this
+    /* DRW_shgroup_call_object_ex reuses matrices calculations for all the drawcalls of this
      * object. */
-    DRW_shgroup_call_object_add_ex(shgrp, geom, scd->ob, true);
+    DRW_shgroup_call_object_ex(shgrp, geom, scd->ob, true);
   }
 }
 
@@ -736,7 +736,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
 #endif
 }
 
-void DRW_shgroup_call_sculpt_add(
+void DRW_shgroup_call_sculpt(
     DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask, bool use_vcol)
 {
   DRWSculptCallbackData scd = {
@@ -749,9 +749,7 @@ void DRW_shgroup_call_sculpt_add(
   drw_sculpt_generate_calls(&scd, use_vcol);
 }
 
-void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
-                                                Object *ob,
-                                                bool use_vcol)
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups, Object *ob, bool use_vcol)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
@@ -765,9 +763,9 @@ void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **shgroups,
 
 static GPUVertFormat inst_select_format = {0};
 
-DRWCallBuffer *DRW_shgroup_call_buffer_add(DRWShadingGroup *shgroup,
-                                           struct GPUVertFormat *format,
-                                           GPUPrimType prim_type)
+DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
+                                       struct GPUVertFormat *format,
+                                       GPUPrimType prim_type)
 {
   BLI_assert(ELEM(prim_type, GPU_PRIM_POINTS, GPU_PRIM_LINES, GPU_PRIM_TRI_FAN));
   BLI_assert(format != NULL);
@@ -795,9 +793,9 @@ DRWCallBuffer *DRW_shgroup_call_buffer_add(DRWShadingGroup *shgroup,
   return (DRWCallBuffer *)call;
 }
 
-DRWCallBuffer *DRW_shgroup_call_buffer_instance_add(DRWShadingGroup *shgroup,
-                                                    struct GPUVertFormat *format,
-                                                    GPUBatch *geom)
+DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
+                                                struct GPUVertFormat *format,
+                                                GPUBatch *geom)
 {
   BLI_assert(geom != NULL);
   BLI_assert(format != NULL);

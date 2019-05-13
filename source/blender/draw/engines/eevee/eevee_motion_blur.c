@@ -203,7 +203,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
     DRW_shgroup_uniform_mat4(grp, "pastViewProjMatrix", effects->past_world_to_ndc);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
   }
 }
 

@@ -378,11 +378,9 @@ struct GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFor
     } \
   } while (0)
 
-/* TODO(fclem): Remove the _create suffix. */
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup);
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
-
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
                                                        DRWPass *pass,
                                                        struct GPUVertBuf *tf_target);
@@ -391,48 +389,47 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
 typedef bool(DRWCallVisibilityFn)(bool vis_in, void *user_data);
 
 /* TODO(fclem): Remove the _add suffix. */
-void DRW_shgroup_call_add(DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4]);
-void DRW_shgroup_call_range_add(
+void DRW_shgroup_call(DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4]);
+void DRW_shgroup_call_range(
     DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4], uint v_sta, uint v_ct);
 
-void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *sh, uint point_ct, float (*obmat)[4]);
-void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *sh, uint line_ct, float (*obmat)[4]);
-void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *sh,
-                                               uint tri_ct,
-                                               float (*obmat)[4]);
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, uint point_ct, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, uint line_ct, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, uint tri_ct, float (*obmat)[4]);
 
-void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup,
-                                    struct GPUBatch *geom,
-                                    struct Object *ob,
-                                    bool bypass_culling);
-#define DRW_shgroup_call_object_add(shgroup, geom, ob) \
-  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, false)
-#define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) \
-  DRW_shgroup_call_object_add_ex(shgroup, geom, ob, true)
-void DRW_shgroup_call_object_add_with_callback(DRWShadingGroup *shgroup,
-                                               struct GPUBatch *geom,
-                                               struct Object *ob,
-                                               DRWCallVisibilityFn *callback,
-                                               void *user_data);
+void DRW_shgroup_call_object_ex(DRWShadingGroup *shgroup,
+                                struct GPUBatch *geom,
+                                struct Object *ob,
+                                bool bypass_culling);
+#define DRW_shgroup_call_object(shgroup, geom, ob) \
+  DRW_shgroup_call_object_ex(shgroup, geom, ob, false)
+#define DRW_shgroup_call_object_no_cull(shgroup, geom, ob) \
+  DRW_shgroup_call_object_ex(shgroup, geom, ob, true)
 
-void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup,
-                                    struct GPUBatch *geom,
-                                    float (*obmat)[4],
-                                    uint count);
-void DRW_shgroup_call_instances_with_attribs_add(DRWShadingGroup *shgroup,
-                                                 struct GPUBatch *geom,
-                                                 float (*obmat)[4],
-                                                 struct GPUBatch *inst_attributes);
+void DRW_shgroup_call_object_with_callback(DRWShadingGroup *shgroup,
+                                           struct GPUBatch *geom,
+                                           struct Object *ob,
+                                           DRWCallVisibilityFn *callback,
+                                           void *user_data);
 
-void DRW_shgroup_call_sculpt_add(DRWShadingGroup *sh, Object *ob, bool wire, bool mask, bool vcol);
-void DRW_shgroup_call_sculpt_with_materials_add(DRWShadingGroup **sh, Object *ob, bool vcol);
+void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
+                                struct GPUBatch *geom,
+                                float (*obmat)[4],
+                                uint count);
+void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
+                                             struct GPUBatch *geom,
+                                             float (*obmat)[4],
+                                             struct GPUBatch *inst_attributes);
 
-DRWCallBuffer *DRW_shgroup_call_buffer_add(DRWShadingGroup *shading_group,
-                                           struct GPUVertFormat *format,
-                                           GPUPrimType prim_type);
-DRWCallBuffer *DRW_shgroup_call_buffer_instance_add(DRWShadingGroup *shading_group,
-                                                    struct GPUVertFormat *format,
-                                                    struct GPUBatch *geom);
+void DRW_shgroup_call_sculpt(DRWShadingGroup *sh, Object *ob, bool wire, bool mask, bool vcol);
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **sh, Object *ob, bool vcol);
+
+DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shading_group,
+                                       struct GPUVertFormat *format,
+                                       GPUPrimType prim_type);
+DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shading_group,
+                                                struct GPUVertFormat *format,
+                                                struct GPUBatch *geom);
 
 void DRW_buffer_add_entry_array(DRWCallBuffer *buffer, const void *attr[], uint attr_len);
 

@@ -49,7 +49,7 @@ DRWPass *workbench_fxaa_create_pass(GPUTexture **color_buffer_tx)
   DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_fxaa_sh, pass);
   DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", color_buffer_tx);
   DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
-  DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+  DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
   return pass;
 }
 

@@ -215,7 +215,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
       DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
     }
     /* Only draw the required range. */
-    DRW_shgroup_call_range_add(shgrp, mpath_batch_line_get(mpath), NULL, start_index, len);
+    DRW_shgroup_call_range(shgrp, mpath_batch_line_get(mpath), NULL, start_index, len);
   }
 
   /* Draw points. */
@@ -231,7 +231,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
     DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
   }
   /* Only draw the required range. */
-  DRW_shgroup_call_range_add(shgrp, mpath_batch_points_get(mpath), NULL, start_index, len);
+  DRW_shgroup_call_range(shgrp, mpath_batch_points_get(mpath), NULL, start_index, len);
 
   /* Draw frame numbers at each framestep value */
   bool show_kf_no = (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) != 0;

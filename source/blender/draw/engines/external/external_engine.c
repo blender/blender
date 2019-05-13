@@ -191,7 +191,7 @@ static void external_cache_populate(void *vedata, Object *ob)
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
     if (geom) {
       /* Depth Prepass */
-      DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
+      DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob->obmat);
     }
   }
 }

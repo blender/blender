@@ -151,7 +151,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
       DRW_shgroup_uniform_float_copy(*grp, "backgroundAlpha", background_alpha);
       DRW_shgroup_uniform_vec3(*grp, "color", background_color, 1);
-      DRW_shgroup_call_add(*grp, geom, NULL);
+      DRW_shgroup_call(*grp, geom, NULL);
       if (!pinfo) {
         /* Do not fadeout when doing probe rendering, only when drawing the background */
         DRW_shgroup_uniform_float(

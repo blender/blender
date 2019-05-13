@@ -111,7 +111,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
   DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
   DRW_shgroup_uniform_vec3(grp, "mistSettings", &g_data->mist_start, 1);
-  DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+  DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 }
 
 void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

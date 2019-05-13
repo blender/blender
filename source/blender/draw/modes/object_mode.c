@@ -1020,7 +1020,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
     }
-    DRW_shgroup_call_add(grp, DRW_cache_image_plane_wire_get(), ob->obmat);
+    DRW_shgroup_call(grp, DRW_cache_image_plane_wire_get(), ob->obmat);
   }
 
   if (!BKE_object_empty_image_data_is_visible_in_view3d(ob, rv3d)) {
@@ -1041,7 +1041,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
     }
-    DRW_shgroup_call_add(grp, DRW_cache_image_plane_get(), ob->obmat);
+    DRW_shgroup_call(grp, DRW_cache_image_plane_get(), ob->obmat);
   }
 }
 
@@ -1148,7 +1148,7 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", alphaOcclu);
     DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 4);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     /* This is the bleed pass if do_outline_expand is false. */
     GPUShader *fade_sh = (do_large_expand) ? sh_data->outline_fade_large : sh_data->outline_fade;
@@ -1157,7 +1157,7 @@ static void OBJECT_cache_init(void *vedata)
     grp = DRW_shgroup_create(fade_sh, psl->outlines_expand);
     DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_blur_tx);
     DRW_shgroup_uniform_bool_copy(grp, "doExpand", do_outline_expand);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
 
     psl->outlines_bleed = DRW_pass_create("Outlines Bleed Pass", state);
 
@@ -1165,7 +1165,7 @@ static void OBJECT_cache_init(void *vedata)
       grp = DRW_shgroup_create(sh_data->outline_fade, psl->outlines_bleed);
       DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_color_tx);
       DRW_shgroup_uniform_bool_copy(grp, "doExpand", false);
-      DRW_shgroup_call_add(grp, quad, NULL);
+      DRW_shgroup_call(grp, quad, NULL);
     }
   }
 
@@ -1180,7 +1180,7 @@ static void OBJECT_cache_init(void *vedata)
     DRWShadingGroup *grp = DRW_shgroup_create(sh_data->outline_resolve_aa, psl->outlines_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "outlineBluredColor", outline_tx);
     DRW_shgroup_uniform_vec2(grp, "rcpDimensions", e_data.inv_viewport_size, 1);
-    DRW_shgroup_call_add(grp, quad, NULL);
+    DRW_shgroup_call(grp, quad, NULL);
   }
 
   {
@@ -1203,21 +1203,21 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-    DRW_shgroup_call_add(grp, geom, mat);
+    DRW_shgroup_call(grp, geom, mat);
 
     grp = DRW_shgroup_create(sh_data->grid, psl->grid);
     DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
     DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-    DRW_shgroup_call_add(grp, geom, mat);
+    DRW_shgroup_call(grp, geom, mat);
 
     grp = DRW_shgroup_create(sh_data->grid, psl->grid);
     DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
     DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-    DRW_shgroup_call_add(grp, geom, mat);
+    DRW_shgroup_call(grp, geom, mat);
   }
 
   for (int i = 0; i < 2; ++i) {
@@ -2078,7 +2078,7 @@ static void camera_view3d_reconstruction(OBJECT_ShadingGroupList *sgl,
         GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
         DRWShadingGroup *shading_group = DRW_shgroup_create(shader, sgl->non_meshes);
         DRW_shgroup_uniform_vec4(shading_group, "color", camera_path_color, 1);
-        DRW_shgroup_call_add(shading_group, geom, camera_mat);
+        DRW_shgroup_call(shading_group, geom, camera_mat);
       }
     }
   }
@@ -2465,7 +2465,7 @@ static void DRW_shgroup_volume_extra(OBJECT_ShadingGroupList *sgl,
   DRW_shgroup_uniform_float_copy(grp, "displaySize", sds->vector_scale);
   DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
   DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
-  DRW_shgroup_call_procedural_lines_add(grp, line_count, ob->obmat);
+  DRW_shgroup_call_procedural_lines(grp, line_count, ob->obmat);
 
   BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(smd));
 }
@@ -2566,7 +2566,7 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
       DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
       DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
-      DRW_shgroup_call_procedural_points_add(grp, cell_count, NULL);
+      DRW_shgroup_call_procedural_points(grp, cell_count, NULL);
     }
     else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
       float draw_size = 1.0f;
@@ -3012,7 +3012,7 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
           DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
           DRW_shgroup_uniform_float(shgrp, "size", &part->draw_size, 1);
           DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
-          DRW_shgroup_call_add(shgrp, geom, mat);
+          DRW_shgroup_call(shgrp, geom, mat);
           break;
         case PART_DRAW_CROSS:
           shgrp = DRW_shgroup_create(sh_data->part_prim, psl->particle);
@@ -3021,7 +3021,7 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
           DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
           DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", false);
           shape = DRW_cache_particles_get_prim(PART_DRAW_CROSS);
-          DRW_shgroup_call_instances_with_attribs_add(shgrp, shape, NULL, geom);
+          DRW_shgroup_call_instances_with_attribs(shgrp, shape, NULL, geom);
           break;
         case PART_DRAW_CIRC:
           shape = DRW_cache_particles_get_prim(PART_DRAW_CIRC);
@@ -3030,14 +3030,14 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
           DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
           DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
           DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", true);
-          DRW_shgroup_call_instances_with_attribs_add(shgrp, shape, NULL, geom);
+          DRW_shgroup_call_instances_with_attribs(shgrp, shape, NULL, geom);
           break;
         case PART_DRAW_AXIS:
           shape = DRW_cache_particles_get_prim(PART_DRAW_AXIS);
           shgrp = DRW_shgroup_create(sh_data->part_axis, psl->particle);
           DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
           DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", false);
-          DRW_shgroup_call_instances_with_attribs_add(shgrp, shape, NULL, geom);
+          DRW_shgroup_call_instances_with_attribs(shgrp, shape, NULL, geom);
           break;
         default:
           break;
@@ -3193,7 +3193,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
       }
 
       if (shgroup && geom) {
-        DRW_shgroup_call_object_add(shgroup, geom, ob);
+        DRW_shgroup_call_object(shgroup, geom, ob);
       }
 
       if (init_duplidata) {
@@ -3205,7 +3205,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
   if (dupli_data && !init_duplidata) {
     if (dupli_data->extra_shgrp && dupli_data->extra_geom) {
-      DRW_shgroup_call_object_add(dupli_data->extra_shgrp, dupli_data->extra_geom, ob);
+      DRW_shgroup_call_object(dupli_data->extra_shgrp, dupli_data->extra_geom, ob);
     }
   }
   else {
@@ -3224,7 +3224,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
               theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
             }
             shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
-            DRW_shgroup_call_object_add(shgroup, geom, ob);
+            DRW_shgroup_call_object(shgroup, geom, ob);
           }
         }
         else {
@@ -3242,7 +3242,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
                 theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
               }
               shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-              DRW_shgroup_call_object_add(shgroup, geom, ob);
+              DRW_shgroup_call_object(shgroup, geom, ob);
             }
           }
         }
@@ -3260,7 +3260,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
           theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
         }
         shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-        DRW_shgroup_call_object_add(shgroup, geom, ob);
+        DRW_shgroup_call_object(shgroup, geom, ob);
         break;
       }
       case OB_LATTICE: {
@@ -3274,7 +3274,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
           }
 
           shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-          DRW_shgroup_call_object_add(shgroup, geom, ob);
+          DRW_shgroup_call_object(shgroup, geom, ob);
         }
         break;
       }
@@ -3288,7 +3288,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
             theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
           }
           shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-          DRW_shgroup_call_object_add(shgroup, geom, ob);
+          DRW_shgroup_call_object(shgroup, geom, ob);
         }
         break;
       }
@@ -3366,7 +3366,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
               theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
             }
             shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
-            DRW_shgroup_call_object_add(shgroup, geom, ob);
+            DRW_shgroup_call_object(shgroup, geom, ob);
           }
         }
         break;
