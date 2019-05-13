@@ -94,7 +94,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   }
 
   if (flag & WM_FILESEL_FILES) {
-    RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+    prop = RNA_def_collection_runtime(
+        ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+    RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
   if (action == FILE_SAVE) {
