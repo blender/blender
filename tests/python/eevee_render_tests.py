@@ -23,7 +23,7 @@ def setup():
     eevee.use_ssr = True
     eevee.use_ssr_refraction = True
     eevee.use_gtao = True
-    eevee.use_dof = True
+    eevee.use_dof = False
 
     eevee.use_volumetric = True
     eevee.use_volumetric_shadows = True
