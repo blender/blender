@@ -245,6 +245,13 @@ void depsgraph_update_editors_tag(Main *bmain, Depsgraph *graph, ID *id)
   deg_editors_id_update(&update_ctx, id);
 }
 
+void depsgraph_id_tag_copy_on_write(Depsgraph *graph, IDNode *id_node, eUpdateSource update_source)
+{
+  ComponentNode *cow_comp = id_node->find_component(NodeType::COPY_ON_WRITE);
+  cow_comp->tag_update(graph, update_source);
+  id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
+}
+
 void depsgraph_tag_component(Depsgraph *graph,
                              IDNode *id_node,
                              NodeType component_type,
@@ -252,7 +259,13 @@ void depsgraph_tag_component(Depsgraph *graph,
                              eUpdateSource update_source)
 {
   ComponentNode *component_node = id_node->find_component(component_type);
+  /* NOTE: Animation component might not be existing yet (which happens when adding new driver or
+   * adding a new keyframe), so the required copy-on-write tag needs to be taken care explicitly
+   * here. */
   if (component_node == NULL) {
+    if (component_type == NodeType::ANIMATION) {
+      depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
+    }
     return;
   }
   if (operation_code == OperationCode::OPERATION) {
@@ -266,9 +279,7 @@ void depsgraph_tag_component(Depsgraph *graph,
   }
   /* If component depends on copy-on-write, tag it as well. */
   if (component_node->need_tag_cow_before_update()) {
-    ComponentNode *cow_comp = id_node->find_component(NodeType::COPY_ON_WRITE);
-    cow_comp->tag_update(graph, update_source);
-    id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
+    depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
   }
 }
 
@@ -462,7 +473,9 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
        * Need to solve those issues carefully, for until then we evaluate
        * animation for datablocks which appears in the graph for the first
        * time. */
-      flag |= ID_RECALC_ANIMATION;
+      if (BKE_animdata_from_id(id_node->id_orig) != NULL) {
+        flag |= ID_RECALC_ANIMATION;
+      }
     }
     /* We only tag components which needs an update. Tagging everything is
      * not a good idea because that might reset particles cache (or any
