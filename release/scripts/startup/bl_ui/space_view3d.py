@@ -2292,29 +2292,10 @@ class VIEW3D_MT_object_context_menu(Menu):
 
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            emission_node = None
-            if light.node_tree:
-                for node in light.node_tree.nodes:
-                    if getattr(node, "type", None) == 'EMISSION':
-                        emission_node = node
-                        break
-
-            if is_eevee and not emission_node:
-                props = layout.operator("wm.context_modal_mouse", text="Energy")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.energy"
-                props.header_text = "Light Energy: %.3f"
-
-            if emission_node is not None:
-                props = layout.operator("wm.context_modal_mouse", text="Energy")
-                props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = (
-                    "data.node_tree"
-                    ".nodes[\"" + emission_node.name + "\"]"
-                    ".inputs[\"Strength\"].default_value"
-                )
-                props.header_text = "Light Energy: %.3f"
-                props.input_scale = 0.1
+            props = layout.operator("wm.context_modal_mouse", text="Energy")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.energy"
+            props.header_text = "Light Energy: %.3f"
 
             if light.type == 'AREA':
                 props = layout.operator("wm.context_modal_mouse", text="Size X")
