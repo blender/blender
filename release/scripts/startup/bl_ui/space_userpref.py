@@ -30,18 +30,28 @@ from bpy.app.translations import contexts as i18n_contexts
 class USERPREF_HT_header(Header):
     bl_space_type = 'PREFERENCES'
 
-    def draw(self, _context):
+    @staticmethod
+    def draw_buttons(layout, context, *, is_vertical=False):
+        if is_vertical:
+            sub = layout.column(align=True)
+        else:
+            sub = layout.row(align=True)
+
+        sub.operator("wm.save_userpref")
+        sub.operator("wm.read_userpref")
+        sub.operator("wm.read_factory_userpref")
+
+        prefs = context.preferences
+        layout.prop(prefs, "use_preferences_save")
+
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
         layout.template_header()
 
         layout.separator_spacer()
-
-        row = layout.row(align=True)
-        row.operator("wm.save_userpref")
-        row.operator("wm.read_userpref")
-        row.operator("wm.read_factory_userpref")
+        self.draw_buttons(layout, context)
 
 
 class USERPREF_PT_navigation_bar(Panel):
@@ -77,17 +87,14 @@ class USERPREF_PT_save_preferences(Panel):
 
         return False
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
         layout.scale_x = 1.3
         layout.scale_y = 1.3
 
-        col = layout.column(align=True)
-        col.operator("wm.save_userpref")
-        col.operator("wm.read_userpref")
-        col.operator("wm.read_factory_userpref")
+        USERPREF_HT_header.draw_buttons(layout, context, is_vertical=True)
 
 
 # Panel mix-in.

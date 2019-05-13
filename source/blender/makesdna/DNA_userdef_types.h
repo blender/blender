@@ -549,8 +549,12 @@ typedef struct UserDef {
   /** #eUserPref_Flag. */
   int flag;
   /** #eDupli_ID_Flags. */
-  int dupflag;
-  int savetime;
+  short dupflag;
+  /**
+   * #eUserPref_PrefFlag preferences for the preferences. */
+  char pref_flag;
+  char savetime;
+  char _pad4[4];
   /** FILE_MAXDIR length. */
   char tempdir[768];
   char fontdir[768];
@@ -843,6 +847,10 @@ typedef enum eUserPref_Flag {
   USER_TXT_TABSTOSPACES_DISABLE = (1 << 25),
   USER_TOOLTIPS_PYTHON = (1 << 26),
 } eUserPref_Flag;
+
+typedef enum eUserPref_PrefFlag {
+  USER_PREF_FLAG_SAVE = (1 << 0),
+} eUserPref_PrefFlag;
 
 /** #bPathCompare.flag */
 typedef enum ePathCompare_Flag {

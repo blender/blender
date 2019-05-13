@@ -5687,6 +5687,11 @@ void RNA_def_userdef(BlenderRNA *brna)
                                     NULL);
   RNA_def_property_ui_text(prop, "Studio Lights", "");
 
+  /* Preferences Flags */
+  prop = RNA_def_property(srna, "use_preferences_save", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "pref_flag", USER_PREF_FLAG_SAVE);
+  RNA_def_property_ui_text(prop, "Save on Exit", "Save modified preferences on exit");
+
   rna_def_userdef_view(brna);
   rna_def_userdef_edit(brna);
   rna_def_userdef_input(brna);

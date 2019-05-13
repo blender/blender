@@ -43,7 +43,7 @@
 /* Disallow access to global userdef. */
 #define U (_error_)
 
-static void do_versions_theme(UserDef *userdef, bTheme *btheme)
+static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
 
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
@@ -580,10 +580,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     }
   }
 
-  /**
-   * Include next version bump.
-   */
-  {
+  if (!USER_VERSION_ATLEAST(280, 62)) {
     /* (keep this block even if it becomes empty). */
     if (userdef->vbotimeout == 0) {
       userdef->vbocollectrate = 60;
@@ -593,6 +590,15 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     if (userdef->lookdev_sphere_size == 0) {
       userdef->lookdev_sphere_size = 150;
     }
+
+    userdef->pref_flag |= USER_PREF_FLAG_SAVE;
+  }
+
+  /**
+   * Include next version bump.
+   */
+  {
+    /* pass */
   }
 
   if (userdef->pixelsize == 0.0f) {
