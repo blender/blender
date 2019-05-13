@@ -1090,8 +1090,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
   GPUTexture *tex;
   GPUUniformBuffer *ubo;
-  int val;
-  float fval;
   const bool shader_changed = (DST.shader != shgroup->shader);
   bool use_tfeedback = false;
 
@@ -1123,34 +1121,20 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         continue;
       }
     }
+    const void *data = uni->pvalue;
+    if (ELEM(uni->type, DRW_UNIFORM_INT_COPY, DRW_UNIFORM_FLOAT_COPY)) {
+      data = uni->fvalue;
+    }
     switch (uni->type) {
-      case DRW_UNIFORM_SHORT_TO_INT:
-        val = (int)*((short *)uni->pvalue);
-        GPU_shader_uniform_vector_int(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, &val);
-        break;
-      case DRW_UNIFORM_SHORT_TO_FLOAT:
-        fval = (float)*((short *)uni->pvalue);
-        GPU_shader_uniform_vector(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)&fval);
-        break;
-      case DRW_UNIFORM_BOOL_COPY:
       case DRW_UNIFORM_INT_COPY:
-        GPU_shader_uniform_vector_int(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, &uni->ivalue);
-        break;
-      case DRW_UNIFORM_BOOL:
       case DRW_UNIFORM_INT:
         GPU_shader_uniform_vector_int(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)uni->pvalue);
+            shgroup->shader, uni->location, uni->length, uni->arraysize, data);
         break;
       case DRW_UNIFORM_FLOAT_COPY:
-        GPU_shader_uniform_vector(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, &uni->fvalue);
-        break;
       case DRW_UNIFORM_FLOAT:
         GPU_shader_uniform_vector(
-            shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->pvalue);
+            shgroup->shader, uni->location, uni->length, uni->arraysize, data);
         break;
       case DRW_UNIFORM_TEXTURE:
         tex = (GPUTexture *)uni->pvalue;

@@ -142,10 +142,6 @@ typedef struct DRWCall {
 
 /* Used by DRWUniform.type */
 typedef enum {
-  DRW_UNIFORM_BOOL,
-  DRW_UNIFORM_BOOL_COPY,
-  DRW_UNIFORM_SHORT_TO_INT,
-  DRW_UNIFORM_SHORT_TO_FLOAT,
   DRW_UNIFORM_INT,
   DRW_UNIFORM_INT_COPY,
   DRW_UNIFORM_FLOAT,
@@ -163,8 +159,8 @@ struct DRWUniform {
     /* For reference or array/vector types. */
     const void *pvalue;
     /* Single values. */
-    float fvalue;
-    int ivalue;
+    float fvalue[2];
+    int ivalue[2];
   };
   int name_ofs; /* name offset in name buffer. */
   int location;

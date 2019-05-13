@@ -83,16 +83,15 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
 
   switch (type) {
     case DRW_UNIFORM_INT_COPY:
-      uni->ivalue = *((int *)value);
-      break;
-    case DRW_UNIFORM_BOOL_COPY:
-      uni->ivalue = (int)*((bool *)value);
+      BLI_assert(length <= 2);
+      memcpy(uni->ivalue, value, sizeof(int) * length);
       break;
     case DRW_UNIFORM_FLOAT_COPY:
-      uni->fvalue = *((float *)value);
+      BLI_assert(length <= 2);
+      memcpy(uni->fvalue, value, sizeof(float) * length);
       break;
     default:
-      uni->pvalue = value;
+      uni->pvalue = (const float *)value;
       break;
   }
 
@@ -200,7 +199,7 @@ void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup,
                               const int *value,
                               int arraysize)
 {
-  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BOOL, value, 1, arraysize);
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup,
@@ -233,22 +232,6 @@ void DRW_shgroup_uniform_vec4(DRWShadingGroup *shgroup,
                               int arraysize)
 {
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 4, arraysize);
-}
-
-void DRW_shgroup_uniform_short_to_int(DRWShadingGroup *shgroup,
-                                      const char *name,
-                                      const short *value,
-                                      int arraysize)
-{
-  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_INT, value, 1, arraysize);
-}
-
-void DRW_shgroup_uniform_short_to_float(DRWShadingGroup *shgroup,
-                                        const char *name,
-                                        const short *value,
-                                        int arraysize)
-{
-  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_FLOAT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_int(DRWShadingGroup *shgroup,
@@ -301,7 +284,8 @@ void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, co
 
 void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value)
 {
-  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BOOL_COPY, &value, 1, 1);
+  int ival = value;
+  drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT_COPY, &ival, 1, 1);
 }
 
 void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value)
