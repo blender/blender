@@ -535,12 +535,12 @@ static void drw_viewport_cache_resize(void)
       GPU_texture_free(*tex);
     }
 
-    BLI_memblock_clear(DST.vmempool->calls);
-    BLI_memblock_clear(DST.vmempool->states);
-    BLI_memblock_clear(DST.vmempool->shgroups);
-    BLI_memblock_clear(DST.vmempool->uniforms);
-    BLI_memblock_clear(DST.vmempool->passes);
-    BLI_memblock_clear(DST.vmempool->images);
+    BLI_memblock_clear(DST.vmempool->calls, NULL);
+    BLI_memblock_clear(DST.vmempool->states, NULL);
+    BLI_memblock_clear(DST.vmempool->shgroups, NULL);
+    BLI_memblock_clear(DST.vmempool->uniforms, NULL);
+    BLI_memblock_clear(DST.vmempool->passes, NULL);
+    BLI_memblock_clear(DST.vmempool->images, NULL);
   }
 
   DRW_instance_data_list_free_unused(DST.idatalist);
@@ -605,22 +605,22 @@ static void drw_viewport_var_init(void)
     DST.vmempool = GPU_viewport_mempool_get(DST.viewport);
 
     if (DST.vmempool->calls == NULL) {
-      DST.vmempool->calls = BLI_memblock_create(sizeof(DRWCall));
+      DST.vmempool->calls = BLI_memblock_create(sizeof(DRWCall), false);
     }
     if (DST.vmempool->states == NULL) {
-      DST.vmempool->states = BLI_memblock_create(sizeof(DRWCallState));
+      DST.vmempool->states = BLI_memblock_create(sizeof(DRWCallState), false);
     }
     if (DST.vmempool->shgroups == NULL) {
-      DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
+      DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup), false);
     }
     if (DST.vmempool->uniforms == NULL) {
-      DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniform));
+      DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniform), false);
     }
     if (DST.vmempool->passes == NULL) {
-      DST.vmempool->passes = BLI_memblock_create(sizeof(DRWPass));
+      DST.vmempool->passes = BLI_memblock_create(sizeof(DRWPass), false);
     }
     if (DST.vmempool->images == NULL) {
-      DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *));
+      DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *), false);
     }
 
     DST.idatalist = GPU_viewport_instance_data_list_get(DST.viewport);

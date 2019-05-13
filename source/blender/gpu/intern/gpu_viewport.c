@@ -620,19 +620,19 @@ void GPU_viewport_free(GPUViewport *viewport)
   MEM_freeN(viewport->txl);
 
   if (viewport->vmempool.calls != NULL) {
-    BLI_memblock_destroy(viewport->vmempool.calls);
+    BLI_memblock_destroy(viewport->vmempool.calls, NULL);
   }
   if (viewport->vmempool.states != NULL) {
-    BLI_memblock_destroy(viewport->vmempool.states);
+    BLI_memblock_destroy(viewport->vmempool.states, NULL);
   }
   if (viewport->vmempool.shgroups != NULL) {
-    BLI_memblock_destroy(viewport->vmempool.shgroups);
+    BLI_memblock_destroy(viewport->vmempool.shgroups, NULL);
   }
   if (viewport->vmempool.uniforms != NULL) {
-    BLI_memblock_destroy(viewport->vmempool.uniforms);
+    BLI_memblock_destroy(viewport->vmempool.uniforms, NULL);
   }
   if (viewport->vmempool.passes != NULL) {
-    BLI_memblock_destroy(viewport->vmempool.passes);
+    BLI_memblock_destroy(viewport->vmempool.passes, NULL);
   }
   if (viewport->vmempool.images != NULL) {
     BLI_memblock_iter iter;
@@ -641,7 +641,7 @@ void GPU_viewport_free(GPUViewport *viewport)
     while ((tex = BLI_memblock_iterstep(&iter))) {
       GPU_texture_free(*tex);
     }
-    BLI_memblock_destroy(viewport->vmempool.images);
+    BLI_memblock_destroy(viewport->vmempool.images, NULL);
   }
 
   DRW_instance_data_list_free(viewport->idatalist);
