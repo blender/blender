@@ -9609,6 +9609,9 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   /* Don't read the active app template, use the default one. */
   user->app_template[0] = '\0';
 
+  /* Clear runtime data. */
+  user->runtime.is_dirty = false;
+
   /* free fd->datamap again */
   oldnewmap_free_unused(fd->datamap);
   oldnewmap_clear(fd->datamap);

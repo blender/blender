@@ -7575,8 +7575,9 @@ static void button_activate_exit(
     }
 
     /* Not very elegant, but ensures preference changes force re-save. */
-    if (but->rnaprop && (but->rnapoin.data == &U)) {
+    if (but->rnaprop && (but->rnapoin.data == &U) && !RNA_property_update_check(but->rnaprop)) {
       U.runtime.is_dirty = true;
+      WM_main_add_notifier(NC_WINDOW, NULL);
     }
   }
 
