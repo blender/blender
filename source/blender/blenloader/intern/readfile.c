@@ -9629,14 +9629,17 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   ListBase mainlist = {NULL, NULL};
 
   bfd = MEM_callocN(sizeof(BlendFileData), "blendfiledata");
-  bfd->main = BKE_main_new();
-  BLI_addtail(&mainlist, bfd->main);
-  fd->mainlist = &mainlist;
 
+  bfd->main = BKE_main_new();
   bfd->main->versionfile = fd->fileversion;
 
   bfd->type = BLENFILETYPE_BLEND;
-  BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
+
+  if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+    BLI_addtail(&mainlist, bfd->main);
+    fd->mainlist = &mainlist;
+    BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
+  }
 
   if (G.background) {
     /* We only read & store .blend thumbnail in background mode
@@ -9714,45 +9717,52 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   /* do before read_libraries, but skip undo case */
   if (fd->memfile == NULL) {
-    do_versions(fd, NULL, bfd->main);
-    do_versions_userdef(fd, bfd);
+    if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+      do_versions(fd, NULL, bfd->main);
+    }
+
+    if ((fd->skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
+      do_versions_userdef(fd, bfd);
+    }
   }
 
-  read_libraries(fd, &mainlist);
+  if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+    read_libraries(fd, &mainlist);
 
-  blo_join_main(&mainlist);
-
-  lib_link_all(fd, bfd->main);
-
-  /* Skip in undo case. */
-  if (fd->memfile == NULL) {
-    /* Yep, second splitting... but this is a very cheap operation, so no big deal. */
-    blo_split_main(&mainlist, bfd->main);
-    for (Main *mainvar = mainlist.first; mainvar; mainvar = mainvar->next) {
-      BLI_assert(mainvar->versionfile != 0);
-      do_versions_after_linking(mainvar);
-    }
     blo_join_main(&mainlist);
 
-    /* After all data has been read and versioned, uses LIB_TAG_NEW. */
-    ntreeUpdateAllNew(bfd->main);
+    lib_link_all(fd, bfd->main);
+
+    /* Skip in undo case. */
+    if (fd->memfile == NULL) {
+      /* Yep, second splitting... but this is a very cheap operation, so no big deal. */
+      blo_split_main(&mainlist, bfd->main);
+      for (Main *mainvar = mainlist.first; mainvar; mainvar = mainvar->next) {
+        BLI_assert(mainvar->versionfile != 0);
+        do_versions_after_linking(mainvar);
+      }
+      blo_join_main(&mainlist);
+
+      /* After all data has been read and versioned, uses LIB_TAG_NEW. */
+      ntreeUpdateAllNew(bfd->main);
+    }
+
+    BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
+
+    /* Now that all our data-blocks are loaded,
+     * we can re-generate overrides from their references. */
+    if (fd->memfile == NULL) {
+      /* Do not apply in undo case! */
+      BKE_main_override_static_update(bfd->main);
+    }
+
+    BKE_collections_after_lib_link(bfd->main);
+
+    /* Make all relative paths, relative to the open blend file. */
+    fix_relpaths_library(fd->relabase, bfd->main);
+
+    link_global(fd, bfd); /* as last */
   }
-
-  BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
-
-  /* Now that all our data-blocks are loaded,
-   * we can re-generate overrides from their references. */
-  if (fd->memfile == NULL) {
-    /* Do not apply in undo case! */
-    BKE_main_override_static_update(bfd->main);
-  }
-
-  BKE_collections_after_lib_link(bfd->main);
-
-  fix_relpaths_library(fd->relabase,
-                       bfd->main); /* make all relative paths, relative to the open blend file */
-
-  link_global(fd, bfd); /* as last */
 
   fd->mainlist = NULL; /* Safety, this is local variable, shall not be used afterward. */
 
