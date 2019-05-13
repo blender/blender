@@ -5692,6 +5692,11 @@ void RNA_def_userdef(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "pref_flag", USER_PREF_FLAG_SAVE);
   RNA_def_property_ui_text(prop, "Save on Exit", "Save modified preferences on exit");
 
+  prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "runtime.is_dirty", 0);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Dirty", "Preferences have changed");
+
   rna_def_userdef_view(brna);
   rna_def_userdef_edit(brna);
   rna_def_userdef_input(brna);
