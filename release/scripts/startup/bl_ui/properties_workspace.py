@@ -44,6 +44,7 @@ class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):
 
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         layout.prop(workspace, "object_mode", text="Mode")
 
 
