@@ -1868,6 +1868,7 @@ static void rna_def_operator(BlenderRNA *brna)
   RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
   RNA_def_struct_property_tags(srna, rna_enum_operator_property_tags);
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)

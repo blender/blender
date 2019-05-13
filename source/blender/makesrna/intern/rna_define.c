@@ -890,9 +890,9 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
   srna->description = "";
   /* may be overwritten later RNA_def_struct_translation_context */
   srna->translation_context = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
-  srna->flag |= STRUCT_UNDO;
   if (!srnafrom) {
     srna->icon = ICON_DOT;
+    srna->flag |= STRUCT_UNDO;
   }
 
   if (DefRNA.preprocess) {
