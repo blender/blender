@@ -2067,6 +2067,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
   if (built_map_.checkIsBuiltAndTag(camera)) {
     return;
   }
+  build_animdata(&camera->id);
   build_parameters(&camera->id);
   if (camera->dof_ob != NULL) {
     ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
@@ -2081,6 +2082,7 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   if (built_map_.checkIsBuiltAndTag(lamp)) {
     return;
   }
+  build_animdata(&lamp->id);
   build_parameters(&lamp->id);
   /* light's nodetree */
   if (lamp->nodetree != NULL) {
