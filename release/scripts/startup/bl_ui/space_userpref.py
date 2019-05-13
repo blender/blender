@@ -38,8 +38,8 @@ class USERPREF_HT_header(Header):
             sub = layout.row(align=True)
 
         sub.operator("wm.save_userpref")
-        sub.operator("wm.read_userpref")
-        sub.operator("wm.read_factory_userpref")
+        sub.operator("wm.read_userpref", text="Revert Preferences")
+        sub.operator("wm.read_factory_userpref", text="Revert Factory Preferences")
 
         prefs = context.preferences
         layout.prop(prefs, "use_preferences_save")
