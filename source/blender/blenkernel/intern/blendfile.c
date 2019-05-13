@@ -438,7 +438,9 @@ bool BKE_blendfile_read_from_memory(bContext *C,
   bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
   if (bfd) {
     if (update_defaults) {
-      BLO_update_defaults_startup_blend(bfd->main, NULL);
+      if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+        BLO_update_defaults_startup_blend(bfd->main, NULL);
+      }
     }
 
     setup_app_blend_file_data(C, bfd, "<memory2>", params, reports);

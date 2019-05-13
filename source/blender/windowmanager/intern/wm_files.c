@@ -1767,7 +1767,7 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
 {
   const bool use_data = false;
   const bool use_userdef = true;
-  const bool use_factory_settings = false; /* TODO, support this. */
+  const bool use_factory_settings = STREQ(op->type->idname, "WM_OT_read_factory_userpref");
 
   UserDef U_backup = U;
 
@@ -1805,6 +1805,15 @@ void WM_OT_read_userpref(wmOperatorType *ot)
   ot->name = "Load Preferences";
   ot->idname = "WM_OT_read_userpref";
   ot->description = "Load last saved preferences";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = wm_userpref_read_exec;
+}
+
+void WM_OT_read_factory_userpref(wmOperatorType *ot)
+{
+  ot->name = "Load Factory Preferences";
+  ot->idname = "WM_OT_read_factory_userpref";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_userpref_read_exec;

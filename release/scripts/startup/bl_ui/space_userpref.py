@@ -84,6 +84,7 @@ class USERPREF_PT_save_preferences(Panel):
         col = layout.column(align=True)
         col.operator("wm.save_userpref")
         col.operator("wm.read_userpref")
+        col.operator("wm.read_factory_userpref")
 
 
 # Panel mix-in.
