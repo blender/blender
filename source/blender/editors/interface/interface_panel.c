@@ -1625,11 +1625,11 @@ static void ui_handle_panel_header(
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *ar = CTX_wm_region(C);
-  Panel *pa;
 #ifdef USE_PIN_HIDDEN
-  const bool show_pin = UI_panel_category_is_visible(ar) && (block->panel->flag & PNL_PIN);
+  const bool show_pin = UI_panel_category_is_visible(ar) && (block->panel->type->parent == NULL) &&
+                        (block->panel->flag & PNL_PIN);
 #else
-  const bool show_pin = UI_panel_category_is_visible(ar);
+  const bool show_pin = UI_panel_category_is_visible(ar) && (block->panel->type->parent == NULL);
 #endif
   const bool is_subpanel = (block->panel->type && block->panel->type->parent);
   const bool show_drag = !is_subpanel;
@@ -1660,8 +1660,10 @@ static void ui_handle_panel_header(
     button = 1;
   }
   else if (ELEM(event, 0, RETKEY, LEFTMOUSE) && shift) {
-    block->panel->flag ^= PNL_PIN;
-    button = 2;
+    if (block->panel->type->parent == NULL) {
+      block->panel->flag ^= PNL_PIN;
+      button = 2;
+    }
   }
   else if (block->panel->flag & PNL_CLOSEDX) {
     if (my >= block->rect.ymax) {
@@ -1723,7 +1725,7 @@ static void ui_handle_panel_header(
         }
       }
 
-      for (pa = ar->panels.first; pa; pa = pa->next) {
+      for (Panel *pa = ar->panels.first; pa; pa = pa->next) {
         if (pa->paneltab == block->panel) {
           if (block->panel->flag & PNL_CLOSED) {
             pa->flag |= PNL_CLOSED;
