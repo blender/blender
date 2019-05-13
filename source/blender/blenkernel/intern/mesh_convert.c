@@ -1007,7 +1007,7 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
 
       /* get updated display list, and convert to a mesh */
       BKE_displist_make_curveTypes_forRender(
-          depsgraph, sce, tmpobj, &dispbase, &me_eval_final, false, render, NULL);
+          depsgraph, sce, tmpobj, &dispbase, &me_eval_final, false, NULL);
 
       copycu->editfont = NULL;
       copycu->editnurb = NULL;

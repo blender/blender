@@ -143,7 +143,6 @@ void BKE_curve_bevel_make(struct Depsgraph *depsgraph,
                           struct Object *ob,
                           struct ListBase *disp,
                           const bool for_render,
-                          const bool use_render_resolution,
                           struct LinkNode *ob_cyclic_list);
 
 void BKE_curve_forward_diff_bezier(

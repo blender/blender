@@ -1744,7 +1744,6 @@ void BKE_curve_bevel_make(Depsgraph *depsgraph,
                           Object *ob,
                           ListBase *disp,
                           const bool for_render,
-                          const bool use_render_resolution,
                           LinkNode *ob_cyclic_list)
 {
   DispList *dl, *dlnew;
@@ -1777,7 +1776,6 @@ void BKE_curve_bevel_make(Depsgraph *depsgraph,
                                                  &bevdisp,
                                                  NULL,
                                                  false,
-                                                 use_render_resolution,
                                                  &(LinkNode){
                                                      .link = ob,
                                                      .next = ob_cyclic_list,
