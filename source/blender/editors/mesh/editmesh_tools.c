@@ -1124,7 +1124,7 @@ static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
-    if (bm->totedgesel == 0) {
+    if ((use_verts && bm->totvertsel == 0) || (!use_verts && bm->totedgesel == 0)) {
       continue;
     }
 
