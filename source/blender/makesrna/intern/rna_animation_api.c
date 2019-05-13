@@ -37,6 +37,7 @@
 
 #  include "BKE_context.h"
 #  include "BKE_report.h"
+#  include "BKE_nla.h"
 
 #  include "ED_keyframing.h"
 
@@ -59,6 +60,11 @@ static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList
   }
 }
 
+static float rna_AnimData_nla_tweak_strip_time_to_scene(AnimData *adt, float frame, bool invert)
+{
+  return BKE_nla_tweakedit_remap(adt, frame, invert ? NLATIME_CONVERT_UNMAP : NLATIME_CONVERT_MAP);
+}
+
 #else
 
 void RNA_api_keyingset(StructRNA *srna)
@@ -73,6 +79,27 @@ void RNA_api_keyingset(StructRNA *srna)
       "Refresh Keying Set to ensure that it is valid for the current context "
       "(call before each use of one)");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+}
+
+void RNA_api_animdata(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  /* Convert between action time and scene time when tweaking a NLA strip. */
+  func = RNA_def_function(
+      srna, "nla_tweak_strip_time_to_scene", "rna_AnimData_nla_tweak_strip_time_to_scene");
+  RNA_def_function_ui_description(func,
+                                  "Convert a time value from the local time of the tweaked strip "
+                                  "to scene time, exactly as done by built-in key editing tools. "
+                                  "Returns the input time unchanged if not tweaking.");
+  parm = RNA_def_float(
+      func, "frame", 0.0, MINAFRAME, MAXFRAME, "", "Input time", MINAFRAME, MAXFRAME);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_boolean(func, "invert", false, "Invert", "Convert scene time to action time");
+  parm = RNA_def_float(
+      func, "result", 0.0, MINAFRAME, MAXFRAME, "", "Converted time", MINAFRAME, MAXFRAME);
+  RNA_def_function_return(func, parm);
 }
 
 #endif

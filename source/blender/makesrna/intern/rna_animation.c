@@ -1303,6 +1303,9 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use NLA Tweak Mode", "Whether to enable or disable tweak mode in NLA");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update");
+
+  /* Animation Data API */
+  RNA_api_animdata(srna);
 }
 
 /* --- */
