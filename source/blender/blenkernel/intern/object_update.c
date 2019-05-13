@@ -202,9 +202,11 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 
     case OB_CURVE:
     case OB_SURF:
-    case OB_FONT:
-      BKE_displist_make_curveTypes(depsgraph, scene, ob, false, false, NULL);
+    case OB_FONT: {
+      bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+      BKE_displist_make_curveTypes(depsgraph, scene, ob, for_render, false, NULL);
       break;
+    }
 
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
