@@ -16,7 +16,9 @@ if NOT "%1" == "" (
 		set BUILD_DIR_OVERRRIDE="%BLENDER_DIR%..\%2"
 		shift /1
 	) else if "%1" == "with_tests" (
-		set TESTS_CMAKE_ARGS=-DWITH_GTESTS=On
+		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GTESTS=On
+	) else if "%1" == "with_opengl_tests" (
+		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_OPENGL_DRAW_TESTS=On -DWITH_OPENGL_RENDER_TESTS=On
 	) else if "%1" == "full" (
 		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
