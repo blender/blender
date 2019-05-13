@@ -738,6 +738,7 @@ void wm_homefile_read(bContext *C,
                       ReportList *reports,
                       bool use_factory_settings,
                       bool use_empty_data,
+                      bool use_data,
                       bool use_userdef,
                       const char *filepath_startup_override,
                       const char *app_template_override,
@@ -768,7 +769,14 @@ void wm_homefile_read(bContext *C,
    * And in this case versioning code is to be run.
    */
   bool read_userdef_from_memory = false;
-  eBLOReadSkip skip_flags = use_userdef ? 0 : BLO_READ_SKIP_USERDEF;
+  eBLOReadSkip skip_flags = 0;
+
+  if (use_data == false) {
+    skip_flags |= BLO_READ_SKIP_DATA;
+  }
+  if (use_userdef == false) {
+    skip_flags |= BLO_READ_SKIP_USERDEF;
+  }
 
   /* True if we load startup.blend from memory
    * or use app-template startup.blend which the user hasn't saved. */
@@ -781,14 +789,16 @@ void wm_homefile_read(bContext *C,
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
-  BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+  if (use_data) {
+    BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+
+    G.relbase_valid = 0;
+
+    /* put aside screens to match with persistent windows later */
+    wm_window_match_init(C, &wmbase);
+  }
 
   UI_view2d_zoom_cache_reset();
-
-  G.relbase_valid = 0;
-
-  /* put aside screens to match with persistent windows later */
-  wm_window_match_init(C, &wmbase);
 
   filepath_startup[0] = '\0';
   filepath_userdef[0] = '\0';
@@ -911,7 +921,9 @@ void wm_homefile_read(bContext *C,
     }
     if (success) {
       if (update_defaults) {
-        BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
+        if (use_data) {
+          BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
+        }
       }
       is_factory_startup = filepath_startup_is_factory;
     }
@@ -990,10 +1002,12 @@ void wm_homefile_read(bContext *C,
     BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
   }
 
-  /* Prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake.
-   * Screws up autosaves otherwise can remove this eventually,
-   * only in a 2.53 and older, now its not written. */
-  G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+  if (use_data) {
+    /* Prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake.
+     * Screws up autosaves otherwise can remove this eventually,
+     * only in a 2.53 and older, now its not written. */
+    G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+  }
 
   bmain = CTX_data_main(C);
 
@@ -1003,8 +1017,10 @@ void wm_homefile_read(bContext *C,
     reset_app_template = true;
   }
 
-  /* match the read WM with current WM */
-  wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+  if (use_data) {
+    /* match the read WM with current WM */
+    wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+  }
 
   if (use_factory_settings) {
     /*  Clear keymaps because the current default keymap may have been initialized
@@ -1016,14 +1032,16 @@ void wm_homefile_read(bContext *C,
     }
   }
 
-  WM_check(C); /* opens window(s), checks keymaps */
+  if (use_data) {
+    WM_check(C); /* opens window(s), checks keymaps */
 
-  bmain->name[0] = '\0';
+    bmain->name[0] = '\0';
 
-  /* start with save preference untitled.blend */
-  G.save_over = 0;
+    /* start with save preference untitled.blend */
+    G.save_over = 0;
 
-  wm_file_read_post(C, true, is_factory_startup, reset_app_template);
+    wm_file_read_post(C, true, is_factory_startup, reset_app_template);
+  }
 
   if (r_is_factory_startup) {
     *r_is_factory_startup = is_factory_startup;
@@ -1693,6 +1711,105 @@ void WM_OT_save_userpref(wmOperatorType *ot)
   ot->exec = wm_userpref_write_exec;
 }
 
+static void rna_struct_update_when_changed(bContext *C,
+                                           Main *bmain,
+                                           PointerRNA *ptr_a,
+                                           PointerRNA *ptr_b)
+{
+  CollectionPropertyIterator iter;
+  PropertyRNA *iterprop = RNA_struct_iterator_property(ptr_a->type);
+  BLI_assert(ptr_a->type == ptr_b->type);
+  RNA_property_collection_begin(ptr_a, iterprop, &iter);
+  for (; iter.valid; RNA_property_collection_next(&iter)) {
+    PropertyRNA *prop = iter.ptr.data;
+    if (STREQ(RNA_property_identifier(prop), "rna_type")) {
+      continue;
+    }
+    switch (RNA_property_type(prop)) {
+      case PROP_POINTER: {
+        PointerRNA ptr_sub_a = RNA_property_pointer_get(ptr_a, prop);
+        PointerRNA ptr_sub_b = RNA_property_pointer_get(ptr_b, prop);
+        rna_struct_update_when_changed(C, bmain, &ptr_sub_a, &ptr_sub_b);
+        break;
+      }
+      case PROP_COLLECTION:
+        /* Don't handle collections. */
+        break;
+      default: {
+        if (!RNA_property_equals(bmain, ptr_a, ptr_b, prop, RNA_EQ_STRICT)) {
+          RNA_property_update(C, ptr_b, prop);
+        }
+      }
+    }
+  }
+  RNA_property_collection_end(&iter);
+}
+
+static void wm_userpref_update_when_changed(bContext *C,
+                                            Main *bmain,
+                                            UserDef *userdef_prev,
+                                            UserDef *userdef_curr)
+{
+  PointerRNA ptr_a, ptr_b;
+  RNA_pointer_create(NULL, &RNA_Preferences, userdef_prev, &ptr_a);
+  RNA_pointer_create(NULL, &RNA_Preferences, userdef_curr, &ptr_b);
+
+  rna_struct_update_when_changed(C, bmain, &ptr_a, &ptr_b);
+
+#ifdef WITH_PYTHON
+  BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.reset_all()");
+#endif
+
+  WM_keyconfig_reload(C);
+}
+
+static int wm_userpref_read_exec(bContext *C, wmOperator *op)
+{
+  const bool use_data = false;
+  const bool use_userdef = true;
+  const bool use_factory_settings = false; /* TODO, support this. */
+
+  UserDef U_backup = U;
+
+  wm_homefile_read(C,
+                   op->reports,
+                   use_factory_settings,
+                   false,
+                   use_data,
+                   use_userdef,
+                   NULL,
+                   WM_init_state_app_template_get(),
+                   NULL);
+
+#define USERDEF_RESTORE(member) \
+  { \
+    U.member = U_backup.member; \
+  } \
+  ((void)0)
+
+  USERDEF_RESTORE(userpref);
+
+#undef USERDEF_RESTORE
+
+  Main *bmain = CTX_data_main(C);
+
+  wm_userpref_update_when_changed(C, bmain, &U_backup, &U);
+
+  WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_read_userpref(wmOperatorType *ot)
+{
+  ot->name = "Load Preferences";
+  ot->idname = "WM_OT_read_userpref";
+  ot->description = "Load last saved preferences";
+
+  ot->invoke = WM_operator_confirm;
+  ot->exec = wm_userpref_read_exec;
+}
+
 static int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
   ED_file_read_bookmarks();
@@ -1767,10 +1884,12 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = WM_init_state_app_template_get();
   }
 
+  bool use_data = true;
   wm_homefile_read(C,
                    op->reports,
                    use_factory_settings,
                    use_empty_data,
+                   use_data,
                    use_userdef,
                    filepath,
                    app_template,

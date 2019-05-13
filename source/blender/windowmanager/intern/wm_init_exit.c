@@ -255,11 +255,15 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   /* get the default database, plus a wm */
   bool is_factory_startup = true;
+  const bool use_data = true;
+  const bool use_userdef = true;
+
   wm_homefile_read(C,
                    NULL,
                    G.factory_startup,
                    false,
-                   true,
+                   use_data,
+                   use_userdef,
                    NULL,
                    WM_init_state_app_template_get(),
                    &is_factory_startup);
