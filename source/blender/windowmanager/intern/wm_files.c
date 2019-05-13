@@ -1795,6 +1795,10 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
 
   wm_userpref_update_when_changed(C, bmain, &U_backup, &U);
 
+  if (use_factory_settings) {
+    U.runtime.is_dirty = true;
+  }
+
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
   return OPERATOR_FINISHED;

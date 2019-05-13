@@ -452,6 +452,7 @@ static bAddon *rna_userdef_addon_new(void)
   ListBase *addons_list = &U.addons;
   bAddon *addon = BKE_addon_new();
   BLI_addtail(addons_list, addon);
+  U.runtime.is_dirty = true;
   return addon;
 }
 
@@ -466,12 +467,14 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
   BLI_remlink(addons_list, addon);
   BKE_addon_free(addon);
   RNA_POINTER_INVALIDATE(addon_ptr);
+  U.runtime.is_dirty = true;
 }
 
 static bPathCompare *rna_userdef_pathcompare_new(void)
 {
   bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
+  U.runtime.is_dirty = true;
   return path_cmp;
 }
 
@@ -485,6 +488,7 @@ static void rna_userdef_pathcompare_remove(ReportList *reports, PointerRNA *path
 
   BLI_freelinkN(&U.autoexec_paths, path_cmp);
   RNA_POINTER_INVALIDATE(path_cmp_ptr);
+  U.runtime.is_dirty = true;
 }
 
 static void rna_userdef_temp_update(Main *UNUSED(bmain),
