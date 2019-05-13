@@ -302,6 +302,9 @@ static void outliner_add_scene_contents(SpaceOutliner *soops,
     tenlay->directdata = view_layer;
   }
 
+  /* World */
+  outliner_add_element(soops, lb, sce->world, te, 0, 0);
+
   /* Collections */
   ten = outliner_add_element(soops, lb, &sce->id, te, TSE_SCENE_COLLECTION_BASE, 0);
   ten->name = IFACE_("Scene Collection");
