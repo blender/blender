@@ -387,6 +387,7 @@ static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void *U
 {
   uiBut *but = arg1;
   bUserMenu *um = ED_screen_user_menu_ensure(C);
+  U.runtime.is_dirty = true;
   ui_but_user_menu_add(C, but, um);
 }
 
@@ -394,6 +395,7 @@ static void popup_user_menu_remove_func(bContext *UNUSED(C), void *arg1, void *a
 {
   bUserMenu *um = arg1;
   bUserMenuItem *umi = arg2;
+  U.runtime.is_dirty = true;
   ED_screen_user_menu_item_remove(&um->items, umi);
 }
 
