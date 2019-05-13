@@ -221,6 +221,8 @@ static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph),
 {
   Mesh *me = ob->data;
 
+  DRW_mesh_batch_cache_validate(me);
+
   GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
   GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
   DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
@@ -238,6 +240,8 @@ static void bbs_mesh_solid_faces(Scene *UNUSED(scene),
 {
   Mesh *me = ob->data;
   Mesh *me_orig = DEG_get_original_object(ob)->data;
+
+  DRW_mesh_batch_cache_validate(me);
 
   const bool use_hide = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL);
   GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
@@ -274,6 +278,8 @@ void draw_object_select_id(Depsgraph *depsgraph,
         BMEditMesh *em = me->edit_mesh;
         const bool draw_facedot = check_ob_drawface_dot(scene, v3d, ob->dt);
         const bool use_faceselect = (select_mode & SCE_SELECT_FACE) != 0;
+
+        DRW_mesh_batch_cache_validate(me);
 
         BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
