@@ -2849,6 +2849,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_items);
   RNA_def_property_ui_text(
       prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode");
+  /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "proportional_size", PROP_FLOAT, PROP_DISTANCE);
