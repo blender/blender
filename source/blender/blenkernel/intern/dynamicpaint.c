@@ -2066,7 +2066,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
     }
 
     if (update_normals) {
-      // result->dirty |= DM_DIRTY_NORMALS;
+      result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
     }
   }
   /* make a copy of mesh to use as brush data */
