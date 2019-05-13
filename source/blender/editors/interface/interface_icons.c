@@ -1869,11 +1869,13 @@ static void icon_draw_size(float x,
 
     float border_outset = 0.0;
     unsigned int border_texel = 0;
+#ifndef WITH_HEADLESS
     if (with_border) {
       const float scale = (float)ICON_GRID_W / (float)ICON_DEFAULT_WIDTH;
       border_texel = ICON_MONO_BORDER_OUTSET;
       border_outset = ICON_MONO_BORDER_OUTSET / (scale * aspect);
     }
+#endif
     icon_draw_texture(x - border_outset,
                       y - border_outset,
                       (float)w + 2 * border_outset,
