@@ -293,12 +293,14 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(ar, v2d, 1);
-  int marker_draw_flag = DRAW_MARKERS_MARGIN;
-  if (sipo->flag & SIPO_MARKER_LINES) {
-    marker_draw_flag |= DRAW_MARKERS_LINES;
+  if (sipo->mode != SIPO_MODE_DRIVERS) {
+    UI_view2d_view_orthoSpecial(ar, v2d, 1);
+    int marker_draw_flag = DRAW_MARKERS_MARGIN;
+    if (sipo->flag & SIPO_MARKER_LINES) {
+      marker_draw_flag |= DRAW_MARKERS_LINES;
+    }
+    ED_markers_draw(C, marker_draw_flag);
   }
-  ED_markers_draw(C, marker_draw_flag);
 
   /* preview range */
   UI_view2d_view_ortho(v2d);
