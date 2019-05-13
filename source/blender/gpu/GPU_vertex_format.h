@@ -27,6 +27,7 @@
 #define __GPU_VERTEX_FORMAT_H__
 
 #include "GPU_common.h"
+#include "BLI_compiler_compat.h"
 
 #define GPU_VERT_ATTR_MAX_LEN 16
 #define GPU_VERT_ATTR_MAX_NAMES 4
@@ -54,28 +55,35 @@ typedef enum {
 } GPUVertFetchMode;
 
 typedef struct GPUVertAttr {
-  GPUVertFetchMode fetch_mode;
-  GPUVertCompType comp_type;
+  GPUVertFetchMode fetch_mode : 2;
+  GPUVertCompType comp_type : 3;
+  /* 1 to 4 or 8 or 12 or 16 */
+  uint comp_len : 5;
+  /* size in bytes, 1 to 64 */
+  uint sz : 7;
+  /* from beginning of vertex, in bytes */
+  uint offset : 11;
+  /* up to GPU_VERT_ATTR_MAX_NAMES */
+  uint name_len : 3;
   uint gl_comp_type;
-  uint comp_len; /* 1 to 4 or 8 or 12 or 16 */
-  uint sz;       /* size in bytes, 1 to 64 */
-  uint offset;   /* from beginning of vertex, in bytes */
-  uint name_len; /* up to GPU_VERT_ATTR_MAX_NAMES */
-  const char *name[GPU_VERT_ATTR_MAX_NAMES];
+  /* -- 8 Bytes -- */
+  uchar names[GPU_VERT_ATTR_MAX_NAMES];
 } GPUVertAttr;
 
 typedef struct GPUVertFormat {
   /** 0 to 16 (GPU_VERT_ATTR_MAX_LEN). */
-  uint attr_len;
+  uint attr_len : 5;
   /** Total count of active vertex attribute. */
-  uint name_len;
-  /** Stride in bytes, 1 to 256. */
-  uint stride;
-  uint name_offset;
-  bool packed;
-  char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
-  /** TODO: variable-size array */
+  uint name_len : 5;
+  /** Stride in bytes, 1 to 1024. */
+  uint stride : 11;
+  /** Has the format been packed. */
+  uint packed : 1;
+  /** Current offset in names[]. */
+  uint name_offset : 8;
+
   GPUVertAttr attrs[GPU_VERT_ATTR_MAX_LEN];
+  char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
 } GPUVertFormat;
 
 struct GPUShaderInterface;
@@ -88,18 +96,15 @@ void GPU_vertformat_from_interface(GPUVertFormat *format,
 uint GPU_vertformat_attr_add(
     GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+
 int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
 
-/**
- * This makes the "virtual" attributes with suffixes "0", "1", "2"
- * to access triangle data in the vertex shader.
- *
- * IMPORTANT:
- * - Call this before creating the vertex buffer and after creating all attributes
- * - Only first vertex out of 3 has the correct information.
- *   Use flat output with #GL_FIRST_VERTEX_CONVENTION.
- */
-void GPU_vertformat_triple_load(GPUVertFormat *format);
+BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
+                                                    const GPUVertAttr *attr,
+                                                    uint n_idx)
+{
+  return format->names + attr->names[n_idx];
+}
 
 /* format conversion */
 

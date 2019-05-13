@@ -48,12 +48,17 @@ typedef enum {
 
 typedef struct GPUVertBuf {
   GPUVertFormat format;
-  uint vertex_len;   /* number of verts we want to draw */
-  uint vertex_alloc; /* number of verts data */
-  bool dirty;
+  /** Number of verts we want to draw. */
+  uint vertex_len;
+  /** Number of verts data. */
+  uint vertex_alloc;
+  /** 0 indicates not yet allocated. */
+  uint32_t vbo_id;
+  /** Usage hint for GL optimisation. */
+  uint usage : 2;
+  /** Data has been touched and need to be reuploaded to GPU. */
+  uint dirty : 1;
   unsigned char *data; /* NULL indicates data in VRAM (unmapped) */
-  uint32_t vbo_id;     /* 0 indicates not yet allocated */
-  GPUUsageType usage;  /* usage hint for GL optimisation */
 } GPUVertBuf;
 
 GPUVertBuf *GPU_vertbuf_create(GPUUsageType);
