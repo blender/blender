@@ -800,6 +800,10 @@ static void pose_transform_mirror_update(Object *ob, PoseInitData_Mirror *pid)
       bPoseChannel *pchan = BKE_pose_channel_get_mirrored(ob->pose, pchan_orig->name);
 
       if (pchan) {
+        /* also do bbone scaling */
+        pchan->bone->xwidth = pchan_orig->bone->xwidth;
+        pchan->bone->zwidth = pchan_orig->bone->zwidth;
+
         /* we assume X-axis flipping for now */
         pchan->curve_in_x = pchan_orig->curve_in_x * -1;
         pchan->curve_out_x = pchan_orig->curve_out_x * -1;
@@ -1014,12 +1018,22 @@ static void recalcData_objects(TransInfo *t)
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bArmature *arm = ob->data;
-      if (arm->flag & ARM_MIRROR_EDIT) {
-        if (t->state != TRANS_CANCEL) {
-          ED_armature_edit_transform_mirror_update(ob);
+      if (ob->mode == OB_MODE_EDIT) {
+        if (arm->flag & ARM_MIRROR_EDIT) {
+          if (t->state != TRANS_CANCEL) {
+            ED_armature_edit_transform_mirror_update(ob);
+          }
+          else {
+            restoreBones(tc);
+          }
         }
-        else {
-          restoreBones(tc);
+      }
+      else if (ob->mode == OB_MODE_POSE) {
+        /* actually support TFM_BONESIZE in posemode as well */
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        bPose *pose = ob->pose;
+        if (arm->flag & ARM_MIRROR_EDIT || pose->flag & POSE_MIRROR_EDIT) {
+          pose_transform_mirror_update(ob, NULL);
         }
       }
     }
