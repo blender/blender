@@ -139,6 +139,7 @@ void GPU_batch_clear(GPUBatch *batch)
     }
   }
   GPU_batch_vao_cache_clear(batch);
+  batch->phase = GPU_BATCH_UNUSED;
 }
 
 void GPU_batch_discard(GPUBatch *batch)

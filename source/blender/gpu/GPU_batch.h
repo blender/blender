@@ -33,6 +33,7 @@
 #include "GPU_shader.h"
 
 typedef enum {
+  GPU_BATCH_UNUSED,
   GPU_BATCH_READY_TO_FORMAT,
   GPU_BATCH_READY_TO_BUILD,
   GPU_BATCH_BUILDING,

@@ -85,17 +85,24 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts,
   }
 }
 
-void GPU_vertbuf_discard(GPUVertBuf *verts)
+/** Same as discard but does not free. */
+void GPU_vertbuf_clear(GPUVertBuf *verts)
 {
   if (verts->vbo_id) {
     GPU_buf_free(verts->vbo_id);
+    verts->vbo_id = 0;
 #if VRAM_USAGE
     vbo_memory_usage -= GPU_vertbuf_size_get(verts);
 #endif
   }
   if (verts->data) {
-    MEM_freeN(verts->data);
+    MEM_SAFE_FREE(verts->data);
   }
+}
+
+void GPU_vertbuf_discard(GPUVertBuf *verts)
+{
+  GPU_vertbuf_clear(verts);
   MEM_freeN(verts);
 }
 
