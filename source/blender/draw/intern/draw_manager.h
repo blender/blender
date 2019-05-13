@@ -134,7 +134,9 @@ typedef struct DRWCall {
   uint inst_count;
 
 #ifdef USE_GPU_SELECT
+  /* TODO(fclem) remove once we have a dedicated selection engine. */
   int select_id;
+  GPUVertBuf *inst_selectid;
 #endif
 } DRWCall;
 
@@ -171,45 +173,18 @@ struct DRWUniform {
   char arraysize; /* cannot be more than 16 too */
 };
 
-typedef enum {
-  DRW_SHG_NORMAL,
-
-  DRW_SHG_POINT_BATCH,
-  DRW_SHG_LINE_BATCH,
-  DRW_SHG_TRIANGLE_BATCH,
-
-  DRW_SHG_INSTANCE,
-  DRW_SHG_INSTANCE_EXTERNAL,
-  DRW_SHG_FEEDBACK_TRANSFORM,
-} DRWShadingGroupType;
-
 struct DRWShadingGroup {
   DRWShadingGroup *next;
 
   GPUShader *shader;    /* Shader to bind */
   DRWUniform *uniforms; /* Uniforms pointers */
 
-  /* Watch this! Can be nasty for debugging. */
-  union {
-    struct {                 /* DRW_SHG_NORMAL */
-      DRWCall *first, *last; /* Linked list of DRWCall */
-    } calls;
-    struct {                               /* DRW_SHG_FEEDBACK_TRANSFORM */
-      DRWCall *first, *last;               /* Linked list of DRWCall. */
-      struct GPUVertBuf *tfeedback_target; /* Transform Feedback target. */
-    };
-    struct {                       /* DRW_SHG_***_BATCH */
-      struct GPUBatch *batch_geom; /* Result of call batching */
-      struct GPUVertBuf *batch_vbo;
-      uint primitive_count;
-    };
-    struct { /* DRW_SHG_INSTANCE[_EXTERNAL] */
-      struct GPUBatch *instance_geom;
-      struct GPUVertBuf *instance_vbo;
-      uint instance_count;
-      float instance_orcofac[2][3]; /* TODO find a better place. */
-    };
-  };
+  struct {
+    DRWCall *first, *last; /* Linked list of DRWCall */
+  } calls;
+
+  /** TODO Maybe remove from here */
+  struct GPUVertBuf *tfeedback_target;
 
   /** State changes for this batch only (or'd with the pass's state) */
   DRWState state_extra;
@@ -217,7 +192,6 @@ struct DRWShadingGroup {
   DRWState state_extra_disable;
   /** Stencil mask to use for stencil test / write operations */
   uint stencil_mask;
-  DRWShadingGroupType type;
 
   /* Builtin matrices locations */
   int model;
@@ -229,13 +203,6 @@ struct DRWShadingGroup {
   uchar matflag; /* Matrices needed, same as DRWCall.flag */
 
   DRWPass *pass_parent; /* backlink to pass we're in */
-#ifndef NDEBUG
-  char attrs_count;
-#endif
-#ifdef USE_GPU_SELECT
-  GPUVertBuf *inst_selectid;
-  int override_selectid; /* Override for single object instances. */
-#endif
 };
 
 #define MAX_PASS_NAME 32
@@ -419,7 +386,5 @@ void drw_batch_cache_generate_requested(struct Object *ob);
 GPUBatch *drw_cache_procedural_points_get(void);
 GPUBatch *drw_cache_procedural_lines_get(void);
 GPUBatch *drw_cache_procedural_triangles_get(void);
-
-extern struct GPUVertFormat *g_pos_format;
 
 #endif /* __DRAW_MANAGER_H__ */

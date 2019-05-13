@@ -102,8 +102,8 @@ typedef struct EDIT_TEXT_PrivateData {
   DRWShadingGroup *wire_shgrp;
   DRWShadingGroup *overlay_select_shgrp;
   DRWShadingGroup *overlay_cursor_shgrp;
-  DRWShadingGroup *box_shgrp;
-  DRWShadingGroup *box_active_shgrp;
+  DRWCallBuffer *box_shgrp;
+  DRWCallBuffer *box_active_shgrp;
 } EDIT_TEXT_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -179,9 +179,9 @@ static void EDIT_TEXT_cache_init(void *vedata)
 
     psl->text_box_pass = DRW_pass_create("Font Text Boxes",
                                          DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
-    stl->g_data->box_shgrp = shgroup_dynlines_dashed_uniform_color(
+    stl->g_data->box_shgrp = buffer_dynlines_dashed_uniform_color(
         psl->text_box_pass, G_draw.block.colorWire, draw_ctx->sh_cfg);
-    stl->g_data->box_active_shgrp = shgroup_dynlines_dashed_uniform_color(
+    stl->g_data->box_active_shgrp = buffer_dynlines_dashed_uniform_color(
         psl->text_box_pass, G_draw.block.colorActive, draw_ctx->sh_cfg);
   }
 }
@@ -265,7 +265,7 @@ static void edit_text_cache_populate_boxes(void *vedata, Object *ob)
   EDIT_TEXT_StorageList *stl = ((EDIT_TEXT_Data *)vedata)->stl;
   const Curve *cu = ob->data;
 
-  DRWShadingGroup *shading_groups[] = {
+  DRWCallBuffer *callbufs[] = {
       stl->g_data->box_active_shgrp,
       stl->g_data->box_shgrp,
   };
@@ -279,7 +279,7 @@ static void edit_text_cache_populate_boxes(void *vedata, Object *ob)
     }
 
     const bool is_active = i == (cu->actbox - 1);
-    DRWShadingGroup *shading_group = shading_groups[is_active ? 0 : 1];
+    DRWCallBuffer *callbuf = callbufs[is_active ? 0 : 1];
 
     vec[0] = cu->xof + tb->x;
     vec[1] = cu->yof + tb->y + cu->fsize_realtime;
@@ -289,29 +289,29 @@ static void edit_text_cache_populate_boxes(void *vedata, Object *ob)
     vec[0] += tb->w;
     mul_v3_m4v3(vec2, ob->obmat, vec);
 
-    DRW_shgroup_call_dynamic_add(shading_group, vec1);
-    DRW_shgroup_call_dynamic_add(shading_group, vec2);
+    DRW_buffer_add_entry(callbuf, vec1);
+    DRW_buffer_add_entry(callbuf, vec2);
 
     vec[1] -= tb->h;
     copy_v3_v3(vec1, vec2);
     mul_v3_m4v3(vec2, ob->obmat, vec);
 
-    DRW_shgroup_call_dynamic_add(shading_group, vec1);
-    DRW_shgroup_call_dynamic_add(shading_group, vec2);
+    DRW_buffer_add_entry(callbuf, vec1);
+    DRW_buffer_add_entry(callbuf, vec2);
 
     vec[0] -= tb->w;
     copy_v3_v3(vec1, vec2);
     mul_v3_m4v3(vec2, ob->obmat, vec);
 
-    DRW_shgroup_call_dynamic_add(shading_group, vec1);
-    DRW_shgroup_call_dynamic_add(shading_group, vec2);
+    DRW_buffer_add_entry(callbuf, vec1);
+    DRW_buffer_add_entry(callbuf, vec2);
 
     vec[1] += tb->h;
     copy_v3_v3(vec1, vec2);
     mul_v3_m4v3(vec2, ob->obmat, vec);
 
-    DRW_shgroup_call_dynamic_add(shading_group, vec1);
-    DRW_shgroup_call_dynamic_add(shading_group, vec2);
+    DRW_buffer_add_entry(callbuf, vec1);
+    DRW_buffer_add_entry(callbuf, vec2);
   }
 }
 

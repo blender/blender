@@ -436,12 +436,12 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
                                     {"probe_mat", DRW_ATTR_FLOAT, 16},
                                 });
 
-    DRWShadingGroup *grp = DRW_shgroup_instance_create(EEVEE_shaders_probe_planar_display_sh_get(),
-                                                       psl->probe_display,
-                                                       DRW_cache_quad_get(),
-                                                       e_data.format_probe_display_planar);
-    stl->g_data->planar_display_shgrp = grp;
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_planar_display_sh_get(),
+                                              psl->probe_display);
     DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &txl->planar_pool);
+
+    stl->g_data->planar_display_shgrp = DRW_shgroup_call_buffer_instance_add(
+        grp, e_data.format_probe_display_planar, DRW_cache_quad_get());
   }
   else {
     stl->g_data->planar_display_shgrp = NULL;
@@ -499,9 +499,9 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
     EEVEE_lightprobes_planar_data_from_object(
         ob, &pinfo->planar_data[pinfo->num_planar], &pinfo->planar_vis_tests[pinfo->num_planar]);
     /* Debug Display */
-    DRWShadingGroup *grp = vedata->stl->g_data->planar_display_shgrp;
+    DRWCallBuffer *grp = vedata->stl->g_data->planar_display_shgrp;
     if (grp && (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
-      DRW_shgroup_call_dynamic_add(grp, &pinfo->num_planar, ob->obmat);
+      DRW_buffer_add_entry(grp, &pinfo->num_planar, ob->obmat);
     }
 
     pinfo->num_planar++;

@@ -88,7 +88,7 @@ typedef struct EDIT_METABALL_Data {
 typedef struct EDIT_METABALL_PrivateData {
   /* This keeps the references of the shading groups for
    * easy access in EDIT_METABALL_cache_populate() */
-  DRWShadingGroup *group;
+  DRWCallBuffer *group;
 } EDIT_METABALL_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -121,7 +121,7 @@ static void EDIT_METABALL_cache_init(void *vedata)
     psl->pass = DRW_pass_create("My Pass", state);
 
     /* Create a shadingGroup using a function in draw_common.c or custom one */
-    stl->g_data->group = shgroup_instance_mball_handles(psl->pass, draw_ctx->sh_cfg);
+    stl->g_data->group = buffer_instance_mball_handles(psl->pass, draw_ctx->sh_cfg);
   }
 }
 
@@ -133,7 +133,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 
   if (ob->type == OB_MBALL) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
-    DRWShadingGroup *group = stl->g_data->group;
+    DRWCallBuffer *group = stl->g_data->group;
 
     if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
       MetaBall *mb = ob->data;
@@ -184,7 +184,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
           DRW_select_load_id(select_id | MBALLSEL_RADIUS);
         }
 
-        DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &ml->rad, color);
+        DRW_buffer_add_entry(group, draw_scale_xform, &ml->rad, color);
 
         if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) {
           color = col_stiffness_select;
@@ -197,7 +197,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
           DRW_select_load_id(select_id | MBALLSEL_STIFF);
         }
 
-        DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &draw_stiffness_radius, color);
+        DRW_buffer_add_entry(group, draw_scale_xform, &draw_stiffness_radius, color);
       }
     }
   }

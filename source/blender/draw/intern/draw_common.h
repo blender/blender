@@ -23,6 +23,7 @@
 #ifndef __DRAW_COMMON_H__
 #define __DRAW_COMMON_H__
 
+struct DRWCallBuffer;
 struct DRWPass;
 struct DRWShadingGroup;
 struct GPUBatch;
@@ -125,77 +126,74 @@ void DRW_globals_free(void);
 void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp,
                                              const RegionView3D *rv3d);
 
-struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass,
-                                                              const float color[4],
-                                                              eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass,
-                                                        const float color[4],
-                                                        const float *size,
-                                                        eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass,
-                                                          const float color[4],
-                                                          eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass,
+/* TODO(fclem) ideally, most of the DRWCallBuffer functions shouldn't create a shgroup. */
+struct DRWCallBuffer *buffer_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_dynlines_dashed_uniform_color(struct DRWPass *pass,
                                                            const float color[4],
                                                            eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass,
-                                                     struct GPUBatch *geom,
-                                                     const float *size,
-                                                     eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_solid(struct DRWPass *pass, struct GPUBatch *geom);
-struct DRWShadingGroup *shgroup_instance_wire(struct DRWPass *pass, struct GPUBatch *geom);
-struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass,
-                                                        struct GPUBatch *geom,
-                                                        eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_empty_axes(struct DRWPass *pass,
-                                                    struct GPUBatch *geom,
-                                                    eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass,
-                                                struct GPUBatch *geom,
-                                                eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass,
-                                         struct GPUBatch *geom,
-                                         eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_alpha(struct DRWPass *pass,
-                                               struct GPUBatch *geom,
-                                               eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass,
-                                                 struct GPUBatch *geom,
-                                                 int *baseid);
-struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass,
-                                                struct GPUBatch *geom,
-                                                eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass,
-                                                        struct GPUBatch *geom,
-                                                        eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass,
-                                              struct GPUBatch *geom,
-                                              eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass,
+struct DRWCallBuffer *buffer_dynpoints_uniform_color(struct DRWShadingGroup *grp);
+struct DRWCallBuffer *buffer_groundlines_uniform_color(struct DRWPass *pass,
+                                                       const float color[4],
                                                        eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_axes(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_distance(struct DRWPass *pass,
-                                                                eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *pass,
-                                                               eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass,
-                                                             bool transp,
+struct DRWCallBuffer *buffer_groundpoints_uniform_color(struct DRWPass *pass,
+                                                        const float color[4],
+                                                        eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_screenspace(struct DRWPass *pass,
+                                                  struct GPUBatch *geom,
+                                                  const float *size,
+                                                  eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_solid(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWCallBuffer *buffer_instance_wire(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWCallBuffer *buffer_instance_screen_aligned(struct DRWPass *pass,
+                                                     struct GPUBatch *geom,
+                                                     eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_empty_axes(struct DRWPass *pass,
+                                                 struct GPUBatch *geom,
+                                                 eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_scaled(struct DRWPass *pass,
+                                             struct GPUBatch *geom,
+                                             eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance(struct DRWPass *pass,
+                                      struct GPUBatch *geom,
+                                      eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_alpha(struct DRWShadingGroup *grp, struct GPUBatch *geom);
+struct DRWCallBuffer *buffer_instance_outline(struct DRWPass *pass,
+                                              struct GPUBatch *geom,
+                                              int *baseid);
+struct DRWCallBuffer *buffer_camera_instance(struct DRWPass *pass,
+                                             struct GPUBatch *geom,
+                                             eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_distance_lines_instance(struct DRWPass *pass,
+                                                     struct GPUBatch *geom,
+                                                     eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_spot_instance(struct DRWPass *pass,
+                                           struct GPUBatch *geom,
+                                           eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_mball_handles(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_axes(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_envelope_distance(struct DRWPass *pass,
                                                              eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_shape_outline(struct DRWPass *pass,
-                                                            struct GPUBatch *geom,
+struct DRWCallBuffer *buffer_instance_bone_envelope_outline(struct DRWPass *pass,
                                                             eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_shape_solid(struct DRWPass *pass,
-                                                          struct GPUBatch *geom,
+struct DRWCallBuffer *buffer_instance_bone_envelope_solid(struct DRWPass *pass,
                                                           bool transp,
                                                           eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass,
-                                                             eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_sphere_solid(struct DRWPass *pass,
-                                                           bool transp,
-                                                           eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
-struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWCallBuffer *buffer_instance_bone_shape_outline(struct DRWPass *pass,
+                                                         struct GPUBatch *geom,
+                                                         eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_shape_solid(struct DRWPass *pass,
+                                                       struct GPUBatch *geom,
+                                                       bool transp,
+                                                       eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_sphere_outline(struct DRWPass *pass,
+                                                          eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_sphere_solid(struct DRWPass *pass,
+                                                        bool transp,
+                                                        eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_stick(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
+struct DRWCallBuffer *buffer_instance_bone_dof(struct DRWPass *pass,
+                                               struct GPUBatch *geom,
+                                               bool blend);
 
 struct GPUShader *mpath_line_shader_get(void);
 struct GPUShader *mpath_points_shader_get(void);

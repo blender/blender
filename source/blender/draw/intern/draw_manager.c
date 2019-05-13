@@ -2953,7 +2953,6 @@ void DRW_engines_free(void)
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
   DRW_TEXTURE_FREE_SAFE(G_draw.ramp);
   DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
-  MEM_SAFE_FREE(g_pos_format);
 
   MEM_SAFE_FREE(DST.uniform_names.buffer);
 

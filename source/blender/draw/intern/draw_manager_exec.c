@@ -30,6 +30,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "intern/gpu_shader_private.h"
+#include "intern/gpu_primitive_private.h"
 
 #ifdef USE_GPU_SELECT
 #  include "GPU_select.h"
@@ -852,8 +853,8 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
       GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)unitmat);
     }
     if (shgroup->orcotexfac != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)shgroup->instance_orcofac);
+      float orcofacs[2][3] = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}};
+      GPU_shader_uniform_vector(shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)orcofacs);
     }
   }
 }
@@ -1040,6 +1041,49 @@ static void release_ubo_slots(bool with_persist)
   }
 }
 
+BLI_INLINE bool draw_select_do_call(DRWShadingGroup *shgroup, DRWCall *call)
+{
+#ifdef USE_GPU_SELECT
+  if ((G.f & G_FLAG_PICKSEL) == 0) {
+    return false;
+  }
+  if (call->inst_selectid != NULL) {
+    const bool is_instancing = (call->inst_count != 0);
+    uint start = 0;
+    uint count = 1;
+    uint tot = is_instancing ? call->inst_count : call->vert_count;
+    /* Hack : get vbo data without actually drawing. */
+    GPUVertBufRaw raw;
+    GPU_vertbuf_attr_get_raw_data(call->inst_selectid, 0, &raw);
+    int *select_id = GPU_vertbuf_raw_step(&raw);
+
+    /* Batching */
+    if (!is_instancing) {
+      /* FIXME: Meh a bit nasty. */
+      if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_TRIS)) {
+        count = 3;
+      }
+      else if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_LINES)) {
+        count = 2;
+      }
+    }
+
+    while (start < tot) {
+      GPU_select_load_id(select_id[start]);
+      draw_geometry_execute(shgroup, call->batch, start, count, is_instancing);
+      start += count;
+    }
+    return true;
+  }
+  else {
+    GPU_select_load_id(call->select_id);
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 {
   BLI_assert(shgroup->shader);
@@ -1059,8 +1103,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     DST.shader = shgroup->shader;
   }
 
-  if ((pass_state & DRW_STATE_TRANS_FEEDBACK) != 0 &&
-      (shgroup->type == DRW_SHG_FEEDBACK_TRANSFORM)) {
+  if ((pass_state & DRW_STATE_TRANS_FEEDBACK) != 0 && (shgroup->tfeedback_target != NULL)) {
     use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
                                                          shgroup->tfeedback_target->vbo_id);
   }
@@ -1140,102 +1183,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     }
   }
 
-#ifdef USE_GPU_SELECT
-#  define GPU_SELECT_LOAD_IF_PICKSEL(_select_id) \
-    if (G.f & G_FLAG_PICKSEL) { \
-      GPU_select_load_id(_select_id); \
-    } \
-    ((void)0)
-
-#  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(_call) \
-    if ((G.f & G_FLAG_PICKSEL) && (_call)) { \
-      GPU_select_load_id((_call)->select_id); \
-    } \
-    ((void)0)
-
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
-    _start = 0; \
-    _count = _shgroup->instance_count; \
-    int *select_id = NULL; \
-    if (G.f & G_FLAG_PICKSEL) { \
-      if (_shgroup->override_selectid == -1) { \
-        /* Hack : get vbo data without actually drawing. */ \
-        GPUVertBufRaw raw; \
-        GPU_vertbuf_attr_get_raw_data(_shgroup->inst_selectid, 0, &raw); \
-        select_id = GPU_vertbuf_raw_step(&raw); \
-        switch (_shgroup->type) { \
-          case DRW_SHG_TRIANGLE_BATCH: \
-            _count = 3; \
-            break; \
-          case DRW_SHG_LINE_BATCH: \
-            _count = 2; \
-            break; \
-          default: \
-            _count = 1; \
-            break; \
-        } \
-      } \
-      else { \
-        GPU_select_load_id(_shgroup->override_selectid); \
-      } \
-    } \
-    while (_start < _shgroup->instance_count) { \
-      if (select_id) { \
-        GPU_select_load_id(select_id[_start]); \
-      }
-
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(_start, _count) \
-    _start += _count; \
-    } \
-    ((void)0)
-
-#else
-#  define GPU_SELECT_LOAD_IF_PICKSEL(select_id)
-#  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(call)
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count) ((void)0)
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
-    _start = 0; \
-    _count = _shgroup->instance_count;
-
-#endif
-
   BLI_assert(ubo_bindings_validate(shgroup));
 
   /* Rendering Calls */
-  if (!ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM)) {
-    /* Replacing multiple calls with only one */
-    if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL)) {
-      if (shgroup->type == DRW_SHG_INSTANCE_EXTERNAL) {
-        if (shgroup->instance_geom != NULL) {
-          GPU_SELECT_LOAD_IF_PICKSEL(shgroup->override_selectid);
-          draw_geometry_prepare(shgroup, NULL);
-          draw_geometry_execute(shgroup, shgroup->instance_geom, 0, 0, true);
-        }
-      }
-      else {
-        if (shgroup->instance_count > 0) {
-          uint count, start;
-          draw_geometry_prepare(shgroup, NULL);
-          GPU_SELECT_LOAD_IF_PICKSEL_LIST (shgroup, start, count) {
-            draw_geometry_execute(shgroup, shgroup->instance_geom, start, count, true);
-          }
-          GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count);
-        }
-      }
-    }
-    else { /* DRW_SHG_***_BATCH */
-      /* Some dynamic batch can have no geom (no call to aggregate) */
-      if (shgroup->instance_count > 0) {
-        uint count, start;
-        draw_geometry_prepare(shgroup, NULL);
-        GPU_SELECT_LOAD_IF_PICKSEL_LIST (shgroup, start, count) {
-          draw_geometry_execute(shgroup, shgroup->batch_geom, start, count, false);
-        }
-        GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count);
-      }
-    }
-  }
-  else {
+  {
     bool prev_neg_scale = false;
     int callid = 0;
     for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
@@ -1262,8 +1213,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         prev_neg_scale = neg_scale;
       }
 
-      GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
       draw_geometry_prepare(shgroup, call);
+
+      if (draw_select_do_call(shgroup, call)) {
+        continue;
+      }
 
       /* TODO revisit when DRW_SHG_INSTANCE and the like is gone. */
       if (call->inst_count == 0) {
