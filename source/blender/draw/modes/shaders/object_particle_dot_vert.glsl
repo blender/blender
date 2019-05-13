@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 uniform float pixel_size;
 uniform float size;
 

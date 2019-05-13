@@ -2,9 +2,6 @@
 uniform mat4 ViewMatrix;
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
-#ifdef USE_WORLD_CLIP_PLANES
-uniform mat4 ModelMatrix;
-#endif
 
 /* ---- Instantiated Attrs ---- */
 in vec3 pos;
@@ -57,6 +54,6 @@ void main()
   vec4 pos_4d = vec4(sp, 1.0);
   gl_Position = ViewProjectionMatrix * pos_4d;
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+  world_clip_planes_calc_clip_distance(pos_4d.xyz);
 #endif
 }

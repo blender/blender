@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 in vec2 u; /* active uv map */
 in vec3 pos;
 

@@ -1,8 +1,5 @@
 
 uniform mat4 ViewProjectionMatrix;
-#ifdef USE_WORLD_CLIP_PLANES
-uniform mat4 ModelMatrix;
-#endif
 
 uniform vec3 screenVecs[3];
 
@@ -33,6 +30,6 @@ void main()
   finalColor = vec4(color, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+  world_clip_planes_calc_clip_distance(pos_4d.xyz);
 #endif
 }

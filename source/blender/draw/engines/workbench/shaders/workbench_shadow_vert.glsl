@@ -1,7 +1,5 @@
 #define INFINITE 1000.0
 
-uniform mat4 ModelMatrix;
-
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
 uniform float lightDistance = 1e4;
 

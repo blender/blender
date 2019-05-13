@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 uniform ivec4 dataMask = ivec4(0xFF);
 
 in vec3 pos;

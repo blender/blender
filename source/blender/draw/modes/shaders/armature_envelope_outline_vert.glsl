@@ -3,9 +3,6 @@ uniform mat4 ViewMatrix;
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ProjectionMatrix;
-#ifdef USE_WORLD_CLIP_PLANES
-uniform mat4 ModelMatrix;
-#endif
 
 uniform vec2 viewportSize;
 uniform float lineThickness = 2.0;
@@ -145,7 +142,7 @@ void main()
 
   vec4 pos_4d = vec4(wpos1, 1.0);
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+  world_clip_planes_calc_clip_distance(pos_4d.xyz);
 #endif
 
   vec4 V = ViewMatrix * pos_4d;

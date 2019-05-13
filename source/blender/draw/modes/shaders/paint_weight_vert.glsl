@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 in float weight;
 in vec3 pos;
 

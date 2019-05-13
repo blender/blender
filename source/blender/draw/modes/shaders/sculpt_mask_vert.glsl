@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 uniform float maskOpacity;
 
 in vec3 pos;

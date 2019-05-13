@@ -1,4 +1,3 @@
-uniform mat4 ModelMatrix;
 
 uniform float pixsize; /* rv3d->pixsize */
 uniform int keep_size;

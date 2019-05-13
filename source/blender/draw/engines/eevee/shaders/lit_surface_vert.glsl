@@ -1,9 +1,4 @@
 
-#ifndef USE_ATTR
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-#endif
-
 #ifndef HAIR_SHADER
 in vec3 pos;
 in vec3 nor;

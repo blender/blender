@@ -1,7 +1,4 @@
 
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-
 uniform float wireStepParam;
 uniform float ofs;
 

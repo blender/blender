@@ -1,7 +1,7 @@
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewProjectionMatrix;
-uniform mat4 ModelMatrix;
+
 uniform mat4 ViewMatrix;
 uniform vec2 viewportSize;
 
@@ -88,8 +88,7 @@ void main()
     gl_Position.z += (is_bone) ? 0.0 : 1e-6; /* Avoid Z fighting of head/tails. */
 
 #ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_calc_clip_distance(
-        (ModelMatrix * (is_head ? boneStart_4d : boneEnd_4d)).xyz);
+    world_clip_planes_calc_clip_distance((is_head ? boneStart_4d : boneEnd_4d).xyz);
 #endif
   }
   else {

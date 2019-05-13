@@ -1,7 +1,4 @@
 
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-
 #ifdef CLIP_PLANES
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform clip_block

@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 in vec3 pos;
 in vec4 nor; /* select flag on the 4th component */
 

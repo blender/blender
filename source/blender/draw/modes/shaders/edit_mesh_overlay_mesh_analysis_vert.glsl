@@ -1,4 +1,3 @@
-uniform mat4 ModelMatrix;
 
 in vec3 pos;
 in vec4 weight_color;

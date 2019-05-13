@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 in vec3 pos;
 in float color;
 

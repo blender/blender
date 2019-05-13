@@ -1,7 +1,4 @@
-
 /* Draw Lattice Vertices */
-
-uniform mat4 ModelMatrix;
 
 uniform vec2 viewportSize;
 

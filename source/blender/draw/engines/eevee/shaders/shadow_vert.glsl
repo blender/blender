@@ -1,8 +1,4 @@
 
-#ifndef USE_ATTR
-uniform mat4 ModelMatrix;
-#endif
-
 in vec3 pos;
 in vec3 nor;
 

@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 uniform bool screen_space;
 uniform float draw_size;
 uniform vec3 color;

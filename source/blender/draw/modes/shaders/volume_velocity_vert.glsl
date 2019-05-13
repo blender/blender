@@ -1,6 +1,4 @@
 
-uniform mat4 ModelMatrix;
-
 uniform sampler3D velocityX;
 uniform sampler3D velocityY;
 uniform sampler3D velocityZ;

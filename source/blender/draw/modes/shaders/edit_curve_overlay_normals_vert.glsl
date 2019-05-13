@@ -1,5 +1,4 @@
 /* Draw Curve Normals */
-uniform mat4 ModelMatrix;
 
 uniform float normalSize;
 

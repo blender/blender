@@ -1,7 +1,4 @@
 
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-
 uniform float faceAlphaMod;
 uniform ivec4 dataMask = ivec4(0xFF);
 uniform float ofs;

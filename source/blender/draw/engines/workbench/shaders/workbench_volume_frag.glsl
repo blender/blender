@@ -1,7 +1,4 @@
 
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-
 uniform vec3 OrcoTexCoFactors[2];
 
 uniform sampler2D depthBuffer;

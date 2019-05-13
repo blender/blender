@@ -1,5 +1,4 @@
 /* Draw Curve Vertices */
-uniform mat4 ModelMatrix;
 
 uniform vec2 viewportSize;
 

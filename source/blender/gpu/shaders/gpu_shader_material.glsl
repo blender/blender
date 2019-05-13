@@ -1,9 +1,4 @@
 
-#ifndef USE_ATTR
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
-#endif
-
 /* Converters */
 
 float convert_rgba_to_float(vec4 color)

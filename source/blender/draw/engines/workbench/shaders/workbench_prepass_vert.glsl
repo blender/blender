@@ -1,5 +1,3 @@
-uniform mat4 ModelMatrix;
-uniform mat4 ModelMatrixInverse;
 
 #ifndef HAIR_SHADER
 in vec3 pos;

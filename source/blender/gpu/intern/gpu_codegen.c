@@ -1035,12 +1035,39 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
     BLI_dynstr_append(ds, "out vec3 barycentricPosg;\n");
   }
 
+  BLI_dynstr_append(ds, "\n#define USE_ATTR\n");
+
+  /* Prototype, defined later (this is because of matrices definition). */
+  BLI_dynstr_append(ds, "void pass_attr(in vec3 position);\n");
+
+  BLI_dynstr_append(ds, "\n");
+
+  if (use_geom) {
+    /* XXX HACK: Eevee specific. */
+    char *vert_new, *vert_new2;
+    vert_new = BLI_str_replaceN(vert_code, "worldPosition", "worldPositiong");
+    vert_new2 = vert_new;
+    vert_new = BLI_str_replaceN(vert_new2, "viewPosition", "viewPositiong");
+    MEM_freeN(vert_new2);
+    vert_new2 = vert_new;
+    vert_new = BLI_str_replaceN(vert_new2, "worldNormal", "worldNormalg");
+    MEM_freeN(vert_new2);
+    vert_new2 = vert_new;
+    vert_new = BLI_str_replaceN(vert_new2, "viewNormal", "viewNormalg");
+    MEM_freeN(vert_new2);
+
+    BLI_dynstr_append(ds, vert_new);
+
+    MEM_freeN(vert_new);
+  }
+  else {
+    BLI_dynstr_append(ds, vert_code);
+  }
+
   BLI_dynstr_append(ds, "\n");
 
   BLI_dynstr_append(ds,
                     "#define USE_ATTR\n"
-                    "uniform mat4 ModelMatrixInverse;\n"
-                    "uniform mat4 ModelMatrix;\n"
                     "vec3 srgb_to_linear_attr(vec3 c) {\n"
                     "\tc = max(c, vec3(0.0));\n"
                     "\tvec3 c1 = c * (1.0 / 12.92);\n"
@@ -1176,28 +1203,6 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
   BLI_dynstr_append(ds, "#endif /* HAIR_SHADER */\n");
 
   BLI_dynstr_append(ds, "}\n");
-
-  if (use_geom) {
-    /* XXX HACK: Eevee specific. */
-    char *vert_new, *vert_new2;
-    vert_new = BLI_str_replaceN(vert_code, "worldPosition", "worldPositiong");
-    vert_new2 = vert_new;
-    vert_new = BLI_str_replaceN(vert_new2, "viewPosition", "viewPositiong");
-    MEM_freeN(vert_new2);
-    vert_new2 = vert_new;
-    vert_new = BLI_str_replaceN(vert_new2, "worldNormal", "worldNormalg");
-    MEM_freeN(vert_new2);
-    vert_new2 = vert_new;
-    vert_new = BLI_str_replaceN(vert_new2, "viewNormal", "viewNormalg");
-    MEM_freeN(vert_new2);
-
-    BLI_dynstr_append(ds, vert_new);
-
-    MEM_freeN(vert_new);
-  }
-  else {
-    BLI_dynstr_append(ds, vert_code);
-  }
 
   code = BLI_dynstr_get_cstring(ds);
 

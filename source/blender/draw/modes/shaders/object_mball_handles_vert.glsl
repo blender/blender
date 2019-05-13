@@ -4,7 +4,6 @@
  * Note that if the stiffness is zero, it assumes the scale is directly multiplied by the radius */
 
 uniform mat4 ViewProjectionMatrix;
-uniform mat4 ModelMatrix;
 uniform vec3 screen_vecs[2];
 
 /* ---- Instantiated Attrs ---- */
@@ -32,6 +31,6 @@ void main()
   finalColor = vec4(color, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((ModelMatrix * world_pos).xyz);
+  world_clip_planes_calc_clip_distance(world_pos.xyz);
 #endif
 }
