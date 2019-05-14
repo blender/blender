@@ -1142,11 +1142,12 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
                  rdata->cd.layers.tangent_len);
 
       int i_dst = 0;
+      int act_tan = rdata->cd.layers.tangent_active;
       for (int i_src = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
         if ((cd_used->tan & (1 << i_src)) == 0) {
           i_dst--;
           if (rdata->cd.layers.tangent_active >= i_src) {
-            rdata->cd.layers.tangent_active--;
+            act_tan--;
           }
         }
         else {
@@ -1170,6 +1171,11 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
           }
         }
       }
+      if (rdata->cd.layers.tangent_active != -1) {
+        /* Actual active UV slot inside uv layers used for shading. */
+        rdata->cd.layers.tangent_active = act_tan;
+      }
+
       if (cd_used->tan_orco != 0) {
         const char *name = CustomData_get_layer_name(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
         uint hash = BLI_ghashutil_strhash_p(name);
