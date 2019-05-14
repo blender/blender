@@ -2084,6 +2084,10 @@ static bool mesh_batch_cache_valid(Mesh *me)
     return false;
   }
 
+  if (cache->mat_len != mesh_render_mat_len_get(me)) {
+    return false;
+  }
+
   return true;
 }
 
