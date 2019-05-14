@@ -34,13 +34,13 @@ struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct GPUBatch;
+struct GPU_PBVH_Buffers;
 struct MLoop;
 struct MLoopTri;
 struct MPoly;
 struct MVert;
 struct PBVH;
 struct PBVHNode;
-struct GPU_PBVH_Buffers;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;

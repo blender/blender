@@ -24,8 +24,8 @@
 #ifndef __ED_SCRUBBING_H__
 #define __ED_SCRUBBING_H__
 
-struct bContext;
 struct View2DGrid;
+struct bContext;
 struct bDopeSheet;
 struct wmEvent;
 

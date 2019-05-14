@@ -45,7 +45,6 @@
 #include "intern/node/deg_node_operation.h"
 
 struct Base;
-struct bSound;
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -79,6 +78,7 @@ struct bConstraint;
 struct bGPdata;
 struct bNodeTree;
 struct bPoseChannel;
+struct bSound;
 
 struct PropertyRNA;
 

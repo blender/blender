@@ -23,10 +23,10 @@
 
 #pragma once
 
-struct bPoseChannel;
 struct Base;
 struct Main;
 struct Object;
+struct bPoseChannel;
 
 namespace DEG {
 

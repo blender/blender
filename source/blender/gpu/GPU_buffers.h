@@ -32,10 +32,10 @@ struct CCGKey;
 struct DMFlagMat;
 struct GSet;
 struct MLoop;
+struct MLoopCol;
 struct MLoopTri;
 struct MPoly;
 struct MVert;
-struct MLoopCol;
 struct PBVH;
 
 /* Buffers for drawing from PBVH grids. */
