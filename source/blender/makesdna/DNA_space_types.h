@@ -312,8 +312,8 @@ typedef enum eSpaceOutliner_StateFilter {
 /* SpaceOutliner.show_restrict_flags */
 typedef enum eSpaceOutliner_ShowRestrictFlag {
   SO_RESTRICT_ENABLE = (1 << 0),
-  SO_RESTRICT_SELECTABLE = (1 << 1),
-  SO_RESTRICT_INSTANCE = (1 << 2),
+  SO_RESTRICT_SELECT = (1 << 1),
+  SO_RESTRICT_HIDE = (1 << 2),
   SO_RESTRICT_VIEWPORT = (1 << 3),
   SO_RESTRICT_RENDER = (1 << 4),
   SO_RESTRICT_HOLDOUT = (1 << 5),

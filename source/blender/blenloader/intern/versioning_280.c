@@ -427,7 +427,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
           collections[layer] = collection;
 
           if (!(scene->lay & (1 << layer))) {
-            collection->flag |= COLLECTION_RESTRICT_INSTANCE | COLLECTION_RESTRICT_RENDER;
+            collection->flag |= COLLECTION_RESTRICT_VIEWPORT | COLLECTION_RESTRICT_RENDER;
           }
         }
 
@@ -728,7 +728,7 @@ void do_versions_after_linking_280(Main *bmain)
       /* Add fake user for all existing groups. */
       id_fake_user_set(&collection->id);
 
-      if (collection->flag & (COLLECTION_RESTRICT_INSTANCE | COLLECTION_RESTRICT_RENDER)) {
+      if (collection->flag & (COLLECTION_RESTRICT_VIEWPORT | COLLECTION_RESTRICT_RENDER)) {
         continue;
       }
 
@@ -754,7 +754,7 @@ void do_versions_after_linking_280(Main *bmain)
             char name[MAX_ID_NAME];
             BLI_snprintf(name, sizeof(name), DATA_("Hidden %d"), coll_idx + 1);
             *collection_hidden = BKE_collection_add(bmain, collection, name);
-            (*collection_hidden)->flag |= COLLECTION_RESTRICT_INSTANCE |
+            (*collection_hidden)->flag |= COLLECTION_RESTRICT_VIEWPORT |
                                           COLLECTION_RESTRICT_RENDER;
           }
 
@@ -3407,8 +3407,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
           SpaceOutliner *so = (SpaceOutliner *)sl;
           so->filter &= ~SO_FLAG_UNUSED_1;
-          so->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_SELECTABLE |
-                                    SO_RESTRICT_VIEWPORT;
+          so->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_SELECT | SO_RESTRICT_VIEWPORT;
         }
       }
     }

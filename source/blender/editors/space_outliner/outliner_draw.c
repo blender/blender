@@ -287,12 +287,12 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 
   if (do_disable) {
     if (!is_linked) {
-      ob->restrictflag |= OB_RESTRICT_INSTANCE;
+      ob->restrictflag |= OB_RESTRICT_VIEWPORT;
       depsgraph_changed = true;
     }
   }
   else if (do_isolate) {
-    depsgraph_changed = (!is_linked) && ((ob->restrictflag & OB_RESTRICT_INSTANCE) != 0);
+    depsgraph_changed = (!is_linked) && ((ob->restrictflag & OB_RESTRICT_VIEWPORT) != 0);
 
     if (!extend) {
       /* Make only one base visible. */
@@ -308,12 +308,12 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
     }
 
     if (!is_linked) {
-      ob->restrictflag &= ~OB_RESTRICT_INSTANCE;
+      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
     }
   }
-  else if (ob->restrictflag & OB_RESTRICT_INSTANCE) {
+  else if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
     if (!is_linked) {
-      ob->restrictflag &= ~OB_RESTRICT_INSTANCE;
+      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
       base->flag &= ~BASE_HIDDEN;
     }
     depsgraph_changed = true;
@@ -889,8 +889,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
 
   struct {
     int select;
+    int hide;
     int viewport;
-    int instance;
     int render;
     int indirect_only;
     int holdout;
@@ -909,13 +909,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
   if (soops->show_restrict_flags & SO_RESTRICT_RENDER) {
     restrict_offsets.render = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
-  if (soops->show_restrict_flags & SO_RESTRICT_INSTANCE) {
-    restrict_offsets.instance = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
-  }
   if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
     restrict_offsets.viewport = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
-  if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+  if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
+    restrict_offsets.hide = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
+  }
+  if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
     restrict_offsets.select = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
   BLI_assert((restrict_column_offset * UI_UNIT_X + V2D_SCROLL_WIDTH) ==
@@ -961,7 +961,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         Object *ob = (Object *)tselem->id;
         RNA_id_pointer_create(&ob->id, &ptr);
 
-        if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+        if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
           Base *base = (te->directdata) ? (Base *)te->directdata :
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
@@ -971,7 +971,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
+                                    (int)(ar->v2d.cur.xmax - restrict_offsets.hide),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -990,7 +990,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
+                                    (int)(ar->v2d.cur.xmax - restrict_offsets.hide),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1006,7 +1006,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           }
         }
 
-        if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+        if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
@@ -1026,12 +1026,12 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
 
-        if (soops->show_restrict_flags & SO_RESTRICT_INSTANCE) {
+        if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(ar->v2d.cur.xmax - restrict_offsets.instance),
+                                  (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1138,7 +1138,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
 
-        if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+        if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
           bt = uiDefIconButBitI(block,
                                 UI_BTYPE_ICON_TOGGLE,
                                 BONE_UNSELECTABLE,
@@ -1183,7 +1183,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
 
-        if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+        if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
           bt = uiDefIconButBitI(block,
                                 UI_BTYPE_ICON_TOGGLE,
                                 BONE_UNSELECTABLE,
@@ -1229,7 +1229,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
 
-        if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+        if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
           bt = uiDefIconButBitS(
               block,
               UI_BTYPE_ICON_TOGGLE,
@@ -1266,12 +1266,12 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             RNA_pointer_create(
                 &scene->id, &RNA_LayerCollection, layer_collection, &layer_collection_ptr);
 
-            if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+            if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
               bt = uiDefIconButR_prop(block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
                                       0,
-                                      (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
+                                      (int)(ar->v2d.cur.xmax - restrict_offsets.hide),
                                       te->ys,
                                       UI_UNIT_X,
                                       UI_UNIT_Y,
@@ -1347,12 +1347,12 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             }
           }
 
-          if (soops->show_restrict_flags & SO_RESTRICT_INSTANCE) {
+          if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(ar->v2d.cur.xmax - restrict_offsets.instance),
+                                    (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1413,7 +1413,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           }
 
-          if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+          if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,

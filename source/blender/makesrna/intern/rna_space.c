@@ -2788,22 +2788,22 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
-  prop = RNA_def_property(srna, "show_restrict_column_selectable", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_SELECTABLE);
+  prop = RNA_def_property(srna, "show_restrict_column_select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_SELECT);
   RNA_def_property_ui_text(prop, "Selectable", "Selectable");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
-  prop = RNA_def_property(srna, "show_restrict_column_viewport", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_VIEWPORT);
+  prop = RNA_def_property(srna, "show_restrict_column_hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_HIDE);
   RNA_def_property_ui_text(prop, "Hide in Viewport", "Temporarily hide in viewport");
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
-  prop = RNA_def_property(srna, "show_restrict_column_instance", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_INSTANCE);
+  prop = RNA_def_property(srna, "show_restrict_column_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_VIEWPORT);
   RNA_def_property_ui_text(prop, "Disable in Viewports", "Globally disable in viewports");
-  RNA_def_property_ui_icon(prop, ICON_LINKED, 0);
+  RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   prop = RNA_def_property(srna, "show_restrict_column_render", PROP_BOOLEAN, PROP_NONE);

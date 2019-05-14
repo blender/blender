@@ -314,7 +314,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
       continue;
     }
 
-    if (lc->collection->flag & COLLECTION_RESTRICT_INSTANCE) {
+    if (lc->collection->flag & COLLECTION_RESTRICT_VIEWPORT) {
       continue;
     }
 
@@ -722,7 +722,7 @@ static bool editmode_toggle_poll(bContext *C)
   }
 
   /* if hidden but in edit mode, we still display */
-  if ((ob->restrictflag & OB_RESTRICT_INSTANCE) && !(ob->mode & OB_MODE_EDIT)) {
+  if ((ob->restrictflag & OB_RESTRICT_VIEWPORT) && !(ob->mode & OB_MODE_EDIT)) {
     return 0;
   }
 

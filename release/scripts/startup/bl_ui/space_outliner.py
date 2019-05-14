@@ -307,9 +307,9 @@ class OUTLINER_PT_filter(Panel):
             layout.label(text="Restriction Toggles:")
             row = layout.row(align=True)
             row.prop(space, "show_restrict_column_enable", text="")
-            row.prop(space, "show_restrict_column_selectable", text="")
+            row.prop(space, "show_restrict_column_select", text="")
+            row.prop(space, "show_restrict_column_hide", text="")
             row.prop(space, "show_restrict_column_viewport", text="")
-            row.prop(space, "show_restrict_column_instance", text="")
             row.prop(space, "show_restrict_column_render", text="")
             row.prop(space, "show_restrict_column_holdout", text="")
             row.prop(space, "show_restrict_column_indirect_only", text="")
@@ -317,9 +317,9 @@ class OUTLINER_PT_filter(Panel):
         elif display_mode == 'SCENES':
             layout.label(text="Restriction Toggles:")
             row = layout.row(align=True)
-            row.prop(space, "show_restrict_column_selectable", text="")
+            row.prop(space, "show_restrict_column_select", text="")
+            row.prop(space, "show_restrict_column_hide", text="")
             row.prop(space, "show_restrict_column_viewport", text="")
-            row.prop(space, "show_restrict_column_instance", text="")
             row.prop(space, "show_restrict_column_render", text="")
             layout.separator()
 

@@ -60,7 +60,7 @@ namespace DEG {
 
 void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 {
-  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_INSTANCE :
+  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_VIEWPORT :
                                                                   COLLECTION_RESTRICT_RENDER;
 
   for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {

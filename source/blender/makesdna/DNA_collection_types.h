@@ -76,10 +76,10 @@ typedef struct Collection {
 
 /* Collection->flag */
 enum {
-  COLLECTION_RESTRICT_INSTANCE = (1 << 0),   /* Hidden in viewport. */
+  COLLECTION_RESTRICT_VIEWPORT = (1 << 0),   /* Disable in viewports. */
   COLLECTION_RESTRICT_SELECT = (1 << 1),     /* Not selectable in viewport. */
   COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* Not used anymore */
-  COLLECTION_RESTRICT_RENDER = (1 << 3),     /* Hidden in renders. */
+  COLLECTION_RESTRICT_RENDER = (1 << 3),     /* Disable in renders. */
   COLLECTION_HAS_OBJECT_CACHE = (1 << 4),    /* Runtime: object_cache is populated. */
   COLLECTION_IS_MASTER = (1 << 5),           /* Is master collection embedded in the scene. */
 };

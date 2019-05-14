@@ -283,13 +283,13 @@ float outliner_restrict_columns_width(const SpaceOutliner *soops)
       }
       ATTR_FALLTHROUGH;
     case SO_SCENES:
-      if (soops->show_restrict_flags & SO_RESTRICT_SELECTABLE) {
+      if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
         num_columns++;
       }
       if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
         num_columns++;
       }
-      if (soops->show_restrict_flags & SO_RESTRICT_INSTANCE) {
+      if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
         num_columns++;
       }
       if (soops->show_restrict_flags & SO_RESTRICT_RENDER) {

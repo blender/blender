@@ -434,8 +434,8 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
 
     int object_restrict = base->object->restrictflag;
 
-    if (((child_restrict & COLLECTION_RESTRICT_INSTANCE) == 0) &&
-        ((object_restrict & OB_RESTRICT_INSTANCE) == 0)) {
+    if (((child_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0) &&
+        ((object_restrict & OB_RESTRICT_VIEWPORT) == 0)) {
       base->flag |= BASE_ENABLED_VIEWPORT;
     }
 

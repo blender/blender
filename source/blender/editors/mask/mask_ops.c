@@ -1992,9 +1992,9 @@ static int mask_hide_view_clear_exec(bContext *C, wmOperator *op)
 
   for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
-    if (masklay->restrictflag & OB_RESTRICT_INSTANCE) {
+    if (masklay->restrictflag & OB_RESTRICT_VIEWPORT) {
       ED_mask_layer_select_set(masklay, select);
-      masklay->restrictflag &= ~OB_RESTRICT_INSTANCE;
+      masklay->restrictflag &= ~OB_RESTRICT_VIEWPORT;
       changed = true;
     }
   }
@@ -2045,7 +2045,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
       if (ED_mask_layer_select_check(masklay)) {
         ED_mask_layer_select_set(masklay, false);
 
-        masklay->restrictflag |= OB_RESTRICT_INSTANCE;
+        masklay->restrictflag |= OB_RESTRICT_VIEWPORT;
         changed = true;
         if (masklay == BKE_mask_layer_active(mask)) {
           BKE_mask_layer_active_set(mask, NULL);
@@ -2054,7 +2054,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
     }
     else {
       if (!ED_mask_layer_select_check(masklay)) {
-        masklay->restrictflag |= OB_RESTRICT_INSTANCE;
+        masklay->restrictflag |= OB_RESTRICT_VIEWPORT;
         changed = true;
         if (masklay == BKE_mask_layer_active(mask)) {
           BKE_mask_layer_active_set(mask, NULL);
