@@ -631,24 +631,6 @@ static bool screen_active_editable(bContext *C)
   return 0;
 }
 
-static ARegion *screen_find_region_type(bContext *C, int type)
-{
-  ARegion *ar = CTX_wm_region(C);
-
-  /* find the header region
-   * - try context first, but upon failing, search all regions in area...
-   */
-  if ((ar == NULL) || (ar->regiontype != type)) {
-    ScrArea *sa = CTX_wm_area(C);
-    ar = BKE_area_find_region_type(sa, type);
-  }
-  else {
-    ar = NULL;
-  }
-
-  return ar;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4014,8 +3996,11 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
   ARegion *ar = CTX_wm_region(C);
   const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") :
                                                                 IFACE_("Flip to Top");
-
-  uiItemO(layout, IFACE_("Toggle Footer"), ICON_NONE, "SCREEN_OT_footer");
+  {
+    PointerRNA ptr;
+    RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
+    uiItemR(layout, &ptr, "show_region_footer", 0, IFACE_("Show Footer"), ICON_NONE);
+  }
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -4084,40 +4069,6 @@ static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = screen_region_context_menu_poll;
   ot->invoke = screen_context_menu_invoke;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Footer Toggle Operator
- * \{ */
-
-static int footer_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  ARegion *ar = screen_find_region_type(C, RGN_TYPE_FOOTER);
-
-  if (ar == NULL) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ar->flag ^= RGN_FLAG_HIDDEN;
-
-  ED_area_tag_redraw(CTX_wm_area(C));
-
-  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-
-  return OPERATOR_FINISHED;
-}
-
-static void SCREEN_OT_footer(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Toggle Footer";
-  ot->description = "Toggle footer display";
-  ot->idname = "SCREEN_OT_footer";
-
-  /* api callbacks */
-  ot->exec = footer_exec;
 }
 
 /** \} */
@@ -5266,7 +5217,6 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_region_flip);
   WM_operatortype_append(SCREEN_OT_header_toggle_menus);
   WM_operatortype_append(SCREEN_OT_region_context_menu);
-  WM_operatortype_append(SCREEN_OT_footer);
   WM_operatortype_append(SCREEN_OT_screen_set);
   WM_operatortype_append(SCREEN_OT_screen_full_area);
   WM_operatortype_append(SCREEN_OT_back_to_previous);
