@@ -554,13 +554,26 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
 static void ui_but_update_preferences_dirty(uiBut *but)
 {
   /* Not very elegant, but ensures preference changes force re-save. */
-  if (but->rnaprop && (but->rnapoin.data == &U)) {
-    /* Exclude navigation from setting dirty. */
-    extern PropertyRNA rna_Preferences_active_section;
-    if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
-      U.runtime.is_dirty = true;
-      WM_main_add_notifier(NC_WINDOW, NULL);
+  bool tag = false;
+  if (but->rnaprop) {
+    if (but->rnapoin.data == &U) {
+      /* Exclude navigation from setting dirty. */
+      extern PropertyRNA rna_Preferences_active_section;
+      if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
+        tag = true;
+      }
     }
+    else {
+      StructRNA *base = RNA_struct_base(but->rnapoin.type);
+      if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences)) {
+        tag = true;
+      }
+    }
+  }
+
+  if (tag) {
+    U.runtime.is_dirty = true;
+    WM_main_add_notifier(NC_WINDOW, NULL);
   }
 }
 
