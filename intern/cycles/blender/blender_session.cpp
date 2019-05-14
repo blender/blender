@@ -1440,7 +1440,12 @@ void BlenderSession::builtin_images_load()
 {
   /* Force builtin images to be loaded along with Blender data sync. This
    * is needed because we may be reading from depsgraph evaluated data which
-   * can be freed by Blender before Cycles reads it. */
+   * can be freed by Blender before Cycles reads it.
+   *
+   * TODO: the assumption that no further access to builtin image data will
+   * happen is really weak, and likely to break in the future. We should find
+   * a better solution to hand over the data directly to the image manager
+   * instead of through callbacks whose timing is difficult to control. */
   ImageManager *manager = session->scene->image_manager;
   Device *device = session->device;
   manager->device_load_builtin(device, session->scene, session->progress);

@@ -412,6 +412,17 @@ int ImageManager::add_image(const string &filename,
   return type_index_to_flattened_slot(slot, type);
 }
 
+void ImageManager::add_image_user(int flat_slot)
+{
+  ImageDataType type;
+  int slot = flattened_slot_to_type_index(flat_slot, &type);
+
+  Image *image = images[type][slot];
+  assert(image && image->users >= 1);
+
+  image->users++;
+}
+
 void ImageManager::remove_image(int flat_slot)
 {
   ImageDataType type;

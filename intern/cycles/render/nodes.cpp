@@ -263,13 +263,11 @@ ImageTextureNode::~ImageTextureNode()
 
 ShaderNode *ImageTextureNode::clone() const
 {
-  ImageTextureNode *node = new ImageTextureNode(*this);
-  node->image_manager = NULL;
-  node->slot = -1;
-  node->is_float = -1;
-  node->compress_as_srgb = false;
-  node->colorspace = colorspace;
-  return node;
+  /* Increase image user count for new node. */
+  if (slot != -1) {
+    image_manager->add_image_user(slot);
+  }
+  return new ImageTextureNode(*this);
 }
 
 void ImageTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -448,13 +446,11 @@ EnvironmentTextureNode::~EnvironmentTextureNode()
 
 ShaderNode *EnvironmentTextureNode::clone() const
 {
-  EnvironmentTextureNode *node = new EnvironmentTextureNode(*this);
-  node->image_manager = NULL;
-  node->slot = -1;
-  node->is_float = -1;
-  node->compress_as_srgb = false;
-  node->colorspace = colorspace;
-  return node;
+  /* Increase image user count for new node. */
+  if (slot != -1) {
+    image_manager->add_image_user(slot);
+  }
+  return new EnvironmentTextureNode(*this);
 }
 
 void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -1481,10 +1477,13 @@ PointDensityTextureNode::~PointDensityTextureNode()
 
 ShaderNode *PointDensityTextureNode::clone() const
 {
-  PointDensityTextureNode *node = new PointDensityTextureNode(*this);
-  node->image_manager = NULL;
-  node->slot = -1;
-  return node;
+  /* Increase image user count for new node. We need to ensure to not call
+   * add_image again, to work around access of freed data on the Blender
+   * side. A better solution should be found to avoid this. */
+  if (slot != -1) {
+    image_manager->add_image_user(slot);
+  }
+  return new PointDensityTextureNode(*this);
 }
 
 void PointDensityTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)

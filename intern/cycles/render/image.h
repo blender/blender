@@ -86,6 +86,7 @@ class ImageManager {
                 bool use_alpha,
                 ustring colorspace,
                 ImageMetaData &metadata);
+  void add_image_user(int flat_slot);
   void remove_image(int flat_slot);
   void remove_image(const string &filename,
                     void *builtin_data,
