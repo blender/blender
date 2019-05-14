@@ -164,6 +164,8 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
                               EVT_TYPE_MASK_HOTKEY_INCLUDE,
                               EVT_TYPE_MASK_HOTKEY_EXCLUDE,
                               &km);
+  U.runtime.is_dirty = true;
+
   BLI_assert(kmi != NULL);
 
   RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
@@ -213,6 +215,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 
   /* update and get pointers again */
   WM_keyconfig_update(wm);
+  U.runtime.is_dirty = true;
 
   km = WM_keymap_guess_opname(C, idname);
   kmi = WM_keymap_item_find_id(km, kmi_id);
@@ -232,6 +235,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 #ifdef USE_KEYMAP_ADD_HACK
   g_kmi_id_hack = kmi_id;
 #endif
+
   return block;
 }
 
@@ -283,6 +287,7 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
   BLI_assert(kmi != NULL);
 
   WM_keymap_remove_item(km, kmi);
+  U.runtime.is_dirty = true;
 
   shortcut_free_operator_property(prop);
   but_shortcut_name_func(C, but, 0);
