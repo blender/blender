@@ -172,6 +172,7 @@ class TOPBAR_MT_file(Menu):
 
     def draw(self, context):
         layout = self.layout
+        prefs = context.preferences
 
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
@@ -195,20 +196,26 @@ class TOPBAR_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
 
         if any(bpy.utils.app_template_paths()):
-            app_template = context.preferences.app_template
+            app_template = prefs.app_template
         else:
             app_template = None
 
         if app_template:
             layout.label(text=bpy.path.display_name(app_template, has_ext=False))
-            layout.operator("wm.save_homefile")
-            layout.operator(
+
+        layout.operator("wm.save_homefile")
+        props = layout.operator("wm.read_factory_settings")
+        if app_template:
+            props.app_template = app_template
+
+        if prefs.use_preferences_save:
+            props = layout.operator(
                 "wm.read_factory_settings",
-                text="Load Factory Settings",
-            ).app_template = app_template
-        else:
-            layout.operator("wm.save_homefile")
-            layout.operator("wm.read_factory_settings")
+                text="Load Factory Settings (Temporary)"
+            )
+            if app_template:
+                props.app_template = app_template
+            props.use_temporary_preferences = True
 
         layout.separator()
 
