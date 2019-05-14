@@ -559,7 +559,7 @@ class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "render_aa", text="Render")
-        col.prop(props, "viewport_aa", text="Viewport")
+        col.prop(props, "viewport_aa", text="Viewport Render")
 
 
 class RENDER_PT_opengl_film(RenderButtonsPanel, Panel):
