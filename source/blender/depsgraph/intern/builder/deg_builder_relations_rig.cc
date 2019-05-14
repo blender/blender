@@ -383,7 +383,13 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       bPoseChannel *prev, *next;
       BKE_pchan_bbone_handles_get(pchan, &prev, &next);
       if (prev) {
-        OperationKey prev_key(&object->id, NodeType::BONE, prev->name, OperationCode::BONE_DONE);
+        OperationCode opcode = OperationCode::BONE_DONE;
+        /* Inheriting parent roll requires access to prev handle's B-Bone properties. */
+        if ((pchan->bone->flag & BONE_ADD_PARENT_END_ROLL) != 0 &&
+            check_pchan_has_bbone_segments(object, prev)) {
+          opcode = OperationCode::BONE_SEGMENTS;
+        }
+        OperationKey prev_key(&object->id, NodeType::BONE, prev->name, opcode);
         add_relation(prev_key, bone_segments_key, "Prev Handle -> B-Bone Segments");
       }
       if (next) {

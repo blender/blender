@@ -635,9 +635,10 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
   if (is_posebone == false) {
     prop = RNA_def_property(srna, "use_endroll_as_inroll", PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_ui_text(
-        prop, "Inherit End Roll", "Use Roll Out of parent bone as Roll In of its children");
+        prop, "Inherit End Roll", "Add Roll Out of the Start Handle bone to the Roll In value");
     RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ADD_PARENT_END_ROLL);
-    RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+    RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+    RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
   }
 
   /* Curve X/Y Offsets */
