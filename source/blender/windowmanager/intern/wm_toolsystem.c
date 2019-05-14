@@ -549,6 +549,7 @@ bool WM_toolsystem_key_from_context(ViewLayer *view_layer, ScrArea *sa, bToolKey
 void WM_toolsystem_refresh_active(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
+  BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_DOIT, false);
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
     for (wmWindow *win = wm->windows.first; win; win = win->next) {
       WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -570,6 +571,14 @@ void WM_toolsystem_refresh_active(bContext *C)
           if (tref != sa->runtime.tool) {
             toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
           }
+        }
+      }
+
+      if ((workspace->id.tag & LIB_TAG_DOIT) == 0) {
+        workspace->id.tag |= LIB_TAG_DOIT;
+        /* Refresh to ensure data is initialized, see: T64339. */
+        for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+          toolsystem_refresh_ref(C, workspace, tref);
         }
       }
     }
