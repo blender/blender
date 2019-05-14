@@ -978,6 +978,7 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   }
 
   pchan->custom_scale = pchan_from->custom_scale;
+  pchan->drawflag = pchan_from->drawflag;
 }
 
 /* checks for IK constraint, Spline IK, and also for Follow-Path constraint.
