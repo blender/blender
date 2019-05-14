@@ -186,6 +186,15 @@ void ImageManager::metadata_detect_colorspace(ImageMetaData &metadata, const cha
      * due to quantization in common cases. */
     metadata.compress_as_srgb = (metadata.type == IMAGE_DATA_TYPE_BYTE ||
                                  metadata.type == IMAGE_DATA_TYPE_BYTE4);
+
+    /* If colorspace conversion needed, use half instead of short so we can
+     * represent HDR values that might result from conversion. */
+    if (metadata.type == IMAGE_DATA_TYPE_USHORT) {
+      metadata.type = IMAGE_DATA_TYPE_HALF;
+    }
+    else if (metadata.type == IMAGE_DATA_TYPE_USHORT4) {
+      metadata.type = IMAGE_DATA_TYPE_HALF4;
+    }
   }
 }
 
