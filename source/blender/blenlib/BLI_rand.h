@@ -25,6 +25,10 @@
  * \brief Random number functions.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* RNG is an abstract random number generator type that avoids using globals.
  * Always use this instead of the global RNG unless you have a good reason,
  * the global RNG is not thread safe and will not give repeatable results.
@@ -105,5 +109,9 @@ void BLI_hammersley_1d(unsigned int n, double *r);
 /** Return the whole low-discrepancy sequence up to _n_. */
 void BLI_halton_2d_sequence(unsigned int prime[2], double offset[2], int n, double *r);
 void BLI_hammersley_2d_sequence(unsigned int n, double *r);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BLI_RAND_H__ */

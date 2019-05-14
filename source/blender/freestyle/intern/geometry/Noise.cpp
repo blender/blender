@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_rand.h"
+
 #include "Noise.h"
 
 namespace Freestyle {
@@ -40,9 +43,7 @@ namespace Freestyle {
     ((s) * (RTable[m] * 0.5 + RTable[m + 1] * (x) + RTable[m + 2] * (y) + RTable[m + 3] * (z)))
 
 #  define MAXSIZE 500
-#  define NRAND() ((float)rand() / (float)RAND_MAX)
 #endif
-#define SEEDNRAND(x) (srand(x * RAND_MAX))
 
 #define BM 0xff
 #define N 0x1000
@@ -236,25 +237,26 @@ float Noise::smoothNoise3(Vec3f &vec)
 
 Noise::Noise(long seed)
 {
+  /* Use Blender RNG for repeatable results across platforms. */
+  RNG *rng = BLI_rng_new(seed);
   int i, j, k;
 
-  SEEDNRAND((seed < 0) ? time(NULL) : seed);
   for (i = 0; i < _NOISE_B; i++) {
     p[i] = i;
-    g1[i] = (float)((rand() % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+    g1[i] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
 
     for (j = 0; j < 2; j++)
-      g2[i][j] = (float)((rand() % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+      g2[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
     normalize2(g2[i]);
 
     for (j = 0; j < 3; j++)
-      g3[i][j] = (float)((rand() % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+      g3[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
     normalize3(g3[i]);
   }
 
   while (--i) {
     k = p[i];
-    p[i] = p[j = rand() % _NOISE_B];
+    p[i] = p[j = BLI_rng_get_int(rng) % _NOISE_B];
     p[j] = k;
   }
 
@@ -268,6 +270,8 @@ Noise::Noise(long seed)
     for (j = 0; j < 3; j++)
       g3[_NOISE_B + i][j] = g3[i][j];
   }
+
+  BLI_rng_free(rng);
 }
 
 } /* namespace Freestyle */
