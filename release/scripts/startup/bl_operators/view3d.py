@@ -20,6 +20,10 @@
 
 import bpy
 from bpy.types import Operator
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+)
 
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
@@ -138,8 +142,55 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
         return self.execute(context)
 
 
+class VIEW3D_OT_transform_gizmo_set(Operator):
+    """Set the current transform gizmo"""
+    bl_label = "Transform Gizmo Set"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_idname = "view3d.transform_gizmo_set"
+
+    extend: BoolProperty(
+        default=False,
+    )
+    type: EnumProperty(
+        items=(
+            ('TRANSLATE', "Move", ""),
+            ('ROTATE', "Rotate", ""),
+            ('SCALE', "Scale", ""),
+        ),
+        options={'ENUM_FLAG'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == 'VIEW_3D'
+
+    def execute(self, context):
+        space_data = context.space_data
+        space_data.show_gizmo = True
+        attrs = ("show_gizmo_object_translate", "show_gizmo_object_rotate", "show_gizmo_object_scale")
+        attr_t, attr_r, attr_s = attrs
+        attr_active = tuple(
+            attrs[('TRANSLATE', 'ROTATE', 'SCALE').index(t)]
+            for t in self.type
+        )
+        if self.extend:
+            for attr in attrs:
+                if attr in attr_active:
+                    setattr(space_data, attr, True)
+        else:
+            for attr in attrs:
+                setattr(space_data, attr, attr in attr_active)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if not self.properties.is_property_set("extend"):
+            self.extend = event.shift
+        return self.execute(context)
+
+
 classes = (
     VIEW3D_OT_edit_mesh_extrude_individual_move,
     VIEW3D_OT_edit_mesh_extrude_move,
     VIEW3D_OT_edit_mesh_extrude_shrink_fatten,
+    VIEW3D_OT_transform_gizmo_set,
 )

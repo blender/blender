@@ -50,6 +50,7 @@ class Params:
         "use_v3d_shade_ex_pie",
         # Experemental option.
         "use_pie_click_drag",
+        "v3d_tilde_action",
     )
 
     def __init__(
@@ -65,6 +66,7 @@ class Params:
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
             use_pie_click_drag=False,
+            v3d_tilde_action='VIEW',
     ):
         from sys import platform
         self.apple = (platform == 'darwin')
@@ -109,6 +111,7 @@ class Params:
         self.use_select_all_toggle = use_select_all_toggle
         self.use_v3d_tab_menu = use_v3d_tab_menu
         self.use_v3d_shade_ex_pie = use_v3d_shade_ex_pie
+        self.v3d_tilde_action = v3d_tilde_action
 
         self.use_pie_click_drag = use_pie_click_drag
         if not use_pie_click_drag:
@@ -927,7 +930,10 @@ def km_view3d(params):
          {"properties": [("use_all_regions", True), ("center", False)]}),
         ("view3d.view_all", {"type": 'C', "value": 'PRESS', "shift": True},
          {"properties": [("center", True)]}),
-        op_menu_pie("VIEW3D_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": params.pie_value}),
+        op_menu_pie(
+            "VIEW3D_MT_view_pie" if params.v3d_tilde_action == 'VIEW' else "VIEW3D_MT_transform_gizmo_pie",
+            {"type": 'ACCENT_GRAVE', "value": params.pie_value},
+        ),
         *(() if not params.use_pie_click_drag else
           (("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'CLICK'}, None),)),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),

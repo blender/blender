@@ -32,7 +32,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
     spacebar_action: EnumProperty(
-        name="Spacebar",
+        name="Spacebar Action",
         items=(
             ('PLAY', "Play",
              "Toggle animation playback "
@@ -81,6 +81,23 @@ class Prefs(bpy.types.KeyConfigPreferences):
         default=False,
         update=update_fn,
     )
+    v3d_tilde_action: EnumProperty(
+        name="Tilde Action",
+        items=(
+            ('VIEW', "Navigate",
+             "View operations (useful for keyboards without a numpad)",
+             0),
+            ('GIZMO', "Gizmos",
+             "Control transform gizmos",
+             1),
+        ),
+        description=(
+            "Action when 'Tilde' is pressed"
+        ),
+        default='VIEW',
+        update=update_fn,
+    )
+
     # Developer note, this is an experemental option.
     use_pie_click_drag: BoolProperty(
         name="Pie Menu on Drag",
@@ -113,6 +130,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col.prop(self, "use_v3d_tab_menu")
         col.prop(self, "use_pie_click_drag")
         col = split.column()
+        col.label(text="Tilde Action:")
+        col.row().prop(self, "v3d_tilde_action", expand=True)
         col.prop(self, "use_v3d_shade_ex_pie")
 
 
@@ -133,6 +152,7 @@ def load():
             select_mouse=kc_prefs.select_mouse,
             use_mouse_emulate_3_button=prefs.inputs.use_mouse_emulate_3_button,
             spacebar_action=kc_prefs.spacebar_action,
+            v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,

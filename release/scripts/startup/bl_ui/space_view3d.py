@@ -4583,6 +4583,25 @@ class VIEW3D_MT_view_pie(Menu):
         pie.operator("view3d.view_selected", text="View Selected", icon='ZOOM_SELECTED')
 
 
+class VIEW3D_MT_transform_gizmo_pie(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        # 1: Left
+        pie.operator("view3d.transform_gizmo_set", text="Move").type = {'TRANSLATE'}
+        # 2: Right
+        pie.operator("view3d.transform_gizmo_set", text="Rotate").type = {'ROTATE'}
+        # 3: Down
+        pie.operator("view3d.transform_gizmo_set", text="Scale").type = {'SCALE'}
+        # 4: Up
+        pie.prop(context.space_data, "show_gizmo", text="Show Gizmos", icon='GIZMO')
+        # 5: Up/Left
+        pie.operator("view3d.transform_gizmo_set", text="All").type = {'TRANSLATE', 'ROTATE', 'SCALE'}
+
+
 class VIEW3D_MT_shading_pie(Menu):
     bl_label = "Shading"
 
@@ -6528,6 +6547,7 @@ classes = (
     VIEW3D_MT_edit_gpencil_interpolate,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
+    VIEW3D_MT_transform_gizmo_pie,
     VIEW3D_MT_shading_pie,
     VIEW3D_MT_shading_ex_pie,
     VIEW3D_MT_pivot_pie,
