@@ -351,7 +351,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
   pup->menu_func = menu_func;
   pup->menu_arg = arg;
 
-  handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
+  handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup, NULL);
 
   if (!but) {
     handle->popup = true;
@@ -463,7 +463,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
     butregion = pup->butregion;
   }
 
-  menu = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup);
+  menu = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup, NULL);
   menu->popup = true;
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
@@ -581,13 +581,17 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 /** \name Popup Block API
  * \{ */
 
-void UI_popup_block_invoke_ex(
-    bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext)
+void UI_popup_block_invoke_ex(bContext *C,
+                              uiBlockCreateFunc func,
+                              void *arg,
+                              void (*arg_free)(void *arg),
+                              const char *opname,
+                              int opcontext)
 {
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg, arg_free);
   handle->popup = true;
   handle->can_refresh = true;
   handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
@@ -598,9 +602,12 @@ void UI_popup_block_invoke_ex(
   WM_event_add_mousemove(C);
 }
 
-void UI_popup_block_invoke(bContext *C, uiBlockCreateFunc func, void *arg)
+void UI_popup_block_invoke(bContext *C,
+                           uiBlockCreateFunc func,
+                           void *arg,
+                           void (*arg_free)(void *arg))
 {
-  UI_popup_block_invoke_ex(C, func, arg, NULL, WM_OP_INVOKE_DEFAULT);
+  UI_popup_block_invoke_ex(C, func, arg, arg_free, NULL, WM_OP_INVOKE_DEFAULT);
 }
 
 void UI_popup_block_ex(bContext *C,
@@ -613,7 +620,7 @@ void UI_popup_block_ex(bContext *C,
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg, NULL);
   handle->popup = true;
   handle->retvalue = 1;
   handle->can_refresh = true;
@@ -635,7 +642,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op);
+  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op, NULL);
   handle->popup = 1;
   handle->retvalue = 1;
   handle->can_refresh = true;

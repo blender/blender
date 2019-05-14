@@ -244,7 +244,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
   return block;
 }
 
-static void ui_block_free_func_POPOVER(uiPopupBlockHandle *UNUSED(handle), void *arg_pup)
+static void ui_block_free_func_POPOVER(void *arg_pup)
 {
   uiPopover *pup = arg_pup;
   if (pup->keymap != NULL) {
@@ -282,8 +282,8 @@ uiPopupBlockHandle *ui_popover_panel_create(
 
   /* Create popup block. */
   uiPopupBlockHandle *handle;
-  handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPOVER, pup);
-  handle->popup_create_vars.free_func = ui_block_free_func_POPOVER;
+  handle = ui_popup_block_create(
+      C, butregion, but, NULL, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
   handle->can_refresh = true;
 
   /* Add handlers. If attached to a button, the button will already
@@ -386,8 +386,8 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
     WM_event_set_keymap_handler_post_callback(pup->keymap_handler, popover_keymap_fn, pup);
   }
 
-  handle = ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPOVER, pup);
-  handle->popup_create_vars.free_func = ui_block_free_func_POPOVER;
+  handle = ui_popup_block_create(
+      C, NULL, NULL, NULL, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
 
   /* Add handlers. */
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);

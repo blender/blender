@@ -512,7 +512,7 @@ static void wm_confirm_quit(bContext *C)
 
   if (GHOST_SupportsNativeDialogs() == 0) {
     if (!UI_popup_block_name_exists(C, "confirm_quit_popup")) {
-      UI_popup_block_invoke(C, block_create_confirm_quit, NULL);
+      UI_popup_block_invoke(C, block_create_confirm_quit, NULL, NULL);
     }
   }
   else if (GHOST_confirmQuit(win->ghostwin)) {

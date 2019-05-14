@@ -1188,7 +1188,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *ar, void *arg_op)
 
 static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  UI_popup_block_invoke(C, node_find_menu, op);
+  UI_popup_block_invoke(C, node_find_menu, op, NULL);
   return OPERATOR_CANCELLED;
 }
 

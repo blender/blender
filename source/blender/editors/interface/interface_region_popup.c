@@ -748,7 +748,8 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
                                           uiBut *but,
                                           uiBlockCreateFunc create_func,
                                           uiBlockHandleCreateFunc handle_create_func,
-                                          void *arg)
+                                          void *arg,
+                                          void (*arg_free)(void *arg))
 {
   wmWindow *window = CTX_wm_window(C);
   uiBut *activebut = UI_context_active_but_get(C);
@@ -775,6 +776,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   handle->popup_create_vars.create_func = create_func;
   handle->popup_create_vars.handle_create_func = handle_create_func;
   handle->popup_create_vars.arg = arg;
+  handle->popup_create_vars.arg_free = arg_free;
   handle->popup_create_vars.but = but;
   handle->popup_create_vars.butregion = but ? butregion : NULL;
   copy_v2_v2_int(handle->popup_create_vars.event_xy, &window->eventstate->x);
@@ -820,8 +822,8 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
     }
   }
 
-  if (handle->popup_create_vars.free_func) {
-    handle->popup_create_vars.free_func(handle, handle->popup_create_vars.arg);
+  if (handle->popup_create_vars.arg_free) {
+    handle->popup_create_vars.arg_free(handle->popup_create_vars.arg);
   }
 
   ui_popup_block_remove(C, handle);

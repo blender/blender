@@ -594,9 +594,16 @@ struct uiLayout *UI_pie_menu_layout(struct uiPieMenu *pie);
 typedef uiBlock *(*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
 typedef void (*uiBlockCancelFunc)(struct bContext *C, void *arg1);
 
-void UI_popup_block_invoke(struct bContext *C, uiBlockCreateFunc func, void *arg);
-void UI_popup_block_invoke_ex(
-    struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
+void UI_popup_block_invoke(struct bContext *C,
+                           uiBlockCreateFunc func,
+                           void *arg,
+                           void (*arg_free)(void *arg));
+void UI_popup_block_invoke_ex(struct bContext *C,
+                              uiBlockCreateFunc func,
+                              void *arg,
+                              void (*arg_free)(void *arg),
+                              const char *opname,
+                              int opcontext);
 void UI_popup_block_ex(struct bContext *C,
                        uiBlockCreateFunc func,
                        uiBlockHandleFunc popup_func,

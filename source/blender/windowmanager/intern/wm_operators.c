@@ -870,7 +870,7 @@ int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, 
   search_menu.prv_cols = prv_cols;
   search_menu.prv_rows = prv_rows;
 
-  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu);
+  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, NULL);
 
   return OPERATOR_INTERFACE;
 }
@@ -879,7 +879,7 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(eve
 {
   static struct EnumSearchMenu search_menu;
   search_menu.op = op;
-  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu);
+  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, NULL);
   return OPERATOR_INTERFACE;
 }
 
@@ -1402,7 +1402,7 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  UI_popup_block_invoke(C, wm_block_create_redo, op);
+  UI_popup_block_invoke(C, wm_block_create_redo, op, NULL);
 
   return OPERATOR_CANCELLED;
 }
@@ -1714,7 +1714,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 static int wm_splash_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-  UI_popup_block_invoke(C, wm_block_create_splash, NULL);
+  UI_popup_block_invoke(C, wm_block_create_splash, NULL, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1820,7 +1820,7 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
   data.size[0] = UI_searchbox_size_x() * 2;
   data.size[1] = UI_searchbox_size_y();
 
-  UI_popup_block_invoke(C, wm_block_search_menu, &data);
+  UI_popup_block_invoke(C, wm_block_search_menu, &data, NULL);
 
   return OPERATOR_INTERFACE;
 }

@@ -539,13 +539,12 @@ struct uiKeyNavLock {
 typedef uiBlock *(*uiBlockHandleCreateFunc)(struct bContext *C,
                                             struct uiPopupBlockHandle *handle,
                                             void *arg1);
-typedef void (*uiBlockHandleFreeFunc)(struct uiPopupBlockHandle *handle, void *arg1);
 
 struct uiPopupBlockCreate {
   uiBlockCreateFunc create_func;
   uiBlockHandleCreateFunc handle_create_func;
-  uiBlockHandleFreeFunc free_func;
   void *arg;
+  void (*arg_free)(void *arg);
 
   int event_xy[2];
 
@@ -662,7 +661,8 @@ uiPopupBlockHandle *ui_popup_block_create(struct bContext *C,
                                           uiBut *but,
                                           uiBlockCreateFunc create_func,
                                           uiBlockHandleCreateFunc handle_create_func,
-                                          void *arg);
+                                          void *arg,
+                                          void (*arg_free)(void *arg));
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C,
                                          struct ARegion *butregion,
                                          uiBut *but,

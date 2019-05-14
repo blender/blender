@@ -266,7 +266,7 @@ static void menu_add_shortcut_cancel(struct bContext *C, void *arg1)
 static void popup_change_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
   uiBut *but = (uiBut *)arg1;
-  UI_popup_block_invoke(C, menu_change_shortcut, but);
+  UI_popup_block_invoke(C, menu_change_shortcut, but, NULL);
 }
 
 static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
