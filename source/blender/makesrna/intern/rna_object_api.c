@@ -398,7 +398,7 @@ static PointerRNA rna_Object_shape_key_add(
   if ((kb = BKE_object_shapekey_insert(bmain, ob, name, from_mix))) {
     PointerRNA keyptr;
 
-    RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
+    RNA_pointer_create((ID *)BKE_key_from_object(ob), &RNA_ShapeKey, kb, &keyptr);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
     return keyptr;
