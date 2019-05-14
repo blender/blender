@@ -99,6 +99,9 @@ typedef struct MaterialGPencilStyle {
 
   /** Factor used to mix texture and stroke color. */
   float mix_stroke_factor;
+  /** Mode used to follow stroke drawing path by textures */
+  int follow_mode;
+  char _pad[4];
 } MaterialGPencilStyle;
 
 /* MaterialGPencilStyle->flag */
@@ -123,8 +126,6 @@ typedef enum eMaterialGPencilStyle_Flag {
   GP_STYLE_STROKE_SHOW = (1 << 8),
   /* Fill  show main switch */
   GP_STYLE_FILL_SHOW = (1 << 9),
-  /* Don't rotate dots/boxes */
-  GP_STYLE_COLOR_LOCK_DOTS = (1 << 10),
   /* mix stroke texture */
   GP_STYLE_STROKE_TEX_MIX = (1 << 11),
 } eMaterialGPencilStyle_Flag;
@@ -347,4 +348,10 @@ enum {
   GP_STYLE_GRADIENT_RADIAL,
 };
 
+/* Grease Pencil Follow Drawing Modes */
+enum {
+  GP_STYLE_FOLLOW_PATH = 0,
+  GP_STYLE_FOLLOW_OBJ,
+  GP_STYLE_FOLLOW_NONE,
+};
 #endif

@@ -725,8 +725,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
     DRW_shgroup_uniform_float(grp, "mix_stroke_factor", &stl->shgroups[id].mix_stroke_factor, 1);
 
     /* lock rotation of dots and boxes */
-    stl->shgroups[id].use_follow_path = (gp_style->flag & GP_STYLE_COLOR_LOCK_DOTS) ? 0 : 1;
-    DRW_shgroup_uniform_int(grp, "use_follow_path", &stl->shgroups[id].use_follow_path, 1);
+    stl->shgroups[id].follow_mode = gp_style->follow_mode;
+    DRW_shgroup_uniform_int(grp, "follow_mode", &stl->shgroups[id].follow_mode, 1);
   }
   else {
     stl->storage->obj_scale = 1.0f;
@@ -758,7 +758,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
     DRW_shgroup_uniform_float(grp, "mix_stroke_factor", &stl->storage->mix_stroke_factor, 1);
 
     /* lock rotation of dots and boxes */
-    DRW_shgroup_uniform_int(grp, "use_follow_path", &stl->storage->use_follow_path, 1);
+    DRW_shgroup_uniform_int(grp, "follow_mode", &stl->storage->follow_mode, 1);
   }
 
   DRW_shgroup_uniform_vec4(grp, "colormix", gp_style->stroke_rgba, 1);
@@ -870,7 +870,7 @@ static void gpencil_add_stroke_vertexdata(GpencilBatchCache *cache,
   float ink[4];
   short sthickness;
   MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
-  const bool follow = ((gp_style) && (gp_style->flag & GP_STYLE_COLOR_LOCK_DOTS)) ? 0 : 1;
+  const int follow_mode = (gp_style) ? gp_style->follow_mode : GP_STYLE_FOLLOW_PATH;
 
   /* set color using base color, tint color and opacity */
   if (cache->is_dirty) {
@@ -920,7 +920,7 @@ static void gpencil_add_stroke_vertexdata(GpencilBatchCache *cache,
     else {
       /* create vertex data */
       const int old_len = cache->b_point.vbo_len;
-      DRW_gpencil_get_point_geom(&cache->b_point, gps, sthickness, ink, follow);
+      DRW_gpencil_get_point_geom(&cache->b_point, gps, sthickness, ink, follow_mode);
 
       /* add to list of groups */
       if (old_len < cache->b_point.vbo_len) {
@@ -1491,7 +1491,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       /* save gradient info */
       stl->storage->gradient_f = brush->gpencil_settings->gradient_f;
       copy_v2_v2(stl->storage->gradient_s, brush->gpencil_settings->gradient_s);
-      stl->storage->use_follow_path = (gp_style->flag & GP_STYLE_COLOR_LOCK_DOTS) ? 0 : 1;
+      stl->storage->follow_mode = (gp_style) ? gp_style->follow_mode : GP_STYLE_FOLLOW_PATH;
 
       /* if only one point, don't need to draw buffer because the user has no time to see it */
       if (gpd->runtime.sbuffer_size > 1) {

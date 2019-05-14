@@ -440,6 +440,13 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static EnumPropertyItem follow_draw_items[] = {
+      {GP_STYLE_FOLLOW_PATH, "PATH", 0, "Path", "Follow stroke drawing path and object rotation"},
+      {GP_STYLE_FOLLOW_OBJ, "OBJECT", 0, "Object", "Follow object rotation only"},
+      {GP_STYLE_FOLLOW_NONE, "NONE", 0, "None", "Do not follow drawing path or object rotation"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "MaterialGPencilStyle", NULL);
   RNA_def_struct_sdna(srna, "MaterialGPencilStyle");
   RNA_def_struct_ui_text(srna, "Grease Pencil Color", "");
@@ -611,10 +618,12 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Fill", "Show stroke fills of this material");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
-  /* keep Dots and Boxes aligned to screen and not to drawing path */
-  prop = RNA_def_property(srna, "use_follow_path", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_STYLE_COLOR_LOCK_DOTS);
-  RNA_def_property_ui_text(prop, "Follow Path", "Keep Dots and Boxes aligned to drawing path");
+  /* Mode to align Dots and Boxes to drawing path and object rotation */
+  prop = RNA_def_property(srna, "use_follow_path", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "follow_mode");
+  RNA_def_property_enum_items(prop, follow_draw_items);
+  RNA_def_property_ui_text(
+      prop, "Follow Path", "Rotate Dots and Boxes aligned to drawing path and object rotation");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_nopreview_update");
 
   /* pass index for future compositing and editing tools */

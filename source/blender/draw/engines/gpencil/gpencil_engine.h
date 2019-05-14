@@ -129,7 +129,7 @@ typedef struct GPENCIL_shgroup {
   int caps_mode[2];
   float obj_scale;
   int xray_mode;
-  int use_follow_path;
+  int follow_mode;
 
   float gradient_f;
   float gradient_s[2];
@@ -182,7 +182,7 @@ typedef struct GPENCIL_Storage {
 
   float gradient_f;
   float gradient_s[2];
-  int use_follow_path;
+  int follow_mode;
 
   float mix_stroke_factor;
 
@@ -438,7 +438,7 @@ void DRW_gpencil_get_point_geom(struct GpencilBatchCacheElem *be,
                                 struct bGPDstroke *gps,
                                 short thickness,
                                 const float ink[4],
-                                const bool follow);
+                                const int follow_mode);
 void DRW_gpencil_get_stroke_geom(struct GpencilBatchCacheElem *be,
                                  struct bGPDstroke *gps,
                                  short thickness,
