@@ -56,8 +56,8 @@ typedef enum {
 } GPUVertFetchMode;
 
 typedef struct GPUVertAttr {
-  GPUVertFetchMode fetch_mode : 2;
-  GPUVertCompType comp_type : 3;
+  uint fetch_mode : 2;
+  uint comp_type : 3;
   /* 1 to 4 or 8 or 12 or 16 */
   uint comp_len : 5;
   /* size in bytes, 1 to 64 */
