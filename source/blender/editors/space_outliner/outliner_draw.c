@@ -270,72 +270,78 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
   }
 }
 
-#if 0
-static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
+static void outliner_object_set_flag_recursive_cb(bContext *C,
+                                                  Base *base,
+                                                  Object *ob,
+                                                  const char *propname)
 {
-  wmWindow *win = CTX_wm_window(C);
   Main *bmain = CTX_data_main(C);
+  wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = poin;
-  Base *base = poin2;
-  Object *ob = base->object;
-  bool do_disable = (CTX_wm_window(C)->eventstate->alt != 0);
-  bool do_isolate = (win->eventstate->ctrl != 0) && !do_disable;
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  PointerRNA ptr;
+
   bool extend = (win->eventstate->shift != 0);
-  bool depsgraph_changed = false;
-  const bool is_linked = ID_IS_LINKED(ob);
 
-  if (do_disable) {
-    if (!is_linked) {
-      ob->restrictflag |= OB_RESTRICT_VIEWPORT;
-      depsgraph_changed = true;
-    }
+  if (!extend) {
+    return;
   }
-  else if (do_isolate) {
-    depsgraph_changed = (!is_linked) && ((ob->restrictflag & OB_RESTRICT_VIEWPORT) != 0);
 
-    if (!extend) {
-      /* Make only one base visible. */
-      for (Base *other = view_layer->object_bases.first; other; other = other->next) {
-        other->flag |= BASE_HIDDEN;
+  /* Create PointerRNA and PropertyRNA for either Object or Base. */
+  ID *id = ob ? &ob->id : &scene->id;
+  StructRNA *struct_rna = ob ? &RNA_Object : &RNA_ObjectBase;
+  void *data = ob ? (void *)ob : (void *)base;
+
+  RNA_pointer_create(id, struct_rna, data, &ptr);
+  PropertyRNA *base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
+  const bool value = RNA_property_boolean_get(&ptr, base_or_object_prop);
+
+  Object *ob_parent = ob ? ob : base->object;
+
+  for (Object *ob_iter = bmain->objects.first; ob_iter; ob_iter = ob_iter->id.next) {
+    if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
+      if (ob) {
+        RNA_id_pointer_create(&ob_iter->id, &ptr);
+        DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
       }
-
-      base->flag &= ~BASE_HIDDEN;
-    }
-    else {
-      /* Toggle visibility of one base. */
-      base->flag ^= BASE_HIDDEN;
-    }
-
-    if (!is_linked) {
-      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
+      else {
+        Base *base_iter = BKE_view_layer_base_find(view_layer, ob_iter);
+        RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter, &ptr);
+      }
+      RNA_property_boolean_set(&ptr, base_or_object_prop, value);
     }
   }
-  else if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
-    if (!is_linked) {
-      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
-      base->flag &= ~BASE_HIDDEN;
-    }
-    depsgraph_changed = true;
+
+  /* We don't call RNA_property_update() due to performance, so we batch update them. */
+  if (ob) {
+    BKE_main_collection_sync_remap(bmain);
+    DEG_relations_tag_update(bmain);
   }
   else {
-    base->flag ^= BASE_HIDDEN;
-  }
-
-  if (depsgraph_changed) {
-    BKE_main_collection_sync_remap(bmain);
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
-    DEG_relations_tag_update(bmain);
-    WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
-  }
-
-  if (!do_disable) {
     BKE_layer_collection_sync(scene, view_layer);
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   }
 }
-#endif
+
+/**
+ * Object properties.
+ * */
+static void outliner__object_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+{
+  Object *ob = poin;
+  char *propname = poin2;
+  outliner_object_set_flag_recursive_cb(C, NULL, ob, propname);
+}
+
+/**
+ * Base properties.
+ * */
+static void outliner__base_set_flag_recursive_cb(bContext *C, void *poin, void *poin2)
+{
+  Base *base = poin;
+  char *propname = poin2;
+  outliner_object_set_flag_recursive_cb(C, base, NULL, propname);
+}
 
 /** Create either a RNA_LayerCollection or a RNA_Collection pointer. */
 static void outliner_layer_or_collection_pointer_create(Scene *scene,
@@ -601,6 +607,7 @@ static void outliner_collection_set_flag_recursive_cb(bContext *C,
   void *data = collection ? (void *)collection : (void *)layer_collection;
 
   RNA_pointer_create(id, struct_rna, data, &ptr);
+  outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
   PropertyRNA *layer_or_collection_prop = RNA_struct_type_find_property(struct_rna, propname);
   const bool value = RNA_property_boolean_get(&ptr, layer_or_collection_prop);
 
@@ -982,26 +989,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     0,
                                     0,
-                                    NULL);
-            UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-          }
-          else {
-            bt = uiDefIconButR_prop(block,
-                                    UI_BTYPE_ICON_TOGGLE,
-                                    0,
-                                    0,
-                                    (int)(ar->v2d.cur.xmax - restrict_offsets.hide),
-                                    te->ys,
-                                    UI_UNIT_X,
-                                    UI_UNIT_Y,
-                                    &ptr,
-                                    props.object_hide_viewport,
-                                    -1,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    NULL);
+                                    TIP_("Temporarly hide in viewport\n"
+                                         "* Shift to set/unset children"));
+            UI_but_func_set(
+                bt, outliner__base_set_flag_recursive_cb, base, (void *)"hide_viewport");
             UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           }
         }
@@ -1022,7 +1013,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   -1,
                                   -1,
-                                  NULL);
+                                  TIP_("Disable selection in viewport\n"
+                                       "* Shift to set/unset children"));
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (char *)"hide_select");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
 
@@ -1042,7 +1035,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   -1,
                                   -1,
-                                  NULL);
+                                  TIP_("Globally disable in viewports\n"
+                                       "* Shift to set/unset children"));
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (void *)"hide_viewport");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
 
@@ -1062,7 +1057,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   -1,
                                   -1,
-                                  NULL);
+                                  TIP_("Globally disable in renders\n"
+                                       "* Shift to set/unset children"));
+          UI_but_func_set(bt, outliner__object_set_flag_recursive_cb, ob, (char *)"hide_render");
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
       }
