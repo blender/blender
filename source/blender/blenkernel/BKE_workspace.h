@@ -110,6 +110,8 @@ void BKE_workspace_hook_layout_for_workspace_set(struct WorkSpaceInstanceHook *h
 bool BKE_workspace_owner_id_check(const struct WorkSpace *workspace, const char *owner_id)
     ATTR_NONNULL();
 
+void BKE_workspace_id_tag_all_visible(struct Main *bmain, int tag) ATTR_NONNULL();
+
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS
 

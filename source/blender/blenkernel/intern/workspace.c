@@ -36,6 +36,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
 #include "DEG_depsgraph.h"
@@ -367,8 +368,18 @@ bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_
     return true;
   }
   else {
-    /* we could use hash lookup, for now this list is highly under < ~16 items. */
+    /* We could use hash lookup, for now this list is highly likely under < ~16 items. */
     return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
+  }
+}
+
+void BKE_workspace_id_tag_all_visible(Main *bmain, int tag)
+{
+  BKE_main_id_tag_listbase(&bmain->workspaces, tag, false);
+  wmWindowManager *wm = bmain->wm.first;
+  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+    workspace->id.tag |= tag;
   }
 }
 

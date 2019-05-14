@@ -549,7 +549,6 @@ bool WM_toolsystem_key_from_context(ViewLayer *view_layer, ScrArea *sa, bToolKey
 void WM_toolsystem_refresh_active(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
-  BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_DOIT, false);
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
     for (wmWindow *win = wm->windows.first; win; win = win->next) {
       WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -573,13 +572,19 @@ void WM_toolsystem_refresh_active(bContext *C)
           }
         }
       }
+    }
+  }
 
-      if ((workspace->id.tag & LIB_TAG_DOIT) == 0) {
-        workspace->id.tag |= LIB_TAG_DOIT;
-        /* Refresh to ensure data is initialized, see: T64339. */
-        for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
-          toolsystem_refresh_ref(C, workspace, tref);
-        }
+  BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_DOIT);
+
+  LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+    if (workspace->id.tag & LIB_TAG_DOIT) {
+      workspace->id.tag &= ~LIB_TAG_DOIT;
+      /* Refresh to ensure data is initialized.
+       * This is needed because undo can load a state which no longer has the underlying DNA data
+       * needed for the tool (un-initialized paint-slots for eg), see: T64339. */
+      for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+        toolsystem_refresh_ref(C, workspace, tref);
       }
     }
   }
