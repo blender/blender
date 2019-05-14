@@ -1747,8 +1747,10 @@ class WM_OT_drop_blend_file(Operator):
         layout = menu.layout
 
         col = layout.column()
-        col.operator_context = 'EXEC_DEFAULT'
-        col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER').filepath = self.filepath
+        col.operator_context = 'INVOKE_DEFAULT'
+        props = col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER')
+        props.filepath = self.filepath
+        props.display_file_selector = False
 
         layout.separator()
         col = layout.column()

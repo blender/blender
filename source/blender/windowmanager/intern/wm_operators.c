@@ -884,8 +884,12 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(eve
 }
 
 /* Can't be used as an invoke directly, needs message arg (can be NULL) */
-int WM_operator_confirm_message_ex(
-    bContext *C, wmOperator *op, const char *title, const int icon, const char *message)
+int WM_operator_confirm_message_ex(bContext *C,
+                                   wmOperator *op,
+                                   const char *title,
+                                   const int icon,
+                                   const char *message,
+                                   const short opcontext)
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -900,8 +904,7 @@ int WM_operator_confirm_message_ex(
 
   pup = UI_popup_menu_begin(C, title, icon);
   layout = UI_popup_menu_layout(pup);
-  uiItemFullO_ptr(
-      layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0, NULL);
+  uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, opcontext, 0, NULL);
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
@@ -909,7 +912,8 @@ int WM_operator_confirm_message_ex(
 
 int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
 {
-  return WM_operator_confirm_message_ex(C, op, IFACE_("OK?"), ICON_QUESTION, message);
+  return WM_operator_confirm_message_ex(
+      C, op, IFACE_("OK?"), ICON_QUESTION, message, WM_OP_EXEC_REGION_WIN);
 }
 
 int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

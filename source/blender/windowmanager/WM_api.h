@@ -373,7 +373,8 @@ int WM_operator_confirm_message_ex(struct bContext *C,
                                    struct wmOperator *op,
                                    const char *title,
                                    const int icon,
-                                   const char *message);
+                                   const char *message,
+                                   const short opcontext);
 int WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
 
 /* operator api */

@@ -213,12 +213,15 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
   struct RecentFile *recent;
   uiLayout *layout = menu->layout;
-  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   if (!BLI_listbase_is_empty(&G.recent_files)) {
     for (recent = G.recent_files.first; (recent); recent = recent->next) {
       const char *file = BLI_path_basename(recent->filepath);
       const int icon = BLO_has_bfile_extension(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
-      uiItemStringO(layout, file, icon, "WM_OT_open_mainfile", "filepath", recent->filepath);
+      PointerRNA ptr;
+      uiItemFullO(layout, "WM_OT_open_mainfile", file, icon, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
+      RNA_string_set(&ptr, "filepath", recent->filepath);
+      RNA_boolean_set(&ptr, "display_file_selector", false);
     }
   }
   else {

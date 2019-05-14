@@ -6761,12 +6761,17 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
 
   for (recent = G.recent_files.first, i = 0; (i < rows) && (recent); recent = recent->next, i++) {
     const char *filename = BLI_path_basename(recent->filepath);
-    uiItemStringO(layout,
-                  filename,
-                  BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
-                  "WM_OT_open_mainfile",
-                  "filepath",
-                  recent->filepath);
+    PointerRNA ptr;
+    uiItemFullO(layout,
+                "WM_OT_open_mainfile",
+                filename,
+                BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
+                NULL,
+                WM_OP_INVOKE_DEFAULT,
+                0,
+                &ptr);
+    RNA_string_set(&ptr, "filepath", recent->filepath);
+    RNA_boolean_set(&ptr, "display_file_selector", false);
   }
 
   return i;

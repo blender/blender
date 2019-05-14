@@ -2017,13 +2017,83 @@ static bool wm_file_read_opwrap(bContext *C,
   return success;
 }
 
-/* currently fits in a pointer */
-struct FileRuntime {
-  bool is_untrusted;
+/* Generic operator state utilities
+ *********************************************/
+
+static void create_operator_state(wmOperatorType *ot, int first_state)
+{
+  PropertyRNA *prop = RNA_def_int(
+      ot->srna, "state", first_state, INT32_MIN, INT32_MAX, "State", "", INT32_MIN, INT32_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+static int get_operator_state(wmOperator *op)
+{
+  return RNA_int_get(op->ptr, "state");
+}
+
+static void set_next_operator_state(wmOperator *op, int state)
+{
+  RNA_int_set(op->ptr, "state", state);
+}
+
+typedef struct OperatorDispatchTarget {
+  int state;
+  int (*run)(bContext *C, wmOperator *op);
+} OperatorDispatchTarget;
+
+static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatchTarget *targets)
+{
+  int state = get_operator_state(op);
+  for (int i = 0; targets[i].run; i++) {
+    OperatorDispatchTarget target = targets[i];
+    if (target.state == state) {
+      return target.run(C, op);
+    }
+  }
+  BLI_assert(false);
+  return OPERATOR_CANCELLED;
+}
+
+/* Open Mainfile operator
+ ********************************************/
+
+enum {
+  OPEN_MAINFILE_STATE_DISCARD_CHANGES,
+  OPEN_MAINFILE_STATE_SELECT_FILE_PATH,
+  OPEN_MAINFILE_STATE_OPEN,
 };
 
-static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
+
+static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
 {
+  if (RNA_boolean_get(op->ptr, "display_file_selector")) {
+    set_next_operator_state(op, OPEN_MAINFILE_STATE_SELECT_FILE_PATH);
+  }
+  else {
+    set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (U.uiflag & USER_SAVE_PROMPT && !wm->file_saved) {
+    return WM_operator_confirm_message_ex(C,
+                                          op,
+                                          "Warning",
+                                          ICON_INFO,
+                                          "Changes in current file will be lost. Continue?",
+                                          WM_OP_INVOKE_DEFAULT);
+  }
+  else {
+    return wm_open_mainfile_dispatch(C, op);
+  }
+}
+
+static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
+{
+  set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
+
   Main *bmain = CTX_data_main(C);
   const char *openname = BKE_main_blendfile_path(bmain);
 
@@ -2051,7 +2121,7 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
+static int wm_open_mainfile__open(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool success;
@@ -2088,6 +2158,33 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 }
+
+static OperatorDispatchTarget wm_open_mainfile_dispatch_targets[] = {
+    {OPEN_MAINFILE_STATE_DISCARD_CHANGES, wm_open_mainfile__discard_changes},
+    {OPEN_MAINFILE_STATE_SELECT_FILE_PATH, wm_open_mainfile__select_file_path},
+    {OPEN_MAINFILE_STATE_OPEN, wm_open_mainfile__open},
+    {0, NULL},
+};
+
+static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op)
+{
+  return operator_state_dispatch(C, op, wm_open_mainfile_dispatch_targets);
+}
+
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  return wm_open_mainfile_dispatch(C, op);
+}
+
+static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
+{
+  return wm_open_mainfile__open(C, op);
+}
+
+/* currently fits in a pointer */
+struct FileRuntime {
+  bool is_untrusted;
+};
 
 static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
 {
@@ -2169,6 +2266,12 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
                   "Trusted Source",
                   "Allow .blend file to execute scripts automatically, default available from "
                   "system preferences");
+
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "display_file_selector", true, "Display File Selector", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  create_operator_state(ot, OPEN_MAINFILE_STATE_DISCARD_CHANGES);
 }
 
 /** \} */
