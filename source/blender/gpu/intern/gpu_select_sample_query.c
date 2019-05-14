@@ -104,8 +104,11 @@ void gpu_select_query_begin(
   /* occlusion queries operates on fragments that pass tests and since we are interested on all
    * objects in the view frustum independently of their order, we need to disable the depth test */
   if (mode == GPU_SELECT_ALL) {
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
+    /* glQueries on Windows+Intel drivers only works with depth testing turned on.
+     * See T62947 for details */
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glDepthMask(GL_TRUE);
   }
   else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
     glClear(GL_DEPTH_BUFFER_BIT);
