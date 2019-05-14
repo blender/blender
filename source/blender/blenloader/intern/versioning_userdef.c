@@ -114,10 +114,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_info.info_info);
   }
 
-  /**
-   * Include next version bump.
-   */
-  {
+  if (!USER_VERSION_ATLEAST(280, 64)) {
     FROM_DEFAULT_V4_UCHAR(tui.icon_scene);
 
     if (btheme->space_view3d.obcenter_dia == 0) {
@@ -135,6 +132,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_nla.scrubbing_background);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.scrubbing_background);
     FROM_DEFAULT_V4_UCHAR(space_clip.scrubbing_background);
+  }
+
+  /**
+   * Include next version bump.
+   */
+  {
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
