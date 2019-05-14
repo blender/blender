@@ -3376,11 +3376,11 @@ void node_output_world(Closure surface, Closure volume, out Closure result)
 #endif /* VOLUMETRICS */
 }
 
-#ifndef VOLUMETRICS
 /* TODO : clean this ifdef mess */
 /* EEVEE output */
 void world_normals_get(out vec3 N)
 {
+#ifndef VOLUMETRICS
 #  ifdef HAIR_SHADER
   vec3 B = normalize(cross(worldNormal, hairTangent));
   float cos_theta;
@@ -3398,8 +3398,12 @@ void world_normals_get(out vec3 N)
 #  else
   N = gl_FrontFacing ? worldNormal : -worldNormal;
 #  endif
+#else
+  generated_from_orco(vec3(0.0), N);
+#endif
 }
 
+#ifndef VOLUMETRICS
 void node_eevee_specular(vec4 diffuse,
                          vec4 specular,
                          float roughness,
