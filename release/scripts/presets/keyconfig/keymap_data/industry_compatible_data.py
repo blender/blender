@@ -3554,6 +3554,16 @@ def km_transform_gizmo(_params):
     return keymap
 
 
+def km_transform_gizmo_context(_params):
+    keymap = (
+        "Transform Gizmo Context",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value()},
+    )
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Tool System Keymaps
 
@@ -3744,6 +3754,7 @@ def generate_keymaps(params=None):
         # Gizmos.
         km_gizmos(params),
         km_transform_gizmo(params),
+        km_transform_gizmo_context(params),
 
         # Tool System.
         km_3d_view_tool_move(params),
