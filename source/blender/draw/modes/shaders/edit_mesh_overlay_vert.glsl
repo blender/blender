@@ -20,17 +20,17 @@ out int selectOveride;
 
 void main()
 {
-  vec4 world_pos = ModelMatrix * vec4(pos, 1.0);
+  vec3 world_pos = point_object_to_world(pos);
 
 #if !defined(FACE)
   /* TODO override the ViewProjection Matrix for this case. */
   mat4 projmat = ProjectionMatrix;
   projmat[3][2] -= ofs;
 
-  gl_Position = projmat * (ViewMatrix * world_pos);
+  gl_Position = projmat * (ViewMatrix * vec4(world_pos, 1.0));
 #else
 
-  gl_Position = ViewProjectionMatrix * world_pos;
+  gl_Position = point_world_to_ndc(world_pos);
 #endif
 
   ivec4 m_data = data & dataMask;
@@ -74,7 +74,7 @@ void main()
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 vpos = point_world_to_view(world_pos.xyz);
+  vec3 vpos = point_world_to_view(world_pos);
   vec3 view_normal = normalize(normal_object_to_view(vnor) + 1e-4);
   vec3 view_vec = (ProjectionMatrix[3][3] == 0.0) ? normalize(vpos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
@@ -84,6 +84,6 @@ void main()
 #endif
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos.xyz);
+  world_clip_planes_calc_clip_distance(world_pos);
 #endif
 }
