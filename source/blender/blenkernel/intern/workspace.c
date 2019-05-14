@@ -43,7 +43,8 @@
 #include "MEM_guardedalloc.h"
 
 /* -------------------------------------------------------------------- */
-/* Internal utils */
+/** \name Internal Utils
+ * \{ */
 
 static void workspace_layout_name_set(WorkSpace *workspace,
                                       WorkSpaceLayout *layout,
@@ -134,8 +135,11 @@ static bool UNUSED_FUNCTION(workspaces_is_screen_used)
   return false;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Create, delete, init */
+/** \name Create, Delete, Init
+ * \{ */
 
 WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 {
@@ -253,8 +257,11 @@ void BKE_workspace_relations_free(ListBase *relation_list)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* General Utils */
+/** \name General Utils
+ * \{ */
 
 WorkSpaceLayout *BKE_workspace_layout_find(const WorkSpace *workspace, const bScreen *screen)
 {
@@ -354,8 +361,22 @@ void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tre
   MEM_freeN(tref);
 }
 
+bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id)
+{
+  if ((*owner_id == '\0') || ((workspace->flags & WORKSPACE_USE_FILTER_BY_ORIGIN) == 0)) {
+    return true;
+  }
+  else {
+    /* we could use hash lookup, for now this list is highly under < ~16 items. */
+    return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
+  }
+}
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Getters/Setters */
+/** \name Getters/Setters
+ * \{ */
 
 WorkSpace *BKE_workspace_active_get(WorkSpaceInstanceHook *hook)
 {
@@ -433,13 +454,4 @@ void BKE_workspace_hook_layout_for_workspace_set(WorkSpaceInstanceHook *hook,
   workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
 }
 
-bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id)
-{
-  if ((*owner_id == '\0') || ((workspace->flags & WORKSPACE_USE_FILTER_BY_ORIGIN) == 0)) {
-    return true;
-  }
-  else {
-    /* we could use hash lookup, for now this list is highly under < ~16 items. */
-    return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
-  }
-}
+/** \} */
