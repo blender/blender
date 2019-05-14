@@ -134,7 +134,7 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be,
                                 bGPDstroke *gps,
                                 short thickness,
                                 const float ink[4],
-                                const int follow_mode)
+                                const int alignment_mode)
 {
   int totvertex = gps->totpoints;
   if (be->vbo == NULL) {
@@ -178,7 +178,7 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be,
     /* use previous point to determine stroke direction */
     bGPDspoint *pt2 = NULL;
     float fpt[3];
-    if (follow_mode != GP_STYLE_FOLLOW_PATH) {
+    if (alignment_mode != GP_STYLE_FOLLOW_PATH) {
       /* add small offset to get a vector */
       copy_v3_v3(fpt, &pt->x);
       fpt[0] += 0.00001f;

@@ -1,6 +1,6 @@
 uniform vec2 Viewport;
 uniform int xraymode;
-uniform int follow_mode;
+uniform int alignment_mode;
 
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
@@ -20,8 +20,8 @@ out vec2 mTexCoord;
 #define M_2PI 6.28318530717958647692 /* 2*pi */
 #define FALSE 0
 
-/* keep this definition equals to GP_STYLE_FOLLOW_NONE value */
-#define NONE 2
+/* keep this definition equals to GP_STYLE_FOLLOW_FIXED value */
+#define FIXED 2
 
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)
@@ -72,7 +72,7 @@ float getAngle(vec2 pt0, vec2 pt1)
     return 0.0;
   }
 
-  if (follow_mode == NONE) {
+  if (alignment_mode == FIXED) {
     return 0.0;
   }
 

@@ -440,10 +440,14 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static EnumPropertyItem follow_draw_items[] = {
+  static EnumPropertyItem alignment_draw_items[] = {
       {GP_STYLE_FOLLOW_PATH, "PATH", 0, "Path", "Follow stroke drawing path and object rotation"},
       {GP_STYLE_FOLLOW_OBJ, "OBJECT", 0, "Object", "Follow object rotation only"},
-      {GP_STYLE_FOLLOW_NONE, "NONE", 0, "None", "Do not follow drawing path or object rotation"},
+      {GP_STYLE_FOLLOW_FIXED,
+       "FIXED",
+       0,
+       "Fixed",
+       "Do not follow drawing path or object rotation and keeps aligned with viewport"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -619,11 +623,11 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* Mode to align Dots and Boxes to drawing path and object rotation */
-  prop = RNA_def_property(srna, "use_follow_path", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "follow_mode");
-  RNA_def_property_enum_items(prop, follow_draw_items);
+  prop = RNA_def_property(srna, "alignment_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "alignment_mode");
+  RNA_def_property_enum_items(prop, alignment_draw_items);
   RNA_def_property_ui_text(
-      prop, "Follow Path", "Rotate Dots and Boxes aligned to drawing path and object rotation");
+      prop, "Alignment", "Defines how align Dots and Boxes with drawing path and object rotation");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_nopreview_update");
 
   /* pass index for future compositing and editing tools */

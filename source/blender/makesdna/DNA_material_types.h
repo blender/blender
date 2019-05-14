@@ -99,8 +99,8 @@ typedef struct MaterialGPencilStyle {
 
   /** Factor used to mix texture and stroke color. */
   float mix_stroke_factor;
-  /** Mode used to follow stroke drawing path by textures */
-  int follow_mode;
+  /** Mode used to align Dots and Boxes with stroke drawing path and object rotation */
+  int alignment_mode;
   char _pad[4];
 } MaterialGPencilStyle;
 
@@ -352,6 +352,6 @@ enum {
 enum {
   GP_STYLE_FOLLOW_PATH = 0,
   GP_STYLE_FOLLOW_OBJ,
-  GP_STYLE_FOLLOW_NONE,
+  GP_STYLE_FOLLOW_FIXED,
 };
 #endif

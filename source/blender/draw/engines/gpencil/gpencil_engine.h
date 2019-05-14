@@ -129,7 +129,7 @@ typedef struct GPENCIL_shgroup {
   int caps_mode[2];
   float obj_scale;
   int xray_mode;
-  int follow_mode;
+  int alignment_mode;
 
   float gradient_f;
   float gradient_s[2];
@@ -182,7 +182,7 @@ typedef struct GPENCIL_Storage {
 
   float gradient_f;
   float gradient_s[2];
-  int follow_mode;
+  int alignment_mode;
 
   float mix_stroke_factor;
 

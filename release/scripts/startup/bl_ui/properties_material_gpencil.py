@@ -157,7 +157,7 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
                 col.prop(gpcolor, "color", text="Color")
 
             if gpcolor.mode in {'DOTS', 'BOX'}:
-                col.prop(gpcolor, "use_follow_path", text="Follow Drawing Path")
+                col.prop(gpcolor, "alignment_mode")
 
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
