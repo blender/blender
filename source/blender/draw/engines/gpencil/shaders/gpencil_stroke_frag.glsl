@@ -41,7 +41,7 @@ vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * grease pencil still works in srgb. */
-  vec4 color = texture2D(tex, co);
+  vec4 color = texture(tex, co);
   color.r = linearrgb_to_srgb(color.r);
   color.g = linearrgb_to_srgb(color.g);
   color.b = linearrgb_to_srgb(color.b);
