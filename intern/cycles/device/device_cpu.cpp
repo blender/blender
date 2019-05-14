@@ -43,7 +43,6 @@
 #include "render/buffers.h"
 #include "render/coverage.h"
 
-#include "util/util_aligned_malloc.h"
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_function.h"
@@ -166,7 +165,7 @@ class CPUDevice : public Device {
   bool need_texture_info;
 
 #ifdef WITH_OSL
-  OSLGlobals *osl_globals;
+  OSLGlobals osl_globals;
 #endif
 
   bool use_split_kernel;
@@ -283,9 +282,7 @@ class CPUDevice : public Device {
     }
 
 #ifdef WITH_OSL
-    /* Must use aligned malloc due to concurrent hash map. */
-    osl_globals = util_aligned_new<OSLGlobals>();
-    kernel_globals.osl = osl_globals;
+    kernel_globals.osl = &osl_globals;
 #endif
     use_split_kernel = DebugFlags().cpu.split_kernel;
     if (use_split_kernel) {
@@ -320,9 +317,6 @@ class CPUDevice : public Device {
 
   ~CPUDevice()
   {
-#ifdef WITH_OSL
-    util_aligned_delete(osl_globals);
-#endif
     task_pool.stop();
     texture_info.free();
   }
@@ -498,7 +492,7 @@ class CPUDevice : public Device {
   void *osl_memory()
   {
 #ifdef WITH_OSL
-    return osl_globals;
+    return &osl_globals;
 #else
     return NULL;
 #endif
@@ -987,7 +981,7 @@ class CPUDevice : public Device {
     KernelGlobals kg = kernel_globals;
 
 #ifdef WITH_OSL
-    OSLShader::thread_init(&kg, &kernel_globals, osl_globals);
+    OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
     for (int sample = 0; sample < task.num_samples; sample++) {
       for (int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
@@ -1059,7 +1053,7 @@ class CPUDevice : public Device {
     kg.decoupled_volume_steps_index = 0;
     kg.coverage_asset = kg.coverage_object = kg.coverage_material = NULL;
 #ifdef WITH_OSL
-    OSLShader::thread_init(&kg, &kernel_globals, osl_globals);
+    OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
     return kg;
   }

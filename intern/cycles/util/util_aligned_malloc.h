@@ -31,10 +31,10 @@ void *util_aligned_malloc(size_t size, int alignment);
 void util_aligned_free(void *ptr);
 
 /* Aligned new operator. */
-template<typename T> T *util_aligned_new()
+template<typename T, typename... Args> T *util_aligned_new(Args... args)
 {
   void *mem = util_aligned_malloc(sizeof(T), alignof(T));
-  return new (mem) T();
+  return new (mem) T(args...);
 }
 
 template<typename T> void util_aligned_delete(T *t)

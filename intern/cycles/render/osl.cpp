@@ -30,6 +30,7 @@
 #  include "kernel/osl/osl_services.h"
 #  include "kernel/osl/osl_shader.h"
 
+#  include "util/util_aligned_malloc.h"
 #  include "util/util_foreach.h"
 #  include "util/util_logging.h"
 #  include "util/util_md5.h"
@@ -224,7 +225,8 @@ void OSLShaderManager::shading_system_init()
   thread_scoped_lock lock(ss_shared_mutex);
 
   if (ss_shared_users == 0) {
-    services_shared = new OSLRenderServices(ts_shared);
+    /* Must use aligned new due to concurrent hash map. */
+    services_shared = util_aligned_new<OSLRenderServices>(ts_shared);
 
     string shader_path = path_get("shader");
 #  ifdef _WIN32
@@ -293,7 +295,7 @@ void OSLShaderManager::shading_system_free()
     delete ss_shared;
     ss_shared = NULL;
 
-    delete services_shared;
+    util_aligned_delete(services_shared);
     services_shared = NULL;
   }
 
