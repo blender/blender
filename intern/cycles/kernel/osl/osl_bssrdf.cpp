@@ -67,7 +67,7 @@ class CBSSRDFClosure : public CClosurePrimitive {
     params.roughness = 0.0f;
   }
 
-  void setup(const KernelGlobals *, ShaderData *sd, int path_flag, float3 weight)
+  void setup(ShaderData *sd, int path_flag, float3 weight)
   {
     if (method == u_cubic) {
       alloc(sd, path_flag, weight, CLOSURE_BSSRDF_CUBIC_ID);

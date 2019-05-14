@@ -127,12 +127,14 @@ class OSLShaderManager : public ShaderManager {
 
 class OSLCompiler {
  public:
-  OSLCompiler(void *manager,
-              void *shadingsys,
-              OSLGlobals *osl_globals,
+#ifdef WITH_OSL
+  OSLCompiler(OSLShaderManager *manager,
+              OSLRenderServices *services,
+              OSL::ShadingSystem *shadingsys,
               ImageManager *image_manager,
               LightManager *light_manager);
-  void compile(Scene *scene, Shader *shader);
+#endif
+  void compile(Scene *scene, OSLGlobals *og, Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
@@ -176,13 +178,16 @@ class OSLCompiler {
 
   void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
   void generate_nodes(const ShaderNodeSet &nodes);
+
+  OSLShaderManager *manager;
+  OSLRenderServices *services;
+  OSL::ShadingSystem *ss;
 #endif
 
-  void *shadingsys;
-  void *manager;
-  OSLGlobals *osl_globals;
   ShaderType current_type;
   Shader *current_shader;
+
+  static int texture_shared_unique_id;
 };
 
 CCL_NAMESPACE_END

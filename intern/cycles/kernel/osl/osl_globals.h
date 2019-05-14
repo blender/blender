@@ -39,36 +39,6 @@ CCL_NAMESPACE_BEGIN
 class OSLRenderServices;
 class ColorSpaceProcessor;
 
-/* OSL Texture Handle
- *
- * OSL texture lookups are string based. If those strings are known at compile
- * time, the OSL compiler can cache a texture handle to use instead of a string.
- *
- * By default it uses TextureSystem::TextureHandle. But since we want to support
- * different kinds of textures and color space conversions, this is our own handle
- * with additional data.
- *
- * These are stored in a concurrent hash map, because OSL can compile multiple
- * shaders in parallel. */
-
-struct OSLTextureHandle : public OIIO::RefCnt {
-  enum Type { OIIO, SVM, IES, BEVEL, AO };
-
-  OSLTextureHandle(Type type = OIIO, int svm_slot = -1)
-      : type(type), svm_slot(svm_slot), oiio_handle(NULL), processor(NULL)
-  {
-  }
-
-  Type type;
-  int svm_slot;
-  OSL::TextureSystem::TextureHandle *oiio_handle;
-  ColorSpaceProcessor *processor;
-};
-
-typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
-typedef OIIO::unordered_map_concurrent<ustring, OSLTextureHandleRef, ustringHash>
-    OSLTextureHandleMap;
-
 /* OSL Globals
  *
  * Data needed by OSL render services, that is global to a rendering session.
@@ -111,9 +81,6 @@ struct OSLGlobals {
   vector<AttributeMap> attribute_map;
   ObjectNameMap object_name_map;
   vector<ustring> object_names;
-
-  /* textures */
-  OSLTextureHandleMap textures;
 };
 
 /* trace() call result */

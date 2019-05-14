@@ -40,12 +40,45 @@ class Shader;
 struct ShaderData;
 struct float3;
 struct KernelGlobals;
+
+/* OSL Texture Handle
+ *
+ * OSL texture lookups are string based. If those strings are known at compile
+ * time, the OSL compiler can cache a texture handle to use instead of a string.
+ *
+ * By default it uses TextureSystem::TextureHandle. But since we want to support
+ * different kinds of textures and color space conversions, this is our own handle
+ * with additional data.
+ *
+ * These are stored in a concurrent hash map, because OSL can compile multiple
+ * shaders in parallel. */
+
+struct OSLTextureHandle : public OIIO::RefCnt {
+  enum Type { OIIO, SVM, IES, BEVEL, AO };
+
+  OSLTextureHandle(Type type = OIIO, int svm_slot = -1)
+      : type(type), svm_slot(svm_slot), oiio_handle(NULL), processor(NULL)
+  {
+  }
+
+  Type type;
+  int svm_slot;
+  OSL::TextureSystem::TextureHandle *oiio_handle;
+  ColorSpaceProcessor *processor;
+};
+
+typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
+typedef OIIO::unordered_map_concurrent<ustring, OSLTextureHandleRef, ustringHash>
+    OSLTextureHandleMap;
+
+/* OSL Render Services
+ *
+ * Interface for OSL to access attributes, textures and other scene data. */
+
 class OSLRenderServices : public OSL::RendererServices {
  public:
-  OSLRenderServices();
+  OSLRenderServices(OSL::TextureSystem *texture_system);
   ~OSLRenderServices();
-
-  void thread_init(KernelGlobals *kernel_globals, OSLGlobals *osl_globals, OSL::TextureSystem *ts);
 
   bool get_matrix(OSL::ShaderGlobals *sg,
                   OSL::Matrix44 &result,
@@ -255,13 +288,12 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_at_bevel;
   static ustring u_at_ao;
 
- private:
-  KernelGlobals *kernel_globals;
-  OSLGlobals *osl_globals;
-  OSL::TextureSystem *osl_ts;
-#ifdef WITH_PTEX
-  PtexCache *ptex_cache;
-#endif
+  /* Texture system and texture handle map are part of the services instead of
+   * globals to be shared between different render sessions. This saves memory,
+   * and is required because texture handles are cached as part of the shared
+   * shading system. */
+  OSL::TextureSystem *texture_system;
+  OSLTextureHandleMap textures;
 };
 
 CCL_NAMESPACE_END

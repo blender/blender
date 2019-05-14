@@ -50,7 +50,7 @@ class PhongRampClosure : public CBSDFClosure {
   PhongRampBsdf params;
   Color3 colors[8];
 
-  void setup(const KernelGlobals *, ShaderData *sd, int /* path_flag */, float3 weight)
+  void setup(ShaderData *sd, int /* path_flag */, float3 weight)
   {
     PhongRampBsdf *bsdf = (PhongRampBsdf *)bsdf_alloc_osl(
         sd, sizeof(PhongRampBsdf), weight, &params);
