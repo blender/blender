@@ -1753,6 +1753,7 @@ static void wm_userpref_update_when_changed(bContext *C,
   PointerRNA ptr_a, ptr_b;
   RNA_pointer_create(NULL, &RNA_Preferences, userdef_prev, &ptr_a);
   RNA_pointer_create(NULL, &RNA_Preferences, userdef_curr, &ptr_b);
+  const bool is_dirty = userdef_curr->runtime.is_dirty;
 
   rna_struct_update_when_changed(C, bmain, &ptr_a, &ptr_b);
 
@@ -1761,6 +1762,7 @@ static void wm_userpref_update_when_changed(bContext *C,
 #endif
 
   WM_keyconfig_reload(C);
+  userdef_curr->runtime.is_dirty = is_dirty;
 }
 
 static int wm_userpref_read_exec(bContext *C, wmOperator *op)
