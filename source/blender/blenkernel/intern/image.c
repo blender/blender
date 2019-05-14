@@ -5087,6 +5087,7 @@ bool BKE_image_is_animated(Image *image)
   return ELEM(image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE);
 }
 
+/* Image modifications */
 bool BKE_image_is_dirty(Image *image)
 {
   bool is_dirty = false;
@@ -5108,6 +5109,11 @@ bool BKE_image_is_dirty(Image *image)
   BLI_spin_unlock(&image_spin);
 
   return is_dirty;
+}
+
+void BKE_image_mark_dirty(Image *UNUSED(image), ImBuf *ibuf)
+{
+  ibuf->userflags |= IB_BITMAPDIRTY;
 }
 
 void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)

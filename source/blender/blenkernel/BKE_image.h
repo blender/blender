@@ -340,12 +340,15 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect,
 unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame);
 float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame);
 
+/* Image modifications */
+bool BKE_image_is_dirty(struct Image *image);
+void BKE_image_mark_dirty(struct Image *image, struct ImBuf *ibuf);
+
 /* Guess offset for the first frame in the sequence */
 int BKE_image_sequence_guess_offset(struct Image *image);
 bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(struct Image *image);
 bool BKE_image_is_animated(struct Image *image);
-bool BKE_image_is_dirty(struct Image *image);
 void BKE_image_file_format_set(struct Image *image,
                                int ftype,
                                const struct ImbFormatOptions *options);

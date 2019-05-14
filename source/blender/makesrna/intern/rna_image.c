@@ -406,7 +406,8 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
         ((unsigned char *)ibuf->rect)[i] = unit_float_to_uchar_clamp(values[i]);
     }
 
-    ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID | IB_MIPMAP_INVALID;
+    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID | IB_MIPMAP_INVALID;
+    BKE_image_mark_dirty(ima, ibuf);
     if (!G.background) {
       GPU_free_image(ima);
     }

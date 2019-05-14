@@ -277,7 +277,8 @@ static bool write_internal_bake_pixels(Image *image,
     RE_bake_margin(ibuf, mask_buffer, margin);
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID | IB_BITMAPDIRTY;
+  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  BKE_image_mark_dirty(image, ibuf);
 
   if (ibuf->rect_float) {
     ibuf->userflags |= IB_RECT_INVALID;

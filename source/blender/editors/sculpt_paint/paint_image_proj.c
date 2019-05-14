@@ -1837,7 +1837,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                       false);
     }
 
-    pjIma->ibuf->userflags |= IB_BITMAPDIRTY;
+    BKE_image_mark_dirty(pjIma->ima, pjIma->ibuf);
     /* tile ready, publish */
     if (tinf->lock) {
       BLI_spin_lock(tinf->lock);

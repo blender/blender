@@ -47,6 +47,7 @@
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_brush.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -154,7 +155,7 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
     }
   }
 
-  ibuf->userflags |= IB_BITMAPDIRTY;
+  BKE_image_mark_dirty(ima, ibuf);
 
   if (tmpibuf) {
     IMB_freeImBuf(tmpibuf);

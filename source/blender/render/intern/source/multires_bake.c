@@ -1458,7 +1458,8 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
     bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
 
-    ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
+    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+    BKE_image_mark_dirty(ima, ibuf);
 
     if (ibuf->rect_float) {
       ibuf->userflags |= IB_RECT_INVALID;

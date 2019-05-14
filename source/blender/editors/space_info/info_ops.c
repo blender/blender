@@ -160,19 +160,11 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 {
   Main *bmain = CTX_data_main(C);
   Image *ima;
-  ImBuf *ibuf;
 
   // first check for dirty images
   for (ima = bmain->images.first; ima; ima = ima->id.next) {
-    if (BKE_image_has_loaded_ibuf(ima)) { /* XXX FIX */
-      ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-
-      if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
-        BKE_image_release_ibuf(ima, ibuf, NULL);
-        break;
-      }
-
-      BKE_image_release_ibuf(ima, ibuf, NULL);
+    if (BKE_image_is_dirty(ima)) {
+      break;
     }
   }
 

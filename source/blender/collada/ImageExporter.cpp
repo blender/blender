@@ -61,7 +61,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
     return;
   }
 
-  bool is_dirty = (imbuf->userflags & IB_BITMAPDIRTY) != 0;
+  bool is_dirty = BKE_image_is_dirty(image);
 
   ImageFormatData imageFormat;
   BKE_imbuf_to_image_format(&imageFormat, imbuf);
