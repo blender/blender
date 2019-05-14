@@ -174,6 +174,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   if (tex->projection != SHD_PROJ_BOX) {
     if (do_texco_clip) {
       gpu_node_name = names_clip[tex->interpolation];
+      in[0].link = input_coords;
       GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(ima, iuser), out[0].link);
     }
   }
