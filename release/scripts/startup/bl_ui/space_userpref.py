@@ -32,16 +32,19 @@ class USERPREF_HT_header(Header):
 
     @staticmethod
     def draw_buttons(layout, context, *, is_vertical=False):
+        prefs = context.preferences
+
         if is_vertical:
             sub = layout.column(align=True)
         else:
             sub = layout.row(align=True)
 
         sub.operator("wm.save_userpref")
-        sub.operator("wm.read_userpref", text="Revert Preferences")
-        sub.operator("wm.read_factory_userpref", text="Revert Factory Preferences")
+        sub_revert = sub.row(align=True)
+        sub_revert.active = prefs.is_dirty
+        sub_revert.operator("wm.read_userpref", text="Revert Preferences")
+        sub.operator("wm.read_factory_userpref", text="Load Factory Preferences")
 
-        prefs = context.preferences
         layout.prop(prefs, "use_preferences_save")
 
     def draw(self, context):
