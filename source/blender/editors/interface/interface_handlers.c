@@ -551,6 +551,19 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
   return true;
 }
 
+static void ui_but_update_preferences_dirty(uiBut *but)
+{
+  /* Not very elegant, but ensures preference changes force re-save. */
+  if (but->rnaprop && (but->rnapoin.data == &U)) {
+    /* Exclude navigation from setting dirty. */
+    extern PropertyRNA rna_Preferences_active_section;
+    if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
+      U.runtime.is_dirty = true;
+      WM_main_add_notifier(NC_WINDOW, NULL);
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1333,6 +1346,9 @@ static bool ui_drag_toggle_set_xy_xy(
               UI_but_execute(C, but);
               if (do_check) {
                 ui_but_update_edited(but);
+              }
+              if (U.runtime.is_dirty == false) {
+                ui_but_update_preferences_dirty(but);
               }
               changed = true;
             }
@@ -7575,15 +7591,7 @@ static void button_activate_exit(
     }
 
     if (U.runtime.is_dirty == false) {
-      /* Not very elegant, but ensures preference changes force re-save. */
-      if (but->rnaprop && (but->rnapoin.data == &U)) {
-        /* Exclude navigation from setting dirty. */
-        extern PropertyRNA rna_Preferences_active_section;
-        if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
-          U.runtime.is_dirty = true;
-          WM_main_add_notifier(NC_WINDOW, NULL);
-        }
-      }
+      ui_but_update_preferences_dirty(but);
     }
   }
 
