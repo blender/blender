@@ -405,7 +405,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
-  RNA_def_property_ui_text(prop, "Disable Select", "Disable collection for viewport selection");
+  RNA_def_property_ui_text(prop, "Disable Selection", "Disable selection in viewport");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
@@ -413,7 +413,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_LINKED, -1);
-  RNA_def_property_ui_text(prop, "Hide Instance", "Disable collection in viewport");
+  RNA_def_property_ui_text(prop, "Disable in Viewports", "Globally disable in viewports");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 
   prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
@@ -421,7 +421,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
-  RNA_def_property_ui_text(prop, "Disable Render", "Disable collection in renders");
+  RNA_def_property_ui_text(prop, "Disable in Renders", "Globally disable in renders");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
 }
 

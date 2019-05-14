@@ -1282,7 +1282,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       0,
                                       0,
                                       0,
-                                      TIP_("Hide/Show collection in viewport\n"
+                                      TIP_("Temporarily hide in viewport\n"
                                            "* Ctrl to isolate collection\n"
                                            "* Shift to set/unset inside collections and objects"));
               UI_but_func_set(bt,
@@ -1308,7 +1308,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       0,
                                       0,
                                       0,
-                                      TIP_("Mask out/in objects in collection from view layer\n"
+                                      TIP_("Mask out objects in collection from view layer\n"
                                            "* Ctrl to isolate collection\n"
                                            "* Shift to set/unset inside collections"));
               UI_but_func_set(bt,
@@ -1363,7 +1363,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     0,
                                     0,
-                                    TIP_("Disable/Enable collection in viewport\n"
+                                    TIP_("Globally disable in viewports\n"
                                          "* Ctrl to isolate collection\n"
                                          "* Shift to set/unset inside collections and objects"));
             if (layer_collection != NULL) {
@@ -1397,7 +1397,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     0,
                                     0,
-                                    TIP_("Disable/Enable collection in renders\n"
+                                    TIP_("Globally disable in renders\n"
                                          "* Ctrl to isolate collection\n"
                                          "* Shift to set/unset inside collections and objects"));
             if (layer_collection != NULL) {
@@ -1429,7 +1429,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     0,
                                     0,
-                                    TIP_("Disable/Enable collection for viewport selection\n"
+                                    TIP_("Disable selection in viewport\n"
                                          "* Ctrl to isolate collection\n"
                                          "* Shift to set/unset inside collections and objects"));
             if (layer_collection != NULL) {
@@ -3307,7 +3307,7 @@ void draw_outliner(const bContext *C)
 
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  /* draw edit buttons if nessecery */
+  /* Draw edit buttons if necessary. */
   if (te_edit) {
     outliner_buttons(C, block, ar, te_edit);
   }
