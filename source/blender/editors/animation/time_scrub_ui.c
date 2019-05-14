@@ -27,7 +27,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_scrubbing.h"
+#include "ED_time_scrub_ui.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

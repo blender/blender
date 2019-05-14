@@ -60,7 +60,7 @@
 #include "ED_mask.h"
 #include "ED_sequencer.h"
 #include "ED_screen.h"
-#include "ED_scrubbing.h"
+#include "ED_time_scrub_ui.h"
 #include "ED_space_api.h"
 
 #include "BIF_glutil.h"

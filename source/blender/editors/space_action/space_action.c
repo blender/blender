@@ -53,7 +53,7 @@
 #include "ED_screen.h"
 #include "ED_anim_api.h"
 #include "ED_markers.h"
-#include "ED_scrubbing.h"
+#include "ED_time_scrub_ui.h"
 
 #include "action_intern.h" /* own include */
 #include "GPU_framebuffer.h"

@@ -44,7 +44,6 @@ set(SRC
   anim_markers.c
   anim_motion_paths.c
   anim_ops.c
-  anim_scrubbing.c
   drivers.c
   fmodifier_ui.c
   keyframes_draw.c
@@ -52,6 +51,7 @@ set(SRC
   keyframes_general.c
   keyframing.c
   keyingsets.c
+  time_scrub_ui.c
 
   anim_intern.h
 )

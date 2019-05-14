@@ -40,7 +40,7 @@
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
-#include "ED_scrubbing.h"
+#include "ED_time_scrub_ui.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

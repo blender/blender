@@ -50,7 +50,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
-#include "ED_scrubbing.h"
+#include "ED_time_scrub_ui.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
