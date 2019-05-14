@@ -84,7 +84,9 @@ bool BKE_pose_minmax(
 int bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
 
 struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
-struct GHash *BKE_armature_bone_from_name_map(struct bArmature *arm);
+
+void BKE_armature_bone_hash_make(struct bArmature *arm);
+void BKE_armature_bone_hash_free(struct bArmature *arm);
 
 bool BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
 

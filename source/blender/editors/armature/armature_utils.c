@@ -650,6 +650,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   Object *obt;
 
   /* armature bones */
+  BKE_armature_bone_hash_free(arm);
   BKE_armature_bonelist_free(&arm->bonebase);
   arm->act_bone = NULL;
 
@@ -753,6 +754,8 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* Finalize definition of restpose data (roll, bone_mat, arm_mat, head/tail...). */
   armature_finalize_restpose(&arm->bonebase, arm->edbo);
+
+  BKE_armature_bone_hash_make(arm);
 
   /* so all users of this armature should get rebuilt */
   for (obt = bmain->objects.first; obt; obt = obt->id.next) {

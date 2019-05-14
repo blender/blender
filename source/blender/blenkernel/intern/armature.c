@@ -125,6 +125,7 @@ void BKE_armature_free(bArmature *arm)
 {
   BKE_animdata_free(&arm->id, false);
 
+  BKE_armature_bone_hash_free(arm);
   BKE_armature_bonelist_free(&arm->bonebase);
 
   /* free editmode data */
@@ -169,25 +170,20 @@ static void copy_bonechildren(Bone *bone_dst,
   }
 }
 
-static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst, GHash **bone_hash)
+static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
 {
   Bone *bone_dst_child;
 
-  /* Lazily create the name -> bone hashtable. */
-  if ((bone_dst->bbone_prev || bone_dst->bbone_next) && *bone_hash == NULL) {
-    *bone_hash = BKE_armature_bone_from_name_map(arm_dst);
-  }
-
   if (bone_dst->bbone_prev) {
-    bone_dst->bbone_prev = BLI_ghash_lookup(*bone_hash, bone_dst->bbone_prev->name);
+    bone_dst->bbone_prev = BKE_armature_find_bone_name(arm_dst, bone_dst->bbone_prev->name);
   }
   if (bone_dst->bbone_next) {
-    bone_dst->bbone_next = BLI_ghash_lookup(*bone_hash, bone_dst->bbone_next->name);
+    bone_dst->bbone_next = BKE_armature_find_bone_name(arm_dst, bone_dst->bbone_next->name);
   }
 
   for (bone_dst_child = bone_dst->childbase.first; bone_dst_child;
        bone_dst_child = bone_dst_child->next) {
-    copy_bonechildren_custom_handles(bone_dst_child, arm_dst, bone_hash);
+    copy_bonechildren_custom_handles(bone_dst_child, arm_dst);
   }
 }
 
@@ -212,6 +208,8 @@ void BKE_armature_copy_data(Main *UNUSED(bmain),
   /* We never handle usercount here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
+  arm_dst->bonehash = NULL;
+
   BLI_duplicatelist(&arm_dst->bonebase, &arm_src->bonebase);
 
   /* Duplicate the childrens' lists */
@@ -224,15 +222,11 @@ void BKE_armature_copy_data(Main *UNUSED(bmain),
 
   arm_dst->act_bone = bone_dst_act;
 
+  BKE_armature_bone_hash_make(arm_dst);
+
   /* Fix custom handle references. */
-  GHash *bone_hash = NULL; /* lazily created */
-
   for (bone_dst = arm_dst->bonebase.first; bone_dst; bone_dst = bone_dst->next) {
-    copy_bonechildren_custom_handles(bone_dst, arm_dst, &bone_hash);
-  }
-
-  if (bone_hash) {
-    BLI_ghash_free(bone_hash, NULL, NULL);
+    copy_bonechildren_custom_handles(bone_dst, arm_dst);
   }
 
   arm_dst->edbo = NULL;
@@ -274,6 +268,10 @@ Bone *BKE_armature_find_bone_name(bArmature *arm, const char *name)
     return NULL;
   }
 
+  if (arm->bonehash) {
+    return BLI_ghash_lookup(arm->bonehash, name);
+  }
+
   return get_named_bone_bonechildren(&arm->bonebase, name);
 }
 
@@ -291,12 +289,27 @@ static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBase 
  * \note typically #bPose.chanhash us used via #BKE_pose_channel_find_name
  * this is for the cases we can't use pose channels.
  */
-GHash *BKE_armature_bone_from_name_map(bArmature *arm)
+static GHash *armature_bone_from_name_map(bArmature *arm)
 {
   const int bones_count = BKE_armature_bonelist_count(&arm->bonebase);
   GHash *bone_hash = BLI_ghash_str_new_ex(__func__, bones_count);
   armature_bone_from_name_insert_recursive(bone_hash, &arm->bonebase);
   return bone_hash;
+}
+
+void BKE_armature_bone_hash_make(bArmature *arm)
+{
+  if (!arm->bonehash) {
+    arm->bonehash = armature_bone_from_name_map(arm);
+  }
+}
+
+void BKE_armature_bone_hash_free(bArmature *arm)
+{
+  if (arm->bonehash) {
+    BLI_ghash_free(arm->bonehash, NULL, NULL);
+    arm->bonehash = NULL;
+  }
 }
 
 bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
@@ -2458,11 +2471,9 @@ void BKE_pose_clear_pointers(bPose *pose)
 
 void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
 {
-  GHash *bone_hash = BKE_armature_bone_from_name_map(armature);
   for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-    pchan->bone = BLI_ghash_lookup(bone_hash, pchan->name);
+    pchan->bone = BKE_armature_find_bone_name(armature, pchan->name);
   }
-  BLI_ghash_free(bone_hash, NULL, NULL);
 }
 
 /** Find the matching pose channel using the bone name, if not NULL. */

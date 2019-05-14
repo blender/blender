@@ -104,7 +104,11 @@ typedef struct bArmature {
   struct AnimData *adt;
 
   ListBase bonebase;
-  ListBase chainbase;
+
+  /** Ghash for quicker lookups of bones by name. */
+  struct GHash *bonehash;
+  void *_pad1;
+
   /** Editbone listbase, we use pointer so we can check state. */
   ListBase *edbo;
 

@@ -180,7 +180,17 @@ void ED_armature_bone_rename(Main *bmain,
 
       if (bone) {
         unique_bone_name(arm, newname);
+
+        if (arm->bonehash) {
+          BLI_assert(BLI_ghash_haskey(arm->bonehash, bone->name));
+          BLI_ghash_remove(arm->bonehash, bone->name, NULL, NULL);
+        }
+
         BLI_strncpy(bone->name, newname, MAXBONENAME);
+
+        if (arm->bonehash) {
+          BLI_ghash_insert(arm->bonehash, bone->name, bone);
+        }
       }
       else {
         return;
