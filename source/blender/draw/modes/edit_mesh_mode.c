@@ -713,9 +713,9 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       if (do_occlude_wire || do_in_front) {
         geom = DRW_cache_mesh_surface_get(ob);
         DRW_shgroup_call(do_in_front ? g_data->depth_shgrp_hidden_wire_in_front :
-                                           g_data->depth_shgrp_hidden_wire,
-                             geom,
-                             ob->obmat);
+                                       g_data->depth_shgrp_hidden_wire,
+                         geom,
+                         ob->obmat);
       }
 
       if (vnormals_do) {
