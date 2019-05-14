@@ -55,7 +55,7 @@ typedef struct GPUVertBuf {
   /** 0 indicates not yet allocated. */
   uint32_t vbo_id;
   /** Usage hint for GL optimisation. */
-  uint usage : 2;
+  GPUUsageType usage : 2;
   /** Data has been touched and need to be reuploaded to GPU. */
   uint dirty : 1;
   unsigned char *data; /* NULL indicates data in VRAM (unmapped) */

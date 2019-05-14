@@ -116,7 +116,7 @@ uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
   return format->stride * vertex_len;
 }
 
-static char copy_attr_name(GPUVertFormat *format, const char *name)
+static uchar copy_attr_name(GPUVertFormat *format, const char *name)
 {
   /* strncpy does 110% of what we need; let's do exactly 100% */
   uchar name_offset = format->name_offset;
