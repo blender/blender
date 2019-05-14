@@ -855,7 +855,7 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_collection_exclude_set(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Exclude";
+  ot->name = "Disable from View Layer";
   ot->idname = "OUTLINER_OT_collection_exclude_set";
   ot->description = "Exclude collection from the active view layer";
 
@@ -870,7 +870,7 @@ void OUTLINER_OT_collection_exclude_set(wmOperatorType *ot)
 void OUTLINER_OT_collection_exclude_clear(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Clear Exclude";
+  ot->name = "Enable in View Layer";
   ot->idname = "OUTLINER_OT_collection_exclude_clear";
   ot->description = "Include collection in the active view layer";
 
