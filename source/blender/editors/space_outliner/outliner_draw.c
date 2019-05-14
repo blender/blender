@@ -1642,8 +1642,13 @@ static void outliner_draw_rnabuts(
   }
 }
 
-static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, TreeElement *te)
+static void outliner_buttons(const bContext *C,
+                             uiBlock *block,
+                             ARegion *ar,
+                             const float restrict_column_width,
+                             TreeElement *te)
 {
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
   uiBut *bt;
   TreeStoreElem *tselem;
   int spx, dx, len;
@@ -1669,7 +1674,11 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Tre
   }
 
   spx = te->xs + 1.8f * UI_UNIT_X;
-  dx = ar->v2d.cur.xmax - (spx + 3.2f * UI_UNIT_X);
+  if ((tselem->type == TSE_LAYER_COLLECTION) &&
+      (soops->show_restrict_flags & SO_RESTRICT_ENABLE)) {
+    spx += UI_UNIT_X;
+  }
+  dx = ar->v2d.cur.xmax - (spx + restrict_column_width + 0.2f * UI_UNIT_X);
 
   bt = uiDefBut(block,
                 UI_BTYPE_TEXT,
@@ -3305,7 +3314,7 @@ void draw_outliner(const bContext *C)
 
   /* Draw edit buttons if necessary. */
   if (te_edit) {
-    outliner_buttons(C, block, ar, te_edit);
+    outliner_buttons(C, block, ar, restrict_column_width, te_edit);
   }
 
   UI_block_end(C, block);
