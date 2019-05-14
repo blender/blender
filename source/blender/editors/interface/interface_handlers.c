@@ -7574,10 +7574,16 @@ static void button_activate_exit(
       ui_popup_menu_memory_set(block, but);
     }
 
-    /* Not very elegant, but ensures preference changes force re-save. */
-    if (but->rnaprop && (but->rnapoin.data == &U) && !RNA_property_update_check(but->rnaprop)) {
-      U.runtime.is_dirty = true;
-      WM_main_add_notifier(NC_WINDOW, NULL);
+    if (U.runtime.is_dirty == false) {
+      /* Not very elegant, but ensures preference changes force re-save. */
+      if (but->rnaprop && (but->rnapoin.data == &U)) {
+        /* Exclude navigation from setting dirty. */
+        extern PropertyRNA rna_Preferences_active_section;
+        if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
+          U.runtime.is_dirty = true;
+          WM_main_add_notifier(NC_WINDOW, NULL);
+        }
+      }
     }
   }
 
