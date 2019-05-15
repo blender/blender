@@ -163,7 +163,10 @@ bool EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short 
 struct BMVert *EDBM_vert_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist,
                                          const bool use_select_bias,
-                                         bool use_cycle);
+                                         bool use_cycle,
+                                         struct Base **bases,
+                                         uint bases_len,
+                                         uint *r_base_index);
 struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, float *r_dist);
 
 struct BMEdge *EDBM_edge_find_nearest_ex(struct ViewContext *vc,
@@ -171,7 +174,10 @@ struct BMEdge *EDBM_edge_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist_center,
                                          const bool use_select_bias,
                                          const bool use_cycle,
-                                         struct BMEdge **r_eed_zbuf);
+                                         struct BMEdge **r_eed_zbuf,
+                                         struct Base **bases,
+                                         uint bases_len,
+                                         uint *r_base_index);
 struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, float *r_dist);
 
 struct BMFace *EDBM_face_find_nearest_ex(struct ViewContext *vc,
@@ -179,7 +185,10 @@ struct BMFace *EDBM_face_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist_center,
                                          const bool use_select_bias,
                                          const bool use_cycle,
-                                         struct BMFace **r_efa_zbuf);
+                                         struct BMFace **r_efa_zbuf,
+                                         struct Base **bases,
+                                         uint bases_len,
+                                         uint *r_base_index);
 struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, float *r_dist);
 
 bool EDBM_unified_findnearest(struct ViewContext *vc,
@@ -230,6 +239,7 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc); /* rename
 bool EDBM_mesh_deselect_all_multi_ex(struct Base **bases, const uint bases_len);
 bool EDBM_mesh_deselect_all_multi(struct bContext *C);
 
+/* Only use for modes that don't support multi-edit-modes (painting). */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
 /* editmesh_preselect_edgering.c */

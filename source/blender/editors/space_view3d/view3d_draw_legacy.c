@@ -77,6 +77,7 @@
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_gpencil.h"
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
@@ -208,7 +209,16 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
 
   if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
     DRW_framebuffer_select_id_setup(ar, true);
-    draw_object_select_id(depsgraph, scene_eval, v3d, rv3d, obact_eval, select_mode);
+    DRW_draw_select_id_object(scene_eval,
+                              rv3d,
+                              obact_eval,
+                              select_mode,
+                              false,
+                              0,
+                              &bm_vertoffs,
+                              &bm_wireoffs,
+                              &bm_solidoffs);
+
     DRW_framebuffer_select_id_release(ar);
   }
 
@@ -271,10 +281,8 @@ void ED_view3d_backbuf_depth_validate(ViewContext *vc)
   }
 }
 
-uint *ED_view3d_select_id_read_rect(ViewContext *vc, const rcti *clip, uint *r_buf_len)
+uint *ED_view3d_select_id_read_rect(ViewContext *UNUSED(vc), const rcti *clip, uint *r_buf_len)
 {
-  ED_view3d_select_id_validate(vc);
-
   uint width = BLI_rcti_size_x(clip);
   uint height = BLI_rcti_size_y(clip);
   uint buf_len = width * height;

@@ -1109,13 +1109,11 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
   }
 
   ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_select_id_validate(&vc);
 
   if (dist_px) {
     /* sample rect to increase chances of selecting, so that when clicking
      * on an edge in the backbuf, we can still select a face */
-
-    ED_view3d_select_id_validate(&vc);
-
     *r_index = ED_view3d_select_id_read_nearest(&vc, mval, 1, me->totpoly + 1, &dist_px);
   }
   else {
@@ -1291,14 +1289,12 @@ bool ED_mesh_pick_vert(
   }
 
   ED_view3d_viewcontext_init(C, &vc);
+  ED_view3d_select_id_validate(&vc);
 
   if (use_zbuf) {
     if (dist_px > 0) {
       /* sample rect to increase chances of selecting, so that when clicking
        * on an face in the backbuf, we can still select a vert */
-
-      ED_view3d_select_id_validate(&vc);
-
       *r_index = ED_view3d_select_id_read_nearest(&vc, mval, 1, me->totvert + 1, &dist_px);
     }
     else {

@@ -38,6 +38,7 @@ struct IDProperty;
 struct Main;
 struct Material;
 struct Object;
+struct RegionView3D;
 struct RenderEngine;
 struct RenderEngineType;
 struct Scene;
@@ -135,6 +136,15 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 void DRW_draw_depth_object(struct ARegion *ar,
                            struct GPUViewport *viewport,
                            struct Object *object);
+void DRW_draw_select_id_object(struct Scene *scene,
+                               struct RegionView3D *rv3d,
+                               struct Object *ob,
+                               short select_mode,
+                               bool draw_facedot,
+                               uint initial_offset,
+                               uint *r_vert_offset,
+                               uint *r_edge_offset,
+                               uint *r_face_offset);
 
 void DRW_framebuffer_select_id_setup(struct ARegion *ar, const bool clear);
 void DRW_framebuffer_select_id_release(struct ARegion *ar);

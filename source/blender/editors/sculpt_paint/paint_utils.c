@@ -389,6 +389,7 @@ static int imapaint_pick_face(ViewContext *vc,
   }
 
   /* sample only on the exact position */
+  ED_view3d_select_id_validate(vc);
   *r_index = ED_view3d_select_id_sample(vc, mval[0], mval[1]);
 
   if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {

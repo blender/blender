@@ -79,11 +79,11 @@ typedef struct RingSelOpData {
 
   Depsgraph *depsgraph;
 
-  Object **objects;
-  uint objects_len;
+  Base **bases;
+  uint bases_len;
 
   /* These values switch objects based on the object under the cursor. */
-  uint ob_index;
+  uint base_index;
   Object *ob;
   BMEditMesh *em;
   BMEdge *eed;
@@ -111,8 +111,8 @@ static void edgering_select(RingSelOpData *lcd)
   }
 
   if (!lcd->extend) {
-    for (uint ob_index = 0; ob_index < lcd->objects_len; ob_index++) {
-      Object *ob_iter = lcd->objects[ob_index];
+    for (uint base_index = 0; base_index < lcd->bases_len; base_index++) {
+      Object *ob_iter = lcd->bases[base_index]->object;
       BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
       DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
@@ -252,7 +252,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 
   EDBM_preselect_edgering_destroy(lcd->presel_edgering);
 
-  MEM_freeN(lcd->objects);
+  MEM_freeN(lcd->bases);
 
   ED_region_tag_redraw(lcd->ar);
 
@@ -307,21 +307,21 @@ static void ringcut_cancel(bContext *C, wmOperator *op)
 }
 
 static void loopcut_update_edge(RingSelOpData *lcd,
-                                uint ob_index,
+                                uint base_index,
                                 BMEdge *e,
                                 const int previewlines)
 {
   if (e != lcd->eed) {
     lcd->eed = e;
     lcd->ob = lcd->vc.obedit;
-    lcd->ob_index = ob_index;
+    lcd->base_index = base_index;
     lcd->em = lcd->vc.em;
     ringsel_find_edge(lcd, previewlines);
   }
   else if (e == NULL) {
     lcd->ob = NULL;
     lcd->em = NULL;
-    lcd->ob_index = UINT_MAX;
+    lcd->base_index = UINT_MAX;
   }
 }
 
@@ -331,27 +331,26 @@ static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
     Object *ob;
     BMEdge *eed;
     float dist;
-    int ob_index;
+    int base_index;
   } best = {
       .dist = ED_view3d_select_dist_px(),
   };
 
-  for (uint ob_index = 0; ob_index < lcd->objects_len; ob_index++) {
-    Object *ob_iter = lcd->objects[ob_index];
-    ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
-    BMEdge *eed_test = EDBM_edge_find_nearest_ex(&lcd->vc, &best.dist, NULL, false, false, NULL);
-    if (eed_test) {
-      best.ob = ob_iter;
-      best.eed = eed_test;
-      best.ob_index = ob_index;
-    }
+  uint base_index;
+  BMEdge *eed_test = EDBM_edge_find_nearest_ex(
+      &lcd->vc, &best.dist, NULL, false, false, NULL, lcd->bases, lcd->bases_len, &base_index);
+
+  if (eed_test) {
+    best.ob = lcd->bases[base_index]->object;
+    best.eed = eed_test;
+    best.base_index = base_index;
   }
 
   if (best.eed) {
     ED_view3d_viewcontext_init_object(&lcd->vc, best.ob);
   }
 
-  loopcut_update_edge(lcd, best.ob_index, best.eed, previewlines);
+  loopcut_update_edge(lcd, best.base_index, best.eed, previewlines);
 }
 
 /* called by both init() and exec() */
@@ -361,22 +360,22 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Use for redo - intentionally wrap int to uint. */
   const struct {
-    uint ob_index;
+    uint base_index;
     uint e_index;
   } exec_data = {
-      .ob_index = (uint)RNA_int_get(op->ptr, "object_index"),
+      .base_index = (uint)RNA_int_get(op->ptr, "object_index"),
       .e_index = (uint)RNA_int_get(op->ptr, "edge_index"),
   };
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  uint objects_len;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+  uint bases_len;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      view_layer, CTX_wm_view3d(C), &bases_len);
 
   if (is_interactive) {
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob_iter = objects[ob_index];
+    for (uint base_index = 0; base_index < bases_len; base_index++) {
+      Object *ob_iter = bases[base_index]->object;
       if (modifiers_isDeformedByLattice(ob_iter) || modifiers_isDeformedByArmature(ob_iter)) {
         BKE_report(
             op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
@@ -390,12 +389,12 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   /* for re-execution, check edge index is in range before we setup ringsel */
   bool ok = true;
   if (is_interactive == false) {
-    if (exec_data.ob_index >= objects_len) {
+    if (exec_data.base_index >= bases_len) {
       return OPERATOR_CANCELLED;
       ok = false;
     }
     else {
-      Object *ob_iter = objects[exec_data.ob_index];
+      Object *ob_iter = bases[exec_data.base_index]->object;
       BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
       if (exec_data.e_index >= em->bm->totedge) {
         ok = false;
@@ -404,7 +403,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (!ok || !ringsel_init(C, op, true)) {
-    MEM_freeN(objects);
+    MEM_freeN(bases);
     return OPERATOR_CANCELLED;
   }
 
@@ -416,8 +415,8 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
   RingSelOpData *lcd = op->customdata;
 
-  lcd->objects = objects;
-  lcd->objects_len = objects_len;
+  lcd->bases = bases;
+  lcd->bases_len = bases_len;
 
   if (is_interactive) {
     copy_v2_v2_int(lcd->vc.mval, event->mval);
@@ -425,13 +424,13 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
 
-    Object *ob_iter = objects[exec_data.ob_index];
+    Object *ob_iter = bases[exec_data.base_index]->object;
     ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
 
     BMEdge *e;
     BM_mesh_elem_table_ensure(lcd->vc.em->bm, BM_EDGE);
     e = BM_edge_at_index(lcd->vc.em->bm, exec_data.e_index);
-    loopcut_update_edge(lcd, exec_data.ob_index, e, 0);
+    loopcut_update_edge(lcd, exec_data.base_index, e, 0);
   }
 
 #ifdef USE_LOOPSLIDE_HACK
@@ -503,7 +502,7 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
   if (lcd->eed) {
     /* set for redo */
     BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
-    RNA_int_set(op->ptr, "object_index", lcd->ob_index);
+    RNA_int_set(op->ptr, "object_index", lcd->base_index);
     RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));
 
     /* execute */

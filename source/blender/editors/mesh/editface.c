@@ -461,13 +461,13 @@ bool do_paintface_box_select(ViewContext *vc, const rcti *rect, int sel_op)
   }
   else {
     MPoly *mpoly;
-    uint *rt;
+    uint *rt, *buf, buf_len;
     int a, index;
 
     char *selar = MEM_callocN(me->totpoly + 1, "selar");
 
-    uint buf_len;
-    uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
+    ED_view3d_select_id_validate(vc);
+    buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
 
     rt = buf;
 

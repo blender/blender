@@ -135,9 +135,6 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
   if (vc->obedit) {
     BLI_assert(BKE_object_is_in_editmode(obact));
     vc->obedit = obact;
-    /* previous selections are now invalid. */
-    vc->v3d->flag |= V3D_INVALID_BACKBUF;
-
     if (vc->em) {
       vc->em = BKE_editmesh_from_object(vc->obedit);
     }
@@ -2359,14 +2356,14 @@ static bool do_paintvert_box_select(ViewContext *vc, const rcti *rect, const eSe
   }
   else if (use_zbuf) {
     MVert *mvert;
-    unsigned int *rt;
+    uint *rt, *buf, buf_len;
     int a, index;
     char *selar;
 
     selar = MEM_callocN(me->totvert + 1, "selar");
 
-    uint buf_len;
-    uint *buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
+    ED_view3d_select_id_validate(vc);
+    buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
 
     rt = buf;
 

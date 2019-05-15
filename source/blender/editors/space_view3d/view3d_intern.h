@@ -127,13 +127,6 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
 /* drawobject.c */
-void draw_object_select_id(struct Depsgraph *depsgraph,
-                           Scene *scene,
-                           View3D *v3d,
-                           RegionView3D *rv3d,
-                           struct Object *ob,
-                           short select_mode);
-
 int view3d_effective_drawtype(const struct View3D *v3d);
 
 /* view3d_draw.c */
