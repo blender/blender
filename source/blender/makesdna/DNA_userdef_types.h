@@ -363,6 +363,12 @@ typedef struct ThemeSpace {
   char match[4];
   /** Outliner - selected item. */
   char selected_highlight[4];
+  /** Outliner - selected object. */
+  char selected_object[4];
+  /** Outliner - active object. */
+  char active_object[4];
+  /** Outliner - edited object. */
+  char edited_object[4];
   /** Outliner - row color difference. */
   char row_alternate[4];
 
@@ -401,6 +407,8 @@ typedef struct ThemeSpace {
 
   char metadatabg[4];
   char metadatatext[4];
+
+  char _pad2[4];
 } ThemeSpace;
 
 /* set of colors for use as a custom color set for Objects/Bones wire drawing */

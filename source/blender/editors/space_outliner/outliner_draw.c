@@ -2400,6 +2400,17 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
   GPU_blend(true); /* Roundbox and text drawing disables. */
 }
 
+static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
+{
+  float text[4];
+  UI_GetThemeColor4fv(TH_TEXT, text);
+
+  copy_v3_v3(icon_color, text);
+  icon_color[3] = 0.4f;
+  copy_v3_v3(icon_border, text);
+  icon_border[3] = 0.2f;
+}
+
 static void outliner_draw_iconrow_doit(uiBlock *block,
                                        TreeElement *te,
                                        const uiFontStyle *fstyle,
@@ -2414,23 +2425,34 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
 
   if (active != OL_DRAWSEL_NONE) {
     float ufac = UI_UNIT_X / 20.0f;
-    float color[4] = {1.0f, 1.0f, 1.0f, 0.2f};
-
+    float icon_color[4], icon_border[4];
+    outliner_icon_background_colors(icon_color, icon_border);
+    icon_color[3] *= alpha_fac;
+    if (active == OL_DRAWSEL_ACTIVE) {
+      UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_color);
+      icon_border[3] = 0.3f;
+    }
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    color[3] *= alpha_fac;
 
     UI_draw_roundbox_aa(true,
-                        (float)*offsx + 1.0f * ufac,
-                        (float)ys + 1.0f * ufac,
-                        (float)*offsx + UI_UNIT_X - 1.0f * ufac,
+                        (float)*offsx,
+                        (float)ys + ufac,
+                        (float)*offsx + UI_UNIT_X,
                         (float)ys + UI_UNIT_Y - ufac,
-                        (float)UI_UNIT_Y / 2.0f - ufac,
-                        color);
+                        (float)UI_UNIT_Y / 4.0f,
+                        icon_color);
+    /* border around it */
+    UI_draw_roundbox_aa(false,
+                        (float)*offsx,
+                        (float)ys + ufac,
+                        (float)*offsx + UI_UNIT_X,
+                        (float)ys + UI_UNIT_Y - ufac,
+                        (float)UI_UNIT_Y / 4.0f,
+                        icon_border);
     GPU_blend(true); /* Roundbox disables. */
   }
 
-  /* No inlined icon should be clickable. */
-  tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.8f * alpha_fac, false);
+  tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, alpha_fac, false);
   te->xs = *offsx;
   te->ys = ys;
   te->xend = (short)*offsx + UI_UNIT_X;
@@ -2484,7 +2506,7 @@ static void outliner_draw_iconrow(bContext *C,
                                   float alpha_fac,
                                   MergedIconRow *merged)
 {
-  eOLDrawState active;
+  eOLDrawState active = OL_DRAWSEL_NONE;
   const Object *obact = OBACT(view_layer);
 
   for (TreeElement *te = lb->first; te; te = te->next) {
@@ -2504,7 +2526,7 @@ static void outliner_draw_iconrow(bContext *C,
                                                                  OL_DRAWSEL_NONE;
         }
         else if (is_object_data_in_editmode(tselem->id, obact)) {
-          active = OL_DRAWSEL_NORMAL;
+          active = OL_DRAWSEL_ACTIVE;
         }
         else {
           active = tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NONE, false);
@@ -2603,19 +2625,20 @@ static void outliner_draw_tree_element(bContext *C,
                                        const float restrict_column_width,
                                        TreeElement **te_edit)
 {
-  TreeStoreElem *tselem;
+  TreeStoreElem *tselem = TREESTORE(te);
   float ufac = UI_UNIT_X / 20.0f;
   int offsx = 0;
   eOLDrawState active = OL_DRAWSEL_NONE;
-  float color[4];
-  tselem = TREESTORE(te);
+  unsigned char text_color[4];
+  UI_GetThemeColor4ubv(TH_TEXT, text_color);
+  float icon_bgcolor[4], icon_border[4];
+  outliner_icon_background_colors(icon_bgcolor, icon_border);
 
   if (*starty + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && *starty <= ar->v2d.cur.ymax) {
     const float alpha_fac = ((te->flag & TE_DISABLED) || (te->flag & TE_CHILD_NOT_IN_COLLECTION) ||
                              draw_grayed_out) ?
                                 0.5f :
                                 1.0f;
-    const float alpha = 0.5f * alpha_fac;
     int xmax = ar->v2d.cur.xmax;
 
     if ((tselem->flag & TSE_TEXTBUT) && (*te_edit == NULL)) {
@@ -2634,7 +2657,8 @@ static void outliner_draw_tree_element(bContext *C,
       const Object *obact = OBACT(view_layer);
       if (te->idcode == ID_SCE) {
         if (tselem->id == (ID *)scene) {
-          rgba_float_args_set(color, 1.0f, 1.0f, 1.0f, alpha);
+          /* active scene */
+          icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
         }
       }
@@ -2645,34 +2669,28 @@ static void outliner_draw_tree_element(bContext *C,
         const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
 
         if (ob == obact || is_selected) {
-          uchar col[4] = {0, 0, 0, 0};
-
-          /* outliner active ob: always white text, circle color now similar to view3d */
-
-          active = OL_DRAWSEL_ACTIVE;
           if (ob == obact) {
-            if (is_selected) {
-              UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-              col[3] = alpha;
-            }
-
-            active = OL_DRAWSEL_NORMAL;
+            /* active selected object */
+            UI_GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
+            text_color[3] = 255;
           }
-          else if (is_selected) {
-            UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-            col[3] = alpha;
+          else {
+            /* other selected objects */
+            UI_GetThemeColor3ubv(TH_SELECTED_OBJECT, text_color);
+            text_color[3] = 255;
           }
-          rgba_float_args_set(
-              color, (float)col[0] / 255, (float)col[1] / 255, (float)col[2] / 255, alpha);
         }
       }
       else if (is_object_data_in_editmode(tselem->id, obact)) {
-        rgba_float_args_set(color, 1.0f, 1.0f, 1.0f, alpha);
+        /* objects being edited */
+        UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
+        icon_border[3] = 0.3f;
         active = OL_DRAWSEL_ACTIVE;
       }
       else {
         if (tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NONE, false)) {
-          rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
+          /* active items like camera or material */
+          icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
         }
       }
@@ -2680,7 +2698,8 @@ static void outliner_draw_tree_element(bContext *C,
     else {
       active = tree_element_type_active(
           C, scene, view_layer, soops, te, tselem, OL_SETSEL_NONE, false);
-      rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
+      /* active collection*/
+      icon_bgcolor[3] = 0.2f;
     }
 
     /* Checkbox to enable collections. */
@@ -2695,12 +2714,20 @@ static void outliner_draw_tree_element(bContext *C,
     if (active != OL_DRAWSEL_NONE) {
       UI_draw_roundbox_corner_set(UI_CNR_ALL);
       UI_draw_roundbox_aa(true,
-                          (float)startx + offsx + UI_UNIT_X + 1.0f * ufac,
-                          (float)*starty + 1.0f * ufac,
-                          (float)startx + offsx + 2.0f * UI_UNIT_X - 1.0f * ufac,
-                          (float)*starty + UI_UNIT_Y - 1.0f * ufac,
-                          UI_UNIT_Y / 2.0f - 1.0f * ufac,
-                          color);
+                          (float)startx + offsx + UI_UNIT_X,
+                          (float)*starty + ufac,
+                          (float)startx + offsx + 2.0f * UI_UNIT_X,
+                          (float)*starty + UI_UNIT_Y - ufac,
+                          UI_UNIT_Y / 4.0f,
+                          icon_bgcolor);
+      /* border around it */
+      UI_draw_roundbox_aa(false,
+                          (float)startx + offsx + UI_UNIT_X,
+                          (float)*starty + ufac,
+                          (float)startx + offsx + 2.0f * UI_UNIT_X,
+                          (float)*starty + UI_UNIT_Y - ufac,
+                          UI_UNIT_Y / 4.0f,
+                          icon_border);
       GPU_blend(true); /* roundbox disables it */
 
       te->flag |= TE_ACTIVE;  // for lookup in display hierarchies
@@ -2772,21 +2799,12 @@ static void outliner_draw_tree_element(bContext *C,
 
     /* name */
     if ((tselem->flag & TSE_TEXTBUT) == 0) {
-      unsigned char text_col[4];
-
-      if (active == OL_DRAWSEL_NORMAL) {
-        UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
+      if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+        UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
+        text_color[3] = 255;
       }
-      else if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-        UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_col);
-        text_col[3] = 255;
-      }
-      else {
-        UI_GetThemeColor4ubv(TH_TEXT, text_col);
-      }
-      text_col[3] *= alpha_fac;
-
-      UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_col);
+      text_color[3] *= alpha_fac;
+      UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_color);
     }
 
     offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));

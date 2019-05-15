@@ -134,7 +134,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_clip.scrubbing_background);
   }
 
-  if (!USER_VERSION_ATLEAST(280, 65)) {
+  if (!USER_VERSION_ATLEAST(280, 67)) {
+    FROM_DEFAULT_V4_UCHAR(space_outliner.selected_object);
+    FROM_DEFAULT_V4_UCHAR(space_outliner.active_object);
+    FROM_DEFAULT_V4_UCHAR(space_outliner.edited_object);
     FROM_DEFAULT_V4_UCHAR(space_outliner.row_alternate);
   }
 
