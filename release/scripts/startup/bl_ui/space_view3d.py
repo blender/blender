@@ -5082,6 +5082,11 @@ class VIEW3D_PT_shading_options(Panel):
     bl_label = "Options"
     bl_parent_id = 'VIEW3D_PT_shading'
 
+    @classmethod
+    def poll(cls, context):
+        shading = VIEW3D_PT_shading.get_shading(context)
+        return shading.type in {'WIREFRAME', 'SOLID'}
+
     def draw(self, context):
         layout = self.layout
 
@@ -5089,7 +5094,7 @@ class VIEW3D_PT_shading_options(Panel):
 
         col = layout.column()
 
-        if shading.type != 'WIREFRAME':
+        if shading.type == 'SOLID':
             col.prop(shading, "show_backface_culling")
 
         row = col.row(align=True)

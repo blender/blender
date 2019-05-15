@@ -2850,7 +2850,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (Material *mat = bmain->materials.first; mat; mat = mat->id.next) {
-      mat->blend_flag &= ~(MA_BL_FLAG_UNUSED_2);
+      mat->blend_flag &= ~(1 << 2); /* UNUSED */
     }
   }
 

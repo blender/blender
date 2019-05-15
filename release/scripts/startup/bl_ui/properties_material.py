@@ -212,6 +212,7 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
+        layout.prop(mat, "use_backface_culling")
         layout.prop(mat, "blend_method")
         layout.prop(mat, "shadow_method")
 

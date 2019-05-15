@@ -791,6 +791,12 @@ void RNA_def_material(BlenderRNA *brna)
                            "(avoids transparency sorting problems)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+  prop = RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_CULL_BACKFACE);
+  RNA_def_property_ui_text(
+      prop, "Backface Culling", "Use back face culling to hide the back side of faces");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
   prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_SS_REFRACTION);
   RNA_def_property_ui_text(

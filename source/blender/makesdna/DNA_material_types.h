@@ -316,7 +316,7 @@ enum {
 enum {
   MA_BL_HIDE_BACKFACE = (1 << 0),
   MA_BL_SS_REFRACTION = (1 << 1),
-  MA_BL_FLAG_UNUSED_2 = (1 << 2), /* cleared */
+  MA_BL_CULL_BACKFACE = (1 << 2),
   MA_BL_TRANSLUCENCY = (1 << 3),
 };
 
