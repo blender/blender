@@ -302,7 +302,7 @@ const bTheme U_theme_default = {
       .back = RGBA(0x333333f0),
       .sub_back = RGBA(0x0000003e),
     },
-    .grid = RGBA(0xa7a7a733),
+    .grid = RGBA(0x0000004d),
     .wire = RGBA(0x000000ff),
     .wire_edit = RGBA(0x000000ff),
     .select = RGBA(0xcc5d00ff),
