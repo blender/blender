@@ -270,6 +270,7 @@ float outliner_restrict_columns_width(const SpaceOutliner *soops)
   switch (soops->outlinevis) {
     case SO_DATA_API:
     case SO_SEQUENCE:
+    case SO_LIBRARIES:
       return 0.0f;
     case SO_ID_ORPHANS:
       num_columns = 3;
@@ -286,18 +287,16 @@ float outliner_restrict_columns_width(const SpaceOutliner *soops)
       if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
         num_columns++;
       }
-      if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+      if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
         num_columns++;
       }
-      if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
+      if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
         num_columns++;
       }
       if (soops->show_restrict_flags & SO_RESTRICT_RENDER) {
         num_columns++;
       }
       break;
-    case SO_LIBRARIES:
-      return 0.0f;
   }
   return (num_columns * UI_UNIT_X + V2D_SCROLL_WIDTH);
 }
