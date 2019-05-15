@@ -38,7 +38,7 @@ class TOPBAR_HT_upper_bar(Header):
         window = context.window
         screen = context.screen
 
-        layout.operator("wm.splash", text="", icon='BLENDER', emboss=False)
+        layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
 
         TOPBAR_MT_editor_menus.draw_collapsible(context, layout)
 
@@ -167,32 +167,17 @@ class TOPBAR_MT_editor_menus(Menu):
         layout.menu("TOPBAR_MT_help")
 
 
-class TOPBAR_MT_file(Menu):
-    bl_label = "File"
+class TOPBAR_MT_app(Menu):
+    bl_label = "Application"
 
     def draw(self, context):
         layout = self.layout
         prefs = context.preferences
 
-        layout.operator_context = 'INVOKE_AREA'
-        layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
-        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.menu("TOPBAR_MT_file_open_recent")
-        layout.operator("wm.revert_mainfile")
-        layout.operator("wm.recover_last_session")
-        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
+        layout.operator("wm.splash", icon='BLENDER')
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA' if context.blend_data.is_saved else 'INVOKE_AREA'
-        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
-
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save As...")
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
-
-        layout.separator()
         layout.operator_context = 'INVOKE_AREA'
 
         if any(bpy.utils.app_template_paths()):
@@ -223,6 +208,42 @@ class TOPBAR_MT_file(Menu):
 
         layout.separator()
 
+        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_AREA'
+        if bpy.data.is_dirty:
+            layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
+        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
+
+
+class TOPBAR_MT_file(Menu):
+    bl_label = "File"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_AREA'
+        layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
+        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+        layout.menu("TOPBAR_MT_file_open_recent")
+        layout.operator("wm.revert_mainfile")
+        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_AREA' if context.blend_data.is_saved else 'INVOKE_AREA'
+        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
+
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.save_as_mainfile", text="Save As...")
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
+
+        layout.separator()
+
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
         layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
@@ -236,13 +257,6 @@ class TOPBAR_MT_file(Menu):
         layout.separator()
 
         layout.menu("TOPBAR_MT_file_external_data")
-
-        layout.separator()
-
-        layout.operator_context = 'EXEC_AREA'
-        if bpy.data.is_dirty:
-            layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
-        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
 class TOPBAR_MT_file_new(Menu):
@@ -447,10 +461,6 @@ class TOPBAR_MT_edit(Menu):
         # Should move elsewhere (impacts outliner & 3D view).
         tool_settings = context.tool_settings
         layout.prop(tool_settings, "lock_object_mode")
-
-        layout.separator()
-
-        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):
@@ -713,6 +723,7 @@ classes = (
     TOPBAR_MT_file_context_menu,
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
+    TOPBAR_MT_app,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
     TOPBAR_MT_templates_more,
