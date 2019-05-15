@@ -1206,6 +1206,10 @@ static int object_light_add_exec(bContext *C, wmOperator *op)
   la = (Light *)ob->data;
   la->type = type;
 
+  if (type == LA_SUN) {
+    la->energy = 1.0f;
+  }
+
   return OPERATOR_FINISHED;
 }
 
