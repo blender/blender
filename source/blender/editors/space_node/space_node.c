@@ -998,7 +998,7 @@ void ED_spacetype_node(void)
   /* regions: listview/buttons */
   art = MEM_callocN(sizeof(ARegionType), "spacetype node region");
   art->regionid = RGN_TYPE_UI;
-  art->prefsizex = 180;  // XXX
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = node_region_listener;
   art->init = node_buttons_region_init;

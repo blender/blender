@@ -891,7 +891,7 @@ void ED_spacetype_ipo(void)
   /* regions: UI buttons */
   art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
   art->regionid = RGN_TYPE_UI;
-  art->prefsizex = 200;
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = graph_region_listener;
   art->init = graph_buttons_region_init;

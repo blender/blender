@@ -45,9 +45,9 @@
 #include "WM_types.h"
 #include "WM_message.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_interface.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -899,7 +899,7 @@ void ED_spacetype_action(void)
   /* regions: UI buttons */
   art = MEM_callocN(sizeof(ARegionType), "spacetype action region");
   art->regionid = RGN_TYPE_UI;
-  art->prefsizex = 200;
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
   art->listener = action_region_listener;
   art->init = action_buttons_area_init;

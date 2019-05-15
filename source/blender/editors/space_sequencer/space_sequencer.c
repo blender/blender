@@ -832,7 +832,7 @@ void ED_spacetype_sequencer(void)
   /* regions: listview/buttons */
   art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
   art->regionid = RGN_TYPE_UI;
-  art->prefsizex = 220;  // XXX
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = sequencer_buttons_region_listener;
   art->init = sequencer_buttons_region_init;
