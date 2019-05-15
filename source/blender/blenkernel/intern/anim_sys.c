@@ -1893,6 +1893,10 @@ static void animsys_evaluate_fcurves(Depsgraph *depsgraph,
     if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))) {
       continue;
     }
+    /* Skip empty curves, as if muted. */
+    if (fcu->totvert == 0) {
+      continue;
+    }
     PathResolvedRNA anim_rna;
     if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
@@ -2005,7 +2009,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
   /* calculate then execute each curve */
   for (fcu = agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu = fcu->next) {
     /* check if this curve should be skipped */
-    if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
+    if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0 && fcu->totvert != 0) {
       PathResolvedRNA anim_rna;
       if (animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
@@ -3101,6 +3105,9 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr,
     if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
       continue;
     }
+    if (fcu->totvert == 0) {
+      continue;
+    }
 
     /* evaluate the F-Curve's value for the time given in the strip
      * NOTE: we use the modified time here, since strip's F-Curve Modifiers
@@ -3325,6 +3332,9 @@ static void nla_eval_domain_action(PointerRNA *ptr,
       continue;
     }
     if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) {
+      continue;
+    }
+    if (fcu->totvert == 0) {
       continue;
     }
 

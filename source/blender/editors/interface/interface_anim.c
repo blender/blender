@@ -82,6 +82,11 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 
   if (fcu) {
     if (!driven) {
+      /* Empty curves are ignored by the animation evaluation system. */
+      if (fcu->totvert == 0) {
+        return;
+      }
+
       but->flag |= UI_BUT_ANIMATED;
 
       /* T41525 - When the active action is a NLA strip being edited,
