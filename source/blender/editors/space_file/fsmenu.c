@@ -47,7 +47,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-
 #ifdef __APPLE__
 #  include <Carbon/Carbon.h>
 #endif /* __APPLE__ */

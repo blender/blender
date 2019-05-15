@@ -570,8 +570,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      FAKE_SELECT_MODE_BEGIN (vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX)
-        ;
+      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX);
 
       edbm_select_pick_cache_alloc(bases_len);
       edbm_select_pick_draw_bases(vc, bases, bases_len, select_mode);
@@ -790,8 +789,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      FAKE_SELECT_MODE_BEGIN (vc, fake_select_mode, select_mode, SCE_SELECT_EDGE)
-        ;
+      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
 
       edbm_select_pick_cache_alloc(bases_len);
       edbm_select_pick_draw_bases(vc, bases, bases_len, select_mode);
@@ -994,8 +992,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     BMFace *efa;
 
     {
-      FAKE_SELECT_MODE_BEGIN (vc, fake_select_mode, select_mode, SCE_SELECT_FACE)
-        ;
+      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_FACE);
 
       edbm_select_pick_cache_alloc(bases_len);
       edbm_select_pick_draw_bases(vc, bases, bases_len, select_mode);
