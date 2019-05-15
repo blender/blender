@@ -35,9 +35,6 @@
 
 #include "ED_fileselect.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
 #  include <windows.h>
@@ -46,6 +43,10 @@
 #  include <shlobj.h>
 #  include "BLI_winstuff.h"
 #endif
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 
 #ifdef __APPLE__
 #  include <Carbon/Carbon.h>
