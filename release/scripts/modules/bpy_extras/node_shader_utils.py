@@ -446,8 +446,32 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     transmission_texture = property(transmission_texture_get)
 
 
-    # TODO: Do we need more complex handling for alpha (allowing masking and such)?
-    #       Would need extra mixing nodes onto Base Color maybe, or even its own shading chain...
+    def alpha_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 1.0
+        return self.node_principled_bsdf.inputs["Alpha"].default_value
+
+    @_set_check
+    def alpha_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Alpha"].default_value = value
+
+    alpha = property(alpha_get, alpha_set)
+
+
+    # Will only be used as gray-scale one...
+    def alpha_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Alpha"],
+            grid_row_diff=-1,
+        )
+
+    alpha_texture = property(alpha_texture_get)
+
+
 
     # --------------------------------------------------------------------
     # Normal map.
