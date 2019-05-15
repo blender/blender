@@ -130,15 +130,6 @@ class AnnotationDrawingToolsPanel:
 
         gpencil_stroke_placement_settings(context, col)
 
-        gpd = context.gpencil_data
-
-        if gpd and not is_3d_view:
-            layout.separator()
-            layout.separator()
-
-            col = layout.column(align=True)
-            col.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", toggle=True)  # was: icon='EDIT'
-
 
 class GreasePencilStrokeEditPanel:
     # subclass must set
@@ -801,18 +792,6 @@ class GreasePencilToolsPanel:
         layout = self.layout
 
         gpd = context.gpencil_data
-
-        layout.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", icon='EDIT', toggle=True)
-
-        layout.separator()
-
-        layout.label(text="Proportional Edit:")
-        row = layout.row()
-        row.prop(context.tool_settings, "use_proportional_edit", text="")
-        row.prop(context.tool_settings, "proportional_edit_falloff", text="")
-
-        layout.separator()
-        layout.separator()
 
         gpencil_active_brush_settings_simple(context, layout)
 
