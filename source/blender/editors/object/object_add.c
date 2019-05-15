@@ -161,6 +161,18 @@ static EnumPropertyItem lightprobe_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+enum ObjectAlign {
+  ALIGN_WORLD,
+  ALIGN_VIEW,
+  ALIGN_CURSOR,
+} ALIGN_OPTIONS;
+
+static const EnumPropertyItem align_options[] = {
+    {ALIGN_WORLD, "WORLD", 0, "World", "Align the new object to the world"},
+    {ALIGN_VIEW, "VIEW", 0, "View", "Align the new object to the view"},
+    {ALIGN_CURSOR, "CURSOR", 0, "3D Cursor", "Use the 3D cursor orientation for the new object"},
+    {0, NULL, 0, NULL, NULL}};
+
 /************************** Exported *****************************/
 
 void ED_object_location_from_view(bContext *C, float loc[3])
@@ -291,16 +303,15 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
 {
   PropertyRNA *prop;
 
-  /* note: this property gets hidden for add-camera operator */
-  prop = RNA_def_boolean(
-      ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
-  RNA_def_property_update_runtime(prop, view_align_update);
-
   if (do_editmode) {
     prop = RNA_def_boolean(
         ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
+  /* note: this property gets hidden for add-camera operator */
+  prop = RNA_def_enum(
+      ot->srna, "align", align_options, ALIGN_WORLD, "Align", "The alignment of the new object");
+  RNA_def_property_update_runtime(prop, view_align_update);
 
   prop = RNA_def_float_vector_xyz(ot->srna,
                                   "location",
@@ -392,23 +403,42 @@ bool ED_object_add_generic_get_opts(bContext *C,
       rot = _rot;
     }
 
+    prop = RNA_struct_find_property(op->ptr, "align");
+    int alignment = RNA_property_enum_get(op->ptr, prop);
+    bool alignment_set = RNA_property_is_set(op->ptr, prop);
+
     if (RNA_struct_property_is_set(op->ptr, "rotation")) {
       *is_view_aligned = false;
     }
-    else if (RNA_struct_property_is_set(op->ptr, "view_align")) {
-      *is_view_aligned = RNA_boolean_get(op->ptr, "view_align");
+    else if (alignment_set) {
+      *is_view_aligned = alignment == ALIGN_VIEW;
     }
     else {
       *is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
-      RNA_boolean_set(op->ptr, "view_align", *is_view_aligned);
+      if (*is_view_aligned) {
+        RNA_property_enum_set(op->ptr, prop, ALIGN_VIEW);
+        alignment = ALIGN_VIEW;
+      }
+      else if (U.flag & USER_ADD_CURSORALIGNED) {
+        RNA_property_enum_set(op->ptr, prop, ALIGN_CURSOR);
+        alignment = ALIGN_CURSOR;
+      }
     }
 
-    if (*is_view_aligned) {
-      ED_object_rotation_from_view(C, rot, view_align_axis);
-      RNA_float_set_array(op->ptr, "rotation", rot);
-    }
-    else {
-      RNA_float_get_array(op->ptr, "rotation", rot);
+    switch (alignment) {
+      case ALIGN_WORLD:
+        RNA_float_get_array(op->ptr, "rotation", rot);
+        break;
+      case ALIGN_VIEW:
+        ED_object_rotation_from_view(C, rot, view_align_axis);
+        RNA_float_set_array(op->ptr, "rotation", rot);
+        break;
+      case ALIGN_CURSOR: {
+        const Scene *scene = CTX_data_scene(C);
+        copy_v3_v3(rot, scene->cursor.rotation_euler);
+        RNA_float_set_array(op->ptr, "rotation", rot);
+        break;
+      }
     }
   }
 
@@ -690,7 +720,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
 
   /* force view align for cameras */
-  RNA_boolean_set(op->ptr, "view_align", true);
+  RNA_enum_set(op->ptr, "align", ALIGN_VIEW);
 
   if (!ED_object_add_generic_get_opts(
           C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL)) {
@@ -732,7 +762,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
   ED_object_add_generic_props(ot, true);
 
   /* hide this for cameras, default */
-  prop = RNA_struct_type_find_property(ot->srna, "view_align");
+  prop = RNA_struct_type_find_property(ot->srna, "align");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

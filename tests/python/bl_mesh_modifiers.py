@@ -582,7 +582,7 @@ cube_shell_face = (
 
 
 def make_cube(scene):
-    bpy.ops.mesh.primitive_cube_add(view_align=False,
+    bpy.ops.mesh.primitive_cube_add(align='WORLD',
                                     enter_editmode=False,
                                     location=(0, 0, 0),
                                     rotation=(0, 0, 0),
@@ -652,7 +652,7 @@ def make_cube_shell_extra(scene):
 
 
 def make_monkey(scene):
-    bpy.ops.mesh.primitive_monkey_add(view_align=False,
+    bpy.ops.mesh.primitive_monkey_add(align='WORLD',
                                       enter_editmode=False,
                                       location=(0, 0, 0),
                                       rotation=(0, 0, 0),

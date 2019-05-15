@@ -912,7 +912,7 @@ class LoadImageAsEmpty:
             'INVOKE_REGION_WIN',
             type='IMAGE',
             location=cursor,
-            view_align=self.view_align,
+            align=('VIEW' if self.view_align else 'WORLD'),
         )
 
         obj = context.active_object

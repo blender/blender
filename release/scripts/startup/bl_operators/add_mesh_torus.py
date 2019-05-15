@@ -202,7 +202,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         col = layout.column(align=True)
         col.prop(self, "generate_uvs")
         col.separator()
-        col.prop(self, "view_align")
+        col.prop(self, "align")
 
         col = layout.column(align=True)
         col.label(text="Location")

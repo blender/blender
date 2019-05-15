@@ -4347,7 +4347,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
        "VIEW",
        0,
        "View",
-       "Align newly added objects facing the active 3D View direction"},
+       "Align newly added objects to the active 3D View direction"},
+      {USER_ADD_CURSORALIGNED,
+       "CURSOR",
+       0,
+       "3D Cursor",
+       "Align newly added objects to the 3D Cursor's rotation"},
       {0, NULL, 0, NULL, NULL},
   };
 

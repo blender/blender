@@ -833,7 +833,7 @@ typedef enum eUserPref_Flag {
   USER_TOOLTIPS = (1 << 11),
   USER_TWOBUTTONMOUSE = (1 << 12),
   USER_NONUMPAD = (1 << 13),
-  USER_FLAG_UNUSED_14 = (1 << 14), /* cleared */
+  USER_ADD_CURSORALIGNED = (1 << 14),
   USER_FILECOMPRESS = (1 << 15),
   USER_SAVE_PREVIEWS = (1 << 16),
   USER_CUSTOM_RANGE = (1 << 17),

@@ -34,6 +34,7 @@ import bpy
 from bpy.props import (
     BoolProperty,
     FloatVectorProperty,
+    EnumProperty,
 )
 
 
@@ -66,35 +67,31 @@ def add_object_align_init(context, operator):
             properties.location = location.to_translation()
 
     # rotation
-    view_align = (context.preferences.edit.object_align == 'VIEW')
-    view_align_force = False
+    add_align_preference = context.preferences.edit.object_align
     if operator:
-        if properties.is_property_set("view_align"):
-            view_align = view_align_force = operator.view_align
-        else:
-            if properties.is_property_set("rotation"):
-                # ugh, 'view_align' callback resets
-                value = properties.rotation[:]
-                properties.view_align = view_align
-                properties.rotation = value
-                del value
-            else:
-                properties.view_align = view_align
+        if not properties.is_property_set("rotation"):
+            # So one of "align" and "rotation" will be set
+            properties.align = add_align_preference
 
-    if operator and (properties.is_property_set("rotation") and
-                     not view_align_force):
-
-        rotation = Euler(properties.rotation).to_matrix().to_4x4()
-    else:
-        if view_align and space_data:
+        if properties.align == 'WORLD':
+            rotation = properties.rotation.to_matrix().to_4x4()
+        elif properties.align == 'VIEW':
             rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
             rotation.resize_4x4()
+            properties.rotation = rotation.to_euler()
+        elif properties.align == 'CURSOR':
+            rotation = context.scene.cursor.rotation_euler.to_matrix().to_4x4()
+            properties.rotation = rotation.to_euler()
+        else:
+            rotation = properties.rotation.to_matrix().to_4x4()
+    else:
+        if (add_align_preference == 'VIEW') and space_data:
+            rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
+            rotation.resize_4x4()
+        elif add_align_preference == 'CURSOR':
+            rotation = context.scene.cursor.rotation_euler.to_matrix().to_4x4()
         else:
             rotation = Matrix()
-
-        # set the operator properties
-        if operator:
-            properties.rotation = rotation.to_euler()
 
     return location @ rotation
 
@@ -168,14 +165,20 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 
 class AddObjectHelper:
-    def view_align_update_callback(self, _context):
-        if not self.view_align:
+    def align_update_callback(self, _context):
+        if self.align == 'WORLD':
             self.rotation.zero()
 
-    view_align: BoolProperty(
-        name="Align to View",
-        default=False,
-        update=view_align_update_callback,
+    align_items = (
+        ('WORLD', "World", "Align the new object to the world"),
+        ('VIEW', "View", "Align the new object to the view"),
+        ('CURSOR', "3D Cursor", "Use the 3D cursor orientation for the new object")
+    )
+    align: EnumProperty(
+        name="Align",
+        items=align_items,
+        default='WORLD',
+        update=align_update_callback,
     )
     location: FloatVectorProperty(
         name="Location",
