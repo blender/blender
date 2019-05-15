@@ -106,6 +106,11 @@ bool GPU_matrix_unproject(const float win[3],
                           const float proj[4][4],
                           const int view[4],
                           float world[3]);
+void GPU_matrix_unproject_model_inverted(const float win[3],
+                                         const float model_inverted[4][4],
+                                         const float proj[4][4],
+                                         const int view[4],
+                                         float world[3]);
 
 /* 2D Projection Matrix */
 

@@ -502,19 +502,13 @@ static void gpu_mul_invert_projmat_m4_unmapped_v3(const float projmat[4][4], flo
   co[2] *= -1;
 }
 
-bool GPU_matrix_unproject(const float win[3],
-                          const float model[4][4],
-                          const float proj[4][4],
-                          const int view[4],
-                          float world[3])
+void GPU_matrix_unproject_model_inverted(const float win[3],
+                                         const float model_inverted[4][4],
+                                         const float proj[4][4],
+                                         const int view[4],
+                                         float world[3])
 {
   float in[3];
-  float viewinv[4][4];
-
-  if (!invert_m4_m4(viewinv, model)) {
-    zero_v3(world);
-    return false;
-  }
 
   copy_v3_v3(in, win);
 
@@ -523,8 +517,22 @@ bool GPU_matrix_unproject(const float win[3],
   in[1] = (in[1] - view[1]) / view[3];
 
   gpu_mul_invert_projmat_m4_unmapped_v3(proj, in);
-  mul_v3_m4v3(world, viewinv, in);
+  mul_v3_m4v3(world, model_inverted, in);
+}
 
+bool GPU_matrix_unproject(const float win[3],
+                          const float model[4][4],
+                          const float proj[4][4],
+                          const int view[4],
+                          float world[3])
+{
+  float model_inverted[4][4];
+
+  if (!invert_m4_m4(model_inverted, model)) {
+    zero_v3(world);
+    return false;
+  }
+  GPU_matrix_unproject_model_inverted(win, model_inverted, proj, view, world);
   return true;
 }
 
