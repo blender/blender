@@ -1131,6 +1131,9 @@ static void view3d_header_region_listener(wmWindow *UNUSED(win),
         ED_region_tag_redraw(ar);
       }
       break;
+    case NC_BRUSH:
+      ED_region_tag_redraw(ar);
+      break;
   }
 
     /* From topbar, which ones are needed? split per header? */
