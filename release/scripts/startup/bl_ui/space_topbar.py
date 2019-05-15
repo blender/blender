@@ -562,6 +562,8 @@ class TOPBAR_MT_help(Menu):
 
             layout.operator("wm.operator_cheat_sheet", icon='TEXT')
 
+            layout.separator()
+
         layout.operator("wm.sysinfo")
 
 
