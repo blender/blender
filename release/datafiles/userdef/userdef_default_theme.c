@@ -253,7 +253,7 @@ const bTheme U_theme_default = {
     .icon_object = RGBA(0xee9e5dff),
     .icon_object_data = RGBA(0x00d4a3ff),
     .icon_modifier = RGBA(0x84b8ffff),
-    .icon_shading = RGBA(0xff6060ff),
+    .icon_shading = RGBA(0xea7581ff),
   },
   .space_properties = {
     .back = RGBA(0x42424200),
