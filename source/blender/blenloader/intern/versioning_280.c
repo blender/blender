@@ -3376,12 +3376,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        if (ELEM(sa->spacetype, SPACE_CLIP, SPACE_GRAPH, SPACE_SEQ)) {
-          for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+          if (ELEM(sl->spacetype, SPACE_CLIP, SPACE_GRAPH, SPACE_SEQ)) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 
             ARegion *ar = NULL;
-            if (sa->spacetype == SPACE_CLIP) {
+            if (sl->spacetype == SPACE_CLIP) {
               if (((SpaceClip *)sl)->view == SC_VIEW_GRAPH) {
                 ar = do_versions_find_region(regionbase, RGN_TYPE_PREVIEW);
               }
