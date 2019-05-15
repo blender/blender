@@ -3418,5 +3418,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       arm->flag &= ~(ARM_FLAG_UNUSED_7 | ARM_FLAG_UNUSED_9);
     }
+
+    /* Initializes sun lights with the new angular diameter property */
+    if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "sun_angle")) {
+      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+        light->sun_angle = 2.0f * atanf(light->area_size);
+      }
+    }
   }
 }

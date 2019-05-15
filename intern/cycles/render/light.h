@@ -47,6 +47,7 @@ class Light : public Node {
 
   float3 dir;
   float size;
+  float angle;
 
   float3 axisu;
   float sizeu;

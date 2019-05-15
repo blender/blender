@@ -149,7 +149,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     // }
     case BL::Light::type_SUN: {
       BL::SunLight b_sun_light(b_light);
-      light->size = b_sun_light.shadow_soft_size();
+      light->angle = b_sun_light.angle();
       light->type = LIGHT_DISTANT;
       break;
     }

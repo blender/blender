@@ -1345,8 +1345,10 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         col.prop(light, "energy")
         col.separator()
 
-        if light.type in {'POINT', 'SUN', 'SPOT'}:
+        if light.type in {'POINT', 'SPOT'}:
             col.prop(light, "shadow_soft_size", text="Size")
+        elif light.type == 'SUN':
+            col.prop(light, "angle")
         elif light.type == 'AREA':
             col.prop(light, "shape", text="Shape")
             sub = col.column(align=True)

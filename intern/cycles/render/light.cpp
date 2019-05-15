@@ -398,11 +398,18 @@ void LightManager::device_update_distribution(Device *,
     distribution[offset].lamp.size = light->size;
     totarea += lightarea;
 
-    if (light->size > 0.0f && light->use_mis)
-      use_lamp_mis = true;
-    if (light->type == LIGHT_BACKGROUND) {
+    if (light->type == LIGHT_DISTANT) {
+      use_lamp_mis |= (light->angle > 0.0f && light->use_mis);
+    }
+    else if (light->type == LIGHT_POINT || light->type == LIGHT_SPOT) {
+      use_lamp_mis |= (light->size > 0.0f && light->use_mis);
+    }
+    else if (light->type == LIGHT_AREA) {
+      use_lamp_mis |= light->use_mis;
+    }
+    else if (light->type == LIGHT_BACKGROUND) {
       num_background_lights++;
-      background_mis = light->use_mis;
+      background_mis |= light->use_mis;
     }
 
     light_index++;
@@ -725,8 +732,8 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
     else if (light->type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      float radius = light->size;
-      float angle = atanf(radius);
+      float angle = light->angle / 2.0f;
+      float radius = tanf(angle);
       float cosangle = cosf(angle);
       float area = M_PI_F * radius * radius;
       float invarea = (area > 0.0f) ? 1.0f / area : 1.0f;
