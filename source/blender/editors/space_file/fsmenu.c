@@ -35,6 +35,9 @@
 
 #include "ED_fileselect.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
 #  include <windows.h>
@@ -721,31 +724,59 @@ void fsmenu_refresh_system_category(struct FSMenu *fsmenu)
   fsmenu_read_system(fsmenu, true);
 }
 
-void fsmenu_refresh_bookmarks_status(struct FSMenu *fsmenu)
+static void fsmenu_free_ex(FSMenu **fsmenu)
 {
-  int categories[] = {
-      FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT};
-  int i;
-
-  for (i = sizeof(categories) / sizeof(*categories); i--;) {
-    FSMenuEntry *fsm_iter = ED_fsmenu_get_category(fsmenu, categories[i]);
-    for (; fsm_iter; fsm_iter = fsm_iter->next) {
-      fsmenu_entry_refresh_valid(fsm_iter);
-    }
+  if (*fsmenu != NULL) {
+    fsmenu_free_category(*fsmenu, FS_CATEGORY_SYSTEM);
+    fsmenu_free_category(*fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
+    fsmenu_free_category(*fsmenu, FS_CATEGORY_BOOKMARKS);
+    fsmenu_free_category(*fsmenu, FS_CATEGORY_RECENT);
+    MEM_freeN(*fsmenu);
   }
+
+  *fsmenu = NULL;
 }
 
 void fsmenu_free(void)
 {
-  if (g_fsmenu) {
-    fsmenu_free_category(g_fsmenu, FS_CATEGORY_SYSTEM);
-    fsmenu_free_category(g_fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS);
-    fsmenu_free_category(g_fsmenu, FS_CATEGORY_BOOKMARKS);
-    fsmenu_free_category(g_fsmenu, FS_CATEGORY_RECENT);
-    MEM_freeN(g_fsmenu);
+  fsmenu_free_ex(&g_fsmenu);
+}
+
+static void fsmenu_copy_category(struct FSMenu *fsmenu_dst,
+                                 struct FSMenu *fsmenu_src,
+                                 const FSMenuCategory category)
+{
+  FSMenuEntry *fsm_dst_prev = NULL, *fsm_dst_head = NULL;
+  FSMenuEntry *fsm_src_iter = ED_fsmenu_get_category(fsmenu_src, category);
+
+  for (; fsm_src_iter != NULL; fsm_src_iter = fsm_src_iter->next) {
+    FSMenuEntry *fsm_dst = MEM_dupallocN(fsm_src_iter);
+    if (fsm_dst->path != NULL) {
+      fsm_dst->path = MEM_dupallocN(fsm_dst->path);
+    }
+
+    if (fsm_dst_prev != NULL) {
+      fsm_dst_prev->next = fsm_dst;
+    }
+    else {
+      fsm_dst_head = fsm_dst;
+    }
+    fsm_dst_prev = fsm_dst;
   }
 
-  g_fsmenu = NULL;
+  ED_fsmenu_set_category(fsmenu_dst, category, fsm_dst_head);
+}
+
+static FSMenu *fsmenu_copy(FSMenu *fsmenu)
+{
+  FSMenu *fsmenu_copy = MEM_dupallocN(fsmenu);
+
+  fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_SYSTEM);
+  fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_SYSTEM_BOOKMARKS);
+  fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_BOOKMARKS);
+  fsmenu_copy_category(fsmenu_copy, fsmenu_copy, FS_CATEGORY_RECENT);
+
+  return fsmenu_copy;
 }
 
 int fsmenu_get_active_indices(struct FSMenu *fsmenu, enum FSMenuCategory category, const char *dir)
@@ -760,4 +791,100 @@ int fsmenu_get_active_indices(struct FSMenu *fsmenu, enum FSMenuCategory categor
   }
 
   return -1;
+}
+
+/* Thanks to some bookmarks sometimes being network drives that can have tens of seconds of delay
+ * before being defined as unreachable by the OS, we need to validate the bookmarks in an async
+ * job...
+ */
+static void fsmenu_bookmark_validate_job_startjob(void *fsmenuv,
+                                                  short *stop,
+                                                  short *do_update,
+                                                  float *UNUSED(progress))
+{
+  FSMenu *fsmenu = fsmenuv;
+
+  int categories[] = {
+      FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT};
+
+  for (size_t i = ARRAY_SIZE(categories); i--;) {
+    FSMenuEntry *fsm_iter = ED_fsmenu_get_category(fsmenu, categories[i]);
+    for (; fsm_iter; fsm_iter = fsm_iter->next) {
+      if (*stop) {
+        return;
+      }
+      /* Note that we do not really need atomics primitives or thread locks here, since this only
+       * sets one short, which is assumed to be 'atomic'-enough for us here. */
+      fsmenu_entry_refresh_valid(fsm_iter);
+      *do_update = true;
+    }
+  }
+}
+
+static void fsmenu_bookmark_validate_job_update(void *fsmenuv)
+{
+  FSMenu *fsmenu_job = fsmenuv;
+
+  int categories[] = {
+      FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS, FS_CATEGORY_RECENT};
+
+  for (size_t i = ARRAY_SIZE(categories); i--;) {
+    FSMenuEntry *fsm_iter_src = ED_fsmenu_get_category(fsmenu_job, categories[i]);
+    FSMenuEntry *fsm_iter_dst = ED_fsmenu_get_category(ED_fsmenu_get(), categories[i]);
+    for (; fsm_iter_dst != NULL; fsm_iter_dst = fsm_iter_dst->next) {
+      while (fsm_iter_src != NULL && !STREQ(fsm_iter_dst->path, fsm_iter_src->path)) {
+        fsm_iter_src = fsm_iter_src->next;
+      }
+      if (fsm_iter_src == NULL) {
+        return;
+      }
+      fsm_iter_dst->valid = fsm_iter_src->valid;
+    }
+  }
+}
+
+static void fsmenu_bookmark_validate_job_end(void *fsmenuv)
+{
+  /* In case there would be some dangling update... */
+  fsmenu_bookmark_validate_job_update(fsmenuv);
+}
+
+static void fsmenu_bookmark_validate_job_free(void *fsmenuv)
+{
+  FSMenu *fsmenu = fsmenuv;
+  fsmenu_free_ex(&fsmenu);
+}
+
+static void fsmenu_bookmark_validate_job_start(wmWindowManager *wm)
+{
+  wmJob *wm_job;
+  FSMenu *fsmenu_job = fsmenu_copy(g_fsmenu);
+
+  /* setup job */
+  wm_job = WM_jobs_get(
+      wm, wm->winactive, wm, "Validating Bookmarks...", 0, WM_JOB_TYPE_FSMENU_BOOKMARK_VALIDATE);
+  WM_jobs_customdata_set(wm_job, fsmenu_job, fsmenu_bookmark_validate_job_free);
+  WM_jobs_timer(wm_job, 0.01, NC_SPACE | ND_SPACE_FILE_LIST, NC_SPACE | ND_SPACE_FILE_LIST);
+  WM_jobs_callbacks(wm_job,
+                    fsmenu_bookmark_validate_job_startjob,
+                    NULL,
+                    fsmenu_bookmark_validate_job_update,
+                    fsmenu_bookmark_validate_job_end);
+
+  /* start the job */
+  WM_jobs_start(wm, wm_job);
+}
+
+static void fsmenu_bookmark_validate_job_stop(wmWindowManager *wm)
+{
+  WM_jobs_kill_type(wm, wm, WM_JOB_TYPE_FSMENU_BOOKMARK_VALIDATE);
+}
+
+void fsmenu_refresh_bookmarks_status(wmWindowManager *wm, FSMenu *fsmenu)
+{
+  BLI_assert(fsmenu == ED_fsmenu_get());
+  UNUSED_VARS_NDEBUG(fsmenu);
+
+  fsmenu_bookmark_validate_job_stop(wm);
+  fsmenu_bookmark_validate_job_start(wm);
 }

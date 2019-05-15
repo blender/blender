@@ -1011,7 +1011,7 @@ static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_make_file_string(
         "/", name, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(fsmenu, name);
-    fsmenu_refresh_bookmarks_status(fsmenu);
+    fsmenu_refresh_bookmarks_status(CTX_wm_manager(C), fsmenu);
     ED_area_tag_refresh(sa);
     ED_area_tag_redraw(sa);
   }
@@ -1566,6 +1566,9 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 
   /* refresh system directory menu */
   fsmenu_refresh_system_category(fsmenu);
+
+  /* Update bookmarks 'valid' state. */
+  fsmenu_refresh_bookmarks_status(wm, fsmenu);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
