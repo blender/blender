@@ -147,6 +147,25 @@ ToolDef.from_fn = from_fn
 del from_dict, from_fn, with_args
 
 
+class ToolActivePanelHelper:
+    # Sub-class must define.
+    # bl_space_type = 'VIEW_3D'
+    # bl_region_type = 'UI'
+    bl_label = "Active Tool"
+    # bl_category = "Tool"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        ToolSelectPanelHelper.draw_active_tool_header(
+            context,
+            layout,
+            show_tool_name=True,
+            tool_key=ToolSelectPanelHelper._tool_key_from_context(context, space_type=self.bl_space_type),
+        )
+
+
 class ToolSelectPanelHelper:
     """
     Generic Class, can be used for any toolbar.
@@ -544,12 +563,16 @@ class ToolSelectPanelHelper:
         self.draw_cls(self.layout, context)
 
     @staticmethod
-    def _tool_key_from_context(context):
-        space_data = context.space_data
-        space_type = space_data.type
+    def _tool_key_from_context(context, *, space_type=None):
+        if space_type is None:
+            space_data = context.space_data
+            space_type = space_data.type
+
         if space_type == 'VIEW_3D':
             return space_type, context.mode
         elif space_type == 'IMAGE_EDITOR':
+            if space_type is None:
+                space_data = context.space_data
             return space_type, space_data.mode
         elif space_type == 'NODE_EDITOR':
             return space_type, None

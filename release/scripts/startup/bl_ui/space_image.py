@@ -37,6 +37,10 @@ from .properties_paint_common import (
 from .properties_grease_pencil_common import (
     AnnotationDataPanel,
 )
+from .space_toolsystem_common import (
+    ToolActivePanelHelper,
+)
+
 from bpy.app.translations import pgettext_iface as iface_
 
 
@@ -55,23 +59,10 @@ class BrushButtonsPanel(UnifiedPaintPanel):
         return tool_settings.brush
 
 
-class IMAGE_PT_active_tool(Panel):
+class IMAGE_PT_active_tool(ToolActivePanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Active Tool"
     bl_category = "Tool"
-
-    def draw(self, context):
-        layout = self.layout
-
-        # Panel display of topbar tool settings.
-        # currently displays in tool settings, keep here since the same functionality is used for the topbar.
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        from .space_toolsystem_common import ToolSelectPanelHelper
-        ToolSelectPanelHelper.draw_active_tool_header(context, layout, show_tool_name=True)
 
 
 class IMAGE_MT_view(Menu):

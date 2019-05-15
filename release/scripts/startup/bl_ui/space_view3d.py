@@ -31,6 +31,9 @@ from .properties_grease_pencil_common import (
     AnnotationOnionSkin,
     GreasePencilMaterialsPanel,
 )
+from .space_toolsystem_common import (
+    ToolActivePanelHelper,
+)
 from bpy.app.translations import contexts as i18n_contexts
 
 
@@ -4712,30 +4715,10 @@ class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
 # ********** Panel **********
 
 
-class VIEW3D_PT_active_tool(Panel):
+class VIEW3D_PT_active_tool(Panel, ToolActivePanelHelper):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Active Tool"
     bl_category = "Tool"
-    # bl_context = ".active_tool"  # dot on purpose (access from tool settings)
-
-    def draw(self, context):
-        layout = self.layout
-        tool_mode = context.mode
-
-        # Panel display of topbar tool settings.
-        # currently displays in tool settings, keep here since the same functionality is used for the topbar.
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        from .space_toolsystem_common import ToolSelectPanelHelper
-        ToolSelectPanelHelper.draw_active_tool_header(
-            context,
-            layout,
-            show_tool_name=True,
-            tool_key=('VIEW_3D', tool_mode),
-        )
 
 
 class VIEW3D_PT_view3d_properties(Panel):
