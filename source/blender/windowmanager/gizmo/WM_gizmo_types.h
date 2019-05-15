@@ -198,6 +198,10 @@ struct wmGizmo {
   /** For single click button gizmos, use a different part as a fallback, -1 when unused. */
   int drag_part;
 
+  /** Distance to bias this gizmo above others when picking
+   * (in worldspace, scaled by the gizmo scale - when used). */
+  float select_bias;
+
   /**
    * Transformation of the gizmo in 2d or 3d space.
    * - Matrix axis are expected to be unit length (scale is applied after).

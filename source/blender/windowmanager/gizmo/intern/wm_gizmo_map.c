@@ -25,8 +25,10 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_rect.h"
 #include "BLI_ghash.h"
+#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -470,7 +472,8 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
 
 static void gizmo_draw_select_3D_loop(const bContext *C,
                                       ListBase *visible_gizmos,
-                                      const wmGizmo *gz_stop)
+                                      const wmGizmo *gz_stop,
+                                      bool *r_use_select_bias)
 {
   int select_id = 0;
   wmGizmo *gz;
@@ -511,6 +514,10 @@ static void gizmo_draw_select_3D_loop(const bContext *C,
       is_depth_skip_prev = is_depth_skip;
     }
 
+    if (gz->select_bias != 0.0) {
+      *r_use_select_bias = true;
+    }
+
     /* pass the selection id shifted by 8 bits. Last 8 bits are used for selected gizmo part id */
 
     gz->type->draw_select(C, gz, select_id << 8);
@@ -543,24 +550,68 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
   ED_view3d_draw_setup_view(
       CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
 
+  bool use_select_bias = false;
+
   GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
   /* do the drawing */
-  gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
+  gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop, &use_select_bias);
 
   hits = GPU_select_end();
 
   if (hits > 0) {
     GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
-    gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
+    gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop, &use_select_bias);
     GPU_select_end();
   }
 
   ED_view3d_draw_setup_view(
       CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
 
-  const GLuint *hit_near = GPU_select_buffer_near(buffer, hits);
+  if (use_select_bias && (hits > 1)) {
+    wmGizmo **gizmo_table = NULL;
+    BLI_array_staticdeclare(gizmo_table, 1024);
+    for (LinkData *link = visible_gizmos->first; link; link = link->next) {
+      BLI_array_append(gizmo_table, link->data);
+    }
+    float co_direction[3];
+    float co_screen[3] = {co[0], co[1], 0.0f};
+    ED_view3d_win_to_vector(ar, (float[2]){UNPACK2(co)}, co_direction);
 
-  return hit_near ? hit_near[3] : -1;
+    RegionView3D *rv3d = ar->regiondata;
+    const int viewport[4] = {0, 0, ar->winx, ar->winy};
+    float co_3d_origin[3];
+
+    GPU_matrix_unproject_model_inverted(
+        co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d_origin);
+
+    GLuint *buf_iter = buffer;
+    int hit_found = -1;
+    float dot_best = FLT_MAX;
+
+    for (int i = 0; i < hits; i++, buf_iter += 4) {
+      BLI_assert(buf_iter[3] != -1);
+      wmGizmo *gz = gizmo_table[buf_iter[3] >> 8];
+      float co_3d[3];
+      co_screen[2] = int_as_float(buf_iter[1]);
+      GPU_matrix_unproject_model_inverted(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
+      float select_bias = gz->select_bias;
+      if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
+        select_bias *= gz->scale_final;
+      }
+      sub_v3_v3(co_3d, co_3d_origin);
+      const float dot_test = dot_v3v3(co_3d, co_direction) - select_bias;
+      if (dot_best > dot_test) {
+        dot_best = dot_test;
+        hit_found = buf_iter[3];
+      }
+    }
+    BLI_array_free(gizmo_table);
+    return hit_found;
+  }
+  else {
+    const GLuint *hit_near = GPU_select_buffer_near(buffer, hits);
+    return hit_near ? hit_near[3] : -1;
+  }
 }
 
 /**
