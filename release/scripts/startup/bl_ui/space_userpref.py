@@ -34,15 +34,15 @@ class USERPREF_HT_header(Header):
     def draw_buttons(layout, context, *, is_vertical=False):
         prefs = context.preferences
 
+        layout.scale_x = 1.0
+        layout.scale_y = 1.0
+
         row = layout.row()
-
-        row.operator("wm.save_userpref", text="Save")
-        row_revert = row.row(align=True)
-        row_revert.active = prefs.is_dirty
-        row_revert.operator("wm.read_userpref", text="Revert")
-        layout.operator("wm.read_factory_userpref", text="Load Factory Settings")
-
-        layout.prop(prefs, "use_preferences_save")
+        row.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
+        if not prefs.use_preferences_save:
+            sub_revert = row.row(align=True)
+            sub_revert.active = prefs.is_dirty
+            sub_revert.operator("wm.save_userpref")
 
     def draw(self, context):
         layout = self.layout
@@ -70,6 +70,25 @@ class USERPREF_PT_navigation_bar(Panel):
         col.scale_x = 1.3
         col.scale_y = 1.3
         col.prop(prefs, "active_section", expand=True)
+
+
+class USERPREF_MT_save_load(Menu):
+    bl_label = "Save & Load"
+
+    def draw(self, context):
+        layout = self.layout
+
+        prefs = context.preferences
+
+        layout.prop(prefs, "use_preferences_save", text="Auto-Save Preferences")
+
+        layout.separator()
+        if prefs.use_preferences_save:
+            layout.operator("wm.save_userpref", text="Save Current State")
+        sub_revert = layout.column(align=True)
+        sub_revert.active = prefs.is_dirty
+        sub_revert.operator("wm.read_userpref", text="Revert to Saved")
+        layout.operator("wm.read_factory_userpref", text="Reset to Defaults")
 
 
 class USERPREF_PT_save_preferences(Panel):
@@ -2040,6 +2059,7 @@ classes = (
     USERPREF_HT_header,
     USERPREF_PT_navigation_bar,
     USERPREF_PT_save_preferences,
+    USERPREF_MT_save_load,
 
     USERPREF_PT_interface_display,
     USERPREF_PT_interface_editors,
