@@ -566,16 +566,16 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     const float GPU_VIEWPORT_QUALITY_TAA16 = 0.6f;
     const float GPU_VIEWPORT_QUALITY_TAA32 = 0.8f;
 
-    if (userdef->gpu_viewport_quality < GPU_VIEWPORT_QUALITY_FXAA) {
+    if (userdef->gpu_viewport_quality <= GPU_VIEWPORT_QUALITY_FXAA) {
       userdef->viewport_aa = SCE_DISPLAY_AA_OFF;
     }
-    else if (userdef->gpu_viewport_quality < GPU_VIEWPORT_QUALITY_TAA8) {
+    else if (userdef->gpu_viewport_quality <= GPU_VIEWPORT_QUALITY_TAA8) {
       userdef->viewport_aa = SCE_DISPLAY_AA_FXAA;
     }
-    else if (userdef->gpu_viewport_quality < GPU_VIEWPORT_QUALITY_TAA16) {
+    else if (userdef->gpu_viewport_quality <= GPU_VIEWPORT_QUALITY_TAA16) {
       userdef->viewport_aa = SCE_DISPLAY_AA_SAMPLES_8;
     }
-    else if (userdef->gpu_viewport_quality < GPU_VIEWPORT_QUALITY_TAA32) {
+    else if (userdef->gpu_viewport_quality <= GPU_VIEWPORT_QUALITY_TAA32) {
       userdef->viewport_aa = SCE_DISPLAY_AA_SAMPLES_16;
     }
     else {
