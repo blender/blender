@@ -310,6 +310,7 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
   if (BLI_findindex(&wm->keyconfigs, keyconf) != -1) {
     if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
       BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
+      U.runtime.is_dirty = true;
       WM_keyconfig_update_tag(NULL, NULL);
     }
 
@@ -360,6 +361,9 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
   WM_keyconfig_update(wm);
 
   BLI_strncpy(U.keyconfigstr, idname, sizeof(U.keyconfigstr));
+  if (wm->initialized & WM_KEYCONFIG_IS_INITIALIZED) {
+    U.runtime.is_dirty = true;
+  }
 
   WM_keyconfig_update_tag(NULL, NULL);
   WM_keyconfig_update(wm);
