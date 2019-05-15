@@ -1762,6 +1762,15 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     }
   }
   MAN_ITER_AXES_END;
+
+  /* Ensure rotate disks don't overlap scale arrows, especially in ortho view. */
+  float rotate_select_bias = 0.0f;
+  if ((ggd->twtype & V3D_GIZMO_SHOW_OBJECT_SCALE) && ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
+    rotate_select_bias = -2.0f;
+  }
+  for (int i = MAN_AXIS_RANGE_ROT_START; i < MAN_AXIS_RANGE_ROT_END; i++) {
+    ggd->gizmos[i]->select_bias = rotate_select_bias;
+  }
 }
 
 static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
