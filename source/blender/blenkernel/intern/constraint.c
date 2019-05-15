@@ -2422,7 +2422,8 @@ static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
     copy_v3_v3(input_co, cob->matrix[3]);
   }
 
-  /* Process all targets. */
+  /* Process all targets. This can't use ct->matrix, as armdef_get_tarmat is not
+   * called in solve for efficiency because the constraint needs bone data anyway. */
   for (bConstraintTarget *ct = targets->first; ct; ct = ct->next) {
     if (ct->weight <= 0.0f) {
       continue;
@@ -5616,6 +5617,11 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
      * - ct->matrix members have not yet been calculated here!
      */
     cti->get_constraint_targets(con, targets);
+
+    /* The Armature constraint doesn't need ct->matrix for evaluate at all. */
+    if (ELEM(cti->type, CONSTRAINT_TYPE_ARMATURE)) {
+      return;
+    }
 
     /* set matrices
      * - calculate if possible, otherwise just initialize as identity matrix
