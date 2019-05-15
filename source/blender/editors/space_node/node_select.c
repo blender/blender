@@ -495,7 +495,17 @@ static int node_mouse_select(bContext *C,
     }
   }
 
-  if (!sock) {
+  /* In case we do two-steps selection, we do not want to select the node if some valid socket
+   * is below the mouse, as that would prevent draging from sockets (NODE_OT_link)
+   * to be properly triggered. See T64660. */
+  if (wait_to_deselect_others) {
+    if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN) ||
+        node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
+      ret_value = OPERATOR_CANCELLED;
+    }
+  }
+
+  if (sock == NULL) {
     /* find the closest visible node */
     node = node_under_mouse_select(snode->edittree, (int)cursor[0], (int)cursor[1]);
 
