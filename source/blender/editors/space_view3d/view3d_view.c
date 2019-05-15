@@ -428,7 +428,7 @@ void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *ar)
      * can use them without redrawing first */
     Depsgraph *depsgraph = CTX_data_depsgraph(C);
     Scene *scene = CTX_data_scene(C);
-    ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL);
+    ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL, false);
   }
 }
 

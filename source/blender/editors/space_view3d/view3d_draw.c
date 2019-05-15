@@ -105,7 +105,8 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
                               ARegion *ar,
                               float viewmat[4][4],
                               float winmat[4][4],
-                              const rcti *rect)
+                              const rcti *rect,
+                              bool offscreen)
 {
   RegionView3D *rv3d = ar->regiondata;
 
@@ -138,7 +139,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
   /* calculate GLSL view dependent values */
 
   /* store window coordinates scaling/offset */
-  if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+  if (!offscreen && rv3d->persp == RV3D_CAMOB && v3d->camera) {
     rctf cameraborder;
     ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &cameraborder, false);
     rv3d->viewcamtexcofac[0] = (float)ar->winx / BLI_rctf_size_x(&cameraborder);
@@ -184,7 +185,22 @@ static void view3d_main_region_setup_view(Depsgraph *depsgraph,
 {
   RegionView3D *rv3d = ar->regiondata;
 
-  ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, viewmat, winmat, rect);
+  ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, viewmat, winmat, rect, false);
+
+  /* set for opengl */
+  GPU_matrix_projection_set(rv3d->winmat);
+  GPU_matrix_set(rv3d->viewmat);
+}
+
+static void view3d_main_region_setup_offscreen(Depsgraph *depsgraph,
+                                               Scene *scene,
+                                               View3D *v3d,
+                                               ARegion *ar,
+                                               float viewmat[4][4],
+                                               float winmat[4][4])
+{
+  RegionView3D *rv3d = ar->regiondata;
+  ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, viewmat, winmat, NULL, true);
 
   /* set for opengl */
   GPU_matrix_projection_set(rv3d->winmat);
@@ -1480,14 +1496,14 @@ static void view3d_stereo3d_setup_offscreen(Depsgraph *depsgraph,
     const bool is_left = STREQ(viewname, STEREO_LEFT_NAME);
 
     BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
-    view3d_main_region_setup_view(depsgraph, scene, v3d, ar, viewmat, winmat, NULL);
+    view3d_main_region_setup_offscreen(depsgraph, scene, v3d, ar, viewmat, winmat);
   }
   else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
     float viewmat[4][4];
     Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
 
     BKE_camera_multiview_view_matrix(&scene->r, camera, false, viewmat);
-    view3d_main_region_setup_view(depsgraph, scene, v3d, ar, viewmat, winmat, NULL);
+    view3d_main_region_setup_offscreen(depsgraph, scene, v3d, ar, viewmat, winmat);
   }
 }
 
@@ -1545,7 +1561,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     view3d_stereo3d_setup_offscreen(depsgraph, scene, v3d, ar, winmat, viewname);
   }
   else {
-    view3d_main_region_setup_view(depsgraph, scene, v3d, ar, viewmat, winmat, NULL);
+    view3d_main_region_setup_offscreen(depsgraph, scene, v3d, ar, viewmat, winmat);
   }
 
   /* main drawing call */

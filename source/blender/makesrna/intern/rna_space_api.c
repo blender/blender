@@ -50,7 +50,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
         ViewLayer *view_layer = WM_window_get_active_view_layer(win);
         Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 
-        ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL);
+        ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL, false);
         break;
       }
     }
