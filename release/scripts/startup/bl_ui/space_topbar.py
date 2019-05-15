@@ -564,10 +564,6 @@ class TOPBAR_MT_help(Menu):
 
         layout.operator("wm.sysinfo")
 
-        layout.separator()
-
-        layout.operator("wm.splash", icon='BLENDER')
-
 
 class TOPBAR_MT_file_context_menu(Menu):
     bl_label = "File Context Menu"
