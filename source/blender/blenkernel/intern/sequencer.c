@@ -262,7 +262,7 @@ static void BKE_sequence_free_ex(Scene *scene,
   }
 
   if (seq->prop) {
-    IDP_FreeProperty_ex(seq->prop, do_id_user);
+    IDP_FreePropertyContent_ex(seq->prop, do_id_user);
     MEM_freeN(seq->prop);
   }
 

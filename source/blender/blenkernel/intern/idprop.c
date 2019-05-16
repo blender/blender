@@ -121,7 +121,7 @@ static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
   BLI_assert(prop->type == IDP_IDPARRAY);
 
   for (i = 0; i < prop->len; i++) {
-    IDP_FreeProperty_ex(GETPROP(prop, i), do_id_user);
+    IDP_FreePropertyContent_ex(GETPROP(prop, i), do_id_user);
   }
 
   if (prop->data.pointer) {
@@ -740,7 +740,7 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
 
   BLI_assert(prop->type == IDP_GROUP);
   for (loop = prop->data.group.first; loop; loop = loop->next) {
-    IDP_FreeProperty_ex(loop, do_id_user);
+    IDP_FreePropertyContent_ex(loop, do_id_user);
   }
   BLI_freelistN(&prop->data.group);
 }
@@ -1057,7 +1057,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
  * \note This will free allocated data, all child properties of arrays and groups, and unlink IDs!
  * But it does not free the actual IDProperty struct itself.
  */
-void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user)
+void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
 {
   switch (prop->type) {
     case IDP_ARRAY:
@@ -1082,7 +1082,7 @@ void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user)
 
 void IDP_FreePropertyContent(IDProperty *prop)
 {
-  IDP_FreeProperty_ex(prop, true);
+  IDP_FreePropertyContent_ex(prop, true);
 }
 
 void IDP_FreeProperty(IDProperty *prop)

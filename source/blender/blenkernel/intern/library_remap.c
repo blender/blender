@@ -740,7 +740,7 @@ void BKE_libblock_relink_to_newid(ID *id)
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
   if (id->properties) {
-    IDP_FreeProperty_ex(id->properties, do_id_user);
+    IDP_FreePropertyContent_ex(id->properties, do_id_user);
     MEM_freeN(id->properties);
   }
 
