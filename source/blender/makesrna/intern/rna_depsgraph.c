@@ -36,6 +36,10 @@
 
 #ifdef RNA_RUNTIME
 
+#  ifdef WITH_PYTHON
+#    include "BPY_extern.h"
+#  endif
+
 #  include "BLI_iterator.h"
 #  include "BLI_math.h"
 
@@ -259,7 +263,16 @@ static void rna_Depsgraph_debug_stats(Depsgraph *depsgraph, char *result)
 
 static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain)
 {
+#  ifdef WITH_PYTHON
+  /* Allow drivers to be evaluated */
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
   BKE_scene_graph_update_tagged(depsgraph, bmain);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
 }
 
 /* Iteration over objects, simple version */
