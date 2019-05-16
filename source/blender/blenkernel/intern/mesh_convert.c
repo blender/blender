@@ -34,9 +34,11 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_edgehash.h"
+#include "BLI_string.h"
 
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
@@ -1084,12 +1086,19 @@ static Mesh *mesh_new_from_mball_object(Object *object)
 static Mesh *mesh_new_from_mesh_object(Object *object)
 {
   Mesh *mesh_input = object->data;
+  /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
+   * viewport is using for visualization. */
+  if (mesh_input->edit_mesh != NULL && mesh_input->edit_mesh->mesh_eval_final) {
+    mesh_input = mesh_input->edit_mesh->mesh_eval_final;
+  }
   Mesh *mesh_result = NULL;
   BKE_id_copy_ex(NULL,
                  &mesh_input->id,
                  (ID **)&mesh_result,
                  LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
   /* NOTE: Materials should already be copied. */
+  /* Copy original mesh name. This is because edit meshes might not have one properly set name. */
+  BLI_strncpy(mesh_result->id.name, ((ID *)object->data)->name, sizeof(mesh_result->id.name));
   return mesh_result;
 }
 
