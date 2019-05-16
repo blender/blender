@@ -217,18 +217,20 @@ static void edbm_select_pick_cache_free(void)
   MEM_SAFE_FREE(base_array_index_offsets);
 }
 
-static bool check_ob_drawface_dot(short select_mode, View3D *vd, char dt)
+static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, char dt)
 {
-  if ((select_mode & SCE_SELECT_FACE) == 0) {
-    return false;
+  if (select_mode & SCE_SELECT_FACE) {
+    if (dt < OB_SOLID) {
+      return true;
+    }
+    if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
+      return true;
+    }
+    if (XRAY_FLAG_ENABLED(v3d)) {
+      return true;
+    }
   }
-
-  /* if its drawing textures with zbuf sel, then don't draw dots */
-  if (dt == OB_TEXTURE && vd->shading.type == OB_TEXTURE) {
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 static void edbm_select_pick_draw_bases(ViewContext *vc,
