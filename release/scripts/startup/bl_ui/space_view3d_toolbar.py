@@ -645,7 +645,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             split.operator("paint.add_simple_uvs", icon='ADD', text="Add Simple UVs")
         elif have_image:
             layout.separator()
-            layout.operator("image.save_dirty", text="Save All Images", icon='FILE_TICK')
+            layout.operator("image.save_all_modified", text="Save All Images", icon='FILE_TICK')
 
 # TODO, move to space_view3d.py
 

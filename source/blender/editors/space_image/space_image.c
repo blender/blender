@@ -224,6 +224,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_save);
   WM_operatortype_append(IMAGE_OT_save_as);
   WM_operatortype_append(IMAGE_OT_save_sequence);
+  WM_operatortype_append(IMAGE_OT_save_all_modified);
   WM_operatortype_append(IMAGE_OT_pack);
   WM_operatortype_append(IMAGE_OT_unpack);
 

@@ -28,6 +28,7 @@ struct ARegion;
 struct ImBuf;
 struct Image;
 struct ImageUser;
+struct ReportList;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
@@ -109,5 +110,8 @@ void ED_image_draw_info(struct Scene *scene,
                         float *zpf);
 
 bool ED_space_image_show_cache(struct SpaceImage *sima);
+
+int ED_image_save_all_modified_count(const struct bContext *C);
+bool ED_image_save_all_modified(const struct bContext *C, struct ReportList *reports);
 
 #endif /* __ED_IMAGE_H__ */

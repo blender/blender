@@ -230,7 +230,7 @@ class IMAGE_MT_image(Menu):
         if ima and ima.source == 'SEQUENCE':
             layout.operator("image.save_sequence")
 
-        layout.operator("image.save_dirty", text="Save All Images")
+        layout.operator("image.save_all_modified", text="Save All Images")
 
         if ima:
             layout.separator()
