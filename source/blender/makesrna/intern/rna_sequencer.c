@@ -1189,25 +1189,25 @@ static void rna_def_strip_crop(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Sequence Crop", "Cropping parameters for a sequence strip");
   RNA_def_struct_sdna(srna, "StripCrop");
 
-  prop = RNA_def_property(srna, "max_y", PROP_INT, PROP_UNSIGNED);
+  prop = RNA_def_property(srna, "max_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "top");
   RNA_def_property_ui_text(prop, "Top", "Number of pixels to crop from the top");
   RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 
-  prop = RNA_def_property(srna, "min_y", PROP_INT, PROP_UNSIGNED);
+  prop = RNA_def_property(srna, "min_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "bottom");
   RNA_def_property_ui_text(prop, "Bottom", "Number of pixels to crop from the bottom");
   RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 
-  prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_UNSIGNED);
+  prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "left");
   RNA_def_property_ui_text(prop, "Left", "Number of pixels to crop from the left side");
   RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceCrop_update");
 
-  prop = RNA_def_property(srna, "max_x", PROP_INT, PROP_UNSIGNED);
+  prop = RNA_def_property(srna, "max_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "right");
   RNA_def_property_ui_text(prop, "Right", "Number of pixels to crop from the right side");
   RNA_def_property_ui_range(prop, 0, 4096, 1, -1);
@@ -1225,14 +1225,14 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform parameters for a sequence strip");
   RNA_def_struct_sdna(srna, "StripTransform");
 
-  prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "xofs");
   RNA_def_property_ui_text(
       prop, "Offset X", "Amount to move the input on the X axis within its boundaries");
   RNA_def_property_ui_range(prop, -4096, 4096, 1, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
-  prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "yofs");
   RNA_def_property_ui_text(
       prop, "Offset Y", "Amount to move the input on the Y axis within its boundaries");
