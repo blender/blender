@@ -518,7 +518,8 @@ typedef struct bGPdata {
 
   /** Draw mode for strokes (eGP_DrawMode). */
   short draw_mode;
-  char _pad3[2];
+  /** Keyframe type for onion filter  (eBezTriple_KeyframeType plus All option) */
+  short onion_keytype;
 
   bGPgrid grid;
 

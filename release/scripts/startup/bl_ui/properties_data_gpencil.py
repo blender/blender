@@ -258,6 +258,7 @@ class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
         col = layout.column()
         col.prop(gpd, "onion_mode")
         col.prop(gpd, "onion_factor", text="Opacity", slider=True)
+        col.prop(gpd, "onion_keyframe_type")
 
         if gpd.onion_mode == 'ABSOLUTE':
             col = layout.column(align=True)

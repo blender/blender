@@ -76,6 +76,36 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_onion_keyframe_type_items[] = {
+    {-1, "ALL", ICON_ACTION, "All Types", "Include all Keyframe types"},
+    {BEZT_KEYTYPE_KEYFRAME,
+     "KEYFRAME",
+     ICON_KEYTYPE_KEYFRAME_VEC,
+     "Keyframe",
+     "Normal keyframe - e.g. for key poses"},
+    {BEZT_KEYTYPE_BREAKDOWN,
+     "BREAKDOWN",
+     ICON_KEYTYPE_BREAKDOWN_VEC,
+     "Breakdown",
+     "A breakdown pose - e.g. for transitions between key poses"},
+    {BEZT_KEYTYPE_MOVEHOLD,
+     "MOVING_HOLD",
+     ICON_KEYTYPE_MOVING_HOLD_VEC,
+     "Moving Hold",
+     "A keyframe that is part of a moving hold"},
+    {BEZT_KEYTYPE_EXTREME,
+     "EXTREME",
+     ICON_KEYTYPE_EXTREME_VEC,
+     "Extreme",
+     "An 'extreme' pose, or some other purpose as needed"},
+    {BEZT_KEYTYPE_JITTER,
+     "JITTER",
+     ICON_KEYTYPE_JITTER_VEC,
+     "Jitter",
+     "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
     {-1, "UP", 0, "Up", ""},
     {1, "DOWN", 0, "Down", ""},
@@ -1737,6 +1767,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "gstep");
   RNA_def_property_range(prop, 0, 120);
   RNA_def_property_int_default(prop, 1);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop,
                            "Frames Before",
                            "Maximum number of frames to show before current frame "
@@ -1747,6 +1778,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "gstep_next");
   RNA_def_property_range(prop, 0, 120);
   RNA_def_property_int_default(prop, 1);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop,
                            "Frames After",
                            "Maximum number of frames to show after current frame "
@@ -1756,6 +1788,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_ghost_custom_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, NULL, "onion_flag", GP_ONION_GHOST_PREVCOL | GP_ONION_GHOST_NEXTCOL);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop, "Use Custom Ghost Colors", "Use custom colors for ghost frames");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
@@ -1779,6 +1812,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_ghosts_always", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "onion_flag", GP_ONION_GHOST_ALWAYS);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop,
                            "Always Show Ghosts",
                            "Ghosts are shown in renders and animation playback. Useful for "
@@ -1788,17 +1822,27 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "onion_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "onion_mode");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_onion_modes_items);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop, "Mode", "Mode to display frames");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  prop = RNA_def_property(srna, "onion_keyframe_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "onion_keytype");
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+  RNA_def_property_enum_items(prop, rna_enum_onion_keyframe_type_items);
+  RNA_def_property_ui_text(prop, "Filter By Type", "Type of keyframe (for filtering)");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "use_onion_fade", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "onion_flag", GP_ONION_FADE);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(
       prop, "Fade", "Display onion keyframes with a fade in color transparency");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "use_onion_loop", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "onion_flag", GP_ONION_LOOP);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop,
                            "Loop",
                            "Display first onion keyframes using next frame color to show "
@@ -1809,6 +1853,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "onion_factor");
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, 0.0, 1.0f);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
   RNA_def_property_ui_text(prop, "Onion Opacity", "Change fade opacity of displayed onion frames");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
