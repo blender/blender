@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -125,7 +126,6 @@ struct GPUMaterial {
 enum {
   GPU_DOMAIN_SURFACE = (1 << 0),
   GPU_DOMAIN_VOLUME = (1 << 1),
-  GPU_DOMAIN_SSS = (1 << 2),
 };
 
 /* Functions */
@@ -682,6 +682,10 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   SET_FLAG_FROM_TEST(mat->domain, has_volume_output, GPU_DOMAIN_VOLUME);
 
   if (mat->outlink) {
+    /* HACK: this is only for eevee. We add the define here after the nodetree evaluation. */
+    if (GPU_material_flag_get(mat, GPU_MATFLAG_SSS)) {
+      defines = BLI_string_joinN(defines, "#define USE_SSS\n");
+    }
     /* Prune the unused nodes and extract attributes before compiling so the
      * generated VBOs are ready to accept the future shader. */
     GPU_nodes_prune(&mat->nodes, mat->outlink);
@@ -696,6 +700,10 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
                                   geom_code,
                                   frag_lib,
                                   defines);
+
+    if (GPU_material_flag_get(mat, GPU_MATFLAG_SSS)) {
+      MEM_freeN((char *)defines);
+    }
 
     if (mat->pass == NULL) {
       /* We had a cache hit and the shader has already failed to compile. */

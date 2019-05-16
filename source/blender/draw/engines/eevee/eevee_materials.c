@@ -315,9 +315,6 @@ static char *eevee_get_defines(int options)
   if ((options & VAR_MAT_REFRACT) != 0) {
     BLI_dynstr_append(ds, "#define USE_REFRACTION\n");
   }
-  if ((options & VAR_MAT_SSS) != 0) {
-    BLI_dynstr_append(ds, "#define USE_SSS\n");
-  }
   if ((options & VAR_MAT_SSSALBED) != 0) {
     BLI_dynstr_append(ds, "#define USE_SSS_ALBEDO\n");
   }
@@ -743,7 +740,6 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
                                             bool use_blend,
                                             bool use_multiply,
                                             bool use_refract,
-                                            bool use_sss,
                                             bool use_translucency,
                                             int shadow_method)
 {
@@ -754,8 +750,7 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
   SET_FLAG_FROM_TEST(options, use_blend, VAR_MAT_BLEND);
   SET_FLAG_FROM_TEST(options, use_multiply, VAR_MAT_MULT);
   SET_FLAG_FROM_TEST(options, use_refract, VAR_MAT_REFRACT);
-  SET_FLAG_FROM_TEST(options, use_sss, VAR_MAT_SSS);
-  SET_FLAG_FROM_TEST(options, use_sss && effects->sss_separate_albedo, VAR_MAT_SSSALBED);
+  SET_FLAG_FROM_TEST(options, effects->sss_separate_albedo, VAR_MAT_SSSALBED);
   SET_FLAG_FROM_TEST(options, use_translucency, VAR_MAT_TRANSLUC);
   SET_FLAG_FROM_TEST(
       options, ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend, VAR_MAT_VOLUME);
@@ -1204,8 +1199,7 @@ static void material_opaque(Material *ma,
   const bool use_gpumat = (ma->use_nodes && ma->nodetree);
   const bool use_ssrefract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
                              ((effects->enabled_effects & EFFECT_REFRACT) != 0);
-  bool use_sss = ((effects->enabled_effects & EFFECT_SSS) != 0);
-  const bool use_translucency = use_sss && ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
+  const bool use_translucency = ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
 
   EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
 
@@ -1221,7 +1215,6 @@ static void material_opaque(Material *ma,
                                                      false,
                                                      false,
                                                      use_ssrefract,
-                                                     use_sss,
                                                      use_translucency,
                                                      linfo->shadow_method) :
                              NULL;
@@ -1237,15 +1230,8 @@ static void material_opaque(Material *ma,
     static float half = 0.5f;
 
     /* Shading */
-    *gpumat = EEVEE_material_mesh_get(scene,
-                                      ma,
-                                      vedata,
-                                      false,
-                                      false,
-                                      use_ssrefract,
-                                      use_sss,
-                                      use_translucency,
-                                      linfo->shadow_method);
+    *gpumat = EEVEE_material_mesh_get(
+        scene, ma, vedata, false, false, use_ssrefract, use_translucency, linfo->shadow_method);
 
     eGPUMaterialStatus status_mat_surface = GPU_material_status(*gpumat);
 
@@ -1323,10 +1309,10 @@ static void material_opaque(Material *ma,
         int *ssr_id = (((effects->enabled_effects & EFFECT_SSR) != 0) && !use_ssrefract) ?
                           &first_ssr :
                           &no_ssr;
+        const bool use_sss = GPU_material_flag_get(*gpumat, GPU_MATFLAG_SSS);
         use_diffuse = GPU_material_flag_get(*gpumat, GPU_MATFLAG_DIFFUSE);
         use_glossy = GPU_material_flag_get(*gpumat, GPU_MATFLAG_GLOSSY);
         use_refract = GPU_material_flag_get(*gpumat, GPU_MATFLAG_REFRACT);
-        use_sss = use_sss && GPU_material_flag_get(*gpumat, GPU_MATFLAG_SSS);
 
         *shgrp = DRW_shgroup_material_create(
             *gpumat,
@@ -1463,7 +1449,6 @@ static void material_transparent(Material *ma,
                                       true,
                                       (ma->blend_method == MA_BM_MULTIPLY),
                                       use_ssrefract,
-                                      false,
                                       false,
                                       linfo->shadow_method);
 
@@ -1854,11 +1839,16 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
   }
 }
 
-void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
+void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
   BLI_ghash_free(stl->g_data->material_hash, NULL, MEM_freeN);
+
+  SET_FLAG_FROM_TEST(stl->effects->enabled_effects, e_data.sss_count > 0, EFFECT_SSS);
+
+  /* TODO(fclem) this is not really clean. Init should not be done in cache finish. */
+  EEVEE_subsurface_draw_init(sldata, vedata);
 }
 
 void EEVEE_materials_free(void)

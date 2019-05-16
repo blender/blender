@@ -154,7 +154,7 @@ static void eevee_cache_finish(void *vedata)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
-  EEVEE_materials_cache_finish(vedata);
+  EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
 }
@@ -249,8 +249,8 @@ static void eevee_draw_background(void *vedata)
 
     GPU_framebuffer_bind(fbl->main_fb);
     eGPUFrameBufferBits clear_bits = GPU_DEPTH_BIT;
-    clear_bits |= (DRW_state_draw_background()) ? 0 : GPU_COLOR_BIT;
-    clear_bits |= ((stl->effects->enabled_effects & EFFECT_SSS) != 0) ? GPU_STENCIL_BIT : 0;
+    SET_FLAG_FROM_TEST(clear_bits, !DRW_state_draw_background(), GPU_COLOR_BIT);
+    SET_FLAG_FROM_TEST(clear_bits, (stl->effects->enabled_effects & EFFECT_SSS), GPU_STENCIL_BIT);
     GPU_framebuffer_clear(fbl->main_fb, clear_bits, clear_col, clear_depth, clear_stencil);
 
     /* Depth prepass */

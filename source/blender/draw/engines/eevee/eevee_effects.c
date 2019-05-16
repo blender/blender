@@ -159,9 +159,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata, camera);
   effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_occlusion_init(sldata, vedata);
-  effects->enabled_effects |= EEVEE_subsurface_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_volumes_init(sldata, vedata);
+
+  EEVEE_subsurface_init(sldata, vedata);
 
   /* Force normal buffer creation. */
   if (DRW_state_is_image_render() && !minimal && (view_layer->passflag & SCE_PASS_NORMAL) != 0) {

@@ -59,30 +59,30 @@ static void eevee_create_shader_subsurface(void)
   MEM_freeN(frag_str);
 }
 
-int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
+
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+
+  effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
+  effects->sss_separate_albedo = (scene_eval->eevee.flag & SCE_EEVEE_SSS_SEPARATE_ALBEDO) != 0;
+  common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
+}
+
+void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+{
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_TextureList *txl = vedata->txl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   const float *viewport_size = DRW_viewport_size_get();
   const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
-
-  if (scene_eval->eevee.flag & SCE_EEVEE_SSS_ENABLED) {
-    effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
-    effects->sss_separate_albedo = (scene_eval->eevee.flag & SCE_EEVEE_SSS_SEPARATE_ALBEDO) != 0;
-    common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
-
-    /* Shaders */
-    if (!e_data.sss_sh[0]) {
-      eevee_create_shader_subsurface();
-    }
-
+  if (effects->enabled_effects & EFFECT_SSS) {
     /* NOTE : we need another stencil because the stencil buffer is on the same texture
      * as the depth buffer we are sampling from. This could be avoided if the stencil is
      * a separate texture but that needs OpenGL 4.4 or ARB_texture_stencil8.
@@ -124,18 +124,16 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     else {
       effects->sss_albedo = NULL;
     }
-    return EFFECT_SSS;
   }
-
-  /* Cleanup to release memory */
-  GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_blur_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_resolve_fb);
-  GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_clear_fb);
-  effects->sss_stencil = NULL;
-  effects->sss_blur = NULL;
-  effects->sss_data = NULL;
-
-  return 0;
+  else {
+    /* Cleanup to release memory */
+    GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_blur_fb);
+    GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_resolve_fb);
+    GPU_FRAMEBUFFER_FREE_SAFE(fbl->sss_clear_fb);
+    effects->sss_stencil = NULL;
+    effects->sss_blur = NULL;
+    effects->sss_data = NULL;
+  }
 }
 
 static void set_shgrp_stencil(void *UNUSED(userData), DRWShadingGroup *shgrp)
@@ -150,17 +148,14 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
 
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
-
-  if (scene_eval->eevee.flag & SCE_EEVEE_SSS_ENABLED) {
+  if (effects->enabled_effects & EFFECT_SSS) {
     DRW_texture_ensure_fullscreen_2d(&txl->sss_dir_accum, GPU_RGBA16F, 0);
     DRW_texture_ensure_fullscreen_2d(&txl->sss_col_accum, GPU_RGBA16F, 0);
 
     GPUTexture *stencil_tex = effects->sss_stencil;
 
     if (GPU_depth_blitting_workaround()) {
+      DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
       /* Blitting stencil buffer does not work on macOS + Radeon Pro.
        * Blit depth instead and use sss_stencil's depth as depth texture,
        * and dtxl->depth as stencil mask. */
@@ -194,20 +189,21 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
-  EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_EffectsInfo *effects = stl->effects;
 
-  if ((effects->enabled_effects & EFFECT_SSS) != 0) {
-    /** Screen Space SubSurface Scattering overview
-     * TODO
-     */
-    psl->sss_blur_ps = DRW_pass_create("Blur Horiz",
-                                       DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
-
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE | DRW_STATE_STENCIL_EQUAL;
-    psl->sss_resolve_ps = DRW_pass_create("Blur Vert", state);
-    psl->sss_accum_ps = DRW_pass_create("Resolve Accum", state);
+  /* Shaders */
+  if (!e_data.sss_sh[0]) {
+    eevee_create_shader_subsurface();
   }
+
+  /** Screen Space SubSurface Scattering overview
+   * TODO
+   */
+  psl->sss_blur_ps = DRW_pass_create("Blur Horiz",
+                                     DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
+
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE | DRW_STATE_STENCIL_EQUAL;
+  psl->sss_resolve_ps = DRW_pass_create("Blur Vert", state);
+  psl->sss_accum_ps = DRW_pass_create("Resolve Accum", state);
 }
 
 void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,

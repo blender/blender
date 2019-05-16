@@ -6787,14 +6787,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* Screen Space Subsurface Scattering */
-  prop = RNA_def_property(srna, "use_sss", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSS_ENABLED);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_ui_text(
-      prop, "Subsurface Scattering", "Enable screen space subsurface scattering");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
   prop = RNA_def_property(srna, "sss_samples", PROP_INT, PROP_NONE);
   RNA_def_property_int_default(prop, 7);
   RNA_def_property_ui_text(prop, "Samples", "Number of samples to compute the scattering effect");

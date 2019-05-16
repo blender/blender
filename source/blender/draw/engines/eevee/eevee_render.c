@@ -486,7 +486,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   EEVEE_PrivateData *g_data = stl->g_data;
 
   /* FINISH CACHE */
-  EEVEE_materials_cache_finish(vedata);
+  EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
 
