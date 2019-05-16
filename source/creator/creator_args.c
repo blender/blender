@@ -1068,6 +1068,7 @@ static int arg_handle_factory_startup_set(int UNUSED(argc),
                                           void *UNUSED(data))
 {
   G.factory_startup = 1;
+  G.f |= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
   return 0;
 }
 
