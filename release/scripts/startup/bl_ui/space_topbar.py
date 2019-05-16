@@ -174,7 +174,7 @@ class TOPBAR_MT_app(Menu):
         layout = self.layout
         prefs = context.preferences
 
-        layout.operator("wm.splash", icon='BLENDER')
+        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
 
         layout.separator()
 
@@ -208,7 +208,12 @@ class TOPBAR_MT_app(Menu):
 
         layout.separator()
 
-        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
+        layout.operator("wm.splash")
+
+        layout.separator()
+
+        layout.menu("TOPBAR_MT_app_about")
+        layout.menu("TOPBAR_MT_app_support")
 
         layout.separator()
 
@@ -322,6 +327,49 @@ class TOPBAR_MT_file_new(Menu):
 
     def draw(self, context):
         TOPBAR_MT_file_new.draw_ex(self.layout, context)
+
+
+class TOPBAR_MT_app_about(Menu):
+    bl_label = "About"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator(
+            "wm.url_open", text="Release Notes", icon='URL',
+        ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
+
+        layout.separator()
+
+        layout.operator(
+            "wm.url_open", text="Blender Website", icon='URL',
+        ).url = "https://www.blender.org/"
+        layout.operator(
+            "wm.url_open", text="Credits", icon='URL',
+        ).url = "https://www.blender.org/about/credits/"
+
+        layout.separator()
+
+        layout.operator(
+            "wm.url_open", text="License", icon='URL',
+        ).url = "https://www.blender.org/about/license/"
+
+
+class TOPBAR_MT_app_support(Menu):
+    bl_label = "Support Blender"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator(
+            "wm.url_open", text="Development Fund", icon='URL',
+        ).url = "https://fund.blender.org"
+
+        layout.separator()
+
+        layout.operator(
+            "wm.url_open", text="Blender Store", icon='URL',
+        ).url = "https://store.blender.org"
 
 
 class TOPBAR_MT_templates_more(Menu):
@@ -515,10 +563,12 @@ class TOPBAR_MT_help(Menu):
         layout.operator(
             "wm.url_open", text="Manual", icon='HELP',
         ).url = "https://docs.blender.org/manual/en/dev/"
-
         layout.operator(
-            "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = url_prefill_from_blender()
+            "wm.url_open", text="Tutorials", icon='URL',
+        ).url = "https://www.blender.org/tutorials"
+        layout.operator(
+            "wm.url_open", text="Support", icon='URL',
+        ).url = "https://www.blender.org/support"
 
         layout.separator()
 
@@ -527,42 +577,28 @@ class TOPBAR_MT_help(Menu):
         ).url = "https://www.blender.org/community/"
         layout.operator(
             "wm.url_open", text="Developer Community", icon='URL',
-        ).url = "https://www.blender.org/get-involved/developers/"
+        ).url = "https://devtalk.blender.org"
 
         layout.separator()
 
         layout.operator(
-            "wm.url_open", text="Blender Website", icon='URL',
-        ).url = "https://www.blender.org"
-        layout.operator(
-            "wm.url_open", text="Release Notes", icon='URL',
-        ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
-        layout.operator(
-            "wm.url_open", text="Credits", icon='URL',
-        ).url = "https://www.blender.org/about/credits/"
-
-        layout.separator()
-
-        layout.operator(
-            "wm.url_open", text="Blender Store", icon='URL',
-        ).url = "https://store.blender.org"
-        layout.operator(
-            "wm.url_open", text="Development Fund", icon='URL',
-        ).url = "https://fund.blender.org"
-        layout.operator(
-            "wm.url_open", text="Donate", icon='URL',
-        ).url = "https://www.blender.org/foundation/donation-payment/"
-
-        layout.separator()
+            "wm.url_open", text="Python API Reference", icon='URL',
+        ).url = bpy.types.WM_OT_doc_view._prefix
 
         if show_developer:
             layout.operator(
-                "wm.url_open", text="Python API Reference", icon='URL',
-            ).url = bpy.types.WM_OT_doc_view._prefix
+                "wm.url_open", text="Developer Documentation", icon='URL',
+            ).url = "https://wiki.blender.org/wiki/Main_Page"
 
             layout.operator("wm.operator_cheat_sheet", icon='TEXT')
 
-            layout.separator()
+        layout.separator()
+
+        layout.operator(
+            "wm.url_open", text="Report a Bug", icon='URL',
+        ).url = url_prefill_from_blender()
+
+        layout.separator()
 
         layout.operator("wm.sysinfo")
 
@@ -722,6 +758,8 @@ classes = (
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_app,
+    TOPBAR_MT_app_about,
+    TOPBAR_MT_app_support,
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
     TOPBAR_MT_templates_more,
