@@ -23,6 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
+#include "BKE_object.h"
 
 #include <sstream>
 
@@ -98,11 +99,11 @@ NodeGroup *BlenderFileLoader::Load()
       continue;
     }
 
-    Mesh *mesh = BKE_mesh_new_from_object(_re->main, ob);
+    Mesh *mesh = BKE_object_to_mesh(ob);
 
     if (mesh) {
       insertShapeNode(ob, mesh, ++id);
-      BKE_id_free_ex(_re->main, &mesh->id, LIB_ID_FREE_NO_UI_USER, true);
+      BKE_object_to_mesh_clear(ob);
     }
   }
   DEG_OBJECT_ITER_END;

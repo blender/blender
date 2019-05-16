@@ -208,7 +208,13 @@ float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
-struct Mesh *BKE_mesh_new_from_object(struct Main *bmain, struct Object *object);
+/* Create new mesh from the given object at its current state.
+ * The owner of this mesh is unknown, it is up to the caller to decide. */
+struct Mesh *BKE_mesh_new_from_object(struct Object *object);
+
+/* This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database. */
+struct Mesh *BKE_mesh_new_from_object_to_bmain(struct Main *bmain, struct Object *object);
+
 struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
                                                   struct Object *ob_eval,

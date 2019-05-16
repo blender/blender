@@ -194,6 +194,7 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
+        plane_eval.to_mesh_clear()
 
         # Change path from absolute to relative. This should not break the animation.
         scene.frame_set(1)
@@ -205,6 +206,7 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertAlmostEqual(1, mesh.vertices[3].co.x)
         self.assertAlmostEqual(1, mesh.vertices[3].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
+        plane_eval.to_mesh_clear()
 
     def test_import_long_names(self):
         # This file contains very long names. The longest name is 4047 chars.

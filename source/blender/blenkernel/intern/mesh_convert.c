@@ -38,6 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
+#include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -612,7 +613,13 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
     }
 
     /* make mesh */
-    me = BKE_mesh_add(bmain, obdata_name);
+    if (bmain != NULL) {
+      me = BKE_mesh_add(bmain, obdata_name);
+    }
+    else {
+      me = BKE_id_new_nomain(ID_ME, obdata_name);
+    }
+
     me->totvert = totvert;
     me->totedge = totedge;
     me->totloop = totloop;
@@ -632,7 +639,13 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
     BKE_mesh_calc_normals(me);
   }
   else {
-    me = BKE_mesh_add(bmain, obdata_name);
+    if (bmain != NULL) {
+      me = BKE_mesh_add(bmain, obdata_name);
+    }
+    else {
+      me = BKE_id_new_nomain(ID_ME, obdata_name);
+    }
+
     ob->runtime.mesh_eval = NULL;
     BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, true);
   }
@@ -662,16 +675,18 @@ void BKE_mesh_from_nurbs_displist(Main *bmain,
   ob->type = OB_MESH;
 
   /* other users */
-  ob1 = bmain->objects.first;
-  while (ob1) {
-    if (ob1->data == cu) {
-      ob1->type = OB_MESH;
+  if (bmain != NULL) {
+    ob1 = bmain->objects.first;
+    while (ob1) {
+      if (ob1->data == cu) {
+        ob1->type = OB_MESH;
 
-      id_us_min((ID *)ob1->data);
-      ob1->data = ob->data;
-      id_us_plus((ID *)ob1->data);
+        id_us_min((ID *)ob1->data);
+        ob1->data = ob->data;
+        id_us_plus((ID *)ob1->data);
+      }
+      ob1 = ob1->id.next;
     }
-    ob1 = ob1->id.next;
   }
 
   if (temporary) {
@@ -995,7 +1010,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   BKE_object_free_curve_cache(&taper_object);
 }
 
-static Mesh *mesh_new_from_curve_type_object(Main *bmain, Object *object)
+static Mesh *mesh_new_from_curve_type_object(Object *object)
 {
   Curve *curve = object->data;
   const bool uv_from_orco = (curve->flag & CU_UV_ORCO) != 0;
@@ -1014,7 +1029,7 @@ static Mesh *mesh_new_from_curve_type_object(Main *bmain, Object *object)
   temp_curve->editnurb = NULL;
 
   /* Convert to mesh. */
-  BKE_mesh_from_nurbs_displist(bmain,
+  BKE_mesh_from_nurbs_displist(NULL,
                                temp_object,
                                &temp_object->runtime.curve_cache->disp,
                                uv_from_orco,
@@ -1037,7 +1052,7 @@ static Mesh *mesh_new_from_curve_type_object(Main *bmain, Object *object)
   return mesh_result;
 }
 
-static Mesh *mesh_new_from_mball_object(Main *bmain, Object *object)
+static Mesh *mesh_new_from_mball_object(Object *object)
 {
   MetaBall *mball = (MetaBall *)object->data;
 
@@ -1048,10 +1063,10 @@ static Mesh *mesh_new_from_mball_object(Main *bmain, Object *object)
    * We create empty mesh so scripters don't run into None objects. */
   if (!DEG_is_evaluated_object(object) || object->runtime.curve_cache == NULL ||
       BLI_listbase_is_empty(&object->runtime.curve_cache->disp)) {
-    return BKE_mesh_add(bmain, mball->id.name + 2);
+    return BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   }
 
-  Mesh *mesh_result = BKE_mesh_add(bmain, ((ID *)object->data)->name + 2);
+  Mesh *mesh_result = BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   BKE_mesh_from_metaball(&object->runtime.curve_cache->disp, mesh_result);
 
   /* Copy materials. */
@@ -1066,29 +1081,32 @@ static Mesh *mesh_new_from_mball_object(Main *bmain, Object *object)
   return mesh_result;
 }
 
-static Mesh *mesh_new_from_mesh_object(Main *bmain, Object *object)
+static Mesh *mesh_new_from_mesh_object(Object *object)
 {
   Mesh *mesh_input = object->data;
   Mesh *mesh_result = NULL;
-  BKE_id_copy_ex(bmain, &mesh_input->id, (ID **)&mesh_result, 0);
+  BKE_id_copy_ex(NULL,
+                 &mesh_input->id,
+                 (ID **)&mesh_result,
+                 LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
   /* NOTE: Materials should already be copied. */
   return mesh_result;
 }
 
-Mesh *BKE_mesh_new_from_object(Main *bmain, Object *object)
+Mesh *BKE_mesh_new_from_object(Object *object)
 {
   Mesh *new_mesh = NULL;
   switch (object->type) {
     case OB_FONT:
     case OB_CURVE:
     case OB_SURF:
-      new_mesh = mesh_new_from_curve_type_object(bmain, object);
+      new_mesh = mesh_new_from_curve_type_object(object);
       break;
     case OB_MBALL:
-      new_mesh = mesh_new_from_mball_object(bmain, object);
+      new_mesh = mesh_new_from_mball_object(object);
       break;
     case OB_MESH:
-      new_mesh = mesh_new_from_mesh_object(bmain, object);
+      new_mesh = mesh_new_from_mesh_object(object);
       break;
     default:
       /* Object does not have geometry data. */
@@ -1098,13 +1116,53 @@ Mesh *BKE_mesh_new_from_object(Main *bmain, Object *object)
     /* Happens in special cases like request of mesh for non-mother meta ball. */
     return NULL;
   }
-  /* The result must have 0 users, since it's just a mesh which is free-dangling in the main
-   * database. All the copy and allocation functions to manipulate new Mesh datablock are ensuring
-   * an user.
-   * Here we control that user management went the way it's expected, and cancel out the user. */
-  BLI_assert(new_mesh->id.us == 1);
-  id_us_min(&new_mesh->id);
+  /* The result must have 0 users, since it's just a mesh which is free-dangling data-block.
+   * All the conversion functions are supposed to ensure mesh is not counted. */
+  BLI_assert(new_mesh->id.us == 0);
   return new_mesh;
+}
+
+static int foreach_libblock_make_original_and_usercount_callback(void *user_data_v,
+                                                                 ID *id_self,
+                                                                 ID **id_p,
+                                                                 int cb_flag)
+{
+  UNUSED_VARS(user_data_v, id_self, cb_flag);
+  if (*id_p == NULL) {
+    return IDWALK_RET_NOP;
+  }
+  *id_p = DEG_get_original_id(*id_p);
+  id_us_plus(*id_p);
+  return IDWALK_RET_NOP;
+}
+
+Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain, Object *object)
+{
+  Mesh *mesh = BKE_mesh_new_from_object(object);
+
+  /* Make sure mesh only points original datablocks, also increase users of materials and other
+   * possibly referenced data-blocks.
+   *
+   * Going to original data-blocks is required to have bmain in a consistent state, where
+   * everything is only allowed to reference original data-blocks.
+   *
+   * user-count is required is because so far mesh was in a limbo, where library management does
+   * not perform any user management (i.e. copy of a mesh will not increase users of materials). */
+  BKE_library_foreach_ID_link(
+      NULL, &mesh->id, foreach_libblock_make_original_and_usercount_callback, NULL, IDWALK_NOP);
+
+  /* Append the mesh to bmain.
+   * We do it a bit longer way since there is no simple and clear way of adding existing datablock
+   * to the bmain. So we allocate new empty mesh in the bmain (which guarantess all the naming and
+   * orders and flags) and move the temporary mesh in place there. */
+  Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
+  BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, NULL, &CD_MASK_MESH, true);
+
+  /* Make sure user count from BKE_mesh_add() is the one we expect here and bring it down to 0. */
+  BLI_assert(mesh_in_bmain->id.us == 1);
+  id_us_min(&mesh_in_bmain->id);
+
+  return mesh_in_bmain;
 }
 
 static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)

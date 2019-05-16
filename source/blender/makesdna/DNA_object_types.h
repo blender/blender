@@ -43,6 +43,7 @@ struct DerivedMesh;
 struct FluidsimSettings;
 struct GpencilBatchCache;
 struct Ipo;
+struct Mesh;
 struct Material;
 struct Object;
 struct PartDeflect;
@@ -159,6 +160,10 @@ typedef struct Object_Runtime {
    * It has deforemation only modifiers applied on it.
    */
   struct Mesh *mesh_deform_eval;
+
+  /* This is a mesh representation of corresponding object.
+   * It created when Python calls `object.to_mesh()`. */
+  struct Mesh *object_as_temp_mesh;
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;

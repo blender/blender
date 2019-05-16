@@ -375,11 +375,28 @@ static void rna_Object_camera_fit_coords(
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-static Mesh *rna_Object_to_mesh(Object *object, bContext *C, ReportList *reports)
+static Mesh *rna_Object_to_mesh(Object *object, ReportList *reports)
 {
-  Main *bmain = CTX_data_main(C);
+  /* TODO(sergey): Make it more re-usable function, de-duplicate with
+   * rna_Main_meshes_new_from_object. */
+  switch (object->type) {
+    case OB_FONT:
+    case OB_CURVE:
+    case OB_SURF:
+    case OB_MBALL:
+    case OB_MESH:
+      break;
+    default:
+      BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
+      return NULL;
+  }
 
-  return rna_Main_meshes_new_from_object(bmain, reports, object);
+  return BKE_object_to_mesh(object);
+}
+
+static void rna_Object_to_mesh_clear(Object *object)
+{
+  BKE_object_to_mesh_clear(object);
 }
 
 static PointerRNA rna_Object_shape_key_add(
@@ -875,15 +892,16 @@ void RNA_api_object(StructRNA *srna)
 
   /* mesh */
   func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
-  RNA_def_function_ui_description(func,
-                                  "Create a Mesh data-block from the current state of the object");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-  parm = RNA_def_pointer(func,
-                         "mesh",
-                         "Mesh",
-                         "",
-                         "Mesh created from object, remove it if it is only used for export");
+  RNA_def_function_ui_description(
+      func,
+      "Create a Mesh data-block from the current state of the object. The object owns the "
+      "data-block. To force free it use to_mesh_clear()");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "to_mesh_clear", "rna_Object_to_mesh_clear");
+  RNA_def_function_ui_description(func, "Clears mesh data-block created by to_mesh()");
 
   /* Armature */
   func = RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");

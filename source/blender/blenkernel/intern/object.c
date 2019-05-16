@@ -469,6 +469,7 @@ void BKE_object_free_derived_caches(Object *ob)
     ob->runtime.mesh_deform_eval = NULL;
   }
 
+  BKE_object_to_mesh_clear(ob);
   BKE_object_free_curve_cache(ob);
 
   /* clear grease pencil data */
@@ -4496,4 +4497,22 @@ void BKE_object_update_select_id(struct Main *bmain)
     ob->runtime.select_id = select_id++;
     ob = ob->id.next;
   }
+}
+
+Mesh *BKE_object_to_mesh(Object *object)
+{
+  BKE_object_to_mesh_clear(object);
+
+  Mesh *mesh = BKE_mesh_new_from_object(object);
+  object->runtime.object_as_temp_mesh = mesh;
+  return mesh;
+}
+
+void BKE_object_to_mesh_clear(Object *object)
+{
+  if (object->runtime.object_as_temp_mesh == NULL) {
+    return;
+  }
+  BKE_id_free(NULL, object->runtime.object_as_temp_mesh);
+  object->runtime.object_as_temp_mesh = NULL;
 }

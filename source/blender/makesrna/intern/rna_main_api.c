@@ -317,7 +317,7 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Object *object)
+static Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Object *object)
 {
   switch (object->type) {
     case OB_FONT:
@@ -331,7 +331,7 @@ Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Object *
       return NULL;
   }
 
-  return BKE_mesh_new_from_object(bmain, object);
+  return BKE_mesh_new_from_object_to_bmain(bmain, object);
 }
 
 static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)

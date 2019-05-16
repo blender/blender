@@ -1,60 +1,56 @@
 """
-Dependency graph: Simple exporter
-+++++++++++++++++++++++++++++++++
+Dependency graph: bpy.data.meshes.new_from_object()
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This example is a combination of all previous ones, and shows how to write a simple exporter
-script.
+Object.to_mesh() is closely interacting with dependency graph: its behavior depends on whether it
+is used on original or evaluated object.
+
+When is used on original object, the result mesh is calculated from the object without taking
+animation or modifiers into account:
+
+- For meshes this is similar to duplicating the source mesh.
+- For curves this disables own modifiers, and modifiers of objects used as bevel and taper.
+- For metaballs this produces an empty mesh since polygonization is done as a modifier evaluation.
+
+When is used on evaluated object all modifiers are taken into account.
+
+All the references (such as materials) are re-mapped to original. This ensures validity and
+consistency of the main database.
+
+.. note:: The result mesh is added to the main database.
+.. note:: If object does not have geometry (i.e. camera) the functions returns None.
 """
 import bpy
 
 
-class OBJECT_OT_simple_exporter(bpy.types.Operator):
-    """Simple (fake) exporter of selected objects"""
-    bl_label = "DEG Export Selected"
-    bl_idname = "object.simple_exporter"
-
-    apply_modifiers: bpy.props.BoolProperty(name="Apply Modifiers")
+class OBJECT_OT_mesh_from_object(bpy.types.Operator):
+    """Convert selected object to mesh and show number of vertices"""
+    bl_label = "DEG Mesh From Object"
+    bl_idname = "object.mesh_from_object"
 
     def execute(self, context):
+        # Access input original object.
+        object = context.object
+        if object is None:
+            self.report({'INFO'}, "No active mesh object to convert to mesh")
+            return {'CANCELLED'}
+        # Avoid annoying None checks later on.
+        if object.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+            self.report({'INFO'}, "Object can not be converted to mesh")
+            return {'CANCELLED'}
         depsgraph = context.evaluated_depsgraph_get()
-        for object_instance in depsgraph.object_instances:
-            if not self.is_object_instance_from_selected(object_instance):
-                # We only export selected objects
-                continue
-            # NOTE: This will create a mesh for every instance, which is not ideal at all. In
-            # reality destination format will support some sort of instancing mechanism, so the
-            # code here will simply say "instance this object at object_instance.matrix_world".
-            mesh = self.create_mesh_for_object_instance(object_instance)
-            if mesh is None:
-                # Happens for non-geometry objects.
-                continue
-            print(f"Exporting mesh with {len(mesh.vertices)} vertices "
-                   f"at {object_instance.matrix_world}")
-            bpy.data.meshes.remove(mesh)
-
+        object_eval = object.evaluated_get(depsgraph)
+        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+        self.report({'INFO'}, f"{len(mesh_from_eval.vertices)} in new mesh, and is ready for use!")
         return {'FINISHED'}
-
-    def is_object_instance_from_selected(self, object_instance):
-        # For instanced objects we check selection of their instancer (more accurately: check
-        # selection status of the original object corresponding to the instancer).
-        if object_instance.parent:
-            return object_instance.parent.original.select_get()
-        # For non-instanced objects we check selection state of the original object.
-        return object_instance.object.original.select_get()
-
-    def create_mesh_for_object_instance(self, object_instance):
-        if self.apply_modifiers:
-            return object_instance.object.to_mesh()
-        else:
-            return object_instance.object.original.to_mesh()
 
 
 def register():
-    bpy.utils.register_class(OBJECT_OT_simple_exporter)
+    bpy.utils.register_class(OBJECT_OT_mesh_from_object)
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_simple_exporter)
+    bpy.utils.unregister_class(OBJECT_OT_mesh_from_object)
 
 
 if __name__ == "__main__":

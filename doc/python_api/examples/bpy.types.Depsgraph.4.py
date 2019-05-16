@@ -2,8 +2,8 @@
 Dependency graph: Object.to_mesh()
 +++++++++++++++++++++++++++++++++++
 
-Object.to_mesh() (and bpy.data.meshes.new_from_object()) are closely interacting with dependency
-graph: their behavior depends on whether they are used on original or evaluated object.
+Object.to_mesh() is closely interacting with dependency graph: its behavior depends on whether it
+is used on original or evaluated object.
 
 When is used on original object, the result mesh is calculated from the object without taking
 animation or modifiers into account:
@@ -14,7 +14,7 @@ animation or modifiers into account:
 
 When is used on evaluated object all modifiers are taken into account.
 
-.. note:: The result mesh is added to the main database.
+.. note:: The result mesh is owned by the object. It can be freed by calling `object.to_mesh_clear()`.
 .. note:: If object does not have geometry (i.e. camera) the functions returns None.
 """
 import bpy
@@ -40,13 +40,13 @@ class OBJECT_OT_object_to_mesh(bpy.types.Operator):
         mesh_from_orig = object.to_mesh()
         self.report({'INFO'}, f"{len(mesh_from_orig.vertices)} in new mesh without modifiers.")
         # Remove temporary mesh.
-        bpy.data.meshes.remove(mesh_from_orig)
+        object.to_mesh_clear()
         # Invoke to_mesh() for evaluated object.
         object_eval = object.evaluated_get(depsgraph)
         mesh_from_eval = object_eval.to_mesh()
         self.report({'INFO'}, f"{len(mesh_from_eval.vertices)} in new mesh with modifiers.")
         # Remove temporary mesh.
-        bpy.data.meshes.remove(mesh_from_eval)
+        object_eval.to_mesh_clear()
         return {'FINISHED'}
 
 

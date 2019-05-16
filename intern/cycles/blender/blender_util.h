@@ -43,7 +43,7 @@ CCL_NAMESPACE_BEGIN
 void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
-static inline BL::Mesh object_to_mesh(BL::BlendData &data,
+static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
                                       BL::Object &object,
                                       BL::Depsgraph & /*depsgraph*/,
                                       bool /*calc_undeformed*/,
@@ -75,11 +75,11 @@ static inline BL::Mesh object_to_mesh(BL::BlendData &data,
      * UV are not empty. */
     if (mesh.is_editmode() ||
         (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
-      mesh = data.meshes.new_from_object(object);
+      mesh = object.to_mesh();
     }
   }
   else {
-    mesh = data.meshes.new_from_object(object);
+    mesh = object.to_mesh();
   }
 
 #if 0
@@ -102,11 +102,13 @@ static inline BL::Mesh object_to_mesh(BL::BlendData &data,
   return mesh;
 }
 
-static inline void free_object_to_mesh(BL::BlendData &data, BL::Object &object, BL::Mesh &mesh)
+static inline void free_object_to_mesh(BL::BlendData & /*data*/,
+                                       BL::Object &object,
+                                       BL::Mesh &mesh)
 {
   /* Free mesh if we didn't just use the existing one. */
   if (object.data().ptr.data != mesh.ptr.data) {
-    data.meshes.remove(mesh, false, true, false);
+    object.to_mesh_clear();
   }
 }
 
