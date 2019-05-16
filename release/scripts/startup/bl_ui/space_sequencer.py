@@ -1568,14 +1568,42 @@ class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
         self.layout.prop(st, "show_safe_areas", text="")
 
     def draw(self, context):
-        from .properties_data_camera import draw_display_safe_settings
-
         layout = self.layout
-
+        layout.use_property_split = True
         st = context.space_data
         safe_data = context.scene.safe_areas
 
-        draw_display_safe_settings(layout, safe_data, st)
+        layout.active = st.show_safe_areas
+
+        col = layout.column()
+
+        sub = col.column()
+        sub.prop(safe_data, "title", slider=True)
+        sub.prop(safe_data, "action", slider=True)
+
+
+class SEQUENCER_PT_view_safe_areas_center_cut(SequencerButtonsPanel_Output, Panel):
+    bl_label = "Center-Cut Safe Areas"
+    bl_parent_id = "SEQUENCER_PT_view_safe_areas"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        st = context.space_data
+
+        layout = self.layout
+        layout.active = st.show_safe_areas
+        layout.prop(st, "show_safe_center", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        safe_data = context.scene.safe_areas
+        st = context.space_data
+
+        layout.active = st.show_safe_areas and st.show_safe_center
+
+        col = layout.column()
+        col.prop(safe_data, "title_center", slider=True)
 
 
 class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
@@ -1716,6 +1744,7 @@ classes = (
     SEQUENCER_PT_preview,
     SEQUENCER_PT_view,
     SEQUENCER_PT_view_safe_areas,
+    SEQUENCER_PT_view_safe_areas_center_cut,
     SEQUENCER_PT_modifiers,
     
     SEQUENCER_PT_info,
