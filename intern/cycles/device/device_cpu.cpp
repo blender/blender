@@ -332,9 +332,11 @@ class CPUDevice : public Device {
     if (DebugFlags().cpu.has_sse2() && system_cpu_support_sse2()) {
       bvh_layout_mask |= BVH_LAYOUT_BVH4;
     }
+#if defined(__x86_64__) || defined(_M_X64)
     if (DebugFlags().cpu.has_avx2() && system_cpu_support_avx2()) {
       bvh_layout_mask |= BVH_LAYOUT_BVH8;
     }
+#endif
 #ifdef WITH_EMBREE
     bvh_layout_mask |= BVH_LAYOUT_EMBREE;
 #endif /* WITH_EMBREE */
