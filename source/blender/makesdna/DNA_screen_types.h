@@ -139,7 +139,7 @@ typedef struct Panel {
   struct uiLayout *layout;
 
   /** Defined as UI_MAX_NAME_STR. */
-  char panelname[64], tabname[64];
+  char panelname[64];
   /** Panel name is identifier for restoring location. */
   char drawname[64];
   /** Offset within the region. */
@@ -155,8 +155,6 @@ typedef struct Panel {
   short snap;
   /** Panels are aligned according to increasing sort-order. */
   int sortorder;
-  /** This panel is tabbed in *paneltab. */
-  struct Panel *paneltab;
   /** Runtime for panel manipulation. */
   void *activedata;
   /** Sub panels. */

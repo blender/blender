@@ -193,18 +193,6 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   Panel *pa = lb->first;
   for (; newpa; newpa = newpa->next, pa = pa->next) {
     newpa->activedata = NULL;
-
-    Panel *newpatab = newlb->first;
-    Panel *patab = lb->first;
-    while (newpatab) {
-      if (newpa->paneltab == patab) {
-        newpa->paneltab = newpatab;
-        break;
-      }
-      newpatab = newpatab->next;
-      patab = patab->next;
-    }
-
     panel_list_copy(&newpa->children, &pa->children);
   }
 }
