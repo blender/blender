@@ -363,6 +363,8 @@ typedef struct ThemeSpace {
   char match[4];
   /** Outliner - selected item. */
   char selected_highlight[4];
+  /** Outliner - row color difference. */
+  char row_alternate[4];
 
   /** Skin modifier root color. */
   char skin_root[4];
@@ -374,7 +376,6 @@ typedef struct ThemeSpace {
   char anim_non_active[4];
   /** Preview range overlay. */
   char anim_preview_range[4];
-  char _pad2[4];
 
   /** NLA 'Tweaking' action/strip. */
   char nla_tweaking[4];

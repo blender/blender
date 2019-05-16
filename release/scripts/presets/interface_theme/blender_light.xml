@@ -983,6 +983,7 @@
       <ThemeOutliner
         match="#337f33"
         selected_highlight="#314e78"
+        row_alternate="#3f3f3f1a"
         >
         <space>
           <ThemeSpaceGeneric

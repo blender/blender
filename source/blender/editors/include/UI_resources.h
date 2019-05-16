@@ -255,6 +255,7 @@ typedef enum ThemeColorID {
 
   TH_MATCH,            /* highlight color for search matches */
   TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
+  TH_ROW_ALTERNATE,    /* overlay on every other row */
 
   TH_SKIN_ROOT,
 
