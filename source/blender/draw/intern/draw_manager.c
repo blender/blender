@@ -2801,7 +2801,7 @@ void DRW_draw_select_id_object(Scene *scene,
         if (select_mode & SCE_SELECT_VERTEX) {
           geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
         }
-        if (draw_facedot) {
+        if (use_faceselect && draw_facedot) {
           geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(me);
         }
         DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);

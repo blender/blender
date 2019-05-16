@@ -2214,9 +2214,11 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_vertices);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_edges);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_facedots);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.edit_selection_facedots);
       GPU_BATCH_DISCARD_SAFE(cache->batch.edit_mesh_analysis);
       cache->batch_ready &= ~(MBC_EDIT_TRIANGLES | MBC_EDIT_VERTICES | MBC_EDIT_EDGES |
-                              MBC_EDIT_FACEDOTS | MBC_EDIT_MESH_ANALYSIS);
+                              MBC_EDIT_FACEDOTS | MBC_EDIT_SELECTION_FACEDOTS |
+                              MBC_EDIT_MESH_ANALYSIS);
       /* Because visible UVs depends on edit mode selection, discard everything. */
       mesh_batch_cache_discard_uvedit(cache);
       break;
