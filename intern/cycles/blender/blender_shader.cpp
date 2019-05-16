@@ -1354,16 +1354,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, bool update_all)
   }
 
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-
-  /* when doing preview render check for BI's transparency settings,
-   * this is so because Blender's preview render routines are not able
-   * to tweak all cycles's settings depending on different circumstances
-   */
-  if (b_engine.is_preview() == false)
-    background->transparent = get_boolean(cscene, "film_transparent");
-  else
-    background->transparent = b_scene.render().alpha_mode() ==
-                              BL::RenderSettings::alpha_mode_TRANSPARENT;
+  background->transparent = b_scene.render().film_transparent();
 
   if (background->transparent) {
     background->transparent_glass = get_boolean(cscene, "film_transparent_glass");

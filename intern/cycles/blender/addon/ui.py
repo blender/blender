@@ -528,31 +528,32 @@ class CYCLES_RENDER_PT_film(CyclesButtonsPanel, Panel):
 
 
 class CYCLES_RENDER_PT_film_transparency(CyclesButtonsPanel, Panel):
-    bl_label = "Transparency"
+    bl_label = "Transparent"
     bl_parent_id = "CYCLES_RENDER_PT_film"
 
     def draw_header(self, context):
         layout = self.layout
 
         scene = context.scene
-        cscene = scene.cycles
+        rd = scene.render
 
-        layout.prop(cscene, "film_transparent", text="")
+        layout.prop(rd, "film_transparent", text="")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
         scene = context.scene
+        rd = scene.render
         cscene = scene.cycles
 
-        layout.active = cscene.film_transparent
+        layout.active = rd.film_transparent
 
         col = layout.column()
         col.prop(cscene, "film_transparent_glass", text="Transparent Glass")
 
         sub = col.column()
-        sub.active = cscene.film_transparent and cscene.film_transparent_glass
+        sub.active = rd.film_transparent and cscene.film_transparent_glass
         sub.prop(cscene, "film_transparent_roughness", text="Roughness Threshold")
 
 

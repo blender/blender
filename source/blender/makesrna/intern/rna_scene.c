@@ -5498,16 +5498,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem alpha_mode_items[] = {
-      {R_ADDSKY, "SKY", 0, "Sky", "Transparent pixels are filled with sky color"},
-      {R_ALPHAPREMUL,
-       "TRANSPARENT",
-       0,
-       "Transparent",
-       "World background is transparent with premultiplied alpha"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem display_mode_items[] = {
       {R_OUTPUT_SCREEN,
        "SCREEN",
@@ -5735,11 +5725,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       prop, "Filter Size", "Width over which the reconstruction filter combines samples");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-  prop = RNA_def_property(srna, "alpha_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "alphamode");
-  RNA_def_property_enum_items(prop, alpha_mode_items);
+  prop = RNA_def_property(srna, "film_transparent", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "alphamode", R_ALPHAPREMUL);
   RNA_def_property_ui_text(
-      prop, "Alpha Mode", "Representation of alpha information in the RGBA pixels");
+      prop,
+      "Transparent",
+      "World background is transparent, for compositing the render over another background");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);

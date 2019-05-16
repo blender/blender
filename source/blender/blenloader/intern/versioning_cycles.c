@@ -396,6 +396,20 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 68)) {
+    /* Unify Cycles and EEVEE Film Transparency. */
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      if (STREQ(scene->r.engine, RE_engine_id_CYCLES)) {
+        IDProperty *cscene = cycles_properties_from_ID(&scene->id);
+        if (cscene) {
+          bool cycles_film_transparency = cycles_property_boolean(
+              cscene, "film_transparent", false);
+          scene->r.alphamode = cycles_film_transparency ? R_ALPHAPREMUL : R_ADDSKY;
+        }
+      }
+    }
+  }
 }
 
 void do_versions_after_linking_cycles(Main *bmain)

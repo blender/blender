@@ -495,7 +495,7 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(rd, "filter_size")
-        col.prop(rd, "alpha_mode", text="Alpha")
+        col.prop(rd, "film_transparent", text="Transparent")
 
 
 class RENDER_PT_eevee_film_overscan(RenderButtonsPanel, Panel):
@@ -573,7 +573,7 @@ class RENDER_PT_opengl_film(RenderButtonsPanel, Panel):
         layout.use_property_decorate = False  # No animation.
 
         rd = context.scene.render
-        layout.prop(rd, "alpha_mode")
+        layout.prop(rd, "film_transparent", text="Transparent")
 
 
 class RENDER_PT_opengl_lighting(RenderButtonsPanel, Panel):

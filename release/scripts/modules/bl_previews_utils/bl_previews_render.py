@@ -123,7 +123,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             scene.collection.objects.link(light)
 
             scene.render.engine = 'CYCLES'
-            scene.cycles.film_transparent = True
+            scene.render.film_transparent = True
             # TODO: define Cycles world?
 
         scene.render.image_settings.file_format = 'PNG'

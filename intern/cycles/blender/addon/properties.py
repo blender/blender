@@ -417,11 +417,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0.0, max=10.0,
         default=1.0,
     )
-    film_transparent: BoolProperty(
-        name="Transparent",
-        description="World background is transparent, for compositing the render over another background",
-        default=False,
-    )
     film_transparent_glass: BoolProperty(
         name="Transparent Glass",
         description="Render transmissive surfaces as transparent, for compositing glass over another background",

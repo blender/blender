@@ -850,9 +850,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
         # Ensure no nodes were created on the position of existing node.
         self._offsetNodes(tree)
 
-        if hasattr(scene, "cycles"):
-            scene.cycles.film_transparent = True
-
     @staticmethod
     def _createMesh(collection, name, vertices, faces):
         from bpy_extras.io_utils import unpack_list

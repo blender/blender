@@ -125,13 +125,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
   /* Render with transparent background. */
   freestyle_scene->r.alphamode = R_ALPHAPREMUL;
 
-  if (STREQ(freestyle_scene->r.engine, RE_engine_id_CYCLES)) {
-    PointerRNA freestyle_scene_ptr;
-    RNA_id_pointer_create(&freestyle_scene->id, &freestyle_scene_ptr);
-    PointerRNA freestyle_cycles_ptr = RNA_pointer_get(&freestyle_scene_ptr, "cycles");
-    RNA_boolean_set(&freestyle_cycles_ptr, "film_transparent", 1);
-  }
-
   if (G.debug & G_DEBUG_FREESTYLE) {
     printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
   }
