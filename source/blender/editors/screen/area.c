@@ -2309,9 +2309,9 @@ void ED_region_panels_layout_ex(const bContext *C,
                                 const char *category_override)
 {
   /* collect panels to draw */
+  WorkSpace *workspace = CTX_wm_workspace(C);
   LinkNode *panel_types_stack = NULL;
   for (PanelType *pt = paneltypes->last; pt; pt = pt->prev) {
-    WorkSpace *workspace = CTX_wm_workspace(C);
     /* Only draw top level panels. */
     if (pt->parent) {
       continue;
@@ -2344,8 +2344,6 @@ void ED_region_panels_layout_ex(const bContext *C,
   ScrArea *sa = CTX_wm_area(C);
   View2D *v2d = &ar->v2d;
   int x, y, w, em;
-  bool is_context_new = 0;
-  int scroll;
 
   /* XXX, should use some better check? */
   /* For now also has hardcoded check for clip editor until it supports actual toolbar. */
@@ -2357,10 +2355,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
   int margin_x = 0;
   const bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
-
-  if (contextnr != -1) {
-    is_context_new = UI_view2d_tab_set(v2d, contextnr);
-  }
+  const bool is_context_new = (contextnr != -1) ? UI_view2d_tab_set(v2d, contextnr) : false;
 
   /* before setting the view */
   if (vertical) {
@@ -2378,8 +2373,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     v2d->scroll |= (V2D_SCROLL_BOTTOM);
     v2d->scroll &= ~(V2D_SCROLL_RIGHT);
   }
-
-  scroll = v2d->scroll;
+  const int scroll = v2d->scroll;
 
   /* collect categories */
   if (use_category_tabs) {
