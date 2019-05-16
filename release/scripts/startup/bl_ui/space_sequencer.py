@@ -49,7 +49,6 @@ def draw_color_balance(layout, color_balance):
 
     flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
     col = flow.column()
-    
 
     box = col.box()
     split = box.split(factor=0.35)
@@ -204,7 +203,7 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.prop(st, "show_region_ui")
         layout.operator_context = 'INVOKE_DEFAULT'
-        
+
         if st.view_type == 'SEQUENCER':
             layout.prop(st, "show_backdrop", text="Preview as Backdrop")
 
@@ -714,7 +713,7 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
 
         row = layout.row(align=True)
-        row.prop(strip, "name", text=""+strip.type.title()+"")
+        row.prop(strip, "name", text=strip.type.title())
         row.prop(strip, "lock", toggle=True, icon_only=True)
 
 
@@ -854,7 +853,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             col.prop(strip, "interpolation")
             col.prop(strip, "translation_unit")
-            layout=layout.column(align=True)
+            layout = layout.column(align=True)
             layout.prop(strip, "translate_start_x", text="Position X")
             layout.prop(strip, "translate_start_y", text="Y")
 
@@ -922,7 +921,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             rowsub.prop(strip, "shadow_color", text="")
 
             col.prop(strip, "align_x")
-            col.prop(strip, "align_y", text = "Y")
+            col.prop(strip, "align_y", text="Y")
             row = col.row(align=True)
             row.prop(strip, "location", text="Location")
             col.prop(strip, "wrap_width")
@@ -938,8 +937,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                 col.prop(strip, "effect_fader", text="Effect Fader")
         elif strip.type == 'GAUSSIAN_BLUR':
             layout = layout.column(align=True)
-            layout.prop(strip, "size_x", text = "Size X")
-            layout.prop(strip, "size_y", text = "Y")
+            layout.prop(strip, "size_x", text="Size X")
+            layout.prop(strip, "size_y", text="Y")
         elif strip.type == 'COLORMIX':
             layout.prop(strip, "blend_effect", text="Blend Mode")
             row = layout.row(align=True)
@@ -1002,7 +1001,7 @@ class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
 
             layout.prop(strip, "mpeg_preseek")
             layout.prop(strip, "stream_index")
-            
+
         elif seq_type == 'SOUND':
             sound = strip.sound
             layout.template_ID(strip, "sound", open="sound.open")
@@ -1110,7 +1109,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
 
         scene = strip.scene
         layout.prop(strip, "use_sequence")
-        
+
         layout.prop(scene, "audio_volume", text="Volume")
 
         if not strip.use_sequence:
@@ -1127,7 +1126,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
-                #layout.label(text="Preview")
+                # layout.label(text="Preview")
                 layout.prop(scene.render, "alpha_mode")
 
 
@@ -1188,28 +1187,36 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
         frame_current = scene.frame_current
         strip = act_strip(context)
 
-        length_list = [str(strip.frame_start), str(strip.frame_final_end), str(strip.frame_final_duration), str(strip.frame_offset_start), str(strip.frame_offset_end), str(strip.animation_offset_start), str(strip.animation_offset_end)]
+        length_list = (
+            str(strip.frame_start),
+            str(strip.frame_final_end),
+            str(strip.frame_final_duration),
+            str(strip.frame_offset_start),
+            str(strip.frame_offset_end),
+            str(strip.animation_offset_start),
+            str(strip.animation_offset_end),
+        )
         max_length = max(len(x) for x in length_list)
-        max_factor = (1.9-max_length)/30
+        max_factor = (1.9 - max_length) / 30
 
         sub = layout.row(align=True)
         sub.enabled = not strip.lock
-        split = sub.split(factor=0.5+max_factor)
+        split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text='Channel')
         split.prop(strip, "channel", text="")
 
         sub = layout.column(align=True)
         sub.enabled = not strip.lock
-        split = sub.split(factor=0.5+max_factor)
+        split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Start")
         split.prop(strip, "frame_start", text=str(bpy.utils.smpte_from_frame(strip.frame_start)).replace(':', ' '))
-        split = sub.split(factor=0.5+max_factor)
+        split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="End")
         split.prop(strip, "frame_final_end", text=str(bpy.utils.smpte_from_frame(strip.frame_final_end)).replace(':', ' '))
-        split = sub.split(factor=0.5+max_factor)
+        split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Duration")
         split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)).replace(':', ' '))
@@ -1217,7 +1224,7 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
         if not isinstance(strip, bpy.types.EffectSequence):
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
-            split = sub.split(factor=0.5+max_factor, align=True)
+            split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Soft Trim Start")
             split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)).replace(':', ' '))
@@ -1228,11 +1235,11 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
 
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
-            split = sub.split(factor=0.5+max_factor)
+            split = sub.split(factor=0.5 + max_factor)
             split.alignment = 'RIGHT'
             split.label(text="Hard Trim Start")
             split.prop(strip, "animation_offset_start", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_start)).replace(':', ' '))
-            split = sub.split(factor=0.5+max_factor, align=True)
+            split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
             split.prop(strip, "animation_offset_end", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_end)).replace(':', ' '))
@@ -1241,7 +1248,7 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         col = col.box()
         col.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_final_duration)
-        split = col.split(factor=0.5+max_factor)
+        split = col.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Playhead")
         split.label(text="%s:   %s" % ((bpy.utils.smpte_from_frame(playhead).replace(':', ' ')), (str(playhead))))
@@ -1259,7 +1266,7 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
             elem = strip.elements[0]
 
         if strip.type != "SOUND":
-            split = col.split(factor=0.5+max_factor)
+            split = col.split(factor=0.5 + max_factor)
             split.alignment = 'RIGHT'
             split.label(text="Resolution")
             if elem and elem.orig_width > 0 and elem.orig_height > 0:
@@ -1273,7 +1280,7 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
             if scene:
                 sta = scene.frame_start
                 end = scene.frame_end
-                split = col.split(factor=0.5+max_factor)
+                split = col.split(factor=0.5 + max_factor)
                 split.alignment = 'RIGHT'
                 split.label(text="Original Frame Range")
                 split.alignment = 'LEFT'
@@ -1305,7 +1312,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
         st = context.space_data
         strip = act_strip(context)
-        
+
         sound = strip.sound
 
         col = layout.column()
@@ -1399,7 +1406,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
 
         col.prop(strip, "use_reverse_frames", text="Backwards")
         col.prop(strip, "use_deinterlace")
-        
+
         col.separator()
 
         col.prop(strip, "use_flip_x", text="Flip X")
@@ -1755,11 +1762,11 @@ classes = (
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,
     SEQUENCER_PT_modifiers,
-    
+
     SEQUENCER_PT_info,
     SEQUENCER_PT_info_input,
     SEQUENCER_PT_info_data,
-    
+
     SEQUENCER_PT_grease_pencil,
     SEQUENCER_PT_grease_pencil_tools,
     SEQUENCER_PT_custom_props,
