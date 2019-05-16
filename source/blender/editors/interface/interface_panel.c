@@ -649,8 +649,17 @@ void ui_draw_aligned_panel(uiStyle *style,
                           /* FIXME(campbell): currently no background means floating panel which
                            * can't be dragged. This may be changed in future. */
                           show_background);
+  const int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
 
   if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
+    if (show_background) {
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immUniformThemeColor(panel_col);
+      immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+      immUnbindProgram();
+    }
     return;
   }
 
@@ -781,8 +790,6 @@ void ui_draw_aligned_panel(uiStyle *style,
 
     if (show_background) {
       /* panel backdrop */
-      int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
-
       immUniformThemeColor(panel_col);
       immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
     }
