@@ -497,7 +497,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
   }
   if (sce->r.ffcodecdata.properties) {
     IDP_FreeProperty(sce->r.ffcodecdata.properties);
-    MEM_freeN(sce->r.ffcodecdata.properties);
     sce->r.ffcodecdata.properties = NULL;
   }
 

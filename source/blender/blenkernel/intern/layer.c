@@ -235,7 +235,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 
   if (view_layer->id_properties) {
     IDP_FreeProperty(view_layer->id_properties);
-    MEM_freeN(view_layer->id_properties);
   }
 
   MEM_SAFE_FREE(view_layer->object_bases_array);

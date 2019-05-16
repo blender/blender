@@ -155,7 +155,6 @@ static void keymap_item_free(wmKeyMapItem *kmi)
 {
   if (kmi->properties) {
     IDP_FreeProperty(kmi->properties);
-    MEM_freeN(kmi->properties);
   }
   if (kmi->ptr) {
     MEM_freeN(kmi->ptr);
@@ -212,7 +211,6 @@ static void userdef_free_keyconfig_prefs(UserDef *userdef)
        kpt = kpt_next) {
     kpt_next = kpt->next;
     IDP_FreeProperty(kpt->prop);
-    MEM_freeN(kpt->prop);
     MEM_freeN(kpt);
   }
   BLI_listbase_clear(&userdef->user_keyconfig_prefs);

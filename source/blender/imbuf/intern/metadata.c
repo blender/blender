@@ -55,7 +55,6 @@ void IMB_metadata_free(struct IDProperty *metadata)
   }
 
   IDP_FreeProperty(metadata);
-  MEM_freeN(metadata);
 }
 
 bool IMB_metadata_get_field(struct IDProperty *metadata,

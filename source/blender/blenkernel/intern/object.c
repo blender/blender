@@ -1951,7 +1951,6 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
   /* copy IDProperties */
   if (ob->id.properties) {
     IDP_FreeProperty(ob->id.properties);
-    MEM_freeN(ob->id.properties);
     ob->id.properties = NULL;
   }
   if (target->id.properties) {

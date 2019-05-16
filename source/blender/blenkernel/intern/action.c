@@ -822,7 +822,6 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 
   if (pchan->prop) {
     IDP_FreeProperty(pchan->prop);
-    MEM_freeN(pchan->prop);
   }
 
   /* Cached data, for new draw manager rendering code. */
@@ -964,7 +963,6 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
   if (pchan->prop) {
     /* unlikely but possible it exists */
     IDP_FreeProperty(pchan->prop);
-    MEM_freeN(pchan->prop);
     pchan->prop = NULL;
   }
   if (pchan_from->prop) {

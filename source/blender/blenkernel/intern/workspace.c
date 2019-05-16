@@ -356,7 +356,6 @@ void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tre
   }
   if (tref->properties) {
     IDP_FreeProperty(tref->properties);
-    MEM_freeN(tref->properties);
   }
   BLI_remlink(&workspace->tools, tref);
   MEM_freeN(tref);

@@ -97,7 +97,6 @@ void BKE_blender_user_menu_item_free(bUserMenuItem *umi)
     bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
     if (umi_op->prop) {
       IDP_FreeProperty(umi_op->prop);
-      MEM_freeN(umi_op->prop);
     }
   }
   MEM_freeN(umi);

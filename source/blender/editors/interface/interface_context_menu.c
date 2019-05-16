@@ -116,7 +116,6 @@ static void shortcut_free_operator_property(IDProperty *prop)
 {
   if (prop) {
     IDP_FreeProperty(prop);
-    MEM_freeN(prop);
   }
 }
 

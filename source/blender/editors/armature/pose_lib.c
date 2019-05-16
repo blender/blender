@@ -1018,7 +1018,6 @@ static void poselib_backup_free_data(tPoseLib_PreviewData *pld)
     /* free custom data */
     if (plb->oldprops) {
       IDP_FreeProperty(plb->oldprops);
-      MEM_freeN(plb->oldprops);
     }
 
     /* free backup element now */

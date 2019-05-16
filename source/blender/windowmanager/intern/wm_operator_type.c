@@ -156,7 +156,6 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
 
   if (ot->last_properties) {
     IDP_FreeProperty(ot->last_properties);
-    MEM_freeN(ot->last_properties);
   }
 
   if (ot->macro.first) {
@@ -194,7 +193,6 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 {
   if (ot->last_properties) {
     IDP_FreeProperty(ot->last_properties);
-    MEM_freeN(ot->last_properties);
   }
 
   if (ot->macro.first) {
@@ -279,7 +277,6 @@ void WM_operatortype_last_properties_clear_all(void)
 
     if (ot->last_properties) {
       IDP_FreeProperty(ot->last_properties);
-      MEM_freeN(ot->last_properties);
       ot->last_properties = NULL;
     }
   }

@@ -1455,7 +1455,6 @@ void uiItemsFullEnumO_items(uiLayout *layout,
       if (properties) {
         if (tptr.data) {
           IDP_FreeProperty(tptr.data);
-          MEM_freeN(tptr.data);
         }
         tptr.data = IDP_CopyProperty(properties);
       }

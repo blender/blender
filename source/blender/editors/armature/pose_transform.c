@@ -1225,7 +1225,6 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
         if (pchan->prop) {
           IDP_FreeProperty(pchan->prop);
-          MEM_freeN(pchan->prop);
         }
       }
 

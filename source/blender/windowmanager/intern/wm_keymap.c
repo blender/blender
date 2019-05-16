@@ -1412,7 +1412,6 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
               }
 
               IDP_FreeProperty(properties_default);
-              MEM_freeN(properties_default);
             }
           }
         }
@@ -1586,7 +1585,6 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
       }
 
       IDP_FreeProperty(properties_temp);
-      MEM_freeN(properties_temp);
     }
   }
 
@@ -1625,7 +1623,6 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
         }
 
         IDP_FreeProperty(properties_default);
-        MEM_freeN(properties_default);
       }
     }
   }
@@ -2022,7 +2019,6 @@ void WM_keymap_item_restore_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
     if (orig->properties) {
       if (kmi->properties) {
         IDP_FreeProperty(kmi->properties);
-        MEM_freeN(kmi->properties);
         kmi->properties = NULL;
       }
 

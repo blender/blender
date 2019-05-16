@@ -142,7 +142,7 @@ void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 
   old = GETPROP(prop, index);
   if (item != old) {
-    IDP_FreeProperty(old);
+    IDP_FreePropertyContent(old);
 
     memcpy(old, item, sizeof(IDProperty));
   }
@@ -175,7 +175,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
       int i;
 
       for (i = newlen; i < prop->len; i++) {
-        IDP_FreeProperty(GETPROP(prop, i));
+        IDP_FreePropertyContent(GETPROP(prop, i));
       }
 
       prop->len = newlen;
@@ -192,7 +192,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
     /* newlen is smaller */
     int i;
     for (i = newlen; i < prop->len; i++) {
-      IDP_FreeProperty(GETPROP(prop, i));
+      IDP_FreePropertyContent(GETPROP(prop, i));
     }
   }
 
@@ -236,7 +236,6 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 
     for (a = newlen; a < prop->len; a++) {
       IDP_FreeProperty(array[a]);
-      MEM_freeN(array[a]);
     }
   }
 }
@@ -513,7 +512,6 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
         default: {
           BLI_insertlinkreplace(&dest->data.group, other, IDP_CopyProperty(prop));
           IDP_FreeProperty(other);
-          MEM_freeN(other);
           break;
         }
       }
@@ -535,7 +533,6 @@ void IDP_SyncGroupTypes(IDProperty *dst, const IDProperty *src, const bool do_ar
            (prop_src->len != prop_dst->len))) {
         BLI_insertlinkreplace(&dst->data.group, prop_dst, IDP_CopyProperty(prop_src));
         IDP_FreeProperty(prop_dst);
-        MEM_freeN(prop_dst);
       }
       else if (prop_dst->type == IDP_GROUP) {
         IDP_SyncGroupTypes(prop_dst, prop_src, do_arraylen);
@@ -562,7 +559,6 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
       if (STREQ(loop->name, prop->name)) {
         BLI_insertlinkreplace(&dest->data.group, loop, IDP_CopyProperty(prop));
         IDP_FreeProperty(loop);
-        MEM_freeN(loop);
         break;
       }
     }
@@ -588,7 +584,6 @@ void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop
   if (prop_exist != NULL) {
     BLI_insertlinkreplace(&group->data.group, prop_exist, prop);
     IDP_FreeProperty(prop_exist);
-    MEM_freeN(prop_exist);
   }
   else {
     group->len++;
@@ -668,12 +663,6 @@ void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overw
  * (the function that adds new properties to groups, #IDP_AddToGroup,
  * returns false if a property can't be added to the group, and true if it can)
  * and free the property.
- *
- * Currently the code to free ID properties is designed to leave the actual struct
- * you pass it un-freed, this is needed for how the system works.  This means
- * to free an ID property, you first call #IDP_FreeProperty then #MEM_freeN the struct.
- * In the future this will just be #IDP_FreeProperty and the code will
- * be reorganized to work properly.
  */
 bool IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
@@ -709,8 +698,7 @@ bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew
  * \note this does not free the property!!
  *
  * To free the property, you have to do:
- * IDP_FreeProperty(prop); //free all subdata
- * MEM_freeN(prop); //free property struct itself
+ * IDP_FreeProperty(prop);
  */
 void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop)
 {
@@ -727,7 +715,6 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
 {
   IDP_RemoveFromGroup(group, prop);
   IDP_FreeProperty(prop);
-  MEM_freeN(prop);
 }
 
 IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
@@ -1093,14 +1080,20 @@ void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user)
   }
 }
 
-void IDP_FreeProperty(IDProperty *prop)
+void IDP_FreePropertyContent(IDProperty *prop)
 {
   IDP_FreeProperty_ex(prop, true);
 }
 
+void IDP_FreeProperty(IDProperty *prop)
+{
+  IDP_FreePropertyContent(prop);
+  MEM_freeN(prop);
+}
+
 void IDP_ClearProperty(IDProperty *prop)
 {
-  IDP_FreeProperty(prop);
+  IDP_FreePropertyContent(prop);
   prop->data.pointer = NULL;
   prop->len = prop->totallen = 0;
 }

@@ -1616,7 +1616,7 @@ static void ffmpeg_set_expert_options(RenderData *rd)
   int codec_id = rd->ffcodecdata.codec;
 
   if (rd->ffcodecdata.properties) {
-    IDP_FreeProperty(rd->ffcodecdata.properties);
+    IDP_FreePropertyContent(rd->ffcodecdata.properties);
   }
 
   if (codec_id == AV_CODEC_ID_H264) {
@@ -1680,7 +1680,7 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
   int isntsc = (rd->frs_sec != 25);
 
   if (rd->ffcodecdata.properties) {
-    IDP_FreeProperty(rd->ffcodecdata.properties);
+    IDP_FreePropertyContent(rd->ffcodecdata.properties);
   }
 
   switch (preset) {

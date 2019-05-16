@@ -850,7 +850,6 @@ void do_versions_after_linking_280(Main *bmain)
       for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
         if (srl->prop) {
           IDP_FreeProperty(srl->prop);
-          MEM_freeN(srl->prop);
         }
         BKE_freestyle_config_free(&srl->freestyleConfig, true);
       }
@@ -1739,7 +1738,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         /* Cleanup. */
         IDP_FreeProperty(scene->layer_properties);
-        MEM_freeN(scene->layer_properties);
         scene->layer_properties = NULL;
 
 #undef EEVEE_GET_FLOAT_ARRAY

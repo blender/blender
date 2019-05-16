@@ -79,7 +79,6 @@ void BLO_update_defaults_userpref_blend(void)
 
     if (addon->prop) {
       IDP_FreeProperty(addon->prop);
-      MEM_freeN(addon->prop);
       addon->prop = NULL;
     }
   }

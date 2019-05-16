@@ -427,7 +427,6 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
     }
     if (uilst->properties) {
       IDP_FreeProperty(uilst->properties);
-      MEM_freeN(uilst->properties);
     }
   }
 

@@ -302,7 +302,7 @@ static IDProperty *rna_idproperty_ui_ensure(PointerRNA *ptr, PropertyRNA *prop, 
       idprop = IDP_New(IDP_GROUP, &dummy, RNA_IDP_UI);
 
       if (!IDP_AddToGroup(props, idprop)) {
-        IDP_FreeProperty(idprop);
+        IDP_FreePropertyContent(idprop);
         return NULL;
       }
     }
@@ -316,7 +316,7 @@ static IDProperty *rna_idproperty_ui_ensure(PointerRNA *ptr, PropertyRNA *prop, 
       rv = IDP_New(IDP_GROUP, &dummy, name);
 
       if (!IDP_AddToGroup(idprop, rv)) {
-        IDP_FreeProperty(rv);
+        IDP_FreePropertyContent(rv);
         return NULL;
       }
     }
@@ -370,7 +370,7 @@ static bool rna_idproperty_ui_set_default(PointerRNA *ptr,
       item = IDP_New(type, value, "default");
 
       if (!IDP_AddToGroup(idp_ui, item)) {
-        IDP_FreeProperty(item);
+        IDP_FreePropertyContent(item);
         return false;
       }
     }
@@ -3961,7 +3961,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
     item = IDP_New(IDP_GROUP, &val, "");
     IDP_AppendArray(idprop, item);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory  */
-    /* IDP_FreeProperty(item); */
+    /* IDP_FreePropertyContent(item); */
     MEM_freeN(item);
     rna_idproperty_touch(idprop);
   }
@@ -3977,7 +3977,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       item = IDP_New(IDP_GROUP, &val, "");
       IDP_AppendArray(idprop, item);
       /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
-      /* IDP_FreeProperty(item); */
+      /* IDP_FreePropertyContent(item); */
       MEM_freeN(item);
     }
   }

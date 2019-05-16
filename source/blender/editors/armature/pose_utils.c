@@ -203,7 +203,6 @@ void poseAnim_mapping_free(ListBase *pfLinks)
     /* free custom properties */
     if (pfl->oldprops) {
       IDP_FreeProperty(pfl->oldprops);
-      MEM_freeN(pfl->oldprops);
     }
 
     /* free list of F-Curve reference links */

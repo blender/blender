@@ -1910,7 +1910,6 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *so
 {
   if (sock->prop) {
     IDP_FreeProperty(sock->prop);
-    MEM_freeN(sock->prop);
   }
 
   if (sock->default_value) {

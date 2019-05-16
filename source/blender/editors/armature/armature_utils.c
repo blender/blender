@@ -127,7 +127,6 @@ void bone_free(bArmature *arm, EditBone *bone)
 
   if (bone->prop) {
     IDP_FreeProperty(bone->prop);
-    MEM_freeN(bone->prop);
   }
 
   /* Clear references from other edit bones. */
@@ -777,7 +776,6 @@ void ED_armature_edit_free(struct bArmature *arm)
       for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
         if (eBone->prop) {
           IDP_FreeProperty(eBone->prop);
-          MEM_freeN(eBone->prop);
         }
       }
 
@@ -811,7 +809,6 @@ void ED_armature_ebone_listbase_free(ListBase *lb)
 
     if (ebone->prop) {
       IDP_FreeProperty(ebone->prop);
-      MEM_freeN(ebone->prop);
     }
 
     MEM_freeN(ebone);

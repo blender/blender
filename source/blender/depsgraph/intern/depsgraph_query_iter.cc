@@ -94,7 +94,6 @@ void verify_id_properties_freed(DEGObjectIterData *data)
   // Free memory which is owned by temporary storage which is about to
   // get overwritten.
   IDP_FreeProperty(temp_dupli_object->id.properties);
-  MEM_freeN(temp_dupli_object->id.properties);
   temp_dupli_object->id.properties = NULL;
 }
 

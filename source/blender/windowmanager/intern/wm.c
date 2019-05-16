@@ -82,7 +82,6 @@ void WM_operator_free(wmOperator *op)
 
   if (op->properties) {
     IDP_FreeProperty(op->properties);
-    MEM_freeN(op->properties);
   }
 
   if (op->reports && (op->reports->flag & RPT_FREE)) {

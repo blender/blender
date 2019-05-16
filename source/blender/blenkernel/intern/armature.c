@@ -112,7 +112,6 @@ void BKE_armature_bonelist_free(ListBase *lb)
   for (bone = lb->first; bone; bone = bone->next) {
     if (bone->prop) {
       IDP_FreeProperty(bone->prop);
-      MEM_freeN(bone->prop);
     }
     BKE_armature_bonelist_free(&bone->childbase);
   }
@@ -2430,7 +2429,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
         }
         if (prop_orig) {
           IDP_FreeProperty(prop_orig);
-          MEM_freeN(prop_orig);
         }
       }
     }

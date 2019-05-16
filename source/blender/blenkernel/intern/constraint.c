@@ -2113,7 +2113,6 @@ static void pycon_free(bConstraint *con)
 
   /* id-properties */
   IDP_FreeProperty(data->prop);
-  MEM_freeN(data->prop);
 
   /* multiple targets */
   BLI_freelistN(&data->targets);

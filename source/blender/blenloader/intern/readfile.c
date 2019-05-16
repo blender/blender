@@ -2537,7 +2537,7 @@ static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop,
       /* corrupt file! */
       printf("%s: found non group data, freeing type %d!\n", caller_func_id, (*prop)->type);
       /* don't risk id, data's likely corrupt. */
-      // IDP_FreeProperty(*prop);
+      // IDP_FreePropertyContent(*prop);
       *prop = NULL;
     }
   }

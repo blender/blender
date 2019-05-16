@@ -1086,7 +1086,6 @@ static bool ui_but_event_operator_string_from_menu(const bContext *C,
   }
 
   IDP_FreeProperty(prop_menu);
-  MEM_freeN(prop_menu);
   return found;
 }
 
@@ -1135,7 +1134,6 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
   }
 
   IDP_FreeProperty(prop_panel);
-  MEM_freeN(prop_panel);
   return found;
 }
 
@@ -1356,7 +1354,6 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 
       /* cleanup */
       IDP_FreeProperty(prop_path);
-      MEM_freeN(prop_path);
       if (data_path) {
         MEM_freeN(data_path);
       }

@@ -81,7 +81,6 @@ void BKE_addon_free(bAddon *addon)
 {
   if (addon->prop) {
     IDP_FreeProperty(addon->prop);
-    MEM_freeN(addon->prop);
   }
   MEM_freeN(addon);
 }

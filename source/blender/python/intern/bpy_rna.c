@@ -1122,7 +1122,6 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
 #ifdef PYRNA_FREE_SUPPORT
   if (self->freeptr && self->ptr.data) {
     IDP_FreeProperty(self->ptr.data);
-    MEM_freeN(self->ptr.data);
     self->ptr.data = NULL;
   }
 #endif /* PYRNA_FREE_SUPPORT */

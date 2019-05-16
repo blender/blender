@@ -867,7 +867,6 @@ static void fcm_python_free(FModifier *fcm)
 
   /* id-properties */
   IDP_FreeProperty(data->prop);
-  MEM_freeN(data->prop);
 }
 
 static void fcm_python_new_data(void *mdata)
