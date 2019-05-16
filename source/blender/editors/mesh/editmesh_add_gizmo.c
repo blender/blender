@@ -29,6 +29,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_scene.h"
 
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
@@ -75,7 +76,7 @@ static void calc_initial_placement_point_from_view(bContext *C,
 
   float cursor_matrix[4][4];
   float orient_matrix[3][3];
-  ED_view3d_cursor3d_calc_mat4(scene, cursor_matrix);
+  BKE_scene_cursor_to_mat4(&scene->cursor, cursor_matrix);
 
   float dots[3] = {
       dot_v3v3(rv3d->viewinv[2], cursor_matrix[0]),

@@ -240,6 +240,11 @@ void BKE_scene_cursor_quat_to_rot(struct View3DCursor *cursor,
                                   const float quat[4],
                                   bool use_compat);
 
+void BKE_scene_cursor_to_mat4(const struct View3DCursor *cursor, float mat[4][4]);
+void BKE_scene_cursor_from_mat4(struct View3DCursor *cursor,
+                                const float mat[4][4],
+                                bool use_compat);
+
 #ifdef __cplusplus
 }
 #endif

@@ -703,7 +703,7 @@ void ED_transform_calc_orientation_from_type_ex(const bContext *C,
       break;
     }
     case V3D_ORIENT_CURSOR: {
-      ED_view3d_cursor3d_calc_mat3(scene, r_mat);
+      BKE_scene_cursor_rot_to_mat3(&scene->cursor, r_mat);
       ok = true;
       break;
     }
