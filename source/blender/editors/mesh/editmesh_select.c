@@ -606,26 +606,32 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
     struct NearestVertUserData data = {{0}};
     const struct NearestVertUserData_Hit *hit;
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
+    BMesh *prev_select_bm = NULL;
 
-    static int prev_select_index = 0;
-    static const BMVert *prev_select_elem = NULL;
-
-    if ((use_cycle == false) ||
-        (prev_select_elem &&
-         (prev_select_elem != BM_vert_at_index_find_or_table(vc->em->bm, prev_select_index)))) {
-      prev_select_index = 0;
-      prev_select_elem = NULL;
-    }
+    static struct {
+      int index;
+      const BMVert *elem;
+      const BMesh *bm;
+    } prev_select = {0};
 
     data.mval_fl[0] = vc->mval[0];
     data.mval_fl[1] = vc->mval[1];
     data.use_select_bias = use_select_bias;
     data.use_cycle = use_cycle;
-    data.cycle_index_prev = prev_select_index;
 
     for (; base_index < bases_len; base_index++) {
       Base *base_iter = bases[base_index];
       ED_view3d_viewcontext_init_object(vc, base_iter->object);
+      if (use_cycle && prev_select.bm == vc->em->bm &&
+          prev_select.elem == BM_vert_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        data.cycle_index_prev = prev_select.index;
+        /* No need to compare in the rest of the loop. */
+        use_cycle = false;
+      }
+      else {
+        data.cycle_index_prev = 0;
+      }
+
       data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
           *r_dist;
 
@@ -639,11 +645,13 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
           *r_base_index = base_index;
         }
         *r_dist = hit->dist;
+        prev_select_bm = vc->em->bm;
       }
     }
 
-    prev_select_elem = hit->vert;
-    prev_select_index = hit->index;
+    prev_select.index = hit->index;
+    prev_select.elem = hit->vert;
+    prev_select.bm = prev_select_bm;
 
     return hit->vert;
   }
@@ -774,7 +782,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
                                   float *r_dist,
                                   float *r_dist_center,
                                   const bool use_select_bias,
-                                  const bool use_cycle,
+                                  bool use_cycle,
                                   BMEdge **r_eed_zbuf,
                                   Base **bases,
                                   uint bases_len,
@@ -848,27 +856,33 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
     const struct NearestEdgeUserData_Hit *hit;
     /* interpolate along the edge before doing a clipping plane test */
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
+    BMesh *prev_select_bm = NULL;
 
-    static int prev_select_index = 0;
-    static const BMEdge *prev_select_elem = NULL;
-
-    if ((use_cycle == false) ||
-        (prev_select_elem &&
-         (prev_select_elem != BM_edge_at_index_find_or_table(vc->em->bm, prev_select_index)))) {
-      prev_select_index = 0;
-      prev_select_elem = NULL;
-    }
+    static struct {
+      int index;
+      const BMEdge *elem;
+      const BMesh *bm;
+    } prev_select = {0};
 
     data.vc = *vc;
     data.mval_fl[0] = vc->mval[0];
     data.mval_fl[1] = vc->mval[1];
     data.use_select_bias = use_select_bias;
     data.use_cycle = use_cycle;
-    data.cycle_index_prev = prev_select_index;
 
     for (; base_index < bases_len; base_index++) {
       Base *base_iter = bases[base_index];
       ED_view3d_viewcontext_init_object(vc, base_iter->object);
+      if (use_cycle && prev_select.bm == vc->em->bm &&
+          prev_select.elem == BM_edge_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        data.cycle_index_prev = prev_select.index;
+        /* No need to compare in the rest of the loop. */
+        use_cycle = false;
+      }
+      else {
+        data.cycle_index_prev = 0;
+      }
+
       data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
           *r_dist;
 
@@ -882,6 +896,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
           *r_base_index = base_index;
         }
         *r_dist = hit->dist;
+        prev_select_bm = vc->em->bm;
       }
     }
 
@@ -889,8 +904,9 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
       *r_dist_center = hit->dist_center;
     }
 
-    prev_select_elem = hit->edge;
-    prev_select_index = hit->index;
+    prev_select.index = hit->index;
+    prev_select.elem = hit->edge;
+    prev_select.bm = prev_select_bm;
 
     return hit->edge;
   }
@@ -978,7 +994,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
                                   float *r_dist,
                                   float *r_dist_center,
                                   const bool use_select_bias,
-                                  const bool use_cycle,
+                                  bool use_cycle,
                                   BMFace **r_efa_zbuf,
                                   Base **bases,
                                   uint bases_len,
@@ -1050,26 +1066,31 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     struct NearestFaceUserData data = {{0}};
     const struct NearestFaceUserData_Hit *hit;
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
+    BMesh *prev_select_bm = NULL;
 
-    static int prev_select_index = 0;
-    static const BMFace *prev_select_elem = NULL;
-
-    if ((use_cycle == false) ||
-        (prev_select_elem &&
-         (prev_select_elem != BM_face_at_index_find_or_table(vc->em->bm, prev_select_index)))) {
-      prev_select_index = 0;
-      prev_select_elem = NULL;
-    }
+    static struct {
+      int index;
+      const BMFace *elem;
+      const BMesh *bm;
+    } prev_select = {0};
 
     data.mval_fl[0] = vc->mval[0];
     data.mval_fl[1] = vc->mval[1];
     data.use_select_bias = use_select_bias;
     data.use_cycle = use_cycle;
-    data.cycle_index_prev = prev_select_index;
 
     for (; base_index < bases_len; base_index++) {
       Base *base_iter = bases[base_index];
       ED_view3d_viewcontext_init_object(vc, base_iter->object);
+      if (use_cycle && prev_select.bm == vc->em->bm &&
+          prev_select.elem == BM_face_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        data.cycle_index_prev = prev_select.index;
+        /* No need to compare in the rest of the loop. */
+        use_cycle = false;
+      }
+      else {
+        data.cycle_index_prev = 0;
+      }
 
       data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
           *r_dist;
@@ -1084,6 +1105,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
           *r_base_index = base_index;
         }
         *r_dist = hit->dist;
+        prev_select_bm = vc->em->bm;
       }
     }
 
@@ -1091,8 +1113,9 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
       *r_dist_center = hit->dist;
     }
 
-    prev_select_elem = hit->face;
-    prev_select_index = hit->index;
+    prev_select.index = hit->index;
+    prev_select.elem = hit->face;
+    prev_select.bm = prev_select_bm;
 
     return hit->face;
   }
