@@ -206,7 +206,9 @@ static void engine_bake(RenderEngine *engine,
   RNA_parameter_list_free(&list);
 }
 
-static void engine_view_update(RenderEngine *engine, const struct bContext *context)
+static void engine_view_update(RenderEngine *engine,
+                               const struct bContext *context,
+                               Depsgraph *depsgraph)
 {
   extern FunctionRNA rna_RenderEngine_view_update_func;
   PointerRNA ptr;
@@ -218,12 +220,15 @@ static void engine_view_update(RenderEngine *engine, const struct bContext *cont
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &context);
+  RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
   engine->type->ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
 
-static void engine_view_draw(RenderEngine *engine, const struct bContext *context)
+static void engine_view_draw(RenderEngine *engine,
+                             const struct bContext *context,
+                             Depsgraph *depsgraph)
 {
   extern FunctionRNA rna_RenderEngine_view_draw_func;
   PointerRNA ptr;
@@ -235,6 +240,7 @@ static void engine_view_draw(RenderEngine *engine, const struct bContext *contex
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &context);
+  RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
   engine->type->ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
@@ -554,12 +560,18 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "view_update", NULL);
   RNA_def_function_ui_description(func, "Update on data changes for viewport render");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  RNA_def_pointer(func, "context", "Context", "", "");
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "view_draw", NULL);
   RNA_def_function_ui_description(func, "Draw viewport render");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-  RNA_def_pointer(func, "context", "Context", "", "");
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   /* shader script callbacks */
   func = RNA_def_function(srna, "update_script_node", NULL);

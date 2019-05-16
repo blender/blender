@@ -221,7 +221,7 @@ static void external_draw_scene_do(void *vedata)
     RenderEngine *engine = RE_engine_create_ex(engine_type, true);
     engine->tile_x = scene->r.tilex;
     engine->tile_y = scene->r.tiley;
-    engine_type->view_update(engine, draw_ctx->evil_C);
+    engine_type->view_update(engine, draw_ctx->evil_C, draw_ctx->depsgraph);
     rv3d->render_engine = engine;
   }
 
@@ -231,7 +231,7 @@ static void external_draw_scene_do(void *vedata)
 
   /* Render result draw. */
   type = rv3d->render_engine->type;
-  type->view_draw(rv3d->render_engine, draw_ctx->evil_C);
+  type->view_draw(rv3d->render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
   GPU_matrix_pop_projection();
 

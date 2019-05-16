@@ -87,8 +87,7 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.bake(self, depsgraph, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result)
 
     # viewport render
-    def view_update(self, context):
-        depsgraph = context.evaluated_depsgraph_get()
+    def view_update(self, context, depsgraph):
         if not self.session:
             engine.create(self, context.blend_data,
                           context.region, context.space_data, context.region_data)
@@ -96,8 +95,7 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.reset(self, context.blend_data, depsgraph)
         engine.sync(self, depsgraph, context.blend_data)
 
-    def view_draw(self, context):
-        depsgraph = context.evaluated_depsgraph_get()
+    def view_draw(self, context, depsgraph):
         engine.draw(self, depsgraph, context.region, context.space_data, context.region_data)
 
     def update_script_node(self, node):

@@ -93,8 +93,12 @@ typedef struct RenderEngineType {
                const int depth,
                void *result);
 
-  void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
-  void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
+  void (*view_update)(struct RenderEngine *engine,
+                      const struct bContext *context,
+                      struct Depsgraph *depsgraph);
+  void (*view_draw)(struct RenderEngine *engine,
+                    const struct bContext *context,
+                    struct Depsgraph *depsgraph);
 
   void (*update_script_node)(struct RenderEngine *engine,
                              struct bNodeTree *ntree,
