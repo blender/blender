@@ -154,9 +154,13 @@ static void eevee_cache_finish(void *vedata)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
+  EEVEE_volumes_cache_finish(sldata, vedata);
   EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
+
+  EEVEE_effects_draw_init(sldata, vedata);
+  EEVEE_volumes_draw_init(sldata, vedata);
 }
 
 /* As renders in an HDR offscreen buffer, we need draw everything once

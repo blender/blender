@@ -241,19 +241,12 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
-    def draw_header(self, context):
-        scene = context.scene
-        props = scene.eevee
-        self.layout.prop(props, "use_volumetric", text="")
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
         scene = context.scene
         props = scene.eevee
-
-        layout.active = props.use_volumetric
 
         col = layout.column(align=True)
         col.prop(props, "volumetric_start")

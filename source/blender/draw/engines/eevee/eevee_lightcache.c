@@ -757,9 +757,13 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   }
   DRW_render_object_iter(vedata, NULL, lbake->depsgraph, EEVEE_render_cache);
 
+  EEVEE_volumes_cache_finish(sldata, vedata);
   EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
+
+  EEVEE_effects_draw_init(sldata, vedata);
+  EEVEE_volumes_draw_init(sldata, vedata);
 
   txl->color = NULL;
 

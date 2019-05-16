@@ -160,8 +160,8 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_occlusion_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
-  effects->enabled_effects |= EEVEE_volumes_init(sldata, vedata);
 
+  EEVEE_volumes_init(sldata, vedata);
   EEVEE_subsurface_init(sldata, vedata);
 
   /* Force normal buffer creation. */
@@ -261,16 +261,6 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
     /* Cleanup to release memory */
     DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer_depth_fb);
-  }
-
-  /**
-   * Setup double buffer so we can access last frame as it was before post processes.
-   */
-  if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
-    SETUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
-  }
-  else {
-    CLEANUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
   }
 
   if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
@@ -381,6 +371,23 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_vec4(grp, "color2", effects->color_checker_light, 1);
     DRW_shgroup_uniform_int_copy(grp, "size", 8);
     DRW_shgroup_call(grp, quad, NULL);
+  }
+}
+
+void EEVEE_effects_draw_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+{
+  EEVEE_FramebufferList *fbl = vedata->fbl;
+  EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  /**
+   * Setup double buffer so we can access last frame as it was before post processes.
+   */
+  if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
+    SETUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
+  }
+  else {
+    CLEANUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
   }
 }
 

@@ -333,9 +333,9 @@ typedef struct EEVEE_TextureList {
   struct GPUTexture *volume_prop_emission;
   struct GPUTexture *volume_prop_phase;
   struct GPUTexture *volume_scatter;
-  struct GPUTexture *volume_transmittance;
+  struct GPUTexture *volume_transmit;
   struct GPUTexture *volume_scatter_history;
-  struct GPUTexture *volume_transmittance_history;
+  struct GPUTexture *volume_transmit_history;
 
   struct GPUTexture *lookdev_grid_tx;
   struct GPUTexture *lookdev_cube_tx;
@@ -552,6 +552,8 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *sss_stencil;
   /* Volumetrics */
   int volume_current_sample;
+  struct GPUTexture *volume_scatter;
+  struct GPUTexture *volume_transmit;
   /* SSR */
   bool reflection_trace_full;
   bool ssr_was_persp;
@@ -1062,13 +1064,15 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata);
 
 /* eevee_volumes.c */
-int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample);
 void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
                                     struct Scene *scene,
                                     Object *ob);
+void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_resolve(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_free_smoke_textures(void);
@@ -1080,6 +1084,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                         Object *camera,
                         const bool minimal);
 void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_effects_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUTexture *texture_src, int level);
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUTexture *texture_src, int level);

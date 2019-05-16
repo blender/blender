@@ -1673,7 +1673,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties,
                                                      RE_engine_id_BLENDER_EEVEE);
-        EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
+        // EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
         EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
         EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
         EEVEE_GET_BOOL(props, gtao_enable, SCE_EEVEE_GTAO_ENABLED);

@@ -25,7 +25,6 @@ def setup():
     eevee.use_gtao = True
     eevee.use_dof = False
 
-    eevee.use_volumetric = True
     eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'
 

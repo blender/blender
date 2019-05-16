@@ -2369,7 +2369,7 @@ typedef enum eGPencil_Guide_Reference {
 
 /* SceneEEVEE->flag */
 enum {
-  SCE_EEVEE_VOLUMETRIC_ENABLED = (1 << 0),
+  // SCE_EEVEE_VOLUMETRIC_ENABLED = (1 << 0), /* Unused */
   SCE_EEVEE_VOLUMETRIC_LIGHTS = (1 << 1),
   SCE_EEVEE_VOLUMETRIC_SHADOWS = (1 << 2),
   //  SCE_EEVEE_VOLUMETRIC_COLORED    = (1 << 3), /* Unused */

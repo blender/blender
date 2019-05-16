@@ -525,6 +525,8 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass);
 
 bool DRW_pass_is_empty(DRWPass *pass);
 
+#define DRW_PASS_CREATE(pass, state) (pass = DRW_pass_create(#pass, state))
+
 /* Viewport */
 typedef enum {
   /* keep in sync with the union struct DRWMatrixState. */

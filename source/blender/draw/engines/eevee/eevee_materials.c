@@ -327,9 +327,6 @@ static char *eevee_get_defines(int options)
   if ((options & VAR_MAT_ESM) != 0) {
     BLI_dynstr_append(ds, "#define SHADOW_ESM\n");
   }
-  if (((options & VAR_MAT_VOLUME) != 0) && ((options & VAR_MAT_BLEND) != 0)) {
-    BLI_dynstr_append(ds, "#define USE_ALPHA_BLEND_VOLUMETRICS\n");
-  }
   if ((options & VAR_MAT_LOOKDEV) != 0) {
     /* Auto config shadow method. Avoid more permutation. */
     BLI_assert((options & (VAR_MAT_VSM | VAR_MAT_ESM)) == 0);
@@ -376,6 +373,7 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
                                   bool use_alpha_blend)
 {
   LightCache *lcache = vedata->stl->g_data->light_cache;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   if (ssr_id == NULL) {
     static int no_ssr = -1.0f;
@@ -397,9 +395,8 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
     DRW_shgroup_uniform_texture_ref(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
   }
   if ((use_diffuse || use_glossy) && !use_ssrefraction) {
-    if ((vedata->stl->effects->enabled_effects & EFFECT_GTAO) != 0) {
-      DRW_shgroup_uniform_texture_ref(
-          shgrp, "horizonBuffer", &vedata->stl->effects->gtao_horizons);
+    if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
+      DRW_shgroup_uniform_texture_ref(shgrp, "horizonBuffer", &effects->gtao_horizons);
     }
     else {
       /* Use maxzbuffer as fallback to avoid sampling problem on certain platform, see: T52593 */
@@ -423,11 +420,9 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
       DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
     }
   }
-
-  if ((vedata->stl->effects->enabled_effects & EFFECT_VOLUMETRIC) != 0 && use_alpha_blend) {
-    /* Do not use history buffers as they already have been swapped */
-    DRW_shgroup_uniform_texture_ref(shgrp, "inScattering", &vedata->txl->volume_scatter);
-    DRW_shgroup_uniform_texture_ref(shgrp, "inTransmittance", &vedata->txl->volume_transmittance);
+  if (use_alpha_blend) {
+    DRW_shgroup_uniform_texture_ref(shgrp, "inScattering", &effects->volume_scatter);
+    DRW_shgroup_uniform_texture_ref(shgrp, "inTransmittance", &effects->volume_transmit);
   }
 }
 
@@ -752,8 +747,6 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
   SET_FLAG_FROM_TEST(options, use_refract, VAR_MAT_REFRACT);
   SET_FLAG_FROM_TEST(options, effects->sss_separate_albedo, VAR_MAT_SSSALBED);
   SET_FLAG_FROM_TEST(options, use_translucency, VAR_MAT_TRANSLUC);
-  SET_FLAG_FROM_TEST(
-      options, ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend, VAR_MAT_VOLUME);
 
   options |= eevee_material_shadow_option(shadow_method);
 
@@ -884,15 +877,12 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(EEVEE_ViewLaye
                                                                   bool use_ssr,
                                                                   int shadow_method)
 {
-  EEVEE_EffectsInfo *effects = vedata->stl->effects;
   static int ssr_id;
   ssr_id = (use_ssr) ? 1 : -1;
   int options = VAR_MAT_MESH;
 
   SET_FLAG_FROM_TEST(options, is_hair, VAR_MAT_HAIR);
   SET_FLAG_FROM_TEST(options, use_blend, VAR_MAT_BLEND);
-  SET_FLAG_FROM_TEST(
-      options, ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend, VAR_MAT_VOLUME);
 
   options |= eevee_material_shadow_option(shadow_method);
 
@@ -1722,7 +1712,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
     }
 
     /* Volumetrics */
-    if (((stl->effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_volume_material) {
+    if (use_volume_material) {
       EEVEE_volumes_cache_object_add(sldata, vedata, scene, ob);
     }
   }

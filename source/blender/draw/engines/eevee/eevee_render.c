@@ -486,9 +486,13 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   EEVEE_PrivateData *g_data = stl->g_data;
 
   /* FINISH CACHE */
+  EEVEE_volumes_cache_finish(sldata, vedata);
   EEVEE_materials_cache_finish(sldata, vedata);
   EEVEE_lights_cache_finish(sldata, vedata);
   EEVEE_lightprobes_cache_finish(sldata, vedata);
+
+  EEVEE_effects_draw_init(sldata, vedata);
+  EEVEE_volumes_draw_init(sldata, vedata);
 
   /* Sort transparents before the loop. */
   DRW_pass_sort_shgroup_z(psl->transparent_pass);

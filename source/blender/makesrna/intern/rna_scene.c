@@ -6872,14 +6872,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* Volumetrics */
-  prop = RNA_def_property(srna, "use_volumetric", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_ENABLED);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_ui_text(
-      prop, "Volumetrics", "Enable scattering and absorbance of volumetric material");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
   prop = RNA_def_property(srna, "volumetric_start", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_default(prop, 0.1f);
   RNA_def_property_ui_text(prop, "Start", "Start distance of the volumetric effect");
