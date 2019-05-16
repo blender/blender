@@ -633,7 +633,7 @@ static void rna_Space_show_region_header_set(PointerRNA *ptr, bool value)
     ScrArea *sa = rna_area_from_space(ptr);
     ARegion *ar_tool_header = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_HEADER);
     if (ar_tool_header != NULL) {
-      value = !(ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER);
+      value_for_tool_header = !(ar_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER);
     }
   }
   rna_Space_bool_from_region_flag_set_by_type(
