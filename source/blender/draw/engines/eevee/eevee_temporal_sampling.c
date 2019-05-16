@@ -160,6 +160,32 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
   invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
 }
 
+/* Update the matrices based on the current sample.
+ * Note: `DRW_MAT_PERS` and `DRW_MAT_VIEW` needs to read the original matrices. */
+void EEVEE_temporal_sampling_update_matrices(EEVEE_Data *vedata)
+{
+  EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+  EEVEE_EffectsInfo *effects = stl->effects;
+
+  float persmat[4][4], viewmat[4][4];
+  double ht_point[2];
+  double ht_offset[2] = {0.0, 0.0};
+  uint ht_primes[2] = {2, 3};
+
+  DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
+  DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
+  DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
+
+  BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
+
+  EEVEE_temporal_sampling_matrices_calc(effects, viewmat, persmat, ht_point);
+
+  DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
+  DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
+  DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
+  DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+}
+
 void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
 {
   vedata->stl->effects->taa_render_sample = 1;
@@ -212,12 +238,8 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
     DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
     DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-    DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
-    /* The view is jittered by the oglrenderer. So avoid testing in this case. */
-    if (!DRW_state_is_image_render()) {
-      view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
-      copy_m4_m4(effects->prev_drw_persmat, persmat);
-    }
+    view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
+    copy_m4_m4(effects->prev_drw_persmat, persmat);
 
     /* Prevent ghosting from probe data. */
     view_is_valid = view_is_valid && (effects->prev_drw_support == DRW_state_draw_support());
@@ -227,23 +249,11 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
          (effects->taa_current_sample < effects->taa_total_sample)) ||
         DRW_state_is_image_render()) {
       if (view_is_valid) {
-        /* OGL render already jitter the camera. */
+        /* Viewport rendering updates the matrices in `eevee_draw_background` */
         if (!DRW_state_is_image_render()) {
           effects->taa_current_sample += 1;
           repro_flag = 0;
-
-          double ht_point[2];
-          double ht_offset[2] = {0.0, 0.0};
-          uint ht_primes[2] = {2, 3};
-
-          BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
-
-          EEVEE_temporal_sampling_matrices_calc(effects, viewmat, persmat, ht_point);
-
-          DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
-          DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
-          DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
-          DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+          EEVEE_temporal_sampling_update_matrices(vedata);
         }
       }
       else {
@@ -313,19 +323,15 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
       DRW_draw_pass(psl->taa_resolve);
 
       /* Restore the depth from sample 1. */
-      if (!DRW_state_is_image_render()) {
-        GPU_framebuffer_blit(fbl->double_buffer_depth_fb, 0, fbl->main_fb, 0, GPU_DEPTH_BIT);
-      }
+      GPU_framebuffer_blit(fbl->double_buffer_depth_fb, 0, fbl->main_fb, 0, GPU_DEPTH_BIT);
 
       SWAP_BUFFERS_TAA();
     }
     else {
-      if (!DRW_state_is_image_render()) {
-        /* Save the depth buffer for the next frame.
-         * This saves us from doing anything special
-         * in the other mode engines. */
-        GPU_framebuffer_blit(fbl->main_fb, 0, fbl->double_buffer_depth_fb, 0, GPU_DEPTH_BIT);
-      }
+      /* Save the depth buffer for the next frame.
+       * This saves us from doing anything special
+       * in the other mode engines. */
+      GPU_framebuffer_blit(fbl->main_fb, 0, fbl->double_buffer_depth_fb, 0, GPU_DEPTH_BIT);
 
       /* Do reprojection for noise reduction */
       /* TODO : do AA jitter if in only render view. */

@@ -219,6 +219,14 @@ static void eevee_draw_background(void *vedata)
       DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
     }
 
+    /* when doing viewport rendering the overrides needs to be recalculated for
+     * every loop as this normally happens once inside
+     * `EEVEE_temporal_sampling_init` */
+    else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
+             (stl->effects->taa_current_sample > 1) && DRW_state_is_image_render()) {
+      EEVEE_temporal_sampling_update_matrices(vedata);
+    }
+
     /* Refresh Probes */
     DRW_stats_group_start("Probes Refresh");
     EEVEE_lightprobes_refresh(sldata, vedata);
@@ -297,7 +305,7 @@ static void eevee_draw_background(void *vedata)
     EEVEE_draw_effects(sldata, vedata);
     DRW_stats_group_end();
 
-    if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {
+    if ((stl->effects->taa_current_sample > 1)) {
       DRW_viewport_matrix_override_unset_all();
     }
   }

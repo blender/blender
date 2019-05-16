@@ -1058,6 +1058,7 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
                                            float viewmat[4][4],
                                            float persmat[4][4],
                                            const double ht_point[2]);
+void EEVEE_temporal_sampling_update_matrices(EEVEE_Data *vedata);
 void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata);
 
