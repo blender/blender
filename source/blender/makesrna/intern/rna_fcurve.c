@@ -520,6 +520,12 @@ static void rna_FCurve_range(FCurve *fcu, float range[2])
   calc_fcurve_range(fcu, range, range + 1, false, false);
 }
 
+static bool rna_FCurve_is_empty_get(PointerRNA *ptr)
+{
+  FCurve *fcu = (FCurve *)ptr->data;
+  return BKE_fcurve_is_empty(fcu);
+}
+
 /* allow scripts to update curve after editing manually */
 static void rna_FCurve_update_data_ex(FCurve *fcu)
 {
@@ -2295,6 +2301,14 @@ static void rna_def_fcurve(BlenderRNA *brna)
       "False when F-Curve could not be evaluated in past, so should be skipped "
       "when evaluating");
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
+
+  prop = RNA_def_property(srna, "is_empty", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_FCurve_is_empty_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Empty",
+                           "True if the curve contributes no animation due to lack of "
+                           "keyframes or useful modifiers, and should be deleted");
 
   /* Collections */
   prop = RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
