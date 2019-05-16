@@ -678,12 +678,8 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
 
   gpu_material_ramp_texture_build(mat);
 
-  if (has_surface_output) {
-    mat->domain |= GPU_DOMAIN_SURFACE;
-  }
-  if (has_volume_output) {
-    mat->domain |= GPU_DOMAIN_VOLUME;
-  }
+  SET_FLAG_FROM_TEST(mat->domain, has_surface_output, GPU_DOMAIN_SURFACE);
+  SET_FLAG_FROM_TEST(mat->domain, has_volume_output, GPU_DOMAIN_VOLUME);
 
   if (mat->outlink) {
     /* Prune the unused nodes and extract attributes before compiling so the

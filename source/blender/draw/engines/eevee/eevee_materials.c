@@ -751,27 +751,14 @@ struct GPUMaterial *EEVEE_material_mesh_get(struct Scene *scene,
   const void *engine = &DRW_engine_viewport_eevee_type;
   int options = VAR_MAT_MESH;
 
-  if (use_blend) {
-    options |= VAR_MAT_BLEND;
-  }
-  if (use_multiply) {
-    options |= VAR_MAT_MULT;
-  }
-  if (use_refract) {
-    options |= VAR_MAT_REFRACT;
-  }
-  if (use_sss) {
-    options |= VAR_MAT_SSS;
-  }
-  if (use_sss && effects->sss_separate_albedo) {
-    options |= VAR_MAT_SSSALBED;
-  }
-  if (use_translucency) {
-    options |= VAR_MAT_TRANSLUC;
-  }
-  if (((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend) {
-    options |= VAR_MAT_VOLUME;
-  }
+  SET_FLAG_FROM_TEST(options, use_blend, VAR_MAT_BLEND);
+  SET_FLAG_FROM_TEST(options, use_multiply, VAR_MAT_MULT);
+  SET_FLAG_FROM_TEST(options, use_refract, VAR_MAT_REFRACT);
+  SET_FLAG_FROM_TEST(options, use_sss, VAR_MAT_SSS);
+  SET_FLAG_FROM_TEST(options, use_sss && effects->sss_separate_albedo, VAR_MAT_SSSALBED);
+  SET_FLAG_FROM_TEST(options, use_translucency, VAR_MAT_TRANSLUC);
+  SET_FLAG_FROM_TEST(
+      options, ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend, VAR_MAT_VOLUME);
 
   options |= eevee_material_shadow_option(shadow_method);
 
@@ -832,16 +819,9 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene,
   const void *engine = &DRW_engine_viewport_eevee_type;
   int options = VAR_MAT_MESH;
 
-  if (use_hashed_alpha) {
-    options |= VAR_MAT_HASH;
-  }
-  else {
-    options |= VAR_MAT_CLIP;
-  }
-
-  if (is_shadow) {
-    options |= VAR_MAT_SHADOW;
-  }
+  SET_FLAG_FROM_TEST(options, use_hashed_alpha, VAR_MAT_HASH);
+  SET_FLAG_FROM_TEST(options, !use_hashed_alpha, VAR_MAT_CLIP);
+  SET_FLAG_FROM_TEST(options, is_shadow, VAR_MAT_SHADOW);
 
   GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options, true);
   if (mat) {
@@ -914,15 +894,10 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(EEVEE_ViewLaye
   ssr_id = (use_ssr) ? 1 : -1;
   int options = VAR_MAT_MESH;
 
-  if (is_hair) {
-    options |= VAR_MAT_HAIR;
-  }
-  if (use_blend) {
-    options |= VAR_MAT_BLEND;
-  }
-  if (((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend) {
-    options |= VAR_MAT_VOLUME;
-  }
+  SET_FLAG_FROM_TEST(options, is_hair, VAR_MAT_HAIR);
+  SET_FLAG_FROM_TEST(options, use_blend, VAR_MAT_BLEND);
+  SET_FLAG_FROM_TEST(
+      options, ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) && use_blend, VAR_MAT_VOLUME);
 
   options |= eevee_material_shadow_option(shadow_method);
 
@@ -954,9 +929,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
 
   BLI_assert(!is_hair || (ob && psys && md));
 
-  if (is_hair) {
-    options |= VAR_MAT_HAIR;
-  }
+  SET_FLAG_FROM_TEST(options, is_hair, VAR_MAT_HAIR);
 
   options |= eevee_material_shadow_option(shadow_method);
 
