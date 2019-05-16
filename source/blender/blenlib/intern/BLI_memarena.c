@@ -77,6 +77,10 @@ static void memarena_buf_free_all(struct MemBuf *mb)
 {
   while (mb != NULL) {
     struct MemBuf *mb_next = mb->next;
+
+    /* Unpoison memory because MEM_freeN might overwrite it. */
+    ASAN_UNPOISON_MEMORY_REGION(mb, (uint)MEM_allocN_len(mb));
+
     MEM_freeN(mb);
     mb = mb_next;
   }
