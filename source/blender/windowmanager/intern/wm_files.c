@@ -1801,6 +1801,9 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
     U.runtime.is_dirty = true;
   }
 
+  /* Needed to recalculate UI scaling values (eg, #UserDef.inv_dpi_fac). */
+  wm_window_clear_drawable(bmain->wm.first);
+
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
   return OPERATOR_FINISHED;
