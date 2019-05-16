@@ -161,11 +161,11 @@ static EnumPropertyItem lightprobe_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-enum ObjectAlign {
-  ALIGN_WORLD,
+enum {
+  ALIGN_WORLD = 0,
   ALIGN_VIEW,
   ALIGN_CURSOR,
-} ALIGN_OPTIONS;
+};
 
 static const EnumPropertyItem align_options[] = {
     {ALIGN_WORLD, "WORLD", 0, "World", "Align the new object to the world"},
