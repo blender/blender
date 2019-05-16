@@ -881,7 +881,7 @@ enum {
 
 static void set_bound_flags(uint64_t *slots, uint64_t *persist_slots, int slot_idx, char bind_type)
 {
-  uint64_t slot = 1lu << slot_idx;
+  uint64_t slot = 1lu << (unsigned long)slot_idx;
   *slots |= slot;
   if (bind_type == BIND_PERSIST) {
     *persist_slots |= slot;
