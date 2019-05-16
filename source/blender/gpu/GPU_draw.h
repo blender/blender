@@ -87,14 +87,10 @@ void GPU_create_gl_tex(unsigned int *bind,
                        bool use_srgb,
                        struct Image *ima);
 void GPU_create_gl_tex_compressed(unsigned int *bind,
-                                  unsigned int *pix,
-                                  int x,
-                                  int y,
-                                  int mipmap,
                                   int textarget,
                                   struct Image *ima,
                                   struct ImBuf *ibuf);
-bool GPU_upload_dxt_texture(struct ImBuf *ibuf);
+bool GPU_upload_dxt_texture(struct ImBuf *ibuf, bool use_srgb);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(struct Main *bmain);
 void GPU_free_images_anim(struct Main *bmain);

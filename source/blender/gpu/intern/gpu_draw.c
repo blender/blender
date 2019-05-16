@@ -216,8 +216,7 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
 #ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     /* DDS is loaded directly in compressed form. */
-    GPU_create_gl_tex_compressed(
-        &bindcode, ibuf->rect, ibuf->x, ibuf->y, textarget, mipmap, ima, ibuf);
+    GPU_create_gl_tex_compressed(&bindcode, textarget, ima, ibuf);
     return bindcode;
   }
 #endif
@@ -668,7 +667,7 @@ void GPU_create_gl_tex(uint *bind,
  * This is so the viewport and the BGE can share some code.
  * Returns false if the provided ImBuf doesn't have a supported DXT compression format
  */
-bool GPU_upload_dxt_texture(ImBuf *ibuf)
+bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
 {
 #ifdef WITH_DDS
   GLint format = 0;
@@ -679,13 +678,16 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 
   if (GLEW_EXT_texture_compression_s3tc) {
     if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
-      format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+      format = (use_srgb) ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT :
+                            GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
     }
     else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
-      format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+      format = (use_srgb) ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT :
+                            GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
     }
     else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
-      format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+      format = (use_srgb) ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT :
+                            GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     }
   }
 
@@ -737,20 +739,25 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 #endif
 }
 
-void GPU_create_gl_tex_compressed(
-    uint *bind, uint *pix, int x, int y, int textarget, int mipmap, Image *ima, ImBuf *ibuf)
+void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima, ImBuf *ibuf)
 {
+  /* For DDS we only support data, scene linear and sRGB. Converting to
+   * different colorspace would break the compression. */
+  const bool use_srgb = !(IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
+                          IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
+  const bool mipmap = GPU_get_mipmap();
+
 #ifndef WITH_DDS
   (void)ibuf;
   /* Fall back to uncompressed if DDS isn't enabled */
-  GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, true, ima);
+  GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, use_srgb, ima);
 #else
   glGenTextures(1, (GLuint *)bind);
   glBindTexture(textarget, *bind);
 
-  if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf) == 0) {
+  if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf, use_srgb) == 0) {
     glDeleteTextures(1, (GLuint *)bind);
-    GPU_create_gl_tex(bind, pix, NULL, x, y, textarget, mipmap, true, ima);
+    GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->x, textarget, mipmap, use_srgb, ima);
   }
 
   glBindTexture(textarget, 0);
