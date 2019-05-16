@@ -1056,8 +1056,6 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
   return (GHOST_kFailure);
 }
 
-#include <iostream>
-
 GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)
 {
   if (order == GHOST_kWindowOrderTop) {
