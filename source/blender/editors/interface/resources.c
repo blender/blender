@@ -805,6 +805,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
         case TH_EDITED_OBJECT:
           cp = ts->edited_object;
+          break;
 
         case TH_ROW_ALTERNATE:
           cp = ts->row_alternate;
