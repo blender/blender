@@ -1,10 +1,11 @@
 
-in vec2 pos;
-in vec2 uvs;
 out vec4 uvcoordsvar;
 
 void main()
 {
-  uvcoordsvar = vec4(uvs, 0.0, 0.0);
-  gl_Position = vec4(pos, 1.0, 1.0);
+  int v = gl_VertexID % 3;
+  float x = -1.0 + float((v & 1) << 2);
+  float y = -1.0 + float((v & 2) << 1);
+  gl_Position = vec4(x, y, 1.0, 1.0);
+  uvcoordsvar = vec4((gl_Position.xy + 1.0) * 0.5, 0.0, 0.0);
 }
