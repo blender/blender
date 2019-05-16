@@ -24,6 +24,8 @@
  * \ingroup GHOST
  */
 
+#include <stdio.h>
+
 #ifdef WITH_X11_XF86VMODE
 #  include <X11/Xlib.h>
 #  include <X11/extensions/xf86vmode.h>
