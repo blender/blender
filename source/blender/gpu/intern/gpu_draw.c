@@ -734,7 +734,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf, bool use_srgb)
 
   return true;
 #else
-  (void)ibuf;
+  UNUSED_VARS(ibuf, use_srgb);
   return false;
 #endif
 }
