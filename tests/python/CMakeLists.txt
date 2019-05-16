@@ -524,65 +524,73 @@ function(add_python_test testname testscript)
   endif()
 endfunction()
 
-if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/shader")
-  macro(add_cycles_render_test subject)
-    if(WITH_CYCLES)
-      add_python_test(
-        cycles_${subject}
-        ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-        -blender "$<TARGET_FILE:blender>"
-        -testdir "${TEST_SRC_DIR}/render/${subject}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
-        -outdir "${TEST_OUT_DIR}/cycles"
-      )
-    endif()
+if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
+  if(NOT OPENIMAGEIO_IDIFF)
+    MESSAGE(STATUS "Disabling render tests because OIIO idiff does not exist")
+  elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
+    MESSAGE(STATUS "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
+  else()
+    macro(add_cycles_render_test subject)
+      if(WITH_CYCLES)
+        add_python_test(
+          cycles_${subject}
+          ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+          -blender "$<TARGET_FILE:blender>"
+          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -idiff "${OPENIMAGEIO_IDIFF}"
+          -outdir "${TEST_OUT_DIR}/cycles"
+        )
+      endif()
 
-    if(WITH_OPENGL_RENDER_TESTS AND (NOT ${subject} MATCHES "bake"))
-      add_python_test(
-        eevee_${subject}_test
-        ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-        -blender "$<TARGET_FILE:blender>"
-        -testdir "${TEST_SRC_DIR}/render/${subject}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
-        -outdir "${TEST_OUT_DIR}/eevee"
-      )
+      if(WITH_OPENGL_RENDER_TESTS AND (NOT ${subject} MATCHES "bake"))
+        add_python_test(
+          eevee_${subject}_test
+          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
+          -blender "$<TARGET_FILE:blender>"
+          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -idiff "${OPENIMAGEIO_IDIFF}"
+          -outdir "${TEST_OUT_DIR}/eevee"
+        )
 
-      add_python_test(
-        workbench_${subject}_test
-        ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
-        -blender "$<TARGET_FILE:blender>"
-        -testdir "${TEST_SRC_DIR}/render/${subject}"
-        -idiff "${OPENIMAGEIO_IDIFF}"
-        -outdir "${TEST_OUT_DIR}/workbench"
-      )
-    endif()
-  endmacro()
-  add_cycles_render_test(bake)
-  add_cycles_render_test(bsdf)
-  add_cycles_render_test(denoise)
-  add_cycles_render_test(denoise_animation)
-  add_cycles_render_test(displacement)
-  add_cycles_render_test(hair)
-  add_cycles_render_test(image_colorspace)
-  add_cycles_render_test(image_data_types)
-  add_cycles_render_test(image_mapping)
-  add_cycles_render_test(image_texture_limit)
-  add_cycles_render_test(integrator)
-  add_cycles_render_test(light)
-  add_cycles_render_test(mesh)
-  add_cycles_render_test(motion_blur)
-  add_cycles_render_test(render_layer)
-  add_cycles_render_test(reports)
-  add_cycles_render_test(shader)
-  add_cycles_render_test(shadow_catcher)
-  add_cycles_render_test(sss)
-  add_cycles_render_test(volume)
-elseif(WITH_CYCLES)
-  MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist at ${TEST_SRC_DIR}")
+        add_python_test(
+          workbench_${subject}_test
+          ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
+          -blender "$<TARGET_FILE:blender>"
+          -testdir "${TEST_SRC_DIR}/render/${subject}"
+          -idiff "${OPENIMAGEIO_IDIFF}"
+          -outdir "${TEST_OUT_DIR}/workbench"
+        )
+      endif()
+    endmacro()
+    add_cycles_render_test(bake)
+    add_cycles_render_test(bsdf)
+    add_cycles_render_test(denoise)
+    add_cycles_render_test(denoise_animation)
+    add_cycles_render_test(displacement)
+    add_cycles_render_test(hair)
+    add_cycles_render_test(image_colorspace)
+    add_cycles_render_test(image_data_types)
+    add_cycles_render_test(image_mapping)
+    add_cycles_render_test(image_texture_limit)
+    add_cycles_render_test(integrator)
+    add_cycles_render_test(light)
+    add_cycles_render_test(mesh)
+    add_cycles_render_test(motion_blur)
+    add_cycles_render_test(render_layer)
+    add_cycles_render_test(reports)
+    add_cycles_render_test(shader)
+    add_cycles_render_test(shadow_catcher)
+    add_cycles_render_test(sss)
+    add_cycles_render_test(volume)
+  endif()
 endif()
 
 if(WITH_OPENGL_DRAW_TESTS)
-  if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/opengl")
+  if(NOT OPENIMAGEIO_IDIFF)
+    MESSAGE(STATUS "Disabling OpenGL draw tests because OIIO idiff does not exist")
+  elseif(NOT EXISTS "${TEST_SRC_DIR}/opengl")
+    MESSAGE(STATUS "Disabling OpenGL draw tests because tests folder does not exist at ${TEST_SRC_DIR}")
+  else()
     # Use all subdirectories of opengl folder.
     file(GLOB children RELATIVE ${TEST_SRC_DIR}/opengl ${TEST_SRC_DIR}/opengl/*)
     foreach(child ${children})
@@ -602,8 +610,6 @@ if(WITH_OPENGL_DRAW_TESTS)
         endif()
       endif()
     endforeach()
-  else()
-    MESSAGE(STATUS "Disabling OpenGL tests because tests folder does not exist")
   endif()
 endif()
 
