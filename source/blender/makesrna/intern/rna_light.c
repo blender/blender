@@ -205,7 +205,7 @@ static void rna_def_light_energy(StructRNA *srna, bool distant)
      * scene unit scale. */
     prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
     RNA_def_property_float_default(prop, 10.0f);
-    RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 1, 5);
+    RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
     RNA_def_property_ui_text(prop, "Power", "Amount of light emitted");
     RNA_def_property_update(prop, 0, "rna_Light_draw_update");
   }
