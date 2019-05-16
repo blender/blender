@@ -206,15 +206,15 @@ class SEQUENCER_MT_view(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         
         if st.view_type == 'SEQUENCER':
-            layout.prop(st, "show_backdrop", text="Backdrop")
+            layout.prop(st, "show_backdrop", text="Preview as Backdrop")
 
         layout.separator()
 
         if is_sequencer_view:
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("sequencer.view_all", text="View all Sequences")
-            layout.operator("sequencer.view_selected")
-            layout.operator("sequencer.view_frame")
+            layout.operator("sequencer.view_all", text="Frame All")
+            layout.operator("sequencer.view_selected", text="Frame Selected")
+            layout.operator("sequencer.view_frame", text="Go to Playhead")
             layout.operator_context = 'INVOKE_DEFAULT'
         if is_preview:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
