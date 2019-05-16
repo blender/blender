@@ -34,61 +34,57 @@ if inside_blender:
         sys.exit(1)
 
 
-def render_files(filepaths, output_filepaths):
+def render_file(filepath, output_filepath):
+    dirname = os.path.dirname(filepath)
+    basedir = os.path.dirname(dirname)
+    subject = os.path.basename(dirname)
+
+    frame_filepath = output_filepath + '0001.png'
+
     command = [
         BLENDER,
         "--background",
         "-noaudio",
         "--factory-startup",
-        "--enable-autoexec"]
+        "--enable-autoexec",
+        filepath,
+        "-E", "BLENDER_WORKBENCH",
+        "-P",
+        os.path.realpath(__file__),
+        "-o", output_filepath,
+        "-F", "PNG",
+        "-f", "1"]
 
-    for filepath, output_filepath in zip(filepaths, output_filepaths):
-        frame_filepath = output_filepath + '0001.png'
-        if os.path.exists(frame_filepath):
-            os.remove(frame_filepath)
-
-        command.extend([
-            filepath,
-            "-E", "BLENDER_WORKBENCH",
-            "-P",
-            os.path.realpath(__file__),
-            "-o", output_filepath,
-            "-F", "PNG",
-            "-f", "1"])
-
-    error = None
     try:
         # Success
         output = subprocess.check_output(command)
-        if VERBOSE:
-            print(" ".join(command))
-            print(output.decode("utf-8"))
-    except subprocess.CalledProcessError as e:
-        # Error
-        if VERBOSE:
-            print(" ".join(command))
-            print(e.output.decode("utf-8"))
-        error = "CRASH"
-    except BaseException as e:
-        # Crash
-        if VERBOSE:
-            print(" ".join(command))
-            print(e.decode("utf-8"))
-        error = "CRASH"
-
-    # Detect missing filepaths and consider those errors
-    errors = []
-    for output_filepath in output_filepaths:
-        frame_filepath = output_filepath + '0001.png'
         if os.path.exists(frame_filepath):
             shutil.copy(frame_filepath, output_filepath)
             os.remove(frame_filepath)
-            errors.append(None)
-        else:
-            errors.append(error)
-            error = 'SKIPPED'
-
-    return errors
+        if VERBOSE:
+            print(" ".join(command))
+            print(output.decode("utf-8"))
+        return None
+    except subprocess.CalledProcessError as e:
+        # Error
+        if os.path.exists(frame_filepath):
+            os.remove(frame_filepath)
+        if VERBOSE:
+            print(" ".join(command))
+            print(e.output.decode("utf-8"))
+        if b"Error: engine not found" in e.output:
+            return "NO_ENGINE"
+        elif b"blender probably wont start" in e.output:
+            return "NO_START"
+        return "CRASH"
+    except BaseException as e:
+        # Crash
+        if os.path.exists(frame_filepath):
+            os.remove(frame_filepath)
+        if VERBOSE:
+            print(" ".join(command))
+            print(e)
+        return "CRASH"
 
 
 def create_argparse():
@@ -118,7 +114,7 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
     report.set_compare_engines('workbench', 'eevee')
-    ok = report.run(test_dir, render_files)
+    ok = report.run(test_dir, render_file)
 
     sys.exit(not ok)
 
