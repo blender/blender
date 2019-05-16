@@ -1557,8 +1557,7 @@ static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
     delete_fcurve_key(fcu, i, 1);
 
     /* Only delete curve too if it won't be doing anything anymore */
-    if ((fcu->totvert == 0) &&
-        (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0)) {
+    if (BKE_fcurve_is_empty(fcu)) {
       ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
     }
 

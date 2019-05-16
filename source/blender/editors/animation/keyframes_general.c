@@ -315,8 +315,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
       clear_fcurve_keys(fcu);
 
       /* check if curve is really unused and if it is, return signal for deletion */
-      if ((list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0) &&
-          (fcu->driver == NULL)) {
+      if (BKE_fcurve_is_empty(fcu)) {
         AnimData *adt = ale->adt;
         ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
         ale->key_data = NULL;

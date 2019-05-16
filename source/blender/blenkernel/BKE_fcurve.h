@@ -340,6 +340,7 @@ float evaluate_fcurve_driver(struct PathResolvedRNA *anim_rna,
                              struct FCurve *fcu,
                              struct ChannelDriver *driver_orig,
                              float evaltime);
+bool BKE_fcurve_is_empty(struct FCurve *fcu);
 /* evaluate fcurve and store value */
 float calculate_fcurve(struct PathResolvedRNA *anim_rna, struct FCurve *fcu, float evaltime);
 

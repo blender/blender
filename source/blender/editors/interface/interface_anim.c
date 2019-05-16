@@ -83,7 +83,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
   if (fcu) {
     if (!driven) {
       /* Empty curves are ignored by the animation evaluation system. */
-      if (fcu->totvert == 0) {
+      if (BKE_fcurve_is_empty(fcu)) {
         return;
       }
 

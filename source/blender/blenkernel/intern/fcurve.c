@@ -3070,14 +3070,20 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
   return evaluate_fcurve_ex(fcu, evaltime, cvalue);
 }
 
+/* Checks if the curve has valid keys, drivers or modifiers that produce an actual curve. */
+bool BKE_fcurve_is_empty(FCurve *fcu)
+{
+  return (fcu->totvert == 0) && (fcu->driver == NULL) &&
+         !list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE);
+}
+
 /* Calculate the value of the given F-Curve at the given frame, and set its curval */
 float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
 {
   /* only calculate + set curval (overriding the existing value) if curve has
    * any data which warrants this...
    */
-  if ((fcu->totvert) || (fcu->driver && !(fcu->driver->flag & DRIVER_FLAG_INVALID)) ||
-      list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE)) {
+  if (!BKE_fcurve_is_empty(fcu)) {
     /* calculate and set curval (evaluates driver too if necessary) */
     float curval;
     if (fcu->driver) {
