@@ -24,6 +24,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
