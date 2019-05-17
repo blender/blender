@@ -2,6 +2,9 @@
 Dependency graph: Object.to_mesh()
 +++++++++++++++++++++++++++++++++++
 
+Function to get a mesh from any object with geometry. It is typically used by exporters, render
+engines and tools that need to access the evaluated mesh as displayed in the viewport.
+
 Object.to_mesh() is closely interacting with dependency graph: its behavior depends on whether it
 is used on original or evaluated object.
 

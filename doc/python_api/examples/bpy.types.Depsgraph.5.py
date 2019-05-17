@@ -2,8 +2,9 @@
 Dependency graph: bpy.data.meshes.new_from_object()
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Object.to_mesh() is closely interacting with dependency graph: its behavior depends on whether it
-is used on original or evaluated object.
+Function to copy a new mesh from any object with geometry. The mesh is added to the main
+database and can be referenced by objects. Typically used by tools that create new objects
+or apply modifiers.
 
 When is used on original object, the result mesh is calculated from the object without taking
 animation or modifiers into account:
@@ -17,7 +18,6 @@ When is used on evaluated object all modifiers are taken into account.
 All the references (such as materials) are re-mapped to original. This ensures validity and
 consistency of the main database.
 
-.. note:: The result mesh is added to the main database. This mesh can be referenced by any object,
 .. note:: If object does not have geometry (i.e. camera) the functions returns None.
 """
 import bpy
