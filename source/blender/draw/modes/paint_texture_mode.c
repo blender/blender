@@ -161,7 +161,7 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
                                  datatoc_paint_wire_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define VERTEX_MODE\n", NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define USE_SELECT\n", NULL},
     });
 
     sh_data->face_select_overlay = GPU_shader_create_from_arrays({
