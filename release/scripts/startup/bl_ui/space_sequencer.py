@@ -265,6 +265,10 @@ class SEQUENCER_MT_select(Menu):
 
         layout.separator()
 
+        layout.operator("sequencer.select_box", text = "Box Select")
+
+        layout.separator()
+
         layout.operator("sequencer.select_active_side", text="Strips to the Left").side = 'LEFT'
         layout.operator("sequencer.select_active_side", text="Strips to the Right").side = 'RIGHT'
         props = layout.operator("sequencer.select", text="All Strips to the Left")
@@ -409,10 +413,10 @@ class SEQUENCER_MT_add(Menu):
         layout.operator("sequencer.effect_strip_add", text="Adjustment Layer", icon='COLOR').type = 'ADJUSTMENT'
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.menu("SEQUENCER_MT_add_effect")
+        layout.menu("SEQUENCER_MT_add_effect", icon='SHADERFX')
 
         col = layout.column()
-        col.menu("SEQUENCER_MT_add_transitions")
+        col.menu("SEQUENCER_MT_add_transitions", icon='ARROW_LEFTRIGHT')
         col.enabled = selected_sequences_len(context) >= 2
 
 
@@ -433,6 +437,11 @@ class SEQUENCER_MT_add_transitions(Menu):
         layout = self.layout
 
         col = layout.column()
+
+        col.operator("sequencer.crossfade_sounds", text="Sound Crossfade")
+
+        col.separator()
+
         col.operator("sequencer.effect_strip_add", text="Cross").type = 'CROSS'
         col.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
 
@@ -484,7 +493,7 @@ class SEQUENCER_MT_strip_transform(Menu):
         layout = self.layout
 
         layout.operator("transform.transform", text="Move").mode = 'TRANSLATION'
-        layout.operator("transform.transform", text="Move/Extend from Frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Move/Extend from Playhead").mode = 'TIME_EXTEND'
         layout.operator("sequencer.slip", text="Slip Strip Contents")
 
         layout.separator()
@@ -546,6 +555,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.menu("SEQUENCER_MT_strip_transform")
         layout.operator("sequencer.snap")
         layout.operator("sequencer.offset_clear")
+        layout.operator("sequencer.gap_remove", text = "Extract All").all=True
 
         layout.separator()
         layout.operator("sequencer.copy", text="Copy")
@@ -554,8 +564,8 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.delete", text="Delete...")
 
         layout.separator()
-        layout.operator("sequencer.cut", text="Cut (Hard) at frame").type = 'HARD'
-        layout.operator("sequencer.cut", text="Cut (Soft) at frame").type = 'SOFT'
+        layout.operator("sequencer.cut", text="Cut (Hard) at Playhead").type = 'HARD'
+        layout.operator("sequencer.cut", text="Cut (Soft) at Playhead").type = 'SOFT'
 
         layout.separator()
         layout.operator("sequencer.deinterlace_selected_movies")
@@ -590,6 +600,7 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         layout.operator("sequencer.meta_make")
+        layout.operator("sequencer.meta_toggle", text="Toggle Meta")
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_input")
@@ -1614,7 +1625,7 @@ class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        
+
         st = context.space_data
         scene = context.scene
         ed = scene.sequence_editor
