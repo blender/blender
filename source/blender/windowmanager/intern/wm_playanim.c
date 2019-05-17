@@ -1063,7 +1063,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
       break;
     }
-    case GHOST_kEventQuit:
+    case GHOST_kEventQuitRequest:
     case GHOST_kEventWindowClose: {
       ps->go = false;
       break;

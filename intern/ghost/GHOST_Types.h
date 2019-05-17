@@ -125,9 +125,6 @@ typedef enum {
   // GHOST_kWindowStateUnModified,
 } GHOST_TWindowState;
 
-/** Constants for the answer to the blender exit request */
-typedef enum { GHOST_kExitCancel = 0, GHOST_kExitNow } GHOST_TExitRequestResponse;
-
 typedef enum { GHOST_kWindowOrderTop = 0, GHOST_kWindowOrderBottom } GHOST_TWindowOrder;
 
 typedef enum {
@@ -165,7 +162,7 @@ typedef enum {
   GHOST_kEventKeyUp,
   //  GHOST_kEventKeyAuto,
 
-  GHOST_kEventQuit,
+  GHOST_kEventQuitRequest,
 
   GHOST_kEventWindowClose,
   GHOST_kEventWindowActivate,

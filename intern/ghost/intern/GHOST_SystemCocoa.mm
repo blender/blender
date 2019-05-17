@@ -427,10 +427,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
   /* TODO: implement graceful termination through Cocoa mechanism
    * to avoid session log off to be canceled. */
   /* Note that Cmd+Q is already handled by keyhandler. */
-  if (systemCocoa->handleQuitRequest() == GHOST_kExitNow)
-    return NSTerminateCancel;  //NSTerminateNow;
-  else
-    return NSTerminateCancel;
+  systemCocoa->handleQuitRequest();
+  return NSTerminateCancel;
 }
 
 // To avoid canceling a log off process, we must use Cocoa termination process
@@ -1342,46 +1340,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
   return GHOST_kSuccess;
 }
 
-GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
+void GHOST_SystemCocoa::handleQuitRequest()
 {
   GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
 
   // Discard quit event if we are in cursor grab sequence
   if (window && window->getCursorGrabModeIsWarp())
-    return GHOST_kExitCancel;
+    return;
 
-  // Check open windows if some changes are not saved
-  if (m_windowManager->getAnyModifiedState()) {
-    int shouldQuit = NSRunAlertPanel(
-        @"Exit Blender",
-        @"Some changes have not been saved.\nDo you really want to quit?",
-        @"Cancel",
-        @"Quit Anyway",
-        nil);
-    if (shouldQuit == NSAlertAlternateReturn) {
-      pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL));
-      return GHOST_kExitNow;
-    }
-    else {
-      // Give back focus to the blender window if user selected cancel quit
-      NSArray *windowsList = [NSApp orderedWindows];
-      if ([windowsList count]) {
-        [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
-        // Handle the modifiers keyes changed state issue
-        // as recovering from the quit dialog is like application
-        // gaining focus back.
-        // Main issue fixed is Cmd modifier not being cleared
-        handleApplicationBecomeActiveEvent();
-      }
-    }
-  }
-  else {
-    pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL));
-    m_outsideLoopEventProcessed = true;
-    return GHOST_kExitNow;
-  }
-
-  return GHOST_kExitCancel;
+  // Push the event to Blender so it can open a dialog if needed
+  pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventQuitRequest, window));
+  m_outsideLoopEventProcessed = true;
 }
 
 bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
@@ -1400,7 +1369,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
   /* Discard event if we are in cursor grab sequence,
    * it'll lead to "stuck cursor" situation if the alert panel is raised */
   if (window && window->getCursorGrabModeIsWarp())
-    return GHOST_kExitCancel;
+    return NO;
 
   // Check open windows if some changes are not saved
   if (m_windowManager->getAnyModifiedState()) {

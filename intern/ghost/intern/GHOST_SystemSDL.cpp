@@ -338,9 +338,12 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
       break;
     }
-    case SDL_QUIT:
-      g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL);
+
+    case SDL_QUIT: {
+      GHOST_IWindow *window = m_windowManager->getActiveWindow();
+      g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventQuitRequest, window);
       break;
+    }
 
     case SDL_MOUSEMOTION: {
       SDL_MouseMotionEvent &sdl_sub_evt = sdl_event->motion;

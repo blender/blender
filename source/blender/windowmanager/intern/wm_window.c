@@ -1117,8 +1117,25 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
   GHOST_TEventType type = GHOST_GetEventType(evt);
   int time = GHOST_GetEventTime(evt);
 
-  if (type == GHOST_kEventQuit) {
-    WM_exit(C);
+  if (type == GHOST_kEventQuitRequest) {
+    /* Find an active window to display quit dialog in. */
+    GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);
+    wmWindow *win;
+
+    if (ghostwin && GHOST_ValidWindow(g_system, ghostwin)) {
+      win = GHOST_GetWindowUserData(ghostwin);
+    }
+    else {
+      win = wm->winactive;
+    }
+
+    /* Display quit dialog or quit immediately. */
+    if (win) {
+      wm_quit_with_optional_confirmation_prompt(C, win);
+    }
+    else {
+      wm_exit_schedule_delayed(C);
+    }
   }
   else {
     GHOST_WindowHandle ghostwin = GHOST_GetEventWindow(evt);

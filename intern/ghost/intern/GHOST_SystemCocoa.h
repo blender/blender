@@ -140,7 +140,7 @@ class GHOST_SystemCocoa : public GHOST_System {
    * Handle User request to quit, from Menu bar Quit, and Cmd+Q
    * Display alert panel if changes performed since last save
    */
-  GHOST_TUns8 handleQuitRequest();
+  void handleQuitRequest();
 
   /**
    * Handle Cocoa openFile event

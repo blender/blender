@@ -139,8 +139,8 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
         std::cout << "GHOST_kEventOpenMainFile with no path specified!!";
     } break;
 
-    case GHOST_kEventQuit:
-      std::cout << "GHOST_kEventQuit";
+    case GHOST_kEventQuitRequest:
+      std::cout << "GHOST_kEventQuitRequest";
       break;
     case GHOST_kEventWindowClose:
       std::cout << "GHOST_kEventWindowClose";
