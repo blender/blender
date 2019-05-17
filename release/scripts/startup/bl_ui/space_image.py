@@ -241,6 +241,7 @@ class IMAGE_MT_image(Menu):
                 layout.separator()
                 if ima.packed_file:
                     layout.operator("image.pack", text="Repack")
+                    layout.operator("image.unpack", text="Unpack")
                 else:
                     layout.operator("image.pack", text="Pack")
 

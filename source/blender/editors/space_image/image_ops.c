@@ -2064,6 +2064,17 @@ static int image_save_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  if (space_image_file_exists_poll(C)) {
+    return image_save_exec(C, op);
+  }
+  else {
+    WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
+    return OPERATOR_CANCELLED;
+  }
+}
+
 void IMAGE_OT_save(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2073,7 +2084,8 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_save_exec;
-  ot->poll = space_image_file_exists_poll;
+  ot->invoke = image_save_invoke;
+  ot->poll = image_save_as_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

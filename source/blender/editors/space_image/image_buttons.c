@@ -836,6 +836,7 @@ void uiTemplateImage(uiLayout *layout,
   Image *ima;
   ImageUser *iuser;
   Scene *scene = CTX_data_scene(C);
+  SpaceImage *space_image = CTX_wm_space_image(C);
   uiLayout *row, *split, *col;
   uiBlock *block;
   char str[MAX_IMAGE_INFO_LEN];
@@ -877,7 +878,7 @@ void uiTemplateImage(uiLayout *layout,
   uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
   uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
 
-  if (!compact) {
+  if (!compact && (space_image == NULL || iuser != &space_image->iuser)) {
     uiTemplateID(layout,
                  C,
                  ptr,
@@ -915,6 +916,18 @@ void uiTemplateImage(uiLayout *layout,
       }
     }
     else {
+      /* Disable editing if image was modified, to avoid losing changes. */
+      const bool is_dirty = BKE_image_is_dirty(ima);
+      if (is_dirty) {
+        row = uiLayoutRow(layout, true);
+        uiItemO(row, IFACE_("Save"), ICON_NONE, "image.save");
+        uiItemO(row, IFACE_("Discard Changes"), ICON_NONE, "image.reload");
+        uiItemS(layout);
+      }
+
+      layout = uiLayoutColumn(layout, false);
+      uiLayoutSetEnabled(layout, !is_dirty);
+
       uiItemR(layout, &imaptr, "source", 0, NULL, ICON_NONE);
 
       if (ima->source != IMA_SRC_GENERATED) {
@@ -943,9 +956,13 @@ void uiTemplateImage(uiLayout *layout,
         }
       }
 
+      uiItemS(layout);
+
       col = uiLayoutColumn(layout, false);
       uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
       uiItemR(col, &imaptr, "use_view_as_render", 0, NULL, ICON_NONE);
+
+      uiItemS(layout);
 
       if (ima->source != IMA_SRC_GENERATED) {
         if (compact == 0) { /* background image view doesn't need these */
