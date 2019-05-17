@@ -202,7 +202,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
     const bool use_alpha = !DRW_state_draw_background();
 
-    psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->dof_down, DRW_STATE_WRITE_COLOR);
 
     grp = DRW_shgroup_create(e_data.dof_downsample_sh[use_alpha], psl->dof_down);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
@@ -211,8 +211,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
     DRW_shgroup_call(grp, quad, NULL);
 
-    psl->dof_scatter = DRW_pass_create("DoF Scatter",
-                                       DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL);
+    DRW_PASS_CREATE(psl->dof_scatter, DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL);
 
     /* This create an empty batch of N triangles to be positioned
      * by the vertex shader 0.4ms against 6ms with instancing */
@@ -227,7 +226,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 
     DRW_shgroup_call_procedural_triangles(grp, sprite_len, NULL);
 
-    psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->dof_resolve, DRW_STATE_WRITE_COLOR);
 
     grp = DRW_shgroup_create(e_data.dof_resolve_sh[use_alpha], psl->dof_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "scatterBuffer", &effects->dof_blur);

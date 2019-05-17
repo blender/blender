@@ -283,7 +283,7 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
   if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
     struct GPUShader *sh = EEVEE_shaders_taa_resolve_sh_get(effects->enabled_effects);
 
-    psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->taa_resolve, DRW_STATE_WRITE_COLOR);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->taa_resolve);
 
     DRW_shgroup_uniform_texture_ref(grp, "colorHistoryBuffer", &txl->taa_history);

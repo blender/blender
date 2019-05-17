@@ -319,7 +319,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   psl->shadow_cascade_store_high_pass = NULL;
 
   {
-    psl->shadow_cube_copy_pass = DRW_pass_create("Shadow Copy Pass", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->shadow_cube_copy_pass, DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_copy_cube_sh[linfo->shadow_method],
                                               psl->shadow_cube_copy_pass);
@@ -331,8 +331,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   {
-    psl->shadow_cascade_copy_pass = DRW_pass_create("Shadow Cascade Copy Pass",
-                                                    DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->shadow_cascade_copy_pass, DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_copy_cascade_sh[linfo->shadow_method],
                                               psl->shadow_cascade_copy_pass);
@@ -345,7 +344,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-    psl->shadow_pass = DRW_pass_create("Shadow Pass", state);
+    DRW_PASS_CREATE(psl->shadow_pass, state);
 
     stl->g_data->shadow_shgrp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
   }

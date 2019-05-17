@@ -227,8 +227,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
   {
-    psl->probe_glossy_compute = DRW_pass_create("LightProbe Glossy Compute",
-                                                DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->probe_glossy_compute, DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_filter_glossy_sh_get(),
                                               psl->probe_glossy_compute);
@@ -253,9 +252,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
   }
 
   {
-    psl->probe_diffuse_compute = DRW_pass_create("LightProbe Diffuse Compute",
-                                                 DRW_STATE_WRITE_COLOR);
-
+    DRW_PASS_CREATE(psl->probe_diffuse_compute, DRW_STATE_WRITE_COLOR);
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_filter_diffuse_sh_get(),
                                               psl->probe_diffuse_compute);
 #ifdef IRRADIANCE_SH_L2
@@ -276,9 +273,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
   }
 
   {
-    psl->probe_visibility_compute = DRW_pass_create("LightProbe Visibility Compute",
-                                                    DRW_STATE_WRITE_COLOR);
-
+    DRW_PASS_CREATE(psl->probe_visibility_compute, DRW_STATE_WRITE_COLOR);
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_filter_visibility_sh_get(),
                                               psl->probe_visibility_compute);
     DRW_shgroup_uniform_int(grp, "outputSize", &pinfo->shres, 1);
@@ -298,7 +293,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
   }
 
   {
-    psl->probe_grid_fill = DRW_pass_create("LightProbe Grid Floodfill", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->probe_grid_fill, DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_grid_fill_sh_get(),
                                               psl->probe_grid_fill);
@@ -326,8 +321,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
   pinfo->do_cube_update = false;
 
   {
-    psl->probe_background = DRW_pass_create("World Probe Background Pass",
-                                            DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+    DRW_PASS_CREATE(psl->probe_background, DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
     struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRWShadingGroup *grp = NULL;
@@ -381,7 +375,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
   if (DRW_state_draw_support() && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                      DRW_STATE_CULL_BACK;
-    psl->probe_display = DRW_pass_create("LightProbe Display", state);
+    DRW_PASS_CREATE(psl->probe_display, state);
 
     /* Cube Display */
     if (scene_eval->eevee.flag & SCE_EEVEE_SHOW_CUBEMAPS && lcache->cube_len > 1) {
@@ -765,8 +759,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
   if (pinfo->num_planar) {
     EEVEE_PassList *psl = vedata->psl;
     EEVEE_TextureList *txl = vedata->txl;
-    psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample",
-                                                      DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->probe_planar_downsample_ps, DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_planar_downsample_sh_get(),
                                               psl->probe_planar_downsample_ps);

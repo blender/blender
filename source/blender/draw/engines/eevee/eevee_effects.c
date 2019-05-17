@@ -277,7 +277,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  int downsample_write = DRW_STATE_WRITE_DEPTH;
+  DRWState downsample_write = DRW_STATE_WRITE_DEPTH;
+  DRWShadingGroup *grp;
 
   /* Intel gpu seems to have problem rendering to only depth format.
    * Use color texture instead. */
@@ -288,17 +289,16 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
   {
-    psl->color_downsample_ps = DRW_pass_create("Downsample", DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_sh, psl->color_downsample_ps);
+    DRW_PASS_CREATE(psl->color_downsample_ps, DRW_STATE_WRITE_COLOR);
+    grp = DRW_shgroup_create(e_data.downsample_sh, psl->color_downsample_ps);
     DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
     DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
     DRW_shgroup_call(grp, quad, NULL);
   }
 
   {
-    psl->color_downsample_cube_ps = DRW_pass_create("Downsample Cube", DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_cube_sh,
-                                              psl->color_downsample_cube_ps);
+    DRW_PASS_CREATE(psl->color_downsample_cube_ps, DRW_STATE_WRITE_COLOR);
+    grp = DRW_shgroup_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps);
     DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
     DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
     DRW_shgroup_uniform_int_copy(grp, "Layer", 0);
@@ -307,37 +307,30 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   {
     /* Perform min/max downsample */
-    DRWShadingGroup *grp;
-
-    psl->maxz_downlevel_ps = DRW_pass_create("HiZ Max Down Level",
-                                             downsample_write | DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->maxz_downlevel_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.maxz_downlevel_sh, psl->maxz_downlevel_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &txl->maxzbuffer);
     DRW_shgroup_call(grp, quad, NULL);
 
     /* Copy depth buffer to halfres top level of HiZ */
 
-    psl->maxz_downdepth_ps = DRW_pass_create("HiZ Max Copy Depth Halfres",
-                                             downsample_write | DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->maxz_downdepth_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.maxz_downdepth_sh, psl->maxz_downdepth_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_call(grp, quad, NULL);
 
-    psl->maxz_downdepth_layer_ps = DRW_pass_create("HiZ Max Copy DepthLayer Halfres",
-                                                   downsample_write | DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->maxz_downdepth_layer_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.maxz_downdepth_layer_sh, psl->maxz_downdepth_layer_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_int(grp, "depthLayer", &e_data.depth_src_layer, 1);
     DRW_shgroup_call(grp, quad, NULL);
 
-    psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres",
-                                             downsample_write | DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->maxz_copydepth_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.maxz_copydepth_sh, psl->maxz_copydepth_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_call(grp, quad, NULL);
 
-    psl->maxz_copydepth_layer_ps = DRW_pass_create("HiZ Max Copy DepthLayer Halfres",
-                                                   downsample_write | DRW_STATE_DEPTH_ALWAYS);
+    DRW_PASS_CREATE(psl->maxz_copydepth_layer_ps, downsample_write | DRW_STATE_DEPTH_ALWAYS);
     grp = DRW_shgroup_create(e_data.maxz_copydepth_layer_sh, psl->maxz_copydepth_layer_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_int(grp, "depthLayer", &e_data.depth_src_layer, 1);
@@ -346,9 +339,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
     /* This pass compute camera motions to the non moving objects. */
-    psl->velocity_resolve = DRW_pass_create("Velocity Resolve", DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(),
-                                              psl->velocity_resolve);
+    DRW_PASS_CREATE(psl->velocity_resolve, DRW_STATE_WRITE_COLOR);
+    grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(), psl->velocity_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
@@ -357,16 +349,13 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if ((effects->enabled_effects & EFFECT_ALPHA_CHECKER) != 0) {
-    psl->alpha_checker = DRW_pass_create("Alpha Checker",
-                                         DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL_UNDER);
-
     GPUShader *checker_sh = GPU_shader_get_builtin_shader(GPU_SHADER_2D_CHECKER);
-
-    DRWShadingGroup *grp = DRW_shgroup_create(checker_sh, psl->alpha_checker);
 
     copy_v4_fl4(effects->color_checker_dark, 0.15f, 0.15f, 0.15f, 1.0f);
     copy_v4_fl4(effects->color_checker_light, 0.2f, 0.2f, 0.2f, 1.0f);
 
+    DRW_PASS_CREATE(psl->alpha_checker, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL_UNDER);
+    grp = DRW_shgroup_create(checker_sh, psl->alpha_checker);
     DRW_shgroup_uniform_vec4(grp, "color1", effects->color_checker_dark, 1);
     DRW_shgroup_uniform_vec4(grp, "color2", effects->color_checker_light, 1);
     DRW_shgroup_uniform_int_copy(grp, "size", 8);

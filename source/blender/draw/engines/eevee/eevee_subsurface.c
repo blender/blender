@@ -198,12 +198,10 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
   /** Screen Space SubSurface Scattering overview
    * TODO
    */
-  psl->sss_blur_ps = DRW_pass_create("Blur Horiz",
-                                     DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
-
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE | DRW_STATE_STENCIL_EQUAL;
-  psl->sss_resolve_ps = DRW_pass_create("Blur Vert", state);
-  psl->sss_accum_ps = DRW_pass_create("Resolve Accum", state);
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL;
+  DRW_PASS_CREATE(psl->sss_blur_ps, state);
+  DRW_PASS_CREATE(psl->sss_resolve_ps, state | DRW_STATE_ADDITIVE);
+  DRW_PASS_CREATE(psl->sss_accum_ps, state | DRW_STATE_ADDITIVE);
 }
 
 void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,

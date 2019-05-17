@@ -151,7 +151,7 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
 
     /* Accumulation pass */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE;
-    psl->ao_accum_ps = DRW_pass_create("AO Accum", state);
+    DRW_PASS_CREATE(psl->ao_accum_ps, state);
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_accum_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
@@ -190,7 +190,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
      *   the shading stage. This let us do correct shadowing for each diffuse / specular
      *   lobe present in the shader using the correct normal.
      */
-    psl->ao_horizon_search = DRW_pass_create("GTAO Horizon Search", DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->ao_horizon_search, DRW_STATE_WRITE_COLOR);
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
@@ -198,8 +198,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_call(grp, quad, NULL);
 
-    psl->ao_horizon_search_layer = DRW_pass_create("GTAO Horizon Search Layer",
-                                                   DRW_STATE_WRITE_COLOR);
+    DRW_PASS_CREATE(psl->ao_horizon_search_layer, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(e_data.gtao_layer_sh, psl->ao_horizon_search_layer);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
@@ -209,7 +208,7 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_call(grp, quad, NULL);
 
     if (G.debug_value == 6) {
-      psl->ao_horizon_debug = DRW_pass_create("GTAO Horizon Debug", DRW_STATE_WRITE_COLOR);
+      DRW_PASS_CREATE(psl->ao_horizon_debug, DRW_STATE_WRITE_COLOR);
       grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_horizon_debug);
       DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
       DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
