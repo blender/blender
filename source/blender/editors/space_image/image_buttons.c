@@ -650,23 +650,6 @@ static void image_multiview_cb(bContext *C, void *rnd_pt, void *UNUSED(arg_v))
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 }
 
-#if 0
-static void image_freecache_cb(bContext *C, void *ima_v, void *unused)
-{
-  Scene *scene = CTX_data_scene(C);
-  BKE_image_free_anim_ibufs(ima_v, scene->r.cfra);
-  WM_event_add_notifier(C, NC_IMAGE, ima_v);
-}
-#endif
-
-#if 0
-static void image_user_change(bContext *C, void *iuser_v, void *unused)
-{
-  Scene *scene = CTX_data_scene(C);
-  BKE_image_user_calc_imanr(iuser_v, scene->r.cfra, 0);
-}
-#endif
-
 static void uiblock_layer_pass_buttons(
     uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, short *render_slot)
 {
@@ -918,80 +901,6 @@ void uiTemplateImage(uiLayout *layout,
       uiItemL(layout, str, ICON_NONE);
 
       if (ima->type == IMA_TYPE_COMPOSITE) {
-        // XXX not working yet
-#if 0
-        iuser = ntree_get_active_iuser(scene->nodetree);
-        if (iuser) {
-          UI_block_align_begin(block);
-          uiDefIconTextBut(block,
-                           UI_BTYPE_BUT,
-                           B_SIMA_RECORD,
-                           ICON_REC,
-                           "Record",
-                           10,
-                           120,
-                           100,
-                           20,
-                           0,
-                           0,
-                           0,
-                           0,
-                           0,
-                           "");
-          uiDefIconTextBut(block,
-                           UI_BTYPE_BUT,
-                           B_SIMA_PLAY,
-                           ICON_PLAY,
-                           "Play",
-                           110,
-                           120,
-                           100,
-                           20,
-                           0,
-                           0,
-                           0,
-                           0,
-                           0,
-                           "");
-          but = uiDefBut(
-              block, UI_BTYPE_BUT, B_NOP, "Free Cache", 210, 120, 100, 20, 0, 0, 0, 0, 0, "");
-          UI_but_func_set(but, image_freecache_cb, ima, NULL);
-
-          if (iuser->frames)
-            BLI_snprintf(str, sizeof(str), "(%d) Frames:", iuser->framenr);
-          else
-            strcpy(str, "Frames:");
-          UI_block_align_begin(block);
-          uiDefButI(block,
-                    UI_BTYPE_NUM,
-                    imagechanged,
-                    str,
-                    10,
-                    90,
-                    150,
-                    20,
-                    &iuser->frames,
-                    0.0,
-                    MAXFRAMEF,
-                    0,
-                    0,
-                    "Number of images of a movie to use");
-          uiDefButI(block,
-                    UI_BTYPE_NUM,
-                    imagechanged,
-                    "StartFr:",
-                    160,
-                    90,
-                    150,
-                    20,
-                    &iuser->sfra,
-                    1.0,
-                    MAXFRAMEF,
-                    0,
-                    0,
-                    "Global starting frame of the movie");
-        }
-#endif
       }
       else if (ima->type == IMA_TYPE_R_RESULT) {
         /* browse layer/passes */

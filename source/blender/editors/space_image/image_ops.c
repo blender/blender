@@ -181,13 +181,6 @@ static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *ar, const rctf 
   sima_zoom_set(sima, ar, size, NULL);
 }
 
-#if 0  // currently unused
-static bool image_poll(bContext *C)
-{
-  return (CTX_data_edit_image(C) != NULL);
-}
-#endif
-
 static bool space_image_buffer_exists_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -250,17 +243,6 @@ static bool space_image_file_exists_poll(bContext *C)
   }
   return false;
 }
-
-#if 0 /* UNUSED */
-static bool space_image_poll(bContext *C)
-{
-  SpaceImage *sima = CTX_wm_space_image(C);
-  if (sima && sima->image) {
-    return true;
-  }
-  return false;
-}
-#endif
 
 bool space_image_main_region_poll(bContext *C)
 {
@@ -3358,164 +3340,6 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
   RNA_def_property_subtype(prop, PROP_PIXEL);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
-
-#if 0 /* Not ported to 2.5x yet */
-/******************** record composite operator *********************/
-
-typedef struct RecordCompositeData {
-  wmTimer *timer;
-  int old_cfra;
-  int sfra, efra;
-} RecordCompositeData;
-
-static int image_record_composite_apply(bContext *C, wmOperator *op)
-{
-  SpaceImage *sima = CTX_wm_space_image(C);
-  RecordCompositeData *rcd = op->customdata;
-  Scene *scene = CTX_data_scene(C);
-  ImBuf *ibuf;
-
-  WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
-
-  // XXX scene->nodetree->test_break = BKE_blender_test_break;
-  // XXX scene->nodetree->test_break = NULL;
-
-  BKE_image_all_free_anim_ibufs(scene->r.cfra);
-  ntreeCompositExecTree(scene->nodetree,
-                        &scene->r,
-                        0,
-                        scene->r.cfra != rcd->old_cfra,
-                        &scene->view_settings,
-                        &scene->display_settings); /* 1 is no previews */
-
-  ED_area_tag_redraw(CTX_wm_area(C));
-
-  ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, NULL);
-  /* save memory in flipbooks */
-  if (ibuf)
-    imb_freerectfloatImBuf(ibuf);
-
-  BKE_image_release_ibuf(sima->image, ibuf, NULL);
-
-  scene->r.cfra++;
-
-  return (scene->r.cfra <= rcd->efra);
-}
-
-static int image_record_composite_init(bContext *C, wmOperator *op)
-{
-  SpaceImage *sima = CTX_wm_space_image(C);
-  Scene *scene = CTX_data_scene(C);
-  RecordCompositeData *rcd;
-
-  if (sima->iuser.frames < 2)
-    return 0;
-  if (scene->nodetree == NULL)
-    return 0;
-
-  op->customdata = rcd = MEM_callocN(sizeof(RecordCompositeData), "ImageRecordCompositeData");
-
-  rcd->old_cfra = scene->r.cfra;
-  rcd->sfra = sima->iuser.sfra;
-  rcd->efra = sima->iuser.sfra + sima->iuser.frames - 1;
-  scene->r.cfra = rcd->sfra;
-
-  return 1;
-}
-
-static void image_record_composite_exit(bContext *C, wmOperator *op)
-{
-  Scene *scene = CTX_data_scene(C);
-  SpaceImage *sima = CTX_wm_space_image(C);
-  RecordCompositeData *rcd = op->customdata;
-
-  scene->r.cfra = rcd->old_cfra;
-
-  WM_cursor_modal_restore(CTX_wm_window(C));
-
-  if (rcd->timer)
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rcd->timer);
-
-  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
-
-  // XXX play_anim(0);
-  // XXX allqueue(REDRAWNODE, 1);
-
-  MEM_freeN(rcd);
-}
-
-static int image_record_composite_exec(bContext *C, wmOperator *op)
-{
-  if (!image_record_composite_init(C, op))
-    return OPERATOR_CANCELLED;
-
-  while (image_record_composite_apply(C, op)) {
-  }
-
-  image_record_composite_exit(C, op);
-
-  return OPERATOR_FINISHED;
-}
-
-static int image_record_composite_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-  RecordCompositeData *rcd;
-
-  if (!image_record_composite_init(C, op))
-    return OPERATOR_CANCELLED;
-
-  rcd = op->customdata;
-  rcd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.0f);
-  WM_event_add_modal_handler(C, op);
-
-  if (!image_record_composite_apply(C, op))
-    return OPERATOR_FINISHED;
-
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static int image_record_composite_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  RecordCompositeData *rcd = op->customdata;
-
-  switch (event->type) {
-    case TIMER:
-      if (rcd->timer == event->customdata) {
-        if (!image_record_composite_apply(C, op)) {
-          image_record_composite_exit(C, op);
-          return OPERATOR_FINISHED;
-        }
-      }
-      break;
-    case ESCKEY:
-      image_record_composite_exit(C, op);
-      return OPERATOR_FINISHED;
-  }
-
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static void image_record_composite_cancel(bContext *C, wmOperator *op)
-{
-  image_record_composite_exit(C, op);
-  return OPERATOR_CANCELLED;
-}
-
-void IMAGE_OT_record_composite(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Record Composite";
-  ot->idname = "IMAGE_OT_record_composite";
-
-  /* api callbacks */
-  ot->exec = image_record_composite_exec;
-  ot->invoke = image_record_composite_invoke;
-  ot->modal = image_record_composite_modal;
-  ot->cancel = image_record_composite_cancel;
-  ot->poll = space_image_buffer_exists_poll;
-}
-
-#endif
 
 /********************* cycle render slot operator *********************/
 
