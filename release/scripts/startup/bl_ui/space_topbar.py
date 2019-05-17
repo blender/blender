@@ -38,8 +38,6 @@ class TOPBAR_HT_upper_bar(Header):
         window = context.window
         screen = context.screen
 
-        layout.menu("TOPBAR_MT_app")
-
         TOPBAR_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator()
@@ -158,6 +156,9 @@ class TOPBAR_MT_editor_menus(Menu):
 
     def draw(self, _context):
         layout = self.layout
+
+        layout.menu("TOPBAR_MT_app")
+
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
 
