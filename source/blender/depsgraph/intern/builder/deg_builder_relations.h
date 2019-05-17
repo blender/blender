@@ -194,6 +194,9 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   void add_special_eval_flag(ID *object, uint32_t flag);
 
   void build_id(ID *id);
+
+  void build_scene_parameters(Scene *scene);
+
   void build_layer_collections(ListBase *lb);
   void build_view_layer(Scene *scene, ViewLayer *view_layer);
   void build_collection(LayerCollection *from_layer_collection,

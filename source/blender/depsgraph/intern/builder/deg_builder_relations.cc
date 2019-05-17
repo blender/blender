@@ -497,6 +497,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_CF:
       build_cachefile((CacheFile *)id);
       break;
+    case ID_SCE:
+      build_scene_parameters((Scene *)id);
+      break;
     default:
       fprintf(stderr, "Unhandled ID %s\n", id->name);
       BLI_assert(!"Should never happen");

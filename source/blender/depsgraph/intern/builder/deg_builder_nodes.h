@@ -152,6 +152,9 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
       ID *id, NodeType comp_type, OperationCode opcode, const char *name = "", int name_tag = -1);
 
   void build_id(ID *id);
+
+  void build_scene_parameters(Scene *scene);
+
   void build_layer_collections(ListBase *lb);
   void build_view_layer(Scene *scene,
                         ViewLayer *view_layer,

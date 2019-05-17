@@ -128,6 +128,8 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
       build_collection(NULL, NULL, fls->group);
     }
   }
+  /* Scene parameters. */
+  build_scene_parameters(scene);
   /* Build all set scenes. */
   if (scene->set != NULL) {
     ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
