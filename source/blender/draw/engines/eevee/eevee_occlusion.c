@@ -41,6 +41,8 @@ static struct {
   struct GPUShader *gtao_layer_sh;
   struct GPUShader *gtao_debug_sh;
   struct GPUTexture *src_depth;
+
+  struct GPUTexture *dummy_horizon_tx;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
@@ -73,6 +75,11 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+
+  if (!e_data.dummy_horizon_tx) {
+    float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    e_data.dummy_horizon_tx = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, pixel);
+  }
 
   if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED) {
     const float *viewport_size = DRW_viewport_size_get();
@@ -117,7 +124,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   /* Cleanup */
-  effects->gtao_horizons = NULL;
+  effects->gtao_horizons = e_data.dummy_horizon_tx;
   GPU_FRAMEBUFFER_FREE_SAFE(fbl->gtao_fb);
   common_data->ao_settings = 0.0f;
 
@@ -303,4 +310,5 @@ void EEVEE_occlusion_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
   DRW_SHADER_FREE_SAFE(e_data.gtao_layer_sh);
   DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
+  DRW_TEXTURE_FREE_SAFE(e_data.dummy_horizon_tx);
 }
