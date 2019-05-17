@@ -2038,7 +2038,7 @@ void node_geometry(vec3 I,
 
   position = worldPosition;
 #  ifndef VOLUMETRICS
-  normal = normalize(gl_FrontFacing ? worldNormal : -worldNormal);
+  normal = normalize(N);
   vec3 B = dFdx(worldPosition);
   vec3 T = dFdy(worldPosition);
   true_normal = normalize(cross(B, T));

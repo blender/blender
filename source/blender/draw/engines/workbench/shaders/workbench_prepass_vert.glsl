@@ -46,12 +46,11 @@ vec3 srgb_to_linear_attr(vec3 c)
 vec3 workbench_hair_hair_normal(vec3 tan, vec3 binor, float rand)
 {
   /* To "simulate" anisotropic shading, randomize hair normal per strand. */
-  tan = normalize(tan);
-  vec3 nor = normalize(cross(binor, tan));
-  // nor = normalize(mix(nor, -tan, rand * 0.1));
-  // float cos_theta = (rand * 2.0 - 1.0) * 0.2;
-  // float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
-  // nor = nor * sin_theta + binor * cos_theta;
+  vec3 nor = cross(tan, binor);
+  nor = normalize(mix(nor, -tan, rand * 0.1));
+  float cos_theta = (rand * 2.0 - 1.0) * 0.2;
+  float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
+  nor = nor * sin_theta + binor * cos_theta;
   return nor;
 }
 

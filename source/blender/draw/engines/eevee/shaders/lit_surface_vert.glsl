@@ -47,9 +47,7 @@ void main()
                               hairTime,
                               hairThickness,
                               hairThickTime);
-
-  hairTangent = normalize(hairTangent);
-  worldNormal = cross(binor, hairTangent);
+  worldNormal = cross(hairTangent, binor);
   worldPosition = pos;
 #else
   worldPosition = point_object_to_world(pos);
