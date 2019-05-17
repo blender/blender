@@ -2831,13 +2831,13 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_restrict_column_holdout", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_HOLDOUT);
   RNA_def_property_ui_text(prop, "Holdout", "Holdout");
-  RNA_def_property_ui_icon(prop, ICON_CLIPUV_DEHLT, 0);
+  RNA_def_property_ui_icon(prop, ICON_HOLDOUT_ON, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   prop = RNA_def_property(srna, "show_restrict_column_indirect_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "show_restrict_flags", SO_RESTRICT_INDIRECT_ONLY);
   RNA_def_property_ui_text(prop, "Indirect Only", "Indirect only");
-  RNA_def_property_ui_icon(prop, ICON_MOD_PHYSICS, 0);
+  RNA_def_property_ui_icon(prop, ICON_INDIRECT_ONLY_ON, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   /* Filters. */

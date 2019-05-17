@@ -106,16 +106,16 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
                 col, obj.rigid_body, "Rigid Body",
                 "rigidbody.object_add",
                 "rigidbody.object_remove",
-                'MESH_ICOSPHERE'
-            )  # XXX: need dedicated icon.
+                'RIGID_BODY'
+            )
 
         # all types of objects can have rigid body constraint.
         physics_add_special(
             col, obj.rigid_body_constraint, "Rigid Body Constraint",
             "rigidbody.constraint_add",
             "rigidbody.constraint_remove",
-            'CONSTRAINT'
-        )  # RB_TODO needs better icon.
+            'RIGID_BODY_CONSTRAINT'
+        )
 
 
 # cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc.

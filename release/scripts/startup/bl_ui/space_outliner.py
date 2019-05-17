@@ -60,7 +60,7 @@ class OUTLINER_HT_header(Header):
             sub.prop(space, "filter_id_type", text="", icon_only=True)
 
         if display_mode == 'VIEW_LAYER':
-            layout.operator("outliner.collection_new", text="", icon='GROUP').nested = True
+            layout.operator("outliner.collection_new", text="", icon='COLLECTION_NEW').nested = True
 
         elif display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge", text="Purge")

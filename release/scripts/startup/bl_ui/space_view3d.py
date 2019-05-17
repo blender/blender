@@ -4698,14 +4698,14 @@ class VIEW3D_MT_snap_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='PIVOT_CURSOR')
+        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
         pie.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
-        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='PIVOT_CURSOR')
+        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
         pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='RESTRICT_SELECT_OFF').use_offset = False
         pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Keep Offset)", icon='RESTRICT_SELECT_OFF').use_offset = True
         pie.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
-        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='PIVOT_CURSOR')
-        pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='PIVOT_CURSOR')
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
+        pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
 
 
 class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
