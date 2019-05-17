@@ -170,6 +170,8 @@ typedef struct Object_Runtime {
 
   /** Runtime grease pencil drawing data */
   struct GpencilBatchCache *gpencil_cache;
+
+  void *_pad2; /* Padding is here for win32s unconventional stuct alignment rules. */
 } Object_Runtime;
 
 typedef struct Object {
