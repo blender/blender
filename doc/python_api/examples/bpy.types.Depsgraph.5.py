@@ -17,7 +17,7 @@ When is used on evaluated object all modifiers are taken into account.
 All the references (such as materials) are re-mapped to original. This ensures validity and
 consistency of the main database.
 
-.. note:: The result mesh is added to the main database.
+.. note:: The result mesh is added to the main database. This mesh can be referenced by any object,
 .. note:: If object does not have geometry (i.e. camera) the functions returns None.
 """
 import bpy

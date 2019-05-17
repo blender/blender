@@ -895,7 +895,8 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(
       func,
       "Create a Mesh data-block from the current state of the object. The object owns the "
-      "data-block. To force free it use to_mesh_clear()");
+      "data-block. To force free it use to_mesh_clear(). "
+      "The result is temporary and can not be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object");
   RNA_def_function_return(func, parm);
