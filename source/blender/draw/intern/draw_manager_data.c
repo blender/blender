@@ -351,7 +351,7 @@ static void drw_call_state_update_matflag(DRWCallState *state,
                                           DRWShadingGroup *shgroup,
                                           Object *ob)
 {
-  uint16_t new_flags = ((state->matflag ^ shgroup->matflag) & shgroup->matflag);
+  uchar new_flags = ((state->matflag ^ shgroup->matflag) & shgroup->matflag);
 
   /* HACK: Here we set the matflags bit to 1 when computing the value
    * so that it's not recomputed for other drawcalls.
@@ -393,8 +393,6 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   state->visibility_cb = NULL;
   state->matflag = 0;
 
-  drw_call_state_update_matflag(state, shgroup, ob);
-
   /* Matrices */
   if (obmat != NULL) {
     copy_m4_m4(state->model, obmat);
@@ -406,6 +404,8 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   else {
     unit_m4(state->model);
   }
+
+  drw_call_state_update_matflag(state, shgroup, ob);
 
   if (ob != NULL) {
     float corner[3];

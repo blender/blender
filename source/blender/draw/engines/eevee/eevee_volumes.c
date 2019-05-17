@@ -404,20 +404,6 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
   BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
 
-  float(*imat)[4] = ob->imat;
-
-  if ((ob->base_flag & BASE_FROM_DUPLI) != 0) {
-    /* TODO Remove from here and use a dedicated buffer. */
-    EEVEE_InstanceVolumeMatrix *ivm = (EEVEE_InstanceVolumeMatrix *)DRW_drawdata_ensure(
-        &ob->id,
-        (DrawEngineType *)EEVEE_volumes_cache_object_add,
-        sizeof(EEVEE_InstanceVolumeMatrix),
-        NULL,
-        NULL);
-    copy_m4_m4(ivm->volume_mat, ob->imat);
-    imat = ivm->volume_mat;
-  }
-
   /* TODO(fclem) remove those "unnecessary" UBOs */
   DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
   DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
@@ -426,7 +412,6 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 
   DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", imat);
   DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
   DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
 
@@ -477,7 +462,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
   /* TODO Reduce to number of slices intersecting. */
   /* TODO Preemptive culling. */
-  DRW_shgroup_call_procedural_triangles(grp, sldata->common_data.vol_tex_size[2], NULL);
+  DRW_shgroup_call_procedural_triangles(grp, sldata->common_data.vol_tex_size[2], ob->obmat);
 
   vedata->stl->effects->enabled_effects |= (EFFECT_VOLUMETRIC | EFFECT_POST_BUFFER);
 }

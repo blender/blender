@@ -406,6 +406,7 @@ void DRW_shgroup_call_object_ex(DRWShadingGroup *shgroup,
 #define DRW_shgroup_call_object_no_cull(shgroup, geom, ob) \
   DRW_shgroup_call_object_ex(shgroup, geom, ob, true)
 
+/* TODO(fclem) remove this when we have DRWView */
 void DRW_shgroup_call_object_with_callback(DRWShadingGroup *shgroup,
                                            struct GPUBatch *geom,
                                            struct Object *ob,
