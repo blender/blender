@@ -3014,7 +3014,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
-                         ICON_CANCEL,
+                         ICON_FILE_TICK,
                          IFACE_("Save"),
                          0,
                          0,
