@@ -38,7 +38,7 @@ class TOPBAR_HT_upper_bar(Header):
         window = context.window
         screen = context.screen
 
-        layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
+        layout.menu("TOPBAR_MT_app")
 
         TOPBAR_MT_editor_menus.draw_collapsible(context, layout)
 
@@ -168,7 +168,7 @@ class TOPBAR_MT_editor_menus(Menu):
 
 
 class TOPBAR_MT_app(Menu):
-    bl_label = "Application"
+    bl_label = "Blender"
 
     def draw(self, context):
         layout = self.layout
