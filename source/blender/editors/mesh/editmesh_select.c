@@ -269,7 +269,7 @@ BMElem *EDBM_select_id_bm_elem_get(struct EDBMSelectID_Context *sel_id_ctx,
   for (; base_index < sel_id_ctx->bases_len; base_index++) {
     struct EDBMBaseOffset *base_ofs = &sel_id_ctx->base_array_index_offsets[base_index];
     if (base_ofs->face > sel_id) {
-      elem_id = sel_id - prev_offs;
+      elem_id = sel_id - (prev_offs + 1);
       elem_type = BM_FACE;
       break;
     }
