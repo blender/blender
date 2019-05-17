@@ -1165,6 +1165,18 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain, Object *object)
    * to the bmain. So we allocate new empty mesh in the bmain (which guarantess all the naming and
    * orders and flags) and move the temporary mesh in place there. */
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
+
+  /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
+   * destinaion mesh .So we "steal" all related fields before calling it.
+   *
+   * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
+   */
+  mesh_in_bmain->mat = mesh->mat;
+  mesh_in_bmain->totcol = mesh->totcol;
+  mesh_in_bmain->flag = mesh->flag;
+  mesh_in_bmain->smoothresh = mesh->smoothresh;
+  mesh->mat = NULL;
+
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, NULL, &CD_MASK_MESH, true);
 
   /* Make sure user count from BKE_mesh_add() is the one we expect here and bring it down to 0. */
