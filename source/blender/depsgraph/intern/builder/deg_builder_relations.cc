@@ -2269,8 +2269,8 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
   TimeSourceKey time_src_key;
   add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
   /* Final mask evaluation. */
-  ComponentKey parameters_key(mask_id, NodeType::PARAMETERS);
-  add_relation(mask_animation_key, parameters_key, "Mask Animation -> Mask Eval");
+  OperationKey mask_eval_key(mask_id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
+  add_relation(mask_animation_key, mask_eval_key, "Mask Animation -> Mask Eval");
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
