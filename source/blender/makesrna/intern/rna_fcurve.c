@@ -239,7 +239,9 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 /* ----------- */
 
 /* note: this function exists only to avoid id refcounting */
-static void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value)
+static void rna_DriverTarget_id_set(struct ReportList *UNUSED(reports),
+                                    PointerRNA *ptr,
+                                    PointerRNA value)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
   dtar->id = value.data;
@@ -446,7 +448,9 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
     fcu->rna_path = NULL;
 }
 
-static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
+static void rna_FCurve_group_set(struct ReportList *UNUSED(reports),
+                                 PointerRNA *ptr,
+                                 PointerRNA value)
 {
   ID *pid = (ID *)ptr->id.data;
   ID *vid = (ID *)value.id.data;
@@ -566,7 +570,9 @@ static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FModifier, fcm);
 }
 
-static void rna_FCurve_active_modifier_set(PointerRNA *ptr, PointerRNA value)
+static void rna_FCurve_active_modifier_set(struct ReportList *UNUSED(reports),
+                                           PointerRNA *ptr,
+                                           PointerRNA value)
 {
   FCurve *fcu = (FCurve *)ptr->data;
   set_active_fmodifier(&fcu->modifiers, (FModifier *)value.data);

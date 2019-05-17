@@ -2029,7 +2029,15 @@ static int pyrna_py_to_prop(
           else {
             /* data == NULL, assign to RNA */
             if (value == Py_None || RNA_struct_is_a(param->ptr.type, ptr_type)) {
-              RNA_property_pointer_set(ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr);
+              ReportList reports;
+              BKE_reports_init(&reports, RPT_STORE);
+              RNA_property_pointer_set(
+                  &reports, ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr);
+              int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+              if (err == -1) {
+                Py_XDECREF(value_new);
+                return -1;
+              }
             }
             else {
               raise_error = true;

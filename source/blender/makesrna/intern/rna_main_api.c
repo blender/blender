@@ -208,6 +208,13 @@ static void rna_Main_scenes_remove(
 
 static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name, ID *data)
 {
+  if (data != NULL && (data->tag & LIB_TAG_NO_MAIN)) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Can not create object in main database with an evaluated data data-block");
+    return NULL;
+  }
+
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 

@@ -873,7 +873,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 
         /* assign copy */
         RNA_id_pointer_create(newid, &idptr);
-        RNA_property_pointer_set(ptr, prop, idptr);
+        RNA_property_pointer_set(NULL, ptr, prop, idptr);
         RNA_property_update(C, ptr, prop);
 
         /* tag grease pencil datablock and disable onion */

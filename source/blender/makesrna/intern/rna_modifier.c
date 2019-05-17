@@ -719,7 +719,8 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 }
 
 #  define RNA_MOD_OBJECT_SET(_type, _prop, _obtype) \
-    static void rna_##_type##Modifier_##_prop##_set(PointerRNA *ptr, PointerRNA value) \
+    static void rna_##_type##Modifier_##_prop##_set( \
+        struct ReportList *UNUSED(reports), PointerRNA *ptr, PointerRNA value) \
     { \
       _type##ModifierData *tmd = (_type##ModifierData *)ptr->data; \
       modifier_object_set(ptr->id.data, &tmd->_prop, _obtype, value); \
@@ -741,7 +742,9 @@ RNA_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_MOD_OBJECT_SET(Shrinkwrap, auxTarget, OB_MESH);
 RNA_MOD_OBJECT_SET(SurfaceDeform, target, OB_MESH);
 
-static void rna_HookModifier_object_set(PointerRNA *ptr, PointerRNA value)
+static void rna_HookModifier_object_set(struct ReportList *UNUSED(reports),
+                                        PointerRNA *ptr,
+                                        PointerRNA value)
 {
   Object *owner = (Object *)ptr->id.data;
   HookModifierData *hmd = ptr->data;
@@ -824,7 +827,9 @@ static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Object, *ob);
 }
 
-static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value)
+static void rna_UVProjector_object_set(struct ReportList *UNUSED(reports),
+                                       PointerRNA *ptr,
+                                       PointerRNA value)
 {
   Object **ob_p = (Object **)ptr->data;
   Object *ob = (Object *)value.data;
@@ -1396,7 +1401,8 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
   return rptr;
 }
 
-static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
+static void rna_ParticleInstanceModifier_particle_system_set(struct ReportList *UNUSED(reports),
+                                                             PointerRNA *ptr,
                                                              const PointerRNA value)
 {
   ParticleInstanceModifierData *psmd = ptr->data;

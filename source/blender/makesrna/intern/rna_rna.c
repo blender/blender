@@ -2373,7 +2373,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
 
       switch (override_op) {
         case IDOVERRIDESTATIC_OP_REPLACE:
-          RNA_property_pointer_set(ptr_dst, prop_dst, value);
+          RNA_property_pointer_set(NULL, ptr_dst, prop_dst, value);
           break;
         default:
           BLI_assert(0 && "Unsupported RNA override operation on pointer");

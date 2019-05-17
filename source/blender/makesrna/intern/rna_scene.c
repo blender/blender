@@ -772,7 +772,9 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 
 /* End of read-only Iterator of all the scene objects. */
 
-static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Scene_set_set(struct ReportList *UNUSED(reports),
+                              PointerRNA *ptr,
+                              PointerRNA value)
 {
   Scene *scene = (Scene *)ptr->data;
   Scene *set = (Scene *)value.data;
@@ -969,7 +971,9 @@ static PointerRNA rna_Scene_active_keying_set_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_KeyingSet, ANIM_scene_get_active_keyingset(scene));
 }
 
-static void rna_Scene_active_keying_set_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Scene_active_keying_set_set(struct ReportList *UNUSED(reports),
+                                            PointerRNA *ptr,
+                                            PointerRNA value)
 {
   Scene *scene = (Scene *)ptr->data;
   KeyingSet *ks = (KeyingSet *)value.data;
@@ -1435,7 +1439,9 @@ static PointerRNA rna_RenderSettings_active_view_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderView, srv);
 }
 
-static void rna_RenderSettings_active_view_set(PointerRNA *ptr, PointerRNA value)
+static void rna_RenderSettings_active_view_set(struct ReportList *UNUSED(reports),
+                                               PointerRNA *ptr,
+                                               PointerRNA value)
 {
   RenderData *rd = (RenderData *)ptr->data;
   SceneRenderView *srv = (SceneRenderView *)value.data;
@@ -2040,7 +2046,9 @@ PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineStyle, lineset->linestyle);
 }
 
-void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value)
+void rna_FreestyleLineSet_linestyle_set(struct ReportList *UNUSED(reports),
+                                        PointerRNA *ptr,
+                                        PointerRNA value)
 {
   FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 

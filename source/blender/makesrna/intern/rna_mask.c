@@ -116,7 +116,9 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 /* note: this function exists only to avoid id refcounting */
-static void rna_MaskParent_id_set(PointerRNA *ptr, PointerRNA value)
+static void rna_MaskParent_id_set(struct ReportList *UNUSED(reports),
+                                  PointerRNA *ptr,
+                                  PointerRNA value)
 {
   MaskParent *mpar = (MaskParent *)ptr->data;
 
@@ -191,7 +193,9 @@ static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MaskLayer, masklay);
 }
 
-static void rna_Mask_layer_active_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Mask_layer_active_set(struct ReportList *UNUSED(reports),
+                                      PointerRNA *ptr,
+                                      PointerRNA value)
 {
   Mask *mask = (Mask *)ptr->id.data;
   MaskLayer *masklay = (MaskLayer *)value.data;
@@ -226,7 +230,9 @@ static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MaskSpline, masklay->act_spline);
 }
 
-static void rna_MaskLayer_active_spline_set(PointerRNA *ptr, PointerRNA value)
+static void rna_MaskLayer_active_spline_set(struct ReportList *UNUSED(reports),
+                                            PointerRNA *ptr,
+                                            PointerRNA value)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline = (MaskSpline *)value.data;
@@ -245,7 +251,9 @@ static PointerRNA rna_MaskLayer_active_spline_point_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MaskSplinePoint, masklay->act_point);
 }
 
-static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr, PointerRNA value)
+static void rna_MaskLayer_active_spline_point_set(struct ReportList *UNUSED(reports),
+                                                  PointerRNA *ptr,
+                                                  PointerRNA value)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline;

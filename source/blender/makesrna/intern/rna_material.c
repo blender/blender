@@ -330,7 +330,9 @@ static int rna_GpencilColorData_is_fill_visible_get(PointerRNA *ptr)
   return ((pcolor->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (pcolor->fill_style > 0));
 }
 
-static void rna_GpencilColorData_stroke_image_set(PointerRNA *ptr, PointerRNA value)
+static void rna_GpencilColorData_stroke_image_set(struct ReportList *UNUSED(reports),
+                                                  PointerRNA *ptr,
+                                                  PointerRNA value)
 {
   MaterialGPencilStyle *pcolor = ptr->data;
   ID *id = value.data;
@@ -339,7 +341,9 @@ static void rna_GpencilColorData_stroke_image_set(PointerRNA *ptr, PointerRNA va
   pcolor->sima = (struct Image *)id;
 }
 
-static void rna_GpencilColorData_fill_image_set(PointerRNA *ptr, PointerRNA value)
+static void rna_GpencilColorData_fill_image_set(struct ReportList *UNUSED(reports),
+                                                PointerRNA *ptr,
+                                                PointerRNA value)
 {
   MaterialGPencilStyle *pcolor = (MaterialGPencilStyle *)ptr->data;
   ID *id = value.data;

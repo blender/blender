@@ -1329,7 +1329,9 @@ static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
   return ED_space_image_check_show_maskedit(sima, view_layer);
 }
 
-static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceImageEditor_image_set(struct ReportList *UNUSED(reports),
+                                           PointerRNA *ptr,
+                                           PointerRNA value)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
   bScreen *sc = (bScreen *)ptr->id.data;
@@ -1341,7 +1343,9 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
   ED_space_image_set(G_MAIN, sima, obedit, (Image *)value.data, false);
 }
 
-static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceImageEditor_mask_set(struct ReportList *UNUSED(reports),
+                                          PointerRNA *ptr,
+                                          PointerRNA value)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
 
@@ -1507,7 +1511,9 @@ static void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, bool value)
   st->left = 0;
 }
 
-static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceTextEditor_text_set(struct ReportList *UNUSED(reports),
+                                         PointerRNA *ptr,
+                                         PointerRNA value)
 {
   SpaceText *st = (SpaceText *)(ptr->data);
 
@@ -1529,7 +1535,9 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 /* Space Properties */
 
 /* note: this function exists only to avoid id refcounting */
-static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceProperties_pin_id_set(struct ReportList *UNUSED(reports),
+                                           PointerRNA *ptr,
+                                           PointerRNA value)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
   sbuts->pinid = value.data;
@@ -1731,7 +1739,9 @@ static void rna_ConsoleLine_cursor_index_range(
 
 /* Space Dopesheet */
 
-static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceDopeSheetEditor_action_set(struct ReportList *UNUSED(reports),
+                                                PointerRNA *ptr,
+                                                PointerRNA value)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   bAction *act = (bAction *)value.data;
@@ -1953,7 +1963,9 @@ static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
 
 /* Space Node Editor */
 
-static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr, const PointerRNA value)
+static void rna_SpaceNodeEditor_node_tree_set(struct ReportList *UNUSED(reports),
+                                              PointerRNA *ptr,
+                                              const PointerRNA value)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
   ED_node_tree_start(snode, (bNodeTree *)value.data, NULL, NULL);
@@ -2064,7 +2076,9 @@ static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode,
   snode->cursor[1] /= UI_DPI_FAC;
 }
 
-static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceClipEditor_clip_set(struct ReportList *UNUSED(reports),
+                                         PointerRNA *ptr,
+                                         PointerRNA value)
 {
   SpaceClip *sc = (SpaceClip *)(ptr->data);
   bScreen *screen = (bScreen *)ptr->id.data;
@@ -2072,7 +2086,9 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
   ED_space_clip_set_clip(NULL, screen, sc, (MovieClip *)value.data);
 }
 
-static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+static void rna_SpaceClipEditor_mask_set(struct ReportList *UNUSED(reports),
+                                         PointerRNA *ptr,
+                                         PointerRNA value)
 {
   SpaceClip *sc = (SpaceClip *)(ptr->data);
 

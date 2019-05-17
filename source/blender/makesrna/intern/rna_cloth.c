@@ -306,7 +306,9 @@ static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
   return rna_object_shapekey_index_get(ob->data, sim->shapekey_rest);
 }
 
-static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr, PointerRNA value)
+static void rna_ClothSettings_rest_shape_key_set(struct ReportList *UNUSED(reports),
+                                                 PointerRNA *ptr,
+                                                 PointerRNA value)
 {
   Object *ob = (Object *)ptr->id.data;
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;

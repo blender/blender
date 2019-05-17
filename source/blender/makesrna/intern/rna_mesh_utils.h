@@ -83,7 +83,8 @@
     return rna_pointer_inherit_refine(ptr, &RNA_##layer_rna_type, layer); \
   } \
 \
-  static void rna_Mesh_##collection_name##_##active_type##_set(PointerRNA *ptr, PointerRNA value) \
+  static void rna_Mesh_##collection_name##_##active_type##_set( \
+      struct ReportList *UNUSED(reports), PointerRNA *ptr, PointerRNA value) \
   { \
     Mesh *me = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \

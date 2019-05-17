@@ -1744,7 +1744,7 @@ static void ui_selectcontext_apply(bContext *C,
       }
       else if (rna_type == PROP_POINTER) {
         const PointerRNA other_value = delta.p;
-        RNA_property_pointer_set(&lptr, lprop, other_value);
+        RNA_property_pointer_set(NULL, &lptr, lprop, other_value);
       }
 
       RNA_property_update(C, &lptr, prop);

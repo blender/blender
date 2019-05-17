@@ -185,7 +185,8 @@ static void shaderfx_object_set(Object *self, Object **ob_p, int type, PointerRN
 }
 
 #  define RNA_FX_OBJECT_SET(_type, _prop, _obtype) \
-    static void rna_##_type##ShaderFx_##_prop##_set(PointerRNA *ptr, PointerRNA value) \
+    static void rna_##_type##ShaderFx_##_prop##_set( \
+        struct ReportList *UNUSED(reports), PointerRNA *ptr, PointerRNA value) \
     { \
       _type##ShaderFxData *tmd = (_type##ShaderFxData *)ptr->data; \
       shaderfx_object_set(ptr->id.data, &tmd->_prop, _obtype, value); \

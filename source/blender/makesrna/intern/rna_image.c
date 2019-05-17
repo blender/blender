@@ -479,7 +479,9 @@ static PointerRNA rna_render_slots_active_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_RenderSlot, render_slot);
 }
 
-static void rna_render_slots_active_set(PointerRNA *ptr, PointerRNA value)
+static void rna_render_slots_active_set(struct ReportList *UNUSED(reports),
+                                        PointerRNA *ptr,
+                                        PointerRNA value)
 {
   Image *image = (Image *)ptr->id.data;
   if (value.id.data == image) {

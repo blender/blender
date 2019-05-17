@@ -67,7 +67,9 @@ static void rna_Armature_dependency_update(Main *bmain, Scene *UNUSED(scene), Po
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Armature_act_bone_set(struct ReportList *UNUSED(reports),
+                                      PointerRNA *ptr,
+                                      PointerRNA value)
 {
   bArmature *arm = (bArmature *)ptr->data;
 
@@ -89,7 +91,9 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
   }
 }
 
-static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Armature_act_edit_bone_set(struct ReportList *UNUSED(reports),
+                                           PointerRNA *ptr,
+                                           PointerRNA value)
 {
   bArmature *arm = (bArmature *)ptr->data;
 
@@ -395,7 +399,9 @@ static PointerRNA rna_EditBone_parent_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_EditBone, data->parent);
 }
 
-static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value)
+static void rna_EditBone_parent_set(struct ReportList *UNUSED(reports),
+                                    PointerRNA *ptr,
+                                    PointerRNA value)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *pbone, *parbone = (EditBone *)value.data;
@@ -463,7 +469,9 @@ static PointerRNA rna_EditBone_bbone_prev_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_EditBone, data->bbone_prev);
 }
 
-static void rna_EditBone_bbone_prev_set(PointerRNA *ptr, PointerRNA value)
+static void rna_EditBone_bbone_prev_set(struct ReportList *UNUSED(reports),
+                                        PointerRNA *ptr,
+                                        PointerRNA value)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *hbone = (EditBone *)value.data;
@@ -474,7 +482,9 @@ static void rna_EditBone_bbone_prev_set(PointerRNA *ptr, PointerRNA value)
   }
 }
 
-static void rna_Bone_bbone_prev_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Bone_bbone_prev_set(struct ReportList *UNUSED(reports),
+                                    PointerRNA *ptr,
+                                    PointerRNA value)
 {
   Bone *bone = (Bone *)ptr->data;
   Bone *hbone = (Bone *)value.data;
@@ -491,7 +501,9 @@ static PointerRNA rna_EditBone_bbone_next_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_EditBone, data->bbone_next);
 }
 
-static void rna_EditBone_bbone_next_set(PointerRNA *ptr, PointerRNA value)
+static void rna_EditBone_bbone_next_set(struct ReportList *UNUSED(reports),
+                                        PointerRNA *ptr,
+                                        PointerRNA value)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *hbone = (EditBone *)value.data;
@@ -502,7 +514,9 @@ static void rna_EditBone_bbone_next_set(PointerRNA *ptr, PointerRNA value)
   }
 }
 
-static void rna_Bone_bbone_next_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Bone_bbone_next_set(struct ReportList *UNUSED(reports),
+                                    PointerRNA *ptr,
+                                    PointerRNA value)
 {
   Bone *bone = (Bone *)ptr->data;
   Bone *hbone = (Bone *)value.data;
