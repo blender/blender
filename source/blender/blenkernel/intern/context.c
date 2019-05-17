@@ -1312,7 +1312,13 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  return BKE_scene_get_depsgraph(scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+  /* Dependency graph might have been just allocated, and hence it will not be marked.
+   * This confuses redo system due to the lack of flushing changes back to the original data.
+   * In the future we would need to check whether the CTX_wm_window(C)  is in editing mode (as an
+   * opposite of playback-preview-only) and set active flag based on that. */
+  DEG_make_active(depsgraph);
+  return depsgraph;
 }
 
 Depsgraph *CTX_data_evaluated_depsgraph(const bContext *C)
