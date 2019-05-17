@@ -30,7 +30,7 @@ class OBJECT_OT_simple_exporter(bpy.types.Operator):
                 continue
             print(f"Exporting mesh with {len(mesh.vertices)} vertices "
                    f"at {object_instance.matrix_world}")
-            bpy.data.meshes.remove(mesh)
+            object_instace.to_mesh_clear()
 
         return {'FINISHED'}
 
