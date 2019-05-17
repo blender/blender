@@ -168,35 +168,14 @@ void drw_state_set(DRWState state)
   /* Wire Width */
   {
     int test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_WIRE | DRW_STATE_WIRE_WIDE | DRW_STATE_WIRE_SMOOTH,
-                              test)) {
-      if (test & DRW_STATE_WIRE_WIDE) {
-        GPU_line_width(3.0f);
-      }
-      else if (test & DRW_STATE_WIRE_SMOOTH) {
+    if ((test = CHANGED_TO(DRW_STATE_WIRE_SMOOTH))) {
+      if (test == 1) {
         GPU_line_width(2.0f);
         GPU_line_smooth(true);
-      }
-      else if (test & DRW_STATE_WIRE) {
-        GPU_line_width(1.0f);
       }
       else {
         GPU_line_width(1.0f);
         GPU_line_smooth(false);
-      }
-    }
-  }
-
-  /* Points Size */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_POINT))) {
-      if (test == 1) {
-        GPU_enable_program_point_size();
-        glPointSize(5.0f);
-      }
-      else {
-        GPU_disable_program_point_size();
       }
     }
   }
@@ -400,6 +379,9 @@ void DRW_state_lock(DRWState state)
 void DRW_state_reset(void)
 {
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
+
+  GPU_point_size(5);
+  GPU_enable_program_point_size();
 
   /* Reset blending function */
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -689,8 +671,8 @@ bool DRW_culling_sphere_test(BoundSphere *bsphere)
   /* TODO we could test against the inscribed sphere of the frustum to early out positively. */
 
   /* Test against the 6 frustum planes. */
-  /* TODO order planes with sides first then far then near clip. Should be better culling heuristic
-   * when sculpting. */
+  /* TODO order planes with sides first then far then near clip. Should be better culling
+   * heuristic when sculpting. */
   for (int p = 0; p < 6; p++) {
     float dist = plane_point_side_v3(DST.clipping.frustum_planes[p], bsphere->center);
     if (dist < -bsphere->radius) {
@@ -1101,7 +1083,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     DST.shader = shgroup->shader;
   }
 
-  if ((pass_state & DRW_STATE_TRANS_FEEDBACK) != 0 && (shgroup->tfeedback_target != NULL)) {
+  if (shgroup->tfeedback_target != NULL) {
     use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
                                                          shgroup->tfeedback_target->vbo_id);
   }

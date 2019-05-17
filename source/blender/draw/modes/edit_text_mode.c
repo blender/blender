@@ -162,9 +162,8 @@ static void EDIT_TEXT_cache_init(void *vedata)
 
   {
     /* Text outline (fast drawing!) */
-    psl->wire_pass = DRW_pass_create("Font Wire",
-                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
+    psl->wire_pass = DRW_pass_create(
+        "Font Wire", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
 
     psl->overlay_select_pass = DRW_pass_create("Font Select",

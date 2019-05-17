@@ -1729,15 +1729,14 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   }
 
   DRW_draw_callbacks_post_scene();
+  DRW_state_reset();
+
   if (DST.draw_ctx.evil_C) {
-    DRW_state_reset();
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
   }
-
-  DRW_state_reset();
 
   drw_debug_draw();
 

@@ -106,8 +106,8 @@ static void basic_cache_init(void *vedata)
   }
 
   {
-    psl->depth_pass = DRW_pass_create(
-        "Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
+    psl->depth_pass = DRW_pass_create("Depth Pass",
+                                      DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     stl->g_data->depth_shgrp = DRW_shgroup_create(sh_data->depth, psl->depth_pass);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->depth_shgrp, rv3d);

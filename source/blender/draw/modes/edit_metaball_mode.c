@@ -117,7 +117,7 @@ static void EDIT_METABALL_cache_init(void *vedata)
   {
     /* Create a pass */
     DRWState state = (DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                      DRW_STATE_BLEND | DRW_STATE_WIRE);
+                      DRW_STATE_BLEND);
     psl->pass = DRW_pass_create("My Pass", state);
 
     /* Create a shadingGroup using a function in draw_common.c or custom one */

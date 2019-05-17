@@ -138,7 +138,7 @@ static void POSE_cache_init(void *vedata)
     psl->bone_envelope[i] = DRW_pass_create("Bone Envelope Outline Pass", state);
 
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND | DRW_STATE_WIRE;
+            DRW_STATE_BLEND;
     psl->relationship[i] = DRW_pass_create("Bone Relationship Pass", state);
 
     ppd->custom_shapes[i] = BLI_ghash_ptr_new(__func__);

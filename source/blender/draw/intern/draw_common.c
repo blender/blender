@@ -385,7 +385,6 @@ struct DRWCallBuffer *buffer_groundpoints_uniform_color(DRWPass *pass,
 
   DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
   DRW_shgroup_uniform_vec4(grp, "color", color, 1);
-  DRW_shgroup_state_enable(grp, DRW_STATE_POINT);
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
     DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
   }

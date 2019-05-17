@@ -139,7 +139,7 @@ static void MPATH_cache_init(void *vedata)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_POINT;
+    DRWState state = DRW_STATE_WRITE_COLOR;
     psl->points = DRW_pass_create("Motionpath Point Pass", state);
   }
 }

@@ -337,8 +337,7 @@ static DRWPass *edit_mesh_create_overlay_pass(float *face_alpha,
   }
   const float depth_ofs = bglPolygonOffsetCalc((float *)winmat, viewdist, 1.0f);
 
-  DRWPass *pass = DRW_pass_create("Edit Mesh Face Overlay Pass",
-                                  DRW_STATE_WRITE_COLOR | DRW_STATE_POINT | statemod);
+  DRWPass *pass = DRW_pass_create("Edit Mesh Face Overlay Pass", DRW_STATE_WRITE_COLOR | statemod);
 
   DRWShadingGroup *grp;
 

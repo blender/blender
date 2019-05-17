@@ -174,7 +174,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 
     /* Make the opaque refraction pass mask the sss. */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                     DRW_STATE_WIRE | DRW_STATE_WRITE_STENCIL;
+                     DRW_STATE_WRITE_STENCIL;
     DRW_pass_state_set(vedata->psl->refract_pass, state);
     DRW_pass_foreach_shgroup(vedata->psl->refract_pass, &set_shgrp_stencil, NULL);
   }

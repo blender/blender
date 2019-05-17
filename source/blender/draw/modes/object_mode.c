@@ -1070,8 +1070,7 @@ static void OBJECT_cache_init(void *vedata)
   g_data->custom_shapes = BLI_ghash_ptr_new(__func__);
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     psl->outlines = DRW_pass_create("Outlines Depth Pass", state);
 
     GPUShader *sh = sh_data->outline_prepass;
@@ -1096,8 +1095,7 @@ static void OBJECT_cache_init(void *vedata)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     DRW_STATE_POINT;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRWPass *pass = psl->lightprobes = DRW_pass_create("Object Probe Pass", state);
     struct GPUBatch *sphere = DRW_cache_sphere_get();
     struct GPUBatch *quad = DRW_cache_quad_get();
@@ -1236,8 +1234,7 @@ static void OBJECT_cache_init(void *vedata)
     sgl->bone_envelope = psl->bone_envelope[i] = DRW_pass_create("Bone Envelope Outline Pass",
                                                                  state);
 
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_WIRE;
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     sgl->bone_axes = psl->bone_axes[i] = DRW_pass_create("Bone Axes Pass", state);
   }
 
@@ -1249,10 +1246,10 @@ static void OBJECT_cache_init(void *vedata)
     struct GPUShader *sh;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     DRW_STATE_BLEND | DRW_STATE_POINT | DRW_STATE_WIRE;
+                     DRW_STATE_BLEND;
     sgl->non_meshes = psl->non_meshes[i] = DRW_pass_create("Non Meshes Pass", state);
 
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_WIRE;
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
     sgl->image_empties = psl->image_empties[i] = DRW_pass_create("Image Empties", state);
 
     /* Empties */
@@ -1406,7 +1403,6 @@ static void OBJECT_cache_init(void *vedata)
     DRWShadingGroup *grp = DRW_shgroup_create(sh, sgl->non_meshes);
     DRW_shgroup_uniform_vec4(grp, "color", gb->colorLightNoAlpha, 1);
     DRW_shgroup_uniform_float(grp, "size", &gb->sizeLightCenter, 1);
-    DRW_shgroup_state_enable(grp, DRW_STATE_POINT);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
     }
@@ -1532,7 +1528,7 @@ static void OBJECT_cache_init(void *vedata)
     DRWShadingGroup *grp;
     static float outlineWidth, size;
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_POINT;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
     psl->ob_center = DRW_pass_create("Obj Center Pass", state);
 
     outlineWidth = 1.0f * U.pixelsize;
@@ -1578,8 +1574,7 @@ static void OBJECT_cache_init(void *vedata)
     /* Particle Pass */
     psl->particle = DRW_pass_create("Particle Pass",
                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_POINT |
-                                        DRW_STATE_BLEND);
+                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
   }
 }
 

@@ -207,9 +207,8 @@ static void EDIT_CURVE_cache_init(void *vedata)
     DRWShadingGroup *grp;
 
     /* Center-Line (wire) */
-    psl->wire_pass = DRW_pass_create("Curve Wire",
-                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
+    psl->wire_pass = DRW_pass_create(
+        "Curve Wire", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     EDIT_CURVE_wire_shgrp_create(sh_data,
                                  v3d,
                                  rv3d,
@@ -217,9 +216,8 @@ static void EDIT_CURVE_cache_init(void *vedata)
                                  &stl->g_data->wire_shgrp,
                                  &stl->g_data->wire_normals_shgrp);
 
-    psl->wire_pass_xray = DRW_pass_create("Curve Wire Xray",
-                                          DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                              DRW_STATE_DEPTH_ALWAYS | DRW_STATE_WIRE);
+    psl->wire_pass_xray = DRW_pass_create(
+        "Curve Wire Xray", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
     EDIT_CURVE_wire_shgrp_create(sh_data,
                                  v3d,
                                  rv3d,
@@ -239,8 +237,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
     }
     stl->g_data->overlay_edge_shgrp = grp;
 
-    psl->overlay_vert_pass = DRW_pass_create("Curve Vert Overlay",
-                                             DRW_STATE_WRITE_COLOR | DRW_STATE_POINT);
+    psl->overlay_vert_pass = DRW_pass_create("Curve Vert Overlay", DRW_STATE_WRITE_COLOR);
 
     grp = DRW_shgroup_create(sh_data->overlay_vert_sh, psl->overlay_vert_pass);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);

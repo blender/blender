@@ -923,8 +923,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(EEVEE_ViewLayerDa
   }
 
   if (vedata->psl->default_pass[options] == NULL) {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                     DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES;
     vedata->psl->default_pass[options] = DRW_pass_create("Default Lit Pass", state);
 
     /* XXX / WATCH: This creates non persistent binds for the ubos and textures.
@@ -1017,7 +1016,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     psl->depth_pass = DRW_pass_create("Depth Pass", state);
     stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass);
 
@@ -1026,8 +1025,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh,
                                                        psl->depth_pass_cull);
 
-    state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES |
-            DRW_STATE_WIRE;
+    state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES;
     psl->depth_pass_clip = DRW_pass_create("Depth Pass Clip", state);
     stl->g_data->depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh,
                                                        psl->depth_pass_clip);
@@ -1042,14 +1040,13 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                     DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES;
     psl->material_pass = DRW_pass_create("Material Pass", state);
     psl->material_pass_cull = DRW_pass_create("Material Pass Cull", state | DRW_STATE_CULL_BACK);
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     psl->refract_depth_pass = DRW_pass_create("Refract Depth Pass", state);
     stl->g_data->refract_depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh,
                                                           psl->refract_depth_pass);
@@ -1059,8 +1056,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     stl->g_data->refract_depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh,
                                                                psl->refract_depth_pass_cull);
 
-    state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES |
-            DRW_STATE_WIRE;
+    state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES;
     psl->refract_depth_pass_clip = DRW_pass_create("Refract Depth Pass Clip", state);
     stl->g_data->refract_depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh,
                                                                psl->refract_depth_pass_clip);
@@ -1077,22 +1073,20 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   {
-    DRWState state = (DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                      DRW_STATE_WIRE);
+    DRWState state = (DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES);
     psl->refract_pass = DRW_pass_create("Opaque Refraction Pass", state);
   }
 
   {
     DRWState state = (DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                      DRW_STATE_WIRE | DRW_STATE_WRITE_STENCIL);
+                      DRW_STATE_WRITE_STENCIL);
     psl->sss_pass = DRW_pass_create("Subsurface Pass", state);
     psl->sss_pass_cull = DRW_pass_create("Subsurface Pass Cull", state | DRW_STATE_CULL_BACK);
     e_data.sss_count = 0;
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES |
-                     DRW_STATE_WIRE;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES;
     psl->transparent_pass = DRW_pass_create("Material Transparent Pass", state);
   }
 
