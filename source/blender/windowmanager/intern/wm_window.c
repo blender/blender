@@ -61,6 +61,7 @@
 #include "WM_types.h"
 #include "wm.h"
 #include "wm_draw.h"
+#include "wm_files.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
 
@@ -356,150 +357,9 @@ wmWindow *wm_window_copy_test(bContext *C,
 /** \name Quit Confirmation Dialog
  * \{ */
 
-/** Cancel quitting and close the dialog */
-static void wm_block_confirm_quit_cancel(bContext *C, void *arg_block, void *UNUSED(arg))
+static void wm_save_file_on_quit_dialog_callback(bContext *C, void *UNUSED(user_data))
 {
-  wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, arg_block);
-}
-
-/** Discard the file changes and quit */
-ATTR_NORETURN
-static void wm_block_confirm_quit_discard(bContext *C, void *arg_block, void *UNUSED(arg))
-{
-  wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, arg_block);
-  WM_exit(C);
-}
-
-/* Save changes and quit */
-static void wm_block_confirm_quit_save(bContext *C, void *arg_block, void *UNUSED(arg))
-{
-  PointerRNA props_ptr;
-  wmWindow *win = CTX_wm_window(C);
-
-  UI_popup_block_close(C, win, arg_block);
-
-  wmOperatorType *ot = WM_operatortype_find("WM_OT_save_mainfile", false);
-
-  WM_operator_properties_create_ptr(&props_ptr, ot);
-  RNA_boolean_set(&props_ptr, "exit", true);
-  /* No need for second confirmation popup. */
-  RNA_boolean_set(&props_ptr, "check_existing", false);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
-  WM_operator_properties_free(&props_ptr);
-}
-
-/* Build the confirm dialog UI */
-static uiBlock *block_create_confirm_quit(struct bContext *C,
-                                          struct ARegion *ar,
-                                          void *UNUSED(arg1))
-{
-  Main *bmain = CTX_data_main(C);
-
-  uiStyle *style = UI_style_get();
-  uiBlock *block = UI_block_begin(C, ar, "confirm_quit_popup", UI_EMBOSS);
-
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_emboss_set(block, UI_EMBOSS);
-
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     10,
-                                     2,
-                                     U.widget_unit * 24,
-                                     U.widget_unit * 6,
-                                     0,
-                                     style);
-
-  /* Text and some vertical space */
-  {
-    char *message;
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      message = BLI_strdup(IFACE_("This file has not been saved yet. Save before closing?"));
-    }
-    else {
-      const char *basename = BLI_path_basename(BKE_main_blendfile_path(bmain));
-      message = BLI_sprintfN(IFACE_("Save changes to \"%s\" before closing?"), basename);
-    }
-    uiItemL(layout, message, ICON_ERROR);
-    MEM_freeN(message);
-  }
-
-  uiItemS(layout);
-  uiItemS(layout);
-
-  /* Buttons */
-  uiBut *but;
-
-  uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
-
-  uiLayout *col = uiLayoutColumn(split, false);
-
-  but = uiDefIconTextBut(block,
-                         UI_BTYPE_BUT,
-                         0,
-                         ICON_SCREEN_BACK,
-                         IFACE_("Cancel"),
-                         0,
-                         0,
-                         0,
-                         UI_UNIT_Y,
-                         NULL,
-                         0,
-                         0,
-                         0,
-                         0,
-                         TIP_("Do not quit"));
-  UI_but_func_set(but, wm_block_confirm_quit_cancel, block, NULL);
-
-  /* empty space between buttons */
-  col = uiLayoutColumn(split, false);
-  uiItemS(col);
-
-  col = uiLayoutColumn(split, 1);
-  but = uiDefIconTextBut(block,
-                         UI_BTYPE_BUT,
-                         0,
-                         ICON_CANCEL,
-                         IFACE_("Discard Changes"),
-                         0,
-                         0,
-                         50,
-                         UI_UNIT_Y,
-                         NULL,
-                         0,
-                         0,
-                         0,
-                         0,
-                         TIP_("Discard changes and quit"));
-  UI_but_func_set(but, wm_block_confirm_quit_discard, block, NULL);
-
-  col = uiLayoutColumn(split, 1);
-  but = uiDefIconTextBut(block,
-                         UI_BTYPE_BUT,
-                         0,
-                         ICON_FILE_TICK,
-                         IFACE_("Save & Quit"),
-                         0,
-                         0,
-                         50,
-                         UI_UNIT_Y,
-                         NULL,
-                         0,
-                         0,
-                         0,
-                         0,
-                         TIP_("Save and quit"));
-  UI_but_func_set(but, wm_block_confirm_quit_save, block, NULL);
-  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
-
-  UI_block_bounds_set_centered(block, 10);
-
-  return block;
+  wm_exit_schedule_delayed(C);
 }
 
 /**
@@ -508,16 +368,9 @@ static uiBlock *block_create_confirm_quit(struct bContext *C,
  */
 static void wm_confirm_quit(bContext *C)
 {
-  wmWindow *win = CTX_wm_window(C);
-
-  if (GHOST_SupportsNativeDialogs() == 0) {
-    if (!UI_popup_block_name_exists(C, "confirm_quit_popup")) {
-      UI_popup_block_invoke(C, block_create_confirm_quit, NULL, NULL);
-    }
-  }
-  else if (GHOST_confirmQuit(win->ghostwin)) {
-    wm_exit_schedule_delayed(C);
-  }
+  GenericCallback *action = MEM_callocN(sizeof(*action), __func__);
+  action->exec = wm_save_file_on_quit_dialog_callback;
+  wm_close_file_dialog(C, action);
 }
 
 /**
@@ -529,7 +382,6 @@ static void wm_confirm_quit(bContext *C)
  */
 void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_ctx = CTX_wm_window(C);
 
   /* The popup will be displayed in the context window which may not be set
@@ -537,7 +389,7 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
   CTX_wm_window_set(C, win);
 
   if (U.uiflag & USER_SAVE_PROMPT) {
-    if (!wm->file_saved && !G.background) {
+    if (wm_file_or_image_is_modified(C) && !G.background) {
       wm_confirm_quit(C);
     }
     else {

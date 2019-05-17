@@ -2161,126 +2161,117 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 
 /********************** save all operator **********************/
 
-static int image_save_all_modified(const bContext *C,
-                                   ReportList *reports,
-                                   int *num_files,
-                                   const bool dry_run,
-                                   const bool ignore_dry_run_warnings)
+static bool image_should_be_saved_when_modified(Image *ima)
+{
+  return !ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE);
+}
+
+static bool image_should_be_saved(Image *ima)
+{
+  if (BKE_image_is_dirty(ima) && (ima->source == IMA_SRC_FILE)) {
+    return image_should_be_saved_when_modified(ima);
+  }
+  else {
+    return false;
+  }
+}
+
+static bool image_has_valid_path(Image *ima)
+{
+  return strchr(ima->name, '\\') || strchr(ima->name, '/');
+}
+
+bool ED_image_should_save_modified(const bContext *C)
+{
+  return ED_image_save_all_modified_info(C, NULL) > 0;
+}
+
+int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   GSet *unique_paths = BLI_gset_str_new(__func__);
-  bool ok = true;
 
-  if (num_files) {
-    *num_files = 0;
-  }
+  int num_saveable_images = 0;
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-      /* Don't save render results automatically. */
-    }
-    else if (BKE_image_is_dirty(ima) && (ima->source == IMA_SRC_FILE)) {
+    if (image_should_be_saved(ima)) {
       if (BKE_image_has_packedfile(ima)) {
         if (ima->id.lib == NULL) {
-          /* Re-pack. */
-          if (!dry_run) {
-            BKE_image_memorypack(ima);
-          }
-
-          if (num_files) {
-            (*num_files)++;
-          }
+          num_saveable_images++;
         }
-        else if (!ignore_dry_run_warnings) {
-          /* Can't pack to library data. */
+        else {
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Packed library image: %s from library %s can't be saved",
                       ima->id.name,
                       ima->id.lib->name);
-          ok = false;
         }
       }
       else {
-        /* Save to file. */
-        const bool valid_path = strchr(ima->name, '\\') || strchr(ima->name, '/');
-
-        if (valid_path) {
-          ImageSaveOptions opts;
-
-          BKE_image_save_options_init(&opts, bmain, scene);
-
-          if (image_save_options_init(bmain, &opts, ima, NULL, false, false)) {
-            if (!BLI_gset_haskey(unique_paths, opts.filepath)) {
-              if (!dry_run) {
-                const bool save_ok = BKE_image_save(reports, bmain, ima, NULL, &opts);
-
-                if (save_ok) {
-                  BLI_gset_insert(unique_paths, BLI_strdup(opts.filepath));
-                }
-
-                ok = ok && save_ok;
-              }
-
-              if (num_files) {
-                (*num_files)++;
-              }
-            }
-            else if (!ignore_dry_run_warnings) {
-              BKE_reportf(reports,
-                          RPT_WARNING,
-                          "File path used by more than one saved image: %s",
-                          opts.filepath);
-              ok = false;
-            }
+        if (image_has_valid_path(ima)) {
+          num_saveable_images++;
+          if (BLI_gset_haskey(unique_paths, ima->name)) {
+            BKE_reportf(reports,
+                        RPT_WARNING,
+                        "File path used by more than one saved image: %s",
+                        ima->name);
+          }
+          else {
+            BLI_gset_insert(unique_paths, BLI_strdup(ima->name));
           }
         }
-        else if (!ignore_dry_run_warnings) {
+        else {
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Image %s can't be saved, no valid file path: %s",
                       ima->id.name,
                       ima->name);
-          ok = false;
         }
       }
     }
   }
 
   BLI_gset_free(unique_paths, MEM_freeN);
-
-  return ok;
-}
-
-int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
-{
-  /* Dry run to get number of files, and any warnings we can detect in advance. */
-  int num_files;
-  image_save_all_modified(C, reports, &num_files, true, false);
-  return num_files;
+  return num_saveable_images;
 }
 
 bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 {
-  /* Save, and ignore any warnings that we already detected in
-   * ED_image_save_all_modified_info. */
-  return image_save_all_modified(C, reports, NULL, false, true);
+  ED_image_save_all_modified_info(C, reports);
+
+  Main *bmain = CTX_data_main(C);
+  bool ok = true;
+
+  for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+    if (image_should_be_saved(ima)) {
+      if (BKE_image_has_packedfile(ima)) {
+        BKE_image_memorypack(ima);
+      }
+      else {
+        if (image_has_valid_path(ima)) {
+          ImageSaveOptions opts;
+          Scene *scene = CTX_data_scene(C);
+          BKE_image_save_options_init(&opts, bmain, scene);
+          if (image_save_options_init(bmain, &opts, ima, NULL, false, false)) {
+            bool saved_successfully = BKE_image_save(reports, bmain, ima, NULL, &opts);
+            ok = ok && saved_successfully;
+          }
+        }
+      }
+    }
+  }
+  return ok;
 }
 
 static bool image_save_all_modified_poll(bContext *C)
 {
-  /* Let operator run if there are any files to saved, or any warnings to
-   * report about files that we can't save. */
-  int num_files;
-  bool ok = image_save_all_modified(C, NULL, &num_files, true, false);
-  return (num_files > 0) || !ok;
+  int num_files = ED_image_save_all_modified_info(C, NULL);
+  return num_files > 0;
 }
 
 static int image_save_all_modified_exec(bContext *C, wmOperator *op)
 {
-  /* Save, and show all warnings. */
-  image_save_all_modified(C, op->reports, NULL, false, false);
+  ED_image_save_all_modified(C, op->reports);
   return OPERATOR_FINISHED;
 }
 

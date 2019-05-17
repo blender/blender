@@ -111,6 +111,7 @@ void ED_image_draw_info(struct Scene *scene,
 
 bool ED_space_image_show_cache(struct SpaceImage *sima);
 
+bool ED_image_should_save_modified(const struct bContext *C);
 int ED_image_save_all_modified_info(const struct bContext *C, struct ReportList *reports);
 bool ED_image_save_all_modified(const struct bContext *C, struct ReportList *reports);
 

@@ -401,6 +401,10 @@ int WM_operator_name_call(struct bContext *C,
                           const char *opstring,
                           short context,
                           struct PointerRNA *properties);
+int WM_operator_name_call_with_properties(struct bContext *C,
+                                          const char *opstring,
+                                          short context,
+                                          struct IDProperty *properties);
 int WM_operator_call_py(struct bContext *C,
                         struct wmOperatorType *ot,
                         short context,

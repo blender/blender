@@ -76,6 +76,7 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -98,6 +99,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -1922,11 +1924,27 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
+{
+  WM_operator_name_call_with_properties(
+      C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+}
+
+static void wm_free_operator_properties_callback(void *user_data)
+{
+  IDProperty *properties = (IDProperty *)user_data;
+  IDP_FreeProperty(properties);
+}
+
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  if (U.uiflag & USER_SAVE_PROMPT && !wm->file_saved) {
-    return WM_operator_confirm_message(C, op, "Changes in current file will be lost. Continue?");
+  if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
+    GenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
+    callback->exec = wm_homefile_read_after_dialog_callback;
+    callback->user_data = IDP_CopyProperty(op->properties);
+    callback->free_user_data = wm_free_operator_properties_callback;
+    wm_close_file_dialog(C, callback);
+    return OPERATOR_INTERFACE;
   }
   else {
     return wm_homefile_read_exec(C, op);
@@ -2071,6 +2089,12 @@ enum {
 
 static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
 
+static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
+{
+  WM_operator_name_call_with_properties(
+      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data);
+}
+
 static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
 {
   if (RNA_boolean_get(op->ptr, "display_file_selector")) {
@@ -2080,14 +2104,13 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
     set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
   }
 
-  wmWindowManager *wm = CTX_wm_manager(C);
-  if (U.uiflag & USER_SAVE_PROMPT && !wm->file_saved) {
-    return WM_operator_confirm_message_ex(C,
-                                          op,
-                                          "Warning",
-                                          ICON_INFO,
-                                          "Changes in current file will be lost. Continue?",
-                                          WM_OP_INVOKE_DEFAULT);
+  if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
+    GenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
+    callback->exec = wm_open_mainfile_after_dialog_callback;
+    callback->user_data = IDP_CopyProperty(op->properties);
+    callback->free_user_data = wm_free_operator_properties_callback;
+    wm_close_file_dialog(C, callback);
+    return OPERATOR_INTERFACE;
   }
   else {
     return wm_open_mainfile_dispatch(C, op);
@@ -2817,6 +2840,236 @@ void wm_test_autorun_warning(bContext *C)
     UI_popup_block_invoke(C, block_create_autorun_warning, NULL, NULL);
     CTX_wm_window_set(C, prevwin);
   }
+}
+
+/* Close File Dialog
+ *************************************/
+
+static char save_images_when_file_is_closed = true;
+
+static void wm_block_file_close_cancel(bContext *C, void *arg_block, void *UNUSED(arg_data))
+{
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, arg_block);
+}
+
+static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_data)
+{
+  GenericCallback *callback = wm_generic_callback_steal((GenericCallback *)arg_data);
+
+  /* Close the popup before executing the callback. Otherwise
+   * the popup might be closed by the callback, which will lead
+   * to a crash. */
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, arg_block);
+
+  callback->exec(C, callback->user_data);
+  wm_generic_callback_free(callback);
+}
+
+static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
+{
+  GenericCallback *callback = wm_generic_callback_steal((GenericCallback *)arg_data);
+  bool execute_callback = true;
+
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, arg_block);
+
+  if (save_images_when_file_is_closed) {
+    ReportList *reports = CTX_wm_reports(C);
+    if (!ED_image_save_all_modified(C, reports)) {
+      execute_callback = false;
+    }
+    WM_report_banner_show();
+  }
+
+  Main *bmain = CTX_data_main(C);
+  bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
+
+  if (file_has_been_saved_before) {
+    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL);
+  }
+  else {
+    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL);
+    execute_callback = false;
+  }
+
+  if (execute_callback) {
+    callback->exec(C, callback->user_data);
+  }
+  wm_generic_callback_free(callback);
+}
+
+static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegion *ar, void *arg1)
+{
+  GenericCallback *post_action = (GenericCallback *)arg1;
+  Main *bmain = CTX_data_main(C);
+
+  uiStyle *style = UI_style_get();
+  uiBlock *block = UI_block_begin(C, ar, "file_close_popup", UI_EMBOSS);
+
+  UI_block_flag_enable(
+      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *layout = UI_block_layout(block,
+                                     UI_LAYOUT_VERTICAL,
+                                     UI_LAYOUT_PANEL,
+                                     10,
+                                     2,
+                                     U.widget_unit * 24,
+                                     U.widget_unit * 6,
+                                     0,
+                                     style);
+
+  bool blend_file_is_saved = BKE_main_blendfile_path(bmain)[0] != '\0';
+  if (blend_file_is_saved) {
+    uiItemL(layout, "This file has unsaved changes.", ICON_NONE);
+  }
+  else {
+    uiItemL(layout, "This file has not been saved yet.", ICON_NONE);
+  }
+
+  ReportList reports;
+  BKE_reports_init(&reports, RPT_STORE);
+  uint modified_images_count = ED_image_save_all_modified_info(C, &reports);
+
+  if (modified_images_count > 0) {
+    char message[64];
+    BLI_snprintf(message,
+                 sizeof(message),
+                 (modified_images_count == 1) ? "Save %u modified image" :
+                                                "Save %u modified images",
+                 modified_images_count);
+    uiDefButBitC(block,
+                 UI_BTYPE_CHECKBOX,
+                 1,
+                 0,
+                 message,
+                 0,
+                 0,
+                 0,
+                 UI_UNIT_Y,
+                 &save_images_when_file_is_closed,
+                 0,
+                 0,
+                 0,
+                 0,
+                 "");
+
+    LISTBASE_FOREACH (Report *, report, &reports.list) {
+      uiItemL(layout, report->message, ICON_ERROR);
+    }
+  }
+
+  BKE_reports_clear(&reports);
+
+  uiItemL(layout, "", ICON_NONE);
+
+  uiBut *but;
+  uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+  uiLayout *col = uiLayoutColumn(split, false);
+
+  but = uiDefIconTextBut(block,
+                         UI_BTYPE_BUT,
+                         0,
+                         ICON_SCREEN_BACK,
+                         IFACE_("Cancel"),
+                         0,
+                         0,
+                         0,
+                         UI_UNIT_Y,
+                         NULL,
+                         0,
+                         0,
+                         0,
+                         0,
+                         "");
+  UI_but_func_set(but, wm_block_file_close_cancel, block, post_action);
+
+  /* empty space between buttons */
+  col = uiLayoutColumn(split, false);
+  uiItemS(col);
+
+  col = uiLayoutColumn(split, true);
+  but = uiDefIconTextBut(block,
+                         UI_BTYPE_BUT,
+                         0,
+                         ICON_CANCEL,
+                         IFACE_("Discard Changes"),
+                         0,
+                         0,
+                         50,
+                         UI_UNIT_Y,
+                         NULL,
+                         0,
+                         0,
+                         0,
+                         0,
+                         "");
+  UI_but_func_set(but, wm_block_file_close_discard, block, post_action);
+
+  col = uiLayoutColumn(split, true);
+  but = uiDefIconTextBut(block,
+                         UI_BTYPE_BUT,
+                         0,
+                         ICON_CANCEL,
+                         IFACE_("Save"),
+                         0,
+                         0,
+                         50,
+                         UI_UNIT_Y,
+                         NULL,
+                         0,
+                         0,
+                         0,
+                         0,
+                         "");
+  UI_but_func_set(but, wm_block_file_close_save, block, post_action);
+  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+
+  UI_block_bounds_set_centered(block, 10);
+  return block;
+}
+
+static void free_post_file_close_action(void *arg)
+{
+  GenericCallback *action = (GenericCallback *)arg;
+  wm_generic_callback_free(action);
+}
+
+void wm_close_file_dialog(bContext *C, GenericCallback *post_action)
+{
+  UI_popup_block_invoke(
+      C, block_create__close_file_dialog, post_action, free_post_file_close_action);
+}
+
+bool wm_file_or_image_is_modified(const bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  return !wm->file_saved || ED_image_should_save_modified(C);
+}
+
+void wm_generic_callback_free(GenericCallback *callback)
+{
+  if (callback->free_user_data) {
+    callback->free_user_data(callback->user_data);
+  }
+  MEM_freeN(callback);
+}
+
+static void do_nothing(bContext *UNUSED(C), void *UNUSED(user_data))
+{
+}
+
+GenericCallback *wm_generic_callback_steal(GenericCallback *callback)
+{
+  GenericCallback *new_callback = MEM_dupallocN(callback);
+  callback->exec = do_nothing;
+  callback->free_user_data = NULL;
+  callback->user_data = NULL;
+  return new_callback;
 }
 
 /** \} */
