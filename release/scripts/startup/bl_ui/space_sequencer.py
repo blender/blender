@@ -113,18 +113,6 @@ class SEQUENCER_HT_header(Header):
 
         if st.view_type != 'SEQUENCER':
             layout.prop(st, "preview_channels", text="", icon_only=True)
-            layout.prop(st, "display_channel", text="Channel")
-
-            ed = scene.sequence_editor
-            if ed:
-                row = layout.row(align=True)
-                row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
-                if ed.show_overlay:
-                    row.prop(ed, "overlay_frame", text="")
-                    row.prop(ed, "use_overlay_lock", text="", icon='LOCKED')
-
-                    row = layout.row()
-                    row.prop(st, "overlay_type", text="")
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             gpd = context.gpencil_data
@@ -1571,6 +1559,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "View"
 
     def draw(self, context):
@@ -1580,7 +1569,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         render = context.scene.render
 
         col = layout.column()
-        col.prop(render, "sequencer_gl_preview", text="")
+        col.prop(render, "sequencer_gl_preview", text="Preview Shading")
 
         if render.sequencer_gl_preview in ['SOLID', 'WIREFRAME']:
             col.prop(render, "use_sequencer_override_scene_strip")
@@ -1598,16 +1587,44 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         st = context.space_data
 
         col = layout.column()
+        col.prop(st, "display_channel", text="Channel")
+
         if st.display_mode == 'IMAGE':
             col.prop(st, "show_overexposed")
-            col.separator()
 
         elif st.display_mode == 'WAVEFORM':
             col.prop(st, "show_separate_color")
 
-        col = layout.column()
-        col.separator()
         col.prop(st, "proxy_render_size")
+
+
+class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
+    bl_label = "Frame Overlay"
+    bl_category = "View"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        scene = context.scene
+        ed = scene.sequence_editor
+
+        self.layout.prop(ed, "show_overlay", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        
+        st = context.space_data
+        scene = context.scene
+        ed = scene.sequence_editor
+
+        layout.active = ed.show_overlay
+
+        col = layout.column()
+        col.prop(ed, "overlay_frame", text="Frame Offset")
+        col.prop(st, "overlay_type")
+        col.prop(ed, "use_overlay_lock")
 
 
 class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
@@ -1816,6 +1833,7 @@ classes = (
 
     SEQUENCER_PT_preview,
     SEQUENCER_PT_view,
+    SEQUENCER_PT_frame_overlay,
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,
 
