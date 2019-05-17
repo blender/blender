@@ -1449,10 +1449,46 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
         col.prop(strip, "use_float", text="Convert to Float")
 
 
-class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy/Timecode"
+class SEQUENCER_PT_proxy_cache(SequencerButtonsPanel, Panel):
+    bl_label = "Proxy & Cache"
     bl_category = "Strip"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
+
+    def draw(self, context):
+        pass
+
+
+class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
+    bl_label = "Cache Settings"
+    bl_category = "Strip"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "SEQUENCER_PT_proxy_cache"
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
+
+    def draw(self, context):
+        layout = self.layout
+        ed = context.scene.sequence_editor
+
+        layout.prop(ed, "use_cache_raw")
+        layout.prop(ed, "use_cache_preprocessed")
+        layout.prop(ed, "use_cache_composite")
+        layout.prop(ed, "use_cache_final")
+        layout.separator()
+        layout.prop(ed, "recycle_max_cost")
+
+
+class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
+    bl_label = "Proxy & Timecode"
+    bl_category = "Strip"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "SEQUENCER_PT_proxy_cache"
 
     @classmethod
     def poll(cls, context):
@@ -1525,8 +1561,8 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
-    bl_category = "View"
     bl_region_type = 'UI'
+    bl_category = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -1567,8 +1603,8 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
 
 class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
     bl_label = "Safe Areas"
-    bl_category = "View"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "View"
 
     @classmethod
     def poll(cls, context):
@@ -1600,6 +1636,7 @@ class SEQUENCER_PT_view_safe_areas_center_cut(SequencerButtonsPanel_Output, Pane
     bl_label = "Center-Cut Safe Areas"
     bl_parent_id = "SEQUENCER_PT_view_safe_areas"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "View"
 
     def draw_header(self, context):
         st = context.space_data
@@ -1752,24 +1789,29 @@ classes = (
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
 
-    SEQUENCER_PT_effect,
-    SEQUENCER_PT_scene,
-    SEQUENCER_PT_mask,
-
-    SEQUENCER_PT_proxy,
-    SEQUENCER_PT_preview,
-    SEQUENCER_PT_view,
-    SEQUENCER_PT_view_safe_areas,
-    SEQUENCER_PT_view_safe_areas_center_cut,
-    SEQUENCER_PT_modifiers,
-
     SEQUENCER_PT_info,
     SEQUENCER_PT_info_input,
     SEQUENCER_PT_info_data,
 
+    SEQUENCER_PT_effect,
+    SEQUENCER_PT_scene,
+    SEQUENCER_PT_mask,
+
+    SEQUENCER_PT_proxy_cache,
+    SEQUENCER_PT_cache_settings,
+    SEQUENCER_PT_proxy_settings,
+
+    SEQUENCER_PT_custom_props,
+
+    SEQUENCER_PT_modifiers,
+
+    SEQUENCER_PT_preview,
+    SEQUENCER_PT_view,
+    SEQUENCER_PT_view_safe_areas,
+    SEQUENCER_PT_view_safe_areas_center_cut,
+
     SEQUENCER_PT_grease_pencil,
     SEQUENCER_PT_grease_pencil_tools,
-    SEQUENCER_PT_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.
