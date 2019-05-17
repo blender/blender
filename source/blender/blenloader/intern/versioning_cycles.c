@@ -425,47 +425,6 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
       }
     }
   }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 69)) {
-    /* Unify Cycles and Eevee depth of field. */
-    Scene *scene = bmain->scenes.first;
-    const char *engine = (scene) ? scene->r.engine : "CYCLES";
-
-    if (STREQ(engine, RE_engine_id_CYCLES)) {
-      for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
-        IDProperty *ccamera = cycles_properties_from_ID(&camera->id);
-        if (ccamera) {
-          const char *aperture_type = cycles_property_string(ccamera, "aperture_type", "RADIUS");
-
-          camera->dof.aperture_fstop = cycles_property_float(ccamera, "aperture_fstop", 5.6f);
-          camera->dof.aperture_blades = cycles_property_int(ccamera, "aperture_blades", 0);
-          camera->dof.aperture_rotation = cycles_property_float(ccamera, "aperture_rotation", 0.0);
-          camera->dof.aperture_ratio = cycles_property_float(ccamera, "aperture_ratio", 1.0f);
-          camera->dof.flag |= CAM_DOF_ENABLED;
-
-          float aperture_size = cycles_property_float(ccamera, "aperture_size", 0.0f);
-
-          if (STREQ(aperture_type, "RADIUS") && aperture_size > 0.0f) {
-            if (camera->type == CAM_ORTHO) {
-              camera->dof.aperture_fstop = 1.0f / (2.0f * aperture_size);
-            }
-            else {
-              camera->dof.aperture_fstop = (camera->lens * 1e-3f) / (2.0f * aperture_size);
-            }
-
-            continue;
-          }
-        }
-
-        /* No depth of field, set default settings. */
-        camera->dof.aperture_fstop = 5.6f;
-        camera->dof.aperture_blades = 0;
-        camera->dof.aperture_rotation = 0.0f;
-        camera->dof.aperture_ratio = 1.0f;
-        camera->dof.flag &= ~CAM_DOF_ENABLED;
-      }
-    }
-  }
 }
 
 void do_versions_after_linking_cycles(Main *bmain)
@@ -529,6 +488,47 @@ void do_versions_after_linking_cycles(Main *bmain)
 
     for (Light *light = bmain->lights.first; light; light = light->id.next) {
       light_emission_unify(light, engine);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 69)) {
+    /* Unify Cycles and Eevee depth of field. */
+    Scene *scene = bmain->scenes.first;
+    const char *engine = (scene) ? scene->r.engine : "CYCLES";
+
+    if (STREQ(engine, RE_engine_id_CYCLES)) {
+      for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
+        IDProperty *ccamera = cycles_properties_from_ID(&camera->id);
+        if (ccamera) {
+          const char *aperture_type = cycles_property_string(ccamera, "aperture_type", "RADIUS");
+
+          camera->dof.aperture_fstop = cycles_property_float(ccamera, "aperture_fstop", 5.6f);
+          camera->dof.aperture_blades = cycles_property_int(ccamera, "aperture_blades", 0);
+          camera->dof.aperture_rotation = cycles_property_float(ccamera, "aperture_rotation", 0.0);
+          camera->dof.aperture_ratio = cycles_property_float(ccamera, "aperture_ratio", 1.0f);
+          camera->dof.flag |= CAM_DOF_ENABLED;
+
+          float aperture_size = cycles_property_float(ccamera, "aperture_size", 0.0f);
+
+          if (STREQ(aperture_type, "RADIUS") && aperture_size > 0.0f) {
+            if (camera->type == CAM_ORTHO) {
+              camera->dof.aperture_fstop = 1.0f / (2.0f * aperture_size);
+            }
+            else {
+              camera->dof.aperture_fstop = (camera->lens * 1e-3f) / (2.0f * aperture_size);
+            }
+
+            continue;
+          }
+        }
+
+        /* No depth of field, set default settings. */
+        camera->dof.aperture_fstop = 5.6f;
+        camera->dof.aperture_blades = 0;
+        camera->dof.aperture_rotation = 0.0f;
+        camera->dof.aperture_ratio = 1.0f;
+        camera->dof.flag &= ~CAM_DOF_ENABLED;
+      }
     }
   }
 }
