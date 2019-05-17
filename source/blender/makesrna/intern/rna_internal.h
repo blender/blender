@@ -548,7 +548,6 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 
 int rna_parameter_size(struct PropertyRNA *parm);
 
-
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self,
                                         struct bContext *C,
