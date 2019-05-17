@@ -115,7 +115,7 @@ static void GPENCIL_dof_nearfar(Object *camera, float coc, float nearfar[2])
   Scene *scene = draw_ctx->scene;
   Camera *cam = (Camera *)camera->data;
 
-  float fstop = cam->gpu_dof.fstop;
+  float fstop = cam->dof.aperture_fstop;
   float focus_dist = BKE_camera_object_dof_distance(camera);
   float focal_len = cam->lens;
 

@@ -97,6 +97,7 @@ extern StructRNA RNA_BuildGpencilModifier;
 extern StructRNA RNA_BuildModifier;
 extern StructRNA RNA_CacheFile;
 extern StructRNA RNA_Camera;
+extern StructRNA RNA_CameraDOFSettings;
 extern StructRNA RNA_CastModifier;
 extern StructRNA RNA_ChildOfConstraint;
 extern StructRNA RNA_ChildParticle;

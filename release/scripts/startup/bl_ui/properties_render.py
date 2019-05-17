@@ -183,18 +183,12 @@ class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
-    def draw_header(self, context):
-        scene = context.scene
-        props = scene.eevee
-        self.layout.prop(props, "use_dof", text="")
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         scene = context.scene
         props = scene.eevee
 
-        layout.active = props.use_dof
         col = layout.column()
         col.prop(props, "bokeh_max_size")
         # Not supported yet

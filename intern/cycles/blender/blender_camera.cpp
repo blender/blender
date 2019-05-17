@@ -119,10 +119,10 @@ static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
                                            BL::Camera &b_camera,
                                            BlenderCamera *bcam)
 {
-  BL::Object b_dof_object = b_camera.dof_object();
+  BL::Object b_dof_object = b_camera.dof().focus_object();
 
   if (!b_dof_object)
-    return b_camera.dof_distance();
+    return b_camera.dof().focus_distance();
 
   /* for dof object, return distance along camera Z direction */
   BL::Array<float, 16> b_ob_matrix;
@@ -191,26 +191,30 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 
     bcam->lens = b_camera.lens();
 
-    /* allow f/stop number to change aperture_size but still
-     * give manual control over aperture radius */
-    int aperture_type = get_enum(ccamera, "aperture_type");
-
-    if (aperture_type == 1) {
-      float fstop = RNA_float_get(&ccamera, "aperture_fstop");
+    if (b_camera.dof().use_dof()) {
+      /* allow f/stop number to change aperture_size but still
+       * give manual control over aperture radius */
+      float fstop = b_camera.dof().aperture_fstop();
       fstop = max(fstop, 1e-5f);
 
       if (bcam->type == CAMERA_ORTHOGRAPHIC)
         bcam->aperturesize = 1.0f / (2.0f * fstop);
       else
         bcam->aperturesize = (bcam->lens * 1e-3f) / (2.0f * fstop);
-    }
-    else
-      bcam->aperturesize = RNA_float_get(&ccamera, "aperture_size");
 
-    bcam->apertureblades = RNA_int_get(&ccamera, "aperture_blades");
-    bcam->aperturerotation = RNA_float_get(&ccamera, "aperture_rotation");
-    bcam->focaldistance = blender_camera_focal_distance(b_engine, b_ob, b_camera, bcam);
-    bcam->aperture_ratio = RNA_float_get(&ccamera, "aperture_ratio");
+      bcam->apertureblades = b_camera.dof().aperture_blades();
+      bcam->aperturerotation = b_camera.dof().aperture_rotation();
+      bcam->focaldistance = blender_camera_focal_distance(b_engine, b_ob, b_camera, bcam);
+      bcam->aperture_ratio = b_camera.dof().aperture_ratio();
+    }
+    else {
+      /* DOF is turned of for the camera. */
+      bcam->aperturesize = 0.0f;
+      bcam->apertureblades = 0;
+      bcam->aperturerotation = 0.0f;
+      bcam->focaldistance = 0.0f;
+      bcam->aperture_ratio = 1.0f;
+    }
 
     bcam->shift.x = b_engine.camera_shift_x(b_ob, bcam->use_spherical_stereo);
     bcam->shift.y = b_camera.shift_y();

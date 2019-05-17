@@ -1016,20 +1016,27 @@ class CYCLES_CAMERA_PT_dof(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         return context.camera and CyclesButtonsPanel.poll(context)
 
+    def draw_header(self, context):
+        cam = context.camera
+        dof = cam.dof
+        self.layout.prop(dof, "use_dof", text="")
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
         cam = context.camera
+        dof = cam.dof
+        layout.active = dof.use_dof
 
         split = layout.split()
 
         col = split.column()
-        col.prop(cam, "dof_object", text="Focus Object")
+        col.prop(dof, "focus_object", text="Focus Object")
 
         sub = col.row()
-        sub.active = cam.dof_object is None
-        sub.prop(cam, "dof_distance", text="Distance")
+        sub.active = dof.focus_object is None
+        sub.prop(dof, "focus_distance", text="Distance")
 
 
 class CYCLES_CAMERA_PT_dof_aperture(CyclesButtonsPanel, Panel):
@@ -1043,44 +1050,17 @@ class CYCLES_CAMERA_PT_dof_aperture(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         cam = context.camera
-        ccam = cam.cycles
-
-        col = flow.column()
-        col.prop(ccam, "aperture_type")
-        if ccam.aperture_type == 'RADIUS':
-            col.prop(ccam, "aperture_size", text="Size")
-        elif ccam.aperture_type == 'FSTOP':
-            col.prop(ccam, "aperture_fstop", text="Number")
-        col.separator()
-
-        col = flow.column()
-        col.prop(ccam, "aperture_blades", text="Blades")
-        col.prop(ccam, "aperture_rotation", text="Rotation")
-        col.prop(ccam, "aperture_ratio", text="Ratio")
-
-
-class CYCLES_CAMERA_PT_dof_viewport(CyclesButtonsPanel, Panel):
-    bl_label = "Viewport"
-    bl_parent_id = "CYCLES_CAMERA_PT_dof"
-
-    @classmethod
-    def poll(cls, context):
-        return context.camera and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
+        dof = cam.dof
+        layout.active = dof.use_dof
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        cam = context.camera
-        dof_options = cam.gpu_dof
-
-        sub = flow.column(align=True)
-        sub.prop(dof_options, "fstop")
-        sub.prop(dof_options, "blades")
+        col = flow.column()
+        col.prop(dof, "aperture_fstop")
+        col.prop(dof, "aperture_blades")
+        col.prop(dof, "aperture_rotation")
+        col.prop(dof, "aperture_ratio")
 
 
 class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
@@ -2147,7 +2127,6 @@ classes = (
     CYCLES_PT_post_processing,
     CYCLES_CAMERA_PT_dof,
     CYCLES_CAMERA_PT_dof_aperture,
-    CYCLES_CAMERA_PT_dof_viewport,
     CYCLES_PT_context_material,
     CYCLES_OBJECT_PT_motion_blur,
     CYCLES_OBJECT_PT_cycles_settings,

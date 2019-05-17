@@ -32,6 +32,7 @@
 #include "DNA_light_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_camera_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_idprop.h"
@@ -67,10 +68,24 @@ static float cycles_property_float(IDProperty *idprop, const char *name, float d
   return (prop) ? IDP_Float(prop) : default_value;
 }
 
+static float cycles_property_int(IDProperty *idprop, const char *name, int default_value)
+{
+  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
+  return (prop) ? IDP_Int(prop) : default_value;
+}
+
 static bool cycles_property_boolean(IDProperty *idprop, const char *name, bool default_value)
 {
   IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
   return (prop) ? IDP_Int(prop) : default_value;
+}
+
+static const char *cycles_property_string(IDProperty *idprop,
+                                          const char *name,
+                                          const char *default_value)
+{
+  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_STRING);
+  return (prop) ? IDP_String(prop) : default_value;
 }
 
 static void displacement_node_insert(bNodeTree *ntree)
@@ -398,7 +413,7 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 68)) {
-    /* Unify Cycles and EEVEE Film Transparency. */
+    /* Unify Cycles and Eevee film transparency. */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (STREQ(scene->r.engine, RE_engine_id_CYCLES)) {
         IDProperty *cscene = cycles_properties_from_ID(&scene->id);
@@ -407,6 +422,47 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
               cscene, "film_transparent", false);
           scene->r.alphamode = cycles_film_transparency ? R_ALPHAPREMUL : R_ADDSKY;
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 69)) {
+    /* Unify Cycles and Eevee depth of field. */
+    Scene *scene = bmain->scenes.first;
+    const char *engine = (scene) ? scene->r.engine : "CYCLES";
+
+    if (STREQ(engine, RE_engine_id_CYCLES)) {
+      for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
+        IDProperty *ccamera = cycles_properties_from_ID(&camera->id);
+        if (ccamera) {
+          const char *aperture_type = cycles_property_string(ccamera, "aperture_type", "RADIUS");
+
+          camera->dof.aperture_fstop = cycles_property_float(ccamera, "aperture_fstop", 5.6f);
+          camera->dof.aperture_blades = cycles_property_int(ccamera, "aperture_blades", 0);
+          camera->dof.aperture_rotation = cycles_property_float(ccamera, "aperture_rotation", 0.0);
+          camera->dof.aperture_ratio = cycles_property_float(ccamera, "aperture_ratio", 1.0f);
+          camera->dof.flag |= CAM_DOF_ENABLED;
+
+          float aperture_size = cycles_property_float(ccamera, "aperture_size", 0.0f);
+
+          if (STREQ(aperture_type, "RADIUS") && aperture_size > 0.0f) {
+            if (camera->type == CAM_ORTHO) {
+              camera->dof.aperture_fstop = 1.0f / (2.0f * aperture_size);
+            }
+            else {
+              camera->dof.aperture_fstop = (camera->lens * 1e-3f) / (2.0f * aperture_size);
+            }
+
+            continue;
+          }
+        }
+
+        /* No depth of field, set default settings. */
+        camera->dof.aperture_fstop = 5.6f;
+        camera->dof.aperture_blades = 0;
+        camera->dof.aperture_rotation = 0.0f;
+        camera->dof.aperture_ratio = 1.0f;
+        camera->dof.flag &= ~CAM_DOF_ENABLED;
       }
     }
   }

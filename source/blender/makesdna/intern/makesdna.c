@@ -41,6 +41,8 @@
  * numbers give more output.
  */
 
+#define DNA_DEPRECATED_ALLOW
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

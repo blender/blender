@@ -755,7 +755,7 @@ static void library_foreach_ID_link(Main *bmain,
 
       case ID_CA: {
         Camera *camera = (Camera *)id;
-        CALLBACK_INVOKE(camera->dof_ob, IDWALK_CB_NOP);
+        CALLBACK_INVOKE(camera->dof.focus_object, IDWALK_CB_NOP);
         for (CameraBGImage *bgpic = camera->bg_images.first; bgpic; bgpic = bgpic->next) {
           if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
             CALLBACK_INVOKE(bgpic->ima, IDWALK_CB_USER);

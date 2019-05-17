@@ -1503,7 +1503,6 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               bool do_sky,
                               bool UNUSED(is_persp),
                               const char *viewname,
-                              GPUFXSettings *UNUSED(fx_settings),
                               const bool do_color_management,
                               GPUOffScreen *ofs,
                               GPUViewport *viewport)
@@ -1593,7 +1592,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   const bool use_full_sample = (draw_flags & V3D_OFSDRAW_USE_FULL_SAMPLE);
 
   /* view state */
-  GPUFXSettings fx_settings = v3d->fx_settings;
   bool is_ortho = false;
   float winmat[4][4];
 
@@ -1640,8 +1638,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
     BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
     BKE_camera_params_compute_matrix(&params);
 
-    BKE_camera_to_gpu_dof(camera, &fx_settings);
-
     is_ortho = params.is_ortho;
     copy_m4_m4(winmat, params.winmat);
   }
@@ -1686,7 +1682,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                              draw_sky,
                              !is_ortho,
                              viewname,
-                             &fx_settings,
                              do_color_management,
                              ofs,
                              NULL);
@@ -1724,7 +1719,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                              draw_sky,
                              !is_ortho,
                              viewname,
-                             &fx_settings,
                              false,
                              ofs,
                              viewport);
@@ -1750,7 +1744,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                draw_sky,
                                !is_ortho,
                                viewname,
-                               &fx_settings,
                                false,
                                ofs,
                                viewport);

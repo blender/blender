@@ -19,11 +19,9 @@ def setup():
     scene = bpy.context.scene
     eevee = scene.eevee
 
-    eevee.use_sss = True
     eevee.use_ssr = True
     eevee.use_ssr_refraction = True
     eevee.use_gtao = True
-    eevee.use_dof = False
 
     eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'

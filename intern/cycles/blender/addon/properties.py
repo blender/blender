@@ -68,11 +68,6 @@ enum_filter_types = (
     ('BLACKMAN_HARRIS', "Blackman-Harris", "Blackman-Harris filter"),
 )
 
-enum_aperture_types = (
-    ('RADIUS', "Radius", "Directly change the size of the aperture"),
-    ('FSTOP', "F-stop", "Change the size of the aperture by f-stop"),
-)
-
 enum_panorama_types = (
     ('EQUIRECTANGULAR', "Equirectangular", "Render the scene with a spherical camera, also known as Lat Long panorama"),
     ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions"),
@@ -742,49 +737,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
 class CyclesCameraSettings(bpy.types.PropertyGroup):
 
-    aperture_type: EnumProperty(
-        name="Aperture Type",
-        description="Use f-stop number or aperture radius",
-        items=enum_aperture_types,
-        default='RADIUS',
-    )
-    aperture_fstop: FloatProperty(
-        name="Aperture f-stop",
-        description="F-stop ratio (lower numbers give more defocus, higher numbers give a sharper image)",
-        min=0.0, soft_min=0.1, soft_max=64.0,
-        default=5.6,
-        step=10,
-        precision=1,
-    )
-    aperture_size: FloatProperty(
-        name="Aperture Size",
-        description="Radius of the aperture for depth of field (higher values give more defocus)",
-        min=0.0, soft_max=10.0,
-        default=0.0,
-        step=1,
-        precision=4,
-        subtype='DISTANCE',
-    )
-    aperture_blades: IntProperty(
-        name="Aperture Blades",
-        description="Number of blades in aperture for polygonal bokeh (at least 3)",
-        min=0, max=100,
-        default=0,
-    )
-    aperture_rotation: FloatProperty(
-        name="Aperture Rotation",
-        description="Rotation of blades in aperture",
-        soft_min=-pi, soft_max=pi,
-        subtype='ANGLE',
-        default=0,
-    )
-    aperture_ratio: FloatProperty(
-        name="Aperture Ratio",
-        description="Distortion to simulate anamorphic lens bokeh",
-        min=0.01, soft_min=1.0, soft_max=2.0,
-        default=1.0,
-        precision=4,
-    )
     panorama_type: EnumProperty(
         name="Panorama Type",
         description="Distortion to use for the calculation",

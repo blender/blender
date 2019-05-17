@@ -1670,7 +1670,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     } \
   } \
   ((void)0)
-
+        const int SCE_EEVEE_DOF_ENABLED = (1 << 7);
         IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties,
                                                      RE_engine_id_BLENDER_EEVEE);
         // EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
@@ -3421,6 +3421,32 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "sun_angle")) {
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         light->sun_angle = 2.0f * atanf(light->area_size);
+      }
+    }
+
+    /* Unify DOF settings (EEVEE part only) */
+    if (!DNA_struct_elem_find(fd->filesdna, "Camera", "CameraDOFSettings", "dof")) {
+      const int SCE_EEVEE_DOF_ENABLED = (1 << 7);
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
+          if (scene->eevee.flag & SCE_EEVEE_DOF_ENABLED) {
+            Object *cam_ob = scene->camera;
+            if (cam_ob && cam_ob->type == OB_CAMERA) {
+              Camera *cam = cam_ob->data;
+              cam->dof.flag |= CAM_DOF_ENABLED;
+            }
+          }
+        }
+      }
+
+      LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
+        camera->dof.focus_object = camera->dof_ob;
+        camera->dof.focus_distance = camera->dof_distance;
+        camera->dof.aperture_fstop = camera->gpu_dof.fstop;
+        camera->dof.aperture_rotation = camera->gpu_dof.rotation;
+        camera->dof.aperture_ratio = camera->gpu_dof.ratio;
+        camera->dof.aperture_blades = camera->gpu_dof.num_blades;
+        camera->dof_ob = NULL;
       }
     }
   }

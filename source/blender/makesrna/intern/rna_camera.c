@@ -131,6 +131,38 @@ static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
+char *rna_CameraDOFSettings_path(PointerRNA *ptr)
+{
+  /* if there is ID-data, resolve the path using the index instead of by name,
+   * since the name used is the name of the texture assigned, but the texture
+   * may be used multiple times in the same stack
+   */
+  if (ptr->id.data) {
+    if (GS(((ID *)ptr->id.data)->name) == ID_CA) {
+      return BLI_strdup("dof");
+    }
+  }
+
+  return BLI_strdup("");
+}
+
+static void rna_CameraDOFSettings_aperture_blades_set(PointerRNA *ptr, const int value)
+{
+  CameraDOFSettings *dofsettings = (CameraDOFSettings *)ptr->data;
+
+  if (value == 1 || value == 2) {
+    if (dofsettings->aperture_blades == 0) {
+      dofsettings->aperture_blades = 3;
+    }
+    else {
+      dofsettings->aperture_blades = 0;
+    }
+  }
+  else {
+    dofsettings->aperture_blades = value;
+  }
+}
+
 #else
 
 static void rna_def_camera_background_image(BlenderRNA *brna)
@@ -376,6 +408,68 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 }
 
+static void rna_def_camera_dof_settings_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CameraDOFSettings", NULL);
+  RNA_def_struct_sdna(srna, "CameraDOFSettings");
+  RNA_def_struct_path_func(srna, "rna_CameraDOFSettings_path");
+  RNA_def_struct_ui_text(srna, "Depth of Field", "Depth of Field settings");
+
+  prop = RNA_def_property(srna, "use_dof", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_DOF_ENABLED);
+  RNA_def_property_ui_text(prop, "Depth of Field", "Use Depth of Field");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  prop = RNA_def_property(srna, "focus_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_pointer_sdna(prop, NULL, "focus_object");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Focus Object", "Use this object to define the depth of field focal point");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dependency_update");
+
+  prop = RNA_def_property(srna, "focus_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_default(prop, 10.0f);
+  // RNA_def_property_pointer_sdna(prop, NULL, "focus_distance");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
+  RNA_def_property_ui_text(
+      prop, "Focus Distance", "Distance to the focus point for depth of field");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  prop = RNA_def_property(srna, "aperture_fstop", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "F-Stop",
+      "F-Stop ratio (lower numbers give more defocus, higher numbers give a sharper image)");
+  RNA_def_property_float_default(prop, 5.6f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  prop = RNA_def_property(srna, "aperture_blades", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Blades", "Number of blades in aperture for polygonal bokeh (at least 3)");
+  RNA_def_property_range(prop, 0, 16);
+  RNA_def_property_int_funcs(prop, NULL, "rna_CameraDOFSettings_aperture_blades_set", NULL);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  prop = RNA_def_property(srna, "aperture_rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_ui_text(prop, "Rotation", "Rotation of blades in aperture");
+  RNA_def_property_range(prop, -M_PI, M_PI);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+
+  prop = RNA_def_property(srna, "aperture_ratio", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Ratio", "Distortion to simulate anamorphic lens bokeh");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0.01f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 1.0f, 2.0f, 0.1, 3);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
+}
+
 void RNA_def_camera(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -525,12 +619,6 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Shift Y", "Camera vertical shift");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
-  prop = RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
-  RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
-
   /* Stereo Settings */
   prop = RNA_def_property(srna, "stereo", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -645,17 +733,9 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
   /* pointers */
-  prop = RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "DOF Object", "Use this object to define the depth of field focal point");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dependency_update");
-
-  prop = RNA_def_property(srna, "gpu_dof", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "GPUDOFSettings");
-  RNA_def_property_ui_text(prop, "GPU Depth Of Field", "");
+  prop = RNA_def_property(srna, "dof", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CameraDOFSettings");
+  RNA_def_property_ui_text(prop, "Depth Of Field", "");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "background_images", PROP_COLLECTION, PROP_NONE);
@@ -674,6 +754,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
   /* *** Animated *** */
   rna_def_camera_stereo_data(brna);
+  rna_def_camera_dof_settings_data(brna);
 
   /* Camera API */
   RNA_api_camera(srna);

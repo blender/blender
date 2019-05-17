@@ -154,7 +154,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
     /* need to set property here for undo. TODO would prefer to do this in _init */
     WM_gizmo_target_property_def_rna(
-        cagzgroup->dop_dist, "offset", &camera_ptr, "dof_distance", -1);
+        cagzgroup->dop_dist, "offset", &camera_ptr, "dof.focus_distance", -1);
   }
   else {
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, true);
@@ -262,7 +262,7 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
   };
 
   {
-    extern PropertyRNA rna_Camera_dof_distance;
+    extern PropertyRNA rna_CameraDOFSettings_focus_distance;
     extern PropertyRNA rna_Camera_display_size;
     extern PropertyRNA rna_Camera_ortho_scale;
     extern PropertyRNA rna_Camera_sensor_fit;
@@ -273,7 +273,7 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
     extern PropertyRNA rna_Camera_type;
     extern PropertyRNA rna_Camera_lens;
     const PropertyRNA *props[] = {
-        &rna_Camera_dof_distance,
+        &rna_CameraDOFSettings_focus_distance,
         &rna_Camera_display_size,
         &rna_Camera_ortho_scale,
         &rna_Camera_sensor_fit,

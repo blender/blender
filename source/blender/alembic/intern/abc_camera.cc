@@ -80,19 +80,19 @@ void AbcCameraWriter::do_write()
   m_camera_sample.setNearClippingPlane(cam->clip_start);
   m_camera_sample.setFarClippingPlane(cam->clip_end);
 
-  if (cam->dof_ob) {
-    Imath::V3f v(m_object->loc[0] - cam->dof_ob->loc[0],
-                 m_object->loc[1] - cam->dof_ob->loc[1],
-                 m_object->loc[2] - cam->dof_ob->loc[2]);
+  if (cam->dof.focus_object) {
+    Imath::V3f v(m_object->loc[0] - cam->dof.focus_object->loc[0],
+                 m_object->loc[1] - cam->dof.focus_object->loc[1],
+                 m_object->loc[2] - cam->dof.focus_object->loc[2]);
     m_camera_sample.setFocusDistance(v.length());
   }
   else {
-    m_camera_sample.setFocusDistance(cam->gpu_dof.focus_distance);
+    m_camera_sample.setFocusDistance(cam->dof.focus_distance);
   }
 
   /* Blender camera does not have an fstop param, so try to find a custom prop
    * instead. */
-  m_camera_sample.setFStop(cam->gpu_dof.fstop);
+  m_camera_sample.setFStop(cam->dof.aperture_fstop);
 
   m_camera_sample.setLensSqueezeRatio(1.0);
   m_camera_schema.set(m_camera_sample);
@@ -166,8 +166,8 @@ void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_
   bcam->shifty = v_film_offset / apperture_y / film_aspect;
   bcam->clip_start = max_ff(0.1f, static_cast<float>(cam_sample.getNearClippingPlane()));
   bcam->clip_end = static_cast<float>(cam_sample.getFarClippingPlane());
-  bcam->gpu_dof.focus_distance = static_cast<float>(cam_sample.getFocusDistance());
-  bcam->gpu_dof.fstop = static_cast<float>(cam_sample.getFStop());
+  bcam->dof.focus_distance = static_cast<float>(cam_sample.getFocusDistance());
+  bcam->dof.aperture_fstop = static_cast<float>(cam_sample.getFStop());
 
   m_object = BKE_object_add_only_object(bmain, OB_CAMERA, m_object_name.c_str());
   m_object->data = bcam;

@@ -212,19 +212,27 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw_header(self, context):
+        cam = context.camera
+        dof = cam.dof
+        self.layout.prop(dof, "use_dof", text="")
+
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
         cam = context.camera
+        dof = cam.dof
+        layout.active = dof.use_dof
 
         col = layout.column()
-        col.prop(cam, "dof_object", text="Focus on Object")
+        col.prop(dof, "focus_object", text="Focus on Object")
         sub = col.column()
-        sub.active = (cam.dof_object is None)
-        sub.prop(cam, "dof_distance", text="Focus Distance")
+        sub.active = (dof.focus_object is None)
+        sub.prop(dof, "focus_distance", text="Focus Distance")
 
 
 class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
@@ -237,17 +245,18 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
         layout.use_property_split = True
 
         cam = context.camera
-        dof_options = cam.gpu_dof
+        dof = cam.dof
+        layout.active = dof.use_dof
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col.prop(dof_options, "fstop")
-        col.prop(dof_options, "blades")
+        col.prop(dof, "aperture_fstop")
 
         col = flow.column()
-        col.prop(dof_options, "rotation")
-        col.prop(dof_options, "ratio")
+        col.prop(dof, "aperture_blades")
+        col.prop(dof, "aperture_rotation")
+        col.prop(dof, "aperture_ratio")
 
 
 class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):

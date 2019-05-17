@@ -139,8 +139,6 @@ bool BKE_camera_view_frame_fit_to_coords(const struct Depsgraph *depsgraph,
                                          float r_co[3],
                                          float *r_scale);
 
-void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_settings);
-
 /* Camera multi-view API */
 
 struct Object *BKE_camera_multiview_render(struct Scene *scene,

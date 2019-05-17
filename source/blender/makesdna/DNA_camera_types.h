@@ -67,6 +67,19 @@ typedef struct CameraBGImage {
   short source;
 } CameraBGImage;
 
+/** Properties for dof effect. */
+typedef struct CameraDOFSettings {
+  /** Focal distance for depth of field. */
+  struct Object *focus_object;
+  float focus_distance;
+  float aperture_fstop;
+  float aperture_rotation;
+  float aperture_ratio;
+  int aperture_blades;
+  short flag;
+  char _pad[2];
+} CameraDOFSettings;
+
 typedef struct Camera_Runtime {
   /* For draw manager. */
   float drw_corners[2][4][2];
@@ -91,13 +104,14 @@ typedef struct Camera {
   float lens, ortho_scale, drawsize;
   float sensor_x, sensor_y;
   float shiftx, shifty;
-  float dof_distance;
+  float dof_distance DNA_DEPRECATED;
 
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
 
-  struct Object *dof_ob;
-  struct GPUDOFSettings gpu_dof;
+  struct Object *dof_ob DNA_DEPRECATED;
+  struct GPUDOFSettings gpu_dof DNA_DEPRECATED;
+  struct CameraDOFSettings dof;
 
   /* CameraBGImage reference images */
   struct ListBase bg_images;
@@ -202,6 +216,11 @@ enum {
 enum {
   CAM_BGIMG_SOURCE_IMAGE = 0,
   CAM_BGIMG_SOURCE_MOVIE = 1,
+};
+
+/* CameraDOFSettings->flag */
+enum {
+  CAM_DOF_ENABLED = (1 << 0),
 };
 
 #ifdef __cplusplus

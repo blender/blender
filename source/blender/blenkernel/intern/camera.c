@@ -66,8 +66,9 @@ void BKE_camera_init(Camera *cam)
   cam->flag |= CAM_SHOWPASSEPARTOUT;
   cam->passepartalpha = 0.5f;
 
-  cam->gpu_dof.fstop = 128.0f;
-  cam->gpu_dof.ratio = 1.0f;
+  cam->dof.aperture_fstop = 5.6f;
+  cam->dof.aperture_ratio = 1.0f;
+  cam->dof.focus_distance = 10.0f;
 
   /* stereoscopy 3d */
   cam->stereo.interocular_distance = 0.065f;
@@ -134,13 +135,13 @@ float BKE_camera_object_dof_distance(Object *ob)
   if (ob->type != OB_CAMERA) {
     return 0.0f;
   }
-  if (cam->dof_ob) {
+  if (cam->dof.focus_object) {
     float view_dir[3], dof_dir[3];
     normalize_v3_v3(view_dir, ob->obmat[2]);
-    sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof_ob->obmat[3]);
+    sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof.focus_object->obmat[3]);
     return fabsf(dot_v3v3(view_dir, dof_dir));
   }
-  return cam->dof_distance;
+  return cam->dof.focus_distance;
 }
 
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y)
@@ -1013,18 +1014,6 @@ void BKE_camera_multiview_params(RenderData *rd,
 {
   if (camera->type == OB_CAMERA) {
     params->shiftx = BKE_camera_multiview_shift_x(rd, camera, viewname);
-  }
-}
-
-void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_settings)
-{
-  if (camera->type == OB_CAMERA) {
-    Camera *cam = camera->data;
-    r_fx_settings->dof = &cam->gpu_dof;
-    r_fx_settings->dof->focal_length = cam->lens;
-    r_fx_settings->dof->sensor = BKE_camera_sensor_size(
-        cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-    r_fx_settings->dof->focus_distance = BKE_camera_object_dof_distance(camera);
   }
 }
 

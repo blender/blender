@@ -2069,9 +2069,9 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
   }
   build_animdata(&camera->id);
   build_parameters(&camera->id);
-  if (camera->dof_ob != NULL) {
+  if (camera->dof.focus_object != NULL) {
     ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
-    ComponentKey dof_ob_key(&camera->dof_ob->id, NodeType::TRANSFORM);
+    ComponentKey dof_ob_key(&camera->dof.focus_object->id, NodeType::TRANSFORM);
     add_relation(dof_ob_key, camera_parameters_key, "Camera DOF");
   }
 }

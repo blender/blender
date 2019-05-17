@@ -570,7 +570,6 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               bool do_sky,
                               bool is_persp,
                               const char *viewname,
-                              struct GPUFXSettings *fx_settings,
                               const bool do_color_managment,
                               struct GPUOffScreen *ofs,
                               struct GPUViewport *viewport);
