@@ -1449,24 +1449,9 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
         col.prop(strip, "use_float", text="Convert to Float")
 
 
-class SEQUENCER_PT_proxy_cache(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy & Cache"
-    bl_category = "Strip"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return cls.has_sequencer(context)
-
-    def draw(self, context):
-        pass
-
-
 class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
     bl_label = "Cache Settings"
-    bl_category = "Strip"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "SEQUENCER_PT_proxy_cache"
+    bl_category = "Proxy & Cache"
 
     @classmethod
     def poll(cls, context):
@@ -1486,9 +1471,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
     bl_label = "Proxy & Timecode"
-    bl_category = "Strip"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "SEQUENCER_PT_proxy_cache"
+    bl_category = "Proxy & Cache"
 
     @classmethod
     def poll(cls, context):
@@ -1560,9 +1543,8 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
     bl_label = "Strip Cache"
-    bl_category = "Strip"
+    bl_category = "Proxy & Cache"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "SEQUENCER_PT_proxy_cache"
 
     @classmethod
     def poll(cls, context):
@@ -1824,7 +1806,6 @@ classes = (
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
 
-    SEQUENCER_PT_proxy_cache,
     SEQUENCER_PT_cache_settings,
     SEQUENCER_PT_proxy_settings,
     SEQUENCER_PT_strip_cache,
