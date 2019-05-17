@@ -1558,6 +1558,33 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
         col.operator("sequencer.rebuild_proxy")
 
 
+class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
+    bl_label = "Strip Cache"
+    bl_category = "Strip"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "SEQUENCER_PT_proxy_cache"
+
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+        if act_strip(context) is not None:
+            return True
+
+    def draw_header(self, context):
+        strip = act_strip(context)
+        self.layout.prop(strip, "override_cache_settings", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        strip = act_strip(context)
+        layout.active = strip.override_cache_settings
+
+        layout.prop(strip, "use_cache_raw")
+        layout.prop(strip, "use_cache_preprocessed")
+        layout.prop(strip, "use_cache_composite")
+
+
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
@@ -1800,6 +1827,7 @@ classes = (
     SEQUENCER_PT_proxy_cache,
     SEQUENCER_PT_cache_settings,
     SEQUENCER_PT_proxy_settings,
+    SEQUENCER_PT_strip_cache,
 
     SEQUENCER_PT_custom_props,
 
