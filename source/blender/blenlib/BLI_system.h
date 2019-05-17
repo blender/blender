@@ -41,6 +41,10 @@ char *BLI_cpu_brand_string(void);
  */
 void BLI_hostname_get(char *buffer, size_t bufsize);
 
+/* Get maximum addressable memory in megabytes. */
+size_t BLI_system_memory_max_in_megabytes(void);
+int BLI_system_memory_max_in_megabytes_int(void);
+
 /* getpid */
 #ifdef WIN32
 #  define BLI_SYSTEM_PID_H <process.h>

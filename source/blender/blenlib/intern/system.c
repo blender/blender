@@ -18,10 +18,12 @@
  * \ingroup bli
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 #include "BLI_system.h"
 #include "BLI_string.h"
 
@@ -188,4 +190,21 @@ void BLI_hostname_get(char *buffer, size_t bufsize)
     strncpy(buffer, "-unknown-", bufsize);
   }
 #endif
+}
+
+size_t BLI_system_memory_max_in_megabytes(void)
+{
+  /* Maximum addressable bytes on this platform.
+   *
+   * NOTE: Due to the shift arithmetic this is a half of the memory. */
+  const size_t limit_bytes_half = (((size_t)1) << ((sizeof(size_t) * 8) - 1));
+  /* Convert it to megabytes and return. */
+  return (limit_bytes_half >> 20) * 2;
+}
+
+int BLI_system_memory_max_in_megabytes_int(void)
+{
+  const size_t limit_megabytes = BLI_system_memory_max_in_megabytes();
+  /* NOTE: The result will fit into integer. */
+  return (int)min_zz(limit_megabytes, (size_t)INT_MAX);
 }
