@@ -2925,10 +2925,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
 
   bool blend_file_is_saved = BKE_main_blendfile_path(bmain)[0] != '\0';
   if (blend_file_is_saved) {
-    uiItemL(layout, "This file has unsaved changes.", ICON_NONE);
+    uiItemL(layout, "This file has unsaved changes.", ICON_INFO);
   }
   else {
-    uiItemL(layout, "This file has not been saved yet.", ICON_NONE);
+    uiItemL(layout, "This file has not been saved yet.", ICON_INFO);
   }
 
   ReportList reports;
@@ -2974,7 +2974,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
-                         ICON_SCREEN_BACK,
+                         0,
                          IFACE_("Cancel"),
                          0,
                          0,
@@ -2987,16 +2987,17 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
                          0,
                          "");
   UI_but_func_set(but, wm_block_file_close_cancel, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
   /* empty space between buttons */
   col = uiLayoutColumn(split, false);
   uiItemS(col);
 
-  col = uiLayoutColumn(split, true);
+  col = uiLayoutColumn(split, false);
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
-                         ICON_CANCEL,
+                         0,
                          IFACE_("Discard Changes"),
                          0,
                          0,
@@ -3009,12 +3010,13 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
                          0,
                          "");
   UI_but_func_set(but, wm_block_file_close_discard, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
-  col = uiLayoutColumn(split, true);
+  col = uiLayoutColumn(split, false);
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
-                         ICON_FILE_TICK,
+                         0,
                          IFACE_("Save"),
                          0,
                          0,
@@ -3027,6 +3029,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
                          0,
                          "");
   UI_but_func_set(but, wm_block_file_close_save, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 
   UI_block_bounds_set_centered(block, 10);
