@@ -141,7 +141,7 @@ def object_data_add(context, obdata, operator=None, name=None):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         obj_act.select_set(True)
-        scene.update()  # apply location
+        layer.update()  # apply location
         # layer.objects.active = obj_new
 
         # Match up UV layers, this is needed so adding an object with UV's

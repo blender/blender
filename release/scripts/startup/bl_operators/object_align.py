@@ -71,8 +71,8 @@ def worldspace_bounds_from_object_data(depsgraph, obj):
     matrix_world = obj.matrix_world.copy()
 
     # Initialize the variables with the last vertex
-
-    me = obj.to_mesh(depsgraph=depsgraph, apply_modifiers=True)
+    ob_eval = obj.evaluated_get(depsgraph)
+    me = ob_eval.to_mesh()
     verts = me.vertices
 
     val = matrix_world @ (verts[-1].co if verts else Vector((0.0, 0.0, 0.0)))
@@ -114,7 +114,7 @@ def worldspace_bounds_from_object_data(depsgraph, obj):
         if val > up:
             up = val
 
-    bpy.data.meshes.remove(me)
+    ob_eval.to_mesh_clear()
 
     return Vector((left, front, up)), Vector((right, back, down))
 
@@ -127,7 +127,7 @@ def align_objects(context,
                   relative_to,
                   bb_quality):
 
-    depsgraph = context.depsgraph
+    depsgraph = context.evaluated_depsgraph_get()
     scene = context.scene
 
     cursor = scene.cursor.location
@@ -135,7 +135,7 @@ def align_objects(context,
     # We are accessing runtime data such as evaluated bounding box, so we need to
     # be sure it is properly updated and valid (bounding box might be lost on operator
     # redo).
-    scene.update()
+    context.view_layer.update()
 
     Left_Front_Up_SEL = [0.0, 0.0, 0.0]
     Right_Back_Down_SEL = [0.0, 0.0, 0.0]
