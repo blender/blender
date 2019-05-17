@@ -153,29 +153,6 @@ struct RenderData;
 struct RenderPass;
 struct RenderResult;
 
-/* ima->source; where image comes from */
-#define IMA_SRC_CHECK 0
-#define IMA_SRC_FILE 1
-#define IMA_SRC_SEQUENCE 2
-#define IMA_SRC_MOVIE 3
-#define IMA_SRC_GENERATED 4
-#define IMA_SRC_VIEWER 5
-
-/* ima->type, how to handle/generate it */
-#define IMA_TYPE_IMAGE 0
-#define IMA_TYPE_MULTILAYER 1
-/* generated */
-#define IMA_TYPE_UV_TEST 2
-/* viewers */
-#define IMA_TYPE_R_RESULT 4
-#define IMA_TYPE_COMPOSITE 5
-
-enum {
-  IMA_GENTYPE_BLANK = 0,
-  IMA_GENTYPE_GRID = 1,
-  IMA_GENTYPE_GRID_COLOR = 2,
-};
-
 /* ima->ok */
 #define IMA_OK 1
 #define IMA_OK_LOADED 2

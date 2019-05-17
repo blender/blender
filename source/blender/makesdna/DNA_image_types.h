@@ -193,15 +193,43 @@ enum {
   IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
 };
 
-/* ima->type and ima->source moved to BKE_image.h, for API */
+/* Image.source, where the image comes from */
+enum {
+  IMA_SRC_CHECK = 0,
+  IMA_SRC_FILE = 1,
+  IMA_SRC_SEQUENCE = 2,
+  IMA_SRC_MOVIE = 3,
+  IMA_SRC_GENERATED = 4,
+  IMA_SRC_VIEWER = 5,
+};
+
+/* Image.type, how to handle or generate the image */
+enum {
+  IMA_TYPE_IMAGE = 0,
+  IMA_TYPE_MULTILAYER = 1,
+  /* generated */
+  IMA_TYPE_UV_TEST = 2,
+  /* viewers */
+  IMA_TYPE_R_RESULT = 4,
+  IMA_TYPE_COMPOSITE = 5,
+};
+
+/* Image.gen_type */
+enum {
+  IMA_GENTYPE_BLANK = 0,
+  IMA_GENTYPE_GRID = 1,
+  IMA_GENTYPE_GRID_COLOR = 2,
+};
 
 /* render */
 #define IMA_MAX_RENDER_TEXT (1 << 9)
 
-/* gen_flag */
-#define IMA_GEN_FLOAT 1
+/* Image.gen_flag */
+enum {
+  IMA_GEN_FLOAT = 1,
+};
 
-/* alpha_mode */
+/* Image.alpha_mode */
 enum {
   IMA_ALPHA_STRAIGHT = 0,
   IMA_ALPHA_PREMUL = 1,
