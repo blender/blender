@@ -243,20 +243,9 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
   // performs the actual writing
   ep.addProfileElements();
-  bool twoSided = false;
-  if (ob->type == OB_MESH && ob->data) {
-    Mesh *me = (Mesh *)ob->data;
-    if (me->flag & ME_TWOSIDED)
-      twoSided = true;
-  }
-  if (twoSided)
-    ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
   ep.addExtraTechniques(mSW);
 
   ep.closeProfile();
-  if (twoSided)
-    mSW->appendTextBlock(
-        "<extra><technique profile=\"MAX3D\"><double_sided>1</double_sided></technique></extra>");
   closeEffect();
 }
 

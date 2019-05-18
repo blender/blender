@@ -126,11 +126,6 @@ void GeometryExporter::operator()(Object *ob)
 
   closeMesh();
 
-  if (me->flag & ME_TWOSIDED) {
-    mSW->appendTextBlock(
-        "<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
-  }
-
   closeGeometry();
 
   if (this->export_settings->include_shapekeys) {
@@ -210,11 +205,6 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
   }
 
   closeMesh();
-
-  if (me->flag & ME_TWOSIDED) {
-    mSW->appendTextBlock(
-        "<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
-  }
 
   closeGeometry();
 }
