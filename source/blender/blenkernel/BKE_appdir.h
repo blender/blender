@@ -45,6 +45,9 @@ void BKE_appdir_program_path_init(const char *argv0);
 const char *BKE_appdir_program_path(void);
 const char *BKE_appdir_program_dir(void);
 
+/* return OS fonts directory */
+bool BKE_appdir_fonts_folder_default(char *dir);
+
 /* find python executable */
 bool BKE_appdir_program_python_search(char *fullpath,
                                       const size_t fullpath_len,

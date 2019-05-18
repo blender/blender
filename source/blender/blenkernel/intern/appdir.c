@@ -30,6 +30,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_blender_version.h"
 #include "BKE_appdir.h" /* own include */
@@ -1023,4 +1024,17 @@ void BKE_tempdir_session_purge(void)
   if (btempdir_session[0] && BLI_is_dir(btempdir_session)) {
     BLI_delete(btempdir_session, true, true);
   }
+}
+
+/* Gets a good default directory for fonts */
+bool BKE_appdir_fonts_folder_default(char *dir)
+{
+  bool success = false;
+#ifdef WIN32
+  wchar_t wpath[FILE_MAXDIR];
+  success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
+  BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
+#endif
+  /* TODO: Values for other OSs */
+  return success;
 }
