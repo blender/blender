@@ -96,6 +96,12 @@ MINLINE void float_to_byte_dither_v4(
   b[3] = unit_float_to_uchar_clamp(f[3]);
 }
 
+/* Test if colorspace conversions of pixels in buffer need to take into account alpha. */
+bool IMB_alpha_affects_rgb(const ImBuf *ibuf)
+{
+  return (ibuf->flags & IB_alphamode_channel_packed) == 0;
+}
+
 /* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to,
                                 const float *rect_from,
@@ -728,16 +734,19 @@ void IMB_rect_from_float(ImBuf *ibuf)
   buffer = MEM_dupallocN(ibuf->rect_float);
 
   /* first make float buffer in byte space */
+  const bool predivide = IMB_alpha_affects_rgb(ibuf);
   IMB_colormanagement_transform(buffer,
                                 ibuf->x,
                                 ibuf->y,
                                 ibuf->channels,
                                 from_colorspace,
                                 ibuf->rect_colorspace->name,
-                                true);
+                                predivide);
 
   /* convert from float's premul alpha to byte's straight alpha */
-  IMB_unpremultiply_rect_float(buffer, ibuf->channels, ibuf->x, ibuf->y);
+  if (IMB_alpha_affects_rgb(ibuf)) {
+    IMB_unpremultiply_rect_float(buffer, ibuf->channels, ibuf->x, ibuf->y);
+  }
 
   /* convert float to byte */
   IMB_buffer_byte_from_float((unsigned char *)ibuf->rect,
@@ -802,7 +811,9 @@ void IMB_float_from_rect(ImBuf *ibuf)
       rect_float, ibuf->x, ibuf->y, ibuf->channels, ibuf->rect_colorspace, false);
 
   /* byte buffer is straight alpha, float should always be premul */
-  IMB_premultiply_rect_float(rect_float, ibuf->channels, ibuf->x, ibuf->y);
+  if (IMB_alpha_affects_rgb(ibuf)) {
+    IMB_premultiply_rect_float(rect_float, ibuf->channels, ibuf->x, ibuf->y);
+  }
 
   if (ibuf->rect_float == NULL) {
     ibuf->rect_float = rect_float;

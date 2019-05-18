@@ -292,7 +292,6 @@ static void create_mesh_volume_attribute(
   VoxelAttribute *volume_data = attr->data_voxel();
   ImageMetaData metadata;
   bool animated = false;
-  bool use_alpha = true;
 
   volume_data->manager = image_manager;
   volume_data->slot = image_manager->add_image(Attribute::standard_name(std),
@@ -301,7 +300,7 @@ static void create_mesh_volume_attribute(
                                                frame,
                                                INTERPOLATION_LINEAR,
                                                EXTENSION_CLIP,
-                                               use_alpha,
+                                               IMAGE_ALPHA_AUTO,
                                                u_colorspace_raw,
                                                metadata);
 }

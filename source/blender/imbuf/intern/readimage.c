@@ -61,20 +61,16 @@ static void imb_handle_alpha(ImBuf *ibuf,
   }
 
   bool is_data = (colorspace && IMB_colormanagement_space_name_is_data(colorspace));
-  int alpha_flags;
+  int alpha_flags = (flags & IB_alphamode_detect) ? ibuf->flags : flags;
 
-  if (flags & IB_alphamode_detect) {
-    alpha_flags = ibuf->flags & IB_alphamode_premul;
-  }
-  else {
-    alpha_flags = flags & IB_alphamode_premul;
-  }
-
-  if (is_data) {
+  if (is_data || (flags & IB_alphamode_channel_packed)) {
     /* Don't touch alpha. */
+    ibuf->flags |= IB_alphamode_channel_packed;
   }
-  else if (flags & IB_ignore_alpha) {
+  else if (flags & IB_alphamode_ignore) {
+    /* Make opaque. */
     IMB_rectfill_alpha(ibuf, 1.0f);
+    ibuf->flags |= IB_alphamode_ignore;
   }
   else {
     if (alpha_flags & IB_alphamode_premul) {

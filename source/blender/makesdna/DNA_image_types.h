@@ -178,7 +178,7 @@ enum {
   /** For image user, but these flags are mixed. */
   IMA_USER_FRAME_IN_RANGE = (1 << 10),
   IMA_VIEW_AS_RENDER = (1 << 11),
-  IMA_IGNORE_ALPHA = (1 << 12),
+  IMA_FLAG_UNUSED_12 = (1 << 12), /* cleared */
   IMA_DEINTERLACE = (1 << 13),
   IMA_USE_VIEWS = (1 << 14),
   IMA_FLAG_UNUSED_15 = (1 << 15), /* cleared */
@@ -233,6 +233,8 @@ enum {
 enum {
   IMA_ALPHA_STRAIGHT = 0,
   IMA_ALPHA_PREMUL = 1,
+  IMA_ALPHA_CHANNEL_PACKED = 2,
+  IMA_ALPHA_IGNORE = 3,
 };
 
 #endif

@@ -90,6 +90,12 @@ template<typename NodeType> static ExtensionType get_image_extension(NodeType &b
   return (ExtensionType)validate_enum_value(value, EXTENSION_NUM_TYPES, EXTENSION_REPEAT);
 }
 
+static ImageAlphaType get_image_alpha_type(BL::Image &b_image)
+{
+  int value = b_image.alpha_mode();
+  return (ImageAlphaType)validate_enum_value(value, IMAGE_ALPHA_NUM_TYPES, IMAGE_ALPHA_AUTO);
+}
+
 /* Graph */
 
 static BL::NodeSocket get_node_output(BL::Node &b_node, const string &name)
@@ -655,7 +661,7 @@ static ShaderNode *add_node(Scene *scene,
       image->colorspace = get_enum_identifier(colorspace_ptr, "name");
 
       image->animated = b_image_node.image_user().use_auto_refresh();
-      image->use_alpha = b_image.use_alpha();
+      image->alpha_type = get_image_alpha_type(b_image);
 
       /* TODO: restore */
       /* TODO(sergey): Does not work properly when we change builtin type. */
@@ -703,7 +709,7 @@ static ShaderNode *add_node(Scene *scene,
       env->colorspace = get_enum_identifier(colorspace_ptr, "name");
 
       env->animated = b_env_node.image_user().use_auto_refresh();
-      env->use_alpha = b_image.use_alpha();
+      env->alpha_type = get_image_alpha_type(b_image);
 
       /* TODO: restore */
       /* TODO(sergey): Does not work properly when we change builtin type. */
@@ -868,7 +874,7 @@ static ShaderNode *add_node(Scene *scene,
                                              point_density->builtin_data,
                                              point_density->interpolation,
                                              EXTENSION_CLIP,
-                                             true,
+                                             IMAGE_ALPHA_AUTO,
                                              u_colorspace_raw);
     }
     node = point_density;

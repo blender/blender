@@ -59,6 +59,18 @@ typedef enum ImageDataType {
   IMAGE_DATA_NUM_TYPES
 } ImageDataType;
 
+/* Alpha types
+ * How to treat alpha in images. */
+typedef enum ImageAlphaType {
+  IMAGE_ALPHA_UNASSOCIATED = 0,
+  IMAGE_ALPHA_ASSOCIATED = 1,
+  IMAGE_ALPHA_CHANNEL_PACKED = 2,
+  IMAGE_ALPHA_IGNORE = 3,
+  IMAGE_ALPHA_AUTO = 4,
+
+  IMAGE_ALPHA_NUM_TYPES,
+} ImageAlphaType;
+
 #define IMAGE_DATA_TYPE_SHIFT 3
 #define IMAGE_DATA_TYPE_MASK 0x7
 

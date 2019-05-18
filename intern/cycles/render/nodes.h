@@ -100,10 +100,10 @@ class ImageTextureNode : public ImageSlotTextureNode {
   }
 
   /* Parameters. */
-  bool use_alpha;
   ustring filename;
   void *builtin_data;
   ustring colorspace;
+  ImageAlphaType alpha_type;
   NodeImageProjection projection;
   InterpolationType interpolation;
   ExtensionType extension;
@@ -141,10 +141,10 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
   }
 
   /* Parameters. */
-  bool use_alpha;
   ustring filename;
   void *builtin_data;
   ustring colorspace;
+  ImageAlphaType alpha_type;
   NodeEnvironmentProjection projection;
   InterpolationType interpolation;
   bool animated;

@@ -83,7 +83,7 @@ class ImageManager {
                 float frame,
                 InterpolationType interpolation,
                 ExtensionType extension,
-                bool use_alpha,
+                ImageAlphaType alpha_type,
                 ustring colorspace,
                 ImageMetaData &metadata);
   void add_image_user(int flat_slot);
@@ -92,13 +92,13 @@ class ImageManager {
                     void *builtin_data,
                     InterpolationType interpolation,
                     ExtensionType extension,
-                    bool use_alpha,
+                    ImageAlphaType alpha_type,
                     ustring colorspace);
   void tag_reload_image(const string &filename,
                         void *builtin_data,
                         InterpolationType interpolation,
                         ExtensionType extension,
-                        bool use_alpha,
+                        ImageAlphaType alpha_type,
                         ustring colorspace);
   bool get_image_metadata(const string &filename,
                           void *builtin_data,
@@ -147,7 +147,7 @@ class ImageManager {
     ImageMetaData metadata;
 
     ustring colorspace;
-    bool use_alpha;
+    ImageAlphaType alpha_type;
     bool need_load;
     bool animated;
     float frame;

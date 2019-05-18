@@ -680,12 +680,26 @@ static void rna_def_image(BlenderRNA *brna)
        "STRAIGHT",
        0,
        "Straight",
-       "Transparent RGB and alpha pixels are unmodified"},
+       "Store RGB and alpha channels separately with alpha acting as a mask, also known as "
+       "unassociated alpha. Commonly used by image editing applications and file formats like "
+       "PNG"},
       {IMA_ALPHA_PREMUL,
        "PREMUL",
        0,
        "Premultiplied",
-       "Transparent RGB pixels are multiplied by the alpha channel"},
+       "Store RGB channels with alpha multipled in, also known as associated alpha. The natural "
+       "format for renders and used by file formats like OpenEXR"},
+      {IMA_ALPHA_CHANNEL_PACKED,
+       "CHANNEL_PACKED",
+       0,
+       "Channel Packed",
+       "Different images are packed in the RGB and alpha channels, and they should not "
+       "affect each other. Channel packing is commonly used by game engines to save memory"},
+      {IMA_ALPHA_IGNORE,
+       "NONE",
+       0,
+       "None",
+       "Ignore alpha channel from the file and make image fully opaque"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -743,15 +757,6 @@ static void rna_def_image(BlenderRNA *brna)
       "View as Render",
       "Apply render part of display transformation when displaying this image on the screen");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
-
-  prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMA_IGNORE_ALPHA);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Alpha",
-      "Use the alpha channel information from the image or make image fully opaque");
-  RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_colormanage_update");
 
   prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);

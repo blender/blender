@@ -476,6 +476,9 @@ int imb_get_anim_type(const char *name);
  */
 bool IMB_isfloat(struct ImBuf *ibuf);
 
+/* Do byte/float and colorspace conversions need to take alpha into account? */
+bool IMB_alpha_affects_rgb(const struct ImBuf *ibuf);
+
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */
 void IMB_rect_from_float(struct ImBuf *ibuf);
 void IMB_float_from_rect(struct ImBuf *ibuf);

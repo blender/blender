@@ -502,6 +502,12 @@ static void image_init_color_management(Image *ima)
     if (ibuf->flags & IB_alphamode_premul) {
       ima->alpha_mode = IMA_ALPHA_PREMUL;
     }
+    else if (ibuf->flags & IB_alphamode_channel_packed) {
+      ima->alpha_mode = IMA_ALPHA_CHANNEL_PACKED;
+    }
+    else if (ibuf->flags & IB_alphamode_ignore) {
+      ima->alpha_mode = IMA_ALPHA_IGNORE;
+    }
     else {
       ima->alpha_mode = IMA_ALPHA_STRAIGHT;
     }
@@ -3592,16 +3598,18 @@ static void image_initialize_after_load(Image *ima, ImBuf *UNUSED(ibuf))
 
 static int imbuf_alpha_flags_for_image(Image *ima)
 {
-  int flag = 0;
-
-  if (ima->flag & IMA_IGNORE_ALPHA) {
-    flag |= IB_ignore_alpha;
+  switch (ima->alpha_mode) {
+    case IMA_ALPHA_STRAIGHT:
+      return 0;
+    case IMA_ALPHA_PREMUL:
+      return IB_alphamode_premul;
+    case IMA_ALPHA_CHANNEL_PACKED:
+      return IB_alphamode_channel_packed;
+    case IMA_ALPHA_IGNORE:
+      return IB_alphamode_ignore;
   }
-  else if (ima->alpha_mode == IMA_ALPHA_PREMUL) {
-    flag |= IB_alphamode_premul;
-  }
 
-  return flag;
+  return 0;
 }
 
 /* the number of files will vary according to the stereo format */

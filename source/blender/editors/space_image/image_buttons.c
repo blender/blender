@@ -42,6 +42,7 @@
 
 #include "RE_pipeline.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -995,10 +996,11 @@ void uiTemplateImage(uiLayout *layout,
 
           if (has_alpha) {
             col = uiLayoutColumn(layout, false);
-            uiItemR(col, &imaptr, "use_alpha", 0, NULL, ICON_NONE);
-            row = uiLayoutRow(col, false);
-            uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_alpha"));
-            uiItemR(row, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
+            uiItemR(col, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
+
+            /* Alpha mode has no effect for non-color data. */
+            bool is_data = IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name);
+            uiLayoutSetActive(col, !is_data);
           }
 
           if (ima->source == IMA_SRC_MOVIE) {
