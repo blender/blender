@@ -140,7 +140,6 @@ class SEQUENCER_MT_editor_menus(Menu):
             layout.menu("SEQUENCER_MT_select")
             layout.menu("SEQUENCER_MT_marker")
             layout.menu("SEQUENCER_MT_add")
-            layout.menu("SEQUENCER_MT_frame")
             layout.menu("SEQUENCER_MT_strip")
 
 
@@ -201,11 +200,16 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("sequencer.view_all", text="Frame All")
             layout.operator("sequencer.view_selected", text="Frame Selected")
-            layout.operator("sequencer.view_frame", text="Go to Playhead")
+
             layout.operator_context = 'INVOKE_DEFAULT'
+            layout.menu("SEQUENCER_MT_navigation")
+
+            layout.separator()
+
         if is_preview:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text="Fit Preview in window")
+            layout.operator("view2d.zoom_border", text = "Zoom")
 
             layout.separator()
 
@@ -230,9 +234,16 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_frame_indicator")
             layout.prop(st, "show_strip_offset")
             layout.prop(st, "show_marker_lines")
-            layout.menu("SEQUENCER_MT_view_cache")
 
+            layout.separator()
+
+            layout.menu("SEQUENCER_MT_view_cache")
             layout.prop_menu_enum(st, "waveform_display_type")
+
+            layout.separator()
+
+            layout.operator("anim.previewrange_clear")
+            layout.operator("anim.previewrange_set")
 
         if is_preview:
             if st.display_mode == 'IMAGE':
@@ -329,14 +340,13 @@ class SEQUENCER_MT_change(Menu):
                 prop.filter_sound = True
 
 
-class SEQUENCER_MT_frame(Menu):
-    bl_label = "Frame"
+class SEQUENCER_MT_navigation(Menu):
+    bl_label = "Navigation"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
-        layout.operator("anim.previewrange_clear")
-        layout.operator("anim.previewrange_set")
+        layout.operator("sequencer.view_frame", text="Go to Playhead")
 
         layout.separator()
 
@@ -497,6 +507,10 @@ class SEQUENCER_MT_strip_transform(Menu):
         layout.operator("sequencer.slip", text="Slip Strip Contents")
 
         layout.separator()
+        layout.operator("sequencer.snap")
+        layout.operator("sequencer.offset_clear")
+
+        layout.separator()
         layout.operator_menu_enum("sequencer.swap", "side")
 
         layout.separator()
@@ -553,9 +567,6 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_transform")
-        layout.operator("sequencer.snap")
-        layout.operator("sequencer.offset_clear")
-        layout.operator("sequencer.gap_remove", text = "Extract All").all=True
 
         layout.separator()
         layout.operator("sequencer.copy", text="Copy")
@@ -591,9 +602,6 @@ class SEQUENCER_MT_strip(Menu):
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
-            elif stype == 'SOUND':
-                layout.separator()
-                layout.operator("sequencer.crossfade_sounds")
             elif stype == 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_separate")
@@ -1807,7 +1815,7 @@ classes = (
     SEQUENCER_MT_view_toggle,
     SEQUENCER_MT_select,
     SEQUENCER_MT_marker,
-    SEQUENCER_MT_frame,
+    SEQUENCER_MT_navigation,
     SEQUENCER_MT_add,
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
