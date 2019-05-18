@@ -1381,6 +1381,12 @@ bool IMB_colormanagement_space_is_srgb(ColorSpace *colorspace)
   return (colorspace && colorspace->info.is_srgb);
 }
 
+bool IMB_colormanagement_space_name_is_data(const char *name)
+{
+  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+  return (colorspace && colorspace->is_data);
+}
+
 /*********************** Threaded display buffer transform routines *************************/
 
 typedef struct DisplayBufferThread {

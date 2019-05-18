@@ -180,7 +180,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   }
 
   if (out[0].hasoutput) {
-    if (out[1].hasoutput) {
+    if (out[1].hasoutput &&
+        !IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
       GPU_link(mat, "tex_color_alpha_unpremultiply", out[0].link, &out[0].link);
     }
     else {

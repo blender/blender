@@ -60,8 +60,7 @@
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"

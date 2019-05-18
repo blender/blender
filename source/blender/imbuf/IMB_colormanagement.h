@@ -61,6 +61,7 @@ const char *IMB_colormanagement_get_rect_colorspace(struct ImBuf *ibuf);
 bool IMB_colormanagement_space_is_data(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_scene_linear(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_srgb(struct ColorSpace *colorspace);
+bool IMB_colormanagement_space_name_is_data(const char *name);
 
 BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
 BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
