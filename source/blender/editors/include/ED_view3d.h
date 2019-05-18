@@ -42,6 +42,7 @@ struct GPUFX;
 struct GPUFXSettings;
 struct GPUOffScreen;
 struct GPUViewport;
+struct ID;
 struct ImBuf;
 struct MVert;
 struct Main;

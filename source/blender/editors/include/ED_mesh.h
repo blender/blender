@@ -152,6 +152,12 @@ struct BMElem *EDBM_select_id_bm_elem_get(struct EDBMSelectID_Context *sel_id_ct
                                           const uint sel_id,
                                           uint *r_base_index);
 
+uint EDBM_select_id_context_offset_for_object_elem(const struct EDBMSelectID_Context *sel_id_ctx,
+                                                   int base_index,
+                                                   char htype);
+
+uint EDBM_select_id_context_elem_len(const struct EDBMSelectID_Context *sel_id_ctx);
+
 void EDBM_select_mirrored(
     struct BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);

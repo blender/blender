@@ -2779,7 +2779,7 @@ void DRW_draw_select_id_object(Scene *scene,
     world_clip_planes = rv3d->clip_local;
   }
 
-  initial_offset += 1;
+  BLI_assert(initial_offset > 0);
 
   switch (ob->type) {
     case OB_MESH:

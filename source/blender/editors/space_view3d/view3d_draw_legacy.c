@@ -214,7 +214,7 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
                               obact_eval,
                               select_mode,
                               false,
-                              0,
+                              1,
                               &bm_vertoffs,
                               &bm_wireoffs,
                               &bm_solidoffs);
