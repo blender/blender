@@ -77,6 +77,12 @@ if NOT "%1" == "" (
 	REM Non-Build Commands
 	) else if "%1" == "update" (
 		SET BUILD_UPDATE=1
+		set BUILD_UPDATE_SVN=1
+		set BUILD_UPDATE_GIT=1
+	) else if "%1" == "code_update" (
+		SET BUILD_UPDATE=1
+		set BUILD_UPDATE_SVN=0
+		set BUILD_UPDATE_GIT=1
 	) else if "%1" == "ninja" (
 		SET BUILD_WITH_NINJA=1
 	) else if "%1" == "clean" (

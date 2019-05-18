@@ -9,7 +9,8 @@ echo - bpy
 echo.
 echo Utilities ^(not associated with building^)
 echo - clean ^(Target must be set^)
-echo - update
+echo - update ^(Update both SVN and GIT^)
+echo - code_update ^(Update only GIT^)
 echo - nobuild ^(only generate project files^)
 echo - showhash ^(Show git hashes of source tree^)
 echo.
