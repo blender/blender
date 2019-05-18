@@ -349,7 +349,9 @@ static void image_undo_restore_list(ListBase *lb, struct UndoIDPtrMap *id_map)
 
     undo_copy_tile(tile, tmpibuf, ibuf, RESTORE_COPY);
 
+    BKE_image_mark_dirty(ima, ibuf);
     GPU_free_image(ima); /* force OpenGL reload */
+
     if (ibuf->rect_float) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
