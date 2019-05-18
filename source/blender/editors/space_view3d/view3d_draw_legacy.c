@@ -281,7 +281,7 @@ void ED_view3d_backbuf_depth_validate(ViewContext *vc)
   }
 }
 
-uint *ED_view3d_select_id_read_rect(ViewContext *UNUSED(vc), const rcti *clip, uint *r_buf_len)
+uint *ED_view3d_select_id_read_rect(const rcti *clip, uint *r_buf_len)
 {
   uint width = BLI_rcti_size_x(clip);
   uint height = BLI_rcti_size_y(clip);
@@ -314,7 +314,7 @@ uint ED_view3d_select_id_sample(ViewContext *vc, int x, int y)
   }
 
   uint buf_len;
-  uint *buf = ED_view3d_select_id_read(vc, x, y, x, y, &buf_len);
+  uint *buf = ED_view3d_select_id_read(x, y, x, y, &buf_len);
   BLI_assert(0 != buf_len);
   uint ret = buf[0];
   MEM_freeN(buf);
@@ -323,8 +323,7 @@ uint ED_view3d_select_id_sample(ViewContext *vc, int x, int y)
 }
 
 /* reads full rect, converts indices */
-uint *ED_view3d_select_id_read(
-    ViewContext *vc, int xmin, int ymin, int xmax, int ymax, uint *r_buf_len)
+uint *ED_view3d_select_id_read(int xmin, int ymin, int xmax, int ymax, uint *r_buf_len)
 {
   if (UNLIKELY((xmin > xmax) || (ymin > ymax))) {
     return NULL;
@@ -338,7 +337,7 @@ uint *ED_view3d_select_id_read(
   };
 
   uint buf_len;
-  uint *buf = ED_view3d_select_id_read_rect(vc, &rect, &buf_len);
+  uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
 
   if (r_buf_len) {
     *r_buf_len = buf_len;

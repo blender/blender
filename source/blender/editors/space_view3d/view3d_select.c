@@ -2363,7 +2363,7 @@ static bool do_paintvert_box_select(ViewContext *vc, const rcti *rect, const eSe
     selar = MEM_callocN(me->totvert + 1, "selar");
 
     ED_view3d_select_id_validate(vc);
-    buf = ED_view3d_select_id_read_rect(vc, rect, &buf_len);
+    buf = ED_view3d_select_id_read_rect(rect, &buf_len);
 
     rt = buf;
 

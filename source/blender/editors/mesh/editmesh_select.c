@@ -350,7 +350,7 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
   }
 
   ED_view3d_select_id_validate(vc);
-  buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, &buf_len);
+  buf = ED_view3d_select_id_read(xmin, ymin, xmax, ymax, &buf_len);
   if ((buf == NULL) || (bm_vertoffs == 0)) {
     return false;
   }
@@ -437,7 +437,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc,
   }
 
   ED_view3d_select_id_validate(vc);
-  buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, &buf_len);
+  buf = ED_view3d_select_id_read(xmin, ymin, xmax, ymax, &buf_len);
   if ((buf == NULL) || (bm_vertoffs == 0)) {
     return false;
   }
@@ -490,7 +490,7 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
   ymax = ys + rads;
 
   ED_view3d_select_id_validate(vc);
-  buf = ED_view3d_select_id_read(vc, xmin, ymin, xmax, ymax, NULL);
+  buf = ED_view3d_select_id_read(xmin, ymin, xmax, ymax, NULL);
   if ((buf == NULL) || (bm_vertoffs == 0)) {
     return false;
   }
