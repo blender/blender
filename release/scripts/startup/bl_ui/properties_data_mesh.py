@@ -175,13 +175,7 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        mesh = context.mesh
-
-        col = layout.column()
-        col.prop(mesh, "show_double_sided")
+        pass
 
 
 class DATA_PT_normals_auto_smooth(MeshButtonsPanel, Panel):
