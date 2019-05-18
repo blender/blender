@@ -3020,13 +3020,13 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
   else {
     /* macOS and Linux standard layout. */
     uiLayout *col = uiLayoutColumn(split, false);
-    wm_block_file_close_cancel_button(block, post_action);
+    wm_block_file_close_discard_button(block, post_action);
 
     col = uiLayoutColumn(split, false);
     uiItemS(col);
 
     col = uiLayoutColumn(split, false);
-    wm_block_file_close_discard_button(block, post_action);
+    wm_block_file_close_cancel_button(block, post_action);
 
     col = uiLayoutColumn(split, false);
     wm_block_file_close_save_button(block, post_action);
