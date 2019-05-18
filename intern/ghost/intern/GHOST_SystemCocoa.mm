@@ -1958,8 +1958,3 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
   [pool drain];
 }
-
-bool GHOST_SystemCocoa::supportsNativeDialogs(void)
-{
-  return false;
-}

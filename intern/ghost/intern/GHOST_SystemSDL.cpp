@@ -721,11 +721,6 @@ void GHOST_SystemSDL::addDirtyWindow(GHOST_WindowSDL *bad_wind)
   m_dirty_windows.push_back(bad_wind);
 }
 
-bool GHOST_SystemSDL::supportsNativeDialogs(void)
-{
-  return false;
-}
-
 GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
 {
   Uint8 state = SDL_GetMouseState(NULL, NULL);

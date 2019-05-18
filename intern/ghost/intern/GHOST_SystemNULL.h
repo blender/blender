@@ -82,10 +82,6 @@ class GHOST_SystemNULL : public GHOST_System {
   void getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
   { /* nop */
   }
-  bool supportsNativeDialogs(void)
-  {
-    return false;
-  }
   GHOST_IContext *createOffscreenContext()
   {
     return NULL;

@@ -77,11 +77,6 @@ class GHOST_SystemSDL : public GHOST_System {
 
   GHOST_TSuccess disposeContext(GHOST_IContext *context);
 
-  /**
-   * Informs if the system provides native dialogs (eg. confirm quit)
-   */
-  virtual bool supportsNativeDialogs(void);
-
  private:
   GHOST_TSuccess init();
 

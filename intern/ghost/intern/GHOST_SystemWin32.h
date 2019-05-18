@@ -221,12 +221,6 @@ class GHOST_SystemWin32 : public GHOST_System {
                                           int mouseY,
                                           void *data);
 
-  /**
-   * Confirms quitting he program when there is just one window left open
-   * in the application
-   */
-  int confirmQuit(GHOST_IWindow *window) const;
-
  protected:
   /**
    * Initializes the system.

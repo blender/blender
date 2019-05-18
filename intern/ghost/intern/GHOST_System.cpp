@@ -378,16 +378,6 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   return (*window == NULL) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
-int GHOST_System::confirmQuit(GHOST_IWindow * /*window*/) const
-{
-  return 1;
-}
-
-bool GHOST_System::supportsNativeDialogs(void)
-{
-  return 1;
-}
-
 bool GHOST_System::useNativePixel(void)
 {
   m_nativePixel = true;

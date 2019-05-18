@@ -376,11 +376,6 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const STR_String &title,
   return window;
 }
 
-bool GHOST_SystemX11::supportsNativeDialogs(void)
-{
-  return false;
-}
-
 /**
  * Create a new offscreen context.
  * Never explicitly delete the context, use disposeContext() instead.

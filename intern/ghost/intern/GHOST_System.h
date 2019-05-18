@@ -317,17 +317,6 @@ class GHOST_System : public GHOST_ISystem {
    */
   virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
-  /**
-   * Confirms quitting he program when there is just one window left open
-   * in the application
-   */
-  virtual int confirmQuit(GHOST_IWindow *window) const;
-
-  /**
-   * Informs if the system provides native dialogs (eg. confirm quit)
-   */
-  virtual bool supportsNativeDialogs(void);
-
  protected:
   /**
    * Initialize the system.
