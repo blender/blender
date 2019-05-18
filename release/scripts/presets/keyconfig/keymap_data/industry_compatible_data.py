@@ -581,6 +581,7 @@ def km_view3d(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Visibility.
         ("view3d.localview", {"type": 'I', "value": 'PRESS', "shift": True}, None),
+        op_menu_pie("VIEW3D_MT_view_pie", {"type": 'V', "value": 'PRESS'}),
         # Navigation.
         ("view3d.rotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
         ("view3d.move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
@@ -962,9 +963,13 @@ def km_image(params):
          {"properties": [("point", 'BLACK_POINT')]}),
         ("image.curves_point_set", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("point", 'WHITE_POINT')]}),
-        ("object.mode_set", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("mode", 'EDIT')]}),
         ("object.mode_set", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("mode", 'EDIT')]}),
+        ("object.mode_set", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("mode", 'OBJECT')]}),
+        ("object.mode_set", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("mode", 'OBJECT')]}),
+        ("object.mode_set", {"type": 'FOUR', "value": 'PRESS'},
          {"properties": [("mode", 'OBJECT')]}),
         op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         # Tools
@@ -2265,7 +2270,6 @@ def km_grease_pencil_stroke_edit_mode(params):
         # Separate
         op_menu("GPENCIL_MT_separate", {"type": 'P', "value": 'PRESS'}),
         # Split and joint strokes
-        ("gpencil.stroke_split", {"type": 'V', "value": 'PRESS'}, None),
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("type", 'JOINCOPY')]}),
@@ -2374,7 +2378,7 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         ("gpencil.draw", {"type": 'L', "value": 'PRESS'}, None),
         ("gpencil.draw", {"type": 'L', "value": 'PRESS', "alt": True}, None),
         ("gpencil.draw", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("gpencil.draw", {"type": 'V', "value": 'PRESS'}, None),
+        ("gpencil.draw", {"type": 'B', "value": 'PRESS'}, None),
         # Mode
         ("gpencil.draw", {"type": 'P', "value": 'PRESS'}, None),
         # Set reference point
@@ -2459,10 +2463,10 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("wait_for_input", False)]}),
         # Brush strength
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
+        ("wm.radial_control", {"type": 'U', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.strength')]}),
         # Brush size
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
+        ("wm.radial_control", {"type": 'S', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.size')]}),
         # Context menu
         op_panel("VIEW3D_PT_gpencil_sculpt_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -3360,16 +3364,17 @@ def km_object_non_modal(params):
     )
 
     items.extend([
-        ("object.mode_set",{"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("mode", 'OBJECT')]}),
-        ("ic_keymap.mesh_select_mode",{"type": 'TWO', "value": 'PRESS'},
+
+        ("ic_keymap.mesh_select_mode",{"type": 'ONE', "value": 'PRESS'},
          {"properties": [("type", 'VERT')]}),
-        ("ic_keymap.mesh_select_mode",{"type": 'THREE', "value": 'PRESS'},
+        ("ic_keymap.mesh_select_mode",{"type": 'TWO', "value": 'PRESS'},
          {"properties": [("type", 'EDGE')]}),
-        ("ic_keymap.mesh_select_mode",{"type": 'FOUR', "value": 'PRESS'},
+        ("ic_keymap.mesh_select_mode",{"type": 'THREE', "value": 'PRESS'},
          {"properties": [("type", 'FACE')]}),
-        ("object.mode_set",{"type": 'TWO', "value": 'PRESS'},
+        ("object.mode_set",{"type": 'ONE', "value": 'PRESS'},
          {"properties": [("mode", 'EDIT')]}),
+        ("object.mode_set",{"type": 'FOUR', "value": 'PRESS'},
+         {"properties": [("mode", 'OBJECT')]}),
         ("object.mode_set",{"type": 'FIVE', "value": 'PRESS'},
          {"properties": [("mode", 'SCULPT')]}),
         ("object.mode_set",{"type": 'SIX', "value": 'PRESS'},
