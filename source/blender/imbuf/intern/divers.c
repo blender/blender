@@ -758,118 +758,6 @@ void IMB_rect_from_float(ImBuf *ibuf)
   ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
-typedef struct PartialThreadData {
-  ImBuf *ibuf;
-  float *buffer;
-  uchar *rect_byte;
-  const float *rect_float;
-  int width;
-  bool is_data;
-} PartialThreadData;
-
-static void partial_rect_from_float_slice(float *buffer,
-                                          uchar *rect_byte,
-                                          ImBuf *ibuf,
-                                          const float *rect_float,
-                                          const int w,
-                                          const int h,
-                                          const bool is_data)
-{
-  const int profile_from = IB_PROFILE_LINEAR_RGB;
-  if (is_data) {
-    /* exception for non-color data, just copy float */
-    IMB_buffer_float_from_float(buffer,
-                                rect_float,
-                                ibuf->channels,
-                                IB_PROFILE_LINEAR_RGB,
-                                IB_PROFILE_LINEAR_RGB,
-                                0,
-                                w,
-                                h,
-                                w,
-                                ibuf->x);
-
-    /* and do color space conversion to byte */
-    IMB_buffer_byte_from_float(rect_byte,
-                               rect_float,
-                               4,
-                               ibuf->dither,
-                               IB_PROFILE_SRGB,
-                               profile_from,
-                               true,
-                               w,
-                               h,
-                               ibuf->x,
-                               w);
-  }
-  else {
-    IMB_buffer_float_from_float(
-        buffer, rect_float, ibuf->channels, IB_PROFILE_SRGB, profile_from, true, w, h, w, ibuf->x);
-
-    IMB_buffer_float_unpremultiply(buffer, w, h);
-    /* XXX: need to convert to image buffer's rect space */
-    IMB_buffer_byte_from_float(
-        rect_byte, buffer, 4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0, w, h, ibuf->x, w);
-  }
-}
-
-static void partial_rect_from_float_thread_do(void *data_v, int start_scanline, int num_scanlines)
-{
-  PartialThreadData *data = (PartialThreadData *)data_v;
-  ImBuf *ibuf = data->ibuf;
-  size_t global_offset = ((size_t)ibuf->x) * start_scanline;
-  size_t local_offset = ((size_t)data->width) * start_scanline;
-  partial_rect_from_float_slice(data->buffer + local_offset * ibuf->channels,
-                                data->rect_byte + global_offset * 4,
-                                ibuf,
-                                data->rect_float + global_offset * ibuf->channels,
-                                data->width,
-                                num_scanlines,
-                                data->is_data);
-}
-
-/**
- * Converts from linear float to sRGB byte for part of the texture,
- * buffer will hold the changed part.
- */
-void IMB_partial_rect_from_float(
-    ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data)
-{
-  const float *rect_float;
-  uchar *rect_byte;
-
-  /* verify we have a float buffer */
-  if (ibuf->rect_float == NULL || buffer == NULL) {
-    return;
-  }
-
-  /* create byte rect if it didn't exist yet */
-  if (ibuf->rect == NULL) {
-    imb_addrectImBuf(ibuf);
-  }
-
-  /* do conversion */
-  rect_float = ibuf->rect_float + (x + ((size_t)y) * ibuf->x) * ibuf->channels;
-  rect_byte = (uchar *)ibuf->rect + (x + ((size_t)y) * ibuf->x) * 4;
-
-  if (((size_t)w) * h < 64 * 64) {
-    partial_rect_from_float_slice(buffer, rect_byte, ibuf, rect_float, w, h, is_data);
-  }
-  else {
-    PartialThreadData data;
-    data.ibuf = ibuf;
-    data.buffer = buffer;
-    data.rect_byte = rect_byte;
-    data.rect_float = rect_float;
-    data.width = w;
-    data.is_data = is_data;
-    IMB_processor_apply_threaded_scanlines(h, partial_rect_from_float_thread_do, &data);
-  }
-
-  /* ensure user flag is reset */
-  ibuf->userflags &= ~IB_RECT_INVALID;
-}
-
 void IMB_float_from_rect(ImBuf *ibuf)
 {
   float *rect_float;
@@ -942,14 +830,6 @@ void IMB_color_to_bw(ImBuf *ibuf)
     for (i = ((size_t)ibuf->x * ibuf->y); i > 0; i--, rct += 4) {
       rct[0] = rct[1] = rct[2] = IMB_colormanagement_get_luminance_byte(rct);
     }
-  }
-}
-
-void IMB_buffer_float_clamp(float *buf, int width, int height)
-{
-  size_t i, total = ((size_t)width) * height * 4;
-  for (i = 0; i < total; i++) {
-    buf[i] = min_ff(1.0, buf[i]);
   }
 }
 

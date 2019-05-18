@@ -478,11 +478,6 @@ bool IMB_isfloat(struct ImBuf *ibuf);
 
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */
 void IMB_rect_from_float(struct ImBuf *ibuf);
-/* Create char buffer for part of the image, color corrected if necessary,
- * Changed part will be stored in buffer.
- * This is expected to be used for texture painting updates */
-void IMB_partial_rect_from_float(
-    struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_color_to_bw(struct ImBuf *ibuf);
 void IMB_saturation(struct ImBuf *ibuf, float sat);
@@ -555,7 +550,6 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to,
                                int height,
                                int stride_to,
                                int stride_from);
-void IMB_buffer_float_clamp(float *buf, int width, int height);
 void IMB_buffer_float_unpremultiply(float *buf, int width, int height);
 void IMB_buffer_float_premultiply(float *buf, int width, int height);
 
