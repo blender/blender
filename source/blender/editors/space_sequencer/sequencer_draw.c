@@ -1121,8 +1121,7 @@ static void sequencer_display_size(Scene *scene, float r_viewrect[2])
   r_viewrect[0] = (float)scene->r.xsch;
   r_viewrect[1] = (float)scene->r.ysch;
 
-  /* Aspect ratio seems to have no effect on output image*/
-  /* r_viewrect[0] *= scene->r.xasp / scene->r.yasp; */
+  r_viewrect[0] *= scene->r.xasp / scene->r.yasp;
 }
 
 static void sequencer_draw_gpencil(const bContext *C)

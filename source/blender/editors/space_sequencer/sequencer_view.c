@@ -108,6 +108,8 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
   UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
+  fx /= scene->r.xasp / scene->r.yasp;
+
   fx += (float)scene->r.xsch / 2.0f;
   fy += (float)scene->r.ysch / 2.0f;
   fx *= (float)ibuf->x / (float)scene->r.xsch;
