@@ -36,6 +36,7 @@ class USERPREF_HT_header(Header):
 
         layout.scale_x = 1.0
         layout.scale_y = 1.0
+        layout.operator_context = 'EXEC_AREA'
 
         row = layout.row()
         row.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
@@ -83,11 +84,15 @@ class USERPREF_MT_save_load(Menu):
         layout.prop(prefs, "use_preferences_save", text="Auto-Save Preferences")
 
         layout.separator()
+
+        layout.operator_context = 'EXEC_AREA'
         if prefs.use_preferences_save:
             layout.operator("wm.save_userpref", text="Save Current State")
         sub_revert = layout.column(align=True)
         sub_revert.active = prefs.is_dirty
         sub_revert.operator("wm.read_userpref", text="Revert to Saved")
+
+        layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.read_factory_userpref", text="Reset to Defaults")
 
 
