@@ -29,6 +29,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
