@@ -337,7 +337,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
 void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
-  undosys_stack_push_main(ustack, "original", bmain);
+  undosys_stack_push_main(ustack, IFACE_("Original"), bmain);
 }
 
 /* called after 'BKE_undosys_stack_init_from_main' */
@@ -345,7 +345,7 @@ void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C)
 {
   const UndoType *ut = BKE_undosys_type_from_context(C);
   if ((ut != NULL) && (ut != BKE_UNDOSYS_TYPE_MEMFILE)) {
-    BKE_undosys_step_push_with_type(ustack, C, "original mode", ut);
+    BKE_undosys_step_push_with_type(ustack, C, IFACE_("Original Mode"), ut);
   }
 }
 
