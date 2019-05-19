@@ -585,6 +585,34 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 
   return Matrix_CreatePyObject(&mat[0][0], 4, 4, (PyTypeObject *)cls);
 }
+/* ----------------------------------mathutils.Matrix.Diagonal() ------------- */
+PyDoc_STRVAR(C_Matrix_Diagonal_doc,
+             ".. classmethod:: Diagonal(vector)\n"
+             "\n"
+             "   Create a diagonal (scaling) matrix using the values from the vector.\n"
+             "\n"
+             "   :arg vector: The vector of values for the diagonal.\n"
+             "   :type vector: :class:`Vector`\n"
+             "   :return: A diagonal matrix.\n"
+             "   :rtype: :class:`Matrix`\n");
+static PyObject *C_Matrix_Diagonal(PyObject *cls, PyObject *value)
+{
+  float mat[16] = {0.0f};
+  float vec[4];
+
+  int size = mathutils_array_parse(
+      vec, 2, 4, value, "mathutils.Matrix.Diagonal(vector), invalid vector arg");
+
+  if (size == -1) {
+    return NULL;
+  }
+
+  for (int i = 0; i < size; i++) {
+    mat[size * i + i] = vec[i];
+  }
+
+  return Matrix_CreatePyObject(mat, size, size, (PyTypeObject *)cls);
+}
 /* ----------------------------------mathutils.Matrix.Scale() ------------- */
 /* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
 PyDoc_STRVAR(C_Matrix_Scale_doc,
@@ -3085,6 +3113,7 @@ static struct PyMethodDef Matrix_methods[] = {
     {"Rotation", (PyCFunction)C_Matrix_Rotation, METH_VARARGS | METH_CLASS, C_Matrix_Rotation_doc},
     {"Scale", (PyCFunction)C_Matrix_Scale, METH_VARARGS | METH_CLASS, C_Matrix_Scale_doc},
     {"Shear", (PyCFunction)C_Matrix_Shear, METH_VARARGS | METH_CLASS, C_Matrix_Shear_doc},
+    {"Diagonal", (PyCFunction)C_Matrix_Diagonal, METH_O | METH_CLASS, C_Matrix_Diagonal_doc},
     {"Translation",
      (PyCFunction)C_Matrix_Translation,
      METH_O | METH_CLASS,
