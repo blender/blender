@@ -5668,12 +5668,12 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   if (seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {
     int start_frame_back = seq_load->start_frame;
-    seq_load->channel++;
+    seq_load->channel--;
 
     seq_load->seq_sound = BKE_sequencer_add_sound_strip(C, seqbasep, seq_load);
 
     seq_load->start_frame = start_frame_back;
-    seq_load->channel--;
+    seq_load->channel++;
   }
 
   /* can be NULL */

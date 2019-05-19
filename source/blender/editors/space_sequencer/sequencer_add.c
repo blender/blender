@@ -149,7 +149,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   int proximity = INT_MAX;
 
   if (!ed || !ed->seqbasep) {
-    return 1;
+    return 2;
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -161,9 +161,9 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   if (tgt) {
-    return tgt->machine;
+    return tgt->machine + 1;
   }
-  return 1;
+  return 2;
 }
 
 static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, int flag, int type)
@@ -173,7 +173,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
   int cfra = (int)CFRA;
 
   /* effect strips don't need a channel initialized from the mouse */
-  if (!(flag & SEQPROP_NOCHAN)) {
+  if (!(flag & SEQPROP_NOCHAN) && RNA_struct_property_is_set(op->ptr, "channel") == 0) {
     RNA_int_set(op->ptr, "channel", sequencer_generic_invoke_xy_guess_channel(C, type));
   }
 
