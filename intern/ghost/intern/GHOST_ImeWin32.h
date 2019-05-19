@@ -122,7 +122,7 @@ struct ImeComposition {
 
 /**
  * This class controls the IMM (Input Method Manager) through IMM32 APIs and
- * enables it to retrieve the string being controled by the IMM. (I wrote
+ * enables it to retrieve the string being controlled by the IMM. (I wrote
  * a note to describe the reason why I do not use 'IME' but 'IMM' below.)
  * NOTE(hbono):
  *   Fortunately or unfortunately, TSF (Text Service Framework) and
@@ -274,7 +274,7 @@ class GHOST_ImeWin32 {
    * events to be dispatched to the IME.
    * In Chrome, this function is used when:
    *   * a renderer process moves its input focus to another edit control, or;
-   *   * a renrerer process moves the position of the focused edit control.
+   *   * a renderer process moves the position of the focused edit control.
    * Parameters
    *   * window_handle [in] (HWND)
    *     Represents the window handle of the caller.
@@ -297,7 +297,7 @@ class GHOST_ImeWin32 {
    * Disable the IME attached to the given window, i.e. prohibits any user-input
    * events from being dispatched to the IME.
    * In Chrome, this function is used when:
-   *   * a renreder process sets its input focus to a password input.
+   *   * a rendeder process sets its input focus to a password input.
    * Parameters
    *   * window_handle [in] (HWND)
    *     Represents the window handle of the caller.
@@ -350,7 +350,7 @@ class GHOST_ImeWin32 {
 
   /**
    * The current input Language ID retrieved from Windows, which consists of:
-   *   * Primary Language ID (bit 0 to bit 9), which shows a natunal language
+   *   * Primary Language ID (bit 0 to bit 9), which shows a natural language
    *     (English, Korean, Chinese, Japanese, etc.) and;
    *   * Sub-Language ID (bit 10 to bit 15), which shows a geometrical region
    *     the language is spoken (For English, United States, United Kingdom,

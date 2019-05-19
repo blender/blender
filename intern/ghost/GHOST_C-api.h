@@ -33,7 +33,7 @@ extern "C" {
 /**
  * Creates a "handle" for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
- * In the API the pointer is casted to the actual C++ class.
+ * In the API the pointer is cast to the actual C++ class.
  * The 'name' argument to the macro is the name of the handle to create.
  */
 

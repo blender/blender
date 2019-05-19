@@ -1524,7 +1524,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * message without calling DefWindowProc.
            */
           /* we get first WM_SIZE before we fully init.
-           * So, do not dispatch before we continiously resizng */
+           * So, do not dispatch before we continuously resizing. */
           if (window->m_inLiveResize) {
             system->pushEvent(processWindowEvent(GHOST_kEventWindowSize, window));
             system->dispatchEvents();
@@ -1560,7 +1560,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_DPICHANGED:
           /* The WM_DPICHANGED message is sent when the effective dots per inch (dpi) for a
            * window has changed. The DPI is the scale factor for a window. There are multiple
-           * events that can cause the DPI tochange such as when the window is moved to a monitor
+           * events that can cause the DPI to change such as when the window is moved to a monitor
            * with a different DPI.
            */
           {

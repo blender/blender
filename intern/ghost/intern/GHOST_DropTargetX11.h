@@ -69,7 +69,7 @@ class GHOST_DropTargetX11 {
   void Initialize(void);
 
   /**
-   * Uninitialize XDND and all related X atoms
+   * Uninitialized XDND and all related X atoms
    */
   void Uninitialize(void);
 
