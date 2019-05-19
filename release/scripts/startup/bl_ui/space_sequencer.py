@@ -735,23 +735,18 @@ class SEQUENCER_PT_adjust_offset(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         return strip.type != 'SOUND'
 
-    def draw_header(self, context):
-        strip = act_strip(context)
-        self.layout.prop(strip, "use_translation", text="")
-
     def draw(self, context):
+        strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
+        layout.prop(strip, "use_translation")
 
-        strip = act_strip(context)
-
-        layout.active = strip.use_translation
-
-        col = layout.column(align=True)
-
-        col.prop(strip.transform, "offset_x", text="Position X")
-        col.prop(strip.transform, "offset_y", text="Y")
+        if  strip.use_translation:
+            col = layout.column(align=True)
+            col.prop(strip.transform, "offset_x", text="Position X")
+            col.prop(strip.transform, "offset_y", text="Y")
+            col.active = strip.use_translation
 
 
 class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
@@ -765,24 +760,19 @@ class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         return strip.type != 'SOUND'
 
-    def draw_header(self, context):
-        strip = act_strip(context)
-        self.layout.prop(strip, "use_crop", text="")
-
     def draw(self, context):
+        strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
+        layout.prop(strip, "use_crop")
 
-        strip = act_strip(context)
-
-        layout.active = strip.use_crop
-
-        col = layout.column(align=True)
-        col.prop(strip.crop, "min_x")
-        col.prop(strip.crop, "max_x")
-        col.prop(strip.crop, "max_y")
-        col.prop(strip.crop, "min_y")
+        if strip.use_crop:
+            col = layout.column(align=True)
+            col.prop(strip.crop, "min_x")
+            col.prop(strip.crop, "max_x")
+            col.prop(strip.crop, "max_y")
+            col.prop(strip.crop, "min_y")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
@@ -852,7 +842,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     layout.prop(strip, "speed_factor")
                 else:
                     layout.prop(strip, "speed_factor", text="Frame Number")
-                    layout.prop(strip, "scale_to_length")
+                    layout.prop(strip, "use_scale_to_length")
 
         elif strip.type == 'TRANSFORM':
             layout = self.layout
@@ -1200,9 +1190,14 @@ class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
             str(strip.frame_final_duration),
             str(strip.frame_offset_start),
             str(strip.frame_offset_end),
-            str(strip.animation_offset_start),
-            str(strip.animation_offset_end),
         )
+
+        if not isinstance(strip, bpy.types.EffectSequence):
+            length_list = length_list + (
+                str(strip.animation_offset_start),
+                str(strip.animation_offset_end),
+            )
+
         max_length = max(len(x) for x in length_list)
         max_factor = (1.9 - max_length) / 30
 
@@ -1477,7 +1472,29 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy & Timecode"
+    bl_label = "Proxy Settings"
+    bl_category = "Proxy & Cache"
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
+
+    def draw(self, context):
+        layout = self.layout
+        ed = context.scene.sequence_editor
+        flow = layout.column_flow()
+        flow.prop(ed, "proxy_storage", text="Storage")
+
+        if ed.proxy_storage == 'PROJECT':
+            flow.prop(ed, "proxy_dir", text="Directory")
+
+        col = layout.column()
+        col.operator("sequencer.enable_proxies")
+        col.operator("sequencer.rebuild_proxy")
+
+
+class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
+    bl_label = "Strip Proxy & Timecode"
     bl_category = "Proxy & Cache"
 
     @classmethod
@@ -1509,10 +1526,7 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
             proxy = strip.proxy
 
             flow = layout.column_flow()
-            flow.prop(ed, "proxy_storage", text="Storage")
-            if ed.proxy_storage == 'PROJECT':
-                flow.prop(ed, "proxy_dir", text="Directory")
-            else:
+            if ed.proxy_storage == 'PER_STRIP':
                 flow.prop(proxy, "use_proxy_custom_directory")
                 flow.prop(proxy, "use_proxy_custom_file")
 
@@ -1843,8 +1857,9 @@ classes = (
     SEQUENCER_PT_mask,
 
     SEQUENCER_PT_cache_settings,
-    SEQUENCER_PT_proxy_settings,
     SEQUENCER_PT_strip_cache,
+    SEQUENCER_PT_proxy_settings,
+    SEQUENCER_PT_strip_proxy,
 
     SEQUENCER_PT_custom_props,
 
