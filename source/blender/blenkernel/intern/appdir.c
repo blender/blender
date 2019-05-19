@@ -1027,7 +1027,7 @@ void BKE_tempdir_session_purge(void)
 }
 
 /* Gets a good default directory for fonts */
-bool BKE_appdir_fonts_folder_default(char *dir)
+bool BKE_appdir_font_folder_default(char *dir)
 {
   bool success = false;
 #ifdef WIN32
@@ -1035,6 +1035,7 @@ bool BKE_appdir_fonts_folder_default(char *dir)
   success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
   BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
 #endif
-  /* TODO: Values for other OSs */
+  /* TODO: Values for other platforms. */
+  UNUSED_VARS(dir);
   return success;
 }

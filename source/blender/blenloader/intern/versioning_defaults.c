@@ -94,8 +94,8 @@ void BLO_update_defaults_userpref_blend(void)
   /* Leave temp directory empty, will then get appropriate value per OS. */
   U.tempdir[0] = '\0';
 
-  /* System-specific fonts directory */
-  BKE_appdir_fonts_folder_default(U.fontdir);
+  /* System-specific fonts directory. */
+  BKE_appdir_font_folder_default(U.fontdir);
 
   /* Only enable tooltips translation by default,
    * without actually enabling translation itself, for now. */
