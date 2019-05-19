@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -245,7 +246,10 @@ void RE_GetCameraModelMatrix(Render *re, struct Object *camera, float r_mat[4][4
 
 void RE_parts_free(Render *re)
 {
-  BLI_freelistN(&re->parts);
+  if (re->parts) {
+    BLI_ghash_free(re->parts, NULL, MEM_freeN);
+    re->parts = NULL;
+  }
 }
 
 void RE_parts_clamp(Render *re)
@@ -261,6 +265,9 @@ void RE_parts_init(Render *re)
   int xminb, xmaxb, yminb, ymaxb;
 
   RE_parts_free(re);
+
+  re->parts = BLI_ghash_new(
+      BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "render parts");
 
   /* this is render info for caller, is not reset when parts are freed! */
   re->i.totpart = 0;
@@ -323,7 +330,7 @@ void RE_parts_init(Render *re)
       pa->rectx = rectx;
       pa->recty = recty;
 
-      BLI_addtail(&re->parts, pa);
+      BLI_ghash_insert(re->parts, &pa->disprect, pa);
       re->i.totpart++;
     }
   }

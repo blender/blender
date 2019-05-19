@@ -29,9 +29,11 @@
 
 #include "BLT_translation.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "DNA_object_types.h"
 
@@ -169,18 +171,10 @@ void RE_engine_free(RenderEngine *engine)
 
 static RenderPart *get_part_from_result(Render *re, RenderResult *result)
 {
-  RenderPart *pa;
+  rcti key = result->tilerect;
+  BLI_rcti_translate(&key, re->disprect.xmin, re->disprect.ymin);
 
-  for (pa = re->parts.first; pa; pa = pa->next) {
-    if (result->tilerect.xmin == pa->disprect.xmin - re->disprect.xmin &&
-        result->tilerect.ymin == pa->disprect.ymin - re->disprect.ymin &&
-        result->tilerect.xmax == pa->disprect.xmax - re->disprect.xmin &&
-        result->tilerect.ymax == pa->disprect.ymax - re->disprect.ymin) {
-      return pa;
-    }
-  }
-
-  return NULL;
+  return BLI_ghash_lookup(re->parts, &key);
 }
 
 RenderResult *RE_engine_begin_result(
@@ -458,7 +452,6 @@ rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_
 {
   static rcti tiles_static[BLENDER_MAX_THREADS];
   const int allocation_step = BLENDER_MAX_THREADS;
-  RenderPart *pa;
   int total_tiles = 0;
   rcti *tiles = tiles_static;
   int allocation_size = BLENDER_MAX_THREADS;
@@ -467,13 +460,15 @@ rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_
 
   *r_needs_free = false;
 
-  if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
+  if (!re->parts || (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0)) {
     *r_total_tiles = 0;
     BLI_rw_mutex_unlock(&re->partsmutex);
     return NULL;
   }
 
-  for (pa = re->parts.first; pa; pa = pa->next) {
+  GHashIterator pa_iter;
+  GHASH_ITER (pa_iter, re->parts) {
+    RenderPart *pa = BLI_ghashIterator_getValue(&pa_iter);
     if (pa->status == PART_STATUS_IN_PROGRESS) {
       if (total_tiles >= allocation_size) {
         /* Just in case we're using crazy network rendering with more

@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
@@ -1174,13 +1175,14 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 
 void render_result_save_empty_result_tiles(Render *re)
 {
-  RenderPart *pa;
   RenderResult *rr;
   RenderLayer *rl;
 
   for (rr = re->result; rr; rr = rr->next) {
     for (rl = rr->layers.first; rl; rl = rl->next) {
-      for (pa = re->parts.first; pa; pa = pa->next) {
+      GHashIterator pa_iter;
+      GHASH_ITER (pa_iter, re->parts) {
+        RenderPart *pa = BLI_ghashIterator_getValue(&pa_iter);
         if (pa->status != PART_STATUS_MERGED) {
           int party = pa->disprect.ymin - re->disprect.ymin;
           int partx = pa->disprect.xmin - re->disprect.xmin;

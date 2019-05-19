@@ -41,6 +41,7 @@ struct Main;
 struct Object;
 struct RenderEngine;
 struct ReportList;
+struct GHash;
 
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {
@@ -112,7 +113,7 @@ struct Render {
   struct Object *camera_override;
 
   ThreadRWMutex partsmutex;
-  ListBase parts;
+  struct GHash *parts;
 
   /* render engine */
   struct RenderEngine *engine;
