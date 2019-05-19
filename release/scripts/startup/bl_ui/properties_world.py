@@ -152,6 +152,7 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
 class WORLD_PT_viewport_display(WorldButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 10
 
     @classmethod
     def poll(cls, context):

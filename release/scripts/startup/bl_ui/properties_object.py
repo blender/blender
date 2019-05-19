@@ -212,6 +212,7 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 10
 
     def draw(self, context):
         layout = self.layout

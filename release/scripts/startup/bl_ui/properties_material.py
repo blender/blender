@@ -233,6 +233,7 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_context = "material"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 10
 
     @classmethod
     def poll(cls, context):

@@ -317,19 +317,21 @@ static StructRNA *rna_Panel_register(Main *bmain,
   pt->draw_header = (have_function[2]) ? panel_draw_header : NULL;
   pt->draw_header_preset = (have_function[3]) ? panel_draw_header_preset : NULL;
 
-  /* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
-  if (pt->flag & PNL_NO_HEADER) {
-    PanelType *pth = art->paneltypes.first;
-    while (pth && pth->flag & PNL_NO_HEADER)
-      pth = pth->next;
+  /* Find position to insert panel based on order. */
+  PanelType *pt_iter = art->paneltypes.last;
 
-    if (pth)
-      BLI_insertlinkbefore(&art->paneltypes, pth, pt);
-    else
-      BLI_addtail(&art->paneltypes, pt);
+  for (; pt_iter; pt_iter = pt_iter->prev) {
+    /* No header has priority. */
+    if ((pt->flag & PNL_NO_HEADER) && !(pt_iter->flag & PNL_NO_HEADER)) {
+      continue;
+    }
+    if (pt_iter->order <= pt->order) {
+      break;
+    }
   }
-  else
-    BLI_addtail(&art->paneltypes, pt);
+
+  /* Insert into list. */
+  BLI_insertlinkafter(&art->paneltypes, pt_iter, pt);
 
   if (parent) {
     pt->parent = parent;
@@ -1346,6 +1348,14 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "type->ui_units_x");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Units X", "When set, defines popup panel width");
+
+  prop = RNA_def_property(srna, "bl_order", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "type->order");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Order",
+      "Panels with lower numbers are default ordered before panels with higher numbers");
 
   prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PNL_PIN);

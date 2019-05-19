@@ -63,6 +63,7 @@ class RENDER_PT_context(Panel):
 class RENDER_PT_color_management(RenderButtonsPanel, Panel):
     bl_label = "Color Management"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 100
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):

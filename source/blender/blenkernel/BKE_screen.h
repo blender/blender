@@ -208,6 +208,7 @@ typedef struct PanelType {
   short region_type;
   /* For popovers, 0 for default. */
   int ui_units_x;
+  int order;
 
   int flag;
 
