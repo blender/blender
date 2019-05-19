@@ -18,15 +18,20 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu, Panel
-from bpy.app.translations import contexts as i18n_contexts
-from rna_prop_ui import PropertyPanel
+from bpy.types import (
+    Header,
+    Menu,
+    Panel,
+)
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 from .properties_grease_pencil_common import (
     AnnotationDataPanel,
-    AnnotationOnionSkin,
     GreasePencilToolsPanel,
 )
-from bpy.app.translations import pgettext_iface as iface_
+from rna_prop_ui import PropertyPanel
 
 
 def act_strip(context):
@@ -1336,7 +1341,7 @@ class SEQUENCER_PT_data_info(SequencerButtonsPanel, Panel):
             split.alignment = 'RIGHT'
             split.label(text="Soft Trim Start")
             split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)).replace(':', ' '))
-            split = sub.split(factor=0.5+max_factor, align=True)
+            split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
             split.prop(strip, "frame_offset_end", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_end)).replace(':', ' '))
