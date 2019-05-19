@@ -209,6 +209,7 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         mat = context.material
 
