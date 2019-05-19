@@ -675,6 +675,12 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
         bool do_draw = false;
 
         for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
+
+          /* call old area's deactivate if assigned */
+          if (ar == old_ar && area_iter->type->deactivate) {
+            area_iter->type->deactivate(area_iter);
+          }
+
           if (ar == old_ar || ar == scr->active_region) {
             do_draw = true;
           }

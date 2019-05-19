@@ -84,6 +84,9 @@ typedef struct SpaceType {
                    struct wmNotifier *wmn,
                    struct Scene *scene);
 
+  /* called when the mouse moves out of the area */
+  void (*deactivate)(struct ScrArea *sa);
+
   /* refresh context, called after filereads, ED_area_tag_refresh() */
   void (*refresh)(const struct bContext *C, struct ScrArea *sa);
 

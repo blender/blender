@@ -88,6 +88,11 @@
 
 static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
+  /* stop highlighting if out of area */
+  if (!ED_screen_area_active(C)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   /* Drag and drop does own highlighting. */
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm->drags.first) {
