@@ -57,7 +57,7 @@ def node_panel(cls):
 
     node_cls.bl_space_type = 'NODE_EDITOR'
     node_cls.bl_region_type = 'UI'
-    node_cls.bl_category = "Node"
+    node_cls.bl_category = "Options"
     if hasattr(node_cls, 'bl_parent_id'):
         node_cls.bl_parent_id = 'NODE_' + node_cls.bl_parent_id
 
@@ -1700,7 +1700,7 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.prop(cmat, "sample_as_light", text="Multiple Importance")
         col.prop(cmat, "use_transparent_shadow")
-        col.prop(cmat, "displacement_method", text="Displacement Method")
+        col.prop(cmat, "displacement_method", text="Displacement")
 
     def draw(self, context):
         self.draw_shared(self, context.material)
