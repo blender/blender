@@ -735,18 +735,23 @@ class SEQUENCER_PT_adjust_offset(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         return strip.type != 'SOUND'
 
+    def draw_header(self, context):
+        strip = act_strip(context)
+        self.layout.prop(strip, "use_translation", text="")
+
     def draw(self, context):
         strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-        layout.prop(strip, "use_translation")
 
         if  strip.use_translation:
             col = layout.column(align=True)
             col.prop(strip.transform, "offset_x", text="Position X")
             col.prop(strip.transform, "offset_y", text="Y")
             col.active = strip.use_translation
+        else:
+            layout.separator()
 
 
 class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
@@ -760,12 +765,15 @@ class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         return strip.type != 'SOUND'
 
+    def draw_header(self, context):
+        strip = act_strip(context)
+        self.layout.prop(strip, "use_crop", text="")
+
     def draw(self, context):
         strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-        layout.prop(strip, "use_crop")
 
         if strip.use_crop:
             col = layout.column(align=True)
@@ -773,6 +781,8 @@ class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
             col.prop(strip.crop, "max_x")
             col.prop(strip.crop, "max_y")
             col.prop(strip.crop, "min_y")
+        else:
+            layout.separator()
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
