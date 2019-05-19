@@ -5057,7 +5057,7 @@ def km_popup_toolbar(_params):
         {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
         {"items": [
             op_tool("builtin.select", {"type": 'W', "value": 'PRESS'}),
-            op_tool("builtin.transform", {"type": 'T', "value": 'PRESS'}),
+            op_tool("builtin.select_lasso", {"type": 'L', "value": 'PRESS'}),
             op_tool("builtin.measure", {"type": 'M', "value": 'PRESS'}),
         ]},
     )
