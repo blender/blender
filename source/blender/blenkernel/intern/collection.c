@@ -321,11 +321,11 @@ Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *col
  * \warning If any 'deep copy' behavior is enabled,
  * this functions will clear all \a bmain id.idnew pointers.
  *
- * \param do_hierarchy If true, it will recursively make shallow copies of children collections.
- * \param do_objects If true, it will also make duplicates of objects.
- *                   This one does nothing if \a do_hierarchy is not set.
- * \param do_obdata If true, it will also make deep duplicates of objects,
- * using behavior defined in user settings (U.dupflag).
+ * \param do_hierarchy: If true, it will recursively make shallow copies of children collections.
+ * \param do_objects: If true, it will also make duplicates of objects.
+ * This one does nothing if \a do_hierarchy is not set.
+ * \param do_obdata: If true, it will also make deep duplicates of objects,
+ * using behavior defined in user settings (#U.dupflag).
  * This one does nothing if \a do_hierarchy and \a do_objects are not set.
  */
 Collection *BKE_collection_duplicate(Main *bmain,

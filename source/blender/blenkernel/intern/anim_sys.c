@@ -3618,9 +3618,9 @@ static void animsys_calculate_nla(Depsgraph *depsgraph,
  * Prepare data necessary to compute correct keyframe values for NLA strips
  * with non-Replace mode or influence different from 1.
  *
- * \param cache List used to cache contexts for reuse when keying
+ * \param cache: List used to cache contexts for reuse when keying
  * multiple channels in one operation.
- * \param ptr RNA pointer to the Object with the animation.
+ * \param ptr: RNA pointer to the Object with the animation.
  * \return Keyframing context, or NULL if not necessary.
  */
 NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(struct ListBase *cache,
@@ -3662,12 +3662,12 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(struct ListBase *ca
 /**
  * Apply correction from the NLA context to the values about to be keyframed.
  *
- * \param context Context to use (may be NULL).
- * \param prop_ptr Property about to be keyframed.
- * \param[in,out] values Array of property values to adjust.
- * \param count Number of values in the array.
- * \param index Index of the element about to be updated, or -1.
- * \param[out] r_force_all Set to true if all channels must be inserted. May be NULL.
+ * \param context: Context to use (may be NULL).
+ * \param prop_ptr: Property about to be keyframed.
+ * \param[in,out] values: Array of property values to adjust.
+ * \param count: Number of values in the array.
+ * \param index: Index of the element about to be updated, or -1.
+ * \param[out] r_force_all: Set to true if all channels must be inserted. May be NULL.
  * \return False if correction fails due to a division by zero,
  * or null r_force_all when all channels are required.
  */

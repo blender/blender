@@ -2141,8 +2141,8 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
  * Higher level functions hiding most of the code needed around call to
  * #BKE_mesh_normals_loop_custom_set().
  *
- * \param r_custom_loopnors is not const, since code will replace zero_v3 normals there
- *                          with automatically computed vectors.
+ * \param r_custom_loopnors: is not const, since code will replace zero_v3 normals there
+ * with automatically computed vectors.
  */
 void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loopnors)[3])
 {
@@ -2153,8 +2153,8 @@ void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loopnors)[3])
  * Higher level functions hiding most of the code needed around call to
  * #BKE_mesh_normals_loop_custom_from_vertices_set().
  *
- * \param r_custom_loopnors is not const, since code will replace zero_v3 normals there
- *                          with automatically computed vectors.
+ * \param r_custom_loopnors: is not const, since code will replace zero_v3 normals there
+ * with automatically computed vectors.
  */
 void BKE_mesh_set_custom_normals_from_vertices(Mesh *mesh, float (*r_custom_vertnors)[3])
 {
