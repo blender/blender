@@ -47,9 +47,10 @@ shader node_environment_texture(
     string filename = "",
     string projection = "equirectangular",
     string interpolation = "linear",
-    string color_space = "sRGB",
+    int compress_as_srgb = 0,
+    int ignore_alpha = 0,
+    int unassociate_alpha = 0,
     int is_float = 1,
-    int use_alpha = 1,
     output color Color = 0.0,
     output float Alpha = 1.0)
 {
@@ -69,13 +70,16 @@ shader node_environment_texture(
   Color = (color)texture(
       filename, p[0], 1.0 - p[1], "wrap", "periodic", "interp", interpolation, "alpha", Alpha);
 
-  if (use_alpha) {
+  if (ignore_alpha) {
+    Alpha = 1.0;
+  }
+  else if (unassociate_alpha) {
     Color = color_unpremultiply(Color, Alpha);
 
     if (!is_float)
       Color = min(Color, 1.0);
   }
 
-  if (color_space == "sRGB")
+  if (compress_as_srgb)
     Color = color_srgb_to_scene_linear(Color);
 }

@@ -16,13 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float4
-svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
+ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint flags)
 {
   float4 r = kernel_tex_image_interp(kg, id, x, y);
   const float alpha = r.w;
 
-  if (use_alpha && alpha != 1.0f && alpha != 0.0f) {
+  if ((flags & NODE_IMAGE_ALPHA_UNASSOCIATE) && alpha != 1.0f && alpha != 0.0f) {
     r /= alpha;
     const int texture_type = kernel_tex_type(id);
     if (texture_type == IMAGE_DATA_TYPE_BYTE4 || texture_type == IMAGE_DATA_TYPE_BYTE) {
@@ -31,8 +30,7 @@ svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint u
     r.w = alpha;
   }
 
-  if (srgb) {
-    /* TODO(lukas): Implement proper conversion for image textures. */
+  if (flags & NODE_IMAGE_COMPRESS_AS_SRGB) {
     r = color_srgb_to_linear_v4(r);
   }
 
@@ -48,13 +46,12 @@ ccl_device_inline float3 texco_remap_square(float3 co)
 ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
   uint id = node.y;
-  uint co_offset, out_offset, alpha_offset, srgb;
+  uint co_offset, out_offset, alpha_offset, flags;
 
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
+  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   float2 tex_co;
-  uint use_alpha = stack_valid(alpha_offset);
   if (node.w == NODE_IMAGE_PROJ_SPHERE) {
     co = texco_remap_square(co);
     tex_co = map_to_sphere(co);
@@ -66,7 +63,7 @@ ccl_device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *sta
   else {
     tex_co = make_float2(co.x, co.y);
   }
-  float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, srgb, use_alpha);
+  float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, flags);
 
   if (stack_valid(out_offset))
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
@@ -145,27 +142,26 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
   }
 
   /* now fetch textures */
-  uint co_offset, out_offset, alpha_offset, srgb;
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
+  uint co_offset, out_offset, alpha_offset, flags;
+  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   uint id = node.y;
 
   float4 f = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-  uint use_alpha = stack_valid(alpha_offset);
 
   /* Map so that no textures are flipped, rotation is somewhat arbitrary. */
   if (weight.x > 0.0f) {
     float2 uv = make_float2((signed_N.x < 0.0f) ? 1.0f - co.y : co.y, co.z);
-    f += weight.x * svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+    f += weight.x * svm_image_texture(kg, id, uv.x, uv.y, flags);
   }
   if (weight.y > 0.0f) {
     float2 uv = make_float2((signed_N.y > 0.0f) ? 1.0f - co.x : co.x, co.z);
-    f += weight.y * svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+    f += weight.y * svm_image_texture(kg, id, uv.x, uv.y, flags);
   }
   if (weight.z > 0.0f) {
     float2 uv = make_float2((signed_N.z > 0.0f) ? 1.0f - co.y : co.y, co.x);
-    f += weight.z * svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+    f += weight.z * svm_image_texture(kg, id, uv.x, uv.y, flags);
   }
 
   if (stack_valid(out_offset))
@@ -180,10 +176,10 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg,
                                          uint4 node)
 {
   uint id = node.y;
-  uint co_offset, out_offset, alpha_offset, srgb;
+  uint co_offset, out_offset, alpha_offset, flags;
   uint projection = node.w;
 
-  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
+  decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &flags);
 
   float3 co = stack_load_float3(stack, co_offset);
   float2 uv;
@@ -195,8 +191,7 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg,
   else
     uv = direction_to_mirrorball(co);
 
-  uint use_alpha = stack_valid(alpha_offset);
-  float4 f = svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+  float4 f = svm_image_texture(kg, id, uv.x, uv.y, flags);
 
   if (stack_valid(out_offset))
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));

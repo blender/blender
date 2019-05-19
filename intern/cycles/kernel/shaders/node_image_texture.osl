@@ -56,11 +56,12 @@ point map_to_sphere(vector dir)
 }
 
 color image_texture_lookup(string filename,
-                           string color_space,
                            float u,
                            float v,
                            output float Alpha,
-                           int use_alpha,
+                           int compress_as_srgb,
+                           int ignore_alpha,
+                           int unassociate_alpha,
                            int is_float,
                            string interpolation,
                            string extension)
@@ -68,14 +69,17 @@ color image_texture_lookup(string filename,
   color rgb = (color)texture(
       filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
 
-  if (use_alpha) {
+  if (ignore_alpha) {
+    Alpha = 1.0;
+  }
+  else if (unassociate_alpha) {
     rgb = color_unpremultiply(rgb, Alpha);
 
     if (!is_float)
       rgb = min(rgb, 1.0);
   }
 
-  if (color_space == "sRGB") {
+  if (compress_as_srgb) {
     rgb = color_srgb_to_scene_linear(rgb);
   }
 
@@ -86,13 +90,14 @@ shader node_image_texture(int use_mapping = 0,
                           matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                           point Vector = P,
                           string filename = "",
-                          string color_space = "sRGB",
                           string projection = "flat",
                           string interpolation = "smartcubic",
                           string extension = "periodic",
                           float projection_blend = 0.0,
+                          int compress_as_srgb = 0,
+                          int ignore_alpha = 0,
+                          int unassociate_alpha = 0,
                           int is_float = 1,
-                          int use_alpha = 1,
                           output color Color = 0.0,
                           output float Alpha = 1.0)
 {
@@ -102,8 +107,16 @@ shader node_image_texture(int use_mapping = 0,
     p = transform(mapping, p);
 
   if (projection == "flat") {
-    Color = image_texture_lookup(
-        filename, color_space, p[0], p[1], Alpha, use_alpha, is_float, interpolation, extension);
+    Color = image_texture_lookup(filename,
+                                 p[0],
+                                 p[1],
+                                 Alpha,
+                                 compress_as_srgb,
+                                 ignore_alpha,
+                                 unassociate_alpha,
+                                 is_float,
+                                 interpolation,
+                                 extension);
   }
   else if (projection == "box") {
     /* object space normal */
@@ -173,11 +186,12 @@ shader node_image_texture(int use_mapping = 0,
 
     if (weight[0] > 0.0) {
       Color += weight[0] * image_texture_lookup(filename,
-                                                color_space,
                                                 p[1],
                                                 p[2],
                                                 tmp_alpha,
-                                                use_alpha,
+                                                compress_as_srgb,
+                                                ignore_alpha,
+                                                unassociate_alpha,
                                                 is_float,
                                                 interpolation,
                                                 extension);
@@ -185,11 +199,12 @@ shader node_image_texture(int use_mapping = 0,
     }
     if (weight[1] > 0.0) {
       Color += weight[1] * image_texture_lookup(filename,
-                                                color_space,
                                                 p[0],
                                                 p[2],
                                                 tmp_alpha,
-                                                use_alpha,
+                                                compress_as_srgb,
+                                                ignore_alpha,
+                                                unassociate_alpha,
                                                 is_float,
                                                 interpolation,
                                                 extension);
@@ -197,11 +212,12 @@ shader node_image_texture(int use_mapping = 0,
     }
     if (weight[2] > 0.0) {
       Color += weight[2] * image_texture_lookup(filename,
-                                                color_space,
                                                 p[1],
                                                 p[0],
                                                 tmp_alpha,
-                                                use_alpha,
+                                                compress_as_srgb,
+                                                ignore_alpha,
+                                                unassociate_alpha,
                                                 is_float,
                                                 interpolation,
                                                 extension);
@@ -211,11 +227,12 @@ shader node_image_texture(int use_mapping = 0,
   else if (projection == "sphere") {
     point projected = map_to_sphere(texco_remap_square(p));
     Color = image_texture_lookup(filename,
-                                 color_space,
                                  projected[0],
                                  projected[1],
                                  Alpha,
-                                 use_alpha,
+                                 compress_as_srgb,
+                                 ignore_alpha,
+                                 unassociate_alpha,
                                  is_float,
                                  interpolation,
                                  extension);
@@ -223,11 +240,12 @@ shader node_image_texture(int use_mapping = 0,
   else if (projection == "tube") {
     point projected = map_to_tube(texco_remap_square(p));
     Color = image_texture_lookup(filename,
-                                 color_space,
                                  projected[0],
                                  projected[1],
                                  Alpha,
-                                 use_alpha,
+                                 compress_as_srgb,
+                                 ignore_alpha,
+                                 unassociate_alpha,
                                  is_float,
                                  interpolation,
                                  extension);

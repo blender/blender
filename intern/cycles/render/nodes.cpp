@@ -310,6 +310,14 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   if (slot != -1) {
     int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+    uint flags = 0;
+
+    if (compress_as_srgb) {
+      flags |= NODE_IMAGE_COMPRESS_AS_SRGB;
+    }
+    if (!alpha_out->links.empty()) {
+      flags |= NODE_IMAGE_ALPHA_UNASSOCIATE;
+    }
 
     if (projection != NODE_IMAGE_PROJ_BOX) {
       compiler.add_node(NODE_TEX_IMAGE,
@@ -317,7 +325,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
                         compiler.encode_uchar4(vector_offset,
                                                compiler.stack_assign_if_linked(color_out),
                                                compiler.stack_assign_if_linked(alpha_out),
-                                               compress_as_srgb),
+                                               flags),
                         projection);
     }
     else {
@@ -326,7 +334,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
                         compiler.encode_uchar4(vector_offset,
                                                compiler.stack_assign_if_linked(color_out),
                                                compiler.stack_assign_if_linked(alpha_out),
-                                               compress_as_srgb),
+                                               flags),
                         __float_as_int(projection_blend));
     }
 
@@ -381,11 +389,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
     compiler.parameter_texture("filename", slot);
   }
 
-  compiler.parameter("color_space", (compress_as_srgb) ? "sRGB" : "linear");
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");
+  compiler.parameter("convert_from_srgb", compress_as_srgb);
+  compiler.parameter("ignore_alpha", !use_alpha);
+  compiler.parameter("unassociate_alpha", !alpha_out->links.empty());
   compiler.parameter("is_float", is_float);
-  compiler.parameter("use_alpha", !alpha_out->links.empty());
   compiler.parameter(this, "interpolation");
   compiler.parameter(this, "extension");
 
@@ -491,13 +500,18 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
 
   if (slot != -1) {
     int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+    uint flags = 0;
+
+    if (compress_as_srgb) {
+      flags |= NODE_IMAGE_COMPRESS_AS_SRGB;
+    }
 
     compiler.add_node(NODE_TEX_ENVIRONMENT,
                       slot,
                       compiler.encode_uchar4(vector_offset,
                                              compiler.stack_assign_if_linked(color_out),
                                              compiler.stack_assign_if_linked(alpha_out),
-                                             compress_as_srgb),
+                                             flags),
                       projection);
 
     tex_mapping.compile_end(compiler, vector_in, vector_offset);
@@ -518,8 +532,6 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
 
 void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 {
-  ShaderOutput *alpha_out = output("Alpha");
-
   tex_mapping.compile(compiler);
 
   /* See comments in ImageTextureNode::compile about support
@@ -555,10 +567,10 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
   }
 
   compiler.parameter(this, "projection");
-  compiler.parameter("color_space", (compress_as_srgb) ? "sRGB" : "linear");
   compiler.parameter(this, "interpolation");
+  compiler.parameter("convert_from_srgb", compress_as_srgb);
+  compiler.parameter("ignore_alpha", !use_alpha);
   compiler.parameter("is_float", is_float);
-  compiler.parameter("use_alpha", !alpha_out->links.empty());
   compiler.add(this, "node_environment_texture");
 }
 
