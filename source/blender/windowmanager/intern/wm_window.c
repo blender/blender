@@ -368,7 +368,7 @@ static void wm_save_file_on_quit_dialog_callback(bContext *C, void *UNUSED(user_
  */
 static void wm_confirm_quit(bContext *C)
 {
-  GenericCallback *action = MEM_callocN(sizeof(*action), __func__);
+  wmGenericCallback *action = MEM_callocN(sizeof(*action), __func__);
   action->exec = wm_save_file_on_quit_dialog_callback;
   wm_close_file_dialog(C, action);
 }

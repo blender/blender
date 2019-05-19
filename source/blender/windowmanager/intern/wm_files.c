@@ -1939,7 +1939,7 @@ static void wm_free_operator_properties_callback(void *user_data)
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
-    GenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
+    wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = wm_homefile_read_after_dialog_callback;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
@@ -2105,7 +2105,7 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
   }
 
   if (U.uiflag & USER_SAVE_PROMPT && wm_file_or_image_is_modified(C)) {
-    GenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
+    wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
     callback->exec = wm_open_mainfile_after_dialog_callback;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
@@ -2855,7 +2855,7 @@ static void wm_block_file_close_cancel(bContext *C, void *arg_block, void *UNUSE
 
 static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_data)
 {
-  GenericCallback *callback = wm_generic_callback_steal((GenericCallback *)arg_data);
+  wmGenericCallback *callback = wm_generic_callback_steal((wmGenericCallback *)arg_data);
 
   /* Close the popup before executing the callback. Otherwise
    * the popup might be closed by the callback, which will lead
@@ -2869,7 +2869,7 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
 
 static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
 {
-  GenericCallback *callback = wm_generic_callback_steal((GenericCallback *)arg_data);
+  wmGenericCallback *callback = wm_generic_callback_steal((wmGenericCallback *)arg_data);
   bool execute_callback = true;
 
   wmWindow *win = CTX_wm_window(C);
@@ -2900,7 +2900,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   wm_generic_callback_free(callback);
 }
 
-static void wm_block_file_close_cancel_button(uiBlock *block, GenericCallback *post_action)
+static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(
       block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
@@ -2908,7 +2908,7 @@ static void wm_block_file_close_cancel_button(uiBlock *block, GenericCallback *p
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
 
-static void wm_block_file_close_discard_button(uiBlock *block, GenericCallback *post_action)
+static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(
       block, UI_BTYPE_BUT, 0, 0, IFACE_("Discard Changes"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
@@ -2916,7 +2916,7 @@ static void wm_block_file_close_discard_button(uiBlock *block, GenericCallback *
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
 
-static void wm_block_file_close_save_button(uiBlock *block, GenericCallback *post_action)
+static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(
       block, UI_BTYPE_BUT, 0, 0, IFACE_("Save"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
@@ -2927,7 +2927,7 @@ static void wm_block_file_close_save_button(uiBlock *block, GenericCallback *pos
 
 static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegion *ar, void *arg1)
 {
-  GenericCallback *post_action = (GenericCallback *)arg1;
+  wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
   uiStyle *style = UI_style_get();
@@ -3038,11 +3038,11 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
 
 static void free_post_file_close_action(void *arg)
 {
-  GenericCallback *action = (GenericCallback *)arg;
+  wmGenericCallback *action = (wmGenericCallback *)arg;
   wm_generic_callback_free(action);
 }
 
-void wm_close_file_dialog(bContext *C, GenericCallback *post_action)
+void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
 {
   UI_popup_block_invoke(
       C, block_create__close_file_dialog, post_action, free_post_file_close_action);
@@ -3054,7 +3054,7 @@ bool wm_file_or_image_is_modified(const bContext *C)
   return !wm->file_saved || ED_image_should_save_modified(C);
 }
 
-void wm_generic_callback_free(GenericCallback *callback)
+void wm_generic_callback_free(wmGenericCallback *callback)
 {
   if (callback->free_user_data) {
     callback->free_user_data(callback->user_data);
@@ -3066,9 +3066,9 @@ static void do_nothing(bContext *UNUSED(C), void *UNUSED(user_data))
 {
 }
 
-GenericCallback *wm_generic_callback_steal(GenericCallback *callback)
+wmGenericCallback *wm_generic_callback_steal(wmGenericCallback *callback)
 {
-  GenericCallback *new_callback = MEM_dupallocN(callback);
+  wmGenericCallback *new_callback = MEM_dupallocN(callback);
   callback->exec = do_nothing;
   callback->free_user_data = NULL;
   callback->user_data = NULL;
