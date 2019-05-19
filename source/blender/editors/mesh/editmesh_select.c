@@ -280,26 +280,24 @@ BMElem *EDBM_select_id_bm_elem_get(struct EDBMSelectID_Context *sel_id_ctx,
 {
   char elem_type;
   uint elem_id;
-  uint prev_offs = 0;
   uint base_index = 0;
   for (; base_index < sel_id_ctx->bases_len; base_index++) {
     struct EDBMBaseOffset *base_ofs = &sel_id_ctx->base_array_index_offsets[base_index];
     if (base_ofs->face > sel_id) {
-      elem_id = sel_id - (prev_offs + 1);
+      elem_id = sel_id - base_ofs->face_start;
       elem_type = BM_FACE;
       break;
     }
     if (base_ofs->edge > sel_id) {
-      elem_id = sel_id - base_ofs->face;
+      elem_id = sel_id - base_ofs->edge_start;
       elem_type = BM_EDGE;
       break;
     }
     if (base_ofs->vert > sel_id) {
-      elem_id = sel_id - base_ofs->edge;
+      elem_id = sel_id - base_ofs->vert_start;
       elem_type = BM_VERT;
       break;
     }
-    prev_offs = base_ofs->vert;
   }
 
   if (r_base_index) {
