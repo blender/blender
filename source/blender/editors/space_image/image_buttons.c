@@ -857,7 +857,7 @@ void uiTemplateImage(uiLayout *layout,
   if (is_dirty) {
     uiLayout *row = uiLayoutRow(layout, true);
     uiItemO(row, IFACE_("Save"), ICON_NONE, "image.save");
-    uiItemO(row, IFACE_("Discard Changes"), ICON_NONE, "image.reload");
+    uiItemO(row, IFACE_("Discard"), ICON_NONE, "image.reload");
     uiItemS(layout);
   }
 
@@ -1306,6 +1306,7 @@ void image_buttons_register(ARegionType *art)
   strcpy(pt->label, N_("Metadata"));
   strcpy(pt->category, "Image");
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->order = 10;
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;
   pt->flag |= PNL_DEFAULT_CLOSED;
