@@ -1023,79 +1023,11 @@ static void release_ubo_slots(bool with_persist)
   }
 }
 
-BLI_INLINE bool draw_select_do_call(DRWShadingGroup *shgroup, DRWCall *call)
+static void draw_update_uniforms(DRWShadingGroup *shgroup)
 {
-#ifdef USE_GPU_SELECT
-  if ((G.f & G_FLAG_PICKSEL) == 0) {
-    return false;
-  }
-  if (call->inst_selectid != NULL) {
-    const bool is_instancing = (call->inst_count != 0);
-    uint start = 0;
-    uint count = 1;
-    uint tot = is_instancing ? call->inst_count : call->vert_count;
-    /* Hack : get vbo data without actually drawing. */
-    GPUVertBufRaw raw;
-    GPU_vertbuf_attr_get_raw_data(call->inst_selectid, 0, &raw);
-    int *select_id = GPU_vertbuf_raw_step(&raw);
-
-    /* Batching */
-    if (!is_instancing) {
-      /* FIXME: Meh a bit nasty. */
-      if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_TRIS)) {
-        count = 3;
-      }
-      else if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_LINES)) {
-        count = 2;
-      }
-    }
-
-    while (start < tot) {
-      GPU_select_load_id(select_id[start]);
-      draw_geometry_execute(shgroup, call->batch, start, count, is_instancing);
-      start += count;
-    }
-    return true;
-  }
-  else {
-    GPU_select_load_id(call->select_id);
-    return false;
-  }
-#else
-  return false;
-#endif
-}
-
-static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
-{
-  BLI_assert(shgroup->shader);
-
-  GPUTexture *tex;
-  GPUUniformBuffer *ubo;
-  const bool shader_changed = (DST.shader != shgroup->shader);
-  bool use_tfeedback = false;
-
-  if (shader_changed) {
-    if (DST.shader) {
-      GPU_shader_unbind();
-    }
-    GPU_shader_bind(shgroup->shader);
-    DST.shader = shgroup->shader;
-  }
-
-  if (shgroup->tfeedback_target != NULL) {
-    use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
-                                                         shgroup->tfeedback_target->vbo_id);
-  }
-
-  release_ubo_slots(shader_changed);
-  release_texture_slots(shader_changed);
-
-  drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
-  drw_stencil_set(shgroup->stencil_mask);
-
-  /* Binding Uniform */
   for (DRWUniform *uni = shgroup->uniforms; uni; uni = uni->next) {
+    GPUTexture *tex;
+    GPUUniformBuffer *ubo;
     if (uni->location == -2) {
       uni->location = GPU_shader_get_uniform_ensure(shgroup->shader,
                                                     DST.uniform_names.buffer + uni->name_ofs);
@@ -1150,6 +1082,78 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   }
 
   BLI_assert(ubo_bindings_validate(shgroup));
+}
+
+BLI_INLINE bool draw_select_do_call(DRWShadingGroup *shgroup, DRWCall *call)
+{
+#ifdef USE_GPU_SELECT
+  if ((G.f & G_FLAG_PICKSEL) == 0) {
+    return false;
+  }
+  if (call->inst_selectid != NULL) {
+    const bool is_instancing = (call->inst_count != 0);
+    uint start = 0;
+    uint count = 1;
+    uint tot = is_instancing ? call->inst_count : call->vert_count;
+    /* Hack : get vbo data without actually drawing. */
+    GPUVertBufRaw raw;
+    GPU_vertbuf_attr_get_raw_data(call->inst_selectid, 0, &raw);
+    int *select_id = GPU_vertbuf_raw_step(&raw);
+
+    /* Batching */
+    if (!is_instancing) {
+      /* FIXME: Meh a bit nasty. */
+      if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_TRIS)) {
+        count = 3;
+      }
+      else if (call->batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_LINES)) {
+        count = 2;
+      }
+    }
+
+    while (start < tot) {
+      GPU_select_load_id(select_id[start]);
+      draw_geometry_execute(shgroup, call->batch, start, count, is_instancing);
+      start += count;
+    }
+    return true;
+  }
+  else {
+    GPU_select_load_id(call->select_id);
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
+static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
+{
+  BLI_assert(shgroup->shader);
+
+  const bool shader_changed = (DST.shader != shgroup->shader);
+  bool use_tfeedback = false;
+
+  if (shader_changed) {
+    if (DST.shader) {
+      GPU_shader_unbind();
+    }
+    GPU_shader_bind(shgroup->shader);
+    DST.shader = shgroup->shader;
+  }
+
+  if (shgroup->tfeedback_target != NULL) {
+    use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
+                                                         shgroup->tfeedback_target->vbo_id);
+  }
+
+  release_ubo_slots(shader_changed);
+  release_texture_slots(shader_changed);
+
+  drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
+  drw_stencil_set(shgroup->stencil_mask);
+
+  draw_update_uniforms(shgroup);
 
   /* Rendering Calls */
   {
@@ -1159,10 +1163,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
       /* OPTI/IDEA(clem): Do this preparation in another thread. */
       draw_visibility_eval(call->state);
-      draw_matrices_model_prepare(call->state);
 
-      if ((call->state->flag & DRW_CALL_CULLED) != 0 &&
-          (call->state->flag & DRW_CALL_BYPASS_CULLING) == 0) {
+      if ((call->state->flag & DRW_CALL_CULLED) != 0) {
         continue;
       }
 
@@ -1175,7 +1177,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       /* Negative scale objects */
       bool neg_scale = call->state->flag & DRW_CALL_NEGSCALE;
       if (neg_scale != prev_neg_scale) {
-        glFrontFace((neg_scale) ? DST.backface : DST.frontface);
+        glFrontFace((neg_scale) ? GL_CW : GL_CCW);
         prev_neg_scale = neg_scale;
       }
 
@@ -1194,7 +1196,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       }
     }
     /* Reset state */
-    glFrontFace(DST.frontface);
+    glFrontFace(GL_CCW);
   }
 
   if (use_tfeedback) {

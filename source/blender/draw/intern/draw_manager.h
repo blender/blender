@@ -281,8 +281,6 @@ typedef struct DRWManager {
   float screenvecs[2][3];
   float pixsize;
 
-  GLenum backface, frontface;
-
   struct {
     uint is_select : 1;
     uint is_depth : 1;
