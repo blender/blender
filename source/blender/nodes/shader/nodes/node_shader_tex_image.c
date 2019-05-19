@@ -180,6 +180,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   }
 
   if (out[0].hasoutput) {
+    /* When the alpha socket is used, unpremultiply alpha. This makes it so
+     * that if we blend the color with a transparent shader using alpha as
+     * a factor, we don't multiply alpha into the color twice. */
     if (out[1].hasoutput &&
         !IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
       GPU_link(mat, "tex_color_alpha_unpremultiply", out[0].link, &out[0].link);

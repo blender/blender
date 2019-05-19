@@ -82,6 +82,31 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 #endif
 }
 
+bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
+{
+  if (colorspace == u_colorspace_auto || colorspace == u_colorspace_raw ||
+      colorspace == u_colorspace_srgb) {
+    return false;
+  }
+
+#ifdef WITH_OCIO
+  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  if (!config) {
+    return false;
+  }
+
+  try {
+    OCIO::ConstColorSpaceRcPtr space = config->getColorSpace(colorspace.c_str());
+    return space && space->isData();
+  }
+  catch (OCIO::Exception &exception) {
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
 ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
                                                    const char *file_format,
                                                    bool is_float)

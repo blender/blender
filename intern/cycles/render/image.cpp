@@ -513,8 +513,14 @@ bool ImageManager::file_load_image_generic(Image *img, unique_ptr<ImageInput> *i
     ImageSpec spec = ImageSpec();
     ImageSpec config = ImageSpec();
 
-    if (img->use_alpha == false)
+    /* For typical RGBA images we let OIIO convert to associated alpha,
+     * but some types we want to leave the RGB channels untouched. */
+    const bool associate_alpha = !(ColorSpaceManager::colorspace_is_data(img->colorspace) ||
+                                   img->use_alpha == false);
+
+    if (!associate_alpha) {
       config.attribute("oiio:UnassociatedAlpha", 1);
+    }
 
     if (!(*in)->open(img->filename, spec, config)) {
       return false;

@@ -37,6 +37,9 @@ class ColorSpaceManager {
                                          const char *file_format,
                                          bool is_float);
 
+  /* Test if colorspace is for non-color data. */
+  static bool colorspace_is_data(ustring colorspace);
+
   /* Convert pixels in the specified colorspace to scene linear color for
    * rendering. Must be a colorspace returned from detect_known_colorspace. */
   template<typename T>

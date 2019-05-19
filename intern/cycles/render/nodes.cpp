@@ -316,7 +316,12 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
       flags |= NODE_IMAGE_COMPRESS_AS_SRGB;
     }
     if (!alpha_out->links.empty()) {
-      flags |= NODE_IMAGE_ALPHA_UNASSOCIATE;
+      const bool unassociate_alpha = !(ColorSpaceManager::colorspace_is_data(colorspace) ||
+                                       use_alpha == false);
+
+      if (unassociate_alpha) {
+        flags |= NODE_IMAGE_ALPHA_UNASSOCIATE;
+      }
     }
 
     if (projection != NODE_IMAGE_PROJ_BOX) {
@@ -389,11 +394,14 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
     compiler.parameter_texture("filename", slot);
   }
 
+  const bool unassociate_alpha = !(ColorSpaceManager::colorspace_is_data(colorspace) ||
+                                   use_alpha == false);
+
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");
   compiler.parameter("convert_from_srgb", compress_as_srgb);
   compiler.parameter("ignore_alpha", !use_alpha);
-  compiler.parameter("unassociate_alpha", !alpha_out->links.empty());
+  compiler.parameter("unassociate_alpha", !alpha_out->links.empty() && unassociate_alpha);
   compiler.parameter("is_float", is_float);
   compiler.parameter(this, "interpolation");
   compiler.parameter(this, "extension");
