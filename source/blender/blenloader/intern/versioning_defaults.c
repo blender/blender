@@ -162,6 +162,10 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
          * (order, open/closed) as defined by UI code here! */
         BKE_area_region_panels_free(&ar->panels);
 
+        /* Reset size so it uses consistent defaults from the region types. */
+        ar->sizex = 0;
+        ar->sizey = 0;
+
         /* some toolbars have been saved as initialized,
          * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
         if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
