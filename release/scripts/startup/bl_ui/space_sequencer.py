@@ -1189,7 +1189,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
                 # layout.label(text="Preview")
-                layout.prop(scene.render, "alpha_mode")
+                layout.prop(scene.render, "film_transparent")
 
 
 class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
