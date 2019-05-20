@@ -796,7 +796,10 @@ void WM_tooltip_init(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 double WM_tooltip_time_closed(void);
 
-/* wmGenericUserData */
+/* wm_utils.c */
+struct wmGenericCallback *WM_generic_callback_steal(struct wmGenericCallback *callback);
+void WM_generic_callback_free(struct wmGenericCallback *callback);
+
 void WM_generic_user_data_free(struct wmGenericUserData *user_data);
 
 #ifdef __cplusplus

@@ -2855,7 +2855,7 @@ static void wm_block_file_close_cancel(bContext *C, void *arg_block, void *UNUSE
 
 static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_data)
 {
-  wmGenericCallback *callback = wm_generic_callback_steal((wmGenericCallback *)arg_data);
+  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
 
   /* Close the popup before executing the callback. Otherwise
    * the popup might be closed by the callback, which will lead
@@ -2864,12 +2864,12 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
   UI_popup_block_close(C, win, arg_block);
 
   callback->exec(C, callback->user_data);
-  wm_generic_callback_free(callback);
+  WM_generic_callback_free(callback);
 }
 
 static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
 {
-  wmGenericCallback *callback = wm_generic_callback_steal((wmGenericCallback *)arg_data);
+  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
   bool execute_callback = true;
 
   wmWindow *win = CTX_wm_window(C);
@@ -2897,7 +2897,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   if (execute_callback) {
     callback->exec(C, callback->user_data);
   }
-  wm_generic_callback_free(callback);
+  WM_generic_callback_free(callback);
 }
 
 static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
@@ -3039,7 +3039,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
 static void free_post_file_close_action(void *arg)
 {
   wmGenericCallback *action = (wmGenericCallback *)arg;
-  wm_generic_callback_free(action);
+  WM_generic_callback_free(action);
 }
 
 void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
@@ -3052,27 +3052,6 @@ bool wm_file_or_image_is_modified(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   return !wm->file_saved || ED_image_should_save_modified(C);
-}
-
-void wm_generic_callback_free(wmGenericCallback *callback)
-{
-  if (callback->free_user_data) {
-    callback->free_user_data(callback->user_data);
-  }
-  MEM_freeN(callback);
-}
-
-static void do_nothing(bContext *UNUSED(C), void *UNUSED(user_data))
-{
-}
-
-wmGenericCallback *wm_generic_callback_steal(wmGenericCallback *callback)
-{
-  wmGenericCallback *new_callback = MEM_dupallocN(callback);
-  callback->exec = do_nothing;
-  callback->free_user_data = NULL;
-  callback->user_data = NULL;
-  return new_callback;
 }
 
 /** \} */

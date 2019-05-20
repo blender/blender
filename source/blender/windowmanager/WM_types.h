@@ -127,6 +127,12 @@ typedef struct wmGenericUserData {
   bool use_free;
 } wmGenericUserData;
 
+typedef struct wmGenericCallback {
+  void (*exec)(struct bContext *C, void *user_data);
+  void *user_data;
+  void (*free_user_data)(void *user_data);
+} wmGenericCallback;
+
 /* ************** wmOperatorType ************************ */
 
 /* flag */
