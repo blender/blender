@@ -3806,12 +3806,12 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("mesh.flip_normals", text="Flip")
         layout.operator("mesh.normals_make_consistent", text="Recalculate Outside").inside = False
         layout.operator("mesh.normals_make_consistent", text="Recalculate Inside").inside = True
 
         layout.separator()
 
-        layout.operator("mesh.flip_normals", text="Flip")
         layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
         layout.operator("transform.rotate_normal", text="Rotate")
         layout.operator("mesh.point_normals", text="Point to Target")
