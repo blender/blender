@@ -273,12 +273,10 @@ typedef struct WORKBENCH_PrivateData {
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_EffectInfo {
-  float override_persmat[4][4];
-  float override_persinv[4][4];
-  float override_winmat[4][4];
-  float override_wininv[4][4];
+  /** View */
+  struct DRWView *view;
+  /** Last projection matrix to see if view is still valid. */
   float last_mat[4][4];
-  float curr_mat[4][4];
   int jitter_index;
   float taa_mix_factor;
   bool view_updated;

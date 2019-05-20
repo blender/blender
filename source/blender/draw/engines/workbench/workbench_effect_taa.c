@@ -135,6 +135,8 @@ void workbench_taa_engine_init(WORKBENCH_Data *vedata)
     workbench_taa_jitter_init();
   }
 
+  effect_info->view = NULL;
+
   /* reset complete drawing when navigating. */
   if (effect_info->jitter_index != 0) {
     if (rv3d && rv3d->rflag & RV3D_NAVIGATING) {
@@ -148,12 +150,10 @@ void workbench_taa_engine_init(WORKBENCH_Data *vedata)
   }
 
   {
-    float view[4][4];
-    float win[4][4];
-    DRW_viewport_matrix_get(view, DRW_MAT_VIEW);
-    DRW_viewport_matrix_get(win, DRW_MAT_WIN);
-    mul_m4_m4m4(effect_info->curr_mat, view, win);
-    if (!equals_m4m4(effect_info->curr_mat, effect_info->last_mat)) {
+    float persmat[4][4];
+    DRW_view_persmat_get(NULL, persmat, false);
+    if (!equals_m4m4(persmat, effect_info->last_mat)) {
+      copy_m4_m4(effect_info->last_mat, persmat);
       effect_info->jitter_index = 0;
     }
   }
@@ -217,9 +217,9 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
   WORKBENCH_StorageList *stl = vedata->stl;
   WORKBENCH_EffectInfo *effect_info = stl->effects;
   const float *viewport_size = DRW_viewport_size_get();
+  const DRWView *default_view = DRW_view_default_get();
   int num_samples = 8;
   float(*samples)[2];
-  float mix_factor;
 
   num_samples = workbench_taa_calculate_num_iterations(vedata);
   switch (num_samples) {
@@ -241,41 +241,38 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
       break;
   }
 
-  mix_factor = 1.0f / (effect_info->jitter_index + 1);
-
   const int jitter_index = effect_info->jitter_index;
   const float *transform_offset = samples[jitter_index];
+  effect_info->taa_mix_factor = 1.0f / (effect_info->jitter_index + 1);
   effect_info->jitter_index = (jitter_index + 1) % num_samples;
 
   /* construct new matrices from transform delta */
-  float viewmat[4][4];
-  float persmat[4][4];
-  DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-  DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_get(effect_info->override_winmat, DRW_MAT_WIN);
+  float winmat[4][4], viewmat[4][4], persmat[4][4];
+  DRW_view_winmat_get(default_view, winmat, false);
+  DRW_view_viewmat_get(default_view, viewmat, false);
+  DRW_view_persmat_get(default_view, persmat, false);
 
-  window_translate_m4(effect_info->override_winmat,
+  window_translate_m4(winmat,
                       persmat,
                       transform_offset[0] / viewport_size[0],
                       transform_offset[1] / viewport_size[1]);
 
-  mul_m4_m4m4(effect_info->override_persmat, effect_info->override_winmat, viewmat);
-  invert_m4_m4(effect_info->override_persinv, effect_info->override_persmat);
-  invert_m4_m4(effect_info->override_wininv, effect_info->override_winmat);
-
-  DRW_viewport_matrix_override_set(effect_info->override_persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_override_set(effect_info->override_persinv, DRW_MAT_PERSINV);
-  DRW_viewport_matrix_override_set(effect_info->override_winmat, DRW_MAT_WIN);
-  DRW_viewport_matrix_override_set(effect_info->override_wininv, DRW_MAT_WININV);
-
-  /* weight the mix factor by the jitter index */
-  effect_info->taa_mix_factor = mix_factor;
+  if (effect_info->view) {
+    /* When rendering just update the view. This avoids recomputing the culling. */
+    DRW_view_update_sub(effect_info->view, viewmat, winmat);
+  }
+  else {
+    /* TAA is not making a big change to the matrices.
+     * Reuse the main view culling by creating a subview. */
+    effect_info->view = DRW_view_create_sub(default_view, viewmat, winmat);
+  }
+  DRW_view_set_active(effect_info->view);
 }
 
 void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 {
   /*
-   * If first frame than the offset is 0.0 and its depth is the depth buffer to use
+   * If first frame then the offset is 0.0 and its depth is the depth buffer to use
    * for the rest of the draw engines. We store it in a persistent buffer.
    *
    * If it is not the first frame we copy the persistent buffer back to the
@@ -296,10 +293,9 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
   GPU_framebuffer_blit(dfbl->color_only_fb, 0, fbl->effect_taa_fb, 0, GPU_COLOR_BIT);
 
   if (!DRW_state_is_image_render()) {
-    DRW_viewport_matrix_override_unset_all();
+    DRW_view_set_active(NULL);
   }
 
-  copy_m4_m4(effect_info->last_mat, effect_info->curr_mat);
   if (effect_info->jitter_index != 0 && !DRW_state_is_image_render()) {
     DRW_viewport_request_redraw();
   }

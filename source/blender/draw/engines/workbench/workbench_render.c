@@ -63,24 +63,16 @@ static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *deps
   float frame = BKE_scene_frame_get(scene);
 
   /* Set the persective, view and window matrix. */
-  float winmat[4][4], wininv[4][4];
-  float viewmat[4][4], viewinv[4][4];
-  float persmat[4][4], persinv[4][4];
+  float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
   RE_GetCameraWindow(engine->re, ob_camera_eval, frame, winmat);
   RE_GetCameraModelMatrix(engine->re, ob_camera_eval, viewinv);
 
   invert_m4_m4(viewmat, viewinv);
-  mul_m4_m4m4(persmat, winmat, viewmat);
-  invert_m4_m4(persinv, persmat);
-  invert_m4_m4(wininv, winmat);
 
-  DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
-  DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
-  DRW_viewport_matrix_override_set(wininv, DRW_MAT_WININV);
-  DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
-  DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
+  DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+  DRW_view_default_set(view);
+  DRW_view_set_active(view);
 }
 
 static bool workbench_render_framebuffers_init(void)
@@ -159,9 +151,6 @@ void workbench_render(WORKBENCH_Data *data,
       if (RE_engine_test_break(engine)) {
         break;
       }
-      /* TODO: Save matrices instead of recomputing them for each samples. */
-      workbench_render_matrices_init(engine, depsgraph);
-
       workbench_deferred_draw_background(data);
       workbench_deferred_draw_scene(data);
     }
