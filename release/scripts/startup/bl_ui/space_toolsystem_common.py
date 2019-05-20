@@ -567,11 +567,13 @@ class ToolSelectPanelHelper:
         if space_type is None:
             space_data = context.space_data
             space_type = space_data.type
+        else:
+            space_data = None
 
         if space_type == 'VIEW_3D':
             return space_type, context.mode
         elif space_type == 'IMAGE_EDITOR':
-            if space_type is None:
+            if space_data is None:
                 space_data = context.space_data
             return space_type, space_data.mode
         elif space_type == 'NODE_EDITOR':
