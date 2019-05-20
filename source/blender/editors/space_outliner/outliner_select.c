@@ -450,32 +450,6 @@ static eOLDrawState tree_element_active_material(bContext *C,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_light(bContext *UNUSED(C),
-                                              Scene *UNUSED(scene),
-                                              ViewLayer *view_layer,
-                                              SpaceOutliner *soops,
-                                              TreeElement *te,
-                                              const eOLSetState set)
-{
-  Object *ob;
-
-  /* we search for the object parent */
-  ob = (Object *)outliner_search_back(soops, te, ID_OB);
-  if (ob == NULL || ob != OBACT(view_layer)) {
-    /* just paranoia */
-    return OL_DRAWSEL_NONE;
-  }
-
-  if (set != OL_SETSEL_NONE) {
-    // XXX      extern_set_butspace(F5KEY, 0);
-  }
-  else {
-    return OL_DRAWSEL_NORMAL;
-  }
-
-  return OL_DRAWSEL_NONE;
-}
-
 static eOLDrawState tree_element_active_camera(bContext *UNUSED(C),
                                                Scene *scene,
                                                ViewLayer *UNUSED(sl),
@@ -1041,8 +1015,6 @@ eOLDrawState tree_element_active(bContext *C,
       return tree_element_active_material(C, scene, view_layer, soops, te, set);
     case ID_WO:
       return tree_element_active_world(C, scene, view_layer, soops, te, set);
-    case ID_LA:
-      return tree_element_active_light(C, scene, view_layer, soops, te, set);
     case ID_TXT:
       return tree_element_active_text(C, scene, view_layer, soops, te, set);
     case ID_CA:
