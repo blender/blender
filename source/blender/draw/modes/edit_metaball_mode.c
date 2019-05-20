@@ -93,14 +93,6 @@ typedef struct EDIT_METABALL_PrivateData {
 
 /* *********** FUNCTIONS *********** */
 
-static void EDIT_METABALL_engine_init(void *UNUSED(vedata))
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
-  }
-}
-
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
 static void EDIT_METABALL_cache_init(void *vedata)
@@ -232,7 +224,7 @@ DrawEngineType draw_engine_edit_metaball_type = {
     NULL,
     N_("EditMetaballMode"),
     &EDIT_METABALL_data_size,
-    &EDIT_METABALL_engine_init,
+    NULL,
     &EDIT_METABALL_engine_free,
     &EDIT_METABALL_cache_init,
     &EDIT_METABALL_cache_populate,

@@ -688,7 +688,6 @@ void DRW_state_lock(DRWState state);
 
 void DRW_state_clip_planes_len_set(uint plane_len);
 void DRW_state_clip_planes_reset(void);
-void DRW_state_clip_planes_set_from_rv3d(struct RegionView3D *rv3d);
 
 /* Culling, return true if object is inside view frustum. */
 bool DRW_culling_sphere_test(const BoundSphere *bsphere);

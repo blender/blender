@@ -188,10 +188,6 @@ static void EDIT_MESH_engine_init(void *vedata)
                                 {GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_depth_tx),
                                  GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_color_tx)});
 
-  if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
-  }
-
   const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
   if (!sh_data->weight_face) {

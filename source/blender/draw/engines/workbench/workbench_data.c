@@ -127,7 +127,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     RegionView3D *rv3d = draw_ctx->rv3d;
     if (rv3d->rflag & RV3D_CLIPPING) {
       wpd->world_clip_planes = rv3d->clip;
-      DRW_state_clip_planes_set_from_rv3d(rv3d);
       UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
       if (wpd->use_color_management) {
         srgb_to_linearrgb_v3_v3(wpd->world_clip_planes_color, wpd->world_clip_planes_color);

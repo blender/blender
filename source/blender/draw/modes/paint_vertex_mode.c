@@ -109,9 +109,6 @@ static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
   const DRWContextState *draw_ctx = DRW_context_state_get();
   PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
-  if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
-  }
   const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
   if (!sh_data->face_select_overlay) {

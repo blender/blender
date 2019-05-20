@@ -111,10 +111,6 @@ static void overlay_engine_init(void *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
-  if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
-  }
-
   if (!stl->g_data) {
     /* Alloc transient pointers */
     stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);

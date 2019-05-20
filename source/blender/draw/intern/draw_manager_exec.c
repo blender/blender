@@ -403,11 +403,6 @@ void DRW_state_clip_planes_reset(void)
   /* DUMMY TO REMOVE */
 }
 
-void DRW_state_clip_planes_set_from_rv3d(RegionView3D *rv3d)
-{
-  /* DUMMY TO REMOVE */
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

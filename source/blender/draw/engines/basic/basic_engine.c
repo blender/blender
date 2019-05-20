@@ -96,10 +96,6 @@ static void basic_cache_init(void *vedata)
   BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   const RegionView3D *rv3d = draw_ctx->rv3d;
 
-  if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
-  }
-
   if (!stl->g_data) {
     /* Alloc transient pointers */
     stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
