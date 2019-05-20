@@ -1207,6 +1207,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
   uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
 
   if (ibuf == NULL) {
     uiItemL(col, IFACE_("Can't Load Image"), ICON_NONE);
