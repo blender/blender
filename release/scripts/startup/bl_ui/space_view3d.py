@@ -2240,13 +2240,13 @@ class VIEW3D_MT_object_context_menu(Menu):
                 props.input_scale = 0.01
                 props.header_text = "Camera Lens Scale: %.3f"
 
-            if not obj.data.dof_object:
+            if not obj.data.dof.focus_object:
                 if view and view.camera == obj and view.region_3d.view_perspective == 'CAMERA':
                     props = layout.operator("ui.eyedropper_depth", text="DOF Distance (Pick)")
                 else:
                     props = layout.operator("wm.context_modal_mouse", text="DOF Distance")
                     props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.dof_distance"
+                    props.data_path_item = "data.dof.focus_distance"
                     props.input_scale = 0.02
                     props.header_text = "DOF Distance: %.3f"
 

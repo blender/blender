@@ -66,7 +66,7 @@ void BKE_camera_init(Camera *cam)
   cam->flag |= CAM_SHOWPASSEPARTOUT;
   cam->passepartalpha = 0.5f;
 
-  cam->dof.aperture_fstop = 5.6f;
+  cam->dof.aperture_fstop = 2.8f;
   cam->dof.aperture_ratio = 1.0f;
   cam->dof.focus_distance = 10.0f;
 

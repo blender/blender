@@ -523,7 +523,7 @@ void do_versions_after_linking_cycles(Main *bmain)
         }
 
         /* No depth of field, set default settings. */
-        camera->dof.aperture_fstop = 5.6f;
+        camera->dof.aperture_fstop = 2.8f;
         camera->dof.aperture_blades = 0;
         camera->dof.aperture_rotation = 0.0f;
         camera->dof.aperture_ratio = 1.0f;
