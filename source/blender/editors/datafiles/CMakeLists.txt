@@ -569,9 +569,9 @@ set(ICON_NAMES
   loop_forwards
   back
   forward
+  file_cache
   file_volume
-  alembic
-  volume
+  file_3d
   file_hidden
   file_backup
   disk_drive
