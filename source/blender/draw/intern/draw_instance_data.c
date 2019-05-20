@@ -284,9 +284,9 @@ DRWInstanceDataList *DRW_instance_data_list_create(void)
 {
   DRWInstanceDataList *idatalist = MEM_callocN(sizeof(DRWInstanceDataList), "DRWInstanceDataList");
 
-  idatalist->pool_batching = BLI_memblock_create(sizeof(GPUBatch), true);
-  idatalist->pool_instancing = BLI_memblock_create(sizeof(GPUBatch), true);
-  idatalist->pool_buffers = BLI_memblock_create(sizeof(DRWTempBufferHandle), true);
+  idatalist->pool_batching = BLI_memblock_create(sizeof(GPUBatch));
+  idatalist->pool_instancing = BLI_memblock_create(sizeof(GPUBatch));
+  idatalist->pool_buffers = BLI_memblock_create(sizeof(DRWTempBufferHandle));
 
   BLI_addtail(&g_idatalists, idatalist);
 

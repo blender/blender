@@ -608,28 +608,28 @@ static void drw_viewport_var_init(void)
     DST.vmempool = GPU_viewport_mempool_get(DST.viewport);
 
     if (DST.vmempool->calls == NULL) {
-      DST.vmempool->calls = BLI_memblock_create(sizeof(DRWCall), false);
+      DST.vmempool->calls = BLI_memblock_create(sizeof(DRWCall));
     }
     if (DST.vmempool->states == NULL) {
-      DST.vmempool->states = BLI_memblock_create(sizeof(DRWCallState), false);
+      DST.vmempool->states = BLI_memblock_create(sizeof(DRWCallState));
     }
     if (DST.vmempool->cullstates == NULL) {
-      DST.vmempool->cullstates = BLI_memblock_create(sizeof(DRWCullingState), false);
+      DST.vmempool->cullstates = BLI_memblock_create(sizeof(DRWCullingState));
     }
     if (DST.vmempool->shgroups == NULL) {
-      DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup), false);
+      DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
     }
     if (DST.vmempool->uniforms == NULL) {
-      DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniform), false);
+      DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniform));
     }
     if (DST.vmempool->views == NULL) {
-      DST.vmempool->views = BLI_memblock_create(sizeof(DRWView), false);
+      DST.vmempool->views = BLI_memblock_create(sizeof(DRWView));
     }
     if (DST.vmempool->passes == NULL) {
-      DST.vmempool->passes = BLI_memblock_create(sizeof(DRWPass), false);
+      DST.vmempool->passes = BLI_memblock_create(sizeof(DRWPass));
     }
     if (DST.vmempool->images == NULL) {
-      DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *), false);
+      DST.vmempool->images = BLI_memblock_create(sizeof(GPUTexture *));
     }
 
     DST.idatalist = GPU_viewport_instance_data_list_get(DST.viewport);

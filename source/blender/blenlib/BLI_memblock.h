@@ -35,16 +35,19 @@ struct BLI_memblock;
 typedef struct BLI_memblock BLI_memblock;
 typedef void (*MemblockValFreeFP)(void *val);
 
-BLI_memblock *BLI_memblock_create(uint elem_size,
-                                  const bool clear_alloc) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+BLI_memblock *BLI_memblock_create(uint elem_size) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void *BLI_memblock_alloc(BLI_memblock *mblk) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP valfreefp) ATTR_NONNULL(1);
 void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback) ATTR_NONNULL(1);
 
 typedef struct BLI_memblock_iter {
-  BLI_memblock *mblk;
-  int current_index;
-  int elem_per_chunk;
+  void **chunk_list;
+  int cur_index;
+  int end_index;
+  int chunk_max_ofs;
+  int chunk_idx;
+  int elem_size;
+  int elem_ofs;
 } BLI_memblock_iter;
 
 void BLI_memblock_iternew(BLI_memblock *pool, BLI_memblock_iter *iter) ATTR_NONNULL();
