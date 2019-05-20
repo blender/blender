@@ -2925,13 +2925,15 @@ static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *p
   UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
 }
 
+static const char *close_file_dialog_name = "file_close_popup";
+
 static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegion *ar, void *arg1)
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
   uiStyle *style = UI_style_get();
-  uiBlock *block = UI_block_begin(C, ar, "file_close_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, ar, close_file_dialog_name, UI_EMBOSS);
 
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
@@ -3044,8 +3046,13 @@ static void free_post_file_close_action(void *arg)
 
 void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
 {
-  UI_popup_block_invoke(
-      C, block_create__close_file_dialog, post_action, free_post_file_close_action);
+  if (!UI_popup_block_name_exists(C, close_file_dialog_name)) {
+    UI_popup_block_invoke(
+        C, block_create__close_file_dialog, post_action, free_post_file_close_action);
+  }
+  else {
+    WM_generic_callback_free(post_action);
+  }
 }
 
 bool wm_file_or_image_is_modified(const bContext *C)
