@@ -710,15 +710,24 @@ static void do_lasso_select_mesh__doSelectEdge_pass0(void *user_data,
     data->is_changed = true;
   }
 }
-static void do_lasso_select_mesh__doSelectEdge_pass1(
-    void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
+static void do_lasso_select_mesh__doSelectEdge_pass1(void *user_data,
+                                                     BMEdge *eed,
+                                                     const float screen_co_a[2],
+                                                     const float screen_co_b[2],
+                                                     int index)
 {
-  LassoSelectUserData *data = userData;
+  struct LassoSelectUserData_ForMeshEdge *data_for_edge = user_data;
+  LassoSelectUserData *data = data_for_edge->data;
+  const bool is_visible = (data_for_edge->esel ?
+                               BLI_BITMAP_TEST_BOOL(data_for_edge->esel->select_bitmap,
+                                                    data_for_edge->backbuf_offset + index) :
+                               true);
   const bool is_select = BM_elem_flag_test(eed, BM_ELEM_SELECT);
-  const bool is_inside =
-      (EDBM_backbuf_check(bm_solidoffs + index) &&
-       BLI_lasso_is_edge_inside(
-           data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), IS_CLIPPED));
+  const bool is_inside = (is_visible && BLI_lasso_is_edge_inside(data->mcords,
+                                                                 data->moves,
+                                                                 UNPACK2(screen_co_a),
+                                                                 UNPACK2(screen_co_b),
+                                                                 IS_CLIPPED));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
     BM_edge_select_set(data->vc->em->bm, eed, sel_op_result);
