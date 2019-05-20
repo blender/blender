@@ -67,6 +67,7 @@ struct wmMsgSubscribeValue;
 struct wmOperator;
 struct wmOperatorType;
 struct wmPaintCursor;
+struct wmGenericUserData;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
@@ -794,6 +795,9 @@ void WM_tooltip_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_init(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 double WM_tooltip_time_closed(void);
+
+/* wmGenericUserData */
+void WM_generic_user_data_free(struct wmGenericUserData *user_data);
 
 #ifdef __cplusplus
 }

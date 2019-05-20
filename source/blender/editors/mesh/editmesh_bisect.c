@@ -148,7 +148,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     BisectData *opdata;
 
     opdata = MEM_mallocN(sizeof(BisectData), "inset_operator_data");
-    gesture->userdata = opdata;
+    gesture->user_data.data = opdata;
 
     opdata->backup_len = objects_len;
     opdata->backup = MEM_callocN(sizeof(*opdata->backup) * objects_len, __func__);
@@ -193,7 +193,7 @@ static void edbm_bisect_exit(bContext *C, BisectData *opdata)
 static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = op->customdata;
-  BisectData *opdata = gesture->userdata;
+  BisectData *opdata = gesture->user_data.data;
   BisectData opdata_back = *opdata; /* annoyance, WM_gesture_straightline_modal, frees */
   int ret;
 
@@ -276,7 +276,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
   }
 
   wmGesture *gesture = op->customdata;
-  BisectData *opdata = (gesture != NULL) ? gesture->userdata : NULL;
+  BisectData *opdata = (gesture != NULL) ? gesture->user_data.data : NULL;
 
   /* -------------------------------------------------------------------- */
   /* Modal support */

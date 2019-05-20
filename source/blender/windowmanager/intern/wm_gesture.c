@@ -62,7 +62,7 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
   gesture->type = type;
   gesture->event_type = event->type;
   gesture->winrct = ar->winrct;
-  gesture->userdata_free = true; /* Free if userdata is set. */
+  gesture->user_data.use_free = true; /* Free if userdata is set. */
   gesture->modal_state = GESTURE_MODAL_NOP;
 
   if (ELEM(type,
@@ -106,9 +106,7 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
   }
   BLI_remlink(&win->gesture, gesture);
   MEM_freeN(gesture->customdata);
-  if (gesture->userdata && gesture->userdata_free) {
-    MEM_freeN(gesture->userdata);
-  }
+  WM_generic_user_data_free(&gesture->user_data);
   MEM_freeN(gesture);
 }
 

@@ -695,7 +695,7 @@ static void gradientVertInit__mapFunc(void *userData,
 static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = op->customdata;
-  WPGradient_vertStoreBase *vert_cache = gesture->userdata;
+  WPGradient_vertStoreBase *vert_cache = gesture->user_data.data;
   int ret = WM_gesture_straightline_modal(C, op, event);
 
   if (ret & OPERATOR_RUNNING_MODAL) {
@@ -751,15 +751,15 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   WPGradient_userData data = {NULL};
 
   if (is_interactive) {
-    if (gesture->userdata == NULL) {
-      gesture->userdata = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
-                                          (sizeof(WPGradient_vertStore) * me->totvert),
-                                      __func__);
-      gesture->userdata_free = false;
+    if (gesture->user_data.data == NULL) {
+      gesture->user_data.data = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
+                                                (sizeof(WPGradient_vertStore) * me->totvert),
+                                            __func__);
+      gesture->user_data.use_free = false;
       data.is_init = true;
 
       wpaint_prev_create(
-          &((WPGradient_vertStoreBase *)gesture->userdata)->wpp, me->dvert, me->totvert);
+          &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, me->dvert, me->totvert);
 
       /* on init only, convert face -> vert sel  */
       if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
@@ -767,7 +767,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
       }
     }
 
-    vert_cache = gesture->userdata;
+    vert_cache = gesture->user_data.data;
   }
   else {
     if (ED_wpaint_ensure_data(C, op->reports, 0, NULL) == false) {

@@ -120,6 +120,13 @@ struct wmWindowManager;
 /* Include external gizmo API's */
 #include "gizmo/WM_gizmo_api.h"
 
+typedef struct wmGenericUserData {
+  void *data;
+  /** When NULL, use #MEM_freeN. */
+  void (*free_fn)(void *data);
+  bool use_free;
+} wmGenericUserData;
+
 /* ************** wmOperatorType ************************ */
 
 /* flag */
@@ -442,8 +449,7 @@ typedef struct wmGesture {
   /* customdata for straight line is a recti: (xmin,ymin) is start, (xmax, ymax) is end */
 
   /* free pointer to use for operator allocs (if set, its freed on exit)*/
-  void *userdata;
-  bool userdata_free;
+  wmGenericUserData user_data;
 } wmGesture;
 
 /* ************** wmEvent ************************ */

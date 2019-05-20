@@ -2290,3 +2290,15 @@ void WM_opengl_context_release(void *context)
   BLI_assert(GPU_framebuffer_active_get() == NULL);
   GHOST_ReleaseOpenGLContext((GHOST_ContextHandle)context);
 }
+
+void WM_generic_user_data_free(wmGenericUserData *wm_userdata)
+{
+  if (wm_userdata->data && wm_userdata->use_free) {
+    if (wm_userdata->free_fn) {
+      wm_userdata->free_fn(wm_userdata->data);
+    }
+    else {
+      MEM_freeN(wm_userdata->data);
+    }
+  }
+}
