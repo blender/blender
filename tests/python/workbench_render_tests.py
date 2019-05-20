@@ -14,9 +14,8 @@ def setup():
 
     for scene in bpy.data.scenes:
         scene.render.engine = 'BLENDER_WORKBENCH'
-
-    scene = bpy.context.scene
-    scene.display.shading.color_type = 'TEXTURE'
+        scene.display.shading.light = 'STUDIO'
+        scene.display.shading.color_type = 'TEXTURE'
 
 
 # When run from inside Blender, render and exit.
