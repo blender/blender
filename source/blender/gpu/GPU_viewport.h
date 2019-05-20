@@ -39,8 +39,10 @@ typedef struct GPUViewport GPUViewport;
 typedef struct ViewportMemoryPool {
   struct BLI_memblock *calls;
   struct BLI_memblock *states;
+  struct BLI_memblock *cullstates;
   struct BLI_memblock *shgroups;
   struct BLI_memblock *uniforms;
+  struct BLI_memblock *views;
   struct BLI_memblock *passes;
   struct BLI_memblock *images;
 } ViewportMemoryPool;

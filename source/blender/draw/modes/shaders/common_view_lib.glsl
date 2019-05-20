@@ -9,9 +9,10 @@ layout(std140) uniform viewBlock
   mat4 ProjectionMatrix;
   mat4 ProjectionMatrixInverse;
 
-  vec4 CameraTexCoFactors;
+  vec4 clipPlanes[6];
 
-  vec4 clipPlanes[2];
+  /* TODO move it elsewhere. */
+  vec4 CameraTexCoFactors;
 };
 
 uniform mat4 ModelMatrix;

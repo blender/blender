@@ -538,9 +538,11 @@ static void drw_viewport_cache_resize(void)
 
     BLI_memblock_clear(DST.vmempool->calls, NULL);
     BLI_memblock_clear(DST.vmempool->states, NULL);
+    BLI_memblock_clear(DST.vmempool->cullstates, NULL);
     BLI_memblock_clear(DST.vmempool->shgroups, NULL);
     BLI_memblock_clear(DST.vmempool->uniforms, NULL);
     BLI_memblock_clear(DST.vmempool->passes, NULL);
+    BLI_memblock_clear(DST.vmempool->views, NULL);
     BLI_memblock_clear(DST.vmempool->images, NULL);
   }
 
@@ -611,11 +613,17 @@ static void drw_viewport_var_init(void)
     if (DST.vmempool->states == NULL) {
       DST.vmempool->states = BLI_memblock_create(sizeof(DRWCallState), false);
     }
+    if (DST.vmempool->cullstates == NULL) {
+      DST.vmempool->cullstates = BLI_memblock_create(sizeof(DRWCullingState), false);
+    }
     if (DST.vmempool->shgroups == NULL) {
       DST.vmempool->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup), false);
     }
     if (DST.vmempool->uniforms == NULL) {
       DST.vmempool->uniforms = BLI_memblock_create(sizeof(DRWUniform), false);
+    }
+    if (DST.vmempool->views == NULL) {
+      DST.vmempool->views = BLI_memblock_create(sizeof(DRWView), false);
     }
     if (DST.vmempool->passes == NULL) {
       DST.vmempool->passes = BLI_memblock_create(sizeof(DRWPass), false);
@@ -638,31 +646,38 @@ static void drw_viewport_var_init(void)
     DST.vmempool = NULL;
   }
 
+  DST.primary_view_ct = 0;
+
   if (rv3d != NULL) {
-    /* Refresh DST.screenvecs */
-    copy_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
-    copy_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
-    normalize_v3(DST.screenvecs[0]);
-    normalize_v3(DST.screenvecs[1]);
+    normalize_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
+    normalize_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
 
-    /* Refresh DST.pixelsize */
     DST.pixsize = rv3d->pixsize;
+    DST.view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
+    copy_v4_v4(DST.view_default->storage.viewcamtexcofac, rv3d->viewcamtexcofac);
 
-    copy_m4_m4(DST.original_mat.mat[DRW_MAT_PERS], rv3d->persmat);
-    copy_m4_m4(DST.original_mat.mat[DRW_MAT_PERSINV], rv3d->persinv);
-    copy_m4_m4(DST.original_mat.mat[DRW_MAT_VIEW], rv3d->viewmat);
-    copy_m4_m4(DST.original_mat.mat[DRW_MAT_VIEWINV], rv3d->viewinv);
-    copy_m4_m4(DST.original_mat.mat[DRW_MAT_WIN], rv3d->winmat);
-    invert_m4_m4(DST.original_mat.mat[DRW_MAT_WININV], rv3d->winmat);
+    if (DST.draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+      int plane_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
+      DRW_view_clip_planes_set(DST.view_default, rv3d->clip, plane_len);
+    }
 
-    memcpy(DST.view_data.matstate.mat, DST.original_mat.mat, sizeof(DST.original_mat.mat));
-
-    copy_v4_v4(DST.view_data.viewcamtexcofac, rv3d->viewcamtexcofac);
+    /* TODO should be set to NULL. */
+    DST.view_active = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
   }
   else {
-    copy_v4_fl4(DST.view_data.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
+    zero_v3(DST.screenvecs[0]);
+    zero_v3(DST.screenvecs[1]);
+
+    DST.pixsize = 1.0f;
+    DST.view_default = NULL;
+
+    /* TODO should be set to NULL. */
+    float mat[4][4];
+    unit_m4(mat);
+    DST.view_active = DRW_view_create(mat, mat, NULL, NULL, NULL);
   }
 
+  /* fclem: Is this still needed ? */
   if (DST.draw_ctx.object_edit) {
     ED_view3d_init_mats_rv3d(DST.draw_ctx.object_edit, rv3d);
   }
@@ -674,61 +689,49 @@ static void drw_viewport_var_init(void)
     G_draw.view_ubo = DRW_uniformbuffer_create(sizeof(ViewUboStorage), NULL);
   }
 
-  DST.override_mat = 0;
-  DST.dirty_mat = true;
-  DST.state_cache_id = 1;
-
-  DST.clipping.updated = false;
-
   memset(DST.object_instance_data, 0x0, sizeof(DST.object_instance_data));
 }
+
+/* TODO remove all of the DRW_viewport_matrix_* functions. */
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
   BLI_assert(type >= 0 && type < DRW_MAT_COUNT);
   /* Can't use this in render mode. */
-  BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL);
+  // BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL);
 
-  copy_m4_m4(mat, DST.view_data.matstate.mat[type]);
+  copy_m4_m4(mat, DST.view_active->storage.matstate.mat[type]);
 }
 
 void DRW_viewport_matrix_get_all(DRWMatrixState *state)
 {
-  memcpy(state, DST.view_data.matstate.mat, sizeof(DRWMatrixState));
+  memcpy(state, DST.view_active->storage.matstate.mat, sizeof(DRWMatrixState));
 }
 
 void DRW_viewport_matrix_override_set(const float mat[4][4], DRWViewportMatrixType type)
 {
   BLI_assert(type < DRW_MAT_COUNT);
-  copy_m4_m4(DST.view_data.matstate.mat[type], mat);
-  DST.override_mat |= (1 << type);
-  DST.dirty_mat = true;
-  DST.clipping.updated = false;
+  copy_m4_m4(DST.view_active->storage.matstate.mat[type], mat);
+  DST.view_active->is_dirty = true;
 }
 
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 {
   BLI_assert(type < DRW_MAT_COUNT);
-  copy_m4_m4(DST.view_data.matstate.mat[type], DST.original_mat.mat[type]);
-  DST.override_mat &= ~(1 << type);
-  DST.dirty_mat = true;
-  DST.clipping.updated = false;
+  copy_m4_m4(DST.view_active->storage.matstate.mat[type],
+             DST.view_default->storage.matstate.mat[type]);
+  DST.view_active->is_dirty = true;
 }
 
 void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
 {
-  memcpy(DST.view_data.matstate.mat, state, sizeof(DRWMatrixState));
-  DST.override_mat = 0xFFFFFF;
-  DST.dirty_mat = true;
-  DST.clipping.updated = false;
+  memcpy(DST.view_active->storage.matstate.mat, state, sizeof(DRWMatrixState));
+  DST.view_active->is_dirty = true;
 }
 
 void DRW_viewport_matrix_override_unset_all(void)
 {
-  memcpy(DST.view_data.matstate.mat, DST.original_mat.mat, sizeof(DRWMatrixState));
-  DST.override_mat = 0;
-  DST.dirty_mat = true;
-  DST.clipping.updated = false;
+  DRW_viewport_matrix_override_set_all(&DST.view_default->storage.matstate);
 }
 
 bool DRW_viewport_is_persp_get(void)
@@ -738,7 +741,7 @@ bool DRW_viewport_is_persp_get(void)
     return rv3d->is_persp;
   }
   else {
-    return DST.view_data.matstate.mat[DRW_MAT_WIN][3][3] == 0.0f;
+    return DST.view_active->storage.matstate.winmat[3][3] == 0.0f;
   }
 }
 

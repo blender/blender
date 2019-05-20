@@ -81,6 +81,7 @@ struct rcti;
 
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
+typedef struct DRWView DRWView;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
 
@@ -411,10 +412,10 @@ void DRW_shgroup_call_object_ex(DRWShadingGroup *shgroup,
   DRW_shgroup_call_object_ex(shgroup, geom, ob, true)
 
 /* TODO(fclem) remove this when we have DRWView */
+/* user_data is used by DRWCallVisibilityFn defined in DRWView. */
 void DRW_shgroup_call_object_with_callback(DRWShadingGroup *shgroup,
                                            struct GPUBatch *geom,
                                            struct Object *ob,
-                                           DRWCallVisibilityFn *callback,
                                            void *user_data);
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
@@ -520,6 +521,7 @@ bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
 
 /* Passes */
 DRWPass *DRW_pass_create(const char *name, DRWState state);
+/* TODO Replace with passes inheritance. */
 void DRW_pass_state_set(DRWPass *pass, DRWState state);
 void DRW_pass_state_add(DRWPass *pass, DRWState state);
 void DRW_pass_state_remove(DRWPass *pass, DRWState state);
@@ -531,6 +533,50 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass);
 bool DRW_pass_is_empty(DRWPass *pass);
 
 #define DRW_PASS_CREATE(pass, state) (pass = DRW_pass_create(#pass, state))
+
+/* Views */
+DRWView *DRW_view_create(const float viewmat[4][4],
+                         const float winmat[4][4],
+                         const float (*culling_viewmat)[4],
+                         const float (*culling_winmat)[4],
+                         DRWCallVisibilityFn *visibility_fn);
+DRWView *DRW_view_create_sub(const DRWView *parent_view,
+                             const float viewmat[4][4],
+                             const float winmat[4][4]);
+
+void DRW_view_update(DRWView *view,
+                     const float viewmat[4][4],
+                     const float winmat[4][4],
+                     const float (*culling_viewmat)[4],
+                     const float (*culling_winmat)[4]);
+void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4]);
+
+const DRWView *DRW_view_default_get(void);
+void DRW_view_default_set(DRWView *view);
+
+void DRW_view_set_active(DRWView *view);
+
+void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
+
+/* For all getters, if view is NULL, default view is assumed. */
+void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse);
+void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse);
+void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse);
+
+void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners);
+void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4]);
+
+/* These are in view-space, so negative if in perspective.
+ * Extract near and far clip distance from the projection matrix. */
+float DRW_view_near_distance_get(const DRWView *view);
+float DRW_view_far_distance_get(const DRWView *view);
+bool DRW_view_is_persp_get(const DRWView *view);
+
+/* Culling, return true if object is inside view frustum. */
+/* TODO */
+// bool DRW_culling_sphere_test(DRWView *view, BoundSphere *bsphere);
+// bool DRW_culling_box_test(DRWView *view, BoundBox *bbox);
+// bool DRW_culling_plane_test(DRWView *view, float plane[4]);
 
 /* Viewport */
 typedef enum {
@@ -645,9 +691,9 @@ void DRW_state_clip_planes_reset(void);
 void DRW_state_clip_planes_set_from_rv3d(struct RegionView3D *rv3d);
 
 /* Culling, return true if object is inside view frustum. */
-bool DRW_culling_sphere_test(BoundSphere *bsphere);
-bool DRW_culling_box_test(BoundBox *bbox);
-bool DRW_culling_plane_test(float plane[4]);
+bool DRW_culling_sphere_test(const BoundSphere *bsphere);
+bool DRW_culling_box_test(const BoundBox *bbox);
+bool DRW_culling_plane_test(const float plane[4]);
 
 void DRW_culling_frustum_corners_get(BoundBox *corners);
 void DRW_culling_frustum_planes_get(float planes[6][4]);

@@ -238,7 +238,7 @@ void drw_state_set(DRWState state)
     int test;
     if ((test = CHANGED_TO(DRW_STATE_CLIP_PLANES))) {
       if (test == 1) {
-        for (int i = 0; i < DST.clip_planes_len; ++i) {
+        for (int i = 0; i < DST.view_active->clip_planes_len; ++i) {
           glEnable(GL_CLIP_DISTANCE0 + i);
         }
       }
@@ -395,274 +395,47 @@ void DRW_state_reset(void)
 void DRW_state_clip_planes_len_set(uint plane_len)
 {
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
-  DST.clip_planes_len = plane_len;
+  /* DUMMY TO REMOVE */
 }
 
 void DRW_state_clip_planes_reset(void)
 {
-  DST.clip_planes_len = 0;
+  /* DUMMY TO REMOVE */
 }
 
 void DRW_state_clip_planes_set_from_rv3d(RegionView3D *rv3d)
 {
-  int max_len = 6;
-  int real_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : max_len;
-  while (real_len < max_len) {
-    /* Fill in dummy values that wont change results (6 is hard coded in shaders). */
-    copy_v4_v4(rv3d->clip[real_len], rv3d->clip[3]);
-    real_len++;
-  }
-
-  DRW_state_clip_planes_len_set(max_len);
+  /* DUMMY TO REMOVE */
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Clipping (DRW_clipping)
+/** \name Culling (DRW_culling)
  * \{ */
 
-/* Extract the 8 corners from a Projection Matrix.
- * Although less accurate, this solution can be simplified as follows:
- * BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const
- * float[3]){1.0f, 1.0f, 1.0f}); for (int i = 0; i < 8; i++) {mul_project_m4_v3(projinv,
- * bbox.vec[i]);}
- */
-static void draw_frustum_boundbox_calc(const float (*projmat)[4], BoundBox *r_bbox)
+static bool draw_call_is_culled(DRWCall *call, DRWView *view)
 {
-  float left, right, bottom, top, near, far;
-  bool is_persp = projmat[3][3] == 0.0f;
-
-  projmat_dimensions(projmat, &left, &right, &bottom, &top, &near, &far);
-
-  if (is_persp) {
-    left *= near;
-    right *= near;
-    bottom *= near;
-    top *= near;
-  }
-
-  r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
-  r_bbox->vec[0][0] = r_bbox->vec[3][0] = left;
-  r_bbox->vec[4][0] = r_bbox->vec[7][0] = right;
-  r_bbox->vec[0][1] = r_bbox->vec[4][1] = bottom;
-  r_bbox->vec[7][1] = r_bbox->vec[3][1] = top;
-
-  /* Get the coordinates of the far plane. */
-  if (is_persp) {
-    float sca_far = far / near;
-    left *= sca_far;
-    right *= sca_far;
-    bottom *= sca_far;
-    top *= sca_far;
-  }
-
-  r_bbox->vec[1][2] = r_bbox->vec[2][2] = r_bbox->vec[6][2] = r_bbox->vec[5][2] = -far;
-  r_bbox->vec[1][0] = r_bbox->vec[2][0] = left;
-  r_bbox->vec[6][0] = r_bbox->vec[5][0] = right;
-  r_bbox->vec[1][1] = r_bbox->vec[5][1] = bottom;
-  r_bbox->vec[2][1] = r_bbox->vec[6][1] = top;
+  return (call->state->culling->mask & view->culling_mask) != 0;
 }
 
-static void draw_clipping_setup_from_view(void)
+/* Set active view for rendering. */
+void DRW_view_set_active(DRWView *view)
 {
-  if (DST.clipping.updated) {
-    return;
-  }
-
-  float(*viewinv)[4] = DST.view_data.matstate.mat[DRW_MAT_VIEWINV];
-  float(*projmat)[4] = DST.view_data.matstate.mat[DRW_MAT_WIN];
-  float(*projinv)[4] = DST.view_data.matstate.mat[DRW_MAT_WININV];
-  BoundSphere *bsphere = &DST.clipping.frustum_bsphere;
-
-  /* Extract Clipping Planes */
-  BoundBox bbox;
-#if 0 /* It has accuracy problems. */
-  BKE_boundbox_init_from_minmax(
-      &bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
-  for (int i = 0; i < 8; i++) {
-    mul_project_m4_v3(projinv, bbox.vec[i]);
-  }
-#else
-  draw_frustum_boundbox_calc(projmat, &bbox);
-#endif
-  /* Transform into world space. */
-  for (int i = 0; i < 8; i++) {
-    mul_m4_v3(viewinv, bbox.vec[i]);
-  }
-
-  memcpy(&DST.clipping.frustum_corners, &bbox, sizeof(BoundBox));
-
-  /* Compute clip planes using the world space frustum corners. */
-  for (int p = 0; p < 6; p++) {
-    int q, r, s;
-    switch (p) {
-      case 0:
-        q = 1;
-        r = 2;
-        s = 3;
-        break; /* -X */
-      case 1:
-        q = 0;
-        r = 4;
-        s = 5;
-        break; /* -Y */
-      case 2:
-        q = 1;
-        r = 5;
-        s = 6;
-        break; /* +Z (far) */
-      case 3:
-        q = 2;
-        r = 6;
-        s = 7;
-        break; /* +Y */
-      case 4:
-        q = 0;
-        r = 3;
-        s = 7;
-        break; /* -Z (near) */
-      default:
-        q = 4;
-        r = 7;
-        s = 6;
-        break; /* +X */
-    }
-    if (DST.frontface == GL_CW) {
-      SWAP(int, q, s);
-    }
-
-    normal_quad_v3(
-        DST.clipping.frustum_planes[p], bbox.vec[p], bbox.vec[q], bbox.vec[r], bbox.vec[s]);
-    /* Increase precision and use the mean of all 4 corners. */
-    DST.clipping.frustum_planes[p][3] = -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[p]);
-    DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[q]);
-    DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[r]);
-    DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[s]);
-    DST.clipping.frustum_planes[p][3] *= 0.25f;
-  }
-
-  /* Extract Bounding Sphere */
-  if (projmat[3][3] != 0.0f) {
-    /* Orthographic */
-    /* The most extreme points on the near and far plane. (normalized device coords). */
-    float *nearpoint = bbox.vec[0];
-    float *farpoint = bbox.vec[6];
-
-    /* just use median point */
-    mid_v3_v3v3(bsphere->center, farpoint, nearpoint);
-    bsphere->radius = len_v3v3(bsphere->center, farpoint);
-  }
-  else if (projmat[2][0] == 0.0f && projmat[2][1] == 0.0f) {
-    /* Perspective with symmetrical frustum. */
-
-    /* We obtain the center and radius of the circumscribed circle of the
-     * isosceles trapezoid composed by the diagonals of the near and far clipping plane */
-
-    /* center of each clipping plane */
-    float mid_min[3], mid_max[3];
-    mid_v3_v3v3(mid_min, bbox.vec[3], bbox.vec[4]);
-    mid_v3_v3v3(mid_max, bbox.vec[2], bbox.vec[5]);
-
-    /* square length of the diagonals of each clipping plane */
-    float a_sq = len_squared_v3v3(bbox.vec[3], bbox.vec[4]);
-    float b_sq = len_squared_v3v3(bbox.vec[2], bbox.vec[5]);
-
-    /* distance squared between clipping planes */
-    float h_sq = len_squared_v3v3(mid_min, mid_max);
-
-    float fac = (4 * h_sq + b_sq - a_sq) / (8 * h_sq);
-
-    /* The goal is to get the smallest sphere,
-     * not the sphere that passes through each corner */
-    CLAMP(fac, 0.0f, 1.0f);
-
-    interp_v3_v3v3(bsphere->center, mid_min, mid_max, fac);
-
-    /* distance from the center to one of the points of the far plane (1, 2, 5, 6) */
-    bsphere->radius = len_v3v3(bsphere->center, bbox.vec[1]);
-  }
-  else {
-    /* Perspective with asymmetrical frustum. */
-
-    /* We put the sphere center on the line that goes from origin
-     * to the center of the far clipping plane. */
-
-    /* Detect which of the corner of the far clipping plane is the farthest to the origin */
-    float nfar[4];               /* most extreme far point in NDC space */
-    float farxy[2];              /* farpoint projection onto the near plane */
-    float farpoint[3] = {0.0f};  /* most extreme far point in camera coordinate */
-    float nearpoint[3];          /* most extreme near point in camera coordinate */
-    float farcenter[3] = {0.0f}; /* center of far cliping plane in camera coordinate */
-    float F = -1.0f, N;          /* square distance of far and near point to origin */
-    float f, n; /* distance of far and near point to z axis. f is always > 0 but n can be < 0 */
-    float e, s; /* far and near clipping distance (<0) */
-    float c;    /* slope of center line = distance of far clipping center
-                 * to z axis / far clipping distance. */
-    float z;    /* projection of sphere center on z axis (<0) */
-
-    /* Find farthest corner and center of far clip plane. */
-    float corner[3] = {1.0f, 1.0f, 1.0f}; /* in clip space */
-    for (int i = 0; i < 4; i++) {
-      float point[3];
-      mul_v3_project_m4_v3(point, projinv, corner);
-      float len = len_squared_v3(point);
-      if (len > F) {
-        copy_v3_v3(nfar, corner);
-        copy_v3_v3(farpoint, point);
-        F = len;
-      }
-      add_v3_v3(farcenter, point);
-      /* rotate by 90 degree to walk through the 4 points of the far clip plane */
-      float tmp = corner[0];
-      corner[0] = -corner[1];
-      corner[1] = tmp;
-    }
-
-    /* the far center is the average of the far clipping points */
-    mul_v3_fl(farcenter, 0.25f);
-    /* the extreme near point is the opposite point on the near clipping plane */
-    copy_v3_fl3(nfar, -nfar[0], -nfar[1], -1.0f);
-    mul_v3_project_m4_v3(nearpoint, projinv, nfar);
-    /* this is a frustum projection */
-    N = len_squared_v3(nearpoint);
-    e = farpoint[2];
-    s = nearpoint[2];
-    /* distance to view Z axis */
-    f = len_v2(farpoint);
-    /* get corresponding point on the near plane */
-    mul_v2_v2fl(farxy, farpoint, s / e);
-    /* this formula preserve the sign of n */
-    sub_v2_v2(nearpoint, farxy);
-    n = f * s / e - len_v2(nearpoint);
-    c = len_v2(farcenter) / e;
-    /* the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case */
-    z = (F - N) / (2.0f * (e - s + c * (f - n)));
-
-    bsphere->center[0] = farcenter[0] * z / e;
-    bsphere->center[1] = farcenter[1] * z / e;
-    bsphere->center[2] = z;
-    bsphere->radius = len_v3v3(bsphere->center, farpoint);
-
-    /* Transform to world space. */
-    mul_m4_v3(viewinv, bsphere->center);
-  }
-
-  DST.clipping.updated = true;
+  DST.view_active = (view) ? view : DST.view_default;
 }
 
 /* Return True if the given BoundSphere intersect the current view frustum */
-bool DRW_culling_sphere_test(BoundSphere *bsphere)
+static bool draw_culling_sphere_test(const BoundSphere *frustum_bsphere,
+                                     const float (*frustum_planes)[4],
+                                     const BoundSphere *bsphere)
 {
-  draw_clipping_setup_from_view();
-
   /* Bypass test if radius is negative. */
   if (bsphere->radius < 0.0f) {
     return true;
   }
 
   /* Do a rough test first: Sphere VS Sphere intersect. */
-  BoundSphere *frustum_bsphere = &DST.clipping.frustum_bsphere;
   float center_dist_sq = len_squared_v3v3(bsphere->center, frustum_bsphere->center);
   float radius_sum = bsphere->radius + frustum_bsphere->radius;
   if (center_dist_sq > SQUARE(radius_sum)) {
@@ -674,26 +447,21 @@ bool DRW_culling_sphere_test(BoundSphere *bsphere)
   /* TODO order planes with sides first then far then near clip. Should be better culling
    * heuristic when sculpting. */
   for (int p = 0; p < 6; p++) {
-    float dist = plane_point_side_v3(DST.clipping.frustum_planes[p], bsphere->center);
+    float dist = plane_point_side_v3(frustum_planes[p], bsphere->center);
     if (dist < -bsphere->radius) {
       return false;
     }
   }
-
   return true;
 }
 
-/* Return True if the given BoundBox intersect the current view frustum.
- * bbox must be in world space. */
-bool DRW_culling_box_test(BoundBox *bbox)
+static bool draw_culling_box_test(const float (*frustum_planes)[4], const BoundBox *bbox)
 {
-  draw_clipping_setup_from_view();
-
   /* 6 view frustum planes */
   for (int p = 0; p < 6; p++) {
     /* 8 box vertices. */
     for (int v = 0; v < 8; v++) {
-      float dist = plane_point_side_v3(DST.clipping.frustum_planes[p], bbox->vec[v]);
+      float dist = plane_point_side_v3(frustum_planes[p], bbox->vec[v]);
       if (dist > 0.0f) {
         /* At least one point in front of this plane.
          * Go to next plane. */
@@ -705,37 +473,96 @@ bool DRW_culling_box_test(BoundBox *bbox)
       }
     }
   }
-
   return true;
 }
 
-/* Return True if the current view frustum is inside or intersect the given plane */
-bool DRW_culling_plane_test(float plane[4])
+static bool draw_culling_plane_test(const BoundBox *corners, const float plane[4])
 {
-  draw_clipping_setup_from_view();
-
   /* Test against the 8 frustum corners. */
   for (int c = 0; c < 8; c++) {
-    float dist = plane_point_side_v3(plane, DST.clipping.frustum_corners.vec[c]);
+    float dist = plane_point_side_v3(plane, corners->vec[c]);
     if (dist < 0.0f) {
       return true;
     }
   }
-
   return false;
+}
+
+/* Return True if the given BoundSphere intersect the current view frustum.
+ * bsphere must be in world space. */
+bool DRW_culling_sphere_test(const BoundSphere *bsphere)
+{
+  return draw_culling_sphere_test(
+      &DST.view_active->frustum_bsphere, DST.view_active->frustum_planes, bsphere);
+}
+
+/* Return True if the given BoundBox intersect the current view frustum.
+ * bbox must be in world space. */
+bool DRW_culling_box_test(const BoundBox *bbox)
+{
+  return draw_culling_box_test(DST.view_active->frustum_planes, bbox);
+}
+
+/* Return True if the view frustum is inside or intersect the given plane.
+ * plane must be in world space. */
+bool DRW_culling_plane_test(const float plane[4])
+{
+  return draw_culling_plane_test(&DST.view_active->frustum_corners, plane);
 }
 
 void DRW_culling_frustum_corners_get(BoundBox *corners)
 {
-  draw_clipping_setup_from_view();
-  memcpy(corners, &DST.clipping.frustum_corners, sizeof(BoundBox));
+  *corners = DST.view_active->frustum_corners;
 }
 
-/* See draw_clipping_setup_from_view() for the plane order. */
 void DRW_culling_frustum_planes_get(float planes[6][4])
 {
-  draw_clipping_setup_from_view();
-  memcpy(planes, &DST.clipping.frustum_planes, sizeof(DST.clipping.frustum_planes));
+  memcpy(planes, DST.view_active->frustum_planes, sizeof(float) * 6 * 4);
+}
+
+static void draw_compute_culling(DRWView *view)
+{
+  view = view->parent ? view->parent : view;
+
+  /* TODO(fclem) multithread this. */
+  /* TODO(fclem) compute all dirty views at once. */
+  if (!view->is_dirty) {
+    return;
+  }
+
+  BLI_memblock_iter iter;
+  BLI_memblock_iternew(DST.vmempool->cullstates, &iter);
+  DRWCullingState *cull;
+  while ((cull = BLI_memblock_iterstep(&iter))) {
+    if (cull->bsphere.radius < 0.0) {
+      cull->mask = 0;
+    }
+    else {
+      bool culled = !draw_culling_sphere_test(
+          &view->frustum_bsphere, view->frustum_planes, &cull->bsphere);
+
+#ifdef DRW_DEBUG_CULLING
+      if (G.debug_value != 0) {
+        if (culled) {
+          DRW_debug_sphere(
+              cull->bsphere.center, cull->bsphere.radius, (const float[4]){1, 0, 0, 1});
+        }
+        else {
+          DRW_debug_sphere(
+              cull->bsphere.center, cull->bsphere.radius, (const float[4]){0, 1, 0, 1});
+        }
+      }
+#endif
+
+      if (view->visibility_fn) {
+        culled = !view->visibility_fn(!culled, cull->user_data);
+      }
+
+      SET_FLAG_FROM_TEST(cull->mask, culled, view->culling_mask);
+    }
+  }
+
+  view->is_dirty = false;
 }
 
 /** \} */
@@ -744,100 +571,36 @@ void DRW_culling_frustum_planes_get(float planes[6][4])
 /** \name Draw (DRW_draw)
  * \{ */
 
-static void draw_visibility_eval(DRWCallState *st)
-{
-  bool culled = st->flag & DRW_CALL_CULLED;
-
-  if (st->cache_id != DST.state_cache_id) {
-    /* Update culling result for this view. */
-    culled = !DRW_culling_sphere_test(&st->bsphere);
-  }
-
-  if (st->visibility_cb) {
-    culled = !st->visibility_cb(!culled, st->user_data);
-  }
-
-  SET_FLAG_FROM_TEST(st->flag, culled, DRW_CALL_CULLED);
-}
-
-static void draw_matrices_model_prepare(DRWCallState *st)
-{
-  if (st->cache_id == DST.state_cache_id) {
-    /* Values are already updated for this view. */
-    return;
-  }
-  else {
-    st->cache_id = DST.state_cache_id;
-  }
-
-  /* No need to go further the call will not be used. */
-  if ((st->flag & DRW_CALL_CULLED) != 0 && (st->flag & DRW_CALL_BYPASS_CULLING) == 0) {
-    return;
-  }
-
-  if (st->matflag & DRW_CALL_MODELVIEWPROJECTION) {
-    mul_m4_m4m4(st->modelviewprojection, DST.view_data.matstate.mat[DRW_MAT_PERS], st->model);
-  }
-}
-
 static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
 {
-  /* step 1 : bind object dependent matrices */
-  if (call != NULL) {
-    DRWCallState *state = call->state;
+  BLI_assert(call);
+  DRWCallState *state = call->state;
 
-    if (shgroup->model != -1) {
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->model, 16, 1, (float *)state->model);
-    }
-    if (shgroup->modelinverse != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->modelinverse, 16, 1, (float *)state->modelinverse);
-    }
-    if (shgroup->modelviewprojection != -1) {
-      GPU_shader_uniform_vector(shgroup->shader,
-                                shgroup->modelviewprojection,
-                                16,
-                                1,
-                                (float *)state->modelviewprojection);
-    }
-    if (shgroup->objectinfo != -1) {
-      float infos[4];
-      infos[0] = state->ob_index;
-      // infos[1]; /* UNUSED. */
-      infos[2] = state->ob_random;
-      infos[3] = (state->flag & DRW_CALL_NEGSCALE) ? -1.0f : 1.0f;
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)infos);
-    }
-    if (shgroup->orcotexfac != -1) {
-      GPU_shader_uniform_vector(
-          shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)state->orcotexfac);
-    }
+  if (shgroup->model != -1) {
+    GPU_shader_uniform_vector(shgroup->shader, shgroup->model, 16, 1, (float *)state->model);
   }
-  else {
-    /* For instancing and batching. */
-    float unitmat[4][4];
-    unit_m4(unitmat);
-
-    if (shgroup->model != -1) {
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->model, 16, 1, (float *)unitmat);
-    }
-    if (shgroup->modelinverse != -1) {
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->modelinverse, 16, 1, (float *)unitmat);
-    }
-    if (shgroup->modelviewprojection != -1) {
-      GPU_shader_uniform_vector(shgroup->shader,
-                                shgroup->modelviewprojection,
-                                16,
-                                1,
-                                (float *)DST.view_data.matstate.mat[DRW_MAT_PERS]);
-    }
-    if (shgroup->objectinfo != -1) {
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)unitmat);
-    }
-    if (shgroup->orcotexfac != -1) {
-      float orcofacs[2][3] = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}};
-      GPU_shader_uniform_vector(shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)orcofacs);
-    }
+  if (shgroup->modelinverse != -1) {
+    GPU_shader_uniform_vector(
+        shgroup->shader, shgroup->modelinverse, 16, 1, (float *)state->modelinverse);
+  }
+  if (shgroup->objectinfo != -1) {
+    float infos[4];
+    infos[0] = state->ob_index;
+    // infos[1]; /* UNUSED. */
+    infos[2] = state->ob_random;
+    infos[3] = (state->flag & DRW_CALL_NEGSCALE) ? -1.0f : 1.0f;
+    GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 4, 1, (float *)infos);
+  }
+  if (shgroup->orcotexfac != -1) {
+    GPU_shader_uniform_vector(
+        shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)state->orcotexfac);
+  }
+  /* Still supported for compatibility with gpu_shader_* but should be forbidden
+   * and is slow (since it does not cache the result). */
+  if (shgroup->modelviewprojection != -1) {
+    float mvp[4][4];
+    mul_m4_m4m4(mvp, DST.view_active->storage.matstate.persmat, state->model);
+    GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)mvp);
   }
 }
 
@@ -1161,10 +924,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     int callid = 0;
     for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 
-      /* OPTI/IDEA(clem): Do this preparation in another thread. */
-      draw_visibility_eval(call->state);
-
-      if ((call->state->flag & DRW_CALL_CULLED) != 0) {
+      if (draw_call_is_culled(call, DST.view_active)) {
         continue;
       }
 
@@ -1206,29 +966,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 static void drw_update_view(void)
 {
-  if (DST.dirty_mat) {
-    DST.state_cache_id++;
-    DST.dirty_mat = false;
+  /* TODO(fclem) update a big UBO and only bind ranges here. */
+  DRW_uniformbuffer_update(G_draw.view_ubo, &DST.view_active->storage);
 
-    DRW_uniformbuffer_update(G_draw.view_ubo, &DST.view_data);
+  /* TODO get rid of this. */
+  DST.view_storage_cpy = DST.view_active->storage;
 
-    /* Catch integer wrap around. */
-    if (UNLIKELY(DST.state_cache_id == 0)) {
-      DST.state_cache_id = 1;
-      /* We must reset all CallStates to ensure that not
-       * a single one stayed with cache_id equal to 1. */
-      BLI_memblock_iter iter;
-      DRWCallState *state;
-      BLI_memblock_iternew(DST.vmempool->states, &iter);
-      while ((state = BLI_memblock_iterstep(&iter))) {
-        state->cache_id = 0;
-      }
-    }
-
-    /* TODO dispatch threads to compute matrices/culling */
-  }
-
-  draw_clipping_setup_from_view();
+  draw_compute_culling(DST.view_active);
 }
 
 static void drw_draw_pass_ex(DRWPass *pass,

@@ -43,6 +43,7 @@
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
 
+#define DRW_DEBUG_CULLING
 #define DRW_DEBUG_USE_UNIFORM_NAME 0
 #define DRW_UNIFORM_BUFFER_NAME 64
 
@@ -91,9 +92,7 @@
 
 /* Used by DRWCallState.flag */
 enum {
-  DRW_CALL_CULLED = (1 << 0),
   DRW_CALL_NEGSCALE = (1 << 1),
-  DRW_CALL_BYPASS_CULLING = (1 << 2),
 };
 
 /* Used by DRWCallState.matflag */
@@ -104,22 +103,24 @@ enum {
   DRW_CALL_OBJECTINFO = (1 << 3),
 };
 
-typedef struct DRWCallState {
-  DRWCallVisibilityFn *visibility_cb;
-  void *user_data;
-
-  uchar flag;
-  uchar cache_id; /* Compared with DST.state_cache_id to see if matrices are still valid. */
-  uchar matflag;  /* Which matrices to compute. */
-  short ob_index;
+typedef struct DRWCullingState {
+  uint32_t mask;
   /* Culling: Using Bounding Sphere for now for faster culling.
-   * Not ideal for planes. */
+   * Not ideal for planes. Could be extended. */
   BoundSphere bsphere;
+  /* Grrr only used by EEVEE. */
+  void *user_data;
+} DRWCullingState;
+
+typedef struct DRWCallState {
+  DRWCullingState *culling;
+  uchar flag;
+  uchar matflag; /* Which matrices to compute. */
+  short ob_index;
   /* Matrices */
   float model[4][4];
   float modelinverse[4][4];
-  float modelviewprojection[4][4];
-  float orcotexfac[2][3]; /* Not view dependent */
+  float orcotexfac[2][3];
   float ob_random;
 } DRWCallState;
 
@@ -213,23 +214,42 @@ struct DRWPass {
   char name[MAX_PASS_NAME];
 };
 
+/* keep in sync with viewBlock */
+typedef struct ViewUboStorage {
+  DRWMatrixState matstate;
+  float clipplanes[6][4];
+  /* Should not be here. Not view dependant (only main view). */
+  float viewcamtexcofac[4];
+} ViewUboStorage;
+
+#define MAX_CULLED_VIEWS 32
+
+struct DRWView {
+  /** Parent view if this is a sub view. NULL otherwise. */
+  struct DRWView *parent;
+
+  ViewUboStorage storage;
+  /** Number of active clipplanes. */
+  int clip_planes_len;
+  /** Does culling result needs to be updated. */
+  bool is_dirty;
+  /** Culling */
+  uint32_t culling_mask;
+  BoundBox frustum_corners;
+  BoundSphere frustum_bsphere;
+  float frustum_planes[6][4];
+  /** Custom visibility function. */
+  DRWCallVisibilityFn *visibility_fn;
+  void *user_data;
+};
+
 /* TODO(fclem): Future awaits */
 #if 0
-typedef struct DRWView {
-  /* Culling function, culling result etc...*/
-} DRWView;
-
 typedef struct ModelUboStorage {
   float model[4][4];
   float modelinverse[4][4];
 } ModelUboStorage;
 #endif
-
-typedef struct ViewUboStorage {
-  DRWMatrixState matstate;
-  float viewcamtexcofac[4];
-  float clipplanes[2][4];
-} ViewUboStorage;
 
 /* ------------- DRAW DEBUG ------------ */
 
@@ -258,7 +278,6 @@ typedef struct DRWManager {
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* State of the object being evaluated if already allocated. */
   DRWCallState *ob_state;
-  uchar state_cache_id; /* Could be larger but 254 view changes is already a lot! */
   struct DupliObject *dupli_source;
   struct Object *dupli_parent;
   struct Object *dupli_origin;
@@ -302,21 +321,12 @@ typedef struct DRWManager {
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 
-  /* View dependent uniforms. */
-  DRWMatrixState original_mat; /* Original rv3d matrices. */
-  int override_mat;            /* Bitflag of which matrices are overridden. */
-  int clip_planes_len;         /* Number of active clipplanes. */
-  bool dirty_mat;
-
-  /* keep in sync with viewBlock */
-  ViewUboStorage view_data;
-
-  struct {
-    float frustum_planes[6][4];
-    BoundBox frustum_corners;
-    BoundSphere frustum_bsphere;
-    bool updated;
-  } clipping;
+  DRWView *view_default;
+  DRWView *view_active;
+  uint primary_view_ct;
+  /** TODO(fclem) Remove this. Only here to support
+   * shaders without common_view_lib.glsl */
+  ViewUboStorage view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;
