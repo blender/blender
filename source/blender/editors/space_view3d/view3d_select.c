@@ -783,7 +783,6 @@ static bool do_lasso_select_mesh(ViewContext *vc,
   LassoSelectUserData data;
   ToolSettings *ts = vc->scene->toolsettings;
   rcti rect;
-  int bbsel;
 
   /* set editmesh */
   vc->em = BKE_editmesh_from_object(vc->obedit);
@@ -804,9 +803,9 @@ static bool do_lasso_select_mesh(ViewContext *vc,
 
   GPU_matrix_set(vc->rv3d->viewmat);
 
-  bbsel = !XRAY_FLAG_ENABLED(vc->v3d);
+  const bool use_zbuf = !XRAY_FLAG_ENABLED(vc->v3d);
 
-  if (bbsel) {
+  if (use_zbuf) {
     /* Lazy initialize. */
     if (esel->sel_id_ctx == NULL) {
       editselect_buf_cache_init(esel, vc);
@@ -816,7 +815,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_VERTEX) {
-    if (bbsel) {
+    if (use_zbuf) {
       data.is_changed |= edbm_backbuf_check_and_select_verts(esel, vc->obedit, vc->em, sel_op);
     }
     else {
@@ -825,13 +824,14 @@ static bool do_lasso_select_mesh(ViewContext *vc,
     }
   }
   if (ts->selectmode & SCE_SELECT_EDGE) {
-    /* Does both bbsel and non-bbsel versions (need screen cos for both) */
+    /* Does both use_zbuf and non-use_zbuf versions (need screen cos for both) */
     struct LassoSelectUserData_ForMeshEdge data_for_edge = {
         .data = &data,
-        .esel = bbsel ? esel : NULL,
-        .backbuf_offset = bbsel ? EDBM_select_id_context_offset_for_object_elem(
-                                      esel->sel_id_ctx, vc->obedit->runtime.select_id, BM_EDGE) :
-                                  0,
+        .esel = use_zbuf ? esel : NULL,
+        .backbuf_offset = use_zbuf ?
+                              EDBM_select_id_context_offset_for_object_elem(
+                                  esel->sel_id_ctx, vc->obedit->runtime.select_id, BM_EDGE) :
+                              0,
     };
     mesh_foreachScreenEdge(
         vc, do_lasso_select_mesh__doSelectEdge_pass0, &data_for_edge, V3D_PROJ_TEST_CLIP_NEAR);
@@ -842,7 +842,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_FACE) {
-    if (bbsel) {
+    if (use_zbuf) {
       data.is_changed |= edbm_backbuf_check_and_select_faces(esel, vc->obedit, vc->em, sel_op);
     }
     else {
@@ -2711,7 +2711,6 @@ static bool do_mesh_box_select(ViewContext *vc,
 {
   BoxSelectUserData data;
   ToolSettings *ts = vc->scene->toolsettings;
-  int bbsel;
 
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
 
@@ -2726,9 +2725,10 @@ static bool do_mesh_box_select(ViewContext *vc,
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
   GPU_matrix_set(vc->rv3d->viewmat);
-  bbsel = !XRAY_FLAG_ENABLED(vc->v3d);
 
-  if (bbsel) {
+  const int use_zbuf = !XRAY_FLAG_ENABLED(vc->v3d);
+
+  if (use_zbuf) {
     /* Lazy initialize. */
     if (esel->sel_id_ctx == NULL) {
       editselect_buf_cache_init(esel, vc);
@@ -2738,7 +2738,7 @@ static bool do_mesh_box_select(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_VERTEX) {
-    if (bbsel) {
+    if (use_zbuf) {
       data.is_changed |= edbm_backbuf_check_and_select_verts(esel, vc->obedit, vc->em, sel_op);
     }
     else {
@@ -2747,13 +2747,14 @@ static bool do_mesh_box_select(ViewContext *vc,
     }
   }
   if (ts->selectmode & SCE_SELECT_EDGE) {
-    /* Does both bbsel and non-bbsel versions (need screen cos for both) */
+    /* Does both use_zbuf and non-use_zbuf versions (need screen cos for both) */
     struct BoxSelectUserData_ForMeshEdge cb_data = {
         .data = &data,
-        .esel = bbsel ? esel : NULL,
-        .backbuf_offset = bbsel ? EDBM_select_id_context_offset_for_object_elem(
-                                      esel->sel_id_ctx, vc->obedit->runtime.select_id, BM_EDGE) :
-                                  0,
+        .esel = use_zbuf ? esel : NULL,
+        .backbuf_offset = use_zbuf ?
+                              EDBM_select_id_context_offset_for_object_elem(
+                                  esel->sel_id_ctx, vc->obedit->runtime.select_id, BM_EDGE) :
+                              0,
     };
     mesh_foreachScreenEdge(
         vc, do_mesh_box_select__doSelectEdge_pass0, &cb_data, V3D_PROJ_TEST_CLIP_NEAR);
@@ -2764,7 +2765,7 @@ static bool do_mesh_box_select(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_FACE) {
-    if (bbsel) {
+    if (use_zbuf) {
       data.is_changed |= edbm_backbuf_check_and_select_faces(esel, vc->obedit, vc->em, sel_op);
     }
     else {
@@ -3291,7 +3292,6 @@ static bool mesh_circle_select(ViewContext *vc,
                                float rad)
 {
   ToolSettings *ts = vc->scene->toolsettings;
-  int bbsel;
   CircleSelectUserData data;
   vc->em = BKE_editmesh_from_object(vc->obedit);
 
@@ -3308,9 +3308,9 @@ static bool mesh_circle_select(ViewContext *vc,
 
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
-  bbsel = !XRAY_FLAG_ENABLED(vc->v3d);
+  const int use_zbuf = !XRAY_FLAG_ENABLED(vc->v3d);
 
-  if (bbsel) {
+  if (use_zbuf) {
     /* Lazy initialize. */
     if (esel->sel_id_ctx == NULL) {
       editselect_buf_cache_init(esel, vc);
@@ -3321,7 +3321,7 @@ static bool mesh_circle_select(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_VERTEX) {
-    if (bbsel) {
+    if (use_zbuf) {
       changed |= edbm_backbuf_check_and_select_verts(
           esel, vc->obedit, vc->em, select ? SEL_OP_ADD : SEL_OP_SUB);
     }
@@ -3331,7 +3331,7 @@ static bool mesh_circle_select(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_EDGE) {
-    if (bbsel) {
+    if (use_zbuf) {
       changed |= edbm_backbuf_check_and_select_edges(
           esel, vc->obedit, vc->em, select ? SEL_OP_ADD : SEL_OP_SUB);
     }
@@ -3341,7 +3341,7 @@ static bool mesh_circle_select(ViewContext *vc,
   }
 
   if (ts->selectmode & SCE_SELECT_FACE) {
-    if (bbsel) {
+    if (use_zbuf) {
       changed |= edbm_backbuf_check_and_select_faces(
           esel, vc->obedit, vc->em, select ? SEL_OP_ADD : SEL_OP_SUB);
     }
