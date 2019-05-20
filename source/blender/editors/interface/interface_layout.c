@@ -1904,6 +1904,10 @@ void uiItemFullR(uiLayout *layout,
     }
   }
 
+  if (type != PROP_BOOLEAN) {
+    flag &= ~UI_ITEM_R_CHECKBOX_INVERT;
+  }
+
   if (icon == ICON_NONE) {
     icon = RNA_property_ui_icon(prop);
   }
@@ -2154,6 +2158,12 @@ void uiItemFullR(uiLayout *layout,
 
     if (slider && but->type == UI_BTYPE_NUM) {
       but->type = UI_BTYPE_NUM_SLIDER;
+    }
+
+    if (flag & UI_ITEM_R_CHECKBOX_INVERT) {
+      if (ELEM(but->type, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N)) {
+        but->drawflag |= UI_BUT_CHECKBOX_INVERT;
+      }
     }
 
     if (toggle && but->type == UI_BTYPE_CHECKBOX) {

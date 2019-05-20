@@ -378,6 +378,31 @@ class OBJECT_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         self.draw_settings(context, avs, mpath)
 
 
+class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
+    bl_label = "Visibility"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object) and (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        layout = self.layout
+        ob = context.object
+
+        col = flow.column()
+        col.prop(ob, "hide_viewport", text="Show in Viewports", invert_checkbox=True)
+        col = flow.column()
+        col.prop(ob, "hide_render", text="Show in Renders", invert_checkbox=True)
+        col = flow.column()
+        col.prop(ob, "hide_select", text="Selectable", invert_checkbox=True)
+
+
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object"
@@ -397,6 +422,7 @@ classes = (
     OBJECT_PT_motion_paths_display,
     OBJECT_PT_display,
     OBJECT_PT_display_bounds,
+    OBJECT_PT_visibility,
     OBJECT_PT_custom_props,
 )
 

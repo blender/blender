@@ -281,6 +281,9 @@ enum {
 
   /** Value is animated, but the current value differs from the animated one. */
   UI_BUT_ANIMATED_CHANGED = 1 << 25,
+
+  /* Draw the checkbox buttons inverted. */
+  UI_BUT_CHECKBOX_INVERT = 1 << 26,
 };
 
 /* scale fixed button widths by this to account for DPI */
@@ -1719,6 +1722,7 @@ enum {
   UI_ITEM_R_IMMEDIATE = 1 << 8,
   UI_ITEM_O_DEPRESS = 1 << 9,
   UI_ITEM_R_COMPACT = 1 << 10,
+  UI_ITEM_R_CHECKBOX_INVERT = 1 << 11,
 };
 
 #define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)

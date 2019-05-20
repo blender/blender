@@ -1845,6 +1845,9 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
     }
   }
 
+  if ((but->drawflag & UI_BUT_CHECKBOX_INVERT) && (is_push != -1)) {
+    is_push = !((bool)is_push);
+  }
   return is_push;
 }
 int ui_but_is_pushed(uiBut *but)

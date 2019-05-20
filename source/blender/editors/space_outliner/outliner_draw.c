@@ -1088,10 +1088,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
 
         if (soops->show_restrict_flags & SO_RESTRICT_SELECT) {
+          const int icon = RNA_property_boolean_get(&ptr, props.object_hide_select) ?
+                               ICON_RESTRICT_SELECT_ON :
+                               ICON_RESTRICT_SELECT_OFF;
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  icon,
                                   (int)(ar->v2d.cur.xmax - restrict_offsets.select),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1113,10 +1116,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
 
         if (soops->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
+          const int icon = RNA_property_boolean_get(&ptr, props.object_hide_viewport) ?
+                               ICON_RESTRICT_VIEW_ON :
+                               ICON_RESTRICT_VIEW_OFF;
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  icon,
                                   (int)(ar->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1138,10 +1144,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
 
         if (soops->show_restrict_flags & SO_RESTRICT_RENDER) {
+          const int icon = RNA_property_boolean_get(&ptr, props.object_hide_render) ?
+                               ICON_RESTRICT_RENDER_ON :
+                               ICON_RESTRICT_RENDER_OFF;
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  icon,
                                   (int)(ar->v2d.cur.xmax - restrict_offsets.render),
                                   te->ys,
                                   UI_UNIT_X,
