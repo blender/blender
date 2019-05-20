@@ -1499,7 +1499,7 @@ typedef struct ToolSettings {
 
   /* Normal Editing */
   float normal_vector[3];
-  int face_strength;
+  char _pad6[4];
 } ToolSettings;
 
 /* *************************************************************** */
@@ -2087,13 +2087,6 @@ enum {
   OB_DRAW_GROUPUSER_NONE = 0,
   OB_DRAW_GROUPUSER_ACTIVE = 1,
   OB_DRAW_GROUPUSER_ALL = 2,
-};
-
-/* toolsettings->face_strength */
-enum {
-  FACE_STRENGTH_WEAK = -16384,
-  FACE_STRENGTH_MEDIUM = 0,
-  FACE_STRENGTH_STRONG = 16384,
 };
 
 /* object_vgroup.c */

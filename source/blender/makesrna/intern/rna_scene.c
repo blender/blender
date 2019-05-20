@@ -3167,10 +3167,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Normal Vector", "Normal Vector used to copy, add or multiply");
   RNA_def_property_ui_range(prop, -10000.0, 10000.0, 1, 3);
 
-  prop = RNA_def_property(srna, "face_strength", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, mod_weighted_strength);
-  RNA_def_property_ui_text(prop, "Face Strength", "Set strength of face to specified value");
-
   /* Unified Paint Settings */
   prop = RNA_def_property(srna, "unified_paint_settings", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

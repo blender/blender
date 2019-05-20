@@ -1621,22 +1621,6 @@ class VIEW3D_PT_tools_particlemode_options_display(View3DPanel, Panel):
             sub.prop(pe, "fade_frames", slider=True)
 
 
-class VIEW3D_PT_tools_meshedit_normal(View3DPanel, Panel):
-    bl_category = "Tool"
-    bl_context = ".mesh_edit"
-    bl_label = "Normals"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        tool_settings = context.tool_settings
-
-        layout.prop(tool_settings, "normal_vector", text="Normal Vector")
-        layout.prop(tool_settings, "face_strength", text="Face Strength")
-
 # ********** grease pencil object tool panels ****************
 
 # Grease Pencil drawing brushes
@@ -2044,7 +2028,6 @@ class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
 
 
 classes = (
-    VIEW3D_PT_tools_meshedit_normal,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_curveedit_options_stroke,
     VIEW3D_PT_tools_armatureedit_options,

@@ -35,6 +35,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
+#include "bmesh.h"
+
 #define CLNORS_VALID_VEC_LEN (1e-6f)
 
 typedef struct ModePair {
