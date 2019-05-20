@@ -8834,6 +8834,7 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     MEM_freeN(vnors);
     EDBM_update_generic(em, true, false);
   }
+  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
