@@ -2604,13 +2604,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static EnumPropertyItem mod_weighted_strength[] = {
-      {FACE_STRENGTH_WEAK, "Weak", 0, "Weak", ""},
-      {FACE_STRENGTH_MEDIUM, "Medium", 0, "Medium", ""},
-      {FACE_STRENGTH_STRONG, "Strong", 0, "Strong", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem draw_groupuser_items[] = {
       {OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
       {OB_DRAW_GROUPUSER_ACTIVE,
