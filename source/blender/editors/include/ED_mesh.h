@@ -162,20 +162,6 @@ void EDBM_select_mirrored(
     struct BMEditMesh *em, const int axis, const bool extend, int *r_totmirr, int *r_totfail);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);
 
-bool EDBM_backbuf_border_init(
-    struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-bool EDBM_backbuf_check(unsigned int index);
-void EDBM_backbuf_free(void);
-
-bool EDBM_backbuf_border_mask_init(struct ViewContext *vc,
-                                   const int mcords[][2],
-                                   short tot,
-                                   short xmin,
-                                   short ymin,
-                                   short xmax,
-                                   short ymax);
-bool EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
-
 struct BMVert *EDBM_vert_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist,
                                          const bool use_select_bias,
@@ -254,9 +240,6 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc); /* rename
 
 bool EDBM_mesh_deselect_all_multi_ex(struct Base **bases, const uint bases_len);
 bool EDBM_mesh_deselect_all_multi(struct bContext *C);
-
-/* Only use for modes that don't support multi-edit-modes (painting). */
-extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
 /* editmesh_preselect_edgering.c */
 struct EditMesh_PreSelEdgeRing;

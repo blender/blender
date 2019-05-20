@@ -450,7 +450,6 @@ void ED_view3d_backbuf_depth_validate(struct ViewContext *vc);
 int ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
 
 void ED_view3d_select_id_validate(struct ViewContext *vc);
-void ED_view3d_select_id_validate_with_select_mode(struct ViewContext *vc, short select_mode);
 
 uint ED_view3d_select_id_sample(struct ViewContext *vc, int x, int y);
 uint *ED_view3d_select_id_read(int xmin, int ymin, int xmax, int ymax, uint *r_buf_len);
