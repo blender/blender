@@ -672,7 +672,7 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
         "gpcolor.use_stroke_pattern",
 		"gpcolor.use_stroke_texture_mix",
 		"gpcolor.mix_stroke_factor",
-		"gpcolor.use_follow_path",
+		"gpcolor.alignment_mode",
         "gpcolor.fill_style",
         "gpcolor.fill_color",
         "gpcolor.fill_image",
