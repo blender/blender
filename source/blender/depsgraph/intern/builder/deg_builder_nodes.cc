@@ -681,7 +681,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
       break;
     default: {
       ID *obdata = (ID *)object->data;
-      if (built_map_.checkIsBuilt(obdata) == 0) {
+      if (!built_map_.checkIsBuilt(obdata)) {
         build_animdata(obdata);
       }
       break;
