@@ -2715,6 +2715,10 @@ def km_frames(params):
          {"properties": [("next", True)]}),
         ("screen.keyframe_jump", {"type": 'MEDIA_FIRST', "value": 'PRESS'},
          {"properties": [("next", False)]}),
+        ("screen.frame_offset", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "alt": True},
+         {"properties": [("delta", 1)]}),
+        ("screen.frame_offset", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "alt": True},
+         {"properties": [("delta", -1)]}),
     ])
 
     if not params.legacy:
@@ -2741,10 +2745,6 @@ def km_frames(params):
              {"properties": [("delta", 10)]}),
             ("screen.frame_offset", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True},
              {"properties": [("delta", -10)]}),
-            ("screen.frame_offset", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "alt": True},
-             {"properties": [("delta", 1)]}),
-            ("screen.frame_offset", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "alt": True},
-             {"properties": [("delta", -1)]}),
             ("screen.frame_jump", {"type": 'UP_ARROW', "value": 'PRESS', "shift": True, "ctrl": True},
              {"properties": [("end", True)]}),
             ("screen.frame_jump", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "ctrl": True},
