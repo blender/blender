@@ -2502,8 +2502,6 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
   rna_def_userdef_theme_spaces_main(srna);
   rna_def_userdef_theme_spaces_list_main(srna);
 
-  rna_def_userdef_theme_spaces_gpencil(srna);
-
   prop = RNA_def_property(srna, "node_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "select");
   RNA_def_property_array(prop, 3);
@@ -2678,7 +2676,6 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Image Editor", "Theme settings for the Image Editor");
 
   rna_def_userdef_theme_spaces_main(srna);
-  rna_def_userdef_theme_spaces_gpencil(srna);
   rna_def_userdef_theme_spaces_vertex(srna);
   rna_def_userdef_theme_spaces_face(srna);
 
@@ -2787,7 +2784,6 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor");
 
   rna_def_userdef_theme_spaces_main(srna);
-  rna_def_userdef_theme_spaces_gpencil(srna);
 
   prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
@@ -3273,8 +3269,6 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
 
   rna_def_userdef_theme_spaces_main(srna);
   rna_def_userdef_theme_spaces_list_main(srna);
-
-  rna_def_userdef_theme_spaces_gpencil(srna);
 
   prop = RNA_def_property(srna, "marker_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "marker_outline");
