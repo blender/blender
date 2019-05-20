@@ -808,12 +808,13 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   user = userptr->data;
 
   col = uiLayoutColumn(layout, false);
+  uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
 
   ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, MOVIECLIP_CACHE_SKIP);
 
   /* Display frame dimensions, channels number and byffer type. */
   BKE_movieclip_get_size(clip, user, &width, &height);
-  ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("Size %d x %d"), width, height);
+  ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("%d x %d"), width, height);
 
   if (ibuf) {
     if (ibuf->rect_float) {

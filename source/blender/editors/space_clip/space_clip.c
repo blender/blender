@@ -1371,7 +1371,7 @@ void ED_spacetype_clip(void)
   /* regions: properties */
   art = MEM_callocN(sizeof(ARegionType), "spacetype clip region properties");
   art->regionid = RGN_TYPE_UI;
-  art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
   art->init = clip_properties_region_init;
   art->draw = clip_properties_region_draw;
@@ -1382,7 +1382,7 @@ void ED_spacetype_clip(void)
   /* regions: tools */
   art = MEM_callocN(sizeof(ARegionType), "spacetype clip region tools");
   art->regionid = RGN_TYPE_TOOLS;
-  art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+  art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
   art->listener = clip_props_region_listener;
   art->init = clip_tools_region_init;
