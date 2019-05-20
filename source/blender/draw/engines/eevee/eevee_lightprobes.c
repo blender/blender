@@ -972,8 +972,6 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
   }
   DRW_draw_pass(psl->transparent_pass);
 
-  DRW_state_clip_planes_reset();
-
   DRW_stats_group_end();
 
   /* Restore */

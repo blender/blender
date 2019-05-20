@@ -821,8 +821,6 @@ static void EDIT_MESH_draw_scene(void *vedata)
     DRW_draw_pass(psl->depth_hidden_wire_in_front);
     DRW_draw_pass(psl->edit_face_overlay_in_front);
   }
-
-  DRW_state_clip_planes_reset();
 }
 
 static void EDIT_MESH_engine_free(void)

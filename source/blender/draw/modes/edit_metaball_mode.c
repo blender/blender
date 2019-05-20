@@ -201,11 +201,6 @@ static void EDIT_METABALL_draw_scene(void *vedata)
   EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
   /* render passes on default framebuffer. */
   DRW_draw_pass(psl->pass);
-
-  /* If you changed framebuffer, double check you rebind
-   * the default one with its textures attached before finishing */
-
-  DRW_state_clip_planes_reset();
 }
 
 /* Cleanup when destroying the engine.

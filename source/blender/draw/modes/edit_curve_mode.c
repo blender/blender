@@ -330,8 +330,6 @@ static void EDIT_CURVE_draw_scene(void *vedata)
   /* Thoses passes don't write to depth and are AA'ed using other tricks. */
   DRW_draw_pass(psl->overlay_edge_pass);
   DRW_draw_pass(psl->overlay_vert_pass);
-
-  DRW_state_clip_planes_reset();
 }
 
 /* Cleanup when destroying the engine.

@@ -390,16 +390,10 @@ void DRW_state_reset(void)
 /**
  * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
  * and if the shaders have support for it (see usage of gl_ClipDistance).
- * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
  */
 void DRW_state_clip_planes_len_set(uint plane_len)
 {
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
-  /* DUMMY TO REMOVE */
-}
-
-void DRW_state_clip_planes_reset(void)
-{
   /* DUMMY TO REMOVE */
 }
 
