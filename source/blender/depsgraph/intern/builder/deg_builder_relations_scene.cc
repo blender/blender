@@ -27,6 +27,15 @@
 
 namespace DEG {
 
+void DepsgraphRelationBuilder::build_scene_render(Scene *scene)
+{
+  const bool build_compositor = (scene->r.scemode & R_DOCOMP);
+  build_scene_parameters(scene);
+  if (build_compositor) {
+    build_scene_compositor(scene);
+  }
+}
+
 void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
 {
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
@@ -36,6 +45,17 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
       &scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
   OperationKey scene_eval_key(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(parameters_eval_key, scene_eval_key, "Parameters -> Scene Eval");
+}
+
+void DepsgraphRelationBuilder::build_scene_compositor(Scene *scene)
+{
+  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
+    return;
+  }
+  if (scene->nodetree == NULL) {
+    return;
+  }
+  build_nodetree(scene->nodetree);
 }
 
 }  // namespace DEG

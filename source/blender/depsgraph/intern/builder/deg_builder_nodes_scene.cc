@@ -27,6 +27,18 @@
 
 namespace DEG {
 
+void DepsgraphNodeBuilder::build_scene_render(Scene *scene)
+{
+  const bool build_compositor = (scene->r.scemode & R_DOCOMP);
+  IDNode *id_node = add_id_node(&scene->id);
+  id_node->linked_state = DEG_ID_LINKED_DIRECTLY;
+  add_time_source();
+  build_scene_parameters(scene);
+  if (build_compositor) {
+    build_scene_compositor(scene);
+  }
+}
+
 void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
 {
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
@@ -34,6 +46,17 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
   }
   add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
+{
+  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
+    return;
+  }
+  if (scene->nodetree == NULL) {
+    return;
+  }
+  build_nodetree(scene->nodetree);
 }
 
 }  // namespace DEG

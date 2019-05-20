@@ -2131,8 +2131,15 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       build_object(NULL, (Object *)id);
     }
     else if (id_type == ID_SCE) {
-      /* Scenes are used by compositor trees, and handled by render
-       * pipeline. No need to build dependencies for them here. */
+      Scene *node_scene = (Scene *)id;
+      build_scene_parameters(node_scene);
+      /* Camera is used by defocus node.
+       *
+       * On the one hand it's annoying to always pull it in, but on another hand it's also annoying
+       * to have hardcoded node-type exception here. */
+      if (node_scene->camera != NULL) {
+        build_object(NULL, node_scene->camera);
+      }
     }
     else if (id_type == ID_TXT) {
       /* Ignore script nodes. */
@@ -2218,12 +2225,6 @@ void DepsgraphRelationBuilder::build_image(Image *image)
     return;
   }
   build_parameters(&image->id);
-}
-
-void DepsgraphRelationBuilder::build_compositor(Scene *scene)
-{
-  /* For now, just a plain wrapper? */
-  build_nodetree(scene->nodetree);
 }
 
 void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)

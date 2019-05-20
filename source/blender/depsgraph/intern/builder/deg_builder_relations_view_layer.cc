@@ -106,10 +106,6 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
   if (scene->world != NULL) {
     build_world(scene->world);
   }
-  /* Compositor nodes. */
-  if (scene->nodetree != NULL) {
-    build_compositor(scene);
-  }
   /* Masks. */
   LISTBASE_FOREACH (Mask *, mask, &bmain_->masks) {
     build_mask(mask);
@@ -128,7 +124,8 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
       build_collection(NULL, NULL, fls->group);
     }
   }
-  /* Scene parameters. */
+  /* Scene parameters, compositor and such. */
+  build_scene_compositor(scene);
   build_scene_parameters(scene);
   /* Build all set scenes. */
   if (scene->set != NULL) {

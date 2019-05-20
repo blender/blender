@@ -125,9 +125,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
     build_world(scene->world);
   }
   /* Compositor nodes */
-  if (scene->nodetree != NULL) {
-    build_compositor(scene);
-  }
+  build_scene_compositor(scene);
   /* Cache file. */
   LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
     build_cachefile(cachefile);

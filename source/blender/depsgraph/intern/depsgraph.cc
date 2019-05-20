@@ -73,7 +73,8 @@ Depsgraph::Depsgraph(Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
       ctime(BKE_scene_frame_get(scene)),
       scene_cow(NULL),
       is_active(false),
-      debug_is_evaluating(false)
+      debug_is_evaluating(false),
+      is_render_pipeline_depsgraph(false)
 {
   BLI_spin_init(&lock);
   id_hash = BLI_ghash_ptr_new("Depsgraph id hash");

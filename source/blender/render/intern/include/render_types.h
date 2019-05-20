@@ -118,6 +118,11 @@ struct Render {
   /* render engine */
   struct RenderEngine *engine;
 
+  /* NOTE: This is a minimal dependency graph and evaluated scene which is enough to access view
+   * layer visibility and use for post-precessing (compositor and sequencer). */
+  Depsgraph *pipeline_depsgraph;
+  Scene *pipeline_scene_eval;
+
 #ifdef WITH_FREESTYLE
   struct Main *freestyle_bmain;
   ListBase freestyle_renders;

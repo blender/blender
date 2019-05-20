@@ -543,7 +543,10 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   IDNode *id_node = add_id_node(&object->id);
   Object *object_cow = get_cow_datablock(object);
   id_node->linked_state = linked_state;
-  if (object == scene_->camera) {
+  /* NOTE: Scene is NULL when building dependency graph for render pipeline.
+   * Probably need to assign that to something non-NULL, but then the logic here will still be
+   * somewhat weird. */
+  if (scene_ != NULL && object == scene_->camera) {
     id_node->is_directly_visible = true;
   }
   else {
@@ -1366,8 +1369,16 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
       build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, true);
     }
     else if (id_type == ID_SCE) {
-      /* Scenes are used by compositor trees, and handled by render
-       * pipeline. No need to build dependencies for them here. */
+      Scene *node_scene = (Scene *)id;
+      build_scene_parameters(node_scene);
+      /* Camera is used by defocus node.
+       *
+       * On the one hand it's annoying to always pull it in, but on another hand it's also annoying
+       * to have hardcoded node-type exception here. */
+      if (node_scene->camera != NULL) {
+        /* TODO(sergey): Use visibility of owner of the node tree. */
+        build_object(-1, node_scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
+      }
     }
     else if (id_type == ID_TXT) {
       /* Ignore script nodes. */
@@ -1440,19 +1451,6 @@ void DepsgraphNodeBuilder::build_image(Image *image)
   build_parameters(&image->id);
   add_operation_node(
       &image->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
-}
-
-void DepsgraphNodeBuilder::build_compositor(Scene *scene)
-{
-  /* For now, just a plain wrapper? */
-  // TODO: create compositing component?
-  // XXX: component type undefined!
-  // graph->get_node(&scene->id, NULL, NodeType::COMPOSITING, NULL);
-
-  /* for now, nodetrees are just parameters; compositing occurs in internals
-   * of renderer... */
-  add_component_node(&scene->id, NodeType::PARAMETERS);
-  build_nodetree(scene->nodetree);
 }
 
 void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)

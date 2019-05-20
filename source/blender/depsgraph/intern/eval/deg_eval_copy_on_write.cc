@@ -327,7 +327,7 @@ ViewLayer *get_original_view_layer(const Depsgraph *depsgraph, const IDNode *id_
     return BKE_view_layer_default_render(scene_orig);
   }
   /* Is possible to have scene linked indirectly (i.e. via the driver) which
-   * we need to support. Currently there aer issues somewhere else, which
+   * we need to support. Currently there are issues somewhere else, which
    * makes testing hard. This is a reported problem, so will eventually be
    * properly fixed.
    *
@@ -341,10 +341,16 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
                                      Scene *scene_cow)
 {
   const ViewLayer *view_layer_input;
-  /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled via
-   * some driver. Such scenes should not have view layers after copy. */
   if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
+    /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled
+     * via some driver. Such scenes should not have view layers after copy. */
     view_layer_input = NULL;
+  }
+  else if (depsgraph->is_render_pipeline_depsgraph) {
+    /* If the dependency graph is used for post-processing (such as compositor) we do need to
+     * have access to its view layer names so can not remove any view layers.
+     * On a more positive side we can remove all the bases from all the view layers. */
+    return;
   }
   else {
     view_layer_input = get_original_view_layer(depsgraph, id_node);
@@ -370,6 +376,13 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
   }
   scene_cow->view_layers.first = view_layer_eval;
   scene_cow->view_layers.last = view_layer_eval;
+}
+
+void scene_remove_all_bases(Scene *scene_cow)
+{
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
+    BLI_freelistN(&view_layer->object_bases);
+  }
 }
 
 /* Makes it so given view layer only has bases corresponding to enabled
@@ -425,6 +438,11 @@ void scene_setup_view_layers_before_remap(const Depsgraph *depsgraph,
                                           Scene *scene_cow)
 {
   scene_remove_unused_view_layers(depsgraph, id_node, scene_cow);
+  /* If dependency graph is used for post-processing we don't need any bases and can free of them.
+   * Do it before re-mapping to make that process faster. */
+  if (depsgraph->is_render_pipeline_depsgraph) {
+    scene_remove_all_bases(scene_cow);
+  }
 }
 
 void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,

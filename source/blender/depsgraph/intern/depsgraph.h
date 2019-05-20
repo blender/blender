@@ -194,6 +194,12 @@ struct Depsgraph {
 
   bool debug_is_evaluating;
 
+  /* Is set to truth for dependency graph which are used for post-processing (compositor and
+   * sequencer).
+   * Such dependency graph needs all view layers (so render pipeline can access names), but it
+   * does not need any bases. */
+  bool is_render_pipeline_depsgraph;
+
   /* Cached list of colliders/effectors for collections and the scene
    * created along with relations, for fast lookup during evaluation. */
   GHash *physics_relations[DEG_PHYSICS_RELATIONS_NUM];

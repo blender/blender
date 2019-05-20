@@ -38,8 +38,12 @@ class BuilderMap {
     TAG_TRANSFORM = (1 << 2),
     TAG_GEOMETRY = (1 << 3),
 
+    TAG_SCENE_COMPOSITOR = (1 << 4),
+    TAG_SCENE_SEQUENCER = (1 << 5),
+
     /* All ID components has been built. */
-    TAG_COMPLETE = (TAG_ANIMATION | TAG_PARAMETERS | TAG_TRANSFORM | TAG_GEOMETRY),
+    TAG_COMPLETE = (TAG_ANIMATION | TAG_PARAMETERS | TAG_TRANSFORM | TAG_GEOMETRY |
+                    TAG_SCENE_COMPOSITOR | TAG_SCENE_SEQUENCER),
   };
 
   BuilderMap();

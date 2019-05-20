@@ -52,13 +52,18 @@ extern "C" {
 
 /* Graph Building -------------------------------- */
 
-/* Build depsgraph for the given scene, and dump results in given
- * graph container.
- */
+/* Build depsgraph for the given scene, and dump results in given graph container. */
 void DEG_graph_build_from_view_layer(struct Depsgraph *graph,
                                      struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer);
+
+/* Special version of builder which produces dependency graph suitable for the render pipeline.
+ * It will contain sequencer and compositor (if needed) and all their dependencies. */
+void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph,
+                                         struct Main *bmain,
+                                         struct Scene *scene,
+                                         struct ViewLayer *view_layer);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
