@@ -1254,7 +1254,10 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     int duration = 0;
 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
-      duration = IMB_anim_get_duration(((ImageAnim *)ima->anims.first)->anim, IMB_TC_RECORD_RUN);
+      struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+      if (anim) {
+        duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
+      }
     }
 
     if (duration > 0) {

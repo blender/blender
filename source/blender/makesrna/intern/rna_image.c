@@ -332,7 +332,10 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   int duration = 1;
 
   if (BKE_image_has_anim(ima)) {
-    duration = IMB_anim_get_duration(((ImageAnim *)ima->anims.first)->anim, IMB_TC_RECORD_RUN);
+    struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+    if (anim) {
+      duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
+    }
   }
   else {
     /* acquire ensures ima->anim is set, if possible! */
