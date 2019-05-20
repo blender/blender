@@ -277,9 +277,9 @@ int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 /* ViewLayer related functions defined in rna_scene.c but required in rna_layer.c */
 void rna_def_freestyle_settings(struct BlenderRNA *brna);
 struct PointerRNA rna_FreestyleLineSet_linestyle_get(struct PointerRNA *ptr);
-void rna_FreestyleLineSet_linestyle_set(struct ReportList *reports,
-                                        struct PointerRNA *ptr,
-                                        struct PointerRNA value);
+void rna_FreestyleLineSet_linestyle_set(struct PointerRNA *ptr,
+                                        struct PointerRNA value,
+                                        struct ReportList *reports);
 struct FreestyleLineSet *rna_FreestyleSettings_lineset_add(struct ID *id,
                                                            struct FreestyleSettings *config,
                                                            struct Main *bmain,

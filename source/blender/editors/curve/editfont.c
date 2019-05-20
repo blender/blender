@@ -2007,7 +2007,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
     id_us_min(&font->id);
 
     RNA_id_pointer_create(&font->id, &idptr);
-    RNA_property_pointer_set(NULL, &pprop->ptr, pprop->prop, idptr);
+    RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, NULL);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }
 
@@ -2090,7 +2090,7 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
   builtin_font = BKE_vfont_builtin_get();
 
   RNA_id_pointer_create(&builtin_font->id, &idptr);
-  RNA_property_pointer_set(NULL, &pprop.ptr, pprop.prop, idptr);
+  RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, NULL);
   RNA_property_update(C, &pprop.ptr, pprop.prop);
 
   return OPERATOR_FINISHED;

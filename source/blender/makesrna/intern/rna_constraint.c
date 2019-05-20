@@ -351,9 +351,9 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
   }
 }
 
-static void rna_ConstraintTargetBone_target_set(struct ReportList *UNUSED(reports),
-                                                PointerRNA *ptr,
-                                                PointerRNA value)
+static void rna_ConstraintTargetBone_target_set(PointerRNA *ptr,
+                                                PointerRNA value,
+                                                struct ReportList *UNUSED(reports))
 {
   bConstraintTarget *tgt = (bConstraintTarget *)ptr->data;
   Object *ob = value.data;
@@ -667,9 +667,9 @@ static bool rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
   return 0;
 }
 
-static void rna_Constraint_followTrack_camera_set(struct ReportList *UNUSED(reports),
-                                                  PointerRNA *ptr,
-                                                  PointerRNA value)
+static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  struct ReportList *UNUSED(reports))
 {
   bConstraint *con = (bConstraint *)ptr->data;
   bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
@@ -686,9 +686,9 @@ static void rna_Constraint_followTrack_camera_set(struct ReportList *UNUSED(repo
   }
 }
 
-static void rna_Constraint_followTrack_depthObject_set(struct ReportList *UNUSED(reports),
-                                                       PointerRNA *ptr,
-                                                       PointerRNA value)
+static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr,
+                                                       PointerRNA value,
+                                                       struct ReportList *UNUSED(reports))
 {
   bConstraint *con = (bConstraint *)ptr->data;
   bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
@@ -718,9 +718,9 @@ static bool rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, Pointer
   return 0;
 }
 
-static void rna_Constraint_objectSolver_camera_set(struct ReportList *UNUSED(reports),
-                                                   PointerRNA *ptr,
-                                                   PointerRNA value)
+static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr,
+                                                   PointerRNA value,
+                                                   struct ReportList *UNUSED(reports))
 {
   bConstraint *con = (bConstraint *)ptr->data;
   bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;

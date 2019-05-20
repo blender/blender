@@ -1031,12 +1031,12 @@ void *RNA_property_enum_py_data_get(PropertyRNA *prop);
 int RNA_property_enum_step(
     const struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int step);
 
-PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_pointer_set(struct ReportList *reports,
-                              PointerRNA *ptr,
+PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop) ATTR_NONNULL(1, 2);
+void RNA_property_pointer_set(PointerRNA *ptr,
                               PropertyRNA *prop,
-                              PointerRNA ptr_value);
-PointerRNA RNA_property_pointer_get_default(PointerRNA *ptr, PropertyRNA *prop);
+                              PointerRNA ptr_value,
+                              struct ReportList *reports) ATTR_NONNULL(1, 2);
+PointerRNA RNA_property_pointer_get_default(PointerRNA *ptr, PropertyRNA *prop) ATTR_NONNULL(1, 2);
 
 void RNA_property_collection_begin(PointerRNA *ptr,
                                    PropertyRNA *prop,

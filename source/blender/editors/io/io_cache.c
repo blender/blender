@@ -108,7 +108,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 
       PointerRNA idptr;
       RNA_id_pointer_create(&cache_file->id, &idptr);
-      RNA_property_pointer_set(NULL, &pprop->ptr, pprop->prop, idptr);
+      RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, NULL);
       RNA_property_update(C, &pprop->ptr, pprop->prop);
     }
 

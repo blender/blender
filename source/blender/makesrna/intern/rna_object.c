@@ -427,7 +427,7 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
   WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->id.data);
 }
 
-static void rna_Object_data_set(struct ReportList *reports, PointerRNA *ptr, PointerRNA value)
+static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
 {
   Object *ob = (Object *)ptr->data;
   ID *id = value.data;
@@ -534,9 +534,9 @@ static bool rna_Object_data_poll(PointerRNA *ptr, const PointerRNA value)
   return true;
 }
 
-static void rna_Object_parent_set(struct ReportList *UNUSED(reports),
-                                  PointerRNA *ptr,
-                                  PointerRNA value)
+static void rna_Object_parent_set(PointerRNA *ptr,
+                                  PointerRNA value,
+                                  struct ReportList *UNUSED(reports))
 {
   Object *ob = (Object *)ptr->data;
   Object *par = (Object *)value.data;
@@ -621,9 +621,9 @@ static const EnumPropertyItem *rna_Object_instance_type_itemf(bContext *UNUSED(C
   return item;
 }
 
-static void rna_Object_dup_collection_set(struct ReportList *UNUSED(reports),
-                                          PointerRNA *ptr,
-                                          PointerRNA value)
+static void rna_Object_dup_collection_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
 {
   Object *ob = (Object *)ptr->data;
   Collection *grp = (Collection *)value.data;
@@ -899,9 +899,9 @@ static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
-static void rna_Object_active_material_set(struct ReportList *UNUSED(reports),
-                                           PointerRNA *ptr,
-                                           PointerRNA value)
+static void rna_Object_active_material_set(PointerRNA *ptr,
+                                           PointerRNA value,
+                                           struct ReportList *UNUSED(reports))
 {
   Object *ob = (Object *)ptr->id.data;
 
@@ -1100,9 +1100,9 @@ static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
-static void rna_MaterialSlot_material_set(struct ReportList *UNUSED(reports),
-                                          PointerRNA *ptr,
-                                          PointerRNA value)
+static void rna_MaterialSlot_material_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
 {
   Object *ob = (Object *)ptr->id.data;
   int index = (Material **)ptr->data - ob->mat;
@@ -1290,9 +1290,9 @@ static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
-static void rna_Object_active_constraint_set(struct ReportList *UNUSED(reports),
-                                             PointerRNA *ptr,
-                                             PointerRNA value)
+static void rna_Object_active_constraint_set(PointerRNA *ptr,
+                                             PointerRNA value,
+                                             struct ReportList *UNUSED(reports))
 {
   Object *ob = (Object *)ptr->id.data;
   BKE_constraints_active_set(&ob->constraints, (bConstraint *)value.data);

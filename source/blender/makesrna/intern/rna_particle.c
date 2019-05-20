@@ -792,9 +792,9 @@ static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
 }
 
-static void rna_particle_settings_set(struct ReportList *UNUSED(reports),
-                                      PointerRNA *ptr,
-                                      PointerRNA value)
+static void rna_particle_settings_set(PointerRNA *ptr,
+                                      PointerRNA value,
+                                      struct ReportList *UNUSED(reports))
 {
   Object *ob = ptr->id.data;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
@@ -1320,9 +1320,9 @@ static PointerRNA rna_ParticleSettings_active_texture_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_ParticleSettings_active_texture_set(struct ReportList *UNUSED(reports),
-                                                    PointerRNA *ptr,
-                                                    PointerRNA value)
+static void rna_ParticleSettings_active_texture_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *UNUSED(reports))
 {
   ParticleSettings *part = (ParticleSettings *)ptr->data;
 

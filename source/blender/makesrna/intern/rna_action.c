@@ -214,9 +214,9 @@ static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
       ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
 }
 
-static void rna_Action_active_pose_marker_set(struct ReportList *UNUSED(reports),
-                                              PointerRNA *ptr,
-                                              PointerRNA value)
+static void rna_Action_active_pose_marker_set(PointerRNA *ptr,
+                                              PointerRNA value,
+                                              struct ReportList *UNUSED(reports))
 {
   bAction *act = (bAction *)ptr->data;
   act->active_marker = BLI_findindex(&act->markers, value.data) + 1;

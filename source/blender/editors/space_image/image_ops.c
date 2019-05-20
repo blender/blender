@@ -1320,7 +1320,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
     PointerRNA imaptr;
     RNA_id_pointer_create(&ima->id, &imaptr);
-    RNA_property_pointer_set(NULL, &iod->pprop.ptr, iod->pprop.prop, imaptr);
+    RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, imaptr, NULL);
     RNA_property_update(C, &iod->pprop.ptr, iod->pprop.prop);
   }
 
@@ -2474,7 +2474,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
     PointerRNA imaptr;
     RNA_id_pointer_create(&ima->id, &imaptr);
-    RNA_property_pointer_set(NULL, &data->pprop.ptr, data->pprop.prop, imaptr);
+    RNA_property_pointer_set(&data->pprop.ptr, data->pprop.prop, imaptr, NULL);
     RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
   }
   else if (sima) {

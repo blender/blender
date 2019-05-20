@@ -2032,7 +2032,7 @@ static int pyrna_py_to_prop(
               ReportList reports;
               BKE_reports_init(&reports, RPT_STORE);
               RNA_property_pointer_set(
-                  &reports, ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr);
+                  ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr, &reports);
               int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
               if (err == -1) {
                 Py_XDECREF(value_new);

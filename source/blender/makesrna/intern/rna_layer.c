@@ -67,9 +67,9 @@ static PointerRNA rna_ViewLayer_active_layer_collection_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_LayerCollection, lc);
 }
 
-static void rna_ViewLayer_active_layer_collection_set(struct ReportList *UNUSED(reports),
-                                                      PointerRNA *ptr,
-                                                      PointerRNA value)
+static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
+                                                      PointerRNA value,
+                                                      struct ReportList *UNUSED(reports))
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   LayerCollection *lc = (LayerCollection *)value.data;
@@ -86,9 +86,9 @@ static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
       ptr, &RNA_Object, view_layer->basact ? view_layer->basact->object : NULL);
 }
 
-static void rna_LayerObjects_active_object_set(struct ReportList *UNUSED(reports),
-                                               PointerRNA *ptr,
-                                               PointerRNA value)
+static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
+                                               PointerRNA value,
+                                               struct ReportList *UNUSED(reports))
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   if (value.data)

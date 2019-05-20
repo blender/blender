@@ -136,7 +136,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
     id_us_min(&sound->id);
 
     RNA_id_pointer_create(&sound->id, &idptr);
-    RNA_property_pointer_set(NULL, &pprop->ptr, pprop->prop, idptr);
+    RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, NULL);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }
 

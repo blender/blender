@@ -151,9 +151,9 @@ static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_i
     return PROP_EDITABLE;
 }
 
-static void rna_AnimData_action_set(struct ReportList *UNUSED(reports),
-                                    PointerRNA *ptr,
-                                    PointerRNA value)
+static void rna_AnimData_action_set(PointerRNA *ptr,
+                                    PointerRNA value,
+                                    struct ReportList *UNUSED(reports))
 {
   ID *ownerId = (ID *)ptr->id.data;
 
@@ -463,9 +463,9 @@ static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)
       ptr, &RNA_KeyingSetPath, BLI_findlink(&ks->paths, ks->active_path - 1));
 }
 
-static void rna_KeyingSet_active_ksPath_set(struct ReportList *UNUSED(reports),
-                                            PointerRNA *ptr,
-                                            PointerRNA value)
+static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr,
+                                            PointerRNA value,
+                                            struct ReportList *UNUSED(reports))
 {
   KeyingSet *ks = (KeyingSet *)ptr->data;
   KS_Path *ksp = (KS_Path *)value.data;
@@ -616,9 +616,9 @@ static PointerRNA rna_NlaTrack_active_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_NlaTrack, track);
 }
 
-static void rna_NlaTrack_active_set(struct ReportList *UNUSED(reports),
-                                    PointerRNA *ptr,
-                                    PointerRNA value)
+static void rna_NlaTrack_active_set(PointerRNA *ptr,
+                                    PointerRNA value,
+                                    struct ReportList *UNUSED(reports))
 {
   AnimData *adt = (AnimData *)ptr->data;
   NlaTrack *track = (NlaTrack *)value.data;

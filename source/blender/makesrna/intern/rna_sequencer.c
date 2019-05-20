@@ -465,9 +465,9 @@ static void rna_SequenceCrop_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
   BKE_sequence_invalidate_cache(scene, seq);
 }
 
-static void rna_Sequence_text_font_set(struct ReportList *UNUSED(reports),
-                                       PointerRNA *ptr,
-                                       PointerRNA ptr_value)
+static void rna_Sequence_text_font_set(PointerRNA *ptr,
+                                       PointerRNA ptr_value,
+                                       struct ReportList *UNUSED(reports))
 {
   Sequence *seq = ptr->data;
   TextVars *data = seq->effectdata;

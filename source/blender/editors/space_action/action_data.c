@@ -155,7 +155,7 @@ static void actedit_change_action(bContext *C, bAction *act)
   RNA_id_pointer_create((ID *)act, &idptr);
 
   /* set the new pointer, and force a refresh */
-  RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+  RNA_property_pointer_set(&ptr, prop, idptr, NULL);
   RNA_property_update(C, &ptr, prop);
 }
 
@@ -261,7 +261,7 @@ static int action_new_exec(bContext *C, wmOperator *UNUSED(op))
      * NOTE: we can't use actedit_change_action, as this function is also called from the NLA
      */
     RNA_id_pointer_create(&action->id, &idptr);
-    RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -619,7 +619,7 @@ void ED_animedit_unlink_action(
       prop = RNA_struct_find_property(&ptr, "action");
 
       /* clear... */
-      RNA_property_pointer_set(NULL, &ptr, prop, PointerRNA_NULL);
+      RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, NULL);
       RNA_property_update(C, &ptr, prop);
     }
   }

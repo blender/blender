@@ -521,7 +521,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     id_us_min(&ntree->id);
 
     RNA_id_pointer_create(&ntree->id, &idptr);
-    RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
   else if (snode) {

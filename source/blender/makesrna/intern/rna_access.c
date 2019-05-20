@@ -3733,10 +3733,10 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   }
 }
 
-void RNA_property_pointer_set(ReportList *reports,
-                              PointerRNA *ptr,
+void RNA_property_pointer_set(PointerRNA *ptr,
                               PropertyRNA *prop,
-                              PointerRNA ptr_value)
+                              PointerRNA ptr_value,
+                              ReportList *reports)
 {
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
@@ -3755,7 +3755,7 @@ void RNA_property_pointer_set(ReportList *reports,
   /* RNA */
   if (pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
       !((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data)) {
-    pprop->set(reports, ptr, ptr_value);
+    pprop->set(ptr, ptr_value, reports);
   }
   /* IDProperty */
   else if (prop->flag & PROP_EDITABLE) {
@@ -6427,7 +6427,7 @@ void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value)
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
   if (prop) {
-    RNA_property_pointer_set(NULL, ptr, prop, ptr_value);
+    RNA_property_pointer_set(ptr, prop, ptr_value, NULL);
   }
   else {
     printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
@@ -7976,7 +7976,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 
     case PROP_POINTER: {
       PointerRNA value = RNA_property_pointer_get_default(ptr, prop);
-      RNA_property_pointer_set(NULL, ptr, prop, value);
+      RNA_property_pointer_set(ptr, prop, value, NULL);
       return true;
     }
 

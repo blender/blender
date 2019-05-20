@@ -74,9 +74,9 @@ static PointerRNA rna_Palette_active_color_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
 
-static void rna_Palette_active_color_set(struct ReportList *UNUSED(reports),
-                                         PointerRNA *ptr,
-                                         PointerRNA value)
+static void rna_Palette_active_color_set(PointerRNA *ptr,
+                                         PointerRNA value,
+                                         struct ReportList *UNUSED(reports))
 {
   Palette *palette = ptr->data;
   PaletteColor *color = value.data;

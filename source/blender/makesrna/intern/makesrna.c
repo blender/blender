@@ -1033,10 +1033,10 @@ static char *rna_def_property_set_func(
       break;
     }
     case PROP_POINTER: {
-      fprintf(f, "void %s(struct ReportList *reports, PointerRNA *ptr, PointerRNA value)\n", func);
+      fprintf(f, "void %s(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
-        fprintf(f, "    %s(reports, ptr, value);\n", manualfunc);
+        fprintf(f, "    %s(ptr, value, reports);\n", manualfunc);
       }
       else {
         rna_print_data_get(f, dp);

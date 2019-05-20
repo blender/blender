@@ -207,7 +207,7 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 
   RNA_id_pointer_create(id, &ptr_value);
 
-  RNA_property_pointer_set(NULL, &ddr->ptr, ddr->prop, ptr_value);
+  RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value, NULL);
 
   RNA_property_update(C, &ddr->ptr, ddr->prop);
 

@@ -595,7 +595,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&ma->id);
 
     RNA_id_pointer_create(&ma->id, &idptr);
-    RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -644,7 +644,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&tex->id);
 
     RNA_id_pointer_create(&tex->id, &idptr);
-    RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -695,7 +695,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&wo->id);
 
     RNA_id_pointer_create(&wo->id, &idptr);
-    RNA_property_pointer_set(NULL, &ptr, prop, idptr);
+    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
     RNA_property_update(C, &ptr, prop);
   }
 

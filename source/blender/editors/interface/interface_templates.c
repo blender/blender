@@ -298,7 +298,7 @@ static void template_ID_set_property_cb(bContext *C, void *arg_template, void *i
     PointerRNA idptr;
 
     RNA_id_pointer_create(item, &idptr);
-    RNA_property_pointer_set(NULL, &template_ui->ptr, template_ui->prop, idptr);
+    RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
     RNA_property_update(C, &template_ui->ptr, template_ui->prop);
   }
 }
@@ -489,7 +489,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_DELETE:
       memset(&idptr, 0, sizeof(idptr));
-      RNA_property_pointer_set(NULL, &template_ui->ptr, template_ui->prop, idptr);
+      RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
       RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 
       if (id && CTX_wm_window(C)->eventstate->shift) {
@@ -532,7 +532,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
           }
         }
-        RNA_property_pointer_set(NULL, &template_ui->ptr, template_ui->prop, idptr);
+        RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
       }
       break;
@@ -541,7 +541,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         BKE_override_static_free(&id->override_static);
         /* reassign to get get proper updates/notifiers */
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
-        RNA_property_pointer_set(NULL, &template_ui->ptr, template_ui->prop, idptr);
+        RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
       }
       break;
@@ -1455,7 +1455,7 @@ static void template_search_handle_cb(bContext *C, void *arg_template, void *ite
   PointerRNA item_ptr;
 
   RNA_pointer_create(NULL, type, item, &item_ptr);
-  RNA_property_pointer_set(NULL, &coll_search->target_ptr, coll_search->target_prop, item_ptr);
+  RNA_property_pointer_set(&coll_search->target_ptr, coll_search->target_prop, item_ptr, NULL);
   RNA_property_update(C, &coll_search->target_ptr, coll_search->target_prop);
 }
 

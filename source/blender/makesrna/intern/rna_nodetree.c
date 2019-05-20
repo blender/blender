@@ -814,9 +814,9 @@ static PointerRNA rna_NodeTree_active_node_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Node, node);
 }
 
-static void rna_NodeTree_active_node_set(struct ReportList *UNUSED(reports),
-                                         PointerRNA *ptr,
-                                         const PointerRNA value)
+static void rna_NodeTree_active_node_set(PointerRNA *ptr,
+                                         const PointerRNA value,
+                                         struct ReportList *UNUSED(reports))
 {
   bNodeTree *ntree = (bNodeTree *)ptr->data;
   bNode *node = (bNode *)value.data;
@@ -1610,9 +1610,9 @@ static IDProperty *rna_Node_idprops(PointerRNA *ptr, bool create)
   return node->prop;
 }
 
-static void rna_Node_parent_set(struct ReportList *UNUSED(reports),
-                                PointerRNA *ptr,
-                                PointerRNA value)
+static void rna_Node_parent_set(PointerRNA *ptr,
+                                PointerRNA value,
+                                struct ReportList *UNUSED(reports))
 {
   bNode *node = ptr->data;
   bNode *parent = value.data;
@@ -2687,9 +2687,9 @@ static void rna_NodeGroup_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
   ED_node_tag_update_nodetree(bmain, ntree, node);
 }
 
-static void rna_NodeGroup_node_tree_set(struct ReportList *UNUSED(reports),
-                                        PointerRNA *ptr,
-                                        const PointerRNA value)
+static void rna_NodeGroup_node_tree_set(PointerRNA *ptr,
+                                        const PointerRNA value,
+                                        struct ReportList *UNUSED(reports))
 {
   bNodeTree *ntree = ptr->id.data;
   bNode *node = ptr->data;
@@ -2797,9 +2797,9 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
   chroma->t2 = value;
 }
 
-static void rna_Node_scene_set(struct ReportList *UNUSED(reports),
-                               PointerRNA *ptr,
-                               PointerRNA value)
+static void rna_Node_scene_set(PointerRNA *ptr,
+                               PointerRNA value,
+                               struct ReportList *UNUSED(reports))
 {
   bNode *node = (bNode *)ptr->data;
 
@@ -3353,9 +3353,9 @@ static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
   return value;
 }
 
-static void rna_ShaderNodePointDensity_psys_set(struct ReportList *UNUSED(reports),
-                                                PointerRNA *ptr,
-                                                PointerRNA value)
+static void rna_ShaderNodePointDensity_psys_set(PointerRNA *ptr,
+                                                PointerRNA value,
+                                                struct ReportList *UNUSED(reports))
 {
   bNode *node = ptr->data;
   NodeShaderTexPointDensity *shader_point_density = node->storage;

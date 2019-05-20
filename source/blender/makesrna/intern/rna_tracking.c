@@ -144,9 +144,9 @@ static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, act_track);
 }
 
-static void rna_tracking_active_track_set(struct ReportList *UNUSED(reports),
-                                          PointerRNA *ptr,
-                                          PointerRNA value)
+static void rna_tracking_active_track_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
 {
   MovieClip *clip = (MovieClip *)ptr->id.data;
   MovieTrackingTrack *track = (MovieTrackingTrack *)value.data;
@@ -167,9 +167,9 @@ static PointerRNA rna_tracking_active_plane_track_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingPlaneTrack, act_plane_track);
 }
 
-static void rna_tracking_active_plane_track_set(struct ReportList *UNUSED(reports),
-                                                PointerRNA *ptr,
-                                                PointerRNA value)
+static void rna_tracking_active_plane_track_set(PointerRNA *ptr,
+                                                PointerRNA value,
+                                                struct ReportList *UNUSED(reports))
 {
   MovieClip *clip = (MovieClip *)ptr->id.data;
   MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)value.data;
@@ -480,9 +480,9 @@ static PointerRNA rna_tracking_active_object_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingObject, object);
 }
 
-static void rna_tracking_active_object_set(struct ReportList *UNUSED(reports),
-                                           PointerRNA *ptr,
-                                           PointerRNA value)
+static void rna_tracking_active_object_set(PointerRNA *ptr,
+                                           PointerRNA value,
+                                           struct ReportList *UNUSED(reports))
 {
   MovieClip *clip = (MovieClip *)ptr->id.data;
   MovieTrackingObject *object = (MovieTrackingObject *)value.data;

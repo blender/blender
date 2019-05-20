@@ -86,9 +86,9 @@ typedef const EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C,
                                                     bool *r_free);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA *(*PropPointerTypeFunc)(struct PointerRNA *ptr);
-typedef void (*PropPointerSetFunc)(struct ReportList *reports,
-                                   struct PointerRNA *ptr,
-                                   const PointerRNA value);
+typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr,
+                                   const PointerRNA value,
+                                   struct ReportList *reports);
 typedef bool (*PropPointerPollFunc)(struct PointerRNA *ptr, const PointerRNA value);
 typedef bool (*PropPointerPollFuncPy)(struct PointerRNA *ptr,
                                       const PointerRNA value,
