@@ -2860,6 +2860,7 @@ void DRW_draw_select_id_object(Scene *scene,
           draw_mesh_face(geom_faces, 0, false, world_clip_planes);
           draw_mesh_verts(geom_verts, 1, world_clip_planes);
 
+          *r_face_offset = *r_edge_offset = initial_offset;
           *r_vert_offset = me_eval->totvert + 1;
         }
         else {
@@ -2869,6 +2870,7 @@ void DRW_draw_select_id_object(Scene *scene,
           draw_mesh_face(geom_faces, initial_offset, true, world_clip_planes);
 
           *r_face_offset = initial_offset + me_eval->totpoly;
+          *r_edge_offset = *r_vert_offset = *r_face_offset;
         }
       }
       break;
