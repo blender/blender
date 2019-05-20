@@ -1467,7 +1467,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return cls.has_sequencer(context)
+        return cls.has_sequencer(context) and context.scene.sequence_editor
 
     def draw(self, context):
         layout = self.layout
@@ -1487,7 +1487,7 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return cls.has_sequencer(context)
+        return cls.has_sequencer(context) and context.scene.sequence_editor
 
     def draw(self, context):
         layout = self.layout
