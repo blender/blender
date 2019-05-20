@@ -2868,7 +2868,7 @@ void DRW_draw_select_id_object(Scene *scene,
 
           draw_mesh_face(geom_faces, initial_offset, true, world_clip_planes);
 
-          *r_face_offset = initial_offset + me_eval->totface;
+          *r_face_offset = initial_offset + me_eval->totpoly;
         }
       }
       break;
