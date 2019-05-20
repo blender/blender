@@ -178,9 +178,6 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
   else if ((obact_eval && (obact_eval->mode & OB_MODE_PARTICLE_EDIT)) && !XRAY_ENABLED(v3d)) {
     /* do nothing */
   }
-  else if ((obedit && (obedit->mode & OB_MODE_EDIT)) && !XRAY_FLAG_ENABLED(v3d)) {
-    /* do nothing */
-  }
   else {
     v3d->flag &= ~V3D_INVALID_BACKBUF;
     return;
@@ -189,23 +186,6 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
   if (!(v3d->flag & V3D_INVALID_BACKBUF)) {
     return;
   }
-
-#if 0
-  if (test) {
-    if (qtest()) {
-      addafterqueue(ar->win, BACKBUFDRAW, 1);
-      return;
-    }
-  }
-#endif
-
-#if 0 /* v3d->zbuf deprecated */
-  if (v3d->shading.type > OB_WIRE) {
-    v3d->zbuf = true;
-  }
-#endif
-
-  G.f |= G_FLAG_BACKBUFSEL;
 
   if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
     DRW_framebuffer_select_id_setup(ar, true);
@@ -225,8 +205,6 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer
    *       made on the backbuffer in this case. */
   v3d->flag &= ~V3D_INVALID_BACKBUF;
-
-  G.f &= ~G_FLAG_BACKBUFSEL;
 }
 
 /* TODO: Creating, attaching texture, and destroying a framebuffer is quite slow.

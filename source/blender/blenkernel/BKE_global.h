@@ -107,7 +107,6 @@ typedef struct Global {
 /** #Global.f */
 enum {
   G_FLAG_RENDER_VIEWPORT = (1 << 0),
-  G_FLAG_BACKBUFSEL = (1 << 1),
   G_FLAG_PICKSEL = (1 << 2),
   /** Support simulating events (for testing). */
   G_FLAG_EVENT_SIMULATE = (1 << 3),
