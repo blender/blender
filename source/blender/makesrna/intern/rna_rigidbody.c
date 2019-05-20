@@ -1044,6 +1044,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyOb_kinematic_state_set");
   RNA_def_property_ui_text(
       prop, "Kinematic", "Allow rigid body to be controlled by the animation system");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 
   prop = RNA_def_property(srna, "use_deform", PROP_BOOLEAN, PROP_NONE);
