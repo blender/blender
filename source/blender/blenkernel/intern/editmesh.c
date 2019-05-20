@@ -248,3 +248,13 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 
   BM_lnorspace_update(bm);
 }
+
+/* If autosmooth not already set, set it */
+void BKE_editmesh_ensure_autosmooth(BMEditMesh *em)
+{
+  Mesh *me = em->ob->data;
+  if (!(me->flag & ME_AUTOSMOOTH)) {
+    me->flag |= ME_AUTOSMOOTH;
+    BKE_editmesh_lnorspace_update (em);
+  }
+}

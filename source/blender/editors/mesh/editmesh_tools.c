@@ -7687,6 +7687,7 @@ static int point_normals_init(bContext *C, wmOperator *op, const wmEvent *UNUSED
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
+  BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
   BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
 
@@ -8076,7 +8077,7 @@ void MESH_OT_point_normals(struct wmOperatorType *ot)
   ot->exec = edbm_point_normals_exec;
   ot->invoke = edbm_point_normals_invoke;
   ot->modal = edbm_point_normals_modal;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
   ot->ui = edbm_point_normals_ui;
   ot->cancel = point_normals_free;
 
@@ -8242,6 +8243,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
   BMEdge *e;
   BMIter eiter;
 
+  BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
 
   BMLoopNorEditDataArray *lnors_ed_arr = do_merge ? BM_loop_normal_editdata_array_init(bm) : NULL;
@@ -8287,7 +8289,7 @@ void MESH_OT_merge_normals(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_merge_normals_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8307,7 +8309,7 @@ void MESH_OT_split_normals(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_split_normals_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8345,6 +8347,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
   BMLoop *l, *l_curr, *l_first;
   BMIter fiter;
 
+  BKE_editmesh_ensure_autosmooth(em);
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
   BKE_editmesh_lnorspace_update(em);
 
@@ -8505,7 +8508,7 @@ void MESH_OT_average_normals(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_average_normals_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
   ot->ui = edbm_average_normals_ui;
 
   /* flags */
@@ -8568,6 +8571,7 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
   const bool absolute = RNA_boolean_get(op->ptr, "absolute");
 
+  BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
   BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
   BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
@@ -8724,7 +8728,7 @@ void MESH_OT_normals_tools(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_normals_tools_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
   ot->ui = edbm_normals_tools_ui;
 
   /* flags */
@@ -8764,6 +8768,7 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 
     const bool keep_sharp = RNA_boolean_get(op->ptr, "keep_sharp");
 
+    BKE_editmesh_ensure_autosmooth(em);
     BKE_editmesh_lnorspace_update(em);
 
     float(*vnors)[3] = MEM_callocN(sizeof(*vnors) * bm->totvert, __func__);
@@ -8842,7 +8847,7 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_set_normals_from_faces_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8859,6 +8864,7 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
   BMLoop *l;
   BMIter fiter, liter;
 
+  BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
   BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
 
@@ -8934,7 +8940,7 @@ void MESH_OT_smoothen_normals(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_smoothen_normals_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -9017,7 +9023,7 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_mod_weighted_strength_exec;
-  ot->poll = ED_operator_editmesh_auto_smooth;
+  ot->poll = ED_operator_editmesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
