@@ -2898,7 +2898,7 @@ void DRW_framebuffer_select_id_setup(ARegion *ar, const bool clear)
   glDisable(GL_DITHER);
 
   GPU_depth_test(true);
-  GPU_enable_program_point_size();
+  GPU_disable_program_point_size();
 
   if (clear) {
     GPU_framebuffer_clear_color_depth(
