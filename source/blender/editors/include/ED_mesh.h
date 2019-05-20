@@ -297,7 +297,6 @@ bool paintface_mouse_select(struct bContext *C,
                             bool extend,
                             bool deselect,
                             bool toggle);
-bool do_paintface_box_select(struct ViewContext *vc, const struct rcti *rect, int sel_op);
 bool paintface_deselect_all_visible(struct bContext *C,
                                     struct Object *ob,
                                     int action,
