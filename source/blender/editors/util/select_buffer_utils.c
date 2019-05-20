@@ -19,6 +19,11 @@
 
 /** \file
  * \ingroup edutil
+ *
+ * Generic utilities for handling buffer selection where selection ID's are drawn onto
+ * an off screen buffer.
+ *
+ * All coordinates are relative to the current region.
  */
 
 #include "MEM_guardedalloc.h"
@@ -34,6 +39,14 @@
  * note that this file shouldn't have 3D view specific logic in it, we could have a more general
  * way to read from selection buffers that doesn't depend on the view3d API. */
 #include "ED_view3d.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Select Bitmap from ID's
+ *
+ * Given a buffer of select ID's, fill in a booleans (true/false) per index.
+ * #BLI_bitmap is used for memory effeciency.
+ *
+ * \{ */
 
 /**
  * \param bitmap_len: Number of indices in the selection id buffer.
@@ -177,3 +190,114 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
 
   return bitmap_buf;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Find Single Select ID's
+ *
+ * Given a buffer of select ID's, find the a single select id.
+ *
+ * \{ */
+
+/**
+ * Samples a single pixel.
+ */
+uint ED_select_buffer_sample_point(const int center[2])
+{
+  uint buf_len;
+  uint *buf = ED_view3d_select_id_read(center[0], center[1], center[0], center[1], &buf_len);
+  BLI_assert(0 != buf_len);
+  uint ret = buf[0];
+  MEM_freeN(buf);
+  return ret;
+}
+
+/**
+ * Find the selection id closest to \a center.
+ * \param dist[in,out]: Use to initalize the distance,
+ * when found, this value is set to the distance of the selection thats returned.
+ */
+uint ED_select_buffer_find_nearest_to_point(const int center[2],
+                                            const uint id_min,
+                                            const uint id_max,
+                                            uint *dist)
+{
+  /* Smart function to sample a rect spiralling outside, nice for selection ID. */
+
+  /* Create region around center (typically the mouse cursor).
+   * This must be square and have an odd width,
+   * the spiraling algorithm does not work with arbitrary rectangles. */
+  rcti rect;
+  BLI_rcti_init_pt_radius(&rect, center, *dist);
+  rect.xmax += 1;
+  rect.ymax += 1;
+
+  int width = BLI_rcti_size_x(&rect);
+  int height = width;
+  BLI_assert(width == height);
+
+  /* Read from selection framebuffer. */
+
+  uint buf_len;
+  const uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
+  BLI_assert(width * height == buf_len);
+
+  /* Spiral, starting from center of buffer. */
+  int spiral_offset = height * (int)(width / 2) + (height / 2);
+  int spiral_direction = 0;
+
+  uint index = 0;
+
+  for (int nr = 1; nr <= height; nr++) {
+    for (int a = 0; a < 2; a++) {
+      for (int b = 0; b < nr; b++) {
+        /* Find hit within the specified range. */
+        uint hit_id = buf[spiral_offset];
+
+        if (hit_id && hit_id >= id_min && hit_id < id_max) {
+          /* Get x/y from spiral offset. */
+          int hit_x = spiral_offset % width;
+          int hit_y = spiral_offset / width;
+
+          int center_x = width / 2;
+          int center_y = height / 2;
+
+          /* Manhatten distance in keeping with other screen-based selection. */
+          *dist = (uint)(abs(hit_x - center_x) + abs(hit_y - center_y));
+
+          /* Indices start at 1 here. */
+          index = (hit_id - id_min) + 1;
+          goto exit;
+        }
+
+        /* Next spiral step. */
+        if (spiral_direction == 0) {
+          spiral_offset += 1; /* right */
+        }
+        else if (spiral_direction == 1) {
+          spiral_offset -= width; /* down */
+        }
+        else if (spiral_direction == 2) {
+          spiral_offset -= 1; /* left */
+        }
+        else {
+          spiral_offset += width; /* up */
+        }
+
+        /* Stop if we are outside the buffer. */
+        if (spiral_offset < 0 || spiral_offset >= buf_len) {
+          goto exit;
+        }
+      }
+
+      spiral_direction = (spiral_direction + 1) % 4;
+    }
+  }
+
+exit:
+  MEM_freeN((void *)buf);
+  return index;
+}
+
+/** \} */

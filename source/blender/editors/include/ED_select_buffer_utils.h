@@ -23,6 +23,7 @@
 
 struct rcti;
 
+/* Boolean array from selection ID's. */
 uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const struct rcti *rect);
 uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
                                           const int center[2],
@@ -31,5 +32,12 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
                                         const int poly[][2],
                                         const int poly_len,
                                         const rcti *rect);
+
+/* Single result from selection ID's. */
+uint ED_select_buffer_sample_point(const int center[2]);
+uint ED_select_buffer_find_nearest_to_point(const int center[2],
+                                            const uint id_min,
+                                            const uint id_max,
+                                            uint *dist);
 
 #endif /* __ED_SELECT_BUFFER_UTILS_H__ */

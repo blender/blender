@@ -451,11 +451,8 @@ int ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
 
 void ED_view3d_select_id_validate(struct ViewContext *vc);
 
-uint ED_view3d_select_id_sample(struct ViewContext *vc, int x, int y);
 uint *ED_view3d_select_id_read(int xmin, int ymin, int xmax, int ymax, uint *r_buf_len);
 uint *ED_view3d_select_id_read_rect(const struct rcti *rect, uint *r_buf_len);
-uint ED_view3d_select_id_read_nearest(
-    struct ViewContext *vc, const int mval[2], const uint min, const uint max, uint *r_dist);
 
 bool ED_view3d_autodist(struct Depsgraph *depsgraph,
                         struct ARegion *ar,

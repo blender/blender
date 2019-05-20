@@ -53,6 +53,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_select_buffer_utils.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
 
@@ -476,7 +477,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
       struct EDBMSelectID_Context *sel_id_ctx = EDBM_select_id_context_create(
           vc, bases, bases_len, select_mode);
 
-      index = ED_view3d_select_id_read_nearest(vc, vc->mval, 1, UINT_MAX, &dist_px);
+      index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eve = (BMVert *)EDBM_select_id_bm_elem_get(sel_id_ctx, index, &base_index);
@@ -701,7 +702,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
       struct EDBMSelectID_Context *sel_id_ctx = EDBM_select_id_context_create(
           vc, bases, bases_len, select_mode);
 
-      index = ED_view3d_select_id_read_nearest(vc, vc->mval, 1, UINT_MAX, &dist_px);
+      index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
         eed = (BMEdge *)EDBM_select_id_bm_elem_get(sel_id_ctx, index, &base_index);
@@ -910,7 +911,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
       struct EDBMSelectID_Context *sel_id_ctx = EDBM_select_id_context_create(
           vc, bases, bases_len, select_mode);
 
-      index = ED_view3d_select_id_sample(vc, vc->mval[0], vc->mval[1]);
+      index = ED_select_buffer_sample_point(vc->mval);
 
       if (index) {
         efa = (BMFace *)EDBM_select_id_bm_elem_get(sel_id_ctx, index, &base_index);
