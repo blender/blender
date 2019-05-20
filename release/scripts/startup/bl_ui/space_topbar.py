@@ -157,7 +157,7 @@ class TOPBAR_MT_editor_menus(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.menu("TOPBAR_MT_app")
+        layout.menu("TOPBAR_MT_app", text="", icon="BLENDER")
 
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
@@ -175,53 +175,19 @@ class TOPBAR_MT_app(Menu):
         layout = self.layout
         prefs = context.preferences
 
-        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
-
-        layout.separator()
-
-        layout.operator_context = 'INVOKE_AREA'
-
-        if any(bpy.utils.app_template_paths()):
-            app_template = prefs.app_template
-        else:
-            app_template = None
-
-        if app_template:
-            layout.label(text=bpy.path.display_name(app_template, has_ext=False))
-
-        layout.operator("wm.save_homefile")
-        props = layout.operator("wm.read_factory_settings")
-        if app_template:
-            props.app_template = app_template
-
-        if prefs.use_preferences_save:
-            props = layout.operator(
-                "wm.read_factory_settings",
-                text="Load Factory Settings (Temporary)"
-            )
-            if app_template:
-                props.app_template = app_template
-            props.use_temporary_preferences = True
-
-        layout.separator()
-
-        layout.operator("preferences.app_template_install", text="Install Application Template...")
-
-        layout.separator()
-
         layout.operator("wm.splash")
 
         layout.separator()
 
-        layout.menu("TOPBAR_MT_app_about")
         layout.menu("TOPBAR_MT_app_support")
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA'
-        if bpy.data.is_dirty:
-            layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
-        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
+        layout.menu("TOPBAR_MT_app_about")
+
+        layout.separator()
+
+        layout.operator("preferences.app_template_install", text="Install Application Template...")
 
 
 class TOPBAR_MT_file(Menu):
@@ -262,6 +228,17 @@ class TOPBAR_MT_file(Menu):
         layout.separator()
 
         layout.menu("TOPBAR_MT_file_external_data")
+
+        layout.separator()
+
+        layout.menu("TOPBAR_MT_file_defaults")
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_AREA'
+        if bpy.data.is_dirty:
+            layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
+        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
 class TOPBAR_MT_file_new(Menu):
@@ -337,6 +314,38 @@ class TOPBAR_MT_file_recover(Menu):
 
         layout.operator("wm.recover_last_session", text="Last Session")
         layout.operator("wm.recover_auto_save", text="Auto Save...")
+
+
+class TOPBAR_MT_file_defaults(Menu):
+    bl_label = "Defaults"
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = context.preferences
+
+        layout.operator_context = 'INVOKE_AREA'
+
+        if any(bpy.utils.app_template_paths()):
+            app_template = prefs.app_template
+        else:
+            app_template = None
+
+        if app_template:
+            layout.label(text=bpy.path.display_name(app_template, has_ext=False))
+
+        layout.operator("wm.save_homefile")
+        props = layout.operator("wm.read_factory_settings")
+        if app_template:
+            props.app_template = app_template
+
+        if prefs.use_preferences_save:
+            props = layout.operator(
+                "wm.read_factory_settings",
+                text="Load Factory Settings (Temporary)"
+            )
+            if app_template:
+                props.app_template = app_template
+            props.use_temporary_preferences = True
 
 
 class TOPBAR_MT_app_about(Menu):
@@ -519,6 +528,10 @@ class TOPBAR_MT_edit(Menu):
         # Should move elsewhere (impacts outliner & 3D view).
         tool_settings = context.tool_settings
         layout.prop(tool_settings, "lock_object_mode")
+
+        layout.separator()
+
+        layout.operator("screen.userpref_show", text="Preferences...", icon='PREFERENCES')
 
 
 class TOPBAR_MT_window(Menu):
@@ -773,6 +786,7 @@ classes = (
     TOPBAR_MT_file,
     TOPBAR_MT_file_new,
     TOPBAR_MT_file_recover,
+    TOPBAR_MT_file_defaults,
     TOPBAR_MT_templates_more,
     TOPBAR_MT_file_import,
     TOPBAR_MT_file_export,
