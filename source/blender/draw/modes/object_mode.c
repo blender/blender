@@ -531,7 +531,7 @@ static void OBJECT_engine_init(void *vedata)
 
   {
     /* Grid precompute */
-    float invviewmat[4][4], invwinmat[4][4];
+    float viewinv[4][4], wininv[4][4];
     float viewmat[4][4], winmat[4][4];
     View3D *v3d = draw_ctx->v3d;
     Scene *scene = draw_ctx->scene;
@@ -546,10 +546,10 @@ static void OBJECT_engine_init(void *vedata)
     const bool show_ortho_grid = (v3d->gridflag & V3D_SHOW_ORTHO_GRID) != 0;
     e_data.draw_grid = show_axis_x || show_axis_y || show_axis_z || show_floor;
 
-    DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
-    DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-    DRW_viewport_matrix_get(invwinmat, DRW_MAT_WININV);
-    DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+    DRW_view_winmat_get(NULL, winmat, false);
+    DRW_view_winmat_get(NULL, wininv, true);
+    DRW_view_viewmat_get(NULL, viewmat, false);
+    DRW_view_viewmat_get(NULL, viewinv, true);
 
     /* if perps */
     if (winmat[3][3] == 0.0f) {
@@ -561,7 +561,7 @@ static void OBJECT_engine_init(void *vedata)
 
       /* convert the view vectors to view space */
       for (int i = 0; i < 2; i++) {
-        mul_m4_v4(invwinmat, viewvecs[i]);
+        mul_m4_v4(wininv, viewvecs[i]);
         mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]); /* perspective divide */
       }
 
@@ -623,8 +623,8 @@ static void OBJECT_engine_init(void *vedata)
       e_data.zpos_flag = SHOW_AXIS_Z;
 
       float zvec[3], campos[3];
-      negate_v3_v3(zvec, invviewmat[2]);
-      copy_v3_v3(campos, invviewmat[3]);
+      negate_v3_v3(zvec, viewinv[2]);
+      copy_v3_v3(campos, viewinv[3]);
 
       /* z axis : chose the most facing plane */
       if (fabsf(zvec[0]) < fabsf(zvec[1])) {
@@ -2437,12 +2437,11 @@ static void DRW_shgroup_volume_extra(OBJECT_ShadingGroupList *sgl,
 
   if (sds->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
       sds->axis_slice_method == AXIS_SLICE_SINGLE) {
-    float invviewmat[4][4];
-    DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+    float viewinv[4][4];
+    DRW_view_viewmat_get(NULL, viewinv, true);
 
-    const int axis = (sds->slice_axis == SLICE_AXIS_AUTO) ?
-                         axis_dominant_v3_single(invviewmat[2]) :
-                         sds->slice_axis - 1;
+    const int axis = (sds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
+                                                            sds->slice_axis - 1;
     slice_axis = axis;
     line_count /= sds->res[axis];
   }

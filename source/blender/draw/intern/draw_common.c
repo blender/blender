@@ -1212,7 +1212,7 @@ bool DRW_object_is_flat(Object *ob, int *axis)
 bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
 {
   float ob_rot[3][3], invviewmat[4][4];
-  DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+  DRW_view_viewmat_get(NULL, invviewmat, true);
   BKE_object_rot_to_mat3(ob, ob_rot, true);
   float dot = dot_v3v3(ob_rot[axis], invviewmat[2]);
   if (fabsf(dot) < 1e-3) {

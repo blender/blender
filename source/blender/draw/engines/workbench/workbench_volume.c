@@ -154,7 +154,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
 
   if (use_slice) {
     float invviewmat[4][4];
-    DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+    DRW_view_viewmat_get(NULL, invviewmat, true);
 
     const int axis = (sds->slice_axis == SLICE_AXIS_AUTO) ?
                          axis_dominant_v3_single(invviewmat[2]) :

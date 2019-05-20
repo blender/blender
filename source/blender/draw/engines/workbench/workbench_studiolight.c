@@ -32,7 +32,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd,
                               WORKBENCH_UBO_World *wd)
 {
   float view_matrix[4][4], rot_matrix[4][4];
-  DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
+  DRW_view_viewmat_get(NULL, view_matrix, false);
 
   if (USE_WORLD_ORIENTATION(wpd)) {
     axis_angle_to_mat4_single(rot_matrix, 'Z', -wpd->shading.studiolight_rot_z);

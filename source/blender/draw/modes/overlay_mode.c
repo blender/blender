@@ -219,7 +219,7 @@ static void overlay_cache_init(void *vedata)
 
     float winmat[4][4];
     float viewdist = rv3d->dist;
-    DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
+    DRW_view_winmat_get(NULL, winmat, false);
     /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
     if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
       viewdist = 1.0f / max_ff(fabsf(rv3d->winmat[0][0]), fabsf(rv3d->winmat[1][1]));
