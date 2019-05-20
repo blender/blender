@@ -461,7 +461,7 @@ void GPU_batch_program_use_end(GPUBatch *batch)
     const GPUShaderInput *uniform = GPU_shaderinterface_uniform_ensure(batch->interface, name);
 #endif
 
-void GPU_batch_uniform_1ui(GPUBatch *batch, const char *name, int value)
+void GPU_batch_uniform_1ui(GPUBatch *batch, const char *name, uint value)
 {
   GET_UNIFORM
   glUniform1ui(uniform->location, value);

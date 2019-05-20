@@ -132,7 +132,7 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
 void GPU_batch_program_use_begin(GPUBatch *); /* call before Batch_Uniform (temp hack?) */
 void GPU_batch_program_use_end(GPUBatch *);
 
-void GPU_batch_uniform_1ui(GPUBatch *, const char *name, int value);
+void GPU_batch_uniform_1ui(GPUBatch *, const char *name, uint value);
 void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);
 void GPU_batch_uniform_1b(GPUBatch *, const char *name, bool value);
 void GPU_batch_uniform_1f(GPUBatch *, const char *name, float value);

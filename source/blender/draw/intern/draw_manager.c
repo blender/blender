@@ -2684,7 +2684,7 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
   DRW_opengl_context_disable();
 }
 
-static void draw_mesh_verts(GPUBatch *batch, int offset, const float world_clip_planes[6][4])
+static void draw_mesh_verts(GPUBatch *batch, uint offset, const float world_clip_planes[6][4])
 {
   GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
@@ -2698,7 +2698,7 @@ static void draw_mesh_verts(GPUBatch *batch, int offset, const float world_clip_
   GPU_batch_draw(batch);
 }
 
-static void draw_mesh_edges(GPUBatch *batch, int offset, const float world_clip_planes[6][4])
+static void draw_mesh_edges(GPUBatch *batch, uint offset, const float world_clip_planes[6][4])
 {
   GPU_line_width(1.0f);
   glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
@@ -2717,7 +2717,7 @@ static void draw_mesh_edges(GPUBatch *batch, int offset, const float world_clip_
 
 /* two options, facecolors or black */
 static void draw_mesh_face(GPUBatch *batch,
-                           int offset,
+                           uint offset,
                            const bool use_select,
                            const float world_clip_planes[6][4])
 {
@@ -2743,7 +2743,7 @@ static void draw_mesh_face(GPUBatch *batch,
   }
 }
 
-static void draw_mesh_face_dot(GPUBatch *batch, int offset, const float world_clip_planes[6][4])
+static void draw_mesh_face_dot(GPUBatch *batch, uint offset, const float world_clip_planes[6][4])
 {
   const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED :
                                                       GPU_SHADER_CFG_DEFAULT;
