@@ -1739,12 +1739,7 @@ static void forward_diff_bezier_cotangent(const float p0[3],
 
 /* ***************** BEVEL ****************** */
 
-void BKE_curve_bevel_make(Depsgraph *depsgraph,
-                          Scene *scene,
-                          Object *ob,
-                          ListBase *disp,
-                          const bool for_render,
-                          LinkNode *ob_cyclic_list)
+void BKE_curve_bevel_make(Object *ob, ListBase *disp)
 {
   DispList *dl, *dlnew;
   Curve *bevcu, *cu;
@@ -1768,25 +1763,7 @@ void BKE_curve_bevel_make(Depsgraph *depsgraph,
       facx = cu->bevobj->scale[0];
       facy = cu->bevobj->scale[1];
 
-      if (for_render) {
-        if (BLI_linklist_index(ob_cyclic_list, cu->bevobj) == -1) {
-          BKE_displist_make_curveTypes_forRender(depsgraph,
-                                                 scene,
-                                                 cu->bevobj,
-                                                 &bevdisp,
-                                                 NULL,
-                                                 false,
-                                                 &(LinkNode){
-                                                     .link = ob,
-                                                     .next = ob_cyclic_list,
-                                                 });
-          dl = bevdisp.first;
-        }
-        else {
-          dl = NULL;
-        }
-      }
-      else if (cu->bevobj->runtime.curve_cache) {
+      if (cu->bevobj->runtime.curve_cache) {
         dl = cu->bevobj->runtime.curve_cache->disp.first;
       }
       else {

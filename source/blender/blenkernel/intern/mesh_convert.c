@@ -1005,8 +1005,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
                                          &remapped_object,
                                          &remapped_object.runtime.curve_cache->disp,
                                          &remapped_object.runtime.mesh_eval,
-                                         false,
-                                         NULL);
+                                         false);
 
   BKE_object_free_curve_cache(&bevel_object);
   BKE_object_free_curve_cache(&taper_object);

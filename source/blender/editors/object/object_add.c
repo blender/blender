@@ -1962,7 +1962,7 @@ static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Objec
     if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
       /* We need 'for render' ON here, to enable computing bevel dipslist if needed.
        * Also makes sense anyway, we would not want e.g. to loose hidden parts etc. */
-      BKE_displist_make_curveTypes(depsgraph, scene, ob, true, false, NULL);
+      BKE_displist_make_curveTypes(depsgraph, scene, ob, true, false);
     }
     else if (ob->type == OB_MBALL) {
       BKE_displist_make_mball(depsgraph, scene, ob);

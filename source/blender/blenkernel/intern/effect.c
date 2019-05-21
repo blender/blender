@@ -172,7 +172,7 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL || eff->ob->runtime.curve_cache->path == NULL ||
           eff->ob->runtime.curve_cache->path->data == NULL) {
-        BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false, false, NULL);
+        BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false, false);
       }
 
       if (eff->ob->runtime.curve_cache->path && eff->ob->runtime.curve_cache->path->data) {

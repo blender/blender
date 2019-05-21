@@ -697,7 +697,7 @@ bool ED_object_parent_set(ReportList *reports,
         cu->flag |= CU_PATH | CU_FOLLOW;
         cu_eval->flag |= CU_PATH | CU_FOLLOW;
         /* force creation of path data */
-        BKE_displist_make_curveTypes(depsgraph, scene, par, false, false, NULL);
+        BKE_displist_make_curveTypes(depsgraph, scene, par, false, false);
       }
       else {
         cu->flag |= CU_FOLLOW;
