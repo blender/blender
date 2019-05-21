@@ -757,7 +757,7 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, int textarget, Image *ima,
 
   if (textarget == GL_TEXTURE_2D && GPU_upload_dxt_texture(ibuf, use_srgb) == 0) {
     glDeleteTextures(1, (GLuint *)bind);
-    GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->x, textarget, mipmap, use_srgb, ima);
+    GPU_create_gl_tex(bind, ibuf->rect, NULL, ibuf->x, ibuf->y, textarget, mipmap, use_srgb, ima);
   }
 
   glBindTexture(textarget, 0);
