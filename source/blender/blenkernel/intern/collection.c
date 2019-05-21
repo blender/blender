@@ -705,17 +705,26 @@ bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
 }
 
 /**
- * Add object to all scene collections that reference objects is in
- * (used to copy objects)
+ * Add object to all scene collections that reference object is in
+ * (used to copy objects).
  */
 void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, Object *ob_dst)
 {
+  bool is_instantiated = false;
+
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (BKE_collection_has_object(collection, ob_src)) {
+    if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, ob_src)) {
       collection_object_add(bmain, collection, ob_dst, 0, true);
+      is_instantiated = true;
     }
   }
   FOREACH_SCENE_COLLECTION_END;
+
+  if (!is_instantiated) {
+    /* In case we could not find any non-linked collections in which instantiate our ob_dst,
+     * fallback to scene's master collection... */
+    collection_object_add(bmain, BKE_collection_master(scene), ob_dst, 0, true);
+  }
 
   BKE_main_collection_sync(bmain);
 }
