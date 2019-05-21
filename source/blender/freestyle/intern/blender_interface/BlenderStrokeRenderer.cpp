@@ -263,6 +263,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   }
   ma->nodetree = ntree;
   ma->use_nodes = 1;
+  ma->blend_method = MA_BM_HASHED;
 
   bNode *input_attr_color = nodeAddStaticNode(NULL, ntree, SH_NODE_ATTRIBUTE);
   input_attr_color->locx = 0.0f;
