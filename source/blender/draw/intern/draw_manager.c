@@ -662,6 +662,7 @@ static void drw_viewport_var_init(void)
     }
 
     DST.view_active = DST.view_default;
+    DST.view_previous = NULL;
   }
   else {
     zero_v3(DST.screenvecs[0]);
@@ -670,6 +671,7 @@ static void drw_viewport_var_init(void)
     DST.pixsize = 1.0f;
     DST.view_default = NULL;
     DST.view_active = NULL;
+    DST.view_previous = NULL;
   }
 
   /* fclem: Is this still needed ? */

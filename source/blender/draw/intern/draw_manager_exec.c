@@ -981,7 +981,11 @@ static void drw_draw_pass_ex(DRWPass *pass,
   BLI_assert(DST.buffer_finish_called &&
              "DRW_render_instance_buffer_finish had not been called before drawing");
 
-  drw_update_view();
+  if (DST.view_previous != DST.view_active || DST.view_active->is_dirty) {
+    drw_update_view();
+    DST.view_active->is_dirty = false;
+    DST.view_previous = DST.view_active;
+  }
 
   /* GPU_framebuffer_clear calls can change the state outside the DRW module.
    * Force reset the affected states to avoid problems later. */
