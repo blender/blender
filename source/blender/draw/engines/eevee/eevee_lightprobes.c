@@ -167,6 +167,9 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
   }
 
+  memset(stl->g_data->cube_views, 0, sizeof(stl->g_data->cube_views));
+  memset(stl->g_data->planar_views, 0, sizeof(stl->g_data->planar_views));
+
   /* Use fallback if we don't have gpu texture allocated an we cannot restore them. */
   bool use_fallback_lightcache = (scene_eval->eevee.light_cache == NULL) ||
                                  ((scene_eval->eevee.light_cache->grid_tx.tex == NULL) &&
@@ -487,6 +490,8 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   }
 
   if (probe->type == LIGHTPROBE_TYPE_PLANAR) {
+    /* TODO(fclem): Culling should be done after cache generation.
+     * This is needed for future draw cache persistence. */
     if (!eevee_lightprobes_culling_test(ob)) {
       return; /* Culled */
     }
@@ -868,7 +873,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
   struct GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* Be sure that cascaded shadow maps are updated. */
-  EEVEE_draw_shadows(sldata, user_data->vedata);
+  EEVEE_draw_shadows(sldata, user_data->vedata, NULL /* TODO */);
 
   GPU_framebuffer_bind(face_fb[face]);
   GPU_framebuffer_clear_depth(face_fb[face], 1.0f);
@@ -928,7 +933,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
   DRW_stats_group_start("Planar Reflection");
 
   /* Be sure that cascaded shadow maps are updated. */
-  EEVEE_draw_shadows(sldata, vedata);
+  EEVEE_draw_shadows(sldata, vedata, NULL /* TODO */);
 
   /* Compute offset plane equation (fix missing texels near reflection plane). */
   copy_v4_v4(sldata->clip_data.clip_planes[0], eplanar->plane_equation);

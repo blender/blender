@@ -139,25 +139,27 @@ void EEVEE_temporal_sampling_offset_calc(const double ht_point[2],
   r_offset[1] = eval_table(e_data.inverted_cdf, (float)(ht_point[1])) * filter_size;
 }
 
-void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects,
-                                           float viewmat[4][4],
-                                           float persmat[4][4],
-                                           const double ht_point[2])
+void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const double ht_point[2])
 {
   const float *viewport_size = DRW_viewport_size_get();
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
   RenderData *rd = &scene->r;
 
+  float persmat[4][4], viewmat[4][4], winmat[4][4];
+  DRW_view_persmat_get(NULL, persmat, false);
+  DRW_view_viewmat_get(NULL, viewmat, false);
+  DRW_view_winmat_get(NULL, winmat, false);
+
   float ofs[2];
   EEVEE_temporal_sampling_offset_calc(ht_point, rd->gauss, ofs);
 
-  window_translate_m4(
-      effects->overide_winmat, persmat, ofs[0] / viewport_size[0], ofs[1] / viewport_size[1]);
+  window_translate_m4(winmat, persmat, ofs[0] / viewport_size[0], ofs[1] / viewport_size[1]);
 
-  mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
-  invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
-  invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
+  BLI_assert(effects->taa_view != NULL);
+
+  /* When rendering just update the view. This avoids recomputing the culling. */
+  DRW_view_update_sub(effects->taa_view, viewmat, winmat);
 }
 
 /* Update the matrices based on the current sample.
@@ -167,23 +169,15 @@ void EEVEE_temporal_sampling_update_matrices(EEVEE_Data *vedata)
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
 
-  float persmat[4][4], viewmat[4][4];
   double ht_point[2];
   double ht_offset[2] = {0.0, 0.0};
   uint ht_primes[2] = {2, 3};
 
-  DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-  DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
-
   BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
 
-  EEVEE_temporal_sampling_matrices_calc(effects, viewmat, persmat, ht_point);
+  EEVEE_temporal_sampling_matrices_calc(effects, ht_point);
 
-  DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
-  DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
-  DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+  DRW_view_set_active(effects->taa_view);
 }
 
 void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
@@ -195,8 +189,6 @@ void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
-  // EEVEE_FramebufferList *fbl = vedata->fbl;
-  // EEVEE_TextureList *txl = vedata->txl;
   EEVEE_EffectsInfo *effects = stl->effects;
   int repro_flag = 0;
 
@@ -204,17 +196,26 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
     eevee_create_cdf_table_temporal_sampling();
   }
 
-  /* Reset for each "redraw". When rendering using ogl render,
+  /**
+   * Reset for each "redraw". When rendering using ogl render,
    * we accumulate the redraw inside the drawing loop in eevee_draw_background().
-   * But we do NOT accumulate between "redraw" (as in full draw manager drawloop)
-   * because the opengl render already does that. */
+   **/
   effects->taa_render_sample = 1;
+  effects->taa_view = NULL;
+
+  /* Create a sub view to disable clipping planes (if any). */
+  const DRWView *default_view = DRW_view_default_get();
+  float viewmat[4][4], winmat[4][4];
+  DRW_view_viewmat_get(default_view, viewmat, false);
+  DRW_view_winmat_get(default_view, winmat, false);
+  effects->taa_view = DRW_view_create_sub(default_view, viewmat, winmat);
+  DRW_view_clip_planes_set(effects->taa_view, NULL, 0);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if ((scene_eval->eevee.taa_samples != 1) || DRW_state_is_image_render()) {
-    float persmat[4][4], viewmat[4][4];
+    float persmat[4][4];
 
     if (!DRW_state_is_image_render() && (scene_eval->eevee.flag & SCE_EEVEE_TAA_REPROJECTION)) {
       repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER |
@@ -236,8 +237,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
     effects->taa_total_sample = scene_eval->eevee.taa_samples;
     MAX2(effects->taa_total_sample, 0);
 
-    DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
-    DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
+    DRW_view_persmat_get(NULL, persmat, false);
     view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
     copy_m4_m4(effects->prev_drw_persmat, persmat);
 

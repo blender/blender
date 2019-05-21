@@ -127,7 +127,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 
       /* Viewport Matrix */
       /* Note: This does not have TAA jitter applied. */
-      DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
+      DRW_view_persmat_get(NULL, persmat, false);
 
       bool view_is_valid = (stl->g_data->view_updated == false);
 

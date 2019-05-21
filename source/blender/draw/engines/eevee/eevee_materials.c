@@ -642,8 +642,8 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   {
     /* Update view_vecs */
     float invproj[4][4], winmat[4][4];
-    DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
-    DRW_viewport_matrix_get(invproj, DRW_MAT_WININV);
+    DRW_view_winmat_get(NULL, winmat, false);
+    DRW_view_winmat_get(NULL, invproj, true);
 
     EEVEE_update_viewvecs(invproj, winmat, sldata->common_data.view_vecs);
   }

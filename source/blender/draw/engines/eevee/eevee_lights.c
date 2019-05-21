@@ -970,7 +970,7 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
 static void eevee_shadow_cascade_setup(Object *ob,
                                        EEVEE_LightsInfo *linfo,
                                        EEVEE_LightEngineData *led,
-                                       DRWMatrixState *saved_mats,
+                                       DRWView *view,
                                        float view_near,
                                        float view_far,
                                        int sample_ofs)
@@ -978,9 +978,10 @@ static void eevee_shadow_cascade_setup(Object *ob,
   Light *la = (Light *)ob->data;
 
   /* Camera Matrices */
-  float(*persinv)[4] = saved_mats->mat[DRW_MAT_PERSINV];
-  float(*vp_projmat)[4] = saved_mats->mat[DRW_MAT_WIN];
-  bool is_persp = DRW_viewport_is_persp_get();
+  float persinv[4][4], vp_projmat[4][4];
+  DRW_view_persmat_get(view, persinv, true);
+  DRW_view_winmat_get(view, vp_projmat, false);
+  bool is_persp = DRW_view_is_persp_get(view);
 
   /* Lights Matrices */
   int cascade_nbr = la->cascade_count;
@@ -1286,19 +1287,52 @@ void EEVEE_lights_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
+static void eevee_ensure_cube_views(float near, float far, const float pos[3], DRWView *view[6])
+{
+  float winmat[4][4], viewmat[4][4];
+  perspective_m4(winmat, -near, near, -near, near, near, far);
+
+  for (int i = 0; i < 6; i++) {
+    unit_m4(viewmat);
+    negate_v3_v3(viewmat[3], pos);
+    mul_m4_m4m4(viewmat, cubefacemat[i], viewmat);
+
+    if (view[i] == NULL) {
+      view[i] = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+    }
+    else {
+      DRW_view_update(view[i], viewmat, winmat, NULL, NULL);
+    }
+  }
+}
+
+static void eevee_ensure_cascade_views(EEVEE_ShadowCascadeData *cascade_data,
+                                       int cascade_count,
+                                       DRWView *view[4])
+{
+  for (int i = 0; i < cascade_count; i++) {
+    if (view[i] == NULL) {
+      view[i] = DRW_view_create(cascade_data->viewmat, cascade_data->projmat[i], NULL, NULL, NULL);
+    }
+    else {
+      DRW_view_update(view[i], cascade_data->viewmat, cascade_data->projmat[i], NULL, NULL);
+    }
+  }
+}
+
 /* this refresh lights shadow buffers */
-void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView *view)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
+  EEVEE_PrivateData *g_data = stl->g_data;
   EEVEE_LightsInfo *linfo = sldata->lights;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const float light_threshold = draw_ctx->scene->eevee.light_threshold;
   Object *ob;
   int i;
 
-  DRWMatrixState saved_mats;
   int saved_ray_type = sldata->common_data.ray_type;
 
   /* TODO: make it optionnal if we don't draw shadows. */
@@ -1328,9 +1362,6 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     cascade_visible[i] = DRW_culling_plane_test(plane);
   }
 
-  /* We need to save the Matrices before overidding them */
-  DRW_viewport_matrix_get_all(&saved_mats);
-
   /* Cube Shadow Maps */
   DRW_stats_group_start("Cube Shadow Maps");
   /* Render each shadow to one layer of the array */
@@ -1342,11 +1373,6 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       continue;
     }
 
-    DRWMatrixState render_mats;
-    float(*winmat)[4] = render_mats.mat[DRW_MAT_WIN];
-    float(*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
-    float(*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
-
     EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
     EEVEE_ShadowCubeData *evscd = &led->data.scd;
     EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + evscd->cube_id;
@@ -1357,32 +1383,16 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     srd->exponent = la->bleedexp;
     copy_v3_v3(srd->position, cube_data->position);
 
-    perspective_m4(winmat,
-                   -srd->clip_near,
-                   srd->clip_near,
-                   -srd->clip_near,
-                   srd->clip_near,
-                   srd->clip_near,
-                   srd->clip_far);
-
     DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
+
+    eevee_ensure_cube_views(srd->clip_near, srd->clip_far, srd->position, g_data->cube_views);
 
     /* Render shadow cube */
     /* Render 6 faces separately: seems to be faster for the general case.
      * The only time it's more beneficial is when the CPU culling overhead
      * outweigh the instancing overhead. which is rarely the case. */
     for (int j = 0; j < 6; j++) {
-      /* TODO optimize */
-      float tmp[4][4];
-      unit_m4(tmp);
-      negate_v3_v3(tmp[3], srd->position);
-      mul_m4_m4m4(viewmat, cubefacemat[j], tmp);
-      mul_m4_m4m4(persmat, winmat, viewmat);
-      invert_m4_m4(render_mats.mat[DRW_MAT_WININV], winmat);
-      invert_m4_m4(render_mats.mat[DRW_MAT_VIEWINV], viewmat);
-      invert_m4_m4(render_mats.mat[DRW_MAT_PERSINV], persmat);
-
-      DRW_viewport_matrix_override_set_all(&render_mats);
+      DRW_view_set_active(g_data->cube_views[j]);
 
       GPU_framebuffer_texture_cubeface_attach(
           sldata->shadow_cube_target_fb, sldata->shadow_cube_target, 0, j, 0);
@@ -1448,9 +1458,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   linfo->update_flag &= ~LIGHT_UPDATE_SHADOW_CUBE;
   DRW_stats_group_end();
 
-  DRW_viewport_matrix_override_set_all(&saved_mats);
-  float near = DRW_viewport_near_distance_get();
-  float far = DRW_viewport_far_distance_get();
+  float near = DRW_view_near_distance_get(view);
+  float far = DRW_view_far_distance_get(view);
 
   /* Cascaded Shadow Maps */
   DRW_stats_group_start("Cascaded Shadow Maps");
@@ -1465,34 +1474,24 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     EEVEE_ShadowCascadeData *evscd = &led->data.scad;
     EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 
-    DRWMatrixState render_mats;
-    float(*winmat)[4] = render_mats.mat[DRW_MAT_WIN];
-    float(*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
-    float(*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
-
-    eevee_shadow_cascade_setup(
-        ob, linfo, led, &saved_mats, near, far, effects->taa_current_sample - 1);
-
     srd->clip_near = la->clipsta;
     srd->clip_far = la->clipend;
     srd->stored_texel_size = 1.0 / (float)linfo->shadow_cascade_size;
 
     DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
 
-    copy_m4_m4(viewmat, evscd->viewmat);
-    invert_m4_m4(render_mats.mat[DRW_MAT_VIEWINV], viewmat);
+    eevee_shadow_cascade_setup(ob, linfo, led, view, near, far, effects->taa_current_sample - 1);
+
+    /* Meh, Reusing the cube views. */
+    BLI_assert(MAX_CASCADE_NUM <= 6);
+    eevee_ensure_cascade_views(evscd, la->cascade_count, g_data->cube_views);
 
     /* Render shadow cascades */
     /* Render cascade separately: seems to be faster for the general case.
      * The only time it's more beneficial is when the CPU culling overhead
      * outweigh the instancing overhead. which is rarely the case. */
     for (int j = 0; j < la->cascade_count; j++) {
-      copy_m4_m4(winmat, evscd->projmat[j]);
-      copy_m4_m4(persmat, evscd->viewprojmat[j]);
-      invert_m4_m4(render_mats.mat[DRW_MAT_WININV], winmat);
-      invert_m4_m4(render_mats.mat[DRW_MAT_PERSINV], persmat);
-
-      DRW_viewport_matrix_override_set_all(&render_mats);
+      DRW_view_set_active(g_data->cube_views[j]);
 
       GPU_framebuffer_texture_layer_attach(
           sldata->shadow_cascade_target_fb, sldata->shadow_cascade_target, 0, j, 0);
@@ -1554,7 +1553,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   DRW_stats_group_end();
 
-  DRW_viewport_matrix_override_set_all(&saved_mats);
+  DRW_view_set_active(view);
 
   DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
   DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */

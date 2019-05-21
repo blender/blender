@@ -223,22 +223,28 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
     DRW_uniformbuffer_update(sldata->common_ubo, common);
 
     /* override matrices */
-    DRWMatrixState matstate;
-    unit_m4(matstate.winmat);
+    float winmat[4][4], viewmat[4][4];
+    unit_m4(winmat);
     /* Look through the negative Z. */
-    negate_v3(matstate.winmat[2]);
+    negate_v3(winmat[2]);
 
-    eevee_lookdev_apply_taa(effects, effects->sphere_size, matstate.winmat);
+    eevee_lookdev_apply_taa(effects, effects->sphere_size, winmat);
 
     /* "Remove" view matrix location. Leaving only rotation. */
-    DRW_viewport_matrix_get(matstate.viewmat, DRW_MAT_VIEW);
-    zero_v3(matstate.viewmat[3]);
-    mul_m4_m4m4(matstate.persmat, matstate.winmat, matstate.viewmat);
-    invert_m4_m4(matstate.wininv, matstate.winmat);
-    invert_m4_m4(matstate.viewinv, matstate.viewmat);
-    invert_m4_m4(matstate.persinv, matstate.persmat);
+    DRW_view_viewmat_get(NULL, viewmat, false);
+    zero_v3(viewmat[3]);
 
-    DRW_viewport_matrix_override_set_all(&matstate);
+    if (effects->lookdev_view) {
+      /* When rendering just update the view. This avoids recomputing the culling. */
+      DRW_view_update_sub(effects->lookdev_view, viewmat, winmat);
+    }
+    else {
+      /* Using default view bypasses the culling. */
+      const DRWView *default_view = DRW_view_default_get();
+      effects->lookdev_view = DRW_view_create_sub(default_view, viewmat, winmat);
+    }
+
+    DRW_view_set_active(effects->lookdev_view);
 
     /* Find the right framebuffers to render to. */
     GPUFrameBuffer *fb = (effects->target_buffer == fbl->effect_color_fb) ? fbl->main_fb :
@@ -272,6 +278,6 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
     DRW_stats_group_end();
 
-    DRW_viewport_matrix_override_unset_all();
+    DRW_view_set_active(NULL);
   }
 }
