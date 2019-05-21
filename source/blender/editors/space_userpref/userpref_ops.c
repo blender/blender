@@ -48,7 +48,7 @@ static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
   UI_theme_init_default();
   UI_style_init_default();
   WM_event_add_notifier(C, NC_WINDOW, NULL);
-
+  U.runtime.is_dirty = true;
   return OPERATOR_FINISHED;
 }
 
