@@ -573,10 +573,9 @@ float DRW_view_far_distance_get(const DRWView *view);
 bool DRW_view_is_persp_get(const DRWView *view);
 
 /* Culling, return true if object is inside view frustum. */
-/* TODO */
-// bool DRW_culling_sphere_test(DRWView *view, BoundSphere *bsphere);
-// bool DRW_culling_box_test(DRWView *view, BoundBox *bbox);
-// bool DRW_culling_plane_test(DRWView *view, float plane[4]);
+bool DRW_culling_sphere_test(const DRWView *view, const BoundSphere *bsphere);
+bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
+bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 
 /* Viewport */
 typedef enum {
@@ -687,11 +686,6 @@ void DRW_state_reset(void);
 void DRW_state_lock(DRWState state);
 
 void DRW_state_clip_planes_len_set(uint plane_len);
-
-/* Culling, return true if object is inside view frustum. */
-bool DRW_culling_sphere_test(const BoundSphere *bsphere);
-bool DRW_culling_box_test(const BoundBox *bbox);
-bool DRW_culling_plane_test(const float plane[4]);
 
 void DRW_culling_frustum_corners_get(BoundBox *corners);
 void DRW_culling_frustum_planes_get(float planes[6][4]);

@@ -230,7 +230,8 @@ bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd,
                                             WORKBENCH_ObjectData *oed)
 {
   BoundBox *shadow_bbox = studiolight_object_shadow_bbox_get(wpd, ob, oed);
-  return DRW_culling_box_test(shadow_bbox);
+  const DRWView *default_view = DRW_view_default_get();
+  return DRW_culling_box_test(default_view, shadow_bbox);
 }
 
 float studiolight_object_shadow_distance(WORKBENCH_PrivateData *wpd,

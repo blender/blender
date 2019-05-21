@@ -1347,8 +1347,9 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
         .center = {ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2]},
         .radius = light_attenuation_radius_get(la, light_threshold),
     };
-    cube_visible[i] = DRW_culling_sphere_test(&bsphere);
+    cube_visible[i] = DRW_culling_sphere_test(view, &bsphere);
   }
+
   bool cascade_visible[MAX_SHADOW_CASCADE];
   for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
     EEVEE_LightEngineData *led = EEVEE_light_data_get(ob);
@@ -1359,7 +1360,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
     plane_from_point_normal_v3(plane, sh_data->viewmat[3], sh_data->viewmat[2]);
     /* TODO: check against near/far instead of "local Z = 0" plane.
      * Or even the cascades AABB. */
-    cascade_visible[i] = DRW_culling_plane_test(plane);
+    cascade_visible[i] = DRW_culling_plane_test(view, plane);
   }
 
   /* Cube Shadow Maps */

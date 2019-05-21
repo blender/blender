@@ -466,7 +466,8 @@ static bool eevee_lightprobes_culling_test(Object *ob)
       for (int v = 0; v < 8; ++v) {
         mul_m4_v3(tmp, bbox.vec[v]);
       }
-      return DRW_culling_box_test(&bbox);
+      const DRWView *default_view = DRW_view_default_get();
+      return DRW_culling_box_test(default_view, &bbox);
     }
     case LIGHTPROBE_TYPE_CUBE:
       return true; /* TODO */

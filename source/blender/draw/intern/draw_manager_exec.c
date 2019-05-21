@@ -479,24 +479,26 @@ static bool draw_culling_plane_test(const BoundBox *corners, const float plane[4
 
 /* Return True if the given BoundSphere intersect the current view frustum.
  * bsphere must be in world space. */
-bool DRW_culling_sphere_test(const BoundSphere *bsphere)
+bool DRW_culling_sphere_test(const DRWView *view, const BoundSphere *bsphere)
 {
-  return draw_culling_sphere_test(
-      &DST.view_active->frustum_bsphere, DST.view_active->frustum_planes, bsphere);
+  view = view ? view : DST.view_default;
+  return draw_culling_sphere_test(&view->frustum_bsphere, view->frustum_planes, bsphere);
 }
 
 /* Return True if the given BoundBox intersect the current view frustum.
  * bbox must be in world space. */
-bool DRW_culling_box_test(const BoundBox *bbox)
+bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox)
 {
-  return draw_culling_box_test(DST.view_active->frustum_planes, bbox);
+  view = view ? view : DST.view_default;
+  return draw_culling_box_test(view->frustum_planes, bbox);
 }
 
 /* Return True if the view frustum is inside or intersect the given plane.
  * plane must be in world space. */
-bool DRW_culling_plane_test(const float plane[4])
+bool DRW_culling_plane_test(const DRWView *view, const float plane[4])
 {
-  return draw_culling_plane_test(&DST.view_active->frustum_corners, plane);
+  view = view ? view : DST.view_default;
+  return draw_culling_plane_test(&view->frustum_corners, plane);
 }
 
 void DRW_culling_frustum_corners_get(BoundBox *corners)
