@@ -156,7 +156,7 @@ void DRW_globals_update(void)
   gb->sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->sizeEdge * (float)M_SQRT1_2)));
 
   /* Color management. */
-  if (DRW_state_is_image_render()) {
+  if (!DRW_state_do_color_management()) {
     float *color = gb->UBO_FIRST_COLOR;
     do {
       /* TODO more accurate transform. */

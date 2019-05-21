@@ -55,13 +55,13 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 
 static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *wpd)
 {
-  if (DRW_state_is_image_render()) {
-    /* Linear result for render. */
-    DRW_transform_none(tx);
-  }
-  else {
+  if (DRW_state_do_color_management()) {
     /* Display space result for viewport. */
     DRW_transform_to_display(tx, wpd->use_color_render_settings, wpd->use_color_render_settings);
+  }
+  else {
+    /* Linear result for render. */
+    DRW_transform_none(tx);
   }
 }
 

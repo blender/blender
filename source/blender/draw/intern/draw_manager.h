@@ -315,6 +315,7 @@ typedef struct DRWManager {
     uint is_depth : 1;
     uint is_image_render : 1;
     uint is_scene_render : 1;
+    uint do_color_management : 1;
     uint draw_background : 1;
     uint draw_text : 1;
   } options;
