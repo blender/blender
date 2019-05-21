@@ -1488,13 +1488,13 @@ void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4])
 
 bool DRW_view_is_persp_get(const DRWView *view)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   return view->storage.matstate.winmat[3][3] == 0.0f;
 }
 
 float DRW_view_near_distance_get(const DRWView *view)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   const float(*projmat)[4] = view->storage.matstate.winmat;
 
   if (DRW_view_is_persp_get(view)) {
@@ -1507,7 +1507,7 @@ float DRW_view_near_distance_get(const DRWView *view)
 
 float DRW_view_far_distance_get(const DRWView *view)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   const float(*projmat)[4] = view->storage.matstate.winmat;
 
   if (DRW_view_is_persp_get(view)) {
@@ -1520,21 +1520,21 @@ float DRW_view_far_distance_get(const DRWView *view)
 
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   const DRWMatrixState *state = &view->storage.matstate;
   copy_m4_m4(mat, (inverse) ? state->viewinv : state->viewmat);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   const DRWMatrixState *state = &view->storage.matstate;
   copy_m4_m4(mat, (inverse) ? state->wininv : state->winmat);
 }
 
 void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
-  view = (view) ? view : DST.view_active;
+  view = (view) ? view : DST.view_default;
   const DRWMatrixState *state = &view->storage.matstate;
   copy_m4_m4(mat, (inverse) ? state->persinv : state->persmat);
 }

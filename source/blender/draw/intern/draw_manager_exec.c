@@ -501,14 +501,16 @@ bool DRW_culling_plane_test(const DRWView *view, const float plane[4])
   return draw_culling_plane_test(&view->frustum_corners, plane);
 }
 
-void DRW_culling_frustum_corners_get(BoundBox *corners)
+void DRW_culling_frustum_corners_get(const DRWView *view, BoundBox *corners)
 {
-  *corners = DST.view_active->frustum_corners;
+  view = view ? view : DST.view_default;
+  *corners = view->frustum_corners;
 }
 
-void DRW_culling_frustum_planes_get(float planes[6][4])
+void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4])
 {
-  memcpy(planes, DST.view_active->frustum_planes, sizeof(float) * 6 * 4);
+  view = view ? view : DST.view_default;
+  memcpy(planes, view->frustum_planes, sizeof(float) * 6 * 4);
 }
 
 static void draw_compute_culling(DRWView *view)

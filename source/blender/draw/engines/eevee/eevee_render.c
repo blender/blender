@@ -350,7 +350,7 @@ static void eevee_render_result_z(RenderLayer *rl,
                                BLI_rcti_size_y(rect),
                                rp->rect);
 
-    bool is_persp = DRW_viewport_is_persp_get();
+    bool is_persp = DRW_view_is_persp_get(NULL);
 
     float viewmat[4][4];
     DRW_view_viewmat_get(NULL, viewmat, false);

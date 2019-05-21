@@ -578,50 +578,21 @@ bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 
 /* Viewport */
-typedef enum {
-  /* keep in sync with the union struct DRWMatrixState. */
-  DRW_MAT_PERS = 0,
-  DRW_MAT_PERSINV,
-  DRW_MAT_VIEW,
-  DRW_MAT_VIEWINV,
-  DRW_MAT_WIN,
-  DRW_MAT_WININV,
-
-  DRW_MAT_COUNT,  // Don't use this.
-} DRWViewportMatrixType;
 
 typedef struct DRWMatrixState {
-  union {
-    float mat[DRW_MAT_COUNT][4][4];
-    struct {
-      /* keep in sync with the enum DRWViewportMatrixType. */
-      float persmat[4][4];
-      float persinv[4][4];
-      float viewmat[4][4];
-      float viewinv[4][4];
-      float winmat[4][4];
-      float wininv[4][4];
-    };
-  };
+  /* keep in sync with the enum DRWViewportMatrixType. */
+  float persmat[4][4];
+  float persinv[4][4];
+  float viewmat[4][4];
+  float viewinv[4][4];
+  float winmat[4][4];
+  float wininv[4][4];
 } DRWMatrixState;
-
-void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
-void DRW_viewport_matrix_get_all(DRWMatrixState *state);
-void DRW_viewport_matrix_override_set(const float mat[4][4], DRWViewportMatrixType type);
-void DRW_viewport_matrix_override_set_all(DRWMatrixState *state);
-void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type);
-void DRW_viewport_matrix_override_unset_all(void);
-
-/* These are in view-space so negative if in perspective.
- * Extract near and far clip distance from the projection matrix. */
-float DRW_viewport_near_distance_get(void);
-float DRW_viewport_far_distance_get(void);
 
 const float *DRW_viewport_size_get(void);
 const float *DRW_viewport_invert_size_get(void);
 const float *DRW_viewport_screenvecs_get(void);
 const float *DRW_viewport_pixelsize_get(void);
-bool DRW_viewport_is_persp_get(void);
 
 struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
 struct DefaultTextureList *DRW_viewport_texture_list_get(void);
@@ -687,8 +658,8 @@ void DRW_state_lock(DRWState state);
 
 void DRW_state_clip_planes_len_set(uint plane_len);
 
-void DRW_culling_frustum_corners_get(BoundBox *corners);
-void DRW_culling_frustum_planes_get(float planes[6][4]);
+void DRW_culling_frustum_corners_get(const DRWView *view, BoundBox *corners);
+void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4]);
 
 /* Selection */
 void DRW_select_load_id(uint id);

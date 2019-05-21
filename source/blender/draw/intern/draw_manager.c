@@ -661,8 +661,7 @@ static void drw_viewport_var_init(void)
       DRW_view_clip_planes_set(DST.view_default, rv3d->clip, plane_len);
     }
 
-    /* TODO should be set to NULL. */
-    DST.view_active = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
+    DST.view_active = DST.view_default;
   }
   else {
     zero_v3(DST.screenvecs[0]);
@@ -670,11 +669,7 @@ static void drw_viewport_var_init(void)
 
     DST.pixsize = 1.0f;
     DST.view_default = NULL;
-
-    /* TODO should be set to NULL. */
-    float mat[4][4];
-    unit_m4(mat);
-    DST.view_active = DRW_view_create(mat, mat, NULL, NULL, NULL);
+    DST.view_active = NULL;
   }
 
   /* fclem: Is this still needed ? */
@@ -690,85 +685,6 @@ static void drw_viewport_var_init(void)
   }
 
   memset(DST.object_instance_data, 0x0, sizeof(DST.object_instance_data));
-}
-
-/* TODO remove all of the DRW_viewport_matrix_* functions. */
-
-void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
-{
-  BLI_assert(type >= 0 && type < DRW_MAT_COUNT);
-  /* Can't use this in render mode. */
-  // BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL);
-
-  copy_m4_m4(mat, DST.view_active->storage.matstate.mat[type]);
-}
-
-void DRW_viewport_matrix_get_all(DRWMatrixState *state)
-{
-  memcpy(state, DST.view_active->storage.matstate.mat, sizeof(DRWMatrixState));
-}
-
-void DRW_viewport_matrix_override_set(const float mat[4][4], DRWViewportMatrixType type)
-{
-  BLI_assert(type < DRW_MAT_COUNT);
-  copy_m4_m4(DST.view_active->storage.matstate.mat[type], mat);
-  DST.view_active->is_dirty = true;
-}
-
-void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
-{
-  BLI_assert(type < DRW_MAT_COUNT);
-  copy_m4_m4(DST.view_active->storage.matstate.mat[type],
-             DST.view_default->storage.matstate.mat[type]);
-  DST.view_active->is_dirty = true;
-}
-
-void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
-{
-  memcpy(DST.view_active->storage.matstate.mat, state, sizeof(DRWMatrixState));
-  DST.view_active->is_dirty = true;
-}
-
-void DRW_viewport_matrix_override_unset_all(void)
-{
-  DRW_viewport_matrix_override_set_all(&DST.view_default->storage.matstate);
-}
-
-bool DRW_viewport_is_persp_get(void)
-{
-  RegionView3D *rv3d = DST.draw_ctx.rv3d;
-  if (rv3d) {
-    return rv3d->is_persp;
-  }
-  else {
-    return DST.view_active->storage.matstate.winmat[3][3] == 0.0f;
-  }
-}
-
-float DRW_viewport_near_distance_get(void)
-{
-  float projmat[4][4];
-  DRW_viewport_matrix_get(projmat, DRW_MAT_WIN);
-
-  if (DRW_viewport_is_persp_get()) {
-    return -projmat[3][2] / (projmat[2][2] - 1.0f);
-  }
-  else {
-    return -(projmat[3][2] + 1.0f) / projmat[2][2];
-  }
-}
-
-float DRW_viewport_far_distance_get(void)
-{
-  float projmat[4][4];
-  DRW_viewport_matrix_get(projmat, DRW_MAT_WIN);
-
-  if (DRW_viewport_is_persp_get()) {
-    return -projmat[3][2] / (projmat[2][2] + 1.0f);
-  }
-  else {
-    return -(projmat[3][2] - 1.0f) / projmat[2][2];
-  }
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)

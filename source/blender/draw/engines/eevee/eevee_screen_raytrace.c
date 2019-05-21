@@ -127,7 +127,7 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
           &fbl->refract_fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->refract_color)});
     }
 
-    const bool is_persp = DRW_viewport_is_persp_get();
+    const bool is_persp = DRW_view_is_persp_get(NULL);
     if (effects->ssr_was_persp != is_persp) {
       effects->ssr_was_persp = is_persp;
       DRW_viewport_request_redraw();

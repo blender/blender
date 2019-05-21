@@ -207,7 +207,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
                                BLI_rcti_size_y(rect),
                                rp->rect);
 
-    bool is_persp = DRW_viewport_is_persp_get();
+    bool is_persp = DRW_view_is_persp_get(NULL);
 
     GPENCIL_render_update_vecs(vedata);
 

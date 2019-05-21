@@ -165,12 +165,12 @@ void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_dire
   }
 
   float planes[6][4];
-  DRW_culling_frustum_planes_get(planes);
+  DRW_culling_frustum_planes_get(NULL, planes);
   /* we only need the far plane. */
   copy_v4_v4(wpd->shadow_far_plane, planes[2]);
 
   BoundBox frustum_corners;
-  DRW_culling_frustum_corners_get(&frustum_corners);
+  DRW_culling_frustum_corners_get(NULL, &frustum_corners);
 
   mul_v3_mat3_m4v3(wpd->shadow_near_corners[0], wpd->shadow_inv, frustum_corners.vec[0]);
   mul_v3_mat3_m4v3(wpd->shadow_near_corners[1], wpd->shadow_inv, frustum_corners.vec[3]);
