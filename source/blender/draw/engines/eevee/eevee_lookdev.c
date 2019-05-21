@@ -225,6 +225,8 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
     /* override matrices */
     DRWMatrixState matstate;
     unit_m4(matstate.winmat);
+    /* Look through the negative Z. */
+    negate_v3(matstate.winmat[2]);
 
     eevee_lookdev_apply_taa(effects, effects->sphere_size, matstate.winmat);
 
