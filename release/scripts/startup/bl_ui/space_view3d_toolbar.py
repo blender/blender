@@ -82,6 +82,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
     bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -94,8 +95,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         layout.use_property_decorate = False
 
         ob = context.active_object
-
-        tool_settings = context.tool_settings
         mesh = ob.data
 
         col = layout.column(align=True)
@@ -105,10 +104,33 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         row.active = ob.data.use_mirror_x
         row.prop(mesh, "use_mirror_topology")
 
-        layout.prop(tool_settings, "use_edge_path_live_unwrap")
-        layout.prop(tool_settings, "use_mesh_automerge", toggle=False)
 
-        layout.prop(tool_settings, "double_threshold")
+class VIEW3D_PT_tools_meshedit_options_automerge(View3DPanel, Panel):
+    bl_category = "Tool"
+    bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
+    bl_label = "Auto Merge"
+    bl_parent_id = "VIEW3D_PT_tools_meshedit_options"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object
+
+    def draw_header(self, context):
+        tool_settings = context.tool_settings
+
+        self.layout.prop(tool_settings, "use_mesh_automerge", text="", toggle=False)
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.active = tool_settings.use_mesh_automerge
+        layout.prop(tool_settings, "double_threshold", text="Threshold")
 
 # ********** default tools for editmode_curve ****************
 
@@ -2071,6 +2093,7 @@ class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
 
 classes = (
     VIEW3D_PT_tools_meshedit_options,
+    VIEW3D_PT_tools_meshedit_options_automerge,
     VIEW3D_PT_tools_curveedit_options_stroke,
     VIEW3D_PT_tools_armatureedit_options,
     VIEW3D_PT_tools_posemode_options,

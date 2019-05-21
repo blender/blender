@@ -949,8 +949,14 @@ class VIEW3D_MT_snap(Menu):
 class VIEW3D_MT_uv_map(Menu):
     bl_label = "UV Mapping"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+
+        tool_settings = context.tool_settings
+
+        layout.prop(tool_settings, "use_edge_path_live_unwrap")
+
+        layout.separator()
 
         layout.operator("uv.unwrap")
 
