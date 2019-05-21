@@ -151,9 +151,11 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
                     if gpcolor.use_stroke_texture_mix is True:
                         col.prop(gpcolor, "mix_stroke_factor", text="Factor")
 
-            if gpcolor.stroke_style == 'SOLID' or \
-                gpcolor.use_stroke_pattern is True or \
-                gpcolor.use_stroke_texture_mix is True:
+            if (
+                    gpcolor.stroke_style == 'SOLID' or
+                    gpcolor.use_stroke_pattern or
+                    gpcolor.use_stroke_texture_mix
+            ):
                 col.prop(gpcolor, "color", text="Color")
 
             if gpcolor.mode in {'DOTS', 'BOX'}:

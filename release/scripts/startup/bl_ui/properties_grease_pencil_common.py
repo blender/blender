@@ -361,7 +361,10 @@ class GPENCIL_MT_pie_tool_palette(Menu):
         # E - "Settings" Palette is included here too, since it needs to be in a stable position...
         if gpd and gpd.layers.active:
             col.separator()
-            col.operator("wm.call_menu_pie", text="Settings...", icon='SCRIPTWIN').name = "GPENCIL_MT_pie_settings_palette"
+            col.operator(
+                "wm.call_menu_pie",
+                text="Settings...",
+                icon='SCRIPTWIN').name = "GPENCIL_MT_pie_settings_palette"
 
         # Editing tools
         if gpd:
@@ -871,9 +874,11 @@ class GreasePencilMaterialsPanel:
 
             if ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
-                if gpcolor.stroke_style == 'SOLID' or \
-                    gpcolor.use_stroke_pattern is True or \
-                    gpcolor.use_stroke_texture_mix is True:
+                if (
+                        gpcolor.stroke_style == 'SOLID' or
+                        gpcolor.use_stroke_pattern or
+                        gpcolor.use_stroke_texture_mix
+                ):
                     row = layout.row()
                     row.prop(gpcolor, "color", text="Stroke Color")
 

@@ -166,19 +166,19 @@ class OUTLINER_MT_collection_visibility(Menu):
 
         layout.separator()
 
-        layout.operator("outliner.collection_show", text="Show", icon="HIDE_OFF")
+        layout.operator("outliner.collection_show", text="Show", icon='HIDE_OFF')
         layout.operator("outliner.collection_show_inside", text="Show All Inside")
-        layout.operator("outliner.collection_hide", text="Hide", icon="HIDE_ON")
+        layout.operator("outliner.collection_hide", text="Hide", icon='HIDE_ON')
         layout.operator("outliner.collection_hide_inside", text="Hide All Inside")
 
         layout.separator()
 
-        layout.operator("outliner.collection_enable", text="Enable in Viewports", icon="RESTRICT_VIEW_OFF")
+        layout.operator("outliner.collection_enable", text="Enable in Viewports", icon='RESTRICT_VIEW_OFF')
         layout.operator("outliner.collection_disable", text="Disable in Viewports")
 
         layout.separator()
 
-        layout.operator("outliner.collection_enable_render", text="Enable in Render", icon="RESTRICT_RENDER_OFF")
+        layout.operator("outliner.collection_enable_render", text="Enable in Render", icon='RESTRICT_RENDER_OFF')
         layout.operator("outliner.collection_disable_render", text="Disable in Render")
 
 
@@ -198,12 +198,12 @@ class OUTLINER_MT_collection(Menu):
 
         layout.separator()
 
-        layout.operator("outliner.collection_delete", text="Delete", icon="X").hierarchy = False
+        layout.operator("outliner.collection_delete", text="Delete", icon='X').hierarchy = False
         layout.operator("outliner.collection_delete", text="Delete Hierarchy").hierarchy = True
 
         layout.separator()
 
-        layout.operator("outliner.collection_objects_select", text="Select Objects", icon="RESTRICT_SELECT_OFF")
+        layout.operator("outliner.collection_objects_select", text="Select Objects", icon='RESTRICT_SELECT_OFF')
         layout.operator("outliner.collection_objects_deselect", text="Deselect Objects")
 
         layout.separator()
@@ -260,14 +260,14 @@ class OUTLINER_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("outliner.object_operation", text="Delete", icon="X").type = 'DELETE'
+        layout.operator("outliner.object_operation", text="Delete", icon='X').type = 'DELETE'
 
         if space.display_mode == 'VIEW_LAYER' and not space.use_filter_collection:
             layout.operator("outliner.object_operation", text="Delete Hierarchy").type = 'DELETE_HIERARCHY'
 
         layout.separator()
 
-        layout.operator("outliner.object_operation", text="Select", icon="RESTRICT_SELECT_OFF").type = 'SELECT'
+        layout.operator("outliner.object_operation", text="Select", icon='RESTRICT_SELECT_OFF').type = 'SELECT'
         layout.operator("outliner.object_operation", text="Select Hierarchy").type = 'SELECT_HIERARCHY'
         layout.operator("outliner.object_operation", text="Deselect").type = 'DESELECT'
 

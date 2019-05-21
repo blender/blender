@@ -24,6 +24,7 @@ from bpy.types import (
 
 from rna_prop_ui import PropertyPanel
 
+
 class WorkSpaceButtonsPanel:
     # bl_space_type = 'PROPERTIES'
     # bl_region_type = 'WINDOW'

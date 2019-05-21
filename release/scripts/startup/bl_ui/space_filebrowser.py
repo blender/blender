@@ -116,7 +116,6 @@ class FILEBROWSER_UL_dir(UIList):
             layout.prop(direntry, "path", text="")
 
 
-
 class FILEBROWSER_PT_bookmarks_volumes(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'

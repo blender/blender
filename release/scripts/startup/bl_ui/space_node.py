@@ -331,7 +331,7 @@ class NODE_PT_active_tool(ToolActivePanelHelper, Panel):
 
 
 class NODE_PT_material_slots(Panel):
-    bl_space_type = "NODE_EDITOR"
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Slot"
     bl_ui_units_x = 8

@@ -28,8 +28,16 @@ class MESH_MT_vertex_group_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.vertex_group_sort", icon='SORTALPHA', text="Sort by Name").sort_type = 'NAME'
-        layout.operator("object.vertex_group_sort", icon='BONE_DATA', text="Sort by Bone Hierarchy").sort_type = 'BONE_HIERARCHY'
+        layout.operator(
+            "object.vertex_group_sort",
+            icon='SORTALPHA',
+            text="Sort by Name",
+        ).sort_type = 'NAME'
+        layout.operator(
+            "object.vertex_group_sort",
+            icon='BONE_DATA',
+            text="Sort by Bone Hierarchy",
+        ).sort_type = 'BONE_HIERARCHY'
         layout.separator()
         layout.operator("object.vertex_group_copy", icon='DUPLICATE')
         layout.operator("object.vertex_group_copy_to_linked")
@@ -257,7 +265,11 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if ob.vertex_groups and (ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex)):
+        if (
+                ob.vertex_groups and
+                (ob.mode == 'EDIT' or
+                 (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))
+        ):
             row = layout.row()
 
             sub = row.row(align=True)

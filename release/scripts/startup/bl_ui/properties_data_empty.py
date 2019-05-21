@@ -74,7 +74,7 @@ class DATA_PT_empty_image(DataButtonsPanel, Panel):
         layout = self.layout
         ob = context.object
         layout.template_ID(ob, "data", open="image.open", unlink="object.unlink_data")
-        layout.separator();
+        layout.separator()
         layout.template_image(ob, "data", ob.image_user, compact=True)
 
 

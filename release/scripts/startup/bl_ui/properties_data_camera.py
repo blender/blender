@@ -219,7 +219,6 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         dof = cam.dof
         self.layout.prop(dof, "use_dof", text="")
 
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True

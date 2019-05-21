@@ -44,8 +44,7 @@ class ConstraintButtonsPanel:
             else:
                 row = box.row(align=True)
                 row.prop(con, "influence")
-                row.operator("constraint.disable_keep_transform",
-                    text='', icon='CANCEL')
+                row.operator("constraint.disable_keep_transform", text="", icon='CANCEL')
 
     @staticmethod
     def space_template(layout, con, target=True, owner=True):
