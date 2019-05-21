@@ -187,9 +187,7 @@ typedef struct GPENCIL_Storage {
   float mix_stroke_factor;
 
   /* Render Matrices and data */
-  float persmat[4][4], persinv[4][4];
-  float viewmat[4][4], viewinv[4][4];
-  float winmat[4][4], wininv[4][4];
+  DRWView *view;
   float view_vecs[2][4]; /* vec4[2] */
 
   float grid_matrix[4][4];

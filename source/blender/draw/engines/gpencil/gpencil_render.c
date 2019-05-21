@@ -94,26 +94,26 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
   }
 
   /* Set the pers & view matrix. */
+  float winmat[4][4], viewmat[4][4], viewinv[4][4], persmat[4][4];
+
   struct Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
   float frame = BKE_scene_frame_get(scene);
-  RE_GetCameraWindow(engine->re, camera, frame, stl->storage->winmat);
-  RE_GetCameraModelMatrix(engine->re, camera, stl->storage->viewinv);
+  RE_GetCameraWindow(engine->re, camera, frame, winmat);
+  RE_GetCameraModelMatrix(engine->re, camera, viewinv);
 
-  invert_m4_m4(stl->storage->viewmat, stl->storage->viewinv);
-  mul_m4_m4m4(stl->storage->persmat, stl->storage->winmat, stl->storage->viewmat);
-  invert_m4_m4(stl->storage->persinv, stl->storage->persmat);
-  invert_m4_m4(stl->storage->wininv, stl->storage->winmat);
+  invert_m4_m4(viewmat, viewinv);
 
-  DRW_viewport_matrix_override_set(stl->storage->persmat, DRW_MAT_PERS);
-  DRW_viewport_matrix_override_set(stl->storage->persinv, DRW_MAT_PERSINV);
-  DRW_viewport_matrix_override_set(stl->storage->winmat, DRW_MAT_WIN);
-  DRW_viewport_matrix_override_set(stl->storage->wininv, DRW_MAT_WININV);
-  DRW_viewport_matrix_override_set(stl->storage->viewmat, DRW_MAT_VIEW);
-  DRW_viewport_matrix_override_set(stl->storage->viewinv, DRW_MAT_VIEWINV);
+  DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+  DRW_view_default_set(view);
+  DRW_view_set_active(view);
+
+  DRW_view_persmat_get(view, persmat, false);
 
   /* calculate pixel size for render */
-  stl->storage->render_pixsize = get_render_pixelsize(
-      stl->storage->persmat, viewport_size[0], viewport_size[1]);
+  stl->storage->render_pixsize = get_render_pixelsize(persmat, viewport_size[0], viewport_size[1]);
+
+  stl->storage->view = view;
+
   /* INIT CACHE */
   GPENCIL_cache_init(vedata);
 }
@@ -180,8 +180,8 @@ static void GPENCIL_render_update_vecs(GPENCIL_Data *vedata)
   GPENCIL_StorageList *stl = vedata->stl;
 
   float invproj[4][4], winmat[4][4];
-  DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
-  DRW_viewport_matrix_get(invproj, DRW_MAT_WININV);
+  DRW_view_winmat_get(NULL, winmat, false);
+  DRW_view_winmat_get(NULL, invproj, true);
 
   /* this is separated to keep function equal to Eevee for future reuse of same code */
   GPENCIL_render_update_viewvecs(invproj, winmat, stl->storage->view_vecs);
@@ -211,6 +211,9 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
 
     GPENCIL_render_update_vecs(vedata);
 
+    float winmat[4][4];
+    DRW_view_persmat_get(stl->storage->view, winmat, false);
+
     /* Convert ogl depth [0..1] to view Z [near..far] */
     for (int i = 0; i < BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect); i++) {
       if (rp->rect[i] == 1.0f) {
@@ -219,7 +222,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
       else {
         if (is_persp) {
           rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-          rp->rect[i] = stl->storage->winmat[3][2] / (rp->rect[i] + stl->storage->winmat[2][2]);
+          rp->rect[i] = winmat[3][2] / (rp->rect[i] + winmat[2][2]);
         }
         else {
           rp->rect[i] = -stl->storage->view_vecs[0][2] +
