@@ -387,8 +387,11 @@ void psys_find_group_weights(ParticleSettings *part)
   /* Find object pointers based on index. If the collection is linked from
    * another library linking may not have the object pointers available on
    * file load, so we have to retrieve them later. See T49273. */
-  const ListBase instance_collection_objects = BKE_collection_object_cache_get(
-      part->instance_collection);
+  ListBase instance_collection_objects = {NULL, NULL};
+
+  if (part->instance_collection) {
+    instance_collection_objects = BKE_collection_object_cache_get(part->instance_collection);
+  }
 
   for (ParticleDupliWeight *dw = part->instance_weights.first; dw; dw = dw->next) {
     if (dw->ob == NULL) {
