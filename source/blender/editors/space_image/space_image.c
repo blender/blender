@@ -658,7 +658,8 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
       BLI_thread_unlock(LOCK_DRAW_IMAGE);
     }
 
-    ED_mask_draw_region(mask,
+    ED_mask_draw_region(depsgraph,
+                        mask,
                         ar,
                         sima->mask_info.draw_flag,
                         sima->mask_info.draw_type,

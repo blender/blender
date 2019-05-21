@@ -1469,13 +1469,6 @@ void BKE_mask_evaluate(Mask *mask, const float ctime, const bool do_newframe)
   }
 }
 
-/* the purpose of this function is to ensure spline->points_deform is never out of date.
- * for now re-evaluate all. eventually this might work differently */
-void BKE_mask_update_display(Mask *mask, float ctime)
-{
-  BKE_mask_evaluate(mask, ctime, false);
-}
-
 void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const bool do_newframe)
 {
   Mask *mask;

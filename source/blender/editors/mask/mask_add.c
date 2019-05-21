@@ -29,6 +29,7 @@
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -47,7 +48,7 @@
 #include "mask_intern.h" /* own include */
 
 bool ED_mask_find_nearest_diff_point(const bContext *C,
-                                     struct Mask *mask,
+                                     struct Mask *mask_orig,
                                      const float normal_co[2],
                                      int threshold,
                                      bool feather,
@@ -63,7 +64,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   ScrArea *sa = CTX_wm_area(C);
   ARegion *ar = CTX_wm_region(C);
 
-  MaskLayer *masklay, *point_masklay;
+  MaskLayer *point_masklay;
   MaskSpline *point_spline;
   MaskSplinePoint *point = NULL;
   float dist_best_sq = FLT_MAX, co[2];
@@ -71,31 +72,36 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   float u = 0.0f;
   float scalex, scaley;
 
+  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+
   ED_mask_get_size(sa, &width, &height);
   ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
 
-  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-    MaskSpline *spline;
-
-    if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+  for (MaskLayer *masklay_orig = mask_orig->masklayers.first,
+                 *masklay_eval = mask_eval->masklayers.first;
+       masklay_orig != NULL;
+       masklay_orig = masklay_orig->next, masklay_eval = masklay_eval->next) {
+    if (masklay_orig->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
       continue;
     }
 
-    for (spline = masklay->splines.first; spline; spline = spline->next) {
+    for (MaskSpline *spline_orig = masklay_orig->splines.first,
+                    *spline_eval = masklay_eval->splines.first;
+         spline_orig != NULL;
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
       int i;
-      MaskSplinePoint *cur_point;
+      MaskSplinePoint *cur_point_eval;
 
-      for (i = 0, cur_point = use_deform ? spline->points_deform : spline->points;
-           i < spline->tot_point;
-           i++, cur_point++) {
-        float *diff_points;
+      for (i = 0, cur_point_eval = use_deform ? spline_eval->points_deform : spline_eval->points;
+           i < spline_eval->tot_point;
+           i++, cur_point_eval++) {
         unsigned int tot_diff_point;
-
-        diff_points = BKE_mask_point_segment_diff(
-            spline, cur_point, width, height, &tot_diff_point);
+        float *diff_points = BKE_mask_point_segment_diff(
+            spline_eval, cur_point_eval, width, height, &tot_diff_point);
 
         if (diff_points) {
           int j, tot_point;
@@ -104,7 +110,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 
           if (feather) {
             feather_points = BKE_mask_point_segment_feather_diff(
-                spline, cur_point, width, height, &tot_feather_point);
+                spline_eval, cur_point_eval, width, height, &tot_feather_point);
 
             points = feather_points;
             tot_point = tot_feather_point;
@@ -130,19 +136,19 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                 sub_v2_v2v2(tangent, &diff_points[2 * j + 2], &diff_points[2 * j]);
               }
 
-              point_masklay = masklay;
-              point_spline = spline;
-              point = use_deform ? &spline->points[(cur_point - spline->points_deform)] :
-                                   cur_point;
+              point_masklay = masklay_orig;
+              point_spline = spline_orig;
+              point = use_deform ?
+                          &spline_orig->points[(cur_point_eval - spline_eval->points_deform)] :
+                          &spline_orig->points[(cur_point_eval - spline_eval->points)];
               dist_best_sq = dist_sq;
               u = (float)j / tot_point;
             }
           }
 
-          if (feather_points) {
+          if (feather_points != NULL) {
             MEM_freeN(feather_points);
           }
-
           MEM_freeN(diff_points);
         }
       }
@@ -580,7 +586,6 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, co
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *masklay;
 
@@ -626,8 +631,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
         BKE_mask_calc_handle_point_auto(spline, point, false);
         BKE_mask_calc_handle_point_auto(spline, point_other, false);
 
-        /* TODO: only update this spline */
-        BKE_mask_update_display(mask, CFRA);
+        DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 
         WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
         return OPERATOR_FINISHED;
@@ -648,8 +652,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* TODO: only update this spline */
-  BKE_mask_update_display(mask, CFRA);
+  DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 
   return OPERATOR_FINISHED;
 }
@@ -716,7 +719,6 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 
   if (ED_mask_find_nearest_diff_point(
           C, mask, co, threshold, true, NULL, true, true, &masklay, &spline, &point, &u, NULL)) {
-    Scene *scene = CTX_data_scene(C);
     float w = BKE_mask_point_weight(spline, point, u);
     float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);
 
@@ -726,11 +728,9 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 
     BKE_mask_point_add_uw(point, u, w);
 
-    BKE_mask_update_display(mask, scene->r.cfra);
+    DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 
     WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-
-    DEG_id_tag_update(&mask->id, 0);
 
     return OPERATOR_FINISHED;
   }
@@ -786,7 +786,6 @@ static int create_primitive_from_points(
     bContext *C, wmOperator *op, const float (*points)[2], int num_points, char handle_type)
 {
   ScrArea *sa = CTX_wm_area(C);
-  Scene *scene = CTX_data_scene(C);
   Mask *mask;
   MaskLayer *mask_layer;
   MaskSpline *new_spline;
@@ -848,8 +847,7 @@ static int create_primitive_from_points(
   }
   WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
-  /* TODO: only update this spline */
-  BKE_mask_update_display(mask, CFRA);
+  DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 
   return OPERATOR_FINISHED;
 }

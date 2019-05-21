@@ -29,6 +29,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+/* Needed for the instance iterator. */
+#include "DNA_object_types.h"
+
 struct ID;
 
 struct BLI_Iterator;

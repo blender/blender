@@ -52,6 +52,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "mask_intern.h" /* own include */
 
 static void mask_spline_color_get(MaskLayer *masklay,
@@ -672,7 +674,8 @@ static float *mask_rasterize(Mask *mask, const int width, const int height)
 /* sets up the opengl context.
  * width, height are to match the values from ED_mask_get_size() */
 void ED_mask_draw_region(
-    Mask *mask,
+    Depsgraph *depsgraph,
+    Mask *mask_,
     ARegion *ar,
     const char draw_flag,
     const char draw_type,
@@ -690,6 +693,7 @@ void ED_mask_draw_region(
     const bContext *C)
 {
   struct View2D *v2d = &ar->v2d;
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_->id);
 
   /* aspect always scales vertically in movie and image spaces */
   const float width = width_i, height = (float)height_i * (aspy / aspx);
@@ -735,7 +739,7 @@ void ED_mask_draw_region(
 
   if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
     float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-    float *buffer = mask_rasterize(mask, width, height);
+    float *buffer = mask_rasterize(mask_eval, width, height);
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
@@ -779,7 +783,7 @@ void ED_mask_draw_region(
   }
 
   /* draw! */
-  draw_masklays(C, mask, draw_flag, draw_type, width, height);
+  draw_masklays(C, mask_eval, draw_flag, draw_type, width, height);
 
   if (do_draw_cb) {
     ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);

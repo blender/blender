@@ -1492,7 +1492,7 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
     return;
   }
   ID *mask_id = &mask->id;
-  Mask *mask_cow = get_cow_datablock(mask);
+  Mask *mask_cow = (Mask *)ensure_cow_id(mask_id);
   /* F-Curve based animation. */
   build_animdata(mask_id);
   build_parameters(mask_id);

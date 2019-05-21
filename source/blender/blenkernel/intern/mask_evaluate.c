@@ -954,10 +954,30 @@ void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
 
 void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
 {
+  const bool is_depsgraph_active = DEG_is_active(depsgraph);
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
   for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
        mask_layer = mask_layer->next) {
     BKE_mask_layer_evaluate_deform(mask_layer, ctime);
+  }
+
+  if (is_depsgraph_active) {
+    Mask *mask_orig = (Mask *)DEG_get_original_id(&mask->id);
+    for (MaskLayer *masklay_orig = mask_orig->masklayers.first,
+                   *masklay_eval = mask->masklayers.first;
+         masklay_orig != NULL;
+         masklay_orig = masklay_orig->next, masklay_eval = masklay_eval->next) {
+      for (MaskSpline *spline_orig = masklay_orig->splines.first,
+                      *spline_eval = masklay_eval->splines.first;
+           spline_orig != NULL;
+           spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+        for (int i = 0; i < spline_eval->tot_point; i++) {
+          MaskSplinePoint *point_eval = &spline_eval->points[i];
+          MaskSplinePoint *point_orig = &spline_orig->points[i];
+          point_orig->bezt = point_eval->bezt;
+        }
+      }
+    }
   }
 }

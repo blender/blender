@@ -24,6 +24,7 @@
 #ifndef __ED_MASK_H__
 #define __ED_MASK_H__
 
+struct Depsgraph;
 struct KeyframeEditData;
 struct MaskLayer;
 struct MaskLayerShape;
@@ -55,7 +56,8 @@ void ED_operatormacros_mask(void);
 
 /* mask_draw.c */
 void ED_mask_draw(const struct bContext *C, const char draw_flag, const char draw_type);
-void ED_mask_draw_region(struct Mask *mask,
+void ED_mask_draw_region(struct Depsgraph *depsgraph,
+                         struct Mask *mask,
                          struct ARegion *ar,
                          const char draw_flag,
                          const char draw_type,
