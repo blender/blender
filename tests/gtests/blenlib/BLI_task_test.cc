@@ -27,6 +27,7 @@ static void task_mempool_iter_func(void *userdata, MempoolIterData *item)
 TEST(task, MempoolIter)
 {
   int *data[NUM_ITEMS];
+  BLI_threadapi_init();
   BLI_mempool *mempool = BLI_mempool_create(
       sizeof(*data[0]), NUM_ITEMS, 32, BLI_MEMPOOL_ALLOW_ITER);
 
@@ -76,4 +77,5 @@ TEST(task, MempoolIter)
   }
 
   BLI_mempool_destroy(mempool);
+  BLI_threadapi_exit();
 }
