@@ -102,8 +102,11 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
 {
   Paint *p = BKE_paint_get_active(scene, view_layer);
-  Brush *br = p->brush;
+  if (p == NULL) {
+    return;
+  }
 
+  Brush *br = p->brush;
   if (br && br->curve == curve) {
     overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
   }
