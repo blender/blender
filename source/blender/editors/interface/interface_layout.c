@@ -1858,12 +1858,7 @@ void uiItemFullR(uiLayout *layout,
                  int icon)
 {
   uiBlock *block = layout->root->block;
-  uiBut *but = NULL;
-  PropertyType type;
   char namestr[UI_MAX_NAME_STR];
-  int len, w, h;
-  bool slider, toggle, expand, icon_only, no_bg, compact;
-  bool is_array;
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
   /* By default 'use_prop_sep' uses a separate column for labels.
@@ -1888,11 +1883,11 @@ void uiItemFullR(uiLayout *layout,
   UI_block_layout_set_current(block, layout);
 
   /* retrieve info */
-  type = RNA_property_type(prop);
-  is_array = RNA_property_array_check(prop);
-  len = (is_array) ? RNA_property_array_length(ptr, prop) : 0;
+  const PropertyType type = RNA_property_type(prop);
+  const bool is_array = RNA_property_array_check(prop);
+  const int len = (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
-  icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
+  const bool icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
 
   /* set name and icon */
   if (!name) {
@@ -1979,19 +1974,22 @@ void uiItemFullR(uiLayout *layout,
     flag |= UI_ITEM_R_EXPAND;
   }
 
-  slider = (flag & UI_ITEM_R_SLIDER) != 0;
-  toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
-  expand = (flag & UI_ITEM_R_EXPAND) != 0;
-  no_bg = (flag & UI_ITEM_R_NO_BG) != 0;
-  compact = (flag & UI_ITEM_R_COMPACT) != 0;
+  const bool slider = (flag & UI_ITEM_R_SLIDER) != 0;
+  const bool toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
+  const bool expand = (flag & UI_ITEM_R_EXPAND) != 0;
+  const bool no_bg = (flag & UI_ITEM_R_NO_BG) != 0;
+  const bool compact = (flag & UI_ITEM_R_COMPACT) != 0;
 
   /* get size */
+  int w, h;
   ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, compact, &w, &h);
 
   int prev_emboss = layout->emboss;
   if (no_bg) {
     layout->emboss = UI_EMBOSS_NONE;
   }
+
+  uiBut *but = NULL;
 
   /* Split the label / property. */
   uiLayout *layout_parent = layout;
