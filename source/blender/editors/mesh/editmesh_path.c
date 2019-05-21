@@ -375,7 +375,7 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
 /* mesh shortest path select, uses prev-selected edge */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path_edge(Scene *UNUSED(scene),
+static void mouse_mesh_shortest_path_edge(Scene *scene,
                                           Object *obedit,
                                           const struct PathSelectParams *op_params,
                                           BMEdge *e_act,
@@ -477,6 +477,10 @@ static void mouse_mesh_shortest_path_edge(Scene *UNUSED(scene),
   }
 
   EDBM_update_generic(em, false, false);
+
+  if (op_params->edge_mode == EDGE_MODE_TAG_SEAM) {
+    ED_uvedit_live_unwrap(scene, &obedit, 1);
+  }
 }
 
 /** \} */
