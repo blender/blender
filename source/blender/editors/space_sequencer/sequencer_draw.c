@@ -1821,7 +1821,7 @@ typedef struct CacheDrawData {
 
 /* Called as a callback */
 static bool draw_cache_view_cb(
-    void *userdata, struct Sequence *seq, int cfra, int cache_type, float UNUSED(cost))
+    void *userdata, struct Sequence *seq, int nfra, int cache_type, float UNUSED(cost))
 {
   CacheDrawData *drawdata = userdata;
   const bContext *C = drawdata->C;
@@ -1901,6 +1901,7 @@ static bool draw_cache_view_cb(
       }
   }
 
+  int cfra = seq->start + nfra;
   immUniformColor4f(color[0], color[1], color[2], color[3]);
   immRectf(pos, cfra, stripe_bot, cfra + 1, stripe_top);
 
