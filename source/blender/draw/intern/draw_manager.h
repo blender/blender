@@ -45,7 +45,6 @@
 
 #define DRW_DEBUG_USE_UNIFORM_NAME 0
 #define DRW_UNIFORM_BUFFER_NAME 64
-#define DRW_UNIFORM_BUFFER_NAME_INC 1024
 
 /* ------------ Profiling --------------- */
 

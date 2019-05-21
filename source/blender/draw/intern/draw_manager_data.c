@@ -142,7 +142,7 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
     size_t len = strlen(name) + 1;
 
     if (len >= max_len) {
-      DST.uniform_names.buffer_len += DRW_UNIFORM_BUFFER_NAME_INC;
+      DST.uniform_names.buffer_len += MAX2(DST.uniform_names.buffer_len, len);
       DST.uniform_names.buffer = MEM_reallocN(DST.uniform_names.buffer,
                                               DST.uniform_names.buffer_len);
     }
