@@ -224,47 +224,34 @@ static void printstruct(SDNA *sdna, short strnr)
  */
 int DNA_struct_find_nr_ex(const SDNA *sdna, const char *str, unsigned int *index_last)
 {
-  const short *sp = NULL;
-
   if (*index_last < sdna->nr_structs) {
-    sp = sdna->structs[*index_last];
-    if (strcmp(sdna->types[sp[0]], str) == 0) {
+    const short *sp = sdna->structs[*index_last];
+    if (STREQ(sdna->types[sp[0]], str)) {
       return *index_last;
     }
   }
 
 #ifdef WITH_DNA_GHASH
   {
-    void **index_p;
-    int a;
-
-    index_p = BLI_ghash_lookup_p(sdna->structs_map, str);
-
+    void **index_p = BLI_ghash_lookup_p(sdna->structs_map, str);
     if (index_p) {
-      a = POINTER_AS_INT(*index_p);
-      *index_last = a;
+      const int index = POINTER_AS_INT(*index_p);
+      *index_last = index;
+      return index;
     }
-    else {
-      a = -1;
-    }
-    return a;
   }
 #else
   {
-    int a;
-
-    for (a = 0; a < sdna->nr_structs; a++) {
-
-      sp = sdna->structs[a];
-
-      if (strcmp(sdna->types[sp[0]], str) == 0) {
-        *index_last = a;
-        return a;
+    for (int index = 0; index < sdna->nr_structs; index++) {
+      const short *sp = sdna->structs[index];
+      if (STREQ(sdna->types[sp[0]], str)) {
+        *index_last = index;
+        return index;
       }
     }
   }
-  return -1;
 #endif
+  return -1;
 }
 
 int DNA_struct_find_nr(const SDNA *sdna, const char *str)
