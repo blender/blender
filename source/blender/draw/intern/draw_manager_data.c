@@ -867,13 +867,13 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   else {
     /* Only here to support builtin shaders. This should not be used by engines. */
     /* TODO remove. */
-    DRWMatrixState *matstate = &DST.view_storage_cpy.matstate;
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW, matstate->viewmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW_INV, matstate->viewinv, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION, matstate->persmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION_INV, matstate->persinv, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION, matstate->winmat, 16, 1);
-    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION_INV, matstate->wininv, 16, 1);
+    DRWViewUboStorage *storage = &DST.view_storage_cpy;
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW, storage->viewmat, 16, 1);
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEW_INV, storage->viewinv, 16, 1);
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION, storage->persmat, 16, 1);
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION_INV, storage->persinv, 16, 1);
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION, storage->winmat, 16, 1);
+    drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION_INV, storage->wininv, 16, 1);
     drw_shgroup_builtin_uniform(
         shgroup, GPU_UNIFORM_CAMERATEXCO, DST.view_storage_cpy.viewcamtexcofac, 4, 1);
   }
@@ -1289,22 +1289,22 @@ static void draw_frustum_bound_sphere_calc(const BoundBox *bbox,
   }
 }
 
-static void draw_matrix_state_from_view(DRWMatrixState *mstate,
-                                        const float viewmat[4][4],
-                                        const float winmat[4][4])
+static void draw_view_matrix_state_update(DRWViewUboStorage *storage,
+                                          const float viewmat[4][4],
+                                          const float winmat[4][4])
 {
   /* If only one the matrices is negative, then the
    * polygon winding changes and we don't want that. */
   BLI_assert(is_negative_m4(viewmat) != is_negative_m4(winmat));
 
-  copy_m4_m4(mstate->viewmat, viewmat);
-  invert_m4_m4(mstate->viewinv, mstate->viewmat);
+  copy_m4_m4(storage->viewmat, viewmat);
+  invert_m4_m4(storage->viewinv, storage->viewmat);
 
-  copy_m4_m4(mstate->winmat, winmat);
-  invert_m4_m4(mstate->wininv, mstate->winmat);
+  copy_m4_m4(storage->winmat, winmat);
+  invert_m4_m4(storage->wininv, storage->winmat);
 
-  mul_m4_m4m4(mstate->persmat, winmat, viewmat);
-  invert_m4_m4(mstate->persinv, mstate->persmat);
+  mul_m4_m4m4(storage->persmat, winmat, viewmat);
+  invert_m4_m4(storage->persinv, storage->persmat);
 }
 
 /* Create a view with culling. */
@@ -1370,11 +1370,10 @@ DRWView *DRW_view_create_sub(const DRWView *parent_view,
 void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4])
 {
   BLI_assert(view->parent != NULL);
-  DRWMatrixState *mstate = &view->storage.matstate;
 
   view->is_dirty = true;
 
-  draw_matrix_state_from_view(mstate, viewmat, winmat);
+  draw_view_matrix_state_update(&view->storage, viewmat, winmat);
 }
 
 /* Update matrices of a view created with DRW_view_create. */
@@ -1388,11 +1387,10 @@ void DRW_view_update(DRWView *view,
    * Create subviews instead, or a copy. */
   BLI_assert(view != DST.view_default);
   BLI_assert(view->parent == NULL);
-  DRWMatrixState *mstate = &view->storage.matstate;
 
   view->is_dirty = true;
 
-  draw_matrix_state_from_view(mstate, viewmat, winmat);
+  draw_view_matrix_state_update(&view->storage, viewmat, winmat);
 
   /* Prepare frustum culling. */
 
@@ -1420,7 +1418,7 @@ void DRW_view_update(DRWView *view,
     invert_m4_m4(wininv, winmat);
   }
   else {
-    copy_m4_m4(wininv, mstate->wininv);
+    copy_m4_m4(wininv, view->storage.wininv);
   }
 
   float viewinv[4][4];
@@ -1429,7 +1427,7 @@ void DRW_view_update(DRWView *view,
     invert_m4_m4(viewinv, viewmat);
   }
   else {
-    copy_m4_m4(viewinv, mstate->viewinv);
+    copy_m4_m4(viewinv, view->storage.viewinv);
   }
 
   draw_frustum_boundbox_calc(viewinv, winmat, &view->frustum_corners);
@@ -1489,13 +1487,13 @@ void DRW_view_frustum_planes_get(const DRWView *view, float planes[6][4])
 bool DRW_view_is_persp_get(const DRWView *view)
 {
   view = (view) ? view : DST.view_default;
-  return view->storage.matstate.winmat[3][3] == 0.0f;
+  return view->storage.winmat[3][3] == 0.0f;
 }
 
 float DRW_view_near_distance_get(const DRWView *view)
 {
   view = (view) ? view : DST.view_default;
-  const float(*projmat)[4] = view->storage.matstate.winmat;
+  const float(*projmat)[4] = view->storage.winmat;
 
   if (DRW_view_is_persp_get(view)) {
     return -projmat[3][2] / (projmat[2][2] - 1.0f);
@@ -1508,7 +1506,7 @@ float DRW_view_near_distance_get(const DRWView *view)
 float DRW_view_far_distance_get(const DRWView *view)
 {
   view = (view) ? view : DST.view_default;
-  const float(*projmat)[4] = view->storage.matstate.winmat;
+  const float(*projmat)[4] = view->storage.winmat;
 
   if (DRW_view_is_persp_get(view)) {
     return -projmat[3][2] / (projmat[2][2] + 1.0f);
@@ -1521,22 +1519,22 @@ float DRW_view_far_distance_get(const DRWView *view)
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWMatrixState *state = &view->storage.matstate;
-  copy_m4_m4(mat, (inverse) ? state->viewinv : state->viewmat);
+  const DRWViewUboStorage *storage = &view->storage;
+  copy_m4_m4(mat, (inverse) ? storage->viewinv : storage->viewmat);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWMatrixState *state = &view->storage.matstate;
-  copy_m4_m4(mat, (inverse) ? state->wininv : state->winmat);
+  const DRWViewUboStorage *storage = &view->storage;
+  copy_m4_m4(mat, (inverse) ? storage->wininv : storage->winmat);
 }
 
 void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWMatrixState *state = &view->storage.matstate;
-  copy_m4_m4(mat, (inverse) ? state->persinv : state->persmat);
+  const DRWViewUboStorage *storage = &view->storage;
+  copy_m4_m4(mat, (inverse) ? storage->persinv : storage->persmat);
 }
 
 /** \} */
@@ -1658,7 +1656,7 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
  */
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {
-  const float(*viewinv)[4] = DST.view_active->storage.matstate.viewinv;
+  const float(*viewinv)[4] = DST.view_active->storage.viewinv;
 
   ZSortData zsortdata = {viewinv[2], viewinv[3]};
 

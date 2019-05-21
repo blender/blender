@@ -387,16 +387,6 @@ void DRW_state_reset(void)
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-/**
- * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
- * and if the shaders have support for it (see usage of gl_ClipDistance).
- */
-void DRW_state_clip_planes_len_set(uint plane_len)
-{
-  BLI_assert(plane_len <= MAX_CLIP_PLANES);
-  /* DUMMY TO REMOVE */
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -592,7 +582,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
    * and is slow (since it does not cache the result). */
   if (shgroup->modelviewprojection != -1) {
     float mvp[4][4];
-    mul_m4_m4m4(mvp, DST.view_active->storage.matstate.persmat, state->model);
+    mul_m4_m4m4(mvp, DST.view_active->storage.persmat, state->model);
     GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)mvp);
   }
 }

@@ -393,7 +393,6 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
 /* return final visibility */
 typedef bool(DRWCallVisibilityFn)(bool vis_in, void *user_data);
 
-/* TODO(fclem): Remove the _add suffix. */
 void DRW_shgroup_call(DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4]);
 void DRW_shgroup_call_range(
     DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4], uint v_sta, uint v_ct);
@@ -480,14 +479,6 @@ void DRW_shgroup_uniform_vec4(DRWShadingGroup *shgroup,
                               const char *name,
                               const float *value,
                               int arraysize);
-void DRW_shgroup_uniform_short_to_int(DRWShadingGroup *shgroup,
-                                      const char *name,
-                                      const short *value,
-                                      int arraysize);
-void DRW_shgroup_uniform_short_to_float(DRWShadingGroup *shgroup,
-                                        const char *name,
-                                        const short *value,
-                                        int arraysize);
 /* Boolean are expected to be 4bytes longs for opengl! */
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup,
                               const char *name,
@@ -577,17 +568,10 @@ bool DRW_culling_sphere_test(const DRWView *view, const BoundSphere *bsphere);
 bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 
-/* Viewport */
+void DRW_culling_frustum_corners_get(const DRWView *view, BoundBox *corners);
+void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4]);
 
-typedef struct DRWMatrixState {
-  /* keep in sync with the enum DRWViewportMatrixType. */
-  float persmat[4][4];
-  float persinv[4][4];
-  float viewmat[4][4];
-  float viewinv[4][4];
-  float winmat[4][4];
-  float wininv[4][4];
-} DRWMatrixState;
+/* Viewport */
 
 const float *DRW_viewport_size_get(void);
 const float *DRW_viewport_invert_size_get(void);
@@ -655,11 +639,6 @@ void DRW_draw_callbacks_post_scene(void);
 void DRW_state_reset_ex(DRWState state);
 void DRW_state_reset(void);
 void DRW_state_lock(DRWState state);
-
-void DRW_state_clip_planes_len_set(uint plane_len);
-
-void DRW_culling_frustum_corners_get(const DRWView *view, BoundBox *corners);
-void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4]);
 
 /* Selection */
 void DRW_select_load_id(uint id);

@@ -215,12 +215,19 @@ struct DRWPass {
 };
 
 /* keep in sync with viewBlock */
-typedef struct ViewUboStorage {
-  DRWMatrixState matstate;
+typedef struct DRWViewUboStorage {
+  /* View matrices */
+  float persmat[4][4];
+  float persinv[4][4];
+  float viewmat[4][4];
+  float viewinv[4][4];
+  float winmat[4][4];
+  float wininv[4][4];
+
   float clipplanes[6][4];
   /* Should not be here. Not view dependant (only main view). */
   float viewcamtexcofac[4];
-} ViewUboStorage;
+} DRWViewUboStorage;
 
 #define MAX_CULLED_VIEWS 32
 
@@ -228,7 +235,7 @@ struct DRWView {
   /** Parent view if this is a sub view. NULL otherwise. */
   struct DRWView *parent;
 
-  ViewUboStorage storage;
+  DRWViewUboStorage storage;
   /** Number of active clipplanes. */
   int clip_planes_len;
   /** Does culling result needs to be updated. */
@@ -327,7 +334,7 @@ typedef struct DRWManager {
   uint primary_view_ct;
   /** TODO(fclem) Remove this. Only here to support
    * shaders without common_view_lib.glsl */
-  ViewUboStorage view_storage_cpy;
+  DRWViewUboStorage view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;

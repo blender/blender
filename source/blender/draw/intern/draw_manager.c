@@ -683,7 +683,7 @@ static void drw_viewport_var_init(void)
   memset(&DST.RST, 0x0, sizeof(DST.RST));
 
   if (G_draw.view_ubo == NULL) {
-    G_draw.view_ubo = DRW_uniformbuffer_create(sizeof(ViewUboStorage), NULL);
+    G_draw.view_ubo = DRW_uniformbuffer_create(sizeof(DRWViewUboStorage), NULL);
   }
 
   memset(DST.object_instance_data, 0x0, sizeof(DST.object_instance_data));
