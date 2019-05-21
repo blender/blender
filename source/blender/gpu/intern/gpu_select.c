@@ -229,11 +229,17 @@ void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_
   const int dst_x = BLI_rcti_size_x(dst);
   const int dst_y = BLI_rcti_size_y(dst);
 
-  int last_px_written = dst_x * dst_y - 1;
   int last_px_id = src_x * (y + dst_y - 1) + (x + dst_x - 1);
-  const int skip = src_x - dst_x;
-
   memset(&r_buf[last_px_id + 1], 0, (src_x * src_y - (last_px_id + 1)) * sizeof(*r_buf));
+
+  if (last_px_id < 0) {
+    /* Nothing to write. */
+    BLI_assert(last_px_id == -1);
+    return;
+  }
+
+  int last_px_written = dst_x * dst_y - 1;
+  const int skip = src_x - dst_x;
 
   while (true) {
     for (int i = dst_x; i--;) {
