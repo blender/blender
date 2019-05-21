@@ -679,22 +679,35 @@ void EEVEE_lightprobes_planar_data_from_object(Object *ob,
   eplanar->attenuation_bias = max_dist * -eplanar->attenuation_scale;
 }
 
-static void lightbake_planar_compute_render_matrices(EEVEE_PlanarReflection *eplanar,
-                                                     DRWMatrixState *r_matstate,
-                                                     const float viewmat[4][4],
-                                                     const float winmat[4][4])
+static void lightbake_planar_ensure_view(EEVEE_PlanarReflection *eplanar,
+                                         const DRWView *main_view,
+                                         DRWView **r_planar_view)
 {
+  float winmat[4][4], viewmat[4][4];
+  DRW_view_viewmat_get(main_view, viewmat, false);
   /* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
-  copy_m4_m4(r_matstate->winmat, winmat);
+  DRW_view_winmat_get(main_view, winmat, false);
   /* Invert X to avoid flipping the triangle facing direction. */
-  r_matstate->winmat[0][0] = -r_matstate->winmat[0][0];
-  r_matstate->winmat[1][0] = -r_matstate->winmat[1][0];
-  r_matstate->winmat[2][0] = -r_matstate->winmat[2][0];
-  r_matstate->winmat[3][0] = -r_matstate->winmat[3][0];
+  winmat[0][0] = -winmat[0][0];
+  winmat[1][0] = -winmat[1][0];
+  winmat[2][0] = -winmat[2][0];
+  winmat[3][0] = -winmat[3][0];
   /* Reflect Camera Matrix. */
-  mul_m4_m4m4(r_matstate->viewmat, viewmat, eplanar->mtx);
-  /* Apply Projection Matrix. */
-  mul_m4_m4m4(r_matstate->persmat, r_matstate->winmat, r_matstate->viewmat);
+  mul_m4_m4m4(viewmat, viewmat, eplanar->mtx);
+
+  if (*r_planar_view == NULL) {
+    *r_planar_view = DRW_view_create(
+        viewmat, winmat, NULL, NULL, EEVEE_lightprobes_obj_visibility_cb);
+    /* Compute offset plane equation (fix missing texels near reflection plane). */
+    float clip_plane[4];
+    copy_v4_v4(clip_plane, eplanar->plane_equation);
+    clip_plane[3] += eplanar->clipsta;
+    /* Set clipping plane */
+    DRW_view_clip_planes_set(*r_planar_view, &clip_plane, 1);
+  }
+  else {
+    DRW_view_update(*r_planar_view, viewmat, winmat, NULL, NULL);
+  }
 }
 
 static void eevee_lightprobes_extract_from_cache(EEVEE_LightProbesInfo *pinfo, LightCache *lcache)
@@ -762,7 +775,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
     }
   }
 
-  if (pinfo->num_planar) {
+  if (pinfo->num_planar > 0) {
     EEVEE_PassList *psl = vedata->psl;
     EEVEE_TextureList *txl = vedata->txl;
     DRW_PASS_CREATE(psl->probe_planar_downsample_ps, DRW_STATE_WRITE_COLOR);
@@ -824,21 +837,16 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
                                EEVEE_PlanarReflection *planar_data,
                                int ref_count)
 {
-  DRWMatrixState matstate;
-
-  float original_viewmat[4][4], original_winmat[4][4];
-  DRW_viewport_matrix_get(original_viewmat, DRW_MAT_VIEW);
-  DRW_viewport_matrix_get(original_winmat, DRW_MAT_WIN);
+  EEVEE_StorageList *stl = user_data->vedata->stl;
+  DRWView *main_view = stl->effects->taa_view;
+  DRWView **views = stl->g_data->planar_views;
+  /* Prepare views at the same time for faster culling. */
+  for (int i = 0; i < ref_count; ++i) {
+    lightbake_planar_ensure_view(&planar_data[i], main_view, &views[i]);
+  }
 
   for (int i = 0; i < ref_count; ++i) {
-    /* Setup custom matrices */
-    lightbake_planar_compute_render_matrices(
-        planar_data + i, &matstate, original_viewmat, original_winmat);
-    invert_m4_m4(matstate.persinv, matstate.persmat);
-    invert_m4_m4(matstate.viewinv, matstate.viewmat);
-    invert_m4_m4(matstate.wininv, matstate.winmat);
-    DRW_viewport_matrix_override_set_all(&matstate);
-
+    DRW_view_set_active(views[i]);
     callback(i, user_data);
   }
 }
@@ -912,9 +920,9 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
   EEVEE_ViewLayerData *sldata = user_data->sldata;
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_StorageList *stl = vedata->stl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
-  EEVEE_PlanarReflection *eplanar = pinfo->planar_data + layer;
 
   GPU_framebuffer_ensure_config(&fbl->planarref_fb,
                                 {GPU_ATTACHMENT_TEXTURE_LAYER(txl->planar_depth, layer),
@@ -930,18 +938,10 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
   txl->planar_pool = e_data.planar_pool_placeholder;
   txl->planar_depth = e_data.depth_array_placeholder;
 
-  /* Be sure that cascaded shadow maps are updated. */
   DRW_stats_group_start("Planar Reflection");
 
   /* Be sure that cascaded shadow maps are updated. */
-  EEVEE_draw_shadows(sldata, vedata, NULL /* TODO */);
-
-  /* Compute offset plane equation (fix missing texels near reflection plane). */
-  copy_v4_v4(sldata->clip_data.clip_planes[0], eplanar->plane_equation);
-  sldata->clip_data.clip_planes[0][3] += eplanar->clipsta;
-  /* Set clipping plane */
-  DRW_uniformbuffer_update(sldata->clip_ubo, &sldata->clip_data);
-  DRW_state_clip_planes_len_set(1);
+  EEVEE_draw_shadows(sldata, vedata, stl->g_data->planar_views[layer]);
 
   GPU_framebuffer_bind(fbl->planarref_fb);
   GPU_framebuffer_clear_depth(fbl->planarref_fb, 1.0);

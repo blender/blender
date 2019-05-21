@@ -7,13 +7,6 @@ in vec3 nor;
 out vec3 worldPosition;
 out vec3 viewPosition;
 
-/* Used for planar reflections */
-/* keep in sync with EEVEE_ClipPlanesUniformBuffer */
-layout(std140) uniform clip_block
-{
-  vec4 ClipPlanes[1];
-};
-
 out vec3 worldNormal;
 out vec3 viewNormal;
 
@@ -61,7 +54,7 @@ void main()
   gl_Position = point_world_to_ndc(worldPosition);
 
   /* Used for planar reflections */
-  gl_ClipDistance[0] = dot(vec4(worldPosition, 1.0), ClipPlanes[0]);
+  gl_ClipDistance[0] = dot(vec4(worldPosition, 1.0), clipPlanes[0]);
 
 #ifdef USE_ATTR
   pass_attr(pos);

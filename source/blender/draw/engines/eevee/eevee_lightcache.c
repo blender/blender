@@ -724,9 +724,6 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
     sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data),
                                                   &sldata->common_data);
   }
-  if (sldata->clip_ubo == NULL) {
-    sldata->clip_ubo = DRW_uniformbuffer_create(sizeof(sldata->clip_data), &sldata->clip_data);
-  }
 
   /* HACK: set txl->color but unset it before Draw Manager frees it. */
   txl->color = lbake->rt_color;

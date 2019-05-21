@@ -386,7 +386,6 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp,
   DRW_shgroup_uniform_block(shgrp, "light_block", sldata->light_ubo);
   DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
   DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
-  DRW_shgroup_uniform_block(shgrp, "clip_block", sldata->clip_ubo);
 
   if (use_diffuse || use_glossy || use_refract) {
     DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
@@ -1024,14 +1023,12 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_PASS_CREATE(psl->depth_pass_clip, state);
     stl->g_data->depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh,
                                                        psl->depth_pass_clip);
-    DRW_shgroup_uniform_block(stl->g_data->depth_shgrp_clip, "clip_block", sldata->clip_ubo);
 
     state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES |
             DRW_STATE_CULL_BACK;
     DRW_PASS_CREATE(psl->depth_pass_clip_cull, state);
     stl->g_data->depth_shgrp_clip_cull = DRW_shgroup_create(e_data.default_prepass_clip_sh,
                                                             psl->depth_pass_clip_cull);
-    DRW_shgroup_uniform_block(stl->g_data->depth_shgrp_clip_cull, "clip_block", sldata->clip_ubo);
   }
 
   {
@@ -1055,16 +1052,12 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_PASS_CREATE(psl->refract_depth_pass_clip, state);
     stl->g_data->refract_depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh,
                                                                psl->refract_depth_pass_clip);
-    DRW_shgroup_uniform_block(
-        stl->g_data->refract_depth_shgrp_clip, "clip_block", sldata->clip_ubo);
 
     state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES |
             DRW_STATE_CULL_BACK;
     DRW_PASS_CREATE(psl->refract_depth_pass_clip_cull, state);
     stl->g_data->refract_depth_shgrp_clip_cull = DRW_shgroup_create(
         e_data.default_prepass_clip_sh, psl->refract_depth_pass_clip_cull);
-    DRW_shgroup_uniform_block(
-        stl->g_data->refract_depth_shgrp_clip_cull, "clip_block", sldata->clip_ubo);
   }
 
   {
@@ -1509,7 +1502,6 @@ static void material_transparent(Material *ma,
   /* Depth prepass */
   if (use_prepass) {
     *shgrp_depth = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->transparent_pass);
-    DRW_shgroup_uniform_block(*shgrp_depth, "clip_block", sldata->clip_ubo);
 
     cur_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     cur_state |= (do_cull) ? DRW_STATE_CULL_BACK : 0;
@@ -1747,7 +1739,6 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata,
 
         shgrp = DRW_shgroup_hair_create(
             ob, psys, md, psl->depth_pass_clip, e_data.default_hair_prepass_clip_sh);
-        DRW_shgroup_uniform_block(shgrp, "clip_block", sldata->clip_ubo);
 
         shgrp = NULL;
         if (ma->use_nodes && ma->nodetree) {

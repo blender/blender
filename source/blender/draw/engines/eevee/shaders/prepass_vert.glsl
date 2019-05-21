@@ -1,12 +1,4 @@
 
-#ifdef CLIP_PLANES
-/* keep in sync with DRWManager.view_data */
-layout(std140) uniform clip_block
-{
-  vec4 ClipPlanes[1];
-};
-#endif
-
 #ifndef HAIR_SHADER
 in vec3 pos;
 #endif
@@ -40,7 +32,7 @@ void main()
   gl_Position = point_world_to_ndc(worldPosition);
 
 #ifdef CLIP_PLANES
-  gl_ClipDistance[0] = dot(vec4(worldPosition.xyz, 1.0), ClipPlanes[0]);
+  gl_ClipDistance[0] = dot(vec4(worldPosition.xyz, 1.0), clipPlanes[0]);
 #endif
   /* TODO motion vectors */
 }

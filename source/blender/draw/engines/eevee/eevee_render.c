@@ -100,9 +100,6 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
     sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data),
                                                   &sldata->common_data);
   }
-  if (sldata->clip_ubo == NULL) {
-    sldata->clip_ubo = DRW_uniformbuffer_create(sizeof(sldata->clip_data), &sldata->clip_data);
-  }
 
   /* Set the pers & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
@@ -543,9 +540,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
     EEVEE_materials_init(sldata, stl, fbl);
 
-    /* Set matrices. */
-    DRW_view_set_active(stl->effects->taa_view);
-
     /* Refresh Probes */
     EEVEE_lightprobes_refresh(sldata, vedata);
     EEVEE_lightprobes_refresh_planar(sldata, vedata);
@@ -561,6 +555,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Refresh Shadows */
     EEVEE_lights_update(sldata, vedata);
     EEVEE_draw_shadows(sldata, vedata, stl->effects->taa_view);
+
+    /* Set matrices. */
+    DRW_view_set_active(stl->effects->taa_view);
 
     /* Set ray type. */
     sldata->common_data.ray_type = EEVEE_RAY_CAMERA;

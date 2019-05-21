@@ -1320,6 +1320,7 @@ DRWView *DRW_view_create(const float viewmat[4][4],
     view->culling_mask = 1u << DST.primary_view_ct++;
   }
   else {
+    BLI_assert(0);
     view->culling_mask = 0u;
   }
   view->clip_planes_len = 0;
@@ -1461,6 +1462,7 @@ void DRW_view_default_set(DRWView *view)
 /**
  * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
  * and if the shaders have support for it (see usage of gl_ClipDistance).
+ * NOTE: planes must be in world space.
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
 {
