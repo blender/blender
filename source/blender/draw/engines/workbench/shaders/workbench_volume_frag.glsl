@@ -216,8 +216,8 @@ void main()
   vs_ray_dir /= abs(vs_ray_dir.z);
 
   /* TODO(fclem) Precompute the matrix/ */
-  vec3 ls_ray_dir = vs_ray_dir * OrcoTexCoFactors[1] * 2.0;
-  ls_ray_dir = mat3(ModelMatrixInverse) * (mat3(ViewMatrixInverse) * ls_ray_dir);
+  vec3 ls_ray_dir = mat3(ViewMatrixInverse) * vs_ray_dir * OrcoTexCoFactors[1] * 2.0;
+  ls_ray_dir = mat3(ModelMatrixInverse) * ls_ray_dir;
   vec3 ls_ray_ori = point_view_to_object(vs_ray_ori);
   vec3 ls_ray_end = point_view_to_object(vs_ray_end);
 
