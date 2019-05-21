@@ -643,6 +643,25 @@ void BLI_rctf_scale(rctf *rect, const float scale)
   rect->ymax = cent_y + size_y_half;
 }
 
+void BLI_rctf_padding_y(rctf *rect,
+                        const float boundary_height,
+                        const float padding_top,
+                        const float padding_bottom)
+{
+  BLI_assert(padding_top >= 0.0f);
+  BLI_assert(padding_bottom >= 0.0f);
+  BLI_assert(boundary_height > 0.0f);
+
+  float total_padding = padding_top + padding_bottom;
+  if (total_padding == 0.0f) {
+    return;
+  }
+
+  float total_extend = BLI_rctf_size_y(rect) * total_padding / (boundary_height - total_padding);
+  rect->ymax += total_extend * (padding_top / total_padding);
+  rect->ymin -= total_extend * (padding_bottom / total_padding);
+}
+
 void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const float fac)
 {
   const float ifac = 1.0f - fac;

@@ -62,6 +62,10 @@ void BLI_rcti_resize(struct rcti *rect, int x, int y);
 void BLI_rctf_resize(struct rctf *rect, float x, float y);
 void BLI_rcti_scale(rcti *rect, const float scale);
 void BLI_rctf_scale(rctf *rect, const float scale);
+void BLI_rctf_padding_y(struct rctf *rect,
+                        const float boundary_height,
+                        const float padding_top,
+                        const float padding_bottom);
 void BLI_rctf_interp(struct rctf *rect,
                      const struct rctf *rect_a,
                      const struct rctf *rect_b,
