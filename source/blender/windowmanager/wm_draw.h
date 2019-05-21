@@ -38,8 +38,8 @@ typedef struct wmDrawBuffer {
 } wmDrawBuffer;
 
 struct ARegion;
-struct bContext;
 struct ScrArea;
+struct bContext;
 struct wmWindow;
 
 /* wm_draw.c */

@@ -255,6 +255,6 @@ void BKE_editmesh_ensure_autosmooth(BMEditMesh *em)
   Mesh *me = em->ob->data;
   if (!(me->flag & ME_AUTOSMOOTH)) {
     me->flag |= ME_AUTOSMOOTH;
-    BKE_editmesh_lnorspace_update (em);
+    BKE_editmesh_lnorspace_update(em);
   }
 }

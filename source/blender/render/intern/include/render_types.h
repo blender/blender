@@ -37,11 +37,11 @@
 
 #include "RE_pipeline.h"
 
+struct GHash;
 struct Main;
 struct Object;
 struct RenderEngine;
 struct ReportList;
-struct GHash;
 
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {

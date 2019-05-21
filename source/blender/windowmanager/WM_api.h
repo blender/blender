@@ -60,6 +60,7 @@ struct wmEvent;
 struct wmEventHandler;
 struct wmEventHandler_Keymap;
 struct wmEventHandler_UI;
+struct wmGenericUserData;
 struct wmGesture;
 struct wmJob;
 struct wmMsgSubscribeKey;
@@ -67,7 +68,6 @@ struct wmMsgSubscribeValue;
 struct wmOperator;
 struct wmOperatorType;
 struct wmPaintCursor;
-struct wmGenericUserData;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
