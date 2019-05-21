@@ -5,9 +5,6 @@ uniform vec3 color;
 out vec4 FragColor;
 
 #ifdef LOOKDEV
-uniform mat4 ProjectionMatrix;
-uniform mat4 ProjectionMatrixInverse;
-uniform mat4 ViewMatrixInverse;
 uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
 uniform float studioLightBackground = 1.0;

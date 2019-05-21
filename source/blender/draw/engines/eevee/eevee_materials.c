@@ -598,8 +598,11 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
     e_data.vert_shadow_shader_str = BLI_string_joinN(
         datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_shadow_vert_glsl);
 
-    e_data.default_background = DRW_shader_create(
-        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
+    e_data.default_background = DRW_shader_create_with_lib(datatoc_background_vert_glsl,
+                                                           NULL,
+                                                           datatoc_default_world_frag_glsl,
+                                                           datatoc_common_view_lib_glsl,
+                                                           NULL);
 
     char *vert_str = BLI_string_joinN(
         datatoc_common_view_lib_glsl, datatoc_common_hair_lib_glsl, datatoc_prepass_vert_glsl);

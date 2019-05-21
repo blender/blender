@@ -110,8 +110,11 @@ void EEVEE_shaders_lightprobe_shaders_init(void)
   e_data.probe_filter_glossy_sh = DRW_shader_create(
       datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, shader_str, filter_defines);
 
-  e_data.probe_default_sh = DRW_shader_create(
-      datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
+  e_data.probe_default_sh = DRW_shader_create_with_lib(datatoc_background_vert_glsl,
+                                                       NULL,
+                                                       datatoc_default_world_frag_glsl,
+                                                       datatoc_common_view_lib_glsl,
+                                                       NULL);
 
   MEM_freeN(shader_str);
 
@@ -178,8 +181,12 @@ GPUShader *EEVEE_shaders_probe_planar_downsample_sh_get(void)
 GPUShader *EEVEE_shaders_default_studiolight_sh_get(void)
 {
   if (e_data.probe_default_studiolight_sh == NULL) {
-    e_data.probe_default_studiolight_sh = DRW_shader_create(
-        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, "#define LOOKDEV\n");
+    e_data.probe_default_studiolight_sh = DRW_shader_create_with_lib(
+        datatoc_background_vert_glsl,
+        NULL,
+        datatoc_default_world_frag_glsl,
+        datatoc_common_view_lib_glsl,
+        "#define LOOKDEV\n");
   }
   return e_data.probe_default_studiolight_sh;
 }
