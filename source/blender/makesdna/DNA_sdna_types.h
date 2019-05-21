@@ -75,6 +75,8 @@ typedef struct SDNA {
     const char **names;
     /** Aligned with #SDNA.types, same pointers when unchanged. */
     const char **types;
+    /** A version of #SDNA.structs_map that uses #SDNA.alias.types for it's keys. */
+    struct GHash *structs_map;
   } alias;
 } SDNA;
 

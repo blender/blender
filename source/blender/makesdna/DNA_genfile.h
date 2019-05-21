@@ -121,4 +121,15 @@ bool DNA_sdna_patch_struct_member(struct SDNA *sdna,
 
 void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
 
+/* Alias lookups (using runtime struct member names). */
+int DNA_struct_alias_find_nr_ex(const struct SDNA *sdna,
+                                const char *str,
+                                unsigned int *index_last);
+int DNA_struct_alias_find_nr(const struct SDNA *sdna, const char *str);
+bool DNA_struct_alias_elem_find(const struct SDNA *sdna,
+                                const char *stype,
+                                const char *vartype,
+                                const char *name);
+void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
+
 #endif /* __DNA_GENFILE_H__ */
