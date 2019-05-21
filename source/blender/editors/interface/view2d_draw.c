@@ -53,7 +53,7 @@
 /* Compute display grid resolution
  ********************************************************/
 
-#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize)
+#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_DPI_FAC)
 
 static float select_major_distance(const float *possible_distances,
                                    uint amount,
