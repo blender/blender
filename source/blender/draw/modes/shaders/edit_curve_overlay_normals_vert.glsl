@@ -9,6 +9,8 @@ in float rad;
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
   vec3 final_pos = pos;
 
   float flip = (gl_InstanceID != 0) ? -1.0 : 1.0;

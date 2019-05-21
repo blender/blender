@@ -21,6 +21,8 @@ flat out vec4 v2;
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
   vec3 n = normalize(normal_object_to_world(nor));
 
   vec3 world_pos = point_object_to_world(pos);

@@ -20,6 +20,8 @@ out int selectOveride;
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
   vec3 world_pos = point_object_to_world(pos);
 
 #if !defined(FACE)

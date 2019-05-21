@@ -22,6 +22,8 @@ vec2 proj(vec4 pos)
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
   clipCase = 0;
 
   vec3 world_pos = point_object_to_world(pos);

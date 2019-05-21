@@ -9,6 +9,8 @@ out vec4 finalColor;
 
 void main()
 {
+  GPU_INTEL_VERTEX_SHADER_WORKAROUND
+
   if ((data & VERT_SELECTED) != 0) {
     if ((data & VERT_ACTIVE) != 0) {
       finalColor = colorEditMeshActive;
