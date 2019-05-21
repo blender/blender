@@ -844,7 +844,7 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "pressure");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(prop, "Pressure", "Pressure of tablet at point when drawing it");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
@@ -895,11 +895,11 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
                 "pressure",
                 1.0f,
                 0.0f,
-                1.0f,
+                FLT_MAX,
                 "Pressure",
                 "Pressure for newly created points",
                 0.0f,
-                1.0f);
+                FLT_MAX);
   RNA_def_float(func,
                 "strength",
                 1.0f,
