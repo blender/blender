@@ -622,21 +622,13 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
   func = RNA_def_function(
       srna, "debug_relations_graphviz", "rna_Depsgraph_debug_relations_graphviz");
-  parm = RNA_def_string_file_path(func,
-                                  "filename",
-                                  NULL,
-                                  FILE_MAX,
-                                  "File Name",
-                                  "File in which to store graphviz debug output");
+  parm = RNA_def_string_file_path(
+      func, "filename", NULL, FILE_MAX, "File Name", "Output path for the graphviz debug file");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "debug_stats_gnuplot", "rna_Depsgraph_debug_stats_gnuplot");
-  parm = RNA_def_string_file_path(func,
-                                  "filename",
-                                  NULL,
-                                  FILE_MAX,
-                                  "File Name",
-                                  "File in which to store graphviz debug output");
+  parm = RNA_def_string_file_path(
+      func, "filename", NULL, FILE_MAX, "File Name", "Output path for the gnuplot debug file");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_string_file_path(func,
                                   "output_filename",

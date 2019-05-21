@@ -19,7 +19,7 @@ def main(context, event):
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
 
-        depsgraph = bpy.context.evaluated_depsgraph_get()
+        depsgraph = context.evaluated_depsgraph_get()
         for dup in depsgraph.object_instances:
             if dup.is_instance:  # Real dupli instance
                 obj = dup.instance_object

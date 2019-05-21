@@ -2835,8 +2835,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "doublimit");
-  RNA_def_property_ui_text(
-      prop, "Merge Threshold", "Threshold distance for Auto Merge");
+  RNA_def_property_ui_text(prop, "Merge Threshold", "Threshold distance for Auto Merge");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_range(prop, 0.0, 0.1, 0.01, 6);
 
