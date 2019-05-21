@@ -225,6 +225,16 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
     MaskSpline *spline_new = BKE_mask_spline_copy(spline);
 
     BLI_addtail(&masklay_new->splines, spline_new);
+
+    if (spline == masklay->act_spline) {
+      masklay_new->act_spline = spline_new;
+    }
+
+    if (masklay->act_point >= spline->points &&
+        masklay->act_point < spline->points + spline->tot_point) {
+      const size_t point_index = masklay->act_point - spline->points;
+      masklay_new->act_point = spline_new->points + point_index;
+    }
   }
 
   /* correct animation */
