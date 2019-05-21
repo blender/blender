@@ -471,12 +471,6 @@ void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData
   ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
 }
 
-
-BLI_INLINE int ceil_ii(int a, int b)
-{
-  return (a + b - 1) / b;
-}
-
 void psys_tasks_create(ParticleThreadContext *ctx,
                        int startpart,
                        int endpart,
