@@ -115,40 +115,76 @@ class VIEW3D_HT_tool_header(Header):
 
     def draw_mode_settings(self, context):
         layout = self.layout
+        mode_string = context.mode
 
-        # Active Tool
-        # -----------
-        from .space_toolsystem_common import ToolSelectPanelHelper
-        tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        tool_mode = context.mode if tool is None else tool.mode
+        def row_for_mirror():
+            row = layout.row(align=True)
+            row.label(icon='MOD_MIRROR')
+            sub = row.row(align=True)
+            sub.scale_x = 0.6
+            return sub
 
-        if tool_mode == 'SCULPT':
+        if mode_string == 'EDIT_MESH':
+            sub = row_for_mirror()
+            sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_mesh_automerge", text="")
+        elif mode_string == 'EDIT_ARMATURE':
+            sub = row_for_mirror()
+            sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
+        elif mode_string == 'POSE':
+            sub = row_for_mirror()
+            sub.prop(context.object.pose, "use_mirror_x", text="X", toggle=True)
+        elif mode_string == 'PAINT_WEIGHT':
+            sub = row_for_mirror()
+            sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
+        elif mode_string == 'SCULPT':
+            sub = row_for_mirror()
+            sculpt = context.tool_settings.sculpt
+            sub.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
+            sub.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
+            sub.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
+        elif mode_string == 'PAINT_TEXTURE':
+            sub = row_for_mirror()
+            ipaint = context.tool_settings.image_paint
+            sub.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
+            sub.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
+            sub.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
+        elif mode_string == 'PAINT_VERTEX':
+            sub = row_for_mirror()
+            vpaint = context.tool_settings.vertex_paint
+            sub.prop(vpaint, "use_symmetry_x", text="X", toggle=True)
+            sub.prop(vpaint, "use_symmetry_y", text="Y", toggle=True)
+            sub.prop(vpaint, "use_symmetry_z", text="Z", toggle=True)
+
+        # Expand panels from the side-bar as popovers.
+        if mode_string == 'SCULPT':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".sculpt_mode", category="Tool")
-        elif tool_mode == 'PAINT_VERTEX':
+        elif mode_string == 'PAINT_VERTEX':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".vertexpaint", category="Tool")
-        elif tool_mode == 'PAINT_WEIGHT':
+        elif mode_string == 'PAINT_WEIGHT':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".weightpaint", category="Tool")
-        elif tool_mode == 'PAINT_TEXTURE':
+        elif mode_string == 'PAINT_TEXTURE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".imagepaint", category="Tool")
-        elif tool_mode == 'EDIT_TEXT':
+        elif mode_string == 'EDIT_TEXT':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".text_edit", category="Tool")
-        elif tool_mode == 'EDIT_ARMATURE':
+        elif mode_string == 'EDIT_ARMATURE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".armature_edit", category="Tool")
-        elif tool_mode == 'EDIT_METABALL':
+        elif mode_string == 'EDIT_METABALL':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".mball_edit", category="Tool")
-        elif tool_mode == 'EDIT_LATTICE':
+        elif mode_string == 'EDIT_LATTICE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".lattice_edit", category="Tool")
-        elif tool_mode == 'EDIT_CURVE':
+        elif mode_string == 'EDIT_CURVE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".curve_edit", category="Tool")
-        elif tool_mode == 'EDIT_MESH':
+        elif mode_string == 'EDIT_MESH':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".mesh_edit", category="Tool")
-        elif tool_mode == 'POSE':
+        elif mode_string == 'POSE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".posemode", category="Tool")
-        elif tool_mode == 'PARTICLE':
+        elif mode_string == 'PARTICLE':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".particlemode", category="Tool")
-        elif tool_mode == 'OBJECT':
+        elif mode_string == 'OBJECT':
             layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".objectmode", category="Tool")
-        elif tool_mode in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
+        elif mode_string in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             # Grease pencil layer.
             gpl = context.active_gpencil_layer
             if gpl and gpl.info is not None:

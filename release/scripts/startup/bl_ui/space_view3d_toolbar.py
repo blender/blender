@@ -106,7 +106,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         row.prop(mesh, "use_mirror_topology")
 
         layout.prop(tool_settings, "use_edge_path_live_unwrap")
-        layout.prop(tool_settings, "use_mesh_automerge")
+        layout.prop(tool_settings, "use_mesh_automerge", toggle=False)
 
         layout.prop(tool_settings, "double_threshold")
 
