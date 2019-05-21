@@ -43,7 +43,7 @@
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
 
-#define DRW_DEBUG_CULLING
+// #define DRW_DEBUG_CULLING
 #define DRW_DEBUG_USE_UNIFORM_NAME 0
 #define DRW_UNIFORM_BUFFER_NAME 64
 
