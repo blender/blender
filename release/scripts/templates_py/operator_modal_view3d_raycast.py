@@ -19,18 +19,14 @@ def main(context, event):
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
 
-        for obj in context.visible_objects:
-            if obj.type == 'MESH':
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        for dup in depsgraph.object_instances:
+            if dup.is_instance:  # Real dupli instance
+                obj = dup.instance_object
+                yield (obj, dup.matrix_world.copy())
+            else:  # Usual object
+                obj = dup.object
                 yield (obj, obj.matrix_world.copy())
-
-            if obj.instance_type != 'NONE':
-                obj.dupli_list_create(scene)
-                for dob in obj.dupli_list:
-                    obj_dupli = dob.object
-                    if obj_dupli.type == 'MESH':
-                        yield (obj_dupli, dob.matrix.copy())
-
-            obj.dupli_list_clear()
 
     def obj_ray_cast(obj, matrix):
         """Wrapper for ray casting that moves the ray into object space"""
@@ -67,8 +63,11 @@ def main(context, event):
     # now we have the object under the mouse cursor,
     # we could do lots of stuff but for the example just select.
     if best_obj is not None:
-        best_obj.select_set(True)
-        context.view_layer.objects.active = best_obj
+        # for selection etc. we need the original object,
+        # evaluated objects are not in viewlayer
+        best_original = best_obj.original
+        best_original.select_set(True)
+        context.view_layer.objects.active = best_original
 
 
 class ViewOperatorRayCast(bpy.types.Operator):
