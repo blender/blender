@@ -63,6 +63,15 @@
 /** \name Path Select Struct & Properties
  * \{ */
 
+enum {
+  EDGE_MODE_SELECT = 0,
+  EDGE_MODE_TAG_SEAM = 1,
+  EDGE_MODE_TAG_SHARP = 2,
+  EDGE_MODE_TAG_CREASE = 3,
+  EDGE_MODE_TAG_BEVEL = 4,
+  EDGE_MODE_TAG_FREESTYLE = 5,
+};
+
 struct PathSelectParams {
   /** ensure the active element is the last selected item (handy for picking) */
   bool track_active;
@@ -75,6 +84,23 @@ struct PathSelectParams {
 
 static void path_select_properties(wmOperatorType *ot)
 {
+  static const EnumPropertyItem edge_tag_items[] = {
+      {EDGE_MODE_SELECT, "SELECT", 0, "Select", ""},
+      {EDGE_MODE_TAG_SEAM, "SEAM", 0, "Tag Seam", ""},
+      {EDGE_MODE_TAG_SHARP, "SHARP", 0, "Tag Sharp", ""},
+      {EDGE_MODE_TAG_CREASE, "CREASE", 0, "Tag Crease", ""},
+      {EDGE_MODE_TAG_BEVEL, "BEVEL", 0, "Tag Bevel", ""},
+      {EDGE_MODE_TAG_FREESTYLE, "FREESTYLE", 0, "Tag Freestyle Edge Mark", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_enum(ot->srna,
+               "edge_mode",
+               edge_tag_items,
+               EDGE_MODE_SELECT,
+               "Edge Tag",
+               "The edge flag to tag when selecting the shortest path");
+
   RNA_def_boolean(ot->srna,
                   "use_face_step",
                   false,
@@ -93,14 +119,44 @@ static void path_select_properties(wmOperatorType *ot)
   WM_operator_properties_checker_interval(ot, true);
 }
 
-static void path_select_params_from_op(wmOperator *op, struct PathSelectParams *op_params)
+static void path_select_params_from_op(wmOperator *op,
+                                       ToolSettings *ts,
+                                       struct PathSelectParams *op_params)
 {
-  op_params->edge_mode = EDGE_MODE_SELECT;
+  {
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "edge_mode");
+    if (RNA_property_is_set(op->ptr, prop)) {
+      op_params->edge_mode = RNA_property_enum_get(op->ptr, prop);
+      if (op->flag & OP_IS_INVOKE) {
+        ts->edge_mode = op_params->edge_mode;
+      }
+    }
+    else {
+      op_params->edge_mode = ts->edge_mode;
+      RNA_property_enum_set(op->ptr, prop, op_params->edge_mode);
+    }
+  }
+
   op_params->track_active = false;
   op_params->use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
   op_params->use_fill = RNA_boolean_get(op->ptr, "use_fill");
   op_params->use_topology_distance = RNA_boolean_get(op->ptr, "use_topology_distance");
   WM_operator_properties_checker_interval_from_op(op, &op_params->interval_params);
+}
+
+static bool path_select_poll_property(const bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+  if (STREQ(prop_id, "edge_mode")) {
+    const Scene *scene = CTX_data_scene(C);
+    ToolSettings *ts = scene->toolsettings;
+    if ((ts->selectmode & SCE_SELECT_EDGE) == 0) {
+      return false;
+    }
+  }
+  return true;
 }
 
 struct UserData {
@@ -649,12 +705,14 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     return OPERATOR_FINISHED;
   }
 
+  struct PathSelectParams op_params;
+  path_select_params_from_op(op, vc.scene->toolsettings, &op_params);
+
   BMElem *ele_src, *ele_dst;
   if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
       !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype))) {
     /* special case, toggle edge tags even when we don't have a path */
-    if (((em->selectmode & SCE_SELECT_EDGE) &&
-         (vc.scene->toolsettings->edge_mode != EDGE_MODE_SELECT)) &&
+    if (((em->selectmode & SCE_SELECT_EDGE) && (op_params.edge_mode != EDGE_MODE_SELECT)) &&
         /* check if we only have a destination edge */
         ((ele_src == NULL) && (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE)))) {
       ele_src = ele_dst;
@@ -665,11 +723,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     }
   }
 
-  struct PathSelectParams op_params;
-
-  path_select_params_from_op(op, &op_params);
   op_params.track_active = track_active;
-  op_params.edge_mode = vc.scene->toolsettings->edge_mode;
 
   if (!edbm_shortest_path_pick_ex(vc.scene, vc.obedit, &op_params, ele_src, ele_dst)) {
     return OPERATOR_PASS_THROUGH;
@@ -707,9 +761,8 @@ static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op)
   }
 
   struct PathSelectParams op_params;
-  path_select_params_from_op(op, &op_params);
+  path_select_params_from_op(op, scene->toolsettings, &op_params);
   op_params.track_active = true;
-  op_params.edge_mode = scene->toolsettings->edge_mode;
 
   if (!edbm_shortest_path_pick_ex(scene, obedit, &op_params, ele_src, ele_dst)) {
     return OPERATOR_CANCELLED;
@@ -731,6 +784,7 @@ void MESH_OT_shortest_path_pick(wmOperatorType *ot)
   ot->invoke = edbm_shortest_path_pick_invoke;
   ot->exec = edbm_shortest_path_pick_exec;
   ot->poll = ED_operator_editmesh_region_view3d;
+  ot->poll_property = path_select_poll_property;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -832,7 +886,7 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 
     if (ele_src && ele_dst) {
       struct PathSelectParams op_params;
-      path_select_params_from_op(op, &op_params);
+      path_select_params_from_op(op, scene->toolsettings, &op_params);
 
       edbm_shortest_path_pick_ex(scene, obedit, &op_params, ele_src, ele_dst);
 
@@ -860,6 +914,7 @@ void MESH_OT_shortest_path_select(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = edbm_shortest_path_select_exec;
   ot->poll = ED_operator_editmesh;
+  ot->poll_property = path_select_poll_property;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

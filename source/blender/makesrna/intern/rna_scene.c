@@ -2594,16 +2594,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem edge_tag_items[] = {
-      {EDGE_MODE_SELECT, "SELECT", 0, "Select", ""},
-      {EDGE_MODE_TAG_SEAM, "SEAM", 0, "Tag Seam", ""},
-      {EDGE_MODE_TAG_SHARP, "SHARP", 0, "Tag Sharp", ""},
-      {EDGE_MODE_TAG_CREASE, "CREASE", 0, "Tag Crease", ""},
-      {EDGE_MODE_TAG_BEVEL, "BEVEL", 0, "Tag Bevel", ""},
-      {EDGE_MODE_TAG_FREESTYLE, "FREESTYLE", 0, "Tag Freestyle Edge Mark", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem draw_groupuser_items[] = {
       {OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
       {OB_DRAW_GROUPUSER_ACTIVE,
@@ -3144,13 +3134,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
   RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups");
-
-  /* use with MESH_OT_shortest_path_pick */
-  prop = RNA_def_property(srna, "edge_path_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "edge_mode");
-  RNA_def_property_enum_items(prop, edge_tag_items);
-  RNA_def_property_ui_text(
-      prop, "Edge Tag Mode", "The edge flag to tag when selecting the shortest path");
 
   prop = RNA_def_property(srna, "use_edge_path_live_unwrap", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "edge_mode_live_unwrap", 1);

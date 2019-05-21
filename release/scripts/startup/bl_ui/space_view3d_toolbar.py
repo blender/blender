@@ -109,7 +109,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         layout.prop(tool_settings, "use_mesh_automerge")
 
         layout.prop(tool_settings, "double_threshold")
-        layout.prop(tool_settings, "edge_path_mode")
 
 # ********** default tools for editmode_curve ****************
 

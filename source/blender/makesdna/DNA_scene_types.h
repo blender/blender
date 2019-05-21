@@ -1443,8 +1443,9 @@ typedef struct ToolSettings {
   /* Multires */
   char multires_subdiv_type;
 
-  /* Alt+RMB option */
+  /* Edge tagging, store operator settings (no UI access). */
   char edge_mode;
+
   char edge_mode_live_unwrap;
 
   char _pad1[1];
@@ -2239,14 +2240,6 @@ enum {
 #define UV_SELECT_EDGE 2
 #define UV_SELECT_FACE 4
 #define UV_SELECT_ISLAND 8
-
-/* ToolSettings.edge_mode */
-#define EDGE_MODE_SELECT 0
-#define EDGE_MODE_TAG_SEAM 1
-#define EDGE_MODE_TAG_SHARP 2
-#define EDGE_MODE_TAG_CREASE 3
-#define EDGE_MODE_TAG_BEVEL 4
-#define EDGE_MODE_TAG_FREESTYLE 5
 
 /* ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {
