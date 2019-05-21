@@ -287,12 +287,12 @@ static int graphkeys_viewall(bContext *C,
   BLI_rctf_scale(&cur_new, 1.1f);
 
   /* Take regions into account, that could block the view. */
-  float padding_top = UI_SCRUBBING_MARGIN_Y;
-  float padding_bottom = 0;
+  float pad_top = UI_SCRUBBING_MARGIN_Y;
+  float pad_bottom = 0;
   if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
-    padding_bottom = UI_MARKER_MARGIN_Y;
+    pad_bottom = UI_MARKER_MARGIN_Y;
   }
-  BLI_rctf_padding_y(&cur_new, ac.ar->sizey * UI_DPI_FAC, padding_top, padding_bottom);
+  BLI_rctf_pad_y(&cur_new, ac.ar->sizey * UI_DPI_FAC, pad_bottom, pad_top);
 
   UI_view2d_smooth_view(C, ac.ar, &cur_new, smooth_viewtx);
   return OPERATOR_FINISHED;

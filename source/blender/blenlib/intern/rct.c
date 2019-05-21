@@ -643,23 +643,23 @@ void BLI_rctf_scale(rctf *rect, const float scale)
   rect->ymax = cent_y + size_y_half;
 }
 
-void BLI_rctf_padding_y(rctf *rect,
-                        const float boundary_height,
-                        const float padding_top,
-                        const float padding_bottom)
+void BLI_rctf_pad_y(rctf *rect,
+                    const float boundary_size,
+                    const float pad_min,
+                    const float pad_max)
 {
-  BLI_assert(padding_top >= 0.0f);
-  BLI_assert(padding_bottom >= 0.0f);
-  BLI_assert(boundary_height > 0.0f);
+  BLI_assert(pad_max >= 0.0f);
+  BLI_assert(pad_min >= 0.0f);
+  BLI_assert(boundary_size > 0.0f);
 
-  float total_padding = padding_top + padding_bottom;
-  if (total_padding == 0.0f) {
+  float total_pad = pad_max + pad_min;
+  if (total_pad == 0.0f) {
     return;
   }
 
-  float total_extend = BLI_rctf_size_y(rect) * total_padding / (boundary_height - total_padding);
-  rect->ymax += total_extend * (padding_top / total_padding);
-  rect->ymin -= total_extend * (padding_bottom / total_padding);
+  float total_extend = BLI_rctf_size_y(rect) * total_pad / (boundary_size - total_pad);
+  rect->ymax += total_extend * (pad_max / total_pad);
+  rect->ymin -= total_extend * (pad_min / total_pad);
 }
 
 void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const float fac)
