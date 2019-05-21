@@ -1,7 +1,8 @@
 import bpy
 import bgl
 import blf
-
+import gpu
+from gpu_extras.batch import batch_for_shader
 
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
@@ -14,20 +15,17 @@ def draw_callback_px(self, context):
     blf.draw(font_id, "Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line
+    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glColor4f(0.0, 0.0, 0.0, 0.5)
     bgl.glLineWidth(2)
-
-    bgl.glBegin(bgl.GL_LINE_STRIP)
-    for x, y in self.mouse_path:
-        bgl.glVertex2i(x, y)
-
-    bgl.glEnd()
+    batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": self.mouse_path})
+    shader.bind()
+    shader.uniform_float("color", (0.0, 0.0, 0.0, 0.5))
+    batch.draw(shader)
 
     # restore opengl defaults
     bgl.glLineWidth(1)
     bgl.glDisable(bgl.GL_BLEND)
-    bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
 
 class ModalDrawOperator(bpy.types.Operator):
