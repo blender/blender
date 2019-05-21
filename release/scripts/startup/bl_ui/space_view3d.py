@@ -122,40 +122,44 @@ class VIEW3D_HT_tool_header(Header):
             row.label(icon='MOD_MIRROR')
             sub = row.row(align=True)
             sub.scale_x = 0.6
-            return sub
+            return row, sub
 
         if mode_string == 'EDIT_MESH':
-            sub = row_for_mirror()
+            _row, sub = row_for_mirror()
             sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_mesh_automerge", text="")
         elif mode_string == 'EDIT_ARMATURE':
-            sub = row_for_mirror()
+            _row, sub = row_for_mirror()
             sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
         elif mode_string == 'POSE':
-            sub = row_for_mirror()
+            _row, sub = row_for_mirror()
             sub.prop(context.object.pose, "use_mirror_x", text="X", toggle=True)
         elif mode_string == 'PAINT_WEIGHT':
-            sub = row_for_mirror()
+            row, sub = row_for_mirror()
             sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
+            row.popover(panel="VIEW3D_PT_tools_weightpaint_symmetry_for_topbar", text="")
         elif mode_string == 'SCULPT':
-            sub = row_for_mirror()
+            row, sub = row_for_mirror()
             sculpt = context.tool_settings.sculpt
             sub.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
             sub.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
             sub.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
+            row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
         elif mode_string == 'PAINT_TEXTURE':
-            sub = row_for_mirror()
+            _row, sub = row_for_mirror()
             ipaint = context.tool_settings.image_paint
             sub.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
             sub.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
             sub.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
+            # No need for a popover, the panel only has these options.
         elif mode_string == 'PAINT_VERTEX':
-            sub = row_for_mirror()
+            row, sub = row_for_mirror()
             vpaint = context.tool_settings.vertex_paint
             sub.prop(vpaint, "use_symmetry_x", text="X", toggle=True)
             sub.prop(vpaint, "use_symmetry_y", text="Y", toggle=True)
             sub.prop(vpaint, "use_symmetry_z", text="Z", toggle=True)
+            row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
 
         # Expand panels from the side-bar as popovers.
         if mode_string == 'SCULPT':
