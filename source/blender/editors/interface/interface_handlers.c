@@ -565,7 +565,11 @@ static void ui_but_update_preferences_dirty(uiBut *but)
     }
     else {
       StructRNA *base = RNA_struct_base(but->rnapoin.type);
-      if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences)) {
+      if (ELEM(base,
+               &RNA_AddonPreferences,
+               &RNA_KeyConfigPreferences,
+               &RNA_KeyMapItem,
+               &RNA_WalkNavigation)) {
         tag = true;
       }
     }
