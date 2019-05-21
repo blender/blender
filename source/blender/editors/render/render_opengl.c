@@ -114,7 +114,6 @@ typedef struct OGLRender {
 
   GPUOffScreen *ofs;
   int ofs_samples;
-  bool ofs_full_samples;
   int sizex, sizey;
   int write_still;
 
@@ -356,9 +355,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     ImBuf *ibuf_view;
     const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
 
-    unsigned int draw_flags = V3D_OFSDRAW_NONE;
-    draw_flags |= (oglrender->ofs_full_samples) ? V3D_OFSDRAW_USE_FULL_SAMPLE : 0;
-
     if (view_context) {
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
                                                  scene,
@@ -368,7 +364,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  sizex,
                                                  sizey,
                                                  IB_rectfloat,
-                                                 draw_flags,
                                                  alpha_mode,
                                                  oglrender->ofs_samples,
                                                  viewname,
@@ -381,7 +376,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       }
     }
     else {
-      draw_flags |= V3D_OFSDRAW_SHOW_ANNOTATION;
       ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                         scene,
                                                         NULL,
@@ -390,7 +384,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         oglrender->sizex,
                                                         oglrender->sizey,
                                                         IB_rectfloat,
-                                                        draw_flags,
+                                                        V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
                                                         oglrender->ofs_samples,
                                                         viewname,
@@ -532,6 +526,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
+  const int samples = U.ogl_multisamples;
   char err_out[256] = "unknown";
 
   if (G.background) {
@@ -576,7 +571,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Offscreen creation needs to be done in DRW context. */
-  ofs = GPU_offscreen_create(sizex, sizey, 0, true, true, err_out);
+  ofs = GPU_offscreen_create(sizex, sizey, samples, true, true, err_out);
   DRW_opengl_context_disable();
 
   if (!ofs) {
@@ -597,6 +592,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->view_layer = CTX_data_view_layer(C);
   oglrender->depsgraph = CTX_data_depsgraph(C);
   oglrender->cfrao = scene->r.cfra;
+  oglrender->ofs_samples = samples;
 
   oglrender->write_still = is_write_still && !is_animation;
   oglrender->is_animation = is_animation;

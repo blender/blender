@@ -1595,7 +1595,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       int sizex,
                                       int sizey,
                                       uint flag,
-                                      uint draw_flags,
                                       int alpha_mode,
                                       int samples,
                                       const char *viewname,
@@ -1605,7 +1604,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
 {
   RegionView3D *rv3d = ar->regiondata;
   const bool draw_sky = (alpha_mode == R_ADDSKY);
-  const bool use_full_sample = (draw_flags & V3D_OFSDRAW_USE_FULL_SAMPLE);
 
   /* view state */
   bool is_ortho = false;
@@ -1627,7 +1625,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
 
   if (own_ofs) {
     /* bind */
-    ofs = GPU_offscreen_create(sizex, sizey, use_full_sample ? 0 : samples, true, false, err_out);
+    ofs = GPU_offscreen_create(sizex, sizey, samples, true, false, err_out);
     if (ofs == NULL) {
       DRW_opengl_context_disable();
       return NULL;
@@ -1683,120 +1681,28 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
     }
   }
 
-  if ((samples && use_full_sample) == 0) {
-    const bool do_color_management = (ibuf->rect_float == NULL);
-    /* Single-pass render, common case */
-    ED_view3d_draw_offscreen(depsgraph,
-                             scene,
-                             drawtype,
-                             v3d,
-                             ar,
-                             sizex,
-                             sizey,
-                             NULL,
-                             winmat,
-                             draw_sky,
-                             !is_ortho,
-                             viewname,
-                             do_color_management,
-                             ofs,
-                             NULL);
+  const bool do_color_management = (ibuf->rect_float == NULL);
+  ED_view3d_draw_offscreen(depsgraph,
+                           scene,
+                           drawtype,
+                           v3d,
+                           ar,
+                           sizex,
+                           sizey,
+                           NULL,
+                           winmat,
+                           draw_sky,
+                           !is_ortho,
+                           viewname,
+                           do_color_management,
+                           ofs,
+                           NULL);
 
-    if (ibuf->rect_float) {
-      GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
-    }
-    else if (ibuf->rect) {
-      GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
-    }
+  if (ibuf->rect_float) {
+    GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
   }
-  else {
-    /* Multi-pass render, use accumulation buffer & jitter for 'full' oversampling.
-     * Use because OpenGL may use a lower quality MSAA, and only over-sample edges. */
-    static float jit_ofs[32][2];
-    float winmat_jitter[4][4];
-    float *rect_temp = (ibuf->rect_float) ?
-                           ibuf->rect_float :
-                           MEM_mallocN(sizex * sizey * sizeof(float[4]), "rect_temp");
-    float *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(float[4]), "accum_buffer");
-    GPUViewport *viewport = GPU_viewport_create_from_offscreen(ofs);
-
-    BLI_jitter_init(jit_ofs, samples);
-
-    /* first sample buffer, also initializes 'rv3d->persmat' */
-    ED_view3d_draw_offscreen(depsgraph,
-                             scene,
-                             drawtype,
-                             v3d,
-                             ar,
-                             sizex,
-                             sizey,
-                             NULL,
-                             winmat,
-                             draw_sky,
-                             !is_ortho,
-                             viewname,
-                             false,
-                             ofs,
-                             viewport);
-    GPU_offscreen_read_pixels(ofs, GL_FLOAT, accum_buffer);
-
-    /* skip the first sample */
-    for (int j = 1; j < samples; j++) {
-      copy_m4_m4(winmat_jitter, winmat);
-      window_translate_m4(winmat_jitter,
-                          rv3d->persmat,
-                          (jit_ofs[j][0] * 2.0f) / sizex,
-                          (jit_ofs[j][1] * 2.0f) / sizey);
-
-      ED_view3d_draw_offscreen(depsgraph,
-                               scene,
-                               drawtype,
-                               v3d,
-                               ar,
-                               sizex,
-                               sizey,
-                               NULL,
-                               winmat_jitter,
-                               draw_sky,
-                               !is_ortho,
-                               viewname,
-                               false,
-                               ofs,
-                               viewport);
-      GPU_offscreen_read_pixels(ofs, GL_FLOAT, rect_temp);
-
-      uint i = sizex * sizey * 4;
-      while (i--) {
-        accum_buffer[i] += rect_temp[i];
-      }
-    }
-
-    {
-      /* don't free data owned by 'ofs' */
-      GPU_viewport_clear_from_offscreen(viewport);
-      GPU_viewport_free(viewport);
-    }
-
-    if (ibuf->rect_float == NULL) {
-      MEM_freeN(rect_temp);
-    }
-
-    if (ibuf->rect_float) {
-      float *rect_float = ibuf->rect_float;
-      uint i = sizex * sizey * 4;
-      while (i--) {
-        rect_float[i] = accum_buffer[i] / samples;
-      }
-    }
-    else {
-      uchar *rect_ub = (uchar *)ibuf->rect;
-      uint i = sizex * sizey * 4;
-      while (i--) {
-        rect_ub[i] = (uchar)(255.0f * accum_buffer[i] / samples);
-      }
-    }
-
-    MEM_freeN(accum_buffer);
+  else if (ibuf->rect) {
+    GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
   }
 
   /* unbind */
@@ -1905,7 +1811,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         width,
                                         height,
                                         flag,
-                                        draw_flags,
                                         alpha_mode,
                                         samples,
                                         viewname,

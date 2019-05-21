@@ -3546,7 +3546,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         IB_rect,
         draw_flags,
         scene->r.alphamode,
-        0, /* no aa samples */
+        U.ogl_multisamples,
         viewname,
         context->gpu_offscreen,
         err_out);
