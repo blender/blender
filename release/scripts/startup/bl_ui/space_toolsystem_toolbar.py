@@ -1765,8 +1765,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_MESH': [
             *_tools_default,
             None,
-            _defs_edit_mesh.cube_add,
-            None,
             (
                 _defs_edit_mesh.extrude,
                 _defs_edit_mesh.extrude_normals,
