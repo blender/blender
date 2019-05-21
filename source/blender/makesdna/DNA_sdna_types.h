@@ -35,7 +35,7 @@ typedef struct SDNA {
   bool data_alloc;
 
   /** Total number of struct members. */
-  int nr_names, nr_names_alloc;
+  int names_len, names_len_alloc;
   /** Struct member names. */
   const char **names;
   /** Result of #DNA_elem_array_size (aligned with #names). */
@@ -44,15 +44,14 @@ typedef struct SDNA {
   /** Size of a pointer in bytes. */
   int pointer_size;
 
-  /** Number of basic types + struct types. */
-  int nr_types;
   /** Type names. */
   const char **types;
+  /** Number of basic types + struct types. */
+  int types_len;
+
   /** Type lengths. */
   short *types_size;
 
-  /** Number of struct types. */
-  int nr_structs;
   /**
    * sp = structs[a] is the address of a struct definition
    * sp[0] is struct type number, sp[1] amount of members
@@ -61,6 +60,8 @@ typedef struct SDNA {
    * type and name numbers respectively.
    */
   short **structs;
+  /** Number of struct types. */
+  int structs_len;
 
   /** #GHash for faster lookups, requires WITH_DNA_GHASH to be used for now. */
   struct GHash *structs_map;

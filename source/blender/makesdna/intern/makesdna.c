@@ -144,10 +144,10 @@ static const char *includefiles[] = {
 
 static MemArena *mem_arena = NULL;
 
-static int maxdata = 500000, maxnr = 50000;
-static int nr_names = 0;
-static int nr_types = 0;
-static int nr_structs = 0;
+static int max_data_size = 500000, max_array_len = 50000;
+static int names_len = 0;
+static int types_len = 0;
+static int structs_len = 0;
 /** At address `names[a]` is string `a`. */
 static char **names;
 /** At address `types[a]` is string `a`. */
@@ -161,7 +161,7 @@ static short *types_size_64;
 /** At `sp = structs[a]` is the first address of a struct definition:
  * - `sp[0]` is type number.
  * - `sp[1]` is the length of the element array (next).
- * - `sp[2]` sp[3] is [(type_nr, name_nr), ..] (number of pairs is defined by `sp[1]`),
+ * - `sp[2]` sp[3] is [(type_index, name_index), ..] (number of pairs is defined by `sp[1]`),
  */
 static short **structs, *structdata;
 
@@ -344,7 +344,6 @@ static bool is_name_legal(const char *name)
 
 static int add_type(const char *str, int size)
 {
-  int nr;
   char *cp;
 
   /* first do validity check */
@@ -360,14 +359,14 @@ static int add_type(const char *str, int size)
   str = version_struct_static_from_alias(str);
 
   /* search through type array */
-  for (nr = 0; nr < nr_types; nr++) {
-    if (strcmp(str, types[nr]) == 0) {
+  for (int index = 0; index < types_len; index++) {
+    if (strcmp(str, types[index]) == 0) {
       if (size) {
-        types_size_native[nr] = size;
-        types_size_32[nr] = size;
-        types_size_64[nr] = size;
+        types_size_native[index] = size;
+        types_size_32[index] = size;
+        types_size_64[index] = size;
       }
-      return nr;
+      return index;
     }
   }
 
@@ -375,18 +374,18 @@ static int add_type(const char *str, int size)
   const int str_size = strlen(str) + 1;
   cp = BLI_memarena_alloc(mem_arena, str_size);
   memcpy(cp, str, str_size);
-  types[nr_types] = cp;
-  types_size_native[nr_types] = size;
-  types_size_32[nr_types] = size;
-  types_size_64[nr_types] = size;
+  types[types_len] = cp;
+  types_size_native[types_len] = size;
+  types_size_32[types_len] = size;
+  types_size_64[types_len] = size;
 
-  if (nr_types >= maxnr) {
+  if (types_len >= max_array_len) {
     printf("too many types\n");
-    return nr_types - 1;
+    return types_len - 1;
   }
-  nr_types++;
+  types_len++;
 
-  return nr_types - 1;
+  return types_len - 1;
 }
 
 /**
@@ -513,7 +512,7 @@ static int add_name(const char *str)
   }
 
   /* search name array */
-  for (nr = 0; nr < nr_names; nr++) {
+  for (nr = 0; nr < names_len; nr++) {
     if (strcmp(name, names[nr]) == 0) {
       return nr;
     }
@@ -528,15 +527,15 @@ static int add_name(const char *str)
   const int name_size = strlen(name) + 1;
   cp = BLI_memarena_alloc(mem_arena, name_size);
   memcpy(cp, name, name_size);
-  names[nr_names] = cp;
+  names[names_len] = cp;
 
-  if (nr_names >= maxnr) {
+  if (names_len >= max_array_len) {
     printf("too many names\n");
-    return nr_names - 1;
+    return names_len - 1;
   }
-  nr_names++;
+  names_len++;
 
-  return nr_names - 1;
+  return names_len - 1;
 }
 
 static short *add_struct(int namecode)
@@ -544,23 +543,23 @@ static short *add_struct(int namecode)
   int len;
   short *sp;
 
-  if (nr_structs == 0) {
+  if (structs_len == 0) {
     structs[0] = structdata;
   }
   else {
-    sp = structs[nr_structs - 1];
+    sp = structs[structs_len - 1];
     len = sp[1];
-    structs[nr_structs] = sp + 2 * len + 2;
+    structs[structs_len] = sp + 2 * len + 2;
   }
 
-  sp = structs[nr_structs];
+  sp = structs[structs_len];
   sp[0] = namecode;
 
-  if (nr_structs >= maxnr) {
+  if (structs_len >= max_array_len) {
     printf("too many structs\n");
     return sp;
   }
-  nr_structs++;
+  structs_len++;
 
   return sp;
 }
@@ -896,7 +895,7 @@ static bool check_field_alignment(
 
 static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char *base_directory)
 {
-  int unknown = nr_structs, lastunknown;
+  int unknown = structs_len, lastunknown;
   bool dna_error = false;
 
   /* Write test to verify sizes are accurate. */
@@ -914,7 +913,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
     unknown = 0;
 
     /* check all structs... */
-    for (int a = 0; a < nr_structs; a++) {
+    for (int a = 0; a < structs_len; a++) {
       const short *structpoin = structs[a];
       const int structtype = structpoin[0];
       const char *structname = version_struct_alias_from_static(types[structtype]);
@@ -1099,7 +1098,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
     if (debugSDNA) {
       fprintf(stderr, "*** Known structs :\n");
 
-      for (int a = 0; a < nr_structs; a++) {
+      for (int a = 0; a < structs_len; a++) {
         const short *structpoin = structs[a];
         const int structtype = structpoin[0];
 
@@ -1112,7 +1111,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 
     fprintf(stderr, "*** Unknown structs :\n");
 
-    for (int a = 0; a < nr_structs; a++) {
+    for (int a = 0; a < structs_len; a++) {
       const short *structpoin = structs[a];
       const int structtype = structpoin[0];
 
@@ -1150,7 +1149,7 @@ static void dna_write(FILE *file, const void *pntr, const int size)
 
 void print_struct_sizes(void)
 {
-  int a, unknown = nr_structs, structtype;
+  int a, unknown = structs_len, structtype;
   /*int lastunknown;*/ /*UNUSED*/
   const short *structpoin;
   printf("\n\n*** All detected structs:\n");
@@ -1160,7 +1159,7 @@ void print_struct_sizes(void)
     unknown = 0;
 
     /* check all structs... */
-    for (a = 0; a < nr_structs; a++) {
+    for (a = 0; a < structs_len; a++) {
       structpoin = structs[a];
       structtype = structpoin[0];
       printf("\t%s\t:%d\n", types[structtype], types_size_native[structtype]);
@@ -1190,15 +1189,15 @@ static int make_structDNA(const char *base_directory,
   mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   /* the longest known struct is 50k, so we assume 100k is sufficient! */
-  structdata = MEM_callocN(maxdata, "structdata");
+  structdata = MEM_callocN(max_data_size, "structdata");
 
   /* a maximum of 5000 variables, must be sufficient? */
-  names = MEM_callocN(sizeof(char *) * maxnr, "names");
-  types = MEM_callocN(sizeof(char *) * maxnr, "types");
-  types_size_native = MEM_callocN(sizeof(short) * maxnr, "types_size_native");
-  types_size_32 = MEM_callocN(sizeof(short) * maxnr, "types_size_32");
-  types_size_64 = MEM_callocN(sizeof(short) * maxnr, "types_size_64");
-  structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
+  names = MEM_callocN(sizeof(char *) * max_array_len, "names");
+  types = MEM_callocN(sizeof(char *) * max_array_len, "types");
+  types_size_native = MEM_callocN(sizeof(short) * max_array_len, "types_size_native");
+  types_size_32 = MEM_callocN(sizeof(short) * max_array_len, "types_size_32");
+  types_size_64 = MEM_callocN(sizeof(short) * max_array_len, "types_size_64");
+  structs = MEM_callocN(sizeof(short *) * max_array_len, "structs");
 
   /* Build versioning data */
   DNA_alias_maps(DNA_RENAME_ALIAS_FROM_STATIC,
@@ -1233,7 +1232,7 @@ static int make_structDNA(const char *base_directory,
   add_type("void", 0);     /* SDNA_TYPE_VOID */
 
   /* the defines above shouldn't be output in the padding file... */
-  firststruct = nr_types;
+  firststruct = types_len;
 
   /* add all include files defined in the global array                     */
   /* Since the internal file+path name buffer has limited length, I do a   */
@@ -1260,19 +1259,19 @@ static int make_structDNA(const char *base_directory,
     /* short *elem; */
     short num_types;
 
-    printf("nr_names %d nr_types %d nr_structs %d\n", nr_names, nr_types, nr_structs);
-    for (a = 0; a < nr_names; a++) {
+    printf("names_len %d types_len %d structs_len %d\n", names_len, types_len, structs_len);
+    for (a = 0; a < names_len; a++) {
       printf(" %s\n", names[a]);
     }
     printf("\n");
 
     sp = types_size_native;
-    for (a = 0; a < nr_types; a++, sp++) {
+    for (a = 0; a < types_len; a++, sp++) {
       printf(" %s %d\n", types[a], *sp);
     }
     printf("\n");
 
-    for (a = 0; a < nr_structs; a++) {
+    for (a = 0; a < structs_len; a++) {
       sp = structs[a];
       printf(" struct %s elems: %d size: %d\n", types[sp[0]], sp[1], types_size_native[sp[0]]);
       num_types = sp[1];
@@ -1288,7 +1287,7 @@ static int make_structDNA(const char *base_directory,
 
   DEBUG_PRINTF(0, "Writing file ... ");
 
-  if (nr_names == 0 || nr_structs == 0) {
+  if (names_len == 0 || structs_len == 0) {
     /* pass */
   }
   else {
@@ -1299,11 +1298,11 @@ static int make_structDNA(const char *base_directory,
 
     /* write names */
     dna_write(file, "NAME", 4);
-    len = nr_names;
+    len = names_len;
     dna_write(file, &len, 4);
     /* write array */
     len = 0;
-    for (int nr = 0; nr < nr_names; nr++) {
+    for (int nr = 0; nr < names_len; nr++) {
       int name_size = strlen(names[nr]) + 1;
       dna_write(file, names[nr], name_size);
       len += name_size;
@@ -1315,11 +1314,11 @@ static int make_structDNA(const char *base_directory,
 
     /* write TYPES */
     dna_write(file, "TYPE", 4);
-    len = nr_types;
+    len = types_len;
     dna_write(file, &len, 4);
     /* write array */
     len = 0;
-    for (int nr = 0; nr < nr_types; nr++) {
+    for (int nr = 0; nr < types_len; nr++) {
       int type_size = strlen(types[nr]) + 1;
       dna_write(file, types[nr], type_size);
       len += type_size;
@@ -1332,19 +1331,19 @@ static int make_structDNA(const char *base_directory,
     /* WRITE TYPELENGTHS */
     dna_write(file, "TLEN", 4);
 
-    len = 2 * nr_types;
-    if (nr_types & 1) {
+    len = 2 * types_len;
+    if (types_len & 1) {
       len += 2;
     }
     dna_write(file, types_size_native, len);
 
     /* WRITE STRUCTS */
     dna_write(file, "STRC", 4);
-    len = nr_structs;
+    len = structs_len;
     dna_write(file, &len, 4);
 
     /* calc datablock size */
-    sp = structs[nr_structs - 1];
+    sp = structs[structs_len - 1];
     sp += 2 + 2 * (sp[1]);
     len = (intptr_t)((char *)sp - (char *)structs[0]);
     len = (len + 3) & ~3;
@@ -1357,7 +1356,7 @@ static int make_structDNA(const char *base_directory,
   {
     fprintf(file_offsets, "#define SDNA_TYPE_FROM_STRUCT(id) _SDNA_TYPE_##id\n");
     fprintf(file_offsets, "enum {\n");
-    for (i = 0; i < nr_structs; i++) {
+    for (i = 0; i < structs_len; i++) {
       const short *structpoin = structs[i];
       const int structtype = structpoin[0];
       fprintf(file_offsets,
@@ -1365,7 +1364,7 @@ static int make_structDNA(const char *base_directory,
               version_struct_alias_from_static(types[structtype]),
               i);
     }
-    fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", nr_structs);
+    fprintf(file_offsets, "\tSDNA_TYPE_MAX = %d,\n", structs_len);
     fprintf(file_offsets, "};\n\n");
   }
 
@@ -1373,7 +1372,7 @@ static int make_structDNA(const char *base_directory,
    * do last because names are stripped. */
   {
     GSet *names_unique = BLI_gset_str_new_ex(__func__, 512);
-    for (int struct_nr = 0; struct_nr < nr_structs; struct_nr++) {
+    for (int struct_nr = 0; struct_nr < structs_len; struct_nr++) {
       sp = structs[struct_nr];
       const char *struct_name = types[sp[0]];
       const int len = sp[1];
