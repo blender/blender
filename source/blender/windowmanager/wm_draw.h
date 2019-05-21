@@ -39,12 +39,14 @@ typedef struct wmDrawBuffer {
 
 struct ARegion;
 struct bContext;
+struct ScrArea;
 struct wmWindow;
 
 /* wm_draw.c */
 void wm_draw_update(struct bContext *C);
 void wm_draw_region_clear(struct wmWindow *win, struct ARegion *ar);
 void wm_draw_region_blend(struct ARegion *ar, int view, bool blend);
+void wm_draw_region_test(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
 
 struct GPUTexture *wm_draw_region_texture(struct ARegion *ar, int view);
 

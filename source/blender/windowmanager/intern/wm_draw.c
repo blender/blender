@@ -917,6 +917,17 @@ void WM_draw_region_free(ARegion *ar)
   ar->visible = 0;
 }
 
+void wm_draw_region_test(bContext *C, ScrArea *sa, ARegion *ar)
+{
+  /* Function for redraw timer benchmark. */
+  bool use_viewport = wm_region_use_viewport(sa, ar);
+  wm_draw_region_buffer_create(ar, false, use_viewport);
+  wm_draw_region_bind(ar, 0);
+  ED_region_do_draw(C, ar);
+  wm_draw_region_unbind(ar, 0);
+  ar->do_draw = false;
+}
+
 void WM_redraw_windows(bContext *C)
 {
   wmWindow *win_prev = CTX_wm_window(C);
