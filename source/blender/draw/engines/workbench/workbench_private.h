@@ -326,7 +326,8 @@ BLI_INLINE bool workbench_is_taa_enabled(WORKBENCH_PrivateData *wpd)
     }
   }
   else {
-    return wpd->preferences->viewport_aa > SCE_DISPLAY_AA_FXAA && !wpd->is_playback;
+    return !(IS_NAVIGATING(wpd) || wpd->is_playback) &&
+           wpd->preferences->viewport_aa > SCE_DISPLAY_AA_FXAA;
   }
 }
 
@@ -346,8 +347,9 @@ BLI_INLINE bool workbench_is_fxaa_enabled(WORKBENCH_PrivateData *wpd)
       return true;
     }
 
-    /* when navigating or animation playback use FXAA. */
-    return (IS_NAVIGATING(wpd) || wpd->is_playback) && workbench_is_taa_enabled(wpd);
+    /* when navigating or animation playback use FXAA if scene uses TAA. */
+    return (IS_NAVIGATING(wpd) || wpd->is_playback) &&
+           wpd->preferences->viewport_aa > SCE_DISPLAY_AA_FXAA;
   }
 }
 

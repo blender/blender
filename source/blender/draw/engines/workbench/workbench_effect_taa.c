@@ -243,7 +243,7 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 
   const int jitter_index = effect_info->jitter_index;
   const float *transform_offset = samples[jitter_index];
-  effect_info->taa_mix_factor = 1.0f / (effect_info->jitter_index + 1);
+  effect_info->taa_mix_factor = 1.0f / (jitter_index + 1);
   effect_info->jitter_index = (jitter_index + 1) % num_samples;
 
   /* construct new matrices from transform delta */

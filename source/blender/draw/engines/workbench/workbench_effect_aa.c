@@ -49,6 +49,7 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
   }
   else {
     psl->effect_aa_pass = NULL;
+    effect_info->jitter_index = 0;
   }
 }
 
