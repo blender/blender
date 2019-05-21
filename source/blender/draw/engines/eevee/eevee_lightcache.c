@@ -717,8 +717,15 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   stl->g_data->background_alpha = 1.0f;
 
   /* XXX TODO remove this. This is in order to make the init functions work. */
-  DRWMatrixState dummy_mats = {{{{{0}}}}};
-  DRW_viewport_matrix_override_set_all(&dummy_mats);
+  if (DRW_view_default_get() == NULL) {
+    float winmat[4][4], viewmat[4][4];
+    unit_m4(viewmat);
+    unit_m4(winmat);
+    negate_v3(winmat[2]);
+    DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+    DRW_view_default_set(view);
+    DRW_view_set_active(view);
+  }
 
   if (sldata->common_ubo == NULL) {
     sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data),

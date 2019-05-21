@@ -836,8 +836,13 @@ typedef struct EEVEE_PrivateData {
   float studiolight_glossy_clamp;
   float studiolight_filter_quality;
 
-  /** For rendering probes and shadows. */
+  /** For rendering shadows. */
   struct DRWView *cube_views[6];
+  /** For rendering probes. */
+  struct DRWView *bake_views[6];
+  /** Same as bake_views but does not generate culling infos. */
+  struct DRWView *world_views[6];
+  /** For rendering planar reflections. */
   struct DRWView *planar_views[MAX_PLANAR];
 } EEVEE_PrivateData; /* Transient data */
 

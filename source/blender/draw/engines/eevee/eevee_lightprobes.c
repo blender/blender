@@ -167,7 +167,9 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
   }
 
+  memset(stl->g_data->bake_views, 0, sizeof(stl->g_data->bake_views));
   memset(stl->g_data->cube_views, 0, sizeof(stl->g_data->cube_views));
+  memset(stl->g_data->world_views, 0, sizeof(stl->g_data->world_views));
   memset(stl->g_data->planar_views, 0, sizeof(stl->g_data->planar_views));
 
   /* Use fallback if we don't have gpu texture allocated an we cannot restore them. */
@@ -802,32 +804,43 @@ typedef struct EEVEE_BakeRenderData {
 static void render_cubemap(void (*callback)(int face, EEVEE_BakeRenderData *user_data),
                            EEVEE_BakeRenderData *user_data,
                            const float pos[3],
-                           float clipsta,
-                           float clipend)
+                           float near,
+                           float far,
+                           bool do_culling)
 {
-  DRWMatrixState matstate;
+  EEVEE_StorageList *stl = user_data->vedata->stl;
+  DRWView **views = do_culling ? stl->g_data->bake_views : stl->g_data->world_views;
 
-  /* Move to capture position */
-  float posmat[4][4];
-  unit_m4(posmat);
-  negate_v3_v3(posmat[3], pos);
+  float winmat[4][4], viewmat[4][4];
+  perspective_m4(winmat, -near, near, -near, near, near, far);
 
-  perspective_m4(matstate.winmat, -clipsta, clipsta, -clipsta, clipsta, clipsta, clipend);
-  invert_m4_m4(matstate.wininv, matstate.winmat);
+  /* Prepare views at the same time for faster culling. */
+  for (int i = 0; i < 6; i++) {
+    unit_m4(viewmat);
+    negate_v3_v3(viewmat[3], pos);
+    mul_m4_m4m4(viewmat, cubefacemat[i], viewmat);
 
-  /* 1 - Render to each cubeface individually.
-   * We do this instead of using geometry shader because a) it's faster,
-   * b) it's easier than fixing the nodetree shaders (for view dependent effects). */
+    if (do_culling) {
+      if (views[i] == NULL) {
+        views[i] = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+      }
+      else {
+        DRW_view_update(views[i], viewmat, winmat, NULL, NULL);
+      }
+    }
+    else {
+      if (views[i] == NULL) {
+        const DRWView *default_view = DRW_view_default_get();
+        views[i] = DRW_view_create_sub(default_view, viewmat, winmat);
+      }
+      else {
+        DRW_view_update_sub(views[i], viewmat, winmat);
+      }
+    }
+  }
+
   for (int i = 0; i < 6; ++i) {
-    /* Setup custom matrices */
-    mul_m4_m4m4(matstate.viewmat, cubefacemat[i], posmat);
-    mul_m4_m4m4(matstate.persmat, matstate.winmat, matstate.viewmat);
-    invert_m4_m4(matstate.persinv, matstate.persmat);
-    invert_m4_m4(matstate.viewinv, matstate.viewmat);
-    invert_m4_m4(matstate.wininv, matstate.winmat);
-
-    DRW_viewport_matrix_override_set_all(&matstate);
-
+    DRW_view_set_active(views[i]);
     callback(i, user_data);
   }
 }
@@ -872,17 +885,20 @@ void EEVEE_lightbake_render_world(EEVEE_ViewLayerData *UNUSED(sldata),
       .face_fb = face_fb,
   };
 
-  render_cubemap(lightbake_render_world_face, &brdata, (float[3]){0.0f}, 1.0f, 10.0f);
+  render_cubemap(lightbake_render_world_face, &brdata, (float[3]){0.0f}, 1.0f, 10.0f, false);
 }
 
 static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_data)
 {
   EEVEE_ViewLayerData *sldata = user_data->sldata;
   EEVEE_PassList *psl = user_data->vedata->psl;
+  EEVEE_PrivateData *g_data = user_data->vedata->stl->g_data;
+  DRWView **views = g_data->bake_views;
+
   struct GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* Be sure that cascaded shadow maps are updated. */
-  EEVEE_draw_shadows(sldata, user_data->vedata, NULL /* TODO */);
+  EEVEE_draw_shadows(sldata, user_data->vedata, views[face]);
 
   GPU_framebuffer_bind(face_fb[face]);
   GPU_framebuffer_clear_depth(face_fb[face], 1.0f);
@@ -911,7 +927,7 @@ void EEVEE_lightbake_render_scene(EEVEE_ViewLayerData *sldata,
       .face_fb = face_fb,
   };
 
-  render_cubemap(lightbake_render_scene_face, &brdata, pos, near_clip, far_clip);
+  render_cubemap(lightbake_render_scene_face, &brdata, pos, near_clip, far_clip, true);
 }
 
 static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *user_data)
@@ -1225,7 +1241,6 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 {
   EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
-  DRWMatrixState saved_mats;
 
   if (pinfo->num_planar == 0) {
     /* Disable SSR if we cannot read previous frame */
@@ -1233,9 +1248,6 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     common_data->prb_num_planar = 0;
     return;
   }
-
-  /* We need to save the Matrices before overidding them */
-  DRW_viewport_matrix_get_all(&saved_mats);
 
   /* Temporary Remove all planar reflections (avoid lag effect). */
   common_data->prb_num_planar = 0;
@@ -1265,8 +1277,6 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     EEVEE_lightbake_filter_planar(vedata);
   }
 
-  DRW_viewport_matrix_override_set_all(&saved_mats);
-
   if (DRW_state_is_image_render()) {
     /* Sort transparents because planar reflections could have re-sorted them. */
     DRW_pass_sort_shgroup_z(vedata->psl->transparent_pass);
@@ -1284,10 +1294,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) &&
       (light_cache->flag & LIGHTCACHE_BAKED) == 0) {
-    DRWMatrixState saved_mats;
-    DRW_viewport_matrix_get_all(&saved_mats);
     EEVEE_lightbake_update_world_quick(sldata, vedata, scene_eval);
-    DRW_viewport_matrix_override_set_all(&saved_mats);
   }
 }
 
