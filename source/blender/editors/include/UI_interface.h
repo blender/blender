@@ -1714,15 +1714,28 @@ enum {
   UI_ITEM_O_RETURN_PROPS = 1 << 0,
   UI_ITEM_R_EXPAND = 1 << 1,
   UI_ITEM_R_SLIDER = 1 << 2,
+  /**
+   * Use for booleans, causes the button to draw with an outline (emboss),
+   * instead of text with a checkbox.
+   * This is implied when toggle buttons have an icon
+   * unless #UI_ITEM_R_ICON_NEVER flag is set.
+   */
   UI_ITEM_R_TOGGLE = 1 << 3,
-  UI_ITEM_R_ICON_ONLY = 1 << 4,
-  UI_ITEM_R_EVENT = 1 << 5,
-  UI_ITEM_R_FULL_EVENT = 1 << 6,
-  UI_ITEM_R_NO_BG = 1 << 7,
-  UI_ITEM_R_IMMEDIATE = 1 << 8,
-  UI_ITEM_O_DEPRESS = 1 << 9,
-  UI_ITEM_R_COMPACT = 1 << 10,
-  UI_ITEM_R_CHECKBOX_INVERT = 1 << 11,
+  /**
+   * Don't attempt to use an icon when the icon is set to #ICON_NONE.
+   *
+   * Use for boolean's, causes the buttons to always show as a checkbox
+   * even when there is an icon (which would normally show the button as a toggle).
+   */
+  UI_ITEM_R_ICON_NEVER = 1 << 4,
+  UI_ITEM_R_ICON_ONLY = 1 << 5,
+  UI_ITEM_R_EVENT = 1 << 6,
+  UI_ITEM_R_FULL_EVENT = 1 << 7,
+  UI_ITEM_R_NO_BG = 1 << 8,
+  UI_ITEM_R_IMMEDIATE = 1 << 9,
+  UI_ITEM_O_DEPRESS = 1 << 10,
+  UI_ITEM_R_COMPACT = 1 << 11,
+  UI_ITEM_R_CHECKBOX_INVERT = 1 << 12,
 };
 
 #define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)

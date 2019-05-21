@@ -3738,6 +3738,16 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
   }
 }
 
+/**
+ * Avoid using this where possible since it's better not to ask for an icon in the first place.
+ */
+void ui_def_but_icon_clear(uiBut *but)
+{
+  but->icon = ICON_NONE;
+  but->flag &= ~UI_HAS_ICON;
+  but->drawflag &= ~UI_BUT_ICON_LEFT;
+}
+
 static void ui_def_but_rna__disable(uiBut *but, const char *info)
 {
   but->flag |= UI_BUT_DISABLED;
