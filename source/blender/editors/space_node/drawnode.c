@@ -713,6 +713,11 @@ static void node_buts_image_user(uiLayout *layout,
   PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
   uiItemL(split, IFACE_("Color Space"), ICON_NONE);
   uiItemR(split, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
+
+  /* Avoid losing changes image is painted. */
+  if (BKE_image_is_dirty(imaptr->data)) {
+    uiLayoutSetEnabled(split, false);
+  }
 }
 
 static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
