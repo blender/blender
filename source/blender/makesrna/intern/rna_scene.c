@@ -2857,7 +2857,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "automerge", 0);
   RNA_def_property_ui_text(
       prop, "Auto Merge", "Automatically merge vertices moved to the same location");
-  RNA_def_property_ui_icon(prop, ICON_AUTOMERGE_OFF, -1);
+  RNA_def_property_ui_icon(prop, ICON_AUTOMERGE_OFF, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap", PROP_BOOLEAN, PROP_NONE);
