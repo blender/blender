@@ -9504,6 +9504,19 @@ static void lib_link_all(FileData *fd, Main *main)
   /* We could integrate that to mesh/curve/lattice lib_link, but this is really cheap process,
    * so simpler to just use it directly in this single call. */
   BLO_main_validate_shapekeys(main, NULL);
+
+  if (fd->memfile != NULL) {
+    /* When doing redo, we perform a tremendous amount of esoterics magic tricks to avoid having to
+     * re-read all library datablocks.
+     * Unfortunately, that means that we do not clear Collections' parents lists, which then get
+     * improperly extended in some cases by lib_link_scene() and lib_link_collection() calls above
+     * (when ome local collection is parent of linked ones).
+     * I do not really see a way to address that issue, besides brute force call below which
+     * invalidates and re-creates all parenting relationships between collections. Yet another
+     * example of why it is such a bad idea to keep that kind of double-linked relationships info
+     * 'permanently' in our data structures... */
+    BKE_main_collections_parent_relations_rebuild(main);
+  }
 }
 
 /** \} */

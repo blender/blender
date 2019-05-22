@@ -368,6 +368,11 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain,
      * I'd consider optimizing that whole collection remapping process a TODO for later. */
     BKE_collections_child_remove_nulls(bmain, NULL /*old_collection*/);
   }
+  else {
+    /* Temp safe fix, but a "tad" brute force... We should probably be able to use parents from
+     * old_collection instead? */
+    BKE_main_collections_parent_relations_rebuild(bmain);
+  }
 
   BKE_main_collection_sync_remap(bmain);
 }
