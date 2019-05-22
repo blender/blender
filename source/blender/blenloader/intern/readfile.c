@@ -8790,6 +8790,15 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 	BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
+	if (fd->memfile != NULL) {
+		/* In undo/redo case, we do a whole lot of magic tricks to avoid having to re-read linked datablocks from
+		 * libraries (since those are not supposed to change).
+		 * Unfortunately, that means that we do not reset their user count, however we do increase that one when
+		 * doing lib_link on local IDs using linked ones.
+		 * There is no real way to predict amount of changes here, so we have to fully redo refcounting . */
+		BLE_main_id_refcount_recompute(bfd->main, true);
+	}
+
 	lib_verify_nodetree(bfd->main, true);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 
