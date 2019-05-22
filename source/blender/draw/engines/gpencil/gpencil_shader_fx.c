@@ -110,10 +110,7 @@ static void GPENCIL_dof_nearfar(Object *camera, float coc, float nearfar[2])
   if (camera == NULL) {
     return;
   }
-
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
-  Camera *cam = (Camera *)camera->data;
+  Camera *cam = camera->data;
 
   float fstop = cam->dof.aperture_fstop;
   float focus_dist = BKE_camera_object_dof_distance(camera);
