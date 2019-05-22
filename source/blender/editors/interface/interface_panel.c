@@ -367,7 +367,7 @@ Panel *UI_panel_begin(
   return pa;
 }
 
-void UI_panel_end(uiBlock *block, int width, int height)
+void UI_panel_end(uiBlock *block, int width, int height, bool open)
 {
   Panel *pa = block->panel;
 
@@ -390,20 +390,20 @@ void UI_panel_end(uiBlock *block, int width, int height)
     pa->sizey = height;
   }
   else {
-    /* check if we need to do an animation */
-    if (!ELEM(width, 0, pa->sizex) || !ELEM(height, 0, pa->sizey)) {
-      pa->runtime_flag |= PNL_ANIM_ALIGN;
-      if (height != 0) {
-        pa->ofsy += pa->sizey - height;
-      }
-    }
+    int old_sizex = pa->sizex, old_sizey = pa->sizey;
 
     /* update width/height if non-zero */
     if (width != 0) {
       pa->sizex = width;
     }
-    if (height != 0) {
+    if (height != 0 || open) {
       pa->sizey = height;
+    }
+
+    /* check if we need to do an animation */
+    if (pa->sizex != old_sizex || pa->sizey != old_sizey) {
+      pa->runtime_flag |= PNL_ANIM_ALIGN;
+      pa->ofsy += old_sizey - pa->sizey;
     }
   }
 }

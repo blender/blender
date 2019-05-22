@@ -2292,7 +2292,7 @@ static void ed_panel_draw(const bContext *C,
     }
   }
 
-  UI_panel_end(block, w, h);
+  UI_panel_end(block, w, h, open);
 }
 
 /**

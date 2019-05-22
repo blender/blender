@@ -1630,7 +1630,7 @@ struct Panel *UI_panel_begin(struct ScrArea *sa,
                              struct PanelType *pt,
                              struct Panel *pa,
                              bool *r_open);
-void UI_panel_end(uiBlock *block, int width, int height);
+void UI_panel_end(uiBlock *block, int width, int height, bool open);
 void UI_panels_scale(struct ARegion *ar, float new_width);
 void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *pa);
