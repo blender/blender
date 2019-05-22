@@ -656,7 +656,7 @@ static void drw_viewport_var_init(void)
 
     DST.pixsize = rv3d->pixsize;
     DST.view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, NULL, NULL, NULL);
-    copy_v4_v4(DST.view_default->storage.viewcamtexcofac, rv3d->viewcamtexcofac);
+    DRW_view_camtexco_set(DST.view_default, rv3d->viewcamtexcofac);
 
     if (DST.draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       int plane_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;

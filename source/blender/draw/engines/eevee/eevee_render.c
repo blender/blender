@@ -53,6 +53,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const float *size_orig = DRW_viewport_size_get();
+  float size_final[2];
+  float camtexcofac[4];
 
   /* Init default FB and render targets:
    * In render mode the default framebuffer is not generated
@@ -73,10 +75,22 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   if (scene->eevee.flag & SCE_EEVEE_OVERSCAN) {
     g_data->overscan = scene->eevee.overscan / 100.0f;
     g_data->overscan_pixels = roundf(max_ff(size_orig[0], size_orig[1]) * g_data->overscan);
+
+    madd_v2_v2v2fl(size_final, size_orig, (float[2]){2.0f, 2.0f}, g_data->overscan_pixels);
+
+    camtexcofac[0] = size_final[0] / size_orig[0];
+    camtexcofac[1] = size_final[1] / size_orig[1];
+
+    camtexcofac[2] = -camtexcofac[0] * g_data->overscan_pixels / size_final[0];
+    camtexcofac[3] = -camtexcofac[1] * g_data->overscan_pixels / size_final[1];
+
+    print_v4_id(camtexcofac);
   }
   else {
+    copy_v2_v2(size_final, size_orig);
     g_data->overscan = 0.0f;
     g_data->overscan_pixels = 0.0f;
+    copy_v4_fl4(camtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
   }
 
   /* XXX overiding viewport size. Simplify things but is not really 100% safe. */
@@ -114,6 +128,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   invert_m4_m4(viewmat, viewinv);
 
   DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+  DRW_view_camtexco_set(view, camtexcofac);
   DRW_view_default_set(view);
   DRW_view_set_active(view);
 

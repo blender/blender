@@ -874,8 +874,6 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
     drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_VIEWPROJECTION_INV, storage->persinv, 16, 1);
     drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION, storage->winmat, 16, 1);
     drw_shgroup_builtin_uniform(shgroup, GPU_UNIFORM_PROJECTION_INV, storage->wininv, 16, 1);
-    drw_shgroup_builtin_uniform(
-        shgroup, GPU_UNIFORM_CAMERATEXCO, DST.view_storage_cpy.viewcamtexcofac, 4, 1);
   }
 
   /* Not supported. */
@@ -1327,10 +1325,7 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->visibility_fn = visibility_fn;
   view->parent = NULL;
 
-  /* TODO move elsewhere */
-  if (DST.view_default) {
-    copy_v4_v4(view->storage.viewcamtexcofac, DST.view_default->storage.viewcamtexcofac);
-  }
+  copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
 
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 
@@ -1349,11 +1344,6 @@ DRWView *DRW_view_create_sub(const DRWView *parent_view,
   /* Perform copy. */
   *view = *parent_view;
   view->parent = (DRWView *)parent_view;
-
-  /* TODO move elsewhere */
-  if (DST.view_default) {
-    copy_v4_v4(view->storage.viewcamtexcofac, DST.view_default->storage.viewcamtexcofac);
-  }
 
   DRW_view_update_sub(view, viewmat, winmat);
 
@@ -1469,6 +1459,11 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   if (plane_len > 0) {
     memcpy(view->storage.clipplanes, planes, sizeof(float) * 4 * plane_len);
   }
+}
+
+void DRW_view_camtexco_set(DRWView *view, float texco[4])
+{
+  copy_v4_v4(view->storage.viewcamtexcofac, texco);
 }
 
 /* Return world space frustum corners. */
