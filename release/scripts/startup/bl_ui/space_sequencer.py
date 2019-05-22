@@ -803,8 +803,8 @@ class SequencerButtonsPanel_Output:
         return cls.has_preview(context)
 
 
-class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
-    bl_label = "Info"
+class SEQUENCER_PT_data(SequencerButtonsPanel, Panel):
+    bl_label = "Data"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -1048,9 +1048,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.prop(strip, "factor", slider=True)
 
 
-class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
+class SEQUENCER_PT_data_input(SequencerButtonsPanel, Panel):
     bl_label = "Input"
-    bl_parent_id = "SEQUENCER_PT_info"
+    bl_parent_id = "SEQUENCER_PT_data"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -1265,10 +1265,10 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
             layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
 
 
-class SEQUENCER_PT_info_data(SequencerButtonsPanel, Panel):
-    bl_label = "Data"
+class SEQUENCER_PT_data_info(SequencerButtonsPanel, Panel):
+    bl_label = "Info"
     bl_category = "Strip"
-    bl_parent_id = "SEQUENCER_PT_info"
+    bl_parent_id = "SEQUENCER_PT_data"
 
     @classmethod
     def poll(cls, context):
@@ -1959,9 +1959,9 @@ classes = (
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
 
-    SEQUENCER_PT_info,
-    SEQUENCER_PT_info_input,
-    SEQUENCER_PT_info_data,
+    SEQUENCER_PT_data,
+    SEQUENCER_PT_data_input,
+    SEQUENCER_PT_data_info,
 
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
