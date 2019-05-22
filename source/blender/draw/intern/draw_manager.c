@@ -365,7 +365,8 @@ void DRW_transform_none(GPUTexture *tex)
   GPU_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
 
   GPU_batch_program_use_begin(geom);
-  GPU_batch_draw_range_ex(geom, 0, 0, false);
+  GPU_batch_bind(geom);
+  GPU_batch_draw_advanced(geom, 0, 0, 0, 0);
   GPU_batch_program_use_end(geom);
 
   GPU_texture_unbind(tex);
@@ -456,7 +457,8 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool
 
   /* avoid gpuMatrix calls */
   GPU_batch_program_use_begin(geom);
-  GPU_batch_draw_range_ex(geom, 0, 0, false);
+  GPU_batch_bind(geom);
+  GPU_batch_draw_advanced(geom, 0, 0, 0, 0);
   GPU_batch_program_use_end(geom);
 }
 

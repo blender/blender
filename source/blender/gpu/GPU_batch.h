@@ -148,8 +148,10 @@ void GPU_batch_uniform_mat4(GPUBatch *, const char *name, const float data[4][4]
 
 void GPU_batch_draw(GPUBatch *);
 
+/* Needs to be called before GPU_batch_draw_advanced. */
+void GPU_batch_bind(GPUBatch *);
 /* This does not bind/unbind shader and does not call GPU_matrix_bind() */
-void GPU_batch_draw_range_ex(GPUBatch *, int v_first, int v_count, bool force_instance);
+void GPU_batch_draw_advanced(GPUBatch *, int v_first, int v_count, int i_first, int i_count);
 
 /* Does not even need batch */
 void GPU_draw_primitive(GPUPrimType, int v_count);

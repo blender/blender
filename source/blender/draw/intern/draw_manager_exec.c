@@ -587,16 +587,23 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
   }
 }
 
-static void draw_geometry_execute(
-    DRWShadingGroup *shgroup, GPUBatch *geom, uint start, uint count, bool draw_instance)
+static void draw_geometry_execute(DRWShadingGroup *shgroup,
+                                  GPUBatch *geom,
+                                  uint vert_first,
+                                  uint vert_count,
+                                  uint inst_first,
+                                  uint inst_count)
 {
-  /* step 2 : bind vertex array & draw */
+  /* bind vertex array */
   GPU_batch_program_set_no_use(
       geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+
+  GPU_batch_bind(geom);
+
   /* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
   geom->program_in_use = true;
 
-  GPU_batch_draw_range_ex(geom, start, count, draw_instance);
+  GPU_batch_draw_advanced(geom, vert_first, vert_count, inst_first, inst_count);
 
   geom->program_in_use = false; /* XXX hacking gawain */
 }
@@ -859,7 +866,12 @@ BLI_INLINE bool draw_select_do_call(DRWShadingGroup *shgroup, DRWCall *call)
 
     while (start < tot) {
       GPU_select_load_id(select_id[start]);
-      draw_geometry_execute(shgroup, call->batch, start, count, is_instancing);
+      if (is_instancing) {
+        draw_geometry_execute(shgroup, call->batch, 0, 0, start, count);
+      }
+      else {
+        draw_geometry_execute(shgroup, call->batch, start, count, 0, 0);
+      }
       start += count;
     }
     return true;
@@ -930,13 +942,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         continue;
       }
 
-      /* TODO revisit when DRW_SHG_INSTANCE and the like is gone. */
-      if (call->inst_count == 0) {
-        draw_geometry_execute(shgroup, call->batch, call->vert_first, call->vert_count, false);
-      }
-      else {
-        draw_geometry_execute(shgroup, call->batch, 0, call->inst_count, true);
-      }
+      draw_geometry_execute(
+          shgroup, call->batch, call->vert_first, call->vert_count, 0, call->inst_count);
     }
     /* Reset state */
     glFrontFace(GL_CCW);

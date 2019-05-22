@@ -577,10 +577,14 @@ static void *elem_offset(const GPUIndexBuf *el, int v_first)
   else if (el->index_type == GPU_INDEX_U16) {
     return (GLushort *)0 + v_first;
   }
-  else {
 #endif
-    return (GLuint *)0 + v_first;
-  }
+  return (GLuint *)0 + v_first;
+}
+
+/* Use when drawing with GPU_batch_draw_advanced */
+void GPU_batch_bind(GPUBatch *batch)
+{
+  glBindVertexArray(batch->vao_id);
 }
 
 void GPU_batch_draw(GPUBatch *batch)
@@ -592,103 +596,76 @@ void GPU_batch_draw(GPUBatch *batch)
   GPU_batch_program_use_begin(batch);
   GPU_matrix_bind(batch->interface);  // external call.
 
-  GPU_batch_draw_range_ex(batch, 0, 0, false);
+  GPU_batch_bind(batch);
+  GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
 
   GPU_batch_program_use_end(batch);
 }
 
-void GPU_batch_draw_range_ex(GPUBatch *batch, int v_first, int v_count, bool force_instance)
+void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count)
 {
 #if TRUST_NO_ONE
-  assert(!(force_instance && (batch->inst == NULL)) ||
-         v_count > 0);  // we cannot infer length if force_instance
+  BLI_assert(batch->program_in_use);
+  /* TODO could assert that VAO is bound. */
 #endif
 
-  const bool do_instance = (force_instance || batch->inst);
-
-  // If using offset drawing, use the default VAO and redo bindings.
-  if (v_first != 0 && do_instance) {
-    glBindVertexArray(GPU_vao_default());
-    batch_update_program_bindings(batch, v_first);
+  if (v_count == 0) {
+    v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
   }
-  else {
-    glBindVertexArray(batch->vao_id);
+  if (i_count == 0) {
+    i_count = (batch->inst) ? batch->inst->vertex_len : 1;
   }
 
-  if (do_instance) {
-    /* Infer length if vertex count is not given */
-    if (v_count == 0) {
-      v_count = batch->inst->vertex_len;
+  if (!GLEW_ARB_base_instance) {
+    if (i_first > 0 && i_count > 0) {
+      /* If using offset drawing with instancing, we must
+       * use the default VAO and redo bindings. */
+      glBindVertexArray(GPU_vao_default());
+      batch_update_program_bindings(batch, v_first);
+    }
+    else {
+      /* Previous call could have bind the default vao
+       * see above. */
+      glBindVertexArray(batch->vao_id);
+    }
+  }
+
+  if (batch->elem) {
+    const GPUIndexBuf *el = batch->elem;
+#if GPU_TRACK_INDEX_RANGE
+    GLenum index_type = el->gl_index_type;
+    GLint base_index = el->base_index;
+#else
+    GLenum index_type = GL_UNSIGNED_INT;
+    GLint base_index = 0;
+#endif
+    void *v_first_ofs = elem_offset(el, v_first);
+
+    if (el->use_prim_restart) {
+      primitive_restart_enable(el);
     }
 
-    if (batch->elem) {
-      const GPUIndexBuf *el = batch->elem;
-
-      if (el->use_prim_restart) {
-        primitive_restart_enable(el);
-      }
-#if GPU_TRACK_INDEX_RANGE
+    if (GLEW_ARB_base_instance) {
+      glDrawElementsInstancedBaseVertexBaseInstance(
+          batch->gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
+    }
+    else {
       glDrawElementsInstancedBaseVertex(
-          batch->gl_prim_type, el->index_len, el->gl_index_type, 0, v_count, el->base_index);
-#else
-      glDrawElementsInstanced(batch->gl_prim_type, el->index_len, GL_UNSIGNED_INT, 0, v_count);
-#endif
-      if (el->use_prim_restart) {
-        primitive_restart_disable();
-      }
+          batch->gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index);
     }
-    else {
-      glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_len, v_count);
+
+    if (el->use_prim_restart) {
+      primitive_restart_disable();
     }
   }
   else {
-    /* Infer length if vertex count is not given */
-    if (v_count == 0) {
-      v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
-    }
-
-    if (batch->elem) {
-      const GPUIndexBuf *el = batch->elem;
-
-      if (el->use_prim_restart) {
-        primitive_restart_enable(el);
-      }
-
-      void *v_first_ofs = elem_offset(el, v_first);
-
-#if GPU_TRACK_INDEX_RANGE
-      if (el->base_index) {
-        glDrawRangeElementsBaseVertex(batch->gl_prim_type,
-                                      el->min_index,
-                                      el->max_index,
-                                      v_count,
-                                      el->gl_index_type,
-                                      v_first_ofs,
-                                      el->base_index);
-      }
-      else {
-        glDrawRangeElements(batch->gl_prim_type,
-                            el->min_index,
-                            el->max_index,
-                            v_count,
-                            el->gl_index_type,
-                            v_first_ofs);
-      }
-#else
-      glDrawElements(batch->gl_prim_type, v_count, GL_UNSIGNED_INT, v_first_ofs);
-#endif
-      if (el->use_prim_restart) {
-        primitive_restart_disable();
-      }
+    if (GLEW_ARB_base_instance) {
+      glDrawArraysInstancedBaseInstance(batch->gl_prim_type, v_first, v_count, i_count, i_first);
     }
     else {
-      glDrawArrays(batch->gl_prim_type, v_first, v_count);
+      glDrawArraysInstanced(batch->gl_prim_type, v_first, v_count, i_count);
     }
   }
-
-  /* Performance hog if you are drawing with the same vao multiple time.
-   * Only activate for debugging. */
-  // glBindVertexArray(0);
 }
 
 /* just draw some vertices and let shader place them where we want. */

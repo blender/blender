@@ -1156,19 +1156,20 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 
     GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vert, NULL, GPU_BATCH_OWNS_VBO);
     GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+    GPU_batch_bind(batch);
 
     /* draw any snapped verts first */
     rgba_uchar_to_float(fcol, kcd->colors.point_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
     GPU_matrix_bind(batch->interface);
     GPU_point_size(11);
-    GPU_batch_draw_range_ex(batch, 0, v - 1, false);
+    GPU_batch_draw_advanced(batch, 0, v - 1, 0, 0);
 
     /* now draw the rest */
     rgba_uchar_to_float(fcol, kcd->colors.curpoint_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
     GPU_point_size(7);
-    GPU_batch_draw_range_ex(batch, vs + 1, kcd->totlinehit - (vs + 1), false);
+    GPU_batch_draw_advanced(batch, vs + 1, kcd->totlinehit - (vs + 1), 0, 0);
 
     GPU_batch_program_use_end(batch);
     GPU_batch_discard(batch);
