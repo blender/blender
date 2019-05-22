@@ -587,18 +587,22 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
   }
 }
 
-static void draw_geometry_execute(DRWShadingGroup *shgroup,
-                                  GPUBatch *geom,
-                                  uint vert_first,
-                                  uint vert_count,
-                                  uint inst_first,
-                                  uint inst_count)
+BLI_INLINE void draw_geometry_execute(DRWShadingGroup *shgroup,
+                                      GPUBatch *geom,
+                                      uint vert_first,
+                                      uint vert_count,
+                                      uint inst_first,
+                                      uint inst_count)
 {
   /* bind vertex array */
-  GPU_batch_program_set_no_use(
-      geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+  if (DST.batch != geom) {
+    DST.batch = geom;
 
-  GPU_batch_bind(geom);
+    GPU_batch_program_set_no_use(
+        geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+
+    GPU_batch_bind(geom);
+  }
 
   /* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
   geom->program_in_use = true;
@@ -898,6 +902,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     }
     GPU_shader_bind(shgroup->shader);
     DST.shader = shgroup->shader;
+    DST.batch = NULL;
   }
 
   if (shgroup->tfeedback_target != NULL) {

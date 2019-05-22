@@ -293,6 +293,7 @@ typedef struct DRWManager {
 
   /* Rendering state */
   GPUShader *shader;
+  GPUBatch *batch;
 
   /* Managed by `DRW_state_set`, `DRW_state_reset` */
   DRWState state;
