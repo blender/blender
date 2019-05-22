@@ -463,7 +463,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain)
   return BKE_override_static_create_from_id(bmain, id);
 }
 
-static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
+static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
 {
   /* XXX, new function for this! */
 #  if 0
@@ -478,6 +478,8 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
     /* pass */
   }
   else {
+    int allow_flag = 0;
+
     /* ensure flag us correct for the type */
     switch (GS(id->name)) {
       case ID_OB:
@@ -485,28 +487,35 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
          * object types supports different flags. Maybe does not worth checking
          * for this at all. Or maybe let dependency graph to return whether
          * the tag was valid or not. */
-        if (flag & ~(ID_RECALC_ALL)) {
-          BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with Object ID type");
-          return;
-        }
+        allow_flag = ID_RECALC_ALL;
         break;
         /* Could add particle updates later */
 #  if 0
       case ID_PA:
-        if (flag & ~(OB_RECALC_ALL | PSYS_RECALC)) {
-          BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with ParticleSettings ID type");
-          return;
-        }
+        allow_flag = OB_RECALC_ALL | PSYS_RECALC;
         break;
 #  endif
+      case ID_AC:
+        allow_flag = ID_RECALC_ANIMATION;
+        break;
       default:
-        BKE_report(
-            reports, RPT_ERROR, "This ID type is not compatible with any 'refresh' options");
-        return;
+        if (id_can_have_animdata(id)) {
+          allow_flag = ID_RECALC_ANIMATION;
+        }
+    }
+
+    if (flag & ~allow_flag) {
+      StructRNA *srna = ID_code_to_RNA_type(GS(id->name));
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s is not compatible with %s 'refresh' options",
+                  RNA_struct_identifier(srna),
+                  allow_flag ? "the specified" : "any");
+      return;
     }
   }
 
-  DEG_id_tag_update(id, flag);
+  DEG_id_tag_update_ex(bmain, id, flag);
 }
 
 static void rna_ID_user_clear(ID *id)
@@ -1531,7 +1540,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Clear animation on this this ID");
 
   func = RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func,
                                   "Tag the ID to update its display data, "
                                   "e.g. when calling :class:`bpy.types.Scene.update`");
