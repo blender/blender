@@ -530,18 +530,35 @@ static bool rna_FCurve_is_empty_get(PointerRNA *ptr)
   return BKE_fcurve_is_empty(fcu);
 }
 
+static void rna_tag_animation_update(Main *bmain, ID *id, bool flush)
+{
+  /* Actually recalculate object properties, or just update COW. */
+  int tags = flush ? ID_RECALC_ANIMATION : ID_RECALC_ANIMATION_NO_FLUSH;
+
+  AnimData *adt = BKE_animdata_from_id(id);
+
+  if (adt && adt->action) {
+    /* action is separate datablock, needs separate tag */
+    DEG_id_tag_update_ex(bmain, &adt->action->id, tags);
+  }
+
+  DEG_id_tag_update_ex(bmain, id, tags);
+}
+
 /* allow scripts to update curve after editing manually */
-static void rna_FCurve_update_data_ex(FCurve *fcu)
+static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
   sort_time_fcurve(fcu);
   calchandles_fcurve(fcu);
+
+  rna_tag_animation_update(bmain, id, true);
 }
 
 /* RNA update callback for F-Curves after curve shape changes */
-static void rna_FCurve_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_FCurve_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   BLI_assert(ptr->type == &RNA_FCurve);
-  rna_FCurve_update_data_ex((FCurve *)ptr->data);
+  rna_FCurve_update_data_ex((ID *)ptr->id.data, (FCurve *)ptr->data, bmain);
 }
 
 static void rna_FCurve_update_data_relations(Main *bmain,
@@ -554,13 +571,9 @@ static void rna_FCurve_update_data_relations(Main *bmain,
 /* RNA update callback for F-Curves to indicate that there are copy-on-write tagging/flushing
  * needed (e.g. for properties that affect how animation gets evaluated).
  */
-static void rna_FCurve_update_eval(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_FCurve_update_eval(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  IdAdtTemplate *iat = (IdAdtTemplate *)ptr->id.data;
-  if (iat && iat->adt && iat->adt->action) {
-    /* action is separate datablock, needs separate tag */
-    DEG_id_tag_update(&iat->adt->action->id, ID_RECALC_ANIMATION);
-  }
+  rna_tag_animation_update(bmain, (ID *)ptr->id.data, true);
 }
 
 static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
@@ -671,28 +684,16 @@ static void rna_FModifier_blending_range(
   *max = fcm->efra - fcm->sfra;
 }
 
-static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_FModifier_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   ID *id = ptr->id.data;
   FModifier *fcm = (FModifier *)ptr->data;
-  AnimData *adt = BKE_animdata_from_id(id);
-
-  DEG_id_tag_update(id, ID_RECALC_ANIMATION);
-
-  /* tag datablock for time update so that animation is recalculated,
-   * as FModifiers affect how animation plays...
-   */
-  DEG_id_tag_update(id, ID_RECALC_ANIMATION);
-  if (adt != NULL) {
-    if (adt->action != NULL) {
-      /* action is separate datablock, needs separate tag */
-      DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
-    }
-  }
 
   if (fcm->curve && fcm->type == FMODIFIER_TYPE_CYCLES) {
     calchandles_fcurve(fcm->curve);
   }
+
+  rna_tag_animation_update(bmain, id, true);
 }
 
 static void rna_FModifier_verify_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -909,14 +910,21 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 }
 
 static BezTriple *rna_FKeyframe_points_insert(
-    FCurve *fcu, float frame, float value, int keyframe_type, int flag)
+    ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
 {
   int index = insert_vert_fcurve(
       fcu, frame, value, (char)keyframe_type, flag | INSERTKEY_NO_USERPREF);
-  return ((fcu->bezt) && (index >= 0)) ? (fcu->bezt + index) : NULL;
+
+  if ((fcu->bezt) && (index >= 0)) {
+    rna_tag_animation_update(bmain, id, true);
+
+    return fcu->bezt + index;
+  }
+
+  return NULL;
 }
 
-static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
+static void rna_FKeyframe_points_add(ID *id, FCurve *fcu, Main *bmain, int tot)
 {
   if (tot > 0) {
     BezTriple *bezt;
@@ -933,13 +941,13 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
       bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
       bezt++;
     }
+
+    rna_tag_animation_update(bmain, id, true);
   }
 }
 
-static void rna_FKeyframe_points_remove(FCurve *fcu,
-                                        ReportList *reports,
-                                        PointerRNA *bezt_ptr,
-                                        bool do_fast)
+static void rna_FKeyframe_points_remove(
+    ID *id, FCurve *fcu, Main *bmain, ReportList *reports, PointerRNA *bezt_ptr, bool do_fast)
 {
   BezTriple *bezt = bezt_ptr->data;
   int index = (int)(bezt - fcu->bezt);
@@ -950,15 +958,18 @@ static void rna_FKeyframe_points_remove(FCurve *fcu,
 
   delete_fcurve_key(fcu, index, !do_fast);
   RNA_POINTER_INVALIDATE(bezt_ptr);
+
+  rna_tag_animation_update(bmain, id, true);
 }
 
-static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod,
-                                                          ReportList *reports,
-                                                          float frame)
+static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
+    ID *id, FModifier *fmod, Main *bmain, ReportList *reports, float frame)
 {
   FCM_EnvelopeData fed;
   FMod_Envelope *env = (FMod_Envelope *)fmod->data;
   int i;
+
+  rna_tag_animation_update(bmain, id, true);
 
   /* init template data */
   fed.min = -1.0f;
@@ -996,9 +1007,8 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod,
   return (env->data + i);
 }
 
-static void rna_FModifierEnvelope_points_remove(FModifier *fmod,
-                                                ReportList *reports,
-                                                PointerRNA *point)
+static void rna_FModifierEnvelope_points_remove(
+    ID *id, FModifier *fmod, Main *bmain, ReportList *reports, PointerRNA *point)
 {
   FCM_EnvelopeData *cp = point->data;
   FMod_Envelope *env = (FMod_Envelope *)fmod->data;
@@ -1010,6 +1020,8 @@ static void rna_FModifierEnvelope_points_remove(FModifier *fmod,
     BKE_report(reports, RPT_ERROR, "Control point not in Envelope F-Modifier");
     return;
   }
+
+  rna_tag_animation_update(bmain, id, true);
 
   if (env->totvert > 1) {
     /* move data after the removed point */
@@ -1034,19 +1046,9 @@ static void rna_FModifierEnvelope_points_remove(FModifier *fmod,
   RNA_POINTER_INVALIDATE(point);
 }
 
-static void rna_Keyframe_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Keyframe_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  ID *id = ptr->id.data;
-  AnimData *adt = BKE_animdata_from_id(id);
-
-  DEG_id_tag_update(id, ID_RECALC_ANIMATION);
-
-  if (adt != NULL) {
-    if (adt->action != NULL) {
-      /* action is separate datablock, needs separate tag */
-      DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
-    }
-  }
+  rna_tag_animation_update(bmain, (ID *)ptr->id.data, true);
 }
 
 #else
@@ -1217,7 +1219,7 @@ static void rna_def_fmodifier_envelope_control_points(BlenderRNA *brna, Property
 
   func = RNA_def_function(srna, "add", "rna_FModifierEnvelope_points_add");
   RNA_def_function_ui_description(func, "Add a control point to a FModifierEnvelope");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_float(func,
                        "frame",
                        0.0f,
@@ -1234,7 +1236,7 @@ static void rna_def_fmodifier_envelope_control_points(BlenderRNA *brna, Property
 
   func = RNA_def_function(srna, "remove", "rna_FModifierEnvelope_points_remove");
   RNA_def_function_ui_description(func, "Remove a control-point from an FModifierEnvelope");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func, "point", "FModifierEnvelopeControlPoint", "", "Control-point to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
@@ -2111,6 +2113,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "insert", "rna_FKeyframe_points_insert");
   RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   parm = RNA_def_float(func,
                        "frame",
                        0.0f,
@@ -2143,13 +2146,14 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
   RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   parm = RNA_def_int(
       func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
   RNA_def_function_ui_description(func, "Remove keyframe from an F-Curve");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -2361,6 +2365,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
   /* -- update / recalculate -- */
   func = RNA_def_function(srna, "update", "rna_FCurve_update_data_ex");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(
       func, "Ensure keyframes are sorted in chronological order and handles are set correctly");
 
