@@ -591,7 +591,7 @@ static void library_foreach_ID_link(Main *bmain,
         CALLBACK_INVOKE(object->parent, IDWALK_CB_NEVER_SELF);
         CALLBACK_INVOKE(object->track, IDWALK_CB_NEVER_SELF);
         /* object->proxy is refcounted, but not object->proxy_group... *sigh* */
-        CALLBACK_INVOKE(object->proxy, IDWALK_CB_NEVER_SELF);
+        CALLBACK_INVOKE(object->proxy, IDWALK_CB_USER | IDWALK_CB_NEVER_SELF);
         CALLBACK_INVOKE(object->proxy_group, IDWALK_CB_NOP);
 
         /* Special case!

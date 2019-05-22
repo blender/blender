@@ -729,7 +729,10 @@ static void lib_relocate_do(Main *bmain,
     }
     if (new_id) {
 #ifdef PRINT_DEBUG
-      printf("before remap, old_id users: %d, new_id users: %d\n", old_id->us, new_id->us);
+      printf("before remap of %s, old_id users: %d, new_id users: %d\n",
+             old_id->name,
+             old_id->us,
+             new_id->us);
 #endif
       BKE_libblock_remap_locked(bmain, old_id, new_id, remap_flags);
 
@@ -739,7 +742,10 @@ static void lib_relocate_do(Main *bmain,
       }
 
 #ifdef PRINT_DEBUG
-      printf("after remap, old_id users: %d, new_id users: %d\n", old_id->us, new_id->us);
+      printf("after remap of %s, old_id users: %d, new_id users: %d\n",
+             old_id->name,
+             old_id->us,
+             new_id->us);
 #endif
 
       /* In some cases, new_id might become direct link, remove parent of library in this case. */
