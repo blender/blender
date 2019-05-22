@@ -1026,15 +1026,16 @@ bool bc_has_animations(Object *ob)
   return false;
 }
 
-bool bc_has_animations(Scene *sce, LinkNode &export_set)
+bool bc_has_animations(Scene *sce, LinkNode *export_set)
 {
   LinkNode *node;
+  if (export_set) {
+    for (node = export_set; node; node = node->next) {
+      Object *ob = (Object *)node->link;
 
-  for (node = &export_set; node; node = node->next) {
-    Object *ob = (Object *)node->link;
-
-    if (bc_has_animations(ob))
-      return true;
+      if (bc_has_animations(ob))
+        return true;
+    }
   }
   return false;
 }

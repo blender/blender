@@ -235,7 +235,7 @@ extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
 extern void bc_enable_fcurves(bAction *act, char *bone_name);
 extern bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim);
 extern bool bc_is_animated(BCMatrixSampleMap &values);
-extern bool bc_has_animations(Scene *sce, LinkNode &node);
+extern bool bc_has_animations(Scene *sce, LinkNode *node);
 extern bool bc_has_animations(Object *ob);
 
 extern void bc_create_restpose_mat(const ExportSettings *export_settings,
