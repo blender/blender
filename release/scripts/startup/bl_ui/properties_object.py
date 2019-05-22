@@ -396,11 +396,11 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         ob = context.object
 
         col = flow.column()
-        col.prop(ob, "hide_viewport", text="Show in Viewports", invert_checkbox=True)
+        col.prop(ob, "hide_viewport", text="Show in Viewports", toggle=False, invert_checkbox=True)
         col = flow.column()
-        col.prop(ob, "hide_render", text="Show in Renders", invert_checkbox=True)
+        col.prop(ob, "hide_render", text="Show in Renders", toggle=False, invert_checkbox=True)
         col = flow.column()
-        col.prop(ob, "hide_select", text="Selectable", invert_checkbox=True)
+        col.prop(ob, "hide_select", text="Selectable", toggle=False, invert_checkbox=True)
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
