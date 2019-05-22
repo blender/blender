@@ -1883,6 +1883,62 @@ void BKE_main_id_clear_newpoins(Main *bmain)
 }
 
 
+static int id_refcount_recompute_callback(
+        void *user_data, struct ID *UNUSED(id_self), struct ID **id_pointer, int cb_flag)
+{
+	const bool do_linked_only = (bool)POINTER_AS_INT(user_data);
+
+	if (*id_pointer == NULL) {
+		return IDWALK_RET_NOP;
+	}
+	if (do_linked_only && !ID_IS_LINKED(*id_pointer)) {
+		return IDWALK_RET_NOP;
+	}
+
+	if (cb_flag & IDWALK_CB_USER) {
+		/* Do not touch to direct/indirect linked status here... */
+		id_us_plus_no_lib(*id_pointer);
+	}
+	if (cb_flag & IDWALK_CB_USER_ONE) {
+		id_us_ensure_real(*id_pointer);
+	}
+
+	return IDWALK_RET_NOP;
+}
+
+void BLE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a;
+
+	/* Reset usercount of all affected IDs. */
+	const int nbr_lb = a = set_listbasepointers(bmain, lbarray);
+	while (a--) {
+		for(id = lbarray[a]->first; id != NULL; id = id->next) {
+			if (!ID_IS_LINKED(id) && do_linked_only) {
+				continue;
+			}
+			id->us = ID_FAKE_USERS(id);
+			/* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
+			if (id->tag & LIB_TAG_EXTRAUSER) {
+				id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+				id_us_ensure_real(id);
+			}
+		}
+	}
+
+	/* Go over whole Main database to re-generate proper usercounts... */
+	a = nbr_lb;
+	while (a--) {
+		for(id = lbarray[a]->first; id != NULL; id = id->next) {
+			BKE_library_foreach_ID_link(
+			            bmain, id, id_refcount_recompute_callback, POINTER_FROM_INT((int)do_linked_only), IDWALK_READONLY);
+		}
+	}
+}
+
+
 static void library_make_local_copying_check(ID *id, GSet *loop_tags, MainIDRelations *id_relations, GSet *done_ids)
 {
 	if (BLI_gset_haskey(done_ids, id)) {

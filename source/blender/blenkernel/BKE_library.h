@@ -180,6 +180,8 @@ void BKE_main_id_flag_all(struct Main *bmain, const int flag, const bool value);
 
 void BKE_main_id_clear_newpoins(struct Main *bmain);
 
+void BLE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only);
+
 void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 
 /* (MAX_ID_NAME - 2) + 3 */
