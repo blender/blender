@@ -1815,37 +1815,30 @@ static int id_refcount_recompute_callback(void *user_data,
 
 void BLE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
   ID *id;
-  int a;
 
-  /* Reset usercount of all affected IDs. */
-  const int nbr_lb = a = set_listbasepointers(bmain, lbarray);
-  while (a--) {
-    for (id = lbarray[a]->first; id != NULL; id = id->next) {
-      if (!ID_IS_LINKED(id) && do_linked_only) {
-        continue;
-      }
-      id->us = ID_FAKE_USERS(id);
-      /* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
-      if (id->tag & LIB_TAG_EXTRAUSER) {
-        id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
-        id_us_ensure_real(id);
-      }
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_LINKED(id) && do_linked_only) {
+      continue;
+    }
+    id->us = ID_FAKE_USERS(id);
+    /* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
+    if (id->tag & LIB_TAG_EXTRAUSER) {
+      id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+      id_us_ensure_real(id);
     }
   }
+  FOREACH_MAIN_ID_END;
 
   /* Go over whole Main database to re-generate proper usercounts... */
-  a = nbr_lb;
-  while (a--) {
-    for (id = lbarray[a]->first; id != NULL; id = id->next) {
-      BKE_library_foreach_ID_link(bmain,
-                                  id,
-                                  id_refcount_recompute_callback,
-                                  POINTER_FROM_INT((int)do_linked_only),
-                                  IDWALK_READONLY);
-    }
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    BKE_library_foreach_ID_link(bmain,
+                                id,
+                                id_refcount_recompute_callback,
+                                POINTER_FROM_INT((int)do_linked_only),
+                                IDWALK_READONLY);
   }
+  FOREACH_MAIN_ID_END;
 }
 
 static void library_make_local_copying_check(ID *id,
@@ -1873,7 +1866,8 @@ static void library_make_local_copying_check(ID *id,
       }
 
       /* Shapekeys are considered 'private' to their owner ID here, and never tagged
-       * (since they cannot be linked), * so we have to switch effective parent to their owner. */
+       * (since they cannot be linked), * so we have to switch effective parent to their owner.
+       */
       if (GS(par_id->name) == ID_KE) {
         par_id = ((Key *)par_id)->from;
       }
@@ -1915,17 +1909,17 @@ static void library_make_local_copying_check(ID *id,
  *
  * \param bmain: Almost certainly global main.
  * \param lib: If not NULL, only make local datablocks from this library.
- * \param untagged_only: If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
- * \param set_fake: If true, set fake user on all localized data-blocks
+ * \param untagged_only: If true, only make local datablocks not tagged with
+ * LIB_TAG_PRE_EXISTING. \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
  */
 /* Note: Old (2.77) version was simply making (tagging) data-blocks as local,
  * without actually making any check whether they were also indirectly used or not...
  *
- * Current version uses regular id_make_local callback, with advanced pre-processing step to detect
- * all cases of IDs currently indirectly used, but which will be used by local data only once this
- * function is finished.  This allows to avoid any unneeded duplication of IDs, and hence all time
- * lost afterwards to remove orphaned linked data-blocks...
+ * Current version uses regular id_make_local callback, with advanced pre-processing step to
+ * detect all cases of IDs currently indirectly used, but which will be used by local data only
+ * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
+ * hence all time lost afterwards to remove orphaned linked data-blocks...
  */
 void BKE_library_make_local(Main *bmain,
                             const Library *lib,
@@ -2036,16 +2030,17 @@ void BKE_library_make_local(Main *bmain,
     ID *id = it->link;
 
     if (id->tag & LIB_TAG_DOIT) {
-      /* We know all users of this object are local or will be made fully local, even if currently
-       * there are some indirect usages. So instead of making a copy that we'll likely get rid of
-       * later, directly make that data block local.
+      /* We know all users of this object are local or will be made fully local, even if
+       * currently there are some indirect usages. So instead of making a copy that we'll likely
+       * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
       id_clear_lib_data_ex(bmain, id, true);
       BKE_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
     }
     else {
-      /* In this specific case, we do want to make ID local even if it has no local usage yet... */
+      /* In this specific case, we do want to make ID local even if it has no local usage yet...
+       */
       if (GS(id->name) == ID_OB) {
         /* Special case for objects because we don't want proxy pointers to be
          * cleared yet. This will happen down the road in this function.
@@ -2099,8 +2094,9 @@ void BKE_library_make_local(Main *bmain,
       BLI_ghash_insert(old_to_new_ids, id, id->newid);
     }
 
-    /* Special hack for groups... Thing is, since we can't instantiate them here, we need to ensure
-     * they remain 'alive' (only instantiation is a real group 'user'... *sigh* See T49722. */
+    /* Special hack for groups... Thing is, since we can't instantiate them here, we need to
+     * ensure they remain 'alive' (only instantiation is a real group 'user'... *sigh* See
+     * T49722. */
     if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
       id_us_ensure_real(id->newid);
     }
@@ -2168,11 +2164,11 @@ void BKE_library_make_local(Main *bmain,
 #endif
 
   /* This is probably more of a hack than something we should do here, but...
-   * Issue is, the whole copying + remapping done in complex cases above may leave pose-channels of
-   * armatures in complete invalid state (more precisely, the bone pointers of the pose-channels -
-   * very crappy cross-data-blocks relationship), se we tag it to be fully recomputed,
-   * but this does not seems to be enough in some cases, and evaluation code ends up trying to
-   * evaluate a not-yet-updated armature object's deformations.
+   * Issue is, the whole copying + remapping done in complex cases above may leave pose-channels
+   * of armatures in complete invalid state (more precisely, the bone pointers of the
+   * pose-channels - very crappy cross-data-blocks relationship), se we tag it to be fully
+   * recomputed, but this does not seems to be enough in some cases, and evaluation code ends up
+   * trying to evaluate a not-yet-updated armature object's deformations.
    * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL &&
@@ -2349,7 +2345,8 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
  * Main intended use is for debug asserts in places we cannot easily get rid of G_Main... */
 bool BKE_id_is_in_global_main(ID *id)
 {
-  /* We do not want to fail when id is NULL here, even though this is a bit strange behavior... */
+  /* We do not want to fail when id is NULL here, even though this is a bit strange behavior...
+   */
   return (id == NULL || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
 }
 
