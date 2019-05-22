@@ -1086,6 +1086,12 @@ static void free_iconfile_list(struct ListBase *list)
   }
 }
 
+#else
+
+void UI_icons_reload_internal_textures(void)
+{
+}
+
 #endif /* WITH_HEADLESS */
 
 int UI_iconfile_get_index(const char *filename)
