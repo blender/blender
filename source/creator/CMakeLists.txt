@@ -38,10 +38,9 @@ blender_include_dirs(
 )
 
 set(LIB
-  bf_blenfont
+  bf_blenloader
   bf_blenkernel
   bf_blenlib
-  bf_blenloader
   bf_depsgraph
   bf_dna
   bf_editor_datafiles
