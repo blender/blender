@@ -114,6 +114,9 @@ void BLO_update_defaults_userpref_blend(void)
 
   /* Default to left click select. */
   BKE_keyconfig_pref_set_select_mouse(&U, 0, true);
+
+  /* Increase a little for new scrubbing area. */
+  U.v2d_min_gridsize = 45;
 }
 
 /**
