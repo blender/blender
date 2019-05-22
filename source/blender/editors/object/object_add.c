@@ -2052,7 +2052,8 @@ static int convert_exec(bContext *C, wmOperator *op)
     FOREACH_SCENE_OBJECT_END;
   }
 
-  ListBase selected_editable_bases = CTX_data_collection_get(C, "selected_editable_bases");
+  ListBase selected_editable_bases;
+  CTX_data_selected_editable_bases(C, &selected_editable_bases);
 
   /* Ensure we get all meshes calculated with a sufficient data-mask,
    * needed since re-evaluating single modifiers causes bugs if they depend
