@@ -154,6 +154,16 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
 
+    sh_data->image_mask = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_paint_texture_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_paint_texture_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define TEXTURE_PAINT_MASK\n", NULL},
+    });
+
     sh_data->wire_select_overlay = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
                                  datatoc_common_globals_lib_glsl,
