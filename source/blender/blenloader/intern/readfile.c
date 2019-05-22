@@ -10775,6 +10775,15 @@ static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
 {
   expand_doit(fd, mainvar, ca->ipo);  // XXX deprecated - old animation system
 
+  for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
+    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
+      expand_doit(fd, mainvar, bgpic->ima);
+    }
+    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
+      expand_doit(fd, mainvar, bgpic->ima);
+    }
+  }
+
   if (ca->adt) {
     expand_animdata(fd, mainvar, ca->adt);
   }
