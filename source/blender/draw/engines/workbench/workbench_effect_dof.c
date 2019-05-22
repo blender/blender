@@ -231,7 +231,6 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 
   {
     const DRWContextState *draw_ctx = DRW_context_state_get();
-    const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
     RegionView3D *rv3d = draw_ctx->rv3d;
 
     /* Parameters */
@@ -242,14 +241,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
     float focal_len = cam->lens;
 
     /* TODO(fclem) deduplicate with eevee */
-
-    /* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
-     * unit.scale_length is how many meters per blender unit we have. We want to convert to blender
-     * units though because the shader reads coordinates in world space, which is in blender units.
-     * Note however that focus_distance is already in blender units and shall not be scaled here
-     * (see T48157). */
-    float scale = (scene_eval->unit.system) ? scene_eval->unit.scale_length : 1.0f;
-    float scale_camera = 0.001f / scale;
+    const float scale_camera = 0.001f;
     /* we want radius here for the aperture number  */
     float aperture = 0.5f * scale_camera * focal_len / fstop;
     float focal_len_scaled = scale_camera * focal_len;

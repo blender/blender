@@ -119,13 +119,7 @@ static void GPENCIL_dof_nearfar(Object *camera, float coc, float nearfar[2])
   float focus_dist = BKE_camera_object_dof_distance(camera);
   float focal_len = cam->lens;
 
-  /* This is factor that converts to the scene scale. focal length and sensor are expressed in mm
-   * unit.scale_length is how many meters per blender unit we have. We want to convert to blender
-   * units though because the shader reads coordinates in world space, which is in blender units.
-   * Note however that focus_distance is already in blender units and shall not be scaled here
-   * (see T48157). */
-  float scale = (scene->unit.system) ? scene->unit.scale_length : 1.0f;
-  float scale_camera = 0.001f / scale;
+  const float scale_camera = 0.001f;
   /* we want radius here for the aperture number  */
   float aperture_scaled = 0.5f * scale_camera * focal_len / fstop;
   float focal_len_scaled = scale_camera * focal_len;
