@@ -61,6 +61,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {(char *)"depsgraph_update_pre", (char *)"on depsgraph update (pre)"},
     {(char *)"depsgraph_update_post", (char *)"on depsgraph update (post)"},
     {(char *)"version_update", (char *)"on ending the versioning code"},
+    {(char *)"load_factory_preferences_post", (char *)"on loading factory preferences (after)"},
     {(char *)"load_factory_startup_post", (char *)"on loading factory startup (after)"},
 
 /* sets the permanent tag */

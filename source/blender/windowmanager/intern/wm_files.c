@@ -491,7 +491,7 @@ static void wm_file_read_post(bContext *C,
                               const bool is_startup_file,
                               const bool is_factory_startup,
                               const bool use_data,
-                              const bool UNUSED(use_userdef),
+                              const bool use_userdef,
                               const bool reset_app_template)
 {
   bool addons_loaded = false;
@@ -537,15 +537,23 @@ static void wm_file_read_post(bContext *C,
 
   Main *bmain = CTX_data_main(C);
 
-  if (use_data) {
-    WM_operatortype_last_properties_clear_all();
+  if (use_userdef) {
+    if (is_factory_startup) {
+      BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_FACTORY_USERDEF_POST);
+    }
+  }
 
+  if (use_data) {
     /* important to do before NULL'ing the context */
     BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
     BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
     if (is_factory_startup) {
       BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
+  }
+
+  if (use_data) {
+    WM_operatortype_last_properties_clear_all();
 
     /* After load post, so for example the driver namespace can be filled
      * before evaluating the depsgraph. */
