@@ -855,7 +855,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
   /* Correct or tweak some pointers which are not taken care by foreach
    * from above. */
   update_id_after_copy(depsgraph, id_node, id_orig, id_cow);
-  id_cow->recalc = id_orig->recalc | id_cow_recalc;
+  id_cow->recalc = id_cow_recalc;
   return id_cow;
 }
 

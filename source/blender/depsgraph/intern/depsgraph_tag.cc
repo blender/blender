@@ -249,7 +249,6 @@ void depsgraph_id_tag_copy_on_write(Depsgraph *graph, IDNode *id_node, eUpdateSo
 {
   ComponentNode *cow_comp = id_node->find_component(NodeType::COPY_ON_WRITE);
   cow_comp->tag_update(graph, update_source);
-  id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
 }
 
 void depsgraph_tag_component(Depsgraph *graph,
@@ -357,16 +356,16 @@ static void graph_id_tag_update_single_flag(Main *bmain,
     /* TODO(sergey): Shall we raise some panic here? */
     return;
   }
-  /* Tag ID recalc flag. */
-  DepsNodeFactory *factory = type_get_factory(component_type);
-  BLI_assert(factory != NULL);
-  id->recalc |= factory->id_recalc_tag();
   /* Some sanity checks before moving forward. */
   if (id_node == NULL) {
     /* Happens when object is tagged for update and not yet in the
      * dependency graph (but will be after relations update). */
     return;
   }
+  /* Tag ID recalc flag. */
+  DepsNodeFactory *factory = type_get_factory(component_type);
+  BLI_assert(factory != NULL);
+  id_node->id_cow->recalc |= factory->id_recalc_tag();
   /* Tag corresponding dependency graph operation for update. */
   if (component_type == NodeType::ID_REF) {
     id_node->tag_update(graph, update_source);
@@ -440,7 +439,7 @@ void deg_graph_node_tag_zero(Main *bmain,
   }
   ID *id = id_node->id_orig;
   /* TODO(sergey): Which recalc flags to set here? */
-  id->recalc |= ID_RECALC_ALL & ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION);
+  id_node->id_cow->recalc |= ID_RECALC_ALL & ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION);
   GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, id_node->components) {
     if (comp_node->type == NodeType::ANIMATION) {
       continue;
@@ -579,7 +578,6 @@ void graph_id_tag_update(
   if (flag == 0) {
     deg_graph_node_tag_zero(bmain, graph, id_node, update_source);
   }
-  id->recalc |= flag;
   int current_flag = flag;
   while (current_flag != 0) {
     IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_i(&current_flag));
@@ -744,16 +742,11 @@ static void deg_graph_clear_id_node_func(void *__restrict data_v,
   DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(data_v);
   DEG::IDNode *id_node = deg_graph->id_nodes[i];
   id_node->id_cow->recalc &= ~ID_RECALC_ALL;
-  id_node->id_orig->recalc &= ~ID_RECALC_ALL;
 
   /* Clear embedded node trees too. */
   bNodeTree *ntree_cow = ntreeFromID(id_node->id_cow);
   if (ntree_cow) {
     ntree_cow->id.recalc &= ~ID_RECALC_ALL;
-  }
-  bNodeTree *ntree_orig = ntreeFromID(id_node->id_orig);
-  if (ntree_orig) {
-    ntree_orig->id.recalc &= ~ID_RECALC_ALL;
   }
 }
 
