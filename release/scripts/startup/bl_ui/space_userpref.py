@@ -93,7 +93,7 @@ class USERPREF_MT_save_load(Menu):
         sub_revert.operator("wm.read_userpref", text="Revert to Saved")
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.read_factory_userpref", text="Reset to Defaults")
+        layout.operator("wm.read_factory_userpref", text="Load Factory Settings")
 
 
 class USERPREF_PT_save_preferences(Panel):
