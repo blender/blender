@@ -220,7 +220,6 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
 
             layout.operator_context = 'INVOKE_DEFAULT'
-            # layout.menu("SEQUENCER_MT_frame")
             layout.menu("SEQUENCER_MT_navigation")
             layout.menu("SEQUENCER_MT_range")
 
@@ -285,9 +284,9 @@ class SEQUENCER_MT_select_handle(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("sequencer.select_handles", text="Both").side = 'BOTH'
         layout.operator("sequencer.select_handles", text="Left").side = 'LEFT'
         layout.operator("sequencer.select_handles", text="Right").side = 'RIGHT'
-        layout.operator("sequencer.select_handles", text="Both").side = 'BOTH'
 
 
 class SEQUENCER_MT_select_channel(Menu):
@@ -316,6 +315,7 @@ class SEQUENCER_MT_select_playhead(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         props = layout.operator("sequencer.select", text="Left")
         props.left_right = 'LEFT'
         props.linked_time = True
@@ -611,6 +611,29 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
         layout.operator("sequencer.unmute", text="Unmute Deselected Strips").unselected = True
 
 
+class SEQUENCER_MT_strip_effect(Menu):
+    bl_label = "Effect Strip"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_menu_enum("sequencer.change_effect_input", "swap")
+        layout.operator_menu_enum("sequencer.change_effect_type", "type")
+        layout.operator("sequencer.reassign_inputs")
+        layout.operator("sequencer.swap_inputs")
+
+
+class SEQUENCER_MT_strip_movie(Menu):
+    bl_label = "Movie Strip"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("sequencer.rendersize")
+        layout.operator("sequencer.images_separate")
+        layout.operator("sequencer.deinterlace_selected_movies")
+
+
 class SEQUENCER_MT_strip(Menu):
     bl_label = "Strip"
 
@@ -652,22 +675,22 @@ class SEQUENCER_MT_strip(Menu):
                     'GAUSSIAN_BLUR', 'TEXT',
             }:
                 layout.separator()
-                layout.operator_menu_enum("sequencer.change_effect_input", "swap")
-                layout.operator_menu_enum("sequencer.change_effect_type", "type")
-                layout.operator("sequencer.reassign_inputs")
-                layout.operator("sequencer.swap_inputs")
-            elif stype in {'IMAGE', 'MOVIE'}:
+                layout.menu("SEQUENCER_MT_strip_effect")
+            elif stype in {'MOVIE'}:
+                layout.separator()
+                layout.menu("SEQUENCER_MT_strip_movie")
+            elif stype in {'IMAGE'}:
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
-                layout.operator("sequencer.deinterlace_selected_movies")
             elif stype == 'META':
                 layout.separator()
+                layout.operator("sequencer.meta_make")
                 layout.operator("sequencer.meta_separate")
-
-        layout.separator()
-        layout.operator("sequencer.meta_make")
-        layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+                layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+            if stype != 'META':
+                layout.separator()
+                layout.operator("sequencer.meta_make")
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_input")
@@ -708,11 +731,8 @@ class SEQUENCER_MT_context_menu(Menu):
         if strip:
             stype = strip.type
 
-            if stype == 'META':
-                layout.separator()
-                layout.operator("sequencer.meta_separate")
-
             if stype != 'SOUND':
+
                 layout.separator()
                 layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
                 layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
@@ -721,14 +741,35 @@ class SEQUENCER_MT_context_menu(Menu):
                     layout.separator()
                     col = layout.column()
                     col.menu("SEQUENCER_MT_add_transitions", text="Add Transition")
+
             elif selected_sequences_len(context) >= 2:
                 layout.separator()
                 layout.operator("sequencer.crossfade_sounds", text="Crossfade Sounds")
 
-        layout.separator()
-
-        layout.operator("sequencer.meta_make")
-        layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+            if stype in {
+                    'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                    'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
+                    'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
+                    'GAUSSIAN_BLUR', 'TEXT',
+            }:
+                layout.separator()
+                layout.menu("SEQUENCER_MT_strip_effect")
+            elif stype in {'MOVIE'}:
+                layout.separator()
+                layout.menu("SEQUENCER_MT_strip_movie")
+            elif stype in {'IMAGE'}:
+                layout.separator()
+                layout.operator("sequencer.rendersize")
+                layout.operator("sequencer.images_separate")
+            elif stype == 'META':
+                layout.separator()
+                layout.operator("sequencer.meta_make")
+                layout.operator("sequencer.meta_separate")
+                layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+            if stype != 'META':
+                layout.separator()
+                layout.operator("sequencer.meta_make")
+                layout.operator("sequencer.meta_toggle", text="Toggle Meta")
 
         layout.separator()
 
@@ -944,7 +985,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             # The multicam strip needs at least 2 strips to be useful
             if strip_channel > 2:
                 BT_ROW = 4
-                # col.alignment = 'RIGHT'
                 col.label(text="    Cut to")
                 row = col.row()
 
@@ -1903,6 +1943,8 @@ classes = (
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
     SEQUENCER_MT_add_empty,
+    SEQUENCER_MT_strip_effect,
+    SEQUENCER_MT_strip_movie,
     SEQUENCER_MT_strip,
     SEQUENCER_MT_strip_transform,
     SEQUENCER_MT_strip_input,
