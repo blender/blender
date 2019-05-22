@@ -226,21 +226,21 @@ static void rna_userdef_dpi_update(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL); /* refresh region sizes */
 }
 
-static void rna_userdef_update_ui(Main *UNUSED(bmain),
-                                  Scene *UNUSED(scene),
-                                  PointerRNA *UNUSED(ptr))
+static void rna_userdef_screen_update(Main *UNUSED(bmain),
+                                      Scene *UNUSED(scene),
+                                      PointerRNA *UNUSED(ptr))
 {
   WM_main_add_notifier(NC_WINDOW, NULL);
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL); /* refresh region sizes */
 }
 
-static void rna_userdef_update_ui_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   if (U.uiflag & USER_HEADER_FROM_PREF) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       BKE_screen_header_alignment_reset(screen);
     }
-    rna_userdef_update_ui(bmain, scene, ptr);
+    rna_userdef_screen_update(bmain, scene, ptr);
   }
 }
 
@@ -4059,7 +4059,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_LOCK_UI_LAYOUT);
   RNA_def_property_ui_text(
       prop, "Editor Corner Splitting", "Split and join editors by dragging from corners");
-  RNA_def_property_update(prop, 0, "rna_userdef_update_ui");
+  RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
 
   /* menus */
   prop = RNA_def_property(srna, "use_mouse_over_open", PROP_BOOLEAN, PROP_NONE);
@@ -4160,7 +4160,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, header_align_items);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
   RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
-  RNA_def_property_update(prop, 0, "rna_userdef_update_ui_header_default");
+  RNA_def_property_update(prop, 0, "rna_userdef_screen_update_header_default");
 
   static const EnumPropertyItem text_hinting_items[] = {
       {0, "AUTO", 0, "Auto", ""},
