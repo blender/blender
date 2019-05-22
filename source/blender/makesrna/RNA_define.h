@@ -48,6 +48,7 @@ void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
 void RNA_define_verify_sdna(bool verify);
 void RNA_define_animate_sdna(bool animate);
+void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);
 
 void RNA_init(void);
 void RNA_exit(void);

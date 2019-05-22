@@ -116,6 +116,16 @@ typedef struct BlenderDefRNA {
   ListBase allocs;
   struct StructRNA *laststruct;
   int error, silent, preprocess, verify, animate;
+  /* Keep last. */
+#ifndef RNA_RUNTIME
+  struct {
+    /** #RNA_def_property_update */
+    struct {
+      int noteflag;
+      const char *updatefunc;
+    } property_update;
+  } fallback;
+#endif
 } BlenderDefRNA;
 
 extern BlenderDefRNA DefRNA;
