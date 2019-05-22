@@ -184,6 +184,31 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
   value[2] = userdef->subversionfile;
 }
 
+#  define USERDEF_TAG_DIRTY rna_userdef_is_dirty_update_impl()
+
+/* Use single function so we can more easily breakpoint it. */
+void rna_userdef_is_dirty_update_impl(void)
+{
+  /* We can't use 'ptr->data' because this update function
+   * is used for themes and other nested data. */
+  if (U.runtime.is_dirty == false) {
+    U.runtime.is_dirty = true;
+    WM_main_add_notifier(NC_WINDOW, NULL);
+  }
+}
+
+/**
+ * Use as a fallback update handler,
+ * never use 'ptr' unless it's type is checked.
+ */
+void rna_userdef_is_dirty_update(Main *UNUSED(bmain),
+                                 Scene *UNUSED(scene),
+                                 PointerRNA *UNUSED(ptr))
+{
+  rna_userdef_is_dirty_update_impl();
+}
+
+/** Take care not to use this if we expet 'is_dirty' to be tagged. */
 static void rna_userdef_ui_update(Main *UNUSED(bmain),
                                   Scene *UNUSED(scene),
                                   PointerRNA *UNUSED(ptr))
@@ -193,11 +218,8 @@ static void rna_userdef_ui_update(Main *UNUSED(bmain),
 
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-  /* We can't use 'ptr->data' because this update function
-   * is used for themes and other nested data. */
-  U.runtime.is_dirty = true;
-
   WM_main_add_notifier(NC_WINDOW, NULL);
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -224,6 +246,7 @@ static void rna_userdef_dpi_update(Main *UNUSED(bmain),
 
   WM_main_add_notifier(NC_WINDOW, NULL);             /* full redraw */
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL); /* refresh region sizes */
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_screen_update(Main *UNUSED(bmain),
@@ -232,6 +255,7 @@ static void rna_userdef_screen_update(Main *UNUSED(bmain),
 {
   WM_main_add_notifier(NC_WINDOW, NULL);
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL); /* refresh region sizes */
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -242,6 +266,7 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
     }
     rna_userdef_screen_update(bmain, scene, ptr);
   }
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_language_update(Main *UNUSED(bmain),
@@ -251,6 +276,7 @@ static void rna_userdef_language_update(Main *UNUSED(bmain),
   BLF_cache_clear();
   BLT_lang_set(NULL);
   UI_reinit_font();
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
@@ -262,6 +288,8 @@ static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain),
     G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
   else
     G.f |= G_FLAG_SCRIPT_AUTOEXEC;
+
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -271,6 +299,8 @@ static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
     G.fileflags |= G_FILE_NO_UI;
   else
     G.fileflags &= ~G_FILE_NO_UI;
+
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -323,6 +353,7 @@ static void rna_userdef_tablet_api_update(Main *UNUSED(bmain),
                                           PointerRNA *UNUSED(ptr))
 {
   WM_init_tablet_api();
+  USERDEF_TAG_DIRTY;
 }
 
 #  ifdef WITH_INPUT_NDOF
@@ -332,6 +363,7 @@ static void rna_userdef_ndof_deadzone_update(Main *UNUSED(bmain),
 {
   UserDef *userdef = ptr->data;
   WM_ndof_deadzone_set(userdef->ndof_deadzone);
+  USERDEF_TAG_DIRTY;
 }
 #  endif
 
@@ -341,6 +373,7 @@ static void rna_userdef_keyconfig_reload_update(bContext *C,
                                                 PointerRNA *UNUSED(ptr))
 {
   WM_keyconfig_reload(C);
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
@@ -410,6 +443,7 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
   BKE_sound_init(bmain);
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_Userdef_memcache_update(Main *UNUSED(bmain),
@@ -417,6 +451,7 @@ static void rna_Userdef_memcache_update(Main *UNUSED(bmain),
                                         PointerRNA *UNUSED(ptr))
 {
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -459,7 +494,7 @@ static bAddon *rna_userdef_addon_new(void)
   ListBase *addons_list = &U.addons;
   bAddon *addon = BKE_addon_new();
   BLI_addtail(addons_list, addon);
-  U.runtime.is_dirty = true;
+  USERDEF_TAG_DIRTY;
   return addon;
 }
 
@@ -474,14 +509,14 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
   BLI_remlink(addons_list, addon);
   BKE_addon_free(addon);
   RNA_POINTER_INVALIDATE(addon_ptr);
-  U.runtime.is_dirty = true;
+  USERDEF_TAG_DIRTY;
 }
 
 static bPathCompare *rna_userdef_pathcompare_new(void)
 {
   bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
-  U.runtime.is_dirty = true;
+  USERDEF_TAG_DIRTY;
   return path_cmp;
 }
 
@@ -495,7 +530,7 @@ static void rna_userdef_pathcompare_remove(ReportList *reports, PointerRNA *path
 
   BLI_freelinkN(&U.autoexec_paths, path_cmp);
   RNA_POINTER_INVALIDATE(path_cmp_ptr);
-  U.runtime.is_dirty = true;
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_temp_update(Main *UNUSED(bmain),
@@ -503,6 +538,7 @@ static void rna_userdef_temp_update(Main *UNUSED(bmain),
                                     PointerRNA *UNUSED(ptr))
 {
   BKE_tempdir_init(U.tempdir);
+  USERDEF_TAG_DIRTY;
 }
 
 static void rna_userdef_text_update(Main *UNUSED(bmain),
@@ -512,6 +548,7 @@ static void rna_userdef_text_update(Main *UNUSED(bmain),
   BLF_cache_clear();
   UI_reinit_font();
   WM_main_add_notifier(NC_WINDOW, NULL);
+  USERDEF_TAG_DIRTY;
 }
 
 static PointerRNA rna_Theme_space_generic_get(PointerRNA *ptr)
@@ -578,6 +615,7 @@ static void rna_userdef_opensubdiv_update(Main *bmain,
   for (object = bmain->objects.first; object; object = object->id.next) {
     DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
   }
+  USERDEF_TAG_DIRTY;
 }
 
 #  endif
@@ -5574,6 +5612,8 @@ static void rna_def_userdef_autoexec_path_collection(BlenderRNA *brna, PropertyR
 
 void RNA_def_userdef(BlenderRNA *brna)
 {
+  RNA_define_fallback_property_update(0, "rna_userdef_is_dirty_update");
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -5734,6 +5774,8 @@ void RNA_def_userdef(BlenderRNA *brna)
   rna_def_userdef_studiolights(brna);
   rna_def_userdef_studiolight(brna);
   rna_def_userdef_pathcompare(brna);
+
+  RNA_define_fallback_property_update(0, NULL);
 }
 
 #endif

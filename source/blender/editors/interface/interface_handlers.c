@@ -556,22 +556,9 @@ static void ui_but_update_preferences_dirty(uiBut *but)
   /* Not very elegant, but ensures preference changes force re-save. */
   bool tag = false;
   if (but->rnaprop) {
-    if (but->rnapoin.data == &U) {
-      /* Exclude navigation from setting dirty. */
-      extern PropertyRNA rna_Preferences_active_section;
-      if (!ELEM(but->rnaprop, &rna_Preferences_active_section)) {
-        tag = true;
-      }
-    }
-    else {
-      StructRNA *base = RNA_struct_base(but->rnapoin.type);
-      if (ELEM(base,
-               &RNA_AddonPreferences,
-               &RNA_KeyConfigPreferences,
-               &RNA_KeyMapItem,
-               &RNA_WalkNavigation)) {
-        tag = true;
-      }
+    StructRNA *base = RNA_struct_base(but->rnapoin.type);
+    if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences)) {
+      tag = true;
     }
   }
 

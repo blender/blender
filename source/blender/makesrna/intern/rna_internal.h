@@ -351,6 +351,10 @@ bool rna_GPencil_datablocks_obdata_poll(struct PointerRNA *ptr, const struct Poi
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 char *rna_Node_ImageUser_path(struct PointerRNA *ptr);
 
+/* Set U.is_dirty and redraw. */
+void rna_userdef_is_dirty_update_impl(void);
+void rna_userdef_is_dirty_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+
 /* API functions */
 
 void RNA_api_action(StructRNA *srna);
