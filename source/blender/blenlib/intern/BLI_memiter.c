@@ -239,6 +239,10 @@ static void memiter_free_data(BLI_memiter *mi)
   BLI_memiter_chunk *chunk = mi->head;
   while (chunk) {
     BLI_memiter_chunk *chunk_next = chunk->next;
+
+    /* Unpoison memory because MEM_freeN might overwrite it. */
+    ASAN_UNPOISON_MEMORY_REGION(chunk, MEM_allocN_len(chunk));
+
     MEM_freeN(chunk);
     chunk = chunk_next;
   }
