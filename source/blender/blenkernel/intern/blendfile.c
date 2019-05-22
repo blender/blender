@@ -359,6 +359,16 @@ static void setup_app_data(bContext *C,
     /* TODO(sergey): Can this be also move above? */
     RE_FreeAllPersistentData();
   }
+
+  if (mode == LOAD_UNDO) {
+    /* In undo/redo case, we do a whole lot of magic tricks to avoid having to re-read linked
+     * datablocks from libraries (since those are not supposed to change). Unfortunately, that
+     * means that we do not reset their user count, however we do increase that one when doing
+     * lib_link on local IDs using linked ones.
+     * There is no real way to predict amount of changes here, so we have to fully redo
+     * refcounting . */
+    BLE_main_id_refcount_recompute(bmain, true);
+  }
 }
 
 static void setup_app_blend_file_data(bContext *C,
