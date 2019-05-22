@@ -1641,6 +1641,7 @@ struct PanelCategoryDyn *UI_panel_category_find(struct ARegion *ar, const char *
 struct PanelCategoryStack *UI_panel_category_active_find(struct ARegion *ar, const char *idname);
 const char *UI_panel_category_active_get(struct ARegion *ar, bool set_fallback);
 void UI_panel_category_active_set(struct ARegion *ar, const char *idname);
+void UI_panel_category_active_set_default(struct ARegion *ar, const char *idname);
 struct PanelCategoryDyn *UI_panel_category_find_mouse_over_ex(struct ARegion *ar,
                                                               const int x,
                                                               const int y);

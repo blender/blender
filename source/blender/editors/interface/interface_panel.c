@@ -1676,28 +1676,7 @@ PanelCategoryStack *UI_panel_category_active_find(ARegion *ar, const char *idnam
   return BLI_findstring(&ar->panels_category_active, idname, offsetof(PanelCategoryStack, idname));
 }
 
-const char *UI_panel_category_active_get(ARegion *ar, bool set_fallback)
-{
-  PanelCategoryStack *pc_act;
-
-  for (pc_act = ar->panels_category_active.first; pc_act; pc_act = pc_act->next) {
-    if (UI_panel_category_find(ar, pc_act->idname)) {
-      return pc_act->idname;
-    }
-  }
-
-  if (set_fallback) {
-    PanelCategoryDyn *pc_dyn = ar->panels_category.first;
-    if (pc_dyn) {
-      UI_panel_category_active_set(ar, pc_dyn->idname);
-      return pc_dyn->idname;
-    }
-  }
-
-  return NULL;
-}
-
-void UI_panel_category_active_set(ARegion *ar, const char *idname)
+static void ui_panel_category_active_set(ARegion *ar, const char *idname, bool fallback)
 {
   ListBase *lb = &ar->panels_category_active;
   PanelCategoryStack *pc_act = UI_panel_category_active_find(ar, idname);
@@ -1710,7 +1689,13 @@ void UI_panel_category_active_set(ARegion *ar, const char *idname)
     BLI_strncpy(pc_act->idname, idname, sizeof(pc_act->idname));
   }
 
-  BLI_addhead(lb, pc_act);
+  if (fallback) {
+    /* For fallbacks, add at the end so explicitly chosen categories have priority. */
+    BLI_addtail(lb, pc_act);
+  }
+  else {
+    BLI_addhead(lb, pc_act);
+  }
 
   /* validate all active panels, we could do this on load,
    * they are harmless - but we should remove somewhere.
@@ -1727,6 +1712,39 @@ void UI_panel_category_active_set(ARegion *ar, const char *idname)
       }
     }
   }
+}
+
+void UI_panel_category_active_set(ARegion *ar, const char *idname)
+{
+  ui_panel_category_active_set(ar, idname, false);
+}
+
+void UI_panel_category_active_set_default(ARegion *ar, const char *idname)
+{
+  if (!UI_panel_category_active_find(ar, idname)) {
+    ui_panel_category_active_set(ar, idname, true);
+  }
+}
+
+const char *UI_panel_category_active_get(ARegion *ar, bool set_fallback)
+{
+  PanelCategoryStack *pc_act;
+
+  for (pc_act = ar->panels_category_active.first; pc_act; pc_act = pc_act->next) {
+    if (UI_panel_category_find(ar, pc_act->idname)) {
+      return pc_act->idname;
+    }
+  }
+
+  if (set_fallback) {
+    PanelCategoryDyn *pc_dyn = ar->panels_category.first;
+    if (pc_dyn) {
+      ui_panel_category_active_set(ar, pc_dyn->idname, true);
+      return pc_dyn->idname;
+    }
+  }
+
+  return NULL;
 }
 
 PanelCategoryDyn *UI_panel_category_find_mouse_over_ex(ARegion *ar, const int x, const int y)

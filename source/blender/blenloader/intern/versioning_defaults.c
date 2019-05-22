@@ -159,13 +159,16 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
       for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-        /* Remove all stored panels, we want to use defaults
-         * (order, open/closed) as defined by UI code here! */
-        BKE_area_region_panels_free(&ar->panels);
+        if (builtin_template) {
+          /* Remove all stored panels, we want to use defaults
+           * (order, open/closed) as defined by UI code here! */
+          BKE_area_region_panels_free(&ar->panels);
+          BLI_freelistN(&ar->panels_category_active);
 
-        /* Reset size so it uses consistent defaults from the region types. */
-        ar->sizex = 0;
-        ar->sizey = 0;
+          /* Reset size so it uses consistent defaults from the region types. */
+          ar->sizex = 0;
+          ar->sizey = 0;
+        }
 
         /* some toolbars have been saved as initialized,
          * we don't want them to have odd zoom-level or scrolling set, see: T47047 */

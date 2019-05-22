@@ -729,6 +729,7 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *ar)
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
   WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
+  UI_panel_category_active_set_default(ar, "Strip");
   ED_region_panels_init(wm, ar);
 }
 
