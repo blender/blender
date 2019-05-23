@@ -95,10 +95,10 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input,
     const float scx = scaleX[0];
     const float scy = scaleY[0];
 
-    newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / scx;
-    newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / scx;
-    newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / scy;
-    newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / scy;
+    newInput.xmax = this->m_centerX + (input->xmax - this->m_centerX) / scx + 1;
+    newInput.xmin = this->m_centerX + (input->xmin - this->m_centerX) / scx - 1;
+    newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / scy + 1;
+    newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / scy - 1;
   }
   else {
     newInput.xmax = this->getWidth();
