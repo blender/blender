@@ -292,6 +292,30 @@ class _defs_transform:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def transform():
+        def draw_settings(context, layout, tool):
+            if not layout.use_property_split:
+                layout.label(text="Gizmos:")
+            tool_settings = context.tool_settings
+
+            props = tool.gizmo_group_properties("VIEW3D_GGT_xform_gizmo")
+            layout.prop(props, "drag_action")
+
+            _template_widget.VIEW3D_GGT_xform_gizmo.draw_settings_with_index(context, layout, 1)
+
+        return dict(
+            idname="builtin.transform",
+            label="Transform",
+            description=(
+                "Supports any combination of grab, rotate & scale at once"
+            ),
+            icon="ops.transform.transform",
+            widget="VIEW3D_GGT_xform_gizmo",
+            keymap="3D View Tool: Transform",
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_view3d_select:
 
@@ -1685,6 +1709,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
+        _defs_transform.transform,
         _defs_transform.translate,
         _defs_transform.rotate,
         (
