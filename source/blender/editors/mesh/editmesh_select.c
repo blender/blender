@@ -279,7 +279,7 @@ BMElem *EDBM_select_id_bm_elem_get(struct EDBMSelectID_Context *sel_id_ctx,
                                    const uint sel_id,
                                    uint *r_base_index)
 {
-  char elem_type;
+  char elem_type = 0;
   uint elem_id;
   uint base_index = 0;
   for (; base_index < sel_id_ctx->bases_len; base_index++) {
@@ -504,7 +504,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   }
   else {
     struct NearestVertUserData data = {{0}};
-    const struct NearestVertUserData_Hit *hit;
+    const struct NearestVertUserData_Hit *hit = NULL;
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
     BMesh *prev_select_bm = NULL;
 
@@ -547,6 +547,10 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
         *r_dist = hit->dist;
         prev_select_bm = vc->em->bm;
       }
+    }
+
+    if (hit == NULL) {
+      return NULL;
     }
 
     prev_select.index = hit->index;
@@ -751,7 +755,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   }
   else {
     struct NearestEdgeUserData data = {{0}};
-    const struct NearestEdgeUserData_Hit *hit;
+    const struct NearestEdgeUserData_Hit *hit = NULL;
     /* interpolate along the edge before doing a clipping plane test */
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT & ~V3D_PROJ_TEST_CLIP_BB;
     BMesh *prev_select_bm = NULL;
@@ -796,6 +800,10 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
         *r_dist = hit->dist;
         prev_select_bm = vc->em->bm;
       }
+    }
+
+    if (hit == NULL) {
+      return NULL;
     }
 
     if (r_dist_center) {
@@ -960,7 +968,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
   }
   else {
     struct NearestFaceUserData data = {{0}};
-    const struct NearestFaceUserData_Hit *hit;
+    const struct NearestFaceUserData_Hit *hit = NULL;
     const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_DEFAULT;
     BMesh *prev_select_bm = NULL;
 
@@ -1003,6 +1011,10 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
         *r_dist = hit->dist;
         prev_select_bm = vc->em->bm;
       }
+    }
+
+    if (hit == NULL) {
+      return NULL;
     }
 
     if (r_dist_center) {
