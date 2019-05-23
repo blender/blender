@@ -938,6 +938,11 @@ static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *va
 
 #else
 
+#  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
+    RNA_define_fallback_property_update(0, "rna_userdef_is_dirty_update")
+
+#  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE RNA_define_fallback_property_update(0, NULL)
+
 /* TODO(sergey): This technically belongs to blenlib, but we don't link
  * makesrna against it.
  */
@@ -3775,12 +3780,16 @@ static void rna_def_userdef_addon_pref(BlenderRNA *brna)
   RNA_def_struct_idprops_func(srna, "rna_AddonPref_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
+  USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
+
   /* registration */
   RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "module");
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_define_verify_sdna(1);
+
+  USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE;
 }
 
 static void rna_def_userdef_dothemes(BlenderRNA *brna)
@@ -5612,7 +5621,7 @@ static void rna_def_userdef_autoexec_path_collection(BlenderRNA *brna, PropertyR
 
 void RNA_def_userdef(BlenderRNA *brna)
 {
-  RNA_define_fallback_property_update(0, "rna_userdef_is_dirty_update");
+  USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE;
 
   StructRNA *srna;
   PropertyRNA *prop;
@@ -5775,7 +5784,7 @@ void RNA_def_userdef(BlenderRNA *brna)
   rna_def_userdef_studiolight(brna);
   rna_def_userdef_pathcompare(brna);
 
-  RNA_define_fallback_property_update(0, NULL);
+  USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
 }
 
 #endif
