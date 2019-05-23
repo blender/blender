@@ -2732,22 +2732,19 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           }
         }
         else {
-          /* Either we operate on a single highlighted item
-           * or groups attached to the selected gizmos. */
+          /* Handle highlight gizmo. */
+          if (gz != NULL) {
+            wmGizmoGroup *gzgroup = gz->parent_gzgroup;
+            wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+            action |= wm_handlers_do_keymap_with_gizmo_handler(
+                C, event, handlers, handler, gzgroup, keymap, do_debug_handler);
+          }
 
-          wmGizmoGroup *gzgroup_highlight = gz ? gz->parent_gzgroup : NULL;
           /* Don't use from now on. */
           gz = NULL;
 
-          if (ISMOUSE(event->type)) {
-            if (gzgroup_highlight) {
-              wmGizmoGroup *gzgroup = gzgroup_highlight;
-              wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
-              action |= wm_handlers_do_keymap_with_gizmo_handler(
-                  C, event, handlers, handler, gzgroup, keymap, do_debug_handler);
-            }
-          }
-          else {
+          /* Fallback to selected gizmo (when un-handled). */
+          if ((action & WM_HANDLER_BREAK) == 0) {
             if (WM_gizmomap_is_any_selected(gzmap)) {
               const ListBase *groups = WM_gizmomap_group_list(gzmap);
               for (wmGizmoGroup *gzgroup = groups->first; gzgroup; gzgroup = gzgroup->next) {
