@@ -5352,6 +5352,15 @@ static void seq_load_apply(Main *bmain, Scene *scene, Sequence *seq, SeqLoadInfo
   }
 }
 
+static Strip *seq_strip_alloc()
+{
+  Strip *strip = MEM_callocN(sizeof(Strip), "strip");
+  strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+  strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+
+  return strip;
+}
+
 Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine)
 {
   Sequence *seq;
@@ -5460,7 +5469,7 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
   seq->blend_mode = SEQ_TYPE_ALPHAOVER;
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
+  seq->strip = strip = seq_strip_alloc();
 
   seq->len = seq_load->len ? seq_load->len : 1;
   strip->us = 1;
@@ -5515,7 +5524,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
   BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
+  seq->strip = strip = seq_strip_alloc();
   /* We add a very small negative offset here, because
    * ceil(132.0) == 133.0, not nice with videos, see T47135. */
   seq->len = (int)ceil((double)info.length * FPS - 1e-4);
@@ -5647,7 +5656,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
   }
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
+  seq->strip = strip = seq_strip_alloc();
   seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
   strip->us = 1;
 

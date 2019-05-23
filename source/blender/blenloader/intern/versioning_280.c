@@ -715,6 +715,23 @@ static void do_version_constraints_copy_scale_power(ListBase *lb)
   }
 }
 
+static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->strip->transform == NULL) {
+      seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+    }
+
+    if (seq->strip->crop == NULL) {
+      seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+    }
+
+    if (seq->seqbase.first != NULL) {
+      do_versions_seq_alloc_transform_and_crop(&seq->seqbase);
+    }
+  }
+}
+
 void do_versions_after_linking_280(Main *bmain)
 {
   bool use_collection_compat_28 = true;
@@ -3483,6 +3500,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       if (STREQ(view_settings->look, "Filmic - Base Contrast")) {
         STRNCPY(view_settings->look, "None");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 72)) {
+    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      if (scene->ed != NULL) {
+        do_versions_seq_alloc_transform_and_crop(&scene->ed->seqbase);
       }
     }
   }

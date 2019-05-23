@@ -847,13 +847,10 @@ class SEQUENCER_PT_adjust_offset(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        if strip.use_translation:
-            col = layout.column(align=True)
-            col.prop(strip.transform, "offset_x", text="Position X")
-            col.prop(strip.transform, "offset_y", text="Y")
-            col.active = strip.use_translation
-        else:
-            layout.separator()
+        col = layout.column(align=True)
+        col.prop(strip.transform, "offset_x", text="Position X")
+        col.prop(strip.transform, "offset_y", text="Position Y")
+        col.active = strip.use_translation
 
 
 class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
@@ -877,14 +874,12 @@ class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        if strip.use_crop:
-            col = layout.column(align=True)
-            col.prop(strip.crop, "min_x")
-            col.prop(strip.crop, "max_x")
-            col.prop(strip.crop, "max_y")
-            col.prop(strip.crop, "min_y")
-        else:
-            layout.separator()
+        col = layout.column(align=True)
+        col.prop(strip.crop, "min_x")
+        col.prop(strip.crop, "max_x")
+        col.prop(strip.crop, "max_y")
+        col.prop(strip.crop, "min_y")
+        col.active = strip.use_crop
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
