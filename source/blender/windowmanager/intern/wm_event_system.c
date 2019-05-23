@@ -2484,15 +2484,134 @@ static int wm_action_not_handled(int action)
   return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL);
 }
 
+#define PRINT \
+  if (do_debug_handler) \
+  printf
+
+static int wm_handlers_do_keymap_with_keymap_handler(
+    /* From 'wm_handlers_do_intern' */
+    bContext *C,
+    wmEvent *event,
+    ListBase *handlers,
+    wmEventHandler_Keymap *handler,
+    /* Additional. */
+    wmKeyMap *keymap,
+    const bool do_debug_handler)
+{
+  int action = WM_HANDLER_CONTINUE;
+
+  PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+
+  if (keymap == NULL) {
+    /* Only callback is allowed to have NULL keymaps. */
+    BLI_assert(handler->dynamic.keymap_fn);
+  }
+  else {
+    if (WM_keymap_poll(C, keymap)) {
+
+      PRINT("pass\n");
+
+      for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+        if (wm_eventmatch(event, kmi)) {
+          struct wmEventHandler_KeymapPost keymap_post = handler->post;
+
+          PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+
+          /* weak, but allows interactive callback to not use rawkey */
+          event->keymap_idname = kmi->idname;
+
+          action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
+
+          if (action & WM_HANDLER_BREAK) {
+            /* not always_pass here, it denotes removed handler_base */
+            CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
+            if (keymap_post.post_fn != NULL) {
+              keymap_post.post_fn(keymap, kmi, keymap_post.user_data);
+            }
+            break;
+          }
+          else {
+            if (action & WM_HANDLER_HANDLED) {
+              CLOG_INFO(WM_LOG_HANDLERS, 2, "handled - and pass on! '%s'", kmi->idname);
+            }
+            else {
+              CLOG_INFO(WM_LOG_HANDLERS, 2, "un-handled '%s'", kmi->idname);
+            }
+          }
+        }
+      }
+    }
+    else {
+      PRINT("fail\n");
+    }
+  }
+
+  return action;
+}
+
+static bool wm_handlers_do_keymap_with_gizmo_handler(
+    /* From 'wm_handlers_do_intern' */
+    bContext *C,
+    wmEvent *event,
+    ListBase *handlers,
+    wmEventHandler_Gizmo *handler,
+    /* Additional. */
+    wmGizmoGroup *gzgroup,
+    wmKeyMap *keymap,
+    const bool do_debug_handler)
+{
+  int action = WM_HANDLER_CONTINUE;
+  wmKeyMapItem *kmi;
+
+  PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+
+  if (WM_keymap_poll(C, keymap)) {
+    PRINT("pass\n");
+    for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+      if (wm_eventmatch(event, kmi)) {
+        PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+
+        /* weak, but allows interactive callback to not use rawkey */
+        event->keymap_idname = kmi->idname;
+
+        CTX_wm_gizmo_group_set(C, gzgroup);
+
+        /* handler->op is called later, we want keymap op to be triggered here */
+        action |= wm_handler_operator_call(C, handlers, &handler->head, event, kmi->ptr);
+
+        CTX_wm_gizmo_group_set(C, NULL);
+
+        if (action & WM_HANDLER_BREAK) {
+          if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
+            printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+          }
+          break;
+        }
+        else {
+          if (action & WM_HANDLER_HANDLED) {
+            if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
+              printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+            }
+          }
+          else {
+            PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+          }
+        }
+      }
+    }
+  }
+  else {
+    PRINT("fail\n");
+  }
+  return action;
+}
+
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
   const bool do_debug_handler =
       (G.debug & G_DEBUG_HANDLERS) &&
       /* comment this out to flood the console! (if you really want to test) */
       !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE);
-#define PRINT \
-  if (do_debug_handler) \
-  printf
 
   wmWindowManager *wm = CTX_wm_manager(C);
   int action = WM_HANDLER_CONTINUE;
@@ -2530,50 +2649,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
-
-        PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
-
-        if (keymap == NULL) {
-          /* Only callback is allowed to have NULL keymaps. */
-          BLI_assert(handler->dynamic.keymap_fn);
-        }
-        else if (WM_keymap_poll(C, keymap)) {
-
-          PRINT("pass\n");
-
-          for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
-            if (wm_eventmatch(event, kmi)) {
-              struct wmEventHandler_KeymapPost keymap_post = handler->post;
-
-              PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
-
-              /* weak, but allows interactive callback to not use rawkey */
-              event->keymap_idname = kmi->idname;
-
-              action |= wm_handler_operator_call(C, handlers, handler_base, event, kmi->ptr);
-
-              if (action & WM_HANDLER_BREAK) {
-                /* not always_pass here, it denotes removed handler_base */
-                CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
-                if (keymap_post.post_fn != NULL) {
-                  keymap_post.post_fn(keymap, kmi, keymap_post.user_data);
-                }
-                break;
-              }
-              else {
-                if (action & WM_HANDLER_HANDLED) {
-                  CLOG_INFO(WM_LOG_HANDLERS, 2, "handled - and pass on! '%s'", kmi->idname);
-                }
-                else {
-                  CLOG_INFO(WM_LOG_HANDLERS, 2, "un-handled '%s'", kmi->idname);
-                }
-              }
-            }
-          }
-        }
-        else {
-          PRINT("fail\n");
-        }
+        action |= wm_handlers_do_keymap_with_keymap_handler(
+            C, event, handlers, handler, keymap, do_debug_handler);
       }
       else if (handler_base->type == WM_HANDLER_TYPE_UI) {
         wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
@@ -2656,95 +2733,33 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         }
         else {
           /* Either we operate on a single highlighted item
-           * or groups attached to the selected gizmos.
-           * To simplify things both cases loop over an array of items. */
-          wmGizmoGroup *gzgroup_first;
-          bool is_gzgroup_single;
+           * or groups attached to the selected gizmos. */
+
+          wmGizmoGroup *gzgroup_highlight = gz ? gz->parent_gzgroup : NULL;
+          /* Don't use from now on. */
+          gz = NULL;
 
           if (ISMOUSE(event->type)) {
-            /* Keep gz set as-is, just fake single selection. */
-            if (gz) {
-              gzgroup_first = gz->parent_gzgroup;
+            if (gzgroup_highlight) {
+              wmGizmoGroup *gzgroup = gzgroup_highlight;
+              wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+              action |= wm_handlers_do_keymap_with_gizmo_handler(
+                  C, event, handlers, handler, gzgroup, keymap, do_debug_handler);
             }
-            else {
-              gzgroup_first = NULL;
-            }
-            is_gzgroup_single = true;
           }
           else {
             if (WM_gizmomap_is_any_selected(gzmap)) {
               const ListBase *groups = WM_gizmomap_group_list(gzmap);
-              gzgroup_first = groups->first;
-            }
-            else {
-              gzgroup_first = NULL;
-            }
-            is_gzgroup_single = false;
-          }
-
-          /* Don't use from now on. */
-          gz = NULL;
-
-          for (wmGizmoGroup *gzgroup = gzgroup_first; gzgroup; gzgroup = gzgroup->next) {
-            /* get user customized keymap from default one */
-
-            if ((is_gzgroup_single == false) &&
-                /* We might want to change the logic here and use some kind of gizmo edit-mode.
-                 * For now just use keymap when a selection exists. */
-                wm_gizmogroup_is_any_selected(gzgroup) == false) {
-              continue;
-            }
-
-            wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
-            wmKeyMapItem *kmi;
-
-            PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
-
-            if (WM_keymap_poll(C, keymap)) {
-              PRINT("pass\n");
-              for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
-                if (wm_eventmatch(event, kmi)) {
-                  PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
-
-                  /* weak, but allows interactive callback to not use rawkey */
-                  event->keymap_idname = kmi->idname;
-
-                  CTX_wm_gizmo_group_set(C, gzgroup);
-
-                  /* handler->op is called later, we want keymap op to be triggered here */
-                  action |= wm_handler_operator_call(C, handlers, handler_base, event, kmi->ptr);
-
-                  CTX_wm_gizmo_group_set(C, NULL);
-
+              for (wmGizmoGroup *gzgroup = groups->first; gzgroup; gzgroup = gzgroup->next) {
+                if (wm_gizmogroup_is_any_selected(gzgroup)) {
+                  wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+                  action |= wm_handlers_do_keymap_with_gizmo_handler(
+                      C, event, handlers, handler, gzgroup, keymap, do_debug_handler);
                   if (action & WM_HANDLER_BREAK) {
-                    if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
-                      printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
-                    }
                     break;
-                  }
-                  else {
-                    if (action & WM_HANDLER_HANDLED) {
-                      if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
-                        printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
-                      }
-                    }
-                    else {
-                      PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
-                    }
                   }
                 }
               }
-            }
-            else {
-              PRINT("fail\n");
-            }
-
-            if (action & WM_HANDLER_BREAK) {
-              break;
-            }
-
-            if (is_gzgroup_single) {
-              break;
             }
           }
         }
@@ -2802,10 +2817,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
     wm_cursor_arrow_move(CTX_wm_window(C), event);
   }
 
-#undef PRINT
-
   return action;
 }
+
+#undef PRINT
 
 /* this calls handlers twice - to solve (double-)click events */
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
