@@ -563,6 +563,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_LOCAL);
   OperationKey parent_transform_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_PARENT);
+  OperationKey transform_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
   OperationKey final_transform_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
   OperationKey ob_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
@@ -647,7 +648,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
     build_object(NULL, object->proxy_group);
     OperationKey proxy_group_eval_key(
         &object->proxy_group->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
-    add_relation(proxy_group_eval_key, final_transform_key, "Proxy Group Transform");
+    add_relation(proxy_group_eval_key, transform_eval_key, "Proxy Group Transform");
   }
   /* Object dupligroup. */
   if (object->instance_collection != NULL) {
