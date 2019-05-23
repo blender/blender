@@ -83,8 +83,6 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 
     camtexcofac[2] = -camtexcofac[0] * g_data->overscan_pixels / size_final[0];
     camtexcofac[3] = -camtexcofac[1] * g_data->overscan_pixels / size_final[1];
-
-    print_v4_id(camtexcofac);
   }
   else {
     copy_v2_v2(size_final, size_orig);
