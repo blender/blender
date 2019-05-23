@@ -21,6 +21,7 @@
 #ifndef __WM_GIZMO_INTERN_H__
 #define __WM_GIZMO_INTERN_H__
 
+struct BLI_Buffer;
 struct GHashIterator;
 struct GizmoGeomInfo;
 struct wmGizmoMap;
@@ -65,7 +66,7 @@ struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(const struct wmGizmoGroup *
                                                      const struct wmEvent *event,
                                                      int *r_part);
 void wm_gizmogroup_intersectable_gizmos_to_list(const struct wmGizmoGroup *gzgroup,
-                                                struct ListBase *listbase);
+                                                struct BLI_Buffer *visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const struct wmGizmoGroup *gzgroup,
                                           const eWM_GizmoFlagMapDrawStep drawstep);
 

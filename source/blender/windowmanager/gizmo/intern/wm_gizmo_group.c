@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_buffer.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -191,14 +192,15 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(const wmGizmoGroup *gzgroup,
  * Adds all gizmos of \a gzgroup that can be selected to the head of \a listbase.
  * Added items need freeing!
  */
-void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup, ListBase *listbase)
+void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup,
+                                                BLI_Buffer *visible_gizmos)
 {
   for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||
           ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select)) {
-        BLI_addhead(listbase, BLI_genericNodeN(gz));
+        BLI_buffer_append(visible_gizmos, wmGizmo *, gz);
       }
     }
   }

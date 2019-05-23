@@ -23,12 +23,12 @@
 
 #include <string.h>
 
+#include "BLI_buffer.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
 #include "BLI_ghash.h"
-#include "BLI_array.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -470,24 +470,19 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
   BLI_assert(BLI_listbase_is_empty(&draw_gizmos));
 }
 
-static void gizmo_draw_select_3D_loop(const bContext *C,
-                                      ListBase *visible_gizmos,
-                                      const wmGizmo *gz_stop,
+static void gizmo_draw_select_3d_loop(const bContext *C,
+                                      wmGizmo **visible_gizmos,
+                                      const int visible_gizmos_len,
                                       bool *r_use_select_bias)
 {
-  int select_id = 0;
-  wmGizmo *gz;
 
   /* TODO(campbell): this depends on depth buffer being written to,
    * currently broken for the 3D view. */
   bool is_depth_prev = false;
   bool is_depth_skip_prev = false;
 
-  for (LinkData *link = visible_gizmos->first; link; link = link->next, select_id++) {
-    gz = link->data;
-    if (gz == gz_stop) {
-      break;
-    }
+  for (int select_id = 0; select_id < visible_gizmos_len; select_id++) {
+    wmGizmo *gz = visible_gizmos[select_id];
     if (gz->type->draw_select == NULL) {
       continue;
     }
@@ -531,11 +526,11 @@ static void gizmo_draw_select_3D_loop(const bContext *C,
   }
 }
 
-static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
+static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
+                                            const int visible_gizmos_len,
                                             const bContext *C,
                                             const int co[2],
-                                            const int hotspot,
-                                            const wmGizmo *gz_stop)
+                                            const int hotspot)
 {
   ScrArea *sa = CTX_wm_area(C);
   ARegion *ar = CTX_wm_region(C);
@@ -554,13 +549,13 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
 
   GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
   /* do the drawing */
-  gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop, &use_select_bias);
+  gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
 
   hits = GPU_select_end();
 
   if (hits > 0) {
     GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
-    gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop, &use_select_bias);
+    gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
     GPU_select_end();
   }
 
@@ -568,11 +563,6 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
       CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, v3d, NULL, NULL, NULL);
 
   if (use_select_bias && (hits > 1)) {
-    wmGizmo **gizmo_table = NULL;
-    BLI_array_staticdeclare(gizmo_table, 1024);
-    for (LinkData *link = visible_gizmos->first; link; link = link->next) {
-      BLI_array_append(gizmo_table, link->data);
-    }
     float co_direction[3];
     float co_screen[3] = {co[0], co[1], 0.0f};
     ED_view3d_win_to_vector(ar, (float[2]){UNPACK2(co)}, co_direction);
@@ -590,7 +580,7 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
 
     for (int i = 0; i < hits; i++, buf_iter += 4) {
       BLI_assert(buf_iter[3] != -1);
-      wmGizmo *gz = gizmo_table[buf_iter[3] >> 8];
+      wmGizmo *gz = visible_gizmos[buf_iter[3] >> 8];
       float co_3d[3];
       co_screen[2] = int_as_float(buf_iter[1]);
       GPU_matrix_unproject_model_inverted(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
@@ -605,7 +595,6 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
         hit_found = buf_iter[3];
       }
     }
-    BLI_array_free(gizmo_table);
     return hit_found;
   }
   else {
@@ -619,10 +608,12 @@ static int gizmo_find_intersected_3d_intern(ListBase *visible_gizmos,
  */
 static wmGizmo *gizmo_find_intersected_3d(bContext *C,
                                           const int co[2],
-                                          ListBase *visible_gizmos,
+                                          wmGizmo **visible_gizmos,
+                                          const int visible_gizmos_len,
                                           int *r_part)
 {
   wmGizmo *result = NULL;
+  int visible_gizmos_len_trim = visible_gizmos_len;
   int hit = -1;
 
   *r_part = 0;
@@ -633,14 +624,15 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   /* Search for 3D gizmo's that use the 2D callback for checking intersections. */
   bool has_3d = false;
   {
-    int select_id = 0;
-    for (LinkData *link = visible_gizmos->first; link; link = link->next, select_id++) {
-      wmGizmo *gz = link->data;
+    for (int select_id = 0; select_id < visible_gizmos_len; select_id++) {
+      wmGizmo *gz = visible_gizmos[select_id];
       /* With both defined, favor the 3D, incase the gizmo can be used in 2D or 3D views. */
       if (gz->type->test_select && (gz->type->draw_select == NULL)) {
         if ((*r_part = gz->type->test_select(C, gz, co)) != -1) {
           hit = select_id;
           result = gz;
+          /* Don't search past this when checking intersections. */
+          visible_gizmos_len_trim = select_id;
           break;
         }
       }
@@ -659,23 +651,19 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
         10 * U.pixelsize,
     };
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
-      hit = gizmo_find_intersected_3d_intern(visible_gizmos, C, co, hotspot_radii[i], result);
+      hit = gizmo_find_intersected_3d_intern(
+          visible_gizmos, visible_gizmos_len_trim, C, co, hotspot_radii[i]);
       if (hit != -1) {
         break;
       }
     }
 
     if (hit != -1) {
-      LinkData *link = BLI_findlink(visible_gizmos, hit >> 8);
-      if (link != NULL) {
-        *r_part = hit & 255;
-        result = link->data;
-      }
-      else {
-        /* All gizmos should use selection ID they're given as part of the callback,
-         * if they don't it will attempt tp lookup non-existing index. */
-        BLI_assert(0);
-      }
+      const int select_id = hit >> 8;
+      const int select_part = hit & 0xff;
+      BLI_assert(select_id < visible_gizmos_len);
+      *r_part = select_part;
+      result = visible_gizmos[select_id];
     }
   }
 
@@ -692,7 +680,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
                                     int *r_part)
 {
   wmGizmo *gz = NULL;
-  ListBase visible_3d_gizmos = {NULL};
+  BLI_buffer_declare_static(wmGizmo *, visible_3d_gizmos, BLI_BUFFER_NOP, 128);
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
   for (int i = 0; i < ARRAY_SIZE(do_step); i++) {
@@ -735,13 +723,14 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     }
   }
 
-  if (!BLI_listbase_is_empty(&visible_3d_gizmos)) {
+  if (visible_3d_gizmos.count) {
     /* 2D gizmos get priority. */
     if (gz == NULL) {
-      gz = gizmo_find_intersected_3d(C, event->mval, &visible_3d_gizmos, r_part);
+      gz = gizmo_find_intersected_3d(
+          C, event->mval, visible_3d_gizmos.data, visible_3d_gizmos.count, r_part);
     }
-    BLI_freelistN(&visible_3d_gizmos);
   }
+  BLI_buffer_free(&visible_3d_gizmos);
 
   gzmap->update_flag[WM_GIZMOMAP_DRAWSTEP_3D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
   gzmap->update_flag[WM_GIZMOMAP_DRAWSTEP_2D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
