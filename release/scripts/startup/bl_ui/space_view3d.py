@@ -79,19 +79,21 @@ class VIEW3D_HT_tool_header(Header):
         if draw_fn is not None:
             draw_fn(context, layout, tool)
 
+        popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}
+
         # Note: general mode options should be added to 'draw_mode_settings'.
         if tool_mode == 'SCULPT':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".paint_common", category="Tool")
+                layout.popover_group(context=".paint_common", **popover_kw)
         elif tool_mode == 'PAINT_VERTEX':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".paint_common", category="Tool")
+                layout.popover_group(context=".paint_common", **popover_kw)
         elif tool_mode == 'PAINT_WEIGHT':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".paint_common", category="Tool")
+                layout.popover_group(context=".paint_common", **popover_kw)
         elif tool_mode == 'PAINT_TEXTURE':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".paint_common", category="Tool")
+                layout.popover_group(context=".paint_common", **popover_kw)
         elif tool_mode == 'EDIT_ARMATURE':
             pass
         elif tool_mode == 'EDIT_CURVE':
@@ -103,15 +105,15 @@ class VIEW3D_HT_tool_header(Header):
         elif tool_mode == 'PARTICLE':
             # Disable, only shows "Brush" panel, which is already in the top-bar.
             # if tool.has_datablock:
-            #     layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".paint_common", category="Tool")
+            #     layout.popover_group(context=".paint_common", **popover_kw)
             pass
         elif tool_mode == 'PAINT_GPENCIL':
             if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".greasepencil_paint", category="Tool")
+                layout.popover_group(context=".greasepencil_paint", **popover_kw)
         elif tool_mode == 'SCULPT_GPENCIL':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".greasepencil_sculpt", category="Tool")
+            layout.popover_group(context=".greasepencil_sculpt", **popover_kw)
         elif tool_mode == 'WEIGHT_GPENCIL':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".greasepencil_weight", category="Tool")
+            layout.popover_group(context=".greasepencil_weight", **popover_kw)
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -162,32 +164,34 @@ class VIEW3D_HT_tool_header(Header):
             row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
 
         # Expand panels from the side-bar as popovers.
+        popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}
+
         if mode_string == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".sculpt_mode", category="Tool")
+            layout.popover_group(context=".sculpt_mode", **popover_kw)
         elif mode_string == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".vertexpaint", category="Tool")
+            layout.popover_group(context=".vertexpaint", **popover_kw)
         elif mode_string == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".weightpaint", category="Tool")
+            layout.popover_group(context=".weightpaint", **popover_kw)
         elif mode_string == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".imagepaint", category="Tool")
+            layout.popover_group(context=".imagepaint", **popover_kw)
         elif mode_string == 'EDIT_TEXT':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".text_edit", category="Tool")
+            layout.popover_group(context=".text_edit", **popover_kw)
         elif mode_string == 'EDIT_ARMATURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".armature_edit", category="Tool")
+            layout.popover_group(context=".armature_edit", **popover_kw)
         elif mode_string == 'EDIT_METABALL':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".mball_edit", category="Tool")
+            layout.popover_group(context=".mball_edit", **popover_kw)
         elif mode_string == 'EDIT_LATTICE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".lattice_edit", category="Tool")
+            layout.popover_group(context=".lattice_edit", **popover_kw)
         elif mode_string == 'EDIT_CURVE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".curve_edit", category="Tool")
+            layout.popover_group(context=".curve_edit", **popover_kw)
         elif mode_string == 'EDIT_MESH':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".mesh_edit", category="Tool")
+            layout.popover_group(context=".mesh_edit", **popover_kw)
         elif mode_string == 'POSE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".posemode", category="Tool")
+            layout.popover_group(context=".posemode", **popover_kw)
         elif mode_string == 'PARTICLE':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".particlemode", category="Tool")
+            layout.popover_group(context=".particlemode", **popover_kw)
         elif mode_string == 'OBJECT':
-            layout.popover_group(space_type='VIEW_3D', region_type='UI', context=".objectmode", category="Tool")
+            layout.popover_group(context=".objectmode", **popover_kw)
         elif mode_string in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             # Grease pencil layer.
             gpl = context.active_gpencil_layer
