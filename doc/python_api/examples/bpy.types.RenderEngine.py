@@ -79,11 +79,11 @@ class CustomRenderEngine(bpy.types.RenderEngine):
                 print("Datablock updated: ", update.id.name)
 
             # Test if any material was added, removed or changed.
-            if depsgraph.id_type_update('MATERIAL'):
+            if depsgraph.id_type_updated('MATERIAL'):
                 print("Materials updated")
 
         # Loop over all object instances in the scene.
-        if first_time or depsgraph.id_type_update('OBJECT'):
+        if first_time or depsgraph.id_type_updated('OBJECT'):
             for instance in depsgraph.object_instances:
                 pass
 
