@@ -21,7 +21,7 @@
  * \ingroup bli
  */
 
-typedef struct {
+typedef struct BLI_Buffer {
   void *data;
   const size_t elem_size;
   size_t count, alloc_count;
