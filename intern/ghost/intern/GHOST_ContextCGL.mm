@@ -27,47 +27,20 @@
 
 #include <Cocoa/Cocoa.h>
 
-//#define GHOST_MULTITHREADED_OPENGL
-
-#ifdef GHOST_MULTITHREADED_OPENGL
-#  include <OpenGL/OpenGL.h>
-#endif
-
 #include <vector>
 #include <cassert>
 
 NSOpenGLContext *GHOST_ContextCGL::s_sharedOpenGLContext = nil;
 int GHOST_ContextCGL::s_sharedCount = 0;
 
-GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
-                                   NSWindow *window,
-                                   NSOpenGLView *openGLView,
-                                   int contextProfileMask,
-                                   int contextMajorVersion,
-                                   int contextMinorVersion,
-                                   int contextFlags,
-                                   int contextResetNotificationStrategy)
-    : GHOST_Context(stereoVisual),
-      m_openGLView(openGLView),
-      m_openGLContext(nil),
-      m_debug(contextFlags)
+GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual, NSOpenGLView *openGLView)
+    : GHOST_Context(stereoVisual), m_openGLView(openGLView), m_openGLContext(nil), m_debug(false)
 {
-  // for now be very strict about OpenGL version requested
-  switch (contextMajorVersion) {
-    case 2:
-      assert(contextMinorVersion == 1);
-      assert(contextProfileMask == 0);
-      m_coreProfile = false;
-      break;
-    case 3:
-      // Apple didn't implement 3.0 or 3.1
-      assert(contextMinorVersion == 3);
-      assert(contextProfileMask == GL_CONTEXT_CORE_PROFILE_BIT);
-      m_coreProfile = true;
-      break;
-    default:
-      assert(false);
-  }
+#if defined(WITH_GL_PROFILE_CORE)
+  m_coreProfile = true;
+#else
+  m_coreProfile = false;
+#endif
 }
 
 GHOST_ContextCGL::~GHOST_ContextCGL()
@@ -233,8 +206,6 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   std::vector<NSOpenGLPixelFormatAttribute> attribs;
   attribs.reserve(40);
 
-  NSOpenGLContext *prev_openGLContext = (m_openGLView) ? [m_openGLView openGLContext] : NULL;
-
 #ifdef GHOST_OPENGL_ALPHA
   static const bool needAlpha = true;
 #else
@@ -265,38 +236,6 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
     fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
   }
 
-  if (major < 2 || (major == 2 && minor < 1)) {
-    // fall back to software renderer if GL < 2.1
-    fprintf(stderr, "OpenGL 2.1 is not supported on your hardware, falling back to software");
-    softwareGL = true;
-
-    // discard hardware GL context
-    [NSOpenGLContext clearCurrentContext];
-    [m_openGLContext release];
-
-    // create software GL context
-    makeAttribList(attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL);
-    pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
-    m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-                                                 shareContext:s_sharedOpenGLContext];
-    [pixelFormat release];
-
-    [m_openGLContext makeCurrentContext];
-
-    getVersion(&major, &minor);
-    if (m_debug) {
-      fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
-      fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
-    }
-  }
-
-#ifdef GHOST_MULTITHREADED_OPENGL
-  // Switch openGL to multhreaded mode
-  if (CGLEnable(CGLGetCurrentContext(), kCGLCEMPEngine) == kCGLNoError)
-    if (m_debug)
-      fprintf(stderr, "\nSwitched OpenGL to multithreaded mode\n");
-#endif
-
 #ifdef GHOST_WAIT_FOR_VSYNC
   {
     GLint swapInt = 1;
@@ -310,25 +249,21 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   if (m_openGLView) {
     [m_openGLView setOpenGLContext:m_openGLContext];
     [m_openGLContext setView:m_openGLView];
+    initClearGL();
   }
+
+  [m_openGLContext flushBuffer];
 
   if (s_sharedCount == 0)
     s_sharedOpenGLContext = m_openGLContext;
 
   s_sharedCount++;
 
-  initClearGL();
-  [m_openGLContext flushBuffer];
-
   [pool drain];
 
   return GHOST_kSuccess;
 
 error:
-
-  if (m_openGLView) {
-    [m_openGLView setOpenGLContext:prev_openGLContext];
-  }
 
   [pixelFormat release];
 

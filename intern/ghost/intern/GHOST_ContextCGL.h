@@ -26,15 +26,6 @@
 
 #include "GHOST_Context.h"
 
-#ifndef GHOST_OPENGL_CGL_CONTEXT_FLAGS
-#  define GHOST_OPENGL_CGL_CONTEXT_FLAGS 0
-#endif
-
-#ifndef GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY
-#  define GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY 0
-#endif
-
-@class NSWindow;
 @class NSOpenGLView;
 @class NSOpenGLContext;
 
@@ -43,14 +34,7 @@ class GHOST_ContextCGL : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextCGL(bool stereoVisual,
-                   NSWindow *window,
-                   NSOpenGLView *openGLView,
-                   int contextProfileMask,
-                   int contextMajorVersion,
-                   int contextMinorVersion,
-                   int contextFlags,
-                   int contextResetNotificationStrategy);
+  GHOST_ContextCGL(bool stereoVisual, NSOpenGLView *openGLView);
 
   /**
    * Destructor.

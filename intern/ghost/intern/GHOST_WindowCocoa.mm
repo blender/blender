@@ -1018,21 +1018,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
 
-    GHOST_Context *context = new GHOST_ContextCGL(m_wantStereoVisual,
-                                                  m_window,
-                                                  m_openGLView,
-
-#if defined(WITH_GL_PROFILE_CORE)
-                                                  GL_CONTEXT_CORE_PROFILE_BIT,
-                                                  3,
-                                                  3,
-#else
-                                                  0,  // no profile bit
-                                                  2,
-                                                  1,
-#endif
-                                                  GHOST_OPENGL_CGL_CONTEXT_FLAGS,
-                                                  GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
+    GHOST_Context *context = new GHOST_ContextCGL(m_wantStereoVisual, m_openGLView);
 
     if (context->initializeDrawingContext())
       return context;

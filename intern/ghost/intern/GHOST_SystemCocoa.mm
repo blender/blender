@@ -762,22 +762,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const STR_String &title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext()
 {
-  GHOST_Context *context = new GHOST_ContextCGL(false,
-                                                NULL,
-                                                NULL,
-
-#if defined(WITH_GL_PROFILE_CORE)
-                                                GL_CONTEXT_CORE_PROFILE_BIT,
-                                                3,
-                                                3,
-#else
-                                                0,  // no profile bit
-                                                2,
-                                                1,
-#endif
-                                                GHOST_OPENGL_CGL_CONTEXT_FLAGS,
-                                                GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
-
+  GHOST_Context *context = new GHOST_ContextCGL(false, NULL);
   if (context->initializeDrawingContext())
     return context;
   else
