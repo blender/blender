@@ -620,7 +620,7 @@ void GPU_material_flag_set(GPUMaterial *mat, eGPUMatFlag flag)
 
 bool GPU_material_flag_get(GPUMaterial *mat, eGPUMatFlag flag)
 {
-  return (mat->flag & flag);
+  return (mat->flag & flag) != 0;
 }
 
 GPUMaterial *GPU_material_from_nodetree_find(ListBase *gpumaterials,
@@ -684,7 +684,10 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   if (mat->outlink) {
     /* HACK: this is only for eevee. We add the define here after the nodetree evaluation. */
     if (GPU_material_flag_get(mat, GPU_MATFLAG_SSS)) {
-      defines = BLI_string_joinN(defines, "#define USE_SSS\n");
+      defines = BLI_string_joinN(defines,
+                                 "#ifndef USE_ALPHA_BLEND\n"
+                                 "#  define USE_SSS\n"
+                                 "#endif\n");
     }
     /* Prune the unused nodes and extract attributes before compiling so the
      * generated VBOs are ready to accept the future shader. */

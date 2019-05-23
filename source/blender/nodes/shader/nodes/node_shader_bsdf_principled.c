@@ -164,7 +164,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   else if (use_subsurf && use_diffuse && !use_refract && !use_clear) {
     static char name[] = "node_bsdf_principled_subsurface";
     node_name = name;
-    flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS | GPU_MATFLAG_GLOSSY;
+    flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY;
   }
   else if (!use_subsurf && !use_diffuse && use_refract && !use_clear && !socket_not_zero(4)) {
     static char name[] = "node_bsdf_principled_glass";
@@ -174,7 +174,11 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   else {
     static char name[] = "node_bsdf_principled";
     node_name = name;
-    flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY | GPU_MATFLAG_SSS | GPU_MATFLAG_REFRACT;
+    flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT;
+  }
+
+  if (use_subsurf) {
+    flag |= GPU_MATFLAG_SSS;
   }
 
   GPU_material_flag_set(mat, flag);
