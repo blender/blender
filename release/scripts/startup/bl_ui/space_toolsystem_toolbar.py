@@ -1709,13 +1709,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        _defs_transform.transform,
         _defs_transform.translate,
         _defs_transform.rotate,
         (
             _defs_transform.scale,
             _defs_transform.scale_cage,
         ),
+        _defs_transform.transform,
     )
 
     _tools_select = (
