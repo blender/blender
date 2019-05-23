@@ -318,7 +318,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
     bc_sanitize_mat(mat, LIMITTED_PRECISION);
   }
 
-  TransformWriter::add_node_transform(node, mat, NULL, this->export_settings);
+  TransformWriter::add_node_transform(node, mat, NULL, this->export_settings, has_restmat);
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)

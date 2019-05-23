@@ -553,8 +553,10 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
       /* make world-space matrix (bind_mat is armature-space) */
       mul_m4_m4m4(world, ob_arm->obmat, bind_mat);
 
-      if (export_settings.get_apply_global_orientation()) {
-        bc_apply_global_transform(world, export_settings.get_global_transform());
+      if (!has_bindmat) {
+        if (export_settings.get_apply_global_orientation()) {
+          bc_apply_global_transform(world, export_settings.get_global_transform());
+        }
       }
 
       invert_m4_m4(mat, world);

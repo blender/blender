@@ -28,7 +28,9 @@
 void TransformWriter::add_node_transform(COLLADASW::Node &node,
                                          float mat[4][4],
                                          float parent_mat[4][4],
-                                         BCExportSettings &export_settings
+                                         BCExportSettings &export_settings,
+                                         bool has_restmat
+
 	)
 {
   // bool limit_precision = export_settings.limit_precision;
@@ -44,7 +46,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node &node,
     copy_m4_m4(local, mat);
   }
 
-  if (export_settings.get_apply_global_orientation()) {
+  if (!has_restmat && export_settings.get_apply_global_orientation()) {
     bc_apply_global_transform(local, export_settings.get_global_transform());
   }
 

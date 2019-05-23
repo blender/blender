@@ -34,7 +34,8 @@ class TransformWriter {
   void add_node_transform(COLLADASW::Node &node,
                           float mat[4][4],
                           float parent_mat[4][4],
-                          BCExportSettings &export_settings);
+                          BCExportSettings &export_settings,
+                          bool has_restmat);
 
   void add_node_transform_ob(COLLADASW::Node &node, Object *ob, BCExportSettings &export_settings);
 
