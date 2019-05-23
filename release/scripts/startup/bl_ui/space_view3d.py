@@ -958,11 +958,10 @@ class VIEW3D_MT_uv_map(Menu):
 
         tool_settings = context.tool_settings
 
+        layout.operator("uv.unwrap")
         layout.prop(tool_settings, "use_edge_path_live_unwrap")
 
         layout.separator()
-
-        layout.operator("uv.unwrap")
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("uv.smart_project")
