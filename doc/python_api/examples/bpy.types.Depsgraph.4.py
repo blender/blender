@@ -34,22 +34,22 @@ class OBJECT_OT_object_to_mesh(bpy.types.Operator):
 
     def execute(self, context):
         # Access input original object.
-        object = context.object
-        if object is None:
+        obj = context.object
+        if obj is None:
             self.report({'INFO'}, "No active mesh object to convert to mesh")
             return {'CANCELLED'}
         # Avoid annoying None checks later on.
-        if object.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+        if obj.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
             self.report({'INFO'}, "Object can not be converted to mesh")
             return {'CANCELLED'}
         depsgraph = context.evaluated_depsgraph_get()
         # Invoke to_mesh() for original object.
-        mesh_from_orig = object.to_mesh()
+        mesh_from_orig = obj.to_mesh()
         self.report({'INFO'}, f"{len(mesh_from_orig.vertices)} in new mesh without modifiers.")
         # Remove temporary mesh.
-        object.to_mesh_clear()
+        obj.to_mesh_clear()
         # Invoke to_mesh() for evaluated object.
-        object_eval = object.evaluated_get(depsgraph)
+        object_eval = obj.evaluated_get(depsgraph)
         mesh_from_eval = object_eval.to_mesh()
         self.report({'INFO'}, f"{len(mesh_from_eval.vertices)} in new mesh with modifiers.")
         # Remove temporary mesh.

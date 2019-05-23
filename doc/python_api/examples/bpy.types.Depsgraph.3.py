@@ -18,15 +18,15 @@ class OBJECT_OT_object_instances(bpy.types.Operator):
         depsgraph = context.evaluated_depsgraph_get()
         for object_instance in depsgraph.object_instances:
             # This is an object which is being instanced.
-            object = object_instance.object
+            obj = object_instance.object
             # `is_instance` denotes whether the object is coming from instances (as an opposite of
             # being an emitting object. )
             if not object_instance.is_instance:
-                print(f"Object {object.name} at {object_instance.matrix_world}")
+                print(f"Object {obj.name} at {object_instance.matrix_world}")
             else:
                 # Instanced will additionally have fields like uv, random_id and others which are
                 # specific for instances. See Python API for DepsgraphObjectInstance for details,
-                print(f"Instance of {object.name} at {object_instance.matrix_world}")
+                print(f"Instance of {obj.name} at {object_instance.matrix_world}")
         return {'FINISHED'}
 
 

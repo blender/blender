@@ -17,8 +17,8 @@ class OBJECT_OT_evaluated_example(bpy.types.Operator):
 
     def execute(self, context):
         # This is an original object. Its data does not have any modifiers applied.
-        object = context.object
-        if object is None or object.type != 'MESH':
+        obj = context.object
+        if obj is None or obj.type != 'MESH':
             self.report({'INFO'}, "No active mesh object to get info from")
             return {'CANCELLED'}
         # Evaluated object exists within a specific dependency graph.
@@ -42,7 +42,7 @@ class OBJECT_OT_evaluated_example(bpy.types.Operator):
         # but has animation applied.
         #
         # NOTE: All ID types have `evaluated_get()`, including materials, node trees, worlds.
-        object_eval = object.evaluated_get(depsgraph)
+        object_eval = obj.evaluated_get(depsgraph)
         mesh_eval = object_eval.data
         self.report({'INFO'}, f"Number of evaluated vertices: {len(mesh_eval.vertices)}")
         return {'FINISHED'}

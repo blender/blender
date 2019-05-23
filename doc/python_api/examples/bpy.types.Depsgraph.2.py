@@ -18,16 +18,16 @@ class OBJECT_OT_original_example(bpy.types.Operator):
         # to request the original object from the known evaluated one.
         #
         # NOTE: All ID types have an `original` field.
-        object = object_eval.original
-        return object.select_get()
+        obj = object_eval.original
+        return obj.select_get()
 
     def execute(self, context):
         # NOTE: It seems redundant to iterate over original objects to request evaluated ones
         # just to get original back. But we want to keep example as short as possible, but in real
         # world there are cases when evaluated object is coming from a more meaningful source.
         depsgraph = context.evaluated_depsgraph_get()
-        for object in context.editable_objects:
-            object_eval = object.evaluated_get(depsgraph)
+        for obj in context.editable_objects:
+            object_eval = obj.evaluated_get(depsgraph)
             if self.check_object_selected(object_eval):
                 self.report({'INFO'}, f"Object is selected: {object_eval.name}")
         return {'FINISHED'}
