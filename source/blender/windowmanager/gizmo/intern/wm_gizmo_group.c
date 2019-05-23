@@ -195,7 +195,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(const wmGizmoGroup *gzgroup,
 void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup,
                                                 BLI_Buffer *visible_gizmos)
 {
-  for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
+  for (wmGizmo *gz = gzgroup->gizmos.last; gz; gz = gz->prev) {
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||
