@@ -1177,12 +1177,7 @@ static void recalcData_sequencer(TransInfo *t)
     Sequence *seq = tdsq->seq;
 
     if (seq != seq_prev) {
-      if (BKE_sequence_tx_fullupdate_test(seq)) {
-        BKE_sequence_invalidate_cache(t->scene, seq);
-      }
-      else {
-        BKE_sequence_invalidate_cache(t->scene, seq);
-      }
+      BKE_sequence_invalidate_cache_composite(t->scene, seq);
     }
 
     seq_prev = seq;

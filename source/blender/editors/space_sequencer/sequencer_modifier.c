@@ -64,7 +64,7 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 
   BKE_sequence_modifier_new(seq, NULL, type);
 
-  BKE_sequence_invalidate_cache(scene, seq);
+  BKE_sequence_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -115,7 +115,7 @@ static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
   BLI_remlink(&seq->modifiers, smd);
   BKE_sequence_modifier_free(smd);
 
-  BKE_sequence_invalidate_cache(scene, seq);
+  BKE_sequence_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -175,7 +175,7 @@ static int strip_modifier_move_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BKE_sequence_invalidate_cache(scene, seq);
+  BKE_sequence_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -249,7 +249,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
   }
   SEQ_END;
 
-  BKE_sequence_invalidate_cache(scene, seq);
+  BKE_sequence_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;

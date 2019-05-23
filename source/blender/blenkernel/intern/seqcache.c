@@ -476,7 +476,10 @@ void BKE_sequencer_cache_cleanup(Scene *scene)
   seq_cache_unlock(scene);
 }
 
-void BKE_sequencer_cache_cleanup_sequence(Scene *scene, Sequence *seq)
+void BKE_sequencer_cache_cleanup_sequence(Scene *scene,
+                                          Sequence *seq,
+                                          Sequence *seq_changed,
+                                          int invalidate_types)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
@@ -485,14 +488,40 @@ void BKE_sequencer_cache_cleanup_sequence(Scene *scene, Sequence *seq)
 
   seq_cache_lock(scene);
 
+  int range_start = seq_changed->startdisp;
+  int range_end = seq_changed->enddisp;
+
+  if (seq->startdisp > range_start) {
+    range_start = seq->startdisp;
+  }
+
+  if (seq->enddisp < range_end) {
+    range_end = seq->enddisp;
+  }
+
+  int invalidate_composite = invalidate_types & SEQ_CACHE_STORE_FINAL_OUT;
+  int invalidate_source = invalidate_types & (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED |
+                                              SEQ_CACHE_STORE_COMPOSITE);
+
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   while (!BLI_ghashIterator_done(&gh_iter)) {
     SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     BLI_ghashIterator_step(&gh_iter);
 
-    if (key->seq == seq) {
-      /* Relink keys, so we don't end up with orphaned keys */
+    int key_cfra = key->seq->start + key->nfra;
+
+    /* clean all final and composite in intersection of seq and seq_changed */
+    if (key->type & invalidate_composite && key_cfra >= range_start && key_cfra <= range_end) {
+      if (key->link_next || key->link_prev) {
+        seq_cache_relink_keys(key->link_next, key->link_prev);
+      }
+
+      BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
+    }
+
+    if (key->type & invalidate_source && key->seq == seq && key_cfra >= seq_changed->startdisp &&
+        key_cfra <= seq_changed->enddisp) {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
       }

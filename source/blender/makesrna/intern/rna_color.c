@@ -623,7 +623,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
           seq->strip->proxy->anim = NULL;
         }
 
-        BKE_sequence_invalidate_cache(scene, seq);
+        BKE_sequence_invalidate_cache_preprocessed(scene, seq);
       }
       else {
         SEQ_BEGIN (scene->ed, seq) {

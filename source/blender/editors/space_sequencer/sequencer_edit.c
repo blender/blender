@@ -2680,7 +2680,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
   while (seq) {
     next = seq->next;
     if (seq != seqm && (seq->flag & SELECT)) {
-      BKE_sequence_invalidate_cache(scene, seq);
+      BKE_sequence_invalidate_dependent(scene, seq);
       channel_max = max_ii(seq->machine, channel_max);
       BLI_remlink(ed->seqbasep, seq);
       BLI_addtail(&seqm->seqbase, seq);
@@ -2755,7 +2755,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   for (seq = last_seq->seqbase.first; seq != NULL; seq = seq->next) {
-    BKE_sequence_invalidate_cache(scene, seq);
+    BKE_sequence_invalidate_dependent(scene, seq);
   }
 
   BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
@@ -3518,8 +3518,8 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
     BKE_sound_add_scene_sound_defaults(scene, seq_other);
   }
 
-  BKE_sequence_invalidate_cache(scene, seq_act);
-  BKE_sequence_invalidate_cache(scene, seq_other);
+  BKE_sequence_invalidate_cache_raw(scene, seq_act);
+  BKE_sequence_invalidate_cache_raw(scene, seq_other);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

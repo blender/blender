@@ -323,7 +323,10 @@ void BKE_sequencer_cache_free_temp_cache(struct Scene *scene, short id, int cfra
 void BKE_sequencer_cache_destruct(struct Scene *scene);
 void BKE_sequencer_cache_cleanup_all(struct Main *bmain);
 void BKE_sequencer_cache_cleanup(struct Scene *scene);
-void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene, struct Sequence *seq);
+void BKE_sequencer_cache_cleanup_sequence(struct Scene *scene,
+                                          struct Sequence *seq,
+                                          struct Sequence *seq_changed,
+                                          int invalidate_types);
 void BKE_sequencer_cache_iterate(
     struct Scene *scene,
     void *userdata,
@@ -391,9 +394,10 @@ struct Sequence *BKE_sequence_dupli_recursive(const struct Scene *scene_src,
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
 bool BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
-void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_cache_raw(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_cache_preprocessed(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_cache_composite(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_dependent(struct Scene *scene, struct Sequence *seq);
-void BKE_sequence_invalidate_cache_for_modifier(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
 void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq);
