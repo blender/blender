@@ -639,12 +639,14 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
   }
   /* Proxy object to copy from. */
   if (object->proxy_from != NULL) {
+    /* Object is linked here (comes from the library). */
     build_object(NULL, object->proxy_from);
     ComponentKey ob_transform_key(&object->proxy_from->id, NodeType::TRANSFORM);
     ComponentKey proxy_transform_key(&object->id, NodeType::TRANSFORM);
     add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
   }
-  if (object->proxy_group != NULL) {
+  if (object->proxy_group != NULL && object->proxy_group != object->proxy) {
+    /* Object is local here (local in .blend file, users interacts with it). */
     build_object(NULL, object->proxy_group);
     OperationKey proxy_group_eval_key(
         &object->proxy_group->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
