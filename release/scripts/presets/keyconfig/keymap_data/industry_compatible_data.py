@@ -134,6 +134,7 @@ def _template_items_basic_tools(*, connected=False):
         op_tool("builtin.move", {"type": 'W', "value": 'PRESS'}),
         op_tool("builtin.rotate", {"type": 'E', "value": 'PRESS'}),
         op_tool("builtin.scale", {"type": 'R', "value": 'PRESS'}),
+        op_tool("builtin.transform", {"type": 'T', "value": 'PRESS'}),
         op_tool("builtin.scale_cage", {"type": 'R', "value": 'PRESS', "shift": True}),
         op_tool("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
         op_tool("builtin.measure", {"type": 'M', "value": 'PRESS'}),
