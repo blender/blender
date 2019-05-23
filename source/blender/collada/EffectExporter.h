@@ -40,7 +40,7 @@
 class EffectsExporter : COLLADASW::LibraryEffects {
  public:
   EffectsExporter(COLLADASW::StreamWriter *sw,
-                  const ExportSettings *export_settings,
+                  BCExportSettings &export_settings,
                   KeyImageMap &key_image_map);
   void exportEffects(bContext *C, Scene *sce);
 
@@ -73,7 +73,7 @@ class EffectsExporter : COLLADASW::LibraryEffects {
 
   bool hasEffects(Scene *sce);
 
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
   KeyImageMap &key_image_map;
   Scene *scene;
   bContext *mContext;

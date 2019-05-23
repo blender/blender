@@ -60,6 +60,7 @@ extern "C" {
 #include "ED_armature.h"
 #include "ED_screen.h"
 #include "ED_node.h"
+#include "ED_object.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -104,26 +105,6 @@ int bc_test_parent_loop(Object *par, Object *ob)
   return bc_test_parent_loop(par->parent, ob);
 }
 
-void bc_get_children(std::vector<Object *> &child_set, Object *ob, ViewLayer *view_layer)
-{
-  Base *base;
-  for (base = (Base *)view_layer->object_bases.first; base; base = base->next) {
-    Object *cob = base->object;
-    if (cob->parent == ob) {
-      switch (ob->type) {
-        case OB_MESH:
-        case OB_CAMERA:
-        case OB_LAMP:
-        case OB_EMPTY:
-        case OB_ARMATURE:
-          child_set.push_back(cob);
-        default:
-          break;
-      }
-    }
-  }
-}
-
 bool bc_validateConstraints(bConstraint *con)
 {
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
@@ -146,43 +127,19 @@ bool bc_validateConstraints(bConstraint *con)
   return true;
 }
 
-/* a shortened version of parent_set_exec()
- * if is_parent_space is true then ob->obmat will be multiplied by par->obmat before parenting */
-int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
+bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 {
-  Object workob;
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  Scene *sce = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
+  int partype = PAR_OBJECT;
+  const bool xmirror = false;
+  const bool keep_transform = false;
 
-  if (!par || bc_test_parent_loop(par, ob))
-    return false;
-
-  ob->parent = par;
-  ob->partype = PAROBJECT;
-
-  ob->parsubstr[0] = 0;
-
-  if (is_parent_space) {
-    float mat[4][4];
-    /* calc par->obmat */
-    BKE_object_where_is_calc(depsgraph, sce, par);
-
-    /* move child obmat into world space */
-    mul_m4_m4m4(mat, par->obmat, ob->obmat);
-    copy_m4_m4(ob->obmat, mat);
+  if (par && is_parent_space) {
+    mul_m4_m4m4(ob->obmat, par->obmat, ob->obmat);
   }
 
-  /* apply child obmat (i.e. decompose it into rot/loc/size) */
-  BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
-
-  /* compute parentinv */
-  BKE_object_workob_calc_parent(depsgraph, sce, ob, &workob);
-  invert_m4_m4(ob->parentinv, workob.obmat);
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM);
-
-  return true;
+  bool ok = ED_object_parent_set(NULL, C, scene, ob, par, partype, xmirror, keep_transform, NULL);
+  return ok;
 }
 
 std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool all_actions)
@@ -309,49 +266,6 @@ Object *bc_get_assigned_armature(Object *ob)
   return ob_arm;
 }
 
-/**
- * Returns the highest selected ancestor
- * returns NULL if no ancestor is selected
- * IMPORTANT: This function expects that all exported objects have set:
- * ob->id.tag & LIB_TAG_DOIT
- */
-Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob)
-
-{
-  Object *ancestor = ob;
-  while (ob->parent && bc_is_marked(ob->parent)) {
-    ob = ob->parent;
-    ancestor = ob;
-  }
-  return ancestor;
-}
-
-bool bc_is_base_node(LinkNode *export_set, Object *ob)
-{
-  Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
-  return (root == ob);
-}
-
-bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer)
-{
-  bool to_export = (BLI_linklist_index(export_set, ob) != -1);
-
-  if (!to_export) {
-    /* Mark this object as to_export even if it is not in the
-     * export list, but it contains children to export. */
-
-    std::vector<Object *> children;
-    bc_get_children(children, ob, view_layer);
-    for (int i = 0; i < children.size(); i++) {
-      if (bc_is_in_Export_set(export_set, children[i], view_layer)) {
-        to_export = true;
-        break;
-      }
-    }
-  }
-  return to_export;
-}
-
 bool bc_has_object_type(LinkNode *export_set, short obtype)
 {
   LinkNode *node;
@@ -364,21 +278,6 @@ bool bc_has_object_type(LinkNode *export_set, short obtype)
     }
   }
   return false;
-}
-
-int bc_is_marked(Object *ob)
-{
-  return ob && (ob->id.tag & LIB_TAG_DOIT);
-}
-
-void bc_remove_mark(Object *ob)
-{
-  ob->id.tag &= ~LIB_TAG_DOIT;
-}
-
-void bc_set_mark(Object *ob)
-{
-  ob->id.tag |= LIB_TAG_DOIT;
 }
 
 /* Use bubble sort algorithm for sorting the export set */
@@ -1040,13 +939,61 @@ bool bc_has_animations(Scene *sce, LinkNode *export_set)
   return false;
 }
 
+void bc_add_global_transform(Matrix &to_mat,
+                             const Matrix &from_mat,
+                             const BCMatrix &global_transform,
+                             const bool invert)
+{
+  copy_m4_m4(to_mat, from_mat);
+  bc_add_global_transform(to_mat, global_transform, invert);
+}
+
+void bc_add_global_transform(Vector &to_vec,
+                             const Vector &from_vec,
+                             const BCMatrix &global_transform,
+                             const bool invert)
+{
+  copy_v3_v3(to_vec, from_vec);
+  bc_add_global_transform(to_vec, global_transform, invert);
+}
+
+void bc_add_global_transform(Matrix &to_mat, const BCMatrix &global_transform, const bool invert)
+{
+  BCMatrix mat(to_mat);
+  mat.add_transform(global_transform, invert);
+  mat.get_matrix(to_mat);
+}
+
+void bc_add_global_transform(Vector &to_vec, const BCMatrix &global_transform, const bool invert)
+{
+  Matrix mat;
+  Vector from_vec;
+  copy_v3_v3(from_vec, to_vec);
+  global_transform.get_matrix(mat, false, 6, invert);
+  mul_v3_m4v3(to_vec, mat, from_vec);
+}
+
+void bc_apply_global_transform(Matrix &to_mat, const BCMatrix &global_transform, const bool invert)
+{
+  BCMatrix mat(to_mat);
+  mat.apply_transform(global_transform, invert);
+  mat.get_matrix(to_mat);
+}
+
+void bc_apply_global_transform(Vector &to_vec, const BCMatrix &global_transform, const bool invert)
+{
+  Matrix transform;
+  global_transform.get_matrix(transform);
+  mul_v3_m4v3(to_vec, transform, to_vec);
+}
+
 /**
  * Check if custom information about bind matrix exists and modify the from_mat
  * accordingly.
  *
  * Note: This is old style for Blender <= 2.78 only kept for compatibility
  */
-void bc_create_restpose_mat(const ExportSettings *export_settings,
+void bc_create_restpose_mat(BCExportSettings &export_settings,
                             Bone *bone,
                             float to_mat[4][4],
                             float from_mat[4][4],
@@ -1057,9 +1004,9 @@ void bc_create_restpose_mat(const ExportSettings *export_settings,
   float scale[3];
   static const float V0[3] = {0, 0, 0};
 
-  if (!has_custom_props(bone, export_settings->keep_bind_info, "restpose_loc") &&
-      !has_custom_props(bone, export_settings->keep_bind_info, "restpose_rot") &&
-      !has_custom_props(bone, export_settings->keep_bind_info, "restpose_scale")) {
+  if (!has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_loc") &&
+      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_rot") &&
+      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale")) {
     /* No need */
     copy_m4_m4(to_mat, from_mat);
     return;
@@ -1068,7 +1015,7 @@ void bc_create_restpose_mat(const ExportSettings *export_settings,
   bc_decompose(from_mat, loc, rot, NULL, scale);
   loc_eulO_size_to_mat4(to_mat, loc, rot, scale, 6);
 
-  if (export_settings->keep_bind_info) {
+  if (export_settings.get_keep_bind_info()) {
     bc_get_property_vector(bone, "restpose_loc", loc, loc);
 
     if (use_local_space && bone->parent) {
@@ -1084,7 +1031,7 @@ void bc_create_restpose_mat(const ExportSettings *export_settings,
     }
   }
 
-  if (export_settings->keep_bind_info) {
+  if (export_settings.get_keep_bind_info()) {
     if (bc_get_IDProperty(bone, "restpose_rot_x"))
       rot[0] = DEG2RADF(bc_get_property(bone, "restpose_rot_x", 0));
     if (bc_get_IDProperty(bone, "restpose_rot_y"))
@@ -1093,7 +1040,7 @@ void bc_create_restpose_mat(const ExportSettings *export_settings,
       rot[2] = DEG2RADF(bc_get_property(bone, "restpose_rot_z", 0));
   }
 
-  if (export_settings->keep_bind_info) {
+  if (export_settings.get_keep_bind_info()) {
     bc_get_property_vector(bone, "restpose_scale", scale, scale);
   }
 

@@ -41,8 +41,6 @@
 
 struct Depsgraph;
 
-extern Object *bc_get_highest_selected_ancestor_or_self(Object *ob);
-
 class Normal {
  public:
   float x;
@@ -66,7 +64,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
   /* TODO: optimize UV sets by making indexed list with duplicates removed */
   GeometryExporter(BlenderContext &blender_context,
                    COLLADASW::StreamWriter *sw,
-                   const ExportSettings *export_settings)
+                   BCExportSettings &export_settings)
       : COLLADASW::LibraryGeometries(sw),
         blender_context(blender_context),
         export_settings(export_settings)
@@ -122,7 +120,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
  private:
   std::set<std::string> exportedGeometry;
   BlenderContext &blender_context;
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
 
   Mesh *get_mesh(Scene *sce, Object *ob, int apply_modifiers);
 };

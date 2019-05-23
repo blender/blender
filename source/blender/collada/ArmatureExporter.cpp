@@ -43,8 +43,6 @@ extern "C" {
 #include "ArmatureExporter.h"
 #include "SceneExporter.h"
 
-#include "collada_utils.h"
-
 // write bone nodes
 void ArmatureExporter::add_armature_bones(Object *ob_arm,
                                           ViewLayer *view_layer,
@@ -62,10 +60,7 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm,
   }
 
   for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
-    // start from root bones
-    if (!bone->parent) {
-      add_bone_node(bone, ob_arm, se, child_objects);
-    }
+    add_bone_node(bone, ob_arm, se, child_objects);
   }
 
   if (!is_edited) {
@@ -77,7 +72,7 @@ void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins,
                                        Object *ob_arm,
                                        Bone *bone)
 {
-  if (bc_is_root_bone(bone, this->export_settings->deform_bones_only)) {
+  if (bc_is_root_bone(bone, this->export_settings.get_deform_bones_only())) {
     std::string joint_id = translate_id(id_name(ob_arm) + "_" + bone->name);
     ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, joint_id));
   }
@@ -109,7 +104,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
   }
 
   InstanceWriter::add_material_bindings(
-      ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
+      ins.getBindMaterial(), ob, this->export_settings.get_active_uv_only());
 
   ins.add();
   return true;
@@ -157,7 +152,7 @@ void ArmatureExporter::add_bone_node(Bone *bone,
                                      SceneExporter *se,
                                      std::vector<Object *> &child_objects)
 {
-  if (!(this->export_settings->deform_bones_only && bone->flag & BONE_NO_DEFORM)) {
+  if (can_export(bone)) {
     std::string node_id = translate_id(id_name(ob_arm) + "_" + bone->name);
     std::string node_name = std::string(bone->name);
     std::string node_sid = get_joint_sid(bone);
@@ -169,8 +164,8 @@ void ArmatureExporter::add_bone_node(Bone *bone,
     node.setNodeName(node_name);
     node.setNodeSid(node_sid);
 
-    if (this->export_settings->use_blender_profile) {
-      if (bone->parent) {
+    if (this->export_settings.get_use_blender_profile()) {
+      if (!is_export_root(bone)) {
         if (bone->flag & BONE_CONNECTED) {
           node.addExtraTechniqueParameter("blender", "connect", true);
         }
@@ -184,9 +179,19 @@ void ArmatureExporter::add_bone_node(Bone *bone,
         node.addExtraTechniqueParameter("blender", "roll", ebone->roll);
       }
       if (bc_is_leaf_bone(bone)) {
-        node.addExtraTechniqueParameter("blender", "tip_x", bone->arm_tail[0] - bone->arm_head[0]);
-        node.addExtraTechniqueParameter("blender", "tip_y", bone->arm_tail[1] - bone->arm_head[1]);
-        node.addExtraTechniqueParameter("blender", "tip_z", bone->arm_tail[2] - bone->arm_head[2]);
+        Vector head, tail;
+        const BCMatrix &global_transform = this->export_settings.get_global_transform();
+        if (this->export_settings.get_apply_global_orientation()) {
+          bc_add_global_transform(head, bone->arm_head, global_transform);
+          bc_add_global_transform(tail, bone->arm_tail, global_transform);
+        }
+        else {
+          copy_v3_v3(head, bone->arm_head);
+          copy_v3_v3(tail, bone->arm_tail);
+        }
+        node.addExtraTechniqueParameter("blender", "tip_x", tail[0] - head[0]);
+        node.addExtraTechniqueParameter("blender", "tip_y", tail[1] - head[1]);
+        node.addExtraTechniqueParameter("blender", "tip_z", tail[2] - head[2]);
       }
     }
 
@@ -195,12 +200,13 @@ void ArmatureExporter::add_bone_node(Bone *bone,
     add_bone_transform(ob_arm, bone, node);
 
     // Write nodes of childobjects, remove written objects from list
-    std::vector<Object *>::iterator i = child_objects.begin();
+    std::vector<Object *>::iterator iter = child_objects.begin();
 
-    while (i != child_objects.end()) {
-      if ((*i)->partype == PARBONE && STREQ((*i)->parsubstr, bone->name)) {
+    while (iter != child_objects.end()) {
+      Object *ob = *iter;
+      if (ob->partype == PARBONE && STREQ(ob->parsubstr, bone->name)) {
         float backup_parinv[4][4];
-        copy_m4_m4(backup_parinv, (*i)->parentinv);
+        copy_m4_m4(backup_parinv, ob->parentinv);
 
         // crude, temporary change to parentinv
         // so transform gets exported correctly.
@@ -208,28 +214,28 @@ void ArmatureExporter::add_bone_node(Bone *bone,
         // Add bone tail- translation... don't know why
         // bone parenting is against the tail of a bone
         // and not it's head, seems arbitrary.
-        (*i)->parentinv[3][1] += bone->length;
+        ob->parentinv[3][1] += bone->length;
 
         // OPEN_SIM_COMPATIBILITY
         // TODO: when such objects are animated as
         // single matrix the tweak must be applied
         // to the result.
-        if (export_settings->open_sim) {
+        if (export_settings.get_open_sim()) {
           // tweak objects parentinverse to match compatibility
           float temp[4][4];
 
           copy_m4_m4(temp, bone->arm_mat);
           temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
-          mul_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
+          mul_m4_m4m4(ob->parentinv, temp, ob->parentinv);
         }
 
-        se->writeNodes(*i);
-        copy_m4_m4((*i)->parentinv, backup_parinv);
-        i = child_objects.erase(i);
+        se->writeNode(ob);
+        copy_m4_m4(ob->parentinv, backup_parinv);
+        iter = child_objects.erase(iter);
       }
       else
-        i++;
+        iter++;
     }
 
     for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
@@ -242,6 +248,18 @@ void ArmatureExporter::add_bone_node(Bone *bone,
       add_bone_node(child, ob_arm, se, child_objects);
     }
   }
+}
+
+bool ArmatureExporter::is_export_root(Bone *bone)
+{
+  Bone *entry = bone->parent;
+  while (entry) {
+    if (can_export(entry)) {
+      return false;
+    }
+    entry = entry->parent;
+  }
+  return can_export(bone);
 }
 
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node &node)
@@ -260,49 +278,47 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 
     bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 
-    if (bone->parent) {
-      /* Get bone-space matrix from parent pose. */
-#if 0
-      bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
-      float invpar[4][4];
-      invert_m4_m4(invpar, parchan->pose_mat);
-      mul_m4_m4m4(mat, invpar, pchan->pose_mat);
-#endif
-      float invpar[4][4];
+    if (is_export_root(bone)) {
+      copy_m4_m4(mat, bone_rest_mat);
+    }
+    else {
+      Matrix parent_inverse;
       bc_create_restpose_mat(
           this->export_settings, bone->parent, parent_rest_mat, bone->parent->arm_mat, true);
 
-      invert_m4_m4(invpar, parent_rest_mat);
-      mul_m4_m4m4(mat, invpar, bone_rest_mat);
-    }
-    else {
-      copy_m4_m4(mat, bone_rest_mat);
+      invert_m4_m4(parent_inverse, parent_rest_mat);
+      mul_m4_m4m4(mat, parent_inverse, bone_rest_mat);
     }
 
     // OPEN_SIM_COMPATIBILITY
-    if (export_settings->open_sim) {
+    
+    if (export_settings.get_open_sim()) {
       // Remove rotations vs armature from transform
       // parent_rest_rot * mat * irest_rot
-      float temp[4][4];
-      copy_m4_m4(temp, bone_rest_mat);
-      temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
-      invert_m4(temp);
+      Matrix workmat;
+      copy_m4_m4(workmat, bone_rest_mat);
 
-      mul_m4_m4m4(mat, mat, temp);
+      workmat[3][0] = workmat[3][1] = workmat[3][2] = 0.0f;
+      invert_m4(workmat);
 
-      if (bone->parent) {
-        copy_m4_m4(temp, parent_rest_mat);
-        temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+      mul_m4_m4m4(mat, mat, workmat);
 
-        mul_m4_m4m4(mat, temp, mat);
+      if (!is_export_root(bone)) {
+        copy_m4_m4(workmat, parent_rest_mat);
+        workmat[3][0] = workmat[3][1] = workmat[3][2] = 0.0f;
+
+        mul_m4_m4m4(mat, workmat, mat);
+
       }
     }
+    
   }
 
-  if (this->export_settings->limit_precision)
+  if (this->export_settings.get_limit_precision()) {
     bc_sanitize_mat(mat, LIMITTED_PRECISION);
+  }
 
-  TransformWriter::add_node_transform(node, mat, NULL);
+  TransformWriter::add_node_transform(node, mat, NULL, this->export_settings);
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)

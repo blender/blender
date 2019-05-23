@@ -56,7 +56,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   // we make controller ids then?
   ArmatureExporter(BlenderContext &blender_context,
                    COLLADASW::StreamWriter *sw,
-                   const ExportSettings *export_settings)
+                   BCExportSettings &export_settings)
       : COLLADASW::LibraryControllers(sw),
         blender_context(blender_context),
         export_settings(export_settings)
@@ -72,7 +72,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
 
  private:
   BlenderContext &blender_context;
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
 
 #if 0
   std::vector<Object *> written_armatures;
@@ -91,6 +91,12 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
                      SceneExporter *se,
                      std::vector<Object *> &child_objects);
 
+  inline bool can_export(Bone *bone)
+  {
+    return !(export_settings.get_deform_bones_only() && bone->flag & BONE_NO_DEFORM);
+  }
+
+  bool is_export_root(Bone *bone);
   void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node &node);
 
   std::string get_controller_id(Object *ob_arm, Object *ob);

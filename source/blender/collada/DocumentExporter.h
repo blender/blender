@@ -31,13 +31,13 @@ extern "C" {
 
 class DocumentExporter {
  public:
-  DocumentExporter(BlenderContext &blender_context, const ExportSettings *export_settings);
+  DocumentExporter(BlenderContext &blender_context, ExportSettings *export_settings);
   int exportCurrentScene();
   void exportScenes(const char *filename);
 
  private:
   BlenderContext &blender_context;
-  const ExportSettings *export_settings;
+  BCExportSettings export_settings;
   KeyImageMap key_image_map;
 };
 

@@ -146,9 +146,9 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
   return data->layers[layer_index].name;
 }
 
-DocumentExporter::DocumentExporter(BlenderContext &blender_context,
-                                   const ExportSettings *export_settings)
-    : blender_context(blender_context), export_settings(export_settings)
+DocumentExporter::DocumentExporter(BlenderContext &blender_context, ExportSettings *exportSettings)
+    : blender_context(blender_context),
+      export_settings(BCExportSettings(exportSettings, blender_context))
 {
 }
 
@@ -262,7 +262,7 @@ int DocumentExporter::exportCurrentScene()
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();
 
-  LinkNode *export_set = this->export_settings->export_set;
+  LinkNode *export_set = this->export_settings.get_export_set();
   // <library_cameras>
   if (bc_has_object_type(export_set, OB_CAMERA)) {
     CamerasExporter ce(writer, this->export_settings);
@@ -296,7 +296,8 @@ int DocumentExporter::exportCurrentScene()
   // <library_controllers>
   ArmatureExporter arm_exporter(blender_context, writer, this->export_settings);
   ControllerExporter controller_exporter(blender_context, writer, this->export_settings);
-  if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys) {
+  if (bc_has_object_type(export_set, OB_ARMATURE) ||
+      this->export_settings.get_include_shapekeys()) {
     controller_exporter.export_controllers();
   }
 
@@ -304,9 +305,9 @@ int DocumentExporter::exportCurrentScene()
 
   SceneExporter se(blender_context, writer, &arm_exporter, this->export_settings);
 
-  if (this->export_settings->include_animations) {
+  if (this->export_settings.get_include_animations()) {
     // <library_animations>
-    AnimationExporter ae(blender_context, writer, this->export_settings);
+    AnimationExporter ae(writer, this->export_settings);
     ae.exportAnimations();
   }
 
@@ -322,10 +323,10 @@ int DocumentExporter::exportCurrentScene()
   delete writer;
 
   // Finally move the created document into place
-  fprintf(stdout, "Collada export to: %s\n", this->export_settings->filepath);
-  int status = BLI_rename(native_filename.c_str(), this->export_settings->filepath);
+  fprintf(stdout, "Collada export to: %s\n", this->export_settings.get_filepath());
+  int status = BLI_rename(native_filename.c_str(), this->export_settings.get_filepath());
   if (status != 0) {
-    status = BLI_copy(native_filename.c_str(), this->export_settings->filepath);
+    status = BLI_copy(native_filename.c_str(), this->export_settings.get_filepath());
     BLI_delete(native_filename.c_str(), false, false);
   }
   return status;

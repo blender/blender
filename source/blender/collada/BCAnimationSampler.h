@@ -147,7 +147,7 @@ class BCSampleFrameContainer {
 
 class BCAnimationSampler {
  private:
-  BlenderContext &blender_context;
+  BCExportSettings &export_settings;
   BCSampleFrameContainer sample_data;
   BCAnimationObjectMap objects;
 
@@ -169,16 +169,12 @@ class BCAnimationSampler {
       BCAnimation &animation, float *ref, float *val, std::string data_path, int length);
 
  public:
-  BCAnimationSampler(BlenderContext &blender_context, BCObjectSet &animated_subset);
+  BCAnimationSampler(BCExportSettings &export_settings, BCObjectSet &animated_subset);
   ~BCAnimationSampler();
 
   void add_object(Object *ob);
 
-  void sample_scene(int sampling_rate,
-                    int keyframe_at_end,
-                    bool for_opensim,
-                    bool keep_keyframes,
-                    BC_export_animation_type export_animation_type);
+  void sample_scene(BCExportSettings &export_settings, bool keyframe_at_end);
 
   BCAnimationCurveMap *get_curves(Object *ob);
   void get_object_frames(BCFrames &frames, Object *ob);

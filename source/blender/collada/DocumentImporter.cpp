@@ -1125,7 +1125,6 @@ bool DocumentImporter::writeAnimation(const COLLADAFW::Animation *anim)
   if (mImportStage == Fetching_Controller_data)
     return true;
 
-  /* return true; */
   return anim_importer.write_animation(anim);
 }
 

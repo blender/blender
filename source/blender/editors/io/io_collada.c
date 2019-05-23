@@ -81,6 +81,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   int apply_modifiers;
+  int global_forward;
+  int global_up;
+  int apply_global_orientation;
   int export_mesh_type;
   int selected;
   int include_children;
@@ -140,6 +143,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   /* Options panel */
   apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_mesh_type = RNA_enum_get(op->ptr, "export_mesh_type_selection");
+  global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
+  global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
+  apply_global_orientation = RNA_boolean_get(op->ptr, "apply_global_orientation");
+
   selected = RNA_boolean_get(op->ptr, "selected");
   include_children = RNA_boolean_get(op->ptr, "include_children");
   include_armatures = RNA_boolean_get(op->ptr, "include_armatures");
@@ -181,6 +188,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.filepath = filepath;
 
   export_settings.apply_modifiers = apply_modifiers != 0;
+  export_settings.global_forward = global_forward;
+  export_settings.global_up = global_up;
+  export_settings.apply_global_orientation = apply_global_orientation != 0;
+
+  export_settings.export_mesh_type = export_mesh_type;
   export_settings.export_mesh_type = export_mesh_type;
   export_settings.selected = selected != 0;
   export_settings.include_children = include_children != 0;
@@ -250,7 +262,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
-  uiLayout *box, *row, *col, *split;
+  uiLayout *bbox, *box, *row, *col, *split;
   bool include_animations = RNA_boolean_get(imfptr, "include_animations");
   int ui_section = RNA_enum_get(imfptr, "prop_bc_export_ui_section");
 
@@ -272,6 +284,18 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     /* Export Data options */
     /* =================== */
 
+    bbox = uiLayoutBox(layout);
+    row = uiLayoutRow(bbox, false);
+    uiItemL(row, IFACE_("Global Orientation:"), ICON_ORIENTATION_GLOBAL);
+    row = uiLayoutRow(bbox, false);
+    uiItemR(row, imfptr, "export_global_forward_selection", 0, "", ICON_NONE);
+
+    row = uiLayoutRow(bbox, false);
+    uiItemR(row, imfptr, "export_global_up_selection", 0, "", ICON_NONE);
+
+    row = uiLayoutRow(bbox, false);
+    uiItemR(row, imfptr, "apply_global_orientation", 0, NULL, ICON_NONE);
+
     row = uiLayoutRow(box, false);
     uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
@@ -286,6 +310,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     row = uiLayoutRow(box, false);
     uiItemR(row, imfptr, "include_shapekeys", 0, NULL, ICON_NONE);
     uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+    row = uiLayoutRow(box, false);
 
     /* Texture options */
     box = uiLayoutBox(layout);
@@ -418,6 +444,26 @@ void WM_OT_collada_export(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem prop_bc_export_global_forward[] = {
+      {BC_GLOBAL_FORWARD_X, "X", 0, "X Forward", "Global Forward is positive X Axis"},
+      {BC_GLOBAL_FORWARD_Y, "Y", 0, "Y Forward", "Global Forward is positive Y Axis"},
+      {BC_GLOBAL_FORWARD_Z, "Z", 0, "Z Forward", "Global Forward is positive Z Axis"},
+      {BC_GLOBAL_FORWARD_MINUS_X, "-X", 0, "-X Forward", "Global Forward is negative X Axis"},
+      {BC_GLOBAL_FORWARD_MINUS_Y, "-Y", 0, "-Y Forward", "Global Forward is negative Y Axis"},
+      {BC_GLOBAL_FORWARD_MINUS_Z, "-Z", 0, "-Z Forward", "Global Forward is negative Z Axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem prop_bc_export_global_up[] = {
+      {BC_GLOBAL_UP_X, "X", 0, "X Up", "Global UP is positive X Axis"},
+      {BC_GLOBAL_UP_Y, "Y", 0, "Y Up", "Global UP is positive Y Axis"},
+      {BC_GLOBAL_UP_Z, "Z", 0, "Z Up", "Global UP is positive Z Axis"},
+      {BC_GLOBAL_UP_MINUS_X, "-X", 0, "-X Up", "Global UP is negative X Axis"},
+      {BC_GLOBAL_UP_MINUS_Y, "-Y", 0, "-Y Up", "Global UP is negative Y Axis"},
+      {BC_GLOBAL_UP_MINUS_Z, "-Z", 0, "-Z Up", "Global UP is negative Z Axis"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem prop_bc_export_transformation_type[] = {
       {BC_TRANSFORMATION_TYPE_MATRIX,
        "matrix",
@@ -502,6 +548,29 @@ void WM_OT_collada_export(wmOperatorType *ot)
                0,
                "Resolution",
                "Modifier resolution for export");
+
+  RNA_def_enum(func,
+               "export_global_forward_selection",
+               prop_bc_export_global_forward,
+               BC_DEFAULT_FORWARD,
+               "Global Forward Axis",
+               "Global Forward axis for export");
+
+  RNA_def_enum(func,
+               "export_global_up_selection",
+               prop_bc_export_global_up,
+               BC_DEFAULT_UP,
+               "Global Up Axis",
+               "Global Up axis for export");
+
+  RNA_def_boolean(func, "", false, "Selection Only", "Export only selected elements");
+
+  RNA_def_boolean(func,
+                  "apply_global_orientation",
+                  false,
+                  "Apply Global Orientation",
+                  "enabled: Rotate all root objects to match the global orientation "
+                  "settings.\ndisabled: set global orientation in Collada assets");
 
   RNA_def_boolean(func, "selected", false, "Selection Only", "Export only selected elements");
 

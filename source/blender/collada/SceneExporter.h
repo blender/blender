@@ -82,8 +82,9 @@ extern "C" {
 #include "COLLADASWBaseInputElement.h"
 
 #include "ArmatureExporter.h"
-
 #include "ExportSettings.h"
+
+extern void bc_get_children(std::vector<Object *> &child_set, Object *ob, ViewLayer *view_layer);
 
 class SceneExporter : COLLADASW::LibraryVisualScenes,
                       protected TransformWriter,
@@ -92,7 +93,7 @@ class SceneExporter : COLLADASW::LibraryVisualScenes,
   SceneExporter(BlenderContext &blender_context,
                 COLLADASW::StreamWriter *sw,
                 ArmatureExporter *arm,
-                const ExportSettings *export_settings)
+                BCExportSettings &export_settings)
       : COLLADASW::LibraryVisualScenes(sw),
         blender_context(blender_context),
         arm_exporter(arm),
@@ -106,11 +107,11 @@ class SceneExporter : COLLADASW::LibraryVisualScenes,
   BlenderContext &blender_context;
   friend class ArmatureExporter;
   ArmatureExporter *arm_exporter;
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
 
   void exportHierarchy();
   void writeNodeList(std::vector<Object *> &child_objects, Object *parent);
-  void writeNodes(Object *ob);
+  void writeNode(Object *ob);
 };
 
 #endif

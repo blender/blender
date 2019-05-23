@@ -41,13 +41,13 @@ extern "C" {
 
 class MaterialsExporter : COLLADASW::LibraryMaterials {
  public:
-  MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+  MaterialsExporter(COLLADASW::StreamWriter *sw, BCExportSettings &export_settings);
   void exportMaterials(Scene *sce);
   void operator()(Material *ma, Object *ob);
 
  private:
   bool hasMaterials(Scene *sce);
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
 };
 
 // used in forEachMaterialInScene

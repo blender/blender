@@ -23,7 +23,7 @@
 #include "collada_internal.h"
 
 MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw,
-                                     const ExportSettings *export_settings)
+                                     BCExportSettings &export_settings)
     : COLLADASW::LibraryMaterials(sw), export_settings(export_settings)
 {
   /* pass */
@@ -36,7 +36,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 
     MaterialFunctor mf;
     mf.forEachMaterialInExportSet<MaterialsExporter>(
-        sce, *this, this->export_settings->export_set);
+        sce, *this, this->export_settings.get_export_set());
 
     closeLibrary();
   }
@@ -45,7 +45,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 bool MaterialsExporter::hasMaterials(Scene *sce)
 {
   LinkNode *node;
-  for (node = this->export_settings->export_set; node; node = node->next) {
+  for (node = this->export_settings.get_export_set(); node; node = node->next) {
     Object *ob = (Object *)node->link;
     int a;
     for (a = 0; a < ob->totcol; a++) {

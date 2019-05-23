@@ -23,10 +23,12 @@ extern "C" {
 #include "BKE_collection.h"
 #include "BKE_object.h"
 #include "BLI_listbase.h"
+#include "BKE_library.h"
 }
 
 #include "SceneExporter.h"
 #include "collada_utils.h"
+#include "BCSampleData.h"
 
 void SceneExporter::exportScene()
 {
@@ -43,18 +45,18 @@ void SceneExporter::exportScene()
 void SceneExporter::exportHierarchy()
 {
   LinkNode *node;
-  std::vector<Object *> base_objects;
+  ColladaBaseNodes base_objects;
 
   /* Ensure all objects in the export_set are marked */
-  for (node = this->export_settings->export_set; node; node = node->next) {
+  for (node = this->export_settings.get_export_set(); node; node = node->next) {
     Object *ob = (Object *)node->link;
     ob->id.tag |= LIB_TAG_DOIT;
   }
 
   /* Now find all exportable base objects (highest in export hierarchy) */
-  for (node = this->export_settings->export_set; node; node = node->next) {
+  for (node = this->export_settings.get_export_set(); node; node = node->next) {
     Object *ob = (Object *)node->link;
-    if (bc_is_base_node(this->export_settings->export_set, ob)) {
+    if (this->export_settings.is_export_root(ob)) {
       switch (ob->type) {
         case OB_MESH:
         case OB_CAMERA:
@@ -62,7 +64,7 @@ void SceneExporter::exportHierarchy()
         case OB_EMPTY:
         case OB_GPENCIL:
         case OB_ARMATURE:
-          base_objects.push_back(ob);
+          base_objects.add(ob);
           break;
       }
     }
@@ -70,10 +72,10 @@ void SceneExporter::exportHierarchy()
 
   /* And now export the base objects: */
   for (int index = 0; index < base_objects.size(); index++) {
-    Object *ob = base_objects[index];
+    Object *ob = base_objects.get(index);
+    writeNode(ob);
     if (bc_is_marked(ob)) {
       bc_remove_mark(ob);
-      writeNodes(ob);
     }
   }
 }
@@ -88,30 +90,31 @@ void SceneExporter::writeNodeList(std::vector<Object *> &child_objects, Object *
    * the hidden elements are exported as well. */
   for (int i = 0; i < child_objects.size(); ++i) {
     Object *child = child_objects[i];
+    writeNode(child);
     if (bc_is_marked(child)) {
       bc_remove_mark(child);
-      writeNodes(child);
     }
   }
 }
 
-void SceneExporter::writeNodes(Object *ob)
+void SceneExporter::writeNode(Object *ob)
 {
   ViewLayer *view_layer = blender_context.get_view_layer();
 
   std::vector<Object *> child_objects;
   bc_get_children(child_objects, ob, view_layer);
-  bool can_export = bc_is_in_Export_set(this->export_settings->export_set, ob, view_layer);
+  bool can_export = bc_is_in_Export_set(this->export_settings.get_export_set(), ob, view_layer);
 
   /* Add associated armature first if available */
   bool armature_exported = false;
   Object *ob_arm = bc_get_assigned_armature(ob);
 
   if (ob_arm != NULL) {
-    armature_exported = bc_is_in_Export_set(this->export_settings->export_set, ob_arm, view_layer);
+    armature_exported = bc_is_in_Export_set(
+        this->export_settings.get_export_set(), ob_arm, view_layer);
     if (armature_exported && bc_is_marked(ob_arm)) {
+      writeNode(ob_arm);
       bc_remove_mark(ob_arm);
-      writeNodes(ob_arm);
       armature_exported = true;
     }
   }
@@ -123,16 +126,12 @@ void SceneExporter::writeNodes(Object *ob)
     colladaNode.setType(COLLADASW::Node::NODE);
 
     colladaNode.start();
-
     if (ob->type == OB_MESH && armature_exported) {
       /* for skinned mesh we write obmat in <bind_shape_matrix> */
       TransformWriter::add_node_transform_identity(colladaNode);
     }
     else {
-      TransformWriter::add_node_transform_ob(colladaNode,
-                                             ob,
-                                             this->export_settings->export_transformation_type,
-                                             this->export_settings->limit_precision);
+      TransformWriter::add_node_transform_ob(colladaNode, ob, this->export_settings);
     }
 
     /* <instance_geometry> */
@@ -143,12 +142,12 @@ void SceneExporter::writeNodes(Object *ob)
       }
       if (!instance_controller_created) {
         COLLADASW::InstanceGeometry instGeom(mSW);
-        instGeom.setUrl(
-            COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
-                           get_geometry_id(ob, this->export_settings->use_object_instantiation)));
+        instGeom.setUrl(COLLADASW::URI(
+            COLLADABU::Utils::EMPTY_STRING,
+            get_geometry_id(ob, this->export_settings.get_use_object_instantiation())));
         instGeom.setName(encode_xml(id_name(ob)));
         InstanceWriter::add_material_bindings(
-            instGeom.getBindMaterial(), ob, this->export_settings->active_uv_only);
+            instGeom.getBindMaterial(), ob, this->export_settings.get_active_uv_only());
         instGeom.add();
       }
     }
@@ -232,7 +231,11 @@ void SceneExporter::writeNodes(Object *ob)
         }
       }
     }
+    bc_remove_mark(ob);
     writeNodeList(child_objects, ob);
     colladaNode.end();
+  }
+  else {
+    writeNodeList(child_objects, ob);
   }
 }

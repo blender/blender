@@ -133,10 +133,9 @@ std::string bc_get_action_id(std::string action_name,
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
 
-extern void bc_get_children(std::vector<Object *> &child_set, Object *ob, ViewLayer *view_layer);
 extern bool bc_validateConstraints(bConstraint *con);
 
-extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
+bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
 extern Object *bc_add_object(
     Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name);
 extern Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
@@ -146,14 +145,7 @@ extern Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
                               bool triangulate);
 
 extern Object *bc_get_assigned_armature(Object *ob);
-extern Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob);
-extern bool bc_is_base_node(LinkNode *export_set, Object *ob);
-extern bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer);
 extern bool bc_has_object_type(LinkNode *export_set, short obtype);
-
-extern int bc_is_marked(Object *ob);
-extern void bc_remove_mark(Object *ob);
-extern void bc_set_mark(Object *ob);
 
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
@@ -238,11 +230,58 @@ extern bool bc_is_animated(BCMatrixSampleMap &values);
 extern bool bc_has_animations(Scene *sce, LinkNode *node);
 extern bool bc_has_animations(Object *ob);
 
-extern void bc_create_restpose_mat(const ExportSettings *export_settings,
-                                   Bone *bone,
-                                   float to_mat[4][4],
-                                   float world[4][4],
-                                   bool use_local_space);
+extern void bc_add_global_transform(Matrix &to_mat,
+                                    const Matrix &from_mat,
+                                    const BCMatrix &global_transform,
+                                    const bool invert = false);
+extern void bc_add_global_transform(Vector &to_vec,
+                                    const Vector &from_vec,
+                                    const BCMatrix &global_transform,
+                                    const bool invert = false);
+extern void bc_add_global_transform(Vector &to_vec,
+                                    const BCMatrix &global_transform,
+                                    const bool invert = false);
+extern void bc_add_global_transform(Matrix &to_mat,
+                                    const BCMatrix &global_transform,
+                                    const bool invert = false);
+extern void bc_apply_global_transform(Matrix &to_mat,
+                                      const BCMatrix &global_transform,
+                                      const bool invert = false);
+extern void bc_apply_global_transform(Vector &to_vec,
+                                      const BCMatrix &global_transform,
+                                      const bool invert = false);
+extern void bc_create_restpose_mat(BCExportSettings &export_settings,
+                                          Bone *bone,
+                                          float to_mat[4][4],
+                                          float from_mat[4][4],
+                                          bool use_local_space);
+
+class ColladaBaseNodes {
+ private:
+  std::vector<Object *> base_objects;
+
+ public:
+  void add(Object *ob)
+  {
+    base_objects.push_back(ob);
+  }
+
+  bool contains(Object *ob)
+  {
+    std::vector<Object *>::iterator it = std::find(base_objects.begin(), base_objects.end(), ob);
+    return (it != base_objects.end());
+  }
+
+  int size()
+  {
+    return base_objects.size();
+  }
+
+  Object *get(int index)
+  {
+    return base_objects[index];
+  }
+};
 
 class BCPolygonNormalsIndices {
   std::vector<unsigned int> normal_indices;
@@ -293,7 +332,7 @@ class BoneExtended {
   bool has_roll();
   float get_roll();
 
-  void set_tail(float *vec);
+  void set_tail(float vec[]);
   float *get_tail();
   bool has_tail();
 

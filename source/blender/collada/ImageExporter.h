@@ -38,12 +38,12 @@
 class ImagesExporter : COLLADASW::LibraryImages {
  public:
   ImagesExporter(COLLADASW::StreamWriter *sw,
-                 const ExportSettings *export_settings,
+                 BCExportSettings &export_settings,
                  KeyImageMap &key_image_map);
   void exportImages(Scene *sce);
 
  private:
-  const ExportSettings *export_settings;
+  BCExportSettings &export_settings;
   KeyImageMap &key_image_map;
   void export_UV_Image(Image *image, bool use_texture_copies);
 };
