@@ -341,22 +341,25 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
                                      Scene *scene_cow)
 {
   const ViewLayer *view_layer_input;
-  if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
-    /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled
-     * via some driver. Such scenes should not have view layers after copy. */
-    view_layer_input = NULL;
-  }
-  else if (depsgraph->is_render_pipeline_depsgraph) {
+  if (depsgraph->is_render_pipeline_depsgraph) {
     /* If the dependency graph is used for post-processing (such as compositor) we do need to
      * have access to its view layer names so can not remove any view layers.
      * On a more positive side we can remove all the bases from all the view layers.
      *
      * NOTE: Need to clear pointers which might be pointing to original on freed (due to being
-     * unused) data. */
+     * unused) data.
+     *
+     * NOTE: Need to keep view layers for all scenes, even indirect ones. This is because of
+     * render layer node possibly pointing to another scene. */
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
       view_layer->basact = NULL;
     }
     return;
+  }
+  else if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
+    /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled
+     * via some driver. Such scenes should not have view layers after copy. */
+    view_layer_input = NULL;
   }
   else {
     view_layer_input = get_original_view_layer(depsgraph, id_node);
