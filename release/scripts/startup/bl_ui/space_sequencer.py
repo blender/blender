@@ -1213,7 +1213,8 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         scene = strip.scene
         layout.prop(strip, "use_sequence")
 
-        layout.prop(scene, "audio_volume", text="Volume")
+        if scene:
+            layout.prop(scene, "audio_volume", text="Volume")
 
         if not strip.use_sequence:
             layout.alignment = 'RIGHT'
