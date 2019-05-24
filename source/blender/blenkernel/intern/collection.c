@@ -1250,7 +1250,42 @@ bool BKE_collection_move(Main *bmain,
     }
   }
 
+  /* Make sure we store the flag of the layer collections before we remove and re-create them.
+   * Otherwise they will get lost and everything will be copied from the new parent collection. */
+  GHash *view_layer_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+
+  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
+         view_layer = view_layer->next) {
+
+      LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(
+          view_layer, collection);
+
+      if (layer_collection == NULL) {
+        continue;
+      }
+
+      BLI_ghash_insert(view_layer_hash, view_layer, POINTER_FROM_INT(layer_collection->flag));
+    }
+  }
+
+  /* Create and remove layer collections. */
   BKE_main_collection_sync(bmain);
+
+  /* Restore back the original layer collection flags. */
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, view_layer_hash) {
+    ViewLayer *view_layer = BLI_ghashIterator_getKey(&gh_iter);
+
+    LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(
+        view_layer, collection);
+
+    if (layer_collection) {
+      layer_collection->flag = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
+    }
+  }
+
+  BLI_ghash_free(view_layer_hash, NULL, NULL);
 
   return true;
 }
