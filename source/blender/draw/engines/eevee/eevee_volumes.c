@@ -221,7 +221,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     current_sample = effects->taa_current_sample - 1;
     effects->volume_current_sample = -1;
   }
-  else {
+  else if (DRW_state_is_image_render()) {
     const uint max_sample = (ht_primes[0] * ht_primes[1] * ht_primes[2]);
     current_sample = effects->volume_current_sample = (effects->volume_current_sample + 1) %
                                                       max_sample;

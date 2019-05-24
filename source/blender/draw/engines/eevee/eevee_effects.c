@@ -175,16 +175,6 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   }
 
   /**
-   * Ping Pong buffer
-   */
-  if ((effects->enabled_effects & EFFECT_POST_BUFFER) != 0) {
-    SETUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
-  }
-  else {
-    CLEANUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
-  }
-
-  /**
    * MinMax Pyramid
    */
   const bool half_res_hiz = true;
@@ -384,6 +374,16 @@ void EEVEE_effects_draw_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ve
   }
   else {
     CLEANUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
+  }
+
+  /**
+   * Ping Pong buffer
+   */
+  if ((effects->enabled_effects & EFFECT_POST_BUFFER) != 0) {
+    SETUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
+  }
+  else {
+    CLEANUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
   }
 }
 
