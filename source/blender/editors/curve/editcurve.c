@@ -3307,7 +3307,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
     }
 
     if (changed) {
-      DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT | ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
       changed_multi = true;
     }
