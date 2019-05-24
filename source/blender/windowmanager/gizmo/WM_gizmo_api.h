@@ -235,8 +235,12 @@ void WM_gizmo_target_property_subscribe_all(struct wmGizmo *gz,
 /* wmGizmoGroup */
 
 /* Callbacks for 'wmGizmoGroupType.setup_keymap' */
+struct wmKeyMap *WM_gizmogroup_keymap_common_with_name(const struct wmGizmoGroupType *gzgt,
+                                                       struct wmKeyConfig *config,
+                                                       const char *idname);
 struct wmKeyMap *WM_gizmogroup_keymap_common(const struct wmGizmoGroupType *gzgt,
                                              struct wmKeyConfig *config);
+
 struct wmKeyMap *WM_gizmogroup_keymap_common_select(const struct wmGizmoGroupType *gzgt,
                                                     struct wmKeyConfig *config);
 

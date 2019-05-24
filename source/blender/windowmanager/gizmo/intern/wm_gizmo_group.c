@@ -680,19 +680,28 @@ static wmKeyMap *gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char 
 }
 
 /**
- * Common default keymap for gizmo groups
+ * Common default keymap for gizmo groups.
+ *
+ * \param name: Typically #wmGizmoGroupType.name.
  */
-wmKeyMap *WM_gizmogroup_keymap_common(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+wmKeyMap *WM_gizmogroup_keymap_common_with_name(const wmGizmoGroupType *gzgt,
+                                                wmKeyConfig *config,
+                                                const char *name)
 {
   /* Use area and region id since we might have multiple gizmos
    * with the same name in different areas/regions. */
   wmKeyMap *km = WM_keymap_ensure(
-      config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
+      config, name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
 
   WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-  gizmogroup_tweak_modal_keymap(config, gzgt->name);
+  gizmogroup_tweak_modal_keymap(config, name);
 
   return km;
+}
+
+wmKeyMap *WM_gizmogroup_keymap_common(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+{
+  return WM_gizmogroup_keymap_common_with_name(gzgt, config, gzgt->name);
 }
 
 /**
