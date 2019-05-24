@@ -1661,10 +1661,10 @@ static void sdna_expand_names(SDNA *sdna)
   sdna->names_len = names_expand_len;
 }
 
-static const char *dna_sdna_alias_alias_from_static_elem_full(SDNA *sdna,
-                                                              GHash *elem_map_alias_from_static,
-                                                              const char *struct_name_static,
-                                                              const char *elem_static_full)
+static const char *dna_sdna_alias_from_static_elem_full(SDNA *sdna,
+                                                        GHash *elem_map_alias_from_static,
+                                                        const char *struct_name_static,
+                                                        const char *elem_static_full)
 {
   const int elem_static_full_len = strlen(elem_static_full);
   char *elem_static = alloca(elem_static_full_len + 1);
@@ -1727,7 +1727,7 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
       const int dna_struct_names_len = sp[1];
       sp += 2;
       for (int a = 0; a < dna_struct_names_len; a++, sp += 2) {
-        const char *elem_alias_full = dna_sdna_alias_alias_from_static_elem_full(
+        const char *elem_alias_full = dna_sdna_alias_from_static_elem_full(
             sdna, elem_map_alias_from_static, struct_name_static, sdna->names[sp[1]]);
         if (elem_alias_full != NULL) {
           sdna->alias.names[sp[1]] = elem_alias_full;
