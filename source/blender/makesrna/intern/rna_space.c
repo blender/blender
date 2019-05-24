@@ -346,8 +346,8 @@ const EnumPropertyItem rna_enum_shading_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
-    {V3D_LIGHTING_MATCAP, "MATCAP", 0, "MatCap", "Display using matcap material and lighting"},
     {V3D_LIGHTING_STUDIO, "STUDIO", 0, "Studio", "Display using studio lighting"},
+    {V3D_LIGHTING_MATCAP, "MATCAP", 0, "MatCap", "Display using matcap material and lighting"},
     {V3D_LIGHTING_FLAT, "FLAT", 0, "Flat", "Display using flat lighting"},
     {0, NULL, 0, NULL, NULL},
 };

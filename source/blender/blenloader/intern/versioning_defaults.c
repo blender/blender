@@ -49,6 +49,7 @@
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
+#include "BKE_studiolight.h"
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
@@ -117,6 +118,9 @@ void BLO_update_defaults_userpref_blend(void)
 
   /* Increase a little for new scrubbing area. */
   U.v2d_min_gridsize = 45;
+
+  /* Default studio light. */
+  BKE_studiolight_default(U.light_param, U.light_ambient);
 }
 
 /**
@@ -329,7 +333,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           /* Screen space cavity by default for faster performance. */
           View3D *v3d = sa->spacedata.first;
           v3d->shading.cavity_type = V3D_SHADING_CAVITY_CURVATURE;
-          v3d->shading.light = V3D_LIGHTING_MATCAP;
+          v3d->shading.light = V3D_LIGHTING_STUDIO;
         }
         else if (sa->spacetype == SPACE_CLIP) {
           SpaceClip *sclip = sa->spacedata.first;

@@ -131,6 +131,7 @@ typedef struct StudioLight {
 
 void BKE_studiolight_init(void);
 void BKE_studiolight_free(void);
+void BKE_studiolight_default(SolidLight lights[4], float light_ambient[4]);
 struct StudioLight *BKE_studiolight_find(const char *name, int flag);
 struct StudioLight *BKE_studiolight_findindex(int index, int flag);
 struct StudioLight *BKE_studiolight_find_default(int flag);

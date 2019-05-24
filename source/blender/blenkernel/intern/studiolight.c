@@ -1246,6 +1246,59 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
   ITER_PIXELS_END;
 }
 
+void BKE_studiolight_default(SolidLight lights[4], float light_ambient[4])
+{
+  copy_v3_fl3(light_ambient, 0.025000, 0.025000, 0.025000);
+
+  lights[0].flag = 1;
+  lights[0].smooth = 0.346939;
+  lights[0].col[0] = 0.058834;
+  lights[0].col[1] = 0.058834;
+  lights[0].col[2] = 0.058834;
+  lights[0].spec[0] = 0.084151;
+  lights[0].spec[1] = 0.084151;
+  lights[0].spec[2] = 0.084151;
+  lights[0].vec[0] = 0.182079;
+  lights[0].vec[1] = -0.235631;
+  lights[0].vec[2] = -0.954634;
+
+  lights[1].flag = 1;
+  lights[1].smooth = 0.000000;
+  lights[1].col[0] = 0.498431;
+  lights[1].col[1] = 0.514808;
+  lights[1].col[2] = 0.514808;
+  lights[1].spec[0] = 1.000000;
+  lights[1].spec[1] = 1.000000;
+  lights[1].spec[2] = 1.000000;
+  lights[1].vec[0] = 0.000000;
+  lights[1].vec[1] = 0.530612;
+  lights[1].vec[2] = 0.847615;
+
+  lights[2].flag = 1;
+  lights[2].smooth = 0.277551;
+  lights[2].col[0] = 0.136410;
+  lights[2].col[1] = 0.180357;
+  lights[2].col[2] = 0.149840;
+  lights[2].spec[0] = 0.086273;
+  lights[2].spec[1] = 0.095056;
+  lights[2].spec[2] = 0.061140;
+  lights[2].vec[0] = -0.909747;
+  lights[2].vec[1] = 0.375765;
+  lights[2].vec[2] = -0.176523;
+
+  lights[3].flag = 1;
+  lights[3].smooth = 0.362069;
+  lights[3].col[0] = 0.017977;
+  lights[3].col[1] = 0.011590;
+  lights[3].col[2] = 0.009531;
+  lights[3].spec[0] = 0.486897;
+  lights[3].spec[1] = 0.358628;
+  lights[3].spec[2] = 0.314323;
+  lights[3].vec[0] = 0.913200;
+  lights[3].vec[1] = 0.213080;
+  lights[3].vec[2] = -0.347366;
+}
+
 /* API */
 void BKE_studiolight_init(void)
 {
@@ -1255,31 +1308,7 @@ void BKE_studiolight_init(void)
                                        STUDIOLIGHT_TYPE_STUDIO);
   BLI_strncpy(sl->name, "Default", FILE_MAXFILE);
 
-  copy_v3_fl3(sl->light_ambient, 0.025000, 0.025000, 0.025000);
-
-  copy_v4_fl4(sl->light[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
-  copy_v4_fl4(sl->light[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
-  copy_v4_fl4(sl->light[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
-  sl->light[0].flag = 1;
-  sl->light[0].smooth = 0.1;
-
-  copy_v4_fl4(sl->light[1].vec, 0.788218, 0.593482, -0.162765, 0.0);
-  copy_v4_fl4(sl->light[1].col, 0.267115, 0.269928, 0.358840, 1.000000);
-  copy_v4_fl4(sl->light[1].spec, 0.090838, 0.090838, 0.090838, 1.000000);
-  sl->light[1].flag = 1;
-  sl->light[1].smooth = 0.25;
-
-  copy_v4_fl4(sl->light[2].vec, 0.696472, -0.696472, -0.172785, 0.0);
-  copy_v4_fl4(sl->light[2].col, 0.293216, 0.304662, 0.401968, 1.000000);
-  copy_v4_fl4(sl->light[2].spec, 0.069399, 0.020331, 0.020331, 1.000000);
-  sl->light[2].flag = 1;
-  sl->light[2].smooth = 0.5;
-
-  copy_v4_fl4(sl->light[3].vec, 0.021053, -0.989474, 0.143173, 0.0);
-  copy_v4_fl4(sl->light[3].col, 0.0, 0.0, 0.0, 1.0);
-  copy_v4_fl4(sl->light[3].spec, 0.072234, 0.082253, 0.162642, 1.000000);
-  sl->light[3].flag = 1;
-  sl->light[3].smooth = 0.7;
+  BKE_studiolight_default(sl->light, sl->light_ambient);
 
   BLI_addtail(&studiolights, sl);
 
