@@ -349,7 +349,13 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
   else if (depsgraph->is_render_pipeline_depsgraph) {
     /* If the dependency graph is used for post-processing (such as compositor) we do need to
      * have access to its view layer names so can not remove any view layers.
-     * On a more positive side we can remove all the bases from all the view layers. */
+     * On a more positive side we can remove all the bases from all the view layers.
+     *
+     * NOTE: Need to clear pointers which might be pointing to original on freed (due to being
+     * unused) data. */
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
+      view_layer->basact = NULL;
+    }
     return;
   }
   else {
