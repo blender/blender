@@ -425,6 +425,21 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       camera->dof.focus_distance = 10.0f;
       camera->dof.aperture_fstop = 2.8f;
     }
+
+    for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
+      /* Update default material to be a bit more rough. */
+      ma->roughness = 0.4f;
+
+      if (ma->nodetree) {
+        for (bNode *node = ma->nodetree->nodes.first; node; node = node->next) {
+          if (node->type == SH_NODE_BSDF_PRINCIPLED) {
+            bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
+            bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
+            roughness_data->value = 0.4f;
+          }
+        }
+      }
+    }
   }
 
   for (bScreen *sc = bmain->screens.first; sc; sc = sc->id.next) {

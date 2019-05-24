@@ -133,7 +133,7 @@ void BKE_material_init(Material *ma)
   ma->a = 1.0f;
   ma->spec = 0.5;
 
-  ma->roughness = 0.25f;
+  ma->roughness = 0.4f;
 
   ma->pr_type = MA_SPHERE;
 
