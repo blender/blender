@@ -1,5 +1,4 @@
 
-uniform bool doEdges = true;
 uniform bool selectFaces = true;
 uniform bool selectEdges = true;
 
@@ -17,21 +16,23 @@ vec4 EDIT_MESH_edge_color_outer(int edge_flag, int face_flag, float crease, floa
 vec4 EDIT_MESH_edge_color_inner(int edge_flag)
 {
   vec4 color = colorWireEdit;
-  vec4 color_select = (selectEdges) ? colorEdgeSelect : colorFaceSelect;
-  color = (doEdges && ((edge_flag & EDGE_SELECTED) != 0)) ? color_select : color;
-  color = (doEdges && ((edge_flag & EDGE_ACTIVE) != 0)) ? colorEditMeshActive : color;
+  vec4 color_select = (selectEdges) ? colorEdgeSelect : mix(colorEdgeSelect, colorWireEdit, .45);
+  color = ((edge_flag & EDGE_SELECTED) != 0) ? color_select : color;
+  color = ((edge_flag & EDGE_ACTIVE) != 0) ? colorEditMeshActive : color;
 
-  float non_edge_select_alpha = (selectFaces && (edge_flag & EDGE_SELECTED) != 0) ? 0.75 : 0.4;
-  color.a = (selectEdges) ? 1.0 : non_edge_select_alpha;
+  color.a = (selectEdges || (edge_flag & (EDGE_SELECTED | EDGE_ACTIVE)) != 0) ? 1.0 : 0.4;
   return color;
 }
 
 vec4 EDIT_MESH_edge_vertex_color(int vertex_flag)
 {
   vec4 color = colorWireEdit;
-  vec4 color_select = (selectEdges) ? colorEdgeSelect : colorFaceSelect;
-  color = (doEdges && (vertex_flag & (VERT_ACTIVE | VERT_SELECTED)) != 0) ? color_select : color;
-  color.a = (selectEdges) ? 1.0 : 0.4;
+  vec4 color_select = (selectEdges) ? colorEdgeSelect : mix(colorEdgeSelect, colorWireEdit, .45);
+
+  bool edge_selected = (vertex_flag & (VERT_ACTIVE | VERT_SELECTED)) != 0;
+  color = (edge_selected) ? color_select : color;
+
+  color.a = (selectEdges || edge_selected) ? 1.0 : 0.4;
   return color;
 }
 

@@ -373,9 +373,8 @@ static DRWPass *edit_mesh_create_overlay_pass(float *face_alpha,
   DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
   DRW_shgroup_uniform_vec2(grp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
-  DRW_shgroup_uniform_bool_copy(grp, "doEdges", do_edges);
   DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs);
-  DRW_shgroup_uniform_bool_copy(grp, "selectEdges", select_edge);
+  DRW_shgroup_uniform_bool_copy(grp, "selectEdges", do_edges || select_edge);
 
   DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE);
   /* To match blender loop structure. */
@@ -455,7 +454,6 @@ static void EDIT_MESH_cache_init(void *vedata)
       }
       if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
         if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
-          stl->g_data->data_mask[1] &= ~(VFLAG_EDGE_ACTIVE & VFLAG_EDGE_SELECTED);
           stl->g_data->do_edges = false;
         }
       }
