@@ -328,6 +328,8 @@ class GRAPH_MT_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_DEFAULT'
+
         layout.operator("graph.copy", text="Copy", icon='COPYDOWN')
         layout.operator("graph.paste", text="Paste", icon='PASTEDOWN')
         layout.operator("graph.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
@@ -342,6 +344,7 @@ class GRAPH_MT_context_menu(Menu):
 
         layout.operator("graph.keyframe_insert").type = 'SEL'
         layout.operator("graph.duplicate_move")
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("graph.delete")
 
         layout.separator()

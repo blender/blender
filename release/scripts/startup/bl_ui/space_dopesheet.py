@@ -565,6 +565,8 @@ class DOPESHEET_MT_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_DEFAULT'
+
         layout.operator("action.copy", text="Copy", icon='COPYDOWN')
         layout.operator("action.paste", text="Paste", icon='PASTEDOWN')
         layout.operator("action.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
@@ -578,6 +580,7 @@ class DOPESHEET_MT_context_menu(Menu):
 
         layout.operator("action.keyframe_insert").type = 'SEL'
         layout.operator("action.duplicate_move")
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("action.delete")
 
         layout.separator()
