@@ -534,6 +534,11 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
                                              int uv_no,
                                              float r_uv[2])
 {
+  if (modifier->mesh_final == NULL) {
+    BKE_report(reports, RPT_ERROR, "Object was not yet evaluated");
+    zero_v2(r_uv);
+    return;
+  }
   if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_MLOOPUV)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     zero_v2(r_uv);
