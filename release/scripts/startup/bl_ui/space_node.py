@@ -54,6 +54,7 @@ class NODE_HT_header(Header):
         snode_id = snode.id
         id_from = snode.id_from
         tool_settings = context.tool_settings
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
 
         layout.template_header()
 
@@ -159,19 +160,19 @@ class NODE_HT_header(Header):
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
         # Put pin next to ID block
-        if snode.tree_type != 'CompositorNodeTree':
+        if not is_compositor:
             layout.prop(snode, "pin", text="", emboss=False)
 
         layout.separator_spacer()
 
         # Put pin on the right for Compositing
-        if snode.tree_type == 'CompositorNodeTree':
+        if is_compositor:
             layout.prop(snode, "pin", text="", emboss=False)
 
         layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
 
         # Backdrop
-        if snode.tree_type == 'CompositorNodeTree':
+        if is_compositor:
             row=layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
             sub=row.row(align=True)
