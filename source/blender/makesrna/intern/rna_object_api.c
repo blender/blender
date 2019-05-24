@@ -375,7 +375,10 @@ static void rna_Object_camera_fit_coords(
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-static Mesh *rna_Object_to_mesh(Object *object, ReportList *reports)
+static Mesh *rna_Object_to_mesh(Object *object,
+                                ReportList *reports,
+                                bool preserve_all_data_layers,
+                                Depsgraph *depsgraph)
 {
   /* TODO(sergey): Make it more re-usable function, de-duplicate with
    * rna_Main_meshes_new_from_object. */
@@ -391,7 +394,7 @@ static Mesh *rna_Object_to_mesh(Object *object, ReportList *reports)
       return NULL;
   }
 
-  return BKE_object_to_mesh(object);
+  return BKE_object_to_mesh(depsgraph, object, preserve_all_data_layers);
 }
 
 static void rna_Object_to_mesh_clear(Object *object)
@@ -898,6 +901,19 @@ void RNA_api_object(StructRNA *srna)
       "data-block. To force free it use to_mesh_clear(). "
       "The result is temporary and can not be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_boolean(func,
+                  "preserve_all_data_layers",
+                  false,
+                  "",
+                  "Preserve all data layers in the mesh, like UV maps and vertex groups. "
+                  "By default Blender only computes the subset of data layers needed for viewport "
+                  "display and rendering, for better performance");
+  RNA_def_pointer(
+      func,
+      "depsgraph",
+      "Depsgraph",
+      "Dependency Graph",
+      "Evaluated dependency graph which is required when preserve_all_data_layers is true");
   parm = RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object");
   RNA_def_function_return(func, parm);
 

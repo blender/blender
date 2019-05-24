@@ -4499,11 +4499,11 @@ void BKE_object_update_select_id(struct Main *bmain)
   }
 }
 
-Mesh *BKE_object_to_mesh(Object *object)
+Mesh *BKE_object_to_mesh(Depsgraph *depsgraph, Object *object, bool preserve_all_data_layers)
 {
   BKE_object_to_mesh_clear(object);
 
-  Mesh *mesh = BKE_mesh_new_from_object(object);
+  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers);
   object->runtime.object_as_temp_mesh = mesh;
   return mesh;
 }

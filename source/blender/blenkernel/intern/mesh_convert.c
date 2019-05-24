@@ -1082,17 +1082,11 @@ static Mesh *mesh_new_from_mball_object(Object *object)
   return mesh_result;
 }
 
-static Mesh *mesh_new_from_mesh_object(Object *object)
+static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
 {
-  Mesh *mesh_input = object->data;
-  /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
-   * viewport is using for visualization. */
-  if (mesh_input->edit_mesh != NULL && mesh_input->edit_mesh->mesh_eval_final) {
-    mesh_input = mesh_input->edit_mesh->mesh_eval_final;
-  }
   Mesh *mesh_result = NULL;
   BKE_id_copy_ex(NULL,
-                 &mesh_input->id,
+                 &mesh->id,
                  (ID **)&mesh_result,
                  LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
   /* NOTE: Materials should already be copied. */
@@ -1101,7 +1095,52 @@ static Mesh *mesh_new_from_mesh_object(Object *object)
   return mesh_result;
 }
 
-Mesh *BKE_mesh_new_from_object(Object *object)
+static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph, Object *object)
+{
+  if (DEG_is_original_id(&object->id)) {
+    return mesh_new_from_mesh(object, (Mesh *)object->data);
+  }
+
+  if (depsgraph == NULL) {
+    return NULL;
+  }
+
+  Object object_for_eval = *object;
+  if (object_for_eval.runtime.mesh_orig != NULL) {
+    object_for_eval.data = object_for_eval.runtime.mesh_orig;
+  }
+
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  CustomData_MeshMasks mask = CD_MASK_MESH;
+  Mesh *result;
+
+  if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
+    result = mesh_create_eval_final_render(depsgraph, scene, &object_for_eval, &mask);
+  }
+  else {
+    result = mesh_create_eval_final_view(depsgraph, scene, &object_for_eval, &mask);
+  }
+
+  return result;
+}
+
+static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
+                                       Object *object,
+                                       bool preserve_all_data_layers)
+{
+  if (preserve_all_data_layers) {
+    return mesh_new_from_mesh_object_with_layers(depsgraph, object);
+  }
+  Mesh *mesh_input = object->data;
+  /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
+   * viewport is using for visualization. */
+  if (mesh_input->edit_mesh != NULL && mesh_input->edit_mesh->mesh_eval_final) {
+    mesh_input = mesh_input->edit_mesh->mesh_eval_final;
+  }
+  return mesh_new_from_mesh(object, mesh_input);
+}
+
+Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preserve_all_data_layers)
 {
   Mesh *new_mesh = NULL;
   switch (object->type) {
@@ -1114,7 +1153,7 @@ Mesh *BKE_mesh_new_from_object(Object *object)
       new_mesh = mesh_new_from_mball_object(object);
       break;
     case OB_MESH:
-      new_mesh = mesh_new_from_mesh_object(object);
+      new_mesh = mesh_new_from_mesh_object(depsgraph, object, preserve_all_data_layers);
       break;
     default:
       /* Object does not have geometry data. */
@@ -1144,9 +1183,12 @@ static int foreach_libblock_make_original_and_usercount_callback(void *user_data
   return IDWALK_RET_NOP;
 }
 
-Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain, Object *object)
+Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
+                                        Depsgraph *depsgraph,
+                                        Object *object,
+                                        bool preserve_all_data_layers)
 {
-  Mesh *mesh = BKE_mesh_new_from_object(object);
+  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers);
 
   /* Make sure mesh only points original datablocks, also increase users of materials and other
    * possibly referenced data-blocks.

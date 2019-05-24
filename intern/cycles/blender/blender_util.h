@@ -75,11 +75,13 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
      * UV are not empty. */
     if (mesh.is_editmode() ||
         (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE)) {
-      mesh = object.to_mesh();
+      BL::Depsgraph depsgraph(PointerRNA_NULL);
+      mesh = object.to_mesh(false, depsgraph);
     }
   }
   else {
-    mesh = object.to_mesh();
+    BL::Depsgraph depsgraph(PointerRNA_NULL);
+    mesh = object.to_mesh(false, depsgraph);
   }
 
 #if 0

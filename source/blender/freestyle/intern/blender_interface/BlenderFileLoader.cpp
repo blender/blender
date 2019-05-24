@@ -99,7 +99,7 @@ NodeGroup *BlenderFileLoader::Load()
       continue;
     }
 
-    Mesh *mesh = BKE_object_to_mesh(ob);
+    Mesh *mesh = BKE_object_to_mesh(NULL, ob, false);
 
     if (mesh) {
       insertShapeNode(ob, mesh, ++id);

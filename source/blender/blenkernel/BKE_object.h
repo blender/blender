@@ -400,8 +400,16 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const struct Object *ob,
  * The result is owned by the object.
  *
  * The mesh will be freed when object is re-evaluated or is destroyed. It is possible to force to
- * clear memory sued by this mesh by calling BKE_object_to_mesh_clear(). */
-struct Mesh *BKE_object_to_mesh(struct Object *object);
+ * clear memory sued by this mesh by calling BKE_object_to_mesh_clear().
+ *
+ * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
+ * preserves all possible custom data layers.
+ *
+ * NOTE: Dependency graph argument is required when preserve_all_data_layers is truth, and is
+ * ignored otherwise. */
+struct Mesh *BKE_object_to_mesh(struct Depsgraph *depsgraph,
+                                struct Object *object,
+                                bool preserve_all_data_layers);
 
 void BKE_object_to_mesh_clear(struct Object *object);
 

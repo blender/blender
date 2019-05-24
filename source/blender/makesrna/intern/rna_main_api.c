@@ -332,7 +332,11 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-static Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Object *object)
+static Mesh *rna_Main_meshes_new_from_object(Main *bmain,
+                                             ReportList *reports,
+                                             Object *object,
+                                             bool preserve_all_data_layers,
+                                             Depsgraph *depsgraph)
 {
   switch (object->type) {
     case OB_FONT:
@@ -346,7 +350,7 @@ static Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, O
       return NULL;
   }
 
-  return BKE_mesh_new_from_object_to_bmain(bmain, object);
+  return BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object, preserve_all_data_layers);
 }
 
 static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)
@@ -966,6 +970,19 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_boolean(func,
+                  "preserve_all_data_layers",
+                  false,
+                  "",
+                  "Preserve all data layers in the mesh, like UV maps and vertex groups. "
+                  "By default Blender only computes the subset of data layers needed for viewport "
+                  "display and rendering, for better performance");
+  RNA_def_pointer(
+      func,
+      "depsgraph",
+      "Depsgraph",
+      "Dependency Graph",
+      "Evaluated dependency graph which is required when preserve_all_data_layers is true");
   parm = RNA_def_pointer(func,
                          "mesh",
                          "Mesh",

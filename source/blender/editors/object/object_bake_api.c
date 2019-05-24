@@ -707,7 +707,7 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 /* create new mesh with edit mode changes and modifiers applied */
 static Mesh *bake_mesh_new_from_object(Object *object)
 {
-  Mesh *me = BKE_object_to_mesh(object);
+  Mesh *me = BKE_object_to_mesh(NULL, object, false);
 
   if (me->flag & ME_AUTOSMOOTH) {
     BKE_mesh_split_faces(me, true);
@@ -946,7 +946,7 @@ static int bake(Render *re,
         md = md_next;
       }
 
-      me_cage = BKE_object_to_mesh(ob_low_eval);
+      me_cage = BKE_object_to_mesh(NULL, ob_low_eval, false);
       RE_bake_pixels_populate(me_cage, pixel_array_low, num_pixels, &bake_images, uv_layer);
     }
 
@@ -965,7 +965,7 @@ static int bake(Render *re,
       highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
       highpoly[i].ob_eval->restrictflag &= ~OB_RESTRICT_RENDER;
       highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE | BASE_ENABLED_RENDER);
-      highpoly[i].me = BKE_object_to_mesh(highpoly[i].ob_eval);
+      highpoly[i].me = BKE_object_to_mesh(NULL, highpoly[i].ob_eval, false);
 
       /* lowpoly to highpoly transformation matrix */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
@@ -1088,7 +1088,7 @@ static int bake(Render *re,
           }
 
           /* Evaluate modifiers again. */
-          me_nores = BKE_object_to_mesh(ob_low_eval);
+          me_nores = BKE_object_to_mesh(NULL, ob_low_eval, false);
           RE_bake_pixels_populate(me_nores, pixel_array_low, num_pixels, &bake_images, uv_layer);
 
           RE_bake_normal_world_to_tangent(pixel_array_low,

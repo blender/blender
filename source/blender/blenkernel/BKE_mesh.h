@@ -209,11 +209,22 @@ float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
 /* Create new mesh from the given object at its current state.
- * The owner of this mesh is unknown, it is up to the caller to decide. */
-struct Mesh *BKE_mesh_new_from_object(struct Object *object);
+ * The owner of this mesh is unknown, it is up to the caller to decide.
+ *
+ * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
+ * preserves all possible custom data layers.
+ *
+ * NOTE: Dependency graph argument is required when preserve_all_data_layers is truth, and is
+ * ignored otherwise. */
+struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
+                                      struct Object *object,
+                                      bool preserve_all_data_layers);
 
 /* This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database. */
-struct Mesh *BKE_mesh_new_from_object_to_bmain(struct Main *bmain, struct Object *object);
+struct Mesh *BKE_mesh_new_from_object_to_bmain(struct Main *bmain,
+                                               struct Depsgraph *depsgraph,
+                                               struct Object *object,
+                                               bool preserve_all_data_layers);
 
 struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
