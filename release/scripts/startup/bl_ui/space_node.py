@@ -573,6 +573,7 @@ class NODE_PT_backdrop(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         snode = context.space_data
         layout.active = snode.show_backdrop
@@ -604,6 +605,7 @@ class NODE_PT_quality(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         snode = context.space_data
         tree = snode.node_tree
