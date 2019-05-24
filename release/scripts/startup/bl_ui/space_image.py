@@ -706,7 +706,7 @@ class IMAGE_HT_header(Header):
             row.template_ID(sima, "mask", new="mask.new")
 
         if not show_render:
-            layout.prop(sima, "use_image_pin", text="")
+            layout.prop(sima, "use_image_pin", text="", emboss=False)
 
         layout.separator_spacer()
 

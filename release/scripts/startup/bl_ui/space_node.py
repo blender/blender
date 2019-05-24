@@ -150,12 +150,6 @@ class NODE_HT_header(Header):
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 
-            layout.prop(snode, "use_auto_render")
-            layout.prop(snode, "show_backdrop")
-            if snode.show_backdrop:
-                row = layout.row(align=True)
-                row.prop(snode, "backdrop_channels", text="", expand=True)
-
         else:
             # Custom node tree is edited as independent ID block
             NODE_MT_editor_menus.draw_collapsible(context, layout)
@@ -164,12 +158,25 @@ class NODE_HT_header(Header):
 
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
-        layout.prop(snode, "pin", text="")
+        # Put pin next to ID block
+        if snode.tree_type != 'CompositorNodeTree':
+            layout.prop(snode, "pin", text="", emboss=False)
+
         layout.separator_spacer()
 
-        layout.template_running_jobs()
+        # Put pin on the right for Compositing
+        if snode.tree_type == 'CompositorNodeTree':
+            layout.prop(snode, "pin", text="", emboss=False)
 
         layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
+
+        # Backdrop
+        if snode.tree_type == 'CompositorNodeTree':
+            row=layout.row(align=True)
+            row.prop(snode, "show_backdrop", toggle=True)
+            sub=row.row(align=True)
+            sub.active = snode.show_backdrop
+            sub.prop(snode, "backdrop_channels", icon_only=True, text="", expand=True)
 
         # Snap
         row = layout.row(align=True)
@@ -620,6 +627,8 @@ class NODE_PT_quality(bpy.types.Panel):
         col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
+        col.separator()
+        col.prop(snode, "use_auto_render")
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
