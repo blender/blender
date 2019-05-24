@@ -1976,12 +1976,6 @@ static bool WIDGETGROUP_gizmo_poll_tool(const struct bContext *C, struct wmGizmo
   return true;
 }
 
-static wmKeyMap *WIDGETGROUP_gizmo_setup_keymap(const struct wmGizmoGroupType *gzgt,
-                                                struct wmKeyConfig *config)
-{
-  return WM_gizmogroup_keymap_common_with_name(gzgt, config, "3D View: Transform Gizmo");
-}
-
 /* Expose as multiple gizmos so tools use one, persistent context another.
  * Needed because they use different options which isn't so simple to dynamically update. */
 
@@ -2001,7 +1995,6 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
   gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
   gzgt->invoke_prepare = WIDGETGROUP_gizmo_invoke_prepare;
-  gzgt->setup_keymap = WIDGETGROUP_gizmo_setup_keymap;
 
   static const EnumPropertyItem rna_enum_gizmo_items[] = {
       {V3D_GIZMO_SHOW_OBJECT_TRANSLATE, "TRANSLATE", 0, "Move", ""},
@@ -2032,7 +2025,6 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
   gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
   gzgt->invoke_prepare = WIDGETGROUP_gizmo_invoke_prepare;
-  gzgt->setup_keymap = WIDGETGROUP_gizmo_setup_keymap;
 }
 
 /** \} */

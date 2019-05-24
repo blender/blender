@@ -97,10 +97,10 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
   /* if not set, use default */
   if (gzgt->setup_keymap == NULL) {
     if (gzgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
-      gzgt->setup_keymap = WM_gizmogroup_keymap_common_select;
+      gzgt->setup_keymap = WM_gizmogroup_keymap_generic_select;
     }
     else {
-      gzgt->setup_keymap = WM_gizmogroup_keymap_common;
+      gzgt->setup_keymap = WM_gizmogroup_keymap_generic;
     }
   }
 

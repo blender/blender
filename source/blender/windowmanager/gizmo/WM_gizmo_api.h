@@ -235,14 +235,21 @@ void WM_gizmo_target_property_subscribe_all(struct wmGizmo *gz,
 /* wmGizmoGroup */
 
 /* Callbacks for 'wmGizmoGroupType.setup_keymap' */
-struct wmKeyMap *WM_gizmogroup_keymap_common_with_name(const struct wmGizmoGroupType *gzgt,
-                                                       struct wmKeyConfig *config,
-                                                       const char *idname);
-struct wmKeyMap *WM_gizmogroup_keymap_common(const struct wmGizmoGroupType *gzgt,
-                                             struct wmKeyConfig *config);
+struct wmKeyMap *WM_gizmogroup_keymap_template_ex(struct wmKeyConfig *config,
+                                                  const char *idname,
+                                                  const struct wmGizmoMapType_Params *params);
+struct wmKeyMap *WM_gizmogroup_keymap_template(const struct wmGizmoGroupType *gzgt,
+                                               struct wmKeyConfig *config);
 
-struct wmKeyMap *WM_gizmogroup_keymap_common_select(const struct wmGizmoGroupType *gzgt,
-                                                    struct wmKeyConfig *config);
+struct wmKeyMap *WM_gizmogroup_keymap_template_select_ex(
+    struct wmKeyConfig *config, const char *idname, const struct wmGizmoMapType_Params *params);
+struct wmKeyMap *WM_gizmogroup_keymap_template_select(const struct wmGizmoGroupType *gzgt,
+                                                      struct wmKeyConfig *config);
+
+struct wmKeyMap *WM_gizmogroup_keymap_generic(const struct wmGizmoGroupType *gzgt,
+                                              struct wmKeyConfig *config);
+struct wmKeyMap *WM_gizmogroup_keymap_generic_select(const struct wmGizmoGroupType *gzgt,
+                                                     struct wmKeyConfig *config);
 
 void WM_gizmogroup_ensure_init(const struct bContext *C, struct wmGizmoGroup *gzgroup);
 

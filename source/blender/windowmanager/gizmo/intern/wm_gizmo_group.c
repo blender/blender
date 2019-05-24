@@ -682,37 +682,53 @@ static wmKeyMap *gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char 
 /**
  * Common default keymap for gizmo groups.
  *
- * \param name: Typically #wmGizmoGroupType.name.
+ * \param name: Typically #wmGizmoGroupType.name
+ * \param params: Typically #wmGizmoGroupType.gzmap_params
  */
-wmKeyMap *WM_gizmogroup_keymap_common_with_name(const wmGizmoGroupType *gzgt,
-                                                wmKeyConfig *config,
-                                                const char *name)
+wmKeyMap *WM_gizmogroup_keymap_template_ex(wmKeyConfig *config,
+                                           const char *name,
+                                           const struct wmGizmoMapType_Params *params)
 {
   /* Use area and region id since we might have multiple gizmos
    * with the same name in different areas/regions. */
-  wmKeyMap *km = WM_keymap_ensure(
-      config, name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
-
-  WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+  wmKeyMap *km = WM_keymap_ensure(config, name, params->spaceid, params->regionid);
+  if (BLI_listbase_is_empty(&km->items)) {
+    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+  }
   gizmogroup_tweak_modal_keymap(config, name);
 
   return km;
 }
 
-wmKeyMap *WM_gizmogroup_keymap_common(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+wmKeyMap *WM_gizmogroup_keymap_template(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
 {
-  return WM_gizmogroup_keymap_common_with_name(gzgt, config, gzgt->name);
+  return WM_gizmogroup_keymap_template_ex(config, gzgt->name, &gzgt->gzmap_params);
+}
+
+wmKeyMap *WM_gizmogroup_keymap_generic(const wmGizmoGroupType *UNUSED(gzgt), wmKeyConfig *config)
+{
+  struct wmGizmoMapType_Params params = {
+      .spaceid = SPACE_EMPTY,
+      .regionid = RGN_TYPE_WINDOW,
+  };
+  return WM_gizmogroup_keymap_template_ex(config, "Generic Gizmos", &params);
 }
 
 /**
  * Variation of #WM_gizmogroup_keymap_common but with keymap items for selection
+ *
+ * \param name: Typically #wmGizmoGroupType.name
+ * \param params: Typically #wmGizmoGroupType.gzmap_params
  */
-wmKeyMap *WM_gizmogroup_keymap_common_select(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *config,
+                                                  const char *name,
+                                                  const struct wmGizmoMapType_Params *params)
 {
   /* Use area and region id since we might have multiple gizmos
    * with the same name in different areas/regions. */
-  wmKeyMap *km = WM_keymap_ensure(
-      config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
+  wmKeyMap *km = WM_keymap_ensure(config, name, params->spaceid, params->regionid);
+  const bool do_init = BLI_listbase_is_empty(&km->items);
+
   /* FIXME(campbell) */
 #if 0
   const int select_mouse = (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
@@ -724,21 +740,41 @@ wmKeyMap *WM_gizmogroup_keymap_common_select(const wmGizmoGroupType *gzgt, wmKey
   const int action_mouse = LEFTMOUSE;
 #endif
 
-  WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, KM_PRESS, KM_ANY, 0);
-  WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, KM_ANY, 0, 0);
-  gizmogroup_tweak_modal_keymap(config, gzgt->name);
+  if (do_init) {
+    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, KM_PRESS, KM_ANY, 0);
+    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, KM_ANY, 0, 0);
+  }
+  gizmogroup_tweak_modal_keymap(config, name);
 
-  wmKeyMapItem *kmi = WM_keymap_add_item(
-      km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, 0, 0);
-  RNA_boolean_set(kmi->ptr, "extend", false);
-  RNA_boolean_set(kmi->ptr, "deselect", false);
-  RNA_boolean_set(kmi->ptr, "toggle", false);
-  kmi = WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, KM_SHIFT, 0);
-  RNA_boolean_set(kmi->ptr, "extend", false);
-  RNA_boolean_set(kmi->ptr, "deselect", false);
-  RNA_boolean_set(kmi->ptr, "toggle", true);
+  if (do_init) {
+    wmKeyMapItem *kmi = WM_keymap_add_item(
+        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, 0, 0);
+    RNA_boolean_set(kmi->ptr, "extend", false);
+    RNA_boolean_set(kmi->ptr, "deselect", false);
+    RNA_boolean_set(kmi->ptr, "toggle", false);
+    kmi = WM_keymap_add_item(
+        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, KM_SHIFT, 0);
+    RNA_boolean_set(kmi->ptr, "extend", false);
+    RNA_boolean_set(kmi->ptr, "deselect", false);
+    RNA_boolean_set(kmi->ptr, "toggle", true);
+  }
 
   return km;
+}
+
+wmKeyMap *WM_gizmogroup_keymap_template_select(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+{
+  return WM_gizmogroup_keymap_template_select_ex(config, gzgt->name, &gzgt->gzmap_params);
+}
+
+wmKeyMap *WM_gizmogroup_keymap_generic_select(const wmGizmoGroupType *UNUSED(gzgt),
+                                              wmKeyConfig *config)
+{
+  struct wmGizmoMapType_Params params = {
+      .spaceid = SPACE_EMPTY,
+      .regionid = RGN_TYPE_WINDOW,
+  };
+  return WM_gizmogroup_keymap_template_select_ex(config, "Generic Gizmos Select", &params);
 }
 
 /** \} */ /* wmGizmoGroup */

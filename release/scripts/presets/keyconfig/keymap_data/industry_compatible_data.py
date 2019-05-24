@@ -3534,24 +3534,43 @@ def km_transform_modal_map(_params):
 # ------------------------------------------------------------------------------
 # Gizmo System Keymaps
 
-def km_gizmos(_params):
-    items = []
+# Fallback for gizmos that don't have custom a custom key-map.
+def km_generic_gizmos(_params):
     keymap = (
-        "Gizmos",
+        "Generic Gizmos",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
+        {"items": _template_items_gizmo_tweak_value()},
     )
 
     return keymap
 
 
-def km_3d_view_transform_gizmo(_params):
+def km_generic_gizmos_tweak_modal_map(_params):
     keymap = (
-        "3D View: Transform Gizmo",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        "Generic Gizmos Tweak Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": _template_items_gizmo_tweak_modal()},
+    )
+    return keymap
+
+
+def km_generic_gizmos_select(_params):
+    keymap = (
+        "Generic Gizmos Select",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        # TODO, currently in C code.
         {"items": _template_items_gizmo_tweak_value()},
     )
 
+    return keymap
+
+
+def km_generic_gizmos_select_tweak_modal_map(_params):
+    keymap = (
+        "Generic Gizmos Select Tweak Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": _template_items_gizmo_tweak_modal()},
+    )
     return keymap
 
 
@@ -3743,8 +3762,10 @@ def generate_keymaps(params=None):
         km_transform_modal_map(params),
 
         # Gizmos.
-        km_gizmos(params),
-        km_3d_view_transform_gizmo(params),
+        km_generic_gizmos(params),
+        km_generic_gizmos_tweak_modal_map(params),
+        km_generic_gizmos_select(params),
+        km_generic_gizmos_select_tweak_modal_map(params),
 
         # Tool System.
         km_3d_view_tool_move(params),
