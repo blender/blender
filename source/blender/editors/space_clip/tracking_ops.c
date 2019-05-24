@@ -1466,6 +1466,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
   }
 
   BLI_gset_free(point_tracks, NULL);
+  DEG_id_tag_update(&clip->id, 0);
 
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
