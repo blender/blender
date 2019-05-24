@@ -563,8 +563,6 @@ void WM_OT_collada_export(wmOperatorType *ot)
                "Global Up Axis",
                "Global Up axis for export");
 
-  RNA_def_boolean(func, "", false, "Selection Only", "Export only selected elements");
-
   RNA_def_boolean(func,
                   "apply_global_orientation",
                   false,
