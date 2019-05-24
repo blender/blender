@@ -4933,7 +4933,7 @@ void BKE_sequencer_update_sound_bounds_all(Scene *scene)
 void BKE_sequencer_update_sound_bounds(Scene *scene, Sequence *seq)
 {
   if (seq->type == SEQ_TYPE_SCENE) {
-    if (seq->scene_sound) {
+    if (seq->scene && seq->scene_sound) {
       /* We have to take into account start frame of the sequence's scene! */
       int startofs = seq->startofs + seq->anim_startofs + seq->scene->r.sfra;
 
