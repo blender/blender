@@ -978,7 +978,7 @@ void wm_homefile_read(bContext *C,
         }
       }
     }
-    if (BLI_listbase_is_empty(&wmbase)) {
+    if (use_data && BLI_listbase_is_empty(&wmbase)) {
       wm_clear_default_size(C);
     }
   }
