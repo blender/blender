@@ -3578,6 +3578,17 @@ def km_generic_gizmos_select_tweak_modal_map(_params):
 # Tool System Keymaps
 
 
+def km_3d_view_tool_transform(params):
+    return (
+        "3D View Tool: Transform",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("transform.from_gizmo", {"type": 'MIDDLEMOUSE', "value": 'ANY'}, None),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
 def km_3d_view_tool_move(params):
     return (
         "3D View Tool: Move",
@@ -3768,6 +3779,7 @@ def generate_keymaps(params=None):
         km_generic_gizmos_select_tweak_modal_map(params),
 
         # Tool System.
+        km_3d_view_tool_transform(params),
         km_3d_view_tool_move(params),
         km_3d_view_tool_rotate(params),
         km_3d_view_tool_scale(params),
