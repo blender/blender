@@ -5353,7 +5353,7 @@ static void seq_load_apply(Main *bmain, Scene *scene, Sequence *seq, SeqLoadInfo
   }
 }
 
-static Strip *seq_strip_alloc()
+static Strip *seq_strip_alloc(void)
 {
   Strip *strip = MEM_callocN(sizeof(Strip), "strip");
   strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");

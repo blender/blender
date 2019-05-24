@@ -789,7 +789,7 @@ static void rna_Sequence_update_reopen_files(Main *bmain, Scene *UNUSED(scene), 
     BKE_sequencer_update_sound_bounds(scene, ptr->data);
 }
 
-static void rna_Sequence_mute_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Sequence_mute_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -806,7 +806,7 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
   rna_Sequence_invalidate_raw(bmain, scene, ptr);
 }
 
-static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sequence_sound_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)ptr->data;
   if (seq->sound != NULL) {
