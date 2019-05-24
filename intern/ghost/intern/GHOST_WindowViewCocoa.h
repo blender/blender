@@ -17,10 +17,15 @@
  * All rights reserved.
  */
 
-/* NSView subclass for drawing and handling input. */
+/* NSView subclass for drawing and handling input.
+ *
+ * COCOA_VIEW_BASE_CLASS will be either NSView or NSOpenGLView depending if
+ * we use a Metal or OpenGL layer for drawing in the view. We use macros
+ * to defined classes for each case, so we don't have to duplicate code as
+ * Objective-C does not have multiple inheritance. */
 
 // We need to subclass it in order to give Cocoa the feeling key events are trapped
-@interface CocoaOpenGLView : NSOpenGLView <NSTextInput>
+@interface COCOA_VIEW_CLASS : COCOA_VIEW_BASE_CLASS <NSTextInput>
 {
   GHOST_SystemCocoa *systemCocoa;
   GHOST_WindowCocoa *associatedWindow;
@@ -34,7 +39,7 @@
                     windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
 
-@implementation CocoaOpenGLView
+@implementation COCOA_VIEW_CLASS
 
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa
                     windowCocoa:(GHOST_WindowCocoa *)winCocoa

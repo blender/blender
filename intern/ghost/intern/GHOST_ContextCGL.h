@@ -26,15 +26,23 @@
 
 #include "GHOST_Context.h"
 
-@class NSOpenGLView;
+@class CAMetalLayer;
+@class MTLCommandQueue;
+@class MTLRenderPipelineState;
+@class MTLTexture;
 @class NSOpenGLContext;
+@class NSOpenGLView;
+@class NSView;
 
 class GHOST_ContextCGL : public GHOST_Context {
  public:
   /**
    * Constructor.
    */
-  GHOST_ContextCGL(bool stereoVisual, NSOpenGLView *openGLView);
+  GHOST_ContextCGL(bool stereoVisual,
+                   NSView *metalView,
+                   CAMetalLayer *metalLayer,
+                   NSOpenGLView *openglView);
 
   /**
    * Destructor.
@@ -58,6 +66,8 @@ class GHOST_ContextCGL : public GHOST_Context {
    * \return  A boolean success indicator.
    */
   GHOST_TSuccess releaseDrawingContext();
+
+  unsigned int getDefaultFramebuffer();
 
   /**
    * Call immediately after new to initialize.  If this fails then immediately delete the object.
@@ -94,11 +104,23 @@ class GHOST_ContextCGL : public GHOST_Context {
   GHOST_TSuccess updateDrawingContext();
 
  private:
-  /** The openGL view */
+  /** Metal state */
+  NSView *m_metalView;
+  CAMetalLayer *m_metalLayer;
+  MTLCommandQueue *m_metalCmdQueue;
+  MTLRenderPipelineState *m_metalRenderPipeline;
+
+  /** OpenGL state, for GPUs that don't support Metal */
   NSOpenGLView *m_openGLView;
 
   /** The OpenGL drawing context */
   NSOpenGLContext *m_openGLContext;
+
+  /** The virtualized default framebuffer */
+  unsigned int m_defaultFramebuffer;
+
+  /** The virtualized default framebuffer's texture */
+  MTLTexture *m_defaultFramebufferMetalTexture;
 
   bool m_coreProfile;
 
@@ -107,6 +129,13 @@ class GHOST_ContextCGL : public GHOST_Context {
   /** The first created OpenGL context (for sharing display lists) */
   static NSOpenGLContext *s_sharedOpenGLContext;
   static int s_sharedCount;
+
+  /* Metal functions */
+  void metalInit();
+  void metalFree();
+  void metalInitFramebuffer();
+  void metalUpdateFramebuffer();
+  void metalSwapBuffers();
 };
 
 #endif  // __GHOST_CONTEXTCGL_H__

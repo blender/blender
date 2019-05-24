@@ -29,6 +29,8 @@
 #endif
 
 #include <Cocoa/Cocoa.h>
+#include <QuartzCore/QuartzCore.h>
+#include <Metal/Metal.h>
 
 #include <sys/sysctl.h>
 
@@ -263,7 +265,17 @@
 @end
 
 /* NSView for handling input and drawing. */
+#define COCOA_VIEW_CLASS CocoaOpenGLView
+#define COCOA_VIEW_BASE_CLASS NSOpenGLView
 #include "GHOST_WindowViewCocoa.h"
+#undef COCOA_VIEW_CLASS
+#undef COCOA_VIEW_BASE_CLASS
+
+#define COCOA_VIEW_CLASS CocoaMetalView
+#define COCOA_VIEW_BASE_CLASS NSView
+#include "GHOST_WindowViewCocoa.h"
+#undef COCOA_VIEW_CLASS
+#undef COCOA_VIEW_BASE_CLASS
 
 #pragma mark initialization / finalization
 
@@ -281,6 +293,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      bool is_debug)
     : GHOST_Window(width, height, state, stereoVisual, false),
       m_openGLView(nil),
+      m_metalView(nil),
+      m_metalLayer(nil),
       m_systemCocoa(systemCocoa),
       m_customCursor(0),
       m_immediateDraw(false),
@@ -318,21 +332,44 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
   minSize.height = 240;
   [m_window setContentMinSize:minSize];
 
-  // Creates the OpenGL View inside the window
-  m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect];
+  // Create NSView inside the window
+  id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
+  NSView *view;
+
+  if (metalDevice) {
+    // Create metal layer and view if supported
+    m_metalLayer = [[CAMetalLayer alloc] init];
+    [m_metalLayer setEdgeAntialiasingMask:0];
+    [m_metalLayer setMasksToBounds:NO];
+    [m_metalLayer setOpaque:YES];
+    [m_metalLayer setFramebufferOnly:YES];
+    [m_metalLayer setPresentsWithTransaction:NO];
+    [m_metalLayer removeAllAnimations];
+    [m_metalLayer setDevice:metalDevice];
+
+    m_metalView = [[CocoaMetalView alloc] initWithFrame:rect];
+    [m_metalView setWantsLayer:YES];
+    [m_metalView setLayer:m_metalLayer];
+    [m_metalView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
+    view = m_metalView;
+  }
+  else {
+    // Fallback to OpenGL view if there is no Metal support
+    m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect];
+    [m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
+    view = m_openGLView;
+  }
 
   if (m_systemCocoa->m_nativePixel) {
     // Needs to happen early when building with the 10.14 SDK, otherwise
     // has no effect until resizeing the window.
-    if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
-      [m_openGLView setWantsBestResolutionOpenGLSurface:YES];
+    if ([view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
+      [view setWantsBestResolutionOpenGLSurface:YES];
     }
   }
 
-  [m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
-
-  [m_window setContentView:m_openGLView];
-  [m_window setInitialFirstResponder:m_openGLView];
+  [m_window setContentView:view];
+  [m_window setInitialFirstResponder:view];
 
   [m_window makeKeyAndOrderFront:nil];
 
@@ -381,7 +418,18 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
   releaseNativeHandles();
 
-  [m_openGLView release];
+  if (m_openGLView) {
+    [m_openGLView release];
+    m_openGLView = nil;
+  }
+  if (m_metalView) {
+    [m_metalView release];
+    m_metalView = nil;
+  }
+  if (m_metalLayer) {
+    [m_metalLayer release];
+    m_metalLayer = nil;
+  }
 
   if (m_window) {
     [m_window close];
@@ -405,7 +453,8 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
 bool GHOST_WindowCocoa::getValid() const
 {
-  return GHOST_Window::getValid() && m_window != NULL && m_openGLView != NULL;
+  NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
+  return GHOST_Window::getValid() && m_window != NULL && view != NULL;
 }
 
 void *GHOST_WindowCocoa::getOSWindow() const
@@ -669,7 +718,8 @@ NSScreen *GHOST_WindowCocoa::getScreen()
 /* called for event, when window leaves monitor to another */
 void GHOST_WindowCocoa::setNativePixelSize(void)
 {
-  NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+  NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
+  NSRect backingBounds = [view convertRectToBacking:[view bounds]];
 
   GHOST_Rect rect;
   getClientBounds(rect);
@@ -763,7 +813,8 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
 
-    GHOST_Context *context = new GHOST_ContextCGL(m_wantStereoVisual, m_openGLView);
+    GHOST_Context *context = new GHOST_ContextCGL(
+        m_wantStereoVisual, m_metalView, m_metalLayer, m_openGLView);
 
     if (context->initializeDrawingContext())
       return context;
@@ -780,7 +831,8 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::invalidate(): window invalid");
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  [m_openGLView setNeedsDisplay:YES];
+  NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
+  [view setNeedsDisplay:YES];
   [pool drain];
   return GHOST_kSuccess;
 }
