@@ -2070,7 +2070,6 @@ static void object_get_datamask(const Depsgraph *depsgraph,
                                 bool *r_need_mapping)
 {
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  Object *actob = view_layer->basact ? DEG_get_original_object(view_layer->basact->object) : NULL;
 
   DEG_get_customdata_mask_for_object(depsgraph, ob, r_mask);
 
@@ -2078,6 +2077,13 @@ static void object_get_datamask(const Depsgraph *depsgraph,
     *r_need_mapping = false;
   }
 
+  /* Must never access original objects when dependency graph is not active: it might be already
+   * freed. */
+  if (DEG_is_active(depsgraph)) {
+    return;
+  }
+
+  Object *actob = view_layer->basact ? DEG_get_original_object(view_layer->basact->object) : NULL;
   if (DEG_get_original_object(ob) == actob) {
     bool editing = BKE_paint_select_face_test(actob);
 
