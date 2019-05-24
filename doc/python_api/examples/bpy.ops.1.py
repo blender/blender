@@ -20,5 +20,5 @@ you would pass ``{'active_object': object}``.
 # remove all objects in scene rather than the selected ones
 import bpy
 override = bpy.context.copy()
-override['selected_bases'] = list(bpy.context.scene.object_bases)
+override['selected_objects'] = list(bpy.context.scene.objects)
 bpy.ops.object.delete(override)
