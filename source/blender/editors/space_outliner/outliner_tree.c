@@ -1808,7 +1808,7 @@ static void outliner_collections_children_sort(ListBase *lb)
   }
 
   for (te = lb->first; te; te = te->next) {
-    outliner_sort(&te->subtree);
+    outliner_collections_children_sort(&te->subtree);
   }
 }
 
