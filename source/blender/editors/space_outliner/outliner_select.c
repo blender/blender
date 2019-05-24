@@ -1132,7 +1132,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), (Scene *)tselem->id);
       }
     }
-    else if (te->idcode == ID_GR) {
+    else if ((te->idcode == ID_GR) && (soops->outlinevis != SO_VIEW_LAYER)) {
       Collection *gr = (Collection *)tselem->id;
 
       if (extend) {
