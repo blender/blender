@@ -29,6 +29,7 @@ namespace DEG {
 
 void DepsgraphNodeBuilder::build_scene_render(Scene *scene)
 {
+  scene_ = scene;
   const bool build_compositor = (scene->r.scemode & R_DOCOMP);
   IDNode *id_node = add_id_node(&scene->id);
   id_node->linked_state = DEG_ID_LINKED_DIRECTLY;

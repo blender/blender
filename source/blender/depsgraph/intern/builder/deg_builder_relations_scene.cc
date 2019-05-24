@@ -29,6 +29,7 @@ namespace DEG {
 
 void DepsgraphRelationBuilder::build_scene_render(Scene *scene)
 {
+  scene_ = scene;
   const bool build_compositor = (scene->r.scemode & R_DOCOMP);
   build_scene_parameters(scene);
   if (build_compositor) {
