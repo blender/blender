@@ -1256,6 +1256,8 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
     pro->super_r = bp->pro_super_r;
     /* projection direction is direction of the edge */
     sub_v3_v3v3(pro->proj_dir, e->e->v1->co, e->e->v2->co);
+    if (e->is_rev)
+      negate_v3(pro->proj_dir);
     normalize_v3(pro->proj_dir);
     project_to_edge(e->e, co1, co2, pro->midco);
     if (DEBUG_OLD_PROJ_TO_PERP_PLANE) {
@@ -1378,19 +1380,28 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 /* Move the profile plane for bndv to the plane containing e1 and e2, which share a vert */
 static void move_profile_plane(BoundVert *bndv, EdgeHalf *e1, EdgeHalf *e2)
 {
-  float d1[3], d2[3], no[3], no2[3], dot;
+  float d1[3], d2[3], no[3], no2[3], no3[3], dot2, dot3;
 
   /* only do this if projecting, and e1, e2, and proj_dir are not coplanar */
   if (is_zero_v3(bndv->profile.proj_dir)) {
     return;
   }
   sub_v3_v3v3(d1, e1->e->v1->co, e1->e->v2->co);
+  if (e1->is_rev)
+    negate_v3(d1);
+  normalize_v3(d1);
   sub_v3_v3v3(d2, e2->e->v1->co, e2->e->v2->co);
+  if (e2->is_rev)
+    negate_v3(d2);
+  normalize_v3(d2);
   cross_v3_v3v3(no, d1, d2);
   cross_v3_v3v3(no2, d1, bndv->profile.proj_dir);
-  if (normalize_v3(no) > BEVEL_EPSILON_BIG && normalize_v3(no2) > BEVEL_EPSILON_BIG) {
-    dot = fabsf(dot_v3v3(no, no2));
-    if (fabsf(dot - 1.0f) > BEVEL_EPSILON_BIG) {
+  cross_v3_v3v3(no3, d2, bndv->profile.proj_dir);
+  if (normalize_v3(no) > BEVEL_EPSILON_BIG && normalize_v3(no2) > BEVEL_EPSILON_BIG &&
+      normalize_v3(no3) > BEVEL_EPSILON_BIG) {
+    dot2 = dot_v3v3(no, no2);
+    dot3 = dot_v3v3(no, no3);
+    if (fabsf(dot2) < 0.95f && fabsf(dot3) < 0.95f) {
       copy_v3_v3(bndv->profile.plane_no, no);
     }
   }
@@ -2340,7 +2351,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
     /* special case: snap profile to plane of adjacent two edges */
     v = vm->boundstart;
     BLI_assert(v->ebev != NULL);
-    move_profile_plane(v, v->efirst, v->next->elast);
+    move_profile_plane(v, v->next->elast, v->efirst);
     calculate_profile(bp, v);
   }
 
