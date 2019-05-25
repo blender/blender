@@ -1855,7 +1855,10 @@ const char *BLI_path_basename(const char *path)
  *
  * Ignores multiple slashes at any point in the path (including start/end).
  */
-bool BLI_path_name_at_index(const char *path, const int index, int *r_offset, int *r_len)
+bool BLI_path_name_at_index(const char *__restrict path,
+                            const int index,
+                            int *__restrict r_offset,
+                            int *__restrict r_len)
 {
   if (index >= 0) {
     int index_step = 0;
