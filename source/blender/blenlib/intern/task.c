@@ -211,6 +211,10 @@ struct TaskScheduler {
   ThreadMutex queue_mutex;
   ThreadCondition queue_cond;
 
+  ThreadMutex startup_mutex;
+  ThreadCondition startup_cond;
+  volatile int num_thread_started;
+
   volatile bool do_exit;
 
   /* NOTE: In pthread's TLS we store the whole TaskThread structure. */
@@ -429,6 +433,14 @@ static void *task_scheduler_thread_run(void *thread_p)
 
   pthread_setspecific(scheduler->tls_id_key, thread);
 
+  /* signal the main thread when all threads have started */
+  BLI_mutex_lock(&scheduler->startup_mutex);
+  scheduler->num_thread_started++;
+  if (scheduler->num_thread_started == scheduler->num_threads) {
+    BLI_condition_notify_one(&scheduler->startup_cond);
+  }
+  BLI_mutex_unlock(&scheduler->startup_mutex);
+
   /* keep popping off tasks */
   while (task_scheduler_thread_wait_pop(scheduler, &task)) {
     TaskPool *pool = task->pool;
@@ -462,6 +474,10 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
   BLI_listbase_clear(&scheduler->queue);
   BLI_mutex_init(&scheduler->queue_mutex);
   BLI_condition_init(&scheduler->queue_cond);
+
+  BLI_mutex_init(&scheduler->startup_mutex);
+  BLI_condition_init(&scheduler->startup_cond);
+  scheduler->num_thread_started = 0;
 
   if (num_threads == 0) {
     /* automatic number of threads will be main thread + num cores */
@@ -503,6 +519,17 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
       }
     }
   }
+
+  /* Wait for all worker threads to start before returning to caller to prevent the case where
+   * threads are still starting and pthread_join is called, which causes a deadlock on pthreads4w.
+   */
+  BLI_mutex_lock(&scheduler->startup_mutex);
+  /* NOTE: Use loop here to avoid false-positive everything-is-ready caused by spontaneous thread
+   * wake up. */
+  while (scheduler->num_thread_started != num_threads) {
+    BLI_condition_wait(&scheduler->startup_cond, &scheduler->startup_mutex);
+  }
+  BLI_mutex_unlock(&scheduler->startup_mutex);
 
   return scheduler;
 }
@@ -551,6 +578,8 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
   /* delete mutex/condition */
   BLI_mutex_end(&scheduler->queue_mutex);
   BLI_condition_end(&scheduler->queue_cond);
+  BLI_mutex_end(&scheduler->startup_mutex);
+  BLI_condition_end(&scheduler->startup_cond);
 
   MEM_freeN(scheduler);
 }
