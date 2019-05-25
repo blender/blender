@@ -31,9 +31,9 @@
 #  include "utfconv.h"
 
 GHOST_ImeWin32::GHOST_ImeWin32()
-    : ime_status_(false),
+    : is_composing_(false),
+      ime_status_(false),
       input_language_id_(LANG_USER_DEFAULT),
-      is_composing_(false),
       system_caret_(false),
       caret_rect_(-1, -1, 0, 0),
       is_first(true),
