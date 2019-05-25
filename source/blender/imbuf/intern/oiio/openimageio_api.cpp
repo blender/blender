@@ -25,6 +25,7 @@
 
 #if defined(WIN32)
 #  include "utfconv.h"
+#  define _USE_MATH_DEFINES
 #endif
 
 // NOTE: Keep first, BLI_path_util conflicts with OIIO's format.
