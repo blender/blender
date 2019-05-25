@@ -99,7 +99,7 @@ bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
     OCIO::ConstColorSpaceRcPtr space = config->getColorSpace(colorspace.c_str());
     return space && space->isData();
   }
-  catch (OCIO::Exception &exception) {
+  catch (OCIO::Exception &) {
     return false;
   }
 #else
