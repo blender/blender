@@ -1048,7 +1048,6 @@ bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup)
 
 DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 {
-  /* Remove this assertion if needed but implement the other cases first! */
   DRWShadingGroup *shgroup_new = BLI_memblock_alloc(DST.vmempool->shgroups);
 
   *shgroup_new = *shgroup;

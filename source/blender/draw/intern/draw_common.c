@@ -31,6 +31,8 @@
 #include "BKE_global.h"
 #include "BKE_colorband.h"
 
+#include "BIF_glutil.h"
+
 #include "draw_common.h"
 
 #if 0
@@ -1033,6 +1035,26 @@ struct GPUShader *volume_velocity_shader_get(bool use_needle)
     }
     return sh_data->volume_velocity_sh;
   }
+}
+
+DRWView *DRW_view_create_with_zoffset(const RegionView3D *rv3d, float offset)
+{
+  /* Create view with depth offset */
+  const DRWView *default_view = DRW_view_default_get();
+  float viewmat[4][4], winmat[4][4];
+  DRW_view_viewmat_get(default_view, viewmat, false);
+  DRW_view_winmat_get(default_view, winmat, false);
+
+  float viewdist = rv3d->dist;
+
+  /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
+  if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
+    viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+  }
+
+  winmat[3][2] -= bglPolygonOffsetCalc((float *)winmat, viewdist, offset);
+
+  return DRW_view_create_sub(default_view, viewmat, winmat);
 }
 
 /* ******************************************** COLOR UTILS ************************************ */
