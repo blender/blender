@@ -71,6 +71,7 @@ typedef struct OVERLAY_Data {
 typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *face_orientation_shgrp;
   DRWShadingGroup *face_wires_shgrp;
+  DRWView *view_wires;
   BLI_mempool *wire_color_mempool;
   View3DOverlay overlay;
   float wire_step_param;
@@ -163,6 +164,8 @@ static void overlay_engine_init(void *vedata)
     });
 #endif
   }
+
+  stl->g_data->view_wires = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.0f);
 }
 
 static void overlay_cache_init(void *vedata)
@@ -214,7 +217,7 @@ static void overlay_cache_init(void *vedata)
   {
     /* Wireframe */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-                     DRW_STATE_FIRST_VERTEX_CONVENTION | DRW_STATE_OFFSET_NEGATIVE;
+                     DRW_STATE_FIRST_VERTEX_CONVENTION;
     float wire_size = U.pixelsize * 0.5f;
 
     float winmat[4][4];
@@ -489,7 +492,10 @@ static void overlay_draw_scene(void *vedata)
     DRW_stats_query_end();
   }
 
+  DRW_view_set_active(stl->g_data->view_wires);
   DRW_draw_pass(psl->face_wireframe_pass);
+
+  DRW_view_set_active(NULL);
 
   /* TODO(fclem): find a way to unify the multisample pass together
    * (non meshes + armature + wireframe) */
