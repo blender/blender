@@ -316,7 +316,6 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
   }
 
   if (WORLD_CLIPPING_ENABLED(wpd)) {
-    DRW_shgroup_uniform_vec4(grp, "WorldClipPlanes", wpd->world_clip_planes[0], 6);
     DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
 }

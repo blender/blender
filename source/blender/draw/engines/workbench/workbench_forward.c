@@ -212,7 +212,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
     material->object_id = engine_object_data->object_id;
     DRW_shgroup_uniform_int(material->shgrp_object_outline, "object_id", &material->object_id, 1);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(material->shgrp_object_outline, draw_ctx->rv3d);
+      DRW_shgroup_state_enable(material->shgrp_object_outline, DRW_STATE_CLIP_PLANES);
     }
     BLI_ghash_insert(wpd->material_transp_hash, POINTER_FROM_UINT(hash), material);
   }

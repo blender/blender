@@ -123,9 +123,6 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 void DRW_globals_update(void);
 void DRW_globals_free(void);
 
-void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp,
-                                             const RegionView3D *rv3d);
-
 /* TODO(fclem) ideally, most of the DRWCallBuffer functions shouldn't create a shgroup. */
 struct DRWCallBuffer *buffer_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWCallBuffer *buffer_dynlines_dashed_uniform_color(struct DRWPass *pass,

@@ -168,7 +168,7 @@ static void EDIT_CURVE_wire_shgrp_create(EDIT_CURVE_Shaders *sh_data,
   DRWShadingGroup *grp = DRW_shgroup_create(sh_data->wire_sh, pass);
   DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
   if (rv3d->rflag & RV3D_CLIPPING) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
   *wire_shgrp = grp;
 
@@ -176,7 +176,7 @@ static void EDIT_CURVE_wire_shgrp_create(EDIT_CURVE_Shaders *sh_data,
   DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
   DRW_shgroup_uniform_float_copy(grp, "normalSize", v3d->overlay.normals_length);
   if (rv3d->rflag & RV3D_CLIPPING) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
   *wire_normals_shgrp = grp;
 }
@@ -229,7 +229,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
     DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
     DRW_shgroup_uniform_bool(grp, "showCurveHandles", &stl->g_data->show_handles, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
     stl->g_data->overlay_edge_shgrp = grp;
 
@@ -238,7 +238,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
     grp = DRW_shgroup_create(sh_data->overlay_vert_sh, psl->overlay_vert_pass);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
     stl->g_data->overlay_vert_shgrp = grp;
   }

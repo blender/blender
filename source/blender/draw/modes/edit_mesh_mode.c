@@ -368,7 +368,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
   DRW_shgroup_uniform_bool_copy(grp, "selectFaces", select_face);
   if (rv3d->rflag & RV3D_CLIPPING) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
 
   /* Cage geom needs to be offseted to avoid Z-fighting. */
@@ -379,7 +379,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
   DRW_shgroup_uniform_bool_copy(grp, "selectFaces", select_face);
   if (rv3d->rflag & RV3D_CLIPPING) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
 
   /* Edges */
@@ -393,7 +393,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
   DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
   DRW_shgroup_uniform_bool_copy(grp, "selectEdges", do_edges || select_edge);
   if (rv3d->rflag & RV3D_CLIPPING) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
 
   /* Verts */
@@ -404,7 +404,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
   }
   if (select_face) {
@@ -412,7 +412,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
     DRW_shgroup_state_enable(grp, DRW_STATE_WRITE_DEPTH);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
   }
 }
@@ -493,7 +493,7 @@ static void EDIT_MESH_cache_init(void *vedata)
     DRW_shgroup_uniform_texture(g_data->fweights_shgrp, "colorramp", G_draw.weight_ramp);
     DRW_shgroup_uniform_block(g_data->fweights_shgrp, "globalsBlock", G_draw.block_ubo);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->fweights_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->fweights_shgrp, DRW_STATE_CLIP_PLANES);
     }
   }
 
@@ -504,7 +504,7 @@ static void EDIT_MESH_cache_init(void *vedata)
                                                  DRW_STATE_CULL_BACK);
     g_data->depth_shgrp_hidden_wire = DRW_shgroup_create(sh_data->depth, psl->depth_hidden_wire);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->depth_shgrp_hidden_wire, rv3d);
+      DRW_shgroup_state_enable(g_data->depth_shgrp_hidden_wire, DRW_STATE_CLIP_PLANES);
     }
 
     psl->depth_hidden_wire_in_front = DRW_pass_create(
@@ -513,7 +513,7 @@ static void EDIT_MESH_cache_init(void *vedata)
     g_data->depth_shgrp_hidden_wire_in_front = DRW_shgroup_create(sh_data->depth,
                                                                   psl->depth_hidden_wire_in_front);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->depth_shgrp_hidden_wire_in_front, rv3d);
+      DRW_shgroup_state_enable(g_data->depth_shgrp_hidden_wire_in_front, DRW_STATE_CLIP_PLANES);
     }
   }
 
@@ -527,21 +527,21 @@ static void EDIT_MESH_cache_init(void *vedata)
     DRW_shgroup_uniform_float(g_data->fnormals_shgrp, "normalSize", &size_normal, 1);
     DRW_shgroup_uniform_vec4(g_data->fnormals_shgrp, "color", G_draw.block.colorNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->fnormals_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->fnormals_shgrp, DRW_STATE_CLIP_PLANES);
     }
 
     g_data->vnormals_shgrp = DRW_shgroup_create(sh_data->normals, psl->normals);
     DRW_shgroup_uniform_float(g_data->vnormals_shgrp, "normalSize", &size_normal, 1);
     DRW_shgroup_uniform_vec4(g_data->vnormals_shgrp, "color", G_draw.block.colorVNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->vnormals_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->vnormals_shgrp, DRW_STATE_CLIP_PLANES);
     }
 
     g_data->lnormals_shgrp = DRW_shgroup_create(sh_data->normals_loop, psl->normals);
     DRW_shgroup_uniform_float(g_data->lnormals_shgrp, "normalSize", &size_normal, 1);
     DRW_shgroup_uniform_vec4(g_data->lnormals_shgrp, "color", G_draw.block.colorLNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->lnormals_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->lnormals_shgrp, DRW_STATE_CLIP_PLANES);
     }
   }
 
@@ -554,7 +554,7 @@ static void EDIT_MESH_cache_init(void *vedata)
         is_vertex_color ? sh_data->mesh_analysis_vertex : sh_data->mesh_analysis_face,
         psl->mesh_analysis_pass);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->mesh_analysis_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->mesh_analysis_shgrp, DRW_STATE_CLIP_PLANES);
     }
   }
   /* For in front option */
@@ -597,7 +597,7 @@ static void EDIT_MESH_cache_init(void *vedata)
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_ivec4(shgrp, "dataMask", g_data->data_mask, 1);
       if (rv3d->rflag & RV3D_CLIPPING) {
-        DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+        DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
 
       shgrp = g_data->facefill_occluded_cage_shgrp = DRW_shgroup_create(
@@ -605,7 +605,7 @@ static void EDIT_MESH_cache_init(void *vedata)
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_ivec4(shgrp, "dataMask", g_data->data_mask, 1);
       if (rv3d->rflag & RV3D_CLIPPING) {
-        DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+        DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
     }
     else {

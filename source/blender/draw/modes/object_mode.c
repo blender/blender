@@ -708,7 +708,7 @@ static DRWShadingGroup *shgroup_outline(DRWPass *pass,
   DRW_shgroup_uniform_int(grp, "baseId", ofs, 1);
 
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
   return grp;
 }
@@ -723,7 +723,7 @@ static DRWShadingGroup *shgroup_wire(DRWPass *pass,
   DRW_shgroup_uniform_vec4(grp, "color", col, 1);
 
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
   return grp;
 }
@@ -739,7 +739,7 @@ static DRWShadingGroup *shgroup_points(DRWPass *pass,
   DRW_shgroup_uniform_vec4(grp, "innerColor", G_draw.block.colorEditMeshMiddle, 1);
 
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-    DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+    DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
   return grp;
 }
@@ -1016,7 +1016,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
     DRW_shgroup_uniform_vec3(grp, "color", color, 1);
     if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
     DRW_shgroup_call(grp, DRW_cache_image_plane_wire_get(), ob->obmat);
   }
@@ -1036,7 +1036,7 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     DRW_shgroup_uniform_vec4(grp, "objectColor", ob->color, 1);
     DRW_shgroup_uniform_bool_copy(grp, "useAlphaTest", !use_alpha_blend);
     if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
     DRW_shgroup_call(grp, DRW_cache_image_plane_get(), ob->obmat);
   }
@@ -1404,7 +1404,7 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_vec4(grp, "color", gb->colorLightNoAlpha, 1);
     DRW_shgroup_uniform_float(grp, "size", &gb->sizeLightCenter, 1);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
 
     sgl->light_center = buffer_dynpoints_uniform_color(grp);
@@ -1492,7 +1492,7 @@ static void OBJECT_cache_init(void *vedata)
 
     DRWShadingGroup *grp_transp = DRW_shgroup_create(sh, sgl->transp_shapes);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp_transp, DRW_context_state_get()->rv3d);
+      DRW_shgroup_state_enable(grp_transp, DRW_STATE_CLIP_PLANES);
     }
 
     DRWShadingGroup *grp_cull_back = DRW_shgroup_create_sub(grp_transp);
@@ -1544,7 +1544,7 @@ static void OBJECT_cache_init(void *vedata)
     DRW_shgroup_uniform_vec4(grp, "color", gb->colorActive, 1);
     DRW_shgroup_uniform_vec4(grp, "outlineColor", gb->colorOutline, 1);
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+      DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
     }
     /* TODO find better name. */
     stl->g_data->center_active = buffer_dynpoints_uniform_color(grp);

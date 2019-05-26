@@ -203,7 +203,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
     DRW_shgroup_uniform_float_copy(
         shgrp, "white_factor", 1.0f - v3d->overlay.vertex_paint_mode_opacity);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->by_mode[VERTEX_MODE].color_faces = pass;
     stl->g_data->by_mode[VERTEX_MODE].color_shgrp = shgrp;
@@ -220,7 +220,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
     DRW_shgroup_uniform_texture(shgrp, "colorramp", G_draw.weight_ramp);
     DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->by_mode[WEIGHT_MODE].color_faces = pass;
     stl->g_data->by_mode[WEIGHT_MODE].color_shgrp = shgrp;
@@ -233,7 +233,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
       DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[i].wire_overlay, pass);
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       if (rv3d->rflag & RV3D_CLIPPING) {
-        DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+        DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
       stl->g_data->by_mode[i].lwire_shgrp = shgrp;
     }
@@ -248,7 +248,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
       DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[i].wire_select_overlay, pass);
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       if (rv3d->rflag & RV3D_CLIPPING) {
-        DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+        DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
       stl->g_data->by_mode[i].lwire_select_shgrp = shgrp;
     }
@@ -263,7 +263,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->face_select_overlay, pass);
     DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->face_select_overlay = pass;
     stl->g_data->face_select_shgrp = shgrp;
@@ -276,7 +276,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->vert_select_overlay, pass);
     DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->vert_select_overlay = pass;
     stl->g_data->vert_select_shgrp = shgrp;

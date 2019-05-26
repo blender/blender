@@ -248,7 +248,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
     DRW_shgroup_uniform_vec4(shgrp, "color", color, 1);
 
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, draw_ctx->rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->image_faces = pass;
     stl->g_data->shgroup_fallback = shgrp;
@@ -308,7 +308,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
     DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, draw_ctx->rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->wire_select_overlay = pass;
     stl->g_data->lwire_select_shgrp = shgrp;
@@ -323,7 +323,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
     DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
 
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_world_clip_planes_from_rv3d(shgrp, draw_ctx->rv3d);
+      DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
     psl->face_select_overlay = pass;
     stl->g_data->face_select_shgrp = shgrp;

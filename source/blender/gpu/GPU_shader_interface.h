@@ -44,8 +44,9 @@ typedef enum {
   GPU_UNIFORM_PROJECTION_INV,     /* mat4 ProjectionMatrixInverse */
   GPU_UNIFORM_VIEWPROJECTION_INV, /* mat4 ViewProjectionMatrixInverse */
 
-  GPU_UNIFORM_NORMAL, /* mat3 NormalMatrix */
-  GPU_UNIFORM_ORCO,   /* vec3 OrcoTexCoFactors[] */
+  GPU_UNIFORM_NORMAL,     /* mat3 NormalMatrix */
+  GPU_UNIFORM_ORCO,       /* vec3 OrcoTexCoFactors[] */
+  GPU_UNIFORM_CLIPPLANES, /* vec4 WorldClipPlanes[] */
 
   GPU_UNIFORM_COLOR,       /* vec4 color */
   GPU_UNIFORM_CALLID,      /* int callId */

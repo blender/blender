@@ -210,7 +210,7 @@ static void overlay_cache_init(void *vedata)
     g_data->face_orientation_shgrp = DRW_shgroup_create(sh_data->face_orientation,
                                                         psl->face_orientation_pass);
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->face_orientation_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->face_orientation_shgrp, DRW_STATE_CLIP_PLANES);
     }
   }
 
@@ -246,7 +246,7 @@ static void overlay_cache_init(void *vedata)
           g_data->face_wires_shgrp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
     }
     if (rv3d->rflag & RV3D_CLIPPING) {
-      DRW_shgroup_world_clip_planes_from_rv3d(g_data->face_wires_shgrp, rv3d);
+      DRW_shgroup_state_enable(g_data->face_wires_shgrp, DRW_STATE_CLIP_PLANES);
     }
 
     g_data->wire_step_param = stl->g_data->overlay.wireframe_threshold - 254.0f / 255.0f;

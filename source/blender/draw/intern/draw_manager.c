@@ -2542,7 +2542,7 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 /** See #DRW_shgroup_world_clip_planes_from_rv3d. */
 static void draw_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_clip_planes[6][4])
 {
-  GPU_batch_uniform_4fv_array(batch, "WorldClipPlanes", 6, world_clip_planes[0]);
+  GPU_batch_uniform_4fv_array(batch, "clipPlanes", 6, world_clip_planes[0]);
 }
 
 /**
