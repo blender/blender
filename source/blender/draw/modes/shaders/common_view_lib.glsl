@@ -1,3 +1,5 @@
+#define COMMON_VIEW_LIB
+
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform viewBlock
 {
@@ -14,6 +16,12 @@ layout(std140) uniform viewBlock
   /* TODO move it elsewhere. */
   vec4 CameraTexCoFactors;
 };
+
+#ifdef world_clip_planes_calc_clip_distance
+#  undef world_clip_planes_calc_clip_distance
+#  define world_clip_planes_calc_clip_distance(p) \
+    _world_clip_planes_calc_clip_distance(p, clipPlanes)
+#endif
 
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
