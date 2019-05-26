@@ -1249,7 +1249,10 @@ static void rna_def_colormanage(BlenderRNA *brna)
                               "rna_ColorManagedColorspaceSettings_colorspace_get",
                               "rna_ColorManagedColorspaceSettings_colorspace_set",
                               "rna_ColorManagedColorspaceSettings_colorspace_itemf");
-  RNA_def_property_ui_text(prop, "Input Color Space", "Color space of the image or movie on disk");
+  RNA_def_property_ui_text(
+      prop,
+      "Input Color Space",
+      "Color space in the image file, to convert to and from when saving and loading the image");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 
   prop = RNA_def_property(srna, "is_data", PROP_BOOLEAN, PROP_NONE);
