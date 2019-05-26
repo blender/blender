@@ -191,9 +191,9 @@ if(NOT EXISTS "${LIBDIR}/")
 endif()
 
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
-# that we have very little control over 
+# that we have very little control over
 if(MSVC_VERSION GREATER_EQUAL 1914)
-  add_definitions(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
+  add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
 endif()
 
 # Add each of our libraries to our cmake_prefix_path so find_package() could work
