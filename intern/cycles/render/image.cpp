@@ -494,6 +494,14 @@ void ImageManager::tag_reload_image(const string &filename,
   }
 }
 
+static bool image_associate_alpha(ImageManager::Image *img)
+{
+  /* For typical RGBA images we let OIIO convert to associated alpha,
+   * but some types we want to leave the RGB channels untouched. */
+  return !(ColorSpaceManager::colorspace_is_data(img->colorspace) ||
+           img->alpha_type == IMAGE_ALPHA_IGNORE || img->alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
+}
+
 bool ImageManager::file_load_image_generic(Image *img, unique_ptr<ImageInput> *in)
 {
   if (img->filename == "")
@@ -514,13 +522,7 @@ bool ImageManager::file_load_image_generic(Image *img, unique_ptr<ImageInput> *i
     ImageSpec spec = ImageSpec();
     ImageSpec config = ImageSpec();
 
-    /* For typical RGBA images we let OIIO convert to associated alpha,
-     * but some types we want to leave the RGB channels untouched. */
-    const bool associate_alpha = !(ColorSpaceManager::colorspace_is_data(img->colorspace) ||
-                                   img->alpha_type == IMAGE_ALPHA_IGNORE ||
-                                   img->alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
-
-    if (!associate_alpha) {
+    if (!image_associate_alpha(img)) {
       config.attribute("oiio:UnassociatedAlpha", 1);
     }
 
@@ -630,6 +632,7 @@ bool ImageManager::file_load_image(Image *img,
                                     img->builtin_data,
                                     (float *)&pixels[0],
                                     num_pixels * components,
+                                    image_associate_alpha(img),
                                     img->metadata.builtin_free_cache);
     }
     else if (FileFormat == TypeDesc::UINT8) {
@@ -637,6 +640,7 @@ bool ImageManager::file_load_image(Image *img,
                               img->builtin_data,
                               (uchar *)&pixels[0],
                               num_pixels * components,
+                              image_associate_alpha(img),
                               img->metadata.builtin_free_cache);
     }
     else {

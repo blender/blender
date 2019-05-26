@@ -132,12 +132,14 @@ class ImageManager {
                 void *data,
                 unsigned char *pixels,
                 const size_t pixels_size,
+                const bool associate_alpha,
                 const bool free_cache)>
       builtin_image_pixels_cb;
   function<bool(const string &filename,
                 void *data,
                 float *pixels,
                 const size_t pixels_size,
+                const bool associate_alpha,
                 const bool free_cache)>
       builtin_image_float_pixels_cb;
 
