@@ -392,15 +392,6 @@ static bool ed_undo_redo_poll(bContext *C)
           WM_operator_check_ui_enabled(C, last_op->type->name));
 }
 
-static bool ed_undo_poll(bContext *C)
-{
-  if (!ed_undo_is_init_and_screenactive_poll(C)) {
-    return false;
-  }
-  UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  return (undo_stack->step_active != NULL) && (undo_stack->step_active->prev != NULL);
-}
-
 void ED_OT_undo(wmOperatorType *ot)
 {
   /* identifiers */
@@ -410,7 +401,7 @@ void ED_OT_undo(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_undo_exec;
-  ot->poll = ed_undo_poll;
+  ot->poll = ed_undo_is_init_and_screenactive_poll;
 }
 
 void ED_OT_undo_push(wmOperatorType *ot)
@@ -435,15 +426,6 @@ void ED_OT_undo_push(wmOperatorType *ot)
                  "");
 }
 
-static bool ed_redo_poll(bContext *C)
-{
-  if (!ed_undo_is_init_and_screenactive_poll(C)) {
-    return false;
-  }
-  UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  return (undo_stack->step_active != NULL) && (undo_stack->step_active->next != NULL);
-}
-
 void ED_OT_redo(wmOperatorType *ot)
 {
   /* identifiers */
@@ -453,7 +435,7 @@ void ED_OT_redo(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_redo_exec;
-  ot->poll = ed_redo_poll;
+  ot->poll = ed_undo_is_init_and_screenactive_poll;
 }
 
 void ED_OT_undo_redo(wmOperatorType *ot)
@@ -651,16 +633,6 @@ static int undo_history_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static bool undo_history_poll(bContext *C)
-{
-  if (!ed_undo_is_init_and_screenactive_poll(C)) {
-    return false;
-  }
-  UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  /* more than just original state entry */
-  return BLI_listbase_count_at_most(&undo_stack->steps, 2) > 1;
-}
-
 void ED_OT_undo_history(wmOperatorType *ot)
 {
   /* identifiers */
@@ -671,7 +643,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = undo_history_invoke;
   ot->exec = undo_history_exec;
-  ot->poll = undo_history_poll;
+  ot->poll = ed_undo_is_init_and_screenactive_poll;
 
   RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
 }
