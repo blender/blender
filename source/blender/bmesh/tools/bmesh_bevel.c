@@ -1832,6 +1832,9 @@ static void bevel_extend_edge_data(BevVert *bv)
 {
   VMesh *vm = bv->vmesh;
 
+  if (vm->mesh_kind == M_TRI_FAN)
+    return;
+
   BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;
 
   do {
