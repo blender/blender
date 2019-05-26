@@ -349,10 +349,6 @@ typedef enum {
   DRW_STATE_CLIP_PLANES = (1 << 22),
   DRW_STATE_WIRE_SMOOTH = (1 << 23),
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 24),
-  /** Polygon offset. Does not work with lines and points. */
-  DRW_STATE_OFFSET_POSITIVE = (1 << 25),
-  /** Polygon offset. Does not work with lines and points. */
-  DRW_STATE_OFFSET_NEGATIVE = (1 << 26),
 } DRWState;
 
 #define DRW_STATE_DEFAULT \

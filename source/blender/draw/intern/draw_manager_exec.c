@@ -306,33 +306,6 @@ void drw_state_set(DRWState state)
     }
   }
 
-  /* Polygon Offset */
-  {
-    int test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_OFFSET_POSITIVE | DRW_STATE_OFFSET_NEGATIVE, test)) {
-      if (test) {
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        /* Stencil Write */
-        if ((state & DRW_STATE_OFFSET_POSITIVE) != 0) {
-          glPolygonOffset(1.0f, 1.0f);
-        }
-        else if ((state & DRW_STATE_OFFSET_NEGATIVE) != 0) {
-          glPolygonOffset(-1.0f, -1.0f);
-        }
-        else {
-          BLI_assert(0);
-        }
-      }
-      else {
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glDisable(GL_POLYGON_OFFSET_POINT);
-      }
-    }
-  }
-
 #undef CHANGED_TO
 #undef CHANGED_ANY
 #undef CHANGED_ANY_STORE_VAR
