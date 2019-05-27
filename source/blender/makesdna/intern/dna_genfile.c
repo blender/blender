@@ -1585,7 +1585,8 @@ static bool DNA_sdna_patch_struct_member_nr(SDNA *sdna,
 
       if (sdna->names_len == sdna->names_len_alloc) {
         sdna->names_len_alloc += 64;
-        sdna->names = MEM_recallocN(sdna->names, sizeof(*sdna->names) * sdna->names_len_alloc);
+        sdna->names = MEM_recallocN((void *)sdna->names,
+                                    sizeof(*sdna->names) * sdna->names_len_alloc);
         sdna->names_array_len = MEM_recallocN(
             (void *)sdna->names_array_len, sizeof(*sdna->names_array_len) * sdna->names_len_alloc);
       }
