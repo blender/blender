@@ -33,7 +33,8 @@ typedef void (*wmGizmoGroupFnRefresh)(const struct bContext *, struct wmGizmoGro
 typedef void (*wmGizmoGroupFnDrawPrepare)(const struct bContext *, struct wmGizmoGroup *);
 typedef void (*wmGizmoGroupFnInvokePrepare)(const struct bContext *,
                                             struct wmGizmoGroup *,
-                                            struct wmGizmo *);
+                                            struct wmGizmo *,
+                                            const struct wmEvent *);
 typedef struct wmKeyMap *(*wmGizmoGroupFnSetupKeymap)(const struct wmGizmoGroupType *,
                                                       struct wmKeyConfig *)ATTR_WARN_UNUSED_RESULT;
 typedef void (*wmGizmoGroupFnMsgBusSubscribe)(const struct bContext *,

@@ -385,7 +385,8 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
 
 static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C),
                                               wmGizmoGroup *gzgroup,
-                                              wmGizmo *gz)
+                                              wmGizmo *gz,
+                                              const wmEvent *UNUSED(event))
 {
   GizmoExtrudeGroup *ggd = gzgroup->customdata;
   if (ELEM(gz, ggd->adjust[0], ggd->adjust[1])) {

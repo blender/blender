@@ -744,7 +744,10 @@ static void rna_gizmogroup_draw_prepare_cb(const bContext *C, wmGizmoGroup *gzgr
   RNA_parameter_list_free(&list);
 }
 
-static void rna_gizmogroup_invoke_prepare_cb(const bContext *C, wmGizmoGroup *gzgroup, wmGizmo *gz)
+static void rna_gizmogroup_invoke_prepare_cb(const bContext *C,
+                                             wmGizmoGroup *gzgroup,
+                                             wmGizmo *gz,
+                                             const wmEvent *event)
 {
   extern FunctionRNA rna_GizmoGroup_invoke_prepare_func;
 
@@ -759,6 +762,7 @@ static void rna_gizmogroup_invoke_prepare_cb(const bContext *C, wmGizmoGroup *gz
   RNA_parameter_list_create(&list, &gzgroup_ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "gizmo", &gz);
+  RNA_parameter_set_lookup(&list, "event", &event);
   gzgroup->type->ext.call((bContext *)C, &gzgroup_ptr, func, &list);
 
   RNA_parameter_list_free(&list);

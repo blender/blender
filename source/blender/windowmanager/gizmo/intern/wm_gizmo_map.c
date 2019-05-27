@@ -1010,7 +1010,7 @@ void wm_gizmomap_modal_set(
 
     /* Use even if we don't have invoke, so we can setup data before an operator runs. */
     if (gz->parent_gzgroup->type->invoke_prepare) {
-      gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz);
+      gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
     }
 
     if (gz->type->invoke && (gz->type->modal || gz->custom_modal)) {

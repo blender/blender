@@ -1857,7 +1857,10 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   }
 }
 
-static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C, wmGizmoGroup *gzgroup, wmGizmo *gz)
+static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
+                                             wmGizmoGroup *gzgroup,
+                                             wmGizmo *gz,
+                                             const wmEvent *UNUSED(event))
 {
 
   GizmoGroup *ggd = gzgroup->customdata;

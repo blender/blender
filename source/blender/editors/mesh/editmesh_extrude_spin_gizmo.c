@@ -295,7 +295,8 @@ static void gizmo_mesh_spin_init_draw_prepare(const bContext *C, wmGizmoGroup *g
 
 static void gizmo_mesh_spin_init_invoke_prepare(const bContext *UNUSED(C),
                                                 wmGizmoGroup *gzgroup,
-                                                wmGizmo *gz)
+                                                wmGizmo *gz,
+                                                const wmEvent *UNUSED(event))
 {
   /* Set the initial ortho axis. */
   GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
