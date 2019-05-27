@@ -2574,8 +2574,8 @@ def km_pose(params):
         ("pose.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("pose.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("pose.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
-        ("pose.select_parent", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
-        ("pose.select_hierarchy", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
+        ("pose.select_parent", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True}, None),
+        ("pose.select_hierarchy", {"type": 'UP_ARROW', "value": 'PRESS'},
          {"properties": [("direction", 'PARENT'), ("extend", False)]}),
         ("pose.select_hierarchy", {"type": 'UP_ARROW', "value": 'PRESS', "shift": True},
          {"properties": [("direction", 'PARENT'), ("extend", True)]}),
@@ -3684,6 +3684,18 @@ def km_3d_view_tool_edit_curve_extrude(params):
     )
 
 
+def km_3d_view_tool_edit_armature_extrude(params):
+    return (
+        "3D View Tool: Edit Armature, Extrude",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("armature.extrude_move", {"type": 'MIDDLEMOUSE', "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
+            *_template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY'),
+        ]},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -3788,4 +3800,5 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_mesh_spin(params),
         km_3d_view_tool_edit_mesh_spin_duplicate(params),
         km_3d_view_tool_edit_curve_extrude(params),
+        km_3d_view_tool_edit_armature_extrude(params),
     ]
