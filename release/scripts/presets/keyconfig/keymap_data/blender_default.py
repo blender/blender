@@ -208,6 +208,13 @@ def _template_items_gizmo_tweak_value():
     ]
 
 
+def _template_items_gizmo_tweak_value_click_drag():
+    return [
+        ("gizmogroup.gizmo_tweak", {"type": 'LEFTMOUSE', "value": 'CLICK', "any": True}, None),
+        ("gizmogroup.gizmo_tweak", {"type": 'EVT_TWEAK_L', "value": 'ANY', "any": True}, None),
+    ]
+
+
 def _template_items_gizmo_tweak_modal():
     return [
         ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
@@ -4724,6 +4731,15 @@ def km_generic_gizmos(_params):
     return keymap
 
 
+def km_generic_gizmos_click_drag(_params):
+    keymap = (
+        "Generic Gizmos Click Drag",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value_click_drag()},
+    )
+
+    return keymap
+
 def km_generic_gizmos_tweak_modal_map(_params):
     keymap = (
         "Generic Gizmos Tweak Modal Map",
@@ -5838,6 +5854,7 @@ def generate_keymaps(params=None):
 
         # Gizmos.
         km_generic_gizmos(params),
+        km_generic_gizmos_click_drag(params),
         km_generic_gizmos_tweak_modal_map(params),
         km_generic_gizmos_select(params),
         km_generic_gizmos_select_tweak_modal_map(params),

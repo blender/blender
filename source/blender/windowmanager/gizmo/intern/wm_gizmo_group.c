@@ -59,10 +59,6 @@
 #  include "BPY_extern.h"
 #endif
 
-/* Allow gizmo part's to be single click only,
- * dragging falls back to activating their 'drag_part' action. */
-#define USE_DRAG_DETECT
-
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup
  *
@@ -351,22 +347,6 @@ typedef struct GizmoTweakData {
   int init_event; /* initial event type */
   int flag;       /* tweak flags */
 
-#ifdef USE_DRAG_DETECT
-  /* True until the mouse is moved (only use when the operator has no modal).
-   * this allows some gizmos to be click-only. */
-  enum {
-    /* Don't detect dragging. */
-    DRAG_NOP = 0,
-    /* Detect dragging (wait until a drag or click is detected). */
-    DRAG_DETECT,
-    /* Drag has started, idle until there is no active modal operator.
-     * This is needed because finishing the modal operator also exits
-     * the modal gizmo state (un-grabbs the cursor).
-     * Ideally this workaround could be removed later. */
-    DRAG_IDLE,
-  } drag_state;
-#endif
-
 } GizmoTweakData;
 
 static bool gizmo_tweak_start(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const wmEvent *event)
@@ -380,6 +360,10 @@ static bool gizmo_tweak_start(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const
 static bool gizmo_tweak_start_and_finish(
     bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const wmEvent *event, bool *r_is_modal)
 {
+  if (gz->parent_gzgroup->type->invoke_prepare) {
+    gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
+  }
+
   wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
   if (r_is_modal) {
     *r_is_modal = false;
@@ -410,9 +394,6 @@ static bool gizmo_tweak_start_and_finish(
       }
     }
     else {
-      if (gz->parent_gzgroup->type->invoke_prepare) {
-        gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
-      }
       /* Allow for 'button' gizmos, single click to run an action. */
       WM_gizmo_operator_invoke(C, gz, gzop);
     }
@@ -450,47 +431,6 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
     BLI_assert(0);
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
-
-#ifdef USE_DRAG_DETECT
-  wmGizmoMap *gzmap = mtweak->gzmap;
-  if (mtweak->drag_state == DRAG_DETECT) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-      if (len_manhattan_v2v2_int(&event->x, gzmap->gzmap_context.event_xy) >=
-          WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD) {
-        mtweak->drag_state = DRAG_IDLE;
-        gz->highlight_part = gz->drag_part;
-      }
-    }
-    else if (event->type == mtweak->init_event && event->val == KM_RELEASE) {
-      mtweak->drag_state = DRAG_NOP;
-      retval = OPERATOR_FINISHED;
-    }
-
-    if (mtweak->drag_state != DRAG_DETECT) {
-      /* Follow logic in 'gizmo_tweak_invoke' */
-      bool is_modal = false;
-      if (gizmo_tweak_start_and_finish(C, gzmap, gz, event, &is_modal)) {
-        if (is_modal) {
-          clear_modal = false;
-        }
-      }
-      else {
-        if (!gizmo_tweak_start(C, gzmap, gz, event)) {
-          retval = OPERATOR_FINISHED;
-        }
-      }
-    }
-  }
-  if (mtweak->drag_state == DRAG_IDLE) {
-    if (gzmap->gzmap_context.modal != NULL) {
-      return OPERATOR_PASS_THROUGH;
-    }
-    else {
-      gizmo_tweak_finish(C, op, false, false);
-      return OPERATOR_FINISHED;
-    }
-  }
-#endif /* USE_DRAG_DETECT */
 
   if (retval == OPERATOR_FINISHED) {
     /* pass */
@@ -562,35 +502,13 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  bool use_drag_fallback = false;
-
-#ifdef USE_DRAG_DETECT
-  use_drag_fallback = !ELEM(gz->drag_part, -1, gz->highlight_part);
-#endif
-
-  if (use_drag_fallback == false) {
-    if (gizmo_tweak_start_and_finish(C, gzmap, gz, event, NULL)) {
-      return OPERATOR_FINISHED;
-    }
+  if (gizmo_tweak_start_and_finish(C, gzmap, gz, event, NULL)) {
+    return OPERATOR_FINISHED;
   }
 
-  bool use_drag_detect = false;
-#ifdef USE_DRAG_DETECT
-  if (use_drag_fallback) {
-    wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
-    if (gzop && gzop->type) {
-      if (gzop->type->modal == NULL) {
-        use_drag_detect = true;
-      }
-    }
-  }
-#endif
-
-  if (use_drag_detect == false) {
-    if (!gizmo_tweak_start(C, gzmap, gz, event)) {
-      /* failed to start */
-      return OPERATOR_PASS_THROUGH;
-    }
+  if (!gizmo_tweak_start(C, gzmap, gz, event)) {
+    /* failed to start */
+    return OPERATOR_PASS_THROUGH;
   }
 
   GizmoTweakData *mtweak = MEM_mallocN(sizeof(GizmoTweakData), __func__);
@@ -600,10 +518,6 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   mtweak->gzgroup = mtweak->gz_modal->parent_gzgroup;
   mtweak->gzmap = gzmap;
   mtweak->flag = 0;
-
-#ifdef USE_DRAG_DETECT
-  mtweak->drag_state = use_drag_detect ? DRAG_DETECT : DRAG_NOP;
-#endif
 
   op->customdata = mtweak;
 

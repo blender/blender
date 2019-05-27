@@ -2753,7 +2753,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           /* Handle highlight gizmo. */
           if (gz != NULL) {
             wmGizmoGroup *gzgroup = gz->parent_gzgroup;
-            wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+            wmKeyMap *keymap = WM_keymap_active(wm,
+                                                gz->keymap ? gz->keymap : gzgroup->type->keymap);
             action |= wm_handlers_do_keymap_with_gizmo_handler(
                 C, event, handlers, handler, gzgroup, keymap, do_debug_handler);
           }

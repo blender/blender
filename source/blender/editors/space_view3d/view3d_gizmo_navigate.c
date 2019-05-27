@@ -131,7 +131,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
   return true;
 }
 
-static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
 
@@ -225,12 +225,31 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
       PointerRNA *ptr = WM_gizmo_operator_set(gz, part_index + 1, ot_view_axis, NULL);
       RNA_enum_set(ptr, "type", mapping[part_index]);
     }
+  }
 
-    /* When dragging an axis, use this instead. */
-    gz->drag_part = 0;
+  {
+    wmWindowManager *wm = CTX_wm_manager(C);
+    wmGizmo *gz = navgroup->gz_array[GZ_INDEX_ROTATE];
+    gz->keymap = WM_keymap_ensure(
+        wm->defaultconf, "Generic Gizmos Click Drag", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
 
   gzgroup->customdata = navgroup;
+}
+
+static void WIDGETGROUP_navigate_invoke_prepare(const bContext *UNUSED(C),
+                                                wmGizmoGroup *gzgroup,
+                                                wmGizmo *gz,
+                                                const wmEvent *event)
+{
+  struct NavigateWidgetGroup *navgroup = gzgroup->customdata;
+  wmGizmo *gz_rotate = navgroup->gz_array[GZ_INDEX_ROTATE];
+  if (gz_rotate == gz) {
+    if (ISTWEAK(event->type)) {
+      /* When dragging an axis, use this instead. */
+      gz->highlight_part = 0;
+    }
+  }
 }
 
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
@@ -326,6 +345,7 @@ void VIEW3D_GGT_navigate(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_navigate_poll;
   gzgt->setup = WIDGETGROUP_navigate_setup;
+  gzgt->invoke_prepare = WIDGETGROUP_navigate_invoke_prepare;
   gzgt->draw_prepare = WIDGETGROUP_navigate_draw_prepare;
 }
 

@@ -883,20 +883,25 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 
   /* Operator Actions */
   {
-    bool use_drag = gz->drag_part != -1 && gz->highlight_part != gz->drag_part;
-
     const struct {
       int part;
       const char *prefix;
     } gzop_actions[] = {
-        {
-            .part = gz->highlight_part,
-            .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Click") : NULL,
-        },
-        {
-            .part = use_drag ? gz->drag_part : -1,
-            .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Drag") : NULL,
-        },
+#if 0
+      {
+          .part = gz->highlight_part,
+          .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Click") : NULL,
+      },
+      {
+          .part = use_drag ? gz->drag_part : -1,
+          .prefix = use_drag ? CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Drag") : NULL,
+      },
+#else
+      {
+          .part = gz->highlight_part,
+          .prefix = NULL,
+      },
+#endif
     };
 
     for (int i = 0; i < ARRAY_SIZE(gzop_actions); i++) {
