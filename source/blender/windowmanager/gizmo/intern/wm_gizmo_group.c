@@ -174,12 +174,12 @@ int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
 
 wmGizmo *wm_gizmogroup_find_intersected_gizmo(const wmGizmoGroup *gzgroup,
                                               bContext *C,
-                                              const wmEvent *event,
+                                              const int mval[2],
                                               int *r_part)
 {
   for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
     if (gz->type->test_select && (gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
-      if ((*r_part = gz->type->test_select(C, gz, event->mval)) != -1) {
+      if ((*r_part = gz->type->test_select(C, gz, mval)) != -1) {
         return gz;
       }
     }

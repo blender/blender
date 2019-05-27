@@ -63,7 +63,7 @@ void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *gzgroup);
 void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz);
 struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(const struct wmGizmoGroup *gzgroup,
                                                      struct bContext *C,
-                                                     const struct wmEvent *event,
+                                                     const int mval[2],
                                                      int *r_part);
 void wm_gizmogroup_intersectable_gizmos_to_list(const struct wmGizmoGroup *gzgroup,
                                                 struct BLI_Buffer *visible_gizmos);

@@ -2721,8 +2721,25 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         wm_gizmomap_handler_context_gizmo(C, handler);
         wm_region_mouse_co(C, event);
 
+        /* Drag events use the previous click location to highlight the gizmos,
+         * Get the highlight again in case the user dragged off the gizmo. */
+        const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+
+        bool handle_highlight = false;
+        bool handle_keymap = false;
+
         /* handle gizmo highlighting */
-        if (event->type == MOUSEMOVE && !wm_gizmomap_modal_get(gzmap)) {
+        if (!wm_gizmomap_modal_get(gzmap) && ((event->type == MOUSEMOVE) || is_event_drag)) {
+          handle_highlight = true;
+          if (is_event_drag) {
+            handle_keymap = true;
+          }
+        }
+        else {
+          handle_keymap = true;
+        }
+
+        if (handle_highlight) {
           int part;
           gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
           if (wm_gizmomap_highlight_set(gzmap, C, gz, part) && gz != NULL) {
@@ -2731,7 +2748,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
             }
           }
         }
-        else {
+
+        if (handle_keymap) {
           /* Handle highlight gizmo. */
           if (gz != NULL) {
             wmGizmoGroup *gzgroup = gz->parent_gzgroup;
