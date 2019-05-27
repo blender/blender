@@ -1335,6 +1335,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       BKE_object_batch_cache_dirty_tag(tob);
       DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
+    /* special support for dupligroups */
+    else if (tob->instance_collection &&
+             tob->instance_collection->id.tag & LIB_TAG_DOIT) {
+      DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM);
+      DEG_id_tag_update(&tob->instance_collection->id, ID_RECALC_COPY_ON_WRITE);
+    }
   }
 
   if (tot_change) {
