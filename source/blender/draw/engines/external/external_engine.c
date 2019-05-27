@@ -224,12 +224,14 @@ static void external_draw_scene_do(void *vedata)
 
   /* Rendered draw. */
   GPU_matrix_push_projection();
+  GPU_matrix_push();
   ED_region_pixelspace(ar);
 
   /* Render result draw. */
   type = rv3d->render_engine->type;
   type->view_draw(rv3d->render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
+  GPU_matrix_pop();
   GPU_matrix_pop_projection();
 
   /* Set render info. */
