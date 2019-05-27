@@ -2134,29 +2134,31 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
   cam->runtime.drw_tria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
 
   if (look_through) {
-    /* Only draw the frame. */
-    float mat[4][4];
-    if (is_multiview) {
-      const bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
-      const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
-      BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
-      const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, view_name);
-      const float delta_shiftx = shiftx - cam->shiftx;
-      const float width = cam->runtime.drw_corners[0][2][0] - cam->runtime.drw_corners[0][0][0];
-      for (int i = 0; i < 4; i++) {
-        cam->runtime.drw_corners[0][i][0] -= delta_shiftx * width;
+    if (!DRW_state_is_image_render()) {
+      /* Only draw the frame. */
+      float mat[4][4];
+      if (is_multiview) {
+        const bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
+        const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
+        BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
+        const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, view_name);
+        const float delta_shiftx = shiftx - cam->shiftx;
+        const float width = cam->runtime.drw_corners[0][2][0] - cam->runtime.drw_corners[0][0][0];
+        for (int i = 0; i < 4; i++) {
+          cam->runtime.drw_corners[0][i][0] -= delta_shiftx * width;
+        }
       }
-    }
-    else {
-      copy_m4_m4(mat, ob->obmat);
-    }
+      else {
+        copy_m4_m4(mat, ob->obmat);
+      }
 
-    DRW_buffer_add_entry(sgl->camera_frame,
-                         color,
-                         cam->runtime.drw_corners[0],
-                         &cam->runtime.drw_depth[0],
-                         cam->runtime.drw_tria,
-                         mat);
+      DRW_buffer_add_entry(sgl->camera_frame,
+                           color,
+                           cam->runtime.drw_corners[0],
+                           &cam->runtime.drw_depth[0],
+                           cam->runtime.drw_tria,
+                           mat);
+    }
   }
   else {
     if (!is_stereo3d_cameras) {
