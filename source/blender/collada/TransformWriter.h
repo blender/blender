@@ -31,7 +31,7 @@
 
 class TransformWriter {
  protected:
-  void add_node_transform(COLLADASW::Node &node,
+  void add_joint_transform(COLLADASW::Node &node,
                           float mat[4][4],
                           float parent_mat[4][4],
                           BCExportSettings &export_settings,

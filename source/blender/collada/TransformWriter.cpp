@@ -25,7 +25,7 @@
 
 #include "TransformWriter.h"
 
-void TransformWriter::add_node_transform(COLLADASW::Node &node,
+void TransformWriter::add_joint_transform(COLLADASW::Node &node,
                                          float mat[4][4],
                                          float parent_mat[4][4],
                                          BCExportSettings &export_settings,
