@@ -223,10 +223,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
   if (export_animation_type != BC_ANIMATION_EXPORT_SAMPLES) {
     // When curves are exported then we can not export as matrix
-    export_settings.animation_transformation_type = BC_TRANSFORMATION_TYPE_TRANSROTLOC;
+    export_settings.animation_transformation_type = BC_TRANSFORMATION_TYPE_DECOMPOSED;
   }
 
-  if (export_settings.animation_transformation_type != BC_TRANSFORMATION_TYPE_TRANSROTLOC) {
+  if (export_settings.animation_transformation_type != BC_TRANSFORMATION_TYPE_DECOMPOSED) {
     // Can not export smooth curves when Matrix export is enabled.
     export_settings.keep_smooth_curves = false;
   }
@@ -397,7 +397,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(row, imfptr, "keep_smooth_curves", 0, NULL, ICON_NONE);
     uiLayoutSetEnabled(row,
                        include_animations &&
-                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_TRANSROTLOC ||
+                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_DECOMPOSED ||
                             animation_type == BC_ANIMATION_EXPORT_KEYS));
 
     row = uiLayoutColumn(box, false);
@@ -496,11 +496,11 @@ void WM_OT_collada_export(wmOperatorType *ot)
        0,
        "Matrix",
        "Use <matrix> representation for exported transformations"},
-      {BC_TRANSFORMATION_TYPE_TRANSROTLOC,
-       "transrotloc",
+      {BC_TRANSFORMATION_TYPE_DECOMPOSED,
+       "decomposed",
        0,
-       "TransRotLoc",
-       "Use <translate>, <rotate>, <scale> representation for exported transformations"},
+       "Decomposed",
+       "Use <rotate>, <translate> and <scale> representation for exported transformations"},
       {0, NULL, 0, NULL, NULL}};
 
   static const EnumPropertyItem prop_bc_export_animation_type[] = {

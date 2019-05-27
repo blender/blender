@@ -37,7 +37,7 @@ typedef enum BC_export_mesh_type {
 
 typedef enum BC_export_transformation_type {
   BC_TRANSFORMATION_TYPE_MATRIX,
-  BC_TRANSFORMATION_TYPE_TRANSROTLOC,
+  BC_TRANSFORMATION_TYPE_DECOMPOSED,
 } BC_export_transformation_type;
 
 typedef enum BC_export_animation_type {

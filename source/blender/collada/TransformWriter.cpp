@@ -92,7 +92,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
       node.addMatrix("transform", d_obmat);
       break;
     }
-    case BC_TRANSFORMATION_TYPE_TRANSROTLOC: {
+    case BC_TRANSFORMATION_TYPE_DECOMPOSED: {
       float loc[3], rot[3], scale[3];
       bc_decompose(f_obmat, loc, rot, NULL, scale);
       if (limit_precision) {
