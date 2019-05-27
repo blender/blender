@@ -346,7 +346,7 @@ uint EDBM_select_id_context_elem_len(const struct EDBMSelectID_Context *sel_id_c
 
 struct EDBMSelectID_Context *EDBM_select_id_context_create(ViewContext *vc,
                                                            Base **bases,
-                                                           uint bases_len,
+                                                           const uint bases_len,
                                                            short select_mode)
 {
   struct EDBMSelectID_Context *sel_id_ctx = MEM_mallocN(sizeof(*sel_id_ctx), __func__);
