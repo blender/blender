@@ -1970,13 +1970,30 @@ static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Objec
   }
 }
 
-static void curvetomesh(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+static void curvetomesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
-  convert_ensure_curve_cache(depsgraph, scene, ob);
-  BKE_mesh_from_nurbs(bmain, ob); /* also does users */
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Curve *curve = ob->data;
+  Mesh *mesh = BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object_eval, true);
+  BKE_object_free_modifiers(ob, 0);
+  /* Replace curve used by the object itself. */
+  ob->data = mesh;
+  ob->type = OB_MESH;
+  id_us_min(&curve->id);
+  id_us_plus(&mesh->id);
+  /* Change objects which are using same curve.
+   * A bit annoying, but:
+   * - It's possible to have multiple curve objects selected which are sharing the same curve
+   *   datablock. We don't want mesh to be created for every of those objects.
+   * - This is how conversion worked for a long long time. */
+  LISTBASE_FOREACH (Object *, other_object, &bmain->objects) {
+    if (other_object->data == curve) {
+      other_object->type = OB_MESH;
 
-  if (ob->type == OB_MESH) {
-    BKE_object_free_modifiers(ob, 0);
+      id_us_min((ID *)other_object->data);
+      other_object->data = ob->data;
+      id_us_plus((ID *)other_object->data);
+    }
   }
 }
 
@@ -2233,7 +2250,7 @@ static int convert_exec(bContext *C, wmOperator *op)
       BKE_curve_curve_dimension_update(cu);
 
       if (target == OB_MESH) {
-        curvetomesh(bmain, depsgraph, scene, newob);
+        curvetomesh(bmain, depsgraph, newob);
 
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
@@ -2257,7 +2274,7 @@ static int convert_exec(bContext *C, wmOperator *op)
           newob = ob;
         }
 
-        curvetomesh(bmain, depsgraph, scene, newob);
+        curvetomesh(bmain, depsgraph, newob);
 
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
