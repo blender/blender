@@ -14,6 +14,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup collada
+ */
+
+#ifndef __BLENDERTYPES_H__
+#define __BLENDERTYPES_H__
+
 typedef float(Vector)[3];
 typedef float(Matrix)[4][4];
 typedef double(DMatrix)[4][4];
@@ -35,3 +42,5 @@ typedef enum BC_global_up_axis {
   BC_GLOBAL_UP_MINUS_Y = 4,
   BC_GLOBAL_UP_MINUS_Z = 5
 } BC_global_up_axis;
+
+#endif
