@@ -1053,7 +1053,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
   /* 3 - Render to probe array to the specified layer, do prefiltering. */
   int mipsize = GPU_texture_width(light_cache->cube_tx.tex);
   for (int i = 0; i < maxlevel + 1; i++) {
-    float bias = (i == 0) ? -1.0f : 1.0f;
+    float bias = 0.0f;
     pinfo->texel_size = 1.0f / (float)mipsize;
     pinfo->padding_size = (i == maxlevel) ? 0 : (float)(1 << (maxlevel - i - 1));
     pinfo->padding_size *= pinfo->texel_size;
@@ -1063,22 +1063,27 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     pinfo->roughness *= pinfo->roughness;     /* Distribute Roughness accros lod more evenly */
     CLAMP(pinfo->roughness, 1e-8f, 0.99999f); /* Avoid artifacts */
 
-#if 1 /* Variable Sample count (fast) */
+#if 1 /* Variable Sample count and bias (fast) */
     switch (i) {
       case 0:
         pinfo->samples_len = 1.0f;
+        bias = -1.0f;
         break;
       case 1:
-        pinfo->samples_len = 16.0f;
+        pinfo->samples_len = 32.0f;
+        bias = 1.0f;
         break;
       case 2:
-        pinfo->samples_len = 32.0f;
+        pinfo->samples_len = 40.0f;
+        bias = 2.0f;
         break;
       case 3:
         pinfo->samples_len = 64.0f;
+        bias = 2.0f;
         break;
       default:
         pinfo->samples_len = 128.0f;
+        bias = 2.0f;
         break;
     }
 #else /* Constant Sample count (slow) */

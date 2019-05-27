@@ -458,6 +458,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     copy_v3_v3(scene->display.light_direction, (float[3]){M_SQRT1_3, M_SQRT1_3, M_SQRT1_3});
     copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
     copy_v2_fl2(scene->safe_areas.action, 0.035f, 0.035f);
+
+    /* Change default cubemap quality. */
+    scene->eevee.gi_filter_quality = 3.0f;
   }
 
   if (app_template == NULL) {

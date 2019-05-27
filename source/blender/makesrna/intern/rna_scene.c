@@ -6584,7 +6584,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
   prop = RNA_def_property(srna, "gi_filter_quality", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_float_default(prop, 3.0f);
   RNA_def_property_ui_text(
       prop, "Filter Quality", "Take more samples during cubemap filtering to remove artifacts");
   RNA_def_property_range(prop, 1.0f, 8.0f);

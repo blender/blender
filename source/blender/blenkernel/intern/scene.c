@@ -916,7 +916,7 @@ void BKE_scene_init(Scene *sce)
   sce->eevee.gi_cubemap_draw_size = 0.3f;
   sce->eevee.gi_irradiance_draw_size = 0.1f;
   sce->eevee.gi_irradiance_smoothing = 0.1f;
-  sce->eevee.gi_filter_quality = 1.0f;
+  sce->eevee.gi_filter_quality = 3.0f;
 
   sce->eevee.taa_samples = 16;
   sce->eevee.taa_render_samples = 64;
