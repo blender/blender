@@ -379,7 +379,8 @@ static void eevee_render_result_z(RenderLayer *rl,
           rp->rect[i] = -viewmat[3][2] / (rp->rect[i] + viewmat[2][2]);
         }
         else {
-          rp->rect[i] = common_data->view_vecs[0][2] + rp->rect[i] * common_data->view_vecs[1][2];
+          rp->rect[i] = -common_data->view_vecs[0][2] +
+                        rp->rect[i] * -common_data->view_vecs[1][2];
         }
       }
     }
