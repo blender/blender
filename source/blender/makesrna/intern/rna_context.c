@@ -57,6 +57,10 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  ifdef WITH_PYTHON
+#    include "BPY_extern.h"
+#  endif
+
 #  include "RE_engine.h"
 
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
@@ -200,7 +204,20 @@ static int rna_Context_mode_get(PointerRNA *ptr)
 
 static struct Depsgraph *rna_Context_evaluated_depsgraph_get(bContext *C)
 {
-  return CTX_data_evaluated_depsgraph(C);
+  struct Depsgraph *depsgraph;
+
+#  ifdef WITH_PYTHON
+  /* Allow drivers to be evaluated */
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
+  depsgraph = CTX_data_evaluated_depsgraph(C);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
+
+  return depsgraph;
 }
 
 #else
