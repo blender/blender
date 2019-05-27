@@ -608,17 +608,16 @@ DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 /* STATUS: verified */
 DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
-  unsigned int i = 0;
   unsigned int vcount = from[0].vcount;
   lfVector *temp = create_lfvector(vcount);
 
   zero_lfvector(to, vcount);
 
-#  pragma omp parallel sections private(i) if (vcount > CLOTH_OPENMP_LIMIT)
+#  pragma omp parallel sections if (vcount > CLOTH_OPENMP_LIMIT)
   {
 #  pragma omp section
     {
-      for (i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
+      for (unsigned int i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
         /* This is the lower triangle of the sparse matrix,
          * therefore multiplication occurs with transposed submatrices. */
         muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
@@ -626,7 +625,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
     }
 #  pragma omp section
     {
-      for (i = 0; i < from[0].vcount + from[0].scount; i++) {
+      for (unsigned int i = 0; i < from[0].vcount + from[0].scount; i++) {
         muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
       }
     }
