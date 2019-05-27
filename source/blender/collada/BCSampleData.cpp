@@ -39,6 +39,43 @@ void BCSample::add_bone_matrix(Bone *bone, Matrix &mat)
   bonemats[bone] = matrix;
 }
 
+/* Get channel value */
+const bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
+{
+  if (channel_target == "location") {
+    *val = obmat.location()[array_index];
+  }
+  else if (channel_target == "scale") {
+    *val = obmat.scale()[array_index];
+  }
+  else if (channel_target == "rotation" || channel_target == "rotation_euler") {
+    *val = obmat.rotation()[array_index];
+  }
+  else if (channel_target == "rotation_quat") {
+    *val = obmat.quat()[array_index];
+  }
+  else {
+    *val = 0;
+    return false;
+  }
+
+  return true;
+}
+
+const BCMatrix *BCSample::get_matrix(Bone *bone) const
+{
+  BCBoneMatrixMap::const_iterator it = bonemats.find(bone);
+  if (it == bonemats.end()) {
+    return NULL;
+  }
+  return it->second;
+}
+
+const BCMatrix &BCSample::get_matrix() const
+{
+  return obmat;
+}
+
 BCMatrix::BCMatrix(const BCMatrix &mat)
 {
   set_transform(mat.matrix);
@@ -137,43 +174,6 @@ void BCMatrix::set_transform(Matrix &mat)
   copy_m4_m4(matrix, mat);
   mat4_decompose(this->loc, this->q, this->size, mat);
   quat_to_eul(this->rot, this->q);
-}
-
-const BCMatrix *BCSample::get_matrix(Bone *bone) const
-{
-  BCBoneMatrixMap::const_iterator it = bonemats.find(bone);
-  if (it == bonemats.end()) {
-    return NULL;
-  }
-  return it->second;
-}
-
-const BCMatrix &BCSample::get_matrix() const
-{
-  return obmat;
-}
-
-/* Get channel value */
-const bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
-{
-  if (channel_target == "location") {
-    *val = obmat.location()[array_index];
-  }
-  else if (channel_target == "scale") {
-    *val = obmat.scale()[array_index];
-  }
-  else if (channel_target == "rotation" || channel_target == "rotation_euler") {
-    *val = obmat.rotation()[array_index];
-  }
-  else if (channel_target == "rotation_quat") {
-    *val = obmat.quat()[array_index];
-  }
-  else {
-    *val = 0;
-    return false;
-  }
-
-  return true;
 }
 
 void BCMatrix::copy(Matrix &out, Matrix &in)
