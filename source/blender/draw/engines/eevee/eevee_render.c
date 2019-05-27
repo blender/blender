@@ -376,11 +376,10 @@ static void eevee_render_result_z(RenderLayer *rl,
       else {
         if (is_persp) {
           rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-          rp->rect[i] = viewmat[3][2] / (rp->rect[i] + viewmat[2][2]);
+          rp->rect[i] = -viewmat[3][2] / (rp->rect[i] + viewmat[2][2]);
         }
         else {
-          rp->rect[i] = -common_data->view_vecs[0][2] +
-                        rp->rect[i] * -common_data->view_vecs[1][2];
+          rp->rect[i] = common_data->view_vecs[0][2] + rp->rect[i] * common_data->view_vecs[1][2];
         }
       }
     }
