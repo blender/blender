@@ -706,7 +706,13 @@ void rna_Object_me_eval_info(
 static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
   /* fail gracefully if we aren't in edit-mode. */
-  return ED_object_editmode_load(bmain, ob);
+  const bool result = ED_object_editmode_load(bmain, ob);
+  if (result) {
+    /* Loading edit mesh to mesh changes geometry, and scripts might expect it to be properly
+     * informed about changes. */
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+  return result;
 }
 #else /* RNA_RUNTIME */
 
