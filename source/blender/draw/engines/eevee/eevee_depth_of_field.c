@@ -204,7 +204,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_vec2(grp, "dofParams", effects->dof_params, 1);
     DRW_shgroup_call(grp, quad, NULL);
 
-    DRW_PASS_CREATE(psl->dof_scatter, DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL);
+    DRW_PASS_CREATE(psl->dof_scatter, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
 
     /* This create an empty batch of N triangles to be positioned
      * by the vertex shader 0.4ms against 6ms with instancing */

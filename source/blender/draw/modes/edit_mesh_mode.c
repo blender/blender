@@ -398,7 +398,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
 
   /* Verts */
   passes->verts = DRW_pass_create("Edit Mesh Verts",
-                                  (DRW_STATE_WRITE_COLOR | statemod) & ~DRW_STATE_BLEND);
+                                  (DRW_STATE_WRITE_COLOR | statemod) & ~DRW_STATE_BLEND_ALPHA);
   if (select_vert) {
     grp = shgrps->verts = DRW_shgroup_create(vert_sh, passes->verts);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -547,7 +547,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
   {
     /* Mesh Analysis Pass */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
     psl->mesh_analysis_pass = DRW_pass_create("Mesh Analysis", state);
     const bool is_vertex_color = scene->toolsettings->statvis.type == SCE_STATVIS_SHARP;
     g_data->mesh_analysis_shgrp = DRW_shgroup_create(
@@ -561,7 +561,7 @@ static void EDIT_MESH_cache_init(void *vedata)
   edit_mesh_create_overlay_passes(face_mod,
                                   g_data->data_mask,
                                   g_data->do_edges,
-                                  DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
+                                  DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                                   &psl->edit_passes_in_front,
                                   &g_data->edit_in_front_shgrps);
 
@@ -569,7 +569,7 @@ static void EDIT_MESH_cache_init(void *vedata)
     edit_mesh_create_overlay_passes(face_mod,
                                     g_data->data_mask,
                                     g_data->do_edges,
-                                    DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
+                                    DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                                     &psl->edit_passes,
                                     &g_data->edit_shgrps);
   }
@@ -583,7 +583,7 @@ static void EDIT_MESH_cache_init(void *vedata)
                                     &psl->edit_passes,
                                     &g_data->edit_shgrps);
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
     psl->facefill_occlude = DRW_pass_create("Front Face Color", state);
     psl->facefill_occlude_cage = DRW_pass_create("Front Face Cage Color", state);
 
@@ -616,7 +616,7 @@ static void EDIT_MESH_cache_init(void *vedata)
     struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
     psl->mix_occlude = DRW_pass_create("Mix Occluded Wires",
-                                       DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+                                       DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
     DRWShadingGroup *mix_shgrp = DRW_shgroup_create(sh_data->overlay_mix, psl->mix_occlude);
     DRW_shgroup_call(mix_shgrp, quad, NULL);
     DRW_shgroup_uniform_float_copy(mix_shgrp, "alpha", backwire_opacity);

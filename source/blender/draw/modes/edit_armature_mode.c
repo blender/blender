@@ -78,7 +78,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
     /* Solid bones */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
     psl->bone_solid[i] = DRW_pass_create("Bone Solid Pass", state | DRW_STATE_WRITE_DEPTH);
-    psl->bone_transp[i] = DRW_pass_create("Bone Transp Pass", state | DRW_STATE_BLEND);
+    psl->bone_transp[i] = DRW_pass_create("Bone Transp Pass", state | DRW_STATE_BLEND_ALPHA);
 
     /* Bones Outline */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
@@ -86,21 +86,21 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 
     /* Wire bones */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND;
+            DRW_STATE_BLEND_ALPHA;
     psl->bone_wire[i] = DRW_pass_create("Bone Wire Pass", state);
 
     /* distance outline around envelope bones */
-    state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
+    state = DRW_STATE_BLEND_ADD | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
             DRW_STATE_CULL_FRONT;
     psl->bone_envelope[i] = DRW_pass_create("Bone Envelope Outline Pass", state);
 
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND;
+            DRW_STATE_BLEND_ALPHA;
     psl->relationship[i] = DRW_pass_create("Bone Relationship Pass", state);
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WIRE_SMOOTH | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WIRE_SMOOTH | DRW_STATE_BLEND_ALPHA;
     psl->bone_axes = DRW_pass_create("Bone Axes Pass", state);
   }
 }

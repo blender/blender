@@ -135,7 +135,7 @@ static void SCULPT_cache_init(void *vedata)
     const DRWContextState *draw_ctx = DRW_context_state_get();
     View3D *v3d = draw_ctx->v3d;
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL;
     psl->pass = DRW_pass_create("Sculpt Pass", state);
 
     DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.shader_mask, psl->pass);

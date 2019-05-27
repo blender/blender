@@ -709,7 +709,7 @@ void GPENCIL_create_fx_passes(GPENCIL_PassList *psl)
                                         DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                             DRW_STATE_DEPTH_LESS);
   psl->fx_shader_pass_blend = DRW_pass_create("GPencil Shader FX Pass",
-                                              DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                              DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                                   DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 }
 

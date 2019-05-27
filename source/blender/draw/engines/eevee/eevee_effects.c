@@ -344,7 +344,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     copy_v4_fl4(effects->color_checker_dark, 0.15f, 0.15f, 0.15f, 1.0f);
     copy_v4_fl4(effects->color_checker_light, 0.2f, 0.2f, 0.2f, 1.0f);
 
-    DRW_PASS_CREATE(psl->alpha_checker, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL_UNDER);
+    DRW_PASS_CREATE(psl->alpha_checker,
+                    DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL);
     grp = DRW_shgroup_create(checker_sh, psl->alpha_checker);
     DRW_shgroup_uniform_vec4(grp, "color1", effects->color_checker_dark, 1);
     DRW_shgroup_uniform_vec4(grp, "color2", effects->color_checker_light, 1);

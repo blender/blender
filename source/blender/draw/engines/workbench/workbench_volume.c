@@ -111,7 +111,7 @@ void workbench_volume_engine_free(void)
 void workbench_volume_cache_init(WORKBENCH_Data *vedata)
 {
   vedata->psl->volume_pass = DRW_pass_create(
-      "Volumes", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL | DRW_STATE_CULL_FRONT);
+      "Volumes", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
 }
 
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata,

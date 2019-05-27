@@ -336,15 +336,16 @@ typedef enum {
   DRW_STATE_STENCIL_NEQUAL = (1 << 14),
 
   /** Blend state */
-  DRW_STATE_ADDITIVE = (1 << 15),
+  DRW_STATE_BLEND_ADD = (1 << 15),
   /** Same as additive but let alpha accumulate without premult. */
-  DRW_STATE_ADDITIVE_FULL = (1 << 16),
-  DRW_STATE_BLEND = (1 << 17),
+  DRW_STATE_BLEND_ADD_FULL = (1 << 16),
+  /** Standard alpha blending. */
+  DRW_STATE_BLEND_ALPHA = (1 << 17),
   /** Use that if color is already premult by alpha. */
-  DRW_STATE_BLEND_PREMUL = (1 << 18),
-  DRW_STATE_BLEND_PREMUL_UNDER = (1 << 19),
+  DRW_STATE_BLEND_ALPHA_PREMUL = (1 << 18),
+  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (1 << 19),
   DRW_STATE_BLEND_OIT = (1 << 20),
-  DRW_STATE_MULTIPLY = (1 << 21),
+  DRW_STATE_BLEND_MUL = (1 << 21),
 
   DRW_STATE_CLIP_PLANES = (1 << 22),
   DRW_STATE_WIRE_SMOOTH = (1 << 23),

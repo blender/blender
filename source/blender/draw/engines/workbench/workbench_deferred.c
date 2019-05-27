@@ -755,9 +755,9 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
       /* Stencil Shadow passes. */
 #ifdef DEBUG_SHADOW_VOLUME
       DRWState depth_pass_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR |
-                                  DRW_STATE_ADDITIVE;
+                                  DRW_STATE_BLEND_ADD;
       DRWState depth_fail_state = DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR |
-                                  DRW_STATE_ADDITIVE;
+                                  DRW_STATE_BLEND_ADD;
 #else
       DRWState depth_pass_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_PASS;
       DRWState depth_fail_state = DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL;
@@ -830,7 +830,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
     }
     /* OIT Composite */
     {
-      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
+      int state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
       psl->oit_composite_pass = DRW_pass_create("OIT Composite", state);
 
       grp = DRW_shgroup_create(e_data.oit_resolve_sh, psl->oit_composite_pass);

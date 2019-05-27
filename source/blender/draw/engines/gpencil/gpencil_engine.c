@@ -352,16 +352,17 @@ void GPENCIL_cache_init(void *vedata)
     /* Stroke pass 2D */
     psl->stroke_pass_2d = DRW_pass_create("GPencil Stroke Pass",
                                           DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                              DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND);
+                                              DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA);
     stl->storage->shgroup_id = 0;
     /* Stroke pass 3D */
     psl->stroke_pass_3d = DRW_pass_create("GPencil Stroke Pass",
                                           DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
+                                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA);
     stl->storage->shgroup_id = 0;
 
     /* edit pass */
-    psl->edit_pass = DRW_pass_create("GPencil Edit Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+    psl->edit_pass = DRW_pass_create("GPencil Edit Pass",
+                                     DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
 
     /* detect if playing animation */
     if (draw_ctx->evil_C) {
@@ -453,13 +454,13 @@ void GPENCIL_cache_init(void *vedata)
      * is stored in sbuffer
      */
     psl->drawing_pass = DRW_pass_create("GPencil Drawing Pass",
-                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                             DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
 
     /* full screen pass to combine the result with default framebuffer */
     struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
     psl->mix_pass = DRW_pass_create("GPencil Mix Pass",
-                                    DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                    DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                         DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.gpencil_fullscreen_sh, psl->mix_pass);
     DRW_shgroup_call(mix_shgrp, quad, NULL);
@@ -494,7 +495,7 @@ void GPENCIL_cache_init(void *vedata)
      * is far to agile.
      */
     psl->background_pass = DRW_pass_create("GPencil Background Painting Session Pass",
-                                           DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                           DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                                DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *background_shgrp = DRW_shgroup_create(e_data.gpencil_background_sh,
                                                            psl->background_pass);
@@ -509,7 +510,7 @@ void GPENCIL_cache_init(void *vedata)
      */
     if (v3d) {
       psl->paper_pass = DRW_pass_create("GPencil Paper Pass",
-                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
       DRWShadingGroup *paper_shgrp = DRW_shgroup_create(e_data.gpencil_paper_sh, psl->paper_pass);
       DRW_shgroup_call(paper_shgrp, quad, NULL);
       DRW_shgroup_uniform_vec3(paper_shgrp, "color", v3d->shading.background_color, 1);
@@ -519,14 +520,14 @@ void GPENCIL_cache_init(void *vedata)
     /* grid pass */
     if (v3d) {
       psl->grid_pass = DRW_pass_create("GPencil Grid Pass",
-                                       DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                       DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                            DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
       stl->g_data->shgrps_grid = DRW_shgroup_create(e_data.gpencil_line_sh, psl->grid_pass);
     }
 
     /* blend layers pass */
     psl->blend_pass = DRW_pass_create("GPencil Blend Layers Pass",
-                                      DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND |
+                                      DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                                           DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *blend_shgrp = DRW_shgroup_create(e_data.gpencil_blend_fullscreen_sh,
                                                       psl->blend_pass);

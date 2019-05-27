@@ -200,8 +200,8 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
    */
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL;
   DRW_PASS_CREATE(psl->sss_blur_ps, state);
-  DRW_PASS_CREATE(psl->sss_resolve_ps, state | DRW_STATE_ADDITIVE);
-  DRW_PASS_CREATE(psl->sss_accum_ps, state | DRW_STATE_ADDITIVE);
+  DRW_PASS_CREATE(psl->sss_resolve_ps, state | DRW_STATE_BLEND_ADD);
+  DRW_PASS_CREATE(psl->sss_accum_ps, state | DRW_STATE_BLEND_ADD);
 }
 
 void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,

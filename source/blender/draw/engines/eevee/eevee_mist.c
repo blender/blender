@@ -106,7 +106,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   g_data->mist_falloff *= 0.5f;
 
   /* Create Pass and shgroup. */
-  DRW_PASS_CREATE(psl->mist_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
+  DRW_PASS_CREATE(psl->mist_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
   DRWShadingGroup *grp = DRW_shgroup_create(e_data.mist_sh, psl->mist_accum_ps);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
   DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);

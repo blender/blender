@@ -239,7 +239,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
   /* Create a pass */
   {
     DRWPass *pass = DRW_pass_create(
-        "Image Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
+        "Image Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->fallback, pass);
 
     /* Uniforms need a pointer to it's value so be sure it's accessible at
@@ -316,7 +316,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 
   {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     DRW_STATE_BLEND;
+                     DRW_STATE_BLEND_ALPHA;
     DRWPass *pass = DRW_pass_create("Face Mask Pass", state);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->face_select_overlay, pass);
     static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};

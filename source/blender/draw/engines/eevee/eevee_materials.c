@@ -1476,8 +1476,8 @@ static void material_transparent(Material *ma,
   const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKFACE) != 0);
 
   DRWState all_state = (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK |
-                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND |
-                        DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY);
+                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_DEPTH_EQUAL |
+                        DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL);
 
   DRWState cur_state = DRW_STATE_WRITE_COLOR;
   cur_state |= (use_prepass) ? DRW_STATE_DEPTH_EQUAL : DRW_STATE_DEPTH_LESS_EQUAL;
@@ -1485,13 +1485,13 @@ static void material_transparent(Material *ma,
 
   switch (ma->blend_method) {
     case MA_BM_ADD:
-      cur_state |= DRW_STATE_ADDITIVE;
+      cur_state |= DRW_STATE_BLEND_ADD;
       break;
     case MA_BM_MULTIPLY:
-      cur_state |= DRW_STATE_MULTIPLY;
+      cur_state |= DRW_STATE_BLEND_MUL;
       break;
     case MA_BM_BLEND:
-      cur_state |= DRW_STATE_BLEND;
+      cur_state |= DRW_STATE_BLEND_ALPHA;
       break;
     default:
       BLI_assert(0);

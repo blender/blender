@@ -121,7 +121,7 @@ static void POSE_cache_init(void *vedata)
     /* Solid bones */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
     psl->bone_solid[i] = DRW_pass_create("Bone Solid Pass", state | DRW_STATE_WRITE_DEPTH);
-    psl->bone_transp[i] = DRW_pass_create("Bone Transp Pass", state | DRW_STATE_BLEND);
+    psl->bone_transp[i] = DRW_pass_create("Bone Transp Pass", state | DRW_STATE_BLEND_ALPHA);
 
     /* Bones Outline */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
@@ -129,23 +129,23 @@ static void POSE_cache_init(void *vedata)
 
     /* Wire bones */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND;
+            DRW_STATE_BLEND_ALPHA;
     psl->bone_wire[i] = DRW_pass_create("Bone Wire Pass", state);
 
     /* distance outline around envelope bones */
-    state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
+    state = DRW_STATE_BLEND_ADD | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
             DRW_STATE_CULL_FRONT;
     psl->bone_envelope[i] = DRW_pass_create("Bone Envelope Outline Pass", state);
 
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND;
+            DRW_STATE_BLEND_ALPHA;
     psl->relationship[i] = DRW_pass_create("Bone Relationship Pass", state);
 
     ppd->custom_shapes[i] = BLI_ghash_ptr_new(__func__);
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WIRE_SMOOTH | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WIRE_SMOOTH | DRW_STATE_BLEND_ALPHA;
     psl->bone_axes = DRW_pass_create("Bone Axes Pass", state);
   }
 
@@ -158,7 +158,7 @@ static void POSE_cache_init(void *vedata)
       copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(alpha, 4));
       DRWShadingGroup *grp;
       psl->bone_selection = DRW_pass_create(
-          "Bone Selection", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
+          "Bone Selection", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA);
       grp = DRW_shgroup_create(e_data.bone_selection_sh, psl->bone_selection);
       DRW_shgroup_uniform_vec4(grp, "color", ppd->blend_color, 1);
       stl->g_data->bone_selection_shgrp = grp;

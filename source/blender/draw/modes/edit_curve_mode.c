@@ -222,7 +222,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
                                  &stl->g_data->wire_normals_shgrp_xray);
 
     psl->overlay_edge_pass = DRW_pass_create("Curve Handle Overlay",
-                                             DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+                                             DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
 
     grp = DRW_shgroup_create(sh_data->overlay_edge_sh, psl->overlay_edge_pass);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);

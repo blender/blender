@@ -501,7 +501,7 @@ struct DRWCallBuffer *buffer_instance(DRWPass *pass,
                               });
 
   DRWShadingGroup *grp = DRW_shgroup_create(sh_inst, pass);
-  DRW_shgroup_state_disable(grp, DRW_STATE_BLEND);
+  DRW_shgroup_state_disable(grp, DRW_STATE_BLEND_ALPHA);
   if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
     DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
@@ -969,7 +969,7 @@ struct DRWCallBuffer *buffer_instance_bone_dof(struct DRWPass *pass,
 
   DRWShadingGroup *grp = DRW_shgroup_create(sh_data->bone_dofs, pass);
   if (blend) {
-    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND);
+    DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
     DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
   }
   return DRW_shgroup_call_buffer_instance(grp, g_formats.instance_bone_dof, geom);

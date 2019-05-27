@@ -205,7 +205,7 @@ static void overlay_cache_init(void *vedata)
 
   {
     /* Face Orientation Pass */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
     psl->face_orientation_pass = DRW_pass_create("Face Orientation", state);
     g_data->face_orientation_shgrp = DRW_shgroup_create(sh_data->face_orientation,
                                                         psl->face_orientation_pass);

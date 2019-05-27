@@ -298,7 +298,8 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata,
   psl->dof_dilate_v_ps = DRW_pass_create("DoF Dilate Coc V", DRW_STATE_WRITE_COLOR);
   psl->dof_blur1_ps = DRW_pass_create("DoF Blur 1", DRW_STATE_WRITE_COLOR);
   psl->dof_blur2_ps = DRW_pass_create("DoF Blur 2", DRW_STATE_WRITE_COLOR);
-  psl->dof_resolve_ps = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+  psl->dof_resolve_ps = DRW_pass_create("DoF Resolve",
+                                        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
 
   {
     DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_prepare_sh, psl->dof_down_ps);

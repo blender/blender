@@ -385,7 +385,7 @@ void DRW_transform_none(GPUTexture *tex)
  */
 void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool use_depth)
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL;
 
   if (use_depth) {
     state |= DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;

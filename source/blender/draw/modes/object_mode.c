@@ -1165,7 +1165,7 @@ static void OBJECT_cache_init(void *vedata)
   }
 
   {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     psl->outlines_resolve = DRW_pass_create("Outlines Resolve Pass", state);
 
     struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
@@ -1180,7 +1180,7 @@ static void OBJECT_cache_init(void *vedata)
 
   {
     /* Grid pass */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
     struct GPUBatch *geom = DRW_cache_grid_get();
@@ -1225,11 +1225,11 @@ static void OBJECT_cache_init(void *vedata)
 
     /* Wire bones */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-            DRW_STATE_BLEND;
+            DRW_STATE_BLEND_ALPHA;
     sgl->bone_wire = psl->bone_wire[i] = DRW_pass_create("Bone Wire Pass", state);
 
     /* distance outline around envelope bones */
-    state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
+    state = DRW_STATE_BLEND_ADD | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
             DRW_STATE_CULL_FRONT;
     sgl->bone_envelope = psl->bone_envelope[i] = DRW_pass_create("Bone Envelope Outline Pass",
                                                                  state);
@@ -1246,10 +1246,10 @@ static void OBJECT_cache_init(void *vedata)
     struct GPUShader *sh;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
-                     DRW_STATE_BLEND;
+                     DRW_STATE_BLEND_ALPHA;
     sgl->non_meshes = psl->non_meshes[i] = DRW_pass_create("Non Meshes Pass", state);
 
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
     sgl->image_empties = psl->image_empties[i] = DRW_pass_create("Image Empties", state);
 
     /* Empties */
@@ -1382,12 +1382,12 @@ static void OBJECT_cache_init(void *vedata)
     sgl->points_dupli = shgroup_points(sgl->non_meshes, gb->colorDupli, sh, draw_ctx->sh_cfg);
     sgl->points_dupli_select = shgroup_points(
         sgl->non_meshes, gb->colorDupliSelect, sh, draw_ctx->sh_cfg);
-    DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND);
-    DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND);
-    DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND);
-    DRW_shgroup_state_disable(sgl->points_active, DRW_STATE_BLEND);
-    DRW_shgroup_state_disable(sgl->points_dupli, DRW_STATE_BLEND);
-    DRW_shgroup_state_disable(sgl->points_dupli_select, DRW_STATE_BLEND);
+    DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND_ALPHA);
+    DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND_ALPHA);
+    DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND_ALPHA);
+    DRW_shgroup_state_disable(sgl->points_active, DRW_STATE_BLEND_ALPHA);
+    DRW_shgroup_state_disable(sgl->points_dupli, DRW_STATE_BLEND_ALPHA);
+    DRW_shgroup_state_disable(sgl->points_dupli_select, DRW_STATE_BLEND_ALPHA);
 
     /* Metaballs Handles */
     sgl->mball_handle = buffer_instance_mball_handles(sgl->non_meshes, draw_ctx->sh_cfg);
@@ -1483,7 +1483,7 @@ static void OBJECT_cache_init(void *vedata)
     sgl->field_cone_limit = buffer_instance_scaled(sgl->non_meshes, geom, draw_ctx->sh_cfg);
 
     /* Transparent Shapes */
-    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND |
+    state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA |
             DRW_STATE_CULL_FRONT;
     sgl->transp_shapes = psl->transp_shapes[i] = DRW_pass_create("Transparent Shapes", state);
 
@@ -1528,7 +1528,7 @@ static void OBJECT_cache_init(void *vedata)
     DRWShadingGroup *grp;
     static float outlineWidth, size;
 
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     psl->ob_center = DRW_pass_create("Obj Center Pass", state);
 
     outlineWidth = 1.0f * U.pixelsize;
@@ -1574,7 +1574,7 @@ static void OBJECT_cache_init(void *vedata)
     /* Particle Pass */
     psl->particle = DRW_pass_create("Particle Pass",
                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
+                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA);
   }
 }
 

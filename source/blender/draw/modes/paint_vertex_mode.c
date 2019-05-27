@@ -198,7 +198,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
   /* Vertex color pass */
   {
     DRWPass *pass = DRW_pass_create(
-        "Vert Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY);
+        "Vert Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[VERTEX_MODE].color_face, pass);
     DRW_shgroup_uniform_float_copy(
         shgrp, "white_factor", 1.0f - v3d->overlay.vertex_paint_mode_opacity);
@@ -212,7 +212,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
   /* Weight color pass */
   {
     DRWPass *pass = DRW_pass_create(
-        "Weight Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY);
+        "Weight Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[WEIGHT_MODE].color_face, pass);
     DRW_shgroup_uniform_bool_copy(
         shgrp, "drawContours", (v3d->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0);
@@ -259,7 +259,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
     static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
     DRWPass *pass = DRW_pass_create("Face Mask Pass",
                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
+                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->face_select_overlay, pass);
     DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
