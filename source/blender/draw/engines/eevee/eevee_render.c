@@ -365,8 +365,8 @@ static void eevee_render_result_z(RenderLayer *rl,
 
     bool is_persp = DRW_view_is_persp_get(NULL);
 
-    float viewmat[4][4];
-    DRW_view_viewmat_get(NULL, viewmat, false);
+    float winmat[4][4];
+    DRW_view_winmat_get(NULL, winmat, false);
 
     /* Convert ogl depth [0..1] to view Z [near..far] */
     for (int i = 0; i < rp->rectx * rp->recty; ++i) {
@@ -376,7 +376,7 @@ static void eevee_render_result_z(RenderLayer *rl,
       else {
         if (is_persp) {
           rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-          rp->rect[i] = -viewmat[3][2] / (rp->rect[i] + viewmat[2][2]);
+          rp->rect[i] = winmat[3][2] / (rp->rect[i] + winmat[2][2]);
         }
         else {
           rp->rect[i] = -common_data->view_vecs[0][2] +

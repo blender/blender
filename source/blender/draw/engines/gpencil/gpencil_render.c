@@ -212,7 +212,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
     GPENCIL_render_update_vecs(vedata);
 
     float winmat[4][4];
-    DRW_view_persmat_get(stl->storage->view, winmat, false);
+    DRW_view_winmat_get(stl->storage->view, winmat, false);
 
     /* Convert ogl depth [0..1] to view Z [near..far] */
     for (int i = 0; i < BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect); i++) {
