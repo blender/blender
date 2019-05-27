@@ -192,7 +192,7 @@ endif()
 
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
-if(MSVC_VERSION GREATER_EQUAL 1914)
+if(MSVC_VERSION GREATER_EQUAL 1914 AND NOT MSVC_CLANG)
   add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)
 endif()
 
