@@ -267,6 +267,10 @@ static void draw_horizontal_scale_indicators(const ARegion *ar,
                                              void *to_string_data,
                                              int colorid)
 {
+  if (UI_view2d_scale_get_x(v2d) <= 0.0f) {
+    return;
+  }
+
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(ar);
 
@@ -318,6 +322,10 @@ static void draw_vertical_scale_indicators(const ARegion *ar,
                                            void *to_string_data,
                                            int colorid)
 {
+  if (UI_view2d_scale_get_y(v2d) <= 0.0f) {
+    return;
+  }
+
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(ar);
 
