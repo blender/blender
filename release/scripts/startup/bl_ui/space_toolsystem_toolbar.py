@@ -810,7 +810,7 @@ class _defs_edit_curve:
             tool_settings = context.tool_settings
             cps = tool_settings.curve_paint_settings
 
-            col = layout.row()
+            col = layout.column()
 
             col.prop(cps, "curve_type")
 
