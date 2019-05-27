@@ -324,8 +324,8 @@ typedef struct OldNewMap {
   int capacity_exp;
 } OldNewMap;
 
-#define ENTRIES_CAPACITY(onm) (1 << (onm)->capacity_exp)
-#define MAP_CAPACITY(onm) (1 << ((onm)->capacity_exp + 1))
+#define ENTRIES_CAPACITY(onm) (1ll << (onm)->capacity_exp)
+#define MAP_CAPACITY(onm) (1ll << ((onm)->capacity_exp + 1))
 #define SLOT_MASK(onm) (MAP_CAPACITY(onm) - 1)
 #define DEFAULT_SIZE_EXP 6
 #define PERTURB_SHIFT 5
