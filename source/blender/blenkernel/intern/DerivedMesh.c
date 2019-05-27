@@ -2079,7 +2079,7 @@ static void object_get_datamask(const Depsgraph *depsgraph,
 
   /* Must never access original objects when dependency graph is not active: it might be already
    * freed. */
-  if (DEG_is_active(depsgraph)) {
+  if (!DEG_is_active(depsgraph)) {
     return;
   }
 
