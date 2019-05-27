@@ -1948,9 +1948,9 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 }
 
 #ifdef WITH_INPUT_IME
-static void widget_draw_text_ime_underline(uiFontStyle *fstyle,
-                                           uiWidgetColors *wcol,
-                                           uiBut *but,
+static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
+                                           const uiWidgetColors *wcol,
+                                           const uiBut *but,
                                            const rcti *rect,
                                            const wmIMEData *ime_data,
                                            const char *drawstr)
