@@ -99,6 +99,7 @@ set(SRC
   BCAnimationSampler.h
   BCSampleData.h
   BlenderContext.h
+  BlenderTypes.h
   CameraExporter.h
   ControllerExporter.h
   DocumentExporter.h

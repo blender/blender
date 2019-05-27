@@ -33,28 +33,7 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 #include "DNA_layer_types.h"
-
-typedef float(Vector)[3];
-typedef float(Matrix)[4][4];
-typedef double(DMatrix)[4][4];
-
-typedef enum BC_global_forward_axis {
-  BC_GLOBAL_FORWARD_X = 0,
-  BC_GLOBAL_FORWARD_Y = 1,
-  BC_GLOBAL_FORWARD_Z = 2,
-  BC_GLOBAL_FORWARD_MINUS_X = 3,
-  BC_GLOBAL_FORWARD_MINUS_Y = 4,
-  BC_GLOBAL_FORWARD_MINUS_Z = 5
-} BC_global_forward_axis;
-
-typedef enum BC_global_up_axis {
-  BC_GLOBAL_UP_X = 0,
-  BC_GLOBAL_UP_Y = 1,
-  BC_GLOBAL_UP_Z = 2,
-  BC_GLOBAL_UP_MINUS_X = 3,
-  BC_GLOBAL_UP_MINUS_Y = 4,
-  BC_GLOBAL_UP_MINUS_Z = 5
-} BC_global_up_axis;
+#include "BlenderTypes.h"
 
 static const BC_global_forward_axis BC_DEFAULT_FORWARD = BC_GLOBAL_FORWARD_Y;
 static const BC_global_up_axis BC_DEFAULT_UP = BC_GLOBAL_UP_Z;
