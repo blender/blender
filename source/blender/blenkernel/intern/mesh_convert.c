@@ -1179,7 +1179,15 @@ static int foreach_libblock_make_original_and_usercount_callback(void *user_data
     return IDWALK_RET_NOP;
   }
   *id_p = DEG_get_original_id(*id_p);
-  id_us_plus(*id_p);
+
+  if (cb_flag & IDWALK_CB_USER) {
+    id_us_plus(*id_p);
+  }
+  else if (cb_flag & IDWALK_CB_USER_ONE) {
+    /* Note: in that context, that one should not be needed (since there should be at least already
+     * one USER_ONE user of that ID), but better be consistent. */
+    id_us_ensure_real(*id_p);
+  }
   return IDWALK_RET_NOP;
 }
 
