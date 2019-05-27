@@ -1097,6 +1097,30 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   }
 }
 
+/* Does final touches to the final evaluated mesh, making sure it is perfectly usable.
+ *
+ * This is needed because certain information is not passed along intermediate meshes allocated
+ * during stack evaluation.
+ */
+static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
+{
+  /* Make sure the name is the same. This is because mesh allocation from template does not
+   * take care of naming. */
+  BLI_strncpy(mesh_eval->id.name, mesh_input->id.name, sizeof(mesh_eval->id.name));
+  /* Make sure materials are preserved from the input. */
+  if (mesh_eval->mat != NULL) {
+    MEM_freeN(mesh_eval->mat);
+  }
+  mesh_eval->mat = MEM_dupallocN(mesh_input->mat);
+  mesh_eval->totcol = mesh_input->totcol;
+  /* Make evaluated mesh to share same edit mesh pointer as original and copied meshes. */
+  mesh_eval->edit_mesh = mesh_input->edit_mesh;
+  /* Copy auth-smooth settings which are also not taken care about by mesh allocation from a
+   * template. */
+  mesh_eval->flag |= (mesh_input->flag & ME_AUTOSMOOTH);
+  mesh_eval->smoothresh = mesh_input->smoothresh;
+}
+
 static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 Scene *scene,
                                 Object *ob,
@@ -1514,7 +1538,12 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * need to apply these back onto the Mesh. If we have no
    * Mesh then we need to build one. */
   if (mesh_final == NULL) {
-    mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+    if (deformed_verts == NULL) {
+      mesh_final = mesh_input;
+    }
+    else {
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+    }
   }
   if (deformed_verts) {
     BKE_mesh_apply_vert_coords(mesh_final, deformed_verts);
@@ -1522,9 +1551,17 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     deformed_verts = NULL;
   }
 
+  /* Denotes whether the object which the modifier stack came from owns the mesh or whether the
+   * mesh is shared across multiple objects since there are no effective modifiers. */
+  const bool is_own_mesh = (mesh_final != mesh_input);
+
   /* Add orco coordinates to final and deformed mesh if requested. */
   if (dataMask->vmask & CD_MASK_ORCO) {
-    add_orco_mesh(ob, NULL, mesh_final, mesh_orco, CD_ORCO);
+    /* No need in ORCO layer if the mesh was not deformed or modified: undeformed mesh in this case
+     * matches input mesh. */
+    if (is_own_mesh) {
+      add_orco_mesh(ob, NULL, mesh_final, mesh_orco, CD_ORCO);
+    }
 
     if (mesh_deform) {
       add_orco_mesh(ob, NULL, mesh_deform, NULL, CD_ORCO);
@@ -1539,7 +1576,28 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 
   /* Compute normals. */
-  mesh_calc_modifier_final_normals(mesh_input, dataMask, sculpt_dyntopo, mesh_final);
+  if (is_own_mesh) {
+    mesh_calc_modifier_final_normals(mesh_input, dataMask, sculpt_dyntopo, mesh_final);
+  }
+  else {
+    Mesh_Runtime *runtime = &mesh_input->runtime;
+    if (runtime->mesh_eval == NULL) {
+      BLI_assert(runtime->eval_mutex != NULL);
+      BLI_mutex_lock(runtime->eval_mutex);
+      if (runtime->mesh_eval == NULL) {
+        mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+        mesh_calc_modifier_final_normals(mesh_input, dataMask, sculpt_dyntopo, mesh_final);
+        mesh_calc_finalize(mesh_input, mesh_final);
+        runtime->mesh_eval = mesh_final;
+      }
+      BLI_mutex_unlock(runtime->eval_mutex);
+    }
+    mesh_final = runtime->mesh_eval;
+  }
+
+  if (is_own_mesh) {
+    mesh_calc_finalize(mesh_input, mesh_final);
+  }
 
   /* Return final mesh */
   *r_final = mesh_final;
@@ -1915,40 +1973,29 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-static void mesh_finalize_eval(Object *object)
+static void assign_object_mesh_eval(Object *object)
 {
+  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
   Mesh *mesh = (Mesh *)object->data;
   Mesh *mesh_eval = object->runtime.mesh_eval;
-  /* Special Tweaks for cases when evaluated mesh came from
-   * BKE_mesh_new_nomain_from_template().
-   */
-  BLI_strncpy(mesh_eval->id.name, mesh->id.name, sizeof(mesh_eval->id.name));
-  if (mesh_eval->mat != NULL) {
-    MEM_freeN(mesh_eval->mat);
-  }
-  /* Set flag which makes it easier to see what's going on in a debugger. */
-  mesh_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
-  mesh_eval->mat = MEM_dupallocN(mesh->mat);
-  mesh_eval->totcol = mesh->totcol;
-  /* Make evaluated mesh to share same edit mesh pointer as original
-   * and copied meshes.
-   */
-  mesh_eval->edit_mesh = mesh->edit_mesh;
-  /* Copy autosmooth settings from original mesh.
-   * This is not done by BKE_mesh_new_nomain_from_template(), so need to take
-   * extra care here.
-   */
-  mesh_eval->flag |= (mesh->flag & ME_AUTOSMOOTH);
-  mesh_eval->smoothresh = mesh->smoothresh;
-  /* Replace evaluated object's data with fully evaluated mesh. */
-  /* TODO(sergey): There was statement done by Sybren and Mai that this
-   * caused modifiers to be applied twice. which is weirtd and shouldn't
-   * really happen. But since there is no reference to the report, can not
-   * do much about this.
-   */
 
-  /* Object is sometimes not evaluated!
-   * TODO(sergey): BAD TEMPORARY HACK FOR UNTIL WE ARE SMARTER */
+  /* The modifier stack evaluation is storing result in mesh->runtime.mesh_eval, but this result
+   * is not guaranteed to be owned by object.
+   *
+   * Check ownership now, since later on we can not go to a mesh owned by someone else via object's
+   * runtime: this could cause access freed data on depsgraph destruction (mesh who owns the final
+   * result might be freed prior to object). */
+  if (mesh_eval == mesh->runtime.mesh_eval) {
+    object->runtime.is_mesh_eval_owned = false;
+  }
+  else {
+    mesh_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+    object->runtime.is_mesh_eval_owned = true;
+  }
+
+  /* NOTE: We are not supposed to invoke evaluation for original object, but some areas are still
+   * under process of being ported, so we play safe here. */
   if (object->id.tag & LIB_TAG_COPIED_ON_WRITE) {
     object->data = mesh_eval;
   }
@@ -2016,7 +2063,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
     BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
   }
 
-  mesh_finalize_eval(ob);
+  assign_object_mesh_eval(ob);
 
   ob->runtime.last_data_mask = *dataMask;
   ob->runtime.last_need_mapping = need_mapping;
@@ -2032,7 +2079,9 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
 #endif
   }
 
-  mesh_runtime_check_normals_valid(ob->runtime.mesh_eval);
+  if (ob->runtime.mesh_eval != NULL) {
+    mesh_runtime_check_normals_valid(ob->runtime.mesh_eval);
+  }
   mesh_build_extra_data(depsgraph, ob);
 }
 

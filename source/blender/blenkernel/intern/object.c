@@ -361,6 +361,13 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (object->type != OB_MESH) {
     return;
   }
+  /* If object does not own evaluated mesh we can not access it since it might be freed already
+   * (happens on dependency graph free where order of CoW-ed IDs free is undefined).
+   *
+   * Good news is: such mesh does not have modifiers applied, so no need to worry about CCG. */
+  if (!object->runtime.is_mesh_eval_owned) {
+    return;
+  }
   /* Object was never evaluated, so can not have CCG subdivision surface. */
   Mesh *mesh_eval = object->runtime.mesh_eval;
   if (mesh_eval == NULL) {
@@ -448,12 +455,13 @@ void BKE_object_free_derived_caches(Object *ob)
   object_update_from_subsurf_ccg(ob);
   BKE_object_free_derived_mesh_caches(ob);
 
-  if (ob->runtime.mesh_eval != NULL) {
+  /* Restore initial pointer. */
+  if (ob->runtime.mesh_orig != NULL) {
+    ob->data = ob->runtime.mesh_orig;
+  }
+
+  if ((ob->runtime.mesh_eval != NULL && ob->runtime.is_mesh_eval_owned)) {
     Mesh *mesh_eval = ob->runtime.mesh_eval;
-    /* Restore initial pointer. */
-    if (ob->data == mesh_eval) {
-      ob->data = ob->runtime.mesh_orig;
-    }
     /* Evaluated mesh points to edit mesh, but does not own it. */
     mesh_eval->edit_mesh = NULL;
     BKE_mesh_free(mesh_eval);

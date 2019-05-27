@@ -522,6 +522,8 @@ void BKE_mesh_init(Mesh *me)
   CustomData_reset(&me->fdata);
   CustomData_reset(&me->pdata);
   CustomData_reset(&me->ldata);
+
+  BKE_mesh_runtime_reset(me);
 }
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)

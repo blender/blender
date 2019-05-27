@@ -33,6 +33,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_subdiv_ccg.h"
@@ -50,6 +51,8 @@ static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 void BKE_mesh_runtime_reset(Mesh *mesh)
 {
   memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
+  BLI_mutex_init(mesh->runtime.eval_mutex);
 }
 
 /* Clear all pointers which we don't want to be shared on copying the datablock.
@@ -59,16 +62,30 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 {
   Mesh_Runtime *runtime = &mesh->runtime;
 
+  runtime->mesh_eval = NULL;
   runtime->edit_data = NULL;
   runtime->batch_cache = NULL;
   runtime->subdiv_ccg = NULL;
   memset(&runtime->looptris, 0, sizeof(runtime->looptris));
   runtime->bvh_cache = NULL;
   runtime->shrinkwrap_data = NULL;
+
+  mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
+  BLI_mutex_init(mesh->runtime.eval_mutex);
 }
 
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
+  if (mesh->runtime.eval_mutex != NULL) {
+    BLI_mutex_end(mesh->runtime.eval_mutex);
+    MEM_freeN(mesh->runtime.eval_mutex);
+    mesh->runtime.eval_mutex = NULL;
+  }
+  if (mesh->runtime.mesh_eval != NULL) {
+    mesh->runtime.mesh_eval->edit_mesh = NULL;
+    BKE_id_free(NULL, mesh->runtime.mesh_eval);
+    mesh->runtime.mesh_eval = NULL;
+  }
   BKE_mesh_runtime_clear_geometry(mesh);
   BKE_mesh_batch_cache_free(mesh);
   BKE_mesh_runtime_clear_edit_data(mesh);
