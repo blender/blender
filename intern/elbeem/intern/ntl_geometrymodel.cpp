@@ -164,7 +164,7 @@ int ntlGeometryObjModel::initModel(int numVertices, float *vertices, int numTria
 	}
 
 	//fprintf(stderr,"initModel DEBUG %d \n",channelSize);
-	debMsgStd("ntlGeometryObjModel::initModel",DM_MSG, "Csize:"<<channelSize<<", Cvert:"<<(long)(channelVertices) ,10);
+	debMsgStd("ntlGeometryObjModel::initModel",DM_MSG, "Csize:"<<channelSize<<", Cvert:"<<(size_t)(channelVertices) ,10);
 	if(channelVertices && (channelSize>0)) {
 		vector<ntlSetVec3f> aniverts;
 		vector<ntlSetVec3f> aninorms;
