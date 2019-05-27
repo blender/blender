@@ -2185,7 +2185,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
       /* if we're editing or multi-drag (fake editing), then use left alignment */
       (but->editstr == NULL) && (drawstr == but->drawstr)) {
-    drawstr_right = strchr(drawstr + but->ofs, ':');
+    drawstr_right = strrchr(drawstr + but->ofs, ':');
     if (drawstr_right) {
       drawstr_right++;
       drawstr_left_len = (drawstr_right - drawstr);

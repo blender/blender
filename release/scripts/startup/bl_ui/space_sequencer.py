@@ -1320,15 +1320,15 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
         split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Start")
-        split.prop(strip, "frame_start", text=str(bpy.utils.smpte_from_frame(strip.frame_start)).replace(':', ' '))
+        split.prop(strip, "frame_start", text=str(bpy.utils.smpte_from_frame(strip.frame_start)))
         split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="End")
-        split.prop(strip, "frame_final_end", text=str(bpy.utils.smpte_from_frame(strip.frame_final_end)).replace(':', ' '))
+        split.prop(strip, "frame_final_end", text=str(bpy.utils.smpte_from_frame(strip.frame_final_end)))
         split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Duration")
-        split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)).replace(':', ' '))
+        split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)))
 
         if not isinstance(strip, bpy.types.EffectSequence):
             layout.alignment = 'RIGHT'
@@ -1336,22 +1336,22 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Soft Trim Start")
-            split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)).replace(':', ' '))
+            split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)))
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
-            split.prop(strip, "frame_offset_end", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_end)).replace(':', ' '))
+            split.prop(strip, "frame_offset_end", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_end)))
 
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
             split = sub.split(factor=0.5 + max_factor)
             split.alignment = 'RIGHT'
             split.label(text="Hard Trim Start")
-            split.prop(strip, "animation_offset_start", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_start)).replace(':', ' '))
+            split.prop(strip, "animation_offset_start", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_start)))
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
-            split.prop(strip, "animation_offset_end", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_end)).replace(':', ' '))
+            split.prop(strip, "animation_offset_end", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_end)))
 
         playhead = frame_current - strip.frame_start
         col = layout.column(align=True)
@@ -1363,7 +1363,7 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
         split = col.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
         split.label(text="Playhead")
-        split.label(text="%s:   %s" % ((bpy.utils.smpte_from_frame(playhead).replace(':', ' ')), (str(playhead))))
+        split.label(text="%s:   %s" % ((bpy.utils.smpte_from_frame(playhead)), (str(playhead))))
 
         ''' Old data - anyone missing this data?
         col.label(text=iface_("Frame Offset %d:%d") % (strip.frame_offset_start, strip.frame_offset_end),
