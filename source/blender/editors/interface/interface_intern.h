@@ -741,10 +741,6 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar,
                               uiBut *but,
                               const struct uiWidgetColors *wcol,
                               const rcti *rect);
-void ui_draw_but_NODESOCKET(ARegion *ar,
-                            uiBut *but,
-                            const struct uiWidgetColors *wcol,
-                            const rcti *rect);
 
 /* interface_handlers.c */
 PointerRNA *ui_handle_afterfunc_add_operator(struct wmOperatorType *ot,

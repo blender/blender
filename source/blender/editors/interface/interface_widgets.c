@@ -106,6 +106,7 @@ typedef enum {
   UI_WTYPE_SCROLL,
   UI_WTYPE_LISTITEM,
   UI_WTYPE_PROGRESSBAR,
+  UI_WTYPE_NODESOCKET,
 } uiWidgetTypeEnum;
 
 /* Button state argument shares bits with 'uiBut.flag'.
@@ -3624,6 +3625,41 @@ static void widget_progressbar(
   rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
 }
 
+static void widget_nodesocket(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+  uiWidgetBase wtb;
+  int radi = 5;
+  char old_inner[3], old_outline[3];
+
+  widget_init(&wtb);
+
+  copy_v3_v3_char(old_inner, wcol->inner);
+  copy_v3_v3_char(old_outline, wcol->outline);
+
+  wcol->inner[0] = but->col[0];
+  wcol->inner[1] = but->col[1];
+  wcol->inner[2] = but->col[2];
+  wcol->outline[0] = 0;
+  wcol->outline[1] = 0;
+  wcol->outline[2] = 0;
+  wcol->outline[3] = 150;
+
+  int cent_x = BLI_rcti_cent_x(rect);
+  int cent_y = BLI_rcti_cent_y(rect);
+  rect->xmin = cent_x - radi;
+  rect->xmax = cent_x + radi;
+  rect->ymin = cent_y - radi;
+  rect->ymax = cent_y + radi;
+
+  wtb.draw_outline = true;
+  round_box_edges(&wtb, UI_CNR_ALL, rect, (float)radi);
+  widgetbase_draw(&wtb, wcol);
+
+  copy_v3_v3_char(wcol->inner, old_inner);
+  copy_v3_v3_char(wcol->outline, old_outline);
+}
+
 static void widget_numslider(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -4376,6 +4412,10 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_progressbar;
       break;
 
+    case UI_WTYPE_NODESOCKET:
+      wt.custom = widget_nodesocket;
+      break;
+
     case UI_WTYPE_MENU_ITEM_RADIAL:
       wt.wcol_theme = &btheme->tui.wcol_pie_menu;
       wt.custom = widget_menu_radial_itembut;
@@ -4698,7 +4738,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
         break;
 
       case UI_BTYPE_NODE_SOCKET:
-        ui_draw_but_NODESOCKET(ar, but, &tui->wcol_regular, rect);
+        wt = widget_type(UI_WTYPE_NODESOCKET);
         break;
 
       default:
