@@ -1869,8 +1869,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
   PropertyRNA *prop;
-  const bool save_as_render = ((ima->source == IMA_SRC_VIEWER) ||
-                               (ima->flag & IMA_VIEW_AS_RENDER));
+  const bool save_as_render = (ima->source == IMA_SRC_VIEWER);
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return image_save_as_exec(C, op);
