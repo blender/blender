@@ -106,7 +106,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   int use_object_instantiation;
   int use_blender_profile;
   int sort_by_name;
-  int export_transformation_type;
+  int export_object_transformation_type;
+  int export_animation_transformation_type;
 
   int open_sim;
   int limit_precision;
@@ -170,9 +171,13 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
   use_blender_profile = RNA_boolean_get(op->ptr, "use_blender_profile");
   sort_by_name = RNA_boolean_get(op->ptr, "sort_by_name");
-  export_transformation_type = RNA_enum_get(op->ptr, "export_transformation_type_selection");
-  open_sim = RNA_boolean_get(op->ptr, "open_sim");
 
+  export_object_transformation_type = RNA_enum_get(
+    op->ptr, "export_object_transformation_type_selection");
+  export_animation_transformation_type = RNA_enum_get(
+    op->ptr, "export_animation_transformation_type_selection");
+
+  open_sim = RNA_boolean_get(op->ptr, "open_sim");
   limit_precision = RNA_boolean_get(op->ptr, "limit_precision");
   keep_bind_info = RNA_boolean_get(op->ptr, "keep_bind_info");
 
@@ -193,7 +198,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.apply_global_orientation = apply_global_orientation != 0;
 
   export_settings.export_mesh_type = export_mesh_type;
-  export_settings.export_mesh_type = export_mesh_type;
   export_settings.selected = selected != 0;
   export_settings.include_children = include_children != 0;
   export_settings.include_armatures = include_armatures != 0;
@@ -213,21 +217,22 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.use_object_instantiation = use_object_instantiation != 0;
   export_settings.use_blender_profile = use_blender_profile != 0;
   export_settings.sort_by_name = sort_by_name != 0;
+  export_settings.object_transformation_type = export_object_transformation_type;
+  export_settings.animation_transformation_type = export_animation_transformation_type;
+  export_settings.keep_smooth_curves = keep_smooth_curves != 0;
 
-  if (export_animation_type == BC_ANIMATION_EXPORT_SAMPLES) {
-    export_settings.export_transformation_type = export_transformation_type;
-  }
-  else {
+  if (export_animation_type != BC_ANIMATION_EXPORT_SAMPLES) {
     // When curves are exported then we can not export as matrix
-    export_settings.export_transformation_type = BC_TRANSFORMATION_TYPE_TRANSROTLOC;
+    export_settings.animation_transformation_type = BC_TRANSFORMATION_TYPE_TRANSROTLOC;
   }
 
-  if (export_settings.export_transformation_type == BC_TRANSFORMATION_TYPE_TRANSROTLOC) {
-    export_settings.keep_smooth_curves = keep_smooth_curves != 0;
-  }
-  else {
+  if (export_settings.animation_transformation_type != BC_TRANSFORMATION_TYPE_TRANSROTLOC) {
     // Can not export smooth curves when Matrix export is enabled.
     export_settings.keep_smooth_curves = false;
+  }
+
+  if (include_animations) {
+    export_settings.object_transformation_type = export_settings.animation_transformation_type;
   }
 
   export_settings.open_sim = open_sim != 0;
@@ -266,10 +271,11 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   bool include_animations = RNA_boolean_get(imfptr, "include_animations");
   int ui_section = RNA_enum_get(imfptr, "prop_bc_export_ui_section");
 
-  BC_export_animation_type animation_type = RNA_enum_get(imfptr,
-                                                         "export_animation_type_selection");
-  BC_export_transformation_type transformation_type = RNA_enum_get(
-      imfptr, "export_transformation_type_selection");
+  BC_export_animation_type animation_type = RNA_enum_get(
+    imfptr, "export_animation_type_selection");
+
+  BC_export_transformation_type animation_transformation_type = RNA_enum_get(
+    imfptr, "export_animation_transformation_type_selection");
 
   bool sampling = animation_type == BC_ANIMATION_EXPORT_SAMPLES;
 
@@ -330,13 +336,26 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     row = uiLayoutRow(box, false);
     split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
+
     col = uiLayoutColumn(split, false);
     uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
+
     col = uiLayoutColumn(split, false);
     uiItemR(col, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
     uiLayoutSetEnabled(col, RNA_boolean_get(imfptr, "apply_modifiers"));
+
+    col = uiLayoutColumn(box, false);
+    uiItemR(col, imfptr, "triangulate", 1, NULL, ICON_NONE);
+
     row = uiLayoutRow(box, false);
-    uiItemR(row, imfptr, "triangulate", 1, NULL, ICON_NONE);
+    split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
+    uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
+    if (RNA_boolean_get(imfptr, "include_animations")) {
+      uiItemR(split, imfptr, "export_animation_transformation_type_selection", 0, "", ICON_NONE);
+    }
+    else {
+      uiItemR(split, imfptr, "export_object_transformation_type_selection", 0, "", ICON_NONE);
+    }
   }
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
     /* Armature options */
@@ -361,18 +380,24 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     row = uiLayoutRow(box, false);
     uiItemR(row, imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiLayoutSetEnabled(row, include_animations);
 
     row = uiLayoutRow(box, false);
     split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
     uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
-    uiItemR(split, imfptr, "export_transformation_type_selection", 0, "", ICON_NONE);
-    uiLayoutSetEnabled(row, animation_type == BC_ANIMATION_EXPORT_SAMPLES);
+    if (RNA_boolean_get(imfptr, "include_animations")) {
+      uiItemR(split, imfptr, "export_animation_transformation_type_selection", 0, "", ICON_NONE);
+    }
+    else {
+      uiItemR(split, imfptr, "export_object_transformation_type_selection", 0, "", ICON_NONE);
+    }
+    uiLayoutSetEnabled(row, include_animations && animation_type == BC_ANIMATION_EXPORT_SAMPLES);
 
     row = uiLayoutColumn(box, false);
     uiItemR(row, imfptr, "keep_smooth_curves", 0, NULL, ICON_NONE);
     uiLayoutSetEnabled(row,
                        include_animations &&
-                           (transformation_type == BC_TRANSFORMATION_TYPE_TRANSROTLOC ||
+                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_TRANSROTLOC ||
                             animation_type == BC_ANIMATION_EXPORT_KEYS));
 
     row = uiLayoutColumn(box, false);
@@ -385,6 +410,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     row = uiLayoutColumn(box, false);
     uiItemR(row, imfptr, "keep_flat_curves", 0, NULL, ICON_NONE);
+    uiLayoutSetEnabled(row, include_animations);
 
     row = uiLayoutRow(box, false);
     uiItemR(row, imfptr, "include_all_actions", 0, NULL, ICON_NONE);
@@ -469,12 +495,12 @@ void WM_OT_collada_export(wmOperatorType *ot)
        "matrix",
        0,
        "Matrix",
-       "Use <matrix> to specify transformations"},
+       "Use <matrix> representation for exported transformations"},
       {BC_TRANSFORMATION_TYPE_TRANSROTLOC,
        "transrotloc",
        0,
        "TransRotLoc",
-       "Use <translate>, <rotate>, <scale> to specify transformations"},
+       "Use <translate>, <rotate>, <scale> representation for exported transformations"},
       {0, NULL, 0, NULL, NULL}};
 
   static const EnumPropertyItem prop_bc_export_animation_type[] = {
@@ -678,21 +704,42 @@ void WM_OT_collada_export(wmOperatorType *ot)
       func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
 
   RNA_def_int(func,
-              "export_transformation_type",
+              "export_object_transformation_type",
               0,
               INT_MIN,
               INT_MAX,
               "Transform",
-              "Transformation type for translation, scale and rotation",
+              "Object Transformation type for translation, scale and rotation",
               INT_MIN,
               INT_MAX);
 
   RNA_def_enum(func,
-               "export_transformation_type_selection",
+               "export_object_transformation_type_selection",
                prop_bc_export_transformation_type,
                0,
                "Transform",
-               "Transformation type for translation, scale and rotation");
+               "Object Transformation type for translation, scale and rotation");
+
+  RNA_def_int(func,
+              "export_animation_transformation_type",
+              0,
+              INT_MIN,
+              INT_MAX,
+              "Transform",
+              "Transformation type for translation, scale and rotation\n"
+              "Note: The Animation transformation type in the Anim Tab\n"\
+              "is always equal to the Object transformation type in the Geom tab",
+              INT_MIN,
+              INT_MAX);
+
+  RNA_def_enum(func,
+               "export_animation_transformation_type_selection",
+               prop_bc_export_transformation_type,
+               0,
+               "Transform",
+               "Transformation type for translation, scale and rotation\n"
+               "Note: The Animation transformation type in the Anim Tab\n"
+               "is always equal to the Object transformation type in the Geom tab");
 
   RNA_def_boolean(func,
                   "open_sim",

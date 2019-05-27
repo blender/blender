@@ -30,11 +30,8 @@ void TransformWriter::add_joint_transform(COLLADASW::Node &node,
                                          float parent_mat[4][4],
                                          BCExportSettings &export_settings,
                                          bool has_restmat
-
 	)
 {
-  // bool limit_precision = export_settings.limit_precision;
-  float loc[3], rot[3], scale[3];
   float local[4][4];
 
   if (parent_mat) {
@@ -55,14 +52,11 @@ void TransformWriter::add_joint_transform(COLLADASW::Node &node,
   converter->mat4_to_dae_double(dmat, local);
   delete converter;
 
-  if (node.getType() == COLLADASW::Node::JOINT) {
-    // XXX Why are joints handled differently ?
-	// GC: I believe this is a mistake. Here we might want to 
-	// export according to how the transformation type
-	// is set, see add_node_transform_ob()
+  if (export_settings.get_object_transformation_type() == BC_TRANSFORMATION_TYPE_MATRIX) {
     node.addMatrix("transform", dmat);
   }
   else {
+    float loc[3], rot[3], scale[3];
     bc_decompose(local, loc, rot, NULL, scale);
     add_transform(node, loc, rot, scale);
   }
@@ -73,7 +67,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
                                             BCExportSettings &export_settings)
 {
   BC_export_transformation_type transformation_type =
-      export_settings.get_export_transformation_type();
+      export_settings.get_object_transformation_type();
   bool limit_precision = export_settings.get_limit_precision();
 
   /* Export the local Matrix (relative to the object parent,
@@ -112,10 +106,28 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
   }
 }
 
-void TransformWriter::add_node_transform_identity(COLLADASW::Node &node)
+void TransformWriter::add_node_transform_identity(
+	COLLADASW::Node &node,
+	BCExportSettings &export_settings)
 {
-  float loc[3] = {0.0f, 0.0f, 0.0f}, scale[3] = {1.0f, 1.0f, 1.0f}, rot[3] = {0.0f, 0.0f, 0.0f};
-  add_transform(node, loc, rot, scale);
+  BC_export_transformation_type transformation_type =
+      export_settings.get_object_transformation_type();
+  switch (transformation_type) {
+    case BC_TRANSFORMATION_TYPE_MATRIX: {
+      BCMatrix mat;
+      DMatrix d_obmat;
+      mat.get_matrix(d_obmat);
+      node.addMatrix("transform", d_obmat);
+      break;
+    }
+    default: {
+      float loc[3] = {0.0f, 0.0f, 0.0f};
+      float scale[3] = {1.0f, 1.0f, 1.0f};
+      float rot[3] = {0.0f, 0.0f, 0.0f};
+      add_transform(node, loc, rot, scale);
+      break;
+    }
+  }
 }
 
 void TransformWriter::add_transform(COLLADASW::Node &node,

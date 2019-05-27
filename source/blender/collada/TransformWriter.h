@@ -39,7 +39,7 @@ class TransformWriter {
 
   void add_node_transform_ob(COLLADASW::Node &node, Object *ob, BCExportSettings &export_settings);
 
-  void add_node_transform_identity(COLLADASW::Node &node);
+  void add_node_transform_identity(COLLADASW::Node &node, BCExportSettings &export_settings);
 
  private:
   void add_transform(COLLADASW::Node &node, float loc[3], float rot[3], float scale[3]);

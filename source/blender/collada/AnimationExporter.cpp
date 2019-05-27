@@ -133,7 +133,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
    * Note: For Armatures the skeletal animation has already been exported (see above)
    * However Armatures also can have Object animation.
    */
-  bool export_as_matrix = this->export_settings.get_export_transformation_type() ==
+  bool export_as_matrix = this->export_settings.get_animation_transformation_type() ==
                           BC_TRANSFORMATION_TYPE_MATRIX;
 
   if (export_as_matrix) {

@@ -81,7 +81,8 @@ typedef struct ExportSettings {
   bool use_object_instantiation;
   bool use_blender_profile;
   bool sort_by_name;
-  BC_export_transformation_type export_transformation_type;
+  BC_export_transformation_type object_transformation_type;
+  BC_export_transformation_type animation_transformation_type;
 
   bool open_sim;
   bool limit_precision;
@@ -232,9 +233,14 @@ class BCExportSettings {
     return export_settings.sort_by_name;
   }
 
-  BC_export_transformation_type get_export_transformation_type()
+  BC_export_transformation_type get_object_transformation_type()
   {
-    return export_settings.export_transformation_type;
+    return export_settings.object_transformation_type;
+  }
+
+  BC_export_transformation_type get_animation_transformation_type()
+  {
+    return export_settings.animation_transformation_type;
   }
 
   bool get_open_sim()
