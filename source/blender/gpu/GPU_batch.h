@@ -142,8 +142,8 @@ void GPU_batch_uniform_4f(GPUBatch *, const char *name, float x, float y, float 
 void GPU_batch_uniform_2fv(GPUBatch *, const char *name, const float data[2]);
 void GPU_batch_uniform_3fv(GPUBatch *, const char *name, const float data[3]);
 void GPU_batch_uniform_4fv(GPUBatch *, const char *name, const float data[4]);
-void GPU_batch_uniform_2fv_array(GPUBatch *, const char *name, int len, const float *data);
-void GPU_batch_uniform_4fv_array(GPUBatch *, const char *name, int len, const float *data);
+void GPU_batch_uniform_2fv_array(GPUBatch *, const char *name, const int len, const float *data);
+void GPU_batch_uniform_4fv_array(GPUBatch *, const char *name, const int len, const float *data);
 void GPU_batch_uniform_mat4(GPUBatch *, const char *name, const float data[4][4]);
 
 void GPU_batch_draw(GPUBatch *);
