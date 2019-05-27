@@ -621,7 +621,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
       /* If using offset drawing with instancing, we must
        * use the default VAO and redo bindings. */
       glBindVertexArray(GPU_vao_default());
-      batch_update_program_bindings(batch, v_first);
+      batch_update_program_bindings(batch, i_first);
     }
     else {
       /* Previous call could have bind the default vao
