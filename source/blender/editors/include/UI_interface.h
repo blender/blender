@@ -2251,6 +2251,7 @@ void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
 /* label icon for dragging */
 void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int icon);
 /* menu */
+void uiItemM_ptr(uiLayout *layout, struct MenuType *mt, const char *name, int icon);
 void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon);
 /* menu contents */
 void uiItemMContents(uiLayout *layout, const char *menuname);

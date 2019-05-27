@@ -194,6 +194,10 @@ void ED_screen_user_menu_item_remove(ListBase *lb, bUserMenuItem *umi)
 
 static void screen_user_menu_draw(const bContext *C, Menu *menu)
 {
+  /* Enable when we have the ability to edit menus. */
+  const bool show_missing = false;
+  char label[512];
+
   uint um_array_len;
   bUserMenu **um_array = ED_screen_user_menus_find(C, &um_array_len);
   bool is_empty = true;
@@ -206,15 +210,32 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
       const char *ui_name = umi->ui_name[0] ? umi->ui_name : NULL;
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
-        IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
-        uiItemFullO(
-            menu->layout, umi_op->op_idname, ui_name, ICON_NONE, prop, umi_op->opcontext, 0, NULL);
-        is_empty = false;
+        wmOperatorType *ot = WM_operatortype_find(umi_op->op_idname, false);
+        if (ot != NULL) {
+          IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
+          uiItemFullO_ptr(menu->layout, ot, ui_name, ICON_NONE, prop, umi_op->opcontext, 0, NULL);
+          is_empty = false;
+        }
+        else {
+          if (show_missing) {
+            SNPRINTF(label, "Missing: %s", umi_op->op_idname);
+            uiItemL(menu->layout, label, ICON_NONE);
+          }
+        }
       }
       else if (umi->type == USER_MENU_TYPE_MENU) {
         bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
-        uiItemM(menu->layout, umi_mt->mt_idname, ui_name, ICON_NONE);
-        is_empty = false;
+        MenuType *mt = WM_menutype_find(umi_mt->mt_idname, false);
+        if (mt != NULL) {
+          uiItemM_ptr(menu->layout, mt, ui_name, ICON_NONE);
+          is_empty = false;
+        }
+        else {
+          if (show_missing) {
+            SNPRINTF(label, "Missing: %s", umi_mt->mt_idname);
+            uiItemL(menu->layout, label, ICON_NONE);
+          }
+        }
       }
       else if (umi->type == USER_MENU_TYPE_PROP) {
         bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
@@ -252,9 +273,10 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           }
         }
         if (!ok) {
-          char label[512];
-          SNPRINTF(label, "Missing: %s.%s", umi_pr->context_data_path, umi_pr->prop_id);
-          uiItemL(menu->layout, label, ICON_NONE);
+          if (show_missing) {
+            SNPRINTF(label, "Missing: %s.%s", umi_pr->context_data_path, umi_pr->prop_id);
+            uiItemL(menu->layout, label, ICON_NONE);
+          }
         }
       }
       else if (umi->type == USER_MENU_TYPE_SEP) {
