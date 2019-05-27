@@ -567,7 +567,7 @@ static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
           (IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0));
 }
 
-static const char *rna_function_string(void *func)
+static const char *rna_function_string(const void *func)
 {
   return (func) ? (const char *)func : "NULL";
 }
