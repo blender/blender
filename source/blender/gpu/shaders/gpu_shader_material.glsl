@@ -2089,7 +2089,7 @@ void node_tex_coord(vec3 I,
   camera = vec3(I.xy, -I.z);
   vec4 projvec = ProjectionMatrix * vec4(I, 1.0);
   window = vec3(mtex_2d_mapping(projvec.xyz / projvec.w).xy * camerafac.xy + camerafac.zw, 0.0);
-  reflection = reflect(cameraVec, normalize(wN));
+  reflection = -reflect(cameraVec, normalize(wN));
 }
 
 void node_tex_coord_background(vec3 I,
