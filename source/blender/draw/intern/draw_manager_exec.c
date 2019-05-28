@@ -251,6 +251,19 @@ void drw_state_set(DRWState state)
     }
   }
 
+  /* Program Points Size */
+  {
+    int test;
+    if ((test = CHANGED_TO(DRW_STATE_PROGRAM_POINT_SIZE))) {
+      if (test == 1) {
+        GPU_program_point_size(true);
+      }
+      else {
+        GPU_program_point_size(false);
+      }
+    }
+  }
+
   /* Stencil */
   {
     DRWState test;
@@ -355,7 +368,6 @@ void DRW_state_reset(void)
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
   GPU_point_size(5);
-  GPU_program_point_size(true);
 
   /* Reset blending function */
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

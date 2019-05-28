@@ -1541,7 +1541,7 @@ void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
 DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
   DRWPass *pass = BLI_memblock_alloc(DST.vmempool->passes);
-  pass->state = state;
+  pass->state = state | DRW_STATE_PROGRAM_POINT_SIZE;
   if (((G.debug_value > 20) && (G.debug_value < 30)) || (G.debug & G_DEBUG)) {
     BLI_strncpy(pass->name, name, MAX_PASS_NAME);
   }
@@ -1564,7 +1564,7 @@ bool DRW_pass_is_empty(DRWPass *pass)
 
 void DRW_pass_state_set(DRWPass *pass, DRWState state)
 {
-  pass->state = state;
+  pass->state = state | DRW_STATE_PROGRAM_POINT_SIZE;
 }
 
 void DRW_pass_state_add(DRWPass *pass, DRWState state)

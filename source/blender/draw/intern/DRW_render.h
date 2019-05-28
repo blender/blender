@@ -350,6 +350,8 @@ typedef enum {
   DRW_STATE_CLIP_PLANES = (1 << 22),
   DRW_STATE_WIRE_SMOOTH = (1 << 23),
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 24),
+  /** DO NOT USE. Assumed always enabled. Only used internally. */
+  DRW_STATE_PROGRAM_POINT_SIZE = (1 << 25),
 } DRWState;
 
 #define DRW_STATE_DEFAULT \
