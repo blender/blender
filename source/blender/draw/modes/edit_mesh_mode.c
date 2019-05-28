@@ -488,8 +488,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
     g_data->fweights_shgrp = DRW_shgroup_create(sh_data->weight_face, psl->weight_faces);
 
-    static float alpha = 1.0f;
-    DRW_shgroup_uniform_float(g_data->fweights_shgrp, "opacity", &alpha, 1);
+    DRW_shgroup_uniform_float_copy(g_data->fweights_shgrp, "opacity", 1.0);
     DRW_shgroup_uniform_texture(g_data->fweights_shgrp, "colorramp", G_draw.weight_ramp);
     DRW_shgroup_uniform_block(g_data->fweights_shgrp, "globalsBlock", G_draw.block_ubo);
     if (rv3d->rflag & RV3D_CLIPPING) {
@@ -524,21 +523,21 @@ static void EDIT_MESH_cache_init(void *vedata)
                                        DRW_STATE_DEPTH_LESS_EQUAL);
 
     g_data->fnormals_shgrp = DRW_shgroup_create(sh_data->normals_face, psl->normals);
-    DRW_shgroup_uniform_float(g_data->fnormals_shgrp, "normalSize", &size_normal, 1);
+    DRW_shgroup_uniform_float_copy(g_data->fnormals_shgrp, "normalSize", size_normal);
     DRW_shgroup_uniform_vec4(g_data->fnormals_shgrp, "color", G_draw.block.colorNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(g_data->fnormals_shgrp, DRW_STATE_CLIP_PLANES);
     }
 
     g_data->vnormals_shgrp = DRW_shgroup_create(sh_data->normals, psl->normals);
-    DRW_shgroup_uniform_float(g_data->vnormals_shgrp, "normalSize", &size_normal, 1);
+    DRW_shgroup_uniform_float_copy(g_data->vnormals_shgrp, "normalSize", size_normal);
     DRW_shgroup_uniform_vec4(g_data->vnormals_shgrp, "color", G_draw.block.colorVNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(g_data->vnormals_shgrp, DRW_STATE_CLIP_PLANES);
     }
 
     g_data->lnormals_shgrp = DRW_shgroup_create(sh_data->normals_loop, psl->normals);
-    DRW_shgroup_uniform_float(g_data->lnormals_shgrp, "normalSize", &size_normal, 1);
+    DRW_shgroup_uniform_float_copy(g_data->lnormals_shgrp, "normalSize", size_normal);
     DRW_shgroup_uniform_vec4(g_data->lnormals_shgrp, "color", G_draw.block.colorLNormal, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(g_data->lnormals_shgrp, DRW_STATE_CLIP_PLANES);
