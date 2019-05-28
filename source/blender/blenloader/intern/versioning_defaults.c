@@ -463,6 +463,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     scene->eevee.gi_filter_quality = 3.0f;
   }
 
+  for (Light *light = bmain->lights.first; light; light = light->id.next) {
+    /* Fix lights defaults. */
+    light->clipsta = 0.05f;
+    light->att_dist = 40.0f;
+  }
+
   if (app_template == NULL) {
     /* Enable for UV sculpt (other brush types will be created as needed),
      * without this the grab brush will be active but not selectable from the list. */

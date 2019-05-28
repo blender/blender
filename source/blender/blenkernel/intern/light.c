@@ -56,7 +56,7 @@ void BKE_light_init(Light *la)
   la->att2 = 1.0f;
   la->mode = LA_SHADOW;
   la->bufsize = 512;
-  la->clipsta = 0.5f;
+  la->clipsta = 0.05f;
   la->clipend = 40.0f;
   la->bleedexp = 2.5f;
   la->samp = 3;

@@ -164,7 +164,7 @@ static void rna_def_light(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cutoff_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "att_dist");
-  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_float_default(prop, 40.0f);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.01f, 100.0f, 1.0, 2);
   RNA_def_property_ui_text(
@@ -288,8 +288,9 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
 
   prop = RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "clipsta");
-  RNA_def_property_float_default(prop, 0.5f);
-  RNA_def_property_range(prop, 0.0f, 9999.0f);
+  RNA_def_property_float_default(prop, 0.05f);
+  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
   RNA_def_property_ui_text(prop,
                            "Shadow Buffer Clip Start",
                            "Shadow map clip start, below which objects will not generate shadows");
@@ -298,7 +299,8 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   prop = RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "clipend");
   RNA_def_property_float_default(prop, 40.0f);
-  RNA_def_property_range(prop, 0.0f, 9999.0f);
+  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
   RNA_def_property_ui_text(prop,
                            "Shadow Buffer Clip End",
                            "Shadow map clip end, beyond which objects will not generate shadows");
