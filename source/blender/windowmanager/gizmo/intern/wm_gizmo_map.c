@@ -1017,6 +1017,11 @@ void wm_gizmomap_modal_set(
 
     WM_tooltip_clear(C, win);
 
+    /* Use even if we don't have invoke, so we can setup data before an operator runs. */
+    if (gz->parent_gzgroup->type->invoke_prepare) {
+      gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
+    }
+
     if (gz->type->invoke && (gz->type->modal || gz->custom_modal)) {
       const int retval = gz->type->invoke(C, gz, event);
       if ((retval & OPERATOR_RUNNING_MODAL) == 0) {

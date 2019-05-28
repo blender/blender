@@ -199,6 +199,12 @@ struct wmGizmo {
    * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
   int highlight_part;
 
+  /**
+   * For gizmos that differentiate between click & drag,
+   * use a different part for any drag events, -1 when unused.
+   */
+  int drag_part;
+
   /** Distance to bias this gizmo above others when picking
    * (in worldspace, scaled by the gizmo scale - when used). */
   float select_bias;

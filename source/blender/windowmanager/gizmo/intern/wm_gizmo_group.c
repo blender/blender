@@ -360,10 +360,6 @@ static bool gizmo_tweak_start(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const
 static bool gizmo_tweak_start_and_finish(
     bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const wmEvent *event, bool *r_is_modal)
 {
-  if (gz->parent_gzgroup->type->invoke_prepare) {
-    gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
-  }
-
   wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
   if (r_is_modal) {
     *r_is_modal = false;
@@ -394,6 +390,9 @@ static bool gizmo_tweak_start_and_finish(
       }
     }
     else {
+      if (gz->parent_gzgroup->type->invoke_prepare) {
+        gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
+      }
       /* Allow for 'button' gizmos, single click to run an action. */
       WM_gizmo_operator_invoke(C, gz, gzop);
     }
@@ -502,12 +501,21 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
+  const int highlight_part_init = gz->highlight_part;
+
+  if (gz->drag_part != -1) {
+    if (ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG)) {
+      gz->highlight_part = gz->drag_part;
+    }
+  }
+
   if (gizmo_tweak_start_and_finish(C, gzmap, gz, event, NULL)) {
     return OPERATOR_FINISHED;
   }
 
   if (!gizmo_tweak_start(C, gzmap, gz, event)) {
     /* failed to start */
+    gz->highlight_part = highlight_part_init;
     return OPERATOR_PASS_THROUGH;
   }
 

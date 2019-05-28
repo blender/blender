@@ -90,6 +90,8 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   unit_m4(gz->matrix_basis);
   unit_m4(gz->matrix_offset);
 
+  gz->drag_part = -1;
+
   return gz;
 }
 
