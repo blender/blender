@@ -987,7 +987,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   ot->cancel = viewrotate_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   view3d_operator_properties_common(ot, V3D_OP_PROP_USE_MOUSE_INIT);
 }
@@ -1798,7 +1798,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   ot->cancel = viewmove_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   /* properties */
   view3d_operator_properties_common(ot, V3D_OP_PROP_USE_MOUSE_INIT);
@@ -2359,7 +2359,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
   ot->cancel = viewzoom_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   /* properties */
   view3d_operator_properties_common(
@@ -2672,7 +2672,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   ot->cancel = viewdolly_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   /* properties */
   view3d_operator_properties_common(

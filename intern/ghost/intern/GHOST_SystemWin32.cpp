@@ -934,10 +934,9 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type,
       window->getClientBounds(bounds);
     }
 
-    /* could also clamp to screen bounds
-     * wrap with a window outside the view will fail atm  */
-
-    bounds.wrapPoint(x_new, y_new, 2); /* offset of one incase blender is at screen bounds */
+    /* Could also clamp to screen bounds wrap with a window outside the view will fail atm.
+     * Use offset of 8 in case the window is at screen bounds. */
+    bounds.wrapPoint(x_new, y_new, 2, window->getCursorGrabAxis());
 
     window->getCursorGrabAccum(x_accum, y_accum);
     if (x_new != x_screen || y_new != y_screen) {

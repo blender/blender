@@ -374,6 +374,13 @@ typedef enum {
   GHOST_kGrabHide,
 } GHOST_TGrabCursorMode;
 
+typedef enum {
+  /** Axis that cursor grab will wrap. */
+  GHOST_kGrabAxisNone = 0,
+  GHOST_kAxisX = (1 << 0),
+  GHOST_kGrabAxisY = (1 << 1),
+} GHOST_TAxisFlag;
+
 typedef void *GHOST_TEventDataPtr;
 
 typedef struct {

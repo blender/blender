@@ -314,6 +314,7 @@ class GHOST_IWindow {
    * \return  Indication of success.
    */
   virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode /*mode*/,
+                                       GHOST_TAxisFlag /*wrap_axis*/,
                                        GHOST_Rect * /*bounds*/,
                                        GHOST_TInt32 /*mouse_ungrab_xy*/[2])
   {

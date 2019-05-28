@@ -267,7 +267,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   ot->poll = change_frame_poll;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_UNDO_GROUPED;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X | OPTYPE_UNDO_GROUPED;
   ot->undo_group = "Frame Change";
 
   /* rna */

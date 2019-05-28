@@ -920,7 +920,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
   ot->poll_property = edbm_bevel_poll_property;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_XY | OPTYPE_BLOCKING;
 
   RNA_def_enum(
       ot->srna, "offset_type", offset_type_items, 0, "Width Type", "What distance Width measures");

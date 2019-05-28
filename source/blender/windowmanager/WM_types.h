@@ -141,21 +141,33 @@ enum {
   OPTYPE_UNDO = (1 << 1),     /* do undo push after after */
   OPTYPE_BLOCKING = (1 << 2), /* let blender grab all input from the WM (X11) */
   OPTYPE_MACRO = (1 << 3),
-  OPTYPE_GRAB_CURSOR =
-      (1 << 4), /* grabs the cursor and optionally enables continuous cursor wrapping */
-  OPTYPE_PRESET = (1 << 5), /* show preset menu */
+
+  /* grabs the cursor and optionally enables continuous cursor wrapping. */
+  OPTYPE_GRAB_CURSOR_XY = (1 << 4),
+  OPTYPE_GRAB_CURSOR_X = (1 << 5), /* Only X axis. */
+  OPTYPE_GRAB_CURSOR_Y = (1 << 6), /* Only Y axis. */
+
+  OPTYPE_PRESET = (1 << 7), /* show preset menu */
 
   /* some operators are mainly for internal use
    * and don't make sense to be accessed from the
    * search menu, even if poll() returns true.
    * currently only used for the search toolbox */
-  OPTYPE_INTERNAL = (1 << 6),
+  OPTYPE_INTERNAL = (1 << 8),
 
-  OPTYPE_LOCK_BYPASS = (1 << 7), /* Allow operator to run when interface is locked */
+  OPTYPE_LOCK_BYPASS = (1 << 9), /* Allow operator to run when interface is locked */
   OPTYPE_UNDO_GROUPED =
-      (1 << 8), /* Special type of undo which doesn't store itself multiple times */
+      (1 << 10), /* Special type of undo which doesn't store itself multiple times */
   OPTYPE_USE_EVAL_DATA =
-      (1 << 9), /* Need evaluated data (i.e. a valid, up-to-date depsgraph for current context) */
+      (1 << 11), /* Need evaluated data (i.e. a valid, up-to-date depsgraph for current context) */
+};
+
+/* Wrap Axis. */
+enum {
+  CURSOR_WRAP_NONE = 0,
+  CURSOR_WRAP_X,
+  CURSOR_WRAP_Y,
+  CURSOR_WRAP_XY,
 };
 
 /* context to call operator in for WM_operator_name_call */

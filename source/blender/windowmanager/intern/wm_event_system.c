@@ -1469,26 +1469,20 @@ static int wm_operator_invoke(bContext *C,
        */
       if (ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
         int bounds[4] = {-1, -1, -1, -1};
-        bool wrap;
+        int wrap = CURSOR_WRAP_NONE;
 
-        if (event == NULL) {
-          wrap = false;
-        }
-        else if (op->opm) {
-          wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
-                 ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) ||
-                  (op->opm->type->flag & OPTYPE_GRAB_CURSOR));
-        }
-        else {
-          wrap = (U.uiflag & USER_CONTINUOUS_MOUSE) &&
-                 ((op->flag & OP_IS_MODAL_GRAB_CURSOR) || (ot->flag & OPTYPE_GRAB_CURSOR));
-        }
-
-        /* exception, cont. grab in header is annoying */
-        if (wrap) {
-          ARegion *ar = CTX_wm_region(C);
-          if (ar && ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER)) {
-            wrap = false;
+        if (event && (U.uiflag & USER_CONTINUOUS_MOUSE)) {
+          const wmOperator *op_test = op->opm ? op->opm : op;
+          const wmOperatorType *ot_test = op_test->type;
+          if ((ot_test->flag & OPTYPE_GRAB_CURSOR_XY) ||
+              (op_test->flag & OP_IS_MODAL_GRAB_CURSOR)) {
+            wrap = CURSOR_WRAP_XY;
+          }
+          else if (ot_test->flag & OPTYPE_GRAB_CURSOR_X) {
+            wrap = CURSOR_WRAP_X;
+          }
+          else if (ot_test->flag & OPTYPE_GRAB_CURSOR_Y) {
+            wrap = CURSOR_WRAP_Y;
           }
         }
 
@@ -1496,6 +1490,11 @@ static int wm_operator_invoke(bContext *C,
           const rcti *winrect = NULL;
           ARegion *ar = CTX_wm_region(C);
           ScrArea *sa = CTX_wm_area(C);
+
+          /* Wrap only in X for header. */
+          if (ar && ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER)) {
+            wrap = CURSOR_WRAP_X;
+          }
 
           if (ar && ar->regiontype == RGN_TYPE_WINDOW &&
               BLI_rcti_isect_pt_v(&ar->winrct, &event->x)) {

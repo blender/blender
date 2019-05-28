@@ -223,12 +223,13 @@ void WM_cursor_wait(bool val)
 /**
  * \param bounds: can be NULL
  */
-void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
+void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
 {
   /* Only grab cursor when not running debug.
    * It helps not to get a stuck WM when hitting a breakpoint
    * */
   GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
+  GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kGrabAxisY;
 
   if (bounds) {
     wm_cursor_position_to_ghost(win, &bounds[0], &bounds[1]);
@@ -240,12 +241,20 @@ void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
   }
   else if (wrap) {
     mode = GHOST_kGrabWrap;
+
+    if (wrap == CURSOR_WRAP_X) {
+      mode_axis = GHOST_kAxisX;
+    }
+    if (wrap == CURSOR_WRAP_Y) {
+      mode_axis = GHOST_kGrabAxisY;
+    }
   }
+
   if ((G.debug & G_DEBUG) == 0) {
     if (win->ghostwin) {
       /* Note: There is no tabletdata on Windows if no tablet device is connected. */
       if (win->eventstate->is_motion_absolute == false) {
-        GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
+        GHOST_SetCursorGrab(win->ghostwin, mode, mode_axis, bounds, NULL);
       }
 
       win->grabcursor = mode;
@@ -260,10 +269,11 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
       if (mouse_ungrab_xy) {
         int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
         wm_cursor_position_to_ghost(win, &mouse_xy[0], &mouse_xy[1]);
-        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, mouse_xy);
+        GHOST_SetCursorGrab(
+            win->ghostwin, GHOST_kGrabDisable, GHOST_kGrabAxisNone, NULL, mouse_xy);
       }
       else {
-        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, NULL);
+        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, GHOST_kGrabAxisNone, NULL, NULL);
       }
 
       win->grabcursor = GHOST_kGrabDisable;

@@ -125,7 +125,10 @@ class GHOST_Rect {
    * \param x   The x-coordinate of the point.
    * \param y   The y-coordinate of the point.
    */
-  virtual inline void wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs);
+  virtual inline void wrapPoint(GHOST_TInt32 &x,
+                                GHOST_TInt32 &y,
+                                GHOST_TInt32 ofs,
+                                GHOST_TAxisFlag axis);
 
   /**
    * Returns whether the point is inside this rectangle.
@@ -236,7 +239,11 @@ inline void GHOST_Rect::unionPoint(GHOST_TInt32 x, GHOST_TInt32 y)
   if (y > m_b)
     m_b = y;
 }
-inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs)
+
+inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x,
+                                  GHOST_TInt32 &y,
+                                  GHOST_TInt32 ofs,
+                                  GHOST_TAxisFlag axis)
 {
   GHOST_TInt32 w = getWidth();
   GHOST_TInt32 h = getHeight();
@@ -246,14 +253,18 @@ inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32
     return;
   }
 
-  while (x - ofs < m_l)
-    x += w - (ofs * 2);
-  while (y - ofs < m_t)
-    y += h - (ofs * 2);
-  while (x + ofs > m_r)
-    x -= w - (ofs * 2);
-  while (y + ofs > m_b)
-    y -= h - (ofs * 2);
+  if (axis & GHOST_kAxisX) {
+    while (x - ofs < m_l)
+      x += w - (ofs * 2);
+    while (x + ofs > m_r)
+      x -= w - (ofs * 2);
+  }
+  if (axis & GHOST_kGrabAxisY) {
+    while (y - ofs < m_t)
+      y += h - (ofs * 2);
+    while (y + ofs > m_b)
+      y -= h - (ofs * 2);
+  }
 }
 
 inline bool GHOST_Rect::isInside(GHOST_TInt32 x, GHOST_TInt32 y) const

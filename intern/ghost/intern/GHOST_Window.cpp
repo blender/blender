@@ -136,6 +136,7 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 }
 
 GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
+                                           GHOST_TAxisFlag wrap_axis,
                                            GHOST_Rect *bounds,
                                            GHOST_TInt32 mouse_ungrab_xy[2])
 {
@@ -151,8 +152,9 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
 
   if (setWindowCursorGrab(mode)) {
 
-    if (mode == GHOST_kGrabDisable)
+    if (mode == GHOST_kGrabDisable) {
       m_cursorGrabBounds.m_l = m_cursorGrabBounds.m_r = -1;
+    }
     else if (bounds) {
       m_cursorGrabBounds = *bounds;
     }
@@ -160,6 +162,7 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
       getClientBounds(m_cursorGrabBounds);
     }
     m_cursorGrab = mode;
+    m_cursorGrabAxis = wrap_axis;
     return GHOST_kSuccess;
   }
   else {

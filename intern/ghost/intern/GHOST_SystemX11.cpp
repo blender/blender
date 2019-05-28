@@ -868,9 +868,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         if (window->getCursorGrabBounds(bounds) == GHOST_kFailure)
           window->getClientBounds(bounds);
 
-        /* could also clamp to screen bounds
-         * wrap with a window outside the view will fail atm  */
-        bounds.wrapPoint(x_new, y_new, 8); /* offset of one incase blender is at screen bounds */
+        /* Could also clamp to screen bounds wrap with a window outside the view will fail atm.
+         * Use offset of 8 in case the window is at screen bounds. */
+        bounds.wrapPoint(x_new, y_new, 8, window->getCursorGrabAxis());
+
         window->getCursorGrabAccum(x_accum, y_accum);
 
         if (x_new != xme.x_root || y_new != xme.y_root) {

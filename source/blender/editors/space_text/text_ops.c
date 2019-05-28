@@ -2562,7 +2562,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
   ot->poll = text_scroll_poll;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_INTERNAL;
 
   /* properties */
   RNA_def_int(

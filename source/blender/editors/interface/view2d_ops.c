@@ -335,7 +335,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
   ot->cancel = view_pan_cancel;
 
   /* operator is modal */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -1241,7 +1241,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
   ot->poll = view_zoom_poll;
 
   /* operator is repeatable */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   /* rna - must keep these in sync with the other operators */
   prop = RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
