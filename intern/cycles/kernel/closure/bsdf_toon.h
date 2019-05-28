@@ -42,6 +42,8 @@ typedef ccl_addr_space struct ToonBsdf {
   float smooth;
 } ToonBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(ToonBsdf), "ToonBsdf is too large!");
+
 /* DIFFUSE TOON */
 
 ccl_device int bsdf_diffuse_toon_setup(ToonBsdf *bsdf)

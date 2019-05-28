@@ -40,6 +40,9 @@ typedef ccl_addr_space struct HenyeyGreensteinVolume {
   float g;
 } HenyeyGreensteinVolume;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(HenyeyGreensteinVolume),
+              "HenyeyGreensteinVolume is too large!");
+
 /* Given cosine between rays, return probability density that a photon bounces
  * to that direction. The g parameter controls how different it is from the
  * uniform sphere. g=0 uniform diffuse-like, g=1 close to sharp single ray. */

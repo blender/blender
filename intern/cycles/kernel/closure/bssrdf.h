@@ -30,6 +30,8 @@ typedef ccl_addr_space struct Bssrdf {
   float channels;
 } Bssrdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
+
 /* Planar Truncated Gaussian
  *
  * Note how this is different from the typical gaussian, this one integrates

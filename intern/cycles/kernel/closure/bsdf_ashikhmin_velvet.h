@@ -42,6 +42,8 @@ typedef ccl_addr_space struct VelvetBsdf {
   float invsigma2;
 } VelvetBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(VelvetBsdf), "VelvetBsdf is too large!");
+
 ccl_device int bsdf_ashikhmin_velvet_setup(VelvetBsdf *bsdf)
 {
   float sigma = fmaxf(bsdf->sigma, 0.01f);

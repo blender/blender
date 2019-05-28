@@ -44,6 +44,8 @@ typedef ccl_addr_space struct HairBsdf {
   float offset;
 } HairBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(HairBsdf), "HairBsdf is too large!");
+
 ccl_device int bsdf_hair_reflection_setup(HairBsdf *bsdf)
 {
   bsdf->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;

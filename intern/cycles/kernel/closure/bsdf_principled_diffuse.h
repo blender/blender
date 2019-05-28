@@ -30,6 +30,9 @@ typedef ccl_addr_space struct PrincipledDiffuseBsdf {
   float roughness;
 } PrincipledDiffuseBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledDiffuseBsdf),
+              "PrincipledDiffuseBsdf is too large!");
+
 ccl_device float3 calculate_principled_diffuse_brdf(
     const PrincipledDiffuseBsdf *bsdf, float3 N, float3 V, float3 L, float3 H, float *pdf)
 {

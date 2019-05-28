@@ -27,6 +27,8 @@ typedef ccl_addr_space struct OrenNayarBsdf {
   float b;
 } OrenNayarBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(OrenNayarBsdf), "OrenNayarBsdf is too large!");
+
 ccl_device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc,
                                                 float3 n,
                                                 float3 v,

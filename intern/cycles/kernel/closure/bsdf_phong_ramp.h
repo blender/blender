@@ -44,6 +44,8 @@ typedef ccl_addr_space struct PhongRampBsdf {
   float3 *colors;
 } PhongRampBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(PhongRampBsdf), "PhongRampBsdf is too large!");
+
 ccl_device float3 bsdf_phong_ramp_get_color(const float3 colors[8], float pos)
 {
   int MAXCOLORS = 8;

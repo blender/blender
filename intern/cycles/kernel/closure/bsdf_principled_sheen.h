@@ -28,6 +28,9 @@ typedef ccl_addr_space struct PrincipledSheenBsdf {
   SHADER_CLOSURE_BASE;
 } PrincipledSheenBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledSheenBsdf),
+              "PrincipledSheenBsdf is too large!");
+
 ccl_device float3 calculate_principled_sheen_brdf(
     const PrincipledSheenBsdf *bsdf, float3 N, float3 V, float3 L, float3 H, float *pdf)
 {

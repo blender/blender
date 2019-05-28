@@ -43,6 +43,8 @@ typedef ccl_addr_space struct DiffuseRampBsdf {
   float3 *colors;
 } DiffuseRampBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(DiffuseRampBsdf), "DiffuseRampBsdf is too large!");
+
 ccl_device float3 bsdf_diffuse_ramp_get_color(const float3 colors[8], float pos)
 {
   int MAXCOLORS = 8;

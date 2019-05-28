@@ -48,6 +48,8 @@ typedef ccl_addr_space struct MicrofacetBsdf {
   float3 T;
 } MicrofacetBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
+
 /* Beckmann and GGX microfacet importance sampling. */
 
 ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals *kg,

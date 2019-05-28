@@ -39,6 +39,8 @@ typedef ccl_addr_space struct DiffuseBsdf {
   SHADER_CLOSURE_BASE;
 } DiffuseBsdf;
 
+static_assert(sizeof(ShaderClosure) >= sizeof(DiffuseBsdf), "DiffuseBsdf is too large!");
+
 /* DIFFUSE */
 
 ccl_device int bsdf_diffuse_setup(DiffuseBsdf *bsdf)
