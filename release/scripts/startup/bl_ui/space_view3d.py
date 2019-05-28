@@ -5557,6 +5557,7 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
         layout = self.layout
 
         view = context.space_data
+        shading = view.shading
         overlay = view.overlay
         tool_settings = context.tool_settings
         display_all = overlay.show_overlays
@@ -5574,12 +5575,21 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
             sub = row.row()
             sub.prop(tool_settings, "vertex_group_user", expand=True)
 
-        col.prop(overlay, "show_statvis", text="Mesh Analysis")
+        if shading.type == 'WIREFRAME':
+            xray = shading.show_xray_wireframe and shading.xray_alpha_wireframe < 1.0 
+        elif shading.type == 'SOLID':
+            xray = shading.show_xray and shading.xray_alpha < 1.0 
+        else:
+            xray = False
+        statvis_active = not xray
+        row = col.row()
+        row.active = statvis_active
+        row.prop(overlay, "show_statvis", text="Mesh Analysis")
         if overlay.show_statvis:
             col = col.column()
+            col.active = statvis_active
 
             sub = col.split()
-            sub.active = overlay.show_statvis
             sub.label(text="Type")
             sub.prop(statvis, "type", text="")
 

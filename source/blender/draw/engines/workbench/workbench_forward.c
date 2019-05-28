@@ -431,7 +431,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
       noise_offset = fmodf(noise_offset + 1.0f / 8.0f, 1.0f);
     }
 
-    if (XRAY_FLAG_ENABLED(wpd)) {
+    if (XRAY_ENABLED(wpd)) {
       blend_threshold = 1.0f - XRAY_ALPHA(wpd) * 0.9f;
     }
 

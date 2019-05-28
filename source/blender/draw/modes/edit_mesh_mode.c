@@ -701,7 +701,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
         DRW_shgroup_call(g_data->fweights_shgrp, geom, ob->obmat);
       }
 
-      if (do_show_mesh_analysis) {
+      if (do_show_mesh_analysis && !XRAY_ACTIVE(v3d)) {
         Mesh *me = (Mesh *)ob->data;
         BMEditMesh *embm = me->edit_mesh;
         const bool is_original = embm->mesh_eval_final &&
