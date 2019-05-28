@@ -228,13 +228,14 @@ struct EDBMSelectID_Context {
 static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, char dt)
 {
   if (select_mode & SCE_SELECT_FACE) {
-    if (dt < OB_SOLID) {
+    if ((dt < OB_SOLID) || XRAY_FLAG_ENABLED(v3d)) {
       return true;
     }
     if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
       return true;
     }
-    if (XRAY_FLAG_ENABLED(v3d)) {
+    if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
+      /* Since we can't deduce face selection when edges aren't visible - show dots. */
       return true;
     }
   }
