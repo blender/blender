@@ -107,9 +107,9 @@ class BCMatrix {
                      const Matrix &from,
                      const bool inverted = false);
   void apply_transform(Matrix &to,
-                     const Matrix &transform,
-                     const Matrix &from,
-                     const bool inverted = false);
+                       const Matrix &transform,
+                       const Matrix &from,
+                       const bool inverted = false);
   void add_inverted_transform(Matrix &to, const Matrix &transform, const Matrix &from);
   void add_transform(const Matrix &matrix, const bool inverted = false);
   void add_transform(const BCMatrix &matrix, const bool inverted = false);

@@ -172,10 +172,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   use_blender_profile = RNA_boolean_get(op->ptr, "use_blender_profile");
   sort_by_name = RNA_boolean_get(op->ptr, "sort_by_name");
 
-  export_object_transformation_type = RNA_enum_get(
-    op->ptr, "export_object_transformation_type_selection");
+  export_object_transformation_type = RNA_enum_get(op->ptr,
+                                                   "export_object_transformation_type_selection");
   export_animation_transformation_type = RNA_enum_get(
-    op->ptr, "export_animation_transformation_type_selection");
+      op->ptr, "export_animation_transformation_type_selection");
 
   open_sim = RNA_boolean_get(op->ptr, "open_sim");
   limit_precision = RNA_boolean_get(op->ptr, "limit_precision");
@@ -271,11 +271,11 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   bool include_animations = RNA_boolean_get(imfptr, "include_animations");
   int ui_section = RNA_enum_get(imfptr, "prop_bc_export_ui_section");
 
-  BC_export_animation_type animation_type = RNA_enum_get(
-    imfptr, "export_animation_type_selection");
+  BC_export_animation_type animation_type = RNA_enum_get(imfptr,
+                                                         "export_animation_type_selection");
 
   BC_export_transformation_type animation_transformation_type = RNA_enum_get(
-    imfptr, "export_animation_transformation_type_selection");
+      imfptr, "export_animation_transformation_type_selection");
 
   bool sampling = animation_type == BC_ANIMATION_EXPORT_SAMPLES;
 
@@ -727,7 +727,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
               INT_MAX,
               "Transform",
               "Transformation type for translation, scale and rotation\n"
-              "Note: The Animation transformation type in the Anim Tab\n"\
+              "Note: The Animation transformation type in the Anim Tab\n"
               "is always equal to the Object transformation type in the Geom tab",
               INT_MIN,
               INT_MAX);

@@ -291,7 +291,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
     }
 
     // OPEN_SIM_COMPATIBILITY
-    
+
     if (export_settings.get_open_sim()) {
       // Remove rotations vs armature from transform
       // parent_rest_rot * mat * irest_rot
@@ -308,10 +308,8 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
         workmat[3][0] = workmat[3][1] = workmat[3][2] = 0.0f;
 
         mul_m4_m4m4(mat, workmat, mat);
-
       }
     }
-    
   }
 
   if (this->export_settings.get_limit_precision()) {

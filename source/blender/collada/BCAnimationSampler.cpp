@@ -157,7 +157,7 @@ void BCAnimationSampler::update_animation_curves(BCAnimation &animation,
 BCSample &BCAnimationSampler::sample_object(Object *ob, int frame_index, bool for_opensim)
 {
   BCSample &ob_sample = sample_data.add(ob, frame_index);
-  //if (export_settings.get_apply_global_orientation()) {
+  // if (export_settings.get_apply_global_orientation()) {
   //  const BCMatrix &global_transform = export_settings.get_global_transform();
   //  ob_sample.get_matrix(global_transform);
   //}
