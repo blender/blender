@@ -597,7 +597,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
 
 /** \} */
 
-static wmKeyMap *gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char *gzgroupname)
+wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap;
   char name[KMAP_MAX_NAME];
@@ -612,7 +612,7 @@ static wmKeyMap *gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf, const char 
       {0, NULL, 0, NULL, NULL},
   };
 
-  BLI_snprintf(name, sizeof(name), "%s Tweak Modal Map", gzgroupname);
+  STRNCPY(name, "Generic Gizmo Tweak Modal Map");
   keymap = WM_modalkeymap_get(keyconf, name);
 
   /* this function is called for each spacetype, only needs to add map once */
@@ -660,7 +660,6 @@ wmKeyMap *WM_gizmogroup_keymap_template_ex(wmKeyConfig *config,
   if (BLI_listbase_is_empty(&km->items)) {
     WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
   }
-  gizmogroup_tweak_modal_keymap(config, name);
 
   return km;
 }
@@ -709,7 +708,6 @@ wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *config,
     WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, KM_PRESS, KM_ANY, 0);
     WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, KM_ANY, 0, 0);
   }
-  gizmogroup_tweak_modal_keymap(config, name);
 
   if (do_init) {
     wmKeyMapItem *kmi = WM_keymap_add_item(

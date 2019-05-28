@@ -1219,6 +1219,8 @@ void wm_gizmos_keymap(wmKeyConfig *keyconf)
       wm_gizmogrouptype_setup_keymap(gzgt_ref->type, keyconf);
     }
   }
+
+  wm_gizmogroup_tweak_modal_keymap(keyconf);
 }
 
 /** \} */ /* wmGizmoMapType */

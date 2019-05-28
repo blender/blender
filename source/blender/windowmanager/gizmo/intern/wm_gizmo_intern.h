@@ -76,6 +76,8 @@ bool wm_gizmogroup_is_visible_in_drawstep(const struct wmGizmoGroup *gzgroup,
 
 void wm_gizmogrouptype_setup_keymap(struct wmGizmoGroupType *gzgt, struct wmKeyConfig *keyconf);
 
+wmKeyMap *wm_gizmogroup_tweak_modal_keymap(struct wmKeyConfig *keyconf);
+
 /* -------------------------------------------------------------------- */
 /* wmGizmoMap */
 
