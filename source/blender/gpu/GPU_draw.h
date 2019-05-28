@@ -51,13 +51,6 @@ struct ViewLayer;
 
 void GPU_state_init(void);
 
-/* Programmable point size
- * - shaders set their own point size when enabled
- * - use glPointSize when disabled */
-
-void GPU_enable_program_point_size(void);
-void GPU_disable_program_point_size(void);
-
 /* Mipmap settings
  * - these will free textures on changes */
 

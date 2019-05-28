@@ -49,6 +49,7 @@ void GPU_line_smooth(bool enable);
 void GPU_line_width(float width);
 void GPU_point_size(float size);
 void GPU_polygon_smooth(bool enable);
+void GPU_program_point_size(bool enable);
 void GPU_scissor(int x, int y, int width, int height);
 void GPU_scissor_get_f(float coords[4]);
 void GPU_scissor_get_i(int coords[4]);

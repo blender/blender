@@ -180,7 +180,7 @@ static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points,
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
   immBegin(GPU_PRIM_POINTS, totpoints);
 
   const bGPDspoint *pt = points;
@@ -199,7 +199,7 @@ static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points,
 
   immEnd();
   immUnbindProgram();
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
 }
 
 /* draw a 3D stroke in "volumetric" style */
@@ -215,7 +215,7 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
   immBegin(GPU_PRIM_POINTS, totpoints);
 
   const bGPDspoint *pt = points;
@@ -229,7 +229,7 @@ static void gp_draw_stroke_volumetric_3d(const bGPDspoint *points,
 
   immEnd();
   immUnbindProgram();
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
 }
 
 /* --------------- Stroke Fills ----------------- */
@@ -867,7 +867,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
   short sthickness;
   float ink[4];
 
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
 
   bGPDstroke *gps_init = (tgpw->gps) ? tgpw->gps : tgpw->t_gpf->strokes.first;
 
@@ -1104,7 +1104,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
     }
   }
 
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
 }
 
 /* ----- General Drawing ------ */

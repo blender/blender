@@ -425,7 +425,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
       float pinned_col[4] = {1.0f, 0.0f, 0.0f, 1.0f}; /* TODO Theme? */
       UI_GetThemeColor4fv(TH_VERTEX, col1);
       GPU_blend(true);
-      GPU_enable_program_point_size();
+      GPU_program_point_size(true);
 
       GPU_batch_program_set_builtin(verts, GPU_SHADER_2D_UV_VERTS);
       GPU_batch_uniform_4f(verts, "vertColor", col1[0], col1[1], col1[2], 1.0f);
@@ -450,7 +450,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
       }
 
       GPU_blend(false);
-      GPU_disable_program_point_size();
+      GPU_program_point_size(false);
     }
     if (facedots) {
       GPU_point_size(pointsize);

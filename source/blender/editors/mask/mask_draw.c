@@ -600,7 +600,7 @@ static void draw_masklays(const bContext *C,
   GPU_blend(true);
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
 
   MaskLayer *masklay;
   int i;
@@ -635,7 +635,7 @@ static void draw_masklays(const bContext *C,
     }
   }
 
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
   GPU_blend(false);
 }
 

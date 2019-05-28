@@ -223,7 +223,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
       uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
       immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-      GPU_enable_program_point_size();
+      GPU_program_point_size(true);
       immUniform2f(
           "ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
       immBegin(GPU_PRIM_POINTS, keyframe_len);
@@ -282,7 +282,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
       }
 
       immEnd();
-      GPU_disable_program_point_size();
+      GPU_program_point_size(false);
       immUnbindProgram();
     }
 

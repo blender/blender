@@ -815,7 +815,7 @@ static void draw_keylist(View2D *v2d,
           format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
       uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
       immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-      GPU_enable_program_point_size();
+      GPU_program_point_size(true);
       immUniform2f(
           "ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
       immBegin(GPU_PRIM_POINTS, key_len);
@@ -849,7 +849,7 @@ static void draw_keylist(View2D *v2d,
       }
 
       immEnd();
-      GPU_disable_program_point_size();
+      GPU_program_point_size(false);
       immUnbindProgram();
     }
   }

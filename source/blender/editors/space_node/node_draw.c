@@ -896,7 +896,7 @@ void node_draw_sockets(View2D *v2d,
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   GPU_blend(true);
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
 
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA);
 
@@ -991,7 +991,7 @@ void node_draw_sockets(View2D *v2d,
 
   immUnbindProgram();
 
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
   GPU_blend(false);
 }
 

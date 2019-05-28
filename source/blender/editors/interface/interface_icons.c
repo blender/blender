@@ -317,7 +317,7 @@ static void vicon_keytype_draw_wrapper(
   uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
   immBegin(GPU_PRIM_POINTS, 1);
 
@@ -343,7 +343,7 @@ static void vicon_keytype_draw_wrapper(
                       KEYFRAME_EXTREME_NONE);
 
   immEnd();
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
   immUnbindProgram();
 
   UI_Theme_Restore(&theme_state);

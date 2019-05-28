@@ -561,7 +561,7 @@ static void annotation_draw_strokes(bGPdata *UNUSED(gpd),
                                     short lthick,
                                     const float color[4])
 {
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
 
   for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
     /* check if stroke can be drawn */
@@ -622,7 +622,7 @@ static void annotation_draw_strokes(bGPdata *UNUSED(gpd),
     }
   }
 
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
 }
 
 /* Draw selected verts for strokes being edited */
@@ -658,7 +658,7 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
     }
   }
 
-  GPU_enable_program_point_size();
+  GPU_program_point_size(true);
 
   /* draw stroke verts */
   for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -751,7 +751,7 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
     immUnbindProgram();
   }
 
-  GPU_disable_program_point_size();
+  GPU_program_point_size(false);
 
   /* clear depth mask */
   if (dflag & GP_DRAWDATA_ONLY3D) {

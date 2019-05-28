@@ -126,6 +126,19 @@ void GPU_polygon_smooth(bool enable)
   }
 }
 
+/* Programmable point size
+ * - shaders set their own point size when enabled
+ * - use glPointSize when disabled */
+void GPU_program_point_size(bool enable)
+{
+  if (enable) {
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  }
+  else {
+    glDisable(GL_PROGRAM_POINT_SIZE);
+  }
+}
+
 void GPU_scissor(int x, int y, int width, int height)
 {
   glScissor(x, y, width, height);

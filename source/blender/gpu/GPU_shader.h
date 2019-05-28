@@ -156,7 +156,6 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_3D_UNIFORM_COLOR,
   /* Sets Z-depth to 1.0 (draw onto background). */
   GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND,
-  GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE,
   /**
    * Take a 3D position and color for each vertex without color interpolation.
    *
