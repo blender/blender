@@ -25,6 +25,25 @@
 
 #include "TransformWriter.h"
 
+static BC_export_transformation_type get_transformation_type(BCExportSettings &export_settings)
+{
+  BC_export_transformation_type transformation_type;
+  bool enforce_matrix_export = export_settings.get_include_animations();
+
+  return (enforce_matrix_export) ? BC_TRANSFORMATION_TYPE_MATRIX :
+                                                  export_settings.get_object_transformation_type();
+}
+
+static BC_export_transformation_type get_transformation_type(Object *ob,
+                                                             BCExportSettings &export_settings)
+{
+  BC_export_transformation_type transformation_type;
+  bool enforce_matrix_export = ob->type == OB_ARMATURE && export_settings.get_include_animations();
+
+  return (enforce_matrix_export) ? BC_TRANSFORMATION_TYPE_MATRIX :
+                                                  export_settings.get_object_transformation_type();
+}
+
 void TransformWriter::add_joint_transform(COLLADASW::Node &node,
                                           float mat[4][4],
                                           float parent_mat[4][4],
@@ -51,7 +70,7 @@ void TransformWriter::add_joint_transform(COLLADASW::Node &node,
   converter->mat4_to_dae_double(dmat, local);
   delete converter;
 
-  if (export_settings.get_object_transformation_type() == BC_TRANSFORMATION_TYPE_MATRIX) {
+  if (get_transformation_type(export_settings) == BC_TRANSFORMATION_TYPE_MATRIX) {
     node.addMatrix("transform", dmat);
   }
   else {
@@ -65,8 +84,6 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
                                             Object *ob,
                                             BCExportSettings &export_settings)
 {
-  BC_export_transformation_type transformation_type =
-      export_settings.get_object_transformation_type();
   bool limit_precision = export_settings.get_limit_precision();
 
   /* Export the local Matrix (relative to the object parent,
@@ -81,7 +98,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
     bc_add_global_transform(f_obmat, export_settings.get_global_transform());
   }
 
-  switch (transformation_type) {
+  switch (get_transformation_type(ob, export_settings)) {
     case BC_TRANSFORMATION_TYPE_MATRIX: {
       UnitConverter converter;
       double d_obmat[4][4];
