@@ -430,17 +430,17 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
          * */
         if (op->opm->type->flag & OPTYPE_BLOCKING) {
           int bounds[4] = {-1, -1, -1, -1};
-          int wrap = CURSOR_WRAP_NONE;
+          int wrap = WM_CURSOR_WRAP_NONE;
 
           if ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) ||
               (op->opm->type->flag & OPTYPE_GRAB_CURSOR_XY)) {
-            wrap = CURSOR_WRAP_XY;
+            wrap = WM_CURSOR_WRAP_XY;
           }
           else if (op->opm->type->flag & OPTYPE_GRAB_CURSOR_X) {
-            wrap = CURSOR_WRAP_X;
+            wrap = WM_CURSOR_WRAP_X;
           }
           else if (op->opm->type->flag & OPTYPE_GRAB_CURSOR_Y) {
-            wrap = CURSOR_WRAP_Y;
+            wrap = WM_CURSOR_WRAP_Y;
           }
 
           if (wrap) {

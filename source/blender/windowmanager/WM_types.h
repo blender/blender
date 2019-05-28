@@ -162,12 +162,12 @@ enum {
       (1 << 11), /* Need evaluated data (i.e. a valid, up-to-date depsgraph for current context) */
 };
 
-/* Wrap Axis. */
+/** For #WM_cursor_grab_enable wrap axis. */
 enum {
-  CURSOR_WRAP_NONE = 0,
-  CURSOR_WRAP_X,
-  CURSOR_WRAP_Y,
-  CURSOR_WRAP_XY,
+  WM_CURSOR_WRAP_NONE = 0,
+  WM_CURSOR_WRAP_X,
+  WM_CURSOR_WRAP_Y,
+  WM_CURSOR_WRAP_XY,
 };
 
 /* context to call operator in for WM_operator_name_call */

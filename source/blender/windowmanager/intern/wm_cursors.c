@@ -242,10 +242,10 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
   else if (wrap) {
     mode = GHOST_kGrabWrap;
 
-    if (wrap == CURSOR_WRAP_X) {
+    if (wrap == WM_CURSOR_WRAP_X) {
       mode_axis = GHOST_kAxisX;
     }
-    if (wrap == CURSOR_WRAP_Y) {
+    if (wrap == WM_CURSOR_WRAP_Y) {
       mode_axis = GHOST_kGrabAxisY;
     }
   }

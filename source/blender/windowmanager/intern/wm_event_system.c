@@ -1469,20 +1469,20 @@ static int wm_operator_invoke(bContext *C,
        */
       if (ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
         int bounds[4] = {-1, -1, -1, -1};
-        int wrap = CURSOR_WRAP_NONE;
+        int wrap = WM_CURSOR_WRAP_NONE;
 
         if (event && (U.uiflag & USER_CONTINUOUS_MOUSE)) {
           const wmOperator *op_test = op->opm ? op->opm : op;
           const wmOperatorType *ot_test = op_test->type;
           if ((ot_test->flag & OPTYPE_GRAB_CURSOR_XY) ||
               (op_test->flag & OP_IS_MODAL_GRAB_CURSOR)) {
-            wrap = CURSOR_WRAP_XY;
+            wrap = WM_CURSOR_WRAP_XY;
           }
           else if (ot_test->flag & OPTYPE_GRAB_CURSOR_X) {
-            wrap = CURSOR_WRAP_X;
+            wrap = WM_CURSOR_WRAP_X;
           }
           else if (ot_test->flag & OPTYPE_GRAB_CURSOR_Y) {
-            wrap = CURSOR_WRAP_Y;
+            wrap = WM_CURSOR_WRAP_Y;
           }
         }
 
@@ -1493,7 +1493,7 @@ static int wm_operator_invoke(bContext *C,
 
           /* Wrap only in X for header. */
           if (ar && ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER)) {
-            wrap = CURSOR_WRAP_X;
+            wrap = WM_CURSOR_WRAP_X;
           }
 
           if (ar && ar->regiontype == RGN_TYPE_WINDOW &&
