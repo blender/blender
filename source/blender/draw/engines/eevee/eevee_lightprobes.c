@@ -911,6 +911,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
   DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
   DRW_draw_pass(psl->sss_pass_cull);
   EEVEE_draw_default_passes(psl);
+  DRW_draw_pass(psl->transparent_pass);
 }
 
 /* Render the scene to the probe_rt texture. */
