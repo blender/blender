@@ -1085,35 +1085,12 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
   loc_eulO_size_to_mat4(to_mat, loc, rot, scale, 6);
 }
 
-/*
- * Make 4*4 matrices better readable
- */
-void bc_sanitize_mat(float mat[4][4], int precision)
-{
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      double val = (double)mat[i][j];
-      val = double_round(val, precision);
-      mat[i][j] = (float)val;
-    }
-  }
-}
-
 void bc_sanitize_v3(float v[3], int precision)
 {
   for (int i = 0; i < 3; i++) {
     double val = (double)v[i];
     val = double_round(val, precision);
     v[i] = (float)val;
-  }
-}
-
-void bc_sanitize_mat(double mat[4][4], int precision)
-{
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      mat[i][j] = double_round(mat[i][j], precision);
-    }
   }
 }
 

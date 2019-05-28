@@ -23,6 +23,7 @@
 
 #ifdef __cplusplus
 #  include <vector>
+#  include "BCMath.h"
 
 extern "C" {
 #endif

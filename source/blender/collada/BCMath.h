@@ -32,9 +32,6 @@ class BCQuat {
  private:
   mutable Quat q;
 
-  void unit();
-  void copy(Quat &r, Quat &a);
-
  public:
   BCQuat(const BCQuat &other)
   {
@@ -102,7 +99,9 @@ class BCMatrix {
   void apply_transform(const BCMatrix &matrix, const bool inverted = false);
 
   const bool in_range(const BCMatrix &other, float distance) const;
+
   static void sanitize(Matrix &matrix, int precision);
+  static void sanitize(DMatrix &matrix, int precision);
   static void transpose(Matrix &matrix);
 };
 

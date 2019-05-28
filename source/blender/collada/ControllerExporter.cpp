@@ -444,7 +444,7 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
   // UnitConverter::mat4_to_dae_double(bind_mat, ob->obmat);
   UnitConverter::mat4_to_dae_double(bind_mat, f_obmat);
   if (this->export_settings.get_limit_precision()) {
-    bc_sanitize_mat(bind_mat, LIMITTED_PRECISION);
+	  BCMatrix::sanitize(bind_mat, LIMITTED_PRECISION);
   }
 
   addBindShapeTransform(bind_mat);
@@ -569,7 +569,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
       invert_m4_m4(mat, world);
       UnitConverter::mat4_to_dae(inv_bind_mat, mat);
       if (this->export_settings.get_limit_precision()) {
-        bc_sanitize_mat(inv_bind_mat, LIMITTED_PRECISION);
+        BCMatrix::sanitize(inv_bind_mat, LIMITTED_PRECISION);
       }
       source.appendValues(inv_bind_mat);
     }

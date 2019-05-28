@@ -315,7 +315,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
   }
 
   if (this->export_settings.get_limit_precision()) {
-    bc_sanitize_mat(mat, LIMITTED_PRECISION);
+    BCMatrix::sanitize(mat, LIMITTED_PRECISION);
   }
 
   TransformWriter::add_joint_transform(node, mat, NULL, this->export_settings, has_restmat);

@@ -19,7 +19,6 @@
 
 #include "BCMath.h"
 #include "BlenderContext.h"
-#include "collada_utils.h"
 
 BCMatrix::BCMatrix(const BCMatrix &mat)
 {
@@ -134,7 +133,19 @@ void BCMatrix::transpose(Matrix &mat)
 
 void BCMatrix::sanitize(Matrix &mat, int precision)
 {
-  bc_sanitize_mat(mat, precision);
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++) {
+      double val = (double)mat[i][j];
+      val = double_round(val, precision);
+      mat[i][j] = (float)val;
+    }
+}
+
+void BCMatrix::sanitize(DMatrix &mat, int precision)
+{
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
+      mat[i][j] = double_round(mat[i][j], precision);
 }
 
 void BCMatrix::unit()
