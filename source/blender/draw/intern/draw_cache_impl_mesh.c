@@ -3802,7 +3802,7 @@ static void mesh_create_loops_line_strips(MeshRenderData *rdata,
   const int poly_len = mesh_render_data_polys_len_get(rdata);
 
   GPUIndexBufBuilder elb;
-  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, loop_len + poly_len * 2, loop_len, true);
+  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, loop_len + poly_len * 2, loop_len);
 
   uint v_index = 0;
   if (rdata->mapped.use == false) {
@@ -4842,13 +4842,13 @@ static void mesh_create_uvedit_buffers(MeshRenderData *rdata,
 
   GPUIndexBufBuilder elb_vert, elb_edge, elb_face;
   if (DRW_TEST_ASSIGN_IBO(ibo_vert)) {
-    GPU_indexbuf_init_ex(&elb_vert, GPU_PRIM_POINTS, loop_len, loop_len, false);
+    GPU_indexbuf_init_ex(&elb_vert, GPU_PRIM_POINTS, loop_len, loop_len);
   }
   if (DRW_TEST_ASSIGN_IBO(ibo_edge)) {
-    GPU_indexbuf_init_ex(&elb_edge, GPU_PRIM_LINES, loop_len * 2, loop_len, false);
+    GPU_indexbuf_init_ex(&elb_edge, GPU_PRIM_LINES, loop_len * 2, loop_len);
   }
   if (DRW_TEST_ASSIGN_IBO(ibo_face)) {
-    GPU_indexbuf_init_ex(&elb_face, GPU_PRIM_TRI_FAN, idx_len, loop_len, true);
+    GPU_indexbuf_init_ex(&elb_face, GPU_PRIM_TRI_FAN, idx_len, loop_len);
   }
 
   uvedit_fill_buffer_data(rdata,

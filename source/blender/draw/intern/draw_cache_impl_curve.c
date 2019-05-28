@@ -601,7 +601,7 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   const int index_len = edge_len + curve_len * 2;
 
   GPUIndexBufBuilder elb;
-  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len, true);
+  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
   int v_idx = 0;
   for (const BevList *bl = rdata->ob_curve_cache->bev.first; bl; bl = bl->next) {

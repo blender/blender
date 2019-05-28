@@ -1053,7 +1053,7 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   GPU_vertbuf_data_alloc(vbo, 1);
 
   GPUIndexBufBuilder elb;
-  GPU_indexbuf_init_ex(&elb, prim_type, element_count, element_count, true);
+  GPU_indexbuf_init_ex(&elb, prim_type, element_count, element_count);
 
   if (edit != NULL && edit->pathcache != NULL) {
     particle_batch_cache_fill_segments_indices(
@@ -1194,8 +1194,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
 
   GPUIndexBufBuilder elb;
-  GPU_indexbuf_init_ex(
-      &elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len, true);
+  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len);
 
   if (num_uv_layers || num_col_layers) {
     BKE_mesh_tessface_ensure(psmd->mesh_final);
@@ -1499,8 +1498,7 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
   GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
   GPU_vertbuf_attr_get_raw_data(hair_cache->pos, pos_id, &data_step);
 
-  GPU_indexbuf_init_ex(
-      &elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len, true);
+  GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len);
 
   if (edit != NULL && edit->pathcache != NULL) {
     particle_batch_cache_fill_segments_edit(

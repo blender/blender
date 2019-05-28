@@ -33,10 +33,11 @@
 
 #define KEEP_SINGLE_COPY 1
 
+#define RESTART_INDEX 0xFFFFFFFF
+
 static GLenum convert_index_type_to_gl(GPUIndexBufType type)
 {
   static const GLenum table[] = {
-      [GPU_INDEX_U8] = GL_UNSIGNED_BYTE, /* GL has this, Vulkan does not */
       [GPU_INDEX_U16] = GL_UNSIGNED_SHORT,
       [GPU_INDEX_U32] = GL_UNSIGNED_INT,
   };
@@ -47,7 +48,6 @@ uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
 {
 #if GPU_TRACK_INDEX_RANGE
   static const uint table[] = {
-      [GPU_INDEX_U8] = sizeof(GLubyte), /* GL has this, Vulkan does not */
       [GPU_INDEX_U16] = sizeof(GLushort),
       [GPU_INDEX_U32] = sizeof(GLuint),
   };
@@ -80,10 +80,8 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
                           GPUPrimType prim_type,
                           uint index_len,
-                          uint vertex_len,
-                          bool use_prim_restart)
+                          uint vertex_len)
 {
-  builder->use_prim_restart = use_prim_restart;
   builder->max_allowed_index = vertex_len - 1;
   builder->max_index_len = index_len;
   builder->index_len = 0;  // start empty
@@ -100,7 +98,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
 #if TRUST_NO_ONE
   assert(verts_per_prim != -1);
 #endif
-  GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len, false);
+  GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len);
 }
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
@@ -118,9 +116,8 @@ void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *builder)
 #if TRUST_NO_ONE
   assert(builder->data != NULL);
   assert(builder->index_len < builder->max_index_len);
-  assert(builder->use_prim_restart);
 #endif
-  builder->data[builder->index_len++] = GPU_PRIM_RESTART;
+  builder->data[builder->index_len++] = RESTART_INDEX;
 }
 
 void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *builder, uint v)
@@ -180,7 +177,7 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
   uint max_value = values[0];
   for (uint i = 1; i < value_len; ++i) {
     const uint value = values[i];
-    if (value == GPU_PRIM_RESTART) {
+    if (value == RESTART_INDEX) {
       continue;
     }
     else if (value < min_value) {
@@ -195,33 +192,10 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
   return max_value - min_value;
 }
 
-static void squeeze_indices_byte(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
-{
-  const uint *values = builder->data;
-  const uint index_len = elem->index_len;
-
-  /* data will never be *larger* than builder->data...
-   * converting in place to avoid extra allocation */
-  GLubyte *data = (GLubyte *)builder->data;
-
-  if (elem->max_index > 0xFF) {
-    const uint base = elem->min_index;
-    elem->base_index = base;
-    elem->min_index = 0;
-    elem->max_index -= base;
-    for (uint i = 0; i < index_len; ++i) {
-      data[i] = (values[i] == GPU_PRIM_RESTART) ? 0xFF : (GLubyte)(values[i] - base);
-    }
-  }
-  else {
-    elem->base_index = 0;
-    for (uint i = 0; i < index_len; ++i) {
-      data[i] = (GLubyte)(values[i]);
-    }
-  }
-}
-
-static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
+static void squeeze_indices_short(GPUIndexBufBuilder *builder,
+                                  GPUIndexBuf *elem,
+                                  uint min_index,
+                                  uint max_index)
 {
   const uint *values = builder->data;
   const uint index_len = elem->index_len;
@@ -230,13 +204,10 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf *elem
    * converting in place to avoid extra allocation */
   GLushort *data = (GLushort *)builder->data;
 
-  if (elem->max_index > 0xFFFF) {
-    const uint base = elem->min_index;
-    elem->base_index = base;
-    elem->min_index = 0;
-    elem->max_index -= base;
+  if (max_index > 0xFFFF) {
+    elem->base_index = min_index;
     for (uint i = 0; i < index_len; ++i) {
-      data[i] = (values[i] == GPU_PRIM_RESTART) ? 0xFFFF : (GLushort)(values[i] - base);
+      data[i] = (values[i] == RESTART_INDEX) ? 0xFFFF : (GLushort)(values[i] - min_index);
     }
   }
   else {
@@ -262,24 +233,18 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
   assert(builder->data != NULL);
 #endif
   elem->index_len = builder->index_len;
-  elem->use_prim_restart = builder->use_prim_restart;
   elem->ibo_id = 0; /* Created at first use. */
 
 #if GPU_TRACK_INDEX_RANGE
-  uint range = index_range(builder->data, builder->index_len, &elem->min_index, &elem->max_index);
+  uint min_index, max_index;
+  uint range = index_range(builder->data, builder->index_len, &min_index, &max_index);
 
   /* count the primitive restart index. */
-  if (elem->use_prim_restart) {
-    range += 1;
-  }
+  range += 1;
 
-  if (range <= 0xFF) {
-    elem->index_type = GPU_INDEX_U8;
-    squeeze_indices_byte(builder, elem);
-  }
-  else if (range <= 0xFFFF) {
+  if (range <= 0xFFFF) {
     elem->index_type = GPU_INDEX_U16;
-    squeeze_indices_short(builder, elem);
+    squeeze_indices_short(builder, elem, min_index, max_index);
   }
   else {
     elem->index_type = GPU_INDEX_U32;

@@ -2707,7 +2707,7 @@ GPUBatch *DRW_cache_bone_stick_get(void)
     GPU_vertbuf_data_alloc(vbo, vcount);
 
     GPUIndexBufBuilder elb;
-    GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_FAN, (CIRCLE_RESOL + 2) * 2 + 6 + 2, vcount, true);
+    GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_FAN, (CIRCLE_RESOL + 2) * 2 + 6 + 2, vcount);
 
     /* head/tail points */
     for (int i = 0; i < 2; ++i) {
@@ -3931,7 +3931,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
     }
 
     GPUIndexBufBuilder elb;
-    GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len, true);
+    GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, vert_len);

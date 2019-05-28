@@ -30,10 +30,7 @@
 
 #define GPU_TRACK_INDEX_RANGE 1
 
-#define GPU_PRIM_RESTART 0xFFFFFFFF
-
 typedef enum {
-  GPU_INDEX_U8, /* GL has this, Vulkan does not */
   GPU_INDEX_U16,
   GPU_INDEX_U32,
 } GPUIndexBufType;
@@ -43,13 +40,10 @@ typedef struct GPUIndexBuf {
 #if GPU_TRACK_INDEX_RANGE
   GPUIndexBufType index_type;
   uint32_t gl_index_type;
-  uint min_index;
-  uint max_index;
   uint base_index;
 #endif
   uint32_t ibo_id; /* 0 indicates not yet sent to VRAM */
   void *data;      /* non-NULL indicates not yet sent to VRAM */
-  bool use_prim_restart;
 } GPUIndexBuf;
 
 void GPU_indexbuf_use(GPUIndexBuf *);
@@ -61,12 +55,10 @@ typedef struct GPUIndexBufBuilder {
   uint index_len;
   GPUPrimType prim_type;
   uint *data;
-  bool use_prim_restart;
 } GPUIndexBufBuilder;
 
 /* supports all primitive types. */
-void GPU_indexbuf_init_ex(
-    GPUIndexBufBuilder *, GPUPrimType, uint index_len, uint vertex_len, bool use_prim_restart);
+void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uint vertex_len);
 
 /* supports only GPU_PRIM_POINTS, GPU_PRIM_LINES and GPU_PRIM_TRIS. */
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);

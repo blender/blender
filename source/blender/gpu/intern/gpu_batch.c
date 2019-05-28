@@ -545,36 +545,26 @@ void GPU_batch_uniform_mat4(GPUBatch *batch, const char *name, const float data[
   glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (const float *)data);
 }
 
-static void primitive_restart_enable(const GPUIndexBuf *el)
+static void primitive_restart_index(const GPUIndexBuf *el)
 {
-  // TODO(fclem) Replace by GL_PRIMITIVE_RESTART_FIXED_INDEX when we have ogl 4.3
-  glEnable(GL_PRIMITIVE_RESTART);
-  GLuint restart_index = (GLuint)0xFFFFFFFF;
-
 #if GPU_TRACK_INDEX_RANGE
-  if (el->index_type == GPU_INDEX_U8) {
-    restart_index = (GLuint)0xFF;
-  }
-  else if (el->index_type == GPU_INDEX_U16) {
-    restart_index = (GLuint)0xFFFF;
+  /* Can be removed if GL 4.3 is available. */
+  if (!GLEW_ARB_ES3_compatibility) {
+    /* Stay sync with GPU_state_init(). */
+    static int last_type = GPU_INDEX_U32;
+    if (el->index_type != last_type) {
+      GLuint restart_index = (el->index_type == GPU_INDEX_U16) ? (GLuint)0xFFFF :
+                                                                 (GLuint)0xFFFFFFFF;
+      glPrimitiveRestartIndex(restart_index);
+    }
   }
 #endif
-
-  glPrimitiveRestartIndex(restart_index);
-}
-
-static void primitive_restart_disable(void)
-{
-  glDisable(GL_PRIMITIVE_RESTART);
 }
 
 static void *elem_offset(const GPUIndexBuf *el, int v_first)
 {
 #if GPU_TRACK_INDEX_RANGE
-  if (el->index_type == GPU_INDEX_U8) {
-    return (GLubyte *)0 + v_first;
-  }
-  else if (el->index_type == GPU_INDEX_U16) {
+  if (el->index_type == GPU_INDEX_U16) {
     return (GLushort *)0 + v_first;
   }
 #endif
@@ -641,9 +631,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
 #endif
     void *v_first_ofs = elem_offset(el, v_first);
 
-    if (el->use_prim_restart) {
-      primitive_restart_enable(el);
-    }
+    primitive_restart_index(el);
 
     if (GLEW_ARB_base_instance) {
       glDrawElementsInstancedBaseVertexBaseInstance(
@@ -652,10 +640,6 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     else {
       glDrawElementsInstancedBaseVertex(
           batch->gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index);
-    }
-
-    if (el->use_prim_restart) {
-      primitive_restart_disable();
     }
   }
   else {
