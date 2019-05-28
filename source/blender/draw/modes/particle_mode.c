@@ -123,9 +123,8 @@ static void particle_cache_init(void *vedata)
   }
 
   /* Create a pass */
-  psl->psys_edit_pass = DRW_pass_create(
-      "PSys Edit Pass",
-      (DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL));
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+  psl->psys_edit_pass = DRW_pass_create("PSys Edit Pass", state);
 
   GPUShader *strand_shader = (use_weight) ? e_data.strands_weight_shader : e_data.strands_shader;
   stl->g_data->strands_group = DRW_shgroup_create(strand_shader, psl->psys_edit_pass);

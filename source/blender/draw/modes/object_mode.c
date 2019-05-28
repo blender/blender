@@ -1572,9 +1572,9 @@ static void OBJECT_cache_init(void *vedata)
 
   {
     /* Particle Pass */
-    psl->particle = DRW_pass_create("Particle Pass",
-                                    DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA);
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
+                     DRW_STATE_BLEND_ALPHA;
+    psl->particle = DRW_pass_create("Particle Pass", state);
   }
 }
 

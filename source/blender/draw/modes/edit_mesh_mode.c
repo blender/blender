@@ -397,8 +397,8 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
   }
 
   /* Verts */
-  passes->verts = DRW_pass_create("Edit Mesh Verts",
-                                  (DRW_STATE_WRITE_COLOR | statemod) & ~DRW_STATE_BLEND_ALPHA);
+  DRWState state = (DRW_STATE_WRITE_COLOR | statemod) & ~DRW_STATE_BLEND_ALPHA;
+  passes->verts = DRW_pass_create("Edit Mesh Verts", state);
   if (select_vert) {
     grp = shgrps->verts = DRW_shgroup_create(vert_sh, passes->verts);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
