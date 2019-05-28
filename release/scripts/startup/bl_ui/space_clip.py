@@ -1538,7 +1538,7 @@ class CLIP_MT_marker_pie(Menu):
         if track_active:
             # Use Normalization
             pie.prop(track_active, "use_normalization", text="Normalization")
-        # Use Brute Force
+            # Use Brute Force
             pie.prop(track_active, "use_brute", text="Use Brute Force")
             # Match Keyframe
             prop = pie.operator("wm.context_set_enum", text="Match Previous", icon='KEYFRAME_HLT')
@@ -1559,12 +1559,9 @@ class CLIP_MT_tracking_pie(Menu):
         space = context.space_data
         return space.mode == 'TRACKING' and space.clip
 
-    def draw(self, context):
-        space = context.space_data
-        clip = space.clip
-        act_track = clip.tracking.tracks.active
-
+    def draw(self, _context):
         layout = self.layout
+
         pie = layout.menu_pie()
         # Track Backwards
         prop = pie.operator("clip.track_markers", icon='TRACKING_BACKWARDS')
@@ -1641,7 +1638,7 @@ class CLIP_MT_reconstruction_pie(Menu):
         space = context.space_data
         return space.mode == 'TRACKING' and space.clip
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         pie = layout.menu_pie()
         # Set Active Clip As Viewport Background

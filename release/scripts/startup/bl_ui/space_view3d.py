@@ -2234,7 +2234,6 @@ class VIEW3D_MT_object_context_menu(Menu):
         view = context.space_data
 
         obj = context.object
-        is_eevee = context.scene.render.engine == 'BLENDER_EEVEE'
 
         selected_objects_len = len(context.selected_objects)
 

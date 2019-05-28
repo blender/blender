@@ -1261,7 +1261,7 @@ def km_markers(params):
     return keymap
 
 
-def km_time_scrub(params):
+def km_time_scrub(_params):
     items = []
     keymap = (
         "Time Scrub",
@@ -1276,7 +1276,7 @@ def km_time_scrub(params):
 
     return keymap
 
-def km_time_scrub_clip(params):
+def km_time_scrub_clip(_params):
     items = []
     keymap = (
         "Clip Time Scrub",
@@ -2060,7 +2060,7 @@ def km_nla_editor(params):
     return keymap
 
 
-def km_text_generic(params):
+def km_text_generic(_params):
     items = []
     keymap = (
         "Text Generic",
@@ -2369,7 +2369,7 @@ def km_sequencerpreview(params):
     return keymap
 
 
-def km_console(params):
+def km_console(_params):
     items = []
     keymap = (
         "Console",

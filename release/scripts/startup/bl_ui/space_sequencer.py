@@ -97,7 +97,6 @@ class SEQUENCER_HT_header(Header):
         layout = self.layout
 
         st = context.space_data
-        scene = context.scene
 
         layout.template_header()
 
@@ -181,7 +180,7 @@ class SEQUENCER_MT_view_cache(Menu):
 class SEQUENCER_MT_range(Menu):
     bl_label = "Range"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("anim.previewrange_set", text="Set Preview Range")
@@ -286,7 +285,7 @@ class SEQUENCER_MT_view(Menu):
 class SEQUENCER_MT_select_handle(Menu):
     bl_label = "Select Handle"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.select_handles", text="Both").side = 'BOTH'
@@ -297,7 +296,7 @@ class SEQUENCER_MT_select_handle(Menu):
 class SEQUENCER_MT_select_channel(Menu):
     bl_label = "Select Channel"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.select_active_side", text="Left").side = 'LEFT'
@@ -307,7 +306,7 @@ class SEQUENCER_MT_select_channel(Menu):
 class SEQUENCER_MT_select_linked(Menu):
     bl_label = "Select Linked"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.select_linked", text="All")
@@ -318,7 +317,7 @@ class SEQUENCER_MT_select_linked(Menu):
 class SEQUENCER_MT_select_playhead(Menu):
     bl_label = "Select Playhead"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         props = layout.operator("sequencer.select", text="Left")
@@ -397,7 +396,7 @@ class SEQUENCER_MT_change(Menu):
 class SEQUENCER_MT_navigation(Menu):
     bl_label = "Navigation"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("screen.animation_play")
@@ -619,7 +618,7 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
 class SEQUENCER_MT_strip_effect(Menu):
     bl_label = "Effect Strip"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_menu_enum("sequencer.change_effect_input", "swap")
@@ -631,7 +630,7 @@ class SEQUENCER_MT_strip_effect(Menu):
 class SEQUENCER_MT_strip_movie(Menu):
     bl_label = "Movie Strip"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("sequencer.rendersize")
@@ -818,7 +817,6 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
         strip = act_strip(context)
 
         row = layout.row(align=True)
@@ -1076,7 +1074,6 @@ class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        st = context.space_data
         scene = context.scene
         strip = act_strip(context)
         seq_type = strip.type
@@ -1161,7 +1158,6 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        st = context.space_data
         strip = act_strip(context)
         sound = strip.sound
 

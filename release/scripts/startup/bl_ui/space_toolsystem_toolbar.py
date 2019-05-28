@@ -297,7 +297,6 @@ class _defs_transform:
         def draw_settings(context, layout, tool):
             if not layout.use_property_split:
                 layout.label(text="Gizmos:")
-            tool_settings = context.tool_settings
 
             props = tool.gizmo_group_properties("VIEW3D_GGT_xform_gizmo")
             layout.prop(props, "drag_action")

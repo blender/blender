@@ -31,7 +31,7 @@ class USERPREF_HT_header(Header):
     bl_space_type = 'PREFERENCES'
 
     @staticmethod
-    def draw_buttons(layout, context, *, is_vertical=False):
+    def draw_buttons(layout, context):
         prefs = context.preferences
 
         layout.scale_x = 1.0
@@ -118,7 +118,7 @@ class USERPREF_PT_save_preferences(Panel):
         layout.scale_x = 1.3
         layout.scale_y = 1.3
 
-        USERPREF_HT_header.draw_buttons(layout, context, is_vertical=True)
+        USERPREF_HT_header.draw_buttons(layout, context)
 
 
 # Panel mix-in.

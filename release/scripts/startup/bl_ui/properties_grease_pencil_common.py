@@ -794,8 +794,6 @@ class GreasePencilToolsPanel:
     def draw(self, context):
         layout = self.layout
 
-        gpd = context.gpencil_data
-
         gpencil_active_brush_settings_simple(context, layout)
 
         layout.separator()
