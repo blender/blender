@@ -1424,7 +1424,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Clamp Layer", "Clamp any pixel outside underlying layers drawing");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* solo mode: Only display frames with keyframe */
   prop = RNA_def_property(srna, "use_solo_mode", PROP_BOOLEAN, PROP_NONE);
