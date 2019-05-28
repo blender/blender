@@ -95,6 +95,12 @@ bool DEG_id_type_any_updated(const Depsgraph *graph)
   return false;
 }
 
+bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type)
+{
+  const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+  return deg_graph->id_type_exist[BKE_idcode_to_index(id_type)] != 0;
+}
+
 uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 {
   if (graph == NULL) {

@@ -67,6 +67,9 @@ float DEG_get_ctime(const Depsgraph *graph);
 bool DEG_id_type_updated(const struct Depsgraph *depsgraph, short id_type);
 bool DEG_id_type_any_updated(const struct Depsgraph *depsgraph);
 
+/* Check if given ID type is present in the depsgraph */
+bool DEG_id_type_any_exists(const struct Depsgraph *depsgraph, short id_type);
+
 /* Get additional evaluation flags for the given ID. */
 uint32_t DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
 

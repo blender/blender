@@ -867,8 +867,6 @@ void RE_engine_free_blender_memory(RenderEngine *engine)
   /* Weak way to save memory, but not crash grease pencil.
    *
    * TODO(sergey): Find better solution for this.
-   * TODO(sergey): Try to find solution which does not involve looping over
-   * all the objects.
    */
   if (DRW_render_check_grease_pencil(engine->depsgraph)) {
     return;

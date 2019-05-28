@@ -152,6 +152,9 @@ struct Depsgraph {
   /* Indicates which ID types were updated. */
   char id_type_updated[MAX_LIBARRAY];
 
+  /* Indicates type of IDs present in the depsgraph. */
+  char id_type_exist[MAX_LIBARRAY];
+
   /* Quick-Access Temp Data ............. */
 
   /* Nodes which have been tagged as "directly modified". */
