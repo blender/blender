@@ -1020,19 +1020,21 @@ void GPENCIL_draw_scene(void *ved)
           GPU_framebuffer_bind(fbl->main);
         }
         /* tonemapping */
-        stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
-
+        stl->storage->tonemapping = is_render ? 1 : 0;
         /* active select flag and selection color */
+        if (!is_render) {
+          UI_GetThemeColorShadeAlpha4fv(
+              (ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT, 0, -40, stl->storage->select_color);
+        }
         stl->storage->do_select_outline = ((overlay) && (ob->base_flag & BASE_SELECTED) &&
                                            (ob->mode == OB_MODE_OBJECT) && (!is_render) &&
                                            (!playing) && (v3d->flag & V3D_SELECT_OUTLINE));
 
         /* if active object is not object mode, disable for all objects */
-        if ((draw_ctx->obact) && (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
+        if ((stl->storage->do_select_outline) && (draw_ctx->obact) &&
+            (draw_ctx->obact->mode != OB_MODE_OBJECT)) {
           stl->storage->do_select_outline = 0;
         }
-        UI_GetThemeColorShadeAlpha4fv(
-            (ob == draw_ctx->obact) ? TH_ACTIVE : TH_SELECT, 0, -40, stl->storage->select_color);
 
         /* draw mix pass */
         DRW_draw_pass(psl->mix_pass);
