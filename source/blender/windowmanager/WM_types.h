@@ -135,31 +135,39 @@ typedef struct wmGenericCallback {
 
 /* ************** wmOperatorType ************************ */
 
-/* flag */
+/** #wmOperatorType.flag */
 enum {
-  OPTYPE_REGISTER = (1 << 0), /* register operators in stack after finishing */
-  OPTYPE_UNDO = (1 << 1),     /* do undo push after after */
-  OPTYPE_BLOCKING = (1 << 2), /* let blender grab all input from the WM (X11) */
+  /** Register operators in stack after finishing (needed for redo). */
+  OPTYPE_REGISTER = (1 << 0),
+  /** Do an undo push after the operator runs. */
+  OPTYPE_UNDO = (1 << 1),
+  /** Let Blender grab all input from the WM (X11) */
+  OPTYPE_BLOCKING = (1 << 2),
   OPTYPE_MACRO = (1 << 3),
 
-  /* grabs the cursor and optionally enables continuous cursor wrapping. */
+  /** Grabs the cursor and optionally enables continuous cursor wrapping. */
   OPTYPE_GRAB_CURSOR_XY = (1 << 4),
-  OPTYPE_GRAB_CURSOR_X = (1 << 5), /* Only X axis. */
-  OPTYPE_GRAB_CURSOR_Y = (1 << 6), /* Only Y axis. */
+  /** Only warp on the X axis. */
+  OPTYPE_GRAB_CURSOR_X = (1 << 5),
+  /** Only warp on the Y axis. */
+  OPTYPE_GRAB_CURSOR_Y = (1 << 6),
 
-  OPTYPE_PRESET = (1 << 7), /* show preset menu */
+  /** Show preset menu. */
+  OPTYPE_PRESET = (1 << 7),
 
-  /* some operators are mainly for internal use
-   * and don't make sense to be accessed from the
-   * search menu, even if poll() returns true.
-   * currently only used for the search toolbox */
+  /**
+   * Some operators are mainly for internal use and don't make sense
+   * to be accessed from the search menu, even if poll() returns true.
+   * Currently only used for the search toolbox.
+   */
   OPTYPE_INTERNAL = (1 << 8),
 
-  OPTYPE_LOCK_BYPASS = (1 << 9), /* Allow operator to run when interface is locked */
-  OPTYPE_UNDO_GROUPED =
-      (1 << 10), /* Special type of undo which doesn't store itself multiple times */
-  OPTYPE_USE_EVAL_DATA =
-      (1 << 11), /* Need evaluated data (i.e. a valid, up-to-date depsgraph for current context) */
+  /** Allow operator to run when interface is locked. */
+  OPTYPE_LOCK_BYPASS = (1 << 9),
+  /** Special type of undo which doesn't store itself multiple times. */
+  OPTYPE_UNDO_GROUPED = (1 << 10),
+  /** Need evaluated data (i.e. a valid, up-to-date depsgraph for current context). */
+  OPTYPE_USE_EVAL_DATA = (1 << 11),
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */
