@@ -1509,9 +1509,16 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
 
 /* TODO(sergey): This actually should become view_layer_graph or so.
  * Same applies to update_for_newframe.
+ *
+ * If only_if_tagged is truth then the function will do nothing if the dependency graph is up
+ * to date already.
  */
-void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
+static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool only_if_tagged)
 {
+  if (only_if_tagged && DEG_is_fully_evaluated(depsgraph)) {
+    return;
+  }
+
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 
@@ -1546,6 +1553,16 @@ void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
   DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
   /* Clear recalc flags. */
   DEG_ids_clear_recalc(bmain, depsgraph);
+}
+
+void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
+{
+  scene_graph_update_tagged(depsgraph, bmain, false);
+}
+
+void BKE_scene_graph_evaluated_ensure(Depsgraph *depsgraph, Main *bmain)
+{
+  scene_graph_update_tagged(depsgraph, bmain, true);
 }
 
 /* applies changes right away, does all sets too */

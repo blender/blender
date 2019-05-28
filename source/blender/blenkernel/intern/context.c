@@ -1365,7 +1365,7 @@ Depsgraph *CTX_data_evaluated_depsgraph(const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Main *bmain = CTX_data_main(C);
-  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   return depsgraph;
 }
 
