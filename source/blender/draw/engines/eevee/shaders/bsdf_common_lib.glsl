@@ -793,9 +793,9 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
   Closure cl;
 
   if (cl1.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
-    cl1.ssr_normal = cl2.ssr_normal;
-    cl1.ssr_data = cl2.ssr_data;
-    cl1.ssr_id = cl2.ssr_id;
+    cl.ssr_normal = cl2.ssr_normal;
+    cl.ssr_data = cl2.ssr_data;
+    cl.ssr_id = cl2.ssr_id;
 #  ifdef USE_SSS
     cl1.sss_data = cl2.sss_data;
 #    ifdef USE_SSS_ALBEDO
@@ -803,10 +803,10 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 #    endif
 #  endif
   }
-  if (cl2.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
-    cl2.ssr_normal = cl1.ssr_normal;
-    cl2.ssr_data = cl1.ssr_data;
-    cl2.ssr_id = cl1.ssr_id;
+  else if (cl2.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
+    cl.ssr_normal = cl1.ssr_normal;
+    cl.ssr_data = cl1.ssr_data;
+    cl.ssr_id = cl1.ssr_id;
 #  ifdef USE_SSS
     cl2.sss_data = cl1.sss_data;
 #    ifdef USE_SSS_ALBEDO
@@ -814,13 +814,12 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 #    endif
 #  endif
   }
-
-  /* When mixing SSR don't blend roughness.
-   *
-   * It makes no sense to mix them really, so we take either one of them and
-   * tone down its specularity (ssr_data.xyz) while keeping its roughness (ssr_data.w).
-   */
-  if (cl1.ssr_id == outputSsrId) {
+  else if (cl1.ssr_id == outputSsrId) {
+    /* When mixing SSR don't blend roughness.
+     *
+     * It makes no sense to mix them really, so we take either one of them and
+     * tone down its specularity (ssr_data.xyz) while keeping its roughness (ssr_data.w).
+     */
     cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac);
     cl.ssr_normal = cl1.ssr_normal;
     cl.ssr_id = cl1.ssr_id;
