@@ -3052,6 +3052,8 @@ static void createTransEditVerts(TransInfo *t)
     if (modifiers_getCageIndex(t->scene, tc->obedit, NULL, 1) != -1) {
       int totleft = -1;
       if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
+        BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
+
         /* Use evaluated state because we need b-bone cache. */
         Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
         Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
@@ -9651,6 +9653,9 @@ void createTransData(bContext *C, TransInfo *t)
     has_transform_context = false;
   }
   else {
+    /* Needed for correct Object.obmat after duplication, see: T62135. */
+    BKE_scene_graph_evaluated_ensure(t->depsgraph, CTX_data_main(t->context));
+
     createTransObject(C, t);
     countAndCleanTransDataContainer(t);
     t->flag |= T_OBJECT;
