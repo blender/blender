@@ -283,7 +283,7 @@ typedef struct ThemeSpace {
   char cframe[4];
   char time_keyframe[4], time_gp_keyframe[4];
   char freestyle_edge_mark[4], freestyle_face_mark[4];
-  char scrubbing_background[4];
+  char time_scrub_background[4];
   char _pad5[4];
 
   char nurb_uline[4], nurb_vline[4];

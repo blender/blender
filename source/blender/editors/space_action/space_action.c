@@ -237,7 +237,7 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* scrubbing region */
-  ED_scrubbing_draw(ar, scene, saction->flag & SACTION_DRAWTIME, true);
+  ED_time_scrub_draw(ar, scene, saction->flag & SACTION_DRAWTIME, true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
@@ -281,7 +281,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *ar)
   }
 
   /* channel filter next to scrubbing area */
-  ED_channel_search_draw(C, ar, ac.ads);
+  ED_time_scrub_channel_search_draw(C, ar, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);

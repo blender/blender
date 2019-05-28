@@ -309,8 +309,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_GRID:
           cp = ts->grid;
           break;
-        case TH_SCRUBBING_BACKGROUND:
-          cp = ts->scrubbing_background;
+        case TH_TIME_SCRUB_BACKGROUND:
+          cp = ts->time_scrub_background;
           break;
         case TH_VIEW_OVERLAY:
           cp = ts->view_overlay;

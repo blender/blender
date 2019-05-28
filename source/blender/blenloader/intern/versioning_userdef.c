@@ -127,11 +127,11 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_sequencer.text);
     FROM_DEFAULT_V4_UCHAR(space_clip.text);
 
-    FROM_DEFAULT_V4_UCHAR(space_graph.scrubbing_background);
-    FROM_DEFAULT_V4_UCHAR(space_action.scrubbing_background);
-    FROM_DEFAULT_V4_UCHAR(space_nla.scrubbing_background);
-    FROM_DEFAULT_V4_UCHAR(space_sequencer.scrubbing_background);
-    FROM_DEFAULT_V4_UCHAR(space_clip.scrubbing_background);
+    FROM_DEFAULT_V4_UCHAR(space_graph.time_scrub_background);
+    FROM_DEFAULT_V4_UCHAR(space_action.time_scrub_background);
+    FROM_DEFAULT_V4_UCHAR(space_nla.time_scrub_background);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.time_scrub_background);
+    FROM_DEFAULT_V4_UCHAR(space_clip.time_scrub_background);
   }
 
   if (!USER_VERSION_ATLEAST(280, 67)) {

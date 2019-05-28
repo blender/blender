@@ -404,7 +404,7 @@ typedef enum eAnimFilter_Flags {
 
 /* channel heights */
 #define ACHANNEL_FIRST_TOP(ac) \
-  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_SCRUBBING_MARGIN_Y - ACHANNEL_SKIP)
+  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_TIME_SCRUB_MARGIN_Y - ACHANNEL_SKIP)
 #define ACHANNEL_HEIGHT(ac) (0.8f * (ac)->yscale_fac * U.widget_unit)
 #define ACHANNEL_SKIP (0.1f * U.widget_unit)
 #define ACHANNEL_STEP(ac) (ACHANNEL_HEIGHT(ac) + ACHANNEL_SKIP)
@@ -422,7 +422,7 @@ typedef enum eAnimFilter_Flags {
 
 /* NLA channel heights */
 #define NLACHANNEL_FIRST_TOP(ac) \
-  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_SCRUBBING_MARGIN_Y - NLACHANNEL_SKIP)
+  (UI_view2d_scale_get_y(&(ac)->ar->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLACHANNEL_SKIP)
 #define NLACHANNEL_HEIGHT(snla) \
   ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : (1.2f * U.widget_unit))
 #define NLACHANNEL_SKIP (0.1f * U.widget_unit)

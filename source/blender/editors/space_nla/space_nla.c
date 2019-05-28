@@ -205,7 +205,7 @@ static void nla_channel_region_draw(const bContext *C, ARegion *ar)
   }
 
   /* channel filter next to scrubbing area */
-  ED_channel_search_draw(C, ar, ac.ads);
+  ED_time_scrub_channel_search_draw(C, ar, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
@@ -290,7 +290,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
-  ED_scrubbing_draw(ar, scene, snla->flag & SNLA_DRAWTIME, true);
+  ED_time_scrub_draw(ar, scene, snla->flag & SNLA_DRAWTIME, true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);

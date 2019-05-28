@@ -1007,8 +1007,8 @@ static void clip_preview_region_init(wmWindowManager *wm, ARegion *ar)
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
   WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Scrubbing", SPACE_CLIP, RGN_TYPE_PREVIEW);
-  WM_event_add_keymap_handler_poll(&ar->handlers, keymap, ED_event_in_scrubbing_region);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Time Scrub", SPACE_CLIP, RGN_TYPE_PREVIEW);
+  WM_event_add_keymap_handler_poll(&ar->handlers, keymap, ED_time_scrub_event_in_region);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
   WM_event_add_keymap_handler_v2d_mask(&ar->handlers, keymap);
@@ -1048,7 +1048,7 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_scrubbing_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
+  ED_time_scrub_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);
@@ -1062,7 +1062,7 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
                   0,
                   15 * UI_DPI_FAC,
                   15 * UI_DPI_FAC,
-                  UI_DPI_FAC * ar->sizey - UI_SCRUBBING_MARGIN_Y);
+                  UI_DPI_FAC * ar->sizey - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__values(ar, v2d, &rect, TH_TEXT);
   }
 }
@@ -1102,7 +1102,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_scrubbing_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
+  ED_time_scrub_draw(ar, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* scrollers */
   scrollers = UI_view2d_scrollers_calc(v2d, NULL);

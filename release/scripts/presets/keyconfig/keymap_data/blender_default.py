@@ -1261,10 +1261,10 @@ def km_markers(params):
     return keymap
 
 
-def km_scrubbing(params):
+def km_time_scrub(params):
     items = []
     keymap = (
-        "Scrubbing",
+        "Time Scrub",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": items},
     )
@@ -1276,10 +1276,10 @@ def km_scrubbing(params):
 
     return keymap
 
-def km_scrubbing_clip(params):
+def km_time_scrub_clip(params):
     items = []
     keymap = (
-        "Clip Scrubbing",
+        "Clip Time Scrub",
         {"space_type": 'CLIP_EDITOR', "region_type": 'PREVIEW'},
         {"items": items},
     )
@@ -5760,8 +5760,8 @@ def generate_keymaps(params=None):
         km_view3d(params),
         km_mask_editing(params),
         km_markers(params),
-        km_scrubbing(params),
-        km_scrubbing_clip(params),
+        km_time_scrub(params),
+        km_time_scrub_clip(params),
         km_graph_editor_generic(params),
         km_graph_editor(params),
         km_image_generic(params),

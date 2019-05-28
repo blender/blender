@@ -314,7 +314,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
   UI_view2d_view_restore(C);
 
   /* time-scrubbing */
-  ED_scrubbing_draw(ar, scene, display_seconds, false);
+  ED_time_scrub_draw(ar, scene, display_seconds, false);
 
   /* scrollers */
   // FIXME: args for scrollers depend on the type of data being shown...
@@ -329,7 +329,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
                   0,
                   15 * UI_DPI_FAC,
                   15 * UI_DPI_FAC,
-                  UI_DPI_FAC * ar->sizey - UI_SCRUBBING_MARGIN_Y);
+                  UI_DPI_FAC * ar->sizey - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__values(ar, v2d, &rect, TH_SCROLL_TEXT);
   }
 }
@@ -376,7 +376,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
   }
 
   /* channel filter next to scrubbing area */
-  ED_channel_search_draw(C, ar, ac.ads);
+  ED_time_scrub_channel_search_draw(C, ar, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);

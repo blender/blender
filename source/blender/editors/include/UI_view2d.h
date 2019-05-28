@@ -260,6 +260,6 @@ void UI_view2d_smooth_view(struct bContext *C,
                            const int smooth_viewtx);
 
 #define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
-#define UI_SCRUBBING_MARGIN_Y (23 * UI_DPI_FAC)
+#define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)
 
 #endif /* __UI_VIEW2D_H__ */

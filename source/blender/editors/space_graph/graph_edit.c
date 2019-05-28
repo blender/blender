@@ -287,7 +287,7 @@ static int graphkeys_viewall(bContext *C,
   BLI_rctf_scale(&cur_new, 1.1f);
 
   /* Take regions into account, that could block the view. */
-  float pad_top = UI_SCRUBBING_MARGIN_Y;
+  float pad_top = UI_TIME_SCRUB_MARGIN_Y;
   float pad_bottom = 0;
   if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
     pad_bottom = UI_MARKER_MARGIN_Y;

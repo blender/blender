@@ -190,7 +190,7 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
      * also have the scrubbing area at the top.
      * So the scrollbar has to move down a bit. */
     if (scroll & V2D_SCROLL_VERTICAL_HANDLES) {
-      v2d->vert.ymax -= UI_SCRUBBING_MARGIN_Y;
+      v2d->vert.ymax -= UI_TIME_SCRUB_MARGIN_Y;
     }
 
     /* horizontal scroller */

@@ -35,7 +35,7 @@ struct bContext;
 struct wmOperatorType;
 
 /* channel heights */
-#define CHANNEL_FIRST (-UI_SCRUBBING_MARGIN_Y - CHANNEL_HEIGHT_HALF - CHANNEL_SKIP)
+#define CHANNEL_FIRST (-UI_TIME_SCRUB_MARGIN_Y - CHANNEL_HEIGHT_HALF - CHANNEL_SKIP)
 #define CHANNEL_HEIGHT (0.8f * U.widget_unit)
 #define CHANNEL_HEIGHT_HALF (0.4f * U.widget_unit)
 #define CHANNEL_SKIP (0.1f * U.widget_unit)

@@ -21,23 +21,23 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SCRUBBING_H__
-#define __ED_SCRUBBING_H__
+#ifndef __ED_TIME_SCRUB_UI_H__
+#define __ED_TIME_SCRUB_UI_H__
 
 struct View2DGrid;
 struct bContext;
 struct bDopeSheet;
 struct wmEvent;
 
-void ED_scrubbing_draw(const struct ARegion *ar,
-                       const struct Scene *scene,
-                       bool display_seconds,
-                       bool discrete_frames);
+void ED_time_scrub_draw(const struct ARegion *ar,
+                        const struct Scene *scene,
+                        bool display_seconds,
+                        bool discrete_frames);
 
-bool ED_event_in_scrubbing_region(const struct ARegion *ar, const struct wmEvent *event);
+bool ED_time_scrub_event_in_region(const struct ARegion *ar, const struct wmEvent *event);
 
-void ED_channel_search_draw(const struct bContext *C,
-                            struct ARegion *ar,
-                            struct bDopeSheet *dopesheet);
+void ED_time_scrub_channel_search_draw(const struct bContext *C,
+                                       struct ARegion *ar,
+                                       struct bDopeSheet *dopesheet);
 
-#endif /* __ED_SCRUBBING_H__ */
+#endif /* __ED_TIME_SCRUB_UI_H__ */

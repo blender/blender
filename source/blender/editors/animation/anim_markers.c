@@ -482,7 +482,7 @@ static void draw_markers_background(rctf *rect)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   unsigned char shade[4];
-  UI_GetThemeColor4ubv(TH_SCRUBBING_BACKGROUND, shade);
+  UI_GetThemeColor4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
 
   immUniformColor4ubv(shade);
 

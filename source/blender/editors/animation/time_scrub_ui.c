@@ -46,12 +46,12 @@
 
 #include "RNA_access.h"
 
-static void get_scrubbing_region_rect(const ARegion *ar, rcti *rect)
+static void get_time_scrub_region_rect(const ARegion *ar, rcti *rect)
 {
   rect->xmin = 0;
   rect->xmax = ar->winx;
   rect->ymax = ar->winy;
-  rect->ymin = rect->ymax - UI_SCRUBBING_MARGIN_Y;
+  rect->ymin = rect->ymax - UI_TIME_SCRUB_MARGIN_Y;
 }
 
 static int get_centered_text_y(const rcti *rect)
@@ -64,7 +64,7 @@ static void draw_background(const rcti *rect)
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  immUniformThemeColor(TH_SCRUBBING_BACKGROUND);
+  immUniformThemeColor(TH_TIME_SCRUB_BACKGROUND);
 
   GPU_blend(true);
   GPU_blend_set_func_separate(
@@ -91,7 +91,7 @@ static void get_current_time_str(
 static void draw_current_frame(const Scene *scene,
                                bool display_seconds,
                                const View2D *v2d,
-                               const rcti *scrubbing_region_rect,
+                               const rcti *scrub_region_rect,
                                int current_frame)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
@@ -111,9 +111,9 @@ static void draw_current_frame(const Scene *scene,
 
   UI_draw_roundbox_3fvAlpha(true,
                             frame_x - box_width / 2 + U.pixelsize / 2,
-                            scrubbing_region_rect->ymin + box_padding,
+                            scrub_region_rect->ymin + box_padding,
                             frame_x + box_width / 2 + U.pixelsize / 2,
-                            scrubbing_region_rect->ymax - box_padding,
+                            scrub_region_rect->ymax - box_padding,
                             4 * UI_DPI_FAC,
                             bg_color,
                             1.0f);
@@ -121,36 +121,36 @@ static void draw_current_frame(const Scene *scene,
   UI_GetThemeColorShade4fv(TH_CFRAME, 5, bg_color);
   UI_draw_roundbox_aa(false,
                       frame_x - box_width / 2 + U.pixelsize / 2,
-                      scrubbing_region_rect->ymin + box_padding,
+                      scrub_region_rect->ymin + box_padding,
                       frame_x + box_width / 2 + U.pixelsize / 2,
-                      scrubbing_region_rect->ymax - box_padding,
+                      scrub_region_rect->ymax - box_padding,
                       4 * UI_DPI_FAC,
                       bg_color);
 
   UI_fontstyle_draw_simple(fstyle,
                            frame_x - text_width / 2 + U.pixelsize / 2,
-                           get_centered_text_y(scrubbing_region_rect),
+                           get_centered_text_y(scrub_region_rect),
                            frame_str,
                            color);
 }
 
-void ED_scrubbing_draw(const ARegion *ar,
-                       const Scene *scene,
-                       bool display_seconds,
-                       bool discrete_frames)
+void ED_time_scrub_draw(const ARegion *ar,
+                        const Scene *scene,
+                        bool display_seconds,
+                        bool discrete_frames)
 {
   const View2D *v2d = &ar->v2d;
 
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(ar);
 
-  rcti scrubbing_region_rect;
-  get_scrubbing_region_rect(ar, &scrubbing_region_rect);
+  rcti scrub_region_rect;
+  get_time_scrub_region_rect(ar, &scrub_region_rect);
 
-  draw_background(&scrubbing_region_rect);
+  draw_background(&scrub_region_rect);
 
-  rcti numbers_rect = scrubbing_region_rect;
-  numbers_rect.ymin = get_centered_text_y(&scrubbing_region_rect) - 4 * UI_DPI_FAC;
+  rcti numbers_rect = scrub_region_rect;
+  numbers_rect.ymin = get_centered_text_y(&scrub_region_rect) - 4 * UI_DPI_FAC;
   if (discrete_frames) {
     UI_view2d_draw_scale_x__discrete_frames_or_seconds(
         ar, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
@@ -160,19 +160,19 @@ void ED_scrubbing_draw(const ARegion *ar,
         ar, v2d, &numbers_rect, scene, display_seconds, TH_TEXT);
   }
 
-  draw_current_frame(scene, display_seconds, v2d, &scrubbing_region_rect, scene->r.cfra);
+  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra);
 
   GPU_matrix_pop_projection();
 }
 
-bool ED_event_in_scrubbing_region(const ARegion *ar, const wmEvent *event)
+bool ED_time_scrub_event_in_region(const ARegion *ar, const wmEvent *event)
 {
   rcti rect = ar->winrct;
-  rect.ymin = rect.ymax - UI_SCRUBBING_MARGIN_Y;
+  rect.ymin = rect.ymax - UI_TIME_SCRUB_MARGIN_Y;
   return BLI_rcti_isect_pt(&rect, event->x, event->y);
 }
 
-void ED_channel_search_draw(const bContext *C, ARegion *ar, bDopeSheet *dopesheet)
+void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *ar, bDopeSheet *dopesheet)
 {
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(ar);
@@ -180,7 +180,7 @@ void ED_channel_search_draw(const bContext *C, ARegion *ar, bDopeSheet *dopeshee
   rcti rect;
   rect.xmin = 0;
   rect.xmax = ceilf(ar->sizex * UI_DPI_FAC);
-  rect.ymin = ar->sizey * UI_DPI_FAC - UI_SCRUBBING_MARGIN_Y;
+  rect.ymin = ar->sizey * UI_DPI_FAC - UI_TIME_SCRUB_MARGIN_Y;
   rect.ymax = ceilf(ar->sizey * UI_DPI_FAC);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
