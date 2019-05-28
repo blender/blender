@@ -277,7 +277,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       return node_identifier;
     }
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
+  else if (RNA_struct_is_a(ptr->type, &RNA_Modifier) ||
+           RNA_struct_is_a(ptr->type, &RNA_GpencilModifier)) {
     /* When modifier is used as FROM operation this is likely referencing to
      * the property (for example, modifier's influence).
      * But when it's used as TO operation, this is geometry component. */
