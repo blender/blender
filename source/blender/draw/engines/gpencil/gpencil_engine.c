@@ -947,7 +947,7 @@ void GPENCIL_draw_scene(void *ved)
         bool use_blend = false;
         if (cache_ob->tot_layers > 0) {
           for (int e = 0; e < cache_ob->tot_layers; e++) {
-            bool is_last = e == cache_ob->tot_layers - 1 ? true : false;
+            bool is_last = (e == cache_ob->tot_layers - 1) ? true : false;
             array_elm = &cache_ob->shgrp_array[e];
 
             if (((array_elm->mode == eGplBlendMode_Normal) && (!use_blend) &&
