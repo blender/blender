@@ -1313,8 +1313,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
 
   std::sort(frames.begin(), frames.end());
 
-  float qref[4];
-  unit_qt(qref);
+  BCQuat qref;
 
   std::vector<float>::iterator it;
 
@@ -1322,8 +1321,8 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
   for (it = frames.begin(); it != frames.end(); it++) {
     float fra = *it;
 
-    float mat[4][4];
-    float matfra[4][4];
+    Matrix mat;
+    Matrix matfra;
 
     unit_m4(matfra);
 
@@ -1335,7 +1334,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
      * where R, iR are bone rest and inverse rest mats in world space (Blender bones),
      * iR_dae is joint inverse rest matrix (DAE)
      * and M is an evaluated joint world-space matrix (DAE). */
-    float temp[4][4], par[4][4];
+    Matrix temp, par;
 
     /* calc M */
     calc_joint_parent_mat_rest(par, NULL, root, node);
@@ -1346,10 +1345,9 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     /* calc special matrix */
     mul_m4_series(mat, irest, temp, irest_dae, rest);
 
-    float rot[4], loc[3], scale[3];
+    Vector loc, scale;
 
-    bc_rotate_from_reference_quat(rot, qref, mat);
-    copy_qt_qt(qref, rot);
+    qref.rotate_to(mat);
 
     copy_v3_v3(loc, mat[3]);
     mat4_to_size(scale, mat);
@@ -1357,8 +1355,8 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     /* add keys */
     for (int i = 0; i < totcu; i++) {
       if (i < 4) {
-        add_bezt(newcu[i], fra, rot[i]);
-      }
+        add_bezt(newcu[i], fra, qref.quat()[i]);
+	  }
       else if (i < 7) {
         add_bezt(newcu[i], fra, loc[i - 4]);
       }

@@ -27,7 +27,6 @@
 
 static BC_export_transformation_type get_transformation_type(BCExportSettings &export_settings)
 {
-  BC_export_transformation_type transformation_type;
   bool enforce_matrix_export = export_settings.get_include_animations();
 
   return (enforce_matrix_export) ? BC_TRANSFORMATION_TYPE_MATRIX :
@@ -37,7 +36,6 @@ static BC_export_transformation_type get_transformation_type(BCExportSettings &e
 static BC_export_transformation_type get_transformation_type(Object *ob,
                                                              BCExportSettings &export_settings)
 {
-  BC_export_transformation_type transformation_type;
   bool enforce_matrix_export = ob->type == OB_ARMATURE && export_settings.get_include_animations();
 
   return (enforce_matrix_export) ? BC_TRANSFORMATION_TYPE_MATRIX :

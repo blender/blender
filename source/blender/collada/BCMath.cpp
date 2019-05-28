@@ -20,6 +20,24 @@
 #include "BCMath.h"
 #include "BlenderContext.h"
 
+void BCQuat::rotate_to(Matrix &mat_to)
+{
+  Quat qd;
+  Matrix matd;
+  Matrix mati;
+  Matrix mat_from;
+
+  quat_to_mat4(mat_from, q);
+
+  /* Calculate the difference matrix matd between mat_from and mat_to */
+  invert_m4_m4(mati, mat_from);
+  mul_m4_m4m4(matd, mati, mat_to);
+
+  mat4_to_quat(qd, matd);
+
+  mul_qt_qtqt(q, qd, q); /* rotate to the final rotation to mat_to */
+}
+
 BCMatrix::BCMatrix(const BCMatrix &mat)
 {
   set_transform(mat.matrix);
