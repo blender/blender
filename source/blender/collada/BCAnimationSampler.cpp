@@ -25,6 +25,7 @@
 #include "BCAnimationCurve.h"
 #include "BCAnimationSampler.h"
 #include "collada_utils.h"
+#include "BCMath.h"
 
 extern "C" {
 #include "BKE_action.h"
