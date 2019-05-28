@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#include "BCMatrix.h"
-#include "BLI_math.h"
+#include "BCMath.h"
 #include "BlenderContext.h"
 #include "collada_utils.h"
 

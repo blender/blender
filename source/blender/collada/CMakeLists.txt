@@ -63,7 +63,7 @@ set(SRC
   ArmatureImporter.cpp
   BCAnimationCurve.cpp
   BCAnimationSampler.cpp
-  BCMatrix.cpp
+  BCMath.cpp
   BCSampleData.cpp
   BlenderContext.cpp
   CameraExporter.cpp
@@ -98,7 +98,7 @@ set(SRC
   ArmatureImporter.h
   BCAnimationCurve.h
   BCAnimationSampler.h
-  BCMatrix.h
+  BCMath.h
   BCSampleData.h
   BlenderContext.h
   BlenderTypes.h

@@ -22,8 +22,11 @@
 #define __BCMATRIX_H__
 
 #include "BlenderTypes.h"
+
+extern "C" {
 #include "BKE_object.h"
 #include "BLI_math.h"
+}
 
 class BCQuat {
  private:

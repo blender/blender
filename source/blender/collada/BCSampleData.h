@@ -26,7 +26,7 @@
 
 #include "ExportSettings.h"
 #include "BCSampleData.h"
-#include "BCMatrix.h"
+#include "BCMath.h"
 
 extern "C" {
 #include "BKE_object.h"
