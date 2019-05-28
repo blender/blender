@@ -352,12 +352,15 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_int_copy(grp, "size", 8);
     DRW_shgroup_call(grp, quad, NULL);
 
-    float mat[4][4];
-    unit_m4(mat);
+    float viewmat[4][4], winmat[4][4];
+    unit_m4(viewmat);
+    unit_m4(winmat);
+    /* Winmat must be negative. */
+    swap_v3_v3(winmat[0], winmat[1]);
 
     /* Using default view bypasses the culling. */
     const DRWView *default_view = DRW_view_default_get();
-    effects->checker_view = DRW_view_create_sub(default_view, mat, mat);
+    effects->checker_view = DRW_view_create_sub(default_view, viewmat, winmat);
   }
 }
 
