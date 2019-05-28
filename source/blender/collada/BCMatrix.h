@@ -14,15 +14,45 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-  /** \file
-   * \ingroup collada
-   */
+/** \file
+ * \ingroup collada
+ */
 
 #ifndef __BCMATRIX_H__
 #define __BCMATRIX_H__
 
 #include "BlenderTypes.h"
 #include "BKE_object.h"
+#include "BLI_math.h"
+
+class BCQuat {
+ private:
+  mutable Quat q;
+
+  void unit();
+  void copy(Quat &r, Quat &a);
+
+ public:
+  BCQuat(const BCQuat &other)
+  {
+    copy_v4_v4(q, other.q);
+  }
+
+  BCQuat(Quat &other)
+  {
+    copy_v4_v4(q, other);
+  }
+
+  BCQuat()
+  {
+    unit_qt(q);
+  }
+
+  Quat &quat()
+  {
+    return q;
+  }
+};
 
 class BCMatrix {
 
