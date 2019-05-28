@@ -1401,7 +1401,7 @@ static void move_profile_plane(BoundVert *bndv, BMVert *bmv)
       normalize_v3(no3) > BEVEL_EPSILON_BIG) {
     dot2 = dot_v3v3(no, no2);
     dot3 = dot_v3v3(no, no3);
-     if (fabsf(dot2) < (1 - BEVEL_EPSILON_BIG) && fabsf(dot3) < (1 - BEVEL_EPSILON_BIG)) {
+    if (fabsf(dot2) < (1 - BEVEL_EPSILON_BIG) && fabsf(dot3) < (1 - BEVEL_EPSILON_BIG)) {
       copy_v3_v3(bndv->profile.plane_no, no);
     }
   }
