@@ -1512,12 +1512,11 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
         else
         {
           obn->mat[a] = ID_NEW_SET(obn->mat[a], BKE_material_copy(bmain, obn->mat[a]));
+          if (dupflag & USER_DUP_ACT) {
+            BKE_animdata_copy_id_action(bmain, &obn->mat[a]->id, true);
+          }
         }
         id_us_min(id);
-
-        if (dupflag & USER_DUP_ACT) {
-          BKE_animdata_copy_id_action(bmain, &obn->mat[a]->id, true);
-        }
       }
     }
   }
@@ -1530,12 +1529,10 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
         else
         {
           psys->part = ID_NEW_SET(psys->part, BKE_particlesettings_copy(bmain, psys->part));
+          if (dupflag & USER_DUP_ACT) {
+            BKE_animdata_copy_id_action(bmain, &psys->part->id, true);
+          }
         }
-
-        if (dupflag & USER_DUP_ACT) {
-          BKE_animdata_copy_id_action(bmain, &psys->part->id, true);
-        }
-
         id_us_min(id);
       }
     }
@@ -1712,6 +1709,9 @@ Object *BKE_object_duplicate(Main *bmain, const Object *ob, const int dupflag)
             else
             {
               (*matarar)[a] = ID_NEW_SET((*matarar)[a], BKE_material_copy(bmain, (*matarar)[a]));
+              if (dupflag & USER_DUP_ACT) {
+                BKE_animdata_copy_id_action(bmain, &(*matarar)[a]->id, true);
+              }
             }
             id_us_min(id);
           }

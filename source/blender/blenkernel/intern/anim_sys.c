@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_nla.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
 
@@ -364,6 +365,10 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id, const bool set_newid)
       adt->tmpact = set_newid ? ID_NEW_SET(adt->tmpact, BKE_action_copy(bmain, adt->tmpact)) :
                                 BKE_action_copy(bmain, adt->tmpact);
     }
+  }
+  bNodeTree *ntree = ntreeFromID(id);
+  if (ntree) {
+    BKE_animdata_copy_id_action(bmain, &ntree->id, set_newid);
   }
 }
 
