@@ -116,6 +116,11 @@ bool DEG_is_original_object(struct Object *object);
 bool DEG_is_evaluated_id(struct ID *id);
 bool DEG_is_evaluated_object(struct Object *object);
 
+/* Check whether depsgraph os fully evaluated. This includes the following checks:
+ * - Relations are up-to-date.
+ * - Nothing is tagged for update. */
+bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph);
+
 /* ************************ DEG object iterators ********************* */
 
 enum {

@@ -29,12 +29,14 @@ extern "C" {
 #include <string.h>  // XXX: memcpy
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_ghash.h"
+
+#include "BKE_action.h"  // XXX: BKE_pose_channel_find_name
 #include "BKE_customdata.h"
 #include "BKE_idcode.h"
 #include "BKE_main.h"
-#include "BLI_listbase.h"
 
-#include "BKE_action.h"  // XXX: BKE_pose_channel_from_name
 } /* extern "C" */
 
 #include "DNA_object_types.h"
@@ -302,4 +304,18 @@ bool DEG_is_evaluated_id(ID *id)
 bool DEG_is_evaluated_object(Object *object)
 {
   return !DEG_is_original_object(object);
+}
+
+bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph)
+{
+  const DEG::Depsgraph *deg_graph = (const DEG::Depsgraph *)depsgraph;
+  /* Check whether relations are up to date. */
+  if (deg_graph->need_update) {
+    return false;
+  }
+  /* Check whether IDs are up to date. */
+  if (BLI_gset_len(deg_graph->entry_tags) > 0) {
+    return false;
+  }
+  return true;
 }
