@@ -168,13 +168,47 @@ int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
   }
 }
 
-wmGizmo *wm_gizmogroup_find_intersected_gizmo(const wmGizmoGroup *gzgroup,
+static bool wm_gizmo_keymap_uses_event_modifier(wmWindowManager *wm,
+                                                const wmGizmoGroup *gzgroup,
+                                                wmGizmo *gz,
+                                                const int event_modifier,
+                                                int *r_gzgroup_keymap_uses_modifier)
+{
+  if (gz->keymap) {
+    wmKeyMap *keymap = WM_keymap_active(wm, gz->keymap);
+    if (!WM_keymap_uses_event_modifier(keymap, event_modifier)) {
+      return false;
+    }
+  }
+  else if (gzgroup->type->keymap) {
+    if (*r_gzgroup_keymap_uses_modifier == -1) {
+      wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
+      *r_gzgroup_keymap_uses_modifier = WM_keymap_uses_event_modifier(keymap, event_modifier);
+    }
+    if (*r_gzgroup_keymap_uses_modifier == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
+                                              const wmGizmoGroup *gzgroup,
                                               bContext *C,
+                                              const int event_modifier,
                                               const int mval[2],
                                               int *r_part)
 {
+  int gzgroup_keymap_uses_modifier = -1;
+
   for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
     if (gz->type->test_select && (gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
+
+      if (!wm_gizmo_keymap_uses_event_modifier(
+              wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+        continue;
+      }
+
       if ((*r_part = gz->type->test_select(C, gz, mval)) != -1) {
         return gz;
       }
@@ -188,14 +222,23 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(const wmGizmoGroup *gzgroup,
  * Adds all gizmos of \a gzgroup that can be selected to the head of \a listbase.
  * Added items need freeing!
  */
-void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup,
+void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
+                                                const wmGizmoGroup *gzgroup,
+                                                const int event_modifier,
                                                 BLI_Buffer *visible_gizmos)
 {
+  int gzgroup_keymap_uses_modifier = -1;
   for (wmGizmo *gz = gzgroup->gizmos.last; gz; gz = gz->prev) {
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||
           ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select)) {
+
+        if (!wm_gizmo_keymap_uses_event_modifier(
+                wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+          continue;
+        }
+
         BLI_buffer_append(visible_gizmos, wmGizmo *, gz);
       }
     }

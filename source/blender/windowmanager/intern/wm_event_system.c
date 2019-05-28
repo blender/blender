@@ -732,6 +732,24 @@ void WM_operator_region_active_win_set(bContext *C)
   }
 }
 
+int WM_event_modifier_flag(const wmEvent *event)
+{
+  int flag = 0;
+  if (event->ctrl) {
+    flag |= KM_CTRL;
+  }
+  if (event->alt) {
+    flag |= KM_ALT;
+  }
+  if (event->shift) {
+    flag |= KM_SHIFT;
+  }
+  if (event->oskey) {
+    flag |= KM_OSKEY;
+  }
+  return flag;
+}
+
 /* for debugging only, getting inspecting events manually is tedious */
 void WM_event_print(const wmEvent *event)
 {
@@ -2724,14 +2742,16 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         /* Drag events use the previous click location to highlight the gizmos,
          * Get the highlight again in case the user dragged off the gizmo. */
         const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+        const bool is_event_modifier = ISKEYMODIFIER(event->type);
 
         bool handle_highlight = false;
         bool handle_keymap = false;
 
         /* handle gizmo highlighting */
-        if (!wm_gizmomap_modal_get(gzmap) && ((event->type == MOUSEMOVE) || is_event_drag)) {
+        if (!wm_gizmomap_modal_get(gzmap) &&
+            ((event->type == MOUSEMOVE) || is_event_modifier || is_event_drag)) {
           handle_highlight = true;
-          if (is_event_drag) {
+          if (is_event_modifier || is_event_drag) {
             handle_keymap = true;
           }
         }

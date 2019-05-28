@@ -679,6 +679,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
                                     const wmEvent *event,
                                     int *r_part)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmGizmo *gz = NULL;
   BLI_buffer_declare_static(wmGizmo *, visible_3d_gizmos, BLI_BUFFER_NOP, 128);
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
@@ -695,6 +696,8 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
   for (int i = 0; i < ARRAY_SIZE(do_step); i++) {
     do_step[i] = WM_gizmo_context_check_drawstep(C, i);
   }
+
+  const int event_modifier = WM_event_modifier_flag(event);
 
   for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
 
@@ -721,10 +724,12 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
           /* cleared below */
         }
         if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
-          wm_gizmogroup_intersectable_gizmos_to_list(gzgroup, &visible_3d_gizmos);
+          wm_gizmogroup_intersectable_gizmos_to_list(
+              wm, gzgroup, event_modifier, &visible_3d_gizmos);
         }
         else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
-          if ((gz = wm_gizmogroup_find_intersected_gizmo(gzgroup, C, mval, r_part))) {
+          if ((gz = wm_gizmogroup_find_intersected_gizmo(
+                   wm, gzgroup, C, event_modifier, mval, r_part))) {
             break;
           }
         }

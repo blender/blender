@@ -61,11 +61,15 @@ struct wmGizmoGroup *wm_gizmogroup_new_from_type(struct wmGizmoMap *gzmap,
                                                  struct wmGizmoGroupType *gzgt);
 void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *gzgroup);
 void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz);
-struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(const struct wmGizmoGroup *gzgroup,
+struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
+                                                     const struct wmGizmoGroup *gzgroup,
                                                      struct bContext *C,
+                                                     const int event_modifier,
                                                      const int mval[2],
                                                      int *r_part);
-void wm_gizmogroup_intersectable_gizmos_to_list(const struct wmGizmoGroup *gzgroup,
+void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
+                                                const struct wmGizmoGroup *gzgroup,
+                                                const int event_modifier,
                                                 struct BLI_Buffer *visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const struct wmGizmoGroup *gzgroup,
                                           const eWM_GizmoFlagMapDrawStep drawstep);

@@ -599,6 +599,7 @@ bool WM_gesture_is_modal_first(const struct wmGesture *gesture);
 /* fileselecting support */
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int eventval);
+int WM_event_modifier_flag(const struct wmEvent *event);
 void WM_event_print(const struct wmEvent *event);
 
 void WM_operator_region_active_win_set(struct bContext *C);
