@@ -675,7 +675,7 @@ wmKeyMap *WM_gizmogroup_keymap_generic(const wmGizmoGroupType *UNUSED(gzgt), wmK
       .spaceid = SPACE_EMPTY,
       .regionid = RGN_TYPE_WINDOW,
   };
-  return WM_gizmogroup_keymap_template_ex(config, "Generic Gizmos", &params);
+  return WM_gizmogroup_keymap_template_ex(config, "Generic Gizmo", &params);
 }
 
 /**
@@ -737,7 +737,7 @@ wmKeyMap *WM_gizmogroup_keymap_generic_select(const wmGizmoGroupType *UNUSED(gzg
       .spaceid = SPACE_EMPTY,
       .regionid = RGN_TYPE_WINDOW,
   };
-  return WM_gizmogroup_keymap_template_select_ex(config, "Generic Gizmos Select", &params);
+  return WM_gizmogroup_keymap_template_select_ex(config, "Generic Gizmo Select", &params);
 }
 
 /** \} */ /* wmGizmoGroup */

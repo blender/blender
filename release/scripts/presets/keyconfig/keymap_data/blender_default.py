@@ -4704,9 +4704,9 @@ def km_paint_stroke_modal(_params):
 
 
 # Fallback for gizmos that don't have custom a custom key-map.
-def km_generic_gizmos(_params):
+def km_generic_gizmo(_params):
     keymap = (
-        "Generic Gizmos",
+        "Generic Gizmo",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": _template_items_gizmo_tweak_value()},
     )
@@ -4714,9 +4714,9 @@ def km_generic_gizmos(_params):
     return keymap
 
 
-def km_generic_gizmos_click_drag(_params):
+def km_generic_gizmo_click_drag(_params):
     keymap = (
-        "Generic Gizmos Click Drag",
+        "Generic Gizmo Click Drag",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": _template_items_gizmo_tweak_value_click_drag()},
     )
@@ -4724,9 +4724,9 @@ def km_generic_gizmos_click_drag(_params):
     return keymap
 
 
-def km_generic_gizmos_select(_params):
+def km_generic_gizmo_select(_params):
     keymap = (
-        "Generic Gizmos Select",
+        "Generic Gizmo Select",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         # TODO, currently in C code.
         {"items": _template_items_gizmo_tweak_value()},
@@ -4735,7 +4735,7 @@ def km_generic_gizmos_select(_params):
     return keymap
 
 
-def km_generic_gizmos_tweak_modal_map(_params):
+def km_generic_gizmo_tweak_modal_map(_params):
     keymap = (
         "Generic Gizmo Tweak Modal Map",
         {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
@@ -5841,10 +5841,10 @@ def generate_keymaps(params=None):
         km_paint_stroke_modal(params),
 
         # Gizmos.
-        km_generic_gizmos(params),
-        km_generic_gizmos_click_drag(params),
-        km_generic_gizmos_select(params),
-        km_generic_gizmos_tweak_modal_map(params),
+        km_generic_gizmo(params),
+        km_generic_gizmo_click_drag(params),
+        km_generic_gizmo_select(params),
+        km_generic_gizmo_tweak_modal_map(params),
 
         # Pop-Up Keymaps.
         km_popup_toolbar(params),

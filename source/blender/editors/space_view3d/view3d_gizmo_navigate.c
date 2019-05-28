@@ -229,7 +229,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     /* When dragging an axis, use this instead. */
     wmWindowManager *wm = CTX_wm_manager(C);
     gz->keymap = WM_keymap_ensure(
-        wm->defaultconf, "Generic Gizmos Click Drag", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        wm->defaultconf, "Generic Gizmo Click Drag", SPACE_EMPTY, RGN_TYPE_WINDOW);
     gz->drag_part = 0;
   }
 
