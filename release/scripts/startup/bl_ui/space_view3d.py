@@ -5576,9 +5576,9 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
             sub.prop(tool_settings, "vertex_group_user", expand=True)
 
         if shading.type == 'WIREFRAME':
-            xray = shading.show_xray_wireframe and shading.xray_alpha_wireframe < 1.0 
+            xray = shading.show_xray_wireframe and shading.xray_alpha_wireframe < 1.0
         elif shading.type == 'SOLID':
-            xray = shading.show_xray and shading.xray_alpha < 1.0 
+            xray = shading.show_xray and shading.xray_alpha < 1.0
         else:
             xray = False
         statvis_active = not xray
