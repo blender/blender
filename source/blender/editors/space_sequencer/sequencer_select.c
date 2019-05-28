@@ -937,6 +937,22 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 }
 
 /* ****** Box Select ****** */
+static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Scene *scene = CTX_data_scene(C);
+  View2D *v2d = &CTX_wm_region(C)->v2d;
+
+  const bool tweak = RNA_boolean_get(op->ptr, "tweak");
+
+  int dummy;
+  Sequence *seq = find_nearest_seq(scene, v2d, &dummy, event->mval);
+  if (tweak && seq != NULL) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 void SEQUENCER_OT_select_box(wmOperatorType *ot)
 {
   /* identifiers */
@@ -945,7 +961,7 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   ot->description = "Select strips using box selection";
 
   /* api callbacks */
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = sequencer_box_select_invoke;
   ot->exec = sequencer_box_select_exec;
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
@@ -958,6 +974,10 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
+
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ****** Selected Grouped ****** */
