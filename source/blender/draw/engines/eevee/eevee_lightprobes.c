@@ -398,7 +398,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
       DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 
-      DRW_shgroup_call_procedural_triangles(grp, cube_len * 2, NULL);
+      DRW_shgroup_call_procedural_triangles(grp, NULL, cube_len * 2);
     }
 
     /* Grid Display */
@@ -424,7 +424,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
         DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
         DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
         int tri_count = egrid->resolution[0] * egrid->resolution[1] * egrid->resolution[2] * 2;
-        DRW_shgroup_call_procedural_triangles(shgrp, tri_count, NULL);
+        DRW_shgroup_call_procedural_triangles(shgrp, NULL, tri_count);
       }
     }
 
@@ -787,7 +787,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
     DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
     DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
-    DRW_shgroup_call_procedural_triangles(grp, pinfo->num_planar, NULL);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, pinfo->num_planar);
   }
 }
 

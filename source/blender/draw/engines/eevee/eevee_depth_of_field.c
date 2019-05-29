@@ -217,7 +217,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
     DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 2);
 
-    DRW_shgroup_call_procedural_triangles(grp, sprite_len, NULL);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, sprite_len);
 
     DRW_PASS_CREATE(psl->dof_resolve, DRW_STATE_WRITE_COLOR);
 

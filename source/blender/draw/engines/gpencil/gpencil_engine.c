@@ -680,7 +680,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
         copy_v3_v3(grid_matrix[3], ob->obmat[3]);
       }
 
-      DRW_shgroup_call(stl->g_data->shgrps_grid, e_data.batch_grid, grid_matrix);
+      DRW_shgroup_call_obmat(stl->g_data->shgrps_grid, e_data.batch_grid, grid_matrix);
     }
   }
 }

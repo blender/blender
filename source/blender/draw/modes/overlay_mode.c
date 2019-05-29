@@ -354,7 +354,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
   if (DRW_object_is_renderable(ob) && pd->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
     if (geom) {
-      DRW_shgroup_call_object(pd->face_orientation_shgrp, geom, ob);
+      DRW_shgroup_call(pd->face_orientation_shgrp, geom, ob);
     }
   }
 
@@ -369,7 +369,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
       }
       else {
         if ((*dupli_data)->shgrp && (*dupli_data)->geom) {
-          DRW_shgroup_call_object((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
+          DRW_shgroup_call((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
         }
         return;
       }
@@ -424,7 +424,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
           DRW_shgroup_call_sculpt(shgrp, ob, true, false, false);
         }
         else {
-          DRW_shgroup_call_object(shgrp, geom, ob);
+          DRW_shgroup_call(shgrp, geom, ob);
         }
       }
 

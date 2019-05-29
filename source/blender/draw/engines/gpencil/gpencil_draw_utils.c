@@ -1705,6 +1705,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
       break;
     }
 
+    float(*obmat)[4] = (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat : cache_ob->obmat;
     switch (elm->type) {
       case eGpencilBatchGroupType_Stroke: {
         const int len = elm->vertex_idx - start_stroke;
@@ -1723,12 +1724,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                   scale,
                                                   cache_ob->shading_type);
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range(shgrp,
-                                 cache->b_stroke.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
-                                                          cache_ob->obmat,
-                                 start_stroke,
-                                 len);
+          DRW_shgroup_call_range_obmat(shgrp, cache->b_stroke.batch, obmat, start_stroke, len);
         }
         stl->storage->shgroup_id++;
         start_stroke = elm->vertex_idx;
@@ -1752,12 +1748,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                  cache_ob->shading_type);
 
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range(shgrp,
-                                 cache->b_point.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
-                                                          cache_ob->obmat,
-                                 start_point,
-                                 len);
+          DRW_shgroup_call_range_obmat(shgrp, cache->b_point.batch, obmat, start_point, len);
         }
         stl->storage->shgroup_id++;
         start_point = elm->vertex_idx;
@@ -1778,12 +1769,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                                 cache_ob->shading_type);
 
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range(shgrp,
-                                 cache->b_fill.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
-                                                          cache_ob->obmat,
-                                 start_fill,
-                                 len);
+          DRW_shgroup_call_range_obmat(shgrp, cache->b_fill.batch, obmat, start_fill, len);
         }
         stl->storage->shgroup_id++;
         start_fill = elm->vertex_idx;
@@ -1793,12 +1779,8 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if (stl->g_data->shgrps_edit_point) {
           const int len = elm->vertex_idx - start_edit;
           /* use always the same group */
-          DRW_shgroup_call_range(stl->g_data->shgrps_edit_point,
-                                 cache->b_edit.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
-                                                          cache_ob->obmat,
-                                 start_edit,
-                                 len);
+          DRW_shgroup_call_range_obmat(
+              stl->g_data->shgrps_edit_point, cache->b_edit.batch, obmat, start_edit, len);
 
           start_edit = elm->vertex_idx;
         }
@@ -1808,12 +1790,8 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if (stl->g_data->shgrps_edit_line) {
           const int len = elm->vertex_idx - start_edlin;
           /* use always the same group */
-          DRW_shgroup_call_range(stl->g_data->shgrps_edit_line,
-                                 cache->b_edlin.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
-                                                          cache_ob->obmat,
-                                 start_edlin,
-                                 len);
+          DRW_shgroup_call_range_obmat(
+              stl->g_data->shgrps_edit_line, cache->b_edlin.batch, obmat, start_edlin, len);
 
           start_edlin = elm->vertex_idx;
         }

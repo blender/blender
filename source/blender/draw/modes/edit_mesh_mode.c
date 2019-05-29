@@ -663,17 +663,17 @@ static void edit_mesh_add_ob_to_pass(Scene *scene,
 
   geom_tris = DRW_mesh_batch_cache_get_edit_triangles(ob->data);
   geom_edges = DRW_mesh_batch_cache_get_edit_edges(ob->data);
-  DRW_shgroup_call(edge_shgrp, geom_edges, ob->obmat);
-  DRW_shgroup_call(face_shgrp, geom_tris, ob->obmat);
+  DRW_shgroup_call(edge_shgrp, geom_edges, ob);
+  DRW_shgroup_call(face_shgrp, geom_tris, ob);
 
   if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
     geom_verts = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
-    DRW_shgroup_call(vert_shgrp, geom_verts, ob->obmat);
+    DRW_shgroup_call(vert_shgrp, geom_verts, ob);
   }
 
   if (facedot_shgrp && (tsettings->selectmode & SCE_SELECT_FACE) != 0) {
     geom_fcenter = DRW_mesh_batch_cache_get_edit_facedots(ob->data);
-    DRW_shgroup_call(facedot_shgrp, geom_fcenter, ob->obmat);
+    DRW_shgroup_call(facedot_shgrp, geom_fcenter, ob);
   }
 }
 
@@ -698,7 +698,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
       if (do_show_weight) {
         geom = DRW_cache_mesh_surface_weights_get(ob);
-        DRW_shgroup_call(g_data->fweights_shgrp, geom, ob->obmat);
+        DRW_shgroup_call(g_data->fweights_shgrp, geom, ob);
       }
 
       if (do_show_mesh_analysis && !XRAY_ACTIVE(v3d)) {
@@ -709,7 +709,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
         if (is_original) {
           geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
           if (geom) {
-            DRW_shgroup_call(g_data->mesh_analysis_shgrp, geom, ob->obmat);
+            DRW_shgroup_call(g_data->mesh_analysis_shgrp, geom, ob);
           }
         }
       }
@@ -719,20 +719,20 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
         DRW_shgroup_call(do_in_front ? g_data->depth_shgrp_hidden_wire_in_front :
                                        g_data->depth_shgrp_hidden_wire,
                          geom,
-                         ob->obmat);
+                         ob);
       }
 
       if (vnormals_do) {
         geom = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
-        DRW_shgroup_call(g_data->vnormals_shgrp, geom, ob->obmat);
+        DRW_shgroup_call(g_data->vnormals_shgrp, geom, ob);
       }
       if (lnormals_do) {
         geom = DRW_mesh_batch_cache_get_edit_lnors(ob->data);
-        DRW_shgroup_call(g_data->lnormals_shgrp, geom, ob->obmat);
+        DRW_shgroup_call(g_data->lnormals_shgrp, geom, ob);
       }
       if (fnormals_do) {
         geom = DRW_mesh_batch_cache_get_edit_facedots(ob->data);
-        DRW_shgroup_call(g_data->fnormals_shgrp, geom, ob->obmat);
+        DRW_shgroup_call(g_data->fnormals_shgrp, geom, ob);
       }
 
       if (g_data->do_zbufclip) {

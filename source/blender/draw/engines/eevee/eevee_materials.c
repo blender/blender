@@ -1126,10 +1126,10 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 #define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) \
   do { \
     if (oedata) { \
-      DRW_shgroup_call_object_with_callback(shgrp, geom, ob, oedata); \
+      DRW_shgroup_call_with_callback(shgrp, geom, ob, oedata); \
     } \
     else { \
-      DRW_shgroup_call_object(shgrp, geom, ob); \
+      DRW_shgroup_call(shgrp, geom, ob); \
     } \
   } while (0)
 

@@ -453,7 +453,7 @@ void EEVEE_lights_cache_shcaster_add(EEVEE_ViewLayerData *UNUSED(sldata),
                                      struct GPUBatch *geom,
                                      Object *ob)
 {
-  DRW_shgroup_call_object(stl->g_data->shadow_shgrp, geom, ob);
+  DRW_shgroup_call(stl->g_data->shadow_shgrp, geom, ob);
 }
 
 void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
@@ -483,7 +483,7 @@ void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
   }
 
-  DRW_shgroup_call_object(grp, geom, ob);
+  DRW_shgroup_call(grp, geom, ob);
 }
 
 /* Make that object update shadow casting lights inside its influence bounding box. */

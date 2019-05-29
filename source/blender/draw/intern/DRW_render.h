@@ -392,37 +392,51 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
 /* return final visibility */
 typedef bool(DRWCallVisibilityFn)(bool vis_in, void *user_data);
 
-void DRW_shgroup_call(DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4]);
-void DRW_shgroup_call_range(
-    DRWShadingGroup *sh, struct GPUBatch *geom, float (*obmat)[4], uint v_sta, uint v_ct);
+void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
+                         Object *ob,
+                         float (*obmat)[4],
+                         struct GPUBatch *geom,
+                         uint v_sta,
+                         uint v_ct,
+                         bool bypass_culling,
+                         void *user_data);
 
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, uint point_ct, float (*obmat)[4]);
-void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, uint line_ct, float (*obmat)[4]);
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, uint tri_ct, float (*obmat)[4]);
+/* If ob is NULL, unit modelmatrix is assumed and culling is bypassed. */
+#define DRW_shgroup_call(shgrp, geom, ob) \
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, NULL);
 
-void DRW_shgroup_call_object_ex(DRWShadingGroup *shgroup,
-                                struct GPUBatch *geom,
-                                struct Object *ob,
-                                bool bypass_culling);
-#define DRW_shgroup_call_object(shgroup, geom, ob) \
-  DRW_shgroup_call_object_ex(shgroup, geom, ob, false)
-#define DRW_shgroup_call_object_no_cull(shgroup, geom, ob) \
-  DRW_shgroup_call_object_ex(shgroup, geom, ob, true)
+/* Same as DRW_shgroup_call but override the obmat. Not culled. */
+#define DRW_shgroup_call_obmat(shgrp, geom, obmat) \
+  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, 0, 0, false, NULL);
 
 /* TODO(fclem) remove this when we have DRWView */
 /* user_data is used by DRWCallVisibilityFn defined in DRWView. */
-void DRW_shgroup_call_object_with_callback(DRWShadingGroup *shgroup,
-                                           struct GPUBatch *geom,
-                                           struct Object *ob,
-                                           void *user_data);
+#define DRW_shgroup_call_with_callback(shgrp, geom, ob, user_data) \
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, user_data);
+
+/* Same as DRW_shgroup_call but bypass culling even if ob is not NULL. */
+#define DRW_shgroup_call_no_cull(shgrp, geom, ob) \
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, true, NULL);
+
+/* Only draw a certain range of geom. */
+#define DRW_shgroup_call_range(shgrp, geom, ob, v_sta, v_ct) \
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, v_sta, v_ct, false, NULL);
+
+/* Same as DRW_shgroup_call_range but override the obmat. Special for gpencil. */
+#define DRW_shgroup_call_range_obmat(shgrp, geom, obmat, v_sta, v_ct) \
+  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, v_sta, v_ct, false, NULL);
+
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_ct);
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
+                                Object *ob,
                                 struct GPUBatch *geom,
-                                float (*obmat)[4],
                                 uint count);
 void DRW_shgroup_call_instances_with_attribs(DRWShadingGroup *shgroup,
+                                             Object *ob,
                                              struct GPUBatch *geom,
-                                             float (*obmat)[4],
                                              struct GPUBatch *inst_attributes);
 
 void DRW_shgroup_call_sculpt(DRWShadingGroup *sh, Object *ob, bool wire, bool mask, bool vcol);

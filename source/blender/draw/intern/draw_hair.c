@@ -195,8 +195,8 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
       shgrp, "hairCloseTip", (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0);
   /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass culling
    * test. */
-  DRW_shgroup_call_object_no_cull(
-      shgrp, hair_cache->final[subdiv].proc_hairs[thickness_res - 1], object);
+  GPUBatch *geom = hair_cache->final[subdiv].proc_hairs[thickness_res - 1];
+  DRW_shgroup_call_no_cull(shgrp, geom, object);
 
   /* Transform Feedback subdiv. */
   if (need_ft_update) {
@@ -224,7 +224,7 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
     DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", hair_cache->strand_tex);
     DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandSegBuffer", hair_cache->strand_seg_tex);
     DRW_shgroup_uniform_int(tf_shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
-    DRW_shgroup_call_procedural_points(tf_shgrp, final_points_len, NULL);
+    DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
   }
 
   return shgrp;

@@ -240,7 +240,7 @@ static void edit_text_cache_populate_select(void *vedata, Object *ob)
     v2_quad_corners_to_mat4(box, final_mat);
     mul_m4_m4m4(final_mat, ob->obmat, final_mat);
 
-    DRW_shgroup_call(stl->g_data->overlay_select_shgrp, geom, final_mat);
+    DRW_shgroup_call_obmat(stl->g_data->overlay_select_shgrp, geom, final_mat);
   }
 }
 
@@ -256,7 +256,7 @@ static void edit_text_cache_populate_cursor(void *vedata, Object *ob)
   mul_m4_m4m4(mat, ob->obmat, mat);
 
   struct GPUBatch *geom = DRW_cache_quad_get();
-  DRW_shgroup_call(stl->g_data->overlay_cursor_shgrp, geom, mat);
+  DRW_shgroup_call_obmat(stl->g_data->overlay_cursor_shgrp, geom, mat);
 }
 
 static void edit_text_cache_populate_boxes(void *vedata, Object *ob)
@@ -333,7 +333,7 @@ static void EDIT_TEXT_cache_populate(void *vedata, Object *ob)
       if ((cu->flag & CU_FAST) || !has_surface) {
         geom = DRW_cache_text_edge_wire_get(ob);
         if (geom) {
-          DRW_shgroup_call(stl->g_data->wire_shgrp, geom, ob->obmat);
+          DRW_shgroup_call(stl->g_data->wire_shgrp, geom, ob);
         }
       }
       else {

@@ -292,7 +292,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
     DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
     DRW_shgroup_uniform_int_copy(grp, "Layer", 0);
-    DRW_shgroup_call_instances(grp, quad, NULL, 6);
+    DRW_shgroup_call_instances(grp, NULL, quad, 6);
   }
 
   {
