@@ -1673,23 +1673,6 @@ void node_ambient_occlusion(
   result_color = result_ao * color;
 }
 
-#endif /* VOLUMETRICS */
-
-/* emission */
-
-void node_emission(vec4 color, float strength, vec3 vN, out Closure result)
-{
-#ifndef VOLUMETRICS
-  color *= strength;
-  result = CLOSURE_DEFAULT;
-  result.radiance = color.rgb;
-  result.opacity = color.a;
-  result.ssr_normal = normal_encode(vN, viewCameraVec);
-#else
-  result = Closure(vec3(0.0), vec3(0.0), color.rgb * strength, 0.0);
-#endif
-}
-
 void node_wireframe(float size, vec2 barycentric, vec3 barycentric_dist, out float fac)
 {
   vec3 barys = barycentric.xyy;
@@ -1714,6 +1697,46 @@ void node_wireframe_screenspace(float size, vec2 barycentric, out float fac)
   vec3 s = step(-deltas * size, -barys);
 
   fac = max(s.x, max(s.y, s.z));
+}
+
+#else /* VOLUMETRICS */
+
+/* Stub all bsdf functions not compatible with volumetrics. */
+#  define node_bsdf_diffuse
+#  define node_bsdf_glossy
+#  define node_bsdf_anisotropic
+#  define node_bsdf_glass
+#  define node_bsdf_toon
+#  define node_bsdf_principled
+#  define node_bsdf_principled_dielectric
+#  define node_bsdf_principled_metallic
+#  define node_bsdf_principled_clearcoat
+#  define node_bsdf_principled_subsurface
+#  define node_bsdf_principled_glass
+#  define node_bsdf_translucent
+#  define node_bsdf_transparent
+#  define node_bsdf_velvet
+#  define node_subsurface_scattering
+#  define node_bsdf_refraction
+#  define node_ambient_occlusion
+#  define node_wireframe
+#  define node_wireframe_screenspace
+
+#endif /* VOLUMETRICS */
+
+/* emission */
+
+void node_emission(vec4 color, float strength, vec3 vN, out Closure result)
+{
+#ifndef VOLUMETRICS
+  color *= strength;
+  result = CLOSURE_DEFAULT;
+  result.radiance = color.rgb;
+  result.opacity = color.a;
+  result.ssr_normal = normal_encode(vN, viewCameraVec);
+#else
+  result = Closure(vec3(0.0), vec3(0.0), color.rgb * strength, 0.0);
+#endif
 }
 
 /* background */
