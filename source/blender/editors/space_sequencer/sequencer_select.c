@@ -944,10 +944,12 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
 
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  int dummy;
-  Sequence *seq = find_nearest_seq(scene, v2d, &dummy, event->mval);
-  if (tweak && seq != NULL) {
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  if (tweak) {
+    int hand_dummy;
+    Sequence *seq = find_nearest_seq(scene, v2d, &hand_dummy, event->mval);
+    if (seq != NULL) {
+      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    }
   }
 
   return WM_gesture_box_invoke(C, op, event);
