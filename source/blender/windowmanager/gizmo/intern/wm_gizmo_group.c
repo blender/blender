@@ -597,7 +597,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
 
 /** \} */
 
-wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
+wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *kc)
 {
   wmKeyMap *keymap;
   char name[KMAP_MAX_NAME];
@@ -613,14 +613,14 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
   };
 
   STRNCPY(name, "Generic Gizmo Tweak Modal Map");
-  keymap = WM_modalkeymap_get(keyconf, name);
+  keymap = WM_modalkeymap_get(kc, name);
 
   /* this function is called for each spacetype, only needs to add map once */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
 
-  keymap = WM_modalkeymap_add(keyconf, name, modal_items);
+  keymap = WM_modalkeymap_add(kc, name, modal_items);
 
   /* items for modal map */
   WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CANCEL);
@@ -644,53 +644,32 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-/**
- * Common default keymap for gizmo groups.
+/** \} */ /* wmGizmoGroup */
+
+/* -------------------------------------------------------------------- */
+/** \name wmGizmoGroup (Key-map callbacks)
  *
- * \param name: Typically #wmGizmoGroupType.name
- * \param params: Typically #wmGizmoGroupType.gzmap_params
- */
-wmKeyMap *WM_gizmogroup_keymap_template_ex(wmKeyConfig *config,
-                                           const char *name,
-                                           const struct wmGizmoMapType_Params *params)
-{
-  /* Use area and region id since we might have multiple gizmos
-   * with the same name in different areas/regions. */
-  wmKeyMap *km = WM_keymap_ensure(config, name, params->spaceid, params->regionid);
-  if (BLI_listbase_is_empty(&km->items)) {
-    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-  }
+ * \{ */
 
-  return km;
-}
-
-wmKeyMap *WM_gizmogroup_keymap_template(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
+wmKeyMap *WM_gizmogroup_keymap_generic(const wmGizmoGroupType *UNUSED(gzgt), wmKeyConfig *kc)
 {
-  return WM_gizmogroup_keymap_template_ex(config, gzgt->name, &gzgt->gzmap_params);
-}
-
-wmKeyMap *WM_gizmogroup_keymap_generic(const wmGizmoGroupType *UNUSED(gzgt), wmKeyConfig *config)
-{
-  struct wmGizmoMapType_Params params = {
-      .spaceid = SPACE_EMPTY,
-      .regionid = RGN_TYPE_WINDOW,
-  };
-  return WM_gizmogroup_keymap_template_ex(config, "Generic Gizmo", &params);
+  return WM_gizmo_keymap_generic_with_keyconfig(kc);
 }
 
 /**
  * Variation of #WM_gizmogroup_keymap_common but with keymap items for selection
  *
+ * TODO(campbell): move to Python.
+ *
  * \param name: Typically #wmGizmoGroupType.name
  * \param params: Typically #wmGizmoGroupType.gzmap_params
  */
-wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *config,
-                                                  const char *name,
-                                                  const struct wmGizmoMapType_Params *params)
+static wmKeyMap *WM_gizmogroup_keymap_template_select_ex(
+    wmKeyConfig *kc, const char *name, const struct wmGizmoMapType_Params *params)
 {
   /* Use area and region id since we might have multiple gizmos
    * with the same name in different areas/regions. */
-  wmKeyMap *km = WM_keymap_ensure(config, name, params->spaceid, params->regionid);
+  wmKeyMap *km = WM_keymap_ensure(kc, name, params->spaceid, params->regionid);
   const bool do_init = BLI_listbase_is_empty(&km->items);
 
   /* FIXME(campbell) */
@@ -725,22 +704,54 @@ wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *config,
   return km;
 }
 
-wmKeyMap *WM_gizmogroup_keymap_template_select(const wmGizmoGroupType *gzgt, wmKeyConfig *config)
-{
-  return WM_gizmogroup_keymap_template_select_ex(config, gzgt->name, &gzgt->gzmap_params);
-}
-
 wmKeyMap *WM_gizmogroup_keymap_generic_select(const wmGizmoGroupType *UNUSED(gzgt),
-                                              wmKeyConfig *config)
+                                              wmKeyConfig *kc)
 {
   struct wmGizmoMapType_Params params = {
       .spaceid = SPACE_EMPTY,
       .regionid = RGN_TYPE_WINDOW,
   };
-  return WM_gizmogroup_keymap_template_select_ex(config, "Generic Gizmo Select", &params);
+  return WM_gizmogroup_keymap_template_select_ex(kc, "Generic Gizmo Select", &params);
 }
 
-/** \} */ /* wmGizmoGroup */
+/* -------------------------------------------------------------------- */
+/** \name wmGizmo (Key-map access)
+ *
+ * Key config version so these can be called from #wmGizmoGroupFnSetupKeymap.
+ *
+ * \{ */
+
+struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
+{
+  const char *idname = "Generic Gizmo";
+  return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
+}
+struct wmKeyMap *WM_gizmo_keymap_generic(wmWindowManager *wm)
+{
+  return WM_gizmo_keymap_generic_with_keyconfig(wm->defaultconf);
+}
+
+struct wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(wmKeyConfig *kc)
+{
+  const char *idname = "Generic Gizmo Select";
+  return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
+}
+struct wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm)
+{
+  return WM_gizmo_keymap_generic_select_with_keyconfig(wm->defaultconf);
+}
+
+struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
+{
+  const char *idname = "Generic Gizmo Click Drag";
+  return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
+}
+struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
+{
+  return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroupType

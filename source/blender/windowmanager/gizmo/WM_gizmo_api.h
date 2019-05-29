@@ -46,6 +46,7 @@ struct wmGizmoType;
 struct wmKeyConfig;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
+struct wmWindowManager;
 
 #include "wm_gizmo_fn.h"
 
@@ -235,21 +236,19 @@ void WM_gizmo_target_property_subscribe_all(struct wmGizmo *gz,
 /* wmGizmoGroup */
 
 /* Callbacks for 'wmGizmoGroupType.setup_keymap' */
-struct wmKeyMap *WM_gizmogroup_keymap_template_ex(struct wmKeyConfig *config,
-                                                  const char *idname,
-                                                  const struct wmGizmoMapType_Params *params);
-struct wmKeyMap *WM_gizmogroup_keymap_template(const struct wmGizmoGroupType *gzgt,
-                                               struct wmKeyConfig *config);
-
-struct wmKeyMap *WM_gizmogroup_keymap_template_select_ex(
-    struct wmKeyConfig *config, const char *idname, const struct wmGizmoMapType_Params *params);
-struct wmKeyMap *WM_gizmogroup_keymap_template_select(const struct wmGizmoGroupType *gzgt,
-                                                      struct wmKeyConfig *config);
-
 struct wmKeyMap *WM_gizmogroup_keymap_generic(const struct wmGizmoGroupType *gzgt,
-                                              struct wmKeyConfig *config);
+                                              struct wmKeyConfig *kc);
 struct wmKeyMap *WM_gizmogroup_keymap_generic_select(const struct wmGizmoGroupType *gzgt,
-                                                     struct wmKeyConfig *config);
+                                                     struct wmKeyConfig *kc);
+/* Utility functions (not callbacks). */
+struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(struct wmKeyConfig *kc);
+struct wmKeyMap *WM_gizmo_keymap_generic(struct wmWindowManager *wm);
+
+struct wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(struct wmKeyConfig *kc);
+struct wmKeyMap *WM_gizmo_keymap_generic_select(struct wmWindowManager *wm);
+
+struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(struct wmKeyConfig *kc);
+struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(struct wmWindowManager *wm);
 
 void WM_gizmogroup_ensure_init(const struct bContext *C, struct wmGizmoGroup *gzgroup);
 
