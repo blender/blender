@@ -87,10 +87,6 @@
 
 #include "DEG_depsgraph.h"
 
-/* Motion in pixels allowed before we don't consider single/double click,
- * or detect the start of a tweak event. */
-#define WM_EVENT_CLICK_TWEAK_THRESHOLD (U.tweak_threshold * U.dpi_fac)
-
 static void wm_notifier_clear(wmNotifier *note);
 static void update_tablet_data(wmWindow *win, wmEvent *event);
 
@@ -2932,8 +2928,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
         if ((event->val == KM_RELEASE) && (win->eventstate->prevval == KM_PRESS) &&
             (win->eventstate->check_click == true)) {
-          if ((abs(event->x - win->eventstate->prevclickx)) < WM_EVENT_CLICK_TWEAK_THRESHOLD &&
-              (abs(event->y - win->eventstate->prevclicky)) < WM_EVENT_CLICK_TWEAK_THRESHOLD) {
+          if ((abs(event->x - win->eventstate->prevclickx)) <
+                  WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD &&
+              (abs(event->y - win->eventstate->prevclicky)) <
+                  WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD) {
             /* Position is where the actual click happens, for more
              * accurate selecting in case the mouse drifts a little. */
             int x = event->x;
@@ -4261,8 +4259,8 @@ static bool wm_event_is_double_click(wmEvent *event, const wmEvent *event_state)
   if ((event->type == event_state->prevtype) && (event_state->prevval == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
     if ((ISMOUSE(event->type) == false) ||
-        ((abs(event->x - event_state->prevclickx)) < WM_EVENT_CLICK_TWEAK_THRESHOLD &&
-         (abs(event->y - event_state->prevclicky)) < WM_EVENT_CLICK_TWEAK_THRESHOLD)) {
+        ((abs(event->x - event_state->prevclickx)) < WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD &&
+         (abs(event->y - event_state->prevclicky)) < WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD)) {
       if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
         return true;
       }

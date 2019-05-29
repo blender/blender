@@ -613,11 +613,11 @@ static int node_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     const int dx = mval[0] - event->mval[0];
     const int dy = mval[1] - event->mval[1];
-    const float tweak_threshold = U.tweak_threshold * U.dpi_fac;
+    const int drag_threshold = WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD;
     /* If user moves mouse more than defined threshold, we consider select operator as
      * finished. Otherwise, it is still running until we get an 'release' event. In any
      * case, we pass through event, but select op is not finished yet. */
-    if (abs(dx) + abs(dy) > tweak_threshold) {
+    if (abs(dx) >= drag_threshold || abs(dy) >= drag_threshold) {
       return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
     }
     else {

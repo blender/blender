@@ -1762,7 +1762,7 @@ static bool ui_but_drag_init(bContext *C,
   /* Clamp the maximum to half the UI unit size so a high user preference
    * doesn't require the user to drag more then half the default button height. */
   const int drag_threshold = min_ii(
-      U.tweak_threshold * U.dpi_fac,
+      WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD,
       (int)((UI_UNIT_Y / 2) * ui_block_to_window_scale(data->region, but->block)));
 
   if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > drag_threshold) {

@@ -134,8 +134,8 @@ int wm_gesture_evaluate(wmGesture *gesture)
     rcti *rect = gesture->customdata;
     int dx = BLI_rcti_size_x(rect);
     int dy = BLI_rcti_size_y(rect);
-    float tweak_threshold = U.tweak_threshold * U.dpi_fac;
-    if (abs(dx) + abs(dy) > tweak_threshold) {
+    const int drag_threshold = WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD;
+    if (abs(dx) >= drag_threshold || abs(dy) >= drag_threshold) {
       int theta = round_fl_to_int(4.0f * atan2f((float)dy, (float)dx) / (float)M_PI);
       int val = EVT_GESTURE_W;
 
