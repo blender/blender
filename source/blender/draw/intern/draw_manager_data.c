@@ -396,15 +396,10 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   state->matflag = 0;
 
   /* Matrices */
-  if (obmat != NULL) {
-    copy_m4_m4(state->model, obmat);
+  copy_m4_m4(state->model, obmat);
 
-    if (ob && (ob->transflag & OB_NEG_SCALE)) {
-      state->flag |= DRW_CALL_NEGSCALE;
-    }
-  }
-  else {
-    unit_m4(state->model);
+  if (ob && (ob->transflag & OB_NEG_SCALE)) {
+    state->flag |= DRW_CALL_NEGSCALE;
   }
 
   drw_call_state_update_matflag(state, shgroup, ob);
@@ -435,8 +430,8 @@ static DRWCallState *drw_call_state_object(DRWShadingGroup *shgroup, float (*obm
 {
   if (ob == NULL) {
     if (obmat == NULL) {
-      /* TODO return unitmat state. */
-      return drw_call_state_create(shgroup, obmat, ob);
+      BLI_assert(DST.unit_state);
+      return DST.unit_state;
     }
     else {
       return drw_call_state_create(shgroup, obmat, ob);
