@@ -1117,20 +1117,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
                     &ptr_props);
         RNA_string_set(&ptr_props, "doc_id", buf);
       }
-
-      /* XXX inactive option, not for public! */
-#if 0
-      uiItemFullO(layout,
-                  "WM_OT_doc_edit",
-                  "Submit Description",
-                  ICON_NONE,
-                  NULL,
-                  WM_OP_INVOKE_DEFAULT,
-                  0,
-                  &ptr_props);
-      RNA_string_set(&ptr_props, "doc_id", buf);
-      RNA_string_set(&ptr_props, "doc_new", RNA_property_description(but->rnaprop));
-#endif
     }
   }
 
