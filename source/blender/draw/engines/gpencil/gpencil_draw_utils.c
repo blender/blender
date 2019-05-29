@@ -1021,7 +1021,6 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
   Scene *scene = draw_ctx->scene;
   View3D *v3d = draw_ctx->v3d;
   bGPDstroke *gps, *src_gps;
-  float viewmatrix[4][4];
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool playing = stl->storage->is_playing;
   const bool is_render = (bool)stl->storage->is_render;
@@ -1035,11 +1034,12 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
   Depsgraph *depsgraph = DRW_context_state_get()->depsgraph;
 
   /* get parent matrix and save as static data */
-  ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, viewmatrix);
-  copy_m4_m4(derived_gpf->runtime.viewmatrix, viewmatrix);
-
   if ((cache_ob != NULL) && (cache_ob->is_dup_ob)) {
     copy_m4_m4(derived_gpf->runtime.viewmatrix, cache_ob->obmat);
+  }
+  else {
+    /* get parent matrix and save as static data */
+    ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, derived_gpf->runtime.viewmatrix);
   }
 
   /* apply geometry modifiers */
