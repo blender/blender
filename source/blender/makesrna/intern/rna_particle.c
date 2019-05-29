@@ -2905,7 +2905,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
       prop, "Random Phase", "Randomize rotation around the chosen orientation axis");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-  prop = RNA_def_property(srna, "hair_length", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "hair_length", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_funcs(
       prop, "rna_PartSetting_hairlength_get", "rna_PartSetting_hairlength_set", NULL);
   RNA_def_property_range(prop, 0.0f, 1000.0f);
