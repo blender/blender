@@ -262,7 +262,10 @@ typedef struct GPUSssKernelData {
   float kernel[SSS_SAMPLES][4];
   float param[3], max_radius;
   int samples;
+  int pad[3];
 } GPUSssKernelData;
+
+BLI_STATIC_ASSERT_ALIGN(GPUSssKernelData, 16)
 
 static void sss_calculate_offsets(GPUSssKernelData *kd, int count, float exponent)
 {

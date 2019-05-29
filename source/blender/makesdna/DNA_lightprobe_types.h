@@ -25,6 +25,8 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+#include "BLI_assert.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -140,6 +142,10 @@ typedef struct LightGridCache {
   float increment_z[3], _pad4;
   float visibility_bias, visibility_bleed, visibility_range, _pad5;
 } LightGridCache;
+
+/* Theses are used as ubo data. They need to be aligned to size of vec4. */
+BLI_STATIC_ASSERT_ALIGN(LightProbeCache, 16)
+BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 
 /* ------ Eevee Lightcache ------- */
 

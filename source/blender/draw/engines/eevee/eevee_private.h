@@ -401,7 +401,14 @@ typedef struct EEVEE_ShadowRender {
   int shadow_samples_len;
   float shadow_samples_len_inv;
   float exponent;
+  float pad2;
 } EEVEE_ShadowRender;
+
+BLI_STATIC_ASSERT_ALIGN(EEVEE_Light, 16)
+BLI_STATIC_ASSERT_ALIGN(EEVEE_Shadow, 16)
+BLI_STATIC_ASSERT_ALIGN(EEVEE_ShadowCube, 16)
+BLI_STATIC_ASSERT_ALIGN(EEVEE_ShadowCascade, 16)
+BLI_STATIC_ASSERT_ALIGN(EEVEE_ShadowRender, 16)
 
 /* This is just a really long bitflag with special function to access it. */
 #define MAX_LIGHTBITS_FIELDS (MAX_LIGHT / 8)
@@ -685,7 +692,11 @@ typedef struct EEVEE_CommonUniformBuffer {
   int hiz_mip_offset; /* int */
   int ray_type;       /* int */
   float ray_depth;    /* float */
+
+  float pad_common_ubo;
 } EEVEE_CommonUniformBuffer;
+
+BLI_STATIC_ASSERT_ALIGN(EEVEE_CommonUniformBuffer, 16)
 
 /* ray_type (keep in sync with rayType) */
 #define EEVEE_RAY_CAMERA 0

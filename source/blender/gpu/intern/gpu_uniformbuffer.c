@@ -76,6 +76,9 @@ static void gpu_uniformbuffer_initialize(GPUUniformBuffer *ubo, const void *data
 
 GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_out[256])
 {
+  /* Make sure that UBO is padded to size of vec4 */
+  BLI_assert((size % 16) == 0);
+
   GPUUniformBuffer *ubo = MEM_callocN(sizeof(GPUUniformBufferStatic), "GPUUniformBufferStatic");
   ubo->size = size;
   ubo->bindpoint = -1;
@@ -148,6 +151,9 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
     const eGPUType gputype = get_padded_gpu_type(link);
     ubo->buffer.size += gputype * sizeof(float);
   }
+
+  /* Round up to size of vec4 */
+  ubo->buffer.size = ((ubo->buffer.size + 15) / 16) * 16;
 
   /* Allocate the data. */
   ubo->data = MEM_mallocN(ubo->buffer.size, __func__);
