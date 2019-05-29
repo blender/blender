@@ -4724,7 +4724,7 @@ def km_generic_gizmo(_params):
 
 def km_generic_gizmo_drag(_params):
     keymap = (
-        "Generic Gizmo Click Drag",
+        "Generic Gizmo Drag",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": _template_items_gizmo_tweak_value_drag()},
     )
@@ -4734,7 +4734,7 @@ def km_generic_gizmo_drag(_params):
 
 def km_generic_gizmo_click_drag(_params):
     keymap = (
-        "Generic Gizmo Drag",
+        "Generic Gizmo Click Drag",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": _template_items_gizmo_tweak_value_click_drag()},
     )
