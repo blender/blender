@@ -1427,7 +1427,7 @@ static int ed_marker_rename_invoke(bContext *C, wmOperator *op, const wmEvent *e
     RNA_string_set(op->ptr, "name", marker->name);
   }
 
-  return WM_operator_props_popup_confirm;
+  return WM_operator_props_popup_confirm(C, op, event);
 }
 
 static void MARKER_OT_rename(wmOperatorType *ot)
