@@ -1965,7 +1965,6 @@ static bool WIDGETGROUP_gizmo_poll_tool(const struct bContext *C, struct wmGizmo
     return false;
   }
 
-  return true;
   ScrArea *sa = CTX_wm_area(C);
   View3D *v3d = sa->spacedata.first;
   if (!WIDGETGROUP_gizmo_poll_generic(v3d)) {
