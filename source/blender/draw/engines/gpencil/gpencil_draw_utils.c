@@ -1549,9 +1549,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
         }
 
         /* buffer strokes, must show stroke always */
-        DRW_shgroup_call(stl->g_data->shgrps_drawing_stroke,
-                         e_data->batch_buffer_stroke,
-                         stl->storage->unit_matrix);
+        DRW_shgroup_call(stl->g_data->shgrps_drawing_stroke, e_data->batch_buffer_stroke, NULL);
 
         if ((gpd->runtime.sbuffer_size >= 3) &&
             (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
@@ -1573,9 +1571,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
           }
 
           e_data->batch_buffer_fill = DRW_gpencil_get_buffer_fill_geom(gpd);
-          DRW_shgroup_call(stl->g_data->shgrps_drawing_fill,
-                           e_data->batch_buffer_fill,
-                           stl->storage->unit_matrix);
+          DRW_shgroup_call(stl->g_data->shgrps_drawing_fill, e_data->batch_buffer_fill, NULL);
           stl->storage->buffer_fill = true;
         }
         stl->storage->buffer_stroke = true;
@@ -1605,7 +1601,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
 
     e_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
 
-    DRW_shgroup_call(shgrp, e_data->batch_buffer_ctrlpoint, stl->storage->unit_matrix);
+    DRW_shgroup_call(shgrp, e_data->batch_buffer_ctrlpoint, NULL);
 
     stl->storage->buffer_ctrlpoint = true;
   }

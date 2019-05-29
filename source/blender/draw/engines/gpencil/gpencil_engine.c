@@ -244,9 +244,6 @@ void GPENCIL_engine_init(void *vedata)
   /* init storage */
   if (!stl->storage) {
     stl->storage = MEM_callocN(sizeof(GPENCIL_Storage), "GPENCIL_Storage");
-
-    /* unit matrix */
-    unit_m4(stl->storage->unit_matrix);
     stl->storage->shade_render[0] = OB_RENDER;
     stl->storage->shade_render[1] = 0;
   }

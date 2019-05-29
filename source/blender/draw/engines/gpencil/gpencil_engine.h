@@ -145,7 +145,6 @@ typedef struct GPENCIL_shgroup {
 
 typedef struct GPENCIL_Storage {
   int shgroup_id; /* total elements */
-  float unit_matrix[4][4];
   int stroke_style;
   int color_type;
   int mode;
