@@ -47,6 +47,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_multires.h"
@@ -56,6 +57,7 @@
 #include "BKE_gpencil.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -467,9 +469,12 @@ static void ignore_parent_tx(const bContext *C, Main *bmain, Scene *scene, Objec
   /* a change was made, adjust the children to compensate */
   for (ob_child = bmain->objects.first; ob_child; ob_child = ob_child->id.next) {
     if (ob_child->parent == ob) {
-      BKE_object_apply_mat4(ob_child, ob_child->obmat, true, false);
-      BKE_object_workob_calc_parent(depsgraph, scene, ob_child, &workob);
+      Object *ob_child_eval = DEG_get_evaluated_object(depsgraph, ob_child);
+      BKE_object_apply_mat4(ob_child_eval, ob_child_eval->obmat, true, false);
+      BKE_object_workob_calc_parent(depsgraph, scene, ob_child_eval, &workob);
       invert_m4_m4(ob_child->parentinv, workob.obmat);
+      /* Copy result of BKE_object_apply_mat4(). */
+      BKE_object_transform_copy(ob_child, ob_child_eval);
     }
   }
 }
@@ -779,9 +784,13 @@ static int apply_objects_internal(bContext *C,
       unit_axis_angle(ob->rotAxis, &ob->rotAngle);
     }
 
-    BKE_object_where_is_calc(depsgraph, scene, ob);
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    BKE_object_transform_copy(ob_eval, ob);
+
+    BKE_object_where_is_calc(depsgraph, scene, ob_eval);
     if (ob->type == OB_ARMATURE) {
-      BKE_pose_where_is(depsgraph, scene, ob); /* needed for bone parents */
+      /* needed for bone parents */
+      BKE_pose_where_is(depsgraph, scene, ob_eval);
     }
 
     ignore_parent_tx(C, bmain, scene, ob);
