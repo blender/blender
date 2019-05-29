@@ -1011,7 +1011,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
 
   if (r_final && *r_final) {
-    BKE_id_free(NULL, r_final);
+    BKE_id_free(NULL, *r_final);
   }
 
   for (; md; md = md->next) {
