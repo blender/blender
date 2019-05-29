@@ -66,7 +66,7 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
   EEVEE_ObjectEngineData *oed = (EEVEE_ObjectEngineData *)user_data;
 
   /* test disabled if group is NULL */
-  if (oed->test_data->collection == NULL) {
+  if (oed == NULL || oed->test_data->collection == NULL) {
     return vis_in;
   }
 
