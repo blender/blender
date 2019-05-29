@@ -221,14 +221,78 @@ enum {
   ACTKEYS_BORDERSEL_CHANNELS,
 } /*eActKeys_BoxSelect_Mode*/;
 
+typedef struct BoxSelectData {
+  bAnimContext *ac;
+  short selectmode;
+
+  KeyframeEditData ked;
+  KeyframeEditFunc ok_cb, select_cb;
+} BoxSelectData;
+
+static void box_select_elem(
+    BoxSelectData *sel_data, bAnimListElem *ale, float xmin, float xmax, bool summary)
+{
+  bAnimContext *ac = sel_data->ac;
+
+  switch (ale->type) {
+#if 0 /* XXX: Keyframes are not currently shown here */
+    case ANIMTYPE_GPDATABLOCK: {
+      bGPdata *gpd = ale->data;
+      bGPDlayer *gpl;
+      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+        ED_gplayer_frames_select_box(gpl, xmin, xmax, data->selectmode);
+      }
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
+#endif
+    case ANIMTYPE_GPLAYER: {
+      ED_gplayer_frames_select_box(ale->data, xmin, xmax, sel_data->selectmode);
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
+    case ANIMTYPE_MASKDATABLOCK: {
+      Mask *mask = ale->data;
+      MaskLayer *masklay;
+      for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+        ED_masklayer_frames_select_box(masklay, xmin, xmax, sel_data->selectmode);
+      }
+      break;
+    }
+    case ANIMTYPE_MASKLAYER: {
+      ED_masklayer_frames_select_box(ale->data, xmin, xmax, sel_data->selectmode);
+      break;
+    }
+    default: {
+      if (summary) {
+        break;
+      }
+
+      if (ale->type == ANIMTYPE_SUMMARY && ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+        ListBase anim_data = {NULL, NULL};
+        ANIM_animdata_filter(ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, ac->datatype);
+
+        for (bAnimListElem *ale2 = anim_data.first; ale2; ale2 = ale2->next) {
+          box_select_elem(sel_data, ale2, xmin, xmax, true);
+        }
+
+        ANIM_animdata_update(ac, &anim_data);
+        ANIM_animdata_freelist(&anim_data);
+      }
+
+      ANIM_animchannel_keyframes_loop(
+          &sel_data->ked, ac->ads, ale, sel_data->ok_cb, sel_data->select_cb, NULL);
+    }
+  }
+}
+
 static void box_select_action(bAnimContext *ac, const rcti rect, short mode, short selectmode)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
 
-  KeyframeEditData ked;
-  KeyframeEditFunc ok_cb, select_cb;
+  BoxSelectData sel_data = {.ac = ac, .selectmode = selectmode};
   View2D *v2d = &ac->ar->v2d;
   rctf rectf;
 
@@ -242,17 +306,17 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get beztriple editing/validation funcs  */
-  select_cb = ANIM_editkeyframes_select(selectmode);
+  sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
 
   if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
-    ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+    sel_data.ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
   }
   else {
-    ok_cb = NULL;
+    sel_data.ok_cb = NULL;
   }
 
   /* init editing data */
-  memset(&ked, 0, sizeof(KeyframeEditData));
+  memset(&sel_data.ked, 0, sizeof(KeyframeEditData));
 
   float ymax = ACHANNEL_FIRST_TOP(ac);
 
@@ -267,54 +331,20 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
     if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
       /* if channel is mapped in NLA, apply correction */
       if (adt) {
-        ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
-        ked.f1 = BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-        ked.f2 = BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
+        sel_data.ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
+        sel_data.ked.f1 = BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+        sel_data.ked.f2 = BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
       }
       else {
-        ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
-        ked.f1 = rectf.xmin;
-        ked.f2 = rectf.xmax;
+        sel_data.ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
+        sel_data.ked.f1 = rectf.xmin;
+        sel_data.ked.f2 = rectf.xmax;
       }
     }
 
     /* perform vertical suitability check (if applicable) */
     if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-      /* loop over data selecting */
-      switch (ale->type) {
-#if 0 /* XXX: Keyframes are not currently shown here */
-        case ANIMTYPE_GPDATABLOCK: {
-          bGPdata *gpd = ale->data;
-          bGPDlayer *gpl;
-          for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-            ED_gplayer_frames_select_box(gpl, rectf.xmin, rectf.xmax, selectmode);
-          }
-          ale->update |= ANIM_UPDATE_DEPS;
-          break;
-        }
-#endif
-        case ANIMTYPE_GPLAYER: {
-          ED_gplayer_frames_select_box(ale->data, rectf.xmin, rectf.xmax, selectmode);
-          ale->update |= ANIM_UPDATE_DEPS;
-          break;
-        }
-        case ANIMTYPE_MASKDATABLOCK: {
-          Mask *mask = ale->data;
-          MaskLayer *masklay;
-          for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-            ED_masklayer_frames_select_box(masklay, rectf.xmin, rectf.xmax, selectmode);
-          }
-          break;
-        }
-        case ANIMTYPE_MASKLAYER: {
-          ED_masklayer_frames_select_box(ale->data, rectf.xmin, rectf.xmax, selectmode);
-          break;
-        }
-        default: {
-          ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
-          break;
-        }
-      }
+      box_select_elem(&sel_data, ale, rectf.xmin, rectf.xmax, false);
     }
   }
 
@@ -406,6 +436,73 @@ void ACTION_OT_select_box(wmOperatorType *ot)
  * original Graph Editor implementation of these to do it this way.
  */
 
+typedef struct RegionSelectData {
+  bAnimContext *ac;
+  short mode;
+  short selectmode;
+
+  KeyframeEditData ked;
+  KeyframeEditFunc ok_cb, select_cb;
+} RegionSelectData;
+
+static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, bool summary)
+{
+  bAnimContext *ac = sel_data->ac;
+
+  switch (ale->type) {
+#if 0 /* XXX: Keyframes are not currently shown here */
+    case ANIMTYPE_GPDATABLOCK: {
+      bGPdata *gpd = ale->data;
+      bGPDlayer *gpl;
+      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+        ED_gplayer_frames_select_region(&rdata->ked, ale->data, rdata->mode, rdata->selectmode);
+      }
+      break;
+    }
+#endif
+    case ANIMTYPE_GPLAYER: {
+      ED_gplayer_frames_select_region(
+          &sel_data->ked, ale->data, sel_data->mode, sel_data->selectmode);
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
+    case ANIMTYPE_MASKDATABLOCK: {
+      Mask *mask = ale->data;
+      MaskLayer *masklay;
+      for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+        ED_masklayer_frames_select_region(
+            &sel_data->ked, masklay, sel_data->mode, sel_data->selectmode);
+      }
+      break;
+    }
+    case ANIMTYPE_MASKLAYER: {
+      ED_masklayer_frames_select_region(
+          &sel_data->ked, ale->data, sel_data->mode, sel_data->selectmode);
+      break;
+    }
+    default: {
+      if (summary) {
+        break;
+      }
+
+      if (ale->type == ANIMTYPE_SUMMARY && ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+        ListBase anim_data = {NULL, NULL};
+        ANIM_animdata_filter(ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac->data, ac->datatype);
+
+        for (bAnimListElem *ale2 = anim_data.first; ale2; ale2 = ale2->next) {
+          region_select_elem(sel_data, ale2, true);
+        }
+
+        ANIM_animdata_update(ac, &anim_data);
+        ANIM_animdata_freelist(&anim_data);
+      }
+
+      ANIM_animchannel_keyframes_loop(
+          &sel_data->ked, ac->ads, ale, sel_data->ok_cb, sel_data->select_cb, NULL);
+    }
+  }
+}
+
 static void region_select_action_keys(
     bAnimContext *ac, const rctf *rectf_view, short mode, short selectmode, void *data)
 {
@@ -413,8 +510,7 @@ static void region_select_action_keys(
   bAnimListElem *ale;
   int filter;
 
-  KeyframeEditData ked;
-  KeyframeEditFunc ok_cb, select_cb;
+  RegionSelectData sel_data = {.ac = ac, .mode = mode, .selectmode = selectmode};
   View2D *v2d = &ac->ar->v2d;
   rctf rectf, scaled_rectf;
 
@@ -427,23 +523,23 @@ static void region_select_action_keys(
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get beztriple editing/validation funcs  */
-  select_cb = ANIM_editkeyframes_select(selectmode);
-  ok_cb = ANIM_editkeyframes_ok(mode);
+  sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
+  sel_data.ok_cb = ANIM_editkeyframes_ok(mode);
 
   /* init editing data */
-  memset(&ked, 0, sizeof(KeyframeEditData));
+  memset(&sel_data.ked, 0, sizeof(KeyframeEditData));
   if (mode == BEZT_OK_CHANNEL_LASSO) {
     KeyframeEdit_LassoData *data_lasso = data;
     data_lasso->rectf_scaled = &scaled_rectf;
-    ked.data = data_lasso;
+    sel_data.ked.data = data_lasso;
   }
   else if (mode == BEZT_OK_CHANNEL_CIRCLE) {
     KeyframeEdit_CircleData *data_circle = data;
     data_circle->rectf_scaled = &scaled_rectf;
-    ked.data = data;
+    sel_data.ked.data = data;
   }
   else {
-    ked.data = &scaled_rectf;
+    sel_data.ked.data = &scaled_rectf;
   }
 
   float ymax = ACHANNEL_FIRST_TOP(ac);
@@ -456,7 +552,7 @@ static void region_select_action_keys(
     float ymin = ymax - ACHANNEL_STEP(ac);
 
     /* compute midpoint of channel (used for testing if the key is in the region or not) */
-    ked.channel_y = (ymin + ymax) / 2.0f;
+    sel_data.ked.channel_y = (ymin + ymax) / 2.0f;
 
     /* if channel is mapped in NLA, apply correction
      * - Apply to the bounds being checked, not all the keyframe points,
@@ -465,60 +561,28 @@ static void region_select_action_keys(
      *   will read from
      */
     if (adt) {
-      ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
-      ked.f1 = BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-      ked.f2 = BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
+      sel_data.ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
+      sel_data.ked.f1 = BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+      sel_data.ked.f2 = BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
     }
     else {
-      ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
-      ked.f1 = rectf.xmin;
-      ked.f2 = rectf.xmax;
+      sel_data.ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
+      sel_data.ked.f1 = rectf.xmin;
+      sel_data.ked.f2 = rectf.xmax;
     }
 
     /* Update values for scaled_rectf - which is used to compute the mapping in the callbacks
      * NOTE: Since summary tracks need late-binding remapping, the callbacks may overwrite these
      *       with the properly remapped ked.f1/f2 values, when needed
      */
-    scaled_rectf.xmin = ked.f1;
-    scaled_rectf.xmax = ked.f2;
+    scaled_rectf.xmin = sel_data.ked.f1;
+    scaled_rectf.xmax = sel_data.ked.f2;
     scaled_rectf.ymin = ymin;
     scaled_rectf.ymax = ymax;
 
     /* perform vertical suitability check (if applicable) */
     if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-      /* loop over data selecting */
-      switch (ale->type) {
-#if 0 /* XXX: Keyframes are not currently shown here */
-        case ANIMTYPE_GPDATABLOCK: {
-          bGPdata *gpd = ale->data;
-          bGPDlayer *gpl;
-          for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-            ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
-          }
-          break;
-        }
-#endif
-        case ANIMTYPE_GPLAYER: {
-          ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
-          ale->update |= ANIM_UPDATE_DEPS;
-          break;
-        }
-        case ANIMTYPE_MASKDATABLOCK: {
-          Mask *mask = ale->data;
-          MaskLayer *masklay;
-          for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-            ED_masklayer_frames_select_region(&ked, masklay, mode, selectmode);
-          }
-          break;
-        }
-        case ANIMTYPE_MASKLAYER: {
-          ED_masklayer_frames_select_region(&ked, ale->data, mode, selectmode);
-          break;
-        }
-        default:
-          ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
-          break;
-      }
+      region_select_elem(&sel_data, ale, false);
     }
   }
 
