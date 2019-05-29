@@ -40,6 +40,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -5103,7 +5104,9 @@ static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
 }
 
 /* run this for single and multithreaded painting */
-static void *do_projectpaint_thread(void *ph_v)
+static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
+                                   void *ph_v,
+                                   int UNUSED(threadid))
 {
   /* First unpack args from the struct */
   ProjPaintState *ps = ((ProjectHandle *)ph_v)->ps;
@@ -5535,8 +5538,6 @@ static void *do_projectpaint_thread(void *ph_v)
 
     BLI_memarena_free(softenArena);
   }
-
-  return NULL;
 }
 
 static bool project_paint_op(void *state, const float lastpos[2], const float pos[2])
@@ -5546,20 +5547,22 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
   bool touch_any = false;
 
   ProjectHandle handles[BLENDER_MAX_THREADS];
-  ListBase threads;
+  TaskScheduler *scheduler = NULL;
+  TaskPool *task_pool = NULL;
   int a, i;
 
-  struct ImagePool *pool;
+  struct ImagePool *image_pool;
 
   if (!project_bucket_iter_init(ps, pos)) {
     return touch_any;
   }
 
   if (ps->thread_tot > 1) {
-    BLI_threadpool_init(&threads, do_projectpaint_thread, ps->thread_tot);
+    scheduler = BLI_task_scheduler_get();
+    task_pool = BLI_task_pool_create_suspended(scheduler, NULL);
   }
 
-  pool = BKE_image_pool_new();
+  image_pool = BKE_image_pool_new();
 
   /* get the threads running */
   for (a = 0; a < ps->thread_tot; a++) {
@@ -5588,21 +5591,23 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
              sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
     }
 
-    handles[a].pool = pool;
+    handles[a].pool = image_pool;
 
-    if (ps->thread_tot > 1) {
-      BLI_threadpool_insert(&threads, &handles[a]);
+    if (task_pool != NULL) {
+      BLI_task_pool_push(
+          task_pool, do_projectpaint_thread, &handles[a], false, TASK_PRIORITY_HIGH);
     }
   }
 
-  if (ps->thread_tot > 1) { /* wait for everything to be done */
-    BLI_threadpool_end(&threads);
+  if (task_pool != NULL) { /* wait for everything to be done */
+    BLI_task_pool_work_and_wait(task_pool);
+    BLI_task_pool_free(task_pool);
   }
   else {
-    do_projectpaint_thread(&handles[0]);
+    do_projectpaint_thread(NULL, &handles[0], 0);
   }
 
-  BKE_image_pool_free(pool);
+  BKE_image_pool_free(image_pool);
 
   /* move threaded bounds back into ps->projectPartialRedraws */
   for (i = 0; i < ps->image_tot; i++) {
