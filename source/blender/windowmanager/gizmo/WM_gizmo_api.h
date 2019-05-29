@@ -240,12 +240,18 @@ struct wmKeyMap *WM_gizmogroup_keymap_generic(const struct wmGizmoGroupType *gzg
                                               struct wmKeyConfig *kc);
 struct wmKeyMap *WM_gizmogroup_keymap_generic_select(const struct wmGizmoGroupType *gzgt,
                                                      struct wmKeyConfig *kc);
+struct wmKeyMap *WM_gizmogroup_keymap_generic_drag(const struct wmGizmoGroupType *gzgt,
+                                                   struct wmKeyConfig *kc);
+
 /* Utility functions (not callbacks). */
 struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(struct wmKeyConfig *kc);
 struct wmKeyMap *WM_gizmo_keymap_generic(struct wmWindowManager *wm);
 
 struct wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(struct wmKeyConfig *kc);
 struct wmKeyMap *WM_gizmo_keymap_generic_select(struct wmWindowManager *wm);
+
+struct wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(struct wmKeyConfig *kc);
+struct wmKeyMap *WM_gizmo_keymap_generic_drag(struct wmWindowManager *wm);
 
 struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(struct wmKeyConfig *kc);
 struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(struct wmWindowManager *wm);

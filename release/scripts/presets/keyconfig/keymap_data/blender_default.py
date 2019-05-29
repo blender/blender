@@ -215,6 +215,12 @@ def _template_items_gizmo_tweak_value_click_drag():
     ]
 
 
+def _template_items_gizmo_tweak_value_drag():
+    return [
+        ("gizmogroup.gizmo_tweak", {"type": 'EVT_TWEAK_L', "value": 'ANY', "any": True}, None),
+    ]
+
+
 def _template_items_editmode_mesh_select_mode(params):
     if params.legacy:
         return [
@@ -4716,11 +4722,21 @@ def km_generic_gizmo(_params):
     return keymap
 
 
-def km_generic_gizmo_click_drag(_params):
+def km_generic_gizmo_drag(_params):
     keymap = (
         "Generic Gizmo Click Drag",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": _template_items_gizmo_tweak_value_click_drag()},
+        {"items": _template_items_gizmo_tweak_value_drag()},
+    )
+
+    return keymap
+
+
+def km_generic_gizmo_click_drag(_params):
+    keymap = (
+        "Generic Gizmo Drag",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": _template_items_gizmo_tweak_value_drag()},
     )
 
     return keymap
