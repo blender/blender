@@ -712,22 +712,21 @@ static bool raycastObj(SnapObjectContext *sctx,
                        ListBase *r_hit_list)
 {
   bool retval = false;
+  if (use_occlusion_test) {
+    if (use_obedit && sctx->use_v3d && XRAY_ENABLED(sctx->v3d_data.v3d)) {
+      /* Use of occlude geometry in editing mode disabled. */
+      return false;
+    }
+
+    if (ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE)) {
+      /* Do not hit objects that are in wire or bounding box
+       * display mode. */
+      return false;
+    }
+  }
 
   switch (ob->type) {
     case OB_MESH: {
-      if (use_occlusion_test) {
-        if (use_obedit && sctx->use_v3d && XRAY_ENABLED(sctx->v3d_data.v3d)) {
-          /* Use of occlude geometry in editing mode disabled. */
-          return false;
-        }
-
-        if (ELEM(ob->dt, OB_BOUNDBOX, OB_WIRE)) {
-          /* Do not hit objects that are in wire or bounding box
-           * display mode. */
-          return false;
-        }
-      }
-
       Mesh *me = ob->data;
       bool use_hide = false;
       if (BKE_object_is_in_editmode(ob)) {
@@ -766,6 +765,26 @@ static bool raycastObj(SnapObjectContext *sctx,
                            r_index,
                            r_hit_list);
       break;
+    }
+    case OB_CURVE:
+    case OB_SURF:
+    case OB_FONT: {
+      if (ob->runtime.mesh_eval) {
+        retval = raycastMesh(sctx,
+                             ray_start,
+                             ray_dir,
+                             ob,
+                             ob->runtime.mesh_eval,
+                             obmat,
+                             ob_index,
+                             false,
+                             ray_depth,
+                             r_loc,
+                             r_no,
+                             r_index,
+                             r_hit_list);
+        break;
+      }
     }
   }
 
