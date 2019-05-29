@@ -86,6 +86,8 @@ int bpygpu_ParsePrimType(PyObject *o, void *p)
   MATCH_ID(LINE_LOOP);
   MATCH_ID(TRI_STRIP);
   MATCH_ID(TRI_FAN);
+  MATCH_ID(LINES_ADJ);
+  MATCH_ID(TRIS_ADJ);
   MATCH_ID(LINE_STRIP_ADJ);
 
 #undef MATCH_ID
