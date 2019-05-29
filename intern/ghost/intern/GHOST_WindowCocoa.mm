@@ -686,9 +686,6 @@ void GHOST_WindowCocoa::setTitle(const STR_String &title)
       associatedFileName = [windowTitle substringWithRange:fileStrRange];
       [m_window setTitle:[associatedFileName lastPathComponent]];
 
-      // Blender used file open/save functions converte file names into legal URL ones
-      associatedFileName = [associatedFileName
-          stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
       @try {
         [m_window setRepresentedFilename:associatedFileName];
       }
