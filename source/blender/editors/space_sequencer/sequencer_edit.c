@@ -231,23 +231,12 @@ static void seq_proxy_build_job(const bContext *C)
 
 /* ********************************************************************** */
 
-void seq_rectf(Sequence *seq, rctf *rectf)
+void seq_rectf(Sequence *seq, rctf *rect)
 {
-  if (seq->startstill) {
-    rectf->xmin = seq->start;
-  }
-  else {
-    rectf->xmin = seq->startdisp;
-  }
-
-  rectf->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  if (seq->endstill) {
-    rectf->xmax = seq->start + seq->len;
-  }
-  else {
-    rectf->xmax = seq->enddisp;
-  }
-  rectf->ymax = seq->machine + SEQ_STRIP_OFSTOP;
+  rect->xmin = seq->startdisp;
+  rect->xmax = seq->enddisp;
+  rect->ymin = seq->machine + SEQ_STRIP_OFSBOTTOM;
+  rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
 }
 
 void boundbox_seq(Scene *scene, rctf *rect)
