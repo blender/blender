@@ -251,7 +251,7 @@ typedef enum eGPDstroke_Caps {
 /* Runtime temp data for bGPDframe */
 typedef struct bGPDframe_Runtime {
   /** Parent matrix for drawing. */
-  float viewmatrix[4][4];
+  float parent_obmat[4][4];
 } bGPDframe_Runtime;
 
 /* Grease-Pencil Annotations - 'Frame'

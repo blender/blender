@@ -1035,11 +1035,11 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
 
   /* get parent matrix and save as static data */
   if ((cache_ob != NULL) && (cache_ob->is_dup_ob)) {
-    copy_m4_m4(derived_gpf->runtime.viewmatrix, cache_ob->obmat);
+    copy_m4_m4(derived_gpf->runtime.parent_obmat, cache_ob->obmat);
   }
   else {
     /* get parent matrix and save as static data */
-    ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, derived_gpf->runtime.viewmatrix);
+    ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, derived_gpf->runtime.parent_obmat);
   }
 
   /* apply geometry modifiers */
@@ -1177,11 +1177,8 @@ static void gpencil_draw_onion_strokes(GpencilBatchCache *cache,
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
   Depsgraph *depsgraph = DRW_context_state_get()->depsgraph;
 
-  float viewmatrix[4][4];
-
   /* get parent matrix and save as static data */
-  ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, viewmatrix);
-  copy_m4_m4(gpf->runtime.viewmatrix, viewmatrix);
+  ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, gpf->runtime.parent_obmat);
 
   for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
     MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
@@ -1367,7 +1364,7 @@ static void gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
   derived_gpf->flag = gpf->flag;
   derived_gpf->key_type = gpf->key_type;
   derived_gpf->runtime = gpf->runtime;
-  copy_m4_m4(derived_gpf->runtime.viewmatrix, gpf->runtime.viewmatrix);
+  copy_m4_m4(derived_gpf->runtime.parent_obmat, gpf->runtime.parent_obmat);
 
   /* copy strokes */
   BLI_listbase_clear(&derived_gpf->strokes);
@@ -1733,7 +1730,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if ((do_onion) || (elm->onion == false)) {
           DRW_shgroup_call_range(shgrp,
                                  cache->b_stroke.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
                                                           cache_ob->obmat,
                                  start_stroke,
                                  len);
@@ -1762,7 +1759,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if ((do_onion) || (elm->onion == false)) {
           DRW_shgroup_call_range(shgrp,
                                  cache->b_point.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
                                                           cache_ob->obmat,
                                  start_point,
                                  len);
@@ -1788,7 +1785,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
         if ((do_onion) || (elm->onion == false)) {
           DRW_shgroup_call_range(shgrp,
                                  cache->b_fill.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
                                                           cache_ob->obmat,
                                  start_fill,
                                  len);
@@ -1803,7 +1800,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
           /* use always the same group */
           DRW_shgroup_call_range(stl->g_data->shgrps_edit_point,
                                  cache->b_edit.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
                                                           cache_ob->obmat,
                                  start_edit,
                                  len);
@@ -1818,7 +1815,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
           /* use always the same group */
           DRW_shgroup_call_range(stl->g_data->shgrps_edit_line,
                                  cache->b_edlin.batch,
-                                 (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix :
+                                 (!cache_ob->is_dup_ob) ? gpf->runtime.parent_obmat :
                                                           cache_ob->obmat,
                                  start_edlin,
                                  len);
