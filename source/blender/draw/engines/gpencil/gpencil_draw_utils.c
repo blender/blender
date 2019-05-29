@@ -1038,7 +1038,6 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
     copy_m4_m4(derived_gpf->runtime.parent_obmat, cache_ob->obmat);
   }
   else {
-    /* get parent matrix and save as static data */
     ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, derived_gpf->runtime.parent_obmat);
   }
 
