@@ -124,8 +124,6 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   if (scene->world != NULL) {
     build_world(scene->world);
   }
-  /* Compositor nodes */
-  build_scene_compositor(scene);
   /* Cache file. */
   LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
     build_cachefile(cachefile);
@@ -155,6 +153,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
       OperationCode::VIEW_LAYER_EVAL,
       function_bind(BKE_layer_eval_view_layer_indexed, _1, scene_cow, view_layer_index_));
   /* Parameters evaluation for scene relations mainly. */
+  build_scene_compositor(scene);
   build_scene_parameters(scene);
   /* Build all set scenes. */
   if (scene->set != NULL) {
