@@ -82,58 +82,32 @@
 /* ****************************************************** */
 /* Tree Size Functions */
 
-static void outliner_height(SpaceOutliner *soops, ListBase *lb, int *h)
+static void outliner_tree_dimensions_impl(SpaceOutliner *soops,
+                                          ListBase *lb,
+                                          int *width,
+                                          int *height)
 {
-  TreeElement *te = lb->first;
-  while (te) {
+  for (TreeElement *te = lb->first; te; te = te->next) {
+    *width = MAX2(*width, te->xend);
+    if (height != NULL) {
+      *height += UI_UNIT_Y;
+    }
+
     TreeStoreElem *tselem = TREESTORE(te);
     if (TSELEM_OPEN(tselem, soops)) {
-      outliner_height(soops, &te->subtree, h);
+      outliner_tree_dimensions_impl(soops, &te->subtree, width, height);
     }
-    (*h) += UI_UNIT_Y;
-    te = te->next;
+    else {
+      outliner_tree_dimensions_impl(soops, &te->subtree, width, NULL);
+    }
   }
 }
 
-#if 0  // XXX this is currently disabled until te->xend is set correctly
-static void outliner_width(SpaceOutliner *soops, ListBase *lb, int *w)
+static void outliner_tree_dimensions(SpaceOutliner *soops, int *r_width, int *r_height)
 {
-  TreeElement *te = lb->first;
-  while (te) {
-    //      TreeStoreElem *tselem = TREESTORE(te);
-
-    // XXX fixme... te->xend is not set yet
-    if (!TSELEM_OPEN(tselem, soops)) {
-      if (te->xend > *w)
-        *w = te->xend;
-    }
-    outliner_width(soops, &te->subtree, w);
-    te = te->next;
-  }
-}
-#endif
-
-static void outliner_rna_width(SpaceOutliner *soops, ListBase *lb, int *w, int startx)
-{
-  TreeElement *te = lb->first;
-  while (te) {
-    TreeStoreElem *tselem = TREESTORE(te);
-    // XXX fixme... (currently, we're using a fixed length of 100)!
-#if 0
-    if (te->xend) {
-      if (te->xend > *w)
-        *w = te->xend;
-    }
-#endif
-    if (startx + 100 > *w) {
-      *w = startx + 100;
-    }
-
-    if (TSELEM_OPEN(tselem, soops)) {
-      outliner_rna_width(soops, &te->subtree, w, startx + UI_UNIT_X);
-    }
-    te = te->next;
-  }
+  *r_width = 0;
+  *r_height = 0;
+  outliner_tree_dimensions_impl(soops, &soops->tree, r_width, r_height);
 }
 
 /**
@@ -2644,11 +2618,6 @@ static void outliner_draw_iconrow(bContext *C,
   const Object *obact = OBACT(view_layer);
 
   for (TreeElement *te = lb->first; te; te = te->next) {
-    /* exit drawing early */
-    if ((*offsx) - UI_UNIT_X > xmax) {
-      break;
-    }
-
     TreeStoreElem *tselem = TREESTORE(te);
 
     /* object hierarchy always, further constrained on level */
@@ -3381,6 +3350,36 @@ static void outliner_back(ARegion *ar)
   immUnbindProgram();
 }
 
+static int outliner_data_api_buttons_start_x(int max_tree_width)
+{
+  return max_ii(OL_RNA_COLX, max_tree_width + OL_RNA_COL_SPACEX);
+}
+
+static int outliner_width(SpaceOutliner *soops, int max_tree_width, float restrict_column_width)
+{
+  if (soops->outlinevis == SO_DATA_API) {
+    return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX + 10 * UI_DPI_FAC;
+  }
+  else {
+    return max_tree_width + restrict_column_width;
+  }
+}
+
+static void outliner_update_viewable_area(ARegion *ar,
+                                          SpaceOutliner *soops,
+                                          int tree_width,
+                                          int tree_height,
+                                          float restrict_column_width)
+{
+  int sizex = outliner_width(soops, tree_width, restrict_column_width);
+  int sizey = tree_height;
+
+  /* extend size to allow for horizontal scrollbar and extra offset */
+  sizey += V2D_SCROLL_HEIGHT + OL_Y_OFFSET;
+
+  UI_view2d_totRect_set(&ar->v2d, sizex, sizey);
+}
+
 /* ****************************************************** */
 /* Main Entrypoint - Draw contents of Outliner editor */
 
@@ -3393,50 +3392,9 @@ void draw_outliner(const bContext *C)
   View2D *v2d = &ar->v2d;
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   uiBlock *block;
-  int sizey = 0, sizex = 0, sizex_rna = 0;
   TreeElement *te_edit = NULL;
 
   outliner_build_tree(mainvar, scene, view_layer, soops, ar);  // always
-
-  /* get extents of data */
-  outliner_height(soops, &soops->tree, &sizey);
-
-  /* extend size to allow for horizontal scrollbar */
-  sizey += V2D_SCROLL_HEIGHT;
-
-  const float restrict_column_width = outliner_restrict_columns_width(soops);
-  if (soops->outlinevis == SO_DATA_API) {
-    /* RNA has two columns:
-     * - column 1 is (max_width + OL_RNA_COL_SPACEX) or
-     *   (OL_RNA_COL_X), whichever is wider...
-     * - column 2 is fixed at OL_RNA_COL_SIZEX
-     *
-     *  (*) XXX max width for now is a fixed factor of (UI_UNIT_X * (max_indention + 100))
-     */
-
-    /* get actual width of column 1 */
-    outliner_rna_width(soops, &soops->tree, &sizex_rna, 0);
-    sizex_rna = max_ii(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
-
-    /* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
-    sizex = sizex_rna + OL_RNA_COL_SIZEX + 50;
-  }
-  else {
-    /* width must take into account restriction columns (if visible)
-     * so that entries will still be visible */
-    // outliner_width(soops, &soops->tree, &sizex);
-    // XXX should use outliner_width instead when te->xend will be set correctly...
-    outliner_rna_width(soops, &soops->tree, &sizex, 0);
-
-    /* Constant offset for restriction columns */
-    sizex += restrict_column_width;
-  }
-
-  /* adds vertical offset */
-  sizey += OL_Y_OFFSET;
-
-  /* update size of tot-rect (extents of data/viewable area) */
-  UI_view2d_totRect_set(v2d, sizex, sizey);
 
   /* force display to pixel coords */
   v2d->flag |= (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
@@ -3444,20 +3402,26 @@ void draw_outliner(const bContext *C)
   UI_view2d_view_ortho(v2d);
 
   /* draw outliner stuff (background, hierarchy lines and names) */
+  const float restrict_column_width = outliner_restrict_columns_width(soops);
   outliner_back(ar);
   block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
   outliner_draw_tree(
       (bContext *)C, block, scene, view_layer, ar, soops, restrict_column_width, &te_edit);
 
+  /* Compute outliner dimensions after it has been drawn. */
+  int tree_width, tree_height;
+  outliner_tree_dimensions(soops, &tree_width, &tree_height);
+
   /* Default to no emboss for outliner UI. */
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
   if (soops->outlinevis == SO_DATA_API) {
+    int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
     /* draw rna buttons */
-    outliner_draw_rnacols(ar, sizex_rna);
+    outliner_draw_rnacols(ar, buttons_start_x);
 
     UI_block_emboss_set(block, UI_EMBOSS);
-    outliner_draw_rnabuts(block, ar, soops, sizex_rna, &soops->tree);
+    outliner_draw_rnabuts(block, ar, soops, buttons_start_x, &soops->tree);
     UI_block_emboss_set(block, UI_EMBOSS_NONE);
   }
   else if (soops->outlinevis == SO_ID_ORPHANS) {
@@ -3480,4 +3444,7 @@ void draw_outliner(const bContext *C)
 
   UI_block_end(C, block);
   UI_block_draw(C, block);
+
+  /* Update total viewable region. */
+  outliner_update_viewable_area(ar, soops, tree_width, tree_height, restrict_column_width);
 }
