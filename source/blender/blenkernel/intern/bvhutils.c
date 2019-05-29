@@ -1168,6 +1168,35 @@ static BLI_bitmap *loose_edges_map_get(const MEdge *medge,
   return loose_edges_mask;
 }
 
+static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
+                                             const int looptri_len,
+                                             int *r_looptri_active_len)
+{
+  BLI_bitmap *looptri_mask = BLI_BITMAP_NEW(looptri_len, __func__);
+
+  int looptri_no_hidden_len = 0;
+  int looptri_iter = 0;
+  const MPoly *mp = mpoly;
+  while (looptri_iter != looptri_len) {
+    int mp_totlooptri = mp->totloop - 2;
+    if (mp->flag & ME_HIDE) {
+      looptri_iter += mp_totlooptri;
+    }
+    else {
+      while (mp_totlooptri--) {
+        BLI_BITMAP_ENABLE(looptri_mask, looptri_iter);
+        looptri_iter++;
+        looptri_no_hidden_len++;
+      }
+    }
+    mp++;
+  }
+
+  *r_looptri_active_len = looptri_no_hidden_len;
+
+  return looptri_mask;
+}
+
 /**
  * Builds or queries a bvhcache for the cache bvhtree of the request type.
  */
@@ -1292,6 +1321,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       break;
 
     case BVHTREE_FROM_LOOPTRI:
+    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
       data_cp.nearest_callback = mesh_looptri_nearest_point;
       data_cp.raycast_callback = mesh_looptri_spherecast;
 
@@ -1306,10 +1336,14 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
         data_cp.cached = bvhcache_find(
             mesh->runtime.bvh_cache, BVHTREE_FROM_LOOPTRI, &data_cp.tree);
         if (data_cp.cached == false) {
-          int looptri_num = BKE_mesh_runtime_looptri_len(mesh);
-          /* this assert checks we have looptris,
-           * if not caller should use DM_ensure_looptri() */
-          BLI_assert(!(looptri_num == 0 && mesh->totpoly != 0));
+          BLI_bitmap *looptri_mask = NULL;
+          int looptri_mask_active_len = -1;
+          int looptri_len = BKE_mesh_runtime_looptri_len(mesh);
+
+          if (type == BVHTREE_FROM_LOOPTRI_NO_HIDDEN) {
+            looptri_mask = looptri_no_hidden_map_get(
+                mesh->mpoly, looptri_len, &looptri_mask_active_len);
+          }
 
           data_cp.tree = bvhtree_from_mesh_looptri_create_tree(0.0,
                                                                tree_type,
@@ -1317,9 +1351,9 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                                                data_cp.vert,
                                                                data_cp.loop,
                                                                data_cp.looptri,
-                                                               looptri_num,
-                                                               NULL,
-                                                               -1);
+                                                               looptri_len,
+                                                               looptri_mask,
+                                                               looptri_mask_active_len);
 
           /* Save on cache for later use */
           /* printf("BVHTree built and saved on cache\n"); */

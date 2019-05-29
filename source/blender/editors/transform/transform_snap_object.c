@@ -337,6 +337,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
                         Mesh *me,
                         float obmat[4][4],
                         const unsigned int ob_index,
+                        bool use_hide,
                         /* read/write args */
                         float *ray_depth,
                         /* return args */
@@ -419,7 +420,12 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   if (treedata->tree == NULL) {
-    BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
+    if (use_hide) {
+      BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI_NO_HIDDEN, 4);
+    }
+    else {
+      BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
+    }
 
     /* required for snapping with occlusion. */
     treedata->edge = me->medge;
@@ -723,6 +729,7 @@ static bool raycastObj(SnapObjectContext *sctx,
       }
 
       Mesh *me = ob->data;
+      bool use_hide = false;
       if (BKE_object_is_in_editmode(ob)) {
         BMEditMesh *em = BKE_editmesh_from_object(ob);
         if (use_obedit) {
@@ -742,6 +749,7 @@ static bool raycastObj(SnapObjectContext *sctx,
         }
         else if (em->mesh_eval_final) {
           me = em->mesh_eval_final;
+          use_hide = true;
         }
       }
       retval = raycastMesh(sctx,
@@ -751,6 +759,7 @@ static bool raycastObj(SnapObjectContext *sctx,
                            me,
                            obmat,
                            ob_index,
+                           use_hide,
                            ray_depth,
                            r_loc,
                            r_no,
