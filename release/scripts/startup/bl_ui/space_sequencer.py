@@ -604,7 +604,7 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("sequencer.lock", icon='LOCKED')
+        layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
 
         layout.separator()
@@ -659,9 +659,6 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.duplicate_move")
         layout.operator("sequencer.delete", text="Delete...")
 
-        layout.separator()
-        layout.menu("SEQUENCER_MT_strip_lock_mute")
-
         strip = act_strip(context)
 
         if strip:
@@ -695,6 +692,10 @@ class SEQUENCER_MT_strip(Menu):
             if stype != 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
+                layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+
+        layout.separator()
+        layout.menu("SEQUENCER_MT_strip_lock_mute")
 
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_input")
