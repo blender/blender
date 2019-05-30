@@ -407,9 +407,9 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
   DRWCullingState *cull = BLI_memblock_alloc(DST.vmempool->cullstates);
   state->culling = cull;
 
-  if (ob != NULL) {
+  BoundBox *bbox;
+  if (ob != NULL && (bbox = BKE_object_boundbox_get(ob))) {
     float corner[3];
-    BoundBox *bbox = BKE_object_boundbox_get(ob);
     /* Get BoundSphere center and radius from the BoundBox. */
     mid_v3_v3v3(cull->bsphere.center, bbox->vec[0], bbox->vec[6]);
     mul_v3_m4v3(corner, obmat, bbox->vec[0]);
