@@ -315,6 +315,7 @@ void VIEW3D_GGT_camera(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_camera_poll;
   gzgt->setup = WIDGETGROUP_camera_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_camera_refresh;
   gzgt->message_subscribe = WIDGETGROUP_camera_message_subscribe;
 }

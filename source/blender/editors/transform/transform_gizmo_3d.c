@@ -1993,6 +1993,7 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_gizmo_poll_tool;
   gzgt->setup = WIDGETGROUP_gizmo_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_gizmo_refresh;
   gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
@@ -2023,6 +2024,7 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_gizmo_poll_context;
   gzgt->setup = WIDGETGROUP_gizmo_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_gizmo_refresh;
   gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
@@ -2226,6 +2228,7 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_xform_cage_poll;
   gzgt->setup = WIDGETGROUP_xform_cage_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_xform_cage_refresh;
   gzgt->message_subscribe = WIDGETGROUP_xform_cage_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_xform_cage_draw_prepare;
@@ -2409,6 +2412,7 @@ void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_xform_shear_poll;
   gzgt->setup = WIDGETGROUP_xform_shear_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_xform_shear_refresh;
   gzgt->message_subscribe = WIDGETGROUP_xform_shear_message_subscribe;
   gzgt->draw_prepare = WIDGETGROUP_xform_shear_draw_prepare;

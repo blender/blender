@@ -190,6 +190,7 @@ void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_node_transform_poll;
   gzgt->setup = WIDGETGROUP_node_transform_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->refresh = WIDGETGROUP_node_transform_refresh;
 }
 
@@ -410,6 +411,7 @@ void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_node_crop_poll;
   gzgt->setup = WIDGETGROUP_node_crop_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->draw_prepare = WIDGETGROUP_node_crop_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_crop_refresh;
 }
@@ -514,6 +516,7 @@ void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_node_sbeam_poll;
   gzgt->setup = WIDGETGROUP_node_sbeam_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->draw_prepare = WIDGETGROUP_node_sbeam_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_sbeam_refresh;
 }
@@ -634,6 +637,7 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_node_corner_pin_poll;
   gzgt->setup = WIDGETGROUP_node_corner_pin_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
   gzgt->draw_prepare = WIDGETGROUP_node_corner_pin_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_corner_pin_refresh;
 }
