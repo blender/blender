@@ -1192,6 +1192,13 @@ class _defs_image_uv_select:
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
+
+        def draw_cursor(_context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            props = tool.operator_properties("uv.select_circle")
+            radius = props.radius
+            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+
         return dict(
             idname="builtin.select_circle",
             label="Select Circle",
@@ -1199,6 +1206,7 @@ class _defs_image_uv_select:
             widget=None,
             keymap=(),
             draw_settings=draw_settings,
+            draw_cursor=draw_cursor,
         )
 
 
@@ -1385,6 +1393,13 @@ class _defs_gpencil_edit:
             row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
             layout.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
+
+        def draw_cursor(_context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            props = tool.operator_properties("gpencil.select_circle")
+            radius = props.radius
+            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+
         return dict(
             idname="builtin.select_circle",
             label="Select Circle",
@@ -1392,6 +1407,7 @@ class _defs_gpencil_edit:
             widget=None,
             keymap=(),
             draw_settings=draw_settings,
+            draw_cursor=draw_cursor,
         )
 
     @ToolDef.from_fn
@@ -1522,6 +1538,13 @@ class _defs_node_select:
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
             layout.prop(props, "radius")
+
+        def draw_cursor(_context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            props = tool.operator_properties("node.select_circle")
+            radius = props.radius
+            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+
         return dict(
             idname="builtin.select_circle",
             label="Select Circle",
@@ -1529,6 +1552,7 @@ class _defs_node_select:
             widget=None,
             keymap="Node Tool: Select Circle",
             draw_settings=draw_settings,
+            draw_cursor=draw_cursor,
         )
 
 
