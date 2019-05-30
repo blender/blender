@@ -1,18 +1,11 @@
 
-uniform mat4 ViewProjectionMatrix;
-
-uniform float sphere_size;
 uniform ivec3 grid_resolution;
 uniform vec3 corner;
 uniform vec3 increment_x;
 uniform vec3 increment_y;
 uniform vec3 increment_z;
-uniform vec3 screen_vecs[2];
 
-uniform int call_id; /* we don't want the builtin callId which would be 0. */
-uniform int baseId;
-
-flat out uint finalId;
+flat out int objectId;
 
 void main()
 {
@@ -29,7 +22,8 @@ void main()
   gl_Position = ViewProjectionMatrix * vec4(ws_cell_location, 1.0);
   gl_PointSize = 2.0f;
 
-  finalId = uint(baseId + call_id);
+  /* ID 0 is nothing (background) */
+  objectId = resource_handle + 1;
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(ws_cell_location);

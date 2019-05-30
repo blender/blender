@@ -2,12 +2,15 @@
 layout(lines_adjacency) in;
 layout(line_strip, max_vertices = 2) out;
 
-in vec4 pPos[];
 in vec3 vPos[];
+in int objectId_g[];
+
+flat out int objectId;
 
 void vert_from_gl_in(int v)
 {
-  gl_Position = pPos[v];
+  gl_Position = gl_in[v].gl_Position;
+  objectId = objectId_g[v];
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
 #endif

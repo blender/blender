@@ -1,7 +1,5 @@
-uniform int object_id = 0;
 
-uniform vec3 materialDiffuseColor;
-uniform float materialMetallic;
+uniform vec4 materialColorAndMetal;
 uniform float materialRoughness;
 
 uniform sampler2D image;
@@ -48,7 +46,7 @@ void main()
 #  elif defined(V3D_SHADING_VERTEX_COLOR)
   color.rgb = vertexColor;
 #  else
-  color.rgb = materialDiffuseColor;
+  color.rgb = materialColorAndMetal.rgb;
 #  endif
 
 #  ifdef V3D_LIGHTING_MATCAP
@@ -56,7 +54,7 @@ void main()
   metallic = float(gl_FrontFacing);
   roughness = 0.0;
 #  else
-  metallic = materialMetallic;
+  metallic = materialColorAndMetal.a;
   roughness = materialRoughness;
 #  endif
 
@@ -64,7 +62,7 @@ void main()
   /* Add some variation to the hairs to avoid uniform look. */
   float hair_variation = hair_rand * 0.1;
   color = clamp(color - hair_variation, 0.0, 1.0);
-  metallic = clamp(materialMetallic - hair_variation, 0.0, 1.0);
+  metallic = clamp(materialColorAndMetal.a - hair_variation, 0.0, 1.0);
   roughness = clamp(materialRoughness - hair_variation, 0.0, 1.0);
 #  endif
 
@@ -73,7 +71,7 @@ void main()
 #endif /* MATDATA_PASS_ENABLED */
 
 #ifdef OBJECT_ID_PASS_ENABLED
-  objectId = uint(object_id);
+  objectId = uint(resource_id + 1) & 0xFFu;
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED

@@ -37,7 +37,6 @@
 
 #include "BLI_strict_flags.h" /* keep last */
 
-#define BLI_MEM_BLOCK_CHUNK_SIZE (1 << 15) /* 32KiB */
 #define CHUNK_LIST_SIZE 16
 
 struct BLI_memblock {
@@ -61,18 +60,19 @@ struct BLI_memblock {
   int chunk_len;
 };
 
-BLI_memblock *BLI_memblock_create(uint elem_size)
+BLI_memblock *BLI_memblock_create_ex(uint elem_size, uint chunk_size)
 {
-  BLI_assert(elem_size < BLI_MEM_BLOCK_CHUNK_SIZE);
+  BLI_assert(elem_size < chunk_size);
 
   BLI_memblock *mblk = MEM_mallocN(sizeof(BLI_memblock), "BLI_memblock");
   mblk->elem_size = (int)elem_size;
   mblk->elem_next = 0;
   mblk->elem_last = -1;
-  mblk->chunk_size = BLI_MEM_BLOCK_CHUNK_SIZE;
+  mblk->chunk_size = (int)chunk_size;
   mblk->chunk_len = CHUNK_LIST_SIZE;
   mblk->chunk_list = MEM_callocN(sizeof(void *) * (uint)mblk->chunk_len, "chunk list");
-  mblk->chunk_list[0] = MEM_callocN((uint)mblk->chunk_size, "BLI_memblock chunk");
+  mblk->chunk_list[0] = MEM_mallocN_aligned((uint)mblk->chunk_size, 32, "BLI_memblock chunk");
+  memset(mblk->chunk_list[0], 0x0, (uint)mblk->chunk_size);
   mblk->chunk_max_ofs = (mblk->chunk_size / mblk->elem_size) * mblk->elem_size;
   mblk->elem_next_ofs = 0;
   mblk->chunk_next = 0;
@@ -143,8 +143,9 @@ void *BLI_memblock_alloc(BLI_memblock *mblk)
     }
 
     if (UNLIKELY(mblk->chunk_list[mblk->chunk_next] == NULL)) {
-      mblk->chunk_list[mblk->chunk_next] = MEM_callocN((uint)mblk->chunk_size,
-                                                       "BLI_memblock chunk");
+      mblk->chunk_list[mblk->chunk_next] = MEM_mallocN_aligned(
+          (uint)mblk->chunk_size, 32, "BLI_memblock chunk");
+      memset(mblk->chunk_list[mblk->chunk_next], 0x0, (uint)mblk->chunk_size);
     }
   }
   return ptr;
@@ -179,4 +180,12 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter)
     iter->chunk_idx++;
   }
   return ptr;
+}
+
+/* Direct access. elem is element index inside the chosen chunk. */
+void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem)
+{
+  BLI_assert(chunk < mblk->chunk_len);
+  BLI_assert(elem < (mblk->chunk_size / mblk->elem_size));
+  return (char *)(mblk->chunk_list[chunk]) + mblk->elem_size * elem;
 }

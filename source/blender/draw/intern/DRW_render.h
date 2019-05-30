@@ -80,8 +80,6 @@ typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
 typedef struct DRWView DRWView;
-
-/* Opaque type to avoid usage as a DRWCall but it is exactly the same thing. */
 typedef struct DRWCallBuffer DRWCallBuffer;
 
 /* TODO Put it somewhere else? */
@@ -404,35 +402,29 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          Object *ob,
                          float (*obmat)[4],
                          struct GPUBatch *geom,
-                         uint v_sta,
-                         uint v_ct,
                          bool bypass_culling,
                          void *user_data);
 
 /* If ob is NULL, unit modelmatrix is assumed and culling is bypassed. */
-#define DRW_shgroup_call(shgrp, geom, ob) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, NULL)
+#define DRW_shgroup_call(shgrp, geom, ob) DRW_shgroup_call_ex(shgrp, ob, NULL, geom, false, NULL)
 
 /* Same as DRW_shgroup_call but override the obmat. Not culled. */
 #define DRW_shgroup_call_obmat(shgrp, geom, obmat) \
-  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, 0, 0, false, NULL)
+  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, false, NULL)
 
 /* TODO(fclem) remove this when we have DRWView */
 /* user_data is used by DRWCallVisibilityFn defined in DRWView. */
 #define DRW_shgroup_call_with_callback(shgrp, geom, ob, user_data) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, user_data)
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, false, user_data)
 
 /* Same as DRW_shgroup_call but bypass culling even if ob is not NULL. */
 #define DRW_shgroup_call_no_cull(shgrp, geom, ob) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, true, NULL)
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, true, NULL)
 
-/* Only draw a certain range of geom. */
-#define DRW_shgroup_call_range(shgrp, geom, ob, v_sta, v_ct) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, v_sta, v_ct, false, NULL)
-
-/* Same as DRW_shgroup_call_range but override the obmat. Special for gpencil. */
-#define DRW_shgroup_call_range_obmat(shgrp, geom, obmat, v_sta, v_ct) \
-  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, v_sta, v_ct, false, NULL)
+void DRW_shgroup_call_range(DRWShadingGroup *shgroup,
+                            struct GPUBatch *geom,
+                            uint v_sta,
+                            uint v_ct);
 
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
@@ -468,6 +460,16 @@ void DRW_buffer_add_entry_array(DRWCallBuffer *buffer, const void *attr[], uint 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask);
+
+/* Issue a clear command. */
+void DRW_shgroup_clear_framebuffer(DRWShadingGroup *shgroup,
+                                   eGPUFrameBufferBits channels,
+                                   uchar r,
+                                   uchar g,
+                                   uchar b,
+                                   uchar a,
+                                   float depth,
+                                   uchar stencil);
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup,
                                  const char *name,
@@ -525,16 +527,16 @@ void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const 
 void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float (*value)[4]);
 /* Store value instead of referencing it. */
 void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value);
+void DRW_shgroup_uniform_ivec2_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
+void DRW_shgroup_uniform_ivec3_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
+void DRW_shgroup_uniform_ivec4_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
 void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value);
 void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value);
 void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
+void DRW_shgroup_uniform_vec3_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
+void DRW_shgroup_uniform_vec4_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
-
-/* TODO: workaround functions waiting for the clearing operation to be available inside the
- * shgroups. */
-DRWShadingGroup *DRW_shgroup_get_next(DRWShadingGroup *shgroup);
-uint DRW_shgroup_stencil_mask_get(DRWShadingGroup *shgroup);
 
 /* Passes */
 DRWPass *DRW_pass_create(const char *name, DRWState state);

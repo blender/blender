@@ -61,6 +61,8 @@ extern char datatoc_gpencil_edit_point_geom_glsl[];
 extern char datatoc_gpencil_edit_point_frag_glsl[];
 extern char datatoc_gpencil_blend_frag_glsl[];
 
+extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+
 extern char datatoc_common_colormanagement_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 
@@ -221,7 +223,12 @@ static void GPENCIL_create_shaders(void)
 
   /* used for edit lines for edit modes */
   if (!e_data.gpencil_line_sh) {
-    e_data.gpencil_line_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
+    e_data.gpencil_line_sh = DRW_shader_create_with_lib(
+        datatoc_gpencil_edit_point_vert_glsl,
+        NULL,
+        datatoc_gpu_shader_3D_smooth_color_frag_glsl,
+        datatoc_common_view_lib_glsl,
+        NULL);
   }
 
   /* used to filling during drawing */
@@ -279,6 +286,7 @@ static void GPENCIL_engine_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gpencil_stroke_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_point_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_edit_point_sh);
+  DRW_SHADER_FREE_SAFE(e_data.gpencil_line_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_fullscreen_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_simple_fullscreen_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_blend_fullscreen_sh);
@@ -834,76 +842,13 @@ static void gpencil_draw_pass_range(GPENCIL_FramebufferList *fbl,
 
   const bool do_antialiasing = ((!stl->storage->is_mat_preview) && (multi));
 
-  DRWShadingGroup *shgrp = init_shgrp;
-  DRWShadingGroup *from_shgrp = init_shgrp;
-  DRWShadingGroup *to_shgrp = init_shgrp;
-  int stencil_tot = 0;
-  bool do_last = true;
-
   if (do_antialiasing) {
     MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
   }
 
-  /* Loop all shading groups to separate by stencil groups. */
-  while ((shgrp) && (shgrp != end_shgrp)) {
-    do_last = true;
-    /* Count number of groups using stencil. */
-    if (DRW_shgroup_stencil_mask_get(shgrp) != 0) {
-      stencil_tot++;
-    }
-
-    /* Draw stencil group and clear stencil bit. This is required because the number of
-     * shading groups can be greater than the limit of 255 stencil values.
-     * Only count as stencil if the shading group has an stencil value assigned. This reduces
-     * the number of clears because Dots, Fills and some Line strokes don't need stencil.
-     */
-    if (stencil_tot == 255) {
-      DRW_draw_pass_subset(GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d :
-                                                          psl->stroke_pass_2d,
-                           from_shgrp,
-                           to_shgrp);
-      /* Clear Stencil and prepare for next group. */
-      if (do_antialiasing) {
-        GPU_framebuffer_clear_stencil(fbl->multisample_fb, 0x0);
-      }
-      else {
-        GPU_framebuffer_clear_stencil(fb, 0x0);
-      }
-
-      /* Set new init group and reset. */
-      do_last = false;
-
-      shgrp = DRW_shgroup_get_next(shgrp);
-      if (shgrp) {
-        from_shgrp = to_shgrp = shgrp;
-        stencil_tot = 0;
-        if (shgrp != end_shgrp) {
-          continue;
-        }
-        else {
-          do_last = true;
-          break;
-        }
-      }
-      else {
-        /* No more groups. */
-        break;
-      }
-    }
-
-    /* Still below stencil group limit. */
-    shgrp = DRW_shgroup_get_next(shgrp);
-    if (shgrp) {
-      to_shgrp = shgrp;
-    }
-  }
-
-  /* Draw last pending groups. */
-  if (do_last) {
-    DRW_draw_pass_subset(GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
-                         from_shgrp,
-                         to_shgrp);
-  }
+  DRW_draw_pass_subset(GPENCIL_3D_DRAWMODE(ob, gpd) ? psl->stroke_pass_3d : psl->stroke_pass_2d,
+                       init_shgrp,
+                       end_shgrp);
 
   if (do_antialiasing) {
     MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fb, txl);

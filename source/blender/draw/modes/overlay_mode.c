@@ -23,8 +23,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BIF_glutil.h"
-
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -77,7 +75,6 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *face_wires_shgrp;
   DRWShadingGroup *face_wires_xray_shgrp;
   DRWView *view_wires;
-  BLI_mempool *wire_color_mempool;
   View3DOverlay overlay;
   float wire_step_param;
   bool clear_stencil;
@@ -208,10 +205,6 @@ static void overlay_cache_init(void *vedata)
 
   if (v3d->shading.type == OB_WIRE) {
     g_data->overlay.flag |= V3D_OVERLAY_WIREFRAMES;
-
-    if (ELEM(v3d->shading.wire_color_type, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR)) {
-      g_data->wire_color_mempool = BLI_mempool_create(sizeof(float[3]), 0, 512, 0);
-    }
   }
 
   {
@@ -256,7 +249,6 @@ static void overlay_cache_init(void *vedata)
 }
 
 static void overlay_wire_color_get(const View3D *v3d,
-                                   const OVERLAY_PrivateData *pd,
                                    const Object *ob,
                                    const bool use_coloring,
                                    float **rim_col,
@@ -305,8 +297,10 @@ static void overlay_wire_color_get(const View3D *v3d,
 
   if (v3d->shading.type == OB_WIRE) {
     if (ELEM(v3d->shading.wire_color_type, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR)) {
-      *wire_col = BLI_mempool_alloc(pd->wire_color_mempool);
-      *rim_col = BLI_mempool_alloc(pd->wire_color_mempool);
+      /* Theses stays valid until next call. So we need to copy them when using them as uniform. */
+      static float wire_col_val[3], rim_col_val[3];
+      *wire_col = wire_col_val;
+      *rim_col = rim_col_val;
 
       if (v3d->shading.wire_color_type == V3D_SHADING_OBJECT_COLOR) {
         linearrgb_to_srgb_v3_v3(*wire_col, ob->color);
@@ -427,9 +421,9 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
         if (!(DRW_state_is_select() || DRW_state_is_depth())) {
           float *rim_col, *wire_col;
-          overlay_wire_color_get(v3d, pd, ob, use_coloring, &rim_col, &wire_col);
-          DRW_shgroup_uniform_vec3(shgrp, "wireColor", wire_col, 1);
-          DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
+          overlay_wire_color_get(v3d, ob, use_coloring, &rim_col, &wire_col);
+          DRW_shgroup_uniform_vec3_copy(shgrp, "wireColor", wire_col);
+          DRW_shgroup_uniform_vec3_copy(shgrp, "rimColor", rim_col);
           DRW_shgroup_stencil_mask(shgrp,
                                    (is_xray && (is_wire || !pd->clear_stencil)) ? 0x00 : 0xFF);
         }
@@ -506,12 +500,6 @@ static void overlay_draw_scene(void *vedata)
   /* TODO(fclem): find a way to unify the multisample pass together
    * (non meshes + armature + wireframe) */
   MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
-
-  /* XXX TODO(fclem) do not discard data after drawing! Store them per viewport. */
-  if (stl->g_data->wire_color_mempool) {
-    BLI_mempool_destroy(stl->g_data->wire_color_mempool);
-    stl->g_data->wire_color_mempool = NULL;
-  }
 }
 
 static void overlay_engine_free(void)
