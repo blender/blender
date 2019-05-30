@@ -5191,9 +5191,20 @@ bool WM_window_modal_keymap_status_draw(bContext *UNUSED(C), wmWindow *win, uiLa
  *
  * \{ */
 
-int WM_event_drag_threshold(const struct wmEvent *UNUSED(event))
+int WM_event_drag_threshold(const struct wmEvent *event)
 {
-  return (int)((float)U.tweak_threshold * U.dpi_fac);
+  int drag_threshold;
+  if (WM_event_is_tablet(event)) {
+    drag_threshold = U.drag_threshold_tablet;
+  }
+  else if (ISMOUSE(event->prevtype)) {
+    drag_threshold = U.drag_threshold_mouse;
+  }
+  else {
+    /* Typically keyboard, could be NDOF button or other less common types. */
+    drag_threshold = U.drag_threshold;
+  }
+  return drag_threshold * U.dpi_fac;
 }
 
 bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])

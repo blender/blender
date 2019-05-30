@@ -5201,23 +5201,37 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Walk Navigation", "Settings for walk navigation mode");
 
   /* tweak tablet & mouse preset */
+  prop = RNA_def_property(srna, "drag_threshold_mouse", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 3, 255);
+  RNA_def_property_ui_text(prop,
+                           "Mouse Drag Threshold",
+                           "Number of pixels to drag before a tweak/drag event is triggered "
+                           "for mouse/track-pad input "
+                           "(otherwise click events are detected)");
+
+  prop = RNA_def_property(srna, "drag_threshold_tablet", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 3, 255);
+  RNA_def_property_ui_text(prop,
+                           "Tablet Drag Threshold",
+                           "Number of pixels to drag before a tweak/drag event is triggered "
+                           "for tablet input "
+                           "(otherwise click events are detected)");
+
   prop = RNA_def_property(srna, "drag_threshold", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "tweak_threshold");
-  RNA_def_property_range(prop, 3, 1024);
-  RNA_def_property_ui_text(
-      prop,
-      "Drag Threshold",
-      "Number of pixels you have to drag before a tweak/drag event is triggered "
-      "(otherwise click events are detected)");
+  RNA_def_property_range(prop, 3, 255);
+  RNA_def_property_ui_text(prop,
+                           "Drag Threshold",
+                           "Number of pixels to drag before a drag event is triggered "
+                           "for keyboard and other non mouse/tablet input "
+                           "(otherwise click events are detected)");
 
   prop = RNA_def_property(srna, "move_threshold", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 0, 255);
   RNA_def_property_ui_range(prop, 0, 10, 1, -1);
-  RNA_def_property_ui_text(
-      prop,
-      "Motion Threshold",
-      "Number of pixels you have to before the cursor is considered to have moved "
-      "(used for cycling selected items on successive clicks)");
+  RNA_def_property_ui_text(prop,
+                           "Motion Threshold",
+                           "Number of pixels to before the cursor is considered to have moved "
+                           "(used for cycling selected items on successive clicks)");
 
   /* tablet pressure curve */
   prop = RNA_def_property(srna, "pressure_threshold_max", PROP_FLOAT, PROP_FACTOR);

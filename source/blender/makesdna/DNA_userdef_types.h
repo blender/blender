@@ -735,7 +735,9 @@ typedef struct UserDef {
 
   /** Options for text rendering. */
   short text_render;
-  char _pad9[2];
+  char _pad9;
+
+  char navigation_mode;
 
   /** From texture.h. */
   struct ColorBand coba_weight;
@@ -744,9 +746,11 @@ typedef struct UserDef {
   /** Default color for newly created Grease Pencil layers. */
   float gpencil_new_layer_col[4];
 
-  short tweak_threshold;
+  /** Drag pixels (scaled by DPI). */
+  char drag_threshold_mouse;
+  char drag_threshold_tablet;
+  char drag_threshold;
   char move_threshold;
-  char navigation_mode;
 
   char font_path_ui[1024];
   char font_path_ui_mono[1024];

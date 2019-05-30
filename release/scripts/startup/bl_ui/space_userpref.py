@@ -1433,9 +1433,11 @@ class USERPREF_PT_input_mouse(PreferencePanel, Panel):
         flow.prop(inputs, "use_mouse_emulate_3_button")
         flow.prop(inputs, "use_mouse_continuous")
         flow.prop(inputs, "use_drag_immediately")
+        flow.prop(inputs, "mouse_double_click_time", text="Double Click Speed")
+        flow.prop(inputs, "drag_threshold_mouse")
+        flow.prop(inputs, "drag_threshold_tablet")
         flow.prop(inputs, "drag_threshold")
         flow.prop(inputs, "move_threshold")
-        flow.prop(inputs, "mouse_double_click_time", text="Double Click Speed")
 
 
 class USERPREF_PT_navigation_orbit(PreferencePanel, Panel):
