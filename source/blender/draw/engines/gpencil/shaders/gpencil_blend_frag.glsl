@@ -111,14 +111,6 @@ void main()
   vec4 mix_color = texelFetch(blendColor, uv, 0).rgba;
   float mix_depth = texelFetch(blendDepth, uv, 0).r;
 
-  /* premult alpha factor to remove double blend effects */
-  if (stroke_color.a > 0) {
-    stroke_color = vec4(vec3(stroke_color.rgb / stroke_color.a), stroke_color.a);
-  }
-  if (mix_color.a > 0) {
-    mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
-  }
-
   /* Normal mode */
   if (mode == MODE_NORMAL) {
     if (stroke_color.a > 0) {
