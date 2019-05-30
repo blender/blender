@@ -1713,24 +1713,6 @@ static int mixed_bones_object_selectbuffer_extended(ViewContext *vc,
 
   int hits = mixed_bones_object_selectbuffer(vc, buffer, mval, select_filter, do_nearest);
 
-  if (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-    const bool is_pose_mode = ((vc->obact && vc->obact->mode & OB_MODE_POSE) ||
-                               (select_filter == VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK));
-    struct {
-      uint data[4];
-    } *buffer4 = (void *)buffer;
-    uint j = 0;
-    for (uint i = 0; i < hits; i++) {
-      if (((buffer4[i].data[3] & 0xFFFF0000) != 0) == is_pose_mode) {
-        if (i != j) {
-          buffer4[j] = buffer4[i];
-        }
-        j++;
-      }
-    }
-    hits = j;
-  }
-
   return hits;
 }
 
