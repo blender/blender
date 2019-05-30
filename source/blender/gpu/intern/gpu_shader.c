@@ -1319,13 +1319,17 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                       GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
                       GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR,
                       GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED,
+
                       GPU_SHADER_3D_GROUNDLINE,
                       GPU_SHADER_3D_GROUNDPOINT,
                       GPU_SHADER_DISTANCE_LINES,
                       GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR,
                       GPU_SHADER_3D_FLAT_SELECT_ID,
                       GPU_SHADER_3D_UNIFORM_SELECT_ID) ||
-                 ELEM(shader, GPU_SHADER_3D_FLAT_COLOR, GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR));
+                 ELEM(shader,
+                      GPU_SHADER_3D_FLAT_COLOR,
+                      GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,
+                      GPU_SHADER_INSTANCE_VARIYING_ID_VARIYING_SIZE));
       const char *world_clip_lib = datatoc_gpu_shader_cfg_world_clip_lib_glsl;
       const char *world_clip_def = "#define USE_WORLD_CLIP_PLANES\n";
       /* In rare cases geometry shaders calculate clipping themselves. */

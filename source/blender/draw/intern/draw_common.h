@@ -156,7 +156,8 @@ struct DRWCallBuffer *buffer_instance(struct DRWPass *pass,
 struct DRWCallBuffer *buffer_instance_alpha(struct DRWShadingGroup *grp, struct GPUBatch *geom);
 struct DRWCallBuffer *buffer_instance_outline(struct DRWPass *pass,
                                               struct GPUBatch *geom,
-                                              int *baseid);
+                                              int *baseid,
+                                              eGPUShaderConfig sh_cfg);
 struct DRWCallBuffer *buffer_camera_instance(struct DRWPass *pass,
                                              struct GPUBatch *geom,
                                              eGPUShaderConfig sh_cfg);

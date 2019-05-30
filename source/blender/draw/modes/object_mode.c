@@ -516,10 +516,11 @@ static void OBJECT_engine_init(void *vedata)
                                                    NULL);
 
     /* Lightprobes */
-    sh_data->lightprobe_grid = DRW_shader_create(datatoc_object_lightprobe_grid_vert_glsl,
-                                                 NULL,
-                                                 datatoc_gpu_shader_flat_id_frag_glsl,
-                                                 NULL);
+    sh_data->lightprobe_grid = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_lightprobe_grid_vert_glsl, NULL},
+        .frag = (const char *[]){datatoc_gpu_shader_flat_id_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, NULL},
+    });
 
     /* Loose Points */
     sh_data->loose_points = GPU_shader_create_from_arrays({
@@ -1102,23 +1103,23 @@ static void OBJECT_cache_init(void *vedata)
 
     /* Cubemap */
     g_data->lightprobes_cube_select = buffer_instance_outline(
-        pass, sphere, &g_data->id_ofs_prb_select);
+        pass, sphere, &g_data->id_ofs_prb_select, draw_ctx->sh_cfg);
     g_data->lightprobes_cube_select_dupli = buffer_instance_outline(
-        pass, sphere, &g_data->id_ofs_prb_select_dupli);
+        pass, sphere, &g_data->id_ofs_prb_select_dupli, draw_ctx->sh_cfg);
     g_data->lightprobes_cube_active = buffer_instance_outline(
-        pass, sphere, &g_data->id_ofs_prb_active);
+        pass, sphere, &g_data->id_ofs_prb_active, draw_ctx->sh_cfg);
     g_data->lightprobes_cube_transform = buffer_instance_outline(
-        pass, sphere, &g_data->id_ofs_prb_transform);
+        pass, sphere, &g_data->id_ofs_prb_transform, draw_ctx->sh_cfg);
 
     /* Planar */
     g_data->lightprobes_planar_select = buffer_instance_outline(
-        pass, quad, &g_data->id_ofs_prb_select);
+        pass, quad, &g_data->id_ofs_prb_select, draw_ctx->sh_cfg);
     g_data->lightprobes_planar_select_dupli = buffer_instance_outline(
-        pass, quad, &g_data->id_ofs_prb_select_dupli);
+        pass, quad, &g_data->id_ofs_prb_select_dupli, draw_ctx->sh_cfg);
     g_data->lightprobes_planar_active = buffer_instance_outline(
-        pass, quad, &g_data->id_ofs_prb_active);
+        pass, quad, &g_data->id_ofs_prb_active, draw_ctx->sh_cfg);
     g_data->lightprobes_planar_transform = buffer_instance_outline(
-        pass, quad, &g_data->id_ofs_prb_transform);
+        pass, quad, &g_data->id_ofs_prb_transform, draw_ctx->sh_cfg);
 
     g_data->id_ofs_prb_select = 0;
     g_data->id_ofs_prb_select_dupli = 0;
@@ -2500,7 +2501,8 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
                                    OBJECT_StorageList *stl,
                                    OBJECT_PassList *psl,
                                    Object *ob,
-                                   ViewLayer *view_layer)
+                                   ViewLayer *view_layer,
+                                   const eGPUShaderConfig sh_cfg)
 {
   float *color;
   static float one = 1.0f;
@@ -2560,6 +2562,9 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
       DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
       DRW_shgroup_call_procedural_points(grp, cell_count, NULL);
+      if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+        DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
+      }
     }
     else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
       float draw_size = 1.0f;
@@ -3319,7 +3324,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
         if (hide_object_extra) {
           break;
         }
-        DRW_shgroup_lightprobe(sh_data, stl, psl, ob, view_layer);
+        DRW_shgroup_lightprobe(sh_data, stl, psl, ob, view_layer, draw_ctx->sh_cfg);
         break;
       case OB_ARMATURE: {
         if ((v3d->flag2 & V3D_HIDE_OVERLAYS) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) ||

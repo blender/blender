@@ -30,4 +30,8 @@ void main()
   gl_PointSize = 2.0f;
 
   finalId = uint(baseId + call_id);
+
+#ifdef USE_WORLD_CLIP_PLANES
+  world_clip_planes_calc_clip_distance(ws_cell_location);
+#endif
 }
