@@ -718,16 +718,18 @@ static void do_version_constraints_copy_scale_power(ListBase *lb)
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (seq->strip->transform == NULL) {
-      seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
-    }
+    if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
+      if (seq->strip->transform == NULL) {
+        seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+      }
 
-    if (seq->strip->crop == NULL) {
-      seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
-    }
+      if (seq->strip->crop == NULL) {
+        seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+      }
 
-    if (seq->seqbase.first != NULL) {
-      do_versions_seq_alloc_transform_and_crop(&seq->seqbase);
+      if (seq->seqbase.first != NULL) {
+        do_versions_seq_alloc_transform_and_crop(&seq->seqbase);
+      }
     }
   }
 }

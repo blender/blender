@@ -81,8 +81,7 @@ static Sequence *alloc_generic_sequence(
   Strip *strip;
   StripElem *se;
 
-  seq = BKE_sequence_alloc(ed->seqbasep, frame_start, channel);
-  seq->type = type;
+  seq = BKE_sequence_alloc(ed->seqbasep, frame_start, channel, type);
 
   BLI_strncpy(seq->name + 2, name, sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);

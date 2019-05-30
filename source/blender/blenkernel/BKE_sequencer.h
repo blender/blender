@@ -459,7 +459,7 @@ typedef struct SeqLoadInfo {
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
 
-struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine);
+struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine, int type);
 
 void BKE_sequence_alpha_mode_from_extension(struct Sequence *seq);
 void BKE_sequence_init_colorspace(struct Sequence *seq);

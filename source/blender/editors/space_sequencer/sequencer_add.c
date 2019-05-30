@@ -318,7 +318,6 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
   Scene *sce_seq;
 
   Sequence *seq; /* generic strip vars */
-  Strip *strip;
 
   int start_frame, channel; /* operator props */
 
@@ -332,16 +331,13 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
-  seq->type = SEQ_TYPE_SCENE;
+  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel, SEQ_TYPE_SCENE);
   seq->blend_mode = SEQ_TYPE_ALPHAOVER;
 
   seq->scene = sce_seq;
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
   seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
-  strip->us = 1;
 
   BLI_strncpy(seq->name + 2, sce_seq->id.name + 2, sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
@@ -406,7 +402,6 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
   MovieClip *clip;
 
   Sequence *seq; /* generic strip vars */
-  Strip *strip;
 
   int start_frame, channel; /* operator props */
 
@@ -420,17 +415,14 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
-  seq->type = SEQ_TYPE_MOVIECLIP;
+  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel, SEQ_TYPE_MOVIECLIP);
   seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->clip = clip;
 
   id_us_ensure_real(&seq->clip->id);
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
   seq->len = BKE_movieclip_get_duration(clip);
-  strip->us = 1;
 
   BLI_strncpy(seq->name + 2, clip->id.name + 2, sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
@@ -492,7 +484,6 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
   Mask *mask;
 
   Sequence *seq; /* generic strip vars */
-  Strip *strip;
 
   int start_frame, channel; /* operator props */
 
@@ -506,17 +497,14 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
-  seq->type = SEQ_TYPE_MASK;
+  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel, SEQ_TYPE_MASK);
   seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->mask = mask;
 
   id_us_ensure_real(&seq->mask->id);
 
   /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
   seq->len = BKE_mask_get_duration(mask);
-  strip->us = 1;
 
   BLI_strncpy(seq->name + 2, mask->id.name + 2, sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
@@ -1041,7 +1029,6 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   Editing *ed = BKE_sequencer_editing_get(scene, true);
 
   Sequence *seq; /* generic strip vars */
-  Strip *strip;
   struct SeqEffectHandle sh;
 
   int start_frame, end_frame, channel, type; /* operator props */
@@ -1068,8 +1055,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel);
-  seq->type = type;
+  seq = BKE_sequence_alloc(ed->seqbasep, start_frame, channel, type);
 
   BLI_strncpy(seq->name + 2, BKE_sequence_give_name(seq), sizeof(seq->name) - 2);
   BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
@@ -1090,10 +1076,6 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
   BKE_sequence_calc(scene, seq);
-
-  /* basic defaults */
-  seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-  strip->us = 1;
 
   if (seq->type == SEQ_TYPE_COLOR) {
     SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
