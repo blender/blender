@@ -87,7 +87,8 @@ extern "C" {
 /* C++ can't use _Static_assert, expects static_assert() but c++0x only,
  * Coverity also errors out. */
 #if (!defined(__cplusplus)) && (!defined(__COVERITY__)) && \
-    (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406)) /* gcc4.6+ only */
+    ((defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406)) || \
+     (defined(__clang__) && __has_feature(c_static_assert))) /* GCC 4.6+ and clang */
 #  define BLI_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
 #elif defined(_MSC_VER)
 #  define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
