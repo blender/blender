@@ -242,7 +242,7 @@ static void DRW_gpencil_recalc_geometry_caches(Object *ob,
     if ((gps->tot_triangles == 0) || (gps->triangles == NULL)) {
       if ((gps->totpoints > 2) &&
           ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0) ||
-           (gpl->blend_mode != eGplBlendMode_Normal))) {
+           (gpl->blend_mode != eGplBlendMode_Regular))) {
         DRW_gpencil_triangulate_stroke_fill(ob, gps);
       }
     }
@@ -819,7 +819,7 @@ static void gpencil_add_fill_vertexdata(GpencilBatchCache *cache,
     interp_v3_v3v3(tfill, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
     tfill[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
     if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0) ||
-        (gpl->blend_mode != eGplBlendMode_Normal)) {
+        (gpl->blend_mode != eGplBlendMode_Regular)) {
       if (cache->is_dirty) {
         const float *color;
         if (!onion) {
@@ -1078,7 +1078,7 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
         (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_REMOVE_FILL_LINE)) {
       if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
           (gp_style->fill_style > GP_STYLE_FILL_STYLE_SOLID) ||
-          (gpl->blend_mode != eGplBlendMode_Normal)) {
+          (gpl->blend_mode != eGplBlendMode_Regular)) {
         GP_SET_SRC_GPS(src_gps);
         continue;
       }
@@ -1099,7 +1099,7 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
       }
 
       /* hide any blend layer */
-      if ((!stl->storage->simplify_blend) || (gpl->blend_mode == eGplBlendMode_Normal)) {
+      if ((!stl->storage->simplify_blend) || (gpl->blend_mode == eGplBlendMode_Regular)) {
         /* fill */
         if ((gp_style->flag & GP_STYLE_FILL_SHOW) && (!stl->storage->simplify_fill) &&
             ((gps->flag & GP_STROKE_NOFILL) == 0)) {
@@ -1110,7 +1110,7 @@ static void gpencil_draw_strokes(GpencilBatchCache *cache,
         /* No fill strokes, must show stroke always */
         if (((gp_style->flag & GP_STYLE_STROKE_SHOW) || (gps->flag & GP_STROKE_NOFILL)) &&
             ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
-             (gpl->blend_mode == eGplBlendMode_Normal))) {
+             (gpl->blend_mode == eGplBlendMode_Regular))) {
           /* recalc strokes uv (geometry can be changed by modifiers) */
           if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
             ED_gpencil_calc_stroke_uv(ob, gps);
@@ -1686,7 +1686,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
     else {
       if (elm->gpl != gpl_prev) {
         /* first layer is always blend Normal */
-        array_elm->mode = idx == 0 ? eGplBlendMode_Normal : gpl->blend_mode;
+        array_elm->mode = idx == 0 ? eGplBlendMode_Regular : gpl->blend_mode;
         array_elm->end_shgrp = shgrp;
         gpl_prev = elm->gpl;
         tag_first = true;
@@ -1830,7 +1830,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
     /* save first group */
     if ((shgrp != NULL) && (tag_first)) {
       array_elm = &cache_ob->shgrp_array[idx];
-      array_elm->mode = idx == 0 ? eGplBlendMode_Normal : gpl->blend_mode;
+      array_elm->mode = idx == 0 ? eGplBlendMode_Regular : gpl->blend_mode;
       array_elm->clamp_layer = gpl->flag & GP_LAYER_USE_MASK;
       array_elm->blend_opacity = gpl->opacity;
       array_elm->init_shgrp = shgrp;
@@ -1842,7 +1842,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
 
   /* save last group */
   if (shgrp != NULL) {
-    array_elm->mode = idx == 0 ? eGplBlendMode_Normal : gpl->blend_mode;
+    array_elm->mode = idx == 0 ? eGplBlendMode_Regular : gpl->blend_mode;
     array_elm->end_shgrp = shgrp;
   }
 }

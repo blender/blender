@@ -397,7 +397,7 @@ typedef enum eGPDlayer_OnionFlag {
 
 /* layer blend_mode */
 typedef enum eGPLayerBlendModes {
-  eGplBlendMode_Normal = 0,
+  eGplBlendMode_Regular = 0,
   eGplBlendMode_Overlay = 1,
   eGplBlendMode_Add = 2,
   eGplBlendMode_Subtract = 3,

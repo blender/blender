@@ -950,7 +950,7 @@ void GPENCIL_draw_scene(void *ved)
             bool is_last = (e == cache_ob->tot_layers - 1) ? true : false;
             array_elm = &cache_ob->shgrp_array[e];
 
-            if (((array_elm->mode == eGplBlendMode_Normal) && (!use_blend) &&
+            if (((array_elm->mode == eGplBlendMode_Regular) && (!use_blend) &&
                  (!array_elm->clamp_layer)) ||
                 (e == 0)) {
               if (init_shgrp == NULL) {
