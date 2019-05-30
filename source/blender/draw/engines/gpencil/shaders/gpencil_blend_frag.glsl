@@ -115,7 +115,8 @@ void main()
   if (mode == MODE_REGULAR) {
     if (stroke_color.a > 0) {
       if (mix_color.a > 0) {
-        FragColor = vec4(mix(stroke_color.rgb, mix_color.rgb, mix_color.a * blend_opacity), stroke_color.a);
+        FragColor = vec4(mix(stroke_color.rgb, mix_color.rgb, mix_color.a * blend_opacity),
+                         stroke_color.a);
         gl_FragDepth = mix_depth;
       }
       else {
