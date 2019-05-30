@@ -156,7 +156,7 @@ struct DRWCallBuffer *buffer_instance(struct DRWPass *pass,
 struct DRWCallBuffer *buffer_instance_alpha(struct DRWShadingGroup *grp, struct GPUBatch *geom);
 struct DRWCallBuffer *buffer_instance_outline(struct DRWPass *pass,
                                               struct GPUBatch *geom,
-                                              int *baseid,
+                                              const int *baseid,
                                               eGPUShaderConfig sh_cfg);
 struct DRWCallBuffer *buffer_camera_instance(struct DRWPass *pass,
                                              struct GPUBatch *geom,
@@ -203,7 +203,7 @@ struct DRWView *DRW_view_create_with_zoffset(const RegionView3D *rv3d, float off
 int DRW_object_wire_theme_get(struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
-bool DRW_object_is_flat(Object *ob, int *axis);
+bool DRW_object_is_flat(Object *ob, int *r_axis);
 bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis);
 
 /* draw_armature.c */

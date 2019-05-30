@@ -551,7 +551,7 @@ struct DRWCallBuffer *buffer_instance_empty_axes(DRWPass *pass,
 
 struct DRWCallBuffer *buffer_instance_outline(DRWPass *pass,
                                               struct GPUBatch *geom,
-                                              int *baseid,
+                                              const int *baseid,
                                               eGPUShaderConfig sh_cfg)
 {
   GPUShader *sh_inst = GPU_shader_get_builtin_shader_with_config(
@@ -1205,7 +1205,7 @@ float *DRW_color_background_blend_get(int theme_id)
   return ret;
 }
 
-bool DRW_object_is_flat(Object *ob, int *axis)
+bool DRW_object_is_flat(Object *ob, int *r_axis)
 {
   float dim[3];
 
@@ -1216,15 +1216,15 @@ bool DRW_object_is_flat(Object *ob, int *axis)
 
   BKE_object_dimensions_get(ob, dim);
   if (dim[0] == 0.0f) {
-    *axis = 0;
+    *r_axis = 0;
     return true;
   }
   else if (dim[1] == 0.0f) {
-    *axis = 1;
+    *r_axis = 1;
     return true;
   }
   else if (dim[2] == 0.0f) {
-    *axis = 2;
+    *r_axis = 2;
     return true;
   }
   return false;
