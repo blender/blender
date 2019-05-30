@@ -139,7 +139,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 
   bool use_diffuse = socket_not_one(4) && socket_not_one(15);
-  bool use_subsurf = socket_not_zero(1) && use_diffuse;
+  bool use_subsurf = socket_not_zero(1) && use_diffuse && node->sss_id == 1;
   bool use_refract = socket_not_one(4) && socket_not_zero(15);
   bool use_clear = socket_not_zero(12);
 
