@@ -123,6 +123,21 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 void DRW_globals_update(void);
 void DRW_globals_free(void);
 
+typedef struct DRWEmptiesBufferList {
+  struct DRWCallBuffer *plain_axes;
+  struct DRWCallBuffer *cube;
+  struct DRWCallBuffer *circle;
+  struct DRWCallBuffer *sphere;
+  struct DRWCallBuffer *sphere_solid;
+  struct DRWCallBuffer *cylinder;
+  struct DRWCallBuffer *capsule_cap;
+  struct DRWCallBuffer *capsule_body;
+  struct DRWCallBuffer *cone;
+  struct DRWCallBuffer *single_arrow;
+  struct DRWCallBuffer *single_arrow_line;
+  struct DRWCallBuffer *empty_axes;
+} DRWEmptiesBufferList;
+
 /* TODO(fclem) ideally, most of the DRWCallBuffer functions shouldn't create a shgroup. */
 struct DRWCallBuffer *buffer_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig sh_cfg);
 struct DRWCallBuffer *buffer_dynlines_dashed_uniform_color(struct DRWPass *pass,
@@ -192,6 +207,10 @@ struct DRWCallBuffer *buffer_instance_bone_stick(struct DRWPass *pass, eGPUShade
 struct DRWCallBuffer *buffer_instance_bone_dof(struct DRWPass *pass,
                                                struct GPUBatch *geom,
                                                bool blend);
+
+void empties_callbuffers_create(struct DRWPass *pass,
+                                struct DRWEmptiesBufferList *buffers,
+                                eGPUShaderConfig sh_cfg);
 
 struct GPUShader *mpath_line_shader_get(void);
 struct GPUShader *mpath_points_shader_get(void);

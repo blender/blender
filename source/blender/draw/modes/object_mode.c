@@ -172,18 +172,7 @@ typedef struct OBJECT_ShadingGroupList {
   struct DRWPass *bone_axes;
 
   /* Empties */
-  DRWCallBuffer *plain_axes;
-  DRWCallBuffer *cube;
-  DRWCallBuffer *circle;
-  DRWCallBuffer *sphere;
-  DRWCallBuffer *sphere_solid;
-  DRWCallBuffer *cylinder;
-  DRWCallBuffer *capsule_cap;
-  DRWCallBuffer *capsule_body;
-  DRWCallBuffer *cone;
-  DRWCallBuffer *single_arrow;
-  DRWCallBuffer *single_arrow_line;
-  DRWCallBuffer *empty_axes;
+  DRWEmptiesBufferList empties;
 
   /* Force Field */
   DRWCallBuffer *field_wind;
@@ -1252,41 +1241,7 @@ static void OBJECT_cache_init(void *vedata)
     sgl->image_empties = psl->image_empties[i] = DRW_pass_create("Image Empties", state);
 
     /* Empties */
-    geom = DRW_cache_plain_axes_get();
-    sgl->plain_axes = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_empty_cube_get();
-    sgl->cube = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_circle_get();
-    sgl->circle = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_empty_sphere_get();
-    sgl->sphere = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_sphere_get();
-    sgl->sphere_solid = buffer_instance_solid(sgl->non_meshes, geom);
-
-    geom = DRW_cache_empty_cylinder_get();
-    sgl->cylinder = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_empty_capsule_cap_get();
-    sgl->capsule_cap = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_empty_capsule_body_get();
-    sgl->capsule_body = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_empty_cone_get();
-    sgl->cone = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_single_arrow_get();
-    sgl->single_arrow = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_single_line_get();
-    sgl->single_arrow_line = buffer_instance(sgl->non_meshes, geom, draw_ctx->sh_cfg);
-
-    geom = DRW_cache_bone_arrows_get();
-    sgl->empty_axes = buffer_instance_empty_axes(sgl->non_meshes, geom, draw_ctx->sh_cfg);
+    empties_callbuffers_create(sgl->non_meshes, &sgl->empties, draw_ctx->sh_cfg);
 
     /* Force Field */
     geom = DRW_cache_field_wind_get();
@@ -2035,7 +1990,7 @@ static void camera_view3d_reconstruction(OBJECT_ShadingGroupList *sgl,
         };
 
         mul_m4_m4m4(bundle_mat, bundle_mat, bundle_scale_mat);
-        DRW_buffer_add_entry(sgl->sphere_solid, bundle_mat, bundle_color_v4);
+        DRW_buffer_add_entry(sgl->empties.sphere_solid, bundle_mat, bundle_color_v4);
       }
       else {
         DRW_shgroup_empty_ex(
@@ -2237,28 +2192,29 @@ static void DRW_shgroup_empty_ex(OBJECT_ShadingGroupList *sgl,
                                  char draw_type,
                                  const float color[4])
 {
+  DRWEmptiesBufferList *buffers = &sgl->empties;
   switch (draw_type) {
     case OB_PLAINAXES:
-      DRW_buffer_add_entry(sgl->plain_axes, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->plain_axes, color, draw_size, mat);
       break;
     case OB_SINGLE_ARROW:
-      DRW_buffer_add_entry(sgl->single_arrow, color, draw_size, mat);
-      DRW_buffer_add_entry(sgl->single_arrow_line, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->single_arrow, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->single_arrow_line, color, draw_size, mat);
       break;
     case OB_CUBE:
-      DRW_buffer_add_entry(sgl->cube, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->cube, color, draw_size, mat);
       break;
     case OB_CIRCLE:
-      DRW_buffer_add_entry(sgl->circle, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->circle, color, draw_size, mat);
       break;
     case OB_EMPTY_SPHERE:
-      DRW_buffer_add_entry(sgl->sphere, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->sphere, color, draw_size, mat);
       break;
     case OB_EMPTY_CONE:
-      DRW_buffer_add_entry(sgl->cone, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->cone, color, draw_size, mat);
       break;
     case OB_ARROWS:
-      DRW_buffer_add_entry(sgl->empty_axes, color, draw_size, mat);
+      DRW_buffer_add_entry(buffers->empty_axes, color, draw_size, mat);
       break;
     case OB_EMPTY_IMAGE:
       BLI_assert(!"Should never happen, use DRW_shgroup_empty instead.");
@@ -2424,7 +2380,7 @@ static void DRW_shgroup_volume_extra(OBJECT_ShadingGroupList *sgl,
   translate_m4(voxel_cubemat, 1.0f, 1.0f, 1.0f);
   mul_m4_m4m4(voxel_cubemat, ob->obmat, voxel_cubemat);
 
-  DRW_buffer_add_entry(sgl->cube, color, &one, voxel_cubemat);
+  DRW_buffer_add_entry(sgl->empties.cube, color, &one, voxel_cubemat);
 
   /* Don't show smoke before simulation starts, this could be made an option in the future. */
   if (!sds->draw_velocity || !sds->fluid || CFRA < sds->point_cache[0]->startframe) {
@@ -2605,13 +2561,13 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
     copy_m4_m4(mat, ob->obmat);
     normalize_m4(mat);
 
-    DRW_buffer_add_entry(sgl->single_arrow, color, &ob->empty_drawsize, mat);
-    DRW_buffer_add_entry(sgl->single_arrow_line, color, &ob->empty_drawsize, mat);
+    DRW_buffer_add_entry(sgl->empties.single_arrow, color, &ob->empty_drawsize, mat);
+    DRW_buffer_add_entry(sgl->empties.single_arrow_line, color, &ob->empty_drawsize, mat);
 
     copy_m4_m4(mat, ob->obmat);
     zero_v3(mat[2]);
 
-    DRW_buffer_add_entry(sgl->cube, color, &one, mat);
+    DRW_buffer_add_entry(sgl->empties.cube, color, &one, mat);
   }
 
   if ((prb->flag & LIGHTPROBE_FLAG_SHOW_INFLUENCE) != 0) {
@@ -2625,8 +2581,8 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
     }
 
     if (prb->type == LIGHTPROBE_TYPE_GRID || prb->attenuation_type == LIGHTPROBE_SHAPE_BOX) {
-      DRW_buffer_add_entry(sgl->cube, color, &prb->distgridinf, ob->obmat);
-      DRW_buffer_add_entry(sgl->cube, color, &prb->distfalloff, ob->obmat);
+      DRW_buffer_add_entry(sgl->empties.cube, color, &prb->distgridinf, ob->obmat);
+      DRW_buffer_add_entry(sgl->empties.cube, color, &prb->distfalloff, ob->obmat);
     }
     else if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
       float rangemat[4][4];
@@ -2634,17 +2590,17 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       normalize_v3(rangemat[2]);
       mul_v3_fl(rangemat[2], prb->distinf);
 
-      DRW_buffer_add_entry(sgl->cube, color, &one, rangemat);
+      DRW_buffer_add_entry(sgl->empties.cube, color, &one, rangemat);
 
       copy_m4_m4(rangemat, ob->obmat);
       normalize_v3(rangemat[2]);
       mul_v3_fl(rangemat[2], prb->distfalloff);
 
-      DRW_buffer_add_entry(sgl->cube, color, &one, rangemat);
+      DRW_buffer_add_entry(sgl->empties.cube, color, &one, rangemat);
     }
     else {
-      DRW_buffer_add_entry(sgl->sphere, color, &prb->distgridinf, ob->obmat);
-      DRW_buffer_add_entry(sgl->sphere, color, &prb->distfalloff, ob->obmat);
+      DRW_buffer_add_entry(sgl->empties.sphere, color, &prb->distgridinf, ob->obmat);
+      DRW_buffer_add_entry(sgl->empties.sphere, color, &prb->distfalloff, ob->obmat);
     }
   }
 
@@ -2663,10 +2619,10 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       }
 
       if (prb->parallax_type == LIGHTPROBE_SHAPE_BOX) {
-        DRW_buffer_add_entry(sgl->cube, color, dist, obmat);
+        DRW_buffer_add_entry(sgl->empties.cube, color, dist, obmat);
       }
       else {
-        DRW_buffer_add_entry(sgl->sphere, color, dist, obmat);
+        DRW_buffer_add_entry(sgl->empties.sphere, color, dist, obmat);
       }
     }
   }
@@ -2928,7 +2884,7 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       size_to_mat4(tmp, size);
       copy_v3_v3(tmp[3], center);
       mul_m4_m4m4(tmp, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->cube, color, &one, tmp);
+      DRW_buffer_add_entry(sgl->empties.cube, color, &one, tmp);
       break;
     case OB_BOUND_SPHERE:
       size[0] = max_fff(size[0], size[1], size[2]);
@@ -2936,7 +2892,7 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       size_to_mat4(tmp, size);
       copy_v3_v3(tmp[3], center);
       mul_m4_m4m4(tmp, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->sphere, color, &one, tmp);
+      DRW_buffer_add_entry(sgl->empties.sphere, color, &one, tmp);
       break;
     case OB_BOUND_CYLINDER:
       size[0] = max_ff(size[0], size[1]);
@@ -2944,7 +2900,7 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       size_to_mat4(tmp, size);
       copy_v3_v3(tmp[3], center);
       mul_m4_m4m4(tmp, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->cylinder, color, &one, tmp);
+      DRW_buffer_add_entry(sgl->empties.cylinder, color, &one, tmp);
       break;
     case OB_BOUND_CONE:
       size[0] = max_ff(size[0], size[1]);
@@ -2955,7 +2911,7 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       swap_v3_v3(tmp[1], tmp[2]);
       tmp[3][2] -= size[2];
       mul_m4_m4m4(tmp, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->cone, color, &one, tmp);
+      DRW_buffer_add_entry(sgl->empties.cone, color, &one, tmp);
       break;
     case OB_BOUND_CAPSULE:
       size[0] = max_ff(size[0], size[1]);
@@ -2964,14 +2920,14 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
       copy_v2_v2(tmp[3], center);
       tmp[3][2] = center[2] + max_ff(0.0f, size[2] - size[0]);
       mul_m4_m4m4(final_mat, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->capsule_cap, color, &one, final_mat);
+      DRW_buffer_add_entry(sgl->empties.capsule_cap, color, &one, final_mat);
       negate_v3(tmp[2]);
       tmp[3][2] = center[2] - max_ff(0.0f, size[2] - size[0]);
       mul_m4_m4m4(final_mat, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->capsule_cap, color, &one, final_mat);
+      DRW_buffer_add_entry(sgl->empties.capsule_cap, color, &one, final_mat);
       tmp[2][2] = max_ff(0.0f, size[2] * 2.0f - size[0] * 2.0f);
       mul_m4_m4m4(final_mat, ob->obmat, tmp);
-      DRW_buffer_add_entry(sgl->capsule_body, color, &one, final_mat);
+      DRW_buffer_add_entry(sgl->empties.capsule_body, color, &one, final_mat);
       break;
   }
 }
@@ -3436,7 +3392,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
       float *color, axes_size = 1.0f;
       DRW_object_wire_theme_get(ob, view_layer, &color);
 
-      DRW_buffer_add_entry(sgl->empty_axes, color, &axes_size, ob->obmat);
+      DRW_buffer_add_entry(sgl->empties.empty_axes, color, &axes_size, ob->obmat);
     }
 
     if ((md = modifiers_findByType(ob, eModifierType_Smoke)) &&
