@@ -415,6 +415,7 @@ static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_Data *vedata,
                                                     DRWPass *pass,
                                                     GPUShader *shader,
                                                     Object *ob,
+                                                    float (*obmat)[4],
                                                     bGPdata *gpd,
                                                     bGPDlayer *gpl,
                                                     MaterialGPencilStyle *gp_style,
@@ -427,6 +428,8 @@ static DRWShadingGroup *gpencil_shgroup_fill_create(GPENCIL_Data *vedata,
 
   /* e_data.gpencil_fill_sh */
   DRWShadingGroup *grp = DRW_shgroup_create(shader, pass);
+
+  DRW_shgroup_uniform_mat4(grp, "gpModelMatrix", obmat);
 
   DRW_shgroup_uniform_vec4(grp, "color2", gp_style->mix_rgba, 1);
 
@@ -561,6 +564,7 @@ DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_Data *vedata,
                                                DRWPass *pass,
                                                GPUShader *shader,
                                                Object *ob,
+                                               float (*obmat)[4],
                                                bGPdata *gpd,
                                                bGPDlayer *gpl,
                                                bGPDstroke *gps,
@@ -581,6 +585,8 @@ DRWShadingGroup *gpencil_shgroup_stroke_create(GPENCIL_Data *vedata,
   DRW_shgroup_uniform_vec2(grp, "Viewport", viewport_size, 1);
 
   DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
+
+  DRW_shgroup_uniform_mat4(grp, "gpModelMatrix", obmat);
 
   /* avoid wrong values */
   if ((gpd) && (gpd->pixfactor == 0.0f)) {
@@ -724,6 +730,7 @@ static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_Data *vedata,
                                                      DRWPass *pass,
                                                      GPUShader *shader,
                                                      Object *ob,
+                                                     float (*obmat)[4],
                                                      bGPdata *gpd,
                                                      bGPDlayer *gpl,
                                                      bGPDstroke *gps,
@@ -743,6 +750,8 @@ static DRWShadingGroup *gpencil_shgroup_point_create(GPENCIL_Data *vedata,
 
   DRW_shgroup_uniform_vec2(grp, "Viewport", viewport_size, 1);
   DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
+
+  DRW_shgroup_uniform_mat4(grp, "gpModelMatrix", obmat);
 
   /* avoid wrong values */
   if ((gpd) && (gpd->pixfactor == 0.0f)) {
@@ -1568,6 +1577,9 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       copy_v2_v2(stl->storage->gradient_s, brush->gpencil_settings->gradient_s);
       stl->storage->alignment_mode = (gp_style) ? gp_style->alignment_mode : GP_STYLE_FOLLOW_PATH;
 
+      float unit_mat[4][4];
+      unit_m4(unit_mat);
+
       /* if only one point, don't need to draw buffer because the user has no time to see it */
       if (gpd->runtime.sbuffer_used > 1) {
         if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
@@ -1576,6 +1588,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
               psl->drawing_pass,
               e_data->gpencil_stroke_sh,
               NULL,
+              unit_mat,
               gpd,
               NULL,
               NULL,
@@ -1600,6 +1613,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
               psl->drawing_pass,
               e_data->gpencil_point_sh,
               NULL,
+              unit_mat,
               gpd,
               NULL,
               NULL,
@@ -1786,6 +1800,7 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                               stroke_pass,
                                               e_data->gpencil_stroke_sh,
                                               ob,
+                                              obmat,
                                               gpd,
                                               gpl,
                                               gps,
@@ -1794,23 +1809,26 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                               elm->onion,
                                               scale,
                                               cache_ob->shading_type);
-        if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_obmat(shgrp, cache->b_stroke.batch, obmat, start_stroke, len);
-        }
-        stl->storage->shgroup_id++;
-        start_stroke = elm->vertex_idx;
 
         /* set stencil mask id */
         if (gpencil_is_stencil_required(gp_style)) {
+          if (stencil_id == 1) {
+            /* Clear previous stencils. */
+            DRW_shgroup_clear_framebuffer(shgrp, GPU_STENCIL_BIT, 0, 0, 0, 0, 0.0f, 0x0);
+          }
           DRW_shgroup_stencil_mask(shgrp, stencil_id);
           stencil_id++;
         }
         else {
           /* Disable stencil for this type */
           DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
-          /* set stencil mask id as not used */
-          DRW_shgroup_stencil_mask(shgrp, 0x0);
         }
+
+        if ((do_onion) || (elm->onion == false)) {
+          DRW_shgroup_call_range(shgrp, cache->b_stroke.batch, start_stroke, len);
+        }
+        stl->storage->shgroup_id++;
+        start_stroke = elm->vertex_idx;
         break;
       }
       case eGpencilBatchGroupType_Point: {
@@ -1820,6 +1838,7 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                              stroke_pass,
                                              e_data->gpencil_point_sh,
                                              ob,
+                                             obmat,
                                              gpd,
                                              gpl,
                                              gps,
@@ -1829,16 +1848,14 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                              scale,
                                              cache_ob->shading_type);
 
+        /* Disable stencil for this type */
+        DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
+
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_obmat(shgrp, cache->b_point.batch, obmat, start_point, len);
+          DRW_shgroup_call_range(shgrp, cache->b_point.batch, start_point, len);
         }
         stl->storage->shgroup_id++;
         start_point = elm->vertex_idx;
-
-        /* Disable stencil for this type */
-        DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
-        /* set stencil mask id as not used */
-        DRW_shgroup_stencil_mask(shgrp, 0x0);
         break;
       }
       case eGpencilBatchGroupType_Fill: {
@@ -1848,30 +1865,32 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
                                             stroke_pass,
                                             e_data->gpencil_fill_sh,
                                             ob,
+                                            obmat,
                                             gpd,
                                             gpl,
                                             gp_style,
                                             stl->storage->shgroup_id,
                                             cache_ob->shading_type);
 
+        /* Disable stencil for this type */
+        DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
+
         if ((do_onion) || (elm->onion == false)) {
-          DRW_shgroup_call_range_obmat(shgrp, cache->b_fill.batch, obmat, start_fill, len);
+          DRW_shgroup_call_range(shgrp, cache->b_fill.batch, start_fill, len);
         }
         stl->storage->shgroup_id++;
         start_fill = elm->vertex_idx;
-
-        /* Disable stencil for this type */
-        DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
-        /* set stencil mask id as not used */
-        DRW_shgroup_stencil_mask(shgrp, 0x0);
         break;
       }
       case eGpencilBatchGroupType_Edit: {
         if (stl->g_data->shgrps_edit_point) {
           const int len = elm->vertex_idx - start_edit;
+
+          shgrp = DRW_shgroup_create_sub(stl->g_data->shgrps_edit_point);
+          DRW_shgroup_uniform_mat4(shgrp, "gpModelMatrix", obmat);
           /* use always the same group */
-          DRW_shgroup_call_range_obmat(
-              stl->g_data->shgrps_edit_point, cache->b_edit.batch, obmat, start_edit, len);
+          DRW_shgroup_call_range(
+              stl->g_data->shgrps_edit_point, cache->b_edit.batch, start_edit, len);
 
           start_edit = elm->vertex_idx;
         }
@@ -1880,9 +1899,12 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Edlin: {
         if (stl->g_data->shgrps_edit_line) {
           const int len = elm->vertex_idx - start_edlin;
+
+          shgrp = DRW_shgroup_create_sub(stl->g_data->shgrps_edit_line);
+          DRW_shgroup_uniform_mat4(shgrp, "gpModelMatrix", obmat);
           /* use always the same group */
-          DRW_shgroup_call_range_obmat(
-              stl->g_data->shgrps_edit_line, cache->b_edlin.batch, obmat, start_edlin, len);
+          DRW_shgroup_call_range(
+              stl->g_data->shgrps_edit_line, cache->b_edlin.batch, start_edlin, len);
 
           start_edlin = elm->vertex_idx;
         }

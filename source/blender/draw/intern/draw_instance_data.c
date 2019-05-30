@@ -64,7 +64,7 @@ typedef struct DRWTempBufferHandle {
   /** Format pointer for reuse. */
   GPUVertFormat *format;
   /** Touched vertex length for resize. */
-  uint *vert_len;
+  int *vert_len;
 } DRWTempBufferHandle;
 
 static ListBase g_idatalists = {NULL, NULL};
@@ -112,7 +112,7 @@ static void instance_batch_free(GPUBatch *geom, void *UNUSED(user_data))
  */
 GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
                                     GPUVertFormat *format,
-                                    uint *vert_len)
+                                    int *vert_len)
 {
   BLI_assert(format != NULL);
   BLI_assert(vert_len != NULL);

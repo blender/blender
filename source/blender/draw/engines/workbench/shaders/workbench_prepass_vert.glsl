@@ -25,6 +25,10 @@ out vec2 uv_interp;
 out vec3 vertexColor;
 #endif
 
+#ifdef OBJECT_ID_PASS_ENABLED
+RESOURCE_ID_VARYING
+#endif
+
 /* From http://libnoise.sourceforge.net/noisegen/index.html */
 float integer_noise(int n)
 {
@@ -91,10 +95,16 @@ void main()
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-  normal_viewport = normal_object_to_view(nor);
 #  ifndef HAIR_SHADER
+  normal_viewport = normal_object_to_view(nor);
   normal_viewport = normalize(normal_viewport);
+#  else
+  normal_viewport = normal_world_to_view(nor);
 #  endif
+#endif
+
+#ifdef OBJECT_ID_PASS_ENABLED
+  PASS_RESOURCE_ID
 #endif
 
 #ifdef USE_WORLD_CLIP_PLANES

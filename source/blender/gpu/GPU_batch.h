@@ -193,6 +193,17 @@ GPUBatch *create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff
 
 #endif /* future plans */
 
+/* GPUDrawList is an API to do lots of similar drawcalls very fast using multidrawindirect.
+ * There is a fallback if the feature is not supported. */
+typedef struct GPUDrawList GPUDrawList;
+
+GPUDrawList *GPU_draw_list_create(int length);
+void GPU_draw_list_discard(GPUDrawList *list);
+void GPU_draw_list_init(GPUDrawList *list, GPUBatch *batch);
+void GPU_draw_list_command_add(
+    GPUDrawList *list, int v_first, int v_count, int i_first, int i_count);
+void GPU_draw_list_submit(GPUDrawList *list);
+
 void gpu_batch_init(void);
 void gpu_batch_exit(void);
 

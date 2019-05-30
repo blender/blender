@@ -83,7 +83,6 @@ static struct {
   struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 
   SceneDisplay display; /* world light direction for shadows */
-  int next_object_id;
 
   struct GPUUniformBuffer *sampling_ubo;
   struct GPUTexture *jitter_tx;
@@ -147,6 +146,7 @@ static char *workbench_build_prepass_frag(void)
 {
   DynStr *ds = BLI_dynstr_new();
 
+  BLI_dynstr_append(ds, datatoc_common_view_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
   BLI_dynstr_append(ds, datatoc_workbench_prepass_frag_glsl);
@@ -330,7 +330,6 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 static void workbench_init_object_data(DrawData *dd)
 {
   WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)dd;
-  data->object_id = ((e_data.next_object_id++) & 0xff) + 1;
   data->shadow_bbox_dirty = true;
 }
 
@@ -379,11 +378,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
     workbench_effect_info_init(stl->effects);
   }
 
-  if (!e_data.next_object_id) {
+  if (!e_data.shadow_pass_sh) {
     WORKBENCH_DEFERRED_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
     memset(sh_data->prepass_sh_cache, 0, sizeof(sh_data->prepass_sh_cache));
     memset(e_data.composite_sh_cache, 0, sizeof(e_data.composite_sh_cache));
-    e_data.next_object_id = 1;
 #ifdef DEBUG_SHADOW_VOLUME
     const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
 #else
@@ -868,18 +866,11 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
   WORKBENCH_PassList *psl = vedata->psl;
   WORKBENCH_PrivateData *wpd = stl->g_data;
   WORKBENCH_MaterialData *material;
-  WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
-      &ob->id,
-      &draw_engine_workbench_solid,
-      sizeof(WORKBENCH_ObjectData),
-      &workbench_init_object_data,
-      NULL);
   WORKBENCH_MaterialData material_template;
   const bool is_ghost = (ob->dtx & OB_DRAWXRAY);
 
   /* Solid */
   workbench_material_update_data(wpd, ob, mat, &material_template, color_type);
-  material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
   material_template.color_type = color_type;
   material_template.ima = ima;
   material_template.iuser = iuser;
@@ -899,8 +890,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
         shader, (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_pass : psl->prepass_pass);
     workbench_material_copy(material, &material_template);
     DRW_shgroup_stencil_mask(material->shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
-    DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
-    workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob, true, true, interp);
+    workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob, true, interp);
     BLI_ghash_insert(wpd->material_hash, POINTER_FROM_UINT(hash), material);
   }
   return material;
@@ -943,8 +933,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
           (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_hair_pass : psl->prepass_hair_pass,
           shader);
       DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
-      DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
-      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, true, true, interp);
+      workbench_material_shgroup_uniform(wpd, shgrp, material, ob, true, interp);
     }
   }
 }

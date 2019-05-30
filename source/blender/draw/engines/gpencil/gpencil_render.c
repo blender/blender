@@ -308,6 +308,9 @@ void GPENCIL_render_to_image(void *vedata,
   DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, GPENCIL_render_cache);
 
   GPENCIL_cache_finish(vedata);
+
+  DRW_render_instance_buffer_finish();
+
   GPENCIL_draw_scene(vedata);
 
   /* combined data */

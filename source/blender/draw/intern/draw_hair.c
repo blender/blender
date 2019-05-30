@@ -201,30 +201,33 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(Object *object,
   /* Transform Feedback subdiv. */
   if (need_ft_update) {
     int final_points_len = hair_cache->final[subdiv].strands_res * hair_cache->strands_len;
-    GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
+    if (final_points_len) {
+      GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
 
 #ifdef USE_TRANSFORM_FEEDBACK
-    DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(
-        tf_shader, g_tf_pass, hair_cache->final[subdiv].proc_buf);
+      DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(
+          tf_shader, g_tf_pass, hair_cache->final[subdiv].proc_buf);
 #else
-    DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
+      DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
 
-    ParticleRefineCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
-    pr_call->next = g_tf_calls;
-    pr_call->vbo = hair_cache->final[subdiv].proc_buf;
-    pr_call->shgrp = tf_shgrp;
-    pr_call->vert_len = final_points_len;
-    g_tf_calls = pr_call;
-    DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
-    DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
-    DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
+      ParticleRefineCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
+      pr_call->next = g_tf_calls;
+      pr_call->vbo = hair_cache->final[subdiv].proc_buf;
+      pr_call->shgrp = tf_shgrp;
+      pr_call->vert_len = final_points_len;
+      g_tf_calls = pr_call;
+      DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
+      DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
+      DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
 #endif
 
-    DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", hair_cache->point_tex);
-    DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", hair_cache->strand_tex);
-    DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandSegBuffer", hair_cache->strand_seg_tex);
-    DRW_shgroup_uniform_int(tf_shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
-    DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
+      DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", hair_cache->point_tex);
+      DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", hair_cache->strand_tex);
+      DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandSegBuffer", hair_cache->strand_seg_tex);
+      DRW_shgroup_uniform_int(
+          tf_shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
+      DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
+    }
   }
 
   return shgrp;

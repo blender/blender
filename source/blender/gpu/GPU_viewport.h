@@ -37,14 +37,20 @@ typedef struct GPUViewport GPUViewport;
 
 /* Contains memory pools information */
 typedef struct ViewportMemoryPool {
-  struct BLI_memblock *calls;
-  struct BLI_memblock *states;
+  struct BLI_memblock *commands;
+  struct BLI_memblock *commands_small;
+  struct BLI_memblock *callbuffers;
+  struct BLI_memblock *obmats;
+  struct BLI_memblock *obinfos;
   struct BLI_memblock *cullstates;
   struct BLI_memblock *shgroups;
   struct BLI_memblock *uniforms;
   struct BLI_memblock *views;
   struct BLI_memblock *passes;
   struct BLI_memblock *images;
+  struct GPUUniformBuffer **matrices_ubo;
+  struct GPUUniformBuffer **obinfos_ubo;
+  uint ubo_len;
 } ViewportMemoryPool;
 
 /* All FramebufferLists are just the same pointers with different names */
