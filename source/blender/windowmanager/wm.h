@@ -61,7 +61,7 @@ void wm_operatortypes_register(void);
 
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);
-int wm_gesture_evaluate(wmGesture *gesture);
+int wm_gesture_evaluate(wmGesture *gesture, const struct wmEvent *event);
 void wm_gesture_tag_redraw(bContext *C);
 
 /* wm_gesture_ops.c */

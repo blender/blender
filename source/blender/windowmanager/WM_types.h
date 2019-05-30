@@ -528,7 +528,9 @@ typedef struct wmEvent {
 /**
  * Values below are considered a click, above are considered a drag.
  */
-#define WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD (U.tweak_threshold * U.dpi_fac)
+int WM_event_cursor_click_drag_threshold_from_event_(const wmEvent *event);
+
+bool WM_event_cursor_click_drag_threshold_met(const wmEvent *event);
 
 /**
  * Values below are ignored when detecting if the user interntionally moved the cursor.

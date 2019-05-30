@@ -604,6 +604,10 @@ void WM_event_print(const struct wmEvent *event);
 
 void WM_operator_region_active_win_set(struct bContext *C);
 
+int WM_event_drag_threshold(const struct wmEvent *event);
+bool WM_event_drag_test(const struct wmEvent *event, const int prev_xy[2]);
+bool WM_event_drag_test_with_delta(const struct wmEvent *event, const int delta[2]);
+
 /* drag and drop */
 struct wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);

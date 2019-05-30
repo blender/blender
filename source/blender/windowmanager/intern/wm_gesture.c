@@ -128,15 +128,17 @@ bool WM_gesture_is_modal_first(const wmGesture *gesture)
 }
 
 /* tweak and line gestures */
-int wm_gesture_evaluate(wmGesture *gesture)
+int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
 {
   if (gesture->type == WM_GESTURE_TWEAK) {
     rcti *rect = gesture->customdata;
-    int dx = BLI_rcti_size_x(rect);
-    int dy = BLI_rcti_size_y(rect);
-    const int drag_threshold = WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD;
-    if (abs(dx) >= drag_threshold || abs(dy) >= drag_threshold) {
-      int theta = round_fl_to_int(4.0f * atan2f((float)dy, (float)dx) / (float)M_PI);
+    const int delta[2] = {
+        BLI_rcti_size_x(rect),
+        BLI_rcti_size_y(rect),
+    };
+
+    if (WM_event_drag_test_with_delta(event, delta)) {
+      int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
       int val = EVT_GESTURE_W;
 
       if (theta == 0) {

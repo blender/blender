@@ -475,7 +475,7 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
       rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymax = event->y - gesture->winrct.ymin;
 
-      if ((val = wm_gesture_evaluate(gesture))) {
+      if ((val = wm_gesture_evaluate(gesture, event))) {
         wmEvent tevent;
 
         wm_event_init_from_window(window, &tevent);

@@ -2869,10 +2869,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     if (wm_action_not_handled(action)) {
       if (event->check_drag) {
         wmWindow *win = CTX_wm_window(C);
-        if ((abs(event->x - win->eventstate->prevclickx)) >=
-                WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD ||
-            (abs(event->y - win->eventstate->prevclicky)) >=
-                WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD) {
+        if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
           int x = event->x;
           int y = event->y;
           short val = event->val;
@@ -2928,10 +2925,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
         if ((event->val == KM_RELEASE) && (win->eventstate->prevval == KM_PRESS) &&
             (win->eventstate->check_click == true)) {
-          if ((abs(event->x - win->eventstate->prevclickx)) <
-                  WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD &&
-              (abs(event->y - win->eventstate->prevclicky)) <
-                  WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD) {
+          if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
+            win->eventstate->check_click = 0;
+            win->eventstate->check_drag = 0;
+          }
+          else {
             /* Position is where the actual click happens, for more
              * accurate selecting in case the mouse drifts a little. */
             int x = event->x;
@@ -2948,10 +2946,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
             event->val = KM_RELEASE;
             event->x = x;
             event->y = y;
-          }
-          else {
-            win->eventstate->check_click = 0;
-            win->eventstate->check_drag = 0;
           }
         }
         else if (event->val == KM_DBL_CLICK) {
@@ -4254,13 +4248,14 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   return NULL;
 }
 
-static bool wm_event_is_double_click(wmEvent *event, const wmEvent *event_state)
+static bool wm_event_is_double_click(const wmEvent *event, const wmEvent *event_state)
 {
   if ((event->type == event_state->prevtype) && (event_state->prevval == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if ((ISMOUSE(event->type) == false) ||
-        ((abs(event->x - event_state->prevclickx)) < WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD &&
-         (abs(event->y - event_state->prevclicky)) < WM_EVENT_CURSOR_CLICK_DRAG_THRESHOLD)) {
+    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event_state->prevclickx)) {
+      /* pass */
+    }
+    else {
       if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
         return true;
       }
@@ -5185,6 +5180,35 @@ bool WM_window_modal_keymap_status_draw(bContext *UNUSED(C), wmWindow *win, uiLa
     }
   }
   return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Click/Drag Checks
+ *
+ * Values under this limit are detected as clicks.
+ *
+ * \{ */
+
+int WM_event_drag_threshold(const struct wmEvent *UNUSED(event))
+{
+  return (int)((float)U.tweak_threshold * U.dpi_fac);
+}
+
+bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])
+{
+  const int drag_threshold = WM_event_drag_threshold(event);
+  return abs(drag_delta[0]) > drag_threshold || abs(drag_delta[1]) > drag_threshold;
+}
+
+bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
+{
+  const int drag_delta[2] = {
+      prev_xy[0] - event->x,
+      prev_xy[1] - event->y,
+  };
+  return WM_event_drag_test_with_delta(event, drag_delta);
 }
 
 /** \} */
