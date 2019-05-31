@@ -99,6 +99,7 @@ struct ScrArea;
 struct bContext;
 struct bScreen;
 struct rctf;
+struct wmGizmoGroupType;
 struct wmKeyConfig;
 
 typedef struct View2DScrollers View2DScrollers;
@@ -261,5 +262,11 @@ void UI_view2d_smooth_view(struct bContext *C,
 
 #define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
 #define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)
+
+/* Gizmo Types */
+
+/* view2d_gizmo_navigate.c */
+/* Caller passes in own idname.  */
+void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
 
 #endif /* __UI_VIEW2D_H__ */

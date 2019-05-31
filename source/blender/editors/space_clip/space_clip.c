@@ -802,6 +802,19 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
   BKE_movieclip_user_set_frame(&sc->user, scene->r.cfra);
 }
 
+static void CLIP_GGT_navigate(wmGizmoGroupType *gzgt)
+{
+  VIEW2D_GGT_navigate_impl(gzgt, "CLIP_GGT_navigate");
+}
+
+static void clip_gizmos(void)
+{
+  wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
+      &(const struct wmGizmoMapType_Params){SPACE_CLIP, RGN_TYPE_WINDOW});
+
+  WM_gizmogrouptype_append_and_link(gzmap_type, CLIP_GGT_navigate);
+}
+
 /********************* main region ********************/
 
 /* sets up the fields of the View2D from zoom and offset */
@@ -973,6 +986,8 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
     /* draw Grease Pencil - screen space only */
     clip_draw_grease_pencil((bContext *)C, false);
   }
+
+  WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 }
 
 static void clip_main_region_listener(wmWindow *UNUSED(win),
@@ -1344,6 +1359,7 @@ void ED_spacetype_clip(void)
   st->keymap = clip_keymap;
   st->listener = clip_listener;
   st->context = clip_context;
+  st->gizmos = clip_gizmos;
   st->dropboxes = clip_dropboxes;
   st->refresh = clip_refresh;
   st->id_remap = clip_id_remap;
@@ -1354,7 +1370,7 @@ void ED_spacetype_clip(void)
   art->init = clip_main_region_init;
   art->draw = clip_main_region_draw;
   art->listener = clip_main_region_listener;
-  art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_GPENCIL;
+  art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_GPENCIL;
 
   BLI_addhead(&st->regiontypes, art);
 

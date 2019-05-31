@@ -457,6 +457,19 @@ static int sequencer_context(const bContext *C, const char *member, bContextData
   return false;
 }
 
+static void SEQUENCER_GGT_navigate(wmGizmoGroupType *gzgt)
+{
+  VIEW2D_GGT_navigate_impl(gzgt, "SEQUENCER_GGT_navigate");
+}
+
+static void sequencer_gizmos(void)
+{
+  wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
+      &(const struct wmGizmoMapType_Params){SPACE_SEQ, RGN_TYPE_PREVIEW});
+
+  WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
+}
+
 /* *********************** sequencer (main) region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_main_region_init(wmWindowManager *wm, ARegion *ar)
@@ -659,6 +672,8 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
     }
   }
 
+  WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+
   if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
     rcti rect;
     ED_region_visible_rect(ar, &rect);
@@ -805,6 +820,7 @@ void ED_spacetype_sequencer(void)
   st->operatortypes = sequencer_operatortypes;
   st->keymap = sequencer_keymap;
   st->context = sequencer_context;
+  st->gizmos = sequencer_gizmos;
   st->dropboxes = sequencer_dropboxes;
   st->refresh = sequencer_refresh;
   st->listener = sequencer_listener;
@@ -827,7 +843,7 @@ void ED_spacetype_sequencer(void)
   art->init = sequencer_preview_region_init;
   art->draw = sequencer_preview_region_draw;
   art->listener = sequencer_preview_region_listener;
-  art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
+  art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: listview/buttons */

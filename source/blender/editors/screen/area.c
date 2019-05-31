@@ -1586,7 +1586,7 @@ static void ed_default_handlers(
     UI_region_handlers_add(handlers);
   }
   if (flag & ED_KEYMAP_GIZMO) {
-    BLI_assert(ar && ar->type->regionid == RGN_TYPE_WINDOW);
+    BLI_assert(ar && ELEM(ar->type->regionid, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW));
     if (ar) {
       /* Anything else is confusing, only allow this. */
       BLI_assert(&ar->handlers == handlers);
