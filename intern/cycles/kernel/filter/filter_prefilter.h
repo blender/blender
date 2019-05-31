@@ -145,16 +145,26 @@ ccl_device void kernel_filter_write_feature(int sample,
   combined_buffer[out_offset] = from[idx];
 }
 
+#define GET_COLOR(image) \
+  make_float3(image[idx], image[idx + pass_stride], image[idx + 2 * pass_stride])
+#define SET_COLOR(image, color) \
+  image[idx] = color.x; \
+  image[idx + pass_stride] = color.y; \
+  image[idx + 2 * pass_stride] = color.z
+
 ccl_device void kernel_filter_detect_outliers(int x,
                                               int y,
-                                              ccl_global float *image,
-                                              ccl_global float *variance,
+                                              ccl_global float *in,
+                                              ccl_global float *variance_out,
                                               ccl_global float *depth,
-                                              ccl_global float *out,
+                                              ccl_global float *image_out,
                                               int4 rect,
                                               int pass_stride)
 {
   int buffer_w = align_up(rect.z - rect.x, 4);
+
+  ccl_global float *image_in = in;
+  ccl_global float *variance_in = in + 3 * pass_stride;
 
   int n = 0;
   float values[25];
@@ -162,8 +172,7 @@ ccl_device void kernel_filter_detect_outliers(int x,
   for (int y1 = max(y - 2, rect.y); y1 < min(y + 3, rect.w); y1++) {
     for (int x1 = max(x - 2, rect.x); x1 < min(x + 3, rect.z); x1++) {
       int idx = (y1 - rect.y) * buffer_w + (x1 - rect.x);
-      float3 color = make_float3(
-          image[idx], image[idx + pass_stride], image[idx + 2 * pass_stride]);
+      float3 color = GET_COLOR(image_in);
       color = max(color, make_float3(0.0f, 0.0f, 0.0f));
       float L = average(color);
 
@@ -181,8 +190,7 @@ ccl_device void kernel_filter_detect_outliers(int x,
       values[i] = L;
       n++;
 
-      float3 pixel_var = make_float3(
-          variance[idx], variance[idx + pass_stride], variance[idx + 2 * pass_stride]);
+      float3 pixel_var = GET_COLOR(variance_in);
       float var = average(pixel_var);
       if ((x1 == x) && (y1 == y)) {
         pixel_variance = (pixel_var.x < 0.0f || pixel_var.y < 0.0f || pixel_var.z < 0.0f) ? -1.0f :
@@ -197,8 +205,12 @@ ccl_device void kernel_filter_detect_outliers(int x,
   max_variance += 1e-4f;
 
   int idx = (y - rect.y) * buffer_w + (x - rect.x);
-  float3 color = make_float3(image[idx], image[idx + pass_stride], image[idx + 2 * pass_stride]);
+
+  float3 color = GET_COLOR(image_in);
+  float3 variance = GET_COLOR(variance_in);
   color = max(color, make_float3(0.0f, 0.0f, 0.0f));
+  variance = max(variance, make_float3(0.0f, 0.0f, 0.0f));
+
   float L = average(color);
 
   float ref = 2.0f * values[(int)(n * 0.75f)];
@@ -218,7 +230,7 @@ ccl_device void kernel_filter_detect_outliers(int x,
     if (pixel_variance < 0.0f || pixel_variance > 9.0f * max_variance) {
       depth[idx] = -depth[idx];
       color *= ref / L;
-      variance[idx] = variance[idx + pass_stride] = variance[idx + 2 * pass_stride] = max_variance;
+      variance = make_float3(max_variance, max_variance, max_variance);
     }
     else {
       float stddev = sqrtf(pixel_variance);
@@ -229,16 +241,22 @@ ccl_device void kernel_filter_detect_outliers(int x,
         depth[idx] = -depth[idx];
         float fac = ref / L;
         color *= fac;
-        variance[idx] *= fac * fac;
-        variance[idx + pass_stride] *= fac * fac;
-        variance[idx + 2 * pass_stride] *= fac * fac;
+        variance *= sqr(fac);
       }
     }
   }
-  out[idx] = color.x;
-  out[idx + pass_stride] = color.y;
-  out[idx + 2 * pass_stride] = color.z;
+
+  /* Apply log(1+x) transform to compress highlights and avoid halos in the denoised results.
+   * Variance is transformed accordingly - the derivative of the transform is 1/(1+x), so we
+   * scale by the square of that (since we have variance instead of standard deviation). */
+  color = color_highlight_compress(color, &variance);
+
+  SET_COLOR(image_out, color);
+  SET_COLOR(variance_out, variance);
 }
+
+#undef GET_COLOR
+#undef SET_COLOR
 
 /* Combine A/B buffers.
  * Calculates the combined mean and the buffer variance. */

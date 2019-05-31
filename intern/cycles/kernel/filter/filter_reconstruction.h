@@ -119,8 +119,8 @@ ccl_device_inline void kernel_filter_finalize(int x,
     final_color = mean_color;
   }
 
-  /* Clamp pixel value to positive values. */
-  final_color = max(final_color, make_float3(0.0f, 0.0f, 0.0f));
+  /* Clamp pixel value to positive values and reverse the highlight compression transform. */
+  final_color = color_highlight_uncompress(max(final_color, make_float3(0.0f, 0.0f, 0.0f)));
 
   ccl_global float *combined_buffer = buffer + (y * buffer_params.y + x + buffer_params.x) *
                                                    buffer_params.z;

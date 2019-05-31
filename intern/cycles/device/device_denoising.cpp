@@ -214,12 +214,12 @@ void DenoisingTask::prefilter_color()
   int num_color_passes = 3;
 
   device_only_memory<float> temporary_color(device, "denoising temporary color");
-  temporary_color.alloc_to_device(3 * buffer.pass_stride, false);
+  temporary_color.alloc_to_device(6 * buffer.pass_stride, false);
 
   for (int pass = 0; pass < num_color_passes; pass++) {
     device_sub_ptr color_pass(temporary_color, pass * buffer.pass_stride, buffer.pass_stride);
     device_sub_ptr color_var_pass(
-        buffer.mem, variance_to[pass] * buffer.pass_stride, buffer.pass_stride);
+        temporary_color, (pass + 3) * buffer.pass_stride, buffer.pass_stride);
     functions.get_feature(mean_from[pass],
                           variance_from[pass],
                           *color_pass,

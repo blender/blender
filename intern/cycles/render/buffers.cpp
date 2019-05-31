@@ -217,9 +217,14 @@ bool RenderBuffers::get_denoising_pass_rect(
     float *in_combined = buffer.data();
 
     for (int i = 0; i < size; i++, in += pass_stride, in_combined += pass_stride, pixels += 4) {
-      pixels[0] = in[0] * scale;
-      pixels[1] = in[1] * scale;
-      pixels[2] = in[2] * scale;
+      float3 val = make_float3(in[0], in[1], in[2]);
+      if (type == DENOISING_PASS_PREFILTERED_COLOR && params.denoising_prefiltered_pass) {
+        /* Remove highlight compression from the image. */
+        val = color_highlight_uncompress(val);
+      }
+      pixels[0] = val.x * scale;
+      pixels[1] = val.y * scale;
+      pixels[2] = val.z * scale;
       pixels[3] = saturate(in_combined[3] * alpha_scale);
     }
   }
