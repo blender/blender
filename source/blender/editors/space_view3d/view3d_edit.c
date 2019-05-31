@@ -1790,7 +1790,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = viewmove_invoke;
   ot->modal = viewmove_modal;
-  ot->poll = ED_operator_view3d_active;
+  ot->poll = ED_operator_region_view3d_active;
   ot->cancel = viewmove_cancel;
 
   /* flags */
