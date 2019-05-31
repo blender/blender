@@ -427,9 +427,6 @@ def km_screen(params):
         ("screen.animation_step", {"type": 'TIMER0', "value": 'ANY', "any": True}, None),
         ("screen.region_blend", {"type": 'TIMERREGION', "value": 'ANY', "any": True}, None),
         # Full screen and cycling
-        ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True}, None),
-        ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True},
-         {"properties": [("use_hide_panels", True)]}),
         ("screen.space_context_cycle", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("direction", 'NEXT')]}),
         ("screen.space_context_cycle", {"type": 'TAB', "value": 'PRESS', "shift": True, "ctrl": True},
@@ -461,12 +458,17 @@ def km_screen(params):
 
     if not params.legacy:
         items.extend([
+            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True}, None),
+            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True},
+             {"properties": [("use_hide_panels", True)]}),
             ("screen.redo_last", {"type": 'F9', "value": 'PRESS'}, None),
         ])
     else:
         # Old keymap
         items.extend([
             ("ed.undo_history", {"type": 'Z', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("screen.screen_full_area", {"type": 'UP_ARROW', "value": 'PRESS', "ctrl": True}, None),
+            ("screen.screen_full_area", {"type": 'DOWN_ARROW', "value": 'PRESS', "ctrl": True}, None),
             ("screen.screen_set", {"type": 'RIGHT_ARROW', "value": 'PRESS', "ctrl": True},
              {"properties": [("delta", 1)]}),
             ("screen.screen_set", {"type": 'LEFT_ARROW', "value": 'PRESS', "ctrl": True},
