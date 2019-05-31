@@ -9593,6 +9593,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   /* Clear runtime data. */
   user->runtime.is_dirty = false;
+  user->edit_studio_light = 0;
 
   /* free fd->datamap again */
   oldnewmap_free_unused(fd->datamap);
