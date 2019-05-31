@@ -67,8 +67,11 @@ struct tGPspoint;
 
 /* *********** OBJECTS CACHE *********** */
 typedef struct tGPencilObjectCache_shgrp {
+  /** type of blend (regular, add, mult, etc...) */
   int mode;
+  /** flag to enable the layer clamping */
   bool clamp_layer;
+  /** factor to define the opacity of the layer */
   float blend_opacity;
   DRWShadingGroup *init_shgrp;
   DRWShadingGroup *end_shgrp;

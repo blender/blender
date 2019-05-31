@@ -961,7 +961,7 @@ void GPENCIL_draw_scene(void *ved)
               gpencil_draw_pass_range(
                   fbl, stl, psl, txl, fbl->temp_fb_a, ob, gpd, init_shgrp, end_shgrp, is_last);
 
-              /* draw current group in separated texture */
+              /* Draw current group in separated texture to blend later */
               init_shgrp = array_elm->init_shgrp;
               end_shgrp = array_elm->end_shgrp;
 
