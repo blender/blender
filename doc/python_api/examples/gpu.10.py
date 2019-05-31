@@ -24,7 +24,7 @@ def draw():
     view_matrix = scene.camera.matrix_world.inverted()
 
     projection_matrix = scene.camera.calc_matrix_camera(
-        context.depsgraph, x=WIDTH, y=HEIGHT)
+        context.evaluated_depsgraph_get(), x=WIDTH, y=HEIGHT)
 
     offscreen.draw_view3d(
         scene,
