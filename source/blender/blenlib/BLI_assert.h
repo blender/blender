@@ -84,32 +84,21 @@ extern "C" {
 #  define BLI_assert(a) ((void)0)
 #endif
 
-// A Clang feature extension to determine compiler features.
-#ifndef __has_feature
-#  define __has_feature(x) 0
-#endif
-
-/* C++ can't use _Static_assert, expects static_assert() but c++0x only,
- * Coverity also errors out. */
-#if (!defined(__cplusplus)) && (!defined(__COVERITY__)) && \
-    ((defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406)) || \
-     (defined(__clang__) && __has_feature(c_static_assert))) /* GCC 4.6+ and clang */
-#  define BLI_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
+#if defined(__cplusplus)
+/* C++11 */
+#  define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
 #elif defined(_MSC_VER)
+/* Visual Studio */
 #  define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
-#else /* older gcc, clang... */
-/* Code adapted from http://www.pixelbeat.org/programming/gcc/static_assert.html */
-/* Note we need the two concats below because arguments to ## are not expanded, so we need to
- * expand __LINE__ with one indirection before doing the actual concatenation. */
-#  define _BLI_ASSERT_CONCAT_(a, b) a##b
-#  define _BLI_ASSERT_CONCAT(a, b) _BLI_ASSERT_CONCAT_(a, b)
-/* This can't be used twice on the same line so ensure if using in headers
- * that the headers are not included twice (by wrapping in #ifndef...#endif)
- * Note it doesn't cause an issue when used on same line of separate modules
- * compiled with gcc -combine -fwhole-program. */
-#  define BLI_STATIC_ASSERT(a, msg) \
-    ; \
-    enum { _BLI_ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (int)(!!(a)) };
+#elif defined(__COVERITY__)
+/* Workaround error with coverity */
+#  define BLI_STATIC_ASSERT(a, msg)
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+/* C11 */
+#  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
+#else
+/* Old unsupported compiler */
+#  define BLI_STATIC_ASSERT(a, msg)
 #endif
 
 #define BLI_STATIC_ASSERT_ALIGN(st, align) \
