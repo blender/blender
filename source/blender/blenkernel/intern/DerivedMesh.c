@@ -1129,6 +1129,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 const CustomData_MeshMasks *dataMask,
                                 const int index,
                                 const bool use_cache,
+                                const bool allow_shared_mesh,
                                 /* return args */
                                 Mesh **r_deform,
                                 Mesh **r_final)
@@ -1538,7 +1539,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * need to apply these back onto the Mesh. If we have no
    * Mesh then we need to build one. */
   if (mesh_final == NULL) {
-    if (deformed_verts == NULL) {
+    if (deformed_verts == NULL && allow_shared_mesh) {
       mesh_final = mesh_input;
     }
     else {
@@ -2053,6 +2054,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                       dataMask,
                       -1,
                       true,
+                      true,
                       &ob->runtime.mesh_deform_eval,
                       &ob->runtime.mesh_eval);
 
@@ -2253,7 +2255,7 @@ Mesh *mesh_create_eval_final_render(Depsgraph *depsgraph,
 {
   Mesh *final;
 
-  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, -1, false, NULL, &final);
+  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, -1, false, false, NULL, &final);
 
   return final;
 }
@@ -2266,7 +2268,7 @@ Mesh *mesh_create_eval_final_index_render(Depsgraph *depsgraph,
 {
   Mesh *final;
 
-  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, index, false, NULL, &final);
+  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, index, false, false, NULL, &final);
 
   return final;
 }
@@ -2284,7 +2286,7 @@ Mesh *mesh_create_eval_final_view(Depsgraph *depsgraph,
    */
   ob->transflag |= OB_NO_PSYS_UPDATE;
 
-  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, -1, false, NULL, &final);
+  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, -1, false, false, NULL, &final);
 
   ob->transflag &= ~OB_NO_PSYS_UPDATE;
 
@@ -2298,7 +2300,7 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
 {
   Mesh *final;
 
-  mesh_calc_modifiers(depsgraph, scene, ob, 0, false, dataMask, -1, false, NULL, &final);
+  mesh_calc_modifiers(depsgraph, scene, ob, 0, false, dataMask, -1, false, false, NULL, &final);
 
   return final;
 }
@@ -2310,7 +2312,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 {
   Mesh *final;
 
-  mesh_calc_modifiers(depsgraph, scene, ob, 0, false, dataMask, -1, false, NULL, &final);
+  mesh_calc_modifiers(depsgraph, scene, ob, 0, false, dataMask, -1, false, false, NULL, &final);
 
   return final;
 }
