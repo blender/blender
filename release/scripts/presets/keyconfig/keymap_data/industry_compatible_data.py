@@ -490,8 +490,10 @@ def km_uv_editor(params):
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Selection modes.
-        ("uv.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+        ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("extend", False), ("deselect_all", True)]}),
+        ("uv.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+         {"properties": [("extend", True), ("deselect_all", False)]}),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True)]}),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
@@ -518,9 +520,7 @@ def km_uv_editor(params):
          {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Tools
         op_tool("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
-        op_tool("builtin.transform", {"type": 'W', "value": 'PRESS'}),
-        op_tool("builtin.transform", {"type": 'E', "value": 'PRESS'}),
-        op_tool("builtin.transform", {"type": 'R', "value": 'PRESS'}),
+        op_tool("builtin.transform", {"type": 'T', "value": 'PRESS'}),
         op_tool("builtin.cursor", {"type": 'C', "value": 'PRESS'}),
         op_tool("builtin.annotate", {"type": 'D', "value": 'PRESS'}),
     ])
