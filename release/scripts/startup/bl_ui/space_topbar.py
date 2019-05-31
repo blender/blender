@@ -234,9 +234,6 @@ class TOPBAR_MT_file(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA'
-        if bpy.data.is_dirty:
-            layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
