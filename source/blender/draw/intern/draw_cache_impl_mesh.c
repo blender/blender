@@ -2757,7 +2757,7 @@ static void mesh_create_edit_facedots_select_id(MeshRenderData *rdata, GPUVertBu
       if (p_orig != ORIGINDEX_NONE) {
         const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
         if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-          *((uint *)GPU_vertbuf_raw_step(&idx_step)) = poly;
+          *((uint *)GPU_vertbuf_raw_step(&idx_step)) = p_orig;
         }
       }
     }

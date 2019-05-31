@@ -302,6 +302,11 @@ BMElem *EDBM_select_id_bm_elem_get(struct EDBMSelectID_Context *sel_id_ctx,
     }
   }
 
+  if (base_index >= sel_id_ctx->bases_len) {
+    BLI_assert(0);
+    return NULL;
+  }
+
   if (r_base_index) {
     *r_base_index = base_index;
   }
