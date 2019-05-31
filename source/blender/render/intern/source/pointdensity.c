@@ -201,8 +201,9 @@ static void pointdensity_cache_psys(
   point_data_pointers(pd, &data_vel, &data_life, NULL);
 
 #if 0 /* UNUSED */
-  if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
+  if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT)) {
     childexists = 1;
+  }
 #endif
 
   for (i = 0, pa = psys->particles; i < total_particles; i++, pa++) {

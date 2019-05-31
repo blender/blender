@@ -144,14 +144,16 @@ Controller::~Controller()
 #if 0
   if (NULL != _SilhouetteNode) {
     int ref = _SilhouetteNode->destroy();
-    if (0 == ref)
+    if (0 == ref) {
       delete _SilhouetteNode;
+    }
   }
 
   if (NULL != _DebugNode) {
     int ref = _DebugNode->destroy();
-    if (0 == ref)
+    if (0 == ref) {
       delete _DebugNode;
+    }
   }
 #endif
 
@@ -447,8 +449,9 @@ void Controller::DeleteViewMap(bool freeCache)
   _pView->DetachDebug();
   if (NULL != _DebugNode) {
     int ref = _DebugNode->destroy();
-    if (0 == ref)
+    if (0 == ref) {
       _DebugNode->addRef();
+    }
   }
 #endif
 
@@ -636,8 +639,9 @@ void Controller::ComputeViewMap()
 void Controller::ComputeSteerableViewMap()
 {
 #if 0  // soc
-  if ((!_Canvas) || (!_ViewMap))
+  if ((!_Canvas) || (!_ViewMap)) {
     return;
+  }
 
   // Build 4 nodes containing the edges in the 4 directions
   NodeGroup *ng[Canvas::NB_STEERABLE_VIEWMAP];
@@ -659,16 +663,18 @@ void Controller::ComputeSteerableViewMap()
   NodeShape *ns;
   for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend;
        ++f) {
-    if ((*f)->viewedge()->qi() != 0)
+    if ((*f)->viewedge()->qi() != 0) {
       continue;
+    }
     fRep = new LineRep((*f)->vertexA()->point2d(), (*f)->vertexB()->point2d());
     completeNS->AddRep(fRep);  // add to the complete map anyway
     double *oweights = svm->AddFEdge(*f);
     for (i = 0; i < (Canvas::NB_STEERABLE_VIEWMAP - 1); ++i) {
       ns = new NodeShape;
       double wc = oweights[i] * c;
-      if (oweights[i] == 0)
+      if (oweights[i] == 0) {
         continue;
+      }
       ns->material().setDiffuse(wc, wc, wc, 1);
       ns->AddRep(fRep);
       ng[i]->AddChild(ns);
@@ -1096,12 +1102,14 @@ void Controller::displayDensityCurves(int x, int y)
 
   // display the curves
 #if 0
-  for (i = 0; i < nbCurves; ++i)
+  for (i = 0; i < nbCurves; ++i) {
     _pDensityCurvesWindow->setOrientationCurve(
         i, Vec2d(0, 0), Vec2d(nbPoints, 1), curves[i], "scale", "density");
-  for (i = 1; i <= 8; ++i)
+  }
+  for (i = 1; i <= 8; ++i) {
     _pDensityCurvesWindow->setLevelCurve(
         i, Vec2d(0, 0), Vec2d(nbCurves, 1), curvesDirection[i], "orientation", "density");
+  }
   _pDensityCurvesWindow->show();
 #endif
 }

@@ -215,8 +215,9 @@ class Polygon3r : public Polygon<Vec3r> {
                            real epsilon = M_EPSILON) const
   {
 #if 0
-    if (_vertices.size() < 3)
+    if (_vertices.size() < 3) {
       return false;
+    }
 #endif
     return GeomUtils::intersectRayTriangle(
         orig, dir, _vertices[0], _vertices[1], _vertices[2], t, u, v, epsilon);

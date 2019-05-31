@@ -439,14 +439,16 @@ Object *ArmatureImporter::get_empty_for_leaves()
 Object *ArmatureImporter::find_armature(COLLADAFW::Node *node)
 {
   JointData *jd = get_joint_data(node);
-  if (jd)
+  if (jd) {
     return jd->ob_arm;
+  }
 
   COLLADAFW::NodePointerArray &children = node->getChildNodes();
   for (int i = 0; i < children.getCount(); i++) {
     Object *ob_arm = find_armature(children[i]);
-    if (ob_arm)
+    if (ob_arm) {
       return ob_arm;
+    }
   }
 
   return NULL;
@@ -457,8 +459,9 @@ ArmatureJoints &ArmatureImporter::get_armature_joints(Object *ob_arm)
   /* try finding it */
   std::vector<ArmatureJoints>::iterator it;
   for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
-    if ((*it).ob_arm == ob_arm)
+    if ((*it).ob_arm == ob_arm) {
       return *it;
+    }
   }
 
   /* not found, create one */

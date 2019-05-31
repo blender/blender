@@ -328,23 +328,29 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 
     BLI_dynstr_appendf(ds, "void %s(", name);
     for (a = 0; a < function->totparam; a++) {
-      if (function->paramqual[a] == FUNCTION_QUAL_OUT)
+      if (function->paramqual[a] == FUNCTION_QUAL_OUT) {
         BLI_dynstr_append(ds, "out ");
-      else if (function->paramqual[a] == FUNCTION_QUAL_INOUT)
+      }
+      else if (function->paramqual[a] == FUNCTION_QUAL_INOUT) {
         BLI_dynstr_append(ds, "inout ");
+      }
 
-      if (function->paramtype[a] == GPU_TEX2D)
+      if (function->paramtype[a] == GPU_TEX2D) {
         BLI_dynstr_append(ds, "sampler2D");
-      else if (function->paramtype[a] == GPU_SHADOW2D)
+      }
+      else if (function->paramtype[a] == GPU_SHADOW2D) {
         BLI_dynstr_append(ds, "sampler2DShadow");
-      else
+      }
+      else {
         BLI_dynstr_append(ds, GPU_DATATYPE_STR[function->paramtype[a]]);
+      }
 #  if 0
       BLI_dynstr_appendf(ds, " param%d", a);
 #  endif
 
-      if (a != function->totparam - 1)
+      if (a != function->totparam - 1) {
         BLI_dynstr_append(ds, ", ");
+      }
     }
     BLI_dynstr_append(ds, ");\n");
   }
@@ -937,8 +943,9 @@ static char *code_generate_fragment(GPUMaterial *material,
   BLI_dynstr_free(ds);
 
 #if 0
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("%s\n", code);
+  }
 #endif
 
   return code;
@@ -1209,8 +1216,9 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
   BLI_dynstr_free(ds);
 
 #if 0
-  if (G.debug & G_DEBUG)
+  if (G.debug & G_DEBUG) {
     printf("%s\n", code);
+  }
 #endif
 
   return code;

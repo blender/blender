@@ -355,11 +355,13 @@ real FEdge::local_average_density(float sigma, int iCombination) const
 Vec3r FEdge::normal(int &oException /* = Exception::NO_EXCEPTION */)
 {
   Vec3r Na = _VertexA->normal(oException);
-  if (oException != Exception::NO_EXCEPTION)
+  if (oException != Exception::NO_EXCEPTION) {
     return Na;
+  }
   Vec3r Nb = _VertexB->normal(oException);
-  if (oException != Exception::NO_EXCEPTION)
+  if (oException != Exception::NO_EXCEPTION) {
     return Nb;
+  }
   return (Na + Nb) / 2.0;
 }
 

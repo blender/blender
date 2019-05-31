@@ -126,8 +126,9 @@ bool WVertex::isBoundary()
     }
   }
 #if 0
-  if (!(*it)->GetaOEdge()->GetaFace())
+  if (!(*it)->GetaOEdge()->GetaFace()) {
     return true;
+  }
 #endif
   _Border = 0;
   return false;

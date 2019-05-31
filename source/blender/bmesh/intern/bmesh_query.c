@@ -1926,8 +1926,9 @@ BMEdge *BM_edge_exists(BMVert *v_a, BMVert *v_b)
   BLI_assert(v_a->head.htype == BM_VERT && v_b->head.htype == BM_VERT);
 
   BM_ITER_ELEM (e, &iter, v_a, BM_EDGES_OF_VERT) {
-    if (e->v1 == v_b || e->v2 == v_b)
+    if (e->v1 == v_b || e->v2 == v_b) {
       return e;
+    }
   }
 
   return NULL;

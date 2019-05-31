@@ -472,8 +472,9 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
 
   // find the ridge layer of the face
   iFace->retrieveSmoothLayers(Nature::RIDGE, SmoothLayers);
-  if (SmoothLayers.size() != 1)
+  if (SmoothLayers.size() != 1) {
     return;
+  }
   faceLayer = SmoothLayers[0];
   // retrieve the curvature info of this layer
   layer_info = (Face_Curvature_Info *)faceLayer->userdata;
@@ -491,8 +492,9 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
     for (; fit != fitend; ++fit) {
       WXFace *wxf = dynamic_cast<WXFace *>(*fit);
       WOEdge *oppositeEdge;
-      if (!(wxf->getOppositeEdge(v, oppositeEdge)))
+      if (!(wxf->getOppositeEdge(v, oppositeEdge))) {
         continue;
+      }
       v1v2 = oppositeEdge->GetbVertex()->GetVertex() - oppositeEdge->GetaVertex()->GetVertex();
       GeomUtils::intersection_test res;
       res = GeomUtils::intersectRayPlane(
@@ -500,8 +502,9 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
       if ((res == GeomUtils::DO_INTERSECT) && (t >= 0.0) && (t <= 1.0)) {
         vector<WXFaceLayer *> second_ridge_layer;
         wxf->retrieveSmoothLayers(Nature::RIDGE, second_ridge_layer);
-        if (second_ridge_layer.size() != 1)
+        if (second_ridge_layer.size() != 1) {
           continue;
+        }
         Face_Curvature_Info *second_layer_info =
             (Face_Curvature_Info *)second_ridge_layer[0]->userdata;
 
@@ -542,12 +545,14 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
   e1.normalize();
   Vec3r e2((layer_info->vec_curvature_info[2]->K1 * layer_info->vec_curvature_info[2]->e1));
   e2.normalize();
-  if (e0 * e1 < 0)
+  if (e0 * e1 < 0) {
     // invert dotP[1]
     faceLayer->ReplaceDotP(1, -faceLayer->dotP(1));
-  if (e0 * e2 < 0)
+  }
+  if (e0 * e2 < 0) {
     // invert dotP[2]
     faceLayer->ReplaceDotP(2, -faceLayer->dotP(2));
+  }
 
 #  if 0  // remove the weakest values;
   real minDiff = (_maxK1 - _minK1) / 10.0;

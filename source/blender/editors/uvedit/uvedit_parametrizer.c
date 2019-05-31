@@ -630,8 +630,9 @@ static void p_chart_topological_sanity_check(PChart *chart)
   PVert *v;
   PEdge *e;
 
-  for (v = chart->verts; v; v = v->nextlink)
+  for (v = chart->verts; v; v = v->nextlink) {
     param_test_equals_ptr("v->edge->vert", v, v->edge->vert);
+  }
 
   for (e = chart->edges; e; e = e->nextlink) {
     if (e->pair) {
@@ -1428,12 +1429,15 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 
 static int p_polygon_point_in(float *cp1, float *cp2, float *p)
 {
-  if ((cp1[0] == p[0]) && (cp1[1] == p[1]))
+  if ((cp1[0] == p[0]) && (cp1[1] == p[1])) {
     return 2;
-  else if ((cp2[0] == p[0]) && (cp2[1] == p[1]))
+  }
+  else if ((cp2[0] == p[0]) && (cp2[1] == p[1])) {
     return 3;
-  else
+  }
+  else {
     return (p_area_signed(cp1, cp2, p) >= 0.0f);
+  }
 }
 
 static void p_polygon_kernel_clip(float (*oldpoints)[2],
@@ -1562,8 +1566,9 @@ static float p_vert_cotan(float *v1, float *v2, float *v3)
 
   clen = len_v3(c);
 
-  if (clen == 0.0f)
+  if (clen == 0.0f) {
     return 0.0f;
+  }
 
   return dot_v3v3(a, b) / clen;
 }
@@ -1573,8 +1578,9 @@ static PBool p_vert_flipped_wheel_triangle(PVert *v)
   PEdge *e = v->edge;
 
   do {
-    if (p_face_uv_area_signed(e->face) < 0.0f)
+    if (p_face_uv_area_signed(e->face) < 0.0f) {
       return P_TRUE;
+    }
 
     e = p_wheel_edge_next(e);
   } while (e && (e != v->edge));
@@ -1672,8 +1678,9 @@ static void p_vert_harmonic_insert(PVert *v)
       e = p_wheel_edge_next(e);
     } while (e && (e != v->edge));
 
-    if (e == NULL)
+    if (e == NULL) {
       npoints++;
+    }
 
     points = MEM_mallocN(sizeof(float) * 2 * npoints, "PHarmonicPoints");
 
@@ -1703,8 +1710,9 @@ static void p_vert_harmonic_insert(PVert *v)
 
   e = v->edge;
   do {
-    if (!(e->next->vert->flag & PVERT_PIN))
+    if (!(e->next->vert->flag & PVERT_PIN)) {
       p_vert_map_harmonic_weights(e->next->vert);
+    }
     e = p_wheel_edge_next(e);
   } while (e && (e != v->edge));
 
@@ -1719,8 +1727,9 @@ static void p_vert_fix_edge_pointer(PVert *v)
   while (v->edge->pair) {
     v->edge = p_wheel_edge_prev(v->edge);
 
-    if (v->edge == start)
+    if (v->edge == start) {
       break;
+    }
   }
 }
 
@@ -1747,37 +1756,44 @@ static void p_collapse_edge(PEdge *edge, PEdge *pair)
   /* change e->vert pointers from old vertex to the target vertex */
   e = oldv->edge;
   do {
-    if ((e != edge) && !(pair && pair->next == e))
+    if ((e != edge) && !(pair && pair->next == e)) {
       e->vert = keepv;
+    }
 
     e = p_wheel_edge_next(e);
   } while (e && (e != oldv->edge));
 
   /* set keepv->edge pointer */
   if ((edge && (keepv->edge == edge->next)) || (keepv->edge == pair)) {
-    if (edge && edge->next->pair)
+    if (edge && edge->next->pair) {
       keepv->edge = edge->next->pair->next;
-    else if (pair && pair->next->next->pair)
+    }
+    else if (pair && pair->next->next->pair) {
       keepv->edge = pair->next->next->pair;
-    else if (edge && edge->next->next->pair)
+    }
+    else if (edge && edge->next->next->pair) {
       keepv->edge = edge->next->next->pair;
-    else
+    }
+    else {
       keepv->edge = pair->next->pair->next;
+    }
   }
 
   /* update pairs and v->edge pointers */
   if (edge) {
     PEdge *e1 = edge->next, *e2 = e1->next;
 
-    if (e1->pair)
+    if (e1->pair) {
       e1->pair->pair = e2->pair;
+    }
 
     if (e2->pair) {
       e2->pair->pair = e1->pair;
       e2->vert->edge = p_wheel_edge_prev(e2);
     }
-    else
+    else {
       e2->vert->edge = p_wheel_edge_next(e2);
+    }
 
     p_vert_fix_edge_pointer(e2->vert);
   }
@@ -1785,15 +1801,17 @@ static void p_collapse_edge(PEdge *edge, PEdge *pair)
   if (pair) {
     PEdge *e1 = pair->next, *e2 = e1->next;
 
-    if (e1->pair)
+    if (e1->pair) {
       e1->pair->pair = e2->pair;
+    }
 
     if (e2->pair) {
       e2->pair->pair = e1->pair;
       e2->vert->edge = p_wheel_edge_prev(e2);
     }
-    else
+    else {
       e2->vert->edge = p_wheel_edge_next(e2);
+    }
 
     p_vert_fix_edge_pointer(e2->vert);
   }
@@ -1835,10 +1853,12 @@ static void p_split_vertex(PEdge *edge, PEdge *pair)
   if (edge) {
     PEdge *e1 = edge->next, *e2 = e1->next;
 
-    if (e1->pair)
+    if (e1->pair) {
       e1->pair->pair = e1;
-    if (e2->pair)
+    }
+    if (e2->pair) {
       e2->pair->pair = e2;
+    }
 
     e2->vert->edge = e2;
     p_vert_fix_edge_pointer(e2->vert);
@@ -1848,10 +1868,12 @@ static void p_split_vertex(PEdge *edge, PEdge *pair)
   if (pair) {
     PEdge *e1 = pair->next, *e2 = e1->next;
 
-    if (e1->pair)
+    if (e1->pair) {
       e1->pair->pair = e1;
-    if (e2->pair)
+    }
+    if (e2->pair) {
       e2->pair->pair = e2;
+    }
 
     e2->vert->edge = e2;
     p_vert_fix_edge_pointer(e2->vert);
@@ -1877,15 +1899,18 @@ static PBool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
   /* boundary edges */
   if (!edge || !pair) {
     /* avoid collapsing chart into an edge */
-    if (edge && !edge->next->pair && !edge->next->next->pair)
+    if (edge && !edge->next->pair && !edge->next->next->pair) {
       return P_FALSE;
-    else if (pair && !pair->next->pair && !pair->next->next->pair)
+    }
+    else if (pair && !pair->next->pair && !pair->next->next->pair) {
       return P_FALSE;
+    }
   }
   /* avoid merging two boundaries (oldv and keepv are on the 'other side' of
    * the chart) */
-  else if (!p_vert_interior(oldv) && !p_vert_interior(keepv))
+  else if (!p_vert_interior(oldv) && !p_vert_interior(keepv)) {
     return P_FALSE;
+  }
 
   return P_TRUE;
 }
@@ -1931,8 +1956,9 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
       continue;
     }
 
-    if (p_collapse_normal_flipped(v1->co, v2->co, oldv->co, keepv->co))
+    if (p_collapse_normal_flipped(v1->co, v2->co, oldv->co, keepv->co)) {
       return P_FALSE;
+    }
 
     a[0] = angle;
     a[1] = p_vec_angle(v2->co, v1->co, oldv->co);
@@ -1947,10 +1973,12 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
     maxangle = M_PI - minangle;
 
     for (i = 0; i < 3; i++) {
-      if ((b[i] < a[i]) && (b[i] < minangle))
+      if ((b[i] < a[i]) && (b[i] < minangle)) {
         return P_FALSE;
-      else if ((b[i] > a[i]) && (b[i] > maxangle))
+      }
+      else if ((b[i] > a[i]) && (b[i] > maxangle)) {
         return P_FALSE;
+      }
     }
 
     e = p_wheel_edge_next(e);
@@ -1958,21 +1986,24 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
   if (p_vert_interior(oldv)) {
     /* hlscm criterion: angular defect smaller than threshold */
-    if (fabsf(angulardefect) > (float)(M_PI * 30.0 / 180.0))
+    if (fabsf(angulardefect) > (float)(M_PI * 30.0 / 180.0)) {
       return P_FALSE;
+    }
   }
   else {
     PVert *v1 = p_boundary_edge_next(oldv->edge)->vert;
     PVert *v2 = p_boundary_edge_prev(oldv->edge)->vert;
 
     /* abf++ criterion 2: avoid collapsing verts inwards */
-    if (p_vert_interior(keepv))
+    if (p_vert_interior(keepv)) {
       return P_FALSE;
+    }
 
     /* don't collapse significant boundary changes */
     angle = p_vec_angle(v1->co, oldv->co, v2->co);
-    if (angle < (M_PI * 160.0 / 180.0))
+    if (angle < (M_PI * 160.0 / 180.0)) {
       return P_FALSE;
+    }
   }
 
   return P_TRUE;
@@ -1984,8 +2015,9 @@ static PBool p_collapse_allowed(PEdge *edge, PEdge *pair)
 
   p_collapsing_verts(edge, pair, &oldv, &keepv);
 
-  if (oldv->flag & PVERT_PIN)
+  if (oldv->flag & PVERT_PIN) {
     return P_FALSE;
+  }
 
   return (p_collapse_allowed_topologic(edge, pair) && p_collapse_allowed_geometric(edge, pair));
 }
@@ -2027,8 +2059,9 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
 #  if 0
       shapecost += dot_v3v3(co1, keepv->co);
 
-      if (p_wheel_edge_next(e) == NULL)
+      if (p_wheel_edge_next(e) == NULL) {
         shapecost += dot_v3v3(co2, keepv->co);
+      }
 #  endif
 
       p_triangle_angles(oldv->co, co1, co2, &a1, &a2, &a3);
@@ -2239,19 +2272,23 @@ static void p_chart_simplify_compute(PChart *chart)
 
     p_collapse_cost_vertex(v, &cost, &e);
 
-    if (e)
+    if (e) {
       v->u.heaplink = BLI_heap_insert(heap, cost, e);
-    else
+    }
+    else {
       v->u.heaplink = NULL;
+    }
   }
 
-  for (e = chart->edges; e; e = e->nextlink)
+  for (e = chart->edges; e; e = e->nextlink) {
     e->u.nextcollapse = NULL;
+  }
 
   /* pop edge collapse out of heap one by one */
   while (!BLI_heap_is_empty(heap)) {
-    if (ncollapsed == NCOLLAPSE)
+    if (ncollapsed == NCOLLAPSE) {
       break;
+    }
 
     HeapNode *link = BLI_heap_top(heap);
     PEdge *edge = (PEdge *)BLI_heap_pop_min(heap), *pair = edge->pair;
@@ -2282,8 +2319,9 @@ static void p_chart_simplify_compute(PChart *chart)
       wheelverts[nwheelverts++] = wheele->next->vert;
       nexte = p_wheel_edge_next(wheele);
 
-      if (nexte == NULL)
+      if (nexte == NULL) {
         wheelverts[nwheelverts++] = wheele->next->next->vert;
+      }
 
       wheele = nexte;
     } while (wheele && (wheele != oldv->edge));
@@ -2304,8 +2342,9 @@ static void p_chart_simplify_compute(PChart *chart)
 
       p_collapse_cost_vertex(v, &cost, &collapse);
 
-      if (collapse)
+      if (collapse) {
         v->u.heaplink = BLI_heap_insert(heap, cost, collapse);
+      }
     }
 
     ncollapsed++;
@@ -2324,8 +2363,9 @@ static void p_chart_complexify(PChart *chart)
   int x = 0;
 
   for (e = chart->collapsed_edges; e; e = e->nextlink) {
-    if (!(e->flag & PEDGE_COLLAPSE_EDGE))
+    if (!(e->flag & PEDGE_COLLAPSE_EDGE)) {
       break;
+    }
 
     edge = e;
     pair = e->pair;

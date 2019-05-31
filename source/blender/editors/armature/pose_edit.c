@@ -162,14 +162,16 @@ static bool pose_has_protected_selected(Object *ob, short warn)
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
       if (pchan->bone && (pchan->bone->layer & arm->layer)) {
         if (pchan->bone->layer & arm->layer_protected) {
-          if (pchan->bone->flag & BONE_SELECTED)
+          if (pchan->bone->flag & BONE_SELECTED) {
             break;
+          }
         }
       }
     }
     if (pchan) {
-      if (warn)
+      if (warn) {
         error("Cannot change Proxy protected bones");
+      }
       return 1;
     }
   }

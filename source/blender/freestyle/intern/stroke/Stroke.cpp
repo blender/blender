@@ -869,8 +869,9 @@ Stroke::const_vertex_iterator Stroke::vertices_last() const
 Stroke::vertex_container::reverse_iterator Stroke::vertices_last(float sampling)
 {
   // Resample if necessary
-  if (sampling < _sampling)
+  if (sampling < _sampling) {
     Resample(sampling);
+  }
   return _Vertices.rbegin();
 }
 
@@ -901,8 +902,9 @@ Material Stroke::material() const
   const_vertex_iterator v = vertices_begin(), vend = strokeVerticesEnd();
   Material mat = (*v)->material();
   for (; v != vend; ++v) {
-    if (mat != (*v)->material())
+    if (mat != (*v)->material()) {
       Exception::raiseException();
+    }
   }
   return mat;
 }
@@ -912,8 +914,9 @@ int Stroke::qi() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   int qi_ = (*v)->qi();
   for (; v != vend; ++v) {
-    if ((*v)->qi() != qi_)
+    if ((*v)->qi() != qi_) {
       Exception::raiseException();
+    }
   }
   return qi_;
 }
@@ -938,8 +941,9 @@ bool Stroke::occluders_empty() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   bool empty = (*v)->occluders_empty();
   for (; v != vend; ++v) {
-    if ((*v)->occluders_empty() != empty)
+    if ((*v)->occluders_empty() != empty) {
       Exception::raiseException();
+    }
   }
   return empty;
 }
@@ -956,8 +960,9 @@ const SShape *Stroke::occluded_shape() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   const SShape *sshape = (*v)->occluded_shape();
   for (; v != vend; ++v) {
-    if ((*v)->occluded_shape() != sshape)
+    if ((*v)->occluded_shape() != sshape) {
       Exception::raiseException();
+    }
   }
   return sshape;
 }
@@ -967,8 +972,9 @@ const bool Stroke::occludee_empty() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   bool empty = (*v)->occludee_empty();
   for (; v != vend; ++v) {
-    if ((*v)->occludee_empty() != empty)
+    if ((*v)->occludee_empty() != empty) {
       Exception::raiseException();
+    }
   }
   return empty;
 }
@@ -978,8 +984,9 @@ const SShape *Stroke::shape() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   const SShape *sshape = (*v)->shape();
   for (; v != vend; ++v) {
-    if ((*v)->shape() != sshape)
+    if ((*v)->shape() != sshape) {
       Exception::raiseException();
+    }
   }
   return sshape;
 }

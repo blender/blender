@@ -54,14 +54,16 @@ class Vector3 : public Eigen::Vector3f {
 
   Vector3(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
+    for (int k = 0; k < 3; ++k) {
       coeffRef(k) = v[k];
+    }
   }
 
   Vector3 &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
+    for (int k = 0; k < 3; ++k) {
       coeffRef(k) = v[k];
+    }
     return *this;
   }
 
@@ -84,16 +86,20 @@ class Matrix3 : public Eigen::Matrix3f {
 
   Matrix3(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         coeffRef(l, k) = v[k][l];
+      }
+    }
   }
 
   Matrix3 &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         coeffRef(l, k) = v[k][l];
+      }
+    }
     return *this;
   }
 
@@ -164,18 +170,22 @@ struct lMatrix3fCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
+      }
+    }
   }
 
   void sub(int i, int j, const Matrix3 &m)
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         m_trips.push_back(Triplet(i + k, j + l, -m.coeff(l, k)));
+      }
+    }
   }
 
   inline void construct(lMatrix &m)
@@ -196,8 +206,9 @@ using Eigen::ComputationInfo;
 BLI_INLINE void print_lvector(const lVector3f &v)
 {
   for (int i = 0; i < v.rows(); ++i) {
-    if (i > 0 && i % 3 == 0)
+    if (i > 0 && i % 3 == 0) {
       printf("\n");
+    }
 
     printf("%f,\n", v[i]);
   }
@@ -206,12 +217,14 @@ BLI_INLINE void print_lvector(const lVector3f &v)
 BLI_INLINE void print_lmatrix(const lMatrix &m)
 {
   for (int j = 0; j < m.rows(); ++j) {
-    if (j > 0 && j % 3 == 0)
+    if (j > 0 && j % 3 == 0) {
       printf("\n");
+    }
 
     for (int i = 0; i < m.cols(); ++i) {
-      if (i > 0 && i % 3 == 0)
+      if (i > 0 && i % 3 == 0) {
         printf("  ");
+      }
 
       implicit_print_matrix_elem(m.coeff(j, i));
     }

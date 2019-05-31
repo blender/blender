@@ -348,7 +348,7 @@ void TVertex::setFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming)
   if (!_sortedEdges.empty()) {
     edge_pointers_container::iterator dve = _sortedEdges.begin(), dveend = _sortedEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(**dve, _FrontEdgeA); ++dve) {
-      ;
+      /* pass */
     }
     _sortedEdges.insert(dve, &_FrontEdgeA);
   }
@@ -367,7 +367,7 @@ void TVertex::setFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming)
   if (!_sortedEdges.empty()) {
     edge_pointers_container::iterator dve = _sortedEdges.begin(), dveend = _sortedEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(**dve, _FrontEdgeB); ++dve) {
-      ;
+      /* pass */
     }
     _sortedEdges.insert(dve, &_FrontEdgeB);
   }
@@ -405,7 +405,7 @@ void TVertex::setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming)
   if (!_sortedEdges.empty()) {
     edge_pointers_container::iterator dve = _sortedEdges.begin(), dveend = _sortedEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(**dve, _BackEdgeB); ++dve) {
-      ;
+      /* pass */
     }
     _sortedEdges.insert(dve, &_BackEdgeB);
   }
@@ -476,14 +476,18 @@ ViewVertex::edge_iterator TVertex::edges_iterator(ViewEdge *iEdge)
 
 #if 0
   directedViewEdge dEdge;
-  if (_FrontEdgeA.first == iEdge)
+  if (_FrontEdgeA.first == iEdge) {
     dEdge = _FrontEdgeA;
-  else if (_FrontEdgeB.first == iEdge)
+  }
+  else if (_FrontEdgeB.first == iEdge) {
     dEdge = _FrontEdgeB;
-  else if (_BackEdgeA.first == iEdge)
+  }
+  else if (_BackEdgeA.first == iEdge) {
     dEdge = _BackEdgeA;
-  else if (_BackEdgeB.first == iEdge)
+  }
+  else if (_BackEdgeB.first == iEdge) {
     dEdge = _BackEdgeB;
+  }
   return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, dEdge);
 #endif
 }
@@ -502,14 +506,18 @@ ViewVertex::const_edge_iterator TVertex::edges_iterator(ViewEdge *iEdge) const
 
 #if 0
   directedViewEdge dEdge;
-  if (_FrontEdgeA.first == iEdge)
+  if (_FrontEdgeA.first == iEdge) {
     dEdge = _FrontEdgeA;
-  else if (_FrontEdgeB.first == iEdge)
+  }
+  else if (_FrontEdgeB.first == iEdge) {
     dEdge = _FrontEdgeB;
-  else if (_BackEdgeA.first == iEdge)
+  }
+  else if (_BackEdgeA.first == iEdge) {
     dEdge = _BackEdgeA;
-  else if (_BackEdgeB.first == iEdge)
+  }
+  else if (_BackEdgeB.first == iEdge) {
     dEdge = _BackEdgeB;
+  }
   return const_edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, dEdge);
 #endif
 }
@@ -571,7 +579,7 @@ void NonTVertex::AddIncomingViewEdge(ViewEdge *iVEdge)
   if (!_ViewEdges.empty()) {
     edges_container::iterator dve = _ViewEdges.begin(), dveend = _ViewEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(*dve, idve); ++dve) {
-      ;
+      /* pass */
     }
     _ViewEdges.insert(dve, idve);
   }

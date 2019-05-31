@@ -55,10 +55,12 @@ template<class Edge> class Intersection {
   /*! returns the parameter giving the intersection, for the edge iEdge */
   real getParameter(Edge *iEdge)
   {
-    if (iEdge == EdgeA)
+    if (iEdge == EdgeA) {
       return tA;
-    if (iEdge == EdgeB)
+    }
+    if (iEdge == EdgeB) {
       return tB;
+    }
     return 0;
   }
 
@@ -131,8 +133,9 @@ template<class T, class Point> class Segment {
 
   inline bool operator==(const Segment<T, Point> &iBrother)
   {
-    if (_edge == iBrother._edge)
+    if (_edge == iBrother._edge) {
       return true;
+    }
     return false;
   }
 
@@ -237,10 +240,12 @@ template<class T, class Point> class SweepLine {
     vector<Segment<T, Point> *> toadd;
     typename vector<Segment<T, Point> *>::iterator s, send;
     for (s = segments.begin(), send = segments.end(); s != send; s++) {
-      if (p == (*(*s))[0])
+      if (p == (*(*s))[0]) {
         toadd.push_back((*s));
-      else
+      }
+      else {
         remove((*s));
+      }
     }
     for (s = toadd.begin(), send = toadd.end(); s != send; s++) {
       add((*s), binrule, epsilon);
@@ -275,8 +280,9 @@ template<class T, class Point> class SweepLine {
          s != send;
          s++) {
       Segment<T, Point> *currentS = (*s);
-      if (true != binrule(*S, *currentS))
+      if (true != binrule(*S, *currentS)) {
         continue;
+      }
 
       if (true == currentS->order()) {
         v2[0] = ((*currentS)[0])[0];
@@ -290,8 +296,9 @@ template<class T, class Point> class SweepLine {
         v2[0] = ((*currentS)[1])[0];
         v2[1] = ((*currentS)[1])[1];
       }
-      if (S->CommonVertex(*currentS, CP))
+      if (S->CommonVertex(*currentS, CP)) {
         continue;  // the two edges have a common vertex->no need to check
+      }
 
       if (GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u, epsilon) ==
           GeomUtils::DO_INTERSECT) {
@@ -312,8 +319,9 @@ template<class T, class Point> class SweepLine {
 
   inline void remove(Segment<T, Point> *s)
   {
-    if (s->intersections().size() > 0)
+    if (s->intersections().size() > 0) {
       _IntersectedEdges.push_back(s);
+    }
     _set.remove(s);
   }
 

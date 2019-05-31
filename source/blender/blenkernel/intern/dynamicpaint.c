@@ -3081,8 +3081,9 @@ int dynamicPaint_createUVSurface(Scene *scene,
         for (int ty = 0; ty < h; ty++) {
           for (int tx = 0; tx < w; tx++) {
             const int index = tx + w * ty;
-            if (tempPoints[index].tri_index != -1)
+            if (tempPoints[index].tri_index != -1) {
               tmp[final_index[index]] = index;
+            }
           }
         }
         for (int ty = 0; ty < h; ty++) {
@@ -3193,8 +3194,9 @@ int dynamicPaint_createUVSurface(Scene *scene,
       pPoint->alpha = 1.0f;
 
       /* Every pixel that is assigned as "edge pixel" gets blue color */
-      if (uvPoint->neighbour_pixel != -1)
+      if (uvPoint->neighbour_pixel != -1) {
         pPoint->color[2] = 1.0f;
+      }
       /* and every pixel that finally got an polygon gets red color */
       /* green color shows pixel face index hash */
       if (uvPoint->tri_index != -1) {

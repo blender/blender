@@ -118,10 +118,12 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
 
 #if 0
   const FrsMaterial *mat = (ifs.frs_material());
-  if (mat)
+  if (mat) {
     shape.setFrsMaterial(*mat);
-  else if (_current_frs_material)
+  }
+  else if (_current_frs_material) {
     shape.setFrsMaterial(*_current_frs_material);
+  }
 #endif
   const IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = ifs.faceEdgeMarks();
 

@@ -201,8 +201,9 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     Image *ima = t->tex->ima;
 
     // Image not set for texture
-    if (!ima)
+    if (!ima) {
       continue;
+    }
 
     std::string key(id_name(ima));
     key = translate_id(key);

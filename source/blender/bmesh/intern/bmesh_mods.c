@@ -128,8 +128,9 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     BMLoop *l_a = BM_face_vert_share_loop(e->l->f, v);
     BMLoop *l_b = (e->l->v == v) ? e->l->next : e->l;
 
-    if (!BM_face_split(bm, e->l->f, l_a, l_b, NULL, NULL, false))
+    if (!BM_face_split(bm, e->l->f, l_a, l_b, NULL, NULL, false)) {
       return false;
+    }
 
     if (!BM_disk_dissolve(bm, v)) {
       return false;

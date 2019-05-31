@@ -295,8 +295,9 @@ void SteerableViewMap::saveSteerableViewMap() const
       for (unsigned int y = 0; y < oh; ++y) {
         for (unsigned int x = 0; x < ow; ++x) {
           int c = (int)(coeff * img->pixel(x, y));
-          if (c > 255)
+          if (c > 255) {
             c = 255;
+          }
           //int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
           qtmp.setPixel(x, y, qRgb(c, c, c));
         }

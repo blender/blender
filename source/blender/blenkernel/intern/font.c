@@ -965,10 +965,12 @@ static bool vfont_to_curve(Object *ob,
 
       /* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
 #if 0
-      if (ascii == '\n')
+      if (ascii == '\n') {
         xof = xof_scale;
-      else
+      }
+      else {
         xof = MARGIN_X_MIN;
+      }
 #else
       xof = MARGIN_X_MIN;
 #endif

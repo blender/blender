@@ -230,23 +230,29 @@ MINLINE unsigned power_of_2_min_u(unsigned x)
 #define _round_clamp_fl_impl(arg, ty, min, max) \
   { \
     float r = floorf(arg + 0.5f); \
-    if (UNLIKELY(r <= (float)min)) \
+    if (UNLIKELY(r <= (float)min)) { \
       return (ty)min; \
-    else if (UNLIKELY(r >= (float)max)) \
+    } \
+    else if (UNLIKELY(r >= (float)max)) { \
       return (ty)max; \
-    else \
+    } \
+    else { \
       return (ty)r; \
+    } \
   }
 
 #define _round_clamp_db_impl(arg, ty, min, max) \
   { \
     double r = floor(arg + 0.5); \
-    if (UNLIKELY(r <= (double)min)) \
+    if (UNLIKELY(r <= (double)min)) { \
       return (ty)min; \
-    else if (UNLIKELY(r >= (double)max)) \
+    } \
+    else if (UNLIKELY(r >= (double)max)) { \
       return (ty)max; \
-    else \
+    } \
+    else { \
       return (ty)r; \
+    } \
   }
 
 #define _round_fl_impl(arg, ty) \

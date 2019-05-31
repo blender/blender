@@ -1384,10 +1384,12 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
   Scene *sce = (Scene *)BLI_findlink(&bmain->scene, G.curscreen->scenenr - 1);
   Base *base, *nbase;
 
-  if (sce == NULL)
+  if (sce == NULL) {
     return;
-  if (sce->id.lib)
+  }
+  if (sce->id.lib) {
     return;
+  }
 
   for (base = FIRSTBASE; base; base = base->next) {
     if (BASE_SELECTED(v3d, base)) {

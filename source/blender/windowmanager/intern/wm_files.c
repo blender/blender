@@ -678,8 +678,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     success = true;
   }
 #if 0
-  else if (retval == BKE_READ_EXOTIC_OK_OTHER)
+  else if (retval == BKE_READ_EXOTIC_OK_OTHER) {
     BKE_undo_write(C, "Import file");
+  }
 #endif
   else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
     BKE_reportf(reports,

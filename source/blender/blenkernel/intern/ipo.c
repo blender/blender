@@ -239,28 +239,34 @@ static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
       return "color";
 #if 0
     case OB_PD_FSTR:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->f_strength);
+      }
       break;
     case OB_PD_FFALL:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->f_power);
+      }
       break;
     case OB_PD_SDAMP:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->pdef_damp);
+      }
       break;
     case OB_PD_RDAMP:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->pdef_rdamp);
+      }
       break;
     case OB_PD_PERM:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->pdef_perm);
+      }
       break;
     case OB_PD_FMAXD:
-      if (ob->pd)
+      if (ob->pd) {
         poin = &(ob->pd->maxdist);
+      }
       break;
 #endif
   }
@@ -688,10 +694,12 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
     case CAM_LENS:
 #if 0   /* XXX this cannot be resolved easily... \
          * perhaps we assume camera is perspective (works for most cases... */
-      if (ca->type == CAM_ORTHO)
+      if (ca->type == CAM_ORTHO) {
         return "ortho_scale";
-      else
+      }
+      else {
         return "lens";
+      }
 #else   // XXX lazy hack for now...
       return "lens";
 #endif  // XXX this cannot be resolved easily
@@ -884,28 +892,34 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
        * as the similar object forces */
 #if 0
     case PART_PD_FSTR:
-      if (part->pd)
+      if (part->pd) {
         poin = &(part->pd->f_strength);
+      }
       break;
     case PART_PD_FFALL:
-      if (part->pd)
+      if (part->pd) {
         poin = &(part->pd->f_power);
+      }
       break;
     case PART_PD_FMAXD:
-      if (part->pd)
+      if (part->pd) {
         poin = &(part->pd->maxdist);
+      }
       break;
     case PART_PD2_FSTR:
-      if (part->pd2)
+      if (part->pd2) {
         poin = &(part->pd2->f_strength);
+      }
       break;
     case PART_PD2_FFALL:
-      if (part->pd2)
+      if (part->pd2) {
         poin = &(part->pd2->f_power);
+      }
       break;
     case PART_PD2_FMAXD:
-      if (part->pd2)
+      if (part->pd2) {
         poin = &(part->pd2->maxdist);
+      }
       break;
 #endif
   }

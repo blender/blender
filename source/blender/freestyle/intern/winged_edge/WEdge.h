@@ -799,8 +799,9 @@ class WFace {
   inline WVertex *GetVertex(unsigned int index)
   {
 #if 0
-    if (index >= _OEdgeList.size())
+    if (index >= _OEdgeList.size()) {
       return NULL;
+    }
 #endif
     return _OEdgeList[index]->GetaVertex();
   }
@@ -846,8 +847,9 @@ class WFace {
   inline WFace *GetBordingFace(int index)
   {
 #if 0
-    if (index >= _OEdgeList.size())
+    if (index >= _OEdgeList.size()) {
       return NULL;
+    }
 #endif
     return _OEdgeList[index]->GetaFace();
   }
@@ -1286,10 +1288,12 @@ class WShape {
          wv++) {
       for (unsigned int i = 0; i < 3; i++) {
         v = (*wv)->GetVertex();
-        if (v[i] < _min[i])
+        if (v[i] < _min[i]) {
           _min[i] = v[i];
-        if (v[i] > _max[i])
+        }
+        if (v[i] > _max[i]) {
           _max[i] = v[i];
+        }
       }
     }
   }

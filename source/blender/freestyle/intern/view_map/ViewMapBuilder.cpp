@@ -152,7 +152,7 @@ static void findOccludee(FEdge *fe,
         }
 #endif
         if (fabs(v * p->getNormal()) > 0.0001) {
-          if ((t > 0.0)) {  // && (t<1.0))
+          if ((t > 0.0) /* && (t<1.0) */) {
             if (t < mint) {
               *oaWFace = oface;
               mint = t;
@@ -1820,7 +1820,9 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real ep
         }
         if (sameShape)
 #endif
-        (*ve)->setaShape(vshape);
+        {
+          (*ve)->setaShape(vshape);
+        }
       }
     }
 
@@ -2490,10 +2492,12 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
         printf("b1 %e, %e -- b2 %e, %e\n", b1[0], b1[1], b2[0], b2[1]);
         //printf("line([%e, %e], [%e, %e]);\n", a1[0], a2[0], a1[1], a2[1]);
         //printf("line([%e, %e], [%e, %e]);\n", b1[0], b2[0], b1[1], b2[1]);
-        if ((Ta < -epsilon) || (Ta > 1 + epsilon))
+        if ((Ta < -epsilon) || (Ta > 1 + epsilon)) {
           printf("Ta %.12e\n", Ta);
-        if ((Tb < -epsilon) || (Tb > 1 + epsilon))
+        }
+        if ((Tb < -epsilon) || (Tb > 1 + epsilon)) {
           printf("Tb %.12e\n", Tb);
+        }
         printf("A1 %e, %e, %e -- A2 %e, %e, %e\n", A1[0], A1[1], A1[2], A2[0], A2[1], A2[2]);
         printf("B1 %e, %e, %e -- B2 %e, %e, %e\n", B1[0], B1[1], B1[2], B2[0], B2[1], B2[2]);
       }

@@ -544,7 +544,7 @@ class CurvePiece {
     int ns1 = ns / 2;
     int ns2 = ns - ns1;
     for (int i = 0; i < ns1; ++it, ++i) {
-      ;
+      /* pass */
     }
 
     CurvePiece *second = new CurvePiece(it, _last, ns2 + 1);

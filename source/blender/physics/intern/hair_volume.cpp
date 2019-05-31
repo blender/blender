@@ -481,8 +481,9 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
         grid_to_world(grid, x2w, x2);
         grid_to_world(grid, x3w, x3);
 
-        if (vert_k->samples > 0)
+        if (vert_k->samples > 0) {
           BKE_sim_debug_data_add_circle(wloc, 0.01f, 1.0, 1.0, 0.3, "grid", 2525, debug_i, j, k);
+        }
 
         if (grid->debug_value) {
           BKE_sim_debug_data_add_dot(wloc, 1, 0, 0, "grid", 93, debug_i, j, k);
@@ -830,9 +831,10 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
             fac = CLAMPIS(-divergence * target_strength, 0.0, 1.0);
             interp_v3_v3v3(col, col0, coln, fac);
           }
-          if (fac > 0.05f)
+          if (fac > 0.05f) {
             BKE_sim_debug_data_add_circle(
                 grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5522, i, j, k);
+          }
         }
 #endif
       }
@@ -969,8 +971,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
             int u = i * strideA0 + j * strideA1 + k * strideA2;
             bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                              MARGIN_k1;
-            if (i != slice)
+            if (i != slice) {
               continue;
+            }
 
             vert = vert_start + i * stride0 + j * stride1 + k * stride2;
 
@@ -995,9 +998,10 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
               fac = CLAMPIS(-pressure * grid->debug1, 0.0, 1.0);
               interp_v3_v3v3(col, col0, coln, fac);
             }
-            if (fac > 0.05f)
+            if (fac > 0.05f) {
               BKE_sim_debug_data_add_circle(
                   grid->debug_data, wloc, 0.01f, col[0], col[1], col[2], "grid", 5533, i, j, k);
+            }
 
             if (!is_margin) {
               float dvel[3];
@@ -1084,8 +1088,9 @@ void BPH_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_siz
   float invD;
   int i, j, k;
 
-  if (kernel_size <= 0)
+  if (kernel_size <= 0) {
     return;
+  }
 
   tot = kernel_size * 2 + 1;
   invD = 1.0f / (float)(tot * tot * tot);
@@ -1234,8 +1239,9 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
       for (v = 0; v < col->collmd->numverts; v++, loc0++, loc1++) {
         int offset;
 
-        if (!hair_grid_point_valid(loc1->co, gmin, gmax))
+        if (!hair_grid_point_valid(loc1->co, gmin, gmax)) {
           continue;
+        }
 
         offset = hair_grid_weights(res, gmin, scale, lX[v], weights);
 
@@ -1260,8 +1266,9 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   /* divide velocity with density */
   for (i = 0; i < size; i++) {
     float density = collgrid[i].density;
-    if (density > 0.0f)
+    if (density > 0.0f) {
       mul_v3_fl(collgrid[i].velocity, 1.0f / density);
+    }
   }
 
   return collgrid;

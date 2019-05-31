@@ -41,12 +41,12 @@ namespace Freestyle {
   { \
   }
 
-#define VISIT_DECL(type) virtual void visit##type(type &);
+#define VISIT_DECL(type) virtual void visit##type(type &)
 
 #define VISIT_COMPLETE_DECL(type) \
   virtual void visit##type##Before(type &); \
   virtual void visit##type(type &); \
-  virtual void visit##type##After(type &);
+  virtual void visit##type##After(type &)
 
 class Node;
 class NodeShape;

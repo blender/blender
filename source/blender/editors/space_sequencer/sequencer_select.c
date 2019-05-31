@@ -149,8 +149,9 @@ void select_surround_from_last(Scene *scene)
 {
   Sequence *seq = get_last_seq(scene);
 
-  if (seq == NULL)
+  if (seq == NULL) {
     return;
+  }
 
   select_surrounding_handles(scene, seq);
 }

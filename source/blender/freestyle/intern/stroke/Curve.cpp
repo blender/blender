@@ -311,15 +311,17 @@ Vec3r CurvePoint::normal() const
 #if 0
 Material CurvePoint::material() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->material();
+  }
   return __A->material();
 }
 
 Id CurvePoint::shape_id() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->shape_id();
+  }
   return __A->shape_id();
 }
 #endif
@@ -335,17 +337,20 @@ const SShape *CurvePoint::shape() const
 #if 0
 float CurvePoint::shape_importance() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->shape_importance();
+  }
   return __A->shape_importance();
 }
 
 const unsigned CurvePoint::qi() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->qi();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->qi();
+  }
   return __A->getFEdge(*__B)->qi();
 }
 #endif
@@ -463,19 +468,23 @@ Vec3r shaded_color() const;
 
 Vec3r CurvePoint::orientation2d() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->orientation2d();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->orientation2d();
+  }
   return __B->point2d() - __A->point2d();
 }
 
 Vec3r CurvePoint::orientation3d() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->orientation3d();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->orientation3d();
+  }
   return __B->point3d() - __A->point3d();
 }
 
@@ -491,10 +500,12 @@ Vec3r CurvePoint::curvature2d_as_vector() const
   Vec3r edgeB = (_FEdges[1])->orientation2d().normalize();
   return edgeA + edgeB;
 #  endif
-  if (__A == 0)
+  if (__A == 0) {
     return __B->curvature2d_as_vector();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->curvature2d_as_vector();
+  }
   return ((1 - _t2d) * __A->curvature2d_as_vector() + _t2d * __B->curvature2d_as_vector());
 }
 
@@ -509,28 +520,34 @@ real CurvePoint::curvature2d_as_angle() const
   N2.normalize();
   return acos((N1 * N2));
 #  endif
-  if (__A == 0)
+  if (__A == 0) {
     return __B->curvature2d_as_angle();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->curvature2d_as_angle();
+  }
   return ((1 - _t2d) * __A->curvature2d_as_angle() + _t2d * __B->curvature2d_as_angle());
 }
 
 real CurvePoint::curvatureFredo() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->curvatureFredo();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->curvatureFredo();
+  }
   return ((1 - _t2d) * __A->curvatureFredo() + _t2d * __B->curvatureFredo());
 }
 
 Vec2d CurvePoint::directionFredo() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->directionFredo();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->directionFredo();
+  }
   return ((1 - _t2d) * __A->directionFredo() + _t2d * __B->directionFredo());
 }
 #endif
@@ -745,8 +762,9 @@ Material Curve::material() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   const Material &mat = (*v)->material();
   for (; v != vend; ++v) {
-    if ((*v)->material() != mat)
+    if ((*v)->material() != mat) {
       Exception::raiseException();
+    }
   }
   return mat;
 }
@@ -756,8 +774,9 @@ int Curve::qi() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   int qi_ = (*v)->qi();
   for (; v != vend; ++v) {
-    if ((*v)->qi() != qi_)
+    if ((*v)->qi() != qi_) {
       Exception::raiseException();
+    }
   }
   return qi_;
 }
@@ -782,8 +801,9 @@ bool Curve::occluders_empty() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   bool empty = (*v)->occluders_empty();
   for (; v != vend; ++v) {
-    if ((*v)->occluders_empty() != empty)
+    if ((*v)->occluders_empty() != empty) {
       Exception::raiseException();
+    }
   }
   return empty;
 }
@@ -798,8 +818,9 @@ const SShape *Curve::occluded_shape() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   const SShape *sshape = (*v)->occluded_shape();
   for (; v != vend; ++v) {
-    if ((*v)->occluded_shape() != sshape)
+    if ((*v)->occluded_shape() != sshape) {
       Exception::raiseException();
+    }
   }
   return sshape;
 }
@@ -809,8 +830,9 @@ const bool Curve::occludee_empty() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   bool empty = (*v)->occludee_empty();
   for (; v != vend; ++v) {
-    if ((*v)->occludee_empty() != empty)
+    if ((*v)->occludee_empty() != empty) {
       Exception::raiseException();
+    }
   }
   return empty;
 }
@@ -824,8 +846,9 @@ int Curve::shape_id() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   Id id = (*v)->shape_id();
   for (; v != vend; ++v) {
-    if ((*v)->shape_id() != id)
+    if ((*v)->shape_id() != id) {
       Exception::raiseException();
+    }
   }
   return id.first;
 }
@@ -835,8 +858,9 @@ const SShape *Curve::shape() const
   const_vertex_iterator v = vertices_begin(), vend = vertices_end();
   const SShape *sshape = (*v)->shape();
   for (; v != vend; ++v) {
-    if ((*v)->shape() != sshape)
+    if ((*v)->shape() != sshape) {
       Exception::raiseException();
+    }
   }
   return sshape;
 }
@@ -915,8 +939,9 @@ void Curve::computeCurvatureAndOrientation()
   for (; v ! = vend; ++v) {
     v2 = v;
     ++v2;
-    if (v2 == vend)
+    if (v2 == vend) {
       break;
+    }
     Vec3r p2 = (*v2)->point2d();
 
     Vec2d BA = p0 - p1;
@@ -930,10 +955,12 @@ void Curve::computeCurvatureAndOrientation()
 
     normal.normalizeSafe();
     real curvature = normalCurvature * normal;
-    if (lba + lbc > MY_EPSILON)
+    if (lba + lbc > MY_EPSILON) {
       curvature /= (0.5 * lba + lbc);
-    if (dir.norm() < MY_EPSILON)
+    }
+    if (dir.norm() < MY_EPSILON) {
       dir = 0.1 * prevDir;
+    }
     (*v)->setCurvatureFredo(curvature);
     (*v)->setDirectionFredo(dir);
 
@@ -975,8 +1002,9 @@ void Curve::computeCurvatureAndOrientation()
   for (; v != vend; ++v) {
     v2 = v;
     ++v2;
-    if (v2 == vend)
+    if (v2 == vend) {
       break;
+    }
     Vec3r p2 = (*v2)->point2d();
 
     Vec2d BA = p0 - p1;

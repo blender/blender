@@ -222,8 +222,9 @@ static void update_pyconstraint_cb(void *arg1, void *arg2)
 #  else
   Object *owner = (Object *)arg1;
   bConstraint *con = (bConstraint *)arg2;
-  if (owner && con)
+  if (owner && con) {
     BPY_pyconstraint_update(owner, con);
+  }
 #  endif
 }
 #endif  // UNUSED

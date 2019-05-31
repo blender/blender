@@ -45,9 +45,9 @@ class SceneHash : public SceneVisitor {
   {
   }
 
-  VISIT_DECL(NodeCamera)
-  VISIT_DECL(NodeViewLayer)
-  VISIT_DECL(IndexedFaceSet)
+  VISIT_DECL(NodeCamera);
+  VISIT_DECL(NodeViewLayer);
+  VISIT_DECL(IndexedFaceSet);
 
   string toString();
 

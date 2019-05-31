@@ -319,8 +319,9 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls,
 
 #if 0
     len = len_v3v3(fv[i], fv[(i + 1) % 3]);
-    if (_minEdgeSize > len)
+    if (_minEdgeSize > len) {
       _minEdgeSize = len;
+    }
 #endif
 
     *ls->pvi = ls->currentIndex;

@@ -301,8 +301,9 @@ static void print_lvector(lfVector *v, int numverts)
 {
   int i;
   for (i = 0; i < numverts; ++i) {
-    if (i > 0)
+    if (i > 0) {
       printf("\n");
+    }
 
     printf("%f,\n", v[i][0]);
     printf("%f,\n", v[i][1]);
@@ -340,12 +341,14 @@ static void print_bfmatrix(fmatrix3x3 *m)
   }
 
   for (j = 0; j < size; ++j) {
-    if (j > 0 && j % 3 == 0)
+    if (j > 0 && j % 3 == 0) {
       printf("\n");
+    }
 
     for (i = 0; i < size; ++i) {
-      if (i > 0 && i % 3 == 0)
+      if (i > 0 && i % 3 == 0) {
         printf("  ");
+      }
 
       implicit_print_matrix_elem(t[i + j * size]);
     }

@@ -54,8 +54,9 @@ class RenderMonitor {
 
   inline void progress(float i)
   {
-    if (_re)
+    if (_re) {
       _re->progress(_re->prh, i);
+    }
   }
 
   inline bool testBreak()

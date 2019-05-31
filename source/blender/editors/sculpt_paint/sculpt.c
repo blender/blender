@@ -4225,8 +4225,9 @@ void sculpt_cache_calc_brushdata_symm(StrokeCache *cache,
 
     printf("feather: %f frac: %f reduce: %f\n", feather, frac, reduce);
 
-    if (frac < 1)
+    if (frac < 1) {
       mul_v3_fl(cache->grab_delta_symmetry, reduce);
+    }
   }
 #endif
 

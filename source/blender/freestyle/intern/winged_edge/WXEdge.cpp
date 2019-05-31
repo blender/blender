@@ -211,19 +211,23 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
         if (!front()) {  // is it in the right order ?
           // the order of the WOEdge index is wrong
           woea = _OEdgeList[(i + 1) % numberOfEdges()];
-          if (0 == i)
+          if (0 == i) {
             woeb = _OEdgeList[numberOfEdges() - 1];
-          else
+          }
+          else {
             woeb = _OEdgeList[(i - 1)];
+          }
           ta = 0.0f;
           tb = 1.0f;
         }
         else {
           // the order of the WOEdge index is good
-          if (0 == i)
+          if (0 == i) {
             woea = _OEdgeList[numberOfEdges() - 1];
-          else
+          }
+          else {
             woea = _OEdgeList[(i - 1)];
+          }
           woeb = _OEdgeList[(i + 1) % numberOfEdges()];
           ta = 1.0f;
           tb = 0.0f;

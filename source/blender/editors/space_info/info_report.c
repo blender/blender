@@ -77,16 +77,21 @@ int info_report_mask(SpaceInfo *UNUSED(sinfo))
 #if 0
   int report_mask = 0;
 
-  if (sinfo->rpt_mask & INFO_RPT_DEBUG)
+  if (sinfo->rpt_mask & INFO_RPT_DEBUG) {
     report_mask |= RPT_DEBUG_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_INFO)
+  }
+  if (sinfo->rpt_mask & INFO_RPT_INFO) {
     report_mask |= RPT_INFO_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_OP)
+  }
+  if (sinfo->rpt_mask & INFO_RPT_OP) {
     report_mask |= RPT_OPERATOR_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_WARN)
+  }
+  if (sinfo->rpt_mask & INFO_RPT_WARN) {
     report_mask |= RPT_WARNING_ALL;
-  if (sinfo->rpt_mask & INFO_RPT_ERR)
+  }
+  if (sinfo->rpt_mask & INFO_RPT_ERR) {
     report_mask |= RPT_ERROR_ALL;
+  }
 
   return report_mask;
 #endif

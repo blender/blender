@@ -104,13 +104,15 @@ void printknots(Object *obedit)
     if (ED_curve_nurb_select_check(nu) && nu->type == CU_NURBS) {
       if (nu->knotsu) {
         num = KNOTSU(nu);
-        for (a = 0; a < num; a++)
+        for (a = 0; a < num; a++) {
           printf("knotu %d: %f\n", a, nu->knotsu[a]);
+        }
       }
       if (nu->knotsv) {
         num = KNOTSV(nu);
-        for (a = 0; a < num; a++)
+        for (a = 0; a < num; a++) {
           printf("knotv %d: %f\n", a, nu->knotsv[a]);
+        }
       }
     }
   }

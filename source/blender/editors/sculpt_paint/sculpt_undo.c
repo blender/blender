@@ -654,8 +654,9 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
   unode = lb->first;
 
   if (unode && !STREQ(unode->idname, ob->id.name)) {
-    if (unode->bm_entry)
+    if (unode->bm_entry) {
       BM_log_cleanup_entry(unode->bm_entry);
+    }
 
     return true;
   }

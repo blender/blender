@@ -200,8 +200,9 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
   bool is_rotation = p && *(p + strlen("rotation_euler")) == '\0';
 
   /* convert degrees to radians for rotation */
-  if (is_rotation)
+  if (is_rotation) {
     fcurve_deg_to_rad(fcu);
+  }
 #endif
 
   for (it = curves.begin(), i = 0; it != curves.end(); it++, i++) {
@@ -355,16 +356,19 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
     FCurve *eulcu[3] = {NULL, NULL, NULL};
 
-    if (fcurves_actionGroup_map.find(grp) == fcurves_actionGroup_map.end())
+    if (fcurves_actionGroup_map.find(grp) == fcurves_actionGroup_map.end()) {
       continue;
+    }
 
     std::vector<FCurve *> &rot_fcurves = fcurves_actionGroup_map[grp];
 
-    if (rot_fcurves.size() > 3)
+    if (rot_fcurves.size() > 3) {
       continue;
+    }
 
-    for (i = 0; i < rot_fcurves.size(); i++)
+    for (i = 0; i < rot_fcurves.size(); i++) {
       eulcu[rot_fcurves[i]->array_index] = rot_fcurves[i];
+    }
 
     char joint_path[100];
     char rna_path[100];
@@ -389,8 +393,9 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
       FCurve *cu = eulcu[i];
 
-      if (!cu)
+      if (!cu) {
         continue;
+      }
 
       for (int j = 0; j < cu->totvert; j++) {
         float frame = cu->bezt[j].vec[1][0];
@@ -412,16 +417,18 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
         eul_to_quat(quat, eul);
 
-        for (int k = 0; k < 4; k++)
+        for (int k = 0; k < 4; k++) {
           create_bezt(quatcu[k], frame, quat[k], U.ipo_new);
+        }
       }
     }
 
     /* now replace old Euler curves */
 
     for (i = 0; i < 3; i++) {
-      if (!eulcu[i])
+      if (!eulcu[i]) {
         continue;
+      }
 
       action_groups_remove_channel(act, eulcu[i]);
       free_fcurve(eulcu[i]);
@@ -429,8 +436,9 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
     chan->rotmode = ROT_MODE_QUAT;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++) {
       action_groups_add_channel(act, grp, quatcu[i]);
+    }
   }
 
   bPoseChannel *pchan;
@@ -1671,8 +1679,9 @@ Object *AnimationImporter::translate_animation_OLD(
     newcu[i] = create_fcurve(axis, rna_path);
 
 #ifdef ARMATURE_TEST
-    if (is_joint)
+    if (is_joint) {
       job_curves[i] = create_fcurve(axis, tm_str);
+    }
 #endif
   }
 
@@ -1774,12 +1783,15 @@ Object *AnimationImporter::translate_animation_OLD(
 
       for (i = 0; i < totcu; i++) {
         if (is_matrix) {
-          if (i < 4)
+          if (i < 4) {
             add_bezt(job_curves[i], fra, rot[i]);
-          else if (i < 7)
+          }
+          else if (i < 7) {
             add_bezt(job_curves[i], fra, loc[i - 4]);
-          else
+          }
+          else {
             add_bezt(job_curves[i], fra, scale[i - 7]);
+          }
         }
         else {
           add_bezt(job_curves[i], fra, val[i]);
@@ -1803,8 +1815,9 @@ Object *AnimationImporter::translate_animation_OLD(
     }
 
 #ifdef ARMATURE_TEST
-    if (is_joint)
+    if (is_joint) {
       BLI_addtail(&job->adt->action->curves, job_curves[i]);
+    }
 #endif
   }
 
@@ -2153,8 +2166,9 @@ bool AnimationImporter::evaluate_joint_world_transform_at_frame(
   else {
     COLLADAFW::NodePointerArray &children = node->getChildNodes();
     for (int i = 0; i < children.getCount(); i++) {
-      if (evaluate_joint_world_transform_at_frame(mat, m, children[i], end, fra))
+      if (evaluate_joint_world_transform_at_frame(mat, m, children[i], end, fra)) {
         return true;
+      }
     }
   }
 

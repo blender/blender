@@ -1198,17 +1198,21 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
   {
     int tb, ti, te, ts;
     tb = ti = te = ts = 0;
-    for (a = 0; a < size * size * size; a++)
-      if (tag[a] == MESHDEFORM_TAG_BOUNDARY)
+    for (a = 0; a < size * size * size; a++) {
+      if (tag[a] == MESHDEFORM_TAG_BOUNDARY) {
         tb++;
-      else if (tag[a] == MESHDEFORM_TAG_INTERIOR)
+      }
+      else if (tag[a] == MESHDEFORM_TAG_INTERIOR) {
         ti++;
+      }
       else if (tag[a] == MESHDEFORM_TAG_EXTERIOR) {
         te++;
 
-        if (mdb->semibound[a])
+        if (mdb->semibound[a]) {
           ts++;
+        }
       }
+    }
 
     printf("interior %d exterior %d boundary %d semi-boundary %d\n", ti, te, tb, ts);
   }
@@ -1557,14 +1561,17 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
 #if 0
   /* sanity check */
-  for (b = 0; b < mdb->size3; b++)
-    if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
-      if (fabsf(mdb->totalphi[b] - 1.0f) > 1e-4f)
+  for (b = 0; b < mdb->size3; b++) {
+    if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR) {
+      if (fabsf(mdb->totalphi[b] - 1.0f) > 1e-4f) {
         printf("totalphi deficiency [%s|%d] %d: %.10f\n",
                (mdb->tag[b] == MESHDEFORM_TAG_INTERIOR) ? "interior" : "boundary",
                mdb->semibound[b],
                mdb->varidx[b],
                mdb->totalphi[b]);
+      }
+    }
+  }
 #endif
 
   /* free */

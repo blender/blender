@@ -3813,10 +3813,12 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
                                 RV3D_ORTHO);
       /* forcing camera is distracting */
 #if 0
-      if (v3d->camera)
+      if (v3d->camera) {
         region_quadview_init_rv3d(sa, (ar = ar->next), 0, RV3D_VIEW_CAMERA, RV3D_CAMOB);
-      else
+      }
+      else {
         region_quadview_init_rv3d(sa, (ar = ar->next), 0, RV3D_VIEW_USER, RV3D_PERSP);
+      }
 #else
       (void)v3d;
 #endif
@@ -4580,12 +4582,15 @@ static int box_select_exec(bContext *C, wmOperator *op)
 {
   int event_type = RNA_int_get(op->ptr, "event_type");
 
-  if (event_type == LEFTMOUSE)
+  if (event_type == LEFTMOUSE) {
     printf("box select do select\n");
-  else if (event_type == RIGHTMOUSE)
+  }
+  else if (event_type == RIGHTMOUSE) {
     printf("box select deselect\n");
-  else
+  }
+  else {
     printf("box select do something\n");
+  }
 
   return 1;
 }

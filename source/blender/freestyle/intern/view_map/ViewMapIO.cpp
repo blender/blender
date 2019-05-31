@@ -819,7 +819,7 @@ static int save(ostream &out, SVertex *sv)
   // we have to hack it...
   set<Vec3r>::const_iterator i;
   for (i = sv->normals().begin(), tmp = 0; i != sv->normals().end(); i++, tmp++) {
-    ;
+    /* pass */
   }
   WRITE(tmp);
   for (i = sv->normals().begin(); i != sv->normals().end(); i++) {

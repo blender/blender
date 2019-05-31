@@ -494,7 +494,7 @@ class WXFaceLayer {
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXFaceLayer")
 #endif
-};
+};  // namespace Freestyle
 
 class WXFace : public WFace {
  protected:

@@ -1012,8 +1012,9 @@ static void build_permutation_table(unsigned short permutation[],
 {
   int i, k;
 
-  for (i = 0; i < number_of_rays; i++)
+  for (i = 0; i < number_of_rays; i++) {
     temp_permutation[i] = i;
+  }
 
   for (i = 0; i < number_of_rays; i++) {
     const unsigned int nr_entries_left = number_of_rays - i;
@@ -1225,12 +1226,14 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
       lores_dm, hires_dm, ao_data->orig_index_mp_to_orig, lvl, lt, uv[0], uv[1], pos, nrm);
 
   /* offset ray origin by user bias along normal */
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     cen[i] = pos[i] + ao_data->bias * nrm[i];
+  }
 
   /* build tangent frame */
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     axisZ[i] = nrm[i];
+  }
 
   build_coordinate_frame(axisX, axisY, axisZ);
 
@@ -1269,13 +1272,15 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
 
     /* transform ray direction out of tangent frame */
     float dv[3];
-    for (k = 0; k < 3; k++)
+    for (k = 0; k < 3; k++) {
       dv[k] = axisX[k] * dx + axisY[k] * dy + axisZ[k] * dz;
+    }
 
     hit_something = trace_ao_ray(ao_data, cen, dv);
 
-    if (hit_something != 0)
+    if (hit_something != 0) {
       shadow += 1;
+    }
   }
 
   value = 1.0f - (shadow / ao_data->number_of_rays);

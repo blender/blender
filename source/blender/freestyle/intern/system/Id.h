@@ -112,10 +112,12 @@ class Id {
   /*! Operator< */
   bool operator<(const Id &id) const
   {
-    if (_first < id._first)
+    if (_first < id._first) {
       return true;
-    if (_first == id._first && _second < id._second)
+    }
+    if (_first == id._first && _second < id._second) {
       return true;
+    }
     return false;
   }
 

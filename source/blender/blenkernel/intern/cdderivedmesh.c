@@ -1173,8 +1173,9 @@ void CDDM_calc_normals(DerivedMesh *dm)
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
   float(*poly_nors)[3];
 
-  if (dm->numVertData == 0)
+  if (dm->numVertData == 0) {
     return;
+  }
 
   /* we don't want to overwrite any referenced layers */
   cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);

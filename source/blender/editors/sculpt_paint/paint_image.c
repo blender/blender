@@ -653,16 +653,18 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
   /* duplicate warning, see texpaint_init */
 #if 0
-  if (pop->s.warnmultifile)
+  if (pop->s.warnmultifile) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Image requires 4 color channels to paint: %s",
                 pop->s.warnmultifile);
-  if (pop->s.warnpackedfile)
+  }
+  if (pop->s.warnpackedfile) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Packed MultiLayer files cannot be painted: %s",
                 pop->s.warnpackedfile);
+  }
 #endif
   MEM_freeN(pop);
 }

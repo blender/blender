@@ -142,11 +142,14 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock)
 
   if (sima && sima->image) {
 #if 0
-    if (sima->image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare())
+    if (sima->image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare()) {
       return BIF_render_spare_imbuf();
+    }
     else
 #endif
-    ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, r_lock);
+    {
+      ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, r_lock);
+    }
 
     if (ibuf) {
       if (ibuf->rect || ibuf->rect_float) {

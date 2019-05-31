@@ -317,8 +317,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   /* allow a path of "", this is what happens when making a new file */
 #if 0
-  if (BKE_main_blendfile_path_from_global()[0] == '\0')
+  if (BKE_main_blendfile_path_from_global()[0] == '\0') {
     BLI_make_file_string("/", G_MAIN->name, BKE_appdir_folder_default(), "untitled.blend");
+  }
 #endif
 
   BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));

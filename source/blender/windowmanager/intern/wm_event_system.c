@@ -1736,14 +1736,16 @@ int WM_operator_call_py(bContext *C,
   op = wm_operator_create(wm, ot, properties, reports);
 
   if (op->type->exec) {
-    if (is_undo && op->type->flag & OPTYPE_UNDO)
+    if (is_undo && op->type->flag & OPTYPE_UNDO) {
       wm->op_undo_depth++;
+    }
 
     retval = op->type->exec(C, op);
     OPERATOR_RETVAL_CHECK(retval);
 
-    if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
+    if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
       wm->op_undo_depth--;
+    }
   }
   else {
     CLOG_WARN(WM_LOG_OPERATORS,

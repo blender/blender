@@ -37,7 +37,7 @@ class WXEdgeBuilder : public WingedEdgeBuilder {
   virtual ~WXEdgeBuilder()
   {
   }
-  VISIT_DECL(IndexedFaceSet)
+  VISIT_DECL(IndexedFaceSet);
 
  protected:
   virtual void buildWVertices(WShape &shape, const float *vertices, unsigned vsize);

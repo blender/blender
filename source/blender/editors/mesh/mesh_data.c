@@ -1133,12 +1133,15 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
     return;
   }
 
-  if (verts)
+  if (verts) {
     mesh_add_verts(mesh, verts);
-  if (edges)
+  }
+  if (edges) {
     mesh_add_edges(mesh, edges);
-  if (faces)
+  }
+  if (faces) {
     mesh_add_faces(mesh, faces);
+  }
 }
 #endif
 

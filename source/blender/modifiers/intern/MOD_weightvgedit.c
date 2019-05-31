@@ -275,8 +275,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   /* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */
-  if (do_prev)
+  if (do_prev) {
     DM_update_weight_mcol(ob, dm, 0, org_w, 0, NULL);
+  }
 #endif
 
   /* Freeing stuff. */

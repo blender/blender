@@ -605,8 +605,9 @@ static void cloth_calc_force(
             BPH_mass_spring_force_edge_wind(
                 data, spring->ij, spring->kl, hair_ij->radius, hair_kl->radius, winvec);
           }
-          else
+          else {
             BPH_mass_spring_force_edge_wind(data, spring->ij, spring->kl, 1.0f, 1.0f, winvec);
+          }
         }
       }
 #else
@@ -961,8 +962,9 @@ static void cloth_calc_volume_force(ClothModifierData *clmd)
     for (i = 0; i < mvert_num; i++, vert++) {
       float x[3], v[3], f[3], dfdx[3][3], dfdv[3][3];
 
-      if (vert->solver_index < 0)
+      if (vert->solver_index < 0) {
         continue;
+      }
 
       /* calculate volumetric forces */
       BPH_mass_spring_get_motion_state(data, vert->solver_index, x, v);

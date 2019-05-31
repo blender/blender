@@ -149,8 +149,9 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
   for (itE = v->incoming_edges_begin(); itE != v->incoming_edges_end(); itE++) {
     WOEdge *e = (*itE)->getPrevOnFace();
 #if 0
-    if ((e->GetaVertex() == v) || (e->GetbVertex() == v))
+    if ((e->GetaVertex() == v) || (e->GetbVertex() == v)) {
       cerr << "BUG ";
+    }
 #endif
     WVertex *v1 = e->GetaVertex();
     WVertex *v2 = e->GetbVertex();

@@ -64,10 +64,12 @@ static float mix_weight(float weight, float weight2, char mix_mode)
       return (weight * weight2);
     case MOD_WVG_MIX_DIV:
       /* Avoid dividing by zero (or really small values). */
-      if (0.0 <= weight2 < MOD_WVG_ZEROFLOOR)
+      if (0.0 <= weight2 < MOD_WVG_ZEROFLOOR) {
         weight2 = MOD_WVG_ZEROFLOOR;
-      else if (-MOD_WVG_ZEROFLOOR < weight2)
+      }
+      else if (-MOD_WVG_ZEROFLOOR < weight2) {
         weight2 = -MOD_WVG_ZEROFLOOR;
+      }
       return (weight / weight2);
     case MOD_WVG_MIX_DIF:
       return (weight < weight2 ? weight2 - weight : weight - weight2);
@@ -401,8 +403,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   /* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */
-  if (do_prev)
+  if (do_prev) {
     DM_update_weight_mcol(ob, dm, 0, org_w, numIdx, indices);
+  }
 #endif
 
   /* Freeing stuff. */

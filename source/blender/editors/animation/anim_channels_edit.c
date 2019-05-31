@@ -278,8 +278,9 @@ void ANIM_deselect_anim_channels(
           break;
         case ANIMTYPE_OBJECT:
 #if 0 /* for now, do not take object selection into account, since it gets too annoying */
-          if (ale->flag & SELECT)
+          if (ale->flag & SELECT) {
             sel = ACHANNEL_SETFLAG_CLEAR;
+          }
 #endif
           break;
         case ANIMTYPE_GROUP:

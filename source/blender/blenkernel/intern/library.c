@@ -1729,8 +1729,9 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
    * sorting should not hurt, but noting just incase it alters the way other
    * functions work, so sort every time */
 #if 0
-  if (result)
+  if (result) {
     id_sort_by_name(lb, id);
+  }
 #endif
 
   id_sort_by_name(lb, id);

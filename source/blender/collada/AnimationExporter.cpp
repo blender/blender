@@ -389,8 +389,8 @@ bool AnimationExporter::is_bone_deform_group(Bone *bone)
   /* Check if current bone is deform */
   if ((bone->flag & BONE_NO_DEFORM) == 0) {
     return true;
-    /* Check child bones */
   }
+  /* Check child bones */
   else {
     for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
       /* loop through all the children until deform bone is found, and then return */
@@ -854,8 +854,9 @@ void AnimationExporter::export_morph_animation(Object *ob, BCAnimationSampler &s
 {
   FCurve *fcu;
   Key *key = BKE_key_from_object(ob);
-  if (!key)
+  if (!key) {
     return;
+  }
 
   if (key->adt && key->adt->action) {
     fcu = (FCurve *)key->adt->action->curves.first;

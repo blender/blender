@@ -174,17 +174,21 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     real orientation = o1 * o2;
     if (orientation > 0) {
       // then the vertex to move is v0
-      if (o1 > 0)
+      if (o1 > 0) {
         _vertex[0] = _vertex[1] + userDir;
-      else
+      }
+      else {
         _vertex[0] = _vertex[1] - userDir;
+      }
     }
     if (orientation < 0) {
       // then we must move v1
-      if (o1 < 0)
+      if (o1 < 0) {
         _vertex[1] = _vertex[0] + userDir;
-      else
+      }
+      else {
         _vertex[1] = _vertex[0] - userDir;
+      }
     }
   }
 #endif
@@ -336,17 +340,21 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     real orientation = o1 * o2;
     if (orientation > 0) {
       // then the vertex to move is vn
-      if (o1 < 0)
+      if (o1 < 0) {
         _vertex[n] = _vertex[n - 1] + userDir;
-      else
+      }
+      else {
         _vertex[n] = _vertex[n - 1] - userDir;
+      }
     }
     if (orientation < 0) {
       // then we must move vn-1
-      if (o1 > 0)
+      if (o1 > 0) {
         _vertex[n - 1] = _vertex[n] + userDir;
-      else
+      }
+      else {
         _vertex[n - 1] = _vertex[n] - userDir;
+      }
     }
   }
 #endif
@@ -715,18 +723,22 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
 #if 0
   cerr << "u=" << u << "    i=" << i << "/" << _sizeStrip << endl;
 
-  for (i = 0; i < _sizeStrip; i++)
+  for (i = 0; i < _sizeStrip; i++) {
     _alpha[i] = 1.0;
+  }
 
-  for (i = 0; i < _sizeStrip; i++)
+  for (i = 0; i < _sizeStrip; i++) {
     cerr << "(" << _texCoord[i][0] << ", " << _texCoord[i][1] << ") ";
+  }
   cerr << endl;
 
   Vec2r vec_tmp;
-  for (i = 0; i < _sizeStrip / 2; i++)
+  for (i = 0; i < _sizeStrip / 2; i++) {
     vec_tmp = _vertex[2 * i] - _vertex[2 * i + 1];
-  if (vec_tmp.norm() > 4 * _averageThickness)
+  }
+  if (vec_tmp.norm() > 4 * _averageThickness) {
     cerr << "Warning (from Fredo): There is a pb in the texture coordinates computation" << endl;
+  }
 #endif
 }
 
@@ -750,10 +762,12 @@ StrokeRep::StrokeRep()
   }
 #if 0
   _averageTextureAlpha = 0.5;  //default value
-  if (_strokeType == OIL_STROKE)
+  if (_strokeType == OIL_STROKE) {
     _averageTextureAlpha = 0.75;
-  if (_strokeType >= NO_BLEND_STROKE)
-    _averageTextureAlpha = 1.0
+  }
+  if (_strokeType >= NO_BLEND_STROKE) {
+    _averageTextureAlpha = 1.0;
+  }
 #endif
 }
 
@@ -782,10 +796,12 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 
 #if 0
   _averageTextureAlpha = 0.5;  //default value
-  if (_strokeType == OIL_STROKE)
+  if (_strokeType == OIL_STROKE) {
     _averageTextureAlpha = 0.75;
-  if (_strokeType >= NO_BLEND_STROKE)
+  }
+  if (_strokeType >= NO_BLEND_STROKE) {
     _averageTextureAlpha = 1.0;
+  }
 #endif
   create();
 }

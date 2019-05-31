@@ -295,12 +295,15 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
           return;
         }
 
-        if (_tvertex_iter.first == _feA.first)
+        if (_tvertex_iter.first == _feA.first) {
           _tvertex_iter.first = _beB.first;
-        else if (_tvertex_iter.first == _beB.first)
+        }
+        else if (_tvertex_iter.first == _beB.first) {
           _tvertex_iter.first = 0;
-        else
+        }
+        else {
           _tvertex_iter.first = _feA.first;
+        }
         return;
       }
       if (_feA.first == _beB.first) {
@@ -309,12 +312,15 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
           return;
         }
 
-        if (_tvertex_iter.first == _feB.first)
+        if (_tvertex_iter.first == _feB.first) {
           _tvertex_iter.first = _beA.first;
-        else if (_tvertex_iter.first == _beA.first)
+        }
+        else if (_tvertex_iter.first == _beA.first) {
           _tvertex_iter.first = 0;
-        else
+        }
+        else {
           _tvertex_iter.first = _feB.first;
+        }
         return;
       }
       // End of hack

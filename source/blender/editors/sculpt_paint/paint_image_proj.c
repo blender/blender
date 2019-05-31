@@ -2256,8 +2256,9 @@ static bool project_bucket_isect_circle(const float cent[2],
    * this is even less work then an intersection test.
    */
 #if 0
-  if (BLI_rctf_isect_pt_v(bucket_bounds, cent))
+  if (BLI_rctf_isect_pt_v(bucket_bounds, cent)) {
     return 1;
+  }
 #endif
 
   if ((bucket_bounds->xmin <= cent[0] && bucket_bounds->xmax >= cent[0]) ||

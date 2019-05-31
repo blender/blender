@@ -27,10 +27,12 @@
 #define BRICONT \
   texres->tin = (texres->tin - 0.5f) * tex->contrast + tex->bright - 0.5f; \
   if (!(tex->flag & TEX_NO_CLAMP)) { \
-    if (texres->tin < 0.0f) \
+    if (texres->tin < 0.0f) { \
       texres->tin = 0.0f; \
-    else if (texres->tin > 1.0f) \
+    } \
+    else if (texres->tin > 1.0f) { \
       texres->tin = 1.0f; \
+    } \
   } \
   ((void)0)
 

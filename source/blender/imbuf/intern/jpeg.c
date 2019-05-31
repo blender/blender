@@ -579,8 +579,9 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   /* just write RGBA as RGB,
    * unsupported feature only confuses other s/w */
 
-  if (ibuf->planes == 32)
+  if (ibuf->planes == 32) {
     cinfo->in_color_space = JCS_UNKNOWN;
+  }
 #endif
   switch (cinfo->in_color_space) {
     case JCS_RGB:

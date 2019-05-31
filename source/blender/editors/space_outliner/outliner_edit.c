@@ -1312,19 +1312,22 @@ static TreeElement *outliner_find_name(
     if (found) {
       /* name is right, but is element the previous one? */
       if (prev) {
-        if ((te != prev) && (*prevFound))
+        if ((te != prev) && (*prevFound)) {
           return te;
+        }
         if (te == prev) {
           *prevFound = 1;
         }
       }
-      else
+      else {
         return te;
+      }
     }
 
     tes = outliner_find_name(soops, &te->subtree, name, flags, prev, prevFound);
-    if (tes)
+    if (tes) {
       return tes;
+    }
   }
 
   /* nothing valid found */
@@ -1372,8 +1375,9 @@ static void outliner_find_panel(
     tselem = TREESTORE(te);
     if (tselem) {
       /* expand branches so that it will be visible, we need to get correct coordinates */
-      if (outliner_open_back(soops, te))
+      if (outliner_open_back(soops, te)) {
         outliner_set_coordinates(ar, soops);
+      }
 
       /* deselect all visible, and select found element */
       outliner_flag_set(soops, &soops->tree, TSE_SELECTED, 0);
@@ -1381,8 +1385,9 @@ static void outliner_find_panel(
 
       /* make te->ys center of view */
       ytop = (int)(te->ys + BLI_rctf_size_y(&ar->v2d.mask) / 2);
-      if (ytop > 0)
+      if (ytop > 0) {
         ytop = 0;
+      }
       ar->v2d.cur.ymax = (float)ytop;
       ar->v2d.cur.ymin = (float)(ytop - BLI_rctf_size_y(&ar->v2d.mask));
 

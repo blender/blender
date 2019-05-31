@@ -322,8 +322,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
         cross_v3_v3v3(axis_tmp, cross1, c2);
         normalize_v3(axis_tmp);
 
-        if (len_v3v3(axis_tmp, axis_vec) > 1.0f)
+        if (len_v3v3(axis_tmp, axis_vec) > 1.0f) {
           angle = -angle;
+        }
       }
     }
 #endif
@@ -691,8 +692,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
             /* switch the flip option if set
              * note: flip is now done at face level so copying vgroup slizes is easier */
 #if 0
-            if (do_flip)
+            if (do_flip) {
               ed_loop_flip = !ed_loop_flip;
+            }
 #endif
 
             if (angle < 0.0f) {

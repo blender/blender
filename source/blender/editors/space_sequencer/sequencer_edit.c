@@ -1025,11 +1025,13 @@ static void set_filter_seq(Scene *scene)
   Sequence *seq;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  if (ed == NULL)
+  if (ed == NULL) {
     return;
+  }
 
-  if (okee("Set Deinterlace") == 0)
+  if (okee("Set Deinterlace") == 0) {
     return;
+  }
 
   SEQP_BEGIN (ed, seq) {
     if (seq->flag & SELECT) {
@@ -3159,8 +3161,9 @@ static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
   Sequence *parent = NULL;
   Sequence *seq;
 
-  if (ed == NULL)
+  if (ed == NULL) {
     return NULL;
+  }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if ((seq != child) && seq_is_parent(seq, child)) {

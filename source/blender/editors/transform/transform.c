@@ -718,8 +718,9 @@ static void view_editmove(unsigned short UNUSED(event))
   /* only work in 3D window for now
    * In the end, will have to send to event to a 2D window handler instead
    */
-  if (Trans.flag & T_2D_EDIT)
+  if (Trans.flag & T_2D_EDIT) {
     return;
+  }
 
   switch (event) {
     case WHEELUPMOUSE:
@@ -743,10 +744,12 @@ static void view_editmove(unsigned short UNUSED(event))
           persptoetsen(PAD4);
         }
       }
-      else if (U.uiflag & USER_WHEELZOOMDIR)
+      else if (U.uiflag & USER_WHEELZOOMDIR) {
         persptoetsen(PADMINUS);
-      else
+      }
+      else {
         persptoetsen(PADPLUSKEY);
+      }
 
       refresh = 1;
       break;
@@ -771,17 +774,20 @@ static void view_editmove(unsigned short UNUSED(event))
           persptoetsen(PAD6);
         }
       }
-      else if (U.uiflag & USER_WHEELZOOMDIR)
+      else if (U.uiflag & USER_WHEELZOOMDIR) {
         persptoetsen(PADPLUSKEY);
-      else
+      }
+      else {
         persptoetsen(PADMINUS);
+      }
 
       refresh = 1;
       break;
   }
 
-  if (refresh)
+  if (refresh) {
     setTransformViewMatrices(&Trans);
+  }
 #endif
 }
 

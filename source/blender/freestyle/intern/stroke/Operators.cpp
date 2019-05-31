@@ -226,8 +226,9 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it,
                                    UnaryPredicate1D &pred,
                                    UnaryFunction1D_void &modifier)
 {
-  if (_current_view_edges_set.empty())
+  if (_current_view_edges_set.empty()) {
     return;
+  }
 
   unsigned id = 0;
   ViewEdge *edge;
@@ -236,8 +237,9 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it,
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
-    if (pred(**it_edge))
+    if (pred(**it_edge)) {
       continue;
+    }
 
     edge = dynamic_cast<ViewEdge *>(*it_edge);
     it.setBegin(edge);
@@ -266,14 +268,16 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it,
     _current_chains_set.push_back(new_chain);
   }
 
-  if (!_current_chains_set.empty())
+  if (!_current_chains_set.empty()) {
     _current_set = &_current_chains_set;
+  }
 }
 
 void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
 {
-  if (_current_view_edges_set.empty())
+  if (_current_view_edges_set.empty()) {
     return;
+  }
 
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
@@ -285,8 +289,9 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
-    if (pred(**it_edge) || pred_ts(**it_edge))
+    if (pred(**it_edge) || pred_ts(**it_edge)) {
       continue;
+    }
 
     edge = dynamic_cast<ViewEdge *>(*it_edge);
     it.setBegin(edge);
@@ -315,8 +320,9 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
     _current_chains_set.push_back(new_chain);
   }
 
-  if (!_current_chains_set.empty())
+  if (!_current_chains_set.empty()) {
     _current_set = &_current_chains_set;
+  }
 }
 #endif
 

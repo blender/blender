@@ -2716,10 +2716,12 @@ static int uv_mouse_select_multi(bContext *C,
     /* before bmesh */
 #if 0
     if (ts->selectmode != SCE_SELECT_FACE) {
-      if (flush == 1)
+      if (flush == 1) {
         EDBM_select_flush(em);
-      else if (flush == -1)
+      }
+      else if (flush == -1) {
         EDBM_deselect_flush(em);
+      }
     }
 #else
     if (flush != 0) {

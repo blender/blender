@@ -165,22 +165,30 @@ int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
 
 #if 0
       /* debug */
-      if (val == 1)
+      if (val == 1) {
         printf("tweak north\n");
-      if (val == 2)
+      }
+      if (val == 2) {
         printf("tweak north-east\n");
-      if (val == 3)
+      }
+      if (val == 3) {
         printf("tweak east\n");
-      if (val == 4)
+      }
+      if (val == 4) {
         printf("tweak south-east\n");
-      if (val == 5)
+      }
+      if (val == 5) {
         printf("tweak south\n");
-      if (val == 6)
+      }
+      if (val == 6) {
         printf("tweak south-west\n");
-      if (val == 7)
+      }
+      if (val == 7) {
         printf("tweak west\n");
-      if (val == 8)
+      }
+      if (val == 8) {
         printf("tweak north-west\n");
+      }
 #endif
       return val;
     }
@@ -480,8 +488,11 @@ void wm_gesture_draw(wmWindow *win)
     if (gt->type == WM_GESTURE_RECT) {
       wm_gesture_draw_rect(gt);
     }
-    //      else if (gt->type == WM_GESTURE_TWEAK)
-    //          wm_gesture_draw_line(gt);
+#if 0
+    else if (gt->type == WM_GESTURE_TWEAK) {
+      wm_gesture_draw_line(gt);
+    }
+#endif
     else if (gt->type == WM_GESTURE_CIRCLE) {
       wm_gesture_draw_circle(gt);
     }

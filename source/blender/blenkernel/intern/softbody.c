@@ -1860,15 +1860,17 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len
 static void dfdx_goal(int ia, int ic, int op, float factor)
 {
   int i;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     EIG_linear_solver_matrix_add(ia + i, op + ic + i, factor);
+  }
 }
 
 static void dfdv_goal(int ia, int ic, float factor)
 {
   int i;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     EIG_linear_solver_matrix_add(ia + i, ic + i, factor);
+  }
 }
 #endif /* if 0 */
 
@@ -2336,10 +2338,12 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
   /* old one with homogeneous masses  */
   /* claim a minimum mass for vertex */
 #if 0
-  if (sb->nodemass > 0.009999f)
+  if (sb->nodemass > 0.009999f) {
     timeovermass = forcetime / sb->nodemass;
-  else
+  }
+  else {
     timeovermass = forcetime / 0.009999f;
+  }
 #endif
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {

@@ -54,9 +54,9 @@ class WingedEdgeBuilder : public SceneVisitor {
     _matrices_stack.clear();
   }
 
-  VISIT_DECL(IndexedFaceSet)
-  VISIT_DECL(NodeShape)
-  VISIT_DECL(NodeTransform)
+  VISIT_DECL(IndexedFaceSet);
+  VISIT_DECL(NodeShape);
+  VISIT_DECL(NodeTransform);
 
   virtual void visitNodeTransformAfter(NodeTransform &);
 

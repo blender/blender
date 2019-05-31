@@ -734,8 +734,9 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
   BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
 
   /* check if its actually a buffer */
-  if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF)
+  if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF) {
     return NULL;
+  }
 
   if (slot->flag & BMOS_DYNAMIC_ARRAY) {
     if (slot->len >= slot->size) {

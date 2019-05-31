@@ -1732,8 +1732,9 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   cloth_free_edgelist(edgelist, mvert_num);
 
 #if 0
-  if (G.debug_value > 0)
+  if (G.debug_value > 0) {
     printf("avg_len: %f\n", clmd->sim_parms->avg_spring_len);
+  }
 #endif
 
   return 1;

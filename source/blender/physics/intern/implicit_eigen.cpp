@@ -98,14 +98,16 @@ class fVector : public Eigen::Vector3f {
 
   fVector(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
+    for (int k = 0; k < 3; ++k) {
       coeffRef(k) = v[k];
+    }
   }
 
   fVector &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
+    for (int k = 0; k < 3; ++k) {
       coeffRef(k) = v[k];
+    }
     return *this;
   }
 
@@ -128,16 +130,20 @@ class fMatrix : public Eigen::Matrix3f {
 
   fMatrix(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         coeffRef(l, k) = v[k][l];
+      }
+    }
   }
 
   fMatrix &operator=(const ctype &v)
   {
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         coeffRef(l, k) = v[k][l];
+      }
+    }
     return *this;
   }
 
@@ -206,18 +212,22 @@ struct lMatrixCtor {
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         m_trips.push_back(Triplet(i + k, j + l, m.coeff(l, k)));
+      }
+    }
   }
 
   void sub(int i, int j, const fMatrix &m)
   {
     i *= 3;
     j *= 3;
-    for (int k = 0; k < 3; ++k)
-      for (int l = 0; l < 3; ++l)
+    for (int k = 0; k < 3; ++k) {
+      for (int l = 0; l < 3; ++l) {
         m_trips.push_back(Triplet(i + k, j + l, -m.coeff(l, k)));
+      }
+    }
   }
 
   inline void construct(lMatrix &m)
@@ -246,8 +256,9 @@ using Eigen::ComputationInfo;
 static void print_lvector(const lVector &v)
 {
   for (int i = 0; i < v.rows(); ++i) {
-    if (i > 0 && i % 3 == 0)
+    if (i > 0 && i % 3 == 0) {
       printf("\n");
+    }
 
     printf("%f,\n", v[i]);
   }
@@ -256,12 +267,14 @@ static void print_lvector(const lVector &v)
 static void print_lmatrix(const lMatrix &m)
 {
   for (int j = 0; j < m.rows(); ++j) {
-    if (j > 0 && j % 3 == 0)
+    if (j > 0 && j % 3 == 0) {
       printf("\n");
+    }
 
     for (int i = 0; i < m.cols(); ++i) {
-      if (i > 0 && i % 3 == 0)
+      if (i > 0 && i % 3 == 0) {
         printf("  ");
+      }
 
       implicit_print_matrix_elem(m.coeff(j, i));
     }
@@ -455,16 +468,19 @@ Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
 
 void BPH_mass_spring_solver_free(Implicit_Data *id)
 {
-  if (id)
+  if (id) {
     delete id;
+  }
 }
 
 int BPH_mass_spring_solver_numvert(Implicit_Data *id)
 {
-  if (id)
+  if (id) {
     return id->numverts;
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 /* ==== Transformation from/to root reference frames ==== */
@@ -625,10 +641,12 @@ void BPH_mass_spring_get_motion_state(struct Implicit_Data *data,
                                       float x[3],
                                       float v[3])
 {
-  if (x)
+  if (x) {
     root_to_world_v3(data, index, x, data->X.v3(index));
-  if (v)
+  }
+  if (v) {
     root_to_world_v3(data, index, v, data->V.v3(index));
+  }
 }
 
 void BPH_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3])
@@ -910,10 +928,12 @@ BLI_INLINE float fbstar(float length, float L, float kb, float cb)
   float tempfb_fl = kb * fb(length, L);
   float fbstar_fl = cb * (length - L);
 
-  if (tempfb_fl < fbstar_fl)
+  if (tempfb_fl < fbstar_fl) {
     return fbstar_fl;
-  else
+  }
+  else {
     return tempfb_fl;
+  }
 }
 
 // function to calculae bending spring force (taken from Choi & Co)
@@ -1015,22 +1035,28 @@ bool BPH_mass_spring_force_spring_linear(Implicit_Data *data,
 
     apply_spring(data, i, j, f, dfdx, dfdv);
 
-    if (r_f)
+    if (r_f) {
       copy_v3_v3(r_f, f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       copy_m3_m3(r_dfdx, dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       copy_m3_m3(r_dfdv, dfdv);
+    }
 
     return true;
   }
   else {
-    if (r_f)
+    if (r_f) {
       zero_v3(r_f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       zero_m3(r_dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       zero_m3(r_dfdv);
+    }
 
     return false;
   }
@@ -1065,22 +1091,28 @@ bool BPH_mass_spring_force_spring_bending(Implicit_Data *data,
 
     apply_spring(data, i, j, f, dfdx, dfdv);
 
-    if (r_f)
+    if (r_f) {
       copy_v3_v3(r_f, f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       copy_m3_m3(r_dfdx, dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       copy_m3_m3(r_dfdv, dfdv);
+    }
 
     return true;
   }
   else {
-    if (r_f)
+    if (r_f) {
       zero_v3(r_f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       zero_m3(r_dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       zero_m3(r_dfdv);
+    }
 
     return false;
   }
@@ -1132,30 +1164,38 @@ BLI_INLINE void spring_angbend_forces(Implicit_Data *data,
   zero_v3(fk);
 
   sub_v3_v3v3(edge_ij, data->X.v3(j), data->X.v3(i));
-  if (q == i)
+  if (q == i) {
     sub_v3_v3(edge_ij, dx);
-  if (q == j)
+  }
+  if (q == j) {
     add_v3_v3(edge_ij, dx);
+  }
   normalize_v3_v3(dir_ij, edge_ij);
 
   sub_v3_v3v3(edge_jk, data->X.v3(k), data->X.v3(j));
-  if (q == j)
+  if (q == j) {
     sub_v3_v3(edge_jk, dx);
-  if (q == k)
+  }
+  if (q == k) {
     add_v3_v3(edge_jk, dx);
+  }
   normalize_v3_v3(dir_jk, edge_jk);
 
   sub_v3_v3v3(vel_ij, data->V.v3(j), data->V.v3(i));
-  if (q == i)
+  if (q == i) {
     sub_v3_v3(vel_ij, dv);
-  if (q == j)
+  }
+  if (q == j) {
     add_v3_v3(vel_ij, dv);
+  }
 
   sub_v3_v3v3(vel_jk, data->V.v3(k), data->V.v3(j));
-  if (q == j)
+  if (q == j) {
     sub_v3_v3(vel_jk, dv);
-  if (q == k)
+  }
+  if (q == k) {
     add_v3_v3(vel_jk, dv);
+  }
 
   /* bending force */
   sub_v3_v3v3(dist, goal, edge_jk);
@@ -1439,22 +1479,28 @@ bool BPH_mass_spring_force_spring_goal(Implicit_Data *data,
     data->idFdX.add(i, i, dfdx);
     data->idFdV.add(i, i, dfdv);
 
-    if (r_f)
+    if (r_f) {
       copy_v3_v3(r_f, f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       copy_m3_m3(r_dfdx, dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       copy_m3_m3(r_dfdv, dfdv);
+    }
 
     return true;
   }
   else {
-    if (r_f)
+    if (r_f) {
       zero_v3(r_f);
-    if (r_dfdx)
+    }
+    if (r_dfdx) {
       zero_m3(r_dfdx);
-    if (r_dfdv)
+    }
+    if (r_dfdv) {
       zero_m3(r_dfdv);
+    }
 
     return false;
   }

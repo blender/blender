@@ -868,8 +868,9 @@ template<class T, unsigned N>
 inline Vec<T, N> operator/(const Vec<T, N> &v, const typename Vec<T, N>::value_type r)
 {
   Vec<T, N> res(v);
-  if (r)
+  if (r) {
     res /= r;
+  }
   return res;
 }
 
@@ -878,8 +879,9 @@ template<class T, unsigned N>
 inline typename Vec<T, N>::value_type operator*(const Vec<T, N> &v1, const Vec<T, N> &v2)
 {
   typename Vec<T, N>::value_type sum = 0;
-  for (unsigned int i = 0; i < N; i++)
+  for (unsigned int i = 0; i < N; i++) {
     sum += v1[i] * v2[i];
+  }
   return sum;
 }
 

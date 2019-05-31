@@ -180,8 +180,9 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
     firstEdge = (*c)->fedgeA();
 
 #if 0
-    if (firstEdge->invisibility() > 0)
+    if (firstEdge->invisibility() > 0) {
       continue;
+    }
 #endif
 
     line = new OrientedLineRep();

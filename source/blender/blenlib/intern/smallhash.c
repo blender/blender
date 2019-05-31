@@ -372,8 +372,9 @@ void BLI_smallhash_print(SmallHash *sh)
       printf("%2x", (uint)sh->buckets[i].key);
     }
 
-    if (i != sh->nbuckets - 1)
+    if (i != sh->nbuckets - 1) {
       printf(", ");
+    }
 
     c += 6;
 

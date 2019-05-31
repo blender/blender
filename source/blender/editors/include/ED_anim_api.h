@@ -760,12 +760,15 @@ float ANIM_unit_mapping_get_factor(
  */
 #define ACHANNEL_SET_FLAG(channel, smode, sflag) \
   { \
-    if (smode == ACHANNEL_SETFLAG_INVERT) \
+    if (smode == ACHANNEL_SETFLAG_INVERT) { \
       (channel)->flag ^= (sflag); \
-    else if (smode == ACHANNEL_SETFLAG_ADD) \
+    } \
+    else if (smode == ACHANNEL_SETFLAG_ADD) { \
       (channel)->flag |= (sflag); \
-    else \
+    } \
+    else { \
       (channel)->flag &= ~(sflag); \
+    } \
   } \
   ((void)0)
 
@@ -776,12 +779,15 @@ float ANIM_unit_mapping_get_factor(
  */
 #define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
   { \
-    if (smode == ACHANNEL_SETFLAG_INVERT) \
+    if (smode == ACHANNEL_SETFLAG_INVERT) { \
       (channel)->flag ^= (sflag); \
-    else if (smode == ACHANNEL_SETFLAG_ADD) \
+    } \
+    else if (smode == ACHANNEL_SETFLAG_ADD) { \
       (channel)->flag &= ~(sflag); \
-    else \
+    } \
+    else { \
       (channel)->flag |= (sflag); \
+    } \
   } \
   ((void)0)
 
