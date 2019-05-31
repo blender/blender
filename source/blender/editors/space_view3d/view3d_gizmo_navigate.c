@@ -205,7 +205,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     for (int i = 0; i < ARRAY_SIZE(gz_ids); i++) {
       wmGizmo *gz = navgroup->gz_array[gz_ids[i]];
       wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
-      RNA_boolean_set(&gzop->ptr, "use_mouse_init", false);
+      RNA_boolean_set(&gzop->ptr, "use_cursor_init", false);
     }
   }
 

@@ -643,7 +643,7 @@ static bool view_zoom_poll(bContext *C)
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomstep_apply_ex(
-    bContext *C, v2dViewZoomData *vzd, const bool use_mousepos, const float facx, const float facy)
+    bContext *C, v2dViewZoomData *vzd, const bool zoom_to_pos, const float facx, const float facy)
 {
   ARegion *ar = CTX_wm_region(C);
   View2D *v2d = &ar->v2d;
@@ -681,7 +681,7 @@ static void view_zoomstep_apply_ex(
       v2d->cur.xmin += dx;
       v2d->cur.xmax -= dx;
 
-      if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
+      if (zoom_to_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
         const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
@@ -716,7 +716,7 @@ static void view_zoomstep_apply_ex(
       v2d->cur.ymin += dy;
       v2d->cur.ymax -= dy;
 
-      if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
+      if (zoom_to_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
         const float zoomy = (float)(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
@@ -752,8 +752,9 @@ static void view_zoomstep_apply_ex(
 static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
   v2dViewZoomData *vzd = op->customdata;
+  const bool zoom_to_pos = U.uiflag & USER_ZOOM_TO_MOUSEPOS;
   view_zoomstep_apply_ex(
-      C, vzd, true, RNA_float_get(op->ptr, "zoomfacx"), RNA_float_get(op->ptr, "zoomfacy"));
+      C, vzd, zoom_to_pos, RNA_float_get(op->ptr, "zoomfacx"), RNA_float_get(op->ptr, "zoomfacy"));
 }
 
 /* --------------- Individual Operators ------------------- */
@@ -921,6 +922,9 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   float dx, dy;
   const int snap_test = ED_region_snap_size_test(vzd->ar);
 
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
+  const bool zoom_to_pos = use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS);
+
   /* get amount to move view by */
   dx = RNA_float_get(op->ptr, "deltax");
   dy = RNA_float_get(op->ptr, "deltay");
@@ -947,7 +951,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
       v2d->cur.xmax -= 2 * dx;
     }
     else {
-      if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+      if (zoom_to_pos) {
         float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
         float mval_faci = 1.0f - mval_fac;
         float ofs = (mval_fac * dx) - (mval_faci * dx);
@@ -966,7 +970,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
       v2d->cur.ymax -= 2 * dy;
     }
     else {
-      if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+      if (zoom_to_pos) {
         float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
         float mval_faci = 1.0f - mval_fac;
         float ofs = (mval_fac * dy) - (mval_faci * dy);
@@ -1248,6 +1252,8 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, "Delta Y", "", -FLT_MAX, FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  WM_operator_properties_use_cursor_init(ot);
 }
 
 /* ********************************************************* */

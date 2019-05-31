@@ -80,7 +80,10 @@
 
 /******************** view navigation utilities *********************/
 
-static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
+static void sclip_zoom_set(const bContext *C,
+                           float zoom,
+                           const float location[2],
+                           const bool zoom_to_pos)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *ar = CTX_wm_region(C);
@@ -108,7 +111,7 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
     }
   }
 
-  if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
+  if (zoom_to_pos && location) {
     float aspx, aspy, w, h, dx, dy;
 
     ED_space_clip_get_size(sc, &width, &height);
@@ -131,11 +134,14 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
   }
 }
 
-static void sclip_zoom_set_factor(const bContext *C, float zoomfac, float location[2])
+static void sclip_zoom_set_factor(const bContext *C,
+                                  float zoomfac,
+                                  const float location[2],
+                                  const bool zoom_to_pos)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  sclip_zoom_set(C, sc->zoom * zoomfac, location);
+  sclip_zoom_set(C, sc->zoom * zoomfac, location, zoom_to_pos);
 }
 
 static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float factor)
@@ -151,7 +157,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float 
     mpos = location;
   }
 
-  sclip_zoom_set_factor(C, factor, mpos);
+  sclip_zoom_set_factor(C, factor, mpos, mpos ? (U.uiflag & USER_ZOOM_TO_MOUSEPOS) : false);
 
   ED_region_tag_redraw(ar);
 }
@@ -355,16 +361,23 @@ typedef struct ViewPanData {
   float x, y;
   float xof, yof, xorig, yorig;
   int event_type;
+  bool own_cursor;
   float *vec;
 } ViewPanData;
 
 static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  wmWindow *win = CTX_wm_window(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   ViewPanData *vpd;
 
   op->customdata = vpd = MEM_callocN(sizeof(ViewPanData), "ClipViewPanData");
-  WM_cursor_modal_set(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
+
+  /* Grab will be set when running from gizmo. */
+  vpd->own_cursor = (win->grabcursor == 0);
+  if (vpd->own_cursor) {
+    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+  }
 
   vpd->x = event->x;
   vpd->y = event->y;
@@ -394,7 +407,9 @@ static void view_pan_exit(bContext *C, wmOperator *op, bool cancel)
     ED_region_tag_redraw(CTX_wm_region(C));
   }
 
-  WM_cursor_modal_restore(CTX_wm_window(C));
+  if (vpd->own_cursor) {
+    WM_cursor_modal_restore(CTX_wm_window(C));
+  }
   MEM_freeN(op->customdata);
 }
 
@@ -519,16 +534,23 @@ typedef struct ViewZoomData {
   float location[2];
   wmTimer *timer;
   double timer_lastdraw;
+  bool own_cursor;
 } ViewZoomData;
 
 static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  wmWindow *win = CTX_wm_window(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *ar = CTX_wm_region(C);
   ViewZoomData *vpd;
 
   op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ClipViewZoomData");
-  WM_cursor_modal_set(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
+
+  /* Grab will be set when running from gizmo. */
+  vpd->own_cursor = (win->grabcursor == 0);
+  if (vpd->own_cursor) {
+    WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
+  }
 
   if (U.viewzoom == USER_ZOOM_CONT) {
     /* needs a timer to continue redrawing */
@@ -560,13 +582,15 @@ static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
     WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
   }
 
-  WM_cursor_modal_restore(CTX_wm_window(C));
+  if (vpd->own_cursor) {
+    WM_cursor_modal_restore(CTX_wm_window(C));
+  }
   MEM_freeN(op->customdata);
 }
 
 static int view_zoom_exec(bContext *C, wmOperator *op)
 {
-  sclip_zoom_set_factor(C, RNA_float_get(op->ptr, "factor"), NULL);
+  sclip_zoom_set_factor(C, RNA_float_get(op->ptr, "factor"), NULL, false);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -598,7 +622,8 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 }
 
-static void view_zoom_apply(bContext *C, ViewZoomData *vpd, wmOperator *op, const wmEvent *event)
+static void view_zoom_apply(
+    bContext *C, ViewZoomData *vpd, wmOperator *op, const wmEvent *event, const bool zoom_to_pos)
 {
   float factor;
 
@@ -635,21 +660,22 @@ static void view_zoom_apply(bContext *C, ViewZoomData *vpd, wmOperator *op, cons
   }
 
   RNA_float_set(op->ptr, "factor", factor);
-  sclip_zoom_set(C, vpd->zoom * factor, vpd->location);
+  sclip_zoom_set(C, vpd->zoom * factor, vpd->location, zoom_to_pos);
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
 static int view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewZoomData *vpd = op->customdata;
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
   switch (event->type) {
     case TIMER:
       if (event->customdata == vpd->timer) {
-        view_zoom_apply(C, vpd, op, event);
+        view_zoom_apply(C, vpd, op, event, use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS));
       }
       break;
     case MOUSEMOVE:
-      view_zoom_apply(C, vpd, op, event);
+      view_zoom_apply(C, vpd, op, event, use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS));
       break;
     default:
       if (event->type == vpd->event_type && event->val == KM_RELEASE) {
@@ -698,6 +724,8 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  WM_operator_properties_use_cursor_init(ot);
 }
 
 /********************** view zoom in/out operator *********************/
@@ -708,7 +736,7 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 
   RNA_float_get_array(op->ptr, "location", location);
 
-  sclip_zoom_set_factor(C, powf(2.0f, 1.0f / 3.0f), location);
+  sclip_zoom_set_factor(C, powf(2.0f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -762,7 +790,7 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 
   RNA_float_get_array(op->ptr, "location", location);
 
-  sclip_zoom_set_factor(C, powf(0.5f, 1.0f / 3.0f), location);
+  sclip_zoom_set_factor(C, powf(0.5f, 1.0f / 3.0f), location, U.uiflag & USER_ZOOM_TO_MOUSEPOS);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -816,7 +844,7 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  sclip_zoom_set(C, RNA_float_get(op->ptr, "ratio"), NULL);
+  sclip_zoom_set(C, RNA_float_get(op->ptr, "ratio"), NULL, false);
 
   /* ensure pixel exact locations for draw */
   sc->xof = (int)sc->xof;
@@ -881,7 +909,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
     zoomx = (float)width / (w + 2 * margin);
     zoomy = (float)height / (h + 2 * margin);
 
-    sclip_zoom_set(C, min_ff(zoomx, zoomy), NULL);
+    sclip_zoom_set(C, min_ff(zoomx, zoomy), NULL, false);
   }
   else {
     if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -889,10 +917,10 @@ static int view_all_exec(bContext *C, wmOperator *op)
       zoomy = (float)height / h;
 
       /* find the zoom value that will fit the image in the image space */
-      sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
+      sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL, false);
     }
     else {
-      sclip_zoom_set(C, 1.0f, NULL);
+      sclip_zoom_set(C, 1.0f, NULL, false);
     }
   }
 
@@ -1535,7 +1563,7 @@ static int clip_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
     mul_v2_fl(pan_vec, (speed * ndof->dt) / sc->zoom);
     pan_vec[2] *= -ndof->dt;
 
-    sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL);
+    sclip_zoom_set_factor(C, 1.0f + pan_vec[2], NULL, false);
     sc->xof += pan_vec[0];
     sc->yof += pan_vec[1];
 

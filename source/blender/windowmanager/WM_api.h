@@ -445,6 +445,7 @@ void WM_operator_properties_filesel(struct wmOperatorType *ot,
                                     short flag,
                                     short display,
                                     short sort);
+void WM_operator_properties_use_cursor_init(struct wmOperatorType *ot);
 void WM_operator_properties_border(struct wmOperatorType *ot);
 void WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
 void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);

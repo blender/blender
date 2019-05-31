@@ -115,11 +115,7 @@ static void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
   if (flag & V3D_OP_PROP_USE_MOUSE_INIT) {
-    /* Disable when view operators are initialized from buttons. */
-    PropertyRNA *prop;
-    prop = RNA_def_boolean(
-        ot->srna, "use_mouse_init", true, "Mouse Init", "Use initial mouse position");
-    RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+    WM_operator_properties_use_cursor_init(ot);
   }
 }
 
@@ -885,7 +881,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod;
 
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* makes op->customdata */
   viewops_data_alloc(C, op);
@@ -903,7 +899,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                       op,
                       event,
                       viewops_flag_from_prefs() | VIEWOPS_FLAG_PERSP_ENSURE |
-                          (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
   if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {
     /* Rotate direction we keep always same */
@@ -1748,7 +1744,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod;
 
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* makes op->customdata */
   viewops_data_alloc(C, op);
@@ -1756,7 +1752,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                       op,
                       event,
                       (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-                          (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
   vod = op->customdata;
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -2163,12 +2159,12 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (event_code == VIEW_APPLY) {
-    const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+    const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
     viewzoom_apply(vod,
                    &event->x,
                    U.viewzoom,
                    (U.uiflag & USER_ZOOM_INVERT) != 0,
-                   (use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
+                   (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
     if (ED_screen_animation_playing(CTX_wm_manager(C))) {
       use_autokey = true;
     }
@@ -2202,7 +2198,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
   float dist_range[2];
 
   const int delta = RNA_int_get(op->ptr, "delta");
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   if (op->customdata) {
     ViewOpsData *vod = op->customdata;
@@ -2223,7 +2219,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
   int zoom_xy_buf[2];
   const int *zoom_xy = NULL;
-  if (use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
+  if (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
     zoom_xy_buf[0] = RNA_struct_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") :
                                                                  ar->winx / 2;
     zoom_xy_buf[1] = RNA_struct_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") :
@@ -2278,7 +2274,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod;
 
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* makes op->customdata */
   viewops_data_alloc(C, op);
@@ -2286,7 +2282,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                       op,
                       event,
                       (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-                          (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
   vod = op->customdata;
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -2315,7 +2311,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                      &event->prevx,
                      USER_ZOOM_DOLLY,
                      (U.uiflag & USER_ZOOM_INVERT) != 0,
-                     (use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
+                     (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
       ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 
       ED_view3d_depth_tag_update(vod->rv3d);
@@ -2542,10 +2538,10 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   v3d = sa->spacedata.first;
   rv3d = ar->regiondata;
 
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* overwrite the mouse vector with the view direction (zoom into the center) */
-  if ((use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) == 0) {
+  if ((use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) == 0) {
     normalize_v3_v3(mousevec, rv3d->viewinv[2]);
   }
 
@@ -2601,13 +2597,13 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     ED_region_tag_redraw(vod->ar);
   }
 
-  const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   viewops_data_create(C,
                       op,
                       event,
                       (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-                          (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
   /* if one or the other zoom position aren't set, set from event */
   if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {
@@ -2620,7 +2616,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     /* overwrite the mouse vector with the view direction (zoom into the center) */
-    if ((use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) == 0) {
+    if ((use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) == 0) {
       negate_v3_v3(vod->init.mousevec, vod->rv3d->viewinv[2]);
       normalize_v3(vod->init.mousevec);
     }
