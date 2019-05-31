@@ -611,12 +611,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
   /* lets save the old verts just in case we are actually working on
    * a key ... we now do processing of the keys at the end */
-  oldverts = me->mvert;
-
-  /* don't free this yet */
-  if (oldverts) {
-    CustomData_set_layer(&me->vdata, CD_MVERT, NULL);
-  }
+  oldverts = MEM_dupallocN(me->mvert);
 
   /* free custom data */
   CustomData_free(&me->vdata, me->totvert);
@@ -975,7 +970,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     }
   }
 
-  if (oldverts) {
+  if (oldverts != NULL) {
     MEM_freeN(oldverts);
   }
 
