@@ -24,8 +24,10 @@
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
 
-#include <ctype.h>
 #include <assert.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 bool GHOST_DropTargetX11::m_xdndInitialized = false;
 DndClass GHOST_DropTargetX11::m_dndClass;
