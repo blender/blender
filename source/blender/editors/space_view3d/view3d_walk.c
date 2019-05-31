@@ -132,8 +132,8 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
       {WALK_MODAL_DIR_FORWARD, "FORWARD", 0, "Forward", ""},
       {WALK_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Backward", ""},
-      {WALK_MODAL_DIR_LEFT, "LEFT", 0, "Left (Strafe)", ""},
-      {WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Right (Strafe)", ""},
+      {WALK_MODAL_DIR_LEFT, "LEFT", 0, "Left", ""},
+      {WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Right", ""},
       {WALK_MODAL_DIR_UP, "UP", 0, "Up", ""},
       {WALK_MODAL_DIR_DOWN, "DOWN", 0, "Down", ""},
 
@@ -314,53 +314,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
   immUnbindProgram();
 }
 
-static void walk_update_header(bContext *C, wmOperator *op, WalkInfo *walk)
-{
-  const bool gravity = (walk->navigation_mode == WALK_MODE_GRAVITY) ||
-                       ((walk->teleport.state == WALK_TELEPORT_STATE_ON) &&
-                        (walk->teleport.navigation_mode == WALK_MODE_GRAVITY));
-  char header[UI_MAX_DRAW_STR];
-  char buf[UI_MAX_DRAW_STR];
-
-  char *p = buf;
-  int available_len = sizeof(buf);
-
-#define WM_MODALKEY(_id) \
-  WM_modalkeymap_operator_items_to_string_buf( \
-      op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
-
-  BLI_snprintf(header,
-               sizeof(header),
-               IFACE_("%s: confirm, %s: cancel, "
-                      "%s: gravity (%s), "
-                      "%s|%s|%s|%s: move around, "
-                      "%s: fast, %s: slow, "
-                      "%s|%s: up and down, "
-                      "%s: teleport, %s: jump, "
-                      "%s: increase speed, %s: decrease speed"),
-               WM_MODALKEY(WALK_MODAL_CONFIRM),
-               WM_MODALKEY(WALK_MODAL_CANCEL),
-               WM_MODALKEY(WALK_MODAL_TOGGLE),
-               WM_bool_as_string(gravity),
-               WM_MODALKEY(WALK_MODAL_DIR_FORWARD),
-               WM_MODALKEY(WALK_MODAL_DIR_LEFT),
-               WM_MODALKEY(WALK_MODAL_DIR_BACKWARD),
-               WM_MODALKEY(WALK_MODAL_DIR_RIGHT),
-               WM_MODALKEY(WALK_MODAL_FAST_ENABLE),
-               WM_MODALKEY(WALK_MODAL_SLOW_ENABLE),
-               WM_MODALKEY(WALK_MODAL_DIR_UP),
-               WM_MODALKEY(WALK_MODAL_DIR_DOWN),
-               WM_MODALKEY(WALK_MODAL_TELEPORT),
-               WM_MODALKEY(WALK_MODAL_JUMP),
-               WM_MODALKEY(WALK_MODAL_ACCELERATE),
-               WM_MODALKEY(WALK_MODAL_DECELERATE));
-
-#undef WM_MODALKEY
-
-  ED_workspace_status_text(C, header);
-}
-
-static void walk_navigation_mode_set(bContext *C, wmOperator *op, WalkInfo *walk, eWalkMethod mode)
+static void walk_navigation_mode_set(WalkInfo *walk, eWalkMethod mode)
 {
   if (mode == WALK_MODE_FREE) {
     walk->navigation_mode = WALK_MODE_FREE;
@@ -370,8 +324,6 @@ static void walk_navigation_mode_set(bContext *C, wmOperator *op, WalkInfo *walk
     walk->navigation_mode = WALK_MODE_GRAVITY;
     walk->gravity_state = WALK_GRAVITY_STATE_START;
   }
-
-  walk_update_header(C, op, walk);
 }
 
 /**
@@ -519,10 +471,10 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->mouse_speed = U.walk_navigation.mouse_speed;
 
   if ((U.walk_navigation.flag & USER_WALK_GRAVITY)) {
-    walk_navigation_mode_set(C, op, walk, WALK_MODE_GRAVITY);
+    walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
   }
   else {
-    walk_navigation_mode_set(C, op, walk, WALK_MODE_FREE);
+    walk_navigation_mode_set(walk, WALK_MODE_FREE);
   }
 
   walk->view_height = U.walk_navigation.view_height;
@@ -657,7 +609,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   return OPERATOR_CANCELLED;
 }
 
-static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent *event)
+static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
 {
   if (event->type == TIMER && event->customdata == walk->timer) {
     walk->redraw = true;
@@ -898,7 +850,7 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
           teleport->duration = U.walk_navigation.teleport_time;
 
           teleport->navigation_mode = walk->navigation_mode;
-          walk_navigation_mode_set(C, op, walk, WALK_MODE_FREE);
+          walk_navigation_mode_set(walk, WALK_MODE_FREE);
 
           copy_v3_v3(teleport->origin, walk->rv3d->viewinv[3]);
 
@@ -920,10 +872,10 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
 
       case WALK_MODAL_TOGGLE:
         if (walk->navigation_mode == WALK_MODE_GRAVITY) {
-          walk_navigation_mode_set(C, op, walk, WALK_MODE_FREE);
+          walk_navigation_mode_set(walk, WALK_MODE_FREE);
         }
         else { /* WALK_MODE_FREE */
-          walk_navigation_mode_set(C, op, walk, WALK_MODE_GRAVITY);
+          walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
         }
         break;
     }
@@ -948,7 +900,7 @@ static float getVelocityZeroTime(const float gravity, const float velocity)
   return velocity / gravity;
 }
 
-static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
+static int walkApply(bContext *C, WalkInfo *walk)
 {
 #define WALK_ROTATE_FAC 2.2f /* more is faster */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
@@ -1255,7 +1207,7 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
         if (t >= 1.0f) {
           t = 1.0f;
           walk->teleport.state = WALK_TELEPORT_STATE_OFF;
-          walk_navigation_mode_set(C, op, walk, walk->teleport.navigation_mode);
+          walk_navigation_mode_set(walk, walk->teleport.navigation_mode);
         }
 
         mul_v3_v3fl(new_loc, walk->teleport.direction, t);
@@ -1350,7 +1302,7 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  walkEvent(C, op, walk, event);
+  walkEvent(C, walk, event);
 
   WM_event_add_modal_handler(C, op);
 
@@ -1376,7 +1328,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   walk->redraw = false;
 
-  walkEvent(C, op, walk, event);
+  walkEvent(C, walk, event);
 
 #ifdef WITH_INPUT_NDOF
   if (walk->ndof) { /* 3D mouse overrules [2D mouse + timer] */
@@ -1387,7 +1339,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else
 #endif /* WITH_INPUT_NDOF */
       if (event->type == TIMER && event->customdata == walk->timer) {
-    walkApply(C, op, walk);
+    walkApply(C, walk);
   }
 
   do_draw |= walk->redraw;
@@ -1407,11 +1359,6 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
     // puts("redraw!");
     ED_region_tag_redraw(CTX_wm_region(C));
   }
-
-  if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-    ED_workspace_status_text(C, NULL);
-  }
-
   return exit_code;
 }
 
