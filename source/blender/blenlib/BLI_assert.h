@@ -89,7 +89,11 @@ extern "C" {
 #  define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
 #elif defined(_MSC_VER)
 /* Visual Studio */
-#  define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
+#  if _MSC_VER > 1910
+#    define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
+#  else
+#    define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
+#  endif
 #elif defined(__COVERITY__)
 /* Workaround error with coverity */
 #  define BLI_STATIC_ASSERT(a, msg)
