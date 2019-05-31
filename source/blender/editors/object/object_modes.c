@@ -276,7 +276,7 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
       if (only_test) {
         return true;
       }
-      ED_object_sculptmode_exit_ex(depsgraph, scene, ob);
+      ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
     }
   }
   else if (ob->mode & OB_MODE_POSE) {

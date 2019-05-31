@@ -183,7 +183,8 @@ void ED_object_sculptmode_enter_ex(struct Main *bmain,
                                    const bool force_dyntopo,
                                    struct ReportList *reports);
 void ED_object_sculptmode_enter(struct bContext *C, struct ReportList *reports);
-void ED_object_sculptmode_exit_ex(struct Depsgraph *depsgraph,
+void ED_object_sculptmode_exit_ex(struct Main *bmain,
+                                  struct Depsgraph *depsgraph,
                                   struct Scene *scene,
                                   struct Object *ob);
 void ED_object_sculptmode_exit(struct bContext *C);
