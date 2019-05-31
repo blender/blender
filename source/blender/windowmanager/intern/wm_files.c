@@ -358,9 +358,6 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
   /* versioning is here */
   UI_init_userdef(bmain);
 
-  MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
-  BKE_sound_init(bmain);
-
   /* needed so loading a file from the command line respects user-pref [#26156] */
   SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
 
@@ -374,6 +371,9 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
   if (read_userdef_from_memory) {
     BLO_update_defaults_userpref_blend();
   }
+
+  MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
+  BKE_sound_init(bmain);
 
   /* update tempdir from user preferences */
   BKE_tempdir_init(U.tempdir);
