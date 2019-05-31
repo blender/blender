@@ -894,13 +894,7 @@ void uiTemplateImage(uiLayout *layout,
   }
 
   /* Image layers and Info */
-  if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
-    uiItemS(layout);
-
-    const float dpi_fac = UI_DPI_FAC;
-    uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
-  }
-  else if (ima->source == IMA_SRC_GENERATED) {
+  if (ima->source == IMA_SRC_GENERATED) {
     uiItemS(layout);
 
     /* Generated */
@@ -922,6 +916,12 @@ void uiTemplateImage(uiLayout *layout,
   }
   else if (compact == 0) {
     uiTemplateImageInfo(layout, C, ima, iuser);
+  }
+  if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
+    uiItemS(layout);
+
+    const float dpi_fac = UI_DPI_FAC;
+    uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
   }
 
   if (BKE_image_is_animated(ima)) {
