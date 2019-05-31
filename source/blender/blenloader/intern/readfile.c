@@ -6782,29 +6782,14 @@ static void direct_link_scene(FileData *fd, Scene *sce)
         else {
           seq->strip->stripdata = NULL;
         }
-        if (seq->flag & SEQ_USE_CROP) {
-          seq->strip->crop = newdataadr(fd, seq->strip->crop);
+        seq->strip->crop = newdataadr(fd, seq->strip->crop);
+        seq->strip->transform = newdataadr(fd, seq->strip->transform);
+        seq->strip->proxy = newdataadr(fd, seq->strip->proxy);
+        if (seq->strip->proxy) {
+          seq->strip->proxy->anim = NULL;
         }
-        else {
-          seq->strip->crop = NULL;
-        }
-        if (seq->flag & SEQ_USE_TRANSFORM) {
-          seq->strip->transform = newdataadr(fd, seq->strip->transform);
-        }
-        else {
-          seq->strip->transform = NULL;
-        }
-        if (seq->flag & SEQ_USE_PROXY) {
-          seq->strip->proxy = newdataadr(fd, seq->strip->proxy);
-          if (seq->strip->proxy) {
-            seq->strip->proxy->anim = NULL;
-          }
-          else {
-            BKE_sequencer_proxy_set(seq, true);
-          }
-        }
-        else {
-          seq->strip->proxy = NULL;
+        else if (seq->flag & SEQ_USE_PROXY) {
+          BKE_sequencer_proxy_set(seq, true);
         }
 
         /* need to load color balance to it could be converted to modifier */
