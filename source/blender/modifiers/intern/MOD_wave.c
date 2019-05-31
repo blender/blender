@@ -265,7 +265,7 @@ static void waveModifier_do(WaveModifierData *md,
         amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
         /*apply texture*/
-        if (tex_target) {
+        if (tex_co) {
           Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
           TexResult texres;
           texres.nor = NULL;
