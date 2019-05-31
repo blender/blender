@@ -1512,3 +1512,23 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         subdiv_ccg->grid_flag_mats,
                         subdiv_ccg->grid_hidden);
 }
+
+/* Test if PBVH can be used directly for drawing, which is faster than
+ * drawing the mesh and all updates that come with it. */
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
+{
+  SculptSession *ss = ob->sculpt;
+  if (ss == NULL || ss->pbvh == NULL || ss->mode_type != OB_MODE_SCULPT) {
+    return false;
+  }
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    /* Regular mesh only draws from PBVH without modifiers and shape keys. */
+    const bool full_shading = (v3d && (v3d->shading.type > OB_SOLID));
+    return !(ss->kb || ss->modifiers_active || full_shading);
+  }
+  else {
+    /* Multires and dyntopo always draw directly from the PBVH. */
+    return true;
+  }
+}

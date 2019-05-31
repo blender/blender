@@ -217,28 +217,6 @@ bool DRW_object_use_hide_faces(const struct Object *ob)
   return false;
 }
 
-/* Should we use PBVH drawing or regular mesh drawing
- * PBVH drawing should be used for
- *  - Multires
- *  - Dyntopo
- *  - Normal sculpt without any active modifiers
- */
-bool DRW_object_use_pbvh_drawing(const struct Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  if (ss == NULL || ss->pbvh == NULL || ob->sculpt->mode_type != OB_MODE_SCULPT) {
-    return false;
-  }
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    return !(ss->kb || ss->modifiers_active);
-  }
-  else {
-    /* Multires/Dyntopo */
-    return true;
-  }
-}
-
 bool DRW_object_is_visible_psys_in_active_context(const Object *object, const ParticleSystem *psys)
 {
   const bool for_render = DRW_state_is_image_render();

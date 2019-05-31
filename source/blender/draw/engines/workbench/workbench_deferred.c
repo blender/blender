@@ -30,6 +30,7 @@
 
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 
 #include "DNA_image_types.h"
@@ -965,13 +966,13 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
   WORKBENCH_MaterialData *material;
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
     const bool is_active = (ob == draw_ctx->obact);
-    const bool is_sculpt_mode = DRW_object_use_pbvh_drawing(ob);
+    const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
     const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
     bool has_transp_mat = false;
 
-    if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && me && me->mloopuv) {
+    if (!use_sculpt_pbvh && TEXTURE_DRAWING_ENABLED(wpd) && me && me->mloopuv) {
       /* Draw textured */
       struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
       for (int i = 0; i < materials_len; i++) {
@@ -981,12 +982,13 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           ImageUser *iuser;
           int interp;
           workbench_material_get_image_and_mat(ob, i + 1, &image, &iuser, &interp, &mat);
-          int color_type = workbench_material_determine_color_type(wpd, image, ob, is_sculpt_mode);
+          int color_type = workbench_material_determine_color_type(
+              wpd, image, ob, use_sculpt_pbvh);
           if (color_type == V3D_SHADING_MATERIAL_COLOR && mat && mat->a < 1.0) {
             /* Hack */
             wpd->shading.xray_alpha = mat->a;
             material = workbench_forward_get_or_create_material_data(
-                vedata, ob, mat, image, iuser, color_type, 0, is_sculpt_mode);
+                vedata, ob, mat, image, iuser, color_type, 0, use_sculpt_pbvh);
             has_transp_mat = true;
           }
           else {
@@ -1002,13 +1004,13 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
                   V3D_SHADING_OBJECT_COLOR,
                   V3D_SHADING_RANDOM_COLOR,
                   V3D_SHADING_VERTEX_COLOR)) {
-      int color_type = workbench_material_determine_color_type(wpd, NULL, ob, is_sculpt_mode);
+      int color_type = workbench_material_determine_color_type(wpd, NULL, ob, use_sculpt_pbvh);
 
       if ((ob->color[3] < 1.0f) && (color_type == V3D_SHADING_OBJECT_COLOR)) {
         /* Hack */
         wpd->shading.xray_alpha = ob->color[3];
         material = workbench_forward_get_or_create_material_data(
-            vedata, ob, NULL, NULL, NULL, color_type, 0, is_sculpt_mode);
+            vedata, ob, NULL, NULL, NULL, color_type, 0, use_sculpt_pbvh);
         has_transp_mat = true;
       }
       else {
@@ -1016,7 +1018,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         material = get_or_create_material_data(vedata, ob, NULL, NULL, NULL, color_type, 0);
       }
 
-      if (is_sculpt_mode) {
+      if (use_sculpt_pbvh) {
         bool use_vcol = (color_type == V3D_SHADING_VERTEX_COLOR);
         DRW_shgroup_call_sculpt(material->shgrp, ob, false, false, use_vcol);
       }
@@ -1036,7 +1038,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     }
     else {
       /* Draw material color */
-      if (is_sculpt_mode) {
+      if (use_sculpt_pbvh) {
         struct DRWShadingGroup **shgrps = BLI_array_alloca(shgrps, materials_len);
 
         for (int i = 0; i < materials_len; ++i) {
@@ -1045,7 +1047,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
             /* Hack */
             wpd->shading.xray_alpha = mat->a;
             material = workbench_forward_get_or_create_material_data(
-                vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+                vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, use_sculpt_pbvh);
             has_transp_mat = true;
           }
           else {
@@ -1070,7 +1072,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
               /* Hack */
               wpd->shading.xray_alpha = mat->a;
               material = workbench_forward_get_or_create_material_data(
-                  vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, is_sculpt_mode);
+                  vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, use_sculpt_pbvh);
               has_transp_mat = true;
             }
             else {
@@ -1087,7 +1089,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       bool is_manifold;
       struct GPUBatch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
       if (geom_shadow) {
-        if (is_sculpt_mode || use_hide) {
+        if (use_sculpt_pbvh || use_hide) {
           /* Currently unsupported in sculpt mode. We could revert to the slow
            * method in this case but I'm not sure if it's a good idea given that
            * sculpted meshes are heavy to begin with. */

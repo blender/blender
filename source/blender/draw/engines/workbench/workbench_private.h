@@ -383,7 +383,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
                                                                       ImageUser *iuser,
                                                                       int color_type,
                                                                       int interp,
-                                                                      bool is_sculpt_mode);
+                                                                      bool use_sculpt_pbvh);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
@@ -416,7 +416,7 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
                                             Image *ima,
                                             Object *ob,
-                                            bool is_sculpt_mode);
+                                            bool use_sculpt_pbvh);
 void workbench_material_get_image_and_mat(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,

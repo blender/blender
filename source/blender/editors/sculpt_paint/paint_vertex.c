@@ -2336,8 +2336,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
     r.xmax += vc->ar->winrct.xmin + 2;
     r.ymin += vc->ar->winrct.ymin - 2;
     r.ymax += vc->ar->winrct.ymin + 2;
-
-    ss->partial_redraw = 1;
   }
   ED_region_tag_redraw_partial(vc->ar, &r);
 }
