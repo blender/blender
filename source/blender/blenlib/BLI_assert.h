@@ -84,6 +84,11 @@ extern "C" {
 #  define BLI_assert(a) ((void)0)
 #endif
 
+// A Clang feature extension to determine compiler features.
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
 /* C++ can't use _Static_assert, expects static_assert() but c++0x only,
  * Coverity also errors out. */
 #if (!defined(__cplusplus)) && (!defined(__COVERITY__)) && \
