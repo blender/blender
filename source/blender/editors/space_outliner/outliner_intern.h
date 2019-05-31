@@ -215,6 +215,14 @@ void draw_outliner(const struct bContext *C);
 
 TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te);
 
+void outliner_collection_isolate_flag(struct Scene *scene,
+                                      struct ViewLayer *view_layer,
+                                      struct LayerCollection *layer_collection,
+                                      struct Collection *collection,
+                                      struct PropertyRNA *layer_or_collection_prop,
+                                      const char *propname,
+                                      const bool value);
+
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(struct bContext *C,
                                       struct Scene *scene,

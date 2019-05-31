@@ -952,40 +952,39 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
-  bool depsgraph_changed = false;
   struct CollectionEditData data = {
       .scene = scene,
       .soops = soops,
   };
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
-
-  /* Hide all collections before the isolate function -
-   * needed in order to support multiple selected collections. */
-  if (!extend) {
-    LayerCollection *lc_master = view_layer->layer_collections.first;
-    for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter;
-         lc_iter = lc_iter->next) {
-      lc_iter->flag |= LAYER_COLLECTION_HIDE;
-      layer_collection_flag_recursive_set(lc_iter, LAYER_COLLECTION_HIDE);
-    }
-  }
-
   outliner_tree_traverse(
       soops, &soops->tree, 0, TSE_SELECTED, layer_collection_find_data_to_edit, &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     LayerCollection *layer_collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
-    depsgraph_changed |= BKE_layer_collection_isolate(scene, view_layer, layer_collection, true);
+
+    if (extend) {
+      BKE_layer_collection_isolate(scene, view_layer, layer_collection, true);
+    }
+    else {
+      PointerRNA ptr;
+      PropertyRNA *prop = RNA_struct_type_find_property(&RNA_LayerCollection, "hide_viewport");
+      RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, &ptr);
+
+      /* We need to flip the value because the isolate flag routine was designed to work from the
+       * outliner as a callback. That means the collection visibility was set before the callback
+       * was called. */
+      const bool value = !RNA_property_boolean_get(&ptr, prop);
+      outliner_collection_isolate_flag(
+          scene, view_layer, layer_collection, NULL, prop, "hide_viewport", value);
+      break;
+    }
   }
   BLI_gset_free(data.collections_to_edit, NULL);
 
   BKE_layer_collection_sync(scene, view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-
-  if (depsgraph_changed) {
-    DEG_relations_tag_update(CTX_data_main(C));
-  }
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
   return OPERATOR_FINISHED;

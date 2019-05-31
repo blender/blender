@@ -468,13 +468,13 @@ static bool outliner_collection_is_isolated(Scene *scene,
   return true;
 }
 
-static void outliner_collection_isolate_flag(Scene *scene,
-                                             ViewLayer *view_layer,
-                                             LayerCollection *layer_collection,
-                                             Collection *collection,
-                                             PropertyRNA *layer_or_collection_prop,
-                                             const char *propname,
-                                             const bool value)
+void outliner_collection_isolate_flag(Scene *scene,
+                                      ViewLayer *view_layer,
+                                      LayerCollection *layer_collection,
+                                      Collection *collection,
+                                      PropertyRNA *layer_or_collection_prop,
+                                      const char *propname,
+                                      const bool value)
 {
   PointerRNA ptr;
   const bool is_hide = strstr(propname, "hide_") != NULL;
