@@ -902,9 +902,13 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
   fprintf(file_verify, "/* Verify struct sizes and member offsets are as expected by DNA. */\n");
   fprintf(file_verify, "#include \"BLI_assert.h\"\n\n");
   fprintf(file_verify, "#define DNA_DEPRECATED\n");
+  /* Workaround enum naming collision in static asserts
+   * (ideally this included a unique name/id per file). */
+  fprintf(file_verify, "#define assert_line_ assert_line_DNA_\n");
   for (int i = 0; *(includefiles[i]) != '\0'; i++) {
     fprintf(file_verify, "#include \"%s%s\"\n", base_directory, includefiles[i]);
   }
+  fprintf(file_verify, "#undef assert_line_\n");
   fprintf(file_verify, "\n");
 
   /* Multiple iterations to handle nested structs. */
