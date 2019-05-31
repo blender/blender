@@ -121,7 +121,7 @@ static bool stats_mesheval(Mesh *me_eval, bool is_selected, SceneStats *stats)
   return true;
 }
 
-static void stats_object(Object *ob, SceneStats *stats)
+static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
 {
   const bool is_selected = (ob->base_flag & BASE_SELECTED) != 0;
 
@@ -134,6 +134,9 @@ static void stats_object(Object *ob, SceneStats *stats)
     case OB_MESH: {
       /* we assume evaluated mesh is already built, this strictly does stats now. */
       Mesh *me_eval = ob->runtime.mesh_eval;
+      if (!BLI_gset_add(objects_gset, me_eval)) {
+        break;
+      }
       stats_mesheval(me_eval, is_selected, stats);
       break;
     }
@@ -147,6 +150,11 @@ static void stats_object(Object *ob, SceneStats *stats)
     case OB_CURVE:
     case OB_FONT: {
       Mesh *me_eval = ob->runtime.mesh_eval;
+
+      if ((me_eval != NULL) && !BLI_gset_add(objects_gset, me_eval)) {
+        break;
+      }
+
       if (stats_mesheval(me_eval, is_selected, stats)) {
         break;
       }
@@ -156,6 +164,12 @@ static void stats_object(Object *ob, SceneStats *stats)
       int totv = 0, totf = 0, tottri = 0;
 
       if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
+        /* Note: We only get the same curve_cache for instances of the same curve/font/...
+         * For simple linked duplicated objects, each has its own dispList. */
+        if (!BLI_gset_add(objects_gset, ob->runtime.curve_cache)) {
+          break;
+        }
+
         BKE_displist_count(&ob->runtime.curve_cache->disp, &totv, &totf, &tottri);
       }
 
@@ -172,6 +186,9 @@ static void stats_object(Object *ob, SceneStats *stats)
     case OB_GPENCIL: {
       if (is_selected) {
         bGPdata *gpd = (bGPdata *)ob->data;
+        if (!BLI_gset_add(objects_gset, gpd)) {
+          break;
+        }
         /* GPXX Review if we can move to other place when object change
          * maybe to depsgraph evaluation
          */
@@ -359,10 +376,12 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
   }
   else {
     /* Objects */
+    GSet *objects_gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob_iter) {
-      stats_object(ob_iter, &stats);
+      stats_object(ob_iter, &stats, objects_gset);
     }
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+    BLI_gset_free(objects_gset, NULL);
   }
 
   if (!view_layer->stats) {
