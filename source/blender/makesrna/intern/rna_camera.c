@@ -234,7 +234,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Offset", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "scale");
   RNA_def_property_ui_text(prop, "Scale", "Scale the background image");
   RNA_def_property_range(prop, 0.0, FLT_MAX);
