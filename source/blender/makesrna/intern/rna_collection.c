@@ -267,6 +267,37 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   return true;
 }
 
+static void rna_Collection_flag_set(PointerRNA *ptr, const bool value, const int flag)
+{
+  Collection *collection = (Collection *)ptr->data;
+
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return;
+  }
+
+  if (value) {
+    collection->flag |= flag;
+  }
+  else {
+    collection->flag &= ~flag;
+  }
+}
+
+static void rna_Collection_hide_select_set(PointerRNA *ptr, bool value)
+{
+  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_SELECT);
+}
+
+static void rna_Collection_hide_viewport_set(PointerRNA *ptr, bool value)
+{
+  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_VIEWPORT);
+}
+
+static void rna_Collection_hide_render_set(PointerRNA *ptr, bool value)
+{
+  rna_Collection_flag_set(ptr, value, COLLECTION_RESTRICT_RENDER);
+}
+
 static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Collection *collection = (Collection *)ptr->data;
@@ -402,6 +433,7 @@ void RNA_def_collections(BlenderRNA *brna)
   /* Flags */
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_SELECT);
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_select_set");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
@@ -410,6 +442,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_VIEWPORT);
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_viewport_set");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
@@ -418,6 +451,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RESTRICT_RENDER);
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_Collection_hide_render_set");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
