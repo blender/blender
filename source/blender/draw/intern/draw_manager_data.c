@@ -648,8 +648,8 @@ static void sculpt_debug_cb(void *user_data,
 
 static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
 {
-  /* XXX should be ensured before but sometime it's not... go figure (see T57040). */
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, scd->ob);
+  /* PBVH should always exist for non-empty meshes, created by depsgrah eval. */
+  PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh : NULL;
   if (!pbvh) {
     return;
   }

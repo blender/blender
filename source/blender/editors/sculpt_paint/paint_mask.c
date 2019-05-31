@@ -129,7 +129,6 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
   ARegion *ar = CTX_wm_region(C);
-  struct Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   PaintMaskFloodMode mode;
@@ -143,7 +142,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   mode = RNA_enum_get(op->ptr, "mode");
   value = RNA_float_get(op->ptr, "value");
 
-  BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
@@ -284,7 +283,6 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   float clip_planes[4][4];
   float clip_planes_final[4][4];
   ARegion *ar = vc->ar;
-  struct Scene *scene = vc->scene;
   Object *ob = vc->obact;
   PaintMaskFloodMode mode;
   float value;
@@ -301,7 +299,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   ED_view3d_clipping_calc(&bb, clip_planes, vc->ar, vc->obact, rect);
   negate_m4(clip_planes);
 
-  BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, true);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
@@ -452,7 +450,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     Object *ob;
     ViewContext vc;
     LassoMaskData data;
-    struct Scene *scene = CTX_data_scene(C);
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
     PBVH *pbvh;
@@ -488,7 +485,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, &data.rect);
     negate_m4(clip_planes);
 
-    BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, true);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true);
     pbvh = ob->sculpt->pbvh;
     multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 

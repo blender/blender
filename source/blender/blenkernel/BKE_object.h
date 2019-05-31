@@ -312,7 +312,6 @@ void BKE_object_handle_update_ex(struct Depsgraph *depsgraph,
                                  struct Object *ob,
                                  struct RigidBodyWorld *rbw,
                                  const bool do_proxy_update);
-void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 
 void BKE_object_sculpt_data_create(struct Object *ob);
 

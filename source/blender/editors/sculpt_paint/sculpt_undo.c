@@ -129,8 +129,6 @@ static bool sculpt_undo_restore_deformed(
 
 static bool sculpt_undo_restore_coords(bContext *C, SculptUndoNode *unode)
 {
-  Scene *scene = CTX_data_scene(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -151,7 +149,7 @@ static bool sculpt_undo_restore_coords(bContext *C, SculptUndoNode *unode)
       if (kb) {
         ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-        BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, false);
+        BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false);
         WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
       }
       else {
@@ -460,7 +458,6 @@ static int sculpt_undo_bmesh_restore(bContext *C,
 static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -484,7 +481,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-  BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, need_mask);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask);
 
   if (lb->first && sculpt_undo_bmesh_restore(C, lb->first, ob, ss)) {
     return;

@@ -2035,7 +2035,9 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   BKE_object_free_derived_caches(ob);
-  BKE_object_sculpt_modifiers_changed(ob);
+  if (DEG_is_active(depsgraph)) {
+    BKE_sculpt_update_object_before_eval(ob);
+  }
 
 #if 0 /* XXX This is already taken care of in mesh_calc_modifiers()... */
   if (need_mapping) {
@@ -2071,14 +2073,9 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   ob->runtime.last_need_mapping = need_mapping;
 
   if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
-    /* create PBVH immediately (would be created on the fly too,
-     * but this avoids waiting on first stroke) */
-    /* XXX Disabled for now.
-     * This can create horrible nasty bugs by generating re-entrant call of mesh_get_eval_final! */
-#if 0
-    BKE_sculpt_update_mesh_elements(
-        depsgraph, scene, scene->toolsettings->sculpt, ob, false, false);
-#endif
+    if (DEG_is_active(depsgraph)) {
+      BKE_sculpt_update_object_after_eval(depsgraph, ob);
+    }
   }
 
   if (ob->runtime.mesh_eval != NULL) {
@@ -2096,7 +2093,9 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
   BLI_assert(em->ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   BKE_object_free_derived_caches(obedit);
-  BKE_object_sculpt_modifiers_changed(obedit);
+  if (DEG_is_active(depsgraph)) {
+    BKE_sculpt_update_object_before_eval(obedit);
+  }
 
   BKE_editmesh_free_derivedmesh(em);
 

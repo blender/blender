@@ -52,18 +52,6 @@ bool sculpt_stroke_get_location(struct bContext *C, float out[3], const float mo
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
 void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
-void sculpt_update_after_dynamic_topology_toggle(struct Depsgraph *depsgraph,
-                                                 struct Scene *scene,
-                                                 struct Object *ob);
-void sculpt_dynamic_topology_enable_ex(struct Depsgraph *depsgraph,
-                                       struct Scene *scene,
-                                       struct Object *ob);
-
-void sculpt_dynamic_topology_disable_ex(struct Main *bmain,
-                                        struct Depsgraph *depsgraph,
-                                        struct Scene *scene,
-                                        struct Object *ob,
-                                        struct SculptUndoNode *unode);
 void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
 
 /* Undo */

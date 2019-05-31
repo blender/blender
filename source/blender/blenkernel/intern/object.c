@@ -3290,40 +3290,6 @@ void BKE_object_sculpt_data_create(Object *ob)
   ob->sculpt->mode_type = ob->mode;
 }
 
-void BKE_object_sculpt_modifiers_changed(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  if (ss && ss->building_vp_handle == false) {
-    if (!ss->cache) {
-      /* we free pbvh on changes, except during sculpt since it can't deal with
-       * changing PVBH node organization, we hope topology does not change in
-       * the meantime .. weak */
-      if (ss->pbvh) {
-        BKE_pbvh_free(ss->pbvh);
-        ss->pbvh = NULL;
-      }
-
-      BKE_sculptsession_free_deformMats(ob->sculpt);
-
-      /* In vertex/weight paint, force maps to be rebuilt. */
-      BKE_sculptsession_free_vwpaint_data(ob->sculpt);
-    }
-    else {
-      PBVHNode **nodes;
-      int n, totnode;
-
-      BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-
-      for (n = 0; n < totnode; n++) {
-        BKE_pbvh_node_mark_update(nodes[n]);
-      }
-
-      MEM_freeN(nodes);
-    }
-  }
-}
-
 int BKE_object_obdata_texspace_get(
     Object *ob, short **r_texflag, float **r_loc, float **r_size, float **r_rot)
 {

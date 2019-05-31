@@ -34,6 +34,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_space_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_bitmap.h"
@@ -1143,20 +1144,11 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 /**
  * \param need_mask: So that the evaluated mesh that is returned has mask data.
  */
-void BKE_sculpt_update_mesh_elements(
-    Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob, bool need_pmap, bool need_mask)
+static void sculpt_update_object(
+    Depsgraph *depsgraph, Object *ob, Mesh *me_eval, bool need_pmap, bool need_mask)
 {
-  /* TODO(sergey): Make sure ob points to an original object. This is what it
-   * is supposed to be pointing to. The issue is, currently draw code takes
-   * care of PBVH creation, even though this is something up to dependency
-   * graph.
-   * Probably, we need to being back logic which was checking for sculpt mode
-   * and (re)create PBVH if needed in that case, similar to how DerivedMesh
-   * was handling this.
-   */
-  ob = DEG_get_original_object(ob);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
@@ -1175,18 +1167,7 @@ void BKE_sculpt_update_mesh_elements(
     }
     else {
       if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
-#if 1
         BKE_sculpt_mask_layers_ensure(ob, mmd);
-#else
-        /* If we wanted to support adding mask data while multi-res painting,
-         * we would need to do this. */
-
-        if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
-          /* remake the derived mesh */
-          ob->recalc |= ID_RECALC_GEOMETRY;
-          BKE_object_handle_update(scene, ob);
-        }
-#endif
       }
     }
   }
@@ -1195,8 +1176,6 @@ void BKE_sculpt_update_mesh_elements(
   BKE_mesh_tessface_clear(me);
 
   ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
-
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &CD_MASK_BAREMESH);
 
   /* VWPaint require mesh info for loop lookup, so require sculpt mode here */
   if (mmd && ob->mode & OB_MODE_SCULPT) {
@@ -1222,6 +1201,7 @@ void BKE_sculpt_update_mesh_elements(
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
+
   MEM_SAFE_FREE(ss->pmap);
   MEM_SAFE_FREE(ss->pmap_mem);
   if (need_pmap && ob->type == OB_MESH) {
@@ -1234,7 +1214,6 @@ void BKE_sculpt_update_mesh_elements(
 
   if (ss->modifiers_active) {
     if (!ss->orig_cos) {
-      Object *object_orig = DEG_get_original_object(ob);
       int a;
 
       BKE_sculptsession_free_deformMats(ss);
@@ -1242,8 +1221,7 @@ void BKE_sculpt_update_mesh_elements(
       ss->orig_cos = (ss->kb) ? BKE_keyblock_convert_to_vertcos(ob, ss->kb) :
                                 BKE_mesh_vertexCos_get(me, NULL);
 
-      BKE_crazyspace_build_sculpt(
-          depsgraph, scene, object_orig, &ss->deform_imats, &ss->deform_cos);
+      BKE_crazyspace_build_sculpt(depsgraph, scene, ob, &ss->deform_imats, &ss->deform_cos);
       BKE_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos, me->totvert);
 
       for (a = 0; a < me->totvert; ++a) {
@@ -1279,6 +1257,69 @@ void BKE_sculpt_update_mesh_elements(
       }
     }
   }
+}
+
+void BKE_sculpt_update_object_before_eval(Object *ob)
+{
+  /* Update before mesh evaluation in the dependency graph. */
+  SculptSession *ss = ob->sculpt;
+
+  if (ss && ss->building_vp_handle == false) {
+    if (!ss->cache) {
+      /* We free pbvh on changes, except in the middle of drawing a stroke
+       * since it can't deal with changing PVBH node organization, we hope
+       * topology does not change in the meantime .. weak. */
+      if (ss->pbvh) {
+        BKE_pbvh_free(ss->pbvh);
+        ss->pbvh = NULL;
+      }
+
+      BKE_sculptsession_free_deformMats(ob->sculpt);
+
+      /* In vertex/weight paint, force maps to be rebuilt. */
+      BKE_sculptsession_free_vwpaint_data(ob->sculpt);
+    }
+    else {
+      PBVHNode **nodes;
+      int n, totnode;
+
+      BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+      for (n = 0; n < totnode; n++) {
+        BKE_pbvh_node_mark_update(nodes[n]);
+      }
+
+      MEM_freeN(nodes);
+    }
+  }
+}
+
+void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
+{
+  /* Update after mesh evaluation in the dependency graph, to rebuild PBVH or
+   * other data when modifiers change the mesh. */
+  Object *ob_orig = DEG_get_original_object(ob_eval);
+  Mesh *me_eval = ob_eval->runtime.mesh_eval;
+
+  BLI_assert(me_eval != NULL);
+
+  sculpt_update_object(depsgraph, ob_orig, me_eval, false, false);
+}
+
+void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph,
+                                       Object *ob_orig,
+                                       bool need_pmap,
+                                       bool need_mask)
+{
+  /* Update from sculpt operators and undo, to update sculpt session
+   * and PBVH after edits. */
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+
+  BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
+
+  sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask);
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
@@ -1494,8 +1535,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg);
     }
     else if (ob->type == OB_MESH) {
-      Mesh *me_eval_deform = mesh_get_eval_deform(
-          depsgraph, DEG_get_evaluated_scene(depsgraph), object_eval, &CD_MASK_BAREMESH);
+      Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
     }
   }

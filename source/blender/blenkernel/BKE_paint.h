@@ -292,12 +292,14 @@ void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-void BKE_sculpt_update_mesh_elements(struct Depsgraph *depsgraph,
-                                     struct Scene *scene,
-                                     struct Sculpt *sd,
-                                     struct Object *ob,
-                                     bool need_pmap,
-                                     bool need_mask);
+
+void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
+                                       struct Object *ob_orig,
+                                       bool need_pmap,
+                                       bool need_mask);
+void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
+void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
+
 struct MultiresModifierData *BKE_sculpt_multires_active(struct Scene *scene, struct Object *ob);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
