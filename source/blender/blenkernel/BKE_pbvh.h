@@ -41,6 +41,7 @@ struct MPoly;
 struct MVert;
 struct PBVH;
 struct PBVHNode;
+struct SubdivCCG;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -166,8 +167,6 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *bvh,
 
 void BKE_pbvh_draw_cb(PBVH *bvh,
                       float (*planes)[4],
-                      float (*fnors)[3],
-                      bool show_vcol,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
                       void *user_data);
 
@@ -256,9 +255,11 @@ struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node);
 void BKE_pbvh_bmesh_after_stroke(PBVH *bvh);
 
-/* Update Normals/Bounding Box/Redraw and clear flags */
+/* Update Bounding Box/Redraw and clear flags */
 
-void BKE_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
+void BKE_pbvh_update_bounds(PBVH *bvh, int flags);
+void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg);
+void BKE_pbvh_update_draw_buffers(PBVH *bvh, bool show_vcol);
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
 void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *r_totface);
 void BKE_pbvh_grids_update(PBVH *bvh,

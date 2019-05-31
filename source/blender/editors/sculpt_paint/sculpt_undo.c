@@ -549,9 +549,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
     else {
       BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
     }
-    BKE_pbvh_update(ss->pbvh,
-                    PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw | PBVH_UpdateNormals,
-                    NULL);
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (BKE_sculpt_multires_active(scene, ob)) {
       if (rebuild) {

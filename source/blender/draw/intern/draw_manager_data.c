@@ -665,8 +665,11 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd, bool use_vcol)
     }
   }
 
-  BKE_pbvh_draw_cb(
-      pbvh, planes, NULL, use_vcol, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
+  Mesh *mesh = scd->ob->data;
+  BKE_pbvh_update_normals(pbvh, mesh->runtime.subdiv_ccg);
+  BKE_pbvh_update_draw_buffers(pbvh, use_vcol);
+
+  BKE_pbvh_draw_cb(pbvh, planes, (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb, scd);
 
 #ifdef SCULPT_DEBUG_BUFFERS
   int node_nr = 0;

@@ -987,6 +987,21 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
   }
 }
 
+static void sculptsession_free_pbvh(Object *object)
+{
+  SculptSession *ss = object->sculpt;
+
+  if (ss && ss->pbvh) {
+    /* Ensure all normals are updated before freeing the PBVH, because
+     * we skip updating them for performance when we don't draw the PBVH. */
+    Mesh *mesh = object->data;
+    BKE_pbvh_update_normals(ss->pbvh, mesh->runtime.subdiv_ccg);
+
+    BKE_pbvh_free(ss->pbvh);
+    ss->pbvh = NULL;
+  }
+}
+
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
 {
   if (object && object->sculpt) {
@@ -998,11 +1013,6 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
        * surface to disappear, so we'll release DM in place.
        */
       BKE_object_free_derived_caches(object);
-
-      if (object->sculpt->pbvh) {
-        BKE_pbvh_free(object->sculpt->pbvh);
-        object->sculpt->pbvh = NULL;
-      }
 
       sculptsession_bm_to_me_update_data_only(object, false);
 
@@ -1024,9 +1034,8 @@ void BKE_sculptsession_free(Object *ob)
       BM_mesh_free(ss->bm);
     }
 
-    if (ss->pbvh) {
-      BKE_pbvh_free(ss->pbvh);
-    }
+    sculptsession_free_pbvh(ob);
+
     MEM_SAFE_FREE(ss->pmap);
     MEM_SAFE_FREE(ss->pmap_mem);
     if (ss->bm_log) {
@@ -1269,10 +1278,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob)
       /* We free pbvh on changes, except in the middle of drawing a stroke
        * since it can't deal with changing PVBH node organization, we hope
        * topology does not change in the meantime .. weak. */
-      if (ss->pbvh) {
-        BKE_pbvh_free(ss->pbvh);
-        ss->pbvh = NULL;
-      }
+      sculptsession_free_pbvh(ob);
 
       BKE_sculptsession_free_deformMats(ob->sculpt);
 

@@ -1497,8 +1497,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
   cache->radius_squared = cache->radius * cache->radius;
 
   if (ss->pbvh) {
-    BKE_pbvh_update(ss->pbvh, PBVH_UpdateRedraw, NULL);
-    BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateRedraw | PBVH_UpdateBB);
   }
 }
 

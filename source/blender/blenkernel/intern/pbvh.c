@@ -31,8 +31,7 @@
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
-#include "BKE_subsurf.h"
-#include "BKE_DerivedMesh.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
 
@@ -990,7 +989,6 @@ typedef struct PBVHUpdateData {
   PBVHNode **nodes;
   int totnode;
 
-  float (*fnors)[3];
   float (*vnors)[3];
   int flag;
 } PBVHUpdateData;
@@ -1003,7 +1001,6 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
   PBVH *bvh = data->bvh;
   PBVHNode *node = data->nodes[n];
-  float(*fnors)[3] = data->fnors;
   float(*vnors)[3] = data->vnors;
 
   if ((node->flag & PBVH_UpdateNormals)) {
@@ -1027,11 +1024,6 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
         const MPoly *mp = &bvh->mpoly[lt->poly];
         BKE_mesh_calc_poly_normal(mp, &bvh->mloop[mp->loopstart], bvh->verts, fn);
         mpoly_prev = lt->poly;
-
-        if (fnors) {
-          /* We can assume a face is only present in one node ever. */
-          copy_v3_v3(fnors[lt->poly], fn);
-        }
       }
 
       for (int j = sides; j--;) {
@@ -1080,23 +1072,11 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
   }
 }
 
-static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes, int totnode, float (*fnors)[3])
+static void pbvh_faces_update_normals(PBVH *bvh, PBVHNode **nodes, int totnode)
 {
-  float(*vnors)[3];
-
-  if (bvh->type == PBVH_BMESH) {
-    BLI_assert(fnors == NULL);
-    pbvh_bmesh_normals_update(nodes, totnode);
-    return;
-  }
-
-  if (bvh->type != PBVH_FACES) {
-    return;
-  }
-
   /* could be per node to save some memory, but also means
    * we have to store for each vertex which node it is in */
-  vnors = MEM_callocN(sizeof(*vnors) * bvh->totvert, __func__);
+  float(*vnors)[3] = MEM_callocN(sizeof(*vnors) * bvh->totvert, __func__);
 
   /* subtle assumptions:
    * - We know that for all edited vertices, the nodes with faces
@@ -1111,7 +1091,6 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes, int totnode, float 
   PBVHUpdateData data = {
       .bvh = bvh,
       .nodes = nodes,
-      .fnors = fnors,
       .vnors = vnors,
   };
 
@@ -1273,7 +1252,7 @@ static int pbvh_flush_bb(PBVH *bvh, PBVHNode *node, int flag)
   return update;
 }
 
-void BKE_pbvh_update(PBVH *bvh, int flag, float (*fnors)[3])
+void BKE_pbvh_update_bounds(PBVH *bvh, int flag)
 {
   if (!bvh->nodes) {
     return;
@@ -1283,10 +1262,6 @@ void BKE_pbvh_update(PBVH *bvh, int flag, float (*fnors)[3])
   int totnode;
 
   BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(flag), &nodes, &totnode);
-
-  if (flag & PBVH_UpdateNormals) {
-    pbvh_update_normals(bvh, nodes, totnode, fnors);
-  }
 
   if (flag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw)) {
     pbvh_update_BB_redraw(bvh, nodes, totnode, flag);
@@ -2216,32 +2191,60 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
   }
 }
 
-/**
- * Version of #BKE_pbvh_draw that runs a callback.
- */
-void BKE_pbvh_draw_cb(PBVH *bvh,
-                      float (*planes)[4],
-                      float (*fnors)[3],
-                      bool show_vcol,
-                      void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
-                      void *user_data)
+void BKE_pbvh_update_normals(PBVH *bvh, struct SubdivCCG *subdiv_ccg)
 {
+  /* Update normals */
   PBVHNode **nodes;
   int totnode;
 
-  BKE_pbvh_search_gather(bvh,
-                         update_search_cb,
-                         POINTER_FROM_INT(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
-                         &nodes,
-                         &totnode);
+  BKE_pbvh_search_gather(
+      bvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals), &nodes, &totnode);
 
-  pbvh_update_normals(bvh, nodes, totnode, fnors);
+  if (bvh->type == PBVH_BMESH) {
+    pbvh_bmesh_normals_update(nodes, totnode);
+  }
+  else if (bvh->type == PBVH_FACES) {
+    pbvh_faces_update_normals(bvh, nodes, totnode);
+  }
+  else if (bvh->type == PBVH_GRIDS) {
+    struct CCGFace **faces;
+    int num_faces;
+    BKE_pbvh_get_grid_updates(bvh, true, (void ***)&faces, &num_faces);
+    if (num_faces > 0) {
+      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
+      MEM_freeN(faces);
+    }
+  }
+
+  if (nodes) {
+    MEM_freeN(nodes);
+  }
+}
+
+void BKE_pbvh_update_draw_buffers(PBVH *bvh, bool show_vcol)
+{
+  /* Update GPU buffers */
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_search_gather(
+      bvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateDrawBuffers), &nodes, &totnode);
+
   pbvh_update_draw_buffers(bvh, nodes, totnode, show_vcol);
 
   if (nodes) {
     MEM_freeN(nodes);
   }
+}
 
+/**
+ * Version of #BKE_pbvh_draw that runs a callback.
+ */
+void BKE_pbvh_draw_cb(PBVH *bvh,
+                      float (*planes)[4],
+                      void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
+                      void *user_data)
+{
   PBVHNodeDrawCallbackData draw_data = {
       .draw_fn = draw_fn,
       .user_data = user_data,
@@ -2362,8 +2365,7 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3], const int totvert)
       BKE_pbvh_node_mark_update(&pbvh->nodes[a]);
     }
 
-    BKE_pbvh_update(pbvh, PBVH_UpdateBB, NULL);
-    BKE_pbvh_update(pbvh, PBVH_UpdateOriginalBB, NULL);
+    BKE_pbvh_update_bounds(pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
   }
 }
 

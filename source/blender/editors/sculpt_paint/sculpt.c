@@ -506,7 +506,7 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *ar, Object *ob)
 
   /* clear redraw flag from nodes */
   if (pbvh) {
-    BKE_pbvh_update(pbvh, PBVH_UpdateRedraw, NULL);
+    BKE_pbvh_update_bounds(pbvh, PBVH_UpdateRedraw);
   }
 }
 
@@ -5208,7 +5208,7 @@ static void sculpt_flush_update_step(bContext *C)
      * only the part of the 3D viewport where changes happened. */
     rcti r;
 
-    BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
     /* Update the object's bounding box too so that the object
      * doesn't get incorrectly clipped during drawing in
      * draw_mesh_object(). [#33790] */
@@ -5255,7 +5255,7 @@ static void sculpt_flush_update_done(const bContext *C, Object *ob)
     }
   }
 
-  BKE_pbvh_update(ss->pbvh, PBVH_UpdateOriginalBB, NULL);
+  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
