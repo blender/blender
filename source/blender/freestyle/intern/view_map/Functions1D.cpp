@@ -134,16 +134,18 @@ int ChainingTimeStampF1D::operator()(Interface1D &inter)
 {
   TimeStamp *timestamp = TimeStamp::instance();
   ViewEdge *ve = dynamic_cast<ViewEdge *>(&inter);
-  if (ve)
+  if (ve) {
     ve->setChainingTimeStamp(timestamp->getTimeStamp());
+  }
   return 0;
 }
 
 int IncrementChainingTimeStampF1D::operator()(Interface1D &inter)
 {
   ViewEdge *ve = dynamic_cast<ViewEdge *>(&inter);
-  if (ve)
+  if (ve) {
     ve->setChainingTimeStamp(ve->getChainingTimeStamp() + 1);
+  }
   return 0;
 }
 
@@ -157,8 +159,9 @@ int GetShapeF1D::operator()(Interface1D &inter)
   }
   else {
     Interface0DIterator it = inter.verticesBegin(), itend = inter.verticesEnd();
-    for (; it != itend; ++it)
+    for (; it != itend; ++it) {
       shapesSet.insert(Functions0D::getShapeF0D(it));
+    }
     shapesVector.insert<set<ViewShape *>::iterator>(
         shapesVector.begin(), shapesSet.begin(), shapesSet.end());
   }
@@ -224,8 +227,9 @@ void getOccludeeF1D(Interface1D &inter, set<ViewShape *> &oShapes)
   }
   else {
     Interface0DIterator it = inter.verticesBegin(), itend = inter.verticesEnd();
-    for (; it != itend; ++it)
+    for (; it != itend; ++it) {
       oShapes.insert(Functions0D::getOccludeeF0D(it));
+    }
   }
 }
 
@@ -241,8 +245,9 @@ void getOccludersF1D(Interface1D &inter, set<ViewShape *> &oShapes)
     for (; it != itend; ++it) {
       set<ViewShape *> shapes;
       Functions0D::getOccludersF0D(it, shapes);
-      for (set<ViewShape *>::iterator s = shapes.begin(), send = shapes.end(); s != send; ++s)
+      for (set<ViewShape *>::iterator s = shapes.begin(), send = shapes.end(); s != send; ++s) {
         oShapes.insert(*s);
+      }
     }
   }
 }
@@ -255,8 +260,9 @@ void getShapeF1D(Interface1D &inter, set<ViewShape *> &oShapes)
   }
   else {
     Interface0DIterator it = inter.verticesBegin(), itend = inter.verticesEnd();
-    for (; it != itend; ++it)
+    for (; it != itend; ++it) {
       oShapes.insert(Functions0D::getShapeF0D(it));
+    }
   }
 }
 

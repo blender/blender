@@ -206,20 +206,24 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
  public:
   virtual bool begin() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       return (_tvertex_iter == _tbegin);
-    // return (_tvertex_iter == _feA);
-    else
+      // return (_tvertex_iter == _feA);
+    }
+    else {
       return (_nontvertex_iter == _begin);
+    }
   }
 
   virtual bool end() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       // return (_tvertex_iter.first == 0);
       return (_tvertex_iter == _tend);
-    else
+    }
+    else {
       return (_nontvertex_iter == _end);
+    }
   }
 
   // operators
@@ -242,10 +246,12 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   // comparibility
   virtual bool operator!=(const Self &b) const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       return (_tvertex_iter != b._tvertex_iter);
-    else
+    }
+    else {
       return (_nontvertex_iter != b._nontvertex_iter);
+    }
   }
 
   virtual bool operator==(const Self &b) const
@@ -256,11 +262,13 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
   // dereferencing
   virtual reference operator*() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       // return _tvertex_iter;
       return **_tvertex_iter;
-    else
+    }
+    else {
       return (*_nontvertex_iter);
+    }
   }
 
   virtual pointer operator->() const
@@ -275,8 +283,9 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
       value_type tmp = (**_tvertex_iter);
       ++_tvertex_iter;
       value_type tmp2 = (**_tvertex_iter);
-      if (tmp2.first == tmp.first)
+      if (tmp2.first == tmp.first) {
         ++_tvertex_iter;
+      }
 #if 0
       // Hack to deal with cusp. the result of a cusp is a TVertex having two identical viewedges.
       // In order to iterate properly, we chose to skip these last ones.

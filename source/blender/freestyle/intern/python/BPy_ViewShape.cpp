@@ -35,11 +35,13 @@ extern "C" {
 
 int ViewShape_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&ViewShape_Type) < 0)
+  if (PyType_Ready(&ViewShape_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ViewShape_Type);
   PyModule_AddObject(module, "ViewShape", (PyObject *)&ViewShape_Type);
 
@@ -107,8 +109,9 @@ static void ViewShape_dealloc(BPy_ViewShape *self)
     self->vs->setSShape((SShape *)NULL);
     Py_DECREF(self->py_ss);
   }
-  if (self->vs && !self->borrowed)
+  if (self->vs && !self->borrowed) {
     delete self->vs;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -130,8 +133,9 @@ static PyObject *ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObjec
   static const char *kwlist[] = {"edge", NULL};
   PyObject *py_ve = 0;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve))
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
     return NULL;
+  }
   self->vs->AddEdge(((BPy_ViewEdge *)py_ve)->ve);
   Py_RETURN_NONE;
 }
@@ -149,8 +153,9 @@ static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObj
   static const char *kwlist[] = {"vertex", NULL};
   PyObject *py_vv = 0;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewVertex_Type, &py_vv))
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewVertex_Type, &py_vv)) {
     return NULL;
+  }
   self->vs->AddVertex(((BPy_ViewVertex *)py_vv)->vv);
   Py_RETURN_NONE;
 }
@@ -179,8 +184,9 @@ PyDoc_STRVAR(ViewShape_sshape_doc,
 static PyObject *ViewShape_sshape_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
   SShape *ss = self->vs->sshape();
-  if (!ss)
+  if (!ss) {
     Py_RETURN_NONE;
+  }
   return BPy_SShape_from_SShape(*ss);
 }
 
@@ -192,8 +198,9 @@ static int ViewShape_sshape_set(BPy_ViewShape *self, PyObject *value, void *UNUS
   }
   BPy_SShape *py_ss = (BPy_SShape *)value;
   self->vs->setSShape(py_ss->ss);
-  if (self->py_ss)
+  if (self->py_ss) {
     Py_DECREF(self->py_ss);
+  }
   if (!py_ss->borrowed) {
     self->py_ss = py_ss;
     Py_INCREF(self->py_ss);

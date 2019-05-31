@@ -121,8 +121,9 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
     PyErr_SetNone(PyExc_StopIteration);
     return NULL;
   }
-  if (self->at_start)
+  if (self->at_start) {
     self->at_start = false;
+  }
   else {
     self->a_it->increment();
     if (self->a_it->isEnd()) {
@@ -148,8 +149,9 @@ static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void 
     return NULL;
   }
   ViewEdge *ve = self->a_it->operator*();
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 

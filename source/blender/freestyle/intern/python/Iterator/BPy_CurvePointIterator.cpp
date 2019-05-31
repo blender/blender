@@ -67,11 +67,13 @@ static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args,
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist_1, &CurvePointIterator_Type, &brother)) {
-    if (!brother)
+    if (!brother) {
       self->cp_it = new CurveInternal::CurvePointIterator();
-    else
+    }
+    else {
       self->cp_it = new CurveInternal::CurvePointIterator(
           *(((BPy_CurvePointIterator *)brother)->cp_it));
+    }
   }
   else if (PyErr_Clear(), PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &step)) {
     self->cp_it = new CurveInternal::CurvePointIterator(step);

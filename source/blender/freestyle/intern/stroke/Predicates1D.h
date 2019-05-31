@@ -206,8 +206,9 @@ class QuantitativeInvisibilityUP1D : public UnaryPredicate1D {
   int operator()(Interface1D &inter)
   {
     Functions1D::QuantitativeInvisibilityF1D func;
-    if (func(inter) < 0)
+    if (func(inter) < 0) {
       return -1;
+    }
     result = (func.result == _qi);
     return 0;
   }
@@ -234,8 +235,9 @@ class ContourUP1D : public UnaryPredicate1D {
   /*! The () operator. */
   int operator()(Interface1D &inter)
   {
-    if (_getNature(inter) < 0)
+    if (_getNature(inter) < 0) {
       return -1;
+    }
     if ((_getNature.result & Nature::SILHOUETTE) || (_getNature.result & Nature::BORDER)) {
       Interface0DIterator it = inter.verticesBegin();
       for (; !it.isEnd(); ++it) {
@@ -268,8 +270,9 @@ class ExternalContourUP1D : public UnaryPredicate1D {
   /*! The () operator. */
   int operator()(Interface1D &inter)
   {
-    if (_getNature(inter) < 0)
+    if (_getNature(inter) < 0) {
       return -1;
+    }
     if ((_getNature.result & Nature::SILHOUETTE) || (_getNature.result & Nature::BORDER)) {
       set<ViewShape *> occluded;
       Functions1D::getOccludeeF1D(inter, occluded);
@@ -561,11 +564,13 @@ class ViewMapGradientNormBP1D : public BinaryPredicate1D {
   /*! The () operator. */
   int operator()(Interface1D &i1, Interface1D &i2)
   {
-    if (_func(i1) < 0)
+    if (_func(i1) < 0) {
       return -1;
+    }
     real n1 = _func.result;
-    if (_func(i2) < 0)
+    if (_func(i2) < 0) {
       return -1;
+    }
     real n2 = _func.result;
     result = (n1 > n2);
     return 0;

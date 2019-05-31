@@ -74,15 +74,17 @@ TextureManager::TextureManager()
 
 TextureManager::~TextureManager()
 {
-  if (!_brushesMap.empty())
+  if (!_brushesMap.empty()) {
     _brushesMap.clear();
+  }
   _pInstance = 0;
 }
 
 void TextureManager::load()
 {
-  if (_hasLoadedTextures)
+  if (_hasLoadedTextures) {
     return;
+  }
   loadStandardBrushes();
   _hasLoadedTextures = true;
 }

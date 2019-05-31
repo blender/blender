@@ -84,8 +84,9 @@ T integrate(UnaryFunction0D<T> &fun,
       ++it;
       for (; !it.isEnd(); ++it) {
         fun(it);
-        if (fun.result < res)
+        if (fun.result < res) {
           res = fun.result;
+        }
       }
       break;
     case MAX:
@@ -94,8 +95,9 @@ T integrate(UnaryFunction0D<T> &fun,
       ++it;
       for (; !it.isEnd(); ++it) {
         fun(it);
-        if (fun.result > res)
+        if (fun.result > res) {
           res = fun.result;
+        }
       }
       break;
     case FIRST:

@@ -104,8 +104,9 @@ void AppCanvas::init()
 void AppCanvas::postDraw()
 {
   for (unsigned int i = 0; i < _StyleModules.size(); i++) {
-    if (!_StyleModules[i]->getDisplayed() || !_Layers[i])
+    if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
+    }
     _Layers[i]->ScaleThickness(thickness());
   }
   Canvas::postDraw();
@@ -152,12 +153,14 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
     int ii, jj;
     for (int j = 0; j < h; j++) {
       jj = (int)((y - ymin + j) * yfac);
-      if (jj < 0 || jj >= recty)
+      if (jj < 0 || jj >= recty) {
         continue;
+      }
       for (int i = 0; i < w; i++) {
         ii = (int)((x - xmin + i) * xfac);
-        if (ii < 0 || ii >= rectx)
+        if (ii < 0 || ii >= rectx) {
           continue;
+        }
         memcpy(
             rgb + (w * j + i) * 3, _pass_diffuse.buf + (rectx * jj + ii) * 3, sizeof(float) * 3);
       }
@@ -200,12 +203,14 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
     int ii, jj;
     for (int j = 0; j < h; j++) {
       jj = (int)((y - ymin + j) * yfac);
-      if (jj < 0 || jj >= recty)
+      if (jj < 0 || jj >= recty) {
         continue;
+      }
       for (int i = 0; i < w; i++) {
         ii = (int)((x - xmin + i) * xfac);
-        if (ii < 0 || ii >= rectx)
+        if (ii < 0 || ii >= rectx) {
           continue;
+        }
         z[w * j + i] = _pass_z.buf[rectx * jj + ii];
       }
     }
@@ -215,10 +220,12 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
 
 void AppCanvas::RenderStroke(Stroke *iStroke)
 {
-  if (_basic)
+  if (_basic) {
     iStroke->RenderBasic(_Renderer);
-  else
+  }
+  else {
     iStroke->Render(_Renderer);
+  }
 }
 
 void AppCanvas::update()

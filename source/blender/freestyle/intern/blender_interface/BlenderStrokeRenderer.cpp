@@ -219,8 +219,9 @@ float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
 {
   float z = _z;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
-  if (!(_z < _z_delta * 100000.0f))
+  if (!(_z < _z_delta * 100000.0f)) {
     self->_z_delta *= 10.0f;
+  }
   self->_z += _z_delta;
   return -z;
 }
@@ -472,8 +473,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
     // count visible faces and strip segments
     test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
-    if (visible_faces == 0)
+    if (visible_faces == 0) {
       continue;
+    }
 
     totvert += visible_faces + visible_segments * 2;
     totedge += visible_faces * 2 + visible_segments;
@@ -509,14 +511,18 @@ bool BlenderStrokeRenderer::test_triangle_visibility(StrokeVertexRep *svRep[3]) 
   xl = xu = yl = yu = 0;
   for (int i = 0; i < 3; i++) {
     p = svRep[i]->point2d();
-    if (p[0] < 0.0)
+    if (p[0] < 0.0) {
       xl++;
-    else if (p[0] > _width)
+    }
+    else if (p[0] > _width) {
       xu++;
-    if (p[1] < 0.0)
+    }
+    if (p[1] < 0.0) {
       yl++;
-    else if (p[1] > _height)
+    }
+    else if (p[1] > _height) {
       yu++;
+    }
   }
   return !(xl == 3 || xu == 3 || yl == 3 || yu == 3);
 }
@@ -545,8 +551,9 @@ void BlenderStrokeRenderer::test_strip_visibility(Strip::vertex_container &strip
     svRep[2] = *(v[2]);
     if (test_triangle_visibility(svRep)) {
       (*visible_faces)++;
-      if (!visible)
+      if (!visible) {
         (*visible_segments)++;
+      }
       visible = true;
     }
     else {
@@ -671,8 +678,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 
       // count visible faces and strip segments
       test_strip_visibility(strip_vertices, &visible_faces, &visible_segments);
-      if (visible_faces == 0)
+      if (visible_faces == 0) {
         continue;
+      }
 
       v[0] = strip_vertices.begin();
       v[1] = v[0] + 1;
@@ -869,8 +877,9 @@ Object *BlenderStrokeRenderer::NewMesh() const
 Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
 {
   Camera *camera = (Camera *)freestyle_scene->camera->data;
-  if (camera->clip_end < _z)
+  if (camera->clip_end < _z) {
     camera->clip_end = _z + _z_delta * 100.0f;
+  }
 #if 0
   if (G.debug & G_DEBUG_FREESTYLE) {
     cout << "clip_start " << camera->clip_start << ", clip_end " << camera->clip_end << endl;

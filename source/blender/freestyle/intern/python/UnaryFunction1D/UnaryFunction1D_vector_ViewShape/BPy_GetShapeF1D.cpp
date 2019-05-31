@@ -53,8 +53,9 @@ static int GetShapeF1D___init__(BPy_GetShapeF1D *self, PyObject *args, PyObject 
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetShapeF1D();
   return 0;
 }

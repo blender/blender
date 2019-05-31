@@ -52,8 +52,9 @@ bool MaterialsExporter::hasMaterials(Scene *sce)
       Material *ma = give_current_material(ob, a + 1);
 
       // no material, but check all of the slots
-      if (!ma)
+      if (!ma) {
         continue;
+      }
 
       return true;
     }

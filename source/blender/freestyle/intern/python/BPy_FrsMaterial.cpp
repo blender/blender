@@ -33,11 +33,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int FrsMaterial_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&FrsMaterial_Type) < 0)
+  if (PyType_Ready(&FrsMaterial_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FrsMaterial_Type);
   PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
 
@@ -154,8 +156,9 @@ static PyObject *FrsMaterial_repr(BPy_FrsMaterial *self)
 
 static int FrsMaterial_mathutils_check(BaseMathObject *bmo)
 {
-  if (!BPy_FrsMaterial_Check(bmo->cb_user))
+  if (!BPy_FrsMaterial_Check(bmo->cb_user)) {
     return -1;
+  }
   return 0;
 }
 

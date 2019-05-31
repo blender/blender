@@ -65,10 +65,12 @@ static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
   PyObject *obj = 0;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FrsCurve_Type, &obj)) {
-    if (!obj)
+    if (!obj) {
       self->c = new Curve();
-    else
+    }
+    else {
       self->c = new Curve(*(((BPy_FrsCurve *)obj)->c));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj)) {
@@ -96,8 +98,9 @@ static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, P
   static const char *kwlist[] = {"vertex", NULL};
   PyObject *obj = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
     return NULL;
+  }
 
   if (BPy_CurvePoint_Check(obj)) {
     self->c->push_vertex_back(((BPy_CurvePoint *)obj)->cp);
@@ -125,8 +128,9 @@ static PyObject *FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, 
   static const char *kwlist[] = {"vertex", NULL};
   PyObject *obj = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
     return NULL;
+  }
 
   if (BPy_CurvePoint_Check(obj)) {
     self->c->push_vertex_front(((BPy_CurvePoint *)obj)->cp);

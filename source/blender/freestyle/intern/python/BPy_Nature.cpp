@@ -186,11 +186,13 @@ static PyLongObject _Nature_EDGE_MARK = {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Nature_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&Nature_Type) < 0)
+  if (PyType_Ready(&Nature_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Nature_Type);
   PyModule_AddObject(module, "Nature", (PyObject *)&Nature_Type);
 
@@ -248,12 +250,14 @@ static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
       PyErr_BadArgument();
       return NULL;
   }
-  if (v == 0)
+  if (v == 0) {
     result = PyObject_NewVar(BPy_Nature, &Nature_Type, 0);
+  }
   else {
     result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
-    if (result)
+    if (result) {
       result->i.ob_digit[0] = v;
+    }
   }
   return (PyObject *)result;
 }

@@ -593,14 +593,16 @@ class TVertex : public ViewVertex {
     const vector<FEdge *> &vfEdges = _FrontSVertex->fedges();
     vector<FEdge *>::const_iterator fe, fend;
     for (fe = vfEdges.begin(), fend = vfEdges.end(); fe != fend; fe++) {
-      if ((*fe) == iFEdge)
+      if ((*fe) == iFEdge) {
         return _FrontSVertex;
+      }
     }
 
     const vector<FEdge *> &vbEdges = _BackSVertex->fedges();
     for (fe = vbEdges.begin(), fend = vbEdges.end(); fe != fend; fe++) {
-      if ((*fe) == iFEdge)
+      if ((*fe) == iFEdge) {
         return _BackSVertex;
+      }
     }
     return NULL;
   }
@@ -613,14 +615,18 @@ class TVertex : public ViewVertex {
    */
   virtual ViewEdge *mate(ViewEdge *iEdgeA)
   {
-    if (iEdgeA == _FrontEdgeA.first)
+    if (iEdgeA == _FrontEdgeA.first) {
       return _FrontEdgeB.first;
-    if (iEdgeA == _FrontEdgeB.first)
+    }
+    if (iEdgeA == _FrontEdgeB.first) {
       return _FrontEdgeA.first;
-    if (iEdgeA == _BackEdgeA.first)
+    }
+    if (iEdgeA == _BackEdgeA.first) {
       return _BackEdgeB.first;
-    if (iEdgeA == _BackEdgeB.first)
+    }
+    if (iEdgeA == _BackEdgeB.first) {
       return _BackEdgeA.first;
+    }
     return NULL;
   }
 
@@ -818,10 +824,12 @@ class NonTVertex : public ViewVertex {
 
   inline void AddViewEdge(ViewEdge *iVEdge, bool incoming = true)
   {
-    if (incoming)
+    if (incoming) {
       AddIncomingViewEdge(iVEdge);
-    else
+    }
+    else {
       AddOutgoingViewEdge(iVEdge);
+    }
   }
 
   /* Replaces old edge by new edge */
@@ -1059,8 +1067,9 @@ class ViewEdge : public Interface1D {
 #endif
     // only the last splitted deletes this id
     if (_splittingId) {
-      if (*_splittingId == _Id)
+      if (*_splittingId == _Id) {
         delete _splittingId;
+      }
     }
   }
 
@@ -1106,8 +1115,9 @@ class ViewEdge : public Interface1D {
   /*! Tells whether this ViewEdge forms a closed loop or not. */
   inline bool isClosed()
   {
-    if (!__B)
+    if (!__B) {
       return true;
+    }
     return false;
   }
 
@@ -1314,8 +1324,9 @@ class ViewEdge : public Interface1D {
 
   inline const bool occludee_empty() const
   {
-    if (_aShape == 0)
+    if (_aShape == 0) {
       return true;
+    }
     return false;
   }
 
@@ -1658,13 +1669,15 @@ void ViewShape::SplitEdge(FEdge *fe,
     sv2 = (*vv)->backSVertex();
 
     if (sv->shape() != sv2->shape()) {
-      if (sv->shape() != _SShape)
+      if (sv->shape() != _SShape) {
         sv = sv2;
+      }
     }
     else {
       // if the shape is the same we can safely differ the two vertices using their ids:
-      if (sv->getId() != fe->vertexA()->getId())
+      if (sv->getId() != fe->vertexA()->getId()) {
         sv = sv2;
+      }
     }
 
     vva = vEdge->A();
@@ -1705,10 +1718,12 @@ void ViewShape::SplitEdge(FEdge *fe,
       newVEdge->setFEdgeA(newEdge);
       // newVEdge->setFEdgeB(fe);
       // If our original viewedge is made of one FEdge, then
-      if ((vEdge->fedgeA() == vEdge->fedgeB()) || (fe == vEdge->fedgeB()))
+      if ((vEdge->fedgeA() == vEdge->fedgeB()) || (fe == vEdge->fedgeB())) {
         newVEdge->setFEdgeB(newEdge);
-      else
+      }
+      else {
         newVEdge->setFEdgeB(vEdge->fedgeB());  // MODIF
+      }
 
       Id *newId = vEdge->splittingId();
       if (newId == 0) {
@@ -1729,8 +1744,9 @@ void ViewShape::SplitEdge(FEdge *fe,
       // add new edge to the list of new edges passed as argument:
       ioNewViewEdges.push_back(newVEdge);
 
-      if (0 != vvb)
+      if (0 != vvb) {
         vvb->Replace((vEdge), newVEdge);
+      }
 
       // we split the view edge:
       vEdge->setB((*vv));
@@ -1795,8 +1811,9 @@ inline real ViewEdge::local_average_density(float sigma, int iCombination) const
 
 inline const SShape *ViewEdge::occluded_shape() const
 {
-  if (0 == _aShape)
+  if (0 == _aShape) {
     return 0;
+  }
   return _aShape->sshape();
 }
 

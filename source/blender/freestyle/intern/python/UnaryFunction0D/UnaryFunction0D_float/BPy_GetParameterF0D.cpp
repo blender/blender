@@ -52,8 +52,9 @@ static int GetParameterF0D___init__(BPy_GetParameterF0D *self, PyObject *args, P
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_float.uf0D_float = new Functions0D::GetParameterF0D();
   self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
   return 0;

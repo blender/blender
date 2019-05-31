@@ -105,8 +105,9 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
   /* Checking if bone is already made. */
   std::vector<COLLADAFW::Node *>::iterator it;
   it = std::find(finished_joints.begin(), finished_joints.end(), node);
-  if (it != finished_joints.end())
+  if (it != finished_joints.end()) {
     return chain_length;
+  }
 
   EditBone *bone = ED_armature_ebone_add(arm, bc_get_joint_name(node));
   totbone++;
@@ -143,15 +144,17 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
     get_node_mat(mat, node, NULL, NULL, parent_mat);
   }
 
-  if (parent)
+  if (parent) {
     bone->parent = parent;
+  }
 
   float loc[3], size[3], rot[3][3];
   BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(arm);
   BoneExtended &be = add_bone_extended(bone, node, totchild, layer_labels, extended_bones);
   int layer = be.get_bone_layers();
-  if (layer)
+  if (layer) {
     bone->layer = layer;
+  }
   arm->layer |= layer;  // ensure that all populated bone layers are visible after import
 
   float *tail = be.get_tail();
@@ -205,8 +208,9 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
 
   for (unsigned int i = 0; i < children.getCount(); i++) {
     int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm, layer_labels);
-    if (cl > chain_length)
+    if (cl > chain_length) {
       chain_length = cl;
+    }
   }
 
   bone->length = len_v3v3(bone->head, bone->tail);
@@ -228,8 +232,9 @@ void ArmatureImporter::fix_leaf_bone_hierarchy(bArmature *armature,
                                                Bone *bone,
                                                bool fix_orientation)
 {
-  if (bone == NULL)
+  if (bone == NULL) {
     return;
+  }
 
   if (bc_is_leaf_bone(bone)) {
     BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(armature);
@@ -276,8 +281,9 @@ void ArmatureImporter::fix_leaf_bone(bArmature *armature,
 void ArmatureImporter::fix_parent_connect(bArmature *armature, Bone *bone)
 {
   /* armature has no bones */
-  if (bone == NULL)
+  if (bone == NULL) {
     return;
+  }
 
   if (bone->parent && bone->flag & BONE_CONNECTED) {
     copy_v3_v3(bone->parent->tail, bone->head);
@@ -294,8 +300,9 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
   BoneExtended *dominant_child = NULL;
   int maxlen = 0;
 
-  if (parentbone == NULL)
+  if (parentbone == NULL) {
     return;
+  }
 
   Bone *child = (Bone *)parentbone->childbase.first;
   if (child && (import_settings->find_chains || child->next == NULL)) {
@@ -356,8 +363,9 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
   }
   else {
     /* can't connect this Bone. Proceed with children ... */
-    if (pbe)
+    if (pbe) {
       pbe->set_leaf_bone(true);
+    }
     for (Bone *ch = (Bone *)parentbone->childbase.first; ch; ch = ch->next) {
       ArmatureImporter::connect_bone_chains(armature, ch, UNLIMITED_CHAIN_MAX);
     }
@@ -417,8 +425,9 @@ void ArmatureImporter::set_euler_rotmode()
 
 Object *ArmatureImporter::get_empty_for_leaves()
 {
-  if (empty)
+  if (empty) {
     return empty;
+  }
 
   empty = bc_add_object(m_bmain, scene, view_layer, OB_EMPTY, NULL);
   empty->empty_drawtype = OB_EMPTY_SPHERE;
@@ -467,16 +476,19 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 
   /* if there is an armature created for root_joint next root_joint */
   for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
-    if (get_armature_for_joint(*ri) != NULL)
+    if (get_armature_for_joint(*ri) != NULL) {
       continue;
+    }
 
     Object *ob_arm = joint_parent_map[(*ri)->getUniqueId()];
-    if (!ob_arm)
+    if (!ob_arm) {
       continue;
+    }
 
     bArmature *armature = (bArmature *)ob_arm->data;
-    if (!armature)
+    if (!armature) {
       continue;
+    }
 
     char *bone_name = (char *)bc_get_joint_name(*ri);
     Bone *bone = BKE_armature_find_bone_name(armature, bone_name);
@@ -568,8 +580,9 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
   for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
     SkinInfo *b = &it->second;
-    if (b == a || b->BKE_armature_from_object() == NULL)
+    if (b == a || b->BKE_armature_from_object() == NULL) {
       continue;
+    }
 
     skin_root_joints.clear();
 
@@ -583,8 +596,9 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
       }
     }
 
-    if (shared != NULL)
+    if (shared != NULL) {
       break;
+    }
   }
 
   if (!shared && this->joint_parent_map.size() > 0) {
@@ -620,9 +634,10 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   std::vector<COLLADAFW::Node *>::iterator ri;
   for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
     /* for shared armature check if bone tree is already created */
-    if (shared &&
-        std::find(skin_root_joints.begin(), skin_root_joints.end(), *ri) != skin_root_joints.end())
+    if (shared && std::find(skin_root_joints.begin(), skin_root_joints.end(), *ri) !=
+                      skin_root_joints.end()) {
       continue;
+    }
 
     /* since root_joints may contain joints for multiple controllers, we need to filter */
     if (skin.uses_joint_or_descendant(*ri)) {
@@ -631,8 +646,9 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
           &skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, armature, layer_labels);
 
       if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() &&
-          !skin.get_parent())
+          !skin.get_parent()) {
         skin.set_parent(joint_parent_map[(*ri)->getUniqueId()]);
+      }
     }
   }
 
@@ -767,16 +783,19 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
           ob_arms.push_back(ob_arm);
         }
       }
-      else
+      else {
         fprintf(stderr, "Cannot find object to link armature with.\n");
+      }
     }
-    else
+    else {
       fprintf(stderr, "Cannot find geometry to link armature with.\n");
+    }
 
     /* set armature parent if any */
     Object *par = skin.get_parent();
-    if (par)
+    if (par) {
       bc_set_parent(skin.BKE_armature_from_object(), par, C, false);
+    }
 
     /* free memory stolen from SkinControllerData */
     skin.free();
@@ -938,8 +957,9 @@ void ArmatureImporter::make_shape_keys(bContext *C)
 
 COLLADAFW::UniqueId *ArmatureImporter::get_geometry_uid(const COLLADAFW::UniqueId &controller_uid)
 {
-  if (geom_uid_by_controller_uid.find(controller_uid) == geom_uid_by_controller_uid.end())
+  if (geom_uid_by_controller_uid.find(controller_uid) == geom_uid_by_controller_uid.end()) {
     return NULL;
+  }
 
   return &geom_uid_by_controller_uid[controller_uid];
 }
@@ -950,14 +970,16 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
   for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
     SkinInfo &skin = it->second;
 
-    if (skin.uses_joint_or_descendant(node))
+    if (skin.uses_joint_or_descendant(node)) {
       return skin.BKE_armature_from_object();
+    }
   }
 
   std::map<COLLADAFW::UniqueId, Object *>::iterator arm;
   for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
-    if (arm->first == node->getUniqueId())
+    if (arm->first == node->getUniqueId()) {
       return arm->second;
+    }
   }
   return NULL;
 }
@@ -1031,10 +1053,12 @@ BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone,
     }
 
     be->set_bone_layers(layers, layer_labels);
-    if (has_tail)
+    if (has_tail) {
       be->set_tail(tail);
-    if (has_roll)
+    }
+    if (has_roll) {
       be->set_roll(roll);
+    }
   }
 
   if (!has_connect && this->import_settings->auto_connect) {

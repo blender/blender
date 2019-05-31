@@ -59,8 +59,9 @@ void StrokeLayer::RenderBasic(const StrokeRenderer *iRenderer)
 
 void StrokeLayer::clear()
 {
-  for (stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s)
+  for (stroke_container::iterator s = _strokes.begin(), send = _strokes.end(); s != send; ++s) {
     delete *s;
+  }
   _strokes.clear();
 }
 

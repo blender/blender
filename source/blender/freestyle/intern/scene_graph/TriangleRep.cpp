@@ -36,22 +36,28 @@ void TriangleRep::ComputeBBox()
   // parse all the coordinates to find the XMax, YMax, ZMax
   for (int i = 0; i < 3; ++i) {
     // X
-    if (_vertices[i][0] > XMax)
+    if (_vertices[i][0] > XMax) {
       XMax = _vertices[i][0];
-    if (_vertices[i][0] < XMin)
+    }
+    if (_vertices[i][0] < XMin) {
       XMin = _vertices[i][0];
+    }
 
     // Y
-    if (_vertices[i][1] > YMax)
+    if (_vertices[i][1] > YMax) {
       YMax = _vertices[i][1];
-    if (_vertices[i][1] < YMin)
+    }
+    if (_vertices[i][1] < YMin) {
       YMin = _vertices[i][1];
+    }
 
     // Z
-    if (_vertices[i][2] > ZMax)
+    if (_vertices[i][2] > ZMax) {
       ZMax = _vertices[i][2];
-    if (_vertices[i][2] < ZMin)
+    }
+    if (_vertices[i][2] < ZMin) {
       ZMin = _vertices[i][2];
+    }
   }
 
   setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));

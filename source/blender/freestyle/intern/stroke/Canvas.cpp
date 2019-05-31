@@ -92,8 +92,9 @@ Canvas::~Canvas()
     }
     _maps.clear();
   }
-  if (_steerableViewMap)
+  if (_steerableViewMap) {
     delete _steerableViewMap;
+  }
 }
 
 void Canvas::preDraw()
@@ -102,20 +103,23 @@ void Canvas::preDraw()
 
 void Canvas::Draw()
 {
-  if (_StyleModules.empty())
+  if (_StyleModules.empty()) {
     return;
+  }
   preDraw();
   TimeStamp *timestamp = TimeStamp::instance();
 
   for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
     _current_sm = _StyleModules[i];
 
-    if (i < _Layers.size() && _Layers[i])
+    if (i < _Layers.size() && _Layers[i]) {
       delete _Layers[i];
+    }
 
     _Layers[i] = _StyleModules[i]->execute();
-    if (!_Layers[i])
+    if (!_Layers[i]) {
       continue;
+    }
 
     stroke_count += _Layers[i]->strokes_size();
 
@@ -134,8 +138,9 @@ void Canvas::Clear()
   if (!_Layers.empty()) {
     for (deque<StrokeLayer *>::iterator sl = _Layers.begin(), slend = _Layers.end(); sl != slend;
          ++sl) {
-      if (*sl)
+      if (*sl) {
         delete (*sl);
+      }
     }
     _Layers.clear();
   }
@@ -144,13 +149,15 @@ void Canvas::Clear()
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
          ++s) {
-      if (*s)
+      if (*s) {
         delete (*s);
+      }
     }
     _StyleModules.clear();
   }
-  if (_steerableViewMap)
+  if (_steerableViewMap) {
     _steerableViewMap->Reset();
+  }
 
   stroke_count = 0;
 }
@@ -160,12 +167,14 @@ void Canvas::Erase()
   if (!_Layers.empty()) {
     for (deque<StrokeLayer *>::iterator sl = _Layers.begin(), slend = _Layers.end(); sl != slend;
          ++sl) {
-      if (*sl)
+      if (*sl) {
         (*sl)->clear();
+      }
     }
   }
-  if (_steerableViewMap)
+  if (_steerableViewMap) {
     _steerableViewMap->Reset();
+  }
   update();
 
   stroke_count = 0;
@@ -200,8 +209,9 @@ void Canvas::RemoveStyleModule(unsigned index)
          ++s, ++i) {
       if (i == index) {
         // remove shader
-        if (*s)
+        if (*s) {
           delete *s;
+        }
         _StyleModules.erase(s);
         break;
       }
@@ -214,8 +224,9 @@ void Canvas::RemoveStyleModule(unsigned index)
          ++sl, ++i) {
       if (i == index) {
         // remove layer
-        if (*sl)
+        if (*sl) {
           delete *sl;
+        }
         _Layers.erase(sl);
         break;
       }
@@ -243,8 +254,9 @@ void Canvas::ReplaceStyleModule(unsigned index, StyleModule *iStyleModule)
        s != send;
        ++s, ++i) {
     if (i == index) {
-      if (*s)
+      if (*s) {
         delete *s;
+      }
       *s = iStyleModule;
       break;
     }
@@ -264,8 +276,9 @@ void Canvas::setModified(unsigned index, bool iMod)
 void Canvas::resetModified(bool iMod /* = false */)
 {
   unsigned int size = _StyleModules.size();
-  for (unsigned int i = 0; i < size; ++i)
+  for (unsigned int i = 0; i < size; ++i) {
     setModified(i, iMod);
+  }
 }
 
 void Canvas::causalStyleModules(vector<unsigned> &vec, unsigned index)
@@ -273,16 +286,18 @@ void Canvas::causalStyleModules(vector<unsigned> &vec, unsigned index)
   unsigned int size = _StyleModules.size();
 
   for (unsigned int i = index; i < size; ++i) {
-    if (_StyleModules[i]->getCausal())
+    if (_StyleModules[i]->getCausal()) {
       vec.push_back(i);
+    }
   }
 }
 
 void Canvas::Render(const StrokeRenderer *iRenderer)
 {
   for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
-    if (!_StyleModules[i]->getDisplayed() || !_Layers[i])
+    if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
+    }
     _Layers[i]->Render(iRenderer);
   }
 }
@@ -290,8 +305,9 @@ void Canvas::Render(const StrokeRenderer *iRenderer)
 void Canvas::RenderBasic(const StrokeRenderer *iRenderer)
 {
   for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
-    if (!_StyleModules[i]->getDisplayed() || !_Layers[i])
+    if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
+    }
     _Layers[i]->RenderBasic(iRenderer);
   }
 }
@@ -462,8 +478,9 @@ float Canvas::readMapPixel(const char *iMapName, int level, int x, int y)
     return -1;
   }
   ImagePyramid *pyramid = (*m).second;
-  if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height()))
+  if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height())) {
     return 0;
+  }
 
   return pyramid->pixel(x, height() - 1 - y, level);
 }

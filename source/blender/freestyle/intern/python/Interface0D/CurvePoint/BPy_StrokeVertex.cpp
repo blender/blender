@@ -149,10 +149,12 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        &obj1,
                                        &StrokeAttribute_Type,
                                        &obj2)) {
-    if (!obj2)
+    if (!obj2) {
       self->sv = new StrokeVertex(((BPy_SVertex *)obj1)->sv);
-    else
+    }
+    else {
       self->sv = new StrokeVertex(((BPy_SVertex *)obj1)->sv, *(((BPy_StrokeAttribute *)obj2)->sa));
+    }
   }
   else {
     PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -171,8 +173,9 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 
 static int StrokeVertex_mathutils_check(BaseMathObject *bmo)
 {
-  if (!BPy_StrokeVertex_Check(bmo->cb_user))
+  if (!BPy_StrokeVertex_Check(bmo->cb_user)) {
     return -1;
+  }
   return 0;
 }
 

@@ -136,8 +136,9 @@ Controller::~Controller()
 {
   if (NULL != _RootNode) {
     int ref = _RootNode->destroy();
-    if (0 == ref)
+    if (0 == ref) {
       delete _RootNode;
+    }
   }
 
 #if 0
@@ -184,8 +185,9 @@ Controller::~Controller()
 
 void Controller::setView(AppView *iView)
 {
-  if (NULL == iView)
+  if (NULL == iView) {
     return;
+  }
 
   _pView = iView;
   _Canvas->setViewer(_pView);
@@ -279,16 +281,19 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   _pView->setModel(_RootNode);
   //_pView->FitBBox();
 
-  if (_pRenderMonitor->testBreak())
+  if (_pRenderMonitor->testBreak()) {
     return 0;
+  }
 
   if (_EnableViewMapCache) {
 
     NodeCamera *cam;
-    if (g_freestyle.proj[3][3] != 0.0)
+    if (g_freestyle.proj[3][3] != 0.0) {
       cam = new NodeOrthographicCamera;
-    else
+    }
+    else {
       cam = new NodePerspectiveCamera;
+    }
     double proj[16];
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
@@ -389,8 +394,9 @@ void Controller::ClearRootNode()
   _pView->DetachModel();
   if (NULL != _RootNode) {
     int ref = _RootNode->destroy();
-    if (0 == ref)
+    if (0 == ref) {
       _RootNode->addRef();
+    }
     _RootNode->clearBBox();
   }
 }
@@ -460,8 +466,9 @@ void Controller::DeleteViewMap(bool freeCache)
 
 void Controller::ComputeViewMap()
 {
-  if (!_ListOfModels.size())
+  if (!_ListOfModels.size()) {
     return;
+  }
 
   DeleteViewMap(true);
 
@@ -520,8 +527,9 @@ void Controller::ComputeViewMap()
   }
 
   int viewport[4];
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++) {
     viewport[i] = g_freestyle.viewport[i];
+  }
 
 #if 0
   if (G.debug & G_DEBUG_FREESTYLE) {
@@ -554,8 +562,9 @@ void Controller::ComputeViewMap()
     printf("Feature lines    : %lf\n", duration);
   }
 
-  if (_pRenderMonitor->testBreak())
+  if (_pRenderMonitor->testBreak()) {
     return;
+  }
 
   // Builds the view map structure from the flagged WSEdge structure:
   //----------------------------------------------------------
@@ -863,8 +872,9 @@ bool Controller::getComputeSteerableViewMapFlag() const
 
 int Controller::DrawStrokes()
 {
-  if (_ViewMap == 0)
+  if (_ViewMap == 0) {
     return 0;
+  }
 
   if (G.debug & G_DEBUG_FREESTYLE) {
     cout << "\n===  Stroke drawing  ===" << endl;
@@ -1047,15 +1057,17 @@ string Controller::getModulesDir() const
 
 void Controller::resetInterpreter()
 {
-  if (_inter)
+  if (_inter) {
     _inter->reset();
+  }
 }
 
 void Controller::displayDensityCurves(int x, int y)
 {
   SteerableViewMap *svm = _Canvas->getSteerableViewMap();
-  if (!svm)
+  if (!svm) {
     return;
+  }
 
   unsigned int i, j;
   typedef vector<Vec3r> densityCurve;
@@ -1065,8 +1077,9 @@ void Controller::displayDensityCurves(int x, int y)
   // collect the curves values
   unsigned nbCurves = svm->getNumberOfOrientations() + 1;
   unsigned nbPoints = svm->getNumberOfPyramidLevels();
-  if (!nbPoints)
+  if (!nbPoints) {
     return;
+  }
 
   // build the density/nbLevels curves for each orientation
   for (i = 0; i < nbCurves; ++i) {

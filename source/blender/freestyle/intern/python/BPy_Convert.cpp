@@ -527,47 +527,60 @@ Nature::EdgeNature EdgeNature_from_BPy_Nature(PyObject *obj)
 
 bool Vec2f_ptr_from_PyObject(PyObject *obj, Vec2f &vec)
 {
-  if (Vec2f_ptr_from_Vector(obj, vec))
+  if (Vec2f_ptr_from_Vector(obj, vec)) {
     return true;
-  if (Vec2f_ptr_from_PyList(obj, vec))
+  }
+  if (Vec2f_ptr_from_PyList(obj, vec)) {
     return true;
-  if (Vec2f_ptr_from_PyTuple(obj, vec))
+  }
+  if (Vec2f_ptr_from_PyTuple(obj, vec)) {
     return true;
+  }
   return false;
 }
 
 bool Vec3f_ptr_from_PyObject(PyObject *obj, Vec3f &vec)
 {
-  if (Vec3f_ptr_from_Vector(obj, vec))
+  if (Vec3f_ptr_from_Vector(obj, vec)) {
     return true;
-  if (Vec3f_ptr_from_Color(obj, vec))
+  }
+  if (Vec3f_ptr_from_Color(obj, vec)) {
     return true;
-  if (Vec3f_ptr_from_PyList(obj, vec))
+  }
+  if (Vec3f_ptr_from_PyList(obj, vec)) {
     return true;
-  if (Vec3f_ptr_from_PyTuple(obj, vec))
+  }
+  if (Vec3f_ptr_from_PyTuple(obj, vec)) {
     return true;
+  }
   return false;
 }
 
 bool Vec3r_ptr_from_PyObject(PyObject *obj, Vec3r &vec)
 {
-  if (Vec3r_ptr_from_Vector(obj, vec))
+  if (Vec3r_ptr_from_Vector(obj, vec)) {
     return true;
-  if (Vec3r_ptr_from_Color(obj, vec))
+  }
+  if (Vec3r_ptr_from_Color(obj, vec)) {
     return true;
-  if (Vec3r_ptr_from_PyList(obj, vec))
+  }
+  if (Vec3r_ptr_from_PyList(obj, vec)) {
     return true;
-  if (Vec3r_ptr_from_PyTuple(obj, vec))
+  }
+  if (Vec3r_ptr_from_PyTuple(obj, vec)) {
     return true;
+  }
   return false;
 }
 
 bool Vec2f_ptr_from_Vector(PyObject *obj, Vec2f &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2) {
     return false;
-  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+  }
+  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
     return false;
+  }
   vec[0] = ((VectorObject *)obj)->vec[0];
   vec[1] = ((VectorObject *)obj)->vec[1];
   return true;
@@ -575,10 +588,12 @@ bool Vec2f_ptr_from_Vector(PyObject *obj, Vec2f &vec)
 
 bool Vec3f_ptr_from_Vector(PyObject *obj, Vec3f &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3) {
     return false;
-  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+  }
+  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
     return false;
+  }
   vec[0] = ((VectorObject *)obj)->vec[0];
   vec[1] = ((VectorObject *)obj)->vec[1];
   vec[2] = ((VectorObject *)obj)->vec[2];
@@ -587,10 +602,12 @@ bool Vec3f_ptr_from_Vector(PyObject *obj, Vec3f &vec)
 
 bool Vec3r_ptr_from_Vector(PyObject *obj, Vec3r &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3) {
     return false;
-  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+  }
+  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
     return false;
+  }
   vec[0] = ((VectorObject *)obj)->vec[0];
   vec[1] = ((VectorObject *)obj)->vec[1];
   vec[2] = ((VectorObject *)obj)->vec[2];
@@ -599,10 +616,12 @@ bool Vec3r_ptr_from_Vector(PyObject *obj, Vec3r &vec)
 
 bool Vec3f_ptr_from_Color(PyObject *obj, Vec3f &vec)
 {
-  if (!ColorObject_Check(obj))
+  if (!ColorObject_Check(obj)) {
     return false;
-  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+  }
+  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
     return false;
+  }
   vec[0] = ((ColorObject *)obj)->col[0];
   vec[1] = ((ColorObject *)obj)->col[1];
   vec[2] = ((ColorObject *)obj)->col[2];
@@ -611,10 +630,12 @@ bool Vec3f_ptr_from_Color(PyObject *obj, Vec3f &vec)
 
 bool Vec3r_ptr_from_Color(PyObject *obj, Vec3r &vec)
 {
-  if (!ColorObject_Check(obj))
+  if (!ColorObject_Check(obj)) {
     return false;
-  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+  }
+  if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
     return false;
+  }
   vec[0] = ((ColorObject *)obj)->col[0];
   vec[1] = ((ColorObject *)obj)->col[1];
   vec[2] = ((ColorObject *)obj)->col[2];
@@ -637,10 +658,12 @@ bool Vec2f_ptr_from_PyList(PyObject *obj, Vec2f &vec)
 {
   float v[2];
 
-  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 2)
+  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 2) {
     return false;
-  if (!float_array_from_PyList(obj, v, 2))
+  }
+  if (!float_array_from_PyList(obj, v, 2)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   return true;
@@ -650,10 +673,12 @@ bool Vec3f_ptr_from_PyList(PyObject *obj, Vec3f &vec)
 {
   float v[3];
 
-  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 3)
+  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 3) {
     return false;
-  if (!float_array_from_PyList(obj, v, 3))
+  }
+  if (!float_array_from_PyList(obj, v, 3)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   vec[2] = v[2];
@@ -664,10 +689,12 @@ bool Vec3r_ptr_from_PyList(PyObject *obj, Vec3r &vec)
 {
   float v[3];
 
-  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 3)
+  if (!PyList_Check(obj) || PyList_GET_SIZE(obj) != 3) {
     return false;
-  if (!float_array_from_PyList(obj, v, 3))
+  }
+  if (!float_array_from_PyList(obj, v, 3)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   vec[2] = v[2];
@@ -690,10 +717,12 @@ bool Vec2f_ptr_from_PyTuple(PyObject *obj, Vec2f &vec)
 {
   float v[2];
 
-  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 2)
+  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 2) {
     return false;
-  if (!float_array_from_PyTuple(obj, v, 2))
+  }
+  if (!float_array_from_PyTuple(obj, v, 2)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   return true;
@@ -703,10 +732,12 @@ bool Vec3f_ptr_from_PyTuple(PyObject *obj, Vec3f &vec)
 {
   float v[3];
 
-  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 3)
+  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 3) {
     return false;
-  if (!float_array_from_PyTuple(obj, v, 3))
+  }
+  if (!float_array_from_PyTuple(obj, v, 3)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   vec[2] = v[2];
@@ -717,10 +748,12 @@ bool Vec3r_ptr_from_PyTuple(PyObject *obj, Vec3r &vec)
 {
   float v[3];
 
-  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 3)
+  if (!PyTuple_Check(obj) || PyTuple_GET_SIZE(obj) != 3) {
     return false;
-  if (!float_array_from_PyTuple(obj, v, 3))
+  }
+  if (!float_array_from_PyTuple(obj, v, 3)) {
     return false;
+  }
   vec[0] = v[0];
   vec[1] = v[1];
   vec[2] = v[2];
@@ -732,17 +765,21 @@ bool Vec3r_ptr_from_PyTuple(PyObject *obj, Vec3r &vec)
 bool float_array_from_PyObject(PyObject *obj, float *v, int n)
 {
   if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
-    if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+    if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
       return 0;
-    for (int i = 0; i < n; i++)
+    }
+    for (int i = 0; i < n; i++) {
       v[i] = ((VectorObject *)obj)->vec[i];
+    }
     return 1;
   }
   else if (ColorObject_Check(obj) && n == 3) {
-    if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1)
+    if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
       return 0;
-    for (int i = 0; i < n; i++)
+    }
+    for (int i = 0; i < n; i++) {
       v[i] = ((ColorObject *)obj)->col[i];
+    }
     return 1;
   }
   else if (PyList_Check(obj) && PyList_GET_SIZE(obj) == n) {

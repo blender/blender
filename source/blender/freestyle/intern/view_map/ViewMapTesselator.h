@@ -185,8 +185,9 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
 #endif
 
     line = new OrientedLineRep();
-    if (_overloadFrsMaterial)
+    if (_overloadFrsMaterial) {
       line->setFrsMaterial(_FrsMaterial);
+    }
 
     // there might be chains containing a single element
     if (0 == (firstEdge)->nextEdge()) {

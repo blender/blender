@@ -40,12 +40,14 @@ std::string AnimationExporter::get_axis_name(std::string channel, int id)
 
   std::map<std::string, std::vector<std::string>>::const_iterator it;
   it = BC_COLLADA_AXIS_FROM_TYPE.find(channel);
-  if (it == BC_COLLADA_AXIS_FROM_TYPE.end())
+  if (it == BC_COLLADA_AXIS_FROM_TYPE.end()) {
     return "";
+  }
 
   const std::vector<std::string> &subchannel = it->second;
-  if (id >= subchannel.size())
+  if (id >= subchannel.size()) {
     return "";
+  }
   return subchannel[id];
 }
 
@@ -71,8 +73,9 @@ void AnimationExporter::openAnimationWithClip(std::string action_id, std::string
 
 void AnimationExporter::close_animation_container(bool has_container)
 {
-  if (has_container)
+  if (has_container) {
     closeAnimation();
+  }
 }
 
 bool AnimationExporter::exportAnimations()
@@ -152,8 +155,9 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 
     /* Export skeletal animation (if any) */
     bArmature *arm = (bArmature *)ob->data;
-    for (Bone *root_bone = (Bone *)arm->bonebase.first; root_bone; root_bone = root_bone->next)
+    for (Bone *root_bone = (Bone *)arm->bonebase.first; root_bone; root_bone = root_bone->next) {
       export_bone_animations_recursive(ob, root_bone, sampler);
+    }
   }
 
   close_animation_container(container_is_open);
@@ -265,8 +269,9 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob,
     }
   }
 
-  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next)
+  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
     export_bone_animations_recursive(ob, child, sampler);
+  }
 }
 
 /**
@@ -382,15 +387,17 @@ bool AnimationExporter::is_bone_deform_group(Bone *bone)
 {
   bool is_def;
   /* Check if current bone is deform */
-  if ((bone->flag & BONE_NO_DEFORM) == 0)
+  if ((bone->flag & BONE_NO_DEFORM) == 0) {
     return true;
-  /* Check child bones */
+    /* Check child bones */
+  }
   else {
     for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
       /* loop through all the children until deform bone is found, and then return */
       is_def = is_bone_deform_group(child);
-      if (is_def)
+      if (is_def) {
         return true;
+      }
     }
   }
   /* no deform bone found in children also */
@@ -424,10 +431,12 @@ void AnimationExporter::export_collada_curve_animation(
 
   bool has_tangents = false;
   std::string interpolation_id;
-  if (this->export_settings.get_keep_smooth_curves())
+  if (this->export_settings.get_keep_smooth_curves()) {
     interpolation_id = collada_interpolation_source(curve, id, axis, &has_tangents);
-  else
+  }
+  else {
     interpolation_id = collada_linear_interpolation_source(frames.size(), id);
+  }
 
   std::string intangent_id;
   std::string outtangent_id;
@@ -803,8 +812,9 @@ const std::string AnimationExporter::get_collada_name(std::string channel_target
 
   std::map<std::string, std::string>::iterator name_it = BC_CHANNEL_BLENDER_TO_COLLADA.find(
       channel_target);
-  if (name_it == BC_CHANNEL_BLENDER_TO_COLLADA.end())
+  if (name_it == BC_CHANNEL_BLENDER_TO_COLLADA.end()) {
     return "";
+  }
 
   std::string tm_name = name_it->second;
   return tm_name;
@@ -823,12 +833,15 @@ std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
   bool is_angle = curve.is_rotation_curve();
 
   if (tm_name.size()) {
-    if (is_angle)
+    if (is_angle) {
       return tm_name + std::string(axis_name) + ".ANGLE";
-    else if (axis_name != "")
+    }
+    else if (axis_name != "") {
       return tm_name + "." + std::string(axis_name);
-    else
+    }
+    else {
       return tm_name;
+    }
   }
 
   return tm_name;

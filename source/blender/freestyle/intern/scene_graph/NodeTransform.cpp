@@ -37,8 +37,9 @@ void NodeTransform::Rotate(real iAngle, real x, real y, real z)
 {
   // Normalize the x,y,z vector;
   real norm = (real)sqrt(x * x + y * y + z * z);
-  if (0 == norm)
+  if (0 == norm) {
     return;
+  }
 
   x /= norm;
   y /= norm;
@@ -72,8 +73,9 @@ void NodeTransform::Rotate(real iAngle, real x, real y, real z)
   R4 = Matrix44r::identity();
 
   for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++) {
       R4(i, j) = R(i, j);
+    }
   }
 
   // Finally, we multiply our current matrix by R4:
@@ -99,8 +101,9 @@ void NodeTransform::MultiplyMatrix(const Matrix44r &iMatrix)
 void NodeTransform::setMatrix(const Matrix44r &iMatrix)
 {
   _Matrix = iMatrix;
-  if (isScaled(iMatrix))
+  if (isScaled(iMatrix)) {
     _Scaled = true;
+  }
 }
 
 void NodeTransform::accept(SceneVisitor &v)
@@ -109,8 +112,9 @@ void NodeTransform::accept(SceneVisitor &v)
 
   v.visitNodeTransformBefore(*this);
   for (vector<Node *>::iterator node = _Children.begin(), end = _Children.end(); node != end;
-       ++node)
+       ++node) {
     (*node)->accept(v);
+  }
   v.visitNodeTransformAfter(*this);
 }
 
@@ -133,17 +137,20 @@ void NodeTransform::AddBBox(const BBox<Vec3r> &iBBox)
   // Computes the transform iBBox
   HVec3r tbox[8];
   unsigned int i;
-  for (i = 0; i < 8; i++)
+  for (i = 0; i < 8; i++) {
     tbox[i] = _Matrix * box[i];
+  }
 
   Vec3r newMin(tbox[0]);
   Vec3r newMax(tbox[0]);
   for (i = 0; i < 8; i++) {
     for (unsigned int j = 0; j < 3; j++) {
-      if (newMin[j] > tbox[i][j])
+      if (newMin[j] > tbox[i][j]) {
         newMin[j] = tbox[i][j];
-      if (newMax[j] < tbox[i][j])
+      }
+      if (newMax[j] < tbox[i][j]) {
         newMax[j] = tbox[i][j];
+      }
     }
   }
 
@@ -159,8 +166,9 @@ bool NodeTransform::isScaled(const Matrix44r &M)
     for (unsigned int i = 0; i < 3; i++) {
       norm += M(i, j) * M(i, j);
     }
-    if ((norm > 1.01) || (norm < 0.99))
+    if ((norm > 1.01) || (norm < 0.99)) {
       return true;
+    }
   }
 
   return false;

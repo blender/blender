@@ -53,8 +53,9 @@ static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->tv = new TVertex();
   self->py_vv.vv = self->tv;
   self->py_vv.py_if0D.if0D = self->tv;
@@ -77,11 +78,13 @@ static PyObject *TVertex_get_svertex(BPy_TVertex *self, PyObject *args, PyObject
   static const char *kwlist[] = {"fedge", NULL};
   PyObject *py_fe;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe)) {
     return NULL;
+  }
   SVertex *sv = self->tv->getSVertex(((BPy_FEdge *)py_fe)->fe);
-  if (sv)
+  if (sv) {
     return BPy_SVertex_from_SVertex(*sv);
+  }
   Py_RETURN_NONE;
 }
 
@@ -102,11 +105,13 @@ static PyObject *TVertex_get_mate(BPy_TVertex *self, PyObject *args, PyObject *k
   static const char *kwlist[] = {"viewedge", NULL};
   PyObject *py_ve;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve)) {
     return NULL;
+  }
   ViewEdge *ve = self->tv->mate(((BPy_ViewEdge *)py_ve)->ve);
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 
@@ -132,8 +137,9 @@ PyDoc_STRVAR(TVertex_front_svertex_doc,
 static PyObject *TVertex_front_svertex_get(BPy_TVertex *self, void *UNUSED(closure))
 {
   SVertex *v = self->tv->frontSVertex();
-  if (v)
+  if (v) {
     return BPy_SVertex_from_SVertex(*v);
+  }
   Py_RETURN_NONE;
 }
 
@@ -155,8 +161,9 @@ PyDoc_STRVAR(TVertex_back_svertex_doc,
 static PyObject *TVertex_back_svertex_get(BPy_TVertex *self, void *UNUSED(closure))
 {
   SVertex *v = self->tv->backSVertex();
-  if (v)
+  if (v) {
     return BPy_SVertex_from_SVertex(*v);
+  }
   Py_RETURN_NONE;
 }
 

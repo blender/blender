@@ -45,8 +45,9 @@ static int ContourUP1D___init__(BPy_ContourUP1D *self, PyObject *args, PyObject 
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::ContourUP1D();
   return 0;
 }

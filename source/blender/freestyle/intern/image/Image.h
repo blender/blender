@@ -238,8 +238,9 @@ class RGBImage : public FrsImage {
 
   virtual ~RGBImage()
   {
-    if (_rgb)
+    if (_rgb) {
       delete[] _rgb;
+    }
   }
 
   inline float getR(unsigned x, unsigned y) const
@@ -376,8 +377,9 @@ class GrayImage : public FrsImage {
 
   virtual ~GrayImage()
   {
-    if (_lvl)
+    if (_lvl) {
       delete[] _lvl;
+    }
   }
 
   inline void setPixel(unsigned x, unsigned y, float v)

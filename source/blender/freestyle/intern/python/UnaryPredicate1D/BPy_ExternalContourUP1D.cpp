@@ -49,8 +49,9 @@ static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::ExternalContourUP1D();
   return 0;
 }

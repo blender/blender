@@ -38,36 +38,43 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int BinaryPredicate1D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&BinaryPredicate1D_Type) < 0)
+  if (PyType_Ready(&BinaryPredicate1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&BinaryPredicate1D_Type);
   PyModule_AddObject(module, "BinaryPredicate1D", (PyObject *)&BinaryPredicate1D_Type);
 
-  if (PyType_Ready(&FalseBP1D_Type) < 0)
+  if (PyType_Ready(&FalseBP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FalseBP1D_Type);
   PyModule_AddObject(module, "FalseBP1D", (PyObject *)&FalseBP1D_Type);
 
-  if (PyType_Ready(&Length2DBP1D_Type) < 0)
+  if (PyType_Ready(&Length2DBP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Length2DBP1D_Type);
   PyModule_AddObject(module, "Length2DBP1D", (PyObject *)&Length2DBP1D_Type);
 
-  if (PyType_Ready(&SameShapeIdBP1D_Type) < 0)
+  if (PyType_Ready(&SameShapeIdBP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&SameShapeIdBP1D_Type);
   PyModule_AddObject(module, "SameShapeIdBP1D", (PyObject *)&SameShapeIdBP1D_Type);
 
-  if (PyType_Ready(&TrueBP1D_Type) < 0)
+  if (PyType_Ready(&TrueBP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&TrueBP1D_Type);
   PyModule_AddObject(module, "TrueBP1D", (PyObject *)&TrueBP1D_Type);
 
-  if (PyType_Ready(&ViewMapGradientNormBP1D_Type) < 0)
+  if (PyType_Ready(&ViewMapGradientNormBP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ViewMapGradientNormBP1D_Type);
   PyModule_AddObject(module, "ViewMapGradientNormBP1D", (PyObject *)&ViewMapGradientNormBP1D_Type);
 
@@ -103,8 +110,9 @@ static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *arg
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->bp1D = new BinaryPredicate1D();
   self->bp1D->py_bp1D = (PyObject *)self;
   return 0;
@@ -112,8 +120,9 @@ static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *arg
 
 static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D *self)
 {
-  if (self->bp1D)
+  if (self->bp1D) {
     delete self->bp1D;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 

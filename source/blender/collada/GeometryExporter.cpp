@@ -311,8 +311,9 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
     if (p->mat_nr == material_index) {
       int vertex_count = p->totloop;
       vcount_list.push_back(vertex_count);
-      if (vertex_count != 3)
+      if (vertex_count != 3) {
         is_triangulated = false;
+      }
     }
   }
   return is_triangulated;
@@ -426,11 +427,13 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
       for (int j = 0; j < loop_count; j++) {
         primitive_list->appendValues(l[j].v);
         primitive_list->appendValues(normal_indices[j]);
-        if (has_uvs)
+        if (has_uvs) {
           primitive_list->appendValues(texindex + j);
+        }
 
-        if (has_color)
+        if (has_color) {
           primitive_list->appendValues(texindex + j);
+        }
       }
     }
 
@@ -484,8 +487,9 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
   /* Find number of vertex color layers */
   int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
-  if (totlayer_mcol == 0)
+  if (totlayer_mcol == 0) {
     return;
+  }
 
   int map_index = 0;
   for (int a = 0; a < totlayer_mcol; a++) {

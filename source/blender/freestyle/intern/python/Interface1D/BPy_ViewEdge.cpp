@@ -59,12 +59,15 @@ static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"brother", NULL};
   PyObject *brother = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &ViewEdge_Type, &brother))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &ViewEdge_Type, &brother)) {
     return -1;
-  if (!brother)
+  }
+  if (!brother) {
     self->ve = new ViewEdge();
-  else
+  }
+  else {
     self->ve = new ViewEdge(*(((BPy_ViewEdge *)brother)->ve));
+  }
   self->py_if1D.if1D = self->ve;
   self->py_if1D.borrowed = false;
   return 0;
@@ -99,8 +102,9 @@ PyDoc_STRVAR(ViewEdge_first_viewvertex_doc,
 static PyObject *ViewEdge_first_viewvertex_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   ViewVertex *v = self->ve->A();
-  if (v)
+  if (v) {
     return Any_BPy_ViewVertex_from_ViewVertex(*v);
+  }
   Py_RETURN_NONE;
 }
 
@@ -108,8 +112,9 @@ static int ViewEdge_first_viewvertex_set(BPy_ViewEdge *self,
                                          PyObject *value,
                                          void *UNUSED(closure))
 {
-  if (!BPy_ViewVertex_Check(value))
+  if (!BPy_ViewVertex_Check(value)) {
     return -1;
+  }
   self->ve->setA(((BPy_ViewVertex *)value)->vv);
   return 0;
 }
@@ -122,15 +127,17 @@ PyDoc_STRVAR(ViewEdge_last_viewvertex_doc,
 static PyObject *ViewEdge_last_viewvertex_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   ViewVertex *v = self->ve->B();
-  if (v)
+  if (v) {
     return Any_BPy_ViewVertex_from_ViewVertex(*v);
+  }
   Py_RETURN_NONE;
 }
 
 static int ViewEdge_last_viewvertex_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!BPy_ViewVertex_Check(value))
+  if (!BPy_ViewVertex_Check(value)) {
     return -1;
+  }
   self->ve->setB(((BPy_ViewVertex *)value)->vv);
   return 0;
 }
@@ -143,15 +150,17 @@ PyDoc_STRVAR(ViewEdge_first_fedge_doc,
 static PyObject *ViewEdge_first_fedge_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   FEdge *fe = self->ve->fedgeA();
-  if (fe)
+  if (fe) {
     return Any_BPy_FEdge_from_FEdge(*fe);
+  }
   Py_RETURN_NONE;
 }
 
 static int ViewEdge_first_fedge_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!BPy_FEdge_Check(value))
+  if (!BPy_FEdge_Check(value)) {
     return -1;
+  }
   self->ve->setFEdgeA(((BPy_FEdge *)value)->fe);
   return 0;
 }
@@ -164,15 +173,17 @@ PyDoc_STRVAR(ViewEdge_last_fedge_doc,
 static PyObject *ViewEdge_last_fedge_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   FEdge *fe = self->ve->fedgeB();
-  if (fe)
+  if (fe) {
     return Any_BPy_FEdge_from_FEdge(*fe);
+  }
   Py_RETURN_NONE;
 }
 
 static int ViewEdge_last_fedge_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!BPy_FEdge_Check(value))
+  if (!BPy_FEdge_Check(value)) {
     return -1;
+  }
   self->ve->setFEdgeB(((BPy_FEdge *)value)->fe);
   return 0;
 }
@@ -185,15 +196,17 @@ PyDoc_STRVAR(ViewEdge_viewshape_doc,
 static PyObject *ViewEdge_viewshape_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   ViewShape *vs = self->ve->viewShape();
-  if (vs)
+  if (vs) {
     return BPy_ViewShape_from_ViewShape(*vs);
+  }
   Py_RETURN_NONE;
 }
 
 static int ViewEdge_viewshape_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!BPy_ViewShape_Check(value))
+  if (!BPy_ViewShape_Check(value)) {
     return -1;
+  }
   self->ve->setShape(((BPy_ViewShape *)value)->vs);
   return 0;
 }
@@ -207,15 +220,17 @@ PyDoc_STRVAR(ViewEdge_occludee_doc,
 static PyObject *ViewEdge_occludee_get(BPy_ViewEdge *self, void *UNUSED(closure))
 {
   ViewShape *vs = self->ve->aShape();
-  if (vs)
+  if (vs) {
     return BPy_ViewShape_from_ViewShape(*vs);
+  }
   Py_RETURN_NONE;
 }
 
 static int ViewEdge_occludee_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!BPy_ViewShape_Check(value))
+  if (!BPy_ViewShape_Check(value)) {
     return -1;
+  }
   self->ve->setaShape(((BPy_ViewShape *)value)->vs);
   return 0;
 }
@@ -285,8 +300,9 @@ static int ViewEdge_qi_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(clo
 {
   int qi;
 
-  if ((qi = PyLong_AsLong(value)) == -1 && PyErr_Occurred())
+  if ((qi = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
     return -1;
+  }
   self->ve->setQI(qi);
   return 0;
 }
@@ -307,8 +323,9 @@ static int ViewEdge_chaining_time_stamp_set(BPy_ViewEdge *self,
 {
   int timestamp;
 
-  if ((timestamp = PyLong_AsLong(value)) == -1 && PyErr_Occurred())
+  if ((timestamp = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
     return -1;
+  }
   self->ve->setChainingTimeStamp(timestamp);
   return 0;
 }

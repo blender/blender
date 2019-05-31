@@ -111,8 +111,9 @@ void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *
 
   /* cannot transfer data for FloatOrDoubleArray, copy values manually */
   const COLLADAFW::FloatOrDoubleArray &weight = skin->getWeights();
-  for (unsigned int i = 0; i < weight.getValuesCount(); i++)
+  for (unsigned int i = 0; i < weight.getValuesCount(); i++) {
     weights.push_back(bc_get_float_value(weight, i));
+  }
 
   unit_converter->dae_matrix_to_mat4_(bind_shape_matrix, skin->getBindShapeMatrix());
 }
@@ -162,8 +163,9 @@ Object *SkinInfo::create_armature(Main *bmain, Scene *scene, ViewLayer *view_lay
 
 Object *SkinInfo::set_armature(Object *ob_arm)
 {
-  if (this->ob_arm)
+  if (this->ob_arm) {
     return this->ob_arm;
+  }
 
   this->ob_arm = ob_arm;
   return ob_arm;
@@ -203,14 +205,16 @@ bool SkinInfo::uses_joint_or_descendant(COLLADAFW::Node *node)
   const COLLADAFW::UniqueId &uid = node->getUniqueId();
   std::vector<JointData>::iterator it;
   for (it = joint_data.begin(); it != joint_data.end(); it++) {
-    if ((*it).joint_uid == uid)
+    if ((*it).joint_uid == uid) {
       return true;
+    }
   }
 
   COLLADAFW::NodePointerArray &children = node->getChildNodes();
   for (unsigned int i = 0; i < children.getCount(); i++) {
-    if (uses_joint_or_descendant(children[i]))
+    if (uses_joint_or_descendant(children[i])) {
       return true;
+    }
   }
 
   return false;
@@ -255,8 +259,9 @@ void SkinInfo::link_armature(bContext *C,
     const char *name = "Group";
 
     /* skip joints that have invalid UID */
-    if ((*it).joint_uid == COLLADAFW::UniqueId::INVALID)
+    if ((*it).joint_uid == COLLADAFW::UniqueId::INVALID) {
       continue;
+    }
 
     /* name group by joint node name */
 
@@ -326,8 +331,9 @@ void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node *> &root_joint
 
         /* find if joint node is in the tree belonging to the root_joint */
         if (find_node_in_tree(joint, root)) {
-          if (std::find(result.begin(), result.end(), root) == result.end())
+          if (std::find(result.begin(), result.end(), root) == result.end()) {
             result.push_back(root);
+          }
         }
       }
     }
@@ -336,13 +342,15 @@ void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node *> &root_joint
 
 bool SkinInfo::find_node_in_tree(COLLADAFW::Node *node, COLLADAFW::Node *tree_root)
 {
-  if (node == tree_root)
+  if (node == tree_root) {
     return true;
+  }
 
   COLLADAFW::NodePointerArray &children = tree_root->getChildNodes();
   for (unsigned int i = 0; i < children.getCount(); i++) {
-    if (find_node_in_tree(node, children[i]))
+    if (find_node_in_tree(node, children[i])) {
       return true;
+    }
   }
 
   return false;

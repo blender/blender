@@ -40,44 +40,52 @@ extern "C" {
 
 int UnaryFunction0DFloat_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DFloat_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DFloat_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DFloat_Type);
   PyModule_AddObject(module, "UnaryFunction0DFloat", (PyObject *)&UnaryFunction0DFloat_Type);
 
-  if (PyType_Ready(&GetCurvilinearAbscissaF0D_Type) < 0)
+  if (PyType_Ready(&GetCurvilinearAbscissaF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetCurvilinearAbscissaF0D_Type);
   PyModule_AddObject(
       module, "GetCurvilinearAbscissaF0D", (PyObject *)&GetCurvilinearAbscissaF0D_Type);
 
-  if (PyType_Ready(&GetParameterF0D_Type) < 0)
+  if (PyType_Ready(&GetParameterF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetParameterF0D_Type);
   PyModule_AddObject(module, "GetParameterF0D", (PyObject *)&GetParameterF0D_Type);
 
-  if (PyType_Ready(&GetViewMapGradientNormF0D_Type) < 0)
+  if (PyType_Ready(&GetViewMapGradientNormF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetViewMapGradientNormF0D_Type);
   PyModule_AddObject(
       module, "GetViewMapGradientNormF0D", (PyObject *)&GetViewMapGradientNormF0D_Type);
 
-  if (PyType_Ready(&ReadCompleteViewMapPixelF0D_Type) < 0)
+  if (PyType_Ready(&ReadCompleteViewMapPixelF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ReadCompleteViewMapPixelF0D_Type);
   PyModule_AddObject(
       module, "ReadCompleteViewMapPixelF0D", (PyObject *)&ReadCompleteViewMapPixelF0D_Type);
 
-  if (PyType_Ready(&ReadMapPixelF0D_Type) < 0)
+  if (PyType_Ready(&ReadMapPixelF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ReadMapPixelF0D_Type);
   PyModule_AddObject(module, "ReadMapPixelF0D", (PyObject *)&ReadMapPixelF0D_Type);
 
-  if (PyType_Ready(&ReadSteerableViewMapPixelF0D_Type) < 0)
+  if (PyType_Ready(&ReadSteerableViewMapPixelF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ReadSteerableViewMapPixelF0D_Type);
   PyModule_AddObject(
       module, "ReadSteerableViewMapPixelF0D", (PyObject *)&ReadSteerableViewMapPixelF0D_Type);
@@ -103,8 +111,9 @@ static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_float = new UnaryFunction0D<float>();
   self->uf0D_float->py_uf0D = (PyObject *)self;
   return 0;
@@ -112,8 +121,9 @@ static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat *self,
 
 static void UnaryFunction0DFloat___dealloc__(BPy_UnaryFunction0DFloat *self)
 {
-  if (self->uf0D_float)
+  if (self->uf0D_float) {
     delete self->uf0D_float;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -130,8 +140,9 @@ static PyObject *UnaryFunction0DFloat___call__(BPy_UnaryFunction0DFloat *self,
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_float)) == typeid(UnaryFunction0D<float>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

@@ -76,8 +76,9 @@ intersection_test intersect2dSeg2dSeg(
 
   // Check signs of r3 and r4.  If both point 3 and point 4 lie on same side of line 1,
   // the line segments do not intersect.
-  if (r3 != 0 && r4 != 0 && r3 * r4 > 0.0)
+  if (r3 != 0 && r4 != 0 && r3 * r4 > 0.0) {
     return (DONT_INTERSECT);
+  }
 
   // Compute a2, b2, c2
   a2 = p4[1] - p3[1];
@@ -90,13 +91,15 @@ intersection_test intersect2dSeg2dSeg(
 
   // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line
   // segment, the line segments do not intersect.
-  if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0)
+  if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0) {
     return (DONT_INTERSECT);
+  }
 
   // Line segments intersect: compute intersection point.
   denom = a1 * b2 - a2 * b1;
-  if (fabs(denom) < M_EPSILON)
+  if (fabs(denom) < M_EPSILON) {
     return (COLINEAR);
+  }
 
   num = b1 * c2 - b2 * c1;
   res[0] = num / denom;
@@ -125,8 +128,9 @@ intersection_test intersect2dLine2dLine(
 
   // Line segments intersect: compute intersection point.
   denom = a1 * b2 - a2 * b1;
-  if (fabs(denom) < M_EPSILON)
+  if (fabs(denom) < M_EPSILON) {
     return (COLINEAR);
+  }
 
   num = b1 * c2 - b2 * c1;
   res[0] = num / denom;
@@ -160,8 +164,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
 
   // Check signs of r3 and r4.  If both point 3 and point 4 lie on same side of line 1,
   // the line segments do not intersect.
-  if (r3 != 0 && r4 != 0 && r3 * r4 > 0.0)
+  if (r3 != 0 && r4 != 0 && r3 * r4 > 0.0) {
     return (DONT_INTERSECT);
+  }
 
   // Compute a2, b2, c2
   a2 = p4[1] - p3[1];
@@ -174,13 +179,15 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
 
   // Check signs of r1 and r2.  If both point 1 and point 2 lie on same side of second line
   // segment, the line segments do not intersect.
-  if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0)
+  if (r1 != 0 && r2 != 0 && r1 * r2 > 0.0) {
     return (DONT_INTERSECT);
+  }
 
   // Line segments intersect: compute intersection point.
   denom = a1 * b2 - a2 * b1;
-  if (fabs(denom) < epsilon)
+  if (fabs(denom) < epsilon) {
     return (COLINEAR);
+  }
 
   real d1, e1;
 
@@ -387,26 +394,30 @@ bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3])
 
   // test in X-direction
   FINDMINMAX(v0[X], v1[X], v2[X], min, max);
-  if (min > boxhalfsize[X] || max < -boxhalfsize[X])
+  if (min > boxhalfsize[X] || max < -boxhalfsize[X]) {
     return false;
+  }
 
   // test in Y-direction
   FINDMINMAX(v0[Y], v1[Y], v2[Y], min, max);
-  if (min > boxhalfsize[Y] || max < -boxhalfsize[Y])
+  if (min > boxhalfsize[Y] || max < -boxhalfsize[Y]) {
     return false;
+  }
 
   // test in Z-direction
   FINDMINMAX(v0[Z], v1[Z], v2[Z], min, max);
-  if (min > boxhalfsize[Z] || max < -boxhalfsize[Z])
+  if (min > boxhalfsize[Z] || max < -boxhalfsize[Z]) {
     return false;
+  }
 
   // Bullet 2:
   // test if the box intersects the plane of the triangle
   // compute plane equation of triangle: normal * x + d = 0
   normal = e0 ^ e1;
   d = -(normal * v0);  // plane eq: normal.x + d = 0
-  if (!overlapPlaneBox(normal, d, boxhalfsize))
+  if (!overlapPlaneBox(normal, d, boxhalfsize)) {
     return false;
+  }
 
   return true;  // box and triangle overlaps
 }
@@ -453,24 +464,28 @@ bool intersectRayTriangle(const Vec3r &orig,
 
   if (det > epsilon) {
     u = tvec * pvec;
-    if (u < 0.0 || u > det)
+    if (u < 0.0 || u > det) {
       return false;
+    }
 
     // calculate V parameter and test bounds
     v = dir * qvec;
-    if (v < 0.0 || u + v > det)
+    if (v < 0.0 || u + v > det) {
       return false;
+    }
   }
   else if (det < -epsilon) {
     // calculate U parameter and test bounds
     u = tvec * pvec;
-    if (u > 0.0 || u < det)
+    if (u > 0.0 || u < det) {
       return false;
+    }
 
     // calculate V parameter and test bounds
     v = dir * qvec;
-    if (v > 0.0 || u + v < det)
+    if (v > 0.0 || u + v < det) {
       return false;
+    }
   }
   else {
     return false;  // ray is parallell to the plane of the triangle
@@ -496,16 +511,19 @@ intersection_test intersectRayPlane(const Vec3r &orig,
   real denom = norm * dir;
 
   if (fabs(denom) <= epsilon) {  // plane and ray are parallel
-    if (fabs((norm * orig) + d) <= epsilon)
+    if (fabs((norm * orig) + d) <= epsilon) {
       return COINCIDENT;  // plane and ray are coincident
-    else
+    }
+    else {
       return COLINEAR;
+    }
   }
 
   t = -(d + (norm * orig)) / denom;
 
-  if (t < 0.0f)
+  if (t < 0.0f) {
     return DONT_INTERSECT;
+  }
 
   return DO_INTERSECT;
 }
@@ -535,20 +553,26 @@ bool intersectRayBBox(const Vec3r &orig,
   tmax = (bounds[1 - sign[0]].x() - orig.x()) * inv_direction.x();
   tymin = (bounds[sign[1]].y() - orig.y()) * inv_direction.y();
   tymax = (bounds[1 - sign[1]].y() - orig.y()) * inv_direction.y();
-  if ((tmin > tymax) || (tymin > tmax))
+  if ((tmin > tymax) || (tymin > tmax)) {
     return false;
-  if (tymin > tmin)
+  }
+  if (tymin > tmin) {
     tmin = tymin;
-  if (tymax < tmax)
+  }
+  if (tymax < tmax) {
     tmax = tymax;
+  }
   tzmin = (bounds[sign[2]].z() - orig.z()) * inv_direction.z();
   tzmax = (bounds[1 - sign[2]].z() - orig.z()) * inv_direction.z();
-  if ((tmin > tzmax) || (tzmin > tmax))
+  if ((tmin > tzmax) || (tzmin > tmax)) {
     return false;
-  if (tzmin > tmin)
+  }
+  if (tzmin > tmin) {
     tmin = tzmin;
-  if (tzmax < tmax)
+  }
+  if (tzmax < tmax) {
     tmax = tzmax;
+  }
   return ((tmin < t1) && (tmax > t0));
 }
 
@@ -571,14 +595,17 @@ bool includePointTriangle(const Vec3r &P, const Vec3r &A, const Vec3r &B, const 
   K.normalize();
   L.normalize();
 
-  if (J * N < 0)
+  if (J * N < 0) {
     return false;  // on the right of AB
+  }
 
-  if (K * N < 0)
+  if (K * N < 0) {
     return false;  // on the right of BC
+  }
 
-  if (L * N < 0)
+  if (L * N < 0) {
     return false;  // on the right of CA
+  }
 
   return true;
 }
@@ -589,8 +616,9 @@ void transformVertex(const Vec3r &vert, const Matrix44r &matrix, Vec3r &res)
   real scale;
   for (unsigned int j = 0; j < 4; j++) {
     scale = hvert[j];
-    for (unsigned int i = 0; i < 4; i++)
+    for (unsigned int i = 0; i < 4; i++) {
       res_tmp[i] += matrix(i, j) * scale;
+    }
   }
 
   res[0] = res_tmp.x();
@@ -612,8 +640,9 @@ Vec3r rotateVector(const Matrix44r &mat, const Vec3r &v)
   Vec3r res;
   for (unsigned int i = 0; i < 3; i++) {
     res[i] = 0;
-    for (unsigned int j = 0; j < 3; j++)
+    for (unsigned int j = 0; j < 3; j++) {
       res[i] += mat(i, j) * v[j];
+    }
   }
   res.normalize();
   return res;
@@ -698,8 +727,9 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
   };
   for (unsigned short i = 0; i < 3; i++) {
     q[i] = 0.0;
-    for (unsigned short j = 0; j < 3; j++)
+    for (unsigned short j = 0; j < 3; j++) {
       q[i] += model_view_matrix[j][i] * (p[j] - translation[j]);
+    }
   }
 }
 
@@ -718,8 +748,9 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
 
 inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
 {
-  if (seg[0] == seg[1])
+  if (seg[0] == seg[1]) {
     return false;
+  }
 
   real tE = 0;                   // the maximum entering segment parameter
   real tL = 1;                   // the minimum leaving segment parameter
@@ -732,25 +763,29 @@ inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
     N = PERP(e, seg[0] - poly[i]);
     D = -PERP(e, dseg);
     if (fabs(D) < M_EPSILON) {
-      if (N < 0)
+      if (N < 0) {
         return false;
-      else
+      }
+      else {
         continue;
+      }
     }
 
     t = N / D;
     if (D < 0) {     // segment seg is entering across this edge
       if (t > tE) {  // new max tE
         tE = t;
-        if (tE > tL)  // seg enters after leaving polygon
+        if (tE > tL) {  // seg enters after leaving polygon
           return false;
+        }
       }
     }
     else {           // segment seg is leaving across this edge
       if (t < tL) {  // new min tL
         tL = t;
-        if (tL < tE)  // seg leaves before entering polygon
+        if (tL < tE) {  // seg leaves before entering polygon
           return false;
+        }
       }
     }
   }
@@ -773,10 +808,12 @@ inline bool overlapPlaneBox(Vec3r &normal, real d, Vec3r &maxbox)
       vmax[q] = -maxbox[q];
     }
   }
-  if ((normal * vmin) + d > 0.0f)
+  if ((normal * vmin) + d > 0.0f) {
     return false;
-  if ((normal * vmax) + d >= 0.0f)
+  }
+  if ((normal * vmax) + d >= 0.0f) {
     return true;
+  }
   return false;
 }
 
@@ -796,8 +833,9 @@ inline void fromCoordAToCoordB(const Vec3r &p, Vec3r &q, const real transform[4]
     return;
   }
 
-  for (unsigned int k = 0; k < 3; k++)
+  for (unsigned int k = 0; k < 3; k++) {
     q[k] = hq[k] / hq[3];
+  }
 }
 
 }  // end of namespace GeomUtils

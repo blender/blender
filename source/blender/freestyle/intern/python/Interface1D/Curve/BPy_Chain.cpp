@@ -64,10 +64,12 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
   PyObject *obj = 0;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &Chain_Type, &obj)) {
-    if (!obj)
+    if (!obj) {
       self->c = new Chain();
-    else
+    }
+    else {
       self->c = new Chain(*(((BPy_Chain *)obj)->c));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj)) {

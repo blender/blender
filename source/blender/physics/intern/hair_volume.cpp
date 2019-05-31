@@ -321,8 +321,9 @@ BLI_INLINE float weights_sum(const float weights[8])
 {
   float totweight = 0.0f;
   int i;
-  for (i = 0; i < 8; ++i)
+  for (i = 0; i < 8; ++i) {
     totweight += weights[i];
+  }
   return totweight;
 }
 
@@ -370,8 +371,9 @@ void BPH_hair_volume_add_vertex(HairGrid *grid, const float x[3], const float v[
   int di, dj, dk;
   int offset;
 
-  if (!hair_grid_point_valid(x, grid->gmin, grid->gmax))
+  if (!hair_grid_point_valid(x, grid->gmin, grid->gmax)) {
     return;
+  }
 
   offset = hair_grid_weights(res, grid->gmin, grid->inv_cellsize, x, weights);
 
@@ -689,8 +691,9 @@ void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
   /* divide velocity with density */
   for (i = 0; i < size; i++) {
     float density = grid->verts[i].density;
-    if (density > 0.0f)
+    if (density > 0.0f) {
       mul_v3_fl(grid->verts[i].velocity, 1.0f / density);
+    }
   }
 }
 
@@ -705,10 +708,12 @@ BLI_INLINE float hair_volume_density_divergence(float density,
                                                 float target_density,
                                                 float strength)
 {
-  if (density > density_threshold && density > target_density)
+  if (density > density_threshold && density > target_density) {
     return strength * logf(target_density / density);
-  else
+  }
+  else {
     return 0.0f;
+  }
 }
 
 bool BPH_hair_volume_solve_divergence(HairGrid *grid,
@@ -771,18 +776,24 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
 
         const float *v0 = vert->velocity;
         float dx = 0.0f, dy = 0.0f, dz = 0.0f;
-        if (!NEIGHBOR_MARGIN_i0)
+        if (!NEIGHBOR_MARGIN_i0) {
           dx += v0[0] - (vert - stride0)->velocity[0];
-        if (!NEIGHBOR_MARGIN_i1)
+        }
+        if (!NEIGHBOR_MARGIN_i1) {
           dx += (vert + stride0)->velocity[0] - v0[0];
-        if (!NEIGHBOR_MARGIN_j0)
+        }
+        if (!NEIGHBOR_MARGIN_j0) {
           dy += v0[1] - (vert - stride1)->velocity[1];
-        if (!NEIGHBOR_MARGIN_j1)
+        }
+        if (!NEIGHBOR_MARGIN_j1) {
           dy += (vert + stride1)->velocity[1] - v0[1];
-        if (!NEIGHBOR_MARGIN_k0)
+        }
+        if (!NEIGHBOR_MARGIN_k0) {
           dz += v0[2] - (vert - stride2)->velocity[2];
-        if (!NEIGHBOR_MARGIN_k1)
+        }
+        if (!NEIGHBOR_MARGIN_k1) {
           dz += (vert + stride2)->velocity[2] - v0[2];
+        }
 
         float divergence = -0.5f * flowfac * (dx + dy + dz);
 
@@ -862,27 +873,35 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
            * to get the correct number of neighbors,
            * needed for the diagonal element
            */
-          if (!NEIGHBOR_MARGIN_k0 && (vert - stride2)->density > density_threshold)
+          if (!NEIGHBOR_MARGIN_k0 && (vert - stride2)->density > density_threshold) {
             neighbor_lo_index[neighbors_lo++] = u - strideA2;
-          if (!NEIGHBOR_MARGIN_j0 && (vert - stride1)->density > density_threshold)
+          }
+          if (!NEIGHBOR_MARGIN_j0 && (vert - stride1)->density > density_threshold) {
             neighbor_lo_index[neighbors_lo++] = u - strideA1;
-          if (!NEIGHBOR_MARGIN_i0 && (vert - stride0)->density > density_threshold)
+          }
+          if (!NEIGHBOR_MARGIN_i0 && (vert - stride0)->density > density_threshold) {
             neighbor_lo_index[neighbors_lo++] = u - strideA0;
-          if (!NEIGHBOR_MARGIN_i1 && (vert + stride0)->density > density_threshold)
+          }
+          if (!NEIGHBOR_MARGIN_i1 && (vert + stride0)->density > density_threshold) {
             neighbor_hi_index[neighbors_hi++] = u + strideA0;
-          if (!NEIGHBOR_MARGIN_j1 && (vert + stride1)->density > density_threshold)
+          }
+          if (!NEIGHBOR_MARGIN_j1 && (vert + stride1)->density > density_threshold) {
             neighbor_hi_index[neighbors_hi++] = u + strideA1;
-          if (!NEIGHBOR_MARGIN_k1 && (vert + stride2)->density > density_threshold)
+          }
+          if (!NEIGHBOR_MARGIN_k1 && (vert + stride2)->density > density_threshold) {
             neighbor_hi_index[neighbors_hi++] = u + strideA2;
+          }
 
           /*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
           non_solid_neighbors = 6;
 
-          for (n = 0; n < neighbors_lo; ++n)
+          for (n = 0; n < neighbors_lo; ++n) {
             A.insert(neighbor_lo_index[n], u) = -1.0f;
+          }
           A.insert(u, u) = (float)non_solid_neighbors;
-          for (n = 0; n < neighbors_hi; ++n)
+          for (n = 0; n < neighbors_hi; ++n) {
             A.insert(neighbor_hi_index[n], u) = -1.0f;
+          }
         }
         else {
           A.insert(u, u) = 1.0f;
@@ -907,8 +926,9 @@ bool BPH_hair_volume_solve_divergence(HairGrid *grid,
           int u = i * strideA0 + j * strideA1 + k * strideA2;
           bool is_margin = MARGIN_i0 || MARGIN_i1 || MARGIN_j0 || MARGIN_j1 || MARGIN_k0 ||
                            MARGIN_k1;
-          if (is_margin)
+          if (is_margin) {
             continue;
+          }
 
           vert = vert_start + i * stride0 + j * stride1 + k * stride2;
           if (vert->density > density_threshold) {
@@ -1103,8 +1123,9 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,
   int i;
 
   /* sanity check */
-  if (cellsize <= 0.0f)
+  if (cellsize <= 0.0f) {
     cellsize = 1.0f;
+  }
   scale = 1.0f / cellsize;
 
   sub_v3_v3v3(extent, gmax, gmin);
@@ -1149,8 +1170,9 @@ HairGrid *BPH_hair_volume_create_vertex_grid(float cellsize,
 void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
 {
   if (grid) {
-    if (grid->verts)
+    if (grid->verts) {
       MEM_freeN(grid->verts);
+    }
     MEM_freeN(grid);
   }
 }
@@ -1158,14 +1180,18 @@ void BPH_hair_volume_free_vertex_grid(HairGrid *grid)
 void BPH_hair_volume_grid_geometry(
     HairGrid *grid, float *cellsize, int res[3], float gmin[3], float gmax[3])
 {
-  if (cellsize)
+  if (cellsize) {
     *cellsize = grid->cellsize;
-  if (res)
+  }
+  if (res) {
     copy_v3_v3_int(res, grid->res);
-  if (gmin)
+  }
+  if (gmin) {
     copy_v3_v3(gmin, grid->gmin);
-  if (gmax)
+  }
+  if (gmax) {
     copy_v3_v3(gmax, grid->gmax);
+  }
 }
 
 #if 0

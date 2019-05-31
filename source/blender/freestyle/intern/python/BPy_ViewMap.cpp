@@ -34,11 +34,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int ViewMap_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&ViewMap_Type) < 0)
+  if (PyType_Ready(&ViewMap_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ViewMap_Type);
   PyModule_AddObject(module, "ViewMap", (PyObject *)&ViewMap_Type);
 
@@ -58,16 +60,18 @@ static int ViewMap_init(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->vm = new ViewMap();
   return 0;
 }
 
 static void ViewMap_dealloc(BPy_ViewMap *self)
 {
-  if (self->vm)
+  if (self->vm) {
     delete self->vm;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -93,11 +97,13 @@ static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args,
   static const char *kwlist[] = {"x", "y", NULL};
   double x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y)) {
     return NULL;
+  }
   ViewEdge *ve = const_cast<ViewEdge *>(self->vm->getClosestViewEdge(x, y));
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 
@@ -118,11 +124,13 @@ static PyObject *ViewMap_get_closest_fedge(BPy_ViewMap *self, PyObject *args, Py
   static const char *kwlist[] = {"x", "y", NULL};
   double x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y)) {
     return NULL;
+  }
   FEdge *fe = const_cast<FEdge *>(self->vm->getClosestFEdge(x, y));
-  if (fe)
+  if (fe) {
     return Any_BPy_FEdge_from_FEdge(*fe);
+  }
   Py_RETURN_NONE;
 }
 

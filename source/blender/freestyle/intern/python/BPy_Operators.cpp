@@ -41,11 +41,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Operators_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&Operators_Type) < 0)
+  if (PyType_Ready(&Operators_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Operators_Type);
   PyModule_AddObject(module, "Operators", (PyObject *)&Operators_Type);
 
@@ -80,16 +82,18 @@ static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyOb
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj)) {
     return NULL;
+  }
   if (!((BPy_UnaryPredicate1D *)obj)->up1D) {
     PyErr_SetString(PyExc_TypeError,
                     "Operators.select(): 1st argument: invalid UnaryPredicate1D object");
     return NULL;
   }
   if (Operators::select(*(((BPy_UnaryPredicate1D *)obj)->up1D)) < 0) {
-    if (!PyErr_Occurred())
+    if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_RuntimeError, "Operators.select() failed");
+    }
     return NULL;
   }
   Py_RETURN_NONE;
@@ -165,8 +169,9 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
   if (!obj3) {
     if (Operators::chain(*(((BPy_ChainingIterator *)obj1)->c_it),
                          *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.chain() failed");
+      }
       return NULL;
     }
   }
@@ -179,8 +184,9 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
     if (Operators::chain(*(((BPy_ChainingIterator *)obj1)->c_it),
                          *(((BPy_UnaryPredicate1D *)obj2)->up1D),
                          *(((BPy_UnaryFunction1DVoid *)obj3)->uf1D_void)) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.chain() failed");
+      }
       return NULL;
     }
   }
@@ -255,8 +261,9 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
   }
   if (!obj2) {
     if (Operators::bidirectionalChain(*(((BPy_ChainingIterator *)obj1)->c_it)) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.bidirectional_chain() failed");
+      }
       return NULL;
     }
   }
@@ -269,8 +276,9 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
     }
     if (Operators::bidirectionalChain(*(((BPy_ChainingIterator *)obj1)->c_it),
                                       *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.bidirectional_chain() failed");
+      }
       return NULL;
     }
   }
@@ -351,8 +359,9 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
     if (Operators::sequentialSplit(*(((BPy_UnaryPredicate0D *)obj1)->up0D),
                                    *(((BPy_UnaryPredicate0D *)obj2)->up0D),
                                    f) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.sequential_split() failed");
+      }
       return NULL;
     }
   }
@@ -367,8 +376,9 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
       return NULL;
     }
     if (Operators::sequentialSplit(*(((BPy_UnaryPredicate0D *)obj1)->up0D), f) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.sequential_split() failed");
+      }
       return NULL;
     }
   }
@@ -468,8 +478,9 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
     if (Operators::recursiveSplit(*(((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double),
                                   *(((BPy_UnaryPredicate1D *)obj2)->up1D),
                                   f) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.recursive_split() failed");
+      }
       return NULL;
     }
   }
@@ -508,8 +519,9 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
                                   *(((BPy_UnaryPredicate0D *)obj2)->up0D),
                                   *(((BPy_UnaryPredicate1D *)obj3)->up1D),
                                   f) < 0) {
-      if (!PyErr_Occurred())
+      if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.recursive_split() failed");
+      }
       return NULL;
     }
   }
@@ -535,16 +547,18 @@ static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObje
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &BinaryPredicate1D_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &BinaryPredicate1D_Type, &obj)) {
     return NULL;
+  }
   if (!((BPy_BinaryPredicate1D *)obj)->bp1D) {
     PyErr_SetString(PyExc_TypeError,
                     "Operators.sort(): 1st argument: invalid BinaryPredicate1D object");
     return NULL;
   }
   if (Operators::sort(*(((BPy_BinaryPredicate1D *)obj)->bp1D)) < 0) {
-    if (!PyErr_Occurred())
+    if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_RuntimeError, "Operators.sort() failed");
+    }
     return NULL;
   }
   Py_RETURN_NONE;
@@ -603,8 +617,9 @@ static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyOb
     shaders.push_back(shader);
   }
   if (Operators::create(*(((BPy_UnaryPredicate1D *)obj1)->up1D), shaders) < 0) {
-    if (!PyErr_Occurred())
+    if (!PyErr_Occurred()) {
       PyErr_SetString(PyExc_RuntimeError, "Operators.create() failed");
+    }
     return NULL;
   }
   Py_RETURN_NONE;
@@ -651,8 +666,9 @@ static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", NULL};
   unsigned int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return NULL;
+  }
   if (i >= Operators::getViewEdgesSize()) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;
@@ -677,8 +693,9 @@ static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", NULL};
   unsigned int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return NULL;
+  }
   if (i >= Operators::getChainsSize()) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;
@@ -703,8 +720,9 @@ static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", NULL};
   unsigned int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
     return NULL;
+  }
   if (i >= Operators::getStrokesSize()) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;

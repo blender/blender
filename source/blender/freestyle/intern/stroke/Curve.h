@@ -123,10 +123,12 @@ class CurvePoint : public Interface0D {
   virtual Id getId() const
   {
     Id id;
-    if (_t2d == 0)
+    if (_t2d == 0) {
       return __A->getId();
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       return __B->getId();
+    }
     return id;
   }
 
@@ -134,50 +136,60 @@ class CurvePoint : public Interface0D {
   virtual Nature::VertexNature getNature() const
   {
     Nature::VertexNature nature = Nature::POINT;
-    if (_t2d == 0)
+    if (_t2d == 0) {
       nature |= __A->getNature();
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       nature |= __B->getNature();
+    }
     return nature;
   }
 
   /*! Cast the Interface0D in SVertex if it can be. */
   virtual SVertex *castToSVertex()
   {
-    if (_t2d == 0)
+    if (_t2d == 0) {
       return __A;
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       return __B;
+    }
     return Interface0D::castToSVertex();
   }
 
   /*! Cast the Interface0D in ViewVertex if it can be. */
   virtual ViewVertex *castToViewVertex()
   {
-    if (_t2d == 0)
+    if (_t2d == 0) {
       return __A->castToViewVertex();
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       return __B->castToViewVertex();
+    }
     return Interface0D::castToViewVertex();
   }
 
   /*! Cast the Interface0D in NonTVertex if it can be. */
   virtual NonTVertex *castToNonTVertex()
   {
-    if (_t2d == 0)
+    if (_t2d == 0) {
       return __A->castToNonTVertex();
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       return __B->castToNonTVertex();
+    }
     return Interface0D::castToNonTVertex();
   }
 
   /*! Cast the Interface0D in TVertex if it can be. */
   virtual TVertex *castToTVertex()
   {
-    if (_t2d == 0)
+    if (_t2d == 0) {
       return __A->castToTVertex();
-    else if (_t2d == 1)
+    }
+    else if (_t2d == 1) {
       return __B->castToTVertex();
+    }
     return Interface0D::castToTVertex();
   }
 

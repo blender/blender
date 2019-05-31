@@ -62,8 +62,9 @@ static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *sel
   static const char *kwlist[] = {"thickness_A", "thickness_B", NULL};
   float f1, f2;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2)) {
     return -1;
+  }
   self->py_ss.ss = new StrokeShaders::IncreasingThicknessShader(f1, f2);
   return 0;
 }

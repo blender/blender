@@ -46,8 +46,9 @@ static int SameShapeIdBP1D___init__(BPy_SameShapeIdBP1D *self, PyObject *args, P
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_bp1D.bp1D = new Predicates1D::SameShapeIdBP1D();
   return 0;
 }

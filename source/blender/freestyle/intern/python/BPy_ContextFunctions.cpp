@@ -116,8 +116,9 @@ static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, 
   float sigma = 1.0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "ss|If", (char **)kwlist, &fileName, &mapName, &nbLevels, &sigma))
+          args, kwds, "ss|If", (char **)kwlist, &fileName, &mapName, &nbLevels, &sigma)) {
     return NULL;
+  }
   ContextFunctions::LoadMapCF(fileName, mapName, nbLevels, sigma);
   Py_RETURN_NONE;
 }
@@ -150,8 +151,10 @@ static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
   int level;
   unsigned x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "siII", (char **)kwlist, &mapName, &level, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "siII", (char **)kwlist, &mapName, &level, &x, &y)) {
     return NULL;
+  }
   return PyFloat_FromDouble(ContextFunctions::ReadMapPixelCF(mapName, level, x, y));
 }
 
@@ -180,8 +183,9 @@ static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self
   int level;
   unsigned x, y;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "iII", (char **)kwlist, &level, &x, &y))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "iII", (char **)kwlist, &level, &x, &y)) {
     return NULL;
+  }
   return PyFloat_FromDouble(ContextFunctions::ReadCompleteViewMapPixelCF(level, x, y));
 }
 
@@ -214,8 +218,9 @@ static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*s
   unsigned x, y;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "iiII", (char **)kwlist, &orientation, &level, &x, &y))
+          args, kwds, "iiII", (char **)kwlist, &orientation, &level, &x, &y)) {
     return NULL;
+  }
   return PyFloat_FromDouble(
       ContextFunctions::ReadDirectionalViewMapPixelCF(orientation, level, x, y));
 }
@@ -231,8 +236,9 @@ static char ContextFunctions_get_selected_fedge___doc__[] =
 static PyObject *ContextFunctions_get_selected_fedge(PyObject * /*self*/)
 {
   FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
-  if (fe)
+  if (fe) {
     return Any_BPy_FEdge_from_FEdge(*fe);
+  }
   Py_RETURN_NONE;
 }
 
@@ -298,12 +304,14 @@ int ContextFunctions_Init(PyObject *module)
 {
   PyObject *m;
 
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
   m = PyModule_Create(&module_definition);
-  if (m == NULL)
+  if (m == NULL) {
     return -1;
+  }
   Py_INCREF(m);
   PyModule_AddObject(module, "ContextFunctions", m);
 

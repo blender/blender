@@ -142,8 +142,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
   sv2 = *v2;
   Vec2r dir(sv2->getPoint() - sv->getPoint());
   Vec2r orthDir(-dir[1], dir[0]);
-  if (orthDir.norm() > ZERO)
+  if (orthDir.norm() > ZERO) {
     orthDir.normalize();
+  }
   Vec2r stripDir(orthDir);
   // check whether the orientation was user defined
   if (sv->attribute().isAttributeAvailableVec2f("orientation")) {
@@ -151,8 +152,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     if (userDir.norm() > 1e-6) {
       userDir.normalize();
       real dp = userDir * orthDir;
-      if (dp < 0)
+      if (dp < 0) {
         userDir = userDir * (-1.0f);
+      }
       stripDir = userDir;
     }
     else {
@@ -206,8 +208,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
       if (userDir.norm() > 1e-6) {
         userDir.normalize();
         real dp = userDir * orthDir;
-        if (dp < 0)
+        if (dp < 0) {
           userDir = userDir * (-1.0f);
+        }
         stripDir = userDir;
       }
       else {
@@ -226,8 +229,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
       if (userDir.norm() > 1e-6) {
         userDir.normalize();
         real dp = userDir * orthDir;
-        if (dp < 0)
+        if (dp < 0) {
           userDir = userDir * (-1.0f);
+        }
         stripDirPrev = userDir;
       }
       else {
@@ -245,10 +249,12 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
                                                    Vec2r(p + thickness[1] * stripDir),
                                                    Vec2r(p2 + thickness[1] * stripDir),
                                                    pInter);
-    if (interResult == GeomUtils::DO_INTERSECT)
+    if (interResult == GeomUtils::DO_INTERSECT) {
       _vertices.push_back(new StrokeVertexRep(pInter));
-    else
+    }
+    else {
       _vertices.push_back(new StrokeVertexRep(p + thickness[1] * stripDir));
+    }
     ++i;
 
     interResult = GeomUtils::intersect2dLine2dLine(Vec2r(pPrev - thickness[0] * stripDirPrev),
@@ -256,10 +262,12 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
                                                    Vec2r(p - thickness[0] * stripDir),
                                                    Vec2r(p2 - thickness[0] * stripDir),
                                                    pInter);
-    if (interResult == GeomUtils::DO_INTERSECT)
+    if (interResult == GeomUtils::DO_INTERSECT) {
       _vertices.push_back(new StrokeVertexRep(pInter));
-    else
+    }
+    else {
       _vertices.push_back(new StrokeVertexRep(p - thickness[0] * stripDir));
+    }
     ++i;
 
     // if the angle is obtuse, we simply average the directions to avoid the singularity
@@ -292,8 +300,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
   sv2 = *vPrev;
   dir = Vec2r(sv->getPoint() - sv2->getPoint());
   orthDir = Vec2r(-dir[1], dir[0]);
-  if (orthDir.norm() > ZERO)
+  if (orthDir.norm() > ZERO) {
     orthDir.normalize();
+  }
   Vec2r stripDirLast(orthDir);
   // check whether the orientation was user defined
   if (sv->attribute().isAttributeAvailableVec2f("orientation")) {
@@ -301,8 +310,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
     if (userDir.norm() > 1e-6) {
       userDir.normalize();
       real dp = userDir * orthDir;
-      if (dp < 0)
+      if (dp < 0) {
         userDir = userDir * (-1.0f);
+      }
       stripDirLast = userDir;
     }
     else {
@@ -343,8 +353,9 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
 
   _averageThickness /= float(iStrokeVertices.size() - 2);
   // I did not use the first and last vertex for the average
-  if (iStrokeVertices.size() < 3)
+  if (iStrokeVertices.size() < 3) {
     _averageThickness = 0.5 * (thicknessLast[1] + thicknessLast[0] + thickness[0] + thickness[1]);
+  }
 
   if (orientationErrors > 0) {
     if (G.debug & G_DEBUG_FREESTYLE) {
@@ -380,8 +391,9 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
   }
 
   // return;
-  if (iStrokeVertices.size() < 2)
+  if (iStrokeVertices.size() < 2) {
     return;
+  }
   int i = 0, j;
   vector<StrokeVertex *>::const_iterator v, vend, v2;
   StrokeVertex *sv, *sv2;
@@ -394,15 +406,17 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
   for (vend = iStrokeVertices.end(); v != vend; v++) {
     v2 = v;
     ++v2;
-    if (v2 == vend)
+    if (v2 == vend) {
       break;
+    }
     sv = (*v);
     sv2 = (*v2);
     Vec2r p(sv->getPoint()), p2(sv2->getPoint());
 
     Vec2r dir(p2 - p);
-    if (dir.norm() > ZERO)
+    if (dir.norm() > ZERO) {
       dir.normalize();
+    }
     Vec2r dir1, dir2;
     dir1 = _vertices[2 * i + 2]->point2d() - _vertices[2 * i]->point2d();
     dir2 = _vertices[2 * i + 3]->point2d() - _vertices[2 * i + 1]->point2d();
@@ -414,15 +428,18 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
     else {
       if (singu1) {
         int toto = i - timeSinceSingu1;
-        if (toto < 0)
+        if (toto < 0) {
           cerr << "Stephane dit \"Toto\"" << endl;
+        }
         // traverse all the vertices of the singularity and average them
         Vec2r avP(0.0, 0.0);
-        for (j = i - timeSinceSingu1; j <= i; j++)
+        for (j = i - timeSinceSingu1; j <= i; j++) {
           avP = Vec2r(avP + _vertices[2 * j]->point2d());
+        }
         avP = Vec2r(1.0 / float(timeSinceSingu1 + 1) * avP);
-        for (j = i - timeSinceSingu1; j <= i; j++)
+        for (j = i - timeSinceSingu1; j <= i; j++) {
           _vertices[2 * j]->setPoint2d(avP);
+        }
         //_vertex[2 * j] = _vertex[2 * i];
         singu1 = false;
         timeSinceSingu1 = 0;
@@ -435,15 +452,18 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
     else {
       if (singu2) {
         int toto = i - timeSinceSingu2;
-        if (toto < 0)
+        if (toto < 0) {
           cerr << "Stephane dit \"Toto\"" << endl;
+        }
         // traverse all the vertices of the singularity and average them
         Vec2r avP(0.0, 0.0);
-        for (j = i - timeSinceSingu2; j <= i; j++)
+        for (j = i - timeSinceSingu2; j <= i; j++) {
           avP = Vec2r(avP + _vertices[2 * j + 1]->point2d());
+        }
         avP = Vec2r(1.0 / float(timeSinceSingu2 + 1) * avP);
-        for (j = i - timeSinceSingu2; j <= i; j++)
+        for (j = i - timeSinceSingu2; j <= i; j++) {
           _vertices[2 * j + 1]->setPoint2d(avP);
+        }
         //_vertex[2 * j + 1] = _vertex[2 * i + 1];
         singu2 = false;
         timeSinceSingu2 = 0;
@@ -455,20 +475,24 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
   if (singu1) {
     // traverse all the vertices of the singularity and average them
     Vec2r avP(0.0, 0.0);
-    for (j = i - timeSinceSingu1; j < i; j++)
+    for (j = i - timeSinceSingu1; j < i; j++) {
       avP = Vec2r(avP + _vertices[2 * j]->point2d());
+    }
     avP = Vec2r(1.0 / float(timeSinceSingu1) * avP);
-    for (j = i - timeSinceSingu1; j < i; j++)
+    for (j = i - timeSinceSingu1; j < i; j++) {
       _vertices[2 * j]->setPoint2d(avP);
+    }
   }
   if (singu2) {
     // traverse all the vertices of the singularity and average them
     Vec2r avP(0.0, 0.0);
-    for (j = i - timeSinceSingu2; j < i; j++)
+    for (j = i - timeSinceSingu2; j < i; j++) {
       avP = Vec2r(avP + _vertices[2 * j + 1]->point2d());
+    }
     avP = Vec2r(1.0 / float(timeSinceSingu2) * avP);
-    for (j = i - timeSinceSingu2; j < i; j++)
+    for (j = i - timeSinceSingu2; j < i; j++) {
       _vertices[2 * j + 1]->setPoint2d(avP);
+    }
   }
 
   for (k = 0; k < sizeStrip; k++) {
@@ -556,8 +580,9 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
       sv = (*v);
       svRep = *currentSV;
       u = sv->curvilinearAbscissa() / spacedThickness * fact;
-      if (u > 0.25)
+      if (u > 0.25) {
         break;
+      }
 
       svRep->setTexCoord(Vec2r((real)u, -0.5), true);
       i++;
@@ -572,10 +597,12 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
 
     if (v != vend && i >= 2) {
       // first transition vertex
-      if (fabs(u - uPrev) > ZERO)
+      if (fabs(u - uPrev) > ZERO) {
         t = (0.25 - uPrev) / (u - uPrev);
-      else
+      }
+      else {
         t = 0;
+      }
       for (int k = 0; k < 2; k++) {
         tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() +
                                        t * _vertices[i]->point2d());
@@ -613,8 +640,9 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
     sv = (*v);
     svRep = *currentSV;
     u = sv->curvilinearAbscissa() / spacedThickness * fact - 0.25;
-    if (u > tiles)
+    if (u > tiles) {
       break;
+    }
 
     svRep->setTexCoord(Vec2r((real)u, 0), true);
     i++;
@@ -631,10 +659,12 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
   if (tipEnd) {
     if (v != vend && i >= 2) {
       // second transition vertex
-      if (fabs(u - uPrev) > ZERO)
+      if (fabs(u - uPrev) > ZERO) {
         t = (float(tiles) - uPrev) / (u - uPrev);
-      else
+      }
+      else {
         t = 0;
+      }
       for (int k = 0; k < 2; k++) {
         tvRep[k] = new StrokeVertexRep((1 - t) * _vertices[i - 2]->point2d() +
                                        t * _vertices[i]->point2d());
@@ -715,8 +745,9 @@ StrokeRep::StrokeRep()
     _mtex[a] = NULL;
   }
   TextureManager *ptm = TextureManager::getInstance();
-  if (ptm)
+  if (ptm) {
     _textureId = ptm->getDefaultTextureId();
+  }
 #if 0
   _averageTextureAlpha = 0.5;  //default value
   if (_strokeType == OIL_STROKE)
@@ -744,8 +775,9 @@ StrokeRep::StrokeRep(Stroke *iStroke)
   }
   if (_textureId == 0) {
     TextureManager *ptm = TextureManager::getInstance();
-    if (ptm)
+    if (ptm) {
       _textureId = ptm->getDefaultTextureId();
+    }
   }
 
 #if 0

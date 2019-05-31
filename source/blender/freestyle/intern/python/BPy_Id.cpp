@@ -31,11 +31,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Id_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&Id_Type) < 0)
+  if (PyType_Ready(&Id_Type) < 0) {
     return -1;
+  }
 
   Py_INCREF(&Id_Type);
   PyModule_AddObject(module, "Id", (PyObject *)&Id_Type);

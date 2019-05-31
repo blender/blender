@@ -26,8 +26,9 @@ namespace Freestyle {
 
 PSStrokeRenderer::PSStrokeRenderer(const char *iFileName) : StrokeRenderer()
 {
-  if (!iFileName)
+  if (!iFileName) {
     iFileName = "freestyle.ps";
+  }
   // open the stream:
   _ofstream.open(iFileName, ios::out);
   if (!_ofstream.is_open()) {
@@ -91,8 +92,9 @@ void PSStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 void PSStrokeRenderer::Close()
 {
-  if (_ofstream.is_open())
+  if (_ofstream.is_open()) {
     _ofstream.close();
+  }
 }
 
 } /* namespace Freestyle */

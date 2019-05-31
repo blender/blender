@@ -57,8 +57,9 @@ static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_vec3f.uf0D_vec3f = new Functions0D::VertexOrientation3DF0D();
   self->py_uf0D_vec3f.uf0D_vec3f->py_uf0D = (PyObject *)self;
   return 0;

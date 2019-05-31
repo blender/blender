@@ -132,12 +132,14 @@ static void assign_index(struct bNode *node)
   }
 
 check_index:
-  for (; tnode; tnode = tnode->next)
-    if (tnode->type == TEX_NODE_OUTPUT && tnode != node)
+  for (; tnode; tnode = tnode->next) {
+    if (tnode->type == TEX_NODE_OUTPUT && tnode != node) {
       if (tnode->custom1 == index) {
         index++;
         goto check_index;
       }
+    }
+  }
 
   node->custom1 = index;
 }

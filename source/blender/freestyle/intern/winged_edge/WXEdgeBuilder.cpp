@@ -27,8 +27,9 @@ namespace Freestyle {
 
 void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
 {
-  if (_pRenderMonitor && _pRenderMonitor->testBreak())
+  if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
     return;
+  }
   WXShape *shape = new WXShape;
   if (!buildWShape(*shape, ifs)) {
     delete shape;

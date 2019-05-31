@@ -55,12 +55,14 @@ PyDoc_STRVAR(Interface0DIterator_doc,
 
 static int convert_nested_it(PyObject *obj, void *v)
 {
-  if (!obj || !BPy_Iterator_Check(obj))
+  if (!obj || !BPy_Iterator_Check(obj)) {
     return 0;
+  }
   Interface0DIteratorNested *nested_it = dynamic_cast<Interface0DIteratorNested *>(
       ((BPy_Iterator *)obj)->it);
-  if (!nested_it)
+  if (!nested_it) {
     return 0;
+  }
   *((Interface0DIteratorNested **)v) = nested_it;
   return 1;
 }

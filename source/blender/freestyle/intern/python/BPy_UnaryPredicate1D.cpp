@@ -43,63 +43,75 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int UnaryPredicate1D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryPredicate1D_Type) < 0)
+  if (PyType_Ready(&UnaryPredicate1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryPredicate1D_Type);
   PyModule_AddObject(module, "UnaryPredicate1D", (PyObject *)&UnaryPredicate1D_Type);
 
-  if (PyType_Ready(&ContourUP1D_Type) < 0)
+  if (PyType_Ready(&ContourUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ContourUP1D_Type);
   PyModule_AddObject(module, "ContourUP1D", (PyObject *)&ContourUP1D_Type);
 
-  if (PyType_Ready(&DensityLowerThanUP1D_Type) < 0)
+  if (PyType_Ready(&DensityLowerThanUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&DensityLowerThanUP1D_Type);
   PyModule_AddObject(module, "DensityLowerThanUP1D", (PyObject *)&DensityLowerThanUP1D_Type);
 
-  if (PyType_Ready(&EqualToChainingTimeStampUP1D_Type) < 0)
+  if (PyType_Ready(&EqualToChainingTimeStampUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&EqualToChainingTimeStampUP1D_Type);
   PyModule_AddObject(
       module, "EqualToChainingTimeStampUP1D", (PyObject *)&EqualToChainingTimeStampUP1D_Type);
 
-  if (PyType_Ready(&EqualToTimeStampUP1D_Type) < 0)
+  if (PyType_Ready(&EqualToTimeStampUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&EqualToTimeStampUP1D_Type);
   PyModule_AddObject(module, "EqualToTimeStampUP1D", (PyObject *)&EqualToTimeStampUP1D_Type);
 
-  if (PyType_Ready(&ExternalContourUP1D_Type) < 0)
+  if (PyType_Ready(&ExternalContourUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ExternalContourUP1D_Type);
   PyModule_AddObject(module, "ExternalContourUP1D", (PyObject *)&ExternalContourUP1D_Type);
 
-  if (PyType_Ready(&FalseUP1D_Type) < 0)
+  if (PyType_Ready(&FalseUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FalseUP1D_Type);
   PyModule_AddObject(module, "FalseUP1D", (PyObject *)&FalseUP1D_Type);
 
-  if (PyType_Ready(&QuantitativeInvisibilityUP1D_Type) < 0)
+  if (PyType_Ready(&QuantitativeInvisibilityUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&QuantitativeInvisibilityUP1D_Type);
   PyModule_AddObject(
       module, "QuantitativeInvisibilityUP1D", (PyObject *)&QuantitativeInvisibilityUP1D_Type);
 
-  if (PyType_Ready(&ShapeUP1D_Type) < 0)
+  if (PyType_Ready(&ShapeUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ShapeUP1D_Type);
   PyModule_AddObject(module, "ShapeUP1D", (PyObject *)&ShapeUP1D_Type);
 
-  if (PyType_Ready(&TrueUP1D_Type) < 0)
+  if (PyType_Ready(&TrueUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&TrueUP1D_Type);
   PyModule_AddObject(module, "TrueUP1D", (PyObject *)&TrueUP1D_Type);
 
-  if (PyType_Ready(&WithinImageBoundaryUP1D_Type) < 0)
+  if (PyType_Ready(&WithinImageBoundaryUP1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&WithinImageBoundaryUP1D_Type);
   PyModule_AddObject(module, "WithinImageBoundaryUP1D", (PyObject *)&WithinImageBoundaryUP1D_Type);
 
@@ -133,8 +145,9 @@ static int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->up1D = new UnaryPredicate1D();
   self->up1D->py_up1D = (PyObject *)self;
   return 0;
@@ -142,8 +155,9 @@ static int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args,
 
 static void UnaryPredicate1D___dealloc__(BPy_UnaryPredicate1D *self)
 {
-  if (self->up1D)
+  if (self->up1D) {
     delete self->up1D;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -159,8 +173,10 @@ static PyObject *UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self,
   static const char *kwlist[] = {"inter", NULL};
   PyObject *py_if1D;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &py_if1D))
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &py_if1D)) {
     return NULL;
+  }
 
   Interface1D *if1D = ((BPy_Interface1D *)py_if1D)->if1D;
 

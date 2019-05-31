@@ -96,10 +96,12 @@ class FEdgeXDetector {
   // XXX angle should be in radian...
   inline void setCreaseAngle(float angle)
   {
-    if (angle < 0.0)
+    if (angle < 0.0) {
       angle = 0.0;
-    else if (angle > 180.0)
+    }
+    else if (angle > 180.0) {
       angle = 180.0;
+    }
     angle = cos(M_PI * (180.0 - angle) / 180.0);
     if (angle != _creaseAngle) {
       _creaseAngle = angle;

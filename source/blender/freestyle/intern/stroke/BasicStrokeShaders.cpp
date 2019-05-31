@@ -59,10 +59,12 @@ int ConstantThicknessShader::shade(Stroke &stroke) const
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     // XXX What's the use of i here? And is not the thickness always overriden by the last line of
     // the loop?
-    if ((1 == i) || (size - 2 == i))
+    if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(_thickness / 4.0, _thickness / 4.0);
-    if ((0 == i) || (size - 1 == i))
+    }
+    if ((0 == i) || (size - 1 == i)) {
       v->attribute().setThickness(0, 0);
+    }
 
     v->attribute().setThickness(_thickness / 2.0, _thickness / 2.0);
   }
@@ -77,10 +79,12 @@ int ConstantExternThicknessShader::shade(Stroke &stroke) const
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     // XXX What's the use of i here? And is not the thickness always overriden by the last line of
     // the loop?
-    if ((1 == i) || (size - 2 == i))
+    if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(_thickness / 2.0, 0);
-    if ((0 == i) || (size - 1 == i))
+    }
+    if ((0 == i) || (size - 1 == i)) {
       v->attribute().setThickness(0, 0);
+    }
 
     v->attribute().setThickness(_thickness, 0);
   }
@@ -94,10 +98,12 @@ int IncreasingThicknessShader::shade(Stroke &stroke) const
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++i) {
     float t;
-    if (i < (float)n / 2.0f)
+    if (i < (float)n / 2.0f) {
       t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * _ThicknessMax;
-    else
+    }
+    else {
       t = (1.0 - (float)i / (float)n) * _ThicknessMax + (float)i / (float)n * _ThicknessMin;
+    }
     v->attribute().setThickness(t / 2.0, t / 2.0);
   }
   return 0;
@@ -114,13 +120,16 @@ int ConstrainedIncreasingThicknessShader::shade(Stroke &stroke) const
     // XXX Why not using an if/else here? Else, if last condition is true, everything else is
     // computed for nothing!
     float t;
-    if (i < (float)n / 2.0f)
+    if (i < (float)n / 2.0f) {
       t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * maxT;
-    else
+    }
+    else {
       t = (1.0 - (float)i / (float)n) * maxT + (float)i / (float)n * _ThicknessMin;
+    }
     v->attribute().setThickness(t / 2.0, t / 2.0);
-    if (i == n - 1)
+    if (i == n - 1) {
       v->attribute().setThickness(_ThicknessMin / 2.0, _ThicknessMin / 2.0);
+    }
   }
   return 0;
 }
@@ -130,14 +139,18 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   float step = (_maxThickness - _minThickness) / 3.0f;
   float l = stroke.getLength2D();
   float thickness = 0.0f;
-  if (l > 300.0f)
+  if (l > 300.0f) {
     thickness = _minThickness + 3.0f * step;
-  else if ((l < 300.0f) && (l > 100.0f))
+  }
+  else if ((l < 300.0f) && (l > 100.0f)) {
     thickness = _minThickness + 2.0f * step;
-  else if ((l < 100.0f) && (l > 50.0f))
+  }
+  else if ((l < 100.0f) && (l > 50.0f)) {
     thickness = _minThickness + 1.0f * step;
-  else  // else if (l <  50.0f), tsst...
+  }
+  else {  // else if (l <  50.0f), tsst...
     thickness = _minThickness;
+  }
 
   StrokeInternal::StrokeVertexIterator v, vend;
   int i = 0;
@@ -145,10 +158,12 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     // XXX What's the use of i here? And is not the thickness always overriden by the last line of
     // the loop?
-    if ((1 == i) || (size - 2 == i))
+    if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(thickness / 4.0, thickness / 4.0);
-    if ((0 == i) || (size - 1 == i))
+    }
+    if ((0 == i) || (size - 1 == i)) {
       v->attribute().setThickness(0, 0);
+    }
 
     v->attribute().setThickness(thickness / 2.0, thickness / 2.0);
   }
@@ -231,8 +246,9 @@ int MaterialColorShader::shade(Stroke &stroke) const
   Functions0D::MaterialF0D fun;
   StrokeVertex *sv;
   for (v = stroke.verticesBegin(), vend = stroke.verticesEnd(); v != vend; ++v) {
-    if (fun(v) < 0)
+    if (fun(v) < 0) {
       return -1;
+    }
     const float *diffuse = fun.result.diffuse();
     sv = dynamic_cast<StrokeVertex *>(&(*v));
     sv->attribute().setColor(
@@ -281,8 +297,9 @@ int ColorNoiseShader::shade(Stroke &stroke) const
 
 int BlenderTextureShader::shade(Stroke &stroke) const
 {
-  if (_mtex)
+  if (_mtex) {
     return stroke.setMTex(_mtex);
+  }
   if (_nodeTree) {
     stroke.setNodeTree(_nodeTree);
     return 0;
@@ -304,8 +321,9 @@ int StrokeTextureStepShader::shade(Stroke &stroke) const
 int BackboneStretcherShader::shade(Stroke &stroke) const
 {
   float l = stroke.getLength2D();
-  if (l <= 1.0e-6)
+  if (l <= 1.0e-6) {
     return 0;
+  }
 
   StrokeInternal::StrokeVertexIterator v0 = stroke.strokeVerticesBegin();
   StrokeInternal::StrokeVertexIterator v1 = v0;
@@ -346,8 +364,9 @@ int ExternalContourStretcherShader::shade(Stroke &stroke) const
   Functions0D::Normal2DF0D fun;
   StrokeVertex *sv;
   for (it = stroke.verticesBegin(); !it.isEnd(); ++it) {
-    if (fun(it) < 0)
+    if (fun(it) < 0) {
       return -1;
+    }
     Vec2f n(fun.result);
     sv = dynamic_cast<StrokeVertex *>(&(*it));
     Vec2d newPoint(sv->x() + _amount * n.x(), sv->y() + _amount * n.y());
@@ -360,8 +379,9 @@ int ExternalContourStretcherShader::shade(Stroke &stroke) const
 //!! Bezier curve stroke shader
 int BezierCurveShader::shade(Stroke &stroke) const
 {
-  if (stroke.strokeVerticesSize() < 4)
+  if (stroke.strokeVerticesSize() < 4) {
     return 0;
+  }
 
   // Build the Bezier curve from this set of data points:
   vector<Vec2d> data;
@@ -371,8 +391,9 @@ int BezierCurveShader::shade(Stroke &stroke) const
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if (!((fabs(v->x() - (previous)->x()) < M_EPSILON) &&
-          ((fabs(v->y() - (previous)->y()) < M_EPSILON))))
+          ((fabs(v->y() - (previous)->y()) < M_EPSILON)))) {
       data.push_back(Vec2d(v->x(), v->y()));
+    }
     previous = v;
   }
 
@@ -435,8 +456,9 @@ int BezierCurveShader::shade(Stroke &stroke) const
   stroke.UpdateLength();
 
   // Deal with extra vertices:
-  if (nExtraVertex == 0)
+  if (nExtraVertex == 0) {
     return 0;
+  }
 
   // nExtraVertex should stay unassigned
   vector<StrokeAttribute> attributes;
@@ -504,8 +526,9 @@ class CurvePiece {
     for (StrokeInternal::StrokeVertexIterator it = _begin; it != _last; ++it) {
       Vec2d P(it->x(), it->y());
       float d = GeomUtils::distPointSegment(P, A, B);
-      if (d > maxE)
+      if (d > maxE) {
         maxE = d;
+      }
     }
     _error = maxE;
     return maxE;
@@ -520,8 +543,9 @@ class CurvePiece {
     int ns = size - 1;  // number of segments (ns > 1)
     int ns1 = ns / 2;
     int ns2 = ns - ns1;
-    for (int i = 0; i < ns1; ++it, ++i)
+    for (int i = 0; i < ns1; ++it, ++i) {
       ;
+    }
 
     CurvePiece *second = new CurvePiece(it, _last, ns2 + 1);
     size = ns1 + 1;
@@ -600,8 +624,9 @@ int GuidingLinesShader::shade(Stroke &stroke) const
   Vec2d u = piece.B - piece.A;
   Vec2f n(u[1], -u[0]);
   n.normalize();
-  if (norm_fun(stroke) < 0)
+  if (norm_fun(stroke) < 0) {
     return -1;
+  }
   Vec2f strokeN(norm_fun.result);
   if (n * strokeN < 0) {
     n[0] = -n[0];
@@ -632,8 +657,9 @@ int TipRemoverShader::shade(Stroke &stroke) const
 {
   int originalSize = stroke.strokeVerticesSize();
 
-  if (originalSize < 4)
+  if (originalSize < 4) {
     return 0;
+  }
 
   StrokeInternal::StrokeVertexIterator v, vend;
   vector<StrokeVertex *> verticesToRemove;
@@ -646,8 +672,9 @@ int TipRemoverShader::shade(Stroke &stroke) const
     oldAttributes.push_back(v->attribute());
   }
 
-  if (originalSize - verticesToRemove.size() < 2)
+  if (originalSize - verticesToRemove.size() < 2) {
     return 0;
+  }
 
   vector<StrokeVertex *>::iterator sv, svend;
   for (sv = verticesToRemove.begin(), svend = verticesToRemove.end(); sv != svend; ++sv) {
@@ -657,8 +684,9 @@ int TipRemoverShader::shade(Stroke &stroke) const
   // Resample so that our new stroke have the same number of vertices than before
   stroke.Resample(originalSize);
 
-  if ((int)stroke.strokeVerticesSize() != originalSize)  // soc
+  if ((int)stroke.strokeVerticesSize() != originalSize) {  // soc
     cerr << "Warning: resampling problem" << endl;
+  }
 
   // assign old attributes to new stroke vertices:
   vector<StrokeAttribute>::iterator a = oldAttributes.begin(), aend = oldAttributes.end();

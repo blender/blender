@@ -35,17 +35,20 @@ extern "C" {
 
 int UnaryFunction0DEdgeNature_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DEdgeNature_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DEdgeNature_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DEdgeNature_Type);
   PyModule_AddObject(
       module, "UnaryFunction0DEdgeNature", (PyObject *)&UnaryFunction0DEdgeNature_Type);
 
-  if (PyType_Ready(&CurveNatureF0D_Type) < 0)
+  if (PyType_Ready(&CurveNatureF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&CurveNatureF0D_Type);
   PyModule_AddObject(module, "CurveNatureF0D", (PyObject *)&CurveNatureF0D_Type);
 
@@ -70,8 +73,9 @@ static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature *sel
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_edgenature = new UnaryFunction0D<Nature::EdgeNature>();
   self->uf0D_edgenature->py_uf0D = (PyObject *)self;
   return 0;
@@ -79,8 +83,9 @@ static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature *sel
 
 static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature *self)
 {
-  if (self->uf0D_edgenature)
+  if (self->uf0D_edgenature) {
     delete self->uf0D_edgenature;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -98,8 +103,9 @@ static PyObject *UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNatur
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_edgenature)) == typeid(UnaryFunction0D<Nature::EdgeNature>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

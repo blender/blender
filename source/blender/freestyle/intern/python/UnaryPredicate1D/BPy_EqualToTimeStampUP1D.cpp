@@ -55,8 +55,9 @@ static int EqualToTimeStampUP1D___init__(BPy_EqualToTimeStampUP1D *self,
   static const char *kwlist[] = {"ts", NULL};
   unsigned u;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &u))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &u)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::EqualToTimeStampUP1D(u);
   return 0;
 }

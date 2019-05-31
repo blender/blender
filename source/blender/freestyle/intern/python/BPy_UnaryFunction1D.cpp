@@ -38,11 +38,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int UnaryFunction1D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction1D_Type) < 0)
+  if (PyType_Ready(&UnaryFunction1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction1D_Type);
   PyModule_AddObject(module, "UnaryFunction1D", (PyObject *)&UnaryFunction1D_Type);
 

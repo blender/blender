@@ -35,16 +35,19 @@ extern "C" {
 
 int UnaryFunction0DUnsigned_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DUnsigned_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DUnsigned_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DUnsigned_Type);
   PyModule_AddObject(module, "UnaryFunction0DUnsigned", (PyObject *)&UnaryFunction0DUnsigned_Type);
 
-  if (PyType_Ready(&QuantitativeInvisibilityF0D_Type) < 0)
+  if (PyType_Ready(&QuantitativeInvisibilityF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&QuantitativeInvisibilityF0D_Type);
   PyModule_AddObject(
       module, "QuantitativeInvisibilityF0D", (PyObject *)&QuantitativeInvisibilityF0D_Type);
@@ -70,8 +73,9 @@ static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_unsigned = new UnaryFunction0D<unsigned int>();
   self->uf0D_unsigned->py_uf0D = (PyObject *)self;
   return 0;
@@ -79,8 +83,9 @@ static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned *self,
 
 static void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned *self)
 {
-  if (self->uf0D_unsigned)
+  if (self->uf0D_unsigned) {
     delete self->uf0D_unsigned;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -98,8 +103,9 @@ static PyObject *UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *s
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_unsigned)) == typeid(UnaryFunction0D<unsigned int>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

@@ -52,8 +52,9 @@ static int GetOccludeeF0D___init__(BPy_GetOccludeeF0D *self, PyObject *args, PyO
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_viewshape.uf0D_viewshape = new Functions0D::GetOccludeeF0D();
   self->py_uf0D_viewshape.uf0D_viewshape->py_uf0D = (PyObject *)self;
   return 0;

@@ -36,16 +36,19 @@ extern "C" {
 
 int UnaryFunction1DVec3f_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction1DVec3f_Type) < 0)
+  if (PyType_Ready(&UnaryFunction1DVec3f_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction1DVec3f_Type);
   PyModule_AddObject(module, "UnaryFunction1DVec3f", (PyObject *)&UnaryFunction1DVec3f_Type);
 
-  if (PyType_Ready(&Orientation3DF1D_Type) < 0)
+  if (PyType_Ready(&Orientation3DF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Orientation3DF1D_Type);
   PyModule_AddObject(module, "Orientation3DF1D", (PyObject *)&Orientation3DF1D_Type);
 
@@ -80,11 +83,13 @@ static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f *self,
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
     return -1;
+  }
 
-  if (!obj)
+  if (!obj) {
     self->uf1D_vec3f = new UnaryFunction1D<Vec3f>();
+  }
   else {
     self->uf1D_vec3f = new UnaryFunction1D<Vec3f>(IntegrationType_from_BPy_IntegrationType(obj));
   }
@@ -96,8 +101,9 @@ static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f *self,
 
 static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f *self)
 {
-  if (self->uf1D_vec3f)
+  if (self->uf1D_vec3f) {
     delete self->uf1D_vec3f;
+  }
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -113,8 +119,9 @@ static PyObject *UnaryFunction1DVec3f___call__(BPy_UnaryFunction1DVec3f *self,
   static const char *kwlist[] = {"inter", NULL};
   PyObject *obj = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf1D_vec3f)) == typeid(UnaryFunction1D<Vec3f>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

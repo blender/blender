@@ -61,8 +61,9 @@ static int Curvature2DAngleF1D___init__(BPy_Curvature2DAngleF1D *self,
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
     return -1;
+  }
   IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
   self->py_uf1D_double.uf1D_double = new Functions1D::Curvature2DAngleF1D(t);
   return 0;

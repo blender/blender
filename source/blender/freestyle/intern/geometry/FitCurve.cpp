@@ -266,8 +266,9 @@ static double NewtonRaphsonRootFind(BezierCurve Q, Vector2 P, double u)
                 (Q_u[1] - P[1]) * (Q2_u[1]);
 
   /* u = u - f(u)/f'(u) */
-  if (denominator == 0)  // FIXME
+  if (denominator == 0) {  // FIXME
     return u;
+  }
   uPrime = u - (numerator / denominator);
   return uPrime;
 }
@@ -472,8 +473,9 @@ FitCurveWrapper::~FitCurveWrapper()
 
 void FitCurveWrapper::DrawBezierCurve(int n, Vector2 *curve)
 {
-  for (int i = 0; i <= n; ++i)
+  for (int i = 0; i <= n; ++i) {
     _vertices.push_back(curve[i]);
+  }
 }
 
 void FitCurveWrapper::FitCurve(vector<Vec2d> &data, vector<Vec2d> &oCurve, double error)

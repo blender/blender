@@ -57,8 +57,9 @@ class BaseObject {
   /*! Decrements the reference counter */
   inline int release()
   {
-    if (_ref_counter)
+    if (_ref_counter) {
       _ref_counter--;
+    }
     return _ref_counter;
   }
 

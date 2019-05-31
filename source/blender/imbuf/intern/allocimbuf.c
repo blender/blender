@@ -625,18 +625,21 @@ size_t IMB_get_size_in_memory(ImBuf *ibuf)
 
   size += sizeof(ImBuf);
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     channel_size += sizeof(char);
+  }
 
-  if (ibuf->rect_float)
+  if (ibuf->rect_float) {
     channel_size += sizeof(float);
+  }
 
   size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
 
   if (ibuf->miptot) {
     for (a = 0; a < ibuf->miptot; a++) {
-      if (ibuf->mipmap[a])
+      if (ibuf->mipmap[a]) {
         size += IMB_get_size_in_memory(ibuf->mipmap[a]);
+      }
     }
   }
 

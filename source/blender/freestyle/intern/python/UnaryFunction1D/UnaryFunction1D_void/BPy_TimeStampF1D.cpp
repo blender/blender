@@ -51,8 +51,9 @@ static int TimeStampF1D___init__(BPy_TimeStampF1D *self, PyObject *args, PyObjec
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf1D_void.uf1D_void = new Functions1D::TimeStampF1D();
   return 0;
 }

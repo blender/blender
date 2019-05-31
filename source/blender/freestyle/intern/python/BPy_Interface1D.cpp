@@ -40,41 +40,49 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int Interface1D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&Interface1D_Type) < 0)
+  if (PyType_Ready(&Interface1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Interface1D_Type);
   PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
 
-  if (PyType_Ready(&FrsCurve_Type) < 0)
+  if (PyType_Ready(&FrsCurve_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FrsCurve_Type);
   PyModule_AddObject(module, "Curve", (PyObject *)&FrsCurve_Type);
 
-  if (PyType_Ready(&Chain_Type) < 0)
+  if (PyType_Ready(&Chain_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Chain_Type);
   PyModule_AddObject(module, "Chain", (PyObject *)&Chain_Type);
 
-  if (PyType_Ready(&FEdge_Type) < 0)
+  if (PyType_Ready(&FEdge_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FEdge_Type);
   PyModule_AddObject(module, "FEdge", (PyObject *)&FEdge_Type);
 
-  if (PyType_Ready(&FEdgeSharp_Type) < 0)
+  if (PyType_Ready(&FEdgeSharp_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FEdgeSharp_Type);
   PyModule_AddObject(module, "FEdgeSharp", (PyObject *)&FEdgeSharp_Type);
 
-  if (PyType_Ready(&FEdgeSmooth_Type) < 0)
+  if (PyType_Ready(&FEdgeSmooth_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FEdgeSmooth_Type);
   PyModule_AddObject(module, "FEdgeSmooth", (PyObject *)&FEdgeSmooth_Type);
 
-  if (PyType_Ready(&Stroke_Type) < 0)
+  if (PyType_Ready(&Stroke_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Stroke_Type);
   PyModule_AddObject(module, "Stroke", (PyObject *)&Stroke_Type);
 
@@ -82,8 +90,9 @@ int Interface1D_Init(PyObject *module)
   PyDict_SetItemString(Stroke_Type.tp_dict, "HUMID_MEDIUM", BPy_MediumType_HUMID_MEDIUM);
   PyDict_SetItemString(Stroke_Type.tp_dict, "OPAQUE_MEDIUM", BPy_MediumType_OPAQUE_MEDIUM);
 
-  if (PyType_Ready(&ViewEdge_Type) < 0)
+  if (PyType_Ready(&ViewEdge_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ViewEdge_Type);
   PyModule_AddObject(module, "ViewEdge", (PyObject *)&ViewEdge_Type);
 
@@ -106,8 +115,9 @@ static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwd
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->if1D = new Interface1D();
   self->borrowed = false;
   return 0;
@@ -115,8 +125,9 @@ static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwd
 
 static void Interface1D_dealloc(BPy_Interface1D *self)
 {
-  if (self->if1D && !self->borrowed)
+  if (self->if1D && !self->borrowed) {
     delete self->if1D;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -175,8 +186,9 @@ static PyObject *Interface1D_points_begin(BPy_Interface1D *self, PyObject *args,
   static const char *kwlist[] = {"t", NULL};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
     return NULL;
+  }
   Interface0DIterator if0D_it(self->if1D->pointsBegin(f));
   return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, false);
 }
@@ -200,8 +212,9 @@ static PyObject *Interface1D_points_end(BPy_Interface1D *self, PyObject *args, P
   static const char *kwlist[] = {"t", NULL};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
     return NULL;
+  }
   Interface0DIterator if0D_it(self->if1D->pointsEnd(f));
   return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, true);
 }
@@ -246,8 +259,9 @@ PyDoc_STRVAR(Interface1D_id_doc,
 static PyObject *Interface1D_id_get(BPy_Interface1D *self, void *UNUSED(closure))
 {
   Id id(self->if1D->getId());
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return NULL;
+  }
   return BPy_Id_from_Id(id);  // return a copy
 }
 
@@ -259,8 +273,9 @@ PyDoc_STRVAR(Interface1D_nature_doc,
 static PyObject *Interface1D_nature_get(BPy_Interface1D *self, void *UNUSED(closure))
 {
   Nature::VertexNature nature = self->if1D->getNature();
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return NULL;
+  }
   return BPy_Nature_from_Nature(nature);
 }
 
@@ -272,8 +287,9 @@ PyDoc_STRVAR(Interface1D_length_2d_doc,
 static PyObject *Interface1D_length_2d_get(BPy_Interface1D *self, void *UNUSED(closure))
 {
   real length = self->if1D->getLength2D();
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return NULL;
+  }
   return PyFloat_FromDouble((double)length);
 }
 

@@ -97,8 +97,9 @@ void WVertex::incoming_edge_iterator::increment()
 WFace *WVertex::face_iterator::operator*()
 {
   WOEdge *woedge = *_edge_it;
-  if (!woedge)
+  if (!woedge) {
     return NULL;
+  }
   return (woedge)->GetbFace();
 }
 
@@ -110,10 +111,12 @@ bool WVertex::isBoundary() const
 #endif
 bool WVertex::isBoundary()
 {
-  if (_Border == 1)
+  if (_Border == 1) {
     return true;
-  else if (_Border == 0)
+  }
+  else if (_Border == 0) {
     return false;
+  }
 
   vector<WEdge *>::const_iterator it;
   for (it = _EdgeList.begin(); it != _EdgeList.end(); it++) {
@@ -140,10 +143,12 @@ WVertex::incoming_edge_iterator WVertex::incoming_edges_begin()
   WOEdge *begin;
   WEdge *wedge = _EdgeList.front();
   WOEdge *aOEdge = wedge->GetaOEdge();
-  if (aOEdge->GetbVertex() == this)
+  if (aOEdge->GetbVertex() == this) {
     begin = aOEdge;
-  else
+  }
+  else {
     begin = _EdgeList.front()->GetbOEdge();
+  }
   return incoming_edge_iterator(this, begin, begin);
 }
 
@@ -151,10 +156,12 @@ WVertex::incoming_edge_iterator WVertex::incoming_edges_end()
 {
   WOEdge *begin;
   WOEdge *aOEdge = _EdgeList.front()->GetaOEdge();
-  if (aOEdge->GetbVertex() == this)
+  if (aOEdge->GetbVertex() == this) {
     begin = aOEdge;
-  else
+  }
+  else {
     begin = _EdgeList.front()->GetbOEdge();
+  }
   return incoming_edge_iterator(this, begin, 0);
 }
 #if 0
@@ -226,12 +233,14 @@ WEdge::WEdge(WEdge &iBrother)
   WOEdge *boedge = iBrother.GetbOEdge();
   userdata = NULL;
 
-  if (aoedge)
+  if (aoedge) {
     //_paOEdge = new WOEdge(*aoedge);
     _paOEdge = aoedge->duplicate();
-  if (boedge)
+  }
+  if (boedge) {
     //_pbOEdge = new WOEdge(*boedge);
     _pbOEdge = boedge->duplicate();
+  }
 
   _nOEdges = iBrother.GetNumberOfOEdges();
   _Id = iBrother.GetId();
@@ -361,8 +370,9 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
   pOEdge->setbVertex(v2);
 
   // Debug:
-  if (v1->GetId() == v2->GetId())
+  if (v1->GetId() == v2->GetId()) {
     cerr << "Warning: edge " << this << " null with vertex " << v1->GetId() << endl;
+  }
 
   edge->AddOEdge(pOEdge);
   // edge->setNumberOfOEdges(edge->GetNumberOfOEdges() + 1);
@@ -378,26 +388,32 @@ WOEdge *WFace::MakeEdge(WVertex *v1, WVertex *v2)
 
 bool WFace::getOppositeEdge(const WVertex *v, WOEdge *&e)
 {
-  if (_OEdgeList.size() != 3)
+  if (_OEdgeList.size() != 3) {
     return false;
+  }
 
   vector<WOEdge *>::iterator it;
   e = NULL;
   for (it = _OEdgeList.begin(); it != _OEdgeList.end(); it++) {
-    if ((*it)->GetaVertex() == v)
+    if ((*it)->GetaVertex() == v) {
       e = *it;
+    }
   }
-  if (!e)
+  if (!e) {
     return false;
+  }
   e = NULL;
   for (it = _OEdgeList.begin(); it != _OEdgeList.end(); it++) {
-    if (((*it)->GetaVertex() != v) && ((*it)->GetbVertex() != v))
+    if (((*it)->GetaVertex() != v) && ((*it)->GetbVertex() != v)) {
       e = *it;
+    }
   }
-  if (!e)
+  if (!e) {
     return false;
-  else
+  }
+  else {
     return true;
+  }
 }
 
 float WFace::getArea()
@@ -423,13 +439,15 @@ WOEdge *WFace::GetPrevOEdge(WOEdge *iOEdge)
   woe = woefirst;
   ++woe;
   for (; woe != woend; woe++) {
-    if ((*woe) == iOEdge)
+    if ((*woe) == iOEdge) {
       return prev;
+    }
     prev = *woe;
   }
   // We left the loop. That means that the first OEdge was the good one:
-  if ((*woefirst) == iOEdge)
+  if ((*woefirst) == iOEdge) {
     return prev;
+  }
 
   return NULL;
 }
@@ -511,8 +529,9 @@ WShape::WShape(WShape &iBrother)
     WOEdge *aoEdge = (*e)->GetaOEdge();
     aoEdge->setaVertex(((vertexdata *)(aoEdge->GetaVertex()->userdata))->_copy);
     aoEdge->setbVertex(((vertexdata *)(aoEdge->GetbVertex()->userdata))->_copy);
-    if (aoEdge->GetaFace())
+    if (aoEdge->GetaFace()) {
       aoEdge->setaFace(((facedata *)(aoEdge->GetaFace()->userdata))->_copy);
+    }
     aoEdge->setbFace(((facedata *)(aoEdge->GetbFace()->userdata))->_copy);
     aoEdge->setOwner(((edgedata *)(aoEdge->GetOwner()->userdata))->_copy);
 
@@ -521,8 +540,9 @@ WShape::WShape(WShape &iBrother)
     if (boEdge) {
       boEdge->setaVertex(((vertexdata *)(boEdge->GetaVertex()->userdata))->_copy);
       boEdge->setbVertex(((vertexdata *)(boEdge->GetbVertex()->userdata))->_copy);
-      if (boEdge->GetaFace())
+      if (boEdge->GetaFace()) {
         boEdge->setaFace(((facedata *)(boEdge->GetaFace()->userdata))->_copy);
+      }
       boEdge->setbFace(((facedata *)(boEdge->GetbFace()->userdata))->_copy);
       boEdge->setOwner(((edgedata *)(boEdge->GetOwner()->userdata))->_copy);
     }
@@ -585,8 +605,9 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
   WFace *face = instanciateFace();
 
   WFace *result = MakeFace(iVertexList, iFaceEdgeMarksList, iMaterial, face);
-  if (!result)
+  if (!result) {
     delete face;
+  }
   return result;
 }
 
@@ -599,8 +620,9 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
   // allocate the new face
   WFace *face = MakeFace(iVertexList, iFaceEdgeMarksList, iMaterial);
 
-  if (!face)
+  if (!face) {
     return NULL;
+  }
 
   // set the list of per-vertex normals
   face->setNormalList(iNormalsList);
@@ -665,13 +687,16 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
     // face->AddVertex(*va);
 
     WOEdge *oedge;
-    if (*va == iVertexList.back())
+    if (*va == iVertexList.back()) {
       oedge = face->MakeEdge(*va, iVertexList.front());  // for the last (closing) edge
-    else
+    }
+    else {
       oedge = face->MakeEdge(*va, *vb);
+    }
 
-    if (!oedge)
+    if (!oedge) {
       return NULL;
+    }
 
     WEdge *edge = oedge->GetOwner();
     if (1 == edge->GetNumberOfOEdges()) {

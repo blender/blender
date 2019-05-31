@@ -1043,16 +1043,21 @@ bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
   BLI_assert(inverse != mat);
 
   /* Set inverse to identity */
-  for (i = 0; i < 4; i++)
-    for (j = 0; j < 4; j++)
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
       inverse[i][j] = 0;
-  for (i = 0; i < 4; i++)
+    }
+  }
+  for (i = 0; i < 4; i++) {
     inverse[i][i] = 1;
+  }
 
   /* Copy original matrix so we don't mess it up */
-  for (i = 0; i < 4; i++)
-    for (j = 0; j < 4; j++)
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
       tempmat[i][j] = mat[i][j];
+    }
+  }
 
   for (i = 0; i < 4; i++) {
     /* Look for row with max pivot */
@@ -1441,10 +1446,11 @@ bool is_orthonormal_m4(const float m[4][4])
   if (is_orthogonal_m4(m)) {
     int i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++) {
       if (fabsf(dot_v4v4(m[i], m[i]) - 1) > 1e-5f) {
         return false;
       }
+    }
 
     return true;
   }

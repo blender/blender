@@ -68,10 +68,12 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
   PyObject *obj1 = 0, *obj2 = 0;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FEdgeSharp_Type, &obj1)) {
-    if (!obj1)
+    if (!obj1) {
       self->fes = new FEdgeSharp();
-    else
+    }
+    else {
       self->fes = new FEdgeSharp(*(((BPy_FEdgeSharp *)obj1)->fes));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
@@ -102,8 +104,9 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 
 static int FEdgeSharp_mathutils_check(BaseMathObject *bmo)
 {
-  if (!BPy_FEdgeSharp_Check(bmo->cb_user))
+  if (!BPy_FEdgeSharp_Check(bmo->cb_user)) {
     return -1;
+  }
   return 0;
 }
 
@@ -266,8 +269,9 @@ static int FEdgeSharp_material_index_right_set(BPy_FEdgeSharp *self,
                                                void *UNUSED(closure))
 {
   unsigned int i = PyLong_AsUnsignedLong(value);
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return -1;
+  }
   self->fes->setaFrsMaterialIndex(i);
   return 0;
 }
@@ -287,8 +291,9 @@ static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self,
                                               void *UNUSED(closure))
 {
   unsigned int i = PyLong_AsUnsignedLong(value);
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return -1;
+  }
   self->fes->setbFrsMaterialIndex(i);
   return 0;
 }
@@ -330,8 +335,9 @@ static int FEdgeSharp_face_mark_right_set(BPy_FEdgeSharp *self,
                                           PyObject *value,
                                           void *UNUSED(closure))
 {
-  if (!PyBool_Check(value))
+  if (!PyBool_Check(value)) {
     return -1;
+  }
   self->fes->setaFaceMark(bool_from_PyBool(value));
   return 0;
 }
@@ -350,8 +356,9 @@ static int FEdgeSharp_face_mark_left_set(BPy_FEdgeSharp *self,
                                          PyObject *value,
                                          void *UNUSED(closure))
 {
-  if (!PyBool_Check(value))
+  if (!PyBool_Check(value)) {
     return -1;
+  }
   self->fes->setbFaceMark(bool_from_PyBool(value));
   return 0;
 }

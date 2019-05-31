@@ -115,8 +115,9 @@ void GeomCleaner::CompressIndexedVertexArray(const float *iVertices,
   i = 1;
   for (; v != vertices.end(); v++) {
     current = *v;
-    if (current == previous)
+    if (current == previous) {
       mapVertex[i] = compressedVertices.size() - 1;
+    }
     else {
       compressedVertices.push_back(current);
       mapVertex[i] = compressedVertices.size() - 1;
@@ -205,8 +206,9 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
   typedef map<Vec3f, unsigned> cleanHashTable;
   vector<Vec3f> vertices;
   unsigned i;
-  for (i = 0; i < iVSize; i += 3)
+  for (i = 0; i < iVSize; i += 3) {
     vertices.push_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
+  }
 
   cleanHashTable ht;
   vector<unsigned> newIndices;
@@ -244,8 +246,9 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices,
 
   // map new indices:
   *oIndices = new unsigned[iISize];
-  for (i = 0; i < iISize; i++)
+  for (i = 0; i < iISize; i++) {
     (*oIndices)[i] = 3 * newIndices[iIndices[i] / 3];
+  }
 }
 
 } /* namespace Freestyle */

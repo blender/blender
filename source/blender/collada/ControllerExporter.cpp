@@ -79,8 +79,9 @@ bool ControllerExporter::add_instance_controller(Object *ob)
   ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
 
   Mesh *me = (Mesh *)ob->data;
-  if (!me->dvert)
+  if (!me->dvert) {
     return false;
+  }
 
   /* write root bone URLs */
   Bone *bone;
@@ -227,10 +228,12 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
     bDeformGroup *def;
 
     for (def = (bDeformGroup *)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
-      if (is_bone_defgroup(ob_arm, def))
+      if (is_bone_defgroup(ob_arm, def)) {
         joint_index_by_def_index.push_back(j++);
-      else
+      }
+      else {
         joint_index_by_def_index.push_back(-1);
+      }
     }
 
     int oob_counter = 0;
@@ -440,8 +443,9 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
 
   // UnitConverter::mat4_to_dae_double(bind_mat, ob->obmat);
   UnitConverter::mat4_to_dae_double(bind_mat, f_obmat);
-  if (this->export_settings.get_limit_precision())
+  if (this->export_settings.get_limit_precision()) {
     bc_sanitize_mat(bind_mat, LIMITTED_PRECISION);
+  }
 
   addBindShapeTransform(bind_mat);
 }
@@ -455,8 +459,9 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
   int totjoint = 0;
   bDeformGroup *def;
   for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
-    if (is_bone_defgroup(ob_arm, def))
+    if (is_bone_defgroup(ob_arm, def)) {
       totjoint++;
+    }
   }
 
   COLLADASW::NameSource source(mSW);
@@ -472,8 +477,9 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
 
   for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
     Bone *bone = get_bone_from_defgroup(ob_arm, def);
-    if (bone)
+    if (bone) {
       source.appendValues(get_joint_sid(bone));
+    }
   }
 
   source.finish();
@@ -489,8 +495,9 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
 
   int totjoint = 0;
   for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
-    if (is_bone_defgroup(ob_arm, def))
+    if (is_bone_defgroup(ob_arm, def)) {
       totjoint++;
+    }
   }
 
   COLLADASW::FloatSourceF source(mSW);
@@ -561,8 +568,9 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
 
       invert_m4_m4(mat, world);
       UnitConverter::mat4_to_dae(inv_bind_mat, mat);
-      if (this->export_settings.get_limit_precision())
+      if (this->export_settings.get_limit_precision()) {
         bc_sanitize_mat(inv_bind_mat, LIMITTED_PRECISION);
+      }
       source.appendValues(inv_bind_mat);
     }
   }

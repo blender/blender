@@ -71,10 +71,12 @@ float ImagePyramid::pixel(int x, int y, int level)
   unsigned int i = 1 << level;
   unsigned int sx = x >> level;
   unsigned int sy = y >> level;
-  if (sx >= img->width())
+  if (sx >= img->width()) {
     sx = img->width() - 1;
-  if (sy >= img->height())
+  }
+  if (sy >= img->height()) {
     sy = img->height() - 1;
+  }
 
   // bilinear interpolation
   float A = i * (sx + 1) - x;
@@ -85,8 +87,9 @@ float ImagePyramid::pixel(int x, int y, int level)
   float P1(0), P2(0);
   P1 = A * img->pixel(sx, sy);
   if (sx < img->width() - 1) {
-    if (x % i != 0)
+    if (x % i != 0) {
       P1 += B * img->pixel(sx + 1, sy);
+    }
   }
   else {
     P1 += B * img->pixel(sx, sy);
@@ -95,8 +98,9 @@ float ImagePyramid::pixel(int x, int y, int level)
     if (y % i != 0) {
       P2 = A * img->pixel(sx, sy + 1);
       if (sx < img->width() - 1) {
-        if (x % i != 0)
+        if (x % i != 0) {
           P2 += B * img->pixel(sx + 1, sy + 1);
+        }
       }
       else {
         P2 += B * img->pixel(sx, sy + 1);

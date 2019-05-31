@@ -35,16 +35,19 @@ extern "C" {
 
 int UnaryFunction0DMaterial_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DMaterial_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DMaterial_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DMaterial_Type);
   PyModule_AddObject(module, "UnaryFunction0DMaterial", (PyObject *)&UnaryFunction0DMaterial_Type);
 
-  if (PyType_Ready(&MaterialF0D_Type) < 0)
+  if (PyType_Ready(&MaterialF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&MaterialF0D_Type);
   PyModule_AddObject(module, "MaterialF0D", (PyObject *)&MaterialF0D_Type);
 
@@ -69,8 +72,9 @@ static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_material = new UnaryFunction0D<FrsMaterial>();
   self->uf0D_material->py_uf0D = (PyObject *)self;
   return 0;
@@ -78,8 +82,9 @@ static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial *self,
 
 static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial *self)
 {
-  if (self->uf0D_material)
+  if (self->uf0D_material) {
     delete self->uf0D_material;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -97,8 +102,9 @@ static PyObject *UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *s
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_material)) == typeid(UnaryFunction0D<FrsMaterial>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

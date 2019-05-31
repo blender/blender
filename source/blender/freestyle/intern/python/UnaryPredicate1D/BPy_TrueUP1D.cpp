@@ -44,8 +44,9 @@ static int TrueUP1D___init__(BPy_TrueUP1D *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::TrueUP1D();
   return 0;
 }

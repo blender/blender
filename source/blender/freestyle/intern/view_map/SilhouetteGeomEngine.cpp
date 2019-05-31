@@ -102,8 +102,9 @@ void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4],
   for (i = 0; i < 4; i++) {
     for (j = 0; j < 4; j++) {
       _transform[i][j] = 0;
-      for (unsigned int k = 0; k < 4; k++)
+      for (unsigned int k = 0; k < 4; k++) {
         _transform[i][j] += _projectionMatrix[i][k] * _modelViewMatrix[k][j];
+      }
     }
   }
 
@@ -147,8 +148,9 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex *ioVertex)
 
 real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 {
-  if (_isOrthographicProjection)
+  if (_isOrthographicProjection) {
     return t;
+  }
 
   // we need to compute for each parameter t the corresponding parameter T which gives the
   // intersection in 3D.
@@ -184,8 +186,9 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
     alpha = ABc[2] / ABc[0];
     beta = Ac[2] - alpha * Ac[0];
     denom = alpha * (Ir[0] + m13) + m11;
-    if (fabs(denom) < 1.0e-6)
+    if (fabs(denom) < 1.0e-6) {
       goto iter;
+    }
     Ic[0] = -beta * (Ir[0] + m13) / denom;
 #if 0
     Ic[1] = -(Ir[1] + m23) * (alpha * Ic[0] + beta) / m22;
@@ -197,8 +200,9 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
     alpha = ABc[2] / ABc[1];
     beta = Ac[2] - alpha * Ac[1];
     denom = alpha * (Ir[1] + m23) + m22;
-    if (fabs(denom) < 1.0e-6)
+    if (fabs(denom) < 1.0e-6) {
       goto iter;
+    }
     Ic[1] = -beta * (Ir[1] + m23) / denom;
 #if 0
     Ic[0] = -(Ir[0] + m13) * (alpha * Ic[1] + beta) / m11;
@@ -230,34 +234,43 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
       delta_x = Ii[0] - Pi[0];
       delta_y = Ii[1] - Pi[1];
       dist = sqrt(delta_x * delta_x + delta_y * delta_y);
-      if (dist < dist_threshold)
+      if (dist < dist_threshold) {
         break;
+      }
       if (x_coords) {
         if (less_than) {
-          if (Pi[0] < Ii[0])
+          if (Pi[0] < Ii[0]) {
             T_sta = T;
-          else
+          }
+          else {
             T_end = T;
+          }
         }
         else {
-          if (Pi[0] > Ii[0])
+          if (Pi[0] > Ii[0]) {
             T_sta = T;
-          else
+          }
+          else {
             T_end = T;
+          }
         }
       }
       else {
         if (less_than) {
-          if (Pi[1] < Ii[1])
+          if (Pi[1] < Ii[1]) {
             T_sta = T;
-          else
+          }
+          else {
             T_end = T;
+          }
         }
         else {
-          if (Pi[1] > Ii[1])
+          if (Pi[1] > Ii[1]) {
             T_sta = T;
-          else
+          }
+          else {
             T_end = T;
+          }
         }
       }
     }

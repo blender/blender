@@ -35,16 +35,19 @@ extern "C" {
 
 int UnaryFunction0DId_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DId_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DId_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DId_Type);
   PyModule_AddObject(module, "UnaryFunction0DId", (PyObject *)&UnaryFunction0DId_Type);
 
-  if (PyType_Ready(&ShapeIdF0D_Type) < 0)
+  if (PyType_Ready(&ShapeIdF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ShapeIdF0D_Type);
   PyModule_AddObject(module, "ShapeIdF0D", (PyObject *)&ShapeIdF0D_Type);
 
@@ -67,8 +70,9 @@ static int UnaryFunction0DId___init__(BPy_UnaryFunction0DId *self, PyObject *arg
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_id = new UnaryFunction0D<Id>();
   self->uf0D_id->py_uf0D = (PyObject *)self;
   return 0;
@@ -76,8 +80,9 @@ static int UnaryFunction0DId___init__(BPy_UnaryFunction0DId *self, PyObject *arg
 
 static void UnaryFunction0DId___dealloc__(BPy_UnaryFunction0DId *self)
 {
-  if (self->uf0D_id)
+  if (self->uf0D_id) {
     delete self->uf0D_id;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -94,8 +99,9 @@ static PyObject *UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self,
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_id)) == typeid(UnaryFunction0D<Id>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

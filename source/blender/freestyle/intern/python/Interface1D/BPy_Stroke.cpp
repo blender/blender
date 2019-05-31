@@ -62,12 +62,15 @@ static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"brother", NULL};
   PyObject *brother = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &Stroke_Type, &brother))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &Stroke_Type, &brother)) {
     return -1;
-  if (!brother)
+  }
+  if (!brother) {
     self->s = new Stroke();
-  else
+  }
+  else {
     self->s = new Stroke(*(((BPy_Stroke *)brother)->s));
+  }
   self->py_if1D.if1D = self->s;
   self->py_if1D.borrowed = false;
   return 0;
@@ -86,8 +89,9 @@ static Py_ssize_t Stroke_sq_length(BPy_Stroke *self)
 
 static PyObject *Stroke_sq_item(BPy_Stroke *self, int keynum)
 {
-  if (keynum < 0)
+  if (keynum < 0) {
     keynum += Stroke_sq_length(self);
+  }
   if (keynum < 0 || keynum >= Stroke_sq_length(self)) {
     PyErr_Format(PyExc_IndexError, "Stroke[index]: index %d out of range", keynum);
     return NULL;
@@ -115,8 +119,9 @@ static PyObject *Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObj
   static const char *kwlist[] = {"n", NULL};
   int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i)) {
     return NULL;
+  }
   return PyFloat_FromDouble(self->s->ComputeSampling(i));
 }
 
@@ -215,8 +220,10 @@ static PyObject *Stroke_remove_vertex(BPy_Stroke *self, PyObject *args, PyObject
   static const char *kwlist[] = {"vertex", NULL};
   PyObject *py_sv = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &StrokeVertex_Type, &py_sv))
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O!", (char **)kwlist, &StrokeVertex_Type, &py_sv)) {
     return NULL;
+  }
   if (((BPy_StrokeVertex *)py_sv)->sv) {
     self->s->RemoveVertex(((BPy_StrokeVertex *)py_sv)->sv);
   }
@@ -267,8 +274,9 @@ static PyObject *Stroke_stroke_vertices_begin(BPy_Stroke *self, PyObject *args, 
   static const char *kwlist[] = {"t", NULL};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
     return NULL;
+  }
   StrokeInternal::StrokeVertexIterator sv_it(self->s->strokeVerticesBegin(f));
   return BPy_StrokeVertexIterator_from_StrokeVertexIterator(sv_it, false);
 }
@@ -386,8 +394,9 @@ static PyObject *Stroke_texture_id_get(BPy_Stroke *self, void *UNUSED(closure))
 static int Stroke_texture_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
 {
   unsigned int i = PyLong_AsUnsignedLong(value);
-  if (PyErr_Occurred())
+  if (PyErr_Occurred()) {
     return -1;
+  }
   self->s->setTextureId(i);
   return 0;
 }
@@ -404,8 +413,9 @@ static PyObject *Stroke_tips_get(BPy_Stroke *self, void *UNUSED(closure))
 
 static int Stroke_tips_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
 {
-  if (!PyBool_Check(value))
+  if (!PyBool_Check(value)) {
     return -1;
+  }
   self->s->setTips(bool_from_PyBool(value));
   return 0;
 }

@@ -49,86 +49,102 @@ extern "C" {
 
 int UnaryFunction1DDouble_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction1DDouble_Type) < 0)
+  if (PyType_Ready(&UnaryFunction1DDouble_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction1DDouble_Type);
   PyModule_AddObject(module, "UnaryFunction1DDouble", (PyObject *)&UnaryFunction1DDouble_Type);
 
-  if (PyType_Ready(&DensityF1D_Type) < 0)
+  if (PyType_Ready(&DensityF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&DensityF1D_Type);
   PyModule_AddObject(module, "DensityF1D", (PyObject *)&DensityF1D_Type);
 
-  if (PyType_Ready(&Curvature2DAngleF1D_Type) < 0)
+  if (PyType_Ready(&Curvature2DAngleF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Curvature2DAngleF1D_Type);
   PyModule_AddObject(module, "Curvature2DAngleF1D", (PyObject *)&Curvature2DAngleF1D_Type);
 
-  if (PyType_Ready(&GetCompleteViewMapDensityF1D_Type) < 0)
+  if (PyType_Ready(&GetCompleteViewMapDensityF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetCompleteViewMapDensityF1D_Type);
   PyModule_AddObject(
       module, "GetCompleteViewMapDensityF1D", (PyObject *)&GetCompleteViewMapDensityF1D_Type);
 
-  if (PyType_Ready(&GetDirectionalViewMapDensityF1D_Type) < 0)
+  if (PyType_Ready(&GetDirectionalViewMapDensityF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetDirectionalViewMapDensityF1D_Type);
   PyModule_AddObject(module,
                      "GetDirectionalViewMapDensityF1D",
                      (PyObject *)&GetDirectionalViewMapDensityF1D_Type);
 
-  if (PyType_Ready(&GetProjectedXF1D_Type) < 0)
+  if (PyType_Ready(&GetProjectedXF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetProjectedXF1D_Type);
   PyModule_AddObject(module, "GetProjectedXF1D", (PyObject *)&GetProjectedXF1D_Type);
 
-  if (PyType_Ready(&GetProjectedYF1D_Type) < 0)
+  if (PyType_Ready(&GetProjectedYF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetProjectedYF1D_Type);
   PyModule_AddObject(module, "GetProjectedYF1D", (PyObject *)&GetProjectedYF1D_Type);
 
-  if (PyType_Ready(&GetProjectedZF1D_Type) < 0)
+  if (PyType_Ready(&GetProjectedZF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetProjectedZF1D_Type);
   PyModule_AddObject(module, "GetProjectedZF1D", (PyObject *)&GetProjectedZF1D_Type);
 
-  if (PyType_Ready(&GetSteerableViewMapDensityF1D_Type) < 0)
+  if (PyType_Ready(&GetSteerableViewMapDensityF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetSteerableViewMapDensityF1D_Type);
   PyModule_AddObject(
       module, "GetSteerableViewMapDensityF1D", (PyObject *)&GetSteerableViewMapDensityF1D_Type);
 
-  if (PyType_Ready(&GetViewMapGradientNormF1D_Type) < 0)
+  if (PyType_Ready(&GetViewMapGradientNormF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetViewMapGradientNormF1D_Type);
   PyModule_AddObject(
       module, "GetViewMapGradientNormF1D", (PyObject *)&GetViewMapGradientNormF1D_Type);
 
-  if (PyType_Ready(&GetXF1D_Type) < 0)
+  if (PyType_Ready(&GetXF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetXF1D_Type);
   PyModule_AddObject(module, "GetXF1D", (PyObject *)&GetXF1D_Type);
 
-  if (PyType_Ready(&GetYF1D_Type) < 0)
+  if (PyType_Ready(&GetYF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetYF1D_Type);
   PyModule_AddObject(module, "GetYF1D", (PyObject *)&GetYF1D_Type);
 
-  if (PyType_Ready(&GetZF1D_Type) < 0)
+  if (PyType_Ready(&GetZF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetZF1D_Type);
   PyModule_AddObject(module, "GetZF1D", (PyObject *)&GetZF1D_Type);
 
-  if (PyType_Ready(&LocalAverageDepthF1D_Type) < 0)
+  if (PyType_Ready(&LocalAverageDepthF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&LocalAverageDepthF1D_Type);
   PyModule_AddObject(module, "LocalAverageDepthF1D", (PyObject *)&LocalAverageDepthF1D_Type);
 
-  if (PyType_Ready(&ZDiscontinuityF1D_Type) < 0)
+  if (PyType_Ready(&ZDiscontinuityF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&ZDiscontinuityF1D_Type);
   PyModule_AddObject(module, "ZDiscontinuityF1D", (PyObject *)&ZDiscontinuityF1D_Type);
 
@@ -163,11 +179,13 @@ static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble *self,
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
     return -1;
+  }
 
-  if (!obj)
+  if (!obj) {
     self->uf1D_double = new UnaryFunction1D<double>();
+  }
   else {
     self->uf1D_double = new UnaryFunction1D<double>(IntegrationType_from_BPy_IntegrationType(obj));
   }
@@ -179,8 +197,9 @@ static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble *self,
 
 static void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble *self)
 {
-  if (self->uf1D_double)
+  if (self->uf1D_double) {
     delete self->uf1D_double;
+  }
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -196,8 +215,9 @@ static PyObject *UnaryFunction1DDouble___call__(BPy_UnaryFunction1DDouble *self,
   static const char *kwlist[] = {"inter", NULL};
   PyObject *obj = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf1D_double)) == typeid(UnaryFunction1D<double>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

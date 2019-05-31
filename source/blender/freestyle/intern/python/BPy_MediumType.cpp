@@ -96,11 +96,13 @@ PyLongObject _BPy_MediumType_OPAQUE_MEDIUM = {
 
 int MediumType_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&MediumType_Type) < 0)
+  if (PyType_Ready(&MediumType_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&MediumType_Type);
   PyModule_AddObject(module, "MediumType", (PyObject *)&MediumType_Type);
 

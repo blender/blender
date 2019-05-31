@@ -120,8 +120,9 @@ static void freeData(ModifierData *md)
   OceanModifierData *omd = (OceanModifierData *)md;
 
   BKE_ocean_free(omd->ocean);
-  if (omd->oceancache)
+  if (omd->oceancache) {
     BKE_ocean_free_cache(omd->oceancache);
+  }
 #else  /* WITH_OCEANSIM */
   /* unused */
   (void)md;

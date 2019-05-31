@@ -68,8 +68,9 @@ template<class Functor> class ForEachMaterialFunctor {
 
       Material *ma = give_current_material(ob, a + 1);
 
-      if (!ma)
+      if (!ma) {
         continue;
+      }
 
       std::string translated_id = translate_id(id_name(ma));
       if (find(mMat.begin(), mMat.end(), translated_id) == mMat.end()) {

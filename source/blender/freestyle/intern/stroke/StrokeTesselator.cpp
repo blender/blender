@@ -30,8 +30,9 @@ namespace Freestyle {
 
 LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
 {
-  if (0 == iStroke)
+  if (0 == iStroke) {
     return 0;
+  }
 
   LineRep *line;
   line = new OrientedLineRep();
@@ -49,8 +50,9 @@ LineRep *StrokeTesselator::Tesselate(Stroke *iStroke)
     line->AddVertex(B);
   }
   else {
-    if (_overloadFrsMaterial)
+    if (_overloadFrsMaterial) {
       line->setFrsMaterial(_FrsMaterial);
+    }
 
     line->setStyle(LineRep::LINE_STRIP);
 

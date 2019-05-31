@@ -87,8 +87,9 @@ class HashGrid : public Grid {
     Cell *found_cell = NULL;
 
     GridHashTable::const_iterator found = _cells.find(p);
-    if (found != _cells.end())
+    if (found != _cells.end()) {
       found_cell = (*found).second;
+    }
     return found_cell;
   }
 

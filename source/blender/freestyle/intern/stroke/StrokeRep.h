@@ -85,8 +85,9 @@ class StrokeVertexRep {
     if (tips) {
       return _texCoord_w_tips;
     }
-    else
+    else {
       return _texCoord;
+    }
   }
 
   inline Vec3r &color()

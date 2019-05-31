@@ -83,13 +83,16 @@ extern "C" {
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index)
 {
-  if (index >= array.getValuesCount())
+  if (index >= array.getValuesCount()) {
     return 0.0f;
+  }
 
-  if (array.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT)
+  if (array.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT) {
     return array.getFloatValues()->getData()[index];
-  else
+  }
+  else {
     return array.getDoubleValues()->getData()[index];
+  }
 }
 
 /* copied from /editors/object/object_relations.c */
@@ -97,10 +100,12 @@ int bc_test_parent_loop(Object *par, Object *ob)
 {
   /* test if 'ob' is a parent somewhere in par's parents */
 
-  if (par == NULL)
+  if (par == NULL) {
     return 0;
-  if (ob == par)
+  }
+  if (ob == par) {
     return 1;
+  }
 
   return bc_test_parent_loop(par->parent, ob);
 }
@@ -110,18 +115,22 @@ bool bc_validateConstraints(bConstraint *con)
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
   /* these we can skip completely (invalid constraints...) */
-  if (cti == NULL)
+  if (cti == NULL) {
     return false;
-  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))
+  }
+  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
     return false;
+  }
 
   /* these constraints can't be evaluated anyway */
-  if (cti->evaluate_constraint == NULL)
+  if (cti->evaluate_constraint == NULL) {
     return false;
+  }
 
   /* influence == 0 should be ignored */
-  if (con->enforce == 0.0f)
+  if (con->enforce == 0.0f) {
     return false;
+  }
 
   /* validation passed */
   return true;
@@ -171,10 +180,12 @@ std::string bc_get_action_id(std::string action_name,
                              std::string axis_separator)
 {
   std::string result = action_name + "_" + channel_type;
-  if (ob_name.length() > 0)
+  if (ob_name.length() > 0) {
     result = ob_name + "_" + result;
-  if (axis_name.length() > 0)
+  }
+  if (axis_name.length() > 0) {
     result += axis_separator + axis_name;
+  }
   return translate_id(result);
 }
 
@@ -314,14 +325,16 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only)
     Bone *root = NULL;
     Bone *bone = aBone;
     while (bone) {
-      if (!(bone->flag & BONE_NO_DEFORM))
+      if (!(bone->flag & BONE_NO_DEFORM)) {
         root = bone;
+      }
       bone = bone->parent;
     }
     return (aBone == root);
   }
-  else
+  else {
     return !(aBone->parent);
+  }
 }
 
 int bc_get_active_UVLayer(Object *ob)
@@ -455,8 +468,9 @@ void bc_triangulate_mesh(Mesh *me)
 bool bc_is_leaf_bone(Bone *bone)
 {
   for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-    if (child->flag & BONE_CONNECTED)
+    if (child->flag & BONE_CONNECTED) {
       return false;
+    }
   }
   return true;
 }
@@ -466,8 +480,9 @@ EditBone *bc_get_edit_bone(bArmature *armature, char *name)
   EditBone *eBone;
 
   for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
-    if (STREQ(name, eBone->name))
+    if (STREQ(name, eBone->name)) {
       return eBone;
+    }
   }
 
   return NULL;
@@ -481,10 +496,12 @@ int bc_set_layer(int bitfield, int layer, bool enable)
 {
   int bit = 1u << layer;
 
-  if (enable)
+  if (enable) {
     bitfield |= bit;
-  else
+  }
+  else {
     bitfield &= ~bit;
+  }
 
   return bitfield;
 }
@@ -513,8 +530,9 @@ BoneExtensionManager::~BoneExtensionManager()
     for (BoneExtensionMap::iterator ext_it = extended_bones->begin();
          ext_it != extended_bones->end();
          ++ext_it) {
-      if (ext_it->second != NULL)
+      if (ext_it->second != NULL) {
         delete ext_it->second;
+      }
     }
     extended_bones->clear();
     delete extended_bones;
@@ -609,8 +627,9 @@ float *BoneExtended::get_tail()
 
 inline bool isInteger(const std::string &s)
 {
-  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+')))
+  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) {
     return false;
+  }
 
   char *p;
   strtol(s.c_str(), &p, 10);
@@ -706,9 +725,11 @@ void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 
   IDProperty *data = IDP_New(IDP_ARRAY, &val, key);
   float *array = (float *)IDP_Array(data);
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       array[4 * i + j] = mat[i][j];
+    }
+  }
 
   IDP_AddToGroup(idgroup, data);
 }
@@ -782,9 +803,11 @@ bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
   IDProperty *property = bc_get_IDProperty(bone, key);
   if (property && property->type == IDP_ARRAY && property->len == 16) {
     float *array = (float *)IDP_Array(property);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
         mat[i][j] = array[4 * i + j];
+      }
+    }
     return true;
   }
   return false;
@@ -805,8 +828,9 @@ void bc_get_property_vector(Bone *bone, std::string key, float val[3], const flo
  */
 static bool has_custom_props(Bone *bone, bool enabled, std::string key)
 {
-  if (!enabled)
+  if (!enabled) {
     return false;
+  }
 
   return (bc_get_IDProperty(bone, key + "_x") || bc_get_IDProperty(bone, key + "_y") ||
           bc_get_IDProperty(bone, key + "_z"));
@@ -817,15 +841,18 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   FCurve *fcu;
   char prefix[200];
 
-  if (bone_name)
+  if (bone_name) {
     BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name);
+  }
 
   for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
     if (bone_name) {
-      if (STREQLEN(fcu->rna_path, prefix, strlen(prefix)))
+      if (STREQLEN(fcu->rna_path, prefix, strlen(prefix))) {
         fcu->flag &= ~FCURVE_DISABLED;
-      else
+      }
+      else {
         fcu->flag |= FCURVE_DISABLED;
+      }
     }
     else {
       fcu->flag &= ~FCURVE_DISABLED;
@@ -853,8 +880,9 @@ bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_open
     invert_m4_m4(ipar, parchan->pose_mat);
     mul_m4_m4m4(mat, ipar, pchan->pose_mat);
   }
-  else
+  else {
     copy_m4_m4(mat, pchan->pose_mat);
+  }
 
   /* OPEN_SIM_COMPATIBILITY
    * AFAIK animation to second life is via BVH, but no
@@ -882,8 +910,9 @@ bool bc_is_animated(BCMatrixSampleMap &values)
 {
   static float MIN_DISTANCE = 0.00001;
 
-  if (values.size() < 2)
+  if (values.size() < 2) {
     return false; /* need at least 2 entries to be not flat */
+  }
 
   BCMatrixSampleMap::iterator it;
   const BCMatrix *refmat = NULL;
@@ -895,8 +924,9 @@ bool bc_is_animated(BCMatrixSampleMap &values)
       continue;
     }
 
-    if (!matrix->in_range(*refmat, MIN_DISTANCE))
+    if (!matrix->in_range(*refmat, MIN_DISTANCE)) {
       return true;
+    }
   }
   return false;
 }
@@ -906,21 +936,25 @@ bool bc_has_animations(Object *ob)
   /* Check for object, light and camera transform animations */
   if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
       (bc_getSceneLightAction(ob) && bc_getSceneLightAction(ob)->curves.first) ||
-      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
+      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first)) {
     return true;
+  }
 
   /* Check Material Effect parameter animations. */
   for (int a = 0; a < ob->totcol; a++) {
     Material *ma = give_current_material(ob, a + 1);
-    if (!ma)
+    if (!ma) {
       continue;
-    if (ma->adt && ma->adt->action && ma->adt->action->curves.first)
+    }
+    if (ma->adt && ma->adt->action && ma->adt->action->curves.first) {
       return true;
+    }
   }
 
   Key *key = BKE_key_from_object(ob);
-  if ((key && key->adt && key->adt->action) && key->adt->action->curves.first)
+  if ((key && key->adt && key->adt->action) && key->adt->action->curves.first) {
     return true;
+  }
 
   return false;
 }
@@ -932,8 +966,9 @@ bool bc_has_animations(Scene *sce, LinkNode *export_set)
     for (node = export_set; node; node = node->next) {
       Object *ob = (Object *)node->link;
 
-      if (bc_has_animations(ob))
+      if (bc_has_animations(ob)) {
         return true;
+      }
     }
   }
   return false;
@@ -1032,12 +1067,15 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
   }
 
   if (export_settings.get_keep_bind_info()) {
-    if (bc_get_IDProperty(bone, "restpose_rot_x"))
+    if (bc_get_IDProperty(bone, "restpose_rot_x")) {
       rot[0] = DEG2RADF(bc_get_property(bone, "restpose_rot_x", 0));
-    if (bc_get_IDProperty(bone, "restpose_rot_y"))
+    }
+    if (bc_get_IDProperty(bone, "restpose_rot_y")) {
       rot[1] = DEG2RADF(bc_get_property(bone, "restpose_rot_y", 0));
-    if (bc_get_IDProperty(bone, "restpose_rot_z"))
+    }
+    if (bc_get_IDProperty(bone, "restpose_rot_z")) {
       rot[2] = DEG2RADF(bc_get_property(bone, "restpose_rot_z", 0));
+    }
   }
 
   if (export_settings.get_keep_bind_info()) {
@@ -1052,12 +1090,13 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
  */
 void bc_sanitize_mat(float mat[4][4], int precision)
 {
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       double val = (double)mat[i][j];
       val = double_round(val, precision);
       mat[i][j] = (float)val;
     }
+  }
 }
 
 void bc_sanitize_v3(float v[3], int precision)
@@ -1071,9 +1110,11 @@ void bc_sanitize_v3(float v[3], int precision)
 
 void bc_sanitize_mat(double mat[4][4], int precision)
 {
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       mat[i][j] = double_round(mat[i][j], precision);
+    }
+  }
 }
 
 void bc_sanitize_v3(double v[3], int precision)
@@ -1085,23 +1126,29 @@ void bc_sanitize_v3(double v[3], int precision)
 
 void bc_copy_m4_farray(float r[4][4], float *a)
 {
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       r[i][j] = *a++;
+    }
+  }
 }
 
 void bc_copy_farray_m4(float *r, float a[4][4])
 {
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       *r++ = a[i][j];
+    }
+  }
 }
 
 void bc_copy_darray_m4d(double *r, double a[4][4])
 {
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       *r++ = a[i][j];
+    }
+  }
 }
 
 void bc_copy_v44_m4d(std::vector<std::vector<double>> &r, double (&a)[4][4])

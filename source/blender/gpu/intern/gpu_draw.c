@@ -1044,8 +1044,9 @@ static GPUTexture *create_flame_texture(SmokeDomainSettings *sds, int highres)
                                     smoke_has_fuel(sds->fluid);
   int *dim = (highres) ? sds->res_wt : sds->res;
 
-  if (!has_fuel)
+  if (!has_fuel) {
     return NULL;
+  }
 
   if (highres) {
     source = smoke_turbulence_get_flame(sds->wt);

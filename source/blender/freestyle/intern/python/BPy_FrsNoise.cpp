@@ -34,11 +34,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int FrsNoise_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&FrsNoise_Type) < 0)
+  if (PyType_Ready(&FrsNoise_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FrsNoise_Type);
   PyModule_AddObject(module, "Noise", (PyObject *)&FrsNoise_Type);
 
@@ -64,8 +66,9 @@ static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"seed", NULL};
   long seed = -1;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed)) {
     return -1;
+  }
   self->n = new Noise(seed);
   self->pn = new PseudoNoise();
   return 0;
@@ -120,8 +123,9 @@ static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, 
   double x;  // note: this has to be a double (not float)
   unsigned nbOctaves = 8;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves)) {
     return NULL;
+  }
   return PyFloat_FromDouble(self->pn->turbulenceSmooth(x, nbOctaves));
 }
 
@@ -131,8 +135,9 @@ static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObje
   float f1, f2, f3;
   unsigned int i = 4;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i)) {
     return NULL;
+  }
   return PyFloat_FromDouble(self->n->turbulence1(f1, f2, f3, i));
 }
 
@@ -160,8 +165,9 @@ static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObje
   unsigned int i = 4;
   Vec2f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
     return NULL;
+  }
   if (!Vec2f_ptr_from_PyObject(obj1, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
@@ -195,8 +201,9 @@ static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObje
   unsigned int i = 4;
   Vec3f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
     return NULL;
+  }
   if (!Vec3f_ptr_from_PyObject(obj1, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
@@ -221,8 +228,9 @@ static PyObject *FrsNoise_smoothNoise1(BPy_FrsNoise *self, PyObject *args, PyObj
   static const char *kwlist[] = {"v", NULL};
   float f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f)) {
     return NULL;
+  }
   return PyFloat_FromDouble(self->n->smoothNoise1(f));
 }
 
@@ -242,8 +250,9 @@ static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObj
   PyObject *obj;
   Vec2f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
     return NULL;
+  }
   if (!Vec2f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
@@ -269,8 +278,9 @@ static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObj
   PyObject *obj;
   Vec3f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
     return NULL;
+  }
   if (!Vec3f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");

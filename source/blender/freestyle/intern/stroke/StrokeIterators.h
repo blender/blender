@@ -170,8 +170,9 @@ class StrokeVertexIterator : public Interface0DIteratorNested {
   /*! Returns true if the pointed StrokeVertex is the final valid StrokeVertex of the Stroke. */
   bool atLast()
   {
-    if (_it == _end)
+    if (_it == _end) {
       return false;
+    }
 
     ++_it;
     bool result = (_it == _end);
@@ -189,8 +190,9 @@ class StrokeVertexIterator : public Interface0DIteratorNested {
   virtual bool operator==(const Interface0DIteratorNested &it) const
   {
     const StrokeVertexIterator *it_exact = dynamic_cast<const StrokeVertexIterator *>(&it);
-    if (!it_exact)
+    if (!it_exact) {
       return false;
+    }
     return (_it == it_exact->_it);
   }
 

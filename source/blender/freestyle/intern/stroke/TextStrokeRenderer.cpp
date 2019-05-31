@@ -22,8 +22,9 @@ namespace Freestyle {
 
 TextStrokeRenderer::TextStrokeRenderer(const char *iFileName) : StrokeRenderer()
 {
-  if (!iFileName)
+  if (!iFileName) {
     iFileName = "freestyle.txt";
+  }
   // open the stream:
   _ofstream.open(iFileName, ios::out);
   if (!_ofstream.is_open()) {
@@ -69,8 +70,9 @@ void TextStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 void TextStrokeRenderer::Close()
 {
-  if (_ofstream.is_open())
+  if (_ofstream.is_open()) {
     _ofstream.close();
+  }
 }
 
 } /* namespace Freestyle */

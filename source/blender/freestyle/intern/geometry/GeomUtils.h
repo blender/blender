@@ -50,12 +50,14 @@ template<class T> real distPointSegment(const T &P, const T &A, const T &B)
   BP = P - B;
 
   real c1(AB * AP);
-  if (c1 <= 0)
+  if (c1 <= 0) {
     return AP.norm();
+  }
 
   real c2(AB * AB);
-  if (c2 <= c1)
+  if (c2 <= c1) {
     return BP.norm();
+  }
 
   real b = c1 / c2;
   T Pb, PPb;

@@ -131,22 +131,25 @@ void WVDataWrapper::print()
 void UVDataWrapper::getUV(int uv_index, float *uv)
 {
   int stride = mVData->getStride(0);
-  if (stride == 0)
+  if (stride == 0) {
     stride = 2;
+  }
 
   switch (mVData->getType()) {
     case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT: {
       COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
-      if (values->empty())
+      if (values->empty()) {
         return;
+      }
       uv[0] = (*values)[uv_index * stride];
       uv[1] = (*values)[uv_index * stride + 1];
 
     } break;
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
-      if (values->empty())
+      if (values->empty()) {
         return;
+      }
       uv[0] = (float)(*values)[uv_index * stride];
       uv[1] = (float)(*values)[uv_index * stride + 1];
 
@@ -164,14 +167,16 @@ VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vda
 void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 {
   int stride = mVData->getStride(0);
-  if (stride == 0)
+  if (stride == 0) {
     stride = 3;
+  }
 
   switch (mVData->getType()) {
     case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT: {
       COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
-      if (values->empty() || values->getCount() <= (v_index * stride + 2))
+      if (values->empty() || values->getCount() <= (v_index * stride + 2)) {
         return;  // xxx need to create an error instead
+      }
 
       mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
       mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
@@ -180,8 +185,9 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
-      if (values->empty() || values->getCount() <= (v_index * stride + 2))
+      if (values->empty() || values->getCount() <= (v_index * stride + 2)) {
         return;  // xxx need to create an error instead
+      }
 
       mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
       mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
@@ -340,8 +346,9 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 
   int stride = pos.getStride(0);
-  if (stride == 0)
+  if (stride == 0) {
     stride = 3;
+  }
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
   me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
@@ -368,8 +375,9 @@ bool MeshImporter::primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp)
   int normals_count = mp->getNormalIndices().getCount();
   if (normals_count > 0) {
     int index_count = mp->getPositionIndices().getCount();
-    if (index_count == normals_count)
+    if (index_count == normals_count) {
       has_useable_normals = true;
+    }
     else {
       fprintf(stderr,
               "Warning: Number of normals %d is different from the number of vertices %d, "
@@ -562,8 +570,9 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   MEdge *medge;
   int totedge;
 
-  if (len == 0)
+  if (len == 0) {
     return;
+  }
 
   totedge = mesh->totedge + len;
 
@@ -571,8 +580,9 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
-  if (!CustomData_has_layer(&edata, CD_MEDGE))
+  if (!CustomData_has_layer(&edata, CD_MEDGE)) {
     CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+  }
 
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edata;
@@ -580,8 +590,9 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
   /* set default flags */
   medge = &mesh->medge[mesh->totedge];
-  for (int i = 0; i < len; i++, medge++)
+  for (int i = 0; i < len; i++, medge++) {
     medge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+  }
 
   mesh->totedge = totedge;
 }
@@ -688,8 +699,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
             // the same for vertces normals
             unsigned int vertex_normal_indices[3] = {
                 first_normal, normal_indices[1], normal_indices[2]};
-            if (!is_flat_face(vertex_normal_indices, nor, 3))
+            if (!is_flat_face(vertex_normal_indices, nor, 3)) {
               mpoly->flag |= ME_SMOOTH;
+            }
             normal_indices++;
           }
 
@@ -700,8 +712,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         }
 
         // Moving cursor  to the next triangle fan.
-        if (mp_has_normals)
+        if (mp_has_normals) {
           normal_indices += 2;
+        }
 
         position_indices += 2;
       }
@@ -752,8 +765,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         }
 
         if (mp_has_normals) {
-          if (!is_flat_face(normal_indices, nor, vcount))
+          if (!is_flat_face(normal_indices, nor, vcount)) {
             mpoly->flag |= ME_SMOOTH;
+          }
         }
 
         if (mp->hasColorIndices()) {
@@ -783,8 +797,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         start_index += vcount;
         prim.totpoly++;
 
-        if (mp_has_normals)
+        if (mp_has_normals) {
           normal_indices += vcount;
+        }
 
         position_indices += vcount;
       }
@@ -801,8 +816,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
       continue;  // read the lines later after all the rest is done
     }
 
-    if (mp_has_faces)
+    if (mp_has_faces) {
       mat_prim_map[mp->getMaterialId()].push_back(prim);
+    }
   }
 
   geom_uid_mat_mapping_map[collada_mesh->getUniqueId()] = mat_prim_map;
@@ -815,8 +831,9 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
   switch (arr.getType()) {
     case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT: {
       COLLADAFW::ArrayPrimitiveType<float> *values = arr.getFloatValues();
-      if (values->empty())
+      if (values->empty()) {
         return;
+      }
 
       v[0] = (*values)[i++];
       v[1] = (*values)[i++];
@@ -830,8 +847,9 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
     } break;
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = arr.getDoubleValues();
-      if (values->empty())
+      if (values->empty()) {
         return;
+      }
 
       v[0] = (float)(*values)[i++];
       v[1] = (float)(*values)[i++];
@@ -862,8 +880,9 @@ bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &n
 
     float dp = dot_v3v3(a, b);
 
-    if (dp < 0.99999f || dp > 1.00001f)
+    if (dp < 0.99999f || dp > 1.00001f) {
       return false;
+    }
   }
 
   return true;
@@ -871,22 +890,25 @@ bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &n
 
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid)
 {
-  if (uid_object_map.find(geom_uid) != uid_object_map.end())
+  if (uid_object_map.find(geom_uid) != uid_object_map.end()) {
     return uid_object_map[geom_uid];
+  }
   return NULL;
 }
 
 Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId &mesh_uid)
 {
-  if (uid_mesh_map.find(mesh_uid) != uid_mesh_map.end())
+  if (uid_mesh_map.find(mesh_uid) != uid_mesh_map.end()) {
     return uid_mesh_map[mesh_uid];
+  }
   return NULL;
 }
 
 std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
 {
-  if (this->mesh_geom_map.find(mesh_name) != this->mesh_geom_map.end())
+  if (this->mesh_geom_map.find(mesh_name) != this->mesh_geom_map.end()) {
     return &this->mesh_geom_map[mesh_name];
+  }
   return NULL;
 }
 
@@ -897,18 +919,23 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
  */
 static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
 {
-  if (ob1->totcol != ob2->totcol)
+  if (ob1->totcol != ob2->totcol) {
     return false;  // not same number of materials
-  if (ob1->totcol == 0)
+  }
+  if (ob1->totcol == 0) {
     return false;  // no material at all
+  }
 
   for (int index = 0; index < ob1->totcol; index++) {
-    if (ob1->matbits[index] != ob2->matbits[index])
+    if (ob1->matbits[index] != ob2->matbits[index]) {
       return false;  // shouldn't happen
-    if (ob1->matbits[index] == 0)
+    }
+    if (ob1->matbits[index] == 0) {
       return false;  // shouldn't happen
-    if (ob1->mat[index] != ob2->mat[index])
+    }
+    if (ob1->mat[index] != ob2->mat[index]) {
       return false;  // different material assignment
+    }
   }
   return true;
 }
@@ -955,8 +982,9 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
     if (bc_is_marked(ob)) {
       bc_remove_mark(ob);
       Mesh *me = (Mesh *)ob->data;
-      if (me == reference_mesh)
+      if (me == reference_mesh) {
         mesh_users.push_back(ob);
+      }
     }
   }
   return mesh_users;
@@ -1098,8 +1126,9 @@ Object *MeshImporter::create_mesh_object(
       return NULL;
     }
   }
-  if (!uid_mesh_map[*geom_uid])
+  if (!uid_mesh_map[*geom_uid]) {
     return NULL;
+  }
 
   // name Object
   const std::string &id = node->getName().size() ? node->getName() : node->getOriginalId();

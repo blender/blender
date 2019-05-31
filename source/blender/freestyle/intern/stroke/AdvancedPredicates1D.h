@@ -67,8 +67,9 @@ class DensityLowerThanUP1D : public UnaryPredicate1D {
   int operator()(Interface1D &inter)
   {
     Functions1D::DensityF1D fun(_sigma);
-    if (fun(inter) < 0)
+    if (fun(inter) < 0) {
       return -1;
+    }
     result = (fun.result < _threshold);
     return 0;
   }

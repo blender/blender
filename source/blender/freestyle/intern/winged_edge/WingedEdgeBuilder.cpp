@@ -34,8 +34,9 @@ namespace Freestyle {
 
 void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
 {
-  if (_pRenderMonitor && _pRenderMonitor->testBreak())
+  if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
     return;
+  }
   WShape *shape = new WShape;
   if (!buildWShape(*shape, ifs)) {
     delete shape;
@@ -65,8 +66,9 @@ void WingedEdgeBuilder::visitNodeTransform(NodeTransform &tn)
 
 void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform &)
 {
-  if (_current_matrix)
+  if (_current_matrix) {
     delete _current_matrix;
+  }
 
   if (_matrices_stack.empty()) {
     _current_matrix = NULL;
@@ -108,8 +110,9 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   vector<FrsMaterial> frs_materials;
   if (ifs.msize()) {
     const FrsMaterial *const *mats = ifs.frs_materials();
-    for (unsigned i = 0; i < ifs.msize(); ++i)
+    for (unsigned i = 0; i < ifs.msize(); ++i) {
       frs_materials.push_back(*(mats[i]));
+    }
     shape.setFrsMaterials(frs_materials);
   }
 
@@ -136,8 +139,9 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   }
 
   const unsigned int *mindices = NULL;
-  if (ifs.msize())
+  if (ifs.msize()) {
     mindices = ifs.mindices();
+  }
   const unsigned int *numVertexPerFace = ifs.numVertexPerFaces();
   const unsigned int numfaces = ifs.numFaces();
 
@@ -182,18 +186,21 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
     }
     vindices += numVertexPerFace[index];
     nindices += numVertexPerFace[index];
-    if (mindices)
+    if (mindices) {
       mindices += numVertexPerFace[index];
-    if (tindices)
+    }
+    if (tindices) {
       tindices += numVertexPerFace[index];
+    }
     faceEdgeMarks++;
   }
 
   delete[] new_vertices;
   delete[] new_normals;
 
-  if (shape.GetFaceList().size() == 0)  // this may happen due to degenerate triangles
+  if (shape.GetFaceList().size() == 0) {  // this may happen due to degenerate triangles
     return false;
+  }
 
 #if 0
   // compute bbox
@@ -207,11 +214,13 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   vector<WVertex *> &wvertices = shape.getVertexList();
   for (vector<WVertex *>::iterator wv = wvertices.begin(), wvend = wvertices.end(); wv != wvend;
        ++wv) {
-    if ((*wv)->isBoundary())
+    if ((*wv)->isBoundary()) {
       continue;
+    }
     if ((*wv)->GetEdges().size() ==
-        0)  // This means that the WVertex has no incoming edges... (12-Sep-2011 T.K.)
+        0) {  // This means that the WVertex has no incoming edges... (12-Sep-2011 T.K.)
       continue;
+    }
     normalsSet.clear();
     WVertex::face_iterator fit = (*wv)->faces_begin();
     WVertex::face_iterator fitend = (*wv)->faces_end();
@@ -400,12 +409,14 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
     triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::EDGE_MARK_V2V3) != 0);
     triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::EDGE_MARK_V3V1) != 0);
   }
-  if (mindices)
+  if (mindices) {
     currentShape->MakeFace(
         triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, mindices[0]);
-  else
+  }
+  else {
     currentShape->MakeFace(
         triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, 0);
+  }
 }
 
 void WingedEdgeBuilder::transformVertices(const float *vertices,
@@ -419,8 +430,9 @@ void WingedEdgeBuilder::transformVertices(const float *vertices,
   for (unsigned int i = 0; i < vsize / 3; i++) {
     HVec3r hv_tmp(v[0], v[1], v[2]);
     HVec3r hv(transform * hv_tmp);
-    for (unsigned int j = 0; j < 3; j++)
+    for (unsigned int j = 0; j < 3; j++) {
       pv[j] = hv[j] / hv[3];
+    }
     v += 3;
     pv += 3;
   }
@@ -437,8 +449,9 @@ void WingedEdgeBuilder::transformNormals(const float *normals,
   for (unsigned int i = 0; i < nsize / 3; i++) {
     Vec3r hn(n[0], n[1], n[2]);
     hn = GeomUtils::rotateVector(transform, hn);
-    for (unsigned int j = 0; j < 3; j++)
+    for (unsigned int j = 0; j < 3; j++) {
       pn[j] = hn[j];
+    }
     n += 3;
     pn += 3;
   }

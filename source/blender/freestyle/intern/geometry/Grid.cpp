@@ -83,8 +83,9 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ)
 
 bool firstIntersectionGridVisitor::stop()
 {
-  if (occluder_)
+  if (occluder_) {
     return true;
+  }
   return false;
 }
 
@@ -139,20 +140,23 @@ void Grid::configure(const Vec3r &orig, const Vec3r &size, unsigned nb)
 
   // We compute the number of cells par edge such as we cover at least the whole box.
   unsigned i;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     _cells_nb[i] = (unsigned)floor(tmpSize[i] / edge) + 1;
+  }
 
   _size = tmpSize;
 
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++) {
     _cell_size[i] = _size[i] / _cells_nb[i];
+  }
 }
 
 void Grid::insertOccluder(Polygon3r *occluder)
 {
   const vector<Vec3r> vertices = occluder->getVertices();
-  if (vertices.size() == 0)
+  if (vertices.size() == 0) {
     return;
+  }
 
   // add this occluder to the grid's occluders list
   addOccluder(occluder);
@@ -244,12 +248,15 @@ bool Grid::nextRayCell(Vec3u &current_cell, Vec3u &next_cell)
   // coresponding to the intersections with the plans:
   //     x = _cell_size[0], y = _cell_size[1], z = _cell_size[2]
   for (i = 0; i < 3; i++) {
-    if (_ray_dir[i] == 0)
+    if (_ray_dir[i] == 0) {
       continue;
-    if (_ray_dir[i] > 0)
+    }
+    if (_ray_dir[i] > 0) {
       t = (_cell_size[i] - _pt[i]) / _ray_dir[i];
-    else
+    }
+    else {
       t = -_pt[i] / _ray_dir[i];
+    }
     if (t < t_min) {
       t_min = t;
       coord = i;
@@ -266,20 +273,23 @@ bool Grid::nextRayCell(Vec3u &current_cell, Vec3u &next_cell)
     next_cell[coord]++;
     _pt[coord] -= _cell_size[coord];
     // if we are out of the grid, we must stop
-    if (next_cell[coord] >= _cells_nb[coord])
+    if (next_cell[coord] >= _cells_nb[coord]) {
       return false;
+    }
   }
   else {
     int tmp = next_cell[coord] - 1;
     _pt[coord] = _cell_size[coord];
-    if (tmp < 0)
+    if (tmp < 0) {
       return false;
+    }
     next_cell[coord]--;
   }
 
   _t += t_min;
-  if (_t >= _t_end)
+  if (_t >= _t_end) {
     return false;
+  }
 
   return true;
 }
@@ -301,8 +311,9 @@ void Grid::castInfiniteRay(const Vec3r &orig,
 {
   Vec3r end = Vec3r(orig + FLT_MAX * dir / dir.norm());
   bool inter = initInfiniteRay(orig, dir, timestamp);
-  if (!inter)
+  if (!inter) {
     return;
+  }
   allOccludersGridVisitor visitor(occluders);
   castRayInternal(visitor);
 }
@@ -371,8 +382,9 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
       Vec3r newOrig = orig + tmin * _ray_dir;
       for (unsigned int i = 0; i < 3; i++) {
         _current_cell[i] = (unsigned)floor((newOrig[i] - _orig[i]) / _cell_size[i]);
-        if (_current_cell[i] == _cells_nb[i])
+        if (_current_cell[i] == _cells_nb[i]) {
           _current_cell[i] = _cells_nb[i] - 1;
+        }
         // soc unused - unsigned u = _current_cell[i];
         _pt[i] = newOrig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
       }

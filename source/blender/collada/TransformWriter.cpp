@@ -86,8 +86,9 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
       UnitConverter converter;
       double d_obmat[4][4];
       converter.mat4_to_dae_double(d_obmat, f_obmat);
-      if (limit_precision)
+      if (limit_precision) {
         bc_sanitize_mat(d_obmat, LIMITTED_PRECISION);
+      }
       node.addMatrix("transform", d_obmat);
       break;
     }

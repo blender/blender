@@ -88,10 +88,12 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
   float t2d;
 
   if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &CurvePoint_Type, &obj1)) {
-    if (!obj1)
+    if (!obj1) {
       self->cp = new CurvePoint();
-    else
+    }
+    else {
       self->cp = new CurvePoint(*(((BPy_CurvePoint *)obj1)->cp));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
@@ -148,8 +150,9 @@ PyDoc_STRVAR(CurvePoint_first_svertex_doc,
 static PyObject *CurvePoint_first_svertex_get(BPy_CurvePoint *self, void *UNUSED(closure))
 {
   SVertex *A = self->cp->A();
-  if (A)
+  if (A) {
     return BPy_SVertex_from_SVertex(*A);
+  }
   Py_RETURN_NONE;
 }
 
@@ -173,8 +176,9 @@ PyDoc_STRVAR(CurvePoint_second_svertex_doc,
 static PyObject *CurvePoint_second_svertex_get(BPy_CurvePoint *self, void *UNUSED(closure))
 {
   SVertex *B = self->cp->B();
-  if (B)
+  if (B) {
     return BPy_SVertex_from_SVertex(*B);
+  }
   Py_RETURN_NONE;
 }
 
@@ -201,8 +205,9 @@ static PyObject *CurvePoint_fedge_get(BPy_CurvePoint *self, void *UNUSED(closure
   SVertex *A = self->cp->A();
   Interface0D *B = (Interface0D *)self->cp->B();
   // B can be NULL under certain circumstances
-  if (B)
+  if (B) {
     return Any_BPy_Interface1D_from_Interface1D(*(A->getFEdge(*B)));
+  }
   Py_RETURN_NONE;
 }
 

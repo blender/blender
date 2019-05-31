@@ -67,8 +67,9 @@ class Cell {
 
   inline void addOccluder(Polygon3r *o)
   {
-    if (o)
+    if (o) {
       _occluders.push_back(o);
+    }
   }
 
   inline const Vec3r &getOrigin()
@@ -227,12 +228,15 @@ class Grid {
     int tmp;
     for (int i = 0; i < 3; i++) {
       tmp = (int)((p[i] - _orig[i]) / _cell_size[i]);
-      if (tmp < 0)
+      if (tmp < 0) {
         res[i] = 0;
-      else if ((unsigned int)tmp >= _cells_nb[i])
+      }
+      else if ((unsigned int)tmp >= _cells_nb[i]) {
         res[i] = _cells_nb[i] - 1;
-      else
+      }
+      else {
         res[i] = tmp;
+      }
     }
   }
 
@@ -263,8 +267,9 @@ class Grid {
    */
   inline void getCellOrigin(const Vec3u &cell_coord, Vec3r &orig)
   {
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; i++) {
       orig[i] = _orig[i] + cell_coord[i] * _cell_size[i];
+    }
   }
 
   /*! Retrieves the box corresponding to the cell whose coordinates are passed as argument:

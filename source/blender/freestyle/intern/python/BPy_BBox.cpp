@@ -29,11 +29,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int BBox_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&BBox_Type) < 0)
+  if (PyType_Ready(&BBox_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&BBox_Type);
   PyModule_AddObject(module, "BBox", (PyObject *)&BBox_Type);
 
@@ -53,8 +55,9 @@ static int BBox_init(BPy_BBox *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->bb = new BBox<Vec3r>();
   return 0;
 }

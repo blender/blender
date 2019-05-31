@@ -530,7 +530,7 @@ static int startffmpeg(struct anim *anim)
   /* Find the video stream */
   videoStream = -1;
 
-  for (i = 0; i < pFormatCtx->nb_streams; i++)
+  for (i = 0; i < pFormatCtx->nb_streams; i++) {
     if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       if (streamcount > 0) {
         streamcount--;
@@ -539,6 +539,7 @@ static int startffmpeg(struct anim *anim)
       videoStream = i;
       break;
     }
+  }
 
   if (videoStream == -1) {
     avformat_close_input(&pFormatCtx);

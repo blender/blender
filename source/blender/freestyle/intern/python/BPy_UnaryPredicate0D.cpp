@@ -34,21 +34,25 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int UnaryPredicate0D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryPredicate0D_Type) < 0)
+  if (PyType_Ready(&UnaryPredicate0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryPredicate0D_Type);
   PyModule_AddObject(module, "UnaryPredicate0D", (PyObject *)&UnaryPredicate0D_Type);
 
-  if (PyType_Ready(&FalseUP0D_Type) < 0)
+  if (PyType_Ready(&FalseUP0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&FalseUP0D_Type);
   PyModule_AddObject(module, "FalseUP0D", (PyObject *)&FalseUP0D_Type);
 
-  if (PyType_Ready(&TrueUP0D_Type) < 0)
+  if (PyType_Ready(&TrueUP0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&TrueUP0D_Type);
   PyModule_AddObject(module, "TrueUP0D", (PyObject *)&TrueUP0D_Type);
 
@@ -83,8 +87,9 @@ static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->up0D = new UnaryPredicate0D();
   self->up0D->py_up0D = (PyObject *)self;
   return 0;
@@ -92,8 +97,9 @@ static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args,
 
 static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D *self)
 {
-  if (self->up0D)
+  if (self->up0D) {
     delete self->up0D;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -110,8 +116,9 @@ static PyObject *UnaryPredicate0D___call__(BPy_UnaryPredicate0D *self,
   PyObject *py_if0D_it;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &py_if0D_it))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &py_if0D_it)) {
     return NULL;
+  }
 
   Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it;
 

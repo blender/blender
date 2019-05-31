@@ -53,8 +53,9 @@ int CalligraphicShader::shade(Stroke &ioStroke) const
   StrokeVertex *sv;
   for (v = ioStroke.verticesBegin(); !v.isEnd(); ++v) {
     real thickness;
-    if (fun(v) < 0)
+    if (fun(v) < 0) {
       return -1;
+    }
 
     Vec2f vertexOri(fun.result);
     Vec2r ori2d(-vertexOri[1], vertexOri[0]);
@@ -70,8 +71,9 @@ int CalligraphicShader::shade(Stroke &ioStroke) const
       sv->attribute().setColor(0, 0, 0);
     }
     thickness = _minThickness + scal * (_maxThickness - _minThickness);
-    if (thickness < 0.0)
+    if (thickness < 0.0) {
       thickness = 0.0;
+    }
     sv->attribute().setThickness(thickness / 2.0, thickness / 2.0);
   }
 
@@ -91,10 +93,12 @@ SpatialNoiseShader::SpatialNoiseShader(
     : StrokeShader()
 {
   _amount = ioamount;
-  if (ixScale == 0)
+  if (ixScale == 0) {
     _xScale = 0;
-  else
+  }
+  else {
     _xScale = 1.0 / ixScale / real(NB_VALUE_NOISE);
+  }
   _nbOctave = nbOctave;
   _smooth = smooth;
   _pureRandom = pureRandom;
@@ -112,15 +116,17 @@ int SpatialNoiseShader::shade(Stroke &ioStroke) const
   StrokeVertex *sv;
   sv = dynamic_cast<StrokeVertex *>(&(*v));
   real initU = sv->strokeLength() * real(NB_VALUE_NOISE);
-  if (_pureRandom)
+  if (_pureRandom) {
     initU += RandGen::drand48() * real(NB_VALUE_NOISE);
+  }
 
   Functions0D::VertexOrientation2DF0D fun;
   while (!v.isEnd()) {
     sv = dynamic_cast<StrokeVertex *>(&(*v));
     Vec2r p(sv->getPoint());
-    if (fun(v) < 0)
+    if (fun(v) < 0) {
       return -1;
+    }
     Vec2r vertexOri(fun.result);
     Vec2r ori2d(vertexOri[0], vertexOri[1]);
     ori2d = Vec2r(p - p0);
@@ -129,10 +135,12 @@ int SpatialNoiseShader::shade(Stroke &ioStroke) const
     PseudoNoise mynoise;
     real bruit;
 
-    if (_smooth)
+    if (_smooth) {
       bruit = mynoise.turbulenceSmooth(_xScale * sv->curvilinearAbscissa() + initU, _nbOctave);
-    else
+    }
+    else {
       bruit = mynoise.turbulenceLinear(_xScale * sv->curvilinearAbscissa() + initU, _nbOctave);
+    }
 
     Vec2r noise(-ori2d[1] * _amount * bruit, ori2d[0] * _amount * bruit);
 
@@ -236,15 +244,17 @@ void Smoother::smooth(int nbIteration,
   _factorPoint = iFactorPoint;
   _anisoPoint = iAnisoPoint;
 
-  for (int i = 0; i < nbIteration; ++i)
+  for (int i = 0; i < nbIteration; ++i) {
     iteration();
+  }
   copyVertices();
 }
 
 static real edgeStopping(real x, real sigma)
 {
-  if (sigma == 0.0)
+  if (sigma == 0.0) {
     return 1.0;
+  }
   return exp(-x * x / (sigma * sigma));
 }
 
@@ -262,8 +272,9 @@ void Smoother::iteration()
                                diffC2;  //_factorCurvatureDifference;
     motionCurvature *= _factorCurvatureDifference;
     // motionCurvature = _factorCurvatureDifference * (diffC1 + diffC2);
-    if (_safeTest)
+    if (_safeTest) {
       _vertex[i] = Vec2r(_vertex[i] + (motionNormal + motionCurvature) * _normal[i]);
+    }
     Vec2r v1(_vertex[i - 1] - _vertex[i]);
     Vec2r v2(_vertex[i + 1] - _vertex[i]);
     real d1 = v1.norm();
@@ -305,8 +316,9 @@ void Smoother::computeCurvature()
     _normal[i].normalizeSafe();
 
     _curvature[i] = normalCurvature * _normal[i];
-    if (lba + lbc > M_EPSILON)
+    if (lba + lbc > M_EPSILON) {
       _curvature[i] /= (0.5 * lba + lbc);
+    }
   }
   _curvature[0] = _curvature[1];
   _curvature[_nbVertices - 1] = _curvature[_nbVertices - 2];
@@ -329,8 +341,9 @@ void Smoother::computeCurvature()
     _normal[i].normalizeSafe();
 
     _curvature[i] = normalCurvature * _normal[i];
-    if (lba + lbc > M_EPSILON)
+    if (lba + lbc > M_EPSILON) {
       _curvature[i] /= (0.5 * lba + lbc);
+    }
 
     _normal[_nbVertices - 1] = _normal[0];
     _curvature[_nbVertices - 1] = _curvature[0];

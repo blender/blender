@@ -73,10 +73,12 @@ int collada_export(bContext *C, ExportSettings *export_settings)
   ViewLayer *view_layer = blender_context.get_view_layer();
 
   int includeFilter = OB_REL_NONE;
-  if (export_settings->include_armatures)
+  if (export_settings->include_armatures) {
     includeFilter |= OB_REL_MOD_ARMATURE;
-  if (export_settings->include_children)
+  }
+  if (export_settings->include_children) {
     includeFilter |= OB_REL_CHILDREN_RECURSIVE;
+  }
 
   /* Fetch the complete set of exported objects
    * ATTENTION: Invisible objects will not be exported
@@ -98,8 +100,9 @@ int collada_export(bContext *C, ExportSettings *export_settings)
     }
   }
   else {
-    if (export_settings->sort_by_name)
+    if (export_settings->sort_by_name) {
       bc_bubble_sort_by_Object_name(export_settings->export_set);
+    }
   }
 
   DocumentExporter exporter(blender_context, export_settings);

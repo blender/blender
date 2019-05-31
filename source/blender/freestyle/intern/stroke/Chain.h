@@ -65,8 +65,9 @@ class Chain : public Curve {
   {
     // only the last splitted deletes this id
     if (_splittingId) {
-      if (*_splittingId == _Id)
+      if (*_splittingId == _Id) {
         delete _splittingId;
+      }
     }
   }
 

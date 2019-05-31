@@ -83,8 +83,9 @@ IndexedFaceSet::IndexedFaceSet(float *iVertices,
     _FrsMaterials = 0;
     if (iMaterials) {
       _FrsMaterials = new FrsMaterial *[_MSize];
-      for (unsigned int i = 0; i < _MSize; ++i)
+      for (unsigned int i = 0; i < _MSize; ++i) {
         _FrsMaterials[i] = new FrsMaterial(*(iMaterials[i]));
+      }
     }
     _TSize = iTSize;
     _TexCoords = 0;
@@ -133,8 +134,9 @@ IndexedFaceSet::IndexedFaceSet(float *iVertices,
 
     _MSize = iMSize;
     _FrsMaterials = 0;
-    if (iMaterials)
+    if (iMaterials) {
       _FrsMaterials = iMaterials;
+    }
 
     _TSize = iTSize;
     _TexCoords = iTexCoords;
@@ -152,8 +154,9 @@ IndexedFaceSet::IndexedFaceSet(float *iVertices,
 
     _MISize = iMISize;
     _MIndices = 0;
-    if (iMISize)
+    if (iMISize) {
       _MIndices = iMIndices;
+    }
 
     _TISize = iTISize;
     _TIndices = iTIndices;
@@ -236,8 +239,9 @@ IndexedFaceSet::~IndexedFaceSet()
   }
 
   if (NULL != _FrsMaterials) {
-    for (unsigned int i = 0; i < _MSize; ++i)
+    for (unsigned int i = 0; i < _MSize; ++i) {
       delete _FrsMaterials[i];
+    }
     delete[] _FrsMaterials;
     _FrsMaterials = NULL;
   }
@@ -302,22 +306,28 @@ void IndexedFaceSet::ComputeBBox()
   float *v = _Vertices;
 
   for (unsigned int i = 0; i < (_VSize / 3); ++i) {
-    if (*v > XMax)
+    if (*v > XMax) {
       XMax = *v;
-    if (*v < XMin)
+    }
+    if (*v < XMin) {
       XMin = *v;
+    }
     ++v;
 
-    if (*v > YMax)
+    if (*v > YMax) {
       YMax = *v;
-    if (*v < YMin)
+    }
+    if (*v < YMin) {
       YMin = *v;
+    }
     ++v;
 
-    if (*v > ZMax)
+    if (*v > ZMax) {
       ZMax = *v;
-    if (*v < ZMin)
+    }
+    if (*v < ZMin) {
       ZMin = *v;
+    }
     ++v;
   }
 

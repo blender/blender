@@ -119,10 +119,12 @@ struct IK_Target {
   }
   ~IK_Target()
   {
-    if (constraint)
+    if (constraint) {
       delete constraint;
-    if (target)
+    }
+    if (target) {
       delete target;
+    }
   }
 };
 
@@ -196,22 +198,29 @@ struct IK_Scene {
   ~IK_Scene()
   {
     // delete scene first
-    if (scene)
+    if (scene) {
       delete scene;
-    for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); ++it)
+    }
+    for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); ++it) {
       delete (*it);
+    }
     targets.clear();
-    if (channels)
+    if (channels) {
       delete[] channels;
-    if (solver)
+    }
+    if (solver) {
       delete solver;
-    if (armature)
+    }
+    if (armature) {
       delete armature;
-    if (base)
+    }
+    if (base) {
       delete base;
+    }
     // delete cache last
-    if (cache)
+    if (cache) {
       delete cache;
+    }
   }
 };
 
@@ -245,16 +254,18 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
   data = (bKinematicConstraint *)con->data;
 
   /* exclude tip from chain? */
-  if (!(data->flag & CONSTRAINT_IK_TIP))
+  if (!(data->flag & CONSTRAINT_IK_TIP)) {
     pchan_tip = pchan_tip->parent;
+  }
 
   rootbone = data->rootbone;
   /* Find the chain's root & count the segments needed */
   for (curchan = pchan_tip; curchan; curchan = curchan->parent) {
     pchan_root = curchan;
 
-    if (++segcount > 255)  // 255 is weak
+    if (++segcount > 255) {  // 255 is weak
       break;
+    }
 
     if (segcount == rootbone) {
       // reached this end of the chain but if the chain is overlapping with a
@@ -266,17 +277,20 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
       break;
     }
 
-    if (BLI_listbase_is_empty(&curchan->iktree) == false)
+    if (BLI_listbase_is_empty(&curchan->iktree) == false) {
       // Oh oh, there is already a chain starting from this channel and our chain is longer...
       // Should handle this by moving the previous chain up to the beginning of our chain
       // For now we just stop here
       break;
+    }
   }
-  if (!segcount)
+  if (!segcount) {
     return 0;
+  }
   // we reached a limit and still not the end of a previous chain, quit
-  if ((pchan_root->flag & POSE_CHAIN) && BLI_listbase_is_empty(&pchan_root->iktree))
+  if ((pchan_root->flag & POSE_CHAIN) && BLI_listbase_is_empty(&pchan_root->iktree)) {
     return 0;
+  }
 
   // now that we know how many segment we have, set the flag
   for (rootbone = segcount, segcount = 0, curchan = pchan_tip; segcount < rootbone;
@@ -323,26 +337,32 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
     a = t = 0;
     while (a < size && t < tree->totchannel) {
       // locate first matching channel
-      for (; t < tree->totchannel && tree->pchan[t] != chanlist[segcount - a - 1]; t++)
+      for (; t < tree->totchannel && tree->pchan[t] != chanlist[segcount - a - 1]; t++) {
         ;
-      if (t >= tree->totchannel)
+      }
+      if (t >= tree->totchannel) {
         break;
+      }
       for (; a < size && t < tree->totchannel && tree->pchan[t] == chanlist[segcount - a - 1];
-           a++, t++)
+           a++, t++) {
         ;
+      }
     }
 
     segcount = segcount - a;
     target->tip = tree->totchannel + segcount - 1;
 
     if (segcount > 0) {
-      for (parent = a - 1; parent < tree->totchannel; parent++)
-        if (tree->pchan[parent] == chanlist[segcount - 1]->parent)
+      for (parent = a - 1; parent < tree->totchannel; parent++) {
+        if (tree->pchan[parent] == chanlist[segcount - 1]->parent) {
           break;
+        }
+      }
 
       /* shouldn't happen, but could with dependency cycles */
-      if (parent == tree->totchannel)
+      if (parent == tree->totchannel) {
         parent = a - 1;
+      }
 
       /* resize array */
       newsize = tree->totchannel + segcount;
@@ -387,16 +407,20 @@ static bool constraint_valid(bConstraint *con)
 {
   bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
-  if (data->flag & CONSTRAINT_IK_AUTO)
+  if (data->flag & CONSTRAINT_IK_AUTO) {
     return true;
-  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))
+  }
+  if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
     return false;
+  }
   if (is_cartesian_constraint(con)) {
     /* cartesian space constraint */
-    if (data->tar == NULL)
+    if (data->tar == NULL) {
       return false;
-    if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0)
+    }
+    if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
       return false;
+    }
   }
   return true;
 }
@@ -410,8 +434,9 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
   treecount = 0;
   for (con = (bConstraint *)pchan_tip->constraints.first; con; con = (bConstraint *)con->next) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-      if (constraint_valid(con))
+      if (constraint_valid(con)) {
         treecount += initialize_chain(ob, pchan_tip, con);
+      }
     }
   }
   return treecount;
@@ -419,13 +444,15 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 
 static IK_Data *get_ikdata(bPose *pose)
 {
-  if (pose->ikdata)
+  if (pose->ikdata) {
     return (IK_Data *)pose->ikdata;
+  }
   pose->ikdata = MEM_callocN(sizeof(IK_Data), "iTaSC ikdata");
   // here init ikdata if needed
   // now that we have scene, make sure the default param are initialized
-  if (!DefIKParam.iksolver)
+  if (!DefIKParam.iksolver) {
     BKE_pose_itasc_init(&DefIKParam);
+  }
 
   return (IK_Data *)pose->ikdata;
 }
@@ -434,20 +461,26 @@ static double EulerAngleFromMatrix(const KDL::Rotation &R, int axis)
   double t = KDL::sqrt(R(0, 0) * R(0, 0) + R(0, 1) * R(0, 1));
 
   if (t > 16.0 * KDL::epsilon) {
-    if (axis == 0)
+    if (axis == 0) {
       return -KDL::atan2(R(1, 2), R(2, 2));
-    else if (axis == 1)
+    }
+    else if (axis == 1) {
       return KDL::atan2(-R(0, 2), t);
-    else
+    }
+    else {
       return -KDL::atan2(R(0, 1), R(0, 0));
+    }
   }
   else {
-    if (axis == 0)
+    if (axis == 0) {
       return -KDL::atan2(-R(2, 1), R(1, 1));
-    else if (axis == 1)
+    }
+    else if (axis == 1) {
       return KDL::atan2(-R(0, 2), t);
-    else
+    }
+    else {
       return 0.0f;
+    }
   }
 }
 
@@ -717,8 +750,9 @@ static bool copypose_callback(const iTaSC::Timestamp &timestamp,
   bItasc *ikparam = (bItasc *)iktarget->owner->pose->ikparam;
 
   // we need default parameters
-  if (!ikparam)
+  if (!ikparam) {
     ikparam = &DefIKParam;
+  }
 
   if (iktarget->blenderConstraint->flag & CONSTRAINT_OFF) {
     if (iktarget->controlType & iTaSC::CopyPose::CTL_POSITION) {
@@ -761,15 +795,17 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
 
   if (iktarget->controlType & iTaSC::CopyPose::CTL_POSITION) {
     // update error
-    for (i = 0, error = 0.0, value = values->values; i < values->number; ++i, ++value)
+    for (i = 0, error = 0.0, value = values->values; i < values->number; ++i, ++value) {
       error += KDL::sqr(value->y - value->yd);
+    }
     iktarget->blenderConstraint->lin_error = (float)KDL::sqrt(error);
     values++;
   }
   if (iktarget->controlType & iTaSC::CopyPose::CTL_ROTATION) {
     // update error
-    for (i = 0, error = 0.0, value = values->values; i < values->number; ++i, ++value)
+    for (i = 0, error = 0.0, value = values->values; i < values->number; ++i, ++value) {
       error += KDL::sqr(value->y - value->yd);
+    }
     iktarget->blenderConstraint->rot_error = (float)KDL::sqrt(error);
     values++;
   }
@@ -785,8 +821,9 @@ static bool distance_callback(const iTaSC::Timestamp &timestamp,
   iTaSC::ConstraintValues *values = _values;
   bItasc *ikparam = (bItasc *)iktarget->owner->pose->ikparam;
   // we need default parameters
-  if (!ikparam)
+  if (!ikparam) {
     ikparam = &DefIKParam;
+  }
 
   // update weight according to mode
   if (iktarget->blenderConstraint->flag & CONSTRAINT_OFF) {
@@ -938,8 +975,9 @@ static int convert_channels(struct Depsgraph *depsgraph,
     // the constraint and channels must be applied before we build the iTaSC scene,
     // this is because some of the pose data (e.g. pose head) don't have corresponding
     // joint angles and can't be applied to the iTaSC armature dynamically
-    if (!(pchan->flag & POSE_DONE))
+    if (!(pchan->flag & POSE_DONE)) {
       BKE_pose_where_is_bone(depsgraph, ikscene->blscene, ikscene->blArmature, pchan, ctime, 1);
+    }
     // tell blender that this channel was controlled by IK,
     // it's cleared on each BKE_pose_where_is()
     pchan->flag |= (POSE_DONE | POSE_CHAIN);
@@ -1028,11 +1066,13 @@ static int convert_channels(struct Depsgraph *depsgraph,
         break;
       case IK_XDOF | IK_YDOF | IK_ZDOF:
         // spherical joint
-        if (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_YLIMIT | BONE_IK_ZLIMIT))
+        if (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_YLIMIT | BONE_IK_ZLIMIT)) {
           // decompose in a Swing+RotY joint
           ikchan->jointType = IK_SWING | IK_YDOF;
-        else
+        }
+        else {
           ikchan->jointType = IK_REVOLUTE;
+        }
         ikchan->ndof = 3;
         break;
     }
@@ -1113,8 +1153,9 @@ static void BKE_pose_rest(IK_Scene *ikscene)
     pchan = ikchan->pchan;
     bone = pchan->bone;
 
-    if (ikchan->jointType & IK_TRANSY)
+    if (ikchan->jointType & IK_TRANSY) {
       rot[ikchan->ndof - 1] = bone->length * scale;
+    }
     rot += ikchan->ndof;
     joint += ikchan->ndof;
   }
@@ -1141,8 +1182,9 @@ static IK_Scene *convert_tree(
   double *rot;
   float start[3];
 
-  if (tree->totchannel == 0)
+  if (tree->totchannel == 0) {
     return NULL;
+  }
 
   ikscene = new IK_Scene;
   ikscene->blscene = blscene;
@@ -1160,9 +1202,10 @@ static IK_Scene *convert_tree(
     ikparam = &DefIKParam;
   }
 
-  if (ikparam->flag & ITASC_SIMULATION)
+  if (ikparam->flag & ITASC_SIMULATION) {
     // no cache in animation mode
     ikscene->cache = new iTaSC::Cache();
+  }
 
   switch (ikparam->solver) {
     case ITASC_SOLVER_SDLS:
@@ -1206,14 +1249,18 @@ static IK_Scene *convert_tree(
     {
       float R_parmat[3][3];
       float iR_parmat[3][3];
-      if (pchan->parent)
+      if (pchan->parent) {
         copy_m3_m4(R_parmat, pchan->parent->pose_mat);
-      else
+      }
+      else {
         unit_m3(R_parmat);
-      if (pchan->parent)
+      }
+      if (pchan->parent) {
         sub_v3_v3v3(start, pchan->pose_head, pchan->parent->pose_tail);
-      else
+      }
+      else {
         start[0] = start[1] = start[2] = 0.0f;
+      }
       invert_m3_m3(iR_parmat, R_parmat);
       normalize_m3(iR_parmat);
       mul_m3_v3(iR_parmat, start);
@@ -1327,9 +1374,10 @@ static IK_Scene *convert_tree(
       weight[1] = (1.0 - min_ff(1.0 - ikstretch, 1.0f - 0.001f));
       weights.push_back(weight[1]);
     }
-    if (!ret)
+    if (!ret) {
       // error making the armature??
       break;
+    }
     // joint points to the segment that correspond to the bone per say
     ikchan->tail = joint;
     ikchan->head = parent;
@@ -1339,36 +1387,42 @@ static IK_Scene *convert_tree(
       joint = bone->name;
       joint += ":RX";
       if (pchan->ikflag & BONE_IK_XLIMIT) {
-        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[0], pchan->limitmax[0]) < 0)
+        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[0], pchan->limitmax[0]) < 0) {
           break;
+        }
       }
       if (pchan->ikflag & BONE_IK_ROTCTL) {
-        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0)
+        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0) {
           break;
+        }
       }
     }
     if ((ikchan->jointType & IK_YDOF) && (pchan->ikflag & (BONE_IK_YLIMIT | BONE_IK_ROTCTL))) {
       joint = bone->name;
       joint += ":RY";
       if (pchan->ikflag & BONE_IK_YLIMIT) {
-        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[1], pchan->limitmax[1]) < 0)
+        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[1], pchan->limitmax[1]) < 0) {
           break;
+        }
       }
       if (pchan->ikflag & BONE_IK_ROTCTL) {
-        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0)
+        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0) {
           break;
+        }
       }
     }
     if ((ikchan->jointType & IK_ZDOF) && (pchan->ikflag & (BONE_IK_ZLIMIT | BONE_IK_ROTCTL))) {
       joint = bone->name;
       joint += ":RZ";
       if (pchan->ikflag & BONE_IK_ZLIMIT) {
-        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[2], pchan->limitmax[2]) < 0)
+        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[2], pchan->limitmax[2]) < 0) {
           break;
+        }
       }
       if (pchan->ikflag & BONE_IK_ROTCTL) {
-        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0)
+        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0) {
           break;
+        }
       }
     }
     if ((ikchan->jointType & IK_SWING) &&
@@ -1376,23 +1430,27 @@ static IK_Scene *convert_tree(
       joint = bone->name;
       joint += ":SW";
       if (pchan->ikflag & BONE_IK_XLIMIT) {
-        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[0], pchan->limitmax[0]) < 0)
+        if (arm->addLimitConstraint(joint, 0, pchan->limitmin[0], pchan->limitmax[0]) < 0) {
           break;
+        }
       }
       if (pchan->ikflag & BONE_IK_ZLIMIT) {
-        if (arm->addLimitConstraint(joint, 1, pchan->limitmin[2], pchan->limitmax[2]) < 0)
+        if (arm->addLimitConstraint(joint, 1, pchan->limitmin[2], pchan->limitmax[2]) < 0) {
           break;
+        }
       }
       if (pchan->ikflag & BONE_IK_ROTCTL) {
-        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0)
+        if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0) {
           break;
+        }
       }
     }
     if ((ikchan->jointType & IK_REVOLUTE) && (pchan->ikflag & BONE_IK_ROTCTL)) {
       joint = bone->name;
       joint += ":SJ";
-      if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0)
+      if (arm->addConstraint(joint, joint_callback, ikchan, false, false) < 0) {
         break;
+      }
     }
     //  no error, so restore
     ret = true;
@@ -1431,9 +1489,10 @@ static IK_Scene *convert_tree(
       iktarget->constraintName += ":C:";
       iktarget->constraintName += target->con->name;
       numtarget++;
-      if (condata->poletar)
+      if (condata->poletar) {
         // this constraint has a polar target
         polarcon = target->con;
+      }
     }
   }
   // deal with polar target if any
@@ -1452,8 +1511,9 @@ static IK_Scene *convert_tree(
   ret = scene->addObject(armname, ikscene->base);
   armname = ob->id.name;
   armname += ":AR";
-  if (ret)
+  if (ret) {
     ret = scene->addObject(armname, ikscene->armature, ikscene->base);
+  }
   if (!ret) {
     delete ikscene;
     return NULL;
@@ -1461,8 +1521,9 @@ static IK_Scene *convert_tree(
   // set the weight
   e_matrix &Wq = arm->getWq();
   assert(Wq.cols() == (int)weights.size());
-  for (int q = 0; q < Wq.cols(); q++)
+  for (int q = 0; q < Wq.cols(); q++) {
     Wq(q, q) = weights[q];
+  }
   // get the inverse rest pose frame of the base to compute relative rest pose of end effectors
   // this is needed to handle the enforce parameter
   // ikscene->pchan[0] is the root channel of the tree
@@ -1494,8 +1555,10 @@ static IK_Scene *convert_tree(
 
     // add the end effector
     // estimate the average bone length, used to clamp feedback error
-    for (bonecnt = 0, bonelen = 0.f, a = iktarget->channel; a >= 0; a = tree->parent[a], bonecnt++)
+    for (bonecnt = 0, bonelen = 0.f, a = iktarget->channel; a >= 0;
+         a = tree->parent[a], bonecnt++) {
       bonelen += ikscene->blScale * tree->pchan[a]->bone->length;
+    }
     bonelen /= bonecnt;
 
     // store the rest pose of the end effector to compute enforce target
@@ -1511,54 +1574,65 @@ static IK_Scene *convert_tree(
     iktarget->target = new iTaSC::MovingFrame(initPose);
     iktarget->target->setCallback(target_callback, iktarget);
     ret = scene->addObject(iktarget->targetName, iktarget->target);
-    if (!ret)
+    if (!ret) {
       break;
+    }
 
     switch (condata->type) {
       case CONSTRAINT_IK_COPYPOSE:
         controltype = 0;
         if (condata->flag & CONSTRAINT_IK_ROT) {
-          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_X))
+          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_X)) {
             controltype |= iTaSC::CopyPose::CTL_ROTATIONX;
-          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Y))
+          }
+          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Y)) {
             controltype |= iTaSC::CopyPose::CTL_ROTATIONY;
-          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Z))
+          }
+          if (!(condata->flag & CONSTRAINT_IK_NO_ROT_Z)) {
             controltype |= iTaSC::CopyPose::CTL_ROTATIONZ;
+          }
         }
         if (condata->flag & CONSTRAINT_IK_POS) {
-          if (!(condata->flag & CONSTRAINT_IK_NO_POS_X))
+          if (!(condata->flag & CONSTRAINT_IK_NO_POS_X)) {
             controltype |= iTaSC::CopyPose::CTL_POSITIONX;
-          if (!(condata->flag & CONSTRAINT_IK_NO_POS_Y))
+          }
+          if (!(condata->flag & CONSTRAINT_IK_NO_POS_Y)) {
             controltype |= iTaSC::CopyPose::CTL_POSITIONY;
-          if (!(condata->flag & CONSTRAINT_IK_NO_POS_Z))
+          }
+          if (!(condata->flag & CONSTRAINT_IK_NO_POS_Z)) {
             controltype |= iTaSC::CopyPose::CTL_POSITIONZ;
+          }
         }
         if (controltype) {
           iktarget->constraint = new iTaSC::CopyPose(controltype, controltype, bonelen);
           // set the gain
-          if (controltype & iTaSC::CopyPose::CTL_POSITION)
+          if (controltype & iTaSC::CopyPose::CTL_POSITION) {
             iktarget->constraint->setControlParameter(
                 iTaSC::CopyPose::ID_POSITION, iTaSC::ACT_ALPHA, condata->weight);
-          if (controltype & iTaSC::CopyPose::CTL_ROTATION)
+          }
+          if (controltype & iTaSC::CopyPose::CTL_ROTATION) {
             iktarget->constraint->setControlParameter(
                 iTaSC::CopyPose::ID_ROTATION, iTaSC::ACT_ALPHA, condata->orientweight);
+          }
           iktarget->constraint->registerCallback(copypose_callback, iktarget);
           iktarget->errorCallback = copypose_error;
           iktarget->controlType = controltype;
           // add the constraint
-          if (condata->flag & CONSTRAINT_IK_TARGETAXIS)
+          if (condata->flag & CONSTRAINT_IK_TARGETAXIS) {
             ret = scene->addConstraintSet(iktarget->constraintName,
                                           iktarget->constraint,
                                           iktarget->targetName,
                                           armname,
                                           "",
                                           ikscene->channels[iktarget->channel].tail);
-          else
+          }
+          else {
             ret = scene->addConstraintSet(iktarget->constraintName,
                                           iktarget->constraint,
                                           armname,
                                           iktarget->targetName,
                                           ikscene->channels[iktarget->channel].tail);
+          }
         }
         break;
       case CONSTRAINT_IK_DISTANCE:
@@ -1577,8 +1651,9 @@ static IK_Scene *convert_tree(
                                       ikscene->channels[iktarget->channel].tail);
         break;
     }
-    if (!ret)
+    if (!ret) {
       break;
+    }
   }
   if (!ret || !scene->addCache(ikscene->cache) || !scene->addSolver(ikscene->solver) ||
       !scene->initialize()) {
@@ -1609,12 +1684,15 @@ static void create_scene(struct Depsgraph *depsgraph, Scene *scene, Object *ob, 
       while (tree) {
         BLI_remlink(&pchan->iktree, tree);
         BLI_freelistN(&tree->targets);
-        if (tree->pchan)
+        if (tree->pchan) {
           MEM_freeN(tree->pchan);
-        if (tree->parent)
+        }
+        if (tree->parent) {
           MEM_freeN(tree->parent);
-        if (tree->basis_change)
+        }
+        if (tree->basis_change) {
           MEM_freeN(tree->basis_change);
+        }
         MEM_freeN(tree);
         tree = (PoseTree *)pchan->iktree.first;
       }
@@ -1631,8 +1709,9 @@ static int init_scene(Object *ob)
 
   if (ob->pose->ikdata) {
     for (scene = ((IK_Data *)ob->pose->ikdata)->first; scene != NULL; scene = scene->next) {
-      if (fabs(scene->blScale - scale) > KDL::epsilon)
+      if (fabs(scene->blScale - scale) > KDL::epsilon) {
         return 1;
+      }
       scene->channels[0].pchan->flag |= POSE_IKTREE;
     }
   }
@@ -1660,8 +1739,9 @@ static void execute_scene(struct Depsgraph *depsgraph,
   else {
     // in animation mode, we must get the bone position from action and constraints
     for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; i++, ++ikchan) {
-      if (!(ikchan->pchan->flag & POSE_DONE))
+      if (!(ikchan->pchan->flag & POSE_DONE)) {
         BKE_pose_where_is_bone(depsgraph, blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
+      }
       // tell blender that this channel was controlled by IK,
       // it's cleared on each BKE_pose_where_is()
       ikchan->pchan->flag |= (POSE_DONE | POSE_CHAIN);
@@ -1671,12 +1751,14 @@ static void execute_scene(struct Depsgraph *depsgraph,
   // only run execute the scene if at least one of our target is enabled
   for (i = ikscene->targets.size(); i > 0; --i) {
     IK_Target *iktarget = ikscene->targets[i - 1];
-    if (!(iktarget->blenderConstraint->flag & CONSTRAINT_OFF))
+    if (!(iktarget->blenderConstraint->flag & CONSTRAINT_OFF)) {
       break;
+    }
   }
-  if (i == 0 && ikscene->armature->getNrOfConstraints() == 0)
+  if (i == 0 && ikscene->armature->getNrOfConstraints() == 0) {
     // all constraint disabled
     return;
+  }
 
   // compute timestep
   double timestamp = ctime * frtime + 2147483.648;
@@ -1707,8 +1789,9 @@ static void execute_scene(struct Depsgraph *depsgraph,
     sts = cts = (iTaSC::CacheTS)(timestamp * 1000.0 + 0.5);
     if (ikscene->cache->getPreviousCacheItem(ikscene->armature, 0, &cts) == NULL || cts == 0) {
       // the cache is empty before this time, reiterate
-      if (ikparam->flag & ITASC_INITIAL_REITERATION)
+      if (ikparam->flag & ITASC_INITIAL_REITERATION) {
         reiterate = true;
+      }
     }
     else {
       // can take the cache as a start point.
@@ -1759,21 +1842,24 @@ static void execute_scene(struct Depsgraph *depsgraph,
   float yaxis[3];
   for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; ++i, ++ikchan) {
     if (i == 0) {
-      if (!arm->getRelativeFrame(frame, ikchan->tail))
+      if (!arm->getRelativeFrame(frame, ikchan->tail)) {
         break;
+      }
       // this frame is relative to base, make it relative to object
       ikchan->frame = ikscene->baseFrame * frame;
     }
     else {
-      if (!arm->getRelativeFrame(frame, ikchan->tail, ikscene->channels[ikchan->parent].tail))
+      if (!arm->getRelativeFrame(frame, ikchan->tail, ikscene->channels[ikchan->parent].tail)) {
         break;
+      }
       // combine with parent frame to get frame relative to object
       ikchan->frame = ikscene->channels[ikchan->parent].frame * frame;
     }
     // ikchan->frame is the tail frame relative to object
     // get bone length
-    if (!arm->getSegment(ikchan->tail, 3, joint, q_rest[0], q[0], tip))
+    if (!arm->getSegment(ikchan->tail, 3, joint, q_rest[0], q[0], tip)) {
       break;
+    }
     if (joint->getType() == KDL::Joint::TransY) {
       // stretch bones have a TY joint, compute the scale
       scale = (float)(q[0] / q_rest[0]);
@@ -1822,8 +1908,9 @@ void itasc_initialize_tree(struct Depsgraph *depsgraph,
   int count = 0;
 
   if (ob->pose->ikdata != NULL && !(ob->pose->flag & POSE_WAS_REBUILT)) {
-    if (!init_scene(ob))
+    if (!init_scene(ob)) {
       return;
+    }
   }
   // first remove old scene
   itasc_clear_data(ob->pose);
@@ -1831,13 +1918,15 @@ void itasc_initialize_tree(struct Depsgraph *depsgraph,
   // for blender but we'll start with the IK constraint alone
   for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan;
        pchan = (bPoseChannel *)pchan->next) {
-    if (pchan->constflag & PCHAN_HAS_IK)
+    if (pchan->constflag & PCHAN_HAS_IK) {
       count += initialize_scene(ob, pchan);
+    }
   }
   // if at least one tree, create the scenes from the PoseTree stored in the channels
   // postpone until execute_tree: this way the pose constraint are included
-  if (count)
+  if (count) {
     create_scene(depsgraph, scene, ob, ctime);
+  }
   itasc_update_param(ob->pose);
   // make sure we don't rebuilt until the user changes something important
   ob->pose->flag &= ~POSE_WAS_REBUILT;
@@ -1853,8 +1942,9 @@ void itasc_execute_tree(struct Depsgraph *depsgraph,
     IK_Data *ikdata = (IK_Data *)ob->pose->ikdata;
     bItasc *ikparam = (bItasc *)ob->pose->ikparam;
     // we need default parameters
-    if (!ikparam)
+    if (!ikparam) {
       ikparam = &DefIKParam;
+    }
 
     for (IK_Scene *ikscene = ikdata->first; ikscene; ikscene = ikscene->next) {
       if (ikscene->channels[0].pchan == pchan_root) {
@@ -1889,9 +1979,10 @@ void itasc_clear_cache(struct bPose *pose)
   if (pose->ikdata) {
     IK_Data *ikdata = (IK_Data *)pose->ikdata;
     for (IK_Scene *scene = ikdata->first; scene; scene = scene->next) {
-      if (scene->cache)
+      if (scene->cache) {
         // clear all cache but leaving the timestamp 0 (=rest pose)
         scene->cache->clearCacheFrom(NULL, 1);
+      }
     }
   }
 }
@@ -1930,8 +2021,9 @@ void itasc_test_constraint(struct Object *ob, struct bConstraint *cons)
   struct bKinematicConstraint *data = (struct bKinematicConstraint *)cons->data;
 
   /* only for IK constraint */
-  if (cons->type != CONSTRAINT_TYPE_KINEMATIC || data == NULL)
+  if (cons->type != CONSTRAINT_TYPE_KINEMATIC || data == NULL) {
     return;
+  }
 
   switch (data->type) {
     case CONSTRAINT_IK_COPYPOSE:

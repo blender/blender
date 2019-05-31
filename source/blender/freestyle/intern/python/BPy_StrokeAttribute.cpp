@@ -31,11 +31,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int StrokeAttribute_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&StrokeAttribute_Type) < 0)
+  if (PyType_Ready(&StrokeAttribute_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&StrokeAttribute_Type);
   PyModule_AddObject(module, "StrokeAttribute", (PyObject *)&StrokeAttribute_Type);
 
@@ -101,10 +103,12 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist_1, &StrokeAttribute_Type, &obj1)) {
-    if (!obj1)
+    if (!obj1) {
       self->sa = new StrokeAttribute();
-    else
+    }
+    else {
       self->sa = new StrokeAttribute(*(((BPy_StrokeAttribute *)obj1)->sa));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
@@ -142,8 +146,9 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
 
 static void StrokeAttribute_dealloc(BPy_StrokeAttribute *self)
 {
-  if (self->sa && !self->borrowed)
+  if (self->sa && !self->borrowed) {
     delete self->sa;
+  }
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -174,8 +179,9 @@ static PyObject *StrokeAttribute_get_attribute_real(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   double a = self->sa->getAttributeReal(attr);
   return PyFloat_FromDouble(a);
 }
@@ -197,8 +203,9 @@ static PyObject *StrokeAttribute_get_attribute_vec2(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   Vec2f a = self->sa->getAttributeVec2f(attr);
   return Vector_from_Vec2f(a);
 }
@@ -220,8 +227,9 @@ static PyObject *StrokeAttribute_get_attribute_vec3(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   Vec3f a = self->sa->getAttributeVec3f(attr);
   return Vector_from_Vec3f(a);
 }
@@ -243,8 +251,9 @@ static PyObject *StrokeAttribute_has_attribute_real(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   return PyBool_from_bool(self->sa->isAttributeAvailableReal(attr));
 }
 
@@ -266,8 +275,9 @@ static PyObject *StrokeAttribute_has_attribute_vec2(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   return PyBool_from_bool(self->sa->isAttributeAvailableVec2f(attr));
 }
 
@@ -289,8 +299,9 @@ static PyObject *StrokeAttribute_has_attribute_vec3(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", NULL};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &attr)) {
     return NULL;
+  }
   return PyBool_from_bool(self->sa->isAttributeAvailableVec3f(attr));
 }
 
@@ -314,8 +325,9 @@ static PyObject *StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self,
   char *s = 0;
   double d = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sd", (char **)kwlist, &s, &d))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sd", (char **)kwlist, &s, &d)) {
     return NULL;
+  }
   self->sa->setAttributeReal(s, d);
   Py_RETURN_NONE;
 }
@@ -341,8 +353,9 @@ static PyObject *StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self,
   PyObject *obj = 0;
   Vec2f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj)) {
     return NULL;
+  }
   if (!Vec2f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 2 must be a 2D vector (either a list of 2 elements or Vector)");
@@ -373,8 +386,9 @@ static PyObject *StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self,
   PyObject *obj = 0;
   Vec3f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "sO", (char **)kwlist, &s, &obj)) {
     return NULL;
+  }
   if (!Vec3f_ptr_from_PyObject(obj, vec)) {
     PyErr_SetString(PyExc_TypeError,
                     "argument 2 must be a 3D vector (either a list of 3 elements or Vector)");
@@ -432,8 +446,9 @@ static PyMethodDef BPy_StrokeAttribute_methods[] = {
 
 static int StrokeAttribute_mathutils_check(BaseMathObject *bmo)
 {
-  if (!BPy_StrokeAttribute_Check(bmo->cb_user))
+  if (!BPy_StrokeAttribute_Check(bmo->cb_user)) {
     return -1;
+  }
   return 0;
 }
 

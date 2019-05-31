@@ -59,8 +59,9 @@ template<class T, unsigned N> class Vec {
   // constructors
   inline Vec()
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] = 0;
+    }
   }
 
   ~Vec()
@@ -70,20 +71,23 @@ template<class T, unsigned N> class Vec {
 
   template<class U> explicit inline Vec(const U tab[N])
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] = (T)tab[i];
+    }
   }
 
   template<class U> explicit inline Vec(const std::vector<U> &tab)
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] = (T)tab[i];
+    }
   }
 
   template<class U> explicit inline Vec(const Vec<U, N> &v)
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] = (T)v[i];
+    }
   }
 
   // accessors
@@ -116,8 +120,9 @@ template<class T, unsigned N> class Vec {
   inline Vec<T, N> &normalize()
   {
     value_type n = norm();
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] /= n;
+    }
     return *this;
   }
 
@@ -125,8 +130,9 @@ template<class T, unsigned N> class Vec {
   {
     value_type n = norm();
     if (n) {
-      for (unsigned int i = 0; i < N; i++)
+      for (unsigned int i = 0; i < N; i++) {
         this->_coord[i] /= n;
+      }
     }
     return *this;
   }
@@ -156,8 +162,9 @@ template<class T, unsigned N> class Vec {
   inline Vec<T, N> operator/(const typename Vec<T, N>::value_type r) const
   {
     Vec<T, N> res(*this);
-    if (r)
+    if (r) {
       res /= r;
+    }
     return res;
   }
 
@@ -165,46 +172,52 @@ template<class T, unsigned N> class Vec {
   inline value_type operator*(const Vec<T, N> &v) const
   {
     value_type sum = 0;
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       sum += (*this)[i] * v[i];
+    }
     return sum;
   }
 
   template<class U> inline Vec<T, N> &operator=(const Vec<U, N> &v)
   {
     if (this != &v) {
-      for (unsigned int i = 0; i < N; i++)
+      for (unsigned int i = 0; i < N; i++) {
         this->_coord[i] = (T)v[i];
+      }
     }
     return *this;
   }
 
   template<class U> inline Vec<T, N> &operator+=(const Vec<U, N> &v)
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] += (T)v[i];
+    }
     return *this;
   }
 
   template<class U> inline Vec<T, N> &operator-=(const Vec<U, N> &v)
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] -= (T)v[i];
+    }
     return *this;
   }
 
   template<class U> inline Vec<T, N> &operator*=(const U r)
   {
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       this->_coord[i] *= r;
+    }
     return *this;
   }
 
   template<class U> inline Vec<T, N> &operator/=(const U r)
   {
     if (r) {
-      for (unsigned int i = 0; i < N; i++)
+      for (unsigned int i = 0; i < N; i++) {
         this->_coord[i] /= r;
+      }
     }
     return *this;
   }
@@ -212,8 +225,9 @@ template<class T, unsigned N> class Vec {
   inline bool operator==(const Vec<T, N> &v) const
   {
     for (unsigned int i = 0; i < N; i++) {
-      if (this->_coord[i] != v[i])
+      if (this->_coord[i] != v[i]) {
         return false;
+      }
     }
     return true;
   }
@@ -221,8 +235,9 @@ template<class T, unsigned N> class Vec {
   inline bool operator!=(const Vec<T, N> &v) const
   {
     for (unsigned int i = 0; i < N; i++) {
-      if (this->_coord[i] != v[i])
+      if (this->_coord[i] != v[i]) {
         return true;
+      }
     }
     return false;
   }
@@ -230,12 +245,15 @@ template<class T, unsigned N> class Vec {
   inline bool operator<(const Vec<T, N> &v) const
   {
     for (unsigned int i = 0; i < N; i++) {
-      if (this->_coord[i] < v[i])
+      if (this->_coord[i] < v[i]) {
         return true;
-      if (this->_coord[i] > v[i])
+      }
+      if (this->_coord[i] > v[i]) {
         return false;
-      if (this->_coord[i] == v[i])
+      }
+      if (this->_coord[i] == v[i]) {
         continue;
+      }
     }
     return false;
   }
@@ -243,12 +261,15 @@ template<class T, unsigned N> class Vec {
   inline bool operator>(const Vec<T, N> &v) const
   {
     for (unsigned int i = 0; i < N; i++) {
-      if (this->_coord[i] > v[i])
+      if (this->_coord[i] > v[i]) {
         return true;
-      if (this->_coord[i] < v[i])
+      }
+      if (this->_coord[i] < v[i]) {
         return false;
-      if (this->_coord[i] == v[i])
+      }
+      if (this->_coord[i] == v[i]) {
         continue;
+      }
     }
     return false;
   }
@@ -351,8 +372,9 @@ template<class T> class Vec2 : public Vec<T, 2> {
   inline Vec2<T> operator/(const value_type r) const
   {
     Vec2<T> res(*this);
-    if (r)
+    if (r) {
       res /= r;
+    }
     return res;
   }
 
@@ -360,8 +382,9 @@ template<class T> class Vec2 : public Vec<T, 2> {
   inline value_type operator*(const Vec2<T> &v) const
   {
     value_type sum = 0;
-    for (unsigned int i = 0; i < 2; i++)
+    for (unsigned int i = 0; i < 2; i++) {
       sum += (*this)[i] * v[i];
+    }
     return sum;
   }
 };
@@ -578,8 +601,9 @@ template<class T> class Vec3 : public Vec<T, 3> {
   inline Vec3<T> operator/(const value_type r) const
   {
     Vec3<T> res(*this);
-    if (r)
+    if (r) {
       res /= r;
+    }
     return res;
   }
 
@@ -587,8 +611,9 @@ template<class T> class Vec3 : public Vec<T, 3> {
   inline value_type operator*(const Vec3<T> &v) const
   {
     value_type sum = 0;
-    for (unsigned int i = 0; i < 3; i++)
+    for (unsigned int i = 0; i < 3; i++) {
       sum += (*this)[i] * v[i];
+    }
     return sum;
   }
 
@@ -629,8 +654,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
 
   inline Matrix()
   {
-    for (unsigned int i = 0; i < _SIZE; i++)
+    for (unsigned int i = 0; i < _SIZE; i++) {
       this->_coord[i] = 0;
+    }
   }
 
   ~Matrix()
@@ -641,21 +667,24 @@ template<class T, unsigned M, unsigned N> class Matrix {
 
   template<class U> explicit inline Matrix(const U tab[_SIZE])
   {
-    for (unsigned int i = 0; i < _SIZE; i++)
+    for (unsigned int i = 0; i < _SIZE; i++) {
       this->_coord[i] = tab[i];
+    }
   }
 
   template<class U> explicit inline Matrix(const std::vector<U> &tab)
   {
-    for (unsigned int i = 0; i < _SIZE; i++)
+    for (unsigned int i = 0; i < _SIZE; i++) {
       this->_coord[i] = tab[i];
+    }
   }
 
   template<class U> inline Matrix(const Matrix<U, M, N> &m)
   {
     for (unsigned int i = 0; i < M; i++) {
-      for (unsigned int j = 0; j < N; j++)
+      for (unsigned int j = 0; j < N; j++) {
         this->_coord[i * N + j] = (T)m(i, j);
+      }
     }
   }
 
@@ -683,8 +712,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   {
     Matrix<T, N, M> res;
     for (unsigned int i = 0; i < M; i++) {
-      for (unsigned int j = 0; j < N; j++)
+      for (unsigned int j = 0; j < N; j++) {
         res(j, i) = this->_coord[i * N + j];
+      }
     }
     *this = res;
     return *this;
@@ -694,8 +724,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   {
     if (this != &m) {
       for (unsigned int i = 0; i < M; i++) {
-        for (unsigned int j = 0; j < N; j++)
+        for (unsigned int j = 0; j < N; j++) {
           this->_coord[i * N + j] = (T)m(i, j);
+        }
       }
     }
     return *this;
@@ -704,8 +735,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   template<class U> inline Matrix<T, M, N> &operator+=(const Matrix<U, M, N> &m)
   {
     for (unsigned int i = 0; i < M; i++) {
-      for (unsigned int j = 0; j < N; j++)
+      for (unsigned int j = 0; j < N; j++) {
         this->_coord[i * N + j] += (T)m(i, j);
+      }
     }
     return *this;
   }
@@ -713,8 +745,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   template<class U> inline Matrix<T, M, N> &operator-=(const Matrix<U, M, N> &m)
   {
     for (unsigned int i = 0; i < M; i++) {
-      for (unsigned int j = 0; j < N; j++)
+      for (unsigned int j = 0; j < N; j++) {
         this->_coord[i * N + j] -= (T)m(i, j);
+      }
     }
     return *this;
   }
@@ -722,8 +755,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   template<class U> inline Matrix<T, M, N> &operator*=(const U lambda)
   {
     for (unsigned int i = 0; i < M; i++) {
-      for (unsigned int j = 0; j < N; j++)
+      for (unsigned int j = 0; j < N; j++) {
         this->_coord[i * N + j] *= lambda;
+      }
     }
     return *this;
   }
@@ -732,8 +766,9 @@ template<class T, unsigned M, unsigned N> class Matrix {
   {
     if (lambda) {
       for (unsigned int i = 0; i < M; i++) {
-        for (unsigned int j = 0; j < N; j++)
+        for (unsigned int j = 0; j < N; j++) {
           this->_coord[i * N + j] /= lambda;
+        }
       }
     }
     return *this;
@@ -782,8 +817,9 @@ template<class T, unsigned N> class SquareMatrix : public Matrix<T, N, N> {
   static inline SquareMatrix<T, N> identity()
   {
     SquareMatrix<T, N> res;
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       res(i, i) = 1;
+    }
     return res;
   }
 };
@@ -861,8 +897,9 @@ template<class T, unsigned N> inline std::ostream &operator<<(std::ostream &s, c
 {
   unsigned int i;
   s << "[";
-  for (i = 0; i < N - 1; i++)
+  for (i = 0; i < N - 1; i++) {
     s << v[i] << ", ";
+  }
   s << v[i] << "]";
   return s;
 }
@@ -925,8 +962,9 @@ inline Matrix<T, M, P> operator*(const Matrix<T, M, N> &m1, const Matrix<T, N, P
   for (j = 0; j < P; j++) {
     for (k = 0; k < N; k++) {
       scale = m2(k, j);
-      for (i = 0; i < N; i++)
+      for (i = 0; i < N; i++) {
         res(i, j) += m1(i, k) * scale;
+      }
     }
   }
   return res;
@@ -940,8 +978,9 @@ inline Vec<T, M> operator*(const Matrix<T, M, N> &m, const Vec<T, N> &v)
 
   for (unsigned int j = 0; j < M; j++) {
     scale = v[j];
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < N; i++) {
       res[i] += m(i, j) * scale;
+    }
   }
   return res;
 }
@@ -953,8 +992,9 @@ inline std::ostream &operator<<(std::ostream &s, const Matrix<T, M, N> &m)
   unsigned int i, j;
   for (i = 0; i < M; i++) {
     s << "[";
-    for (j = 0; j < N - 1; j++)
+    for (j = 0; j < N - 1; j++) {
       s << m(i, j) << ", ";
+    }
     s << m(i, j) << "]" << std::endl;
   }
   return s;

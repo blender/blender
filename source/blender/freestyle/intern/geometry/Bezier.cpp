@@ -37,14 +37,16 @@ BezierCurveSegment::~BezierCurveSegment()
 void BezierCurveSegment::AddControlPoint(const Vec2d &iPoint)
 {
   _ControlPolygon.push_back(iPoint);
-  if (_ControlPolygon.size() == 4)
+  if (_ControlPolygon.size() == 4) {
     Build();
+  }
 }
 
 void BezierCurveSegment::Build()
 {
-  if (_ControlPolygon.size() != 4)
+  if (_ControlPolygon.size() != 4) {
     return;
+  }
 
   // Compute the rightmost part of the matrix:
   vector<Vec2d>::const_iterator p0, p1, p2, p3;
@@ -92,8 +94,9 @@ BezierCurve::BezierCurve(vector<Vec2d> &iPoints, double error)
   int i = 0;
   vector<Vec2d>::iterator v, vend;
   for (v = curve.begin(), vend = curve.end(); v != vend; ++v) {
-    if ((i == 0) || (i % 4 != 0))
+    if ((i == 0) || (i % 4 != 0)) {
       AddControlPoint(*v);
+    }
     ++i;
   }
 }
@@ -102,11 +105,13 @@ BezierCurve::~BezierCurve()
 {
   if (!_Segments.empty()) {
     vector<BezierCurveSegment *>::iterator v, vend;
-    for (v = _Segments.begin(), vend = _Segments.end(); v != vend; ++v)
+    for (v = _Segments.begin(), vend = _Segments.end(); v != vend; ++v) {
       delete *v;
+    }
   }
-  if (_currentSegment)
+  if (_currentSegment) {
     delete _currentSegment;
+  }
 }
 
 void BezierCurve::AddControlPoint(const Vec2d &iPoint)

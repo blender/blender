@@ -245,12 +245,14 @@ Noise::Noise(long seed)
     p[i] = i;
     g1[i] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
 
-    for (j = 0; j < 2; j++)
+    for (j = 0; j < 2; j++) {
       g2[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+    }
     normalize2(g2[i]);
 
-    for (j = 0; j < 3; j++)
+    for (j = 0; j < 3; j++) {
       g3[i][j] = (float)((BLI_rng_get_int(rng) % (_NOISE_B + _NOISE_B)) - _NOISE_B) / _NOISE_B;
+    }
     normalize3(g3[i]);
   }
 
@@ -264,11 +266,13 @@ Noise::Noise(long seed)
     p[_NOISE_B + i] = p[i];
     g1[_NOISE_B + i] = g1[i];
 
-    for (j = 0; j < 2; j++)
+    for (j = 0; j < 2; j++) {
       g2[_NOISE_B + i][j] = g2[i][j];
+    }
 
-    for (j = 0; j < 3; j++)
+    for (j = 0; j < 3; j++) {
       g3[_NOISE_B + i][j] = g3[i][j];
+    }
   }
 
   BLI_rng_free(rng);

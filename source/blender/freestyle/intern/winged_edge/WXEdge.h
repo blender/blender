@@ -67,14 +67,16 @@ class WXVertex : public WVertex {
 
   virtual ~WXVertex()
   {
-    if (_curvatures)
+    if (_curvatures) {
       delete _curvatures;
+    }
   }
 
   virtual void Reset()
   {
-    if (_curvatures)
+    if (_curvatures) {
       _curvatures->Kr = 0.0;
+    }
   }
 
   inline void setCurvatures(CurvatureInfo *ci)
@@ -365,8 +367,9 @@ class WXFaceLayer {
 
   virtual ~WXFaceLayer()
   {
-    if (!_DotP.empty())
+    if (!_DotP.empty()) {
       _DotP.clear();
+    }
     if (_pSmoothEdge) {
       delete _pSmoothEdge;
       _pSmoothEdge = NULL;
@@ -400,8 +403,9 @@ class WXFaceLayer {
 
   inline bool hasSmoothEdge() const
   {
-    if (_pSmoothEdge)
+    if (_pSmoothEdge) {
       return true;
+    }
     return false;
   }
 
@@ -427,8 +431,9 @@ class WXFaceLayer {
 
   inline void removeSmoothEdge()
   {
-    if (!_DotP.empty())
+    if (!_DotP.empty()) {
       _DotP.clear();
+    }
     if (_pSmoothEdge) {
       delete _pSmoothEdge;
       _pSmoothEdge = NULL;
@@ -458,10 +463,12 @@ class WXFaceLayer {
   inline void PushDotP(float iDotP)
   {
     _DotP.push_back(iDotP);
-    if (iDotP > 0.0f)
+    if (iDotP > 0.0f) {
       ++_nPosDotP;
-    if (iDotP == 0.0f)  // TODO this comparison is weak, check if it actually works
+    }
+    if (iDotP == 0.0f) {  // TODO this comparison is weak, check if it actually works
       ++_nNullDotP;
+    }
   }
 
   inline void ReplaceDotP(unsigned int index, float newDotP)
@@ -475,10 +482,12 @@ class WXFaceLayer {
     _nPosDotP = 0;
     _nNullDotP = 0;
     for (vector<float>::iterator d = _DotP.begin(), dend = _DotP.end(); d != dend; ++d) {
-      if ((*d) > 0.0f)
+      if ((*d) > 0.0f) {
         ++_nPosDotP;
-      if ((*d) == 0.0f)  // TODO ditto
+      }
+      if ((*d) == 0.0f) {  // TODO ditto
         ++_nNullDotP;
+      }
     }
   }
 
@@ -637,10 +646,12 @@ class WXFace : public WFace {
   inline void setDotP(float iDotP)
   {
     _dotp = iDotP;
-    if (_dotp > 0.0f)
+    if (_dotp > 0.0f) {
       _front = true;
-    else
+    }
+    else {
       _front = false;
+    }
   }
 
   inline void AddSmoothLayer(WXFaceLayer *iLayer)
@@ -654,10 +665,12 @@ class WXFace : public WFace {
     for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
          wxf != wxfend;
          ++wxf) {
-      if ((*wxf)->isViewDependant())
+      if ((*wxf)->isViewDependant()) {
         delete (*wxf);
-      else
+      }
+      else {
         layersToKeep.push_back(*wxf);
+      }
     }
     _SmoothLayers = layersToKeep;
   }
@@ -820,12 +833,14 @@ bool WXVertex::isFeature()
   int counter = 0;
   vector<WEdge *> &vedges = GetEdges();
   for (vector<WEdge *>::iterator ve = vedges.begin(), vend = vedges.end(); ve != vend; ++ve) {
-    if (((WXEdge *)(*ve))->nature() != Nature::NO_FEATURE)
+    if (((WXEdge *)(*ve))->nature() != Nature::NO_FEATURE) {
       counter++;
+    }
   }
 
-  if ((counter == 1) || (counter > 2))
+  if ((counter == 1) || (counter > 2)) {
     return true;
+  }
   return false;
 }
 

@@ -48,8 +48,9 @@ class WingedEdgeBuilder : public SceneVisitor {
   virtual ~WingedEdgeBuilder()
   {
     for (vector<Matrix44r *>::iterator it = _matrices_stack.begin(); it != _matrices_stack.end();
-         ++it)
+         ++it) {
       delete *it;
+    }
     _matrices_stack.clear();
   }
 

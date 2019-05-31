@@ -196,8 +196,9 @@ class Interface0DIterator : public Iterator {
   /*! Destructor */
   virtual ~Interface0DIterator()
   {
-    if (_iterator)
+    if (_iterator) {
       delete _iterator;
+    }
   }
 
   /*! Operator =
@@ -207,8 +208,9 @@ class Interface0DIterator : public Iterator {
    */
   Interface0DIterator &operator=(const Interface0DIterator &it)
   {
-    if (_iterator)
+    if (_iterator) {
       delete _iterator;
+    }
     _iterator = it._iterator->copy();
     return *this;
   }
@@ -216,8 +218,9 @@ class Interface0DIterator : public Iterator {
   /*! Returns the string "Interface0DIterator". */
   virtual string getExactTypeName() const
   {
-    if (!_iterator)
+    if (!_iterator) {
       return "Interface0DIterator";
+    }
     return _iterator->getExactTypeName() + "Proxy";
   }
 
@@ -299,8 +302,9 @@ class Interface0DIterator : public Iterator {
   /*! Returns true when the iterator is pointing to the final valid element. */
   virtual bool atLast() const
   {
-    if (_iterator->isEnd())
+    if (_iterator->isEnd()) {
       return false;
+    }
 
     _iterator->increment();
     bool result = _iterator->isEnd();

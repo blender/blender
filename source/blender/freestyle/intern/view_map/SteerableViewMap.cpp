@@ -69,9 +69,10 @@ SteerableViewMap::SteerableViewMap(const SteerableViewMap &iBrother)
   _mapping = iBrother._mapping;
   _imagesPyramids =
       new ImagePyramid *[_nbOrientations + 1];  // one more map to store the complete visible VM
-  for (i = 0; i <= _nbOrientations; ++i)
+  for (i = 0; i <= _nbOrientations; ++i) {
     _imagesPyramids[i] = new GaussianPyramid(
         *(dynamic_cast<GaussianPyramid *>(iBrother._imagesPyramids[i])));
+  }
 }
 
 SteerableViewMap::~SteerableViewMap()
@@ -84,8 +85,9 @@ void SteerableViewMap::Clear()
   unsigned int i;
   if (_imagesPyramids) {
     for (i = 0; i <= _nbOrientations; ++i) {
-      if (_imagesPyramids[i])
+      if (_imagesPyramids[i]) {
         delete (_imagesPyramids)[i];
+      }
     }
     delete[] _imagesPyramids;
     _imagesPyramids = 0;
@@ -109,10 +111,12 @@ void SteerableViewMap::Reset()
 double SteerableViewMap::ComputeWeight(const Vec2d &dir, unsigned i)
 {
   double dotp = fabs(dir * _directions[i]);
-  if (dotp < _bound)
+  if (dotp < _bound) {
     return 0.0;
-  if (dotp > 1.0)
+  }
+  if (dotp > 1.0) {
     dotp = 1.0;
+  }
 
   return cos((float)_nbOrientations / 2.0 * acos(dotp));
 }
@@ -191,12 +195,15 @@ void SteerableViewMap::buildImagesPyramids(GrayImage **steerableBases,
 {
   for (unsigned int i = 0; i <= _nbOrientations; ++i) {
     ImagePyramid *svm = (_imagesPyramids)[i];
-    if (svm)
+    if (svm) {
       delete svm;
-    if (copy)
+    }
+    if (copy) {
       svm = new GaussianPyramid(*(steerableBases[i]), iNbLevels, iSigma);
-    else
+    }
+    else {
       svm = new GaussianPyramid(steerableBases[i], iNbLevels, iSigma);
+    }
     _imagesPyramids[i] = svm;
   }
 }
@@ -210,8 +217,9 @@ float SteerableViewMap::readSteerableViewMapPixel(unsigned iOrientation, int iLe
     }
     return 0.0f;
   }
-  if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height()))
+  if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height())) {
     return 0;
+  }
   // float v = pyramid->pixel(x, pyramid->height() - 1 - y, iLevel) * 255.0f;
   // We encode both the directionality and the lines counting on 8 bits (because of frame buffer).
   // Thus, we allow until 8 lines to pass through the same pixel, so that we can discretize the
@@ -228,8 +236,9 @@ float SteerableViewMap::readCompleteViewMapPixel(int iLevel, int x, int y)
 
 unsigned int SteerableViewMap::getNumberOfPyramidLevels() const
 {
-  if (_imagesPyramids[0])
+  if (_imagesPyramids[0]) {
     return _imagesPyramids[0]->getNumberOfLevels();
+  }
   return 0;
 }
 
@@ -258,8 +267,9 @@ void SteerableViewMap::saveSteerableViewMap() const
       for (int y = 0; y < oh; ++y) {    // soc
         for (int x = 0; x < ow; ++x) {  // soc
           int c = (int)(coeff * _imagesPyramids[i]->pixel(x, y, j));
-          if (c > 255)
+          if (c > 255) {
             c = 255;
+          }
           // int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
 
           // soc qtmp.setPixel(x, y, qRgb(c, c, c));

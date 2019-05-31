@@ -61,8 +61,9 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
 
 static int check_begin(PyObject *obj, void *v)
 {
-  if (obj != NULL && obj != Py_None && !BPy_ViewEdge_Check(obj))
+  if (obj != NULL && obj != Py_None && !BPy_ViewEdge_Check(obj)) {
     return 0;
+  }
   *((PyObject **)v) = obj;
   return 1;
 }
@@ -126,8 +127,9 @@ static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void *U
     return NULL;
   }
   ViewEdge *ve = self->ve_it->operator*();
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 
@@ -140,8 +142,9 @@ static PyObject *ViewEdgeIterator_current_edge_get(BPy_ViewEdgeIterator *self,
                                                    void *UNUSED(closure))
 {
   ViewEdge *ve = self->ve_it->getCurrentEdge();
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 
@@ -192,8 +195,9 @@ PyDoc_STRVAR(ViewEdgeIterator_begin_doc,
 static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
 {
   ViewEdge *ve = self->ve_it->getBegin();
-  if (ve)
+  if (ve) {
     return BPy_ViewEdge_from_ViewEdge(*ve);
+  }
   Py_RETURN_NONE;
 }
 

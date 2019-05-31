@@ -185,10 +185,12 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
 {
   bAction *act;
 
-  if (!ob->adt || !ob->adt->action)
+  if (!ob->adt || !ob->adt->action) {
     act = verify_adt_action(bmain, (ID *)&ob->id, 1);
-  else
+  }
+  else {
     act = ob->adt->action;
+  }
 
   std::vector<FCurve *>::iterator it;
   int i;
@@ -206,10 +208,12 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
     FCurve *fcu = *it;
     fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
 
-    if (array_index == -1)
+    if (array_index == -1) {
       fcu->array_index = i;
-    else
+    }
+    else {
       fcu->array_index = array_index;
+    }
 
     if (ob->type == OB_ARMATURE) {
       bActionGroup *grp = NULL;
@@ -256,11 +260,14 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
 AnimationImporter::~AnimationImporter()
 {
   /* free unused FCurves */
-  for (std::vector<FCurve *>::iterator it = unused_curves.begin(); it != unused_curves.end(); it++)
+  for (std::vector<FCurve *>::iterator it = unused_curves.begin(); it != unused_curves.end();
+       it++) {
     free_fcurve(*it);
+  }
 
-  if (unused_curves.size())
+  if (unused_curves.size()) {
     fprintf(stderr, "removed %d unused curves\n", (int)unused_curves.size());
+  }
 }
 
 bool AnimationImporter::write_animation(const COLLADAFW::Animation *anim)
@@ -444,10 +451,12 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve *> *curves,
     FCurve *fcu = *it;
     fcu->rna_path = BLI_strdup(rna_path);
 
-    if (array_index == -1)
+    if (array_index == -1) {
       fcu->array_index = i;
-    else
+    }
+    else {
       fcu->array_index = array_index;
+    }
 
     fcurve_is_used(fcu);
   }
@@ -473,8 +482,9 @@ void AnimationImporter::find_frames(std::vector<float> *frames, std::vector<FCur
       /* get frame value from bezTriple */
       float fra = fcu->bezt[k].vec[1][0];
       /* if frame already not added add frame to frames */
-      if (std::find(frames->begin(), frames->end(), fra) == frames->end())
+      if (std::find(frames->begin(), frames->end(), fra) == frames->end()) {
         frames->push_back(fra);
+      }
     }
   }
 }
@@ -508,10 +518,12 @@ void AnimationImporter::Assign_transform_animations(
     case COLLADAFW::Transformation::TRANSLATE:
     case COLLADAFW::Transformation::SCALE: {
       bool loc = tm_type == COLLADAFW::Transformation::TRANSLATE;
-      if (is_joint)
+      if (is_joint) {
         BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, loc ? "location" : "scale");
-      else
+      }
+      else {
         BLI_strncpy(rna_path, loc ? "location" : "scale", sizeof(rna_path));
+      }
 
       switch (binding->animationClass) {
         case COLLADAFW::AnimationList::POSITION_X:
@@ -537,17 +549,20 @@ void AnimationImporter::Assign_transform_animations(
     }
 
     case COLLADAFW::Transformation::ROTATE: {
-      if (is_joint)
+      if (is_joint) {
         BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
-      else
+      }
+      else {
         BLI_strncpy(rna_path, "rotation_euler", sizeof(rna_path));
+      }
       std::vector<FCurve *>::iterator iter;
       for (iter = curves->begin(); iter != curves->end(); iter++) {
         FCurve *fcu = *iter;
 
         /* if transform is rotation the fcurves values must be turned in to radian. */
-        if (is_rotation)
+        if (is_rotation) {
           fcurve_deg_to_rad(fcu);
+        }
       }
       COLLADAFW::Rotate *rot = (COLLADAFW::Rotate *)transform;
       COLLADABU::Math::Vector3 &axis = rot->getRotationAxis();
@@ -563,8 +578,9 @@ void AnimationImporter::Assign_transform_animations(
           else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
             modify_fcurve(curves, rna_path, 2);
           }
-          else
+          else {
             unused_fcurve(curves);
+          }
           break;
         case COLLADAFW::AnimationList::AXISANGLE:
         /* TODO convert axis-angle to quat? or XYZ? */
@@ -767,8 +783,9 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
   bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
   const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
   char joint_path[200];
-  if (is_joint)
+  if (is_joint) {
     armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+  }
 
   std::vector<float> frames;
   find_frames(&frames, &animcurves);
@@ -812,16 +829,19 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
       axis = i - 7;
     }
 
-    if (is_joint)
+    if (is_joint) {
       BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
-    else
+    }
+    else {
       BLI_strncpy(rna_path, tm_str, sizeof(rna_path));
+    }
     newcu[i] = create_fcurve(axis, rna_path);
     newcu[i]->totvert = frames.size();
   }
 
-  if (frames.size() == 0)
+  if (frames.size() == 0) {
     return;
+  }
 
   std::sort(frames.begin(), frames.end());
 
@@ -872,12 +892,15 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
 
     /* add keys */
     for (int i = 0; i < totcu; i++) {
-      if (i < 4)
+      if (i < 4) {
         add_bezt(newcu[i], fra, rot[i]);
-      else if (i < 7)
+      }
+      else if (i < 7) {
         add_bezt(newcu[i], fra, loc[i - 4]);
-      else
+      }
+      else {
         add_bezt(newcu[i], fra, scale[i - 7]);
+      }
     }
   }
   Main *bmain = CTX_data_main(mContext);
@@ -887,10 +910,12 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
 
   /* add curves */
   for (int i = 0; i < totcu; i++) {
-    if (is_joint)
+    if (is_joint) {
       add_bone_fcurve(ob, node, newcu[i]);
-    else
+    }
+    else {
       BLI_addtail(curves, newcu[i]);
+    }
 #if 0
     fcurve_is_used(newcu[i]);  /* never added to unused */
 #endif
@@ -929,10 +954,12 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
     }
     else {
       const double xfov = camera->getXFov().getValue();
-      if (xfov == 0)
+      if (xfov == 0) {
         aspect = 1;
-      else
+      }
+      else {
         aspect = xfov / yfov;
+      }
     }
   }
   return aspect;
@@ -941,10 +968,12 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
 static ListBase &get_animation_curves(Main *bmain, Material *ma)
 {
   bAction *act;
-  if (!ma->adt || !ma->adt->action)
+  if (!ma->adt || !ma->adt->action) {
     act = verify_adt_action(bmain, (ID *)&ma->id, 1);
-  else
+  }
+  else {
     act = ma->adt->action;
+  }
 
   return act->curves;
 }
@@ -961,10 +990,12 @@ void AnimationImporter::translate_Animations(
   COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
 
   Object *ob;
-  if (is_joint)
+  if (is_joint) {
     ob = armature_importer->get_armature_for_joint(root);
-  else
+  }
+  else {
     ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
+  }
 
   if (!ob) {
     fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
@@ -979,14 +1010,16 @@ void AnimationImporter::translate_Animations(
     /* const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL; */ /* UNUSED */
     char joint_path[200];
 
-    if (is_joint)
+    if (is_joint) {
       armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+    }
 
-    if (!ob->adt || !ob->adt->action)
+    if (!ob->adt || !ob->adt->action) {
       act = verify_adt_action(bmain, (ID *)&ob->id, 1);
-
-    else
+    }
+    else {
       act = ob->adt->action;
+    }
 
     /* Get the list of animation curves of the object */
     ListBase *AnimCurves = &(act->curves);
@@ -1049,10 +1082,12 @@ void AnimationImporter::translate_Animations(
 
   if ((animType->light) != 0) {
     Light *lamp = (Light *)ob->data;
-    if (!lamp->adt || !lamp->adt->action)
+    if (!lamp->adt || !lamp->adt->action) {
       act = verify_adt_action(bmain, (ID *)&lamp->id, 1);
-    else
+    }
+    else {
       act = lamp->adt->action;
+    }
 
     ListBase *AnimCurves = &(act->curves);
     const COLLADAFW::InstanceLightPointerArray &nodeLights = node->getInstanceLights();
@@ -1085,10 +1120,12 @@ void AnimationImporter::translate_Animations(
   if (animType->camera != 0) {
 
     Camera *cam = (Camera *)ob->data;
-    if (!cam->adt || !cam->adt->action)
+    if (!cam->adt || !cam->adt->action) {
       act = verify_adt_action(bmain, (ID *)&cam->id, 1);
-    else
+    }
+    else {
       act = cam->adt->action;
+    }
 
     ListBase *AnimCurves = &(act->curves);
     const COLLADAFW::InstanceCameraPointerArray &nodeCameras = node->getInstanceCameras();
@@ -1139,10 +1176,12 @@ void AnimationImporter::translate_Animations(
   if (animType->material != 0) {
 
     Material *ma = give_current_material(ob, 1);
-    if (!ma->adt || !ma->adt->action)
+    if (!ma->adt || !ma->adt->action) {
       act = verify_adt_action(bmain, (ID *)&ma->id, 1);
-    else
+    }
+    else {
       act = ma->adt->action;
+    }
 
     const COLLADAFW::InstanceGeometryPointerArray &nodeGeoms = node->getInstanceGeometries();
     for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
@@ -1260,8 +1299,9 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     newcu[i]->totvert = frames.size();
   }
 
-  if (frames.size() == 0)
+  if (frames.size() == 0) {
     return;
+  }
 
   std::sort(frames.begin(), frames.end());
 
@@ -1308,12 +1348,15 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
 
     /* add keys */
     for (int i = 0; i < totcu; i++) {
-      if (i < 4)
+      if (i < 4) {
         add_bezt(newcu[i], fra, rot[i]);
-      else if (i < 7)
+      }
+      else if (i < 7) {
         add_bezt(newcu[i], fra, loc[i - 4]);
-      else
+      }
+      else {
         add_bezt(newcu[i], fra, scale[i - 7]);
+      }
     }
   }
   Main *bmain = CTX_data_main(mContext);
@@ -1364,8 +1407,9 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     types->light = setAnimType(&(light->getFallOffAngle()), (types->light), LIGHT_FOA);
     types->light = setAnimType(&(light->getFallOffExponent()), (types->light), LIGHT_FOE);
 
-    if (types->light != 0)
+    if (types->light != 0) {
       break;
+    }
   }
 
   const COLLADAFW::InstanceCameraPointerArray &nodeCameras = node->getInstanceCameras();
@@ -1395,8 +1439,9 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     types->camera = setAnimType(&(camera->getFarClippingPlane()), (types->camera), CAMERA_ZFAR);
     types->camera = setAnimType(&(camera->getNearClippingPlane()), (types->camera), CAMERA_ZNEAR);
 
-    if (types->camera != 0)
+    if (types->camera != 0) {
       break;
+    }
   }
 
   const COLLADAFW::InstanceGeometryPointerArray &nodeGeoms = node->getInstanceGeometries();
@@ -1431,10 +1476,12 @@ int AnimationImporter::setAnimType(const COLLADAFW::Animatable *prop, int types,
 {
   int anim_type;
   const COLLADAFW::UniqueId &listid = prop->getAnimationList();
-  if (animlist_map.find(listid) != animlist_map.end())
+  if (animlist_map.find(listid) != animlist_map.end()) {
     anim_type = types | addition;
-  else
+  }
+  else {
     anim_type = types;
+  }
 
   return anim_type;
 }
@@ -1480,15 +1527,17 @@ void AnimationImporter::find_frames_old(std::vector<float> *frames,
                 FCurve *fcu = *iter;
 
                 /* if transform is rotation the fcurves values must be turned in to radian. */
-                if (is_rotation)
+                if (is_rotation) {
                   fcurve_deg_to_rad(fcu);
+                }
 
                 for (unsigned int k = 0; k < fcu->totvert; k++) {
                   /* get frame value from bezTriple */
                   float fra = fcu->bezt[k].vec[1][0];
                   /* if frame already not added add frame to frames */
-                  if (std::find(frames->begin(), frames->end(), fra) == frames->end())
+                  if (std::find(frames->begin(), frames->end(), fra) == frames->end()) {
                     frames->push_back(fra);
+                  }
                 }
               }
             }
@@ -1560,8 +1609,9 @@ Object *AnimationImporter::translate_animation_OLD(
   job = get_joint_object(root, node, par_job);
 #endif
 
-  if (frames.size() == 0)
+  if (frames.size() == 0) {
     return job;
+  }
 
   std::sort(frames.begin(), frames.end());
 
@@ -1585,8 +1635,9 @@ Object *AnimationImporter::translate_animation_OLD(
   char rna_path[200];
   char joint_path[200];
 
-  if (is_joint)
+  if (is_joint) {
     armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+  }
 
   /* new curves */
   FCurve *newcu[10]; /* if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale */
@@ -1611,10 +1662,12 @@ Object *AnimationImporter::translate_animation_OLD(
       }
     }
 
-    if (is_joint)
+    if (is_joint) {
       BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
-    else
+    }
+    else {
       BLI_strncpy(rna_path, tm_str, sizeof(rna_path));
+    }
     newcu[i] = create_fcurve(axis, rna_path);
 
 #ifdef ARMATURE_TEST
@@ -1683,12 +1736,15 @@ Object *AnimationImporter::translate_animation_OLD(
     /* add keys */
     for (i = 0; i < totcu; i++) {
       if (is_matrix) {
-        if (i < 4)
+        if (i < 4) {
           add_bezt(newcu[i], fra, rot[i]);
-        else if (i < 7)
+        }
+        else if (i < 7) {
           add_bezt(newcu[i], fra, loc[i - 4]);
-        else
+        }
+        else {
           add_bezt(newcu[i], fra, scale[i - 7]);
+        }
       }
       else {
         add_bezt(newcu[i], fra, val[i]);
@@ -1739,10 +1795,12 @@ Object *AnimationImporter::translate_animation_OLD(
 
   /* add curves */
   for (i = 0; i < totcu; i++) {
-    if (is_joint)
+    if (is_joint) {
       add_bone_fcurve(ob, node, newcu[i]);
-    else
+    }
+    else {
       BLI_addtail(curves, newcu[i]);
+    }
 
 #ifdef ARMATURE_TEST
     if (is_joint)
@@ -1839,8 +1897,9 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
     return false;
   }
 
-  if (animlist_map.find(listid) == animlist_map.end())
+  if (animlist_map.find(listid) == animlist_map.end()) {
     return false;
+  }
 
   const COLLADAFW::AnimationList *animlist = animlist_map[listid];
   const COLLADAFW::AnimationList::AnimationBindings &bindings = animlist->getAnimationBindings();
@@ -1851,10 +1910,12 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
     bool is_scale = (type == COLLADAFW::Transformation::SCALE);
     bool is_translate = (type == COLLADAFW::Transformation::TRANSLATE);
 
-    if (is_scale)
+    if (is_scale) {
       dae_scale_to_v3(tm, vec);
-    else if (is_translate)
+    }
+    else if (is_translate) {
       dae_translate_to_v3(tm, vec);
+    }
 
     for (unsigned int index = 0; index < bindings.getCount(); index++) {
       const COLLADAFW::AnimationList::AnimationBinding &binding = bindings[index];
@@ -1903,10 +1964,12 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
         bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
 
         if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
-          if (is_xyz)
+          if (is_xyz) {
             fprintf(stderr, "%s: expected 3 curves, got %d\n", path, (int)curves.size());
-          else
+          }
+          else {
             fprintf(stderr, "%s: expected 1 curve, got %d\n", path, (int)curves.size());
+          }
           return false;
         }
 
@@ -1955,10 +2018,12 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
       }
     }
 
-    if (is_scale)
+    if (is_scale) {
       size_to_mat4(mat, vec);
-    else
+    }
+    else {
       copy_v3_v3(mat[3], vec);
+    }
 
     return is_scale || is_translate;
   }
@@ -2009,8 +2074,9 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4],
 
   COLLADAFW::NodePointerArray &children = node->getChildNodes();
   for (unsigned int i = 0; i < children.getCount(); i++) {
-    if (calc_joint_parent_mat_rest(mat, m, children[i], end))
+    if (calc_joint_parent_mat_rest(mat, m, children[i], end)) {
       return true;
+    }
   }
 
   return false;

@@ -88,10 +88,12 @@ class TextureManager {
     bool operator()(const BrushTexture &bt1, const BrushTexture &bt2) const
     {
       int r = strcmp(bt1.first.c_str(), bt2.first.c_str());
-      if (r != 0)
+      if (r != 0) {
         return (r < 0);
-      else
+      }
+      else {
         return (bt1.second < bt2.second);
+      }
     }
   };
   typedef std::map<BrushTexture, unsigned, cmpBrushTexture> brushesMap;

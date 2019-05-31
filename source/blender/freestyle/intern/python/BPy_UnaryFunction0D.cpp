@@ -40,11 +40,13 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int UnaryFunction0D_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0D_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0D_Type);
   PyModule_AddObject(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
 

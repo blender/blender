@@ -62,8 +62,9 @@ static int ConstantColorShader___init__(BPy_ConstantColorShader *self,
   static const char *kwlist[] = {"red", "green", "blue", "alpha", NULL};
   float f1, f2, f3, f4 = 1.0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|f", (char **)kwlist, &f1, &f2, &f3, &f4))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|f", (char **)kwlist, &f1, &f2, &f3, &f4)) {
     return -1;
+  }
   self->py_ss.ss = new StrokeShaders::ConstantColorShader(f1, f2, f3, f4);
   return 0;
 }

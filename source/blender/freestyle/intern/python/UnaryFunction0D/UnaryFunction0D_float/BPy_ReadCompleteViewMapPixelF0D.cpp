@@ -58,8 +58,9 @@ static int ReadCompleteViewMapPixelF0D___init__(BPy_ReadCompleteViewMapPixelF0D 
   static const char *kwlist[] = {"level", NULL};
   int i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i)) {
     return -1;
+  }
   self->py_uf0D_float.uf0D_float = new Functions0D::ReadCompleteViewMapPixelF0D(i);
   self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
   return 0;

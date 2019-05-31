@@ -36,22 +36,26 @@ extern "C" {
 
 int UnaryFunction0DViewShape_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DViewShape_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DViewShape_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DViewShape_Type);
   PyModule_AddObject(
       module, "UnaryFunction0DViewShape", (PyObject *)&UnaryFunction0DViewShape_Type);
 
-  if (PyType_Ready(&GetOccludeeF0D_Type) < 0)
+  if (PyType_Ready(&GetOccludeeF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetOccludeeF0D_Type);
   PyModule_AddObject(module, "GetOccludeeF0D", (PyObject *)&GetOccludeeF0D_Type);
 
-  if (PyType_Ready(&GetShapeF0D_Type) < 0)
+  if (PyType_Ready(&GetShapeF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&GetShapeF0D_Type);
   PyModule_AddObject(module, "GetShapeF0D", (PyObject *)&GetShapeF0D_Type);
 
@@ -76,8 +80,9 @@ static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_viewshape = new UnaryFunction0D<ViewShape *>();
   self->uf0D_viewshape->py_uf0D = (PyObject *)self;
   return 0;
@@ -85,8 +90,9 @@ static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape *self,
 
 static void UnaryFunction0DViewShape___dealloc__(BPy_UnaryFunction0DViewShape *self)
 {
-  if (self->uf0D_viewshape)
+  if (self->uf0D_viewshape) {
     delete self->uf0D_viewshape;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -104,8 +110,9 @@ static PyObject *UnaryFunction0DViewShape___call__(BPy_UnaryFunction0DViewShape 
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_viewshape)) == typeid(UnaryFunction0D<ViewShape *>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

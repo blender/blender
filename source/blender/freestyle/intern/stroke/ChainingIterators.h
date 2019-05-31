@@ -60,8 +60,9 @@ class AdjacencyIterator : public Iterator {
     _restrictToSelection = iRestrictToSelection;
     _restrictToUnvisited = iRestrictToUnvisited;
     _internalIterator = iVertex->edgesBegin();
-    while ((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first)))
+    while ((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first))) {
       ++_internalIterator;
+    }
   }
 
   AdjacencyIterator(const AdjacencyIterator &iBrother)

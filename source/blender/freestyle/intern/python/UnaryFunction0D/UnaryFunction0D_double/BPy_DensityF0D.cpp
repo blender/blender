@@ -62,8 +62,9 @@ static int DensityF0D___init__(BPy_DensityF0D *self, PyObject *args, PyObject *k
   static const char *kwlist[] = {"sigma", NULL};
   double d = 2;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|d", (char **)kwlist, &d))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|d", (char **)kwlist, &d)) {
     return -1;
+  }
   self->py_uf0D_double.uf0D_double = new Functions0D::DensityF0D(d);
   self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
   return 0;

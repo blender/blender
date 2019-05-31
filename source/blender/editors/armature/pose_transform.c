@@ -209,8 +209,9 @@ static void applyarmature_process_selected_rec(bArmature *arm,
   bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone->name);
   const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(pose_eval, bone->name);
 
-  if (!pchan || !pchan_eval)
+  if (!pchan || !pchan_eval) {
     return;
+  }
 
   ApplyArmature_ParentState new_pstate = {.bone = bone};
 

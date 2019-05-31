@@ -58,14 +58,16 @@ class WSFillGrid {
   /*! Modifiers */
   void setWingedEdge(WingedEdge *winged_edge)
   {
-    if (winged_edge)
+    if (winged_edge) {
       _winged_edge = winged_edge;
+    }
   }
 
   void setGrid(Grid *grid)
   {
-    if (grid)
+    if (grid) {
       _grid = grid;
+    }
   }
 
  private:

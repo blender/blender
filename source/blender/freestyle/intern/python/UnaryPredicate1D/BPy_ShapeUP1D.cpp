@@ -56,8 +56,9 @@ static int ShapeUP1D___init__(BPy_ShapeUP1D *self, PyObject *args, PyObject *kwd
   static const char *kwlist[] = {"first", "second", NULL};
   unsigned u1, u2 = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I|I", (char **)kwlist, &u1, &u2))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I|I", (char **)kwlist, &u1, &u2)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::ShapeUP1D(u1, u2);
   return 0;
 }

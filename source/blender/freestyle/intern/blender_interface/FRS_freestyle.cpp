@@ -99,8 +99,9 @@ static bCallbackFuncStore load_post_callback_funcstore = {
 
 void FRS_initialize()
 {
-  if (freestyle_is_initialized)
+  if (freestyle_is_initialized) {
     return;
+  }
 
   pathconfig = new Config::Path;
   controller = new Controller();
@@ -166,9 +167,10 @@ static void init_view(Render *re)
     cout << "\n===  Dimensions of the 2D image coordinate system  ===" << endl;
     cout << "Width  : " << width << endl;
     cout << "Height : " << height << endl;
-    if (re->r.mode & R_BORDER)
+    if (re->r.mode & R_BORDER) {
       cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")"
            << endl;
+    }
     cout << "Unit line thickness : " << thickness << " pixel(s)" << endl;
   }
 }
@@ -196,8 +198,9 @@ static char *escape_quotes(char *name)
   char *s = (char *)MEM_mallocN(strlen(name) * 2 + 1, "escape_quotes");
   char *p = s;
   while (*name) {
-    if (*name == '\'')
+    if (*name == '\'') {
       *(p++) = '\\';
+    }
     *(p++) = *(name++);
   }
   *p = '\0';
@@ -231,54 +234,71 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
   int num_non_target_negative_conditions = 0;
 
   for (int i = 0; i < num_edge_types; i++) {
-    if (conditions[i].edge_type == target)
+    if (conditions[i].edge_type == target) {
       target_condition = conditions[i].value;
-    else if (conditions[i].value > 0)
+    }
+    else if (conditions[i].value > 0) {
       ++num_non_target_positive_conditions;
-    else if (conditions[i].value < 0)
+    }
+    else if (conditions[i].value < 0) {
       ++num_non_target_negative_conditions;
+    }
   }
   if (distinct) {
     // In this case, the 'target' edge type is assumed to appear on distinct edge
     // of its own and never together with other edge types.
     if (logical_and) {
-      if (num_non_target_positive_conditions > 0)
+      if (num_non_target_positive_conditions > 0) {
         return false;
-      if (target_condition > 0)
+      }
+      if (target_condition > 0) {
         return true;
-      if (target_condition < 0)
+      }
+      if (target_condition < 0) {
         return false;
-      if (num_non_target_negative_conditions > 0)
+      }
+      if (num_non_target_negative_conditions > 0) {
         return true;
+      }
     }
     else {
-      if (target_condition > 0)
+      if (target_condition > 0) {
         return true;
-      if (num_non_target_negative_conditions > 0)
+      }
+      if (num_non_target_negative_conditions > 0) {
         return true;
-      if (target_condition < 0)
+      }
+      if (target_condition < 0) {
         return false;
-      if (num_non_target_positive_conditions > 0)
+      }
+      if (num_non_target_positive_conditions > 0) {
         return false;
+      }
     }
   }
   else {
     // In this case, the 'target' edge type may appear together with other edge types.
-    if (target_condition > 0)
+    if (target_condition > 0) {
       return true;
-    if (target_condition < 0)
+    }
+    if (target_condition < 0) {
       return true;
+    }
     if (logical_and) {
-      if (num_non_target_positive_conditions > 0)
+      if (num_non_target_positive_conditions > 0) {
         return false;
-      if (num_non_target_negative_conditions > 0)
+      }
+      if (num_non_target_negative_conditions > 0) {
         return true;
+      }
     }
     else {
-      if (num_non_target_negative_conditions > 0)
+      if (num_non_target_negative_conditions > 0) {
         return true;
-      if (num_non_target_positive_conditions > 0)
+      }
+      if (num_non_target_positive_conditions > 0) {
         return false;
+      }
     }
   }
   return true;
@@ -291,10 +311,12 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   re->stats_draw(re->sdh, &re->i);
   re->i.infostr = NULL;
   if (controller->LoadMesh(
-          re, view_layer, depsgraph))  // returns if scene cannot be loaded or if empty
+          re, view_layer, depsgraph)) {  // returns if scene cannot be loaded or if empty
     return;
-  if (re->test_break(re->tbh))
+  }
+  if (re->test_break(re->tbh)) {
     return;
+  }
 
   // add style modules
   FreestyleConfig *config = &view_layer->freestyle_config;
@@ -316,8 +338,9 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << id_name;
-            if (module_conf->script->name)
+            if (module_conf->script->name) {
               cout << " (" << module_conf->script->name << ")";
+            }
             cout << endl;
           }
           controller->InsertStyleModule(layer_count, id_name, module_conf->script);
@@ -373,12 +396,15 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           else {
             // conditions for feature edge selection by edge types
             for (int i = 0; i < num_edge_types; i++) {
-              if (!(lineset->edge_types & conditions[i].edge_type))
+              if (!(lineset->edge_types & conditions[i].edge_type)) {
                 conditions[i].value = 0;  // no condition specified
-              else if (!(lineset->exclude_edge_types & conditions[i].edge_type))
+              }
+              else if (!(lineset->exclude_edge_types & conditions[i].edge_type)) {
                 conditions[i].value = 1;  // condition: X
-              else
+              }
+              else {
                 conditions[i].value = -1;  // condition: NOT X
+              }
             }
             // logical operator for the selection conditions
             bool logical_and = ((lineset->flags & FREESTYLE_LINESET_FE_AND) != 0);
@@ -388,8 +414,9 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
               // Inclusive equivalent using De Morgan's laws:
               // - NOT (X OR Y) --> (NOT X) AND (NOT Y)
               // - NOT (X AND Y) --> (NOT X) OR (NOT Y)
-              for (int i = 0; i < num_edge_types; i++)
+              for (int i = 0; i < num_edge_types; i++) {
                 conditions[i].value *= -1;
+              }
               logical_and = !logical_and;
             }
             if (test_edge_type_conditions(
@@ -470,8 +497,9 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
     cout << "  Z = " << (z ? "enabled" : "disabled") << endl;
   }
 
-  if (controller->hitViewMapCache())
+  if (controller->hitViewMapCache()) {
     return;
+  }
 
   // compute view map
   re->i.infostr = IFACE_("Freestyle: View map creation");
@@ -486,8 +514,9 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
   float *src, *dest, *pixSrc, *pixDest;
   int x, y, rectx, recty;
 
-  if (freestyle_render == NULL || freestyle_render->result == NULL)
+  if (freestyle_render == NULL || freestyle_render->result == NULL) {
     return;
+  }
 
   rl = render_get_active_layer(freestyle_render, freestyle_render->result);
   if (!rl) {
@@ -553,8 +582,9 @@ static int displayed_layer_count(ViewLayer *view_layer)
                (FreestyleModuleConfig *)view_layer->freestyle_config.modules.first;
            module;
            module = module->next) {
-        if (module->script && module->is_displayed)
+        if (module->script && module->is_displayed) {
           count++;
+        }
       }
       break;
     case FREESTYLE_CONTROL_EDITOR_MODE:
@@ -562,8 +592,9 @@ static int displayed_layer_count(ViewLayer *view_layer)
                (FreestyleLineSet *)view_layer->freestyle_config.linesets.first;
            lineset;
            lineset = lineset->next) {
-        if (lineset->flags & FREESTYLE_LINESET_ENABLED)
+        if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           count++;
+        }
       }
       break;
   }
@@ -599,8 +630,9 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
 {
   Render *freestyle_render = NULL;
 
-  if (!render)
+  if (!render) {
     return controller->RenderStrokes(re, false);
+  }
 
   RenderMonitor monitor(re);
   controller->setRenderMonitor(&monitor);
@@ -704,17 +736,20 @@ void FRS_copy_active_lineset(FreestyleConfig *config)
 
 void FRS_paste_active_lineset(FreestyleConfig *config)
 {
-  if (!lineset_copied)
+  if (!lineset_copied) {
     return;
+  }
 
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 
   if (lineset) {
-    if (lineset->linestyle)
+    if (lineset->linestyle) {
       id_us_min(&lineset->linestyle->id);
+    }
     lineset->linestyle = lineset_buffer.linestyle;
-    if (lineset->linestyle)
+    if (lineset->linestyle) {
       id_us_plus(&lineset->linestyle->id);
+    }
     lineset->flags = lineset_buffer.flags;
     lineset->selection = lineset_buffer.selection;
     lineset->qi = lineset_buffer.qi;

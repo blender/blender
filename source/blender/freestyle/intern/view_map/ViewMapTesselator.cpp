@@ -25,8 +25,9 @@ namespace Freestyle {
 
 NodeGroup *ViewMapTesselator::Tesselate(ViewMap *iViewMap)
 {
-  if (0 == iViewMap->ViewEdges().size())
+  if (0 == iViewMap->ViewEdges().size()) {
     return NULL;
+  }
 
   const vector<ViewEdge *> &viewedges = iViewMap->ViewEdges();
   return Tesselate(viewedges.begin(), viewedges.end());

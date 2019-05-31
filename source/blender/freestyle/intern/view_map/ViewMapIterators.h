@@ -130,20 +130,24 @@ class orientedViewEdgeIterator : public Iterator {
    * not. */
   virtual bool isBegin() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       return (_tvertex_iter == _tbegin);
-    else
+    }
+    else {
       return (_nontvertex_iter == _begin);
+    }
   }
 
   /*! Tells whether the ViewEdge pointed by this iterator is after the last one of the iteration
    * list or not. */
   virtual bool isEnd() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       return (_tvertex_iter == _tend);
-    else
+    }
+    else {
       return (_nontvertex_iter == _end);
+    }
   }
 
   // operators
@@ -168,10 +172,12 @@ class orientedViewEdgeIterator : public Iterator {
   /*! operator != */
   virtual bool operator!=(const orientedViewEdgeIterator &b) const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       return (_tvertex_iter != b._tvertex_iter);
-    else
+    }
+    else {
       return (_nontvertex_iter != b._nontvertex_iter);
+    }
   }
 
   /*! operator == */
@@ -186,11 +192,13 @@ class orientedViewEdgeIterator : public Iterator {
    */
   virtual ViewVertex::directedViewEdge &operator*() const
   {
-    if (_Nature & Nature::T_VERTEX)
+    if (_Nature & Nature::T_VERTEX) {
       // return _tvertex_iter;
       return **_tvertex_iter;
-    else
+    }
+    else {
       return (*_nontvertex_iter);
+    }
   }
   /*! Returns a pointer to the pointed orientedViewEdge.
    * Can't be called in the scripting language.
@@ -210,8 +218,9 @@ class orientedViewEdgeIterator : public Iterator {
       if (_tvertex_iter != _tend) {
         // FIXME : pquoi deja ?
         ViewVertex::directedViewEdge tmp2 = (**_tvertex_iter);
-        if (tmp2.first == tmp.first)
+        if (tmp2.first == tmp.first) {
           ++_tvertex_iter;
+        }
       }
     }
     else {
@@ -379,8 +388,9 @@ class SVertexIterator : public Interface0DIteratorNested {
   virtual bool operator==(const Interface0DIteratorNested &it) const
   {
     const SVertexIterator *it_exact = dynamic_cast<const SVertexIterator *>(&it);
-    if (!it_exact)
+    if (!it_exact) {
       return false;
+    }
     return (_vertex == it_exact->_vertex);
   }
 

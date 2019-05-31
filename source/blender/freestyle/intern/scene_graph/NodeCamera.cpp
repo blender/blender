@@ -33,10 +33,12 @@ static void loadIdentity(double *matrix)
   // Build Identity matrix
   for (i = 0; i < 16; ++i) {
     double value;
-    if ((i % 5) == 0)
+    if ((i % 5) == 0) {
       value = 1.0;
-    else
+    }
+    else {
       value = 0;
+    }
     matrix[i] = value;
   }
 }

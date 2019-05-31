@@ -59,8 +59,9 @@ static int ShapeIdF0D___init__(BPy_ShapeIdF0D *self, PyObject *args, PyObject *k
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_id.uf0D_id = new Functions0D::ShapeIdF0D();
   self->py_uf0D_id.uf0D_id->py_uf0D = (PyObject *)self;
   return 0;

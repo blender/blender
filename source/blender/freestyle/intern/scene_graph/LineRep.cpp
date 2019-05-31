@@ -38,22 +38,28 @@ void LineRep::ComputeBBox()
   vector<Vec3r>::iterator v;
   for (v = _vertices.begin(); v != _vertices.end(); ++v) {
     // X
-    if ((*v)[0] > XMax)
+    if ((*v)[0] > XMax) {
       XMax = (*v)[0];
-    if ((*v)[0] < XMin)
+    }
+    if ((*v)[0] < XMin) {
       XMin = (*v)[0];
+    }
 
     // Y
-    if ((*v)[1] > YMax)
+    if ((*v)[1] > YMax) {
       YMax = (*v)[1];
-    if ((*v)[1] < YMin)
+    }
+    if ((*v)[1] < YMin) {
       YMin = (*v)[1];
+    }
 
     // Z
-    if ((*v)[2] > ZMax)
+    if ((*v)[2] > ZMax) {
       ZMax = (*v)[2];
-    if ((*v)[2] < ZMin)
+    }
+    if ((*v)[2] < ZMin) {
       ZMin = (*v)[2];
+    }
   }
 
   setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));

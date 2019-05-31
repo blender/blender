@@ -223,8 +223,9 @@ void SceneExporter::writeNode(Object *ob)
               colladaNode.addExtraTechniqueChildParameter("blender", con_tag, "target_id", tar_id);
             }
 
-            if (cti->flush_constraint_targets)
+            if (cti->flush_constraint_targets) {
               cti->flush_constraint_targets(con, &targets, 1);
+            }
           }
 
           con = con->next;

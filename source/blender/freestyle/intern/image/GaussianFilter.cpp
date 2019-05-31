@@ -63,8 +63,9 @@ GaussianFilter::~GaussianFilter()
 int GaussianFilter::computeMaskSize(float sigma)
 {
   int maskSize = (int)floor(4 * sigma) + 1;
-  if (0 == (maskSize % 2))
+  if (0 == (maskSize % 2)) {
     ++maskSize;
+  }
 
   return maskSize;
 }

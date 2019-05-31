@@ -57,8 +57,9 @@ static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self,
   PyObject *brother = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother))
+          args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother)) {
     return -1;
+  }
   if (!brother) {
     self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
     self->at_start = true;
@@ -95,8 +96,9 @@ static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator 
       PyErr_SetNone(PyExc_StopIteration);
       return NULL;
     }
-    if (self->at_start)
+    if (self->at_start) {
       self->at_start = false;
+    }
     else {
       self->ove_it->increment();
       if (self->ove_it->isEnd()) {

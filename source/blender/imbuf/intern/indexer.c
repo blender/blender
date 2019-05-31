@@ -742,7 +742,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
 
   /* Find the video stream */
   context->videoStream = -1;
-  for (i = 0; i < context->iFormatCtx->nb_streams; i++)
+  for (i = 0; i < context->iFormatCtx->nb_streams; i++) {
     if (context->iFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       if (streamcount > 0) {
         streamcount--;
@@ -751,6 +751,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
       context->videoStream = i;
       break;
     }
+  }
 
   if (context->videoStream == -1) {
     avformat_close_input(&context->iFormatCtx);

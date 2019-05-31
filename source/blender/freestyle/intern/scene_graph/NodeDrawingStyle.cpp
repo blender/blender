@@ -31,8 +31,9 @@ void NodeDrawingStyle::accept(SceneVisitor &v)
   v.visitNodeDrawingStyleBefore(*this);
   v.visitDrawingStyle(_DrawingStyle);
   for (vector<Node *>::iterator node = _Children.begin(), end = _Children.end(); node != end;
-       ++node)
+       ++node) {
     (*node)->accept(v);
+  }
   v.visitNodeDrawingStyleAfter(*this);
 }
 

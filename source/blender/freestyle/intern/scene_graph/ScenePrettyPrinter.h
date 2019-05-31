@@ -36,17 +36,20 @@ class ScenePrettyPrinter : public SceneVisitor {
  public:
   ScenePrettyPrinter(const string filename = "SceneLog.txt") : SceneVisitor()
   {
-    if (!filename.empty())
+    if (!filename.empty()) {
       _ofs.open(filename.c_str());
-    if (!_ofs.is_open())
+    }
+    if (!_ofs.is_open()) {
       cerr << "Warning, unable to open file \"" << filename << "\"" << endl;
+    }
     _space = "";
   }
 
   virtual ~ScenePrettyPrinter()
   {
-    if (_ofs.is_open())
+    if (_ofs.is_open()) {
       _ofs.close();
+    }
   }
 
   //

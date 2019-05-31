@@ -134,11 +134,13 @@ template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int 
   // Current pixel is x,y
   // Sum surrounding pixels L value:
   for (int i = -_bound; i <= _bound; ++i) {
-    if ((y + i < 0) || (y + i >= h))
+    if ((y + i < 0) || (y + i >= h)) {
       continue;
+    }
     for (int j = -_bound; j <= _bound; ++j) {
-      if ((x + j < 0) || (x + j >= w))
+      if ((x + j < 0) || (x + j >= w)) {
         continue;
+      }
 
       float tmpL = map->pixel(x + j, y + i);
       float m = _mask[abs(i) * _storedMaskSize + abs(j)];

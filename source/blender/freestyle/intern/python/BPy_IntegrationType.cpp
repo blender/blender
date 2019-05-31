@@ -211,11 +211,13 @@ int IntegrationType_Init(PyObject *module)
 {
   PyObject *m, *d, *f;
 
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&IntegrationType_Type) < 0)
+  if (PyType_Ready(&IntegrationType_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&IntegrationType_Type);
   PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
@@ -226,8 +228,9 @@ int IntegrationType_Init(PyObject *module)
   PyDict_SetItemString(IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
 
   m = PyModule_Create(&module_definition);
-  if (m == NULL)
+  if (m == NULL) {
     return -1;
+  }
   Py_INCREF(m);
   PyModule_AddObject(module, "Integrator", m);
 

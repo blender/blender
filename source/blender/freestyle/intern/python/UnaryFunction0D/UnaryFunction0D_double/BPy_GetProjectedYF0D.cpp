@@ -52,8 +52,9 @@ static int GetProjectedYF0D___init__(BPy_GetProjectedYF0D *self, PyObject *args,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_double.uf0D_double = new Functions0D::GetProjectedYF0D();
   self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
   return 0;

@@ -83,42 +83,60 @@ static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 
 static int ramp_blend_type(const char *type)
 {
-  if (STREQ(type, "MIX"))
+  if (STREQ(type, "MIX")) {
     return MA_RAMP_BLEND;
-  if (STREQ(type, "ADD"))
+  }
+  if (STREQ(type, "ADD")) {
     return MA_RAMP_ADD;
-  if (STREQ(type, "MULTIPLY"))
+  }
+  if (STREQ(type, "MULTIPLY")) {
     return MA_RAMP_MULT;
-  if (STREQ(type, "SUBTRACT"))
+  }
+  if (STREQ(type, "SUBTRACT")) {
     return MA_RAMP_SUB;
-  if (STREQ(type, "SCREEN"))
+  }
+  if (STREQ(type, "SCREEN")) {
     return MA_RAMP_SCREEN;
-  if (STREQ(type, "DIVIDE"))
+  }
+  if (STREQ(type, "DIVIDE")) {
     return MA_RAMP_DIV;
-  if (STREQ(type, "DIFFERENCE"))
+  }
+  if (STREQ(type, "DIFFERENCE")) {
     return MA_RAMP_DIFF;
-  if (STREQ(type, "DARKEN"))
+  }
+  if (STREQ(type, "DARKEN")) {
     return MA_RAMP_DARK;
-  if (STREQ(type, "LIGHTEN"))
+  }
+  if (STREQ(type, "LIGHTEN")) {
     return MA_RAMP_LIGHT;
-  if (STREQ(type, "OVERLAY"))
+  }
+  if (STREQ(type, "OVERLAY")) {
     return MA_RAMP_OVERLAY;
-  if (STREQ(type, "DODGE"))
+  }
+  if (STREQ(type, "DODGE")) {
     return MA_RAMP_DODGE;
-  if (STREQ(type, "BURN"))
+  }
+  if (STREQ(type, "BURN")) {
     return MA_RAMP_BURN;
-  if (STREQ(type, "HUE"))
+  }
+  if (STREQ(type, "HUE")) {
     return MA_RAMP_HUE;
-  if (STREQ(type, "SATURATION"))
+  }
+  if (STREQ(type, "SATURATION")) {
     return MA_RAMP_SAT;
-  if (STREQ(type, "VALUE"))
+  }
+  if (STREQ(type, "VALUE")) {
     return MA_RAMP_VAL;
-  if (STREQ(type, "COLOR"))
+  }
+  if (STREQ(type, "COLOR")) {
     return MA_RAMP_COLOR;
-  if (STREQ(type, "SOFT_LIGHT"))
+  }
+  if (STREQ(type, "SOFT_LIGHT")) {
     return MA_RAMP_SOFT;
-  if (STREQ(type, "LINEAR_LIGHT"))
+  }
+  if (STREQ(type, "LINEAR_LIGHT")) {
     return MA_RAMP_LINEAR;
+  }
   return -1;
 }
 
@@ -147,8 +165,9 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
   int type;
   float a[3], fac, b[3];
 
-  if (!PyArg_ParseTuple(args, "sOfO", &s, &obj1, &fac, &obj2))
+  if (!PyArg_ParseTuple(args, "sOfO", &s, &obj1, &fac, &obj2)) {
     return NULL;
+  }
   type = ramp_blend_type(s);
   if (type < 0) {
     PyErr_SetString(PyExc_TypeError, "argument 1 is an unknown ramp blend type");
@@ -194,8 +213,9 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   ColorBand *coba;
   float in, out[4];
 
-  if (!(PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in)))
+  if (!(PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in))) {
     return NULL;
+  }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a ColorRamp object");
     return NULL;
@@ -232,8 +252,9 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   int cur;
   float value;
 
-  if (!(PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value)))
+  if (!(PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value))) {
     return NULL;
+  }
   if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a CurveMapping object");
     return NULL;
@@ -514,8 +535,9 @@ PyObject *Freestyle_Init(void)
 
   // initialize modules
   module = PyModule_Create(&module_definition);
-  if (!module)
+  if (!module) {
     return NULL;
+  }
   PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
 
   // update 'sys.path' for Freestyle Python API modules

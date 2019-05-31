@@ -59,8 +59,9 @@ static int GetZF1D___init__(BPy_GetZF1D *self, PyObject *args, PyObject *kwds)
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
     return -1;
+  }
   IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
   self->py_uf1D_double.uf1D_double = new Functions1D::GetZF1D(t);
   return 0;

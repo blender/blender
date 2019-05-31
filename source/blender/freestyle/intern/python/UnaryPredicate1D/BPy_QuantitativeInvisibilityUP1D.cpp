@@ -60,8 +60,9 @@ static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1
   static const char *kwlist[] = {"qi", NULL};
   int i = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", (char **)kwlist, &i))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", (char **)kwlist, &i)) {
     return -1;
+  }
   self->py_up1D.up1D = new Predicates1D::QuantitativeInvisibilityUP1D(i);
   return 0;
 }

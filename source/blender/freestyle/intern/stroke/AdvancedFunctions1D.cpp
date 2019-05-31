@@ -69,8 +69,9 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
       ++v;
       for (; v != vend; ++v) {
         res_tmp = *v;
-        if (res_tmp < res)
+        if (res_tmp < res) {
           res = res_tmp;
+        }
       }
       break;
     case MAX:
@@ -78,8 +79,9 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
       ++v;
       for (; v != vend; ++v) {
         res_tmp = *v;
-        if (res_tmp > res)
+        if (res_tmp > res) {
           res = res_tmp;
+        }
       }
       break;
     case FIRST:
@@ -93,8 +95,9 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
     default:
       res = *v;
       ++v;
-      for (; v != vend; ++v, ++size)
+      for (; v != vend; ++v, ++size) {
         res += *v;
+      }
       res /= (size ? size : 1);
       break;
   }

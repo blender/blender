@@ -64,14 +64,17 @@ void getFEdges(Interface0DIterator &it, FEdge *&fe1, FEdge *&fe2)
     // we have more than 2 vertices
     bool begin = false, last = false;
     Interface0DIterator previous = it;
-    if (!previous.isBegin())
+    if (!previous.isBegin()) {
       --previous;
-    else
+    }
+    else {
       begin = true;
+    }
     Interface0DIterator next = it;
     ++next;
-    if (next.isEnd())
+    if (next.isEnd()) {
       last = true;
+    }
     if (begin) {
       fe1 = it->getFEdge(*next);
       fe2 = NULL;
@@ -94,8 +97,9 @@ void getViewEdges(Interface0DIterator &it, ViewEdge *&ve1, ViewEdge *&ve2)
   ve1 = fe1->viewedge();
   if (fe2 != NULL) {
     ve2 = fe2->viewedge();
-    if (ve2 == ve1)
+    if (ve2 == ve1) {
       ve2 = NULL;
+    }
   }
   else {
     ve2 = NULL;
@@ -116,14 +120,16 @@ void getOccludersF0D(Interface0DIterator &it, set<ViewShape *> &oOccluders)
   occluder_container::const_iterator oit = ve1->occluders_begin();
   occluder_container::const_iterator oitend = ve1->occluders_end();
 
-  for (; oit != oitend; ++oit)
+  for (; oit != oitend; ++oit) {
     oOccluders.insert((*oit));
+  }
 
   if (ve2 != NULL) {
     oit = ve2->occluders_begin();
     oitend = ve2->occluders_end();
-    for (; oit != oitend; ++oit)
+    for (; oit != oitend; ++oit) {
       oOccluders.insert((*oit));
+    }
   }
 }
 
@@ -150,20 +156,25 @@ int VertexOrientation2DF0D::operator()(Interface0DIterator &iter)
   }
   Interface0DIterator next = iter;
   ++next;
-  if (next.isEnd())
+  if (next.isEnd()) {
     C = Vec2f(iter->getProjectedX(), iter->getProjectedY());
-  else
+  }
+  else {
     C = Vec2f(next->getProjectedX(), next->getProjectedY());
+  }
 
   Vec2f AB(B - A);
-  if (AB.norm() != 0)
+  if (AB.norm() != 0) {
     AB.normalize();
+  }
   Vec2f BC(C - B);
-  if (BC.norm() != 0)
+  if (BC.norm() != 0) {
     BC.normalize();
+  }
   result = AB + BC;
-  if (result.norm() != 0)
+  if (result.norm() != 0) {
     result.normalize();
+  }
   return 0;
 }
 
@@ -181,20 +192,25 @@ int VertexOrientation3DF0D::operator()(Interface0DIterator &iter)
   }
   Interface0DIterator next = iter;
   ++next;
-  if (next.isEnd())
+  if (next.isEnd()) {
     C = Vec3r(iter->getX(), iter->getY(), iter->getZ());
-  else
+  }
+  else {
     C = Vec3r(next->getX(), next->getY(), next->getZ());
+  }
 
   Vec3r AB(B - A);
-  if (AB.norm() != 0)
+  if (AB.norm() != 0) {
     AB.normalize();
+  }
   Vec3r BC(C - B);
-  if (BC.norm() != 0)
+  if (BC.norm() != 0) {
     BC.normalize();
+  }
   result = AB + BC;
-  if (result.norm() != 0)
+  if (result.norm() != 0) {
     result.normalize();
+  }
   return 0;
 }
 
@@ -218,8 +234,9 @@ int Curvature2DAngleF0D::operator()(Interface0DIterator &iter)
   }
 
   Interface0DIterator v = iter;
-  if (iter.isBegin())
+  if (iter.isBegin()) {
     ++v;
+  }
   Interface0DIterator next = v;
   ++next;
   if (next.isEnd()) {
@@ -235,21 +252,25 @@ int Curvature2DAngleF0D::operator()(Interface0DIterator &iter)
   Vec2r AB(B - A);
   Vec2r BC(C - B);
   Vec2r N1(-AB[1], AB[0]);
-  if (N1.norm() != 0)
+  if (N1.norm() != 0) {
     N1.normalize();
+  }
   Vec2r N2(-BC[1], BC[0]);
-  if (N2.norm() != 0)
+  if (N2.norm() != 0) {
     N2.normalize();
+  }
   if ((N1.norm() == 0) && (N2.norm() == 0)) {
     Exception::raiseException();
     result = 0;
     return -1;
   }
   double cosin = N1 * N2;
-  if (cosin > 1)
+  if (cosin > 1) {
     cosin = 1;
-  if (cosin < -1)
+  }
+  if (cosin < -1) {
     cosin = -1;
+  }
   result = acos(cosin);
   return 0;
 }
@@ -287,12 +308,15 @@ int MaterialF0D::operator()(Interface0DIterator &iter)
 {
   FEdge *fe1, *fe2;
   getFEdges(iter, fe1, fe2);
-  if (fe1 == NULL)
+  if (fe1 == NULL) {
     return -1;
-  if (fe1->isSmooth())
+  }
+  if (fe1->isSmooth()) {
     result = ((FEdgeSmooth *)fe1)->frs_material();
-  else
+  }
+  else {
     result = ((FEdgeSharp *)fe1)->bFrsMaterial();
+  }
 #if 0
   const SShape *sshape = getShapeF0D(iter);
   return sshape->material();
@@ -332,8 +356,9 @@ int CurveNatureF0D::operator()(Interface0DIterator &iter)
   ViewEdge *ve1, *ve2;
   getViewEdges(iter, ve1, ve2);
   nat |= ve1->getNature();
-  if (ve2 != NULL)
+  if (ve2 != NULL) {
     nat |= ve2->getNature();
+  }
   result = nat;
   return 0;
 }

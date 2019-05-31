@@ -60,8 +60,9 @@ static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D 
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_unsigned.uf0D_unsigned = new Functions0D::QuantitativeInvisibilityF0D();
   self->py_uf0D_unsigned.uf0D_unsigned->py_uf0D = (PyObject *)self;
   return 0;

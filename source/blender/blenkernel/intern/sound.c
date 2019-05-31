@@ -807,8 +807,9 @@ int BKE_sound_scene_playing(Scene *scene)
   }
 
   // in case of a "Null" audio device, we have no playback information
-  if (AUD_Device_getRate(sound_device) == AUD_RATE_INVALID)
+  if (AUD_Device_getRate(sound_device) == AUD_RATE_INVALID) {
     return -1;
+  }
 
   if (scene->audio.flag & AUDIO_SYNC) {
     return AUD_isSynchronizerPlaying();

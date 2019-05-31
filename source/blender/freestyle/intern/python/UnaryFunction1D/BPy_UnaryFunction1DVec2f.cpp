@@ -37,21 +37,25 @@ extern "C" {
 
 int UnaryFunction1DVec2f_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction1DVec2f_Type) < 0)
+  if (PyType_Ready(&UnaryFunction1DVec2f_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction1DVec2f_Type);
   PyModule_AddObject(module, "UnaryFunction1DVec2f", (PyObject *)&UnaryFunction1DVec2f_Type);
 
-  if (PyType_Ready(&Normal2DF1D_Type) < 0)
+  if (PyType_Ready(&Normal2DF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Normal2DF1D_Type);
   PyModule_AddObject(module, "Normal2DF1D", (PyObject *)&Normal2DF1D_Type);
 
-  if (PyType_Ready(&Orientation2DF1D_Type) < 0)
+  if (PyType_Ready(&Orientation2DF1D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&Orientation2DF1D_Type);
   PyModule_AddObject(module, "Orientation2DF1D", (PyObject *)&Orientation2DF1D_Type);
 
@@ -86,11 +90,13 @@ static int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f *self,
   PyObject *obj = 0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj)) {
     return -1;
+  }
 
-  if (!obj)
+  if (!obj) {
     self->uf1D_vec2f = new UnaryFunction1D<Vec2f>();
+  }
   else {
     self->uf1D_vec2f = new UnaryFunction1D<Vec2f>(IntegrationType_from_BPy_IntegrationType(obj));
   }
@@ -102,8 +108,9 @@ static int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f *self,
 
 static void UnaryFunction1DVec2f___dealloc__(BPy_UnaryFunction1DVec2f *self)
 {
-  if (self->uf1D_vec2f)
+  if (self->uf1D_vec2f) {
     delete self->uf1D_vec2f;
+  }
   UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -119,8 +126,9 @@ static PyObject *UnaryFunction1DVec2f___call__(BPy_UnaryFunction1DVec2f *self,
   static const char *kwlist[] = {"inter", NULL};
   PyObject *obj = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf1D_vec2f)) == typeid(UnaryFunction1D<Vec2f>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

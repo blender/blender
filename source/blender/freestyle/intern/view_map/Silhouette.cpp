@@ -35,8 +35,9 @@ namespace Freestyle {
 Nature::VertexNature SVertex::getNature() const
 {
   Nature::VertexNature nature = Nature::S_VERTEX;
-  if (_pViewVertex)
+  if (_pViewVertex) {
     nature |= _pViewVertex->getNature();
+  }
   return nature;
 }
 
@@ -84,71 +85,81 @@ const SShape *SVertex::shape() const
 
 const int SVertex::qi() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->qi();
 }
 
 occluder_container::const_iterator SVertex::occluders_begin() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occluders_begin();
 }
 
 occluder_container::const_iterator SVertex::occluders_end() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occluders_end();
 }
 
 bool SVertex::occluders_empty() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occluders_empty();
 }
 
 int SVertex::occluders_size() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occluders_size();
 }
 
 const Polygon3r &SVertex::occludee() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occludee();
 }
 
 const SShape *SVertex::occluded_shape() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occluded_shape();
 }
 
 const bool SVertex::occludee_empty() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->occludee_empty();
 }
 
 real SVertex::z_discontinuity() const
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
+  }
   return (_FEdges[0])->z_discontinuity();
 }
 
 FEdge *SVertex::fedge()
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     return NULL;
+  }
   return _FEdges[0];
 }
 
@@ -156,8 +167,9 @@ FEdge *SVertex::getFEdge(Interface0D &inter)
 {
   FEdge *result = NULL;
   SVertex *iVertexB = dynamic_cast<SVertex *>(&inter);
-  if (!iVertexB)
+  if (!iVertexB) {
     return result;
+  }
   vector<FEdge *>::const_iterator fe = _FEdges.begin(), feend = _FEdges.end();
   for (; fe != feend; ++fe) {
     if ((((*fe)->vertexA() == this) && ((*fe)->vertexB() == iVertexB)) ||
@@ -171,8 +183,9 @@ FEdge *SVertex::getFEdge(Interface0D &inter)
     TVertex *tvertex = dynamic_cast<TVertex *>(vvertex);
     if (tvertex) {
       brother = tvertex->frontSVertex();
-      if (this == brother)
+      if (this == brother) {
         brother = tvertex->backSVertex();
+      }
       const vector<FEdge *> &fedges = brother->fedges();
       for (fe = fedges.begin(), feend = fedges.end(); fe != feend; ++fe) {
         if ((((*fe)->vertexA() == brother) && ((*fe)->vertexB() == iVertexB)) ||
@@ -188,8 +201,9 @@ FEdge *SVertex::getFEdge(Interface0D &inter)
     TVertex *tvertex = dynamic_cast<TVertex *>(vvertex);
     if (tvertex) {
       brother = tvertex->frontSVertex();
-      if (iVertexB == brother)
+      if (iVertexB == brother) {
         brother = tvertex->backSVertex();
+      }
       for (fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend; ++fe) {
         if ((((*fe)->vertexA() == this) && ((*fe)->vertexB() == brother)) ||
             (((*fe)->vertexB() == this) && ((*fe)->vertexA() == brother))) {
@@ -225,8 +239,9 @@ float FEdge::viewedge_length() const
 const SShape *FEdge::occluded_shape() const
 {
   ViewShape *aShape = _ViewEdge->aShape();
-  if (aShape == 0)
+  if (aShape == 0) {
     return 0;
+  }
   return aShape->sshape();
 }
 

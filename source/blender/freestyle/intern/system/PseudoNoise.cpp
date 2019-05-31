@@ -49,8 +49,9 @@ PseudoNoise::PseudoNoise()
 void PseudoNoise::init(long seed)
 {
   RandGen::srand48(seed);
-  for (unsigned int i = 0; i < NB_VALUE_NOISE; i++)
+  for (unsigned int i = 0; i < NB_VALUE_NOISE; i++) {
     _values[i] = -1.0 + 2.0 * RandGen::drand48();
+  }
 }
 
 real PseudoNoise::linearNoise(real x)
@@ -64,10 +65,12 @@ real PseudoNoise::linearNoise(real x)
 
 static real LanczosWindowed(real t)
 {
-  if (fabs(t) > 2)
+  if (fabs(t) > 2) {
     return 0;
-  if (fabs(t) < M_EPSILON)
+  }
+  if (fabs(t) < M_EPSILON) {
     return 1.0;
+  }
   return sin(M_PI * t) / (M_PI * t) * sin(M_PI * t / 2.0) / (M_PI * t / 2.0);
 }
 

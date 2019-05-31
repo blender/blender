@@ -94,9 +94,11 @@ void UnitConverter::mat4_to_dae_double(double out[4][4], float in[4][4])
 
   mat4_to_dae(mat, in);
 
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
       out[i][j] = mat[i][j];
+    }
+  }
 }
 
 float (&UnitConverter::get_rotation())[4][4]

@@ -53,8 +53,9 @@ static int CurveNatureF0D___init__(BPy_CurveNatureF0D *self, PyObject *args, PyO
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_uf0D_edgenature.uf0D_edgenature = new Functions0D::CurveNatureF0D();
   self->py_uf0D_edgenature.uf0D_edgenature->py_uf0D = (PyObject *)self;
   return 0;

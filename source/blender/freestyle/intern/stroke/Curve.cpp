@@ -194,8 +194,9 @@ CurvePoint &CurvePoint::operator=(const CurvePoint &iBrother)
 
 FEdge *CurvePoint::fedge()
 {
-  if (getNature() & Nature::T_VERTEX)
+  if (getNature() & Nature::T_VERTEX) {
     return 0;
+  }
   return __A->fedge();
 }
 
@@ -212,42 +213,55 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
     return __A->getFEdge(*__B);
   }
   if (__B == 0) {
-    if (iVertexB->__B == 0)
+    if (iVertexB->__B == 0) {
       return __A->getFEdge(*(iVertexB->__A));
-    else if (iVertexB->__A == __A)
+    }
+    else if (iVertexB->__A == __A) {
       return __A->getFEdge(*(iVertexB->__B));
-    else if (iVertexB->__B == __A)
+    }
+    else if (iVertexB->__B == __A) {
       return __A->getFEdge(*(iVertexB->__A));
+    }
   }
   if (iVertexB->__B == 0) {
-    if (iVertexB->__A == __A)
+    if (iVertexB->__A == __A) {
       return __B->getFEdge(*(iVertexB->__A));
-    else if (iVertexB->__A == __B)
+    }
+    else if (iVertexB->__A == __B) {
       return __A->getFEdge(*(iVertexB->__A));
+    }
   }
   if (__B == iVertexB->__A) {
-    if ((_t2d != 1) && (iVertexB->_t2d == 0))
+    if ((_t2d != 1) && (iVertexB->_t2d == 0)) {
       return __A->getFEdge(*__B);
-    if ((_t2d == 1) && (iVertexB->_t2d != 0))
+    }
+    if ((_t2d == 1) && (iVertexB->_t2d != 0)) {
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
+    }
   }
   if (__B == iVertexB->__B) {
-    if ((_t2d != 1) && (iVertexB->_t2d == 1))
+    if ((_t2d != 1) && (iVertexB->_t2d == 1)) {
       return __A->getFEdge(*__B);
-    if ((_t2d == 1) && (iVertexB->_t2d != 1))
+    }
+    if ((_t2d == 1) && (iVertexB->_t2d != 1)) {
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
+    }
   }
   if (__A == iVertexB->__A) {
-    if ((_t2d == 0) && (iVertexB->_t2d != 0))
+    if ((_t2d == 0) && (iVertexB->_t2d != 0)) {
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
-    if ((_t2d != 0) && (iVertexB->_t2d == 0))
+    }
+    if ((_t2d != 0) && (iVertexB->_t2d == 0)) {
       return __A->getFEdge(*__B);
+    }
   }
   if (__A == iVertexB->__B) {
-    if ((_t2d == 0) && (iVertexB->_t2d != 1))
+    if ((_t2d == 0) && (iVertexB->_t2d != 1)) {
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
-    if ((_t2d != 0) && (iVertexB->_t2d == 1))
+    }
+    if ((_t2d != 0) && (iVertexB->_t2d == 1)) {
       return __A->getFEdge(*__B);
+    }
   }
 #if 0
   if (G.debug & G_DEBUG_FREESTYLE) {
@@ -275,16 +289,20 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
 
 Vec3r CurvePoint::normal() const
 {
-  if (__B == 0)
+  if (__B == 0) {
     return __A->normal();
-  if (__A == 0)
+  }
+  if (__A == 0) {
     return __B->normal();
+  }
   Vec3r Na = __A->normal();
-  if (Exception::getException())
+  if (Exception::getException()) {
     Na = Vec3r(0, 0, 0);
+  }
   Vec3r Nb = __B->normal();
-  if (Exception::getException())
+  if (Exception::getException()) {
     Nb = Vec3r(0, 0, 0);
+  }
   // compute t3d:
   real t3d = SilhouetteGeomEngine::ImageToWorldParameter(__A->getFEdge(*__B), _t2d);
   return ((1 - t3d) * Na + t3d * Nb);
@@ -308,8 +326,9 @@ Id CurvePoint::shape_id() const
 
 const SShape *CurvePoint::shape() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->shape();
+  }
   return __A->shape();
 }
 
@@ -333,75 +352,92 @@ const unsigned CurvePoint::qi() const
 
 occluder_container::const_iterator CurvePoint::occluders_begin() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occluders_begin();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occluders_begin();
+  }
   return __A->getFEdge(*__B)->occluders_begin();
 }
 
 occluder_container::const_iterator CurvePoint::occluders_end() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occluders_end();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occluders_end();
+  }
   return __A->getFEdge(*__B)->occluders_end();
 }
 
 bool CurvePoint::occluders_empty() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occluders_empty();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occluders_empty();
+  }
   return __A->getFEdge(*__B)->occluders_empty();
 }
 
 int CurvePoint::occluders_size() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occluders_size();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occluders_size();
+  }
   return __A->getFEdge(*__B)->occluders_size();
 }
 
 const SShape *CurvePoint::occluded_shape() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occluded_shape();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occluded_shape();
+  }
   return __A->getFEdge(*__B)->occluded_shape();
 }
 
 const Polygon3r &CurvePoint::occludee() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occludee();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occludee();
+  }
   return __A->getFEdge(*__B)->occludee();
 }
 
 const bool CurvePoint::occludee_empty() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->occludee_empty();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->occludee_empty();
+  }
   return __A->getFEdge(*__B)->occludee_empty();
 }
 
 real CurvePoint::z_discontinuity() const
 {
-  if (__A == 0)
+  if (__A == 0) {
     return __B->z_discontinuity();
-  if (__B == 0)
+  }
+  if (__B == 0) {
     return __A->z_discontinuity();
-  if (__A->getFEdge(*__B) == 0)
+  }
+  if (__A->getFEdge(*__B) == 0) {
     return 0.0;
+  }
 
   return __A->getFEdge(*__B)->z_discontinuity();
 }

@@ -75,10 +75,12 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
 
   if (PyArg_ParseTupleAndKeywords(
           args, kwds, "|O!", (char **)kwlist_1, &SVertexIterator_Type, &obj1)) {
-    if (!obj1)
+    if (!obj1) {
       self->sv_it = new ViewEdgeInternal::SVertexIterator();
-    else
+    }
+    else {
       self->sv_it = new ViewEdgeInternal::SVertexIterator(*(((BPy_SVertexIterator *)obj1)->sv_it));
+    }
   }
   else if (PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
@@ -122,8 +124,9 @@ static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void *UNU
     return NULL;
   }
   SVertex *sv = self->sv_it->operator->();
-  if (sv)
+  if (sv) {
     return BPy_SVertex_from_SVertex(*sv);
+  }
   Py_RETURN_NONE;
 }
 

@@ -85,8 +85,9 @@ class StyleModule {
 
     StrokeLayer *sl = new StrokeLayer;
     for (Operators::StrokesContainer::iterator it = strokes_set->begin(); it != strokes_set->end();
-         ++it)
+         ++it) {
       sl->AddStroke(*it);
+    }
 
     Operators::reset();
     return sl;
@@ -153,8 +154,9 @@ class StyleModule {
 
   void setModified(bool b = true)
   {
-    if (_always_refresh)
+    if (_always_refresh) {
       return;
+    }
     _modified = b;
   }
 

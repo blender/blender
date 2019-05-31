@@ -92,8 +92,9 @@ inline bAction *bc_getSceneObjectAction(Object *ob)
 /* Returns Light Action or NULL */
 inline bAction *bc_getSceneLightAction(Object *ob)
 {
-  if (ob->type != OB_LAMP)
+  if (ob->type != OB_LAMP) {
     return NULL;
+  }
 
   Light *lamp = (Light *)ob->data;
   return (lamp->adt && lamp->adt->action) ? lamp->adt->action : NULL;
@@ -102,8 +103,9 @@ inline bAction *bc_getSceneLightAction(Object *ob)
 /* Return Camera Action or NULL */
 inline bAction *bc_getSceneCameraAction(Object *ob)
 {
-  if (ob->type != OB_CAMERA)
+  if (ob->type != OB_CAMERA) {
     return NULL;
+  }
 
   Camera *camera = (Camera *)ob->data;
   return (camera->adt && camera->adt->action) ? camera->adt->action : NULL;
@@ -112,16 +114,18 @@ inline bAction *bc_getSceneCameraAction(Object *ob)
 /* returns material action or NULL */
 inline bAction *bc_getSceneMaterialAction(Material *ma)
 {
-  if (ma == NULL)
+  if (ma == NULL) {
     return NULL;
+  }
 
   return (ma->adt && ma->adt->action) ? ma->adt->action : NULL;
 }
 
 inline void bc_setSceneObjectAction(bAction *action, Object *ob)
 {
-  if (ob->adt)
+  if (ob->adt) {
     ob->adt->action = action;
+  }
 }
 
 std::string bc_get_action_id(std::string action_name,
@@ -167,8 +171,9 @@ inline std::string bc_string_after(const std::string &s, const char c)
 
 inline bool bc_startswith(std::string const &value, std::string const &starting)
 {
-  if (starting.size() > value.size())
+  if (starting.size() > value.size()) {
     return false;
+  }
   return (value.substr(0, starting.size()) == starting);
 }
 

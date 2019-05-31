@@ -56,8 +56,9 @@ static int ColorNoiseShader___init__(BPy_ColorNoiseShader *self, PyObject *args,
   static const char *kwlist[] = {"amplitude", "period", NULL};
   float f1, f2;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2)) {
     return -1;
+  }
   self->py_ss.ss = new StrokeShaders::ColorNoiseShader(f1, f2);
   return 0;
 }

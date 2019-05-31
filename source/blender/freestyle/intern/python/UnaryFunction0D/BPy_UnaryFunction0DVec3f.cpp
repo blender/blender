@@ -35,16 +35,19 @@ extern "C" {
 
 int UnaryFunction0DVec3f_Init(PyObject *module)
 {
-  if (module == NULL)
+  if (module == NULL) {
     return -1;
+  }
 
-  if (PyType_Ready(&UnaryFunction0DVec3f_Type) < 0)
+  if (PyType_Ready(&UnaryFunction0DVec3f_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&UnaryFunction0DVec3f_Type);
   PyModule_AddObject(module, "UnaryFunction0DVec3f", (PyObject *)&UnaryFunction0DVec3f_Type);
 
-  if (PyType_Ready(&VertexOrientation3DF0D_Type) < 0)
+  if (PyType_Ready(&VertexOrientation3DF0D_Type) < 0) {
     return -1;
+  }
   Py_INCREF(&VertexOrientation3DF0D_Type);
   PyModule_AddObject(module, "VertexOrientation3DF0D", (PyObject *)&VertexOrientation3DF0D_Type);
 
@@ -69,8 +72,9 @@ static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f *self,
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->uf0D_vec3f = new UnaryFunction0D<Vec3f>();
   self->uf0D_vec3f->py_uf0D = (PyObject *)self;
   return 0;
@@ -78,8 +82,9 @@ static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f *self,
 
 static void UnaryFunction0DVec3f___dealloc__(BPy_UnaryFunction0DVec3f *self)
 {
-  if (self->uf0D_vec3f)
+  if (self->uf0D_vec3f) {
     delete self->uf0D_vec3f;
+  }
   UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -96,8 +101,9 @@ static PyObject *UnaryFunction0DVec3f___call__(BPy_UnaryFunction0DVec3f *self,
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
     return NULL;
+  }
 
   if (typeid(*(self->uf0D_vec3f)) == typeid(UnaryFunction0D<Vec3f>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");

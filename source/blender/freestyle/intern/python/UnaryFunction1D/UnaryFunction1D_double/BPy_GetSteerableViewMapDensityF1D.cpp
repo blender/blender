@@ -74,8 +74,9 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
   float f = 2.0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
+          args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f)) {
     return -1;
+  }
   IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
   self->py_uf1D_double.uf1D_double = new Functions1D::GetSteerableViewMapDensityF1D(i, t, f);
   return 0;

@@ -53,8 +53,9 @@ class NodeShape : public Node {
    */
   virtual void AddRep(Rep *iRep)
   {
-    if (NULL == iRep)
+    if (NULL == iRep) {
       return;
+    }
     _Shapes.push_back(iRep);
     iRep->addRef();
 

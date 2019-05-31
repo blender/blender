@@ -63,8 +63,9 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 
     fluidmd->fss = fss;
 
-    if (!fss)
+    if (!fss) {
       return;
+    }
 
     fss->fmd = fluidmd;
     fss->type = OB_FLUIDSIM_ENABLE;
@@ -186,22 +187,25 @@ static Mesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
   gotBytes = gzseek(gzf, numverts * 3 * sizeof(float), SEEK_CUR) != -1;
 
   /* read number of normals */
-  if (gotBytes)
+  if (gotBytes) {
     gotBytes = gzread(gzf, &wri, sizeof(wri));
+  }
 
   /* skip normals */
   gotBytes = gzseek(gzf, numverts * 3 * sizeof(float), SEEK_CUR) != -1;
 
   /* get no. of triangles */
-  if (gotBytes)
+  if (gotBytes) {
     gotBytes = gzread(gzf, &wri, sizeof(wri));
+  }
   numfaces = wri;
 
   gzclose(gzf);
   /* ------------------------------------------------ */
 
-  if (!numfaces || !numverts || !gotBytes)
+  if (!numfaces || !numverts || !gotBytes) {
     return NULL;
+  }
 
   gzf = BLI_gzopen(filename, "rb");
   if (!gzf) {
@@ -221,22 +225,25 @@ static Mesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
   /* read vertex position from file */
   mv = mesh->mvert;
 
-  for (i = 0; i < numverts; i++, mv++)
+  for (i = 0; i < numverts; i++, mv++) {
     gotBytes = gzread(gzf, mv->co, sizeof(float) * 3);
+  }
 
   /* should be the same as numverts */
   gotBytes = gzread(gzf, &wri, sizeof(wri));
   if (wri != numverts) {
-    if (mesh)
+    if (mesh) {
       BKE_id_free(NULL, mesh);
+    }
     gzclose(gzf);
     return NULL;
   }
 
   normals = MEM_calloc_arrayN(numverts, 3 * sizeof(short), "fluid_tmp_normals");
   if (!normals) {
-    if (mesh)
+    if (mesh) {
       BKE_id_free(NULL, mesh);
+    }
     gzclose(gzf);
     return NULL;
   }
@@ -252,8 +259,9 @@ static Mesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
 
   if (wri != numfaces) {
     printf("Fluidsim: error in reading data from file.\n");
-    if (mesh)
+    if (mesh) {
       BKE_id_free(NULL, mesh);
+    }
     gzclose(gzf);
     MEM_freeN(normals);
     return NULL;
@@ -385,15 +393,17 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, Mesh *mesh, c
 
   /* mesh and vverts have to be valid from loading... */
 
-  if (fss->meshVelocities)
+  if (fss->meshVelocities) {
     MEM_freeN(fss->meshVelocities);
+  }
 
   if (len < 7) {
     return;
   }
 
-  if (fss->domainNovecgen > 0)
+  if (fss->domainNovecgen > 0) {
     return;
+  }
 
   fss->meshVelocities = MEM_calloc_arrayN(
       mesh->totvert, sizeof(FluidVertexVelocity), "Fluidsim_velocities");
@@ -510,8 +520,9 @@ static Mesh *fluidsim_read_cache(
     fluidsim_read_vel_cache(fluidmd, newmesh, targetFile);
   }
   else {
-    if (fss->meshVelocities)
+    if (fss->meshVelocities) {
       MEM_freeN(fss->meshVelocities);
+    }
 
     fss->meshVelocities = NULL;
   }
@@ -536,12 +547,14 @@ Mesh *fluidsimModifier_do(FluidsimModifierData *fluidmd,
   framenr = (int)DEG_get_ctime(depsgraph);
 
   /* only handle fluidsim domains */
-  if (fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))
+  if (fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN)) {
     return mesh;
+  }
 
   /* sanity check */
-  if (!fluidmd || !fluidmd->fss)
+  if (!fluidmd || !fluidmd->fss) {
     return mesh;
+  }
 
   fss = fluidmd->fss;
 
@@ -556,8 +569,9 @@ Mesh *fluidsimModifier_do(FluidsimModifierData *fluidmd,
 
   /* try to read from cache */
   /* if the frame is there, fine, otherwise don't do anything */
-  if ((result = fluidsim_read_cache(ob, mesh, fluidmd, framenr, useRenderParams)))
+  if ((result = fluidsim_read_cache(ob, mesh, fluidmd, framenr, useRenderParams))) {
     return result;
+  }
 
   return mesh;
 #else

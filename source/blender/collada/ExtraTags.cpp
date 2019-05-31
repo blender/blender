@@ -82,8 +82,9 @@ bool ExtraTags::setData(std::string tag, short *data)
 {
   bool ok = false;
   int tmp = asInt(tag, &ok);
-  if (ok)
+  if (ok) {
     *data = (short)tmp;
+  }
   return ok;
 }
 
@@ -91,8 +92,9 @@ bool ExtraTags::setData(std::string tag, int *data)
 {
   bool ok = false;
   int tmp = asInt(tag, &ok);
-  if (ok)
+  if (ok) {
     *data = tmp;
+  }
   return ok;
 }
 
@@ -100,8 +102,9 @@ bool ExtraTags::setData(std::string tag, float *data)
 {
   bool ok = false;
   float tmp = asFloat(tag, &ok);
-  if (ok)
+  if (ok) {
     *data = tmp;
+  }
   return ok;
 }
 
@@ -109,8 +112,9 @@ bool ExtraTags::setData(std::string tag, char *data)
 {
   bool ok = false;
   int tmp = asInt(tag, &ok);
-  if (ok)
+  if (ok) {
     *data = (char)tmp;
+  }
   return ok;
 }
 

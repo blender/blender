@@ -445,22 +445,29 @@ FrsMaterial &FrsMaterial::operator=(const FrsMaterial &m)
 
 bool FrsMaterial::operator!=(const FrsMaterial &m) const
 {
-  if (Shininess != m.shininess())
+  if (Shininess != m.shininess()) {
     return true;
-  if (Priority != m.priority())
+  }
+  if (Priority != m.priority()) {
     return true;
+  }
 
   for (int i = 0; i < 4; i++) {
-    if (Line[i] != m.line()[i])
+    if (Line[i] != m.line()[i]) {
       return true;
-    if (Diffuse[i] != m.diffuse()[i])
+    }
+    if (Diffuse[i] != m.diffuse()[i]) {
       return true;
-    if (Specular[i] != m.specular()[i])
+    }
+    if (Specular[i] != m.specular()[i]) {
       return true;
-    if (Ambient[i] != m.ambient()[i])
+    }
+    if (Ambient[i] != m.ambient()[i]) {
       return true;
-    if (Emission[i] != m.emission()[i])
+    }
+    if (Emission[i] != m.emission()[i]) {
       return true;
+    }
   }
 
   return false;

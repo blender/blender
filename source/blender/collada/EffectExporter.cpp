@@ -46,8 +46,9 @@ static std::string getActiveUVLayerName(Object *ob)
   Mesh *me = (Mesh *)ob->data;
 
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-  if (num_layers)
+  if (num_layers) {
     return std::string(bc_CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV));
+  }
 
   return "";
 }
@@ -67,8 +68,9 @@ bool EffectsExporter::hasEffects(Scene *sce)
       Material *ma = give_current_material(ob, a + 1);
 
       // no material, but check all of the slots
-      if (!ma)
+      if (!ma) {
         continue;
+      }
 
       return true;
     }

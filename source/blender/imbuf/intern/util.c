@@ -285,12 +285,13 @@ static int isffmpeg(const char *filename)
 
   /* Find the first video stream */
   videoStream = -1;
-  for (i = 0; i < pFormatCtx->nb_streams; i++)
+  for (i = 0; i < pFormatCtx->nb_streams; i++) {
     if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codec &&
         (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)) {
       videoStream = i;
       break;
     }
+  }
 
   if (videoStream == -1) {
     avformat_close_input(&pFormatCtx);

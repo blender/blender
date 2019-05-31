@@ -46,8 +46,9 @@ static int FalseBP1D___init__(BPy_FalseBP1D *self, PyObject *args, PyObject *kwd
 {
   static const char *kwlist[] = {NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
+  }
   self->py_bp1D.bp1D = new Predicates1D::FalseBP1D();
   return 0;
 }
