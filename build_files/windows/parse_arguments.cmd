@@ -70,6 +70,8 @@ if NOT "%1" == "" (
 		shift /1
 	) else if "%1" == "nobuild" (
 		set NOBUILD=1
+	) else if "%1" == "nobuildinfo" (
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_BUILDINFO=Off
 	) else if "%1" == "pydebug" (
 		set WITH_PYDEBUG=1
 	) else if "%1" == "showhash" (

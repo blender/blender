@@ -17,6 +17,7 @@ echo.
 echo Configuration options
 echo - verbose ^(enable diagnostic output during configuration^)
 echo - with_tests ^(enable building unit tests^)
+echo - nobuildinfo ^(disable buildinfo^)
 echo - noge ^(disable building game engine and player^)
 echo - debug ^(Build an unoptimized debuggable build^)
 echo - packagename [newname] ^(override default cpack package name^)
