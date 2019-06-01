@@ -1033,7 +1033,10 @@ bool BKE_appdir_font_folder_default(char *dir)
 #ifdef WIN32
   wchar_t wpath[FILE_MAXDIR];
   success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
-  BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
+  if (success) {
+    wcscat(wpath, L"\\");
+    BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
+  }
 #endif
   /* TODO: Values for other platforms. */
   UNUSED_VARS(dir);
