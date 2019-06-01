@@ -262,6 +262,12 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess updateDrawingContext();
 
   /**
+   * Gets the OpenGL framebuffer associated with the window's contents.
+   * \return The ID of an OpenGL framebuffer object.
+   */
+  virtual unsigned int getDefaultFramebuffer();
+
+  /**
    * Returns the window user data.
    * \return The window user data.
    */

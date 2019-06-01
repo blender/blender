@@ -218,6 +218,12 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess activateDrawingContext() = 0;
 
   /**
+   * Gets the OpenGL framebuffer associated with the window's contents.
+   * \return The name of an OpenGL framebuffer object.
+   */
+  virtual unsigned int getDefaultFramebuffer() = 0;
+
+  /**
    * Invalidates the contents of this window.
    * \return Indication of success.
    */

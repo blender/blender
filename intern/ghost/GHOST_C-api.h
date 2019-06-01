@@ -722,6 +722,11 @@ extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthan
 extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
 
 /**
+ * Get the OpenGL framebuffer handle that serves as a default framebuffer.
+ */
+extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windwHandle);
+
+/**
  * Set which tablet API to use. Only affects Windows, other platforms have a single API.
  * \param systemhandle The handle to the system
  * \param api Enum indicating which API to use.

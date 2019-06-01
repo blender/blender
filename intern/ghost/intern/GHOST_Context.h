@@ -119,6 +119,15 @@ class GHOST_Context : public GHOST_IContext {
     return m_stereoVisual;
   }
 
+  /**
+   * Gets the OpenGL framebuffer associated with the OpenGL context
+   * \return The ID of an OpenGL framebuffer object.
+   */
+  virtual unsigned int getDefaultFramebuffer()
+  {
+    return 0;
+  }
+
  protected:
   void initContextGLEW();
 

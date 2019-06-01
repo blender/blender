@@ -581,7 +581,8 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
   if (ghostwin) {
     GHOST_RectangleHandle bounds;
 
-    win->gpuctx = GPU_context_create();
+    GLuint default_fb = GHOST_GetDefaultOpenGLFramebuffer(ghostwin);
+    win->gpuctx = GPU_context_create(default_fb);
 
     /* needed so we can detect the graphics card below */
     GPU_init();

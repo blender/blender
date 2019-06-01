@@ -109,6 +109,11 @@ GHOST_TSuccess GHOST_Window::getSwapInterval(int &intervalOut)
   return m_context->getSwapInterval(intervalOut);
 }
 
+unsigned int GHOST_Window::getDefaultFramebuffer()
+{
+  return (m_context) ? m_context->getDefaultFramebuffer() : 0;
+}
+
 GHOST_TSuccess GHOST_Window::activateDrawingContext()
 {
   return m_context->activateDrawingContext();

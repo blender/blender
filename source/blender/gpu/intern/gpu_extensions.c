@@ -244,15 +244,6 @@ void gpu_extensions_init(void)
 
   glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, GG.line_width_range);
 
-#ifndef NDEBUG
-  GLint ret;
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glGetFramebufferAttachmentParameteriv(
-      GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &ret);
-  /* We expect FRONT_LEFT to be the default buffer. */
-  BLI_assert(ret == GL_FRAMEBUFFER_DEFAULT);
-#endif
-
   glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
 
   const char *vendor = (const char *)glGetString(GL_VENDOR);
