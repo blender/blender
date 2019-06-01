@@ -1341,7 +1341,7 @@ void GHOST_SystemCocoa::handleQuitRequest()
 bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 {
   NSString *filepath = (NSString *)filepathStr;
-  int confirmOpen = NSAlertAlternateReturn;
+  bool confirmOpen = true;
   NSArray *windowsList;
   char *temp_buff;
   size_t filenameTextSize;
@@ -1358,12 +1358,17 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
   // Check open windows if some changes are not saved
   if (m_windowManager->getAnyModifiedState()) {
-    confirmOpen = NSRunAlertPanel(
-        [NSString stringWithFormat:@"Opening %@", [filepath lastPathComponent]],
-        @"Current document has not been saved.\nDo you really want to proceed?",
-        @"Cancel",
-        @"Open",
-        nil);
+    @autoreleasepool {
+      NSAlert *alert = [[NSAlert alloc] init];
+      NSString *title = [NSString stringWithFormat:@"Opening %@", [filepath lastPathComponent]];
+      NSString *text = @"Current document has not been saved.\nDo you really want to proceed?";
+      [alert addButtonWithTitle:@"Open"];
+      [alert addButtonWithTitle:@"Cancel"];
+      [alert setMessageText:title];
+      [alert setInformativeText:text];
+      [alert setAlertStyle:NSAlertStyleInformational];
+      confirmOpen = [alert runModal] == NSAlertFirstButtonReturn;
+    }
   }
 
   // Give back focus to the blender window
@@ -1372,7 +1377,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
   }
 
-  if (confirmOpen == NSAlertAlternateReturn) {
+  if (confirmOpen) {
     filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
     temp_buff = (char *)malloc(filenameTextSize + 1);
