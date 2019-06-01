@@ -188,23 +188,9 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
   attribs.push_back((NSOpenGLPixelFormatAttribute)0);
 }
 
-// TODO(merwin): make this available to all platforms
-static void getVersion(int *major, int *minor)
-{
-#if 1  // legacy GL
-  sscanf((const char *)glGetString(GL_VERSION), "%d.%d", major, minor);
-#else  // 3.0+
-  glGetIntegerv(GL_MAJOR_VERSION, major);
-  glGetIntegerv(GL_MINOR_VERSION, minor);
-#endif
-}
-
 GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-  std::vector<NSOpenGLPixelFormatAttribute> attribs;
-  attribs.reserve(40);
 
 #ifdef GHOST_OPENGL_ALPHA
   static const bool needAlpha = true;
@@ -213,16 +199,15 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 #endif
 
   static bool softwareGL = getenv("BLENDER_SOFTWAREGL");  // command-line argument would be better
-  GLint major = 0, minor = 0;
-  NSOpenGLPixelFormat *pixelFormat;
-  // TODO: keep pixel format for subsequent windows/contexts instead of recreating each time
 
+  std::vector<NSOpenGLPixelFormatAttribute> attribs;
+  attribs.reserve(40);
   makeAttribList(attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL);
 
-  pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
-
-  if (pixelFormat == nil)
+  NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
+  if (pixelFormat == nil) {
     goto error;
+  }
 
   m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
                                                shareContext:s_sharedOpenGLContext];
@@ -230,8 +215,10 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
   [m_openGLContext makeCurrentContext];
 
-  getVersion(&major, &minor);
   if (m_debug) {
+    GLint major = 0, minor = 0;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
     fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
     fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
   }

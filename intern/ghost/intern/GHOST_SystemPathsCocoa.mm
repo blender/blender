@@ -110,5 +110,5 @@ const GHOST_TUns8 *GHOST_SystemPathsCocoa::getBinaryDir() const
 
 void GHOST_SystemPathsCocoa::addToSystemRecentFiles(const char *filename) const
 {
-  /* XXXXX TODO: Implementation for X11 if possible */
+  /* TODO: implement for macOS */
 }
