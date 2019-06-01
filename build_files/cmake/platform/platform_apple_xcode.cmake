@@ -93,19 +93,14 @@ else()
   endif()
 endif()
 
-if(OSX_SYSTEM MATCHES 10.9)
-  # make sure syslibs and headers are looked up in sdk ( especially for 10.9 openGL atm. )
-  set(CMAKE_FIND_ROOT_PATH ${CMAKE_OSX_SYSROOT})
-endif()
-
-# 10.9 is our min. target, if you use higher sdk, weak linking happens
+# 10.11 is our min. target, if you use higher sdk, weak linking happens
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
-  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.9)
-    message(STATUS "Setting deployment target to 10.9, lower versions are not supported")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
+  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.11)
+    message(STATUS "Setting deployment target to 10.11, lower versions are not supported")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
   endif()
 else()
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
 endif()
 
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")

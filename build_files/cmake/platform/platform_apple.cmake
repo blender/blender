@@ -20,7 +20,7 @@
 
 # Libraries configuration for Apple.
 
-set(MACOSX_DEPLOYMENT_TARGET "10.9")
+set(MACOSX_DEPLOYMENT_TARGET "10.11")
 
 macro(find_package_wrapper)
 # do nothing, just satisfy the macro
