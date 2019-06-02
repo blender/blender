@@ -640,10 +640,19 @@ enum {
 };
 
 /** #ARegion.do_draw */
-#define RGN_DRAW 1
-#define RGN_DRAW_PARTIAL 2
-#define RGN_DRAWING 4
-#define RGN_DRAW_REFRESH_UI 8 /* re-create uiBlock's where possible */
-#define RGN_DRAW_NO_REBUILD 16
+enum {
+  /* Region must be fully redrawn. */
+  RGN_DRAW = 1,
+  /* Redraw only part of region, for sculpting and painting to get smoother
+   * stroke painting on heavy meshes. */
+  RGN_DRAW_PARTIAL = 2,
+  /* For outliner, to do faster redraw without rebuilding outliner tree. */
+  RGN_DRAW_NO_REBUILD = 4,
+
+  /* Set while region is being drawn. */
+  RGN_DRAWING = 8,
+  /* For popups, to refresh UI layout along with drawing. */
+  RGN_REFRESH_UI = 16,
+};
 
 #endif /* __DNA_SCREEN_TYPES_H__ */

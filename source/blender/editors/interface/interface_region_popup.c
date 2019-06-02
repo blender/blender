@@ -375,12 +375,12 @@ static void ui_block_region_refresh(const bContext *C, ARegion *ar)
   ARegion *ctx_region = CTX_wm_region(C);
   uiBlock *block;
 
-  if (ar->do_draw & RGN_DRAW_REFRESH_UI) {
+  if (ar->do_draw & RGN_REFRESH_UI) {
     ScrArea *handle_ctx_area;
     ARegion *handle_ctx_region;
     uiBlock *block_next;
 
-    ar->do_draw &= ~RGN_DRAW_REFRESH_UI;
+    ar->do_draw &= ~RGN_REFRESH_UI;
     for (block = ar->uiblocks.first; block; block = block_next) {
       block_next = block->next;
       uiPopupBlockHandle *handle = block->handle;
@@ -772,7 +772,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   handle->ctx_area = CTX_wm_area(C);
   handle->ctx_region = CTX_wm_region(C);
 
-  /* store vars to refresh popup (RGN_DRAW_REFRESH_UI) */
+  /* store vars to refresh popup (RGN_REFRESH_UI) */
   handle->popup_create_vars.create_func = create_func;
   handle->popup_create_vars.handle_create_func = handle_create_func;
   handle->popup_create_vars.arg = arg;
