@@ -42,17 +42,37 @@ void BCSample::add_bone_matrix(Bone *bone, Matrix &mat)
 /* Get channel value */
 const bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
 {
-  if (channel_target == "location") {
-    *val = obmat.location()[array_index];
+  std::string bname = bc_string_before(channel_target, ".");
+  std::string channel_type = bc_string_after(channel_target, ".");
+
+  const BCMatrix *matrix = &obmat;
+  if (bname != channel_target) {
+    bname = bname.substr(2);
+    bname = bc_string_before(bname, "\"");
+    BCBoneMatrixMap::const_iterator it;
+    for (it = bonemats.begin(); it != bonemats.end(); ++it) {
+      Bone *bone = it->first;
+      if (bname == bone->name) {
+        matrix = it->second;
+        break;
+	  }
+    }
   }
-  else if (channel_target == "scale") {
-    *val = obmat.scale()[array_index];
+  else {
+    matrix = &obmat;
   }
-  else if (channel_target == "rotation" || channel_target == "rotation_euler") {
-    *val = obmat.rotation()[array_index];
+
+  if (channel_type == "location") {
+    *val = matrix->location()[array_index];
   }
-  else if (channel_target == "rotation_quat") {
-    *val = obmat.quat()[array_index];
+  else if (channel_type == "scale") {
+    *val = matrix->scale()[array_index];
+  }
+  else if (channel_type == "rotation" || channel_type == "rotation_euler") {
+    *val = matrix->rotation()[array_index];
+  }
+  else if (channel_type == "rotation_quaternion") {
+    *val = matrix->quat()[array_index];
   }
   else {
     *val = 0;

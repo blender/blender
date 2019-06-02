@@ -123,6 +123,8 @@ class ArmatureImporter : private TransformReader {
                 const char *parentname,
                 float parent_mat[4][4]);
 
+  void set_bone_transformation_type(const COLLADAFW::Node *node, Object *ob_arm);
+  bool node_is_decomposed(const COLLADAFW::Node *node);
 #if 0
   void set_leaf_bone_shapes(Object *ob_arm);
   void set_euler_rotmode();

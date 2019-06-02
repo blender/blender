@@ -659,6 +659,11 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   ED_armature_from_edit(bmain, armature);
   ED_armature_edit_free(armature);
 
+  for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
+    COLLADAFW::Node *node = *ri;
+    set_bone_transformation_type(node, ob_arm);
+  }
+
   ED_armature_to_edit(armature);
   if (this->import_settings->find_chains) {
     connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
@@ -673,6 +678,20 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   return ob_arm;
 }
 
+void ArmatureImporter::set_bone_transformation_type(const COLLADAFW::Node *node, Object *ob_arm)
+{
+  bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bc_get_joint_name(node));
+  if (pchan) {
+    pchan->rotmode = (node_is_decomposed(node)) ? ROT_MODE_EUL : ROT_MODE_QUAT;
+  }
+
+  COLLADAFW::NodePointerArray childnodes = node->getChildNodes();
+  for (int index = 0; index < childnodes.getCount(); index++) {
+    node = childnodes[index];
+    set_bone_transformation_type(node, ob_arm);
+  }
+}
+
 void ArmatureImporter::set_pose(Object *ob_arm,
                                 COLLADAFW::Node *root_node,
                                 const char *parentname,
@@ -684,9 +703,12 @@ void ArmatureImporter::set_pose(Object *ob_arm,
 
   /* object-space */
   get_node_mat(obmat, root_node, NULL, NULL);
+  bool is_decomposed = node_is_decomposed(root_node);
 
   // if (*edbone)
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone_name);
+  pchan->rotmode = (is_decomposed) ? ROT_MODE_EUL : ROT_MODE_QUAT;
+
   // else fprintf ( "",
 
   /* get world-space */
@@ -714,6 +736,19 @@ void ArmatureImporter::set_pose(Object *ob_arm,
   for (unsigned int i = 0; i < children.getCount(); i++) {
     set_pose(ob_arm, children[i], bone_name, mat);
   }
+}
+
+bool ArmatureImporter::node_is_decomposed(const COLLADAFW::Node *node)
+{
+  const COLLADAFW::TransformationPointerArray &nodeTransforms = node->getTransformations();
+  for (unsigned int i = 0; i < nodeTransforms.getCount(); i++) {
+    COLLADAFW::Transformation *transform = nodeTransforms[i];
+    COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
+    if (tm_type == COLLADAFW::Transformation::MATRIX) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**

@@ -170,6 +170,16 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
   }
 }
 
+void AnimationImporter::fcurve_scale(FCurve *cu, int scale)
+{
+  for (unsigned int i = 0; i < cu->totvert; i++) {
+    /* TODO convert handles too */
+    cu->bezt[i].vec[1][1] *= scale;
+    cu->bezt[i].vec[0][1] *= scale;
+    cu->bezt[i].vec[2][1] *= scale;
+  }
+}
+
 void AnimationImporter::fcurve_is_used(FCurve *fcu)
 {
   unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu),
@@ -451,7 +461,8 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 /* sets the rna_path and array index to curve */
 void AnimationImporter::modify_fcurve(std::vector<FCurve *> *curves,
                                       const char *rna_path,
-                                      int array_index)
+                                      int array_index,
+                                      int scale)
 {
   std::vector<FCurve *>::iterator it;
   int i;
@@ -464,6 +475,10 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve *> *curves,
     }
     else {
       fcu->array_index = array_index;
+    }
+
+    if (scale != 1) {
+      fcurve_scale(fcu, scale);
     }
 
     fcurve_is_used(fcu);
@@ -581,10 +596,20 @@ void AnimationImporter::Assign_transform_animations(
             modify_fcurve(curves, rna_path, 0);
           }
           else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
-            modify_fcurve(curves, rna_path, 1);
+            if (is_joint) {
+              modify_fcurve(curves, rna_path, 2, -1);  // Bone animation from dae to blender
+            }
+            else {
+              modify_fcurve(curves, rna_path, 1);
+            }
           }
           else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
-            modify_fcurve(curves, rna_path, 2);
+            if (is_joint) {
+              modify_fcurve(curves, rna_path, 1);  // Bone animation from dae to blender
+            }
+            else {
+              modify_fcurve(curves, rna_path, 2);
+            }
           }
           else {
             unused_fcurve(curves);
@@ -1061,28 +1086,23 @@ void AnimationImporter::translate_Animations(
             apply_matrix_curves(ob, animcurves, root, node, transform);
           }
           else {
-            if (is_joint) {
-              add_bone_animation_sampled(ob, animcurves, root, node, transform);
-            }
-            else {
-              /* calculate rnapaths and array index of fcurves according to transformation and
-               * animation class */
-              Assign_transform_animations(
-                  transform, &bindings[j], &animcurves, is_joint, joint_path);
+            /* calculate rnapaths and array index of fcurves according to transformation and
+             * animation class */
+            Assign_transform_animations(
+                transform, &bindings[j], &animcurves, is_joint, joint_path);
 
-              std::vector<FCurve *>::iterator iter;
-              /* Add the curves of the current animation to the object */
-              for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-                FCurve *fcu = *iter;
+            std::vector<FCurve *>::iterator iter;
+            /* Add the curves of the current animation to the object */
+            for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+              FCurve *fcu = *iter;
 
-                BLI_addtail(AnimCurves, fcu);
-                fcurve_is_used(fcu);
-              }
+              BLI_addtail(AnimCurves, fcu);
+              fcurve_is_used(fcu);
             }
           }
         }
       }
-      if (is_rotation && !is_joint) {
+      if (is_rotation && !(is_joint || is_matrix)) {
         ob->rotmode = ROT_MODE_EUL;
       }
     }
@@ -1822,10 +1842,10 @@ Object *AnimationImporter::translate_animation_OLD(
   if (is_rotation || is_matrix) {
     if (is_joint) {
       bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
-      chan->rotmode = ROT_MODE_QUAT;
+      chan->rotmode = (is_matrix)? ROT_MODE_QUAT : ROT_MODE_EUL;
     }
     else {
-      ob->rotmode = ROT_MODE_QUAT;
+      ob->rotmode = (is_matrix) ? ROT_MODE_QUAT : ROT_MODE_EUL;
     }
   }
 

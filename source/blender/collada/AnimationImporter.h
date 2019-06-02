@@ -80,6 +80,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
   void animation_to_fcurves(COLLADAFW::AnimationCurve *curve);
 
   void fcurve_deg_to_rad(FCurve *cu);
+  void fcurve_scale(FCurve *cu, int scale);
 
   void fcurve_is_used(FCurve *fcu);
 
@@ -194,7 +195,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 
   int setAnimType(const COLLADAFW::Animatable *prop, int type, int addition);
 
-  void modify_fcurve(std::vector<FCurve *> *curves, const char *rna_path, int array_index);
+  void modify_fcurve(std::vector<FCurve *> *curves, const char *rna_path, int array_index, int scale=1);
   void unused_fcurve(std::vector<FCurve *> *curves);
   // prerequisites:
   // animlist_map - map animlist id -> animlist

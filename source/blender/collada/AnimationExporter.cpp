@@ -27,8 +27,9 @@
 
 std::string EMPTY_STRING;
 
-std::string AnimationExporter::get_axis_name(std::string channel, int id)
+std::string AnimationExporter::get_axis_name(std::string channel_type, int id)
 {
+
   static std::map<std::string, std::vector<std::string>> BC_COLLADA_AXIS_FROM_TYPE = {
       {"color", {"R", "G", "B"}},
       {"specular_color", {"R", "G", "B"}},
@@ -39,7 +40,8 @@ std::string AnimationExporter::get_axis_name(std::string channel, int id)
       {"rotation_euler", {"X", "Y", "Z"}}};
 
   std::map<std::string, std::vector<std::string>>::const_iterator it;
-  it = BC_COLLADA_AXIS_FROM_TYPE.find(channel);
+
+  it = BC_COLLADA_AXIS_FROM_TYPE.find(channel_type);
   if (it == BC_COLLADA_AXIS_FROM_TYPE.end()) {
     return "";
   }
@@ -146,7 +148,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 
   export_curve_animation_set(ob, sampler, export_as_matrix);
 
-  if (ob->type == OB_ARMATURE) {
+  if (ob->type == OB_ARMATURE && export_as_matrix) {
 
 #ifdef WITH_MORPH_ANIMATION
     /* TODO: This needs to be handled by extra profiles, postponed for now */
@@ -183,7 +185,8 @@ void AnimationExporter::export_curve_animation_set(Object *ob,
   BCAnimationCurveMap::iterator it;
   for (it = curves->begin(); it != curves->end(); ++it) {
     BCAnimationCurve &curve = *it->second;
-    if (curve.get_channel_target() == "rotation_quaternion") {
+    std::string channel_type = curve.get_channel_type();
+    if (channel_type == "rotation_quaternion") {
       /* Can not export Quaternion animation in Collada as far as i know)
        * Maybe automatically convert to euler rotation?
        * Discard for now. */
@@ -286,9 +289,9 @@ BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
                                                                BCAnimationCurve &curve,
                                                                BCAnimationCurveMap &curves)
 {
-  std::string channel_target = curve.get_channel_target();
+  std::string channel_type = curve.get_channel_type();
   BCAnimationCurve *mcurve = NULL;
-  if (channel_target == "lens") {
+  if (channel_type == "lens") {
 
     /* Create an xfov curve */
 
@@ -339,7 +342,8 @@ void AnimationExporter::export_curve_animation(Object *ob, BCAnimationCurve &cur
 
   int channel_index = curve.get_channel_index();
   /* RGB or XYZ or "" */
-  std::string axis = get_axis_name(channel_target, channel_index);
+  std::string channel_type = curve.get_channel_type();
+  std::string axis = get_axis_name(channel_type, channel_index);
 
   std::string action_name;
   bAction *action = bc_getSceneObjectAction(ob);
@@ -767,7 +771,7 @@ std::string AnimationExporter::collada_linear_interpolation_source(int tot,
   return source_id;
 }
 
-const std::string AnimationExporter::get_collada_name(std::string channel_target) const
+const std::string AnimationExporter::get_collada_name(std::string channel_type) const
 {
   /*
    * Translation table to map FCurve animation types to Collada animation.
@@ -811,11 +815,10 @@ const std::string AnimationExporter::get_collada_name(std::string channel_target
       {"clip_start", "znear"}};
 
   std::map<std::string, std::string>::iterator name_it = BC_CHANNEL_BLENDER_TO_COLLADA.find(
-      channel_target);
+      channel_type);
   if (name_it == BC_CHANNEL_BLENDER_TO_COLLADA.end()) {
     return "";
   }
-
   std::string tm_name = name_it->second;
   return tm_name;
 }
@@ -828,7 +831,8 @@ std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
                                                const std::string axis_name)
 {
   std::string channel_target = curve.get_channel_target();
-  std::string tm_name = get_collada_name(channel_target);
+  std::string channel_type = curve.get_channel_type();
+  std::string tm_name = get_collada_name(channel_type);
 
   bool is_angle = curve.is_rotation_curve();
 
