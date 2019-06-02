@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
     <id>org.blender.Blender</id>
-    <launchable type="desktop">blender.desktop</launchable>
+    <launchable type="desktop-id">blender.desktop</launchable>
     <name>Blender</name>
     <summary>Free and open source 3D creation suite</summary>
     <metadata_license>CC0-1.0</metadata_license>
@@ -9,19 +9,19 @@
     <description>
         <p>
             Blender is the free and open source 3D creation suite. It supports
-            the entirety of the 3D pipeline—modeling, rigging, animation,
+            the entirety of the 3D pipeline — modeling, rigging, animation,
             simulation, rendering, compositing and motion tracking, even video
             editing and game creation.
         </p>
 
         <p>
-            Advanced users employ Blender’s API for Python scripting to
+            Advanced users can employ Blender’s API for Python scripting to
             customize the application and write specialized tools. Blender is
             well suited to individuals and small studios who benefit from its
             unified pipeline and responsive development process.
         </p>
     </description>
-    <url type="homepage">http://www.blender.org</url>
+    <url type="homepage">https://www.blender.org</url>
     <url type="help">https://www.blender.org/support/</url>
     <url type="bugtracker">https://developer.blender.org</url>
     <url type="donation">https://www.blender.org/foundation/donation-payment/</url>
@@ -39,4 +39,31 @@
             <image>https://download.blender.org/demo/screenshots/blender_screenshot_4.jpg</image>
         </screenshot>
     </screenshots>
+    <releases>
+        <release version="2.79" date="2017-09-12">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Denoiser</li>
+                    <li>Filmic color management</li>
+                    <li>PBR shader</li>
+                    <li>Shadow catcher</li>
+                    <li>Surface Deform modifier</li>
+                    <li>More bundled add-ons</li>
+                    <li>...And many more!</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Faster OpenCL</li>
+                    <li>Cycles improvements</li>
+                    <li>Modeling tool improvements</li>
+                    <li>Animation improvements</li>
+                    <li>Grease Pencil improvements</li>
+                    <li>Automatic scaling on high DPI displays</li>
+                    <li>Alembic import and export improvements</li>
+                    <li>...And many more!</li>
+                </ul>
+            </description>
+        </release>
+  </releases>
 </component>
