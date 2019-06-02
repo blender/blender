@@ -5227,7 +5227,7 @@ static void sculpt_flush_update_step(bContext *C)
       r.xmax += ar->winrct.xmin + 2;
       r.ymin += ar->winrct.ymin - 2;
       r.ymax += ar->winrct.ymin + 2;
-      ED_region_tag_redraw_partial(ar, &r);
+      ED_region_tag_redraw_partial(ar, &r, true);
     }
   }
 }

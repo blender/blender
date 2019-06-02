@@ -646,7 +646,9 @@ enum {
   /* Redraw only part of region, for sculpting and painting to get smoother
    * stroke painting on heavy meshes. */
   RGN_DRAW_PARTIAL = 2,
-  /* For outliner, to do faster redraw without rebuilding outliner tree. */
+  /* For outliner, to do faster redraw without rebuilding outliner tree.
+   * For 3D viewport, to display a new progressive render sample without
+   * while other buffers and overlays remain unchanged. */
   RGN_DRAW_NO_REBUILD = 4,
 
   /* Set while region is being drawn. */

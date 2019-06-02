@@ -687,26 +687,33 @@ void ED_region_tag_redraw_no_rebuild(ARegion *ar)
 void ED_region_tag_refresh_ui(ARegion *ar)
 {
   if (ar) {
-    ar->do_draw |= RGN_DRAW_REFRESH_UI;
+    ar->do_draw |= RGN_REFRESH_UI;
   }
 }
 
-void ED_region_tag_redraw_partial(ARegion *ar, const rcti *rct)
+void ED_region_tag_redraw_partial(ARegion *ar, const rcti *rct, bool rebuild)
 {
   if (ar && !(ar->do_draw & RGN_DRAWING)) {
-    if (!(ar->do_draw & (RGN_DRAW | RGN_DRAW_NO_REBUILD | RGN_DRAW_PARTIAL))) {
-      /* no redraw set yet, set partial region */
-      ar->do_draw |= RGN_DRAW_PARTIAL;
-      ar->drawrct = *rct;
-    }
-    else if (ar->drawrct.xmin != ar->drawrct.xmax) {
-      BLI_assert((ar->do_draw & RGN_DRAW_PARTIAL) != 0);
-      /* partial redraw already set, expand region */
+    if (ar->do_draw & RGN_DRAW_PARTIAL) {
+      /* Partial redraw already set, expand region. */
       BLI_rcti_union(&ar->drawrct, rct);
+      if (rebuild) {
+        ar->do_draw &= ~RGN_DRAW_NO_REBUILD;
+      }
+    }
+    else if (ar->do_draw & (RGN_DRAW | RGN_DRAW_NO_REBUILD)) {
+      /* Full redraw already requested. */
+      if (rebuild) {
+        ar->do_draw &= ~RGN_DRAW_NO_REBUILD;
+      }
     }
     else {
-      BLI_assert((ar->do_draw & (RGN_DRAW | RGN_DRAW_NO_REBUILD)) != 0);
-      /* Else, full redraw is already requested, nothing to do here. */
+      /* No redraw set yet, set partial region. */
+      ar->drawrct = *rct;
+      ar->do_draw |= RGN_DRAW_PARTIAL;
+      if (!rebuild) {
+        ar->do_draw |= RGN_DRAW_NO_REBUILD;
+      }
     }
   }
 }

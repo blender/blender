@@ -205,16 +205,16 @@ static void wm_region_test_render_do_draw(const Scene *scene,
 
       /* do partial redraw when possible */
       if (ED_view3d_calc_render_border(scene, depsgraph, v3d, ar, &border_rect)) {
-        ED_region_tag_redraw_partial(ar, &border_rect);
+        ED_region_tag_redraw_partial(ar, &border_rect, false);
       }
       else {
-        ED_region_tag_redraw(ar);
+        ED_region_tag_redraw_no_rebuild(ar);
       }
 
       engine->flag &= ~RE_ENGINE_DO_DRAW;
     }
     else if (viewport && GPU_viewport_do_update(viewport)) {
-      ED_region_tag_redraw(ar);
+      ED_region_tag_redraw_no_rebuild(ar);
     }
   }
 }

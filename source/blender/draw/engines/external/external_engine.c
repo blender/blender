@@ -88,7 +88,6 @@ typedef struct EXTERNAL_PrivateData {
 
   /* Do we need to update the depth or can we reuse the last calculated texture. */
   bool update_depth;
-  bool view_updated;
 
   float last_persmat[4][4];
 } EXTERNAL_PrivateData; /* Transient data */
@@ -99,7 +98,7 @@ static void external_engine_init(void *vedata)
 {
   EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  RegionView3D *rv3d = draw_ctx->rv3d;
+  ARegion *ar = draw_ctx->ar;
 
   /* Depth prepass */
   if (!e_data.depth_sh) {
@@ -110,27 +109,12 @@ static void external_engine_init(void *vedata)
     /* Alloc transient pointers */
     stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
     stl->g_data->update_depth = true;
-    stl->g_data->view_updated = false;
   }
 
-  if (stl->g_data->update_depth == false) {
-    if (rv3d && rv3d->rflag & RV3D_NAVIGATING) {
-      stl->g_data->update_depth = true;
-    }
-  }
-
-  if (stl->g_data->view_updated) {
+  /* Progressive render samples are tagged with no rebuild, in that case we
+   * can skip updating the depth buffer */
+  if (!(ar && (ar->do_draw & RGN_DRAW_NO_REBUILD))) {
     stl->g_data->update_depth = true;
-    stl->g_data->view_updated = false;
-  }
-
-  {
-    float persmat[4][4];
-    DRW_view_persmat_get(NULL, persmat, false);
-    if (!equals_m4m4(persmat, stl->g_data->last_persmat)) {
-      stl->g_data->update_depth = true;
-      copy_m4_m4(stl->g_data->last_persmat, persmat);
-    }
   }
 }
 
@@ -271,15 +255,6 @@ static void external_draw_scene(void *vedata)
   }
 }
 
-static void external_view_update(void *vedata)
-{
-  EXTERNAL_Data *data = vedata;
-  EXTERNAL_StorageList *stl = data->stl;
-  if (stl && stl->g_data) {
-    stl->g_data->view_updated = true;
-  }
-}
-
 static void external_engine_free(void)
 {
   /* All shaders are builtin. */
@@ -299,7 +274,7 @@ static DrawEngineType draw_engine_external_type = {
     &external_cache_finish,
     NULL,
     &external_draw_scene,
-    &external_view_update,
+    NULL,
     NULL,
     NULL,
 };

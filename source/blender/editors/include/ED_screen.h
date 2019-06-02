@@ -73,7 +73,7 @@ void ED_region_pixelspace(struct ARegion *ar);
 void ED_region_update_rect(struct ARegion *ar);
 void ED_region_init(struct ARegion *ar);
 void ED_region_tag_redraw(struct ARegion *ar);
-void ED_region_tag_redraw_partial(struct ARegion *ar, const struct rcti *rct);
+void ED_region_tag_redraw_partial(struct ARegion *ar, const struct rcti *rct, bool rebuild);
 void ED_region_tag_redraw_overlay(struct ARegion *ar);
 void ED_region_tag_redraw_no_rebuild(struct ARegion *ar);
 void ED_region_tag_refresh_ui(struct ARegion *ar);
