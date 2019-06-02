@@ -160,11 +160,20 @@ extern int bc_get_active_UVLayer(Object *ob);
 
 std::string bc_find_bonename_in_path(std::string path, std::string probe);
 
-inline std::string bc_string_after(const std::string &s, const char c)
+inline std::string bc_string_after(const std::string &s, const std::string probe)
 {
-  size_t i = s.rfind(c, s.length());
+  size_t i = s.rfind(probe);
   if (i != std::string::npos) {
-    return (s.substr(i + 1, s.length() - i));
+    return (s.substr(i + probe.length(), s.length() - i));
+  }
+  return (s);
+}
+
+inline std::string bc_string_before(const std::string &s, const std::string probe)
+{
+  size_t i = s.find(probe);
+  if (i != std::string::npos) {
+    return s.substr(0, i);
   }
   return (s);
 }
@@ -175,6 +184,14 @@ inline bool bc_startswith(std::string const &value, std::string const &starting)
     return false;
   }
   return (value.substr(0, starting.size()) == starting);
+}
+
+inline bool bc_endswith(const std::string &value, const std::string &ending)
+{
+  if (ending.size() > value.size())
+    return false;
+
+  return value.compare(value.size() - ending.size(), ending.size(), ending) == 0;
 }
 
 #if 0 /* UNUSED */

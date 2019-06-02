@@ -132,7 +132,31 @@ const bool BCAnimationCurve::is_of_animation_type(BC_animation_type type) const
 const std::string BCAnimationCurve::get_channel_target() const
 {
   const std::string path = curve_key.get_path();
-  return bc_string_after(path, '.');
+
+  if (bc_startswith(path, "pose.bones")) {
+    return bc_string_after(path, "pose.bones");
+  }
+  return bc_string_after(path, ".");
+}
+
+const std::string BCAnimationCurve::get_channel_type() const
+{
+  const std::string channel = get_channel_target();
+  return bc_string_after(channel, ".");
+}
+
+const std::string BCAnimationCurve::get_channel_posebone() const
+{
+  const std::string channel = get_channel_target();
+  std::string pose_bone_name = bc_string_before(channel, ".");
+  if (pose_bone_name == channel) {
+    pose_bone_name = "";
+  }
+  else {
+    pose_bone_name = bc_string_after(pose_bone_name, "\"[");
+    pose_bone_name = bc_string_before(pose_bone_name, "]\"");
+  }
+  return pose_bone_name;
 }
 
 const std::string BCAnimationCurve::get_animation_name(Object *ob) const
