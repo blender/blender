@@ -232,8 +232,9 @@ void gtao(vec3 normal, vec3 position, vec4 noise, out float visibility, out vec3
  * Page 78 in the .pdf version. */
 float gtao_multibounce(float visibility, vec3 albedo)
 {
-  if (aoBounceFac == 0.0)
+  if (aoBounceFac == 0.0) {
     return visibility;
+  }
 
   /* Median luminance. Because Colored multibounce looks bad. */
   float lum = dot(albedo, vec3(0.3333));

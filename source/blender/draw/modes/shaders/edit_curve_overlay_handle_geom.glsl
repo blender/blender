@@ -48,16 +48,21 @@ void main()
   bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED) != 0);
 
   vec4 inner_color;
-  if (color_id == 0)
+  if (color_id == 0) {
     inner_color = (edge_selected) ? colorHandleSelFree : colorHandleFree;
-  else if (color_id == 1)
+  }
+  else if (color_id == 1) {
     inner_color = (edge_selected) ? colorHandleSelAuto : colorHandleAuto;
-  else if (color_id == 2)
+  }
+  else if (color_id == 2) {
     inner_color = (edge_selected) ? colorHandleSelVect : colorHandleVect;
-  else if (color_id == 3)
+  }
+  else if (color_id == 3) {
     inner_color = (edge_selected) ? colorHandleSelAlign : colorHandleAlign;
-  else if (color_id == 4)
+  }
+  else if (color_id == 4) {
     inner_color = (edge_selected) ? colorHandleSelAutoclamp : colorHandleAutoclamp;
+  }
   else {
     bool is_selected = (((vertFlag[1] & vertFlag[0]) & VERT_SELECTED) != 0);
     bool is_u_segment = (((vertFlag[1] ^ vertFlag[0]) & EVEN_U_BIT) != 0);

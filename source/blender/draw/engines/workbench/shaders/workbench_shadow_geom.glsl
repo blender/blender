@@ -86,8 +86,9 @@ void main()
 #  ifndef DOUBLE_MANIFOLD
   /* If the mesh is known to be manifold and we don't use double count,
    * only create an quad if the we encounter a facing geom. */
-  if ((degen_faces.x && backface.y) || (degen_faces.y && backface.x))
+  if ((degen_faces.x && backface.y) || (degen_faces.y && backface.x)) {
     return;
+  }
 #  endif
 
   /* If one of the 2 triangles is degenerate, replace edge by a non-manifold one. */
