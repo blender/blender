@@ -228,6 +228,20 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
   *last = max;
 }
 
+static bool region_position_is_over_marker(View2D *v2d, ListBase *markers, float region_x)
+{
+  if (markers == NULL || BLI_listbase_is_empty(markers)) {
+    return false;
+  }
+
+  float frame_at_position = UI_view2d_region_to_view_x(v2d, region_x);
+  TimeMarker *nearest_marker = ED_markers_find_nearest_marker(markers, frame_at_position);
+  float pixel_distance = UI_view2d_scale_get_x(v2d) *
+                         fabsf(nearest_marker->frame - frame_at_position);
+
+  return pixel_distance <= UI_DPI_ICON_SIZE;
+}
+
 /* --------------------------------- */
 
 /* Adds a marker to list of cfra elems */
@@ -833,6 +847,16 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 
 static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  bool tweak = RNA_boolean_get(op->ptr, "tweak");
+  if (tweak) {
+    ARegion *ar = CTX_wm_region(C);
+    View2D *v2d = &ar->v2d;
+    ListBase *markers = ED_context_get_markers(C);
+    if (!region_position_is_over_marker(v2d, markers, event->x - ar->winrct.xmin)) {
+      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    }
+  }
+
   if (ed_marker_move_init(C, op)) {
     MarkerMove *mm = op->customdata;
 
@@ -1017,6 +1041,9 @@ static void MARKER_OT_move(wmOperatorType *ot)
 
   /* rna storage */
   RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************** duplicate markers *************************** */
@@ -1109,6 +1136,13 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 
 /* ************************** selection ************************************/
 
+static void deselect_markers(ListBase *markers)
+{
+  for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
+    marker->flag &= ~SELECT;
+  }
+}
+
 /* select/deselect TimeMarker at current frame */
 static void select_timeline_marker_frame(ListBase *markers, int frame, bool extend)
 {
@@ -1126,9 +1160,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, bool exte
 
   /* if extend is not set, then deselect markers */
   if (extend == false) {
-    for (marker = markers->first; marker; marker = marker->next) {
-      marker->flag &= ~SELECT;
-    }
+    deselect_markers(markers);
   }
 
   LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_first) {
@@ -1141,28 +1173,10 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, bool exte
   LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_first);
 }
 
-static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool camera)
+static void select_marker_camera_switch(
+    bContext *C, bool camera, bool extend, ListBase *markers, int cfra)
 {
-  ListBase *markers = ED_context_get_markers(C);
-  ARegion *ar = CTX_wm_region(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
-  float viewx;
-  int x, cfra;
-
-  if (markers == NULL) {
-    return OPERATOR_PASS_THROUGH;
-  }
-
-  x = event->x - ar->winrct.xmin;
-
-  viewx = UI_view2d_region_to_view_x(v2d, x);
-
-  cfra = ED_markers_find_nearest_marker_time(markers, viewx);
-
-  select_timeline_marker_frame(markers, cfra, extend);
-
 #ifdef DURIAN_CAMERA_SWITCH
-
   if (camera) {
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1201,6 +1215,25 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 #else
   (void)camera;
 #endif
+}
+
+static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool camera)
+{
+  ListBase *markers = ED_context_get_markers(C);
+  ARegion *ar = CTX_wm_region(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
+
+  float mouse_region_x = event->x - ar->winrct.xmin;
+  if (region_position_is_over_marker(v2d, markers, mouse_region_x)) {
+    float frame_at_mouse_position = UI_view2d_region_to_view_x(v2d, mouse_region_x);
+    int cfra = ED_markers_find_nearest_marker_time(markers, frame_at_mouse_position);
+    select_timeline_marker_frame(markers, cfra, extend);
+
+    select_marker_camera_switch(C, camera, extend, markers, cfra);
+  }
+  else {
+    deselect_markers(markers);
+  }
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
@@ -1264,6 +1297,22 @@ static void MARKER_OT_select(wmOperatorType *ot)
  *  poll()  has to be filled in by user for context
  */
 
+static int ed_marker_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *ar = CTX_wm_region(C);
+  View2D *v2d = &ar->v2d;
+
+  ListBase *markers = ED_context_get_markers(C);
+  bool over_marker = region_position_is_over_marker(v2d, markers, event->x - ar->winrct.xmin);
+
+  bool tweak = RNA_boolean_get(op->ptr, "tweak");
+  if (tweak && over_marker) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
 {
   View2D *v2d = UI_view2d_fromcontext(C);
@@ -1304,7 +1353,7 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_marker_box_select_exec;
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = ed_marker_box_select_invoke;
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
@@ -1316,6 +1365,10 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
+
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************** (de)select all ***************** */
