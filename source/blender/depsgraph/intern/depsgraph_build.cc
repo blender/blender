@@ -315,6 +315,42 @@ void DEG_graph_build_for_render_pipeline(Depsgraph *graph,
   }
 }
 
+void DEG_graph_build_for_compositor_preview(Depsgraph *graph,
+                                            Main *bmain,
+                                            Scene *scene,
+                                            struct ViewLayer * /*view_layer*/,
+                                            bNodeTree *nodetree)
+{
+  double start_time = 0.0;
+  if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
+    start_time = PIL_check_seconds_timer();
+  }
+  DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+  /* Perform sanity checks. */
+  BLI_assert(deg_graph->scene == scene);
+  deg_graph->is_render_pipeline_depsgraph = true;
+  DEG::DepsgraphBuilderCache builder_cache;
+  /* Generate all the nodes in the graph first */
+  DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph, &builder_cache);
+  node_builder.begin_build();
+  node_builder.build_scene_render(scene);
+  node_builder.build_nodetree(nodetree);
+  node_builder.end_build();
+  /* Hook up relationships between operations - to determine evaluation
+   * order. */
+  DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph, &builder_cache);
+  relation_builder.begin_build();
+  relation_builder.build_scene_render(scene);
+  relation_builder.build_nodetree(nodetree);
+  relation_builder.build_copy_on_write_relations();
+  /* Finalize building. */
+  graph_build_finalize_common(deg_graph, bmain);
+  /* Finish statistics. */
+  if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
+    printf("Depsgraph built in %f seconds.\n", PIL_check_seconds_timer() - start_time);
+  }
+}
+
 /* Tag graph relations for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph)
 {

@@ -33,6 +33,7 @@ struct Depsgraph;
 
 /* ------------------------------------------------ */
 
+struct bNodeTree;
 struct CacheFile;
 struct Collection;
 struct CustomData_MeshMasks;
@@ -64,6 +65,17 @@ void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph,
                                          struct Main *bmain,
                                          struct Scene *scene,
                                          struct ViewLayer *view_layer);
+
+/* Builds minimal dependency graph for compositor preview.
+ *
+ * Note that compositor editor might have pinned node tree, which is different from scene's node
+ * tree.
+ */
+void DEG_graph_build_for_compositor_preview(struct Depsgraph *graph,
+                                            struct Main *bmain,
+                                            struct Scene *scene,
+                                            struct ViewLayer *view_layer,
+                                            struct bNodeTree *nodetree);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
