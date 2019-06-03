@@ -1195,11 +1195,11 @@ class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
         ob = context.object
 
         col = flow.column()
-        col.prop(ob, "hide_viewport", text="Show in Viewports", invert_checkbox=True)
+        col.prop(ob, "hide_viewport", text="Show in Viewports", invert_checkbox=True, toggle=False)
         col = flow.column()
-        col.prop(ob, "hide_render", text="Show in Renders", invert_checkbox=True)
+        col.prop(ob, "hide_render", text="Show in Renders", invert_checkbox=True, toggle=False)
         col = flow.column()
-        col.prop(ob, "hide_select", text="Selectable", invert_checkbox=True)
+        col.prop(ob, "hide_select", text="Selectable", invert_checkbox=True, toggle=False)
 
         if has_geometry_visibility(ob):
             cob = ob.cycles
