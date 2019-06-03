@@ -1073,9 +1073,11 @@ bool BKE_layer_collection_isolate(Scene *scene,
 
 static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCollection *lc)
 {
-  for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
-    Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
-    base->flag &= ~BASE_HIDDEN;
+  if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+      Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
+      base->flag &= ~BASE_HIDDEN;
+    }
   }
   for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
     layer_collection_bases_show_recursive(view_layer, lc_iter);
@@ -1084,9 +1086,11 @@ static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCo
 
 static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCollection *lc)
 {
-  for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
-    Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
-    base->flag |= BASE_HIDDEN;
+  if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+    for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
+      Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
+      base->flag |= BASE_HIDDEN;
+    }
   }
   for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
     layer_collection_bases_hide_recursive(view_layer, lc_iter);
