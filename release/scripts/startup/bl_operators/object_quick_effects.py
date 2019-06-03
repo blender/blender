@@ -245,7 +245,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
                 node_mix = nodes.new('ShaderNodeMixShader')
                 node_mix.location = (node_x - offset_x, node_y)
-                mat.node_tree.links.new(node_surface.outputs["BSDF"], node_mix.inputs[1])
+                mat.node_tree.links.new(node_surface.outputs[0], node_mix.inputs[1])
                 mat.node_tree.links.new(node_mix.outputs["Shader"], node_out_mat.inputs['Surface'])
                 offset_x += 200
 
