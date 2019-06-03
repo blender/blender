@@ -2564,7 +2564,7 @@ static int wm_handlers_do_keymap_with_keymap_handler(
   return action;
 }
 
-static bool wm_handlers_do_keymap_with_gizmo_handler(
+static int wm_handlers_do_keymap_with_gizmo_handler(
     /* From 'wm_handlers_do_intern' */
     bContext *C,
     wmEvent *event,
