@@ -70,6 +70,8 @@ enum eView2D_CommonViewTypes {
 /* scroller 'handles' hotspot radius for mouse */
 #define V2D_SCROLLER_HANDLE_SIZE (0.6f * U.widget_unit)
 
+#define V2D_MIN_SCROLLER_SIZE (50.0 * UI_DPI_FAC)
+
 /* ------ Define for UI_view2d_sync ----- */
 
 /* means copy it from another v2d */

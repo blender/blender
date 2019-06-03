@@ -1504,12 +1504,12 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
     if (scrollers->hor_min > scrollers->hor_max) {
       scrollers->hor_min = scrollers->hor_max;
     }
-    /* prevent sliders from being too small, and disappearing */
-    if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLLER_HANDLE_SIZE) {
-      scrollers->hor_max = scrollers->hor_min + V2D_SCROLLER_HANDLE_SIZE;
+    /* prevent sliders from being too small to grab */
+    if ((scrollers->hor_max - scrollers->hor_min) < V2D_MIN_SCROLLER_SIZE) {
+      scrollers->hor_max = scrollers->hor_min + V2D_MIN_SCROLLER_SIZE;
 
-      CLAMP(scrollers->hor_max, hor.xmin + V2D_SCROLLER_HANDLE_SIZE, hor.xmax);
-      CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_SCROLLER_HANDLE_SIZE);
+      CLAMP(scrollers->hor_max, hor.xmin + V2D_MIN_SCROLLER_SIZE, hor.xmax);
+      CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_MIN_SCROLLER_SIZE);
     }
   }
 
@@ -1542,13 +1542,12 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
     if (scrollers->vert_min > scrollers->vert_max) {
       scrollers->vert_min = scrollers->vert_max;
     }
-    /* prevent sliders from being too small, and disappearing */
-    if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLLER_HANDLE_SIZE) {
+    /* prevent sliders from being too small to grab */
+    if ((scrollers->vert_max - scrollers->vert_min) < V2D_MIN_SCROLLER_SIZE) {
+      scrollers->vert_max = scrollers->vert_min + V2D_MIN_SCROLLER_SIZE;
 
-      scrollers->vert_max = scrollers->vert_min + V2D_SCROLLER_HANDLE_SIZE;
-
-      CLAMP(scrollers->vert_max, vert.ymin + V2D_SCROLLER_HANDLE_SIZE, vert.ymax);
-      CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_SCROLLER_HANDLE_SIZE);
+      CLAMP(scrollers->vert_max, vert.ymin + V2D_MIN_SCROLLER_SIZE, vert.ymax);
+      CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_MIN_SCROLLER_SIZE);
     }
   }
 
