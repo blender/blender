@@ -10,8 +10,9 @@ void main()
   const float rad_squared = 0.25;
 
   // round point with jaggy edges
-  if (dist_squared > rad_squared)
+  if (dist_squared > rad_squared) {
     discard;
+  }
 
   fragColor = color;
 }

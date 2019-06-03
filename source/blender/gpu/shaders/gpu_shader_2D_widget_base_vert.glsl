@@ -199,14 +199,18 @@ vec2 do_widget(void)
 
   /* Position to corner */
   vec4 rct = (is_inner) ? recti : rect;
-  if (cflag == BOTTOM_LEFT)
+  if (cflag == BOTTOM_LEFT) {
     v += rct.xz;
-  else if (cflag == BOTTOM_RIGHT)
+  }
+  else if (cflag == BOTTOM_RIGHT) {
     v += rct.yz;
-  else if (cflag == TOP_RIGHT)
+  }
+  else if (cflag == TOP_RIGHT) {
     v += rct.yw;
-  else /* (cflag == TOP_LEFT) */
+  }
+  else /* (cflag == TOP_LEFT) */ {
     v += rct.xw;
+  }
 
   vec2 uv = faci * (v - recti.xz);
 
@@ -250,10 +254,12 @@ vec2 do_tria()
 
   bool is_tria_first = (vflag & TRIA_FIRST) != 0u;
 
-  if (is_tria_first)
+  if (is_tria_first) {
     v = v * tria1Size + tria1Center;
-  else
+  }
+  else {
     v = v * tria2Size + tria2Center;
+  }
 
   return v;
 }

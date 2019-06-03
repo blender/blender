@@ -22,12 +22,15 @@ void main()
   finalColor = calls_data[i * 3 + 2];
 
   /* TODO Remove this */
-  if (v == 2)
+  if (v == 2) {
     v = 4;
-  else if (v == 3)
+  }
+  else if (v == 3) {
     v = 0;
-  else if (v == 5)
+  }
+  else if (v == 5) {
     v = 2;
+  }
 
   if (v == 0) {
     pos.xy = pos.xw;

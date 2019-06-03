@@ -20,12 +20,15 @@ void main()
   vec3 offset = vec3(0.0);
 
 #ifdef AXIS_NAME
-  if (pos.z == 0.0)
+  if (pos.z == 0.0) {
     offset = vec3(1.125, 0.0, 0.0);
-  else if (pos.z == 1.0)
+  }
+  else if (pos.z == 1.0) {
     offset = vec3(0.0, 1.125, 0.0);
-  else
+  }
+  else {
     offset = vec3(0.0, 0.0, 1.125);
+  }
   offset *= size;
 #endif
 

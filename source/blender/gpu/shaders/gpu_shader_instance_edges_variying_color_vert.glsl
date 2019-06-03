@@ -53,12 +53,15 @@ void main()
   bool face_1_front = front(normal_matrix, N1, eye);
   bool face_2_front = front(normal_matrix, N2, eye);
 
-  if (face_1_front && face_2_front)
+  if (face_1_front && face_2_front) {
     edgeClass = 1.0;  // front-facing edge
-  else if (face_1_front || face_2_front)
+  }
+  else if (face_1_front || face_2_front) {
     edgeClass = 0.0;  // exactly one face is front-facing, silhouette edge
-  else
+  }
+  else {
     edgeClass = -1.0;  // back-facing edge
+  }
 
   fCol = color;
 

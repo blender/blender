@@ -26,6 +26,7 @@ void main()
     fragColor.rgb = outlineColor.rgb;
     fragColor.a = mix(outlineColor.a, 0.0, smoothstep(radii[1], radii[0], dist));
   }
-  else
+  else {
     fragColor = mix(fillColor, outlineColor, smoothstep(radii[3], radii[2], dist));
+  }
 }

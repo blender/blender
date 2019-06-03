@@ -81,14 +81,18 @@ void main()
 
   /* Position to corner */
   vec4 rct = (is_inner) ? recti : rect;
-  if (cflag == BOTTOM_LEFT)
+  if (cflag == BOTTOM_LEFT) {
     v += rct.xz;
-  else if (cflag == BOTTOM_RIGHT)
+  }
+  else if (cflag == BOTTOM_RIGHT) {
     v += rct.yz;
-  else if (cflag == TOP_RIGHT)
+  }
+  else if (cflag == TOP_RIGHT) {
     v += rct.yw;
-  else /* (cflag == TOP_LEFT) */
+  }
+  else /* (cflag == TOP_LEFT) */ {
     v += rct.xw;
+  }
 
   gl_Position = ModelViewProjectionMatrix * vec4(v, 0.0, 1.0);
 }

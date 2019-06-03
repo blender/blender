@@ -49,17 +49,20 @@ void main()
 
   if (finalEdgeClass > 0.0f) {
     // front-facing edge
-    if (drawFront)
+    if (drawFront) {
       emitLine(vec4(fCol[0], 0.75));
+    }
   }
   else if (finalEdgeClass < 0.0f) {
     // back-facing edge
-    if (drawBack)
+    if (drawBack) {
       emitLine(vec4(fCol[0], 0.5));
+    }
   }
   else {
     // exactly one face is front-facing, silhouette edge
-    if (drawSilhouette)
+    if (drawSilhouette) {
       emitLine(vec4(fCol[0], 1.0));
+    }
   }
 }

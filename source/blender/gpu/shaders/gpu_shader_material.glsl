@@ -13,18 +13,22 @@ float exp_blender(float f)
 
 float compatible_pow(float x, float y)
 {
-  if (y == 0.0) /* x^0 -> 1, including 0^0 */
+  if (y == 0.0) { /* x^0 -> 1, including 0^0 */
     return 1.0;
+  }
 
   /* glsl pow doesn't accept negative x */
   if (x < 0.0) {
-    if (mod(-y, 2.0) == 0.0)
+    if (mod(-y, 2.0) == 0.0) {
       return pow(-x, y);
-    else
+    }
+    else {
       return -pow(-x, y);
+    }
   }
-  else if (x == 0.0)
+  else if (x == 0.0) {
     return 0.0;
+  }
 
   return pow(x, y);
 }
@@ -39,8 +43,9 @@ void rgb_to_hsv(vec4 rgb, out vec4 outcol)
   cdelta = cmax - cmin;
 
   v = cmax;
-  if (cmax != 0.0)
+  if (cmax != 0.0) {
     s = cdelta / cmax;
+  }
   else {
     s = 0.0;
     h = 0.0;
@@ -52,17 +57,21 @@ void rgb_to_hsv(vec4 rgb, out vec4 outcol)
   else {
     c = (vec3(cmax) - rgb.xyz) / cdelta;
 
-    if (rgb.x == cmax)
+    if (rgb.x == cmax) {
       h = c[2] - c[1];
-    else if (rgb.y == cmax)
+    }
+    else if (rgb.y == cmax) {
       h = 2.0 + c[0] - c[2];
-    else
+    }
+    else {
       h = 4.0 + c[1] - c[0];
+    }
 
     h /= 6.0;
 
-    if (h < 0.0)
+    if (h < 0.0) {
       h += 1.0;
+    }
   }
 
   outcol = vec4(h, s, v, rgb.w);
@@ -81,8 +90,9 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
     rgb = vec3(v, v, v);
   }
   else {
-    if (h == 1.0)
+    if (h == 1.0) {
       h = 0.0;
+    }
 
     h *= 6.0;
     i = floor(h);
@@ -92,18 +102,24 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
     q = v * (1.0 - (s * f));
     t = v * (1.0 - (s * (1.0 - f)));
 
-    if (i == 0.0)
+    if (i == 0.0) {
       rgb = vec3(v, t, p);
-    else if (i == 1.0)
+    }
+    else if (i == 1.0) {
       rgb = vec3(q, v, p);
-    else if (i == 2.0)
+    }
+    else if (i == 2.0) {
       rgb = vec3(p, v, t);
-    else if (i == 3.0)
+    }
+    else if (i == 3.0) {
       rgb = vec3(p, q, v);
-    else if (i == 4.0)
+    }
+    else if (i == 4.0) {
       rgb = vec3(t, p, v);
-    else
+    }
+    else {
       rgb = vec3(v, p, q);
+    }
   }
 
   outcol = vec4(rgb, hsv.w);
@@ -188,15 +204,18 @@ void point_map_to_sphere(vec3 vin, out vec3 vout)
   float len = length(vin);
   float v, u;
   if (len > 0.0) {
-    if (vin.x == 0.0 && vin.y == 0.0)
+    if (vin.x == 0.0 && vin.y == 0.0) {
       u = 0.0;
-    else
+    }
+    else {
       u = (1.0 - atan(vin.x, vin.y) / M_PI) / 2.0;
+    }
 
     v = 1.0 - acos(vin.z / len) / M_PI;
   }
-  else
+  else {
     v = u = 0.0;
+  }
 
   vout = vec3(u, v, 0.0);
 }
@@ -206,10 +225,12 @@ void point_map_to_tube(vec3 vin, out vec3 vout)
   float u, v;
   v = (vin.z + 1.0) * 0.5;
   float len = sqrt(vin.x * vin.x + vin.y * vin[1]);
-  if (len > 0.0)
+  if (len > 0.0) {
     u = (1.0 - (atan(vin.x / len, vin.y / len) / M_PI)) * 0.5;
-  else
+  }
+  else {
     v = u = 0.0;
+  }
 
   vout = vec3(u, v, 0.0);
 }
@@ -246,10 +267,12 @@ void math_multiply(float val1, float val2, out float outval)
 
 void math_divide(float val1, float val2, out float outval)
 {
-  if (val2 == 0.0)
+  if (val2 == 0.0) {
     outval = 0.0;
-  else
+  }
+  else {
     outval = val1 / val2;
+  }
 }
 
 void math_sine(float val, out float outval)
@@ -269,18 +292,22 @@ void math_tangent(float val, out float outval)
 
 void math_asin(float val, out float outval)
 {
-  if (val <= 1.0 && val >= -1.0)
+  if (val <= 1.0 && val >= -1.0) {
     outval = asin(val);
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void math_acos(float val, out float outval)
 {
-  if (val <= 1.0 && val >= -1.0)
+  if (val <= 1.0 && val >= -1.0) {
     outval = acos(val);
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void math_atan(float val, out float outval)
@@ -296,19 +323,23 @@ void math_pow(float val1, float val2, out float outval)
   else {
     float val2_mod_1 = mod(abs(val2), 1.0);
 
-    if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001)
+    if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001) {
       outval = compatible_pow(val1, floor(val2 + 0.5));
-    else
+    }
+    else {
       outval = 0.0;
+    }
   }
 }
 
 void math_log(float val1, float val2, out float outval)
 {
-  if (val1 > 0.0 && val2 > 0.0)
+  if (val1 > 0.0 && val2 > 0.0) {
     outval = log2(val1) / log2(val2);
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void math_max(float val1, float val2, out float outval)
@@ -328,26 +359,32 @@ void math_round(float val, out float outval)
 
 void math_less_than(float val1, float val2, out float outval)
 {
-  if (val1 < val2)
+  if (val1 < val2) {
     outval = 1.0;
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void math_greater_than(float val1, float val2, out float outval)
 {
-  if (val1 > val2)
+  if (val1 > val2) {
     outval = 1.0;
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void math_modulo(float val1, float val2, out float outval)
 {
-  if (val2 == 0.0)
+  if (val2 == 0.0) {
     outval = 0.0;
-  else
+  }
+  else {
     outval = mod(val1, val2);
+  }
 
   /* change sign to match C convention, mod in GLSL will take absolute for negative numbers,
    * see https://www.opengl.org/sdk/docs/man/html/mod.xhtml */
@@ -381,10 +418,12 @@ void math_fract(float val, out float outval)
 
 void math_sqrt(float val, out float outval)
 {
-  if (val > 0.0)
+  if (val > 0.0) {
     outval = sqrt(val);
-  else
+  }
+  else {
     outval = 0.0;
+  }
 }
 
 void squeeze(float val, float width, float center, out float outval)
@@ -627,20 +666,26 @@ void mix_overlay(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
   outcol = col1;
 
-  if (outcol.r < 0.5)
+  if (outcol.r < 0.5) {
     outcol.r *= facm + 2.0 * fac * col2.r;
-  else
+  }
+  else {
     outcol.r = 1.0 - (facm + 2.0 * fac * (1.0 - col2.r)) * (1.0 - outcol.r);
+  }
 
-  if (outcol.g < 0.5)
+  if (outcol.g < 0.5) {
     outcol.g *= facm + 2.0 * fac * col2.g;
-  else
+  }
+  else {
     outcol.g = 1.0 - (facm + 2.0 * fac * (1.0 - col2.g)) * (1.0 - outcol.g);
+  }
 
-  if (outcol.b < 0.5)
+  if (outcol.b < 0.5) {
     outcol.b *= facm + 2.0 * fac * col2.b;
-  else
+  }
+  else {
     outcol.b = 1.0 - (facm + 2.0 * fac * (1.0 - col2.b)) * (1.0 - outcol.b);
+  }
 }
 
 void mix_sub(float fac, vec4 col1, vec4 col2, out vec4 outcol)
@@ -657,12 +702,15 @@ void mix_div(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
   outcol = col1;
 
-  if (col2.r != 0.0)
+  if (col2.r != 0.0) {
     outcol.r = facm * outcol.r + fac * outcol.r / col2.r;
-  if (col2.g != 0.0)
+  }
+  if (col2.g != 0.0) {
     outcol.g = facm * outcol.g + fac * outcol.g / col2.g;
-  if (col2.b != 0.0)
+  }
+  if (col2.b != 0.0) {
     outcol.b = facm * outcol.b + fac * outcol.b / col2.b;
+  }
 }
 
 void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
@@ -693,30 +741,39 @@ void mix_dodge(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
   if (outcol.r != 0.0) {
     float tmp = 1.0 - fac * col2.r;
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol.r = 1.0;
-    else if ((tmp = outcol.r / tmp) > 1.0)
+    }
+    else if ((tmp = outcol.r / tmp) > 1.0) {
       outcol.r = 1.0;
-    else
+    }
+    else {
       outcol.r = tmp;
+    }
   }
   if (outcol.g != 0.0) {
     float tmp = 1.0 - fac * col2.g;
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol.g = 1.0;
-    else if ((tmp = outcol.g / tmp) > 1.0)
+    }
+    else if ((tmp = outcol.g / tmp) > 1.0) {
       outcol.g = 1.0;
-    else
+    }
+    else {
       outcol.g = tmp;
+    }
   }
   if (outcol.b != 0.0) {
     float tmp = 1.0 - fac * col2.b;
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol.b = 1.0;
-    else if ((tmp = outcol.b / tmp) > 1.0)
+    }
+    else if ((tmp = outcol.b / tmp) > 1.0) {
       outcol.b = 1.0;
-    else
+    }
+    else {
       outcol.b = tmp;
+    }
   }
 }
 
@@ -728,34 +785,46 @@ void mix_burn(float fac, vec4 col1, vec4 col2, out vec4 outcol)
   outcol = col1;
 
   tmp = facm + fac * col2.r;
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol.r = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol.r) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol.r) / tmp)) < 0.0) {
     outcol.r = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol.r = 1.0;
-  else
+  }
+  else {
     outcol.r = tmp;
+  }
 
   tmp = facm + fac * col2.g;
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol.g = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol.g) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol.g) / tmp)) < 0.0) {
     outcol.g = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol.g = 1.0;
-  else
+  }
+  else {
     outcol.g = tmp;
+  }
 
   tmp = facm + fac * col2.b;
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol.b = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol.b) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol.b) / tmp)) < 0.0) {
     outcol.b = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol.b = 1.0;
-  else
+  }
+  else {
     outcol.b = tmp;
+  }
 }
 
 void mix_hue(float fac, vec4 col1, vec4 col2, out vec4 outcol)
@@ -1924,12 +1993,15 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 {
   outcol = col;
 
-  if (col.r > 0.0)
+  if (col.r > 0.0) {
     outcol.r = compatible_pow(col.r, gamma);
-  if (col.g > 0.0)
+  }
+  if (col.g > 0.0) {
     outcol.g = compatible_pow(col.g, gamma);
-  if (col.b > 0.0)
+  }
+  if (col.b > 0.0) {
     outcol.b = compatible_pow(col.b, gamma);
+  }
 }
 
 /* geometry */
@@ -1958,8 +2030,9 @@ void node_attribute_volume_color(sampler3D tex, out vec4 outcol, out vec3 outvec
 
   vec4 value = texture(tex, cos).rgba;
   /* Density is premultiplied for interpolation, divide it out here. */
-  if (value.a > 1e-8)
+  if (value.a > 1e-8) {
     value.rgb /= value.a;
+  }
 
   outvec = value.rgb * volumeColor;
   outcol = vec4(outvec, 1.0);
@@ -2869,8 +2942,9 @@ float noise_musgrave_fBm(vec3 p, float H, float lacunarity, float octaves)
   }
 
   rmd = octaves - floor(octaves);
-  if (rmd != 0.0)
+  if (rmd != 0.0) {
     value += rmd * snoise(p) * pwr;
+  }
 
   return value;
 }
@@ -2896,8 +2970,9 @@ float noise_musgrave_multi_fractal(vec3 p, float H, float lacunarity, float octa
   }
 
   rmd = octaves - floor(octaves);
-  if (rmd != 0.0)
+  if (rmd != 0.0) {
     value *= (rmd * pwr * snoise(p) + 1.0); /* correct? */
+  }
 
   return value;
 }
@@ -2956,8 +3031,9 @@ float noise_musgrave_hybrid_multi_fractal(
   p *= lacunarity;
 
   for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
-    if (weight > 1.0)
+    if (weight > 1.0) {
       weight = 1.0;
+    }
 
     signal = (snoise(p) + offset) * pwr;
     pwr *= pwHL;
@@ -2967,8 +3043,9 @@ float noise_musgrave_hybrid_multi_fractal(
   }
 
   rmd = octaves - floor(octaves);
-  if (rmd != 0.0)
+  if (rmd != 0.0) {
     result += rmd * ((snoise(p) + offset) * pwr);
+  }
 
   return result;
 }
@@ -3015,18 +3092,23 @@ float svm_musgrave(int type,
                    float gain,
                    vec3 p)
 {
-  if (type == 0 /* NODE_MUSGRAVE_MULTIFRACTAL */)
+  if (type == 0 /* NODE_MUSGRAVE_MULTIFRACTAL */) {
     return intensity * noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
-  else if (type == 1 /* NODE_MUSGRAVE_FBM */)
+  }
+  else if (type == 1 /* NODE_MUSGRAVE_FBM */) {
     return intensity * noise_musgrave_fBm(p, dimension, lacunarity, octaves);
-  else if (type == 2 /* NODE_MUSGRAVE_HYBRID_MULTIFRACTAL */)
+  }
+  else if (type == 2 /* NODE_MUSGRAVE_HYBRID_MULTIFRACTAL */) {
     return intensity *
            noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
-  else if (type == 3 /* NODE_MUSGRAVE_RIDGED_MULTIFRACTAL */)
+  }
+  else if (type == 3 /* NODE_MUSGRAVE_RIDGED_MULTIFRACTAL */) {
     return intensity *
            noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
-  else if (type == 4 /* NODE_MUSGRAVE_HETERO_TERRAIN */)
+  }
+  else if (type == 4 /* NODE_MUSGRAVE_HETERO_TERRAIN */) {
     return intensity * noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
+  }
   return 0.0;
 }
 
@@ -3173,13 +3255,16 @@ float calc_wave(
 {
   float n;
 
-  if (wave_type == 0) /* type bands */
+  if (wave_type == 0) { /* type bands */
     n = (p.x + p.y + p.z) * 10.0;
-  else /* type rings */
+  }
+  else { /* type rings */
     n = length(p) * 20.0;
+  }
 
-  if (distortion != 0.0)
+  if (distortion != 0.0) {
     n += distortion * noise_turbulence(p * detail_scale, detail, 0);
+  }
 
   if (wave_profile == 0) { /* profile sin */
     return 0.5 + 0.5 * sin(n);

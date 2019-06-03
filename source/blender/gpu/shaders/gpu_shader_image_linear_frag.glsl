@@ -9,10 +9,12 @@ out vec4 fragColor;
 
 float linearrgb_to_srgb(float c)
 {
-  if (c < 0.0031308)
+  if (c < 0.0031308) {
     return (c < 0.0) ? 0.0 : c * 12.92;
-  else
+  }
+  else {
     return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+  }
 }
 
 void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
