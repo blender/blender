@@ -263,12 +263,14 @@ static PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
   }
 
   dprop = rna_find_struct_property_def(DefRNA.laststruct, prop);
-  if (dprop)
+  if (dprop) {
     return dprop;
+  }
 
   dprop = rna_find_parameter_def(prop);
-  if (dprop)
+  if (dprop) {
     return dprop;
+  }
 
   return NULL;
 }
@@ -750,8 +752,9 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
     RNA_def_property_free_pointers(prop);
 
-    if (prop->flag_internal & PROP_INTERN_RUNTIME)
+    if (prop->flag_internal & PROP_INTERN_RUNTIME) {
       rna_freelinkN(&srna->cont.properties, prop);
+    }
   }
 
   for (func = srna->functions.first; func; func = nextfunc) {
@@ -762,14 +765,16 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
       RNA_def_property_free_pointers(parm);
 
-      if (parm->flag_internal & PROP_INTERN_RUNTIME)
+      if (parm->flag_internal & PROP_INTERN_RUNTIME) {
         rna_freelinkN(&func->cont.properties, parm);
+      }
     }
 
     RNA_def_func_free_pointers(func);
 
-    if (func->flag & FUNC_RUNTIME)
+    if (func->flag & FUNC_RUNTIME) {
       rna_freelinkN(&srna->functions, func);
+    }
   }
 
   rna_brna_structs_remove_and_free(brna, srna);
@@ -1408,8 +1413,9 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
     prop->flag |= PROP_IDPROPERTY;
     prop->flag_internal |= PROP_INTERN_RUNTIME;
 #ifdef RNA_RUNTIME
-    if (cont->prophash)
+    if (cont->prophash) {
       BLI_ghash_insert(cont->prophash, (void *)prop->identifier, prop);
+    }
 #endif
   }
 
@@ -3897,15 +3903,17 @@ int rna_parameter_size(PropertyRNA *parm)
         }
       case PROP_POINTER: {
 #ifdef RNA_RUNTIME
-        if (parm->flag_parameter & PARM_RNAPTR)
+        if (parm->flag_parameter & PARM_RNAPTR) {
           if (parm->flag & PROP_THICK_WRAP) {
             return sizeof(PointerRNA);
           }
           else {
             return sizeof(PointerRNA *);
           }
-        else
+        }
+        else {
           return sizeof(void *);
+        }
 #else
         if (parm->flag_parameter & PARM_RNAPTR) {
           if (parm->flag & PROP_THICK_WRAP) {
@@ -4027,10 +4035,12 @@ void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna)
 
 void RNA_def_func_duplicate_pointers(FunctionRNA *func)
 {
-  if (func->identifier)
+  if (func->identifier) {
     func->identifier = BLI_strdup(func->identifier);
-  if (func->description)
+  }
+  if (func->description) {
     func->description = BLI_strdup(func->description);
+  }
 
   func->flag |= FUNC_FREE_POINTERS;
 }
@@ -4038,10 +4048,12 @@ void RNA_def_func_duplicate_pointers(FunctionRNA *func)
 void RNA_def_func_free_pointers(FunctionRNA *func)
 {
   if (func->flag & FUNC_FREE_POINTERS) {
-    if (func->identifier)
+    if (func->identifier) {
       MEM_freeN((void *)func->identifier);
-    if (func->description)
+    }
+    if (func->description) {
       MEM_freeN((void *)func->description);
+    }
   }
 }
 
@@ -4125,8 +4137,9 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
     }
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-      if (sprop->defaultvalue)
+      if (sprop->defaultvalue) {
         sprop->defaultvalue = BLI_strdup(sprop->defaultvalue);
+      }
       break;
     }
     default:
@@ -4141,54 +4154,66 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
   if (prop->flag_internal & PROP_INTERN_FREE_POINTERS) {
     int a;
 
-    if (prop->identifier)
+    if (prop->identifier) {
       MEM_freeN((void *)prop->identifier);
-    if (prop->name)
+    }
+    if (prop->name) {
       MEM_freeN((void *)prop->name);
-    if (prop->description)
+    }
+    if (prop->description) {
       MEM_freeN((void *)prop->description);
-    if (prop->py_data)
+    }
+    if (prop->py_data) {
       MEM_freeN(prop->py_data);
+    }
 
     switch (prop->type) {
       case PROP_BOOLEAN: {
         BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
-        if (bprop->defaultarray)
+        if (bprop->defaultarray) {
           MEM_freeN((void *)bprop->defaultarray);
+        }
         break;
       }
       case PROP_INT: {
         IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
-        if (iprop->defaultarray)
+        if (iprop->defaultarray) {
           MEM_freeN((void *)iprop->defaultarray);
+        }
         break;
       }
       case PROP_FLOAT: {
         FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
-        if (fprop->defaultarray)
+        if (fprop->defaultarray) {
           MEM_freeN((void *)fprop->defaultarray);
+        }
         break;
       }
       case PROP_ENUM: {
         EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
         for (a = 0; a < eprop->totitem; a++) {
-          if (eprop->item[a].identifier)
+          if (eprop->item[a].identifier) {
             MEM_freeN((void *)eprop->item[a].identifier);
-          if (eprop->item[a].name)
+          }
+          if (eprop->item[a].name) {
             MEM_freeN((void *)eprop->item[a].name);
-          if (eprop->item[a].description)
+          }
+          if (eprop->item[a].description) {
             MEM_freeN((void *)eprop->item[a].description);
+          }
         }
 
-        if (eprop->item)
+        if (eprop->item) {
           MEM_freeN((void *)eprop->item);
+        }
         break;
       }
       case PROP_STRING: {
         StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-        if (sprop->defaultvalue)
+        if (sprop->defaultvalue) {
           MEM_freeN((void *)sprop->defaultvalue);
+        }
         break;
       }
       default:
@@ -4202,8 +4227,9 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
   ContainerRNA *cont = cont_;
 
   if (prop->flag_internal & PROP_INTERN_RUNTIME) {
-    if (cont->prophash)
+    if (cont->prophash) {
       BLI_ghash_remove(cont->prophash, prop->identifier, NULL, NULL);
+    }
 
     RNA_def_property_free_pointers(prop);
     rna_freelinkN(&cont->properties, prop);

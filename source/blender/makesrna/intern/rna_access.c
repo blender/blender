@@ -4594,20 +4594,23 @@ static int rna_raw_access(ReportList *reports,
             if (set) {
               switch (itemtype) {
                 case PROP_BOOLEAN: {
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_GET(bool, ((bool *)tmparray)[j], in, a);
+                  }
                   RNA_property_boolean_set_array(&itemptr, iprop, tmparray);
                   break;
                 }
                 case PROP_INT: {
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_GET(int, ((int *)tmparray)[j], in, a);
+                  }
                   RNA_property_int_set_array(&itemptr, iprop, tmparray);
                   break;
                 }
                 case PROP_FLOAT: {
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_GET(float, ((float *)tmparray)[j], in, a);
+                  }
                   RNA_property_float_set_array(&itemptr, iprop, tmparray);
                   break;
                 }
@@ -4619,20 +4622,23 @@ static int rna_raw_access(ReportList *reports,
               switch (itemtype) {
                 case PROP_BOOLEAN: {
                   RNA_property_boolean_get_array(&itemptr, iprop, tmparray);
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_SET(int, in, a, ((bool *)tmparray)[j]);
+                  }
                   break;
                 }
                 case PROP_INT: {
                   RNA_property_int_get_array(&itemptr, iprop, tmparray);
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_SET(int, in, a, ((int *)tmparray)[j]);
+                  }
                   break;
                 }
                 case PROP_FLOAT: {
                   RNA_property_float_get_array(&itemptr, iprop, tmparray);
-                  for (j = 0; j < itemlen; j++, a++)
+                  for (j = 0; j < itemlen; j++, a++) {
                     RAW_SET(float, in, a, ((float *)tmparray)[j]);
+                  }
                   break;
                 }
                 default:
