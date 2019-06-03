@@ -381,8 +381,9 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
     ListBase *list = get_constraint_lb(ob, con, NULL);
 
     /* if we have the list, check for unique name, otherwise give up */
-    if (list)
+    if (list) {
       BKE_constraint_unique_name(con, list);
+    }
   }
 
   /* fix all the animation data which may link to this */
@@ -394,11 +395,12 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
   bPoseChannel *pchan;
   ListBase *lb = get_constraint_lb(ob, con, &pchan);
 
-  if (lb == NULL)
+  if (lb == NULL) {
     printf("%s: internal error, constraint '%s' not found in object '%s'\n",
            __func__,
            con->name,
            ob->id.name);
+  }
 
   if (pchan) {
     char name_esc_pchan[sizeof(pchan->name) * 2];
@@ -491,8 +493,9 @@ static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRN
 {
   Object *ob = ptr->id.data;
 
-  if (ob->pose)
+  if (ob->pose) {
     ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
+  }
 
   rna_Constraint_update(bmain, scene, ptr);
 }
@@ -523,10 +526,13 @@ static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED
   Object *ob = (Object *)ptr->id.data;
   bConstraint *con = (bConstraint *)ptr->data;
 
-  if (BLI_findindex(&ob->constraints, con) == -1)
+  if (BLI_findindex(&ob->constraints, con) == -1) {
     return owner_space_pchan_items;
-  else /* object */
+  }
+  else {
+    /* object */
     return space_object_items;
+  }
 }
 
 static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C),
@@ -542,15 +548,19 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSE
   if (cti && cti->get_constraint_targets) {
     cti->get_constraint_targets(con, &targets);
 
-    for (ct = targets.first; ct; ct = ct->next)
-      if (ct->tar && ct->tar->type == OB_ARMATURE)
+    for (ct = targets.first; ct; ct = ct->next) {
+      if (ct->tar && ct->tar->type == OB_ARMATURE) {
         break;
+      }
+    }
 
-    if (cti->flush_constraint_targets)
+    if (cti->flush_constraint_targets) {
       cti->flush_constraint_targets(con, &targets, 1);
+    }
 
-    if (ct)
+    if (ct) {
       return target_space_pchan_items;
+    }
   }
 
   return space_object_items;
@@ -616,10 +626,12 @@ static int rna_SplineIKConstraint_joint_bindings_get_length(PointerRNA *ptr,
   bConstraint *con = (bConstraint *)ptr->data;
   bSplineIKConstraint *ikData = (bSplineIKConstraint *)con->data;
 
-  if (ikData)
+  if (ikData) {
     length[0] = ikData->numpoints;
-  else
+  }
+  else {
     length[0] = 256; /* for raw_access, untested */
+  }
 
   return length[0];
 }

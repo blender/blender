@@ -95,8 +95,9 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Light *la = (Light *)ptr->data;
 
-  if (la->use_nodes && la->nodetree == NULL)
+  if (la->use_nodes && la->nodetree == NULL) {
     ED_node_shader_default(C, &la->id);
+  }
 
   rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }

@@ -41,10 +41,12 @@ static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
   Text *text = (Text *)ptr->data;
 
-  if (text->name)
+  if (text->name) {
     strcpy(value, text->name);
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_Text_filename_length(PointerRNA *ptr)
@@ -57,13 +59,16 @@ static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 {
   Text *text = (Text *)ptr->data;
 
-  if (text->name)
+  if (text->name) {
     MEM_freeN(text->name);
+  }
 
-  if (value[0])
+  if (value[0]) {
     text->name = BLI_strdup(value);
-  else
+  }
+  else {
     text->name = NULL;
+  }
 }
 
 static bool rna_Text_modified_get(PointerRNA *ptr)
@@ -88,10 +93,12 @@ static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
   TextLine *line = (TextLine *)ptr->data;
 
-  if (line->line)
+  if (line->line) {
     strcpy(value, line->line);
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_TextLine_body_length(PointerRNA *ptr)
@@ -105,8 +112,9 @@ static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
   TextLine *line = (TextLine *)ptr->data;
   int len = strlen(value);
 
-  if (line->line)
+  if (line->line) {
     MEM_freeN(line->line);
+  }
 
   line->line = MEM_mallocN((len + 1) * sizeof(char), "rna_text_body");
   line->len = len;

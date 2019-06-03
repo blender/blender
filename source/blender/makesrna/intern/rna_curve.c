@@ -208,10 +208,12 @@ static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, 
     }
 
     if (pt_index) {
-      if (nu->type == CU_BEZIER)
+      if (nu->type == CU_BEZIER) {
         *pt_index = (int)((BezTriple *)point - nu->bezt);
-      else
+      }
+      else {
         *pt_index = (int)((BPoint *)point - nu->bp);
+      }
     }
   }
 
@@ -223,12 +225,15 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
   Curve *cu = (Curve *)ptr->data;
   short obtype = BKE_curve_type_get(cu);
 
-  if (obtype == OB_FONT)
+  if (obtype == OB_FONT) {
     return &RNA_TextCurve;
-  else if (obtype == OB_SURF)
+  }
+  else if (obtype == OB_SURF) {
     return &RNA_SurfaceCurve;
-  else
+  }
+  else {
     return &RNA_Curve;
+  }
 }
 
 static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
@@ -271,8 +276,9 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 {
   Curve *cu = (Curve *)ptr->data;
 
-  if (cu->texflag & CU_AUTOSPACE)
+  if (cu->texflag & CU_AUTOSPACE) {
     BKE_curve_texspace_calc(cu);
+  }
 }
 
 static int rna_Curve_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -285,8 +291,9 @@ static void rna_Curve_texspace_loc_get(PointerRNA *ptr, float *values)
 {
   Curve *cu = (Curve *)ptr->data;
 
-  if (!cu->bb)
+  if (!cu->bb) {
     BKE_curve_texspace_calc(cu);
+  }
 
   copy_v3_v3(values, cu->loc);
 }
@@ -302,8 +309,9 @@ static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
 {
   Curve *cu = (Curve *)ptr->data;
 
-  if (!cu->bb)
+  if (!cu->bb) {
     BKE_curve_texspace_calc(cu);
+  }
 
   copy_v3_v3(values, cu->size);
 }
@@ -347,10 +355,12 @@ static void rna_Curve_active_textbox_index_range(
 static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
   Curve *cu = (Curve *)ptr->id.data;
-  if (value == CU_3D)
+  if (value == CU_3D) {
     cu->flag |= CU_3D;
-  else
+  }
+  else {
     cu->flag &= ~CU_3D;
+  }
 
   BKE_curve_curve_dimension_update(cu);
 }
@@ -370,8 +380,9 @@ static const EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C),
 static int rna_Nurb_length(PointerRNA *ptr)
 {
   Nurb *nu = (Nurb *)ptr->data;
-  if (nu->type == CU_BEZIER)
+  if (nu->type == CU_BEZIER) {
     return 0;
+  }
   return nu->pntsv > 0 ? nu->pntsu * nu->pntsv : nu->pntsu;
 }
 
@@ -421,8 +432,9 @@ static void rna_Curve_update_points(Main *bmain, Scene *scene, PointerRNA *ptr)
   Curve *cu = (Curve *)ptr->id.data;
   Nurb *nu = curve_nurb_from_point(cu, ptr->data, NULL, NULL);
 
-  if (nu)
+  if (nu) {
     BKE_nurb_handles_calc(nu);
+  }
 
   rna_Curve_update_data(bmain, scene, ptr);
 }
@@ -432,8 +444,9 @@ static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
   Curve *cu = (Curve *)ptr->id.data;
   Object *ob = cu->bevobj;
 
-  if (ob)
+  if (ob) {
     return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
+  }
 
   return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
@@ -477,8 +490,9 @@ static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
   Curve *cu = (Curve *)ptr->id.data;
   Object *ob = cu->taperobj;
 
-  if (ob)
+  if (ob) {
     return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
+  }
 
   return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
@@ -568,10 +582,12 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
   cu->len = len_bytes;
   cu->pos = len_chars;
 
-  if (cu->str)
+  if (cu->str) {
     MEM_freeN(cu->str);
-  if (cu->strinfo)
+  }
+  if (cu->strinfo) {
     MEM_freeN(cu->strinfo);
+  }
 
   cu->str = MEM_mallocN(len_bytes + sizeof(wchar_t), "str");
   cu->strinfo = MEM_callocN((len_chars + 4) * sizeof(CharInfo), "strinfo");
@@ -728,8 +744,9 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
    * should be changed to be allowed outside of editmode. */
   nu = BLI_findlink(nurbs, cu->actnu);
 
-  if (nu)
+  if (nu) {
     return rna_pointer_inherit_refine(ptr, &RNA_Spline, nu);
+  }
 
   return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
@@ -743,10 +760,12 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr,
   ListBase *nubase = BKE_curve_nurbs_get(cu);
 
   /* -1 is ok for an unset index */
-  if (nu == NULL)
+  if (nu == NULL) {
     cu->actnu = -1;
-  else
+  }
+  else {
     cu->actnu = BLI_findindex(nubase, nu);
+  }
 }
 
 static char *rna_Curve_spline_path(PointerRNA *ptr)
@@ -756,10 +775,12 @@ static char *rna_Curve_spline_path(PointerRNA *ptr)
   Nurb *nu = ptr->data;
   int index = BLI_findindex(nubase, nu);
 
-  if (index >= 0)
+  if (index >= 0) {
     return BLI_sprintfN("splines[%d]", index);
-  else
+  }
+  else {
     return BLI_strdup("");
+  }
 }
 
 /* use for both bezier and nurbs */
@@ -791,10 +812,12 @@ static char *rna_TextBox_path(PointerRNA *ptr)
   TextBox *tb = ptr->data;
   int index = (int)(tb - cu->tb);
 
-  if (index >= 0 && index < cu->totbox)
+  if (index >= 0 && index < cu->totbox) {
     return BLI_sprintfN("text_boxes[%d]", index);
-  else
+  }
+  else {
     return BLI_strdup("");
+  }
 }
 
 static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

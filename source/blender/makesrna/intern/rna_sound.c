@@ -46,10 +46,12 @@ static bool rna_Sound_caching_get(PointerRNA *ptr)
 static void rna_Sound_caching_set(PointerRNA *ptr, const bool value)
 {
   bSound *sound = (bSound *)(ptr->data);
-  if (value)
+  if (value) {
     BKE_sound_cache(sound);
-  else
+  }
+  else {
     BKE_sound_delete_cache(sound);
+  }
 }
 
 static void rna_Sound_caching_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)

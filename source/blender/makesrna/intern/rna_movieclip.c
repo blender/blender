@@ -95,8 +95,9 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *UNUSED(bmain),
           if (&sc->user == user) {
             MovieClip *clip = ED_space_clip_get_clip(sc);
 
-            if (clip && (clip->flag & MCLIP_USE_PROXY))
+            if (clip && (clip->flag & MCLIP_USE_PROXY)) {
               BKE_movieclip_clear_cache(clip);
+            }
 
             break;
           }

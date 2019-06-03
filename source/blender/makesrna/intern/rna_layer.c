@@ -91,10 +91,12 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
                                                struct ReportList *UNUSED(reports))
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
-  if (value.data)
+  if (value.data) {
     view_layer->basact = BKE_view_layer_base_find(view_layer, (Object *)value.data);
-  else
+  }
+  else {
     view_layer->basact = NULL;
+  }
 }
 
 static char *rna_ViewLayer_path(PointerRNA *ptr)
@@ -121,8 +123,9 @@ static IDProperty *rna_ViewLayer_idprops(PointerRNA *ptr, bool create)
 static void rna_ViewLayer_update_render_passes(ID *id)
 {
   Scene *scene = (Scene *)id;
-  if (scene->nodetree)
+  if (scene->nodetree) {
     ntreeCompositUpdateRLayers(scene->nodetree);
+  }
 }
 
 static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)

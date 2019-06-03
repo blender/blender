@@ -288,8 +288,9 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
   KeyBlock *kb = NULL;
   PointerRNA ptr;
 
-  if (key && value < key->totkey)
+  if (key && value < key->totkey) {
     kb = BLI_findlink(&key->block, value);
+  }
 
   RNA_pointer_create(id, &RNA_ShapeKey, kb, &ptr);
 
@@ -302,8 +303,9 @@ int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
 
   if (key) {
     int a = BLI_findindex(&key->block, value.data);
-    if (a != -1)
+    if (a != -1) {
       return a;
+    }
   }
 
   return current;
@@ -675,10 +677,12 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 
   BLI_strescape(name_esc, kb->name, sizeof(name_esc));
 
-  if ((id) && (GS(id->name) != ID_KE))
+  if ((id) && (GS(id->name) != ID_KE)) {
     return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", name_esc);
-  else
+  }
+  else {
     return BLI_sprintfN("key_blocks[\"%s\"]", name_esc);
+  }
 }
 
 static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -699,8 +703,9 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
   KeyBlock *kb;
 
   /* sanity checks */
-  if (ELEM(NULL, key, point))
+  if (ELEM(NULL, key, point)) {
     return NULL;
+  }
 
   /* we'll need to manually search through the keyblocks and check
    * if the point is somewhere in the middle of each block's data
@@ -771,13 +776,16 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 
     BLI_strescape(name_esc_kb, kb->name, sizeof(name_esc_kb));
 
-    if (GS(id->name) == ID_KE)
+    if (GS(id->name) == ID_KE) {
       return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
-    else
+    }
+    else {
       return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
+    }
   }
-  else
+  else {
     return NULL; /* XXX: there's really no way to resolve this... */
+  }
 }
 
 #else

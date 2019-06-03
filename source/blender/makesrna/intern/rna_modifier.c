@@ -847,8 +847,9 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
   Object *ob = (Object *)ptr->id.data;
 
   /* nothing changed */
-  if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+  if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
     return;
+  }
 
   smokeModifier_free(smd);       /* XXX TODO: completely free all 3 pointers */
   smokeModifier_createType(smd); /* create regarding of selected type */
@@ -962,8 +963,9 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
   int a;
 
   md->num_projectors = CLAMPIS(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
-  for (a = md->num_projectors; a < MOD_UVPROJECT_MAXPROJECTORS; a++)
+  for (a = md->num_projectors; a < MOD_UVPROJECT_MAXPROJECTORS; a++) {
     md->projectors[a] = NULL;
+  }
 }
 
 static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1380,8 +1382,9 @@ static bool rna_ParticleInstanceModifier_particle_system_poll(PointerRNA *ptr,
   ParticleInstanceModifierData *psmd = ptr->data;
   ParticleSystem *psys = value.data;
 
-  if (!psmd->ob)
+  if (!psmd->ob) {
     return false;
+  }
 
   /* make sure psys is in the object */
   return BLI_findindex(&psmd->ob->particlesystem, psys) != -1;
@@ -1393,8 +1396,9 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
   ParticleSystem *psys;
   PointerRNA rptr;
 
-  if (!psmd->ob)
+  if (!psmd->ob) {
     return PointerRNA_NULL;
+  }
 
   psys = BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1);
   RNA_pointer_create((ID *)psmd->ob, &RNA_ParticleSystem, psys, &rptr);
@@ -1407,8 +1411,9 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
 {
   ParticleInstanceModifierData *psmd = ptr->data;
 
-  if (!psmd->ob)
+  if (!psmd->ob) {
     return;
+  }
 
   psmd->psys = BLI_findindex(&psmd->ob->particlesystem, value.data) + 1;
   CLAMP_MIN(psmd->psys, 1);

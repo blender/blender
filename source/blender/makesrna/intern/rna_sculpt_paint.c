@@ -220,11 +220,13 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = OBACT(view_layer);
   PTCacheEdit *edit = PE_get_current(scene, ob);
 
-  if (!edit)
+  if (!edit) {
     return;
+  }
 
-  if (ob)
+  if (ob) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
 
   BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
   psys_free_path_cache(edit->psys, edit);
@@ -236,8 +238,9 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
 
-  if (ob)
+  if (ob) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
 
   /* Sync tool setting changes from original to evaluated scenes. */
   DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_COPY_ON_WRITE);
@@ -420,8 +423,9 @@ static void rna_Sculpt_ShowDiffuseColor_update(bContext *C, PointerRNA *UNUSED(p
     Sculpt *sd = scene->toolsettings->sculpt;
     ob->sculpt->show_diffuse_color = ((sd->flags & SCULPT_SHOW_DIFFUSE) != 0);
 
-    if (ob->sculpt->pbvh)
+    if (ob->sculpt->pbvh) {
       pbvh_show_diffuse_color_set(ob->sculpt->pbvh, ob->sculpt->show_diffuse_color);
+    }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -547,8 +551,9 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
         if (slink->spacetype == SPACE_IMAGE) {
           SpaceImage *sima = (SpaceImage *)slink;
 
-          if (!sima->pin)
+          if (!sima->pin) {
             ED_space_image_set(bmain, sima, obedit, ima, true);
+          }
         }
       }
     }
@@ -571,12 +576,14 @@ static PointerRNA rna_GPencilSculptSettings_brush_get(PointerRNA *ptr)
   GP_Sculpt_Data *brush = NULL;
 
   if ((gset) && (gset->flag & GP_SCULPT_SETT_FLAG_WEIGHT_MODE)) {
-    if ((gset->weighttype >= GP_SCULPT_TYPE_WEIGHT) && (gset->weighttype < GP_SCULPT_TYPE_MAX))
+    if ((gset->weighttype >= GP_SCULPT_TYPE_WEIGHT) && (gset->weighttype < GP_SCULPT_TYPE_MAX)) {
       brush = &gset->brush[gset->weighttype];
+    }
   }
   else {
-    if ((gset->brushtype >= 0) && (gset->brushtype < GP_SCULPT_TYPE_WEIGHT))
+    if ((gset->brushtype >= 0) && (gset->brushtype < GP_SCULPT_TYPE_WEIGHT)) {
       brush = &gset->brush[gset->brushtype];
+    }
   }
   return rna_pointer_inherit_refine(ptr, &RNA_GPencilSculptBrush, brush);
 }

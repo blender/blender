@@ -275,10 +275,12 @@ static StructRNA *rna_GizmoProperties_refine(PointerRNA *ptr)
 {
   wmGizmo *gz = rna_GizmoProperties_find_operator(ptr);
 
-  if (gz)
+  if (gz) {
     return gz->type->srna;
-  else
+  }
+  else {
     return ptr->type;
+  }
 }
 
 static IDProperty *rna_GizmoProperties_idprops(PointerRNA *ptr, bool create)
@@ -451,8 +453,9 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   temp_buffers.idname[0] = '\0';
 
   /* validate the python class */
-  if (validate(&mnp_ptr, data, have_function) != 0)
+  if (validate(&mnp_ptr, data, have_function) != 0) {
     return NULL;
+  }
 
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
@@ -557,10 +560,12 @@ static StructRNA *rna_GizmoGroupProperties_refine(PointerRNA *ptr)
 {
   wmGizmoGroupType *gzgt = rna_GizmoGroupProperties_find_gizmo_group_type(ptr);
 
-  if (gzgt)
+  if (gzgt) {
     return gzgt->srna;
-  else
+  }
+  else {
     return ptr->type;
+  }
 }
 
 static IDProperty *rna_GizmoGroupProperties_idprops(PointerRNA *ptr, bool create)
@@ -615,20 +620,24 @@ static void rna_GizmoGroup_bl_idname_set(PointerRNA *ptr, const char *value)
 {
   wmGizmoGroup *data = ptr->data;
   char *str = (char *)data->type->idname;
-  if (!str[0])
+  if (!str[0]) {
     BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
-  else
+  }
+  else {
     assert(!"setting the bl_idname on a non-builtin operator");
+  }
 }
 
 static void rna_GizmoGroup_bl_label_set(PointerRNA *ptr, const char *value)
 {
   wmGizmoGroup *data = ptr->data;
   char *str = (char *)data->type->name;
-  if (!str[0])
+  if (!str[0]) {
     BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
-  else
+  }
+  else {
     assert(!"setting the bl_label on a non-builtin operator");
+  }
 }
 
 static bool rna_GizmoGroup_has_reports_get(PointerRNA *ptr)
@@ -803,8 +812,9 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   temp_buffers.idname[0] = temp_buffers.name[0] = '\0';
 
   /* validate the python class */
-  if (validate(&wgptr, data, have_function) != 0)
+  if (validate(&wgptr, data, have_function) != 0) {
     return NULL;
+  }
 
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
@@ -894,8 +904,9 @@ static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
 {
   wmGizmoGroupType *gzgt = RNA_struct_blender_type_get(type);
 
-  if (!gzgt)
+  if (!gzgt) {
     return;
+  }
 
   RNA_struct_free_extension(type, &gzgt->ext);
   RNA_struct_free(&BLENDER_RNA, type);

@@ -67,8 +67,9 @@ static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 static void rna_Smoke_resetCache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
-  if (settings->smd && settings->smd->domain)
+  if (settings->smd && settings->smd->domain) {
     settings->point_cache[0]->flag |= PTCACHE_OUTDATED;
+  }
   DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 }
 
@@ -103,8 +104,9 @@ static void rna_Smoke_reset_dependency(Main *bmain, Scene *scene, PointerRNA *pt
 
   smokeModifier_reset(settings->smd);
 
-  if (settings->smd && settings->smd->domain)
+  if (settings->smd && settings->smd->domain) {
     settings->smd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
+  }
 
   rna_Smoke_dependency_update(bmain, scene, ptr);
 }
@@ -236,10 +238,12 @@ static void rna_SmokeModifier_density_grid_get(PointerRNA *ptr, float *values)
 
   BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
 
-  if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
+  if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
     density = smoke_turbulence_get_density(sds->wt);
-  else
+  }
+  else {
     density = smoke_get_density(sds->fluid);
+  }
 
   memcpy(values, density, size * sizeof(float));
 
@@ -290,16 +294,20 @@ static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
   }
   else {
     if (sds->flags & MOD_SMOKE_HIGHRES) {
-      if (smoke_turbulence_has_colors(sds->wt))
+      if (smoke_turbulence_has_colors(sds->wt)) {
         smoke_turbulence_get_rgba(sds->wt, values, 0);
-      else
+      }
+      else {
         smoke_turbulence_get_rgba_from_density(sds->wt, sds->active_color, values, 0);
+      }
     }
     else {
-      if (smoke_has_colors(sds->fluid))
+      if (smoke_has_colors(sds->fluid)) {
         smoke_get_rgba(sds->fluid, values, 0);
-      else
+      }
+      else {
         smoke_get_rgba_from_density(sds->fluid, sds->active_color, values, 0);
+      }
     }
   }
 
@@ -319,15 +327,19 @@ static void rna_SmokeModifier_flame_grid_get(PointerRNA *ptr, float *values)
 
   BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
 
-  if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt)
+  if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
     flame = smoke_turbulence_get_flame(sds->wt);
-  else
+  }
+  else {
     flame = smoke_get_flame(sds->fluid);
+  }
 
-  if (flame)
+  if (flame) {
     memcpy(values, flame, size * sizeof(float));
-  else
+  }
+  else {
     memset(values, 0, size * sizeof(float));
+  }
 
   BLI_rw_mutex_unlock(sds->fluid_mutex);
 #  else

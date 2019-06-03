@@ -277,10 +277,12 @@ static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float re
 static void rna_View2D_view_to_region(
     struct View2D *v2d, float x, float y, bool clip, int result[2])
 {
-  if (clip)
+  if (clip) {
     UI_view2d_view_to_region_clip(v2d, x, y, &result[0], &result[1]);
-  else
+  }
+  else {
     UI_view2d_view_to_region(v2d, x, y, &result[0], &result[1]);
+  }
 }
 
 #else

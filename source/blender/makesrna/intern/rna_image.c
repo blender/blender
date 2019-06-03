@@ -314,12 +314,15 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 
   ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
 
-  if (!ibuf)
+  if (!ibuf) {
     planes = 0;
-  else if (ibuf->rect_float)
+  }
+  else if (ibuf->rect_float) {
     planes = ibuf->planes * 4;
-  else
+  }
+  else {
     planes = ibuf->planes;
+  }
 
   BKE_image_release_ibuf(im, ibuf, lock);
 
@@ -355,10 +358,12 @@ static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY
 
   ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
-  if (ibuf)
+  if (ibuf) {
     length[0] = ibuf->x * ibuf->y * ibuf->channels;
-  else
+  }
+  else {
     length[0] = 0;
+  }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 
@@ -381,8 +386,9 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
       memcpy(values, ibuf->rect_float, sizeof(float) * size);
     }
     else {
-      for (i = 0; i < size; i++)
+      for (i = 0; i < size; i++) {
         values[i] = ((unsigned char *)ibuf->rect)[i] * (1.0f / 255.0f);
+      }
     }
   }
 
@@ -405,8 +411,9 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
       memcpy(ibuf->rect_float, values, sizeof(float) * size);
     }
     else {
-      for (i = 0; i < size; i++)
+      for (i = 0; i < size; i++) {
         ((unsigned char *)ibuf->rect)[i] = unit_float_to_uchar_clamp(values[i]);
+      }
     }
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID | IB_MIPMAP_INVALID;
@@ -428,8 +435,9 @@ static int rna_Image_channels_get(PointerRNA *ptr)
   int channels = 0;
 
   ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
-  if (ibuf)
+  if (ibuf) {
     channels = ibuf->channels;
+  }
 
   BKE_image_release_ibuf(im, ibuf, lock);
 
@@ -444,8 +452,9 @@ static bool rna_Image_is_float_get(PointerRNA *ptr)
   bool is_float = false;
 
   ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
-  if (ibuf)
+  if (ibuf) {
     is_float = ibuf->rect_float != NULL;
+  }
 
   BKE_image_release_ibuf(im, ibuf, lock);
 
@@ -490,8 +499,9 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
   if (value.id.data == image) {
     RenderSlot *slot = (RenderSlot *)value.data;
     int index = BLI_findindex(&image->renderslots, slot);
-    if (index != -1)
+    if (index != -1) {
       image->render_slot = index;
+    }
   }
 }
 

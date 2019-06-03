@@ -140,8 +140,9 @@ static void rna_MaskParent_id_type_set(PointerRNA *ptr, int value)
   mpar->id_type = value;
 
   /* clear the id-block if the type is invalid */
-  if ((mpar->id) && (GS(mpar->id->name) != mpar->id_type))
+  if ((mpar->id) && (GS(mpar->id->name) != mpar->id_type)) {
     mpar->id = NULL;
+  }
 }
 
 static void rna_Mask_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -238,10 +239,12 @@ static void rna_MaskLayer_active_spline_set(PointerRNA *ptr,
   MaskSpline *spline = (MaskSpline *)value.data;
   int index = BLI_findindex(&masklay->splines, spline);
 
-  if (index != -1)
+  if (index != -1) {
     masklay->act_spline = spline;
-  else
+  }
+  else {
     masklay->act_spline = NULL;
+  }
 }
 
 static PointerRNA rna_MaskLayer_active_spline_point_get(PointerRNA *ptr)

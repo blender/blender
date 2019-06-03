@@ -89,8 +89,9 @@ static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  if (wrld->use_nodes && wrld->nodetree == NULL)
+  if (wrld->use_nodes && wrld->nodetree == NULL) {
     ED_node_shader_default(C, &wrld->id);
+  }
 
   DEG_relations_tag_update(bmain);
   rna_World_update(bmain, scene, ptr);

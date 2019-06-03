@@ -59,10 +59,12 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
   bActionGroup *grp = fcu->grp;
 
   /* only continue if the next F-Curve (if existent) belongs in the same group */
-  if ((fcu->next) && (fcu->next->grp == grp))
+  if ((fcu->next) && (fcu->next->grp == grp)) {
     internal->link = (Link *)fcu->next;
-  else
+  }
+  else {
     internal->link = NULL;
+  }
 
   iter->valid = (internal->link != NULL);
 }
@@ -112,8 +114,9 @@ static FCurve *rna_Action_fcurve_new(bAction *act,
                                      int index,
                                      const char *group)
 {
-  if (group && group[0] == '\0')
+  if (group && group[0] == '\0') {
     group = NULL;
+  }
 
   if (data_path[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
@@ -261,10 +264,12 @@ bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
      * (i.e. floating "action-library" members) which we will not
      * be able to resolve an idroot for automatically, so let these through
      */
-    if (act->idroot == 0)
+    if (act->idroot == 0) {
       return 1;
-    else if (srcId)
+    }
+    else if (srcId) {
       return GS(srcId->name) == act->idroot;
+    }
   }
 
   return 0;
@@ -282,8 +287,9 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
      * (i.e. floating "action-library" members) which we will not
      * be able to resolve an idroot for automatically, so let these through
      */
-    if (act->idroot == 0)
+    if (act->idroot == 0) {
       return 1;
+    }
 
     if (saction) {
       if (saction->mode == SACTCONT_ACTION) {

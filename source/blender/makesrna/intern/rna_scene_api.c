@@ -122,8 +122,9 @@ static void rna_SceneRender_get_frame_path(
   const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
   /* avoid NULL pointer */
-  if (!suffix)
+  if (!suffix) {
     suffix = "";
+  }
 
   if (BKE_imtype_is_movie(rd->im_format.imtype)) {
     BKE_movie_filepath_get(name, rd, preview != 0, suffix);

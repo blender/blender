@@ -96,8 +96,9 @@ static void rna_Image_save_render(
         BKE_reportf(reports, RPT_ERROR, "Could not write image: %s, '%s'", strerror(errno), path);
       }
 
-      if (write_ibuf != ibuf)
+      if (write_ibuf != ibuf) {
         IMB_freeImBuf(write_ibuf);
+      }
     }
 
     BKE_image_release_ibuf(image, ibuf, lock);
@@ -123,8 +124,9 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
     if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
       image->type = IMA_TYPE_IMAGE;
 
-      if (image->source == IMA_SRC_GENERATED)
+      if (image->source == IMA_SRC_GENERATED) {
         image->source = IMA_SRC_FILE;
+      }
 
       IMB_colormanagement_colorspace_from_ibuf_ftype(&image->colorspace_settings, ibuf);
 
@@ -196,8 +198,9 @@ static void rna_Image_update(Image *image, ReportList *reports)
     return;
   }
 
-  if (ibuf->rect)
+  if (ibuf->rect) {
     IMB_rect_from_float(ibuf);
+  }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
@@ -233,8 +236,9 @@ static int rna_Image_gl_touch(Image *image, ReportList *reports, int frame)
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_TEXTURE_2D] == NULL)
+  if (image->gputexture[TEXTARGET_TEXTURE_2D] == NULL) {
     error = rna_Image_gl_load(image, reports, frame);
+  }
 
   return error;
 }

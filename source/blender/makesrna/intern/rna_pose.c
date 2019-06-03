@@ -345,20 +345,27 @@ static void rna_Itasc_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
   bItasc *itasc = ptr->data;
 
   /* verify values */
-  if (itasc->precision < 0.0001f)
+  if (itasc->precision < 0.0001f) {
     itasc->precision = 0.0001f;
-  if (itasc->minstep < 0.001f)
+  }
+  if (itasc->minstep < 0.001f) {
     itasc->minstep = 0.001f;
-  if (itasc->maxstep < itasc->minstep)
+  }
+  if (itasc->maxstep < itasc->minstep) {
     itasc->maxstep = itasc->minstep;
-  if (itasc->feedback < 0.01f)
+  }
+  if (itasc->feedback < 0.01f) {
     itasc->feedback = 0.01f;
-  if (itasc->feedback > 100.f)
+  }
+  if (itasc->feedback > 100.f) {
     itasc->feedback = 100.f;
-  if (itasc->maxvel < 0.01f)
+  }
+  if (itasc->maxvel < 0.01f) {
     itasc->maxvel = 0.01f;
-  if (itasc->maxvel > 100.f)
+  }
+  if (itasc->maxvel > 100.f) {
     itasc->maxvel = 100.f;
+  }
   BIK_update_param(ob->pose);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -396,10 +403,12 @@ static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   bActionGroup *grp;
 
-  if (pose)
+  if (pose) {
     grp = BLI_findlink(&pose->agroups, pchan->agrp_index - 1);
-  else
+  }
+  else {
     grp = NULL;
+  }
 
   return rna_pointer_inherit_refine(ptr, &RNA_BoneGroup, grp);
 }
@@ -412,10 +421,12 @@ static void rna_PoseChannel_bone_group_set(PointerRNA *ptr,
   bPose *pose = (ob) ? ob->pose : NULL;
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
-  if (pose)
+  if (pose) {
     pchan->agrp_index = BLI_findindex(&pose->agroups, value.data) + 1;
-  else
+  }
+  else {
     pchan->agrp_index = 0;
+  }
 }
 
 static int rna_PoseChannel_bone_group_index_get(PointerRNA *ptr)
@@ -484,10 +495,12 @@ static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int ind
 
   grp = BLI_findlink(&pose->agroups, index - 1);
 
-  if (grp)
+  if (grp) {
     BLI_strncpy(value, grp->name, sizeof(grp->name));
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
@@ -667,14 +680,18 @@ static int rna_PoseChannel_location_editable(PointerRNA *ptr, int index)
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
   /* only if the axis in question is locked, not editable... */
-  if ((index == 0) && (pchan->protectflag & OB_LOCK_LOCX))
+  if ((index == 0) && (pchan->protectflag & OB_LOCK_LOCX)) {
     return 0;
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_LOCY))
+  }
+  else if ((index == 1) && (pchan->protectflag & OB_LOCK_LOCY)) {
     return 0;
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_LOCZ))
+  }
+  else if ((index == 2) && (pchan->protectflag & OB_LOCK_LOCZ)) {
     return 0;
-  else
+  }
+  else {
     return PROP_EDITABLE;
+  }
 }
 
 static int rna_PoseChannel_scale_editable(PointerRNA *ptr, int index)
@@ -682,14 +699,18 @@ static int rna_PoseChannel_scale_editable(PointerRNA *ptr, int index)
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
   /* only if the axis in question is locked, not editable... */
-  if ((index == 0) && (pchan->protectflag & OB_LOCK_SCALEX))
+  if ((index == 0) && (pchan->protectflag & OB_LOCK_SCALEX)) {
     return 0;
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_SCALEY))
+  }
+  else if ((index == 1) && (pchan->protectflag & OB_LOCK_SCALEY)) {
     return 0;
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_SCALEZ))
+  }
+  else if ((index == 2) && (pchan->protectflag & OB_LOCK_SCALEZ)) {
     return 0;
-  else
+  }
+  else {
     return PROP_EDITABLE;
+  }
 }
 
 static int rna_PoseChannel_rotation_euler_editable(PointerRNA *ptr, int index)
@@ -697,14 +718,18 @@ static int rna_PoseChannel_rotation_euler_editable(PointerRNA *ptr, int index)
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
   /* only if the axis in question is locked, not editable... */
-  if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTX))
+  if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTX)) {
     return 0;
-  else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTY))
+  }
+  else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTY)) {
     return 0;
-  else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTZ))
+  }
+  else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTZ)) {
     return 0;
-  else
+  }
+  else {
     return PROP_EDITABLE;
+  }
 }
 
 static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
@@ -714,14 +739,18 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
   /* only consider locks if locking components individually... */
   if (pchan->protectflag & OB_LOCK_ROT4D) {
     /* only if the axis in question is locked, not editable... */
-    if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTW))
+    if ((index == 0) && (pchan->protectflag & OB_LOCK_ROTW)) {
       return 0;
-    else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTX))
+    }
+    else if ((index == 1) && (pchan->protectflag & OB_LOCK_ROTX)) {
       return 0;
-    else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTY))
+    }
+    else if ((index == 2) && (pchan->protectflag & OB_LOCK_ROTY)) {
       return 0;
-    else if ((index == 3) && (pchan->protectflag & OB_LOCK_ROTZ))
+    }
+    else if ((index == 3) && (pchan->protectflag & OB_LOCK_ROTZ)) {
       return 0;
+    }
   }
 
   return PROP_EDITABLE;

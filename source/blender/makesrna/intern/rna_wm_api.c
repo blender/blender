@@ -228,17 +228,22 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
 
   WM_operator_bl_idname(idname_bl, idname);
 
-  if (shift)
+  if (shift) {
     modifier |= KM_SHIFT;
-  if (ctrl)
+  }
+  if (ctrl) {
     modifier |= KM_CTRL;
-  if (alt)
+  }
+  if (alt) {
     modifier |= KM_ALT;
-  if (oskey)
+  }
+  if (oskey) {
     modifier |= KM_OSKEY;
+  }
 
-  if (any)
+  if (any) {
     modifier = KM_ANY;
+  }
 
   /* create keymap item */
   kmi = WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
@@ -296,24 +301,31 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
     return NULL;
   }
 
-  if (shift)
+  if (shift) {
     modifier |= KM_SHIFT;
-  if (ctrl)
+  }
+  if (ctrl) {
     modifier |= KM_CTRL;
-  if (alt)
+  }
+  if (alt) {
     modifier |= KM_ALT;
-  if (oskey)
+  }
+  if (oskey) {
     modifier |= KM_OSKEY;
+  }
 
-  if (any)
+  if (any) {
     modifier = KM_ANY;
+  }
 
   /* not initialized yet, do delayed lookup */
-  if (!km->modal_items)
+  if (!km->modal_items) {
     return WM_modalkeymap_add_item_str(km, type, value, modifier, keymodifier, propvalue_str);
+  }
 
-  if (RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue) == 0)
+  if (RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue) == 0) {
     BKE_report(reports, RPT_WARNING, "Property value not in enumeration");
+  }
 
   return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
@@ -382,10 +394,12 @@ static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *UNUSED(keyconf), const char 
 {
   wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
-  if (!ot)
+  if (!ot) {
     return NULL;
-  else
+  }
+  else {
     return ot->modalkeymap;
+  }
 }
 
 static void rna_KeyMap_remove(wmKeyConfig *keyconfig, ReportList *reports, PointerRNA *keymap_ptr)

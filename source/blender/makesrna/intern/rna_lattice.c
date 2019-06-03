@@ -72,8 +72,9 @@ static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, Poin
     rna_iterator_array_begin(
         iter, (void *)dvert->dw, sizeof(MDeformWeight), dvert->totweight, 0, NULL);
   }
-  else
+  else {
     rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
+  }
 }
 
 static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -81,12 +82,15 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
   Lattice *lt = (Lattice *)ptr->data;
   int tot = lt->pntsu * lt->pntsv * lt->pntsw;
 
-  if (lt->editlatt && lt->editlatt->latt->def)
+  if (lt->editlatt && lt->editlatt->latt->def) {
     rna_iterator_array_begin(iter, (void *)lt->editlatt->latt->def, sizeof(BPoint), tot, 0, NULL);
-  else if (lt->def)
+  }
+  else if (lt->def) {
     rna_iterator_array_begin(iter, (void *)lt->def, sizeof(BPoint), tot, 0, NULL);
-  else
+  }
+  else {
     rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
+  }
 }
 
 static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -136,8 +140,9 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->data == lt) {
       BKE_lattice_resize(lt, newu, newv, neww, ob);
-      if (lt->editlatt)
+      if (lt->editlatt) {
         BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, ob);
+      }
       break;
     }
   }
@@ -145,8 +150,9 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
   /* otherwise without, means old points are not repositioned */
   if (!ob) {
     BKE_lattice_resize(lt, newu, newv, neww, NULL);
-    if (lt->editlatt)
+    if (lt->editlatt) {
       BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, NULL);
+    }
   }
 
   rna_Lattice_update_data(bmain, scene, ptr);
@@ -156,18 +162,22 @@ static void rna_Lattice_use_outside_set(PointerRNA *ptr, bool value)
 {
   Lattice *lt = ptr->data;
 
-  if (value)
+  if (value) {
     lt->flag |= LT_OUTSIDE;
-  else
+  }
+  else {
     lt->flag &= ~LT_OUTSIDE;
+  }
 
   outside_lattice(lt);
 
   if (lt->editlatt) {
-    if (value)
+    if (value) {
       lt->editlatt->latt->flag |= LT_OUTSIDE;
-    else
+    }
+    else {
       lt->editlatt->latt->flag &= ~LT_OUTSIDE;
+    }
 
     outside_lattice(lt->editlatt->latt);
   }
@@ -218,10 +228,12 @@ static char *rna_LatticePoint_path(PointerRNA *ptr)
   void *point = ptr->data;
   BPoint *points = NULL;
 
-  if (lt->editlatt && lt->editlatt->latt->def)
+  if (lt->editlatt && lt->editlatt->latt->def) {
     points = lt->editlatt->latt->def;
-  else
+  }
+  else {
     points = lt->def;
+  }
 
   if (points && point) {
     int tot = lt->pntsu * lt->pntsv * lt->pntsw;

@@ -476,8 +476,9 @@ static void rna_Mesh_assign_verts_to_group(
   }
 
   /* makes a set of dVerts corresponding to the mVerts */
-  if (!me->dvert)
+  if (!me->dvert) {
     create_dverts(&me->id);
+  }
 
   /* loop list adding verts to group  */
   for (i = 0; i < totindex; i++) {

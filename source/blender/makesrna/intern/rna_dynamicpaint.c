@@ -161,8 +161,9 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
   int id = 0;
 
   for (; surface; surface = surface->next) {
-    if (id == canvas->active_sur)
+    if (id == canvas->active_sur) {
       return rna_pointer_inherit_refine(ptr, &RNA_DynamicPaintSurface, surface);
+    }
     id++;
   }
   return rna_pointer_inherit_refine(ptr, &RNA_DynamicPaintSurface, NULL);

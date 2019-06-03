@@ -127,9 +127,11 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 
   /* remove fluidsim particle system */
   if (fluidmd->fss->type & OB_FLUIDSIM_PARTICLE) {
-    for (psys = ob->particlesystem.first; psys; psys = psys->next)
-      if (psys->part->type == PART_FLUID)
+    for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+      if (psys->part->type == PART_FLUID) {
         break;
+      }
+    }
 
     if (ob->type == OB_MESH && !psys) {
       /* add particle system */

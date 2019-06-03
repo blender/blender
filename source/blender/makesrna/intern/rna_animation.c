@@ -145,10 +145,12 @@ static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_i
   AnimData *adt = (AnimData *)ptr->data;
 
   /* active action is only editable when it is not a tweaking strip */
-  if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact))
+  if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
     return 0;
-  else
+  }
+  else {
     return PROP_EDITABLE;
+  }
 }
 
 static void rna_AnimData_action_set(PointerRNA *ptr,
@@ -277,8 +279,9 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 {
   KeyingSetInfo *ksi = RNA_struct_blender_type_get(type);
 
-  if (ksi == NULL)
+  if (ksi == NULL) {
     return;
+  }
 
   /* free RNA data referencing this */
   RNA_struct_free_extension(type, &ksi->ext);
@@ -309,8 +312,9 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0)
+  if (validate(&dummyptr, data, have_function) != 0) {
     return NULL;
+  }
 
   if (strlen(identifier) >= sizeof(dummyksi.idname)) {
     BKE_reportf(reports,
@@ -373,41 +377,49 @@ static void rna_ksPath_id_type_set(PointerRNA *ptr, int value)
 
   /* set the driver type, then clear the id-block if the type is invalid */
   data->idtype = value;
-  if ((data->id) && (GS(data->id->name) != data->idtype))
+  if ((data->id) && (GS(data->id->name) != data->idtype)) {
     data->id = NULL;
+  }
 }
 
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
 
-  if (ksp->rna_path)
+  if (ksp->rna_path) {
     strcpy(value, ksp->rna_path);
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_ksPath_RnaPath_length(PointerRNA *ptr)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
 
-  if (ksp->rna_path)
+  if (ksp->rna_path) {
     return strlen(ksp->rna_path);
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
 
-  if (ksp->rna_path)
+  if (ksp->rna_path) {
     MEM_freeN(ksp->rna_path);
+  }
 
-  if (value[0])
+  if (value[0]) {
     ksp->rna_path = BLI_strdup(value);
-  else
+  }
+  else {
     ksp->rna_path = NULL;
+  }
 }
 
 /* ****************************** */
@@ -499,8 +511,9 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
   KeyingSetInfo *ksi = NULL;
 
   /* keying set info is only for builtin Keying Sets */
-  if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
+  if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
     ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
+  }
   return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetInfo, ksi);
 }
 

@@ -179,10 +179,12 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
   ListBaseIterator *internal = &iter->internal.listbase;
   Sequence *seq = (Sequence *)internal->link;
 
-  if (seq->seqbase.first)
+  if (seq->seqbase.first) {
     internal->link = (Link *)seq->seqbase.first;
-  else if (seq->next)
+  }
+  else if (seq->next) {
     internal->link = (Link *)seq->next;
+  }
   else {
     internal->link = NULL;
 
@@ -547,9 +549,10 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "sequence_editor.sequences_all", oldname, seq->name + 2);
 #  endif
   adt = BKE_animdata_from_id(&scene->id);
-  if (adt)
+  if (adt) {
     BKE_animdata_fix_paths_rename(
         &scene->id, adt, NULL, "sequence_editor.sequences_all", oldname, seq->name + 2, 0, 0, 1);
+  }
 }
 
 static StructRNA *rna_Sequence_refine(struct PointerRNA *ptr)
@@ -729,9 +732,10 @@ static void rna_Sequence_volume_set(PointerRNA *ptr, float value)
   Sequence *seq = (Sequence *)(ptr->data);
 
   seq->volume = value;
-  if (seq->scene_sound)
+  if (seq->scene_sound) {
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, value, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
+  }
 }
 
 static void rna_Sequence_pitch_set(PointerRNA *ptr, float value)
@@ -739,9 +743,10 @@ static void rna_Sequence_pitch_set(PointerRNA *ptr, float value)
   Sequence *seq = (Sequence *)(ptr->data);
 
   seq->pitch = value;
-  if (seq->scene_sound)
+  if (seq->scene_sound) {
     BKE_sound_set_scene_sound_pitch(
         seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+  }
 }
 
 static void rna_Sequence_pan_set(PointerRNA *ptr, float value)
@@ -749,9 +754,10 @@ static void rna_Sequence_pan_set(PointerRNA *ptr, float value)
   Sequence *seq = (Sequence *)(ptr->data);
 
   seq->pan = value;
-  if (seq->scene_sound)
+  if (seq->scene_sound) {
     BKE_sound_set_scene_sound_pan(
         seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
+  }
 }
 
 static int rna_Sequence_input_count_get(PointerRNA *ptr)
@@ -787,8 +793,9 @@ static void rna_Sequence_reopen_files_update(Main *bmain, Scene *UNUSED(scene), 
   BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 
-  if (RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
+  if (RNA_struct_is_a(ptr->type, &RNA_SoundSequence)) {
     BKE_sequencer_update_sound_bounds(scene, ptr->data);
+  }
 }
 
 static void rna_Sequence_mute_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -937,8 +944,9 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
                           name_esc_smd);
     }
   }
-  else
+  else {
     return BLI_strdup("");
+  }
 }
 
 static void rna_SequenceColorBalance_update(Main *UNUSED(bmain),
@@ -958,8 +966,9 @@ static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, bool value)
   Scene *scene = ptr->id.data;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  if (ed == NULL)
+  if (ed == NULL) {
     return;
+  }
 
   /* convert from abs to relative and back */
   if ((ed->over_flag & SEQ_EDIT_OVERLAY_ABS) == 0 && value) {
@@ -977,13 +986,16 @@ static int rna_SequenceEditor_overlay_frame_get(PointerRNA *ptr)
   Scene *scene = (Scene *)ptr->id.data;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  if (ed == NULL)
+  if (ed == NULL) {
     return scene->r.cfra;
+  }
 
-  if (ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+  if (ed->over_flag & SEQ_EDIT_OVERLAY_ABS) {
     return ed->over_cfra - scene->r.cfra;
-  else
+  }
+  else {
     return ed->over_ofs;
+  }
 }
 
 static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
@@ -991,13 +1003,16 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   Scene *scene = (Scene *)ptr->id.data;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-  if (ed == NULL)
+  if (ed == NULL) {
     return;
+  }
 
-  if (ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+  if (ed->over_flag & SEQ_EDIT_OVERLAY_ABS) {
     ed->over_cfra = (scene->r.cfra + value);
-  else
+  }
+  else {
     ed->over_ofs = value;
+  }
 }
 
 static int modifier_seq_cmp_cb(Sequence *seq, void *arg_pt)
@@ -2086,7 +2101,8 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
   }
 
 #  if 0
-  if (count == 3) {  // not used by any effects (perhaps one day plugins?)
+  if (count == 3) {
+    /* Not used by any effects (perhaps one day plugins?). */
     prop = RNA_def_property(srna, "input_3", PROP_POINTER, PROP_NONE);
     RNA_def_property_pointer_sdna(prop, NULL, "seq3");
     RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);

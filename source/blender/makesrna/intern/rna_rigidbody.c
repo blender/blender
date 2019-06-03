@@ -228,8 +228,9 @@ static void rna_RigidBodyOb_shape_reset(Main *UNUSED(bmain), Scene *scene, Point
   RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 
   BKE_rigidbody_cache_reset(rbw);
-  if (rbo->shared->physics_shape)
+  if (rbo->shared->physics_shape) {
     rbo->flag |= RBO_FLAG_NEEDS_RESHAPE;
+  }
 }
 
 static char *rna_RigidBodyOb_path(PointerRNA *UNUSED(ptr))
@@ -328,10 +329,12 @@ static void rna_RigidBodyOb_collision_collections_set(PointerRNA *ptr, const boo
   int i;
 
   for (i = 0; i < 20; i++) {
-    if (values[i])
+    if (values[i]) {
       rbo->col_groups |= (1 << i);
-    else
+    }
+    else {
       rbo->col_groups &= ~(1 << i);
+    }
   }
   rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }

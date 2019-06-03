@@ -68,8 +68,9 @@ static PointerRNA rna_Palette_active_color_get(PointerRNA *ptr)
 
   color = BLI_findlink(&palette->colors, palette->active_color);
 
-  if (color)
+  if (color) {
     return rna_pointer_inherit_refine(ptr, &RNA_PaletteColor, color);
+  }
 
   return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
@@ -82,10 +83,12 @@ static void rna_Palette_active_color_set(PointerRNA *ptr,
   PaletteColor *color = value.data;
 
   /* -1 is ok for an unset index */
-  if (color == NULL)
+  if (color == NULL) {
     palette->active_color = -1;
-  else
+  }
+  else {
     palette->active_color = BLI_findindex(&palette->colors, color);
+  }
 }
 
 #else

@@ -70,8 +70,9 @@ static void rna_Sequence_swap_internal(Sequence *seq_self,
 {
   const char *error_msg;
 
-  if (BKE_sequence_swap(seq_self, seq_other, &error_msg) == 0)
+  if (BKE_sequence_swap(seq_self, seq_other, &error_msg) == 0) {
     BKE_report(reports, RPT_ERROR, error_msg);
+  }
 }
 
 static Sequence *alloc_generic_sequence(
@@ -404,11 +405,13 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
   seq->len--;
 
   se = seq->strip->stripdata;
-  if (index > 0)
+  if (index > 0) {
     memcpy(new_seq, se, sizeof(StripElem) * index);
+  }
 
-  if (index < seq->len)
+  if (index < seq->len) {
     memcpy(&new_seq[index], &se[index + 1], sizeof(StripElem) * (seq->len - index));
+  }
 
   MEM_freeN(seq->strip->stripdata);
   seq->strip->stripdata = new_seq;

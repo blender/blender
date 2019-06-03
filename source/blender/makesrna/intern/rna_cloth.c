@@ -76,8 +76,9 @@ static void rna_ClothSettings_bending_set(struct PointerRNA *ptr, float value)
   settings->bending = value;
 
   /* check for max clipping */
-  if (value > settings->max_bend)
+  if (value > settings->max_bend) {
     settings->max_bend = value;
+  }
 }
 
 static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
@@ -85,8 +86,9 @@ static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < settings->bending)
+  if (value < settings->bending) {
     value = settings->bending;
+  }
 
   settings->max_bend = value;
 }
@@ -98,8 +100,9 @@ static void rna_ClothSettings_tension_set(struct PointerRNA *ptr, float value)
   settings->tension = value;
 
   /* check for max clipping */
-  if (value > settings->max_tension)
+  if (value > settings->max_tension) {
     settings->max_tension = value;
+  }
 }
 
 static void rna_ClothSettings_max_tension_set(struct PointerRNA *ptr, float value)
@@ -107,8 +110,9 @@ static void rna_ClothSettings_max_tension_set(struct PointerRNA *ptr, float valu
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < settings->tension)
+  if (value < settings->tension) {
     value = settings->tension;
+  }
 
   settings->max_tension = value;
 }
@@ -120,8 +124,9 @@ static void rna_ClothSettings_compression_set(struct PointerRNA *ptr, float valu
   settings->compression = value;
 
   /* check for max clipping */
-  if (value > settings->max_compression)
+  if (value > settings->max_compression) {
     settings->max_compression = value;
+  }
 }
 
 static void rna_ClothSettings_max_compression_set(struct PointerRNA *ptr, float value)
@@ -129,8 +134,9 @@ static void rna_ClothSettings_max_compression_set(struct PointerRNA *ptr, float 
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < settings->compression)
+  if (value < settings->compression) {
     value = settings->compression;
+  }
 
   settings->max_compression = value;
 }
@@ -142,8 +148,9 @@ static void rna_ClothSettings_shear_set(struct PointerRNA *ptr, float value)
   settings->shear = value;
 
   /* check for max clipping */
-  if (value > settings->max_shear)
+  if (value > settings->max_shear) {
     settings->max_shear = value;
+  }
 }
 
 static void rna_ClothSettings_max_shear_set(struct PointerRNA *ptr, float value)
@@ -151,8 +158,9 @@ static void rna_ClothSettings_max_shear_set(struct PointerRNA *ptr, float value)
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < settings->shear)
+  if (value < settings->shear) {
     value = settings->shear;
+  }
 
   settings->max_shear = value;
 }
@@ -162,8 +170,9 @@ static void rna_ClothSettings_max_sewing_set(struct PointerRNA *ptr, float value
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < 0.0f)
+  if (value < 0.0f) {
     value = 0.0f;
+  }
 
   settings->max_sewing = value;
 }
@@ -175,8 +184,9 @@ static void rna_ClothSettings_shrink_min_set(struct PointerRNA *ptr, float value
   settings->shrink_min = value;
 
   /* check for max clipping */
-  if (value > settings->shrink_max)
+  if (value > settings->shrink_max) {
     settings->shrink_max = value;
+  }
 }
 
 static void rna_ClothSettings_shrink_max_set(struct PointerRNA *ptr, float value)
@@ -184,8 +194,9 @@ static void rna_ClothSettings_shrink_max_set(struct PointerRNA *ptr, float value
   ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
   /* check for clipping */
-  if (value < settings->shrink_min)
+  if (value < settings->shrink_min) {
     value = settings->shrink_min;
+  }
 
   settings->shrink_max = value;
 }

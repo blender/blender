@@ -48,8 +48,9 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *me
 {
   const char *ret = BKE_mesh_cmp(mesh, mesh2, FLT_EPSILON * 60);
 
-  if (!ret)
+  if (!ret) {
     ret = "Same";
+  }
 
   return ret;
 }

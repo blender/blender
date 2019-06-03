@@ -781,11 +781,13 @@ static void rna_Scene_set_set(PointerRNA *ptr,
   Scene *nested_set;
 
   for (nested_set = set; nested_set; nested_set = nested_set->set) {
-    if (nested_set == scene)
+    if (nested_set == scene) {
       return;
+    }
     /* prevent eternal loops, set can point to next, and next to set, without problems usually */
-    if (nested_set->set == set)
+    if (nested_set->set == set) {
       return;
+    }
   }
 
   id_lib_extern((ID *)set);
@@ -831,8 +833,9 @@ static void rna_Scene_volume_set(PointerRNA *ptr, float value)
   Scene *scene = (Scene *)(ptr->data);
 
   scene->audio.volume = value;
-  if (scene->sound_scene)
+  if (scene->sound_scene) {
     BKE_sound_set_scene_volume(scene, value);
+  }
 }
 
 static const char *rna_Scene_statistics_string_get(Scene *scene,
@@ -914,8 +917,9 @@ static void rna_Scene_use_preview_range_set(PointerRNA *ptr, bool value)
 
     data->r.flag |= SCER_PRV_RANGE;
   }
-  else
+  else {
     data->r.flag &= ~SCER_PRV_RANGE;
+  }
 }
 
 static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
@@ -1011,10 +1015,12 @@ static void rna_Scene_all_keyingsets_begin(CollectionPropertyIterator *iter, Poi
   /* start going over the scene KeyingSets first, while we still have pointer to it
    * but only if we have any Keying Sets to use...
    */
-  if (scene->keyingsets.first)
+  if (scene->keyingsets.first) {
     rna_iterator_listbase_begin(iter, &scene->keyingsets, NULL);
-  else
+  }
+  else {
     rna_iterator_listbase_begin(iter, &builtin_keyingsets, NULL);
+  }
 }
 
 static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
@@ -1024,10 +1030,12 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 
   /* If we've run out of links in Scene list,
    * jump over to the builtins list unless we're there already. */
-  if ((ks->next == NULL) && (ks != builtin_keyingsets.last))
+  if ((ks->next == NULL) && (ks != builtin_keyingsets.last)) {
     internal->link = (Link *)builtin_keyingsets.first;
-  else
+  }
+  else {
     internal->link = (Link *)ks->next;
+  }
 
   iter->valid = (internal->link != NULL);
 }
@@ -1123,10 +1131,12 @@ static int rna_RenderSettings_threads_mode_get(PointerRNA *ptr)
   RenderData *rd = (RenderData *)ptr->data;
   int override = BLI_system_num_threads_override_get();
 
-  if (override > 0)
+  if (override > 0) {
     return R_FIXED_THREADS;
-  else
+  }
+  else {
     return (rd->mode & R_FIXED_THREADS);
+  }
 }
 
 static bool rna_RenderSettings_is_movie_format_get(PointerRNA *ptr)
@@ -1227,8 +1237,9 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     Scene *scene = ptr->id.data;
     RenderData *rd = &scene->r;
 
-    if (BKE_ffmpeg_alpha_channel_is_supported(rd))
+    if (BKE_ffmpeg_alpha_channel_is_supported(rd)) {
       chan_flag |= IMA_CHAN_FLAG_ALPHA;
+    }
   }
 #  endif
 
@@ -1239,12 +1250,15 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     int totitem = 0;
     EnumPropertyItem *item = NULL;
 
-    if (chan_flag & IMA_CHAN_FLAG_BW)
+    if (chan_flag & IMA_CHAN_FLAG_BW) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_BW);
-    if (chan_flag & IMA_CHAN_FLAG_RGB)
+    }
+    if (chan_flag & IMA_CHAN_FLAG_RGB) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGB);
-    if (chan_flag & IMA_CHAN_FLAG_ALPHA)
+    }
+    if (chan_flag & IMA_CHAN_FLAG_ALPHA) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGBA);
+    }
 
     RNA_enum_item_end(&item, &totitem);
     *r_free = true;
@@ -1351,8 +1365,9 @@ static const EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(bContext 
   EnumPropertyItem *item = NULL;
   int i = 1, totitem = 0;
 
-  if (imf->depth == 16)
+  if (imf->depth == 16) {
     return rna_enum_exr_codec_items; /* All compression types are defined for halfs */
+  }
 
   for (i = 0; i < R_IMF_EXR_CODEC_MAX; i++) {
     if ((i == R_IMF_EXR_CODEC_B44 || i == R_IMF_EXR_CODEC_B44A)) {
@@ -1391,10 +1406,12 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, bool value)
   Scene *scene = (Scene *)ptr->id.data;
   RenderData *rd = &scene->r;
 
-  if (value)
+  if (value) {
     rd->ffcodecdata.flags |= FFMPEG_LOSSLESS_OUTPUT;
-  else
+  }
+  else {
     rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
+  }
 
   BKE_ffmpeg_codec_settings_verify(rd);
 }
@@ -1446,8 +1463,9 @@ static void rna_RenderSettings_active_view_set(PointerRNA *ptr,
   RenderData *rd = (RenderData *)ptr->data;
   SceneRenderView *srv = (SceneRenderView *)value.data;
   const int index = BLI_findindex(&rd->views, srv);
-  if (index != -1)
+  if (index != -1) {
     rd->actview = index;
+  }
 }
 
 static SceneRenderView *rna_RenderView_new(ID *id, RenderData *UNUSED(rd), const char *name)
@@ -1486,8 +1504,9 @@ static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
 
   if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW && value == SCE_VIEWS_FORMAT_STEREO_3D) {
     /* make sure the actview is visible */
-    if (rd->actview > 1)
+    if (rd->actview > 1) {
       rd->actview = 1;
+    }
   }
 
   rd->views_format = value;
@@ -1533,9 +1552,11 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
   RenderEngineType *type;
   int a = 0;
 
-  for (type = R_engines.first; type; type = type->next, a++)
-    if (STREQ(type->idname, rd->engine))
+  for (type = R_engines.first; type; type = type->next, a++) {
+    if (STREQ(type->idname, rd->engine)) {
       return a;
+    }
+  }
 
   return 0;
 }
@@ -1622,8 +1643,9 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
 
-  if (scene->nodetree)
+  if (scene->nodetree) {
     ntreeCompositUpdateRLayers(scene->nodetree);
+  }
 
   rna_Scene_glsl_update(bmain, activescene, ptr);
 }
@@ -1686,8 +1708,9 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSE
 
   if (view_layer->basact) {
     me = BKE_mesh_from_object(view_layer->basact->object);
-    if (me && me->edit_mesh == NULL)
+    if (me && me->edit_mesh == NULL) {
       me = NULL;
+    }
   }
 
   if (me) {
@@ -1716,14 +1739,16 @@ static void object_simplify_update(Object *ob)
     }
   }
 
-  for (psys = ob->particlesystem.first; psys; psys = psys->next)
+  for (psys = ob->particlesystem.first; psys; psys = psys->next) {
     psys->recalc |= ID_RECALC_PSYS_CHILD;
+  }
 
   if (ob->instance_collection) {
     CollectionObject *cob;
 
-    for (cob = ob->instance_collection->gobject.first; cob; cob = cob->next)
+    for (cob = ob->instance_collection->gobject.first; cob; cob = cob->next) {
       object_simplify_update(cob->ob);
+    }
   }
 }
 
@@ -1752,8 +1777,9 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 {
   Scene *sce = ptr->id.data;
 
-  if (sce->r.mode & R_SIMPLIFY)
+  if (sce->r.mode & R_SIMPLIFY) {
     rna_Scene_use_simplify_update(bmain, scene, ptr);
+  }
 }
 
 static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain),
@@ -1762,8 +1788,9 @@ static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain),
 {
   Scene *sce = ptr->id.data;
 
-  if (!(sce->r.mode & R_PERSISTENT_DATA))
+  if (!(sce->r.mode & R_PERSISTENT_DATA)) {
     RE_FreePersistentData();
+  }
 }
 
 /* Scene.transform_orientation_slots */
@@ -1792,10 +1819,12 @@ static void rna_Scene_use_audio_set(PointerRNA *ptr, bool value)
 {
   Scene *scene = (Scene *)ptr->data;
 
-  if (value)
+  if (value) {
     scene->audio.flag |= AUDIO_MUTE;
-  else
+  }
+  else {
     scene->audio.flag &= ~AUDIO_MUTE;
+  }
 
   BKE_sound_mute_scene(scene, value);
 }
@@ -1803,8 +1832,9 @@ static void rna_Scene_use_audio_set(PointerRNA *ptr, bool value)
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
-  if (scene->audio.flag & AUDIO_SYNC)
+  if (scene->audio.flag & AUDIO_SYNC) {
     return AUDIO_SYNC;
+  }
   return scene->flag & SCE_FRAME_DROP;
 }
 
@@ -1986,8 +2016,9 @@ static void rna_EditMesh_update(bContext *C, PointerRNA *UNUSED(ptr))
 
   if (view_layer->basact) {
     me = BKE_mesh_from_object(view_layer->basact->object);
-    if (me && me->edit_mesh == NULL)
+    if (me && me->edit_mesh == NULL) {
       me = NULL;
+    }
   }
 
   if (me) {
@@ -2052,8 +2083,9 @@ void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr,
 {
   FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
-  if (lineset->linestyle)
+  if (lineset->linestyle) {
     id_us_min(&lineset->linestyle->id);
+  }
   lineset->linestyle = (FreestyleLineStyle *)value.data;
   id_us_plus(&lineset->linestyle->id);
 }
@@ -2139,13 +2171,15 @@ void rna_FreestyleSettings_module_remove(ID *id,
   FreestyleModuleConfig *module = module_ptr->data;
 
   if (!BKE_freestyle_module_delete((FreestyleConfig *)config, module)) {
-    if (module->script)
+    if (module->script) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Style module '%s' could not be removed",
                   module->script->id.name + 2);
-    else
+    }
+    else {
       BKE_report(reports, RPT_ERROR, "Style module could not be removed");
+    }
     return;
   }
 
@@ -2164,8 +2198,9 @@ static void rna_Stereo3dFormat_update(Main *bmain, Scene *UNUSED(scene), Pointer
     ImBuf *ibuf;
     void *lock;
 
-    if (!BKE_image_is_stereo(ima))
+    if (!BKE_image_is_stereo(ima)) {
       return;
+    }
 
     ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 

@@ -252,8 +252,9 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
         break;
       default: {
         const char *idname;
-        if (RNA_enum_id_from_value(rna_enum_id_type_items, GS(data->name), &idname) == 0)
+        if (RNA_enum_id_from_value(rna_enum_id_type_items, GS(data->name), &idname) == 0) {
           idname = "UNKNOWN";
+        }
 
         BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for an object", idname);
         return NULL;
@@ -453,14 +454,15 @@ static VFont *rna_Main_fonts_load(Main *bmain,
     font = BKE_vfont_load(bmain, filepath);
   }
 
-  if (!font)
+  if (!font) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
                 errno ? strerror(errno) : TIP_("unsupported font format"));
 
-  id_us_min((ID *)font);
+    id_us_min((ID *)font);
+  }
   return font;
 }
 
@@ -553,13 +555,13 @@ static Text *rna_Main_texts_load(Main *bmain,
   errno = 0;
   txt = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), is_internal);
 
-  if (!txt)
+  if (!txt) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
                 errno ? strerror(errno) : TIP_("unable to load text"));
-
+  }
   return txt;
 }
 

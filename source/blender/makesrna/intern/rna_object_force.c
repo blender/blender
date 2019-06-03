@@ -125,8 +125,9 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
   Object *ob = (Object *)ptr->id.data;
   PointCache *cache = (PointCache *)ptr->data;
 
-  if (!ob)
+  if (!ob) {
     return;
+  }
 
   cache->flag |= PTCACHE_OUTDATED;
 
@@ -136,8 +137,9 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
   if (pid.cache) {
     /* Just make sure this wasn't changed. */
-    if (pid.type == PTCACHE_TYPE_SMOKE_DOMAIN)
+    if (pid.type == PTCACHE_TYPE_SMOKE_DOMAIN) {
       cache->step = 1;
+    }
     BKE_ptcache_update_info(&pid);
   }
 }
@@ -147,16 +149,19 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
   Object *ob = (Object *)ptr->id.data;
   PointCache *cache = (PointCache *)ptr->data;
 
-  if (!ob)
+  if (!ob) {
     return;
+  }
 
   PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 
   /* smoke can only use disk cache */
-  if (pid.cache && pid.type != PTCACHE_TYPE_SMOKE_DOMAIN)
+  if (pid.cache && pid.type != PTCACHE_TYPE_SMOKE_DOMAIN) {
     BKE_ptcache_toggle_disk_cache(&pid);
-  else
+  }
+  else {
     cache->flag ^= PTCACHE_DISK_CACHE;
+  }
 }
 
 static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -165,8 +170,9 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
   PointCache *cache = (PointCache *)ptr->data;
   bool use_new_name = true;
 
-  if (!ob)
+  if (!ob) {
     return;
+  }
 
   /* TODO: check for proper characters */
 
@@ -187,8 +193,9 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
     BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
     for (pid = pidlist.first; pid; pid = pid->next) {
-      if (pid->cache == cache)
+      if (pid->cache == cache) {
         pid2 = pid;
+      }
       else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
         /*TODO: report "name exists" to user */
         BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
@@ -221,8 +228,9 @@ static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *p
   PointCache *cache = ptr->data;
   ListBase lb;
 
-  while (cache->prev)
+  while (cache->prev) {
     cache = cache->prev;
+  }
 
   lb.first = cache;
   lb.last = NULL; /* not used by listbase_begin */
@@ -315,10 +323,12 @@ static bool rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_EDGES;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_EDGES;
+  }
 }
 
 static bool rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
@@ -330,10 +340,12 @@ static bool rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_GOAL;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_GOAL;
+  }
 }
 
 static bool rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
@@ -345,10 +357,12 @@ static bool rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_QUADS;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_QUADS;
+  }
 }
 
 static bool rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
@@ -360,28 +374,34 @@ static bool rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_SELF;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_SELF;
+  }
 }
 
 static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (data->softflag & OB_SB_AERO_ANGLE)
+  if (data->softflag & OB_SB_AERO_ANGLE) {
     return 1;
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value == 1)
+  if (value == 1) {
     data->softflag |= OB_SB_AERO_ANGLE;
-  else /* value == 0 */
+  }
+  else { /* value == 0 */
     data->softflag &= ~OB_SB_AERO_ANGLE;
+  }
 }
 
 static bool rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
@@ -393,10 +413,12 @@ static bool rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_FACECOLL;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_FACECOLL;
+  }
 }
 
 static bool rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
@@ -408,10 +430,12 @@ static bool rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
 static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, bool value)
 {
   Object *data = (Object *)(ptr->id.data);
-  if (value)
+  if (value) {
     data->softflag |= OB_SB_EDGECOLL;
-  else
+  }
+  else {
     data->softflag &= ~OB_SB_EDGECOLL;
+  }
 }
 
 static void rna_SoftBodySettings_goal_vgroup_get(PointerRNA *ptr, char *value)
@@ -536,10 +560,12 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
     rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-    if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
+    if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-    else
+    }
+    else {
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    }
 
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
   }
@@ -555,17 +581,20 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
     /* particle system force field */
     ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 
-    if (part->pd == pd)
+    if (part->pd == pd) {
       return BLI_strdup("force_field_1");
-    else if (part->pd2 == pd)
+    }
+    else if (part->pd2 == pd) {
       return BLI_strdup("force_field_2");
+    }
   }
   else {
     /* object force field */
     Object *ob = (Object *)ptr->id.data;
 
-    if (ob->pd == pd)
+    if (ob->pd == pd) {
       return BLI_strdup("field");
+    }
   }
   return NULL;
 }
@@ -682,10 +711,12 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
   ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
 
   /* add/remove modifier as needed */
-  if (ob->pd->deflect && !md)
+  if (ob->pd->deflect && !md) {
     ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Collision);
-  else if (!ob->pd->deflect && md)
+  }
+  else if (!ob->pd->deflect && md) {
     ED_object_modifier_remove(NULL, bmain, ob, md);
+  }
 
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
@@ -721,26 +752,30 @@ static const EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C),
 {
   Object *ob = NULL;
 
-  if (particle_id_check(ptr))
+  if (particle_id_check(ptr)) {
     return empty_shape_items;
+  }
 
   ob = (Object *)ptr->id.data;
 
   if (ob->type == OB_CURVE) {
-    if (ob->pd->forcefield == PFIELD_VORTEX)
+    if (ob->pd->forcefield == PFIELD_VORTEX) {
       return curve_vortex_shape_items;
+    }
 
     return curve_shape_items;
   }
   else if (ELEM(ob->type, OB_MESH, OB_SURF, OB_FONT)) {
-    if (ob->pd->forcefield == PFIELD_VORTEX)
+    if (ob->pd->forcefield == PFIELD_VORTEX) {
       return vortex_shape_items;
+    }
 
     return effector_shape_items;
   }
   else {
-    if (ob->pd->forcefield == PFIELD_VORTEX)
+    if (ob->pd->forcefield == PFIELD_VORTEX) {
       return empty_vortex_shape_items;
+    }
 
     return empty_shape_items;
   }

@@ -284,28 +284,33 @@ static void rna_DriverTarget_id_type_set(PointerRNA *ptr, int value)
   }
 
   /* clear the id-block if the type is invalid */
-  if ((data->id) && (GS(data->id->name) != data->idtype))
+  if ((data->id) && (GS(data->id->name) != data->idtype)) {
     data->id = NULL;
+  }
 }
 
 static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
 
-  if (dtar->rna_path)
+  if (dtar->rna_path) {
     strcpy(value, dtar->rna_path);
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_DriverTarget_RnaPath_length(PointerRNA *ptr)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
 
-  if (dtar->rna_path)
+  if (dtar->rna_path) {
     return strlen(dtar->rna_path);
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
@@ -314,13 +319,16 @@ static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
 
   /* XXX in this case we need to be very careful,
    * as this will require some new dependencies to be added! */
-  if (dtar->rna_path)
+  if (dtar->rna_path) {
     MEM_freeN(dtar->rna_path);
+  }
 
-  if (value[0])
+  if (value[0]) {
     dtar->rna_path = BLI_strdup(value);
-  else
+  }
+  else {
     dtar->rna_path = NULL;
+  }
 }
 
 static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
@@ -417,35 +425,41 @@ static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 {
   FCurve *fcu = (FCurve *)ptr->data;
 
-  if (fcu->rna_path)
+  if (fcu->rna_path) {
     strcpy(value, fcu->rna_path);
-  else
+  }
+  else {
     value[0] = '\0';
+  }
 }
 
 static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
 {
   FCurve *fcu = (FCurve *)ptr->data;
 
-  if (fcu->rna_path)
+  if (fcu->rna_path) {
     return strlen(fcu->rna_path);
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 {
   FCurve *fcu = (FCurve *)ptr->data;
 
-  if (fcu->rna_path)
+  if (fcu->rna_path) {
     MEM_freeN(fcu->rna_path);
+  }
 
   if (value[0]) {
     fcu->rna_path = BLI_strdup(value);
     fcu->flag &= ~FCURVE_DISABLED;
   }
-  else
+  else {
     fcu->rna_path = NULL;
+  }
 }
 
 static void rna_FCurve_group_set(PointerRNA *ptr,
@@ -702,8 +716,9 @@ static void rna_FModifier_verify_data_update(Main *bmain, Scene *scene, PointerR
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
   /* call the verify callback on the modifier if applicable */
-  if (fmi && fmi->verify_data)
+  if (fmi && fmi->verify_data) {
     fmi->verify_data(fcm);
+  }
 
   rna_FModifier_update(bmain, scene, ptr);
 }
@@ -729,10 +744,12 @@ static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr,
   FModifier *fcm = (FModifier *)ptr->data;
   FMod_Generator *gen = fcm->data;
 
-  if (gen)
+  if (gen) {
     length[0] = gen->arraysize;
-  else
+  }
+  else {
     length[0] = 100; /* for raw_access, untested */
+  }
 
   return length[0];
 }

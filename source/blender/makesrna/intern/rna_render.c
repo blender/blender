@@ -292,8 +292,9 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
 {
   RenderEngineType *et = RNA_struct_blender_type_get(type);
 
-  if (!et)
+  if (!et) {
     return;
+  }
 
   RNA_struct_free_extension(type, &et->ext);
   RNA_struct_free(&BLENDER_RNA, type);
@@ -322,8 +323,9 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   RNA_pointer_create(NULL, &RNA_RenderEngine, &dummyengine, &dummyptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0)
+  if (validate(&dummyptr, data, have_function) != 0) {
     return NULL;
+  }
 
   if (strlen(identifier) >= sizeof(dummyet.idname)) {
     BKE_reportf(reports,
@@ -337,8 +339,9 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   /* check if we have registered this engine type before, and remove it */
   for (et = R_engines.first; et; et = et->next) {
     if (STREQ(et->idname, dummyet.idname)) {
-      if (et->ext.srna)
+      if (et->ext.srna) {
         rna_RenderEngine_unregister(bmain, et->ext.srna);
+      }
       break;
     }
   }

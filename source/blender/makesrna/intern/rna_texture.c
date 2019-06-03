@@ -266,10 +266,12 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
       MTex *mtex = ptr->data;
       int recalc = ID_RECALC_GEOMETRY;
 
-      if (mtex->mapto & PAMAP_INIT)
+      if (mtex->mapto & PAMAP_INIT) {
         recalc |= ID_RECALC_PSYS_RESET;
-      if (mtex->mapto & PAMAP_CHILD)
+      }
+      if (mtex->mapto & PAMAP_CHILD) {
         recalc |= ID_RECALC_PSYS_CHILD;
+      }
 
       DEG_id_tag_update(id, recalc);
       WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
@@ -327,8 +329,9 @@ static int rna_TextureSlot_name_length(PointerRNA *ptr)
 {
   MTex *mtex = ptr->data;
 
-  if (mtex->tex)
+  if (mtex->tex) {
     return strlen(mtex->tex->id.name + 2);
+  }
 
   return 0;
 }
@@ -337,10 +340,12 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 {
   MTex *mtex = ptr->data;
 
-  if (mtex->tex)
+  if (mtex->tex) {
     strcpy(str, mtex->tex->id.name + 2);
-  else
+  }
+  else {
     str[0] = '\0';
+  }
 }
 
 static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
@@ -355,8 +360,9 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
     if (ntree) {
       for (node = ntree->nodes.first; node; node = node->next) {
         if (node->type == TEX_NODE_OUTPUT) {
-          if (cur == node->custom1)
+          if (cur == node->custom1) {
             return cur;
+          }
         }
       }
     }
@@ -408,13 +414,16 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
   Tex *tex = (Tex *)ptr->data;
 
-  if (value)
+  if (value) {
     tex->flag |= TEX_COLORBAND;
-  else
+  }
+  else {
     tex->flag &= ~TEX_COLORBAND;
+  }
 
-  if ((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
+  if ((tex->flag & TEX_COLORBAND) && tex->coba == NULL) {
     tex->coba = BKE_colorband_add(false);
+  }
 }
 
 static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
@@ -424,8 +433,9 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
   if (tex->use_nodes) {
     tex->type = 0;
 
-    if (tex->nodetree == NULL)
+    if (tex->nodetree == NULL) {
       ED_node_texture_default(C, tex);
+    }
   }
 
   rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
@@ -435,10 +445,12 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, bool value)
 {
   Tex *tex = (Tex *)ptr->data;
 
-  if (value)
+  if (value) {
     tex->imaflag |= TEX_MIPMAP;
-  else
+  }
+  else {
     tex->imaflag &= ~TEX_MIPMAP;
+  }
 }
 
 #else

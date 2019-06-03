@@ -86,8 +86,9 @@ static void rna_FCurve_convert_to_keyframes(FCurve *fcu, ReportList *reports, in
     fcu->totvert = tot_kf;
 
     /* Get first sample point to 'copy' as keyframe. */
-    for (; tot_sp && (fpt->vec[0] < (float)start); fpt++, tot_sp--)
-      ;
+    for (; tot_sp && (fpt->vec[0] < (float)start); fpt++, tot_sp--) {
+      /* pass */
+    }
 
     /* Add heading dummy flat points if needed. */
     for (; tot_kf && (fpt->vec[0] > (float)start); start++, bezt++, tot_kf--) {
