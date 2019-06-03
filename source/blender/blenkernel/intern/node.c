@@ -41,6 +41,7 @@
 #include "DNA_linestyle_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -1008,10 +1009,8 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
   return nodeAddNode(C, ntree, idname);
 }
 
-static void node_socket_copy(bNodeSocket *sock_dst, bNodeSocket *sock_src, const int flag)
+static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag)
 {
-  sock_src->new_sock = sock_dst;
-
   if (sock_src->prop) {
     sock_dst->prop = IDP_CopyProperty_ex(sock_src->prop, flag);
   }
@@ -1029,7 +1028,7 @@ static void node_socket_copy(bNodeSocket *sock_dst, bNodeSocket *sock_src, const
 
 /* keep socket listorder identical, for copying links */
 /* ntree is the target tree */
-bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
+bNode *BKE_node_copy_ex(bNodeTree *ntree, const bNode *node_src, const int flag)
 {
   bNode *node_dst = MEM_callocN(sizeof(bNode), "dupli node");
   bNodeSocket *sock_dst, *sock_src;
@@ -1063,10 +1062,17 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
   for (link_dst = node_dst->internal_links.first, link_src = node_src->internal_links.first;
        link_dst != NULL;
        link_dst = link_dst->next, link_src = link_src->next) {
+    /* This is a bit annoying to do index lookups in a list, but is likely to be faster than
+     * trying to create a hash-map. At least for usual nodes, which only have so much sockets
+     * and internal links. */
+    const int from_sock_index = BLI_findindex(&node_src->inputs, link_src->fromsock);
+    const int to_sock_index = BLI_findindex(&node_src->outputs, link_src->tosock);
+    BLI_assert(from_sock_index != -1);
+    BLI_assert(to_sock_index != -1);
     link_dst->fromnode = node_dst;
     link_dst->tonode = node_dst;
-    link_dst->fromsock = link_dst->fromsock->new_sock;
-    link_dst->tosock = link_dst->tosock->new_sock;
+    link_dst->fromsock = BLI_findlink(&node_dst->inputs, from_sock_index);
+    link_dst->tosock = BLI_findlink(&node_dst->outputs, to_sock_index);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -1077,7 +1083,6 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
     node_src->typeinfo->copyfunc(ntree, node_dst, node_src);
   }
 
-  node_src->new_node = node_dst;
   node_dst->new_node = NULL;
 
   bool do_copy_api = !((flag & LIB_ID_CREATE_NO_MAIN) || (flag & LIB_ID_COPY_LOCALIZE));
@@ -1093,6 +1098,30 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
   }
 
   return node_dst;
+}
+
+bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const int flag)
+{
+  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag);
+  /* Store mapping to the node itself. */
+  node_src->new_node = new_node;
+  /* Store mapping to inputs. */
+  bNodeSocket *new_input_sock = new_node->inputs.first;
+  bNodeSocket *input_sock_src = node_src->inputs.first;
+  while (new_input_sock != NULL) {
+    input_sock_src->new_sock = new_input_sock;
+    new_input_sock = new_input_sock->next;
+    input_sock_src = input_sock_src->next;
+  }
+  /* Store mapping to outputs. */
+  bNodeSocket *new_output_sock = new_node->outputs.first;
+  bNodeSocket *output_sock_src = node_src->outputs.first;
+  while (new_output_sock != NULL) {
+    output_sock_src->new_sock = new_output_sock;
+    new_output_sock = new_output_sock->next;
+    output_sock_src = output_sock_src->next;
+  }
+  return new_node;
 }
 
 /* also used via rna api, so we check for proper input output direction */
@@ -1402,22 +1431,44 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
   BLI_listbase_clear(&ntree_dst->nodes);
   BLI_listbase_clear(&ntree_dst->links);
 
-  for (bNode *node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
-    BKE_node_copy_ex(ntree_dst, node_src, flag_subdata);
+  /* Since source nodes and sockets are unique pointers we can put everything in a single map. */
+  GHash *new_pointers = BLI_ghash_ptr_new("BKE_node_tree_copy_data");
+
+  for (const bNode *node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
+    bNode *new_node = BKE_node_copy_ex(ntree_dst, node_src, flag_subdata);
+    BLI_ghash_insert(new_pointers, (void *)node_src, new_node);
+    /* Store mapping to inputs. */
+    bNodeSocket *new_input_sock = new_node->inputs.first;
+    const bNodeSocket *input_sock_src = node_src->inputs.first;
+    while (new_input_sock != NULL) {
+      BLI_ghash_insert(new_pointers, (void *)input_sock_src, new_input_sock);
+      new_input_sock = new_input_sock->next;
+      input_sock_src = input_sock_src->next;
+    }
+    /* Store mapping to outputs. */
+    bNodeSocket *new_output_sock = new_node->outputs.first;
+    const bNodeSocket *output_sock_src = node_src->outputs.first;
+    while (new_output_sock != NULL) {
+      BLI_ghash_insert(new_pointers, (void *)output_sock_src, new_output_sock);
+      new_output_sock = new_output_sock->next;
+      output_sock_src = output_sock_src->next;
+    }
   }
 
   /* copy links */
   BLI_duplicatelist(&ntree_dst->links, &ntree_src->links);
   for (link_dst = ntree_dst->links.first; link_dst; link_dst = link_dst->next) {
-    link_dst->fromnode = (link_dst->fromnode ? link_dst->fromnode->new_node : NULL);
-    link_dst->fromsock = (link_dst->fromsock ? link_dst->fromsock->new_sock : NULL);
-    link_dst->tonode = (link_dst->tonode ? link_dst->tonode->new_node : NULL);
-    link_dst->tosock = (link_dst->tosock ? link_dst->tosock->new_sock : NULL);
+    link_dst->fromnode = BLI_ghash_lookup_default(new_pointers, link_dst->fromnode, NULL);
+    link_dst->fromsock = BLI_ghash_lookup_default(new_pointers, link_dst->fromsock, NULL);
+    link_dst->tonode = BLI_ghash_lookup_default(new_pointers, link_dst->tonode, NULL);
+    link_dst->tosock = BLI_ghash_lookup_default(new_pointers, link_dst->tosock, NULL);
     /* update the link socket's pointer */
     if (link_dst->tosock) {
       link_dst->tosock->link = link_dst;
     }
   }
+
+  BLI_ghash_free(new_pointers, NULL, NULL);
 
   /* copy interface sockets */
   BLI_duplicatelist(&ntree_dst->inputs, &ntree_src->inputs);
@@ -2201,9 +2252,12 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
     /* ensures only a single output node is enabled */
     ntreeSetOutput(ntree);
 
-    for (node = ntree->nodes.first; node; node = node->next) {
-      /* store new_node pointer to original */
-      node->new_node->original = node;
+    bNode *node_src = ntree->nodes.first;
+    bNode *node_local = ltree->nodes.first;
+    while (node_src != NULL) {
+      node_local->original = node_src;
+      node_src = node_src->next;
+      node_local = node_local->next;
     }
 
     if (ntree->typeinfo->localize) {
@@ -3595,7 +3649,7 @@ void node_type_storage(bNodeType *ntype,
                        void (*freefunc)(struct bNode *node),
                        void (*copyfunc)(struct bNodeTree *dest_ntree,
                                         struct bNode *dest_node,
-                                        struct bNode *src_node))
+                                        const struct bNode *src_node))
 {
   if (storagename) {
     BLI_strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));

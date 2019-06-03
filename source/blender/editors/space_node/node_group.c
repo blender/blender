@@ -439,7 +439,7 @@ static int node_group_separate_selected(
 
     if (make_copy) {
       /* make a copy */
-      newnode = BKE_node_copy_ex(ngroup, node, LIB_ID_COPY_DEFAULT);
+      newnode = BKE_node_copy_store_new_pointers(ngroup, node, LIB_ID_COPY_DEFAULT);
     }
     else {
       /* use the existing node */

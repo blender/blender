@@ -273,7 +273,9 @@ static void node_free_cryptomatte(bNode *node)
   }
 }
 
-static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
+static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
+                                  bNode *dest_node,
+                                  const bNode *src_node)
 {
   NodeCryptomatte *src_nc = src_node->storage;
   NodeCryptomatte *dest_nc = MEM_dupallocN(src_nc);

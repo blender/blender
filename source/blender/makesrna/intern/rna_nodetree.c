@@ -1336,7 +1336,7 @@ static void rna_Node_init(const bContext *C, PointerRNA *ptr)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_copy(PointerRNA *ptr, struct bNode *copynode)
+static void rna_Node_copy(PointerRNA *ptr, const struct bNode *copynode)
 {
   extern FunctionRNA rna_Node_copy_func;
 

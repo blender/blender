@@ -432,15 +432,17 @@ static void node_composit_free_image(bNode *node)
 
 static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
                                      bNode *dest_node,
-                                     bNode *src_node)
+                                     const bNode *src_node)
 {
-  bNodeSocket *sock;
-
   dest_node->storage = MEM_dupallocN(src_node->storage);
 
-  /* copy extra socket info */
-  for (sock = src_node->outputs.first; sock; sock = sock->next) {
-    sock->new_sock->storage = MEM_dupallocN(sock->storage);
+  const bNodeSocket *src_output_sock = src_node->outputs.first;
+  bNodeSocket *dest_output_sock = dest_node->outputs.first;
+  while (dest_output_sock != NULL) {
+    dest_output_sock->storage = MEM_dupallocN(src_output_sock->storage);
+
+    src_output_sock = src_output_sock->next;
+    dest_output_sock = dest_output_sock->next;
   }
 }
 
@@ -556,16 +558,17 @@ static void node_composit_free_rlayers(bNode *node)
 }
 
 static void node_composit_copy_rlayers(bNodeTree *UNUSED(dest_ntree),
-                                       bNode *UNUSED(dest_node),
-                                       bNode *src_node)
+                                       bNode *dest_node,
+                                       const bNode *src_node)
 {
-  bNodeSocket *sock;
-
   /* copy extra socket info */
-  for (sock = src_node->outputs.first; sock; sock = sock->next) {
-    if (sock->storage) {
-      sock->new_sock->storage = MEM_dupallocN(sock->storage);
-    }
+  const bNodeSocket *src_output_sock = src_node->outputs.first;
+  bNodeSocket *dest_output_sock = dest_node->outputs.first;
+  while (dest_output_sock != NULL) {
+    dest_output_sock->storage = MEM_dupallocN(src_output_sock->storage);
+
+    src_output_sock = src_output_sock->next;
+    dest_output_sock = dest_output_sock->next;
   }
 }
 

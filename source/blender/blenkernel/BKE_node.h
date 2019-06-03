@@ -225,12 +225,14 @@ typedef struct bNodeType {
   /// Free the node instance.
   void (*freefunc)(struct bNode *node);
   /// Make a copy of the node instance.
-  void (*copyfunc)(struct bNodeTree *dest_ntree, struct bNode *dest_node, struct bNode *src_node);
+  void (*copyfunc)(struct bNodeTree *dest_ntree,
+                   struct bNode *dest_node,
+                   const struct bNode *src_node);
 
   /* Registerable API callback versions, called in addition to C callbacks */
   void (*initfunc_api)(const struct bContext *C, struct PointerRNA *ptr);
   void (*freefunc_api)(struct PointerRNA *ptr);
-  void (*copyfunc_api)(struct PointerRNA *ptr, struct bNode *src_node);
+  void (*copyfunc_api)(struct PointerRNA *ptr, const struct bNode *src_node);
 
   /* can this node type be added to a node tree */
   bool (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree);
@@ -538,7 +540,20 @@ void nodeRemoveNode(struct Main *bmain,
                     struct bNode *node,
                     bool do_id_user);
 
-struct bNode *BKE_node_copy_ex(struct bNodeTree *ntree, struct bNode *node_src, const int flag);
+struct bNode *BKE_node_copy_ex(struct bNodeTree *ntree,
+                               const struct bNode *node_src,
+                               const int flag);
+
+/* Same as BKE_node_copy_ex() but stores pointers to a new node and its sockets in the source
+ * node.
+ *
+ * NOTE: DANGER ZONE!
+ *
+ * TODO(sergey): Maybe it's better to make BKE_node_copy_ex() return a mapping from old node and
+ * sockets to new one. */
+struct bNode *BKE_node_copy_store_new_pointers(struct bNodeTree *ntree,
+                                               struct bNode *node_src,
+                                               const int flag);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNode *fromnode,
@@ -730,7 +745,7 @@ void node_type_storage(struct bNodeType *ntype,
                        void (*freefunc)(struct bNode *node),
                        void (*copyfunc)(struct bNodeTree *dest_ntree,
                                         struct bNode *dest_node,
-                                        struct bNode *src_node));
+                                        const struct bNode *src_node));
 void node_type_label(
     struct bNodeType *ntype,
     void (*labelfunc)(struct bNodeTree *ntree, struct bNode *, char *label, int maxlen));

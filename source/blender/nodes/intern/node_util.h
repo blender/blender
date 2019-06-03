@@ -58,10 +58,10 @@ extern void node_free_standard_storage(struct bNode *node);
 
 extern void node_copy_curves(struct bNodeTree *dest_ntree,
                              struct bNode *dest_node,
-                             struct bNode *src_node);
+                             const struct bNode *src_node);
 extern void node_copy_standard_storage(struct bNodeTree *dest_ntree,
                                        struct bNode *dest_node,
-                                       struct bNode *src_node);
+                                       const struct bNode *src_node);
 extern void *node_initexec_curves(struct bNodeExecContext *context,
                                   struct bNode *node,
                                   bNodeInstanceKey key);

@@ -57,7 +57,7 @@ static void node_shader_free_tex_pointdensity(bNode *node)
 
 static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
                                               bNode *dest_node,
-                                              bNode *src_node)
+                                              const bNode *src_node)
 {
   dest_node->storage = MEM_dupallocN(src_node->storage);
   NodeShaderTexPointDensity *point_density = dest_node->storage;

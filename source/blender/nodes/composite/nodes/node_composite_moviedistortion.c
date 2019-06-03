@@ -64,7 +64,7 @@ static void storage_free(bNode *node)
   node->storage = NULL;
 }
 
-static void storage_copy(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
+static void storage_copy(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
 {
   if (src_node->storage) {
     dest_node->storage = BKE_tracking_distortion_copy(src_node->storage);

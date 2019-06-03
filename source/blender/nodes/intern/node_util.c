@@ -57,12 +57,14 @@ void node_free_standard_storage(bNode *node)
   }
 }
 
-void node_copy_curves(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
+void node_copy_curves(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
 {
   dest_node->storage = curvemapping_copy(src_node->storage);
 }
 
-void node_copy_standard_storage(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
+void node_copy_standard_storage(bNodeTree *UNUSED(dest_ntree),
+                                bNode *dest_node,
+                                const bNode *src_node)
 {
   dest_node->storage = MEM_dupallocN(src_node->storage);
 }

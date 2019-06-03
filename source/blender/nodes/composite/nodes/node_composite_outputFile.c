@@ -228,7 +228,9 @@ static void free_output_file(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static void copy_output_file(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, bNode *src_node)
+static void copy_output_file(bNodeTree *UNUSED(dest_ntree),
+                             bNode *dest_node,
+                             const bNode *src_node)
 {
   bNodeSocket *src_sock, *dest_sock;
 
