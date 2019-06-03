@@ -188,8 +188,9 @@ inline bool bc_startswith(std::string const &value, std::string const &starting)
 
 inline bool bc_endswith(const std::string &value, const std::string &ending)
 {
-  if (ending.size() > value.size())
+  if (ending.size() > value.size()) {
     return false;
+  }
 
   return value.compare(value.size() - ending.size(), ending.size(), ending) == 0;
 }
