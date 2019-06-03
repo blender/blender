@@ -3073,7 +3073,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
   }
 }
 
-static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *event)
+static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
@@ -3248,7 +3248,7 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* check dragging, creates new event or frees, adds draw tag */
-      wm_event_drag_test(wm, win, event);
+      wm_event_drag_and_drop_test(wm, win, event);
 
       /* builtin tweak, if action is break it removes tweak */
       wm_tweakevent_test(C, event, action);
