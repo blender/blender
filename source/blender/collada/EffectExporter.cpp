@@ -101,14 +101,8 @@ void EffectsExporter::set_shader_type(COLLADASW::EffectProfile &ep, Material *ma
 
 void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  COLLADASW::ColorOrTexture cot = bc_get_base_color(ma);
-  float transparency = cot.getColor().getAlpha();
-  if (transparency < 1) {
-    // Tod: because we are in A_ONE mode transparency is calculated like this:
-    COLLADASW::ColorOrTexture cot = getcol(1.0f, 1.0f, 1.0f, transparency);
-    ep.setTransparent(cot);
-    ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
-  }
+  double alpha = bc_get_alpha(ma);
+  ep.setTransparency(alpha, false, "alpha");
 }
 void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *ma)
 {
@@ -125,7 +119,8 @@ void EffectsExporter::set_reflectivity(COLLADASW::EffectProfile &ep, Material *m
 
 void EffectsExporter::set_emission(COLLADASW::EffectProfile &ep, Material *ma)
 {
-  // not yet supported (needs changes in principled shader
+  COLLADASW::ColorOrTexture cot = bc_get_emission(ma);
+  ep.setEmission(cot, false, "emission");
 }
 
 void EffectsExporter::get_images(Material *ma, KeyImageMap &material_image_map)

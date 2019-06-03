@@ -1343,12 +1343,58 @@ COLLADASW::ColorOrTexture bc_get_base_color(bNode *shader)
   }
 }
 
+COLLADASW::ColorOrTexture bc_get_emission(Material *ma)
+{
+  bNode *master_shader = bc_get_master_shader(ma);
+  if (ma->use_nodes && master_shader) {
+    return bc_get_emission(master_shader);
+  }
+  else {
+    return bc_get_cot(0, 0, 0, 1); /* default black */
+  }
+}
+
+COLLADASW::ColorOrTexture bc_get_emission(bNode *shader)
+{
+  bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Emission");
+  if (socket) {
+    bNodeSocketValueRGBA *dcol = (bNodeSocketValueRGBA *)socket->default_value;
+    float *col = dcol->value;
+    return bc_get_cot(col[0], col[1], col[2], col[3]);
+  }
+  else {
+    return bc_get_cot(0, 0, 0, 1); /* default black */
+  }
+}
+
+
 bool bc_get_reflectivity(bNode *shader, double &reflectivity)
 {
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Specular");
   if (socket) {
     bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
     reflectivity = (double)ref->value;
+    return true;
+  }
+  return false;
+}
+
+double bc_get_alpha(Material *ma)
+{
+  double alpha = ma->a; /* fallback if no socket found */
+  bNode *master_shader = bc_get_master_shader(ma);
+  if (ma->use_nodes && master_shader) {
+    bc_get_alpha(master_shader, alpha);
+  }
+  return alpha;
+}
+
+bool bc_get_alpha(bNode *shader, double &alpha)
+{
+  bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Alpha");
+  if (socket) {
+    bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
+    alpha = (double)ref->value;
     return true;
   }
   return false;
