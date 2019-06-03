@@ -4298,8 +4298,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
-void wm_event_add_ghostevent(
-    wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {
   wmWindow *owin;
 
