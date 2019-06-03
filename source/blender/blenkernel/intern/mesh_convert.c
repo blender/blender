@@ -1169,16 +1169,27 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preser
   return new_mesh;
 }
 
-static int foreach_libblock_make_original_and_usercount_callback(void *user_data_v,
-                                                                 ID *id_self,
-                                                                 ID **id_p,
-                                                                 int cb_flag)
+static int foreach_libblock_make_original_callback(void *UNUSED(user_data_v),
+                                                   ID *UNUSED(id_self),
+                                                   ID **id_p,
+                                                   int UNUSED(cb_flag))
 {
-  UNUSED_VARS(user_data_v, id_self, cb_flag);
   if (*id_p == NULL) {
     return IDWALK_RET_NOP;
   }
   *id_p = DEG_get_original_id(*id_p);
+
+  return IDWALK_RET_NOP;
+}
+
+static int foreach_libblock_make_usercounts_callback(void *UNUSED(user_data_v),
+                                                     ID *UNUSED(id_self),
+                                                     ID **id_p,
+                                                     int cb_flag)
+{
+  if (*id_p == NULL) {
+    return IDWALK_RET_NOP;
+  }
 
   if (cb_flag & IDWALK_CB_USER) {
     id_us_plus(*id_p);
@@ -1204,10 +1215,10 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
    * Going to original data-blocks is required to have bmain in a consistent state, where
    * everything is only allowed to reference original data-blocks.
    *
-   * user-count is required is because so far mesh was in a limbo, where library management does
-   * not perform any user management (i.e. copy of a mesh will not increase users of materials). */
+   * Note that user-count updates has to be done *after* mesh has been transferred to Main database
+   * (since doing refcounting on non-Main IDs is forbidden). */
   BKE_library_foreach_ID_link(
-      NULL, &mesh->id, foreach_libblock_make_original_and_usercount_callback, NULL, IDWALK_NOP);
+      NULL, &mesh->id, foreach_libblock_make_original_callback, NULL, IDWALK_NOP);
 
   /* Append the mesh to bmain.
    * We do it a bit longer way since there is no simple and clear way of adding existing datablock
@@ -1216,7 +1227,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
 
   /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
-   * destinaion mesh .So we "steal" all related fields before calling it.
+   * destinaion mesh. So we "steal" all related fields before calling it.
    *
    * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
    */
@@ -1227,6 +1238,11 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   mesh->mat = NULL;
 
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, NULL, &CD_MASK_MESH, true);
+
+  /* User-count is required because so far mesh was in a limbo, where library management does
+   * not perform any user management (i.e. copy of a mesh will not increase users of materials). */
+  BKE_library_foreach_ID_link(
+      NULL, &mesh_in_bmain->id, foreach_libblock_make_usercounts_callback, NULL, IDWALK_NOP);
 
   /* Make sure user count from BKE_mesh_add() is the one we expect here and bring it down to 0. */
   BLI_assert(mesh_in_bmain->id.us == 1);
