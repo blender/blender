@@ -2766,6 +2766,9 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           }
         }
 
+        /* Don't use from now on. */
+        const bool is_event_handle_all = gz && (gz->flag & WM_GIZMO_EVENT_HANDLE_ALL);
+
         if (handle_keymap) {
           /* Handle highlight gizmo. */
           if (gz != NULL) {
@@ -2794,6 +2797,12 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
                 }
               }
             }
+          }
+        }
+
+        if (is_event_handle_all) {
+          if (action == WM_HANDLER_CONTINUE) {
+            action |= WM_HANDLER_BREAK | WM_HANDLER_MODAL;
           }
         }
 

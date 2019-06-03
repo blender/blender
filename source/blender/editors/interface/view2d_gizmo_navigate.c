@@ -171,6 +171,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
           gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_OUTLINE | ED_GIZMO_BUTTON_SHOW_BACKDROP);
     }
 
+    /* Not needed, just match 3D view where it is needed. */
+    WM_gizmo_set_flag(gz, WM_GIZMO_EVENT_HANDLE_ALL, true);
+
     wmOperatorType *ot = WM_operatortype_find(info->opname, true);
     WM_gizmo_operator_set(gz, 0, ot, NULL);
   }

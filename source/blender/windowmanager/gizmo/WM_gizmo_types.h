@@ -85,6 +85,10 @@ typedef enum eWM_GizmoFlag {
 
   /** Use the active tools operator properties when running as an operator. */
   WM_GIZMO_OPERATOR_TOOL_INIT = (1 << 9),
+
+  /** Don't pass through events to other handlers
+   * (allows click/drag not to have it's events stolen by press events in other keymaps). */
+  WM_GIZMO_EVENT_HANDLE_ALL = (1 << 10),
 } eWM_GizmoFlag;
 
 /**

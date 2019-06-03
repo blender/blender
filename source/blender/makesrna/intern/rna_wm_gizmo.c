@@ -398,6 +398,7 @@ RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_select_background, flag, WM_GIZMO_SELECT_
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_operator_tool_properties,
                               flag,
                               WM_GIZMO_OPERATOR_TOOL_INIT);
+RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_event_handle_all, flag, WM_GIZMO_EVENT_HANDLE_ALL);
 
 /* wmGizmo.state */
 RNA_GIZMO_FLAG_RO_DEF(state_is_highlight, state, WM_GIZMO_STATE_HIGHLIGHT);
@@ -1239,6 +1240,16 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
       prop,
       "Tool Property Init",
       "Merge active tool properties on activation (does not overwrite existing)");
+  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+
+  /* WM_GIZMO_EVENT_HANDLE_ALL */
+  prop = RNA_def_property(srna, "use_event_handle_all", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Gizmo_flag_use_event_handle_all_get", "rna_Gizmo_flag_use_event_handle_all_set");
+  RNA_def_property_ui_text(prop,
+                           "Handle All Events",
+                           "When highlighted, "
+                           "do not pass events through to be handled by other keymaps");
   RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 
   /* wmGizmo.state (readonly) */
