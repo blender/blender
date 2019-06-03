@@ -1839,7 +1839,6 @@ static void outliner_restore_scrolling_position(SpaceOutliner *soops,
                                                 OutlinerTreeElementFocus *focus)
 {
   View2D *v2d = &ar->v2d;
-  int ytop;
 
   if (focus->tselem != NULL) {
     outliner_set_coordinates(ar, soops);
@@ -1847,18 +1846,11 @@ static void outliner_restore_scrolling_position(SpaceOutliner *soops,
     TreeElement *te_new = outliner_find_tree_element(&soops->tree, focus->tselem);
 
     if (te_new != NULL) {
-      int ys_new, ys_old;
+      int ys_new = te_new->ys;
+      int ys_old = focus->ys;
 
-      ys_new = te_new->ys;
-      ys_old = focus->ys;
-
-      ytop = v2d->cur.ymax + (ys_new - ys_old) - 1;
-      if (ytop > 0) {
-        ytop = 0;
-      }
-
-      v2d->cur.ymax = (float)ytop;
-      v2d->cur.ymin = (float)(ytop - BLI_rcti_size_y(&v2d->mask));
+      float y_move = MIN2(ys_new - ys_old, -v2d->cur.ymax);
+      BLI_rctf_translate(&v2d->cur, 0, y_move);
     }
     else {
       return;
