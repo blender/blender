@@ -3216,7 +3216,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
   LinearSolver *context = chart->u.lscm.context;
   PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
   PFace *f;
-  float *alpha = chart->u.lscm.abf_alpha;
+  const float *alpha = chart->u.lscm.abf_alpha;
   float area_pinned_up, area_pinned_down;
   bool flip_faces;
   int row;

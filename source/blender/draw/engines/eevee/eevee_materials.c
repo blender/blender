@@ -1405,10 +1405,10 @@ static void material_transparent(Material *ma,
   const bool do_cull = (ma->blend_flag & MA_BL_CULL_BACKFACE) != 0;
   const bool use_ssrefract = (((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
                               ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0));
-  float *color_p = &ma->r;
-  float *metal_p = &ma->metallic;
-  float *spec_p = &ma->spec;
-  float *rough_p = &ma->roughness;
+  const float *color_p = &ma->r;
+  const float *metal_p = &ma->metallic;
+  const float *spec_p = &ma->spec;
+  const float *rough_p = &ma->roughness;
 
   if (ma->use_nodes && ma->nodetree) {
     static float error_col[3] = {1.0f, 0.0f, 1.0f};

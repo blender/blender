@@ -256,7 +256,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
   }
 
   {
-    static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
+    static const float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
     DRWPass *pass = DRW_pass_create("Face Mask Pass",
                                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                         DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA);

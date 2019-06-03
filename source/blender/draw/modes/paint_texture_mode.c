@@ -244,7 +244,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 
     /* Uniforms need a pointer to it's value so be sure it's accessible at
      * any given time (i.e. use static vars) */
-    static float color[4] = {1.0f, 0.0f, 1.0f, 1.0};
+    static const float color[4] = {1.0f, 0.0f, 1.0f, 1.0};
     DRW_shgroup_uniform_vec4(shgrp, "color", color, 1);
 
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
@@ -319,7 +319,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
                      DRW_STATE_BLEND_ALPHA;
     DRWPass *pass = DRW_pass_create("Face Mask Pass", state);
     DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->face_select_overlay, pass);
-    static float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
+    static const float col[4] = {1.0f, 1.0f, 1.0f, 0.2f};
     DRW_shgroup_uniform_vec4(shgrp, "color", col, 1);
 
     if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {

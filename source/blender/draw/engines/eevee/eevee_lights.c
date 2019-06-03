@@ -461,7 +461,7 @@ void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
                                               struct GPUMaterial *gpumat,
                                               struct GPUBatch *geom,
                                               struct Object *ob,
-                                              float *alpha_threshold)
+                                              const float *alpha_threshold)
 {
   /* TODO / PERF : reuse the same shading group for objects with the same material */
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);

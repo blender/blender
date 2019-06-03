@@ -921,7 +921,7 @@ void EEVEE_lights_cache_shcaster_material_add(EEVEE_ViewLayerData *sldata,
                                               struct GPUMaterial *gpumat,
                                               struct GPUBatch *geom,
                                               struct Object *ob,
-                                              float *alpha_threshold);
+                                              const float *alpha_threshold);
 void EEVEE_lights_cache_shcaster_object_add(EEVEE_ViewLayerData *sldata, struct Object *ob);
 void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_lights_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
