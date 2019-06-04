@@ -194,6 +194,6 @@ void main()
 #ifdef ESM
   accum = ln_space_prefilter_finalize(ref, accum);
 #endif
-
-  FragColor = vec2(accum).xyxy;
+  /* Clamp infinite sum. */
+  FragColor = vec2(clamp(accum, 0.0, 1e16)).xyxy;
 }
