@@ -112,6 +112,7 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
   is_directly_visible = true;
   is_collection_fully_expanded = false;
   has_base = false;
+  is_user_modified = false;
 
   visible_components_mask = 0;
   previously_visible_components_mask = 0;

@@ -187,6 +187,10 @@ BLI_INLINE OperationNode *flush_schedule_children(OperationNode *op_node, FlushQ
     if (rel->flag & RELATION_FLAG_NO_FLUSH) {
       continue;
     }
+    if (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
+      IDNode *id_node = op_node->owner->owner;
+      id_node->is_user_modified = true;
+    }
     /* Relation only allows flushes on user changes, but the node was not
      * affected by user. */
     if ((rel->flag & RELATION_FLAG_FLUSH_USER_EDIT_ONLY) &&
@@ -257,7 +261,7 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
      * TODO: image datablocks do not use COW, so might not be detected
      * correctly. */
     if (deg_copy_on_write_is_expanded(id_cow)) {
-      if (graph->is_active) {
+      if (graph->is_active && id_node->is_user_modified) {
         deg_editors_id_update(update_ctx, id_orig);
       }
       /* ID may need to get its auto-override operations refreshed. */

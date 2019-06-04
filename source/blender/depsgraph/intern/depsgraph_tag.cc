@@ -741,6 +741,8 @@ static void deg_graph_clear_id_node_func(void *__restrict data_v,
    * the recalc flag. */
   DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(data_v);
   DEG::IDNode *id_node = deg_graph->id_nodes[i];
+
+  id_node->is_user_modified = false;
   id_node->id_cow->recalc &= ~ID_RECALC_ALL;
 
   /* Clear embedded node trees too. */
