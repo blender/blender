@@ -796,14 +796,21 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Material *ma)
 {
   MaterialNode matNode = MaterialNode(mContext, ef, ma, uid_image_map);
-  matNode.set_reflectivity(ef->getReflectivity().getFloatValue());
-  matNode.set_ior(ef->getIndexOfRefraction().getFloatValue());
-  matNode.set_diffuse(ef->getDiffuse(), "Diffuse");
-  matNode.set_ambient(ef->getAmbient(), "Ambient");
-  matNode.set_specular(ef->getSpecular(), "Specular");
-  matNode.set_reflective(ef->getReflective(), "Reflective");
-  matNode.set_emission(ef->getEmission(), "Emission");
-  matNode.set_opacity(ef->getOpacity(), "Opacity");
+
+  /* Direct mapping to principled BSDF Shader */
+  matNode.set_diffuse(ef->getDiffuse());
+  matNode.set_emission(ef->getEmission());
+  matNode.set_ior(ef->getIndexOfRefraction());
+  matNode.set_alpha(ef->getOpaqueMode(), ef->getTransparent(), ef->getTransparency());
+
+  /* following mapping still needs to be verified */
+  matNode.set_shininess(ef->getShininess());
+  matNode.set_reflectivity(ef->getReflectivity());
+
+  /* not supported by principled BSDF */
+  matNode.set_ambient(ef->getAmbient());
+  matNode.set_specular(ef->getSpecular());
+  matNode.set_reflective(ef->getReflective());
 }
 
 /** When this method is called, the writer must write the effect.

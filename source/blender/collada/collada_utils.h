@@ -384,16 +384,24 @@ class BoneExtensionManager {
 
 void bc_add_default_shader(bContext *C, Material *ma);
 bNode *bc_get_master_shader(Material *ma);
-COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
 
 COLLADASW::ColorOrTexture bc_get_base_color(Material *ma);
-COLLADASW::ColorOrTexture bc_get_base_color(bNode *shader);
 COLLADASW::ColorOrTexture bc_get_emission(Material *ma);
-COLLADASW::ColorOrTexture bc_get_emission(bNode *shader);
+COLLADASW::ColorOrTexture bc_get_ambient(Material *ma);
+COLLADASW::ColorOrTexture bc_get_specular(Material *ma);
+COLLADASW::ColorOrTexture bc_get_reflective(Material *ma);
 
 double bc_get_reflectivity(Material *ma);
-bool bc_get_reflectivity(bNode *shader, double &emission);
 double bc_get_alpha(Material *ma);
-bool bc_get_alpha(bNode *shader, double &alpha);
+double bc_get_ior(Material *ma);
+double bc_get_shininess(Material *ma);
+
+double bc_get_float_from_shader(bNode *shader, double &ior, std::string nodeid);
+COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
+                                                 std::string nodeid,
+                                                 Color &default_color);
+
+COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
+COLLADASW::ColorOrTexture bc_get_cot(Color col);
 
 #endif

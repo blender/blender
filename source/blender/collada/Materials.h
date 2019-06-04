@@ -31,12 +31,6 @@ extern "C" {
 #include "collada_utils.h"
 #include "COLLADAFWEffectCommon.h"
 
-typedef enum BC_pbr_inputs {
-  BC_PBR_DIFFUSE = 0,
-  BC_PBR_METALLIC = 4,
-  BC_PBR_IOR = 14,
-} BC_pbr_inputs;
-
 typedef std::map<std::string, bNode *> NodeMap;
 
 class MaterialNode {
@@ -63,15 +57,20 @@ class MaterialNode {
  public:
   MaterialNode(bContext *C, COLLADAFW::EffectCommon *ef, Material *ma, UidImageMap &uid_image_map);
   MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map);
-  void set_diffuse(COLLADAFW::ColorOrTexture &cot, std::string label);
   Image *get_diffuse_image();
-  void set_specular(COLLADAFW::ColorOrTexture &cot, std::string label);
-  void set_ambient(COLLADAFW::ColorOrTexture &cot, std::string label);
-  void set_reflective(COLLADAFW::ColorOrTexture &cot, std::string label);
-  void set_emission(COLLADAFW::ColorOrTexture &cot, std::string label);
-  void set_opacity(COLLADAFW::ColorOrTexture &cot, std::string label);
-  void set_reflectivity(float val);
-  void set_ior(float val);
+
+  void set_diffuse(COLLADAFW::ColorOrTexture &cot);
+  void set_specular(COLLADAFW::ColorOrTexture &cot);
+  void set_ambient(COLLADAFW::ColorOrTexture &cot);
+  void set_reflective(COLLADAFW::ColorOrTexture &cot);
+  void set_emission(COLLADAFW::ColorOrTexture &cot);
+  void set_opacity(COLLADAFW::ColorOrTexture &cot);
+  void set_reflectivity(COLLADAFW::FloatOrParam &val);
+  void set_shininess(COLLADAFW::FloatOrParam &val);
+  void set_ior(COLLADAFW::FloatOrParam &val);
+  void set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
+                 COLLADAFW::ColorOrTexture &cot,
+                 COLLADAFW::FloatOrParam &val);
 };
 
 #endif

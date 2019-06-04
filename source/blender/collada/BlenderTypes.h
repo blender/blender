@@ -23,6 +23,7 @@
 
 typedef float(Vector)[3];
 typedef float(Quat)[4];
+typedef float(Color)[4];
 typedef float(Matrix)[4][4];
 typedef double(DMatrix)[4][4];
 
