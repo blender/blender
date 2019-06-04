@@ -1,23 +1,32 @@
 
 layout(std140) uniform shadow_render_block
 {
-  vec4 lampPosition;
+  /* Use vectors to avoid alignement padding. */
+  ivec4 shadowSampleCount;
+  vec4 shadowInvSampleCount;
+  vec4 filterSize;
+  int viewCount;
+  int baseId;
   float cubeTexelSize;
   float storedTexelSize;
   float nearClip;
   float farClip;
-  int shadowSampleCount;
-  float shadowInvSampleCount;
   float exponent;
 };
 
 #ifdef CSM
 uniform sampler2DArray shadowTexture;
-uniform int cascadeId;
 #else
 uniform samplerCube shadowTexture;
 #endif
-uniform float shadowFilterSize;
+
+flat in int layerID;
+
+#ifdef CSM
+#  define cascadeID layerID
+#else
+#  define cascadeID 0
+#endif
 
 out vec4 FragColor;
 
@@ -39,12 +48,12 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 /* http://advances.realtimerendering.com/s2009/SIGGRAPH%202009%20-%20Lighting%20Research%20at%20Bungie.pdf
  * Slide 55. */
 #define ln_space_prefilter_step(ref, sample) exp(sample - ref)
-#define ln_space_prefilter_finalize(ref, sum) (ref + log(shadowInvSampleCount * sum))
+#define ln_space_prefilter_finalize(ref, sum) (ref + log(shadowInvSampleCount[cascadeID] * sum))
 
 #ifdef CSM
 vec3 get_texco(vec3 cos, const vec2 ofs)
 {
-  cos.xy += ofs * shadowFilterSize;
+  cos.xy += ofs * filterSize[cascadeID];
   return cos;
 }
 #else /* CUBEMAP */
@@ -109,7 +118,7 @@ void main()
   cos.xy = gl_FragCoord.xy * storedTexelSize;
 
 #ifdef CSM
-  cos.z = float(cascadeId);
+  cos.z = float(cascadeID);
 #else /* CUBEMAP */
   /* add a 2 pixel border to ensure filtering is correct */
   cos.xy *= 1.0 + storedTexelSize * 2.0;
@@ -132,8 +141,8 @@ void main()
   cos = normalize(octahedral_to_cubemap_proj(cos.xy));
   make_orthonormal_basis(cos);
 
-  T *= shadowFilterSize;
-  B *= shadowFilterSize;
+  T *= filterSize[cascadeID];
+  B *= filterSize[cascadeID];
 #endif
 
 #ifdef ESM
@@ -159,7 +168,7 @@ void main()
    * `const vec2 concentric[]` array with variable indices is extremely slow.
    * The solution is to use constant indices to access the array.
    */
-  if (shadowSampleCount > 4) {
+  if (shadowSampleCount[cascadeID] > 4) {
     grouped_samples_accum(
         cos, concentric[4], concentric[5], concentric[6], concentric[7], ref, accum);
     grouped_samples_accum(
@@ -167,7 +176,7 @@ void main()
     grouped_samples_accum(
         cos, concentric[12], concentric[13], concentric[14], concentric[15], ref, accum);
   }
-  if (shadowSampleCount > 16) {
+  if (shadowSampleCount[cascadeID] > 16) {
     grouped_samples_accum(
         cos, concentric[16], concentric[17], concentric[18], concentric[19], ref, accum);
     grouped_samples_accum(
@@ -180,7 +189,7 @@ void main()
         cos, concentric[32], concentric[33], concentric[34], concentric[35], ref, accum);
   }
 #ifdef HIGH_BLUR
-  if (shadowSampleCount > 36) {
+  if (shadowSampleCount[cascadeID] > 36) {
     grouped_samples_accum(
         cos, concentric[36], concentric[37], concentric[38], concentric[39], ref, accum);
     grouped_samples_accum(
@@ -196,7 +205,7 @@ void main()
     grouped_samples_accum(
         cos, concentric[60], concentric[61], concentric[62], concentric[63], ref, accum);
   }
-  if (shadowSampleCount > 64) {
+  if (shadowSampleCount[cascadeID] > 64) {
     grouped_samples_accum(
         cos, concentric[64], concentric[65], concentric[66], concentric[67], ref, accum);
     grouped_samples_accum(
@@ -216,7 +225,7 @@ void main()
     grouped_samples_accum(
         cos, concentric[96], concentric[97], concentric[98], concentric[99], ref, accum);
   }
-  if (shadowSampleCount > 100) {
+  if (shadowSampleCount[cascadeID] > 100) {
     grouped_samples_accum(
         cos, concentric[100], concentric[101], concentric[102], concentric[103], ref, accum);
     grouped_samples_accum(
@@ -240,7 +249,7 @@ void main()
     grouped_samples_accum(
         cos, concentric[140], concentric[141], concentric[142], concentric[143], ref, accum);
   }
-  if (shadowSampleCount > 144) {
+  if (shadowSampleCount[cascadeID] > 144) {
     grouped_samples_accum(
         cos, concentric[144], concentric[145], concentric[146], concentric[147], ref, accum);
     grouped_samples_accum(
@@ -268,7 +277,7 @@ void main()
     grouped_samples_accum(
         cos, concentric[192], concentric[193], concentric[194], concentric[195], ref, accum);
   }
-  if (shadowSampleCount > 196) {
+  if (shadowSampleCount[cascadeID] > 196) {
     grouped_samples_accum(
         cos, concentric[196], concentric[197], concentric[198], concentric[199], ref, accum);
     grouped_samples_accum(
@@ -308,6 +317,6 @@ void main()
   FragColor = accum.xxxx;
 
 #else /* VSM */
-  FragColor = accum.xyxy * shadowInvSampleCount;
+  FragColor = accum.xyxy * shadowInvSampleCount[cascadeID];
 #endif
 }

@@ -3,24 +3,32 @@
 
 layout(std140) uniform shadow_render_block
 {
-  vec4 lampPosition;
+  /* Use vectors to avoid alignement padding. */
+  ivec4 shadowSampleCount;
+  vec4 shadowInvSampleCount;
+  vec4 filterSize;
+  int viewCount;
+  int baseId;
   float cubeTexelSize;
   float storedTexelSize;
   float nearClip;
   float farClip;
-  int shadowSampleCount;
-  float shadowInvSampleCount;
   float exponent;
 };
 
 #ifdef CSM
 uniform sampler2DArray shadowTexture;
-uniform int cascadeId;
 #else
 uniform samplerCube shadowTexture;
-uniform int faceId;
 #endif
-uniform float shadowFilterSize;
+
+flat in int layerID;
+
+#ifdef CSM
+#  define cascadeID layerID
+#else
+#  define cascadeID 0
+#endif
 
 out vec4 FragColor;
 
@@ -92,7 +100,7 @@ void prefilter(vec4 depths, float ref, inout vec2 accum)
 #ifdef CSM
 vec3 get_texco(vec2 uvs, vec2 ofs)
 {
-  return vec3(uvs + ofs, float(cascadeId));
+  return vec3(uvs + ofs, float(cascadeID));
 }
 #else /* CUBEMAP */
 const vec3 minorAxisX[6] = vec3[6](vec3(0.0f, 0.0f, -1.0f),
@@ -119,7 +127,7 @@ const vec3 majorAxis[6] = vec3[6](vec3(1.0f, 0.0f, 0.0f),
 vec3 get_texco(vec2 uvs, vec2 ofs)
 {
   uvs += ofs;
-  return majorAxis[faceId] + uvs.x * minorAxisX[faceId] + uvs.y * minorAxisY[faceId];
+  return majorAxis[layerID] + uvs.x * minorAxisX[layerID] + uvs.y * minorAxisY[layerID];
 }
 #endif
 
@@ -139,7 +147,7 @@ void main()
   float depth = texture(shadowTexture, co).r;
   depth = get_world_distance(depth, co);
 
-  if (shadowFilterSize == 0.0) {
+  if (filterSize[cascadeID] == 0.0) {
 #ifdef ESM
     FragColor = vec4(depth);
 #else /* VSM */
@@ -149,18 +157,14 @@ void main()
   }
 
 #ifdef ESM
-  float accum = 1.0;
   float ref = depth;
+  float accum = 1.0;
 #else /* VSM */
   float ref = 0.0; /* UNUSED */
   vec2 accum = vec2(depth, depth * depth) * SAMPLE_WEIGHT;
 #endif
 
-#ifdef CSM
-  vec3 ofs = vec3(1.0, 0.0, -1.0) * shadowFilterSize;
-#else /* CUBEMAP */
-  vec3 ofs = vec3(1.0, 0.0, -1.0) * shadowFilterSize;
-#endif
+  vec3 ofs = vec3(1.0, 0.0, -1.0) * filterSize[cascadeID];
 
   vec3 cos[4];
   cos[0] = get_texco(uvs, ofs.zz);

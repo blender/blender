@@ -177,7 +177,7 @@ float light_visibility(LightData ld,
                        vec3 W,
 #ifndef VOLUMETRICS
                        vec3 viewPosition,
-                       vec3 viewNormal,
+                       vec3 vN,
 #endif
                        vec4 l_vector)
 {
@@ -227,15 +227,17 @@ float light_visibility(LightData ld,
 
       vec3 ray_ori = viewPosition;
 
-      if (dot(viewNormal, ray_dir) <= 0.0) {
-        return vis;
-      }
+      // vN = (gl_FrontFacing) ? vN : -vN;
 
-      float bias = 0.5;                            /* Constant Bias */
-      bias += 1.0 - abs(dot(viewNormal, ray_dir)); /* Angle dependent bias */
+      // if (dot(vN, ray_dir) <= 0.0) {
+      //   return vis;
+      // }
+
+      float bias = 0.5;                    /* Constant Bias */
+      bias += 1.0 - abs(dot(vN, ray_dir)); /* Angle dependent bias */
       bias *= gl_FrontFacing ? data.sh_contact_offset : -data.sh_contact_offset;
 
-      vec3 nor_bias = viewNormal * bias;
+      vec3 nor_bias = vN * bias;
       ray_ori += nor_bias;
 
       ray_dir *= trace_distance;
