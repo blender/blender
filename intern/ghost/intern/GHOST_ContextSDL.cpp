@@ -57,22 +57,25 @@ GHOST_ContextSDL::GHOST_ContextSDL(bool stereoVisual,
 GHOST_ContextSDL::~GHOST_ContextSDL()
 {
   if (m_context != NULL) {
-    if (m_window != NULL && m_context == SDL_GL_GetCurrentContext())
+    if (m_window != NULL && m_context == SDL_GL_GetCurrentContext()) {
       SDL_GL_MakeCurrent(m_window, NULL);
+    }
 
     if (m_context != s_sharedContext || s_sharedCount == 1) {
       assert(s_sharedCount > 0);
 
       s_sharedCount--;
 
-      if (s_sharedCount == 0)
+      if (s_sharedCount == 0) {
         s_sharedContext = NULL;
+      }
 
       SDL_GL_DeleteContext(m_context);
     }
 
-    if (m_hidden_window != NULL)
+    if (m_hidden_window != NULL) {
       SDL_DestroyWindow(m_hidden_window);
+    }
   }
 }
 
@@ -148,8 +151,9 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
   GHOST_TSuccess success;
 
   if (m_context != NULL) {
-    if (!s_sharedContext)
+    if (!s_sharedContext) {
       s_sharedContext = m_context;
+    }
 
     s_sharedCount++;
 

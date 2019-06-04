@@ -160,12 +160,14 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
         /* Ensure both characters are hexadecimal */
 
         for (j = 0; j < 2; ++j) {
-          if (!isxdigit(tempNumBuf[j]))
+          if (!isxdigit(tempNumBuf[j])) {
             bothDigits = false;
+          }
         }
 
-        if (!bothDigits)
+        if (!bothDigits) {
           break;
+        }
 
         /* Convert two hexadecimal characters into one character */
         sscanf(tempNumBuf, "%x", &asciiCharacter);
@@ -211,8 +213,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   strArray = (GHOST_TStringArray *)malloc(sizeof(GHOST_TStringArray));
@@ -239,8 +242,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   return strArray;
@@ -280,8 +284,9 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
     m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
   }
 
-  if (needsFree)
+  if (needsFree) {
     free(tmpBuffer);
+  }
 
   return data;
 }
@@ -303,9 +308,10 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
                     &dropY)) {
     void *data = getGhostData(dropType, dropBuffer, dropBufferSize);
 
-    if (data)
+    if (data) {
       m_system->pushDragDropEvent(
           GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, dropX, dropY, data);
+    }
 
     free(dropBuffer);
 

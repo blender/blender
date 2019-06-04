@@ -578,10 +578,12 @@ bool Application::processEvent(GHOST_IEvent *event)
           break;
 
         case GHOST_kKeyS:  // toggle mono and stereo
-          if (stereo)
+          if (stereo) {
             stereo = false;
-          else
+          }
+          else {
             stereo = true;
+          }
           break;
 
         case GHOST_kKeyT:
@@ -630,8 +632,9 @@ bool Application::processEvent(GHOST_IEvent *event)
 
     case GHOST_kEventWindowUpdate: {
       GHOST_IWindow *window2 = event->getWindow();
-      if (!m_system->validWindow(window2))
+      if (!m_system->validWindow(window2)) {
         break;
+      }
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -688,20 +691,24 @@ int main(int /*argc*/, char ** /*argv*/)
                           "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
                           KEY_ALL_ACCESS);
 
-    if (lresult == ERROR_SUCCESS)
+    if (lresult == ERROR_SUCCESS) {
       printf("Successfully opened key\n");
+    }
 #  if 0
     lresult = regkey.QueryValue(&keyValue, "StereoEnable");
-    if (lresult == ERROR_SUCCESS)
+    if (lresult == ERROR_SUCCESS) {
       printf("Successfully queried key\n");
+    }
 #  endif
     lresult = regkey.SetValue(
         HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable", "1");
-    if (lresult == ERROR_SUCCESS)
+    if (lresult == ERROR_SUCCESS) {
       printf("Successfully set value for key\n");
+    }
     regkey.Close();
-    if (lresult == ERROR_SUCCESS)
+    if (lresult == ERROR_SUCCESS) {
       printf("Successfully closed key\n");
+    }
     //      regkey.Write("2");
   }
 #endif  // WIN32

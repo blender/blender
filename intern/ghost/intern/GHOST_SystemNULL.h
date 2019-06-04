@@ -96,7 +96,7 @@ class GHOST_SystemNULL : public GHOST_System {
     GHOST_TSuccess success = GHOST_System::init();
 
     if (success) {
-      m_displayManager = new GHOST_DisplayManagerNULL(this);
+      m_displayManager = new GHOST_DisplayManager(this);
 
       if (m_displayManager) {
         return GHOST_kSuccess;

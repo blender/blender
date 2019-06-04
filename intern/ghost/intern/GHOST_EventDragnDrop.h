@@ -92,8 +92,9 @@ class GHOST_EventDragnDrop : public GHOST_Event {
   ~GHOST_EventDragnDrop()
   {
     // Free the dropped object data
-    if (m_dragnDropEventData.data == NULL)
+    if (m_dragnDropEventData.data == NULL) {
       return;
+    }
 
     switch (m_dragnDropEventData.dataType) {
       case GHOST_kDragnDropTypeBitmap:
@@ -103,8 +104,9 @@ class GHOST_EventDragnDrop : public GHOST_Event {
         GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
         int i;
 
-        for (i = 0; i < strArray->count; i++)
+        for (i = 0; i < strArray->count; i++) {
           free(strArray->strings[i]);
+        }
 
         free(strArray->strings);
         free(strArray);

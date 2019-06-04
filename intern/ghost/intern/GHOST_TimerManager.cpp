@@ -89,8 +89,9 @@ GHOST_TUns64 GHOST_TimerManager::nextFireTime()
   for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
     GHOST_TUns64 next = (*iter)->getNext();
 
-    if (next < smallest)
+    if (next < smallest) {
       smallest = next;
+    }
   }
 
   return smallest;
@@ -102,8 +103,9 @@ bool GHOST_TimerManager::fireTimers(GHOST_TUns64 time)
   bool anyProcessed = false;
 
   for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
-    if (fireTimer(time, *iter))
+    if (fireTimer(time, *iter)) {
       anyProcessed = true;
+    }
   }
 
   return anyProcessed;

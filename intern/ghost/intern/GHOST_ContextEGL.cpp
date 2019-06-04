@@ -236,23 +236,26 @@ GHOST_ContextEGL::~GHOST_ContextEGL()
     bindAPI(m_api);
 
     if (m_context != EGL_NO_CONTEXT) {
-      if (m_context == ::eglGetCurrentContext())
+      if (m_context == ::eglGetCurrentContext()) {
         EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+      }
 
       if (m_context != m_sharedContext || m_sharedCount == 1) {
         assert(m_sharedCount > 0);
 
         m_sharedCount--;
 
-        if (m_sharedCount == 0)
+        if (m_sharedCount == 0) {
           m_sharedContext = EGL_NO_CONTEXT;
+        }
 
         EGL_CHK(::eglDestroyContext(m_display, m_context));
       }
     }
 
-    if (m_surface != EGL_NO_SURFACE)
+    if (m_surface != EGL_NO_SURFACE) {
       EGL_CHK(::eglDestroySurface(m_display, m_surface));
+    }
 
     EGL_CHK(::eglTerminate(m_display));
   }
@@ -317,8 +320,9 @@ GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
 
 void GHOST_ContextEGL::initContextEGLEW()
 {
-  if (GLEW_CHK(eglewInit(m_display)) != GLEW_OK)
+  if (GLEW_CHK(eglewInit(m_display)) != GLEW_OK) {
     fprintf(stderr, "Warning! EGLEW failed to initialize properly.\n");
+  }
 }
 
 static const std::string &api_string(EGLenum api)
@@ -336,8 +340,9 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   std::vector<EGLint> attrib_list;
   EGLint num_config = 0;
 
-  if (m_stereoVisual)
+  if (m_stereoVisual) {
     fprintf(stderr, "Warning! Stereo OpenGL ES contexts are not supported.\n");
+  }
 
   m_stereoVisual = false;  // It doesn't matter what the Window wants.
 
@@ -362,23 +367,27 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   m_display = ::eglGetDisplay(m_nativeDisplay);
 
-  if (!EGL_CHK(m_display != EGL_NO_DISPLAY))
+  if (!EGL_CHK(m_display != EGL_NO_DISPLAY)) {
     return GHOST_kFailure;
+  }
 
   EGLint egl_major, egl_minor;
 
-  if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor)))
+  if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor))) {
     goto error;
+  }
 
   fprintf(stderr, "EGL Version %d.%d\n", egl_major, egl_minor);
 
-  if (!EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)))
+  if (!EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT))) {
     goto error;
+  }
 
   initContextEGLEW();
 
-  if (!bindAPI(m_api))
+  if (!bindAPI(m_api)) {
     goto error;
+  }
 
   // build attribute list
 
@@ -438,17 +447,20 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   EGLConfig config;
 
-  if (!EGL_CHK(::eglChooseConfig(m_display, &(attrib_list[0]), &config, 1, &num_config)))
+  if (!EGL_CHK(::eglChooseConfig(m_display, &(attrib_list[0]), &config, 1, &num_config))) {
     goto error;
+  }
 
   // A common error is to assume that ChooseConfig worked because it returned EGL_TRUE
-  if (num_config != 1)  // num_config should be exactly 1
+  if (num_config != 1) {  // num_config should be exactly 1
     goto error;
+  }
 
   m_surface = ::eglCreateWindowSurface(m_display, config, m_nativeWindow, NULL);
 
-  if (!EGL_CHK(m_surface != EGL_NO_SURFACE))
+  if (!EGL_CHK(m_surface != EGL_NO_SURFACE)) {
     goto error;
+  }
 
   attrib_list.clear();
 
@@ -488,9 +500,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
       }
     }
     else {
-      if (m_contextProfileMask != 0)
+      if (m_contextProfileMask != 0) {
         fprintf(
             stderr, "Warning! Cannot select profile for %s contexts.", api_string(m_api).c_str());
+      }
     }
 
     if (m_api == EGL_OPENGL_API || EGLEW_VERSION_1_5) {
@@ -547,16 +560,19 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   m_context = ::eglCreateContext(m_display, config, m_sharedContext, &(attrib_list[0]));
 
-  if (!EGL_CHK(m_context != EGL_NO_CONTEXT))
+  if (!EGL_CHK(m_context != EGL_NO_CONTEXT)) {
     goto error;
+  }
 
-  if (m_sharedContext == EGL_NO_CONTEXT)
+  if (m_sharedContext == EGL_NO_CONTEXT) {
     m_sharedContext = m_context;
+  }
 
   m_sharedCount++;
 
-  if (!EGL_CHK(::eglMakeCurrent(m_display, m_surface, m_surface, m_context)))
+  if (!EGL_CHK(::eglMakeCurrent(m_display, m_surface, m_surface, m_context))) {
     goto error;
+  }
 
   initContextGLEW();
 
@@ -566,8 +582,9 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   return GHOST_kSuccess;
 
 error:
-  if (prev_display != EGL_NO_DISPLAY)
+  if (prev_display != EGL_NO_DISPLAY) {
     EGL_CHK(eglMakeCurrent(prev_display, prev_draw, prev_read, prev_context));
+  }
 
   return GHOST_kFailure;
 }

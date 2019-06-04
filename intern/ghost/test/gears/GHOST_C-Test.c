@@ -412,8 +412,9 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
       break;
     case GHOST_kEventWindowUpdate: {
       GHOST_WindowHandle window2 = GHOST_GetEventWindow(hEvent);
-      if (!GHOST_ValidWindow(shSystem, window2))
+      if (!GHOST_ValidWindow(shSystem, window2)) {
         break;
+      }
       setViewPortGL(window2);
       drawGL();
       GHOST_SwapWindowBuffers(window2);

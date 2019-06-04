@@ -287,8 +287,9 @@ class GHOST_Window : public GHOST_IWindow {
 
   float getNativePixelSize(void)
   {
-    if (m_nativePixelSize > 0.0f)
+    if (m_nativePixelSize > 0.0f) {
       return m_nativePixelSize;
+    }
     return 1.0f;
   }
 

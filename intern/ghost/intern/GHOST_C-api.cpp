@@ -181,10 +181,12 @@ GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
   GHOST_IWindow *window = NULL;
   bool bstereoVisual;
 
-  if (stereoVisual)
+  if (stereoVisual) {
     bstereoVisual = true;
-  else
+  }
+  else {
     bstereoVisual = false;
+  }
 
   system->beginFullScreen(*setting, &window, bstereoVisual);
 
@@ -695,8 +697,9 @@ GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   GHOST_TSuccess result = GHOST_kFailure;
 
-  if (((GHOST_Rect *)rectanglehandle)->isEmpty())
+  if (((GHOST_Rect *)rectanglehandle)->isEmpty()) {
     result = GHOST_kSuccess;
+  }
 
   return result;
 }
@@ -705,8 +708,9 @@ GHOST_TSuccess GHOST_IsValidRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   GHOST_TSuccess result = GHOST_kFailure;
 
-  if (((GHOST_Rect *)rectanglehandle)->isValid())
+  if (((GHOST_Rect *)rectanglehandle)->isValid()) {
     result = GHOST_kSuccess;
+  }
 
   return result;
 }
@@ -735,8 +739,9 @@ GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle,
 {
   GHOST_TSuccess result = GHOST_kFailure;
 
-  if (((GHOST_Rect *)rectanglehandle)->isInside(x, y))
+  if (((GHOST_Rect *)rectanglehandle)->isInside(x, y)) {
     result = GHOST_kSuccess;
+  }
 
   return result;
 }
@@ -772,8 +777,9 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 {
   GHOST_TSuccess result = GHOST_kFailure;
 
-  if (((GHOST_Rect *)rectanglehandle)->clip(*(GHOST_Rect *)anotherrectanglehandle))
+  if (((GHOST_Rect *)rectanglehandle)->clip(*(GHOST_Rect *)anotherrectanglehandle)) {
     result = GHOST_kSuccess;
+  }
 
   return result;
 }
@@ -811,8 +817,9 @@ void GHOST_UseWindowFocus(int use_focus)
 float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  if (window)
+  if (window) {
     return window->getNativePixelSize();
+  }
   return 1.0f;
 }
 

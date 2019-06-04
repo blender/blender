@@ -356,10 +356,12 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
 {
   GHOST_GLSettings glSettings = {0};
 
-  if (stereoVisual)
+  if (stereoVisual) {
     glSettings.flags |= GHOST_glStereoVisual;
-  if (alphaBackground)
+  }
+  if (alphaBackground) {
     glSettings.flags |= GHOST_glAlphaBackground;
+  }
 
   /* note: don't use getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger then the viewport. */

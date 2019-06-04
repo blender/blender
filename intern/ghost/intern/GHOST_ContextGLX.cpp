@@ -70,16 +70,18 @@ GHOST_ContextGLX::~GHOST_ContextGLX()
 {
   if (m_display != NULL) {
     if (m_context != None) {
-      if (m_window != 0 && m_context == ::glXGetCurrentContext())
+      if (m_window != 0 && m_context == ::glXGetCurrentContext()) {
         ::glXMakeCurrent(m_display, None, NULL);
+      }
 
       if (m_context != s_sharedContext || s_sharedCount == 1) {
         assert(s_sharedCount > 0);
 
         s_sharedCount--;
 
-        if (s_sharedCount == 0)
+        if (s_sharedCount == 0) {
           s_sharedContext = NULL;
+        }
 
         ::glXDestroyContext(m_display, m_context);
       }
@@ -177,35 +179,43 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
     int profileBitES = m_contextProfileMask & GLX_CONTEXT_ES_PROFILE_BIT_EXT;
 #endif
 
-    if (!GLXEW_ARB_create_context_profile && profileBitCore)
+    if (!GLXEW_ARB_create_context_profile && profileBitCore) {
       fprintf(stderr, "Warning! OpenGL core profile not available.\n");
+    }
 
-    if (!GLXEW_ARB_create_context_profile && profileBitCompat)
+    if (!GLXEW_ARB_create_context_profile && profileBitCompat) {
       fprintf(stderr, "Warning! OpenGL compatibility profile not available.\n");
+    }
 
 #ifdef WITH_GLEW_ES
-    if (!GLXEW_EXT_create_context_es_profile && profileBitES && m_contextMajorVersion == 1)
+    if (!GLXEW_EXT_create_context_es_profile && profileBitES && m_contextMajorVersion == 1) {
       fprintf(stderr, "Warning! OpenGL ES profile not available.\n");
+    }
 
-    if (!GLXEW_EXT_create_context_es2_profile && profileBitES && m_contextMajorVersion == 2)
+    if (!GLXEW_EXT_create_context_es2_profile && profileBitES && m_contextMajorVersion == 2) {
       fprintf(stderr, "Warning! OpenGL ES2 profile not available.\n");
+    }
 #endif
 
     int profileMask = 0;
 
-    if (GLXEW_ARB_create_context_profile && profileBitCore)
+    if (GLXEW_ARB_create_context_profile && profileBitCore) {
       profileMask |= profileBitCore;
+    }
 
-    if (GLXEW_ARB_create_context_profile && profileBitCompat)
+    if (GLXEW_ARB_create_context_profile && profileBitCompat) {
       profileMask |= profileBitCompat;
+    }
 
 #ifdef WITH_GLEW_ES
-    if (GLXEW_EXT_create_context_es_profile && profileBitES)
+    if (GLXEW_EXT_create_context_es_profile && profileBitES) {
       profileMask |= profileBitES;
+    }
 #endif
 
-    if (profileMask != m_contextProfileMask)
+    if (profileMask != m_contextProfileMask) {
       fprintf(stderr, "Warning! Ignoring untested OpenGL context profile mask bits.");
+    }
 
     /* max 10 attributes plus terminator */
     int attribs[11];
@@ -287,8 +297,9 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
   if (m_context != NULL) {
     const unsigned char *version;
 
-    if (!s_sharedContext)
+    if (!s_sharedContext) {
       s_sharedContext = m_context;
+    }
 
     s_sharedCount++;
 
@@ -421,30 +432,36 @@ int GHOST_X11_GL_GetAttributes(
 static GLuint _glewStrLen(const GLubyte *s)
 {
   GLuint i = 0;
-  if (s == NULL)
+  if (s == NULL) {
     return 0;
-  while (s[i] != '\0')
+  }
+  while (s[i] != '\0') {
     i++;
+  }
   return i;
 }
 
 static GLuint _glewStrCLen(const GLubyte *s, GLubyte c)
 {
   GLuint i = 0;
-  if (s == NULL)
+  if (s == NULL) {
     return 0;
-  while (s[i] != '\0' && s[i] != c)
+  }
+  while (s[i] != '\0' && s[i] != c) {
     i++;
+  }
   return (s[i] == '\0' || s[i] == c) ? i : 0;
 }
 
 static GLboolean _glewStrSame(const GLubyte *a, const GLubyte *b, GLuint n)
 {
   GLuint i = 0;
-  if (a == NULL || b == NULL)
+  if (a == NULL || b == NULL) {
     return (a == NULL && b == NULL && n == 0) ? GL_TRUE : GL_FALSE;
-  while (i < n && a[i] != '\0' && b[i] != '\0' && a[i] == b[i])
+  }
+  while (i < n && a[i] != '\0' && b[i] != '\0' && a[i] == b[i]) {
     i++;
+  }
   return i == n ? GL_TRUE : GL_FALSE;
 }
 
@@ -455,8 +472,9 @@ static GLboolean _glewSearchExtension(const char *name, const GLubyte *start, co
   p = start;
   while (p < end) {
     GLuint n = _glewStrCLen(p, ' ');
-    if (len == n && _glewStrSame((const GLubyte *)name, p, n))
+    if (len == n && _glewStrSame((const GLubyte *)name, p, n)) {
       return GL_TRUE;
+    }
     p += n + 1;
   }
   return GL_FALSE;

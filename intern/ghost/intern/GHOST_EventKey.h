@@ -64,10 +64,12 @@ class GHOST_EventKey : public GHOST_Event {
   {
     m_keyEventData.key = key;
     m_keyEventData.ascii = ascii;
-    if (utf8_buf)
+    if (utf8_buf) {
       memcpy(m_keyEventData.utf8_buf, utf8_buf, sizeof(m_keyEventData.utf8_buf));
-    else
+    }
+    else {
       m_keyEventData.utf8_buf[0] = '\0';
+    }
     m_data = &m_keyEventData;
   }
 
