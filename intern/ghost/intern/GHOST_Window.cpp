@@ -76,9 +76,8 @@ GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType typ
     delete m_context;
     m_context = NULL;
 
-    if (type != GHOST_kDrawingContextTypeNone) {
+    if (type != GHOST_kDrawingContextTypeNone)
       m_context = newDrawingContext(type);
-    }
 
     if (m_context != NULL) {
       m_drawingContextType = type;
@@ -146,9 +145,8 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
                                            GHOST_Rect *bounds,
                                            GHOST_TInt32 mouse_ungrab_xy[2])
 {
-  if (m_cursorGrab == mode) {
+  if (m_cursorGrab == mode)
     return GHOST_kSuccess;
-  }
 
   /* override with new location */
   if (mouse_ungrab_xy) {

@@ -137,19 +137,16 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
       /* take a frame buffer config that has alpha cap */
       for (int i = 0; i < nbfbconfig; i++) {
         XVisualInfo *visual = (XVisualInfo *)glXGetVisualFromFBConfig(display, fbconfigs[i]);
-        if (!visual) {
+        if (!visual)
           continue;
-        }
         /* if we don't need a alpha background, the first config will do, otherwise
          * test the alphaMask as it won't necessarily be present */
         if (needAlpha) {
           XRenderPictFormat *pict_format = XRenderFindVisualFormat(display, visual->visual);
-          if (!pict_format) {
+          if (!pict_format)
             continue;
-          }
-          if (pict_format->direct.alphaMask <= 0) {
+          if (pict_format->direct.alphaMask <= 0)
             continue;
-          }
         }
 
         *fbconfig = fbconfigs[i];
@@ -506,9 +503,8 @@ static Bool destroyICCallback(XIC /*xic*/, XPointer ptr, XPointer /*data*/)
 bool GHOST_WindowX11::createX11_XIC()
 {
   XIM xim = m_system->getX11_XIM();
-  if (!xim) {
+  if (!xim)
     return false;
-  }
 
   XICCallback destroy;
   destroy.callback = (XICProc)destroyICCallback;
@@ -527,9 +523,8 @@ bool GHOST_WindowX11::createX11_XIC()
                     XNDestroyCallback,
                     &destroy,
                     NULL);
-  if (!m_xic) {
+  if (!m_xic)
     return false;
-  }
 
   unsigned long fevent;
   XGetICValues(m_xic, XNFilterEvents, &fevent, NULL);
@@ -557,21 +552,17 @@ void GHOST_WindowX11::refreshXInputDevices()
       XEventClass ev;
 
       DeviceMotionNotify(xtablet.Device, xtablet.MotionEvent, ev);
-      if (ev) {
+      if (ev)
         xevents.push_back(ev);
-      }
       DeviceButtonPress(xtablet.Device, xtablet.PressEvent, ev);
-      if (ev) {
+      if (ev)
         xevents.push_back(ev);
-      }
       ProximityIn(xtablet.Device, xtablet.ProxInEvent, ev);
-      if (ev) {
+      if (ev)
         xevents.push_back(ev);
-      }
       ProximityOut(xtablet.Device, xtablet.ProxOutEvent, ev);
-      if (ev) {
+      if (ev)
         xevents.push_back(ev);
-      }
     }
 
     XSelectExtensionEvent(m_display, m_window, xevents.data(), (int)xevents.size());
@@ -714,9 +705,8 @@ void GHOST_WindowX11::icccmSetState(int state)
 {
   XEvent xev;
 
-  if (state != IconicState) {
+  if (state != IconicState)
     return;
-  }
 
   xev.xclient.type = ClientMessage;
   xev.xclient.serial = 0;
@@ -782,12 +772,10 @@ void GHOST_WindowX11::netwmMaximized(bool set)
   xev.xclient.message_type = m_system->m_atom._NET_WM_STATE;
   xev.xclient.format = 32;
 
-  if (set == True) {
+  if (set == True)
     xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
-  }
-  else {
+  else
     xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
-  }
 
   xev.xclient.data.l[1] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ;
   xev.xclient.data.l[2] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT;
@@ -838,9 +826,8 @@ bool GHOST_WindowX11::netwmIsMaximized(void) const
     }
   }
 
-  if (prop_ret) {
+  if (prop_ret)
     XFree(prop_ret);
-  }
   return (st);
 }
 
@@ -855,12 +842,10 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
   xev.xclient.message_type = m_system->m_atom._NET_WM_STATE;
   xev.xclient.format = 32;
 
-  if (set == True) {
+  if (set == True)
     xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
-  }
-  else {
+  else
     xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
-  }
 
   xev.xclient.data.l[1] = m_system->m_atom._NET_WM_STATE_FULLSCREEN;
   xev.xclient.data.l[2] = 0;
@@ -904,9 +889,8 @@ bool GHOST_WindowX11::netwmIsFullScreen(void) const
     }
   }
 
-  if (prop_ret) {
+  if (prop_ret)
     XFree(prop_ret);
-  }
   return (st);
 }
 
@@ -915,12 +899,10 @@ void GHOST_WindowX11::motifFullScreen(bool set)
   MotifWmHints hints;
 
   hints.flags = MWM_HINTS_DECORATIONS;
-  if (set == True) {
+  if (set == True)
     hints.decorations = 0;
-  }
-  else {
+  else
     hints.decorations = 1;
-  }
 
   XChangeProperty(m_display,
                   m_window,
@@ -956,15 +938,13 @@ bool GHOST_WindowX11::motifIsFullScreen(void) const
                           (unsigned char **)&prop_ret);
   if ((st == Success) && prop_ret) {
     if (prop_ret->flags & MWM_HINTS_DECORATIONS) {
-      if (!prop_ret->decorations) {
+      if (!prop_ret->decorations)
         state = True;
-      }
     }
   }
 
-  if (prop_ret) {
+  if (prop_ret)
     XFree(prop_ret);
-  }
   return (state);
 }
 
@@ -979,18 +959,14 @@ GHOST_TWindowState GHOST_WindowX11::getState() const
    * In the Iconic and Withdrawn state, the window
    * is unmaped, so only need return a Minimized state.
    */
-  if ((state == IconicState) || (state == WithdrawnState)) {
+  if ((state == IconicState) || (state == WithdrawnState))
     state_ret = GHOST_kWindowStateMinimized;
-  }
-  else if (netwmIsFullScreen() == True) {
+  else if (netwmIsFullScreen() == True)
     state_ret = GHOST_kWindowStateFullScreen;
-  }
-  else if (motifIsFullScreen() == True) {
+  else if (motifIsFullScreen() == True)
     state_ret = GHOST_kWindowStateFullScreen;
-  }
-  else if (netwmIsMaximized() == True) {
+  else if (netwmIsMaximized() == True)
     state_ret = GHOST_kWindowStateMaximized;
-  }
   return (state_ret);
 }
 
@@ -1000,9 +976,8 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
   bool is_max, is_full, is_motif_full;
 
   cur_state = getState();
-  if (state == (int)cur_state) {
+  if (state == (int)cur_state)
     return GHOST_kSuccess;
-  }
 
   if (cur_state != GHOST_kWindowStateMinimized) {
     /*
@@ -1019,20 +994,16 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 
   is_motif_full = motifIsFullScreen();
 
-  if (state == GHOST_kWindowStateNormal) {
+  if (state == GHOST_kWindowStateNormal)
     state = m_normal_state;
-  }
 
   if (state == GHOST_kWindowStateNormal) {
-    if (is_max == True) {
+    if (is_max == True)
       netwmMaximized(False);
-    }
-    if (is_full == True) {
+    if (is_full == True)
       netwmFullScreen(False);
-    }
-    if (is_motif_full == True) {
+    if (is_motif_full == True)
       motifFullScreen(False);
-    }
     icccmSetState(NormalState);
     return (GHOST_kSuccess);
   }
@@ -1042,21 +1013,17 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
      * We can't change to full screen if the window
      * isn't mapped.
      */
-    if (cur_state == GHOST_kWindowStateMinimized) {
+    if (cur_state == GHOST_kWindowStateMinimized)
       return (GHOST_kFailure);
-    }
 
     m_normal_state = cur_state;
 
-    if (is_max == True) {
+    if (is_max == True)
       netwmMaximized(False);
-    }
-    if (is_full == False) {
+    if (is_full == False)
       netwmFullScreen(True);
-    }
-    if (is_motif_full == False) {
+    if (is_motif_full == False)
       motifFullScreen(True);
-    }
     return (GHOST_kSuccess);
   }
 
@@ -1065,19 +1032,15 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
      * We can't change to Maximized if the window
      * isn't mapped.
      */
-    if (cur_state == GHOST_kWindowStateMinimized) {
+    if (cur_state == GHOST_kWindowStateMinimized)
       return (GHOST_kFailure);
-    }
 
-    if (is_full == True) {
+    if (is_full == True)
       netwmFullScreen(False);
-    }
-    if (is_motif_full == True) {
+    if (is_motif_full == True)
       motifFullScreen(False);
-    }
-    if (is_max == False) {
+    if (is_max == False)
       netwmMaximized(True);
-    }
     return (GHOST_kSuccess);
   }
 
@@ -1134,9 +1097,8 @@ GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)
     XGetWindowAttributes(m_display, m_window, &attr);
 
     /* iconized windows give bad match error */
-    if (attr.map_state == IsViewable) {
+    if (attr.map_state == IsViewable)
       XSetInputFocus(m_display, m_window, RevertToPointerRoot, CurrentTime);
-    }
     XFlush(m_display);
   }
   else if (order == GHOST_kWindowOrderBottom) {
@@ -1288,12 +1250,10 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                          (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                      GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 
-      if (context->initializeDrawingContext()) {
+      if (context->initializeDrawingContext())
         return context;
-      }
-      else {
+      else
         delete context;
-      }
     }
 
     context = new GHOST_ContextGLX(m_wantStereoVisual,
@@ -1307,12 +1267,10 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                        (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 
-    if (context->initializeDrawingContext()) {
+    if (context->initializeDrawingContext())
       return context;
-    }
-    else {
+    else
       delete context;
-    }
 
     /* Ugly, but we get crashes unless a whole bunch of systems are patched. */
     fprintf(stderr, "Error! Unsupported graphics card or driver.\n");
@@ -1422,12 +1380,10 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorVisibility(bool visible)
   Cursor xcursor;
 
   if (visible) {
-    if (m_visible_cursor) {
+    if (m_visible_cursor)
       xcursor = m_visible_cursor;
-    }
-    else {
+    else
       xcursor = getStandardCursor(getCursorShape());
-    }
   }
   else {
     xcursor = getEmptyCursor();
@@ -1446,9 +1402,8 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
       m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
       setCursorGrabAccum(0, 0);
 
-      if (mode == GHOST_kGrabHide) {
+      if (mode == GHOST_kGrabHide)
         setWindowCursorVisibility(false);
-      }
     }
 #ifdef GHOST_X11_GRAB
     XGrabPointer(m_display,
@@ -1540,12 +1495,10 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
   Pixmap bitmap_pix, mask_pix;
   XColor fg, bg;
 
-  if (XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0) {
+  if (XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0)
     return GHOST_kFailure;
-  }
-  if (XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0) {
+  if (XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0)
     return GHOST_kFailure;
-  }
 
   if (m_custom_cursor) {
     XFreeCursor(m_display, m_custom_cursor);
@@ -1593,9 +1546,8 @@ GHOST_TSuccess GHOST_WindowX11::beginFullScreen() const
   int err;
 
   err = XGrabKeyboard(m_display, m_window, False, GrabModeAsync, GrabModeAsync, CurrentTime);
-  if (err != GrabSuccess) {
+  if (err != GrabSuccess)
     printf("XGrabKeyboard failed %d\n", err);
-  }
 
   err = XGrabPointer(m_display,
                      m_window,
@@ -1606,9 +1558,8 @@ GHOST_TSuccess GHOST_WindowX11::beginFullScreen() const
                      m_window,
                      None,
                      CurrentTime);
-  if (err != GrabSuccess) {
+  if (err != GrabSuccess)
     printf("XGrabPointer failed %d\n", err);
-  }
 
   return GHOST_kSuccess;
 }

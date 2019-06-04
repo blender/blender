@@ -137,9 +137,8 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
       }
     }
 
-    if (best_fit == -1) {
+    if (best_fit == -1)
       return GHOST_kFailure;
-    }
 
     SDL_GetDisplayMode(display, best_fit, &mode);
   }

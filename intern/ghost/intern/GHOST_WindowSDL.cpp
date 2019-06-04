@@ -87,12 +87,10 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
                                                   GHOST_OPENGL_SDL_CONTEXT_FLAGS,
                                                   GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-    if (context->initializeDrawingContext()) {
+    if (context->initializeDrawingContext())
       return context;
-    }
-    else {
+    else
       delete context;
-    }
   }
 
   return NULL;
@@ -136,15 +134,12 @@ GHOST_TWindowState GHOST_WindowSDL::getState() const
 {
   Uint32 flags = SDL_GetWindowFlags(m_sdl_win);
 
-  if (flags & SDL_WINDOW_FULLSCREEN) {
+  if (flags & SDL_WINDOW_FULLSCREEN)
     return GHOST_kWindowStateFullScreen;
-  }
-  else if (flags & SDL_WINDOW_MAXIMIZED) {
+  else if (flags & SDL_WINDOW_MAXIMIZED)
     return GHOST_kWindowStateMaximized;
-  }
-  else if (flags & SDL_WINDOW_MINIMIZED) {
+  else if (flags & SDL_WINDOW_MINIMIZED)
     return GHOST_kWindowStateMinimized;
-  }
   return GHOST_kWindowStateNormal;
 }
 

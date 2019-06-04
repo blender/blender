@@ -84,12 +84,10 @@ void rect_bevel_side(int rect[2][2], int side, float *lt, float *dk, const float
       int x = (corner == 0 || corner == 1) ? (rect[0][0] + i) : (rect[1][0] - i - 1);
       int y = (corner == 0 || corner == 3) ? (rect[0][1] + i) : (rect[1][1] - i - 1);
 
-      if (ltidx == corner) {
+      if (ltidx == corner)
         glColor3f(col[0] * ltf, col[1] * ltf, col[2] * ltf);
-      }
-      if (dkidx == corner) {
+      if (dkidx == corner)
         glColor3f(col[0] * dkf, col[1] * dkf, col[2] * dkf);
-      }
 
       glVertex2i(lx, ly);
       glVertex2i(lx = x, ly = y);
@@ -185,44 +183,37 @@ static void mainwindow_do_key(MainWindow *mw, GHOST_TKey key, int press)
 {
   switch (key) {
     case GHOST_kKeyC:
-      if (press) {
+      if (press)
         GHOST_SetCursorShape(mw->win,
                              (GHOST_TStandardCursor)(rand() % (GHOST_kStandardCursorNumCursors)));
-      }
       break;
     case GHOST_kKeyLeftBracket:
-      if (press) {
+      if (press)
         GHOST_SetCursorVisibility(mw->win, 0);
-      }
       break;
     case GHOST_kKeyRightBracket:
-      if (press) {
+      if (press)
         GHOST_SetCursorVisibility(mw->win, 1);
-      }
       break;
     case GHOST_kKeyE:
-      if (press) {
+      if (press)
         multitestapp_toggle_extra_window(mw->app);
-      }
       break;
     case GHOST_kKeyQ:
-      if (press) {
+      if (press)
         multitestapp_exit(mw->app);
-      }
       break;
     case GHOST_kKeyT:
-      if (press) {
+      if (press)
         mainwindow_log(mw, "TextTest~|`hello`\"world\",<>/");
-      }
       break;
     case GHOST_kKeyR:
       if (press) {
         int i;
 
         mainwindow_log(mw, "Invalidating window 10 times");
-        for (i = 0; i < 10; i++) {
+        for (i = 0; i < 10; i++)
           GHOST_InvalidateWindow(mw->win);
-        }
       }
       break;
     case GHOST_kKeyF11:
@@ -538,9 +529,8 @@ static void loggerwindow_do_key(LoggerWindow *lw, GHOST_TKey key, int press)
 {
   switch (key) {
     case GHOST_kKeyQ:
-      if (press) {
+      if (press)
         multitestapp_exit(lw->app);
-      }
       break;
   }
 }
@@ -710,9 +700,8 @@ static void extrawindow_do_key(ExtraWindow *ew, GHOST_TKey key, int press)
 {
   switch (key) {
     case GHOST_kKeyE:
-      if (press) {
+      if (press)
         multitestapp_toggle_extra_window(ew->app);
-      }
       break;
   }
 }
@@ -882,23 +871,19 @@ MultiTestApp *multitestapp_new(void)
   GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(multitest_event_handler, app);
 
   app->sys = GHOST_CreateSystem();
-  if (!app->sys) {
+  if (!app->sys)
     fatal("Unable to create ghost system");
-  }
 
-  if (!GHOST_AddEventConsumer(app->sys, consumer)) {
+  if (!GHOST_AddEventConsumer(app->sys, consumer))
     fatal("Unable to add multitest event consumer ");
-  }
 
   app->main = mainwindow_new(app);
-  if (!app->main) {
+  if (!app->main)
     fatal("Unable to create main window");
-  }
 
   app->logger = loggerwindow_new(app);
-  if (!app->logger) {
+  if (!app->logger)
     fatal("Unable to create logger window");
-  }
 
   app->extra = NULL;
   app->exit = 0;

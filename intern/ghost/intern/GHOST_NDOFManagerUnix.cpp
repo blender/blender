@@ -46,11 +46,10 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
       char line[MAX_LINE_LENGTH] = {0};
       while (fgets(line, MAX_LINE_LENGTH, command_output)) {
         unsigned short vendor_id = 0, product_id = 0;
-        if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2) {
+        if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2)
           if (setDevice(vendor_id, product_id)) {
             break; /* stop looking once the first 3D mouse is found */
           }
-        }
       }
       pclose(command_output);
     }
@@ -59,9 +58,8 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
 
 GHOST_NDOFManagerUnix::~GHOST_NDOFManagerUnix()
 {
-  if (m_available) {
+  if (m_available)
     spnav_close();
-  }
 }
 
 bool GHOST_NDOFManagerUnix::available()

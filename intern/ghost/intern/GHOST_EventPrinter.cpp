@@ -36,9 +36,8 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 
   GHOST_ASSERT(event, "event==0");
 
-  if (event->getType() == GHOST_kEventWindowUpdate) {
+  if (event->getType() == GHOST_kEventWindowUpdate)
     return false;
-  }
 
   std::cout << "\nGHOST_EventPrinter::processEvent, time: " << (GHOST_TInt32)event->getTime()
             << ", type: ";
@@ -123,9 +122,8 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
           std::cout << " type : GHOST_kDragnDropTypeFilenames,";
           std::cout << "\n  Received " << strArray->count << " filename"
                     << (strArray->count > 1 ? "s:" : ":");
-          for (i = 0; i < strArray->count; i++) {
+          for (i = 0; i < strArray->count; i++)
             std::cout << "\n    File[" << i << "] : " << strArray->strings[i];
-          }
         } break;
         default:
           break;
@@ -135,12 +133,10 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
     case GHOST_kEventOpenMainFile: {
       GHOST_TEventDataPtr eventData = ((GHOST_IEvent *)event)->getData();
 
-      if (eventData) {
+      if (eventData)
         std::cout << "GHOST_kEventOpenMainFile for path : " << (char *)eventData;
-      }
-      else {
+      else
         std::cout << "GHOST_kEventOpenMainFile with no path specified!!";
-      }
     } break;
 
     case GHOST_kEventQuitRequest:

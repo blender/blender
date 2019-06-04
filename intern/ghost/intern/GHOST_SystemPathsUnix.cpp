@@ -97,9 +97,8 @@ const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserDir(int version, const char *ve
       else {
         home = getenv("HOME");
 
-        if (home == NULL) {
+        if (home == NULL)
           home = getpwuid(getuid())->pw_dir;
-        }
 
         user_path = string(home) + "/.config/blender/" + versionstr;
       }

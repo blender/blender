@@ -267,9 +267,8 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
       printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
   }
 
-  if (m_buttonMask == 0) {
+  if (m_buttonMask == 0)
     m_buttonMask = (int)~(UINT_MAX << m_buttonCount);
-  }
 
 #ifdef DEBUG_NDOF_BUTTONS
   printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
@@ -422,9 +421,8 @@ static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 
 bool GHOST_NDOFManager::sendMotionEvent()
 {
-  if (!m_motionEventPending) {
+  if (!m_motionEventPending)
     return false;
-  }
 
   m_motionEventPending = false;  // any pending motion is handled right now
 

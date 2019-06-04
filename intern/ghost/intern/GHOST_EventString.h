@@ -50,9 +50,8 @@ class GHOST_EventString : public GHOST_Event {
 
   ~GHOST_EventString()
   {
-    if (m_data) {
+    if (m_data)
       free(m_data);
-    }
   }
 };
 

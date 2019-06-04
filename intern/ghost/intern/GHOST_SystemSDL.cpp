@@ -148,12 +148,10 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext()
                                                 GHOST_OPENGL_SDL_CONTEXT_FLAGS,
                                                 GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-  if (context->initializeDrawingContext()) {
+  if (context->initializeDrawingContext())
     return context;
-  }
-  else {
+  else
     delete context;
-  }
 
   return NULL;
 }
@@ -421,25 +419,19 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       assert(window != NULL);
 
       /* process rest of normal mouse buttons */
-      if (sdl_sub_evt.button == SDL_BUTTON_LEFT) {
+      if (sdl_sub_evt.button == SDL_BUTTON_LEFT)
         gbmask = GHOST_kButtonMaskLeft;
-      }
-      else if (sdl_sub_evt.button == SDL_BUTTON_MIDDLE) {
+      else if (sdl_sub_evt.button == SDL_BUTTON_MIDDLE)
         gbmask = GHOST_kButtonMaskMiddle;
-      }
-      else if (sdl_sub_evt.button == SDL_BUTTON_RIGHT) {
+      else if (sdl_sub_evt.button == SDL_BUTTON_RIGHT)
         gbmask = GHOST_kButtonMaskRight;
-      }
       /* these buttons are untested! */
-      else if (sdl_sub_evt.button == SDL_BUTTON_X1) {
+      else if (sdl_sub_evt.button == SDL_BUTTON_X1)
         gbmask = GHOST_kButtonMaskButton4;
-      }
-      else if (sdl_sub_evt.button == SDL_BUTTON_X2) {
+      else if (sdl_sub_evt.button == SDL_BUTTON_X2)
         gbmask = GHOST_kButtonMaskButton5;
-      }
-      else {
+      else
         break;
-      }
 
       g_event = new GHOST_EventButton(getMilliSeconds(), type, window, gbmask);
       break;
@@ -700,9 +692,8 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
 
 GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
 {
-  if (sdl_win == NULL) {
+  if (sdl_win == NULL)
     return NULL;
-  }
 
   // It is not entirely safe to do this as the backptr may point
   // to a window that has recently been removed.

@@ -129,9 +129,8 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
 
     SetLastError(NO_ERROR);
 
-    if (count != 0) {
+    if (count != 0)
       LocalFree(formattedMsg);
-    }
   }
 
   return result;
