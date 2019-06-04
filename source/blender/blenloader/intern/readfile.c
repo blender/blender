@@ -5220,6 +5220,15 @@ static void lib_link_object(FileData *fd, Main *main)
         ob->instance_collection = newlibadr_us(fd, ob->id.lib, ob->instance_collection);
       }
       else {
+        if (ob->instance_collection != NULL) {
+          ID *id = newlibadr(fd, ob->id.lib, ob->instance_collection);
+          blo_reportf_wrap(fd->reports,
+                           RPT_WARNING,
+                           TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
+                                "anymore in Blender 2.80, removed instancing"),
+                           ob->id.name + 2,
+                           id->name + 2);
+        }
         ob->instance_collection = NULL;
         ob->transflag &= ~OB_DUPLICOLLECTION;
       }

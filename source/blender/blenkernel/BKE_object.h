@@ -388,8 +388,6 @@ bool BKE_object_modifier_update_subframe(struct Depsgraph *depsgraph,
                                          float frame,
                                          int type);
 
-void BKE_object_type_set_empty_for_versioning(struct Object *ob);
-
 bool BKE_object_empty_image_frame_is_visible_in_view3d(const struct Object *ob,
                                                        const struct RegionView3D *rv3d);
 bool BKE_object_empty_image_data_is_visible_in_view3d(const struct Object *ob,

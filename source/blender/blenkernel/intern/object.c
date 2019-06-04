@@ -4453,17 +4453,6 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
   return false;
 }
 
-void BKE_object_type_set_empty_for_versioning(Object *ob)
-{
-  ob->type = OB_EMPTY;
-  ob->data = NULL;
-  if (ob->pose) {
-    BKE_pose_free_ex(ob->pose, false);
-    ob->pose = NULL;
-  }
-  ob->mode = OB_MODE_OBJECT;
-}
-
 /* Updates select_id of all objects in the given bmain. */
 void BKE_object_update_select_id(struct Main *bmain)
 {
