@@ -3457,7 +3457,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+  pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
   uiItemFullO(
@@ -3596,13 +3596,13 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
     return OPERATOR_CANCELLED;
   }
 
-  pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+  pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
   for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--) {
     if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
       uiItemIntO(
-          layout, RNA_struct_ui_name(lastop->type->srna), ICON_NONE, op->type->idname, "index", i);
+          layout, WM_operatortype_name(lastop->type, lastop->ptr), ICON_NONE, op->type->idname, "index", i);
     }
   }
 

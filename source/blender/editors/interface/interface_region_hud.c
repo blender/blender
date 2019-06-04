@@ -92,7 +92,7 @@ static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt
 static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *pa)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
+  BLI_strncpy(pa->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(pa->drawname));
 }
 
 static void hud_panel_operator_redo_draw(const bContext *C, Panel *pa)

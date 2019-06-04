@@ -537,6 +537,8 @@ struct wmOperatorType *WM_operatortype_append_macro(const char *idname,
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot,
                                                          const char *idname);
 
+const char *WM_operatortype_name(struct wmOperatorType *ot, struct PointerRNA *properties);
+
 /* wm_uilist_type.c */
 void WM_uilisttype_init(void);
 struct uiListType *WM_uilisttype_find(const char *idname, bool quiet);

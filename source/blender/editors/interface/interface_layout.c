@@ -1143,7 +1143,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   if (!name) {
     if (ot && ot->srna && (flag & UI_ITEM_R_ICON_ONLY) == 0) {
-      name = RNA_struct_ui_name(ot->srna);
+      name = WM_operatortype_name(ot, NULL);
     }
     else {
       name = "";
@@ -3126,7 +3126,7 @@ void uiItemMenuEnumO_ptr(uiLayout *layout,
   BLI_assert(ot->srna != NULL);
 
   if (name == NULL) {
-    name = RNA_struct_ui_name(ot->srna);
+    name = WM_operatortype_name(ot, NULL);
   }
 
   if (layout->root->type == UI_LAYOUT_MENU && !icon) {

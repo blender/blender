@@ -1203,14 +1203,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
   wmKeyMapItem *kmi = ptr->data;
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  strcpy(value, ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
+  strcpy(value, ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = ptr->data;
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  return strlen(ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
+  return strlen(ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
 }
 
 static bool rna_KeyMapItem_userdefined_get(PointerRNA *ptr)

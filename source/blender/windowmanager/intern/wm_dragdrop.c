@@ -208,7 +208,7 @@ static const char *dropbox_active(bContext *C,
           if (drop->poll(C, drag, event, &tooltip)) {
             /* XXX Doing translation here might not be ideal, but later we have no more
              *     access to ot (and hence op context)... */
-            return (tooltip) ? tooltip : RNA_struct_ui_name(drop->ot->srna);
+            return (tooltip) ? tooltip : WM_operatortype_name(drop->ot, drop->ptr);
           }
         }
       }

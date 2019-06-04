@@ -5099,7 +5099,8 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     }
     if (kmi) {
       wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
-      STRNCPY(cd->text[button_index][type_index], ot ? ot->name : kmi->idname);
+      const char *name = (ot) ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname;
+      STRNCPY(cd->text[button_index][type_index], name);
     }
   }
 

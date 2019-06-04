@@ -2355,7 +2355,7 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
   /* Repeat button with operator name as text. */
   uiItemFullO(layout,
               "SCREEN_OT_repeat_last",
-              RNA_struct_ui_name(op->type->srna),
+              WM_operatortype_name(op->type, op->ptr),
               ICON_NONE,
               NULL,
               WM_OP_INVOKE_DEFAULT,
@@ -5916,7 +5916,7 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(const bContext *C,
   }
 
   if (flag & UI_TEMPLATE_OP_PROPS_SHOW_TITLE) {
-    uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+    uiItemL(layout, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
   }
 
   /* menu */

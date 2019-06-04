@@ -2144,7 +2144,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 static int outliner_operator_menu(bContext *C, const char *opname)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false);
-  uiPopupMenu *pup = UI_popup_menu_begin(C, RNA_struct_ui_name(ot->srna), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, NULL), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   /* set this so the default execution context is the same as submenus */
