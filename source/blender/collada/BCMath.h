@@ -54,7 +54,6 @@ class BCQuat {
   }
 
   void rotate_to(Matrix &mat_to);
-
 };
 
 class BCMatrix {

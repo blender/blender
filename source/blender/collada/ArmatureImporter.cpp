@@ -523,7 +523,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
     ED_armature_from_edit(bmain, armature);
     ED_armature_edit_free(armature);
 
-	set_bone_transformation_type(node, ob_arm);
+    set_bone_transformation_type(node, ob_arm);
 
     int index = std::find(ob_arms.begin(), ob_arms.end(), ob_arm) - ob_arms.begin();
     if (index == 0) {

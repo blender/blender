@@ -55,7 +55,7 @@ const bool BCSample::get_value(std::string channel_target, const int array_index
       if (bname == bone->name) {
         matrix = it->second;
         break;
-	  }
+      }
     }
   }
   else {

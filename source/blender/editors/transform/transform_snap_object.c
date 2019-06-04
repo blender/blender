@@ -1637,7 +1637,7 @@ static short snapCurve(SnapData *snapdata,
   float tobmat[4][4];
   transpose_m4_m4(tobmat, obmat);
 
-  float (*clip_planes)[4] = snapdata->clip_plane;
+  float(*clip_planes)[4] = snapdata->clip_plane;
   int clip_plane_len = snapdata->clip_plane_len;
 
   if (use_obedit && snapdata->has_occlusion_plane) {

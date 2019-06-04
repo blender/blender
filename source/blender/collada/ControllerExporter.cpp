@@ -444,7 +444,7 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
   // UnitConverter::mat4_to_dae_double(bind_mat, ob->obmat);
   UnitConverter::mat4_to_dae_double(bind_mat, f_obmat);
   if (this->export_settings.get_limit_precision()) {
-	  BCMatrix::sanitize(bind_mat, LIMITTED_PRECISION);
+    BCMatrix::sanitize(bind_mat, LIMITTED_PRECISION);
   }
 
   addBindShapeTransform(bind_mat);

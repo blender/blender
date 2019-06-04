@@ -1376,7 +1376,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     for (int i = 0; i < totcu; i++) {
       if (i < 4) {
         add_bezt(newcu[i], fra, qref.quat()[i]);
-	  }
+      }
       else if (i < 7) {
         add_bezt(newcu[i], fra, loc[i - 4]);
       }
@@ -1842,7 +1842,7 @@ Object *AnimationImporter::translate_animation_OLD(
   if (is_rotation || is_matrix) {
     if (is_joint) {
       bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
-      chan->rotmode = (is_matrix)? ROT_MODE_QUAT : ROT_MODE_EUL;
+      chan->rotmode = (is_matrix) ? ROT_MODE_QUAT : ROT_MODE_EUL;
     }
     else {
       ob->rotmode = (is_matrix) ? ROT_MODE_QUAT : ROT_MODE_EUL;

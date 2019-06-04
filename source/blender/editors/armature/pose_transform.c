@@ -101,8 +101,8 @@ static void applyarmature_set_edit_position(EditBone *curbone,
   copy_v3_v3(curbone->tail, new_tail);
 
   /* Fix roll:
-   *	1. find auto-calculated roll value for this bone now
-   *	2. remove this from the 'visual' y-rotation
+   * 1. find auto-calculated roll value for this bone now
+   * 2. remove this from the 'visual' y-rotation
    */
   {
     float premat[3][3], pmat[3][3];

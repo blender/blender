@@ -120,7 +120,7 @@ class BCAnimationCurve {
   const std::string get_animation_name(Object *ob) const; /* xxx: this is collada specific */
   const std::string get_channel_target() const;
   const std::string get_channel_type() const;
-  const std::string get_channel_posebone() const; // returns "" if channel is not a bone channel
+  const std::string get_channel_posebone() const;  // returns "" if channel is not a bone channel
 
   const int get_channel_index() const;
   const int get_subindex() const;

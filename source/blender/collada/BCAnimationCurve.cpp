@@ -174,7 +174,7 @@ const std::string BCAnimationCurve::get_animation_name(Object *ob) const
       }
       else {
         const char *boneName = BLI_str_quoted_substrN(fcurve->rna_path, "pose.bones[");
-        name = (boneName) ? id_name(ob)+"_"+std::string(boneName) : "";
+        name = (boneName) ? id_name(ob) + "_" + std::string(boneName) : "";
       }
     } break;
 
@@ -338,10 +338,8 @@ const bool BCAnimationCurve::is_transform_curve() const
 const bool BCAnimationCurve::is_rotation_curve() const
 {
   std::string channel_type = this->get_channel_type();
-  return (channel_type == "rotation"
-	      || channel_type == "rotation_euler"
-	      || channel_type == "rotation_quaternion"
-	  );
+  return (channel_type == "rotation" || channel_type == "rotation_euler" ||
+          channel_type == "rotation_quaternion");
 }
 
 const float BCAnimationCurve::get_value(const float frame)

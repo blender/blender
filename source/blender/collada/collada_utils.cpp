@@ -1367,7 +1367,6 @@ COLLADASW::ColorOrTexture bc_get_emission(bNode *shader)
   }
 }
 
-
 bool bc_get_reflectivity(bNode *shader, double &reflectivity)
 {
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Specular");
