@@ -813,13 +813,14 @@ static int apply_objects_internal(bContext *C,
 static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
   bool changed = false;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    BKE_object_where_is_calc(depsgraph, scene, ob);
-    BKE_object_apply_mat4(ob, ob->obmat, true, true);
-    BKE_object_where_is_calc(depsgraph, scene, ob);
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    BKE_object_where_is_calc(depsgraph, scene, ob_eval);
+    BKE_object_apply_mat4(ob_eval, ob_eval->obmat, true, true);
+    BKE_object_transform_copy(ob, ob_eval);
 
     /* update for any children that may get moved */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
