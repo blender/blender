@@ -31,14 +31,14 @@ class UnitTesting(ViewLayerTesting):
             scene.view_layers.remove(v)
 
         # update depsgraph
-        scene.update()
+        view_layer.update()
 
         # create group
         group = bpy.data.groups.new("Switch")
         group.objects.link(ob)
 
         # update depsgraph
-        scene.update()
+        view_layer.update()
 
         # instance the group
         empty = bpy.data.objects.new("Empty", None)
@@ -57,7 +57,7 @@ class UnitTesting(ViewLayerTesting):
         self.assertFalse(empty.select_get())
 
         # update depsgraph
-        scene.update()
+        view_layer.update()
 
         # delete the original object
         bpy.ops.object.delete()

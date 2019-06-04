@@ -414,7 +414,7 @@ class ViewLayerTesting(unittest.TestCase):
                 bpy.data.objects.remove(ob, do_unlink=True)
 
             elif del_mode == 'OPERATOR':
-                bpy.context.scene.update()  # update depsgraph
+                bpy.context.view_layer.update()  # update depsgraph
                 bpy.ops.object.select_all(action='DESELECT')
                 ob.select_set(True)
                 self.assertTrue(ob.select_get())
@@ -455,7 +455,7 @@ class ViewLayerTesting(unittest.TestCase):
         scene_collection = scene.master_collection.collections.new("Collection")
         layer.collections.link(scene_collection)
 
-        bpy.context.scene.update()  # update depsgraph
+        bpy.context.view_layer.update()  # update depsgraph
 
         self.assertEqual(len(bpy.data.objects), 0)
 
@@ -728,7 +728,7 @@ class Clay:
         self._object = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
 
         # update depsgraph
-        self._scene.update()
+        self._layer.update()
 
         scene_collection_grandma = self._scene.master_collection.collections.new("Grandma")
         scene_collection_mom = scene_collection_grandma.collections.new("Mom")
@@ -787,7 +787,6 @@ class Clay:
         """
         ENGINE = 'BLENDER_CLAY'
 
-        self._scene.update()  # update depsgraph
         self._layer.update()  # flush depsgraph evaluation
 
         # change scene settings

@@ -160,7 +160,8 @@ class BPyOpsSubModOp:
         else:
             import bpy
             for scene in bpy.data.scenes:
-                scene.update()
+                for view_layer in scene.view_layers:
+                    view_layer.update()
 
     __doc__ = property(_get_doc)
 

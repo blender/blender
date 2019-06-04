@@ -34,7 +34,7 @@ class UnitTesting(ViewLayerTesting):
         group = layer_collection.create_group()
 
         # update depsgraph
-        scene.update()
+        bpy.context.view_layer.update()
 
 
 # ############################################################

@@ -23,14 +23,14 @@ class UnitTesting(ViewLayerTesting):
         scene_collection = scene.master_collection.collections.new('collection')
         layer_collection = view_layer.collections.link(scene_collection)
 
-        bpy.context.scene.update()  # update depsgraph
+        view_layer.update()  # update depsgraph
 
         scene_collection.objects.link(cube)
 
         self.assertTrue(layer_collection.enabled)
         self.assertTrue(layer_collection.selectable)
 
-        bpy.context.scene.update()  # update depsgraph
+        view_layer.update()  # update depsgraph
         cube.select_set(True)
         self.assertTrue(cube.select_get())
 

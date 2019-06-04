@@ -102,16 +102,16 @@ To avoid expensive recalculations every time a property is modified,
 Blender defers making the actual calculations until they are needed.
 
 However, while the script runs you may want to access the updated values.
-In this case you need to call :class:`bpy.types.Scene.update` after modifying values, for example:
+In this case you need to call :class:`bpy.types.ViewLayer.update` after modifying values, for example:
 
 .. code-block:: python
 
    bpy.context.object.location = 1, 2, 3
-   bpy.context.scene.update()
+   bpy.context.view_layer.update()
 
 
 Now all dependent data (child objects, modifiers, drivers... etc)
-has been recalculated and is available to the script.
+has been recalculated and is available to the script within active view layer.
 
 
 Can I redraw during the script?

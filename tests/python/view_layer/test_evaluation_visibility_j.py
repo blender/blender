@@ -39,7 +39,7 @@ class UnitTesting(ViewLayerTesting):
         self.assertTrue(layer_collection.enabled)
 
         # Update depsgraph.
-        scene.update()
+        bpy.context.view_layer.update()
 
         self.assertTrue(ob.visible_get())
 
@@ -47,7 +47,7 @@ class UnitTesting(ViewLayerTesting):
         self.assertFalse(layer_collection.enabled)
 
         # Update depsgraph.
-        scene.update()
+        bpy.context.view_layer.update()
 
         self.assertFalse(ob.visible_get())
 

@@ -41,13 +41,13 @@ class UnitTesting(ViewLayerTesting):
         mom_layer_collection.selectable = True
 
         # update depsgraph
-        scene.update()
+        bpy.context.view_layer.update()
 
         # create group
         group = grandma_layer_collection.create_group()
 
         # update depsgraph
-        scene.update()
+        bpy.context.view_layer.update()
 
         # compare
         self.assertEqual(len(group.view_layer.collections), 1)

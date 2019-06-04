@@ -38,13 +38,13 @@ class UnitTesting(ViewLayerTesting):
         mom_layer_collection = grandma_layer_collection.collections[mom_scene_collection.name]
 
         # update depsgraph
-        scene.update()
+        bpy.context.view_layer.update()
 
         # create group
         group = mom_layer_collection.create_group()
 
         # update depsgraph
-        scene.update()
+        bpy.context.view_layer.update()
 
 
 # ############################################################

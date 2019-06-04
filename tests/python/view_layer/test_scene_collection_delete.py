@@ -37,7 +37,7 @@ class UnitTesting(ViewLayerTesting):
         master_collection.collections.remove(collection_parent)
 
         # Update depsgraph.
-        scene.update()
+        bpy.context.view_layer.update()
 
 
 # ############################################################

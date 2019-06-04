@@ -39,7 +39,7 @@ class UnitTesting(ViewLayerTesting):
         ob.select_set(True)
 
         # update depsgraph
-        scene.update()
+        view_layer.update()
 
         # test itself
         bpy.ops.object.make_single_user(object=True)

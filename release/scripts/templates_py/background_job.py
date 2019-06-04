@@ -48,7 +48,7 @@ def example_function(text, save_path, render_path):
     scene.collection.objects.link(light_ob)
     light_ob.location = 2.0, 2.0, 5.0
 
-    scene.update()
+    bpy.context.view_layer.update()
 
     if save_path:
         bpy.ops.wm.save_as_mainfile(filepath=save_path)

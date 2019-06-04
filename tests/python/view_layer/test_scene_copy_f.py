@@ -63,7 +63,8 @@ class UnitTesting(ViewLayerTesting):
         self.assertNotEqual(scene, new_scene)
 
         # update depsgrah
-        scene.update()  # update depsgraph
+        for view_layer in scene.view_layers:
+            view_layer.update()  # update depsgraph
 
         # compare scenes
         for h, layer in enumerate(scene.view_layers):
