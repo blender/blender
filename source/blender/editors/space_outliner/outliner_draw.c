@@ -31,7 +31,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_constraint_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1856,129 +1855,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_LINKED_PSYS:
         data.icon = ICON_PARTICLES;
-        break;
-      case TSE_CONSTRAINT: {
-        Object *ob = (Object *)tselem->id;
-
-        /*
-        * I wasn't able to get the correct pose channel per bone
-        * so for now, to avoid Blender to crash, every time an armature goes in pose mode
-        * the icon will be a dot as before.
-        * There is also a problem with the update of the outliner, if the order
-        * of the constraints change.
-        */
-        
-        if (ob->mode & OB_MODE_POSE) { /*placeholder filter for testing*/          
-          /*
-          bPoseChannel *pchan = BLI_findlink(&ob->pose->chanbase, 0);
-          
-          bConstraint *con = BLI_findlink(&pchan->constraints, tselem->nr-1000);
-          
-          switch ((eBConstraint_Types)con->type) {
-            case CONSTRAINT_TYPE_SIZELIKE:
-              data.icon = ICON_CON_SIZELIKE;
-              break;
-            default:
-              data.icon = ICON_DOT;
-              break;  
-          }*/
-          data.icon = ICON_DOT;
-        }
-        else {
-          bConstraint *con = BLI_findlink(&ob->constraints, tselem->nr);
-          
-          switch ((eBConstraint_Types)con->type) {
-          case CONSTRAINT_TYPE_CAMERASOLVER:
-            data.icon = ICON_CON_CAMERASOLVER;
-            break;
-          case CONSTRAINT_TYPE_FOLLOWTRACK:
-            data.icon = ICON_CON_FOLLOWTRACK;
-            break;
-          case CONSTRAINT_TYPE_OBJECTSOLVER:
-            data.icon = ICON_CON_OBJECTSOLVER;
-            break;
-          case CONSTRAINT_TYPE_LOCLIKE:
-            data.icon = ICON_CON_LOCLIKE;
-            break;
-          case CONSTRAINT_TYPE_ROTLIKE:
-            data.icon = ICON_CON_ROTLIKE;
-            break;
-          case CONSTRAINT_TYPE_SIZELIKE:
-            data.icon = ICON_CON_SIZELIKE;
-            break;
-          case CONSTRAINT_TYPE_TRANSLIKE:
-            data.icon = ICON_CON_TRANSLIKE;
-            break;
-          case CONSTRAINT_TYPE_DISTLIMIT:
-            data.icon = ICON_CON_DISTLIMIT;
-            break;
-          case CONSTRAINT_TYPE_LOCLIMIT:
-            data.icon = ICON_CON_LOCLIMIT;
-            break;
-          case CONSTRAINT_TYPE_ROTLIMIT:
-            data.icon = ICON_CON_ROTLIMIT;
-            break;
-          case CONSTRAINT_TYPE_SIZELIMIT:
-            data.icon = ICON_CON_SIZELIMIT;
-            break;
-          case CONSTRAINT_TYPE_SAMEVOL:
-            data.icon = ICON_CON_SAMEVOL;
-            break;
-          case CONSTRAINT_TYPE_TRANSFORM:
-            data.icon = ICON_CON_TRANSFORM;
-            break;
-          case CONSTRAINT_TYPE_TRANSFORM_CACHE:
-            data.icon = ICON_MOD_MESHDEFORM;
-            break;
-          case CONSTRAINT_TYPE_CLAMPTO:
-            data.icon = ICON_CON_CLAMPTO;
-            break;
-          case CONSTRAINT_TYPE_DAMPTRACK:
-            data.icon = ICON_CON_TRACKTO;
-            break;
-          case CONSTRAINT_TYPE_KINEMATIC:
-            data.icon = ICON_CON_KINEMATIC;
-            break;
-          case CONSTRAINT_TYPE_LOCKTRACK:
-            data.icon = ICON_CON_LOCKTRACK;
-            break;
-          case CONSTRAINT_TYPE_SPLINEIK:
-            data.icon = ICON_CON_SPLINEIK;
-            break;
-          case CONSTRAINT_TYPE_STRETCHTO:
-            data.icon = ICON_CON_STRETCHTO;
-            break;
-          case CONSTRAINT_TYPE_TRACKTO:
-            data.icon = ICON_CON_TRACKTO;
-            break;
-          case CONSTRAINT_TYPE_ACTION:
-            data.icon = ICON_ACTION;
-            break;
-          case CONSTRAINT_TYPE_ARMATURE:
-            data.icon = ICON_MOD_ARMATURE;
-            break;
-          case CONSTRAINT_TYPE_CHILDOF:
-            data.icon = ICON_CON_CHILDOF;
-            break;
-          case CONSTRAINT_TYPE_MINMAX:
-            data.icon = ICON_CON_FLOOR;
-            break;
-          case CONSTRAINT_TYPE_FOLLOWPATH:
-            data.icon = ICON_CON_FOLLOWPATH;
-            break;
-          case CONSTRAINT_TYPE_PIVOT:
-            data.icon = ICON_CON_PIVOT;
-            break;
-          case CONSTRAINT_TYPE_SHRINKWRAP:
-            data.icon = ICON_CON_SHRINKWRAP;
-            break;
-          
-          case NUM_CONSTRAINT_TYPES:
-            data.icon = ICON_DOT;
-            break;
-          }
-        }
-      } 
         break;
       case TSE_MODIFIER: {
         Object *ob = (Object *)tselem->id;
