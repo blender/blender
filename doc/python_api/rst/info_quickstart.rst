@@ -12,22 +12,22 @@ This API is generally stable but some areas are still being added and improved.
 
 The Blender/Python API can do the following:
 
-- Edit any data the user interface can (Scenes, Meshes, Particles etc.)
-- Modify user preferences, keymaps and themes
-- Run tools with own settings
-- Create user interface elements such as menus, headers and panels
-- Create new tools
-- Create interactive tools
-- Create new rendering engines that integrate with Blender
-- Define new settings in existing Blender data
-- Draw in the 3D view using OpenGL commands from Python
+- Edit any data the user interface can (Scenes, Meshes, Particles etc.).
+- Modify user preferences, key-maps and themes.
+- Run tools with own settings.
+- Create user interface elements such as menus, headers and panels.
+- Create new tools.
+- Create interactive tools.
+- Create new rendering engines that integrate with Blender.
+- Subscribe to changes to data and it's properties.
+- Define new settings in existing Blender data.
+- Draw in the 3D view using Python.
 
 
 The Blender/Python API **can't** (yet)...
 
 - Create new space types.
 - Assign custom properties to every type.
-- Define callbacks or listeners to be notified when data is changed.
 
 
 Before Starting
