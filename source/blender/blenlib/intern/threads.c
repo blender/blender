@@ -161,6 +161,7 @@ void BLI_threadapi_exit(void)
 {
   if (task_scheduler) {
     BLI_task_scheduler_free(task_scheduler);
+    task_scheduler = NULL;
   }
   BLI_spin_end(&_malloc_lock);
 }
