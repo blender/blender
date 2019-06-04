@@ -167,10 +167,10 @@ static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scr
    */
   if (scroll) {
     const int scroll_width = (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) ?
-                                 V2D_SCROLL_WIDTH_HANDLES :
+                                 V2D_SCROLL_HANDLE_WIDTH :
                                  V2D_SCROLL_WIDTH;
     const int scroll_height = (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) ?
-                                  V2D_SCROLL_HEIGHT_HANDLES :
+                                  V2D_SCROLL_HANDLE_HEIGHT :
                                   V2D_SCROLL_HEIGHT;
 
     /* vertical scroller */
@@ -1463,8 +1463,8 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
     vert.xmax -= smaller;
   }
 
-  CLAMP(vert.ymin, vert.ymin, vert.ymax - V2D_SCROLLER_HANDLE_SIZE);
-  CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLLER_HANDLE_SIZE);
+  CLAMP(vert.ymin, vert.ymin, vert.ymax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   /* store in scrollers, used for drawing */
   scrollers->vert = vert;
@@ -1505,11 +1505,11 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
       scrollers->hor_min = scrollers->hor_max;
     }
     /* prevent sliders from being too small to grab */
-    if ((scrollers->hor_max - scrollers->hor_min) < V2D_MIN_SCROLLER_SIZE) {
-      scrollers->hor_max = scrollers->hor_min + V2D_MIN_SCROLLER_SIZE;
+    if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
+      scrollers->hor_max = scrollers->hor_min + V2D_SCROLL_THUMB_SIZE_MIN;
 
-      CLAMP(scrollers->hor_max, hor.xmin + V2D_MIN_SCROLLER_SIZE, hor.xmax);
-      CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_MIN_SCROLLER_SIZE);
+      CLAMP(scrollers->hor_max, hor.xmin + V2D_SCROLL_THUMB_SIZE_MIN, hor.xmax);
+      CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_SCROLL_THUMB_SIZE_MIN);
     }
   }
 
@@ -1543,11 +1543,11 @@ View2DScrollers *UI_view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom)
       scrollers->vert_min = scrollers->vert_max;
     }
     /* prevent sliders from being too small to grab */
-    if ((scrollers->vert_max - scrollers->vert_min) < V2D_MIN_SCROLLER_SIZE) {
-      scrollers->vert_max = scrollers->vert_min + V2D_MIN_SCROLLER_SIZE;
+    if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLL_THUMB_SIZE_MIN) {
+      scrollers->vert_max = scrollers->vert_min + V2D_SCROLL_THUMB_SIZE_MIN;
 
-      CLAMP(scrollers->vert_max, vert.ymin + V2D_MIN_SCROLLER_SIZE, vert.ymax);
-      CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_MIN_SCROLLER_SIZE);
+      CLAMP(scrollers->vert_max, vert.ymin + V2D_SCROLL_THUMB_SIZE_MIN, vert.ymax);
+      CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_SCROLL_THUMB_SIZE_MIN);
     }
   }
 
@@ -1597,7 +1597,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
      *   and only the time-grids with their zoomability can do so)
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
-        (BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE)) {
+        (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
       state |= UI_SCROLL_ARROWS;
     }
 
@@ -1631,7 +1631,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, View2DScrollers *vs)
      *   and only the time-grids with their zoomability can do so)
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
-        (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE)) {
+        (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
       state |= UI_SCROLL_ARROWS;
     }
 

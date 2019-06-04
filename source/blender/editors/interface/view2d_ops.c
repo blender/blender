@@ -1719,14 +1719,14 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 
   /* check if mouse is in or past either handle */
   /* TODO: check if these extents are still valid or not */
-  in_max = ((mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) &&
-            (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)));
-  in_min = ((mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE)) &&
-            (mouse >= (sh_min - V2D_SCROLLER_HANDLE_SIZE)));
-  in_bar = ((mouse < (sh_max - V2D_SCROLLER_HANDLE_SIZE)) &&
-            (mouse > (sh_min + V2D_SCROLLER_HANDLE_SIZE)));
-  out_min = mouse < (sh_min - V2D_SCROLLER_HANDLE_SIZE);
-  out_max = mouse > (sh_max + V2D_SCROLLER_HANDLE_SIZE);
+  in_max = ((mouse >= (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+            (mouse <= (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  in_min = ((mouse <= (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+            (mouse >= (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  in_bar = ((mouse < (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
+            (mouse > (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+  out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  out_max = mouse > (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   if (in_bar) {
     return SCROLLHANDLE_BAR;
