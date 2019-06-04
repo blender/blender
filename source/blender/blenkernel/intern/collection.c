@@ -1281,7 +1281,16 @@ bool BKE_collection_move(Main *bmain,
         view_layer, collection);
 
     if (layer_collection) {
-      layer_collection->flag = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
+      /* We treat exclude as a special case.
+       *
+       * If in a different view layer the parent collection was disabled (e.g., background)
+       * and now we moved a new collection to be part of the background this collection should
+       * probably be disabled.
+       *
+       * Note: If we were to also keep the exclude flag we would need to re-sync the collections.
+       */
+      layer_collection->flag = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter)) |
+                               (layer_collection->flag & LAYER_COLLECTION_EXCLUDE);
     }
   }
 
