@@ -1380,25 +1380,27 @@ static void outliner_add_layer_collections_recursive(SpaceOutliner *soops,
 {
   for (LayerCollection *lc = layer_collections->first; lc; lc = lc->next) {
     const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
+    TreeElement *ten;
 
     if (exclude && ((soops->show_restrict_flags & SO_RESTRICT_ENABLE) == 0)) {
-      continue;
+      ten = parent_ten;
     }
+    else {
+      ID *id = &lc->collection->id;
+      ten = outliner_add_element(soops, tree, id, parent_ten, TSE_LAYER_COLLECTION, 0);
 
-    ID *id = &lc->collection->id;
-    TreeElement *ten = outliner_add_element(soops, tree, id, parent_ten, TSE_LAYER_COLLECTION, 0);
+      ten->name = id->name + 2;
+      ten->directdata = lc;
 
-    ten->name = id->name + 2;
-    ten->directdata = lc;
+      /* Open by default. */
+      TreeStoreElem *tselem = TREESTORE(ten);
+      if (!tselem->used) {
+        tselem->flag &= ~TSE_CLOSED;
+      }
 
-    /* Open by default. */
-    TreeStoreElem *tselem = TREESTORE(ten);
-    if (!tselem->used) {
-      tselem->flag &= ~TSE_CLOSED;
-    }
-
-    if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE) == 0) {
-      ten->flag |= TE_DISABLED;
+      if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE) == 0) {
+        ten->flag |= TE_DISABLED;
+      }
     }
 
     outliner_add_layer_collections_recursive(
