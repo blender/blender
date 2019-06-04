@@ -922,13 +922,7 @@ static bool gp_brush_weight_apply(
   float curweight = dw ? dw->weight : 0.0f;
 
   if (gp_brush_invert_check(gso)) {
-    /* reduce weight (verify mainimum target) */
-    if (curweight - inf < gso->gp_brush->weight) {
-      curweight = gso->gp_brush->weight;
-    }
-    else {
-      curweight -= inf;
-    }
+    curweight -= inf;
   }
   else {
     /* increase weight */
