@@ -37,9 +37,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_clip.h"
+#include "ED_mask.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_clip.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -364,6 +365,8 @@ static int mouse_select(bContext *C, float co[2], const bool extend, const bool 
   else if (deselect_all) {
     ed_tracking_deselect_all_tracks(tracksbase);
     ed_tracking_deselect_all_plane_tracks(plane_tracks_base);
+    /* Mask as well if we are in combined mask / track view. */
+    ED_mask_deselect_all(C);
   }
 
   if (!extend) {
@@ -470,6 +473,12 @@ void CLIP_OT_select(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+}
+
+bool ED_clip_can_select(bContext *C)
+{
+  /* To avoid conflicts with mask select deselect all in empty space. */
+  return select_poll(C);
 }
 
 /********************** box select operator *********************/

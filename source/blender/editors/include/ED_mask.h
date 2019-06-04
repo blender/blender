@@ -50,6 +50,8 @@ void ED_mask_point_pos__reverse(
 void ED_mask_cursor_location_get(struct ScrArea *sa, float cursor[2]);
 bool ED_mask_selected_minmax(const struct bContext *C, float min[2], float max[2]);
 
+void ED_mask_deselect_all(const struct bContext *C);
+
 void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
