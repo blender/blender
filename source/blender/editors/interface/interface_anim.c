@@ -176,6 +176,8 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
     driver = fcu->driver;
 
     if (driver && (driver->type == DRIVER_TYPE_PYTHON)) {
+      bContext *C = but->block->evil_C;
+
       BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 
       /* tag driver as needing to be recompiled */
@@ -186,7 +188,9 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
       fcu->flag &= ~FCURVE_DISABLED;
 
       /* this notifier should update the Graph Editor and trigger depsgraph refresh? */
-      WM_event_add_notifier(but->block->evil_C, NC_ANIMATION | ND_KEYFRAME, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
+
+      DEG_relations_tag_update(CTX_data_main(C));
 
       return true;
     }
