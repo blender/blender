@@ -80,14 +80,6 @@ static bool cycles_property_boolean(IDProperty *idprop, const char *name, bool d
   return (prop) ? IDP_Int(prop) : default_value;
 }
 
-static const char *cycles_property_string(IDProperty *idprop,
-                                          const char *name,
-                                          const char *default_value)
-{
-  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_STRING);
-  return (prop) ? IDP_String(prop) : default_value;
-}
-
 static void displacement_node_insert(bNodeTree *ntree)
 {
   bool need_update = false;
@@ -500,7 +492,7 @@ void do_versions_after_linking_cycles(Main *bmain)
       for (Camera *camera = bmain->cameras.first; camera; camera = camera->id.next) {
         IDProperty *ccamera = cycles_properties_from_ID(&camera->id);
         if (ccamera) {
-          const char *aperture_type = cycles_property_string(ccamera, "aperture_type", "RADIUS");
+          const bool is_fstop = cycles_property_int(ccamera, "aperture_type", 0) == 1;
 
           camera->dof.aperture_fstop = cycles_property_float(ccamera, "aperture_fstop", 5.6f);
           camera->dof.aperture_blades = cycles_property_int(ccamera, "aperture_blades", 0);
@@ -510,7 +502,10 @@ void do_versions_after_linking_cycles(Main *bmain)
 
           float aperture_size = cycles_property_float(ccamera, "aperture_size", 0.0f);
 
-          if (STREQ(aperture_type, "RADIUS") && aperture_size > 0.0f) {
+          if (is_fstop) {
+            continue;
+          }
+          else if (aperture_size > 0.0f) {
             if (camera->type == CAM_ORTHO) {
               camera->dof.aperture_fstop = 1.0f / (2.0f * aperture_size);
             }
