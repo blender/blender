@@ -2234,6 +2234,7 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
     return;
   }
   BLI_ghash_free(scene->depsgraph_hash, depsgraph_key_free, depsgraph_key_value_free);
+  scene->depsgraph_hash = NULL;
 }
 
 /* Query depsgraph for a specific contexts. */

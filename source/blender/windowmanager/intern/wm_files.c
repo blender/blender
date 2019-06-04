@@ -2721,9 +2721,10 @@ static void wm_block_autorun_warning_ignore(bContext *C, void *arg_block, void *
   UI_popup_block_close(C, win, arg_block);
 }
 
-static void wm_block_autorun_warning_allow(bContext *C, void *arg_block, void *UNUSED(arg))
+static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
+                                                         void *arg_block,
+                                                         void *UNUSED(arg))
 {
-  PointerRNA props_ptr;
   wmWindow *win = CTX_wm_window(C);
 
   UI_popup_block_close(C, win, arg_block);
@@ -2733,13 +2734,35 @@ static void wm_block_autorun_warning_allow(bContext *C, void *arg_block, void *U
     WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
   }
 
-  /* Load file again with scripts enabled. */
+  /* Load file again with scripts enabled.
+   * The reload is necessary to allow scripts to run when the files loads. */
   wmOperatorType *ot = WM_operatortype_find("WM_OT_revert_mainfile", false);
 
+  PointerRNA props_ptr;
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_boolean_set(&props_ptr, "use_scripts", true);
   WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
   WM_operator_properties_free(&props_ptr);
+}
+
+static void wm_block_autorun_warning_enable_scripts(bContext *C,
+                                                    void *arg_block,
+                                                    void *UNUSED(arg))
+{
+  wmWindow *win = CTX_wm_window(C);
+  Main *bmain = CTX_data_main(C);
+
+  UI_popup_block_close(C, win, arg_block);
+
+  /* Save user preferences for permanent execution. */
+  if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
+    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+  }
+
+  /* Force a full refresh, but without reloading the file. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    BKE_scene_free_depsgraph_hash(scene);
+  }
 }
 
 /* Build the autorun warning dialog UI */
@@ -2747,6 +2770,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                                              struct ARegion *ar,
                                              void *UNUSED(arg1))
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   uiStyle *style = UI_style_get();
   uiBlock *block = UI_block_begin(C, ar, "autorun_warning_popup", UI_EMBOSS);
 
@@ -2794,8 +2818,9 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
   col = uiLayoutColumn(split, false);
 
-  /* Allow reload if we have a saved file. */
-  if (G.relbase_valid) {
+  /* Allow reload if we have a saved file.
+   * Otherwise just enable scripts and reset the depsgraphs. */
+  if (G.relbase_valid && wm->file_saved) {
     but = uiDefIconTextBut(block,
                            UI_BTYPE_BUT,
                            0,
@@ -2811,10 +2836,25 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                            0,
                            0,
                            TIP_("Reload file with execution of Python scripts enabled"));
-    UI_but_func_set(but, wm_block_autorun_warning_allow, block, NULL);
+    UI_but_func_set(but, wm_block_autorun_warning_reload_with_scripts, block, NULL);
   }
   else {
-    uiItemS(col);
+    but = uiDefIconTextBut(block,
+                           UI_BTYPE_BUT,
+                           0,
+                           ICON_NONE,
+                           IFACE_("Allow Execution"),
+                           0,
+                           0,
+                           50,
+                           UI_UNIT_Y,
+                           NULL,
+                           0,
+                           0,
+                           0,
+                           0,
+                           TIP_("Enable scripts"));
+    UI_but_func_set(but, wm_block_autorun_warning_enable_scripts, block, NULL);
   }
 
   /* empty space between buttons */
