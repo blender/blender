@@ -233,7 +233,6 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   SpaceNla *snla = (SpaceNla *)ac->sl;
   View2D *v2d = &ac->ar->v2d;
   rctf rectf;
-  float ymin /* =(float)(-NLACHANNEL_HEIGHT(snla)) */ /* UNUSED */, ymax = 0;
 
   /* convert border-region to view coordinates */
   UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
@@ -247,8 +246,9 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   selectmode = selmodes_to_flagmodes(selectmode);
 
   /* loop over data, doing box select */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    ymin = ymax - NLACHANNEL_STEP(snla);
+  float ymax = NLACHANNEL_FIRST_TOP(ac);
+  for (ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
+    float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
     /* perform vertical suitability check (if applicable) */
     if ((mode == NLA_BOXSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
@@ -270,9 +270,6 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
         }
       }
     }
-
-    /* set minimum extent to be the maximum of the next channel */
-    ymax = ymin;
   }
 
   /* cleanup */
