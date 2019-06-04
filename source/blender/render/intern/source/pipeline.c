@@ -2537,8 +2537,14 @@ void RE_RenderAnim(Render *re,
 
       re->movie_ctx_arr[i] = mh->context_create();
 
-      if (!mh->start_movie(
-              re->movie_ctx_arr[i], scene, &re->r, width, height, re->reports, false, suffix)) {
+      if (!mh->start_movie(re->movie_ctx_arr[i],
+                           re->pipeline_scene_eval,
+                           &re->r,
+                           width,
+                           height,
+                           re->reports,
+                           false,
+                           suffix)) {
         is_error = true;
         break;
       }
@@ -2744,7 +2750,7 @@ void RE_RenderAnim(Render *re,
 
   BLI_callback_exec(
       re->main, (ID *)scene, G.is_break ? BLI_CB_EVT_RENDER_CANCEL : BLI_CB_EVT_RENDER_COMPLETE);
-  BKE_sound_reset_scene_specs(scene);
+  BKE_sound_reset_scene_specs(re->pipeline_scene_eval);
 
   RE_CleanAfterRender(re);
 

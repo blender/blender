@@ -272,7 +272,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
   /* Hook up relationships between operations - to determine evaluation order. */
   DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph, &builder_cache);
   relation_builder.begin_build();
-  relation_builder.build_view_layer(scene, view_layer);
+  relation_builder.build_view_layer(scene, view_layer, DEG::DEG_ID_LINKED_DIRECTLY);
   relation_builder.build_copy_on_write_relations();
   /* Finalize building. */
   graph_build_finalize_common(deg_graph, bmain);

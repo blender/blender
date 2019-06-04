@@ -329,10 +329,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
-    const Sequence *seq = static_cast<Sequence *>(ptr->data);
     /* Sequencer strip */
     node_identifier.type = NodeType::SEQUENCER;
-    node_identifier.component_name = seq->name;
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {

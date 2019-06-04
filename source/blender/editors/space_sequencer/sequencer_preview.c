@@ -50,6 +50,7 @@ typedef struct PreviewJob {
 
 typedef struct PreviewJobAudio {
   struct PreviewJobAudio *next, *prev;
+  struct Main *bmain;
   bSound *sound;
   int lr; /* sample left or right */
   int startframe;
@@ -79,7 +80,9 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
     PreviewJobAudio *preview_next;
     bSound *sound = previewjb->sound;
 
+    BKE_sound_load_audio(previewjb->bmain, sound);
     BKE_sound_read_waveform(sound, stop);
+    BKE_sound_free_audio(sound);
 
     if (*stop || G.is_break) {
       BLI_mutex_lock(pj->mutex);
@@ -153,6 +156,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
 
   /* attempt to lock mutex of job here */
 
+  audiojob->bmain = CTX_data_main(C);
   audiojob->sound = seq->sound;
 
   BLI_mutex_lock(pj->mutex);

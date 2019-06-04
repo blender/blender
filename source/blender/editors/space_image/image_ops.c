@@ -61,7 +61,6 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_sound.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -3608,7 +3607,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   SUBFRA = 0.0f;
 
   /* do updates */
-  BKE_sound_seek_scene(CTX_data_main(C), scene);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

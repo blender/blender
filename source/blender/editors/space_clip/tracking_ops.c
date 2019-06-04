@@ -35,7 +35,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 #include "BKE_report.h"
-#include "BKE_sound.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1356,7 +1355,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
   if (CFRA != sc->user.framenr) {
     CFRA = sc->user.framenr;
-    BKE_sound_seek_scene(CTX_data_main(C), scene);
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }

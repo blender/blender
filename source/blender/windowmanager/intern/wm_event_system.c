@@ -86,6 +86,7 @@
 #include "RNA_enum_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 static void wm_notifier_clear(wmNotifier *note);
 static void update_tablet_data(wmWindow *win, wmEvent *event);
@@ -3154,13 +3155,17 @@ void wm_event_do_handlers(bContext *C)
     else {
       Scene *scene = WM_window_get_active_scene(win);
 
-      if (scene) {
-        int is_playing_sound = BKE_sound_scene_playing(scene);
+      CTX_wm_window_set(C, win);
+      CTX_data_scene_set(C, scene);
+
+      Depsgraph *depsgraph = CTX_data_depsgraph(C);
+      Scene *scene_eval = DEG_get_evaluated_scene_if_exists(depsgraph);
+
+      if (scene_eval) {
+        const int is_playing_sound = BKE_sound_scene_playing(scene_eval);
 
         if (is_playing_sound != -1) {
           bool is_playing_screen;
-          CTX_wm_window_set(C, win);
-          CTX_data_scene_set(C, scene);
 
           is_playing_screen = (ED_screen_animation_playing(wm) != NULL);
 
@@ -3175,18 +3180,17 @@ void wm_event_do_handlers(bContext *C)
               int ncfra = time * (float)FPS + 0.5f;
               if (ncfra != scene->r.cfra) {
                 scene->r.cfra = ncfra;
-                Depsgraph *depsgraph = CTX_data_depsgraph(C);
                 ED_update_for_newframe(CTX_data_main(C), depsgraph);
                 WM_event_add_notifier(C, NC_WINDOW, NULL);
               }
             }
           }
-
-          CTX_data_scene_set(C, NULL);
-          CTX_wm_screen_set(C, NULL);
-          CTX_wm_window_set(C, NULL);
         }
       }
+
+      CTX_data_scene_set(C, NULL);
+      CTX_wm_screen_set(C, NULL);
+      CTX_wm_window_set(C, NULL);
     }
 
     while ((event = win->queue.first)) {

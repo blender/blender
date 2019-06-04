@@ -65,6 +65,8 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
+#include "BKE_sound.h"
 #include "BKE_keyconfig.h"
 
 #include "BKE_addon.h"
@@ -123,6 +125,7 @@
 #include "COM_compositor.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
 
@@ -195,6 +198,30 @@ void WM_init_opengl(Main *bmain)
   opengl_is_init = true;
 }
 
+static void sound_jack_sync_callback(Main *bmain, int mode, float time)
+{
+  /* Ugly: Blender doesn't like it when the animation is played back during rendering. */
+  if (G.is_rendering) {
+    return;
+  }
+
+  wmWindowManager *wm = bmain->wm.first;
+
+  for (wmWindow *window = wm->windows.first; window != NULL; window = window->next) {
+    Scene *scene = WM_window_get_active_scene(window);
+    if ((scene->audio.flag & AUDIO_SYNC) == 0) {
+      continue;
+    }
+    ViewLayer *view_layer = WM_window_get_active_view_layer(window);
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+    if (depsgraph == NULL) {
+      continue;
+    }
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+    BKE_sound_jack_scene_update(scene_eval, mode, time);
+  }
+}
+
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
 {
@@ -202,6 +229,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   if (!G.background) {
     wm_ghost_init(C); /* note: it assigns C to ghost! */
     wm_init_cursor_data();
+    BKE_sound_jack_sync_callback_set(sound_jack_sync_callback);
   }
 
   GHOST_CreateSystemPaths();

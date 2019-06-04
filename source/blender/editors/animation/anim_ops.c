@@ -36,7 +36,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_sound.h"
 #include "BKE_scene.h"
 
 #include "UI_view2d.h"
@@ -51,6 +50,9 @@
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_util.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "anim_intern.h"
 
@@ -88,7 +90,6 @@ static bool change_frame_poll(bContext *C)
 /* Set the new frame number */
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   float frame = RNA_float_get(op->ptr, "frame");
   bool do_snap = RNA_boolean_get(op->ptr, "snap");
@@ -114,7 +115,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(CFRA);
 
   /* do updates */
-  BKE_sound_seek_scene(bmain, scene);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

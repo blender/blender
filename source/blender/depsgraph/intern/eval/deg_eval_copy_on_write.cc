@@ -59,6 +59,8 @@ extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
@@ -84,6 +86,8 @@ extern "C" {
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_sequencer.h"
+#include "BKE_sound.h"
 }
 
 #include "intern/depsgraph.h"
@@ -467,6 +471,25 @@ void scene_setup_view_layers_after_remap(const Depsgraph *depsgraph,
    * Still not an excuse to have those. */
 }
 
+void update_sequence_orig_pointers(const ListBase *sequences_orig, ListBase *sequences_cow)
+{
+  Sequence *sequence_orig = reinterpret_cast<Sequence *>(sequences_orig->first);
+  Sequence *sequence_cow = reinterpret_cast<Sequence *>(sequences_cow->first);
+  while (sequence_orig != NULL) {
+    update_sequence_orig_pointers(&sequence_orig->seqbase, &sequence_cow->seqbase);
+    sequence_cow->orig_sequence = sequence_orig;
+    sequence_cow = sequence_cow->next;
+    sequence_orig = sequence_orig->next;
+  }
+}
+
+void update_scene_orig_pointers(const Scene *scene_orig, Scene *scene_cow)
+{
+  if (scene_orig->ed != NULL) {
+    update_sequence_orig_pointers(&scene_orig->ed->seqbase, &scene_cow->ed->seqbase);
+  }
+}
+
 /* Check whether given ID is expanded or still a shallow copy. */
 BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
 {
@@ -751,6 +774,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_cow->toolsettings = scene_orig->toolsettings;
       scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
+      update_scene_orig_pointers(scene_orig, scene_cow);
       break;
     }
     default:
@@ -881,6 +905,205 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 
 namespace {
 
+/* Backup of sequencer strips runtime data. */
+
+/* Backup of a single strip. */
+class SequenceBackup {
+ public:
+  SequenceBackup()
+  {
+    reset();
+  }
+
+  inline void reset()
+  {
+    scene_sound = NULL;
+  }
+
+  void init_from_sequence(Sequence *sequence)
+  {
+    scene_sound = sequence->scene_sound;
+
+    sequence->scene_sound = NULL;
+  }
+
+  void restore_to_sequence(Sequence *sequence)
+  {
+    sequence->scene_sound = scene_sound;
+    reset();
+  }
+
+  inline bool isEmpty() const
+  {
+    return (scene_sound == NULL);
+  }
+
+  void *scene_sound;
+};
+
+class SequencerBackup {
+ public:
+  SequencerBackup();
+
+  void init_from_scene(Scene *scene);
+  void restore_to_scene(Scene *scene);
+
+  typedef map<Sequence *, SequenceBackup> SequencesBackupMap;
+  SequencesBackupMap sequences_backup;
+};
+
+SequencerBackup::SequencerBackup()
+{
+}
+
+void SequencerBackup::init_from_scene(Scene *scene)
+{
+  Sequence *sequence;
+  SEQ_BEGIN (scene->ed, sequence) {
+    SequenceBackup sequence_backup;
+    sequence_backup.init_from_sequence(sequence);
+    if (!sequence_backup.isEmpty()) {
+      sequences_backup.insert(make_pair(sequence->orig_sequence, sequence_backup));
+    }
+  }
+  SEQ_END;
+}
+
+void SequencerBackup::restore_to_scene(Scene *scene)
+{
+  Sequence *sequence;
+  SEQ_BEGIN (scene->ed, sequence) {
+    SequencesBackupMap::iterator it = sequences_backup.find(sequence->orig_sequence);
+    if (it == sequences_backup.end()) {
+      continue;
+    }
+    SequenceBackup &sequence_backup = it->second;
+    sequence_backup.restore_to_sequence(sequence);
+  }
+  SEQ_END;
+  /* Cleanup audio while the scene is still known. */
+  for (SequencesBackupMap::value_type &it : sequences_backup) {
+    SequenceBackup &sequence_backup = it.second;
+    if (sequence_backup.scene_sound != NULL) {
+      BKE_sound_remove_scene_sound(scene, sequence_backup.scene_sound);
+    }
+  }
+}
+
+/* Backup of scene runtime data. */
+
+class SceneBackup {
+ public:
+  SceneBackup();
+
+  void reset();
+
+  void init_from_scene(Scene *scene);
+  void restore_to_scene(Scene *scene);
+
+  /* Sound/audio related pointers of the scene itself.
+   *
+   * NOTE: Scene can not disappear after relations update, because otherwise the entire dependency
+   * graph will be gone. This means we don't need to compare original scene pointer, or worry about
+   * freeing those if they cant' be restorted: we just copy them over to a new scene. */
+  void *sound_scene;
+  void *playback_handle;
+  void *sound_scrub_handle;
+  void *speaker_handles;
+
+  SequencerBackup sequencer_backup;
+};
+
+SceneBackup::SceneBackup()
+{
+  reset();
+}
+
+void SceneBackup::reset()
+{
+  sound_scene = NULL;
+  playback_handle = NULL;
+  sound_scrub_handle = NULL;
+  speaker_handles = NULL;
+}
+
+void SceneBackup::init_from_scene(Scene *scene)
+{
+  sound_scene = scene->sound_scene;
+  playback_handle = scene->playback_handle;
+  sound_scrub_handle = scene->sound_scrub_handle;
+  speaker_handles = scene->speaker_handles;
+
+  /* Clear pointers stored in the scene, so they are not freed when copied-on-written datablock
+   * is freed for re-allocation. */
+  scene->sound_scene = NULL;
+  scene->playback_handle = NULL;
+  scene->sound_scrub_handle = NULL;
+  scene->speaker_handles = NULL;
+
+  sequencer_backup.init_from_scene(scene);
+}
+
+void SceneBackup::restore_to_scene(Scene *scene)
+{
+  scene->sound_scene = sound_scene;
+  scene->playback_handle = playback_handle;
+  scene->sound_scrub_handle = sound_scrub_handle;
+  scene->speaker_handles = speaker_handles;
+
+  sequencer_backup.restore_to_scene(scene);
+
+  reset();
+}
+
+/* Backup of sound datablocks runtime data. */
+
+class SoundBackup {
+ public:
+  SoundBackup();
+
+  void reset();
+
+  void init_from_sound(bSound *sound);
+  void restore_to_sound(bSound *sound);
+
+  void *cache;
+  void *waveform;
+  void *playback_handle;
+};
+
+SoundBackup::SoundBackup()
+{
+  reset();
+}
+
+void SoundBackup::reset()
+{
+  cache = NULL;
+  waveform = NULL;
+  playback_handle = NULL;
+}
+
+void SoundBackup::init_from_sound(bSound *sound)
+{
+  cache = sound->cache;
+  waveform = sound->waveform;
+  playback_handle = sound->playback_handle;
+
+  sound->cache = NULL;
+  sound->waveform = NULL;
+  sound->playback_handle = NULL;
+}
+
+void SoundBackup::restore_to_sound(bSound *sound)
+{
+  sound->cache = cache;
+  sound->waveform = waveform;
+  sound->playback_handle = playback_handle;
+
+  reset();
+}
+
 /* Identifier used to match modifiers to backup/restore their runtime data.
  * Identification is happening using original modifier data pointer and the
  * modifier type.
@@ -921,7 +1144,8 @@ typedef map<ModifierDataBackupID, void *> ModifierRuntimeDataBackup;
 /* Storage for backed up pose channel runtime data. */
 typedef map<bPoseChannel *, bPoseChannel_Runtime> PoseChannelRuntimeDataBackup;
 
-struct ObjectRuntimeBackup {
+class ObjectRuntimeBackup {
+ public:
   ObjectRuntimeBackup() : base_flag(0), base_local_view_bits(0)
   {
     /* TODO(sergey): Use something like BKE_object_runtime_reset(). */
@@ -1099,6 +1323,8 @@ class RuntimeBackup {
   /* Restore fields to the given ID. */
   void restore_to_id(ID *id);
 
+  SceneBackup scene_backup;
+  SoundBackup sound_backup;
   ObjectRuntimeBackup object_backup;
   DrawDataList drawdata_backup;
   DrawDataList *drawdata_ptr;
@@ -1113,6 +1339,12 @@ void RuntimeBackup::init_from_id(ID *id)
   switch (id_type) {
     case ID_OB:
       object_backup.init_from_object(reinterpret_cast<Object *>(id));
+      break;
+    case ID_SCE:
+      scene_backup.init_from_scene(reinterpret_cast<Scene *>(id));
+      break;
+    case ID_SO:
+      sound_backup.init_from_sound(reinterpret_cast<bSound *>(id));
       break;
     default:
       break;
@@ -1132,6 +1364,12 @@ void RuntimeBackup::restore_to_id(ID *id)
   switch (id_type) {
     case ID_OB:
       object_backup.restore_to_object(reinterpret_cast<Object *>(id));
+      break;
+    case ID_SCE:
+      scene_backup.restore_to_scene(reinterpret_cast<Scene *>(id));
+      break;
+    case ID_SO:
+      sound_backup.restore_to_sound(reinterpret_cast<bSound *>(id));
       break;
     default:
       break;
@@ -1321,9 +1559,7 @@ bool deg_copy_on_write_is_expanded(const ID *id_cow)
 bool deg_copy_on_write_is_needed(const ID *id_orig)
 {
   const ID_Type id_type = GS(id_orig->name);
-  /* TODO(sergey): Make Sound copyable. It is here only because the code for dependency graph is
-   * being work in progress. */
-  return !ELEM(id_type, ID_IM, ID_SO);
+  return !ELEM(id_type, ID_IM);
 }
 
 }  // namespace DEG

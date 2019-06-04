@@ -448,9 +448,7 @@ typedef enum ID_Type {
 
 /* No copy-on-write for these types.
  * Keep in sync with check_datablocks_copy_on_writable and deg_copy_on_write_is_needed */
-/* TODO(sergey): Make Sound copyable. It is here only because the code for dependency graph is
- * being work in progress. */
-#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM, ID_SO))
+#define ID_TYPE_IS_COW(_id_type) (!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM))
 
 #ifdef GS
 #  undef GS
@@ -603,6 +601,16 @@ typedef enum IDRecalcFlag {
    * matches.
    */
   ID_RECALC_COPY_ON_WRITE = (1 << 13),
+
+  /* Sequences in the sequencer did change.
+   * Use this tag with a scene ID which owns the sequences. */
+  ID_RECALC_SEQUENCER_STRIPS = (1 << 14),
+
+  ID_RECALC_AUDIO_SEEK = (1 << 15),
+  ID_RECALC_AUDIO_FPS = (1 << 16),
+  ID_RECALC_AUDIO_VOLUME = (1 << 17),
+  ID_RECALC_AUDIO_MUTE = (1 << 18),
+  ID_RECALC_AUDIO_LISTENER = (1 << 19),
 
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without

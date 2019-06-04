@@ -64,6 +64,8 @@
 #include "UI_view2d.h"
 #include "UI_interface.h"
 
+#include "DEG_depsgraph.h"
+
 /* own include */
 #include "sequencer_intern.h"
 
@@ -1809,7 +1811,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BKE_sequencer_update_muting(ed);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -1860,7 +1862,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BKE_sequencer_update_muting(ed);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -2370,6 +2372,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
     ms = ms->prev;
   }
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -2625,7 +2628,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
     MEM_freeN(ms);
   }
 
-  BKE_sequencer_update_muting(ed);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -2686,7 +2689,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
     BKE_sequence_base_shuffle(ed->seqbasep, seqm, scene);
   }
 
-  BKE_sequencer_update_muting(ed);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
 
@@ -2773,7 +2776,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   BKE_sequencer_sort(scene);
-  BKE_sequencer_update_muting(ed);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

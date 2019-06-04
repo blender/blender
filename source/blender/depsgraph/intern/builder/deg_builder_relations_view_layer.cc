@@ -75,7 +75,9 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
   }
 }
 
-void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_layer)
+void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
+                                                ViewLayer *view_layer,
+                                                eDepsNode_LinkedState_Type linked_state)
 {
   /* Setup currently building context. */
   scene_ = scene;
@@ -132,10 +134,15 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
       &scene->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
   OperationKey scene_eval_key(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(scene_view_layer_key, scene_eval_key, "View Layer -> Scene Eval");
+  /* Sequencer. */
+  if (linked_state == DEG_ID_LINKED_DIRECTLY) {
+    build_scene_audio(scene);
+    build_scene_sequencer(scene);
+  }
   /* Build all set scenes. */
   if (scene->set != NULL) {
     ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
-    build_view_layer(scene->set, set_view_layer);
+    build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
   }
 }
 

@@ -146,6 +146,11 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
       build_collection(NULL, fls->group);
     }
   }
+  /* Sequencer. */
+  if (linked_state == DEG_ID_LINKED_DIRECTLY) {
+    build_scene_audio(scene);
+    build_scene_sequencer(scene);
+  }
   /* Collections. */
   add_operation_node(
       &scene->id,
