@@ -482,7 +482,7 @@ static void overlay_draw_scene(void *vedata)
   /* This is replaced by the next code block  */
   // MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-  if (dfbl->multisample_fb != NULL) {
+  if (dfbl->multisample_fb != NULL && DRW_state_is_fbo()) {
     DRW_stats_query_start("Multisample Blit");
     GPU_framebuffer_bind(dfbl->multisample_fb);
     GPU_framebuffer_clear_color(dfbl->multisample_fb, (const float[4]){0.0f});

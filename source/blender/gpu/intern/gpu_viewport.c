@@ -95,7 +95,7 @@ static void gpu_viewport_buffers_free(FramebufferList *fbl,
 static void gpu_viewport_storage_free(StorageList *stl, int stl_len);
 static void gpu_viewport_passes_free(PassList *psl, int psl_len);
 static void gpu_viewport_texture_pool_free(GPUViewport *viewport);
-static void gpu_viewport_default_fb_create(GPUViewport *viewport);
+static void gpu_viewport_default_fb_create(GPUViewport *viewport, const bool high_bitdepth);
 
 void GPU_viewport_tag_update(GPUViewport *viewport)
 {
@@ -135,7 +135,7 @@ GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs)
     viewport->txl->multisample_color = color;
     viewport->txl->multisample_depth = depth;
     viewport->fbl->multisample_fb = fb;
-    gpu_viewport_default_fb_create(viewport);
+    gpu_viewport_default_fb_create(viewport, true);
   }
   else {
     viewport->fbl->default_fb = fb;
@@ -384,14 +384,15 @@ void GPU_viewport_cache_release(GPUViewport *viewport)
   }
 }
 
-static void gpu_viewport_default_fb_create(GPUViewport *viewport)
+static void gpu_viewport_default_fb_create(GPUViewport *viewport, const bool high_bitdepth)
 {
   DefaultFramebufferList *dfbl = viewport->fbl;
   DefaultTextureList *dtxl = viewport->txl;
   int *size = viewport->size;
   bool ok = true;
 
-  dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA8, NULL, NULL);
+  dtxl->color = GPU_texture_create_2d(
+      size[0], size[1], high_bitdepth ? GPU_RGBA16F : GPU_RGBA8, NULL, NULL);
   dtxl->depth = GPU_texture_create_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
 
   if (!(dtxl->depth && dtxl->color)) {
@@ -500,7 +501,7 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
   }
 
   if (!dfbl->default_fb) {
-    gpu_viewport_default_fb_create(viewport);
+    gpu_viewport_default_fb_create(viewport, false);
   }
 }
 
