@@ -578,6 +578,11 @@ void graph_id_tag_update(
   if (flag == 0) {
     deg_graph_node_tag_zero(bmain, graph, id_node, update_source);
   }
+  /* Store original flag in the ID.
+   * Allows to have more granularity than a node-factory based flags. */
+  if (id_node != NULL) {
+    id_node->id_cow->recalc |= flag;
+  }
   int current_flag = flag;
   while (current_flag != 0) {
     IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_i(&current_flag));
