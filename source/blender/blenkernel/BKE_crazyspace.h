@@ -35,7 +35,6 @@ struct Scene;
 
 /* crazyspace.c */
 float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph,
-                                            struct Scene *scene,
                                             struct Object *obedit))[3];
 void BKE_crazyspace_set_quats_editmesh(struct BMEditMesh *em,
                                        float (*origcos)[3],
