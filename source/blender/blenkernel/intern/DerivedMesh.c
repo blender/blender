@@ -2369,7 +2369,6 @@ Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
 Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
                                         Scene *scene,
                                         Object *obedit,
-                                        BMEditMesh *UNUSED(em),
                                         const CustomData_MeshMasks *dataMask)
 {
   BLI_assert((obedit->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0);

@@ -455,8 +455,7 @@ struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                                      const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
-                                               struct Object *,
-                                               struct BMEditMesh *em,
+                                               struct Object *object,
                                                const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_and_final(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
