@@ -170,12 +170,6 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
   WORKBENCH_TextureList *txl = vedata->txl;
   WORKBENCH_EffectInfo *effect_info = stl->effects;
   WORKBENCH_FramebufferList *fbl = vedata->fbl;
-  WORKBENCH_PrivateData *wpd = stl->g_data;
-  /*
-   * jitter_index is not updated yet. This will be done in during draw phase.
-   * so for now it is inversed.
-   */
-  int previous_jitter_index = effect_info->jitter_index;
 
   {
     const eGPUTextureFormat hist_buffer_format = DRW_state_is_image_render() ? GPU_RGBA16F :
@@ -203,12 +197,6 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
   DRW_shgroup_uniform_float(grp, "mixFactor", &effect_info->taa_mix_factor, 1);
   DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
-  /*
-   * Set the offset for the cavity shader so every iteration different
-   * samples will be selected
-   */
-  wpd->ssao_params[3] = previous_jitter_index;
-
   return pass;
 }
 
@@ -216,6 +204,8 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
 {
   WORKBENCH_StorageList *stl = vedata->stl;
   WORKBENCH_EffectInfo *effect_info = stl->effects;
+  WORKBENCH_PrivateData *wpd = stl->g_data;
+
   const float *viewport_size = DRW_viewport_size_get();
   const DRWView *default_view = DRW_view_default_get();
   int num_samples = 8;
@@ -245,6 +235,8 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata)
   const float *transform_offset = samples[jitter_index];
   effect_info->taa_mix_factor = 1.0f / (jitter_index + 1);
   effect_info->jitter_index = (jitter_index + 1) % num_samples;
+  /* Copy jitter index to Cavity iteration */
+  wpd->ssao_params[3] = effect_info->jitter_index;
 
   /* construct new matrices from transform delta */
   float winmat[4][4], viewmat[4][4], persmat[4][4];
