@@ -624,7 +624,8 @@ static void EDIT_MESH_cache_init(void *vedata)
     DRW_shgroup_uniform_texture_ref(mix_shgrp, "sceneDepth", &dtxl->depth);
   }
 
-  bool show_face_dots = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) != 0;
+  bool show_face_dots = XRAY_FLAG_ENABLED(v3d) ||
+                        (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) != 0;
 
   if (g_data->do_faces == false && g_data->do_edges == false &&
       (tsettings->selectmode & SCE_SELECT_FACE)) {
