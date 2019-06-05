@@ -201,7 +201,7 @@ Image *MaterialNode::get_diffuse_image()
     return nullptr;
   }
 
-  bNodeSocket *in_socket = nodeFindSocket(shader_node, SOCK_IN, "Base Color");
+  bNodeSocket *in_socket = nodeFindSocket(shader, SOCK_IN, "Base Color");
   if (in_socket == nullptr) {
     return nullptr;
   }
