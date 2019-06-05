@@ -591,7 +591,8 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     const EnumPropertyItem *item = rna_undo_itemf(C, &totitem);
 
     if (totitem > 0) {
-      uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+      uiPopupMenu *pup = UI_popup_menu_begin(
+          C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
       uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
       uiLayout *column = NULL;

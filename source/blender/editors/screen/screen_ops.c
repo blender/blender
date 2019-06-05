@@ -3598,8 +3598,12 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 
   for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--) {
     if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
-      uiItemIntO(
-          layout, WM_operatortype_name(lastop->type, lastop->ptr), ICON_NONE, op->type->idname, "index", i);
+      uiItemIntO(layout,
+                 WM_operatortype_name(lastop->type, lastop->ptr),
+                 ICON_NONE,
+                 op->type->idname,
+                 "index",
+                 i);
     }
   }
 

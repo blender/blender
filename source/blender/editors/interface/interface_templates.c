@@ -2447,7 +2447,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
   uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
   UI_block_emboss_set(block, UI_EMBOSS);
 
-
   if (con->flag & CONSTRAINT_DISABLE) {
     uiLayoutSetRedAlert(row, true);
   }

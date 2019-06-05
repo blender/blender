@@ -1641,7 +1641,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Follow Path Constraint", "Lock motion to the target path");
   RNA_def_struct_sdna_from(srna, "bFollowPathConstraint", "data");
   RNA_def_struct_ui_icon(srna, ICON_CON_FOLLOWPATH);
-  
+
   prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "tar");
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
@@ -2351,7 +2351,7 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 
   RNA_def_struct_sdna_from(srna, "bDistLimitConstraint", "data");
   RNA_def_struct_ui_icon(srna, ICON_CON_DISTLIMIT);
-  
+
   rna_def_constraint_target_common(srna);
 
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);

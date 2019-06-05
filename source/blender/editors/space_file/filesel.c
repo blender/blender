@@ -112,7 +112,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
     const bool is_directory = (RNA_struct_find_property(op->ptr, "directory") != NULL);
     const bool is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != NULL);
 
-    BLI_strncpy_utf8(params->title, WM_operatortype_name(op->type, op->ptr), sizeof(params->title));
+    BLI_strncpy_utf8(
+        params->title, WM_operatortype_name(op->type, op->ptr), sizeof(params->title));
 
     if ((prop = RNA_struct_find_property(op->ptr, "filemode"))) {
       params->type = RNA_property_int_get(op->ptr, prop);
