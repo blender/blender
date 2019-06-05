@@ -1468,8 +1468,6 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
     }
   }
 
-  BLI_ghash_free(new_pointers, NULL, NULL);
-
   /* copy interface sockets */
   BLI_duplicatelist(&ntree_dst->inputs, &ntree_src->inputs);
   for (sock_dst = ntree_dst->inputs.first, sock_src = ntree_src->inputs.first; sock_dst != NULL;
@@ -1503,9 +1501,11 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain),
   for (bNode *node_dst = ntree_dst->nodes.first, *node_src = ntree_src->nodes.first; node_dst;
        node_dst = node_dst->next, node_src = node_src->next) {
     if (node_dst->parent) {
-      node_dst->parent = node_dst->parent->new_node;
+      node_dst->parent = BLI_ghash_lookup_default(new_pointers, node_dst->parent, NULL);
     }
   }
+
+  BLI_ghash_free(new_pointers, NULL, NULL);
 
   /* node tree will generate its own interface type */
   ntree_dst->interface_type = NULL;
