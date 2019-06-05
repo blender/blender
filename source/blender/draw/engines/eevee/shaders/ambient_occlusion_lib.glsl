@@ -198,8 +198,8 @@ void gtao_deferred(
   dirs.xy = get_ao_dir(noise.x * 0.5);
   dirs.zw = get_ao_dir(noise.x * 0.5 + 0.5);
 
-  bent_normal = vec3(0.0);
-  visibility = 0.0;
+  bent_normal = normal * 1e-8;
+  visibility = 1e-8;
 
   horizons = unpack_horizons(horizons);
 
@@ -217,8 +217,8 @@ void gtao(vec3 normal, vec3 position, vec4 noise, out float visibility, out vec3
   vec2 max_dir = get_max_dir(position.z);
   vec2 dir = get_ao_dir(noise.x);
 
-  bent_normal = vec3(0.0);
-  visibility = 0.0;
+  bent_normal = normal * 1e-8;
+  visibility = 1e-8;
 
   /* Only trace in 2 directions. May lead to a darker result but since it's mostly for
    * alpha blended objects that will have overdraw, we limit the performance impact. */
