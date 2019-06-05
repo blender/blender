@@ -5585,6 +5585,9 @@ void sculpt_pbvh_clear(Object *ob)
   }
   ss->pbvh = NULL;
   BKE_object_free_derived_caches(ob);
+
+  /* Tag to rebuild PBVH in depsgraph. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
 void sculpt_dyntopo_node_layers_add(SculptSession *ss)
