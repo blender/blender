@@ -89,6 +89,9 @@ static struct GPUGlobal {
   /* Crappy driver don't know how to map framebuffer slot to output vars...
    * We need to have no "holes" in the output buffer slots. */
   bool unused_fb_slot_workaround;
+  /* Some crappy Intel drivers don't work well with shaders created in different
+   * rendering contexts. */
+  bool context_local_shaders_workaround;
 } GG = {1, 0};
 
 static void gpu_detect_mip_render_workaround(void)
@@ -207,6 +210,11 @@ bool GPU_depth_blitting_workaround(void)
 bool GPU_unused_fb_slot_workaround(void)
 {
   return GG.unused_fb_slot_workaround;
+}
+
+bool GPU_context_local_shaders_workaround(void)
+{
+  return GG.context_local_shaders_workaround;
 }
 
 bool GPU_crappy_amd_driver(void)
@@ -347,6 +355,7 @@ void gpu_extensions_init(void)
     GG.mip_render_workaround = true;
     GG.depth_blitting_workaround = true;
     GG.unused_fb_slot_workaround = true;
+    GG.context_local_shaders_workaround = true;
   }
 
   /* df/dy calculation factors, those are dependent on driver */
@@ -354,19 +363,24 @@ void gpu_extensions_init(void)
     GG.dfdyfactors[0] = 1.0;
     GG.dfdyfactors[1] = -1.0;
   }
-  else if ((GG.device == GPU_DEVICE_INTEL) && (GG.os == GPU_OS_WIN) &&
-           (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
-            strstr(version, "4.0.0 - Build 9.18.10.3186") ||
-            strstr(version, "4.0.0 - Build 9.18.10.3165") ||
-            strstr(version, "3.1.0 - Build 9.17.10.3347") ||
-            strstr(version, "3.1.0 - Build 9.17.10.4101") ||
-            strstr(version, "3.3.0 - Build 8.15.10.2618"))) {
-    GG.dfdyfactors[0] = -1.0;
-    GG.dfdyfactors[1] = 1.0;
-  }
-  else {
-    GG.dfdyfactors[0] = 1.0;
-    GG.dfdyfactors[1] = 1.0;
+  else if ((GG.device == GPU_DEVICE_INTEL) && (GG.os == GPU_OS_WIN)) {
+    if (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
+        strstr(version, "4.0.0 - Build 9.18.10.3186") ||
+        strstr(version, "4.0.0 - Build 9.18.10.3165") ||
+        strstr(version, "3.1.0 - Build 9.17.10.3347") ||
+        strstr(version, "3.1.0 - Build 9.17.10.4101") ||
+        strstr(version, "3.3.0 - Build 8.15.10.2618")) {
+      GG.dfdyfactors[0] = -1.0;
+      GG.dfdyfactors[1] = 1.0;
+    }
+    else {
+      GG.dfdyfactors[0] = 1.0;
+      GG.dfdyfactors[1] = 1.0;
+    }
+
+    if (strstr(renderer, "HD Graphics 4000")) {
+      GG.context_local_shaders_workaround = true;
+    }
   }
 
   GPU_invalid_tex_init();

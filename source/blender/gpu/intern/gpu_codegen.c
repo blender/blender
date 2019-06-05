@@ -2105,17 +2105,17 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
   return sampler_len;
 }
 
-static bool gpu_pass_shader_validate(GPUPass *pass)
+static bool gpu_pass_shader_validate(GPUPass *pass, GPUShader *shader)
 {
-  if (pass->shader == NULL) {
+  if (shader == NULL) {
     return false;
   }
 
   /* NOTE: The only drawback of this method is that it will count a sampler
    * used in the fragment shader and only declared (but not used) in the vertex
    * shader as used by both. But this corner case is not happening for now. */
-  int vert_samplers_len = count_active_texture_sampler(pass->shader, pass->vertexcode);
-  int frag_samplers_len = count_active_texture_sampler(pass->shader, pass->fragmentcode);
+  int vert_samplers_len = count_active_texture_sampler(shader, pass->vertexcode);
+  int frag_samplers_len = count_active_texture_sampler(shader, pass->fragmentcode);
 
   int total_samplers_len = vert_samplers_len + frag_samplers_len;
 
@@ -2126,7 +2126,7 @@ static bool gpu_pass_shader_validate(GPUPass *pass)
   }
 
   if (pass->geometrycode) {
-    int geom_samplers_len = count_active_texture_sampler(pass->shader, pass->geometrycode);
+    int geom_samplers_len = count_active_texture_sampler(shader, pass->geometrycode);
     total_samplers_len += geom_samplers_len;
     if (geom_samplers_len > GPU_max_textures_geom()) {
       return false;
@@ -2136,30 +2136,40 @@ static bool gpu_pass_shader_validate(GPUPass *pass)
   return (total_samplers_len <= GPU_max_textures());
 }
 
-void GPU_pass_compile(GPUPass *pass, const char *shname)
+bool GPU_pass_compile(GPUPass *pass, const char *shname)
 {
+  bool sucess = true;
   if (!pass->compiled) {
-    pass->shader = GPU_shader_create(
+    GPUShader *shader = GPU_shader_create(
         pass->vertexcode, pass->fragmentcode, pass->geometrycode, NULL, pass->defines, shname);
 
     /* NOTE: Some drivers / gpu allows more active samplers than the opengl limit.
      * We need to make sure to count active samplers to avoid undefined behavior. */
-    if (!gpu_pass_shader_validate(pass)) {
-      if (pass->shader != NULL) {
+    if (!gpu_pass_shader_validate(pass, shader)) {
+      sucess = false;
+      if (shader != NULL) {
         fprintf(stderr, "GPUShader: error: too many samplers in shader.\n");
-        GPU_shader_free(pass->shader);
+        GPU_shader_free(shader);
+        shader = NULL;
       }
-      pass->shader = NULL;
     }
-    else if (!BLI_thread_is_main()) {
-      /* For some Intel drivers, you must use the program at least once
-       * in the rendering context that it is linked. */
-      glUseProgram(GPU_shader_get_program(pass->shader));
-      glUseProgram(0);
+    else if (!BLI_thread_is_main() && GPU_context_local_shaders_workaround()) {
+      pass->binary.content = GPU_shader_get_binary(
+          shader, &pass->binary.format, &pass->binary.len);
+      GPU_shader_free(shader);
+      shader = NULL;
     }
 
+    pass->shader = shader;
     pass->compiled = true;
   }
+  else if (pass->binary.content && BLI_thread_is_main()) {
+    pass->shader = GPU_shader_load_from_binary(
+        pass->binary.content, pass->binary.format, pass->binary.len, shname);
+    MEM_SAFE_FREE(pass->binary.content);
+  }
+
+  return sucess;
 }
 
 void GPU_pass_release(GPUPass *pass)
@@ -2178,6 +2188,9 @@ static void gpu_pass_free(GPUPass *pass)
   MEM_SAFE_FREE(pass->geometrycode);
   MEM_SAFE_FREE(pass->vertexcode);
   MEM_SAFE_FREE(pass->defines);
+  if (pass->binary.content) {
+    MEM_freeN(pass->binary.content);
+  }
   MEM_freeN(pass);
 }
 

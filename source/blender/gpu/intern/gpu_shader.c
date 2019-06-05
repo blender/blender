@@ -292,6 +292,36 @@ GPUShader *GPU_shader_create(const char *vertexcode,
       vertexcode, fragcode, geocode, libcode, defines, GPU_SHADER_TFB_NONE, NULL, 0, shname);
 }
 
+GPUShader *GPU_shader_load_from_binary(const char *binary,
+                                       const int binary_format,
+                                       const int binary_len,
+                                       const char *shname)
+{
+  BLI_assert(GL_ARB_get_program_binary);
+  int success;
+  int program = glCreateProgram();
+
+  glProgramBinary(program, binary_format, binary, binary_len);
+  glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+  if (success) {
+    GPUShader *shader = MEM_callocN(sizeof(*shader), __func__);
+    shader->interface = GPU_shaderinterface_create(program);
+    shader->program = program;
+
+#ifndef NDEBUG
+    BLI_snprintf(shader->name, sizeof(shader->name), "%s_%u", shname, g_shaderid++);
+#else
+    UNUSED_VARS(shname);
+#endif
+
+    return shader;
+  }
+
+  glDeleteProgram(program);
+  return NULL;
+}
+
 #define DEBUG_SHADER_NONE ""
 #define DEBUG_SHADER_VERTEX "vert"
 #define DEBUG_SHADER_FRAGMENT "frag"
@@ -813,6 +843,23 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
   BLI_assert(shader && shader->program);
   const GPUShaderInput *attr = GPU_shaderinterface_attr(shader->interface, name);
   return attr ? attr->location : -1;
+}
+
+char *GPU_shader_get_binary(GPUShader *shader, int *r_binary_format, int *r_binary_len)
+{
+  BLI_assert(GLEW_ARB_get_program_binary);
+  char *r_binary;
+  int binary_len = 0;
+
+  glGetProgramiv(shader->program, GL_PROGRAM_BINARY_LENGTH, &binary_len);
+  r_binary = MEM_mallocN(binary_len, __func__);
+  glGetProgramBinary(shader->program, binary_len, NULL, r_binary_format, r_binary);
+
+  if (r_binary_len) {
+    *r_binary_len = binary_len;
+  }
+
+  return r_binary;
 }
 
 static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {

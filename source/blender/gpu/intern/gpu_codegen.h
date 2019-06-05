@@ -164,6 +164,11 @@ struct GPUPass {
   char *defines;
   uint refcount; /* Orphaned GPUPasses gets freed by the garbage collector. */
   uint32_t hash; /* Identity hash generated from all GLSL code. */
+  struct {
+    char *content;
+    int format;
+    int len;
+  } binary;
   bool compiled; /* Did we already tried to compile the attached GPUShader. */
 };
 
@@ -185,7 +190,7 @@ void GPU_nodes_extract_dynamic_inputs(struct GPUShader *shader, ListBase *inputs
 void GPU_nodes_get_vertex_attrs(ListBase *nodes, struct GPUVertAttrLayers *attrs);
 void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
 
-void GPU_pass_compile(GPUPass *pass, const char *shname);
+bool GPU_pass_compile(GPUPass *pass, const char *shname);
 void GPU_pass_release(GPUPass *pass);
 void GPU_pass_free_nodes(ListBase *nodes);
 

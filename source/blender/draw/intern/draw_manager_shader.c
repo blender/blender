@@ -63,7 +63,8 @@ typedef struct DRWDeferredShader {
 } DRWDeferredShader;
 
 typedef struct DRWShaderCompiler {
-  ListBase queue; /* DRWDeferredShader */
+  ListBase queue;          /* DRWDeferredShader */
+  ListBase queue_conclude; /* DRWDeferredShader */
   SpinLock list_lock;
 
   DRWDeferredShader *mat_compiling;
@@ -134,7 +135,12 @@ static void drw_deferred_shader_compilation_exec(void *custom_data,
     BLI_mutex_unlock(&comp->compilation_lock);
 
     BLI_spin_lock(&comp->list_lock);
-    drw_deferred_shader_free(comp->mat_compiling);
+    if (GPU_material_status(comp->mat_compiling->mat) == GPU_MAT_QUEUED) {
+      BLI_addtail(&comp->queue_conclude, comp->mat_compiling);
+    }
+    else {
+      drw_deferred_shader_free(comp->mat_compiling);
+    }
     comp->mat_compiling = NULL;
     BLI_spin_unlock(&comp->list_lock);
   }
@@ -147,6 +153,17 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
 
   drw_deferred_shader_queue_free(&comp->queue);
+
+  if (!BLI_listbase_is_empty(&comp->queue_conclude)) {
+    /* Compile the shaders in the context they will be deleted. */
+    DRW_opengl_context_enable_ex(false);
+    DRWDeferredShader *mat_conclude;
+    while (mat_conclude = BLI_poptail(&comp->queue_conclude)) {
+      GPU_material_compile(mat_conclude->mat);
+      drw_deferred_shader_free(mat_conclude);
+    }
+    DRW_opengl_context_disable_ex(true);
+  }
 
   BLI_spin_end(&comp->list_lock);
   BLI_mutex_end(&comp->compilation_lock);
