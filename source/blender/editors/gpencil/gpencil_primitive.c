@@ -305,20 +305,10 @@ static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi)
 /* Helper: Create internal strokes primitives data */
 static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 {
-  ToolSettings *ts = CTX_data_tool_settings(C);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-
-  /* if brush doesn't exist, create a new one */
-  Paint *paint = &ts->gp_paint->paint;
-  /* if not exist, create a new one */
-  if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
-    /* create new brushes */
-    BKE_brush_gpencil_presets(C);
-  }
-  tgpi->brush = paint->brush;
 
   /* if layer doesn't exist, create a new one */
   if (gpl == NULL) {
@@ -1106,6 +1096,8 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Paint *paint = &ts->gp_paint->paint;
+
   int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
   /* create temporary operator data */
@@ -1135,6 +1127,12 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->gpd = gpd;
   /* region where paint was originated */
   tgpi->gpd->runtime.ar = tgpi->ar;
+
+  /* if brush doesn't exist, create a new set (fix damaged files from old versions) */
+  if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
+    BKE_brush_gpencil_presets(C);
+  }
+  tgpi->brush = paint->brush;
 
   /* control points */
   tgpi->gpd->runtime.cp_points = MEM_callocN(sizeof(bGPDcontrolpoint) * MAX_CP,
