@@ -78,12 +78,15 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
 
   float ob_origin[3];
   float pt_origin[3];
+  float half_origin[3];
+  float rot_mat[3][3];
 
   if (mmd->object) {
-    float inv_mat[4][4];
-
-    invert_m4_m4(inv_mat, mmd->object->obmat);
-    mul_v3_m4v3(ob_origin, inv_mat, ob->obmat[3]);
+    float eul[3];
+    mat4_to_eul(eul, mmd->object->obmat);
+    mul_v3_fl(eul, 2.0f);
+    eul_to_mat3(rot_mat, eul);
+    sub_v3_v3v3(ob_origin, ob->obmat[3], mmd->object->obmat[3]);
   }
   else {
     copy_v3_v3(ob_origin, ob->obmat[3]);
@@ -93,11 +96,18 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
   mul_v3_v3(ob_origin, clear);
 
   mul_v3_v3fl(pt_origin, ob_origin, -2.0f);
+  mul_v3_v3fl(half_origin, pt_origin, 0.5f);
 
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
     mul_v3_v3(&pt->x, factor);
     if (mmd->object) {
+      /* apply location */
       add_v3_v3(&pt->x, pt_origin);
+
+      /* apply rotation (around new center) */
+      sub_v3_v3(&pt->x, half_origin);
+      mul_m3_v3(rot_mat, &pt->x);
+      add_v3_v3(&pt->x, half_origin);
     }
   }
 }
