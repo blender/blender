@@ -93,6 +93,8 @@ if NOT "%1" == "" (
 		set VERBOSE=1
 	) else if "%1" == "format" (
 		set FORMAT=1
+		set FORMAT_ARGS=%2 %3 %4 %5 %6 %7 %8 %9
+		goto EOF
 	) else (
 		echo Command "%1" unknown, aborting!
 		exit /b 1

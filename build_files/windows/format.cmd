@@ -20,6 +20,6 @@ set FORMAT_PATHS=%BLENDER_DIR%\source\tools\utils_maintenance\clang_format_paths
 REM The formatting script expects clang-format to be in the current PATH.
 set PATH=%CF_PATH%;%PATH%
 
-%PYTHON% %FORMAT_PATHS%
+%PYTHON% %FORMAT_PATHS% %FORMAT_ARGS%
 
 :EOF
