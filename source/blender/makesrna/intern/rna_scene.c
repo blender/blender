@@ -814,6 +814,7 @@ static void rna_Scene_camera_update(Main *bmain, Scene *UNUSED(scene_unused), Po
 
   WM_windows_scene_data_sync(&wm->windows, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
