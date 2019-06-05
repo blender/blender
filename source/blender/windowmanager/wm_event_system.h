@@ -140,7 +140,7 @@ void wm_event_do_handlers(bContext *C);
 
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata);
 
-void wm_event_do_depsgraph(bContext *C);
+void wm_event_do_depsgraph(bContext *C, bool is_after_open_file);
 void wm_event_do_refresh_wm_and_depsgraph(bContext *C);
 void wm_event_do_notifiers(bContext *C);
 

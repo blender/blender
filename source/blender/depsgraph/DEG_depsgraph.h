@@ -106,7 +106,7 @@ void DEG_free_node_types(void);
 /* Update Tagging -------------------------------- */
 
 /* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_on_visible_update(struct Main *bmain, Depsgraph *depsgraph);
+void DEG_graph_on_visible_update(struct Main *bmain, Depsgraph *depsgraph, const bool do_time);
 
 /* Update all dependency graphs when visible scenes/layers changes. */
 void DEG_on_visible_update(struct Main *bmain, const bool do_time);

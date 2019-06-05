@@ -460,30 +460,31 @@ void deg_graph_node_tag_zero(Main *bmain,
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
 }
 
-void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
+void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph, const bool do_time)
 {
+  /* NOTE: It is possible to have this function called with `do_time=false` first and later (prior
+   * to evaluation though) with `do_time=true`. This means early output checks should be aware of
+   * this. */
   for (DEG::IDNode *id_node : graph->id_nodes) {
     if (!id_node->visible_components_mask) {
       /* ID has no components which affects anything visible.
        * No need bother with it to tag or anything. */
       continue;
     }
-    if (id_node->visible_components_mask == id_node->previously_visible_components_mask) {
-      /* The ID was already visible and evaluated, all the subsequent
-       * updates and tags are to be done explicitly. */
-      continue;
-    }
     int flag = 0;
     if (!DEG::deg_copy_on_write_is_expanded(id_node->id_cow)) {
       flag |= ID_RECALC_COPY_ON_WRITE;
-      /* TODO(sergey): Shouldn't be needed, but currently we are lackign
-       * some flushing of evaluated data to the original one, which makes,
-       * for example, files saved with the rest pose.
-       * Need to solve those issues carefully, for until then we evaluate
-       * animation for datablocks which appears in the graph for the first
-       * time. */
-      if (BKE_animdata_from_id(id_node->id_orig) != NULL) {
-        flag |= ID_RECALC_ANIMATION;
+      if (do_time) {
+        if (BKE_animdata_from_id(id_node->id_orig) != NULL) {
+          flag |= ID_RECALC_ANIMATION;
+        }
+      }
+    }
+    else {
+      if (id_node->visible_components_mask == id_node->previously_visible_components_mask) {
+        /* The ID was already visible and evaluated, all the subsequent
+         * updates and tags are to be done explicitly. */
+        continue;
       }
     }
     /* We only tag components which needs an update. Tagging everything is
@@ -726,19 +727,19 @@ void DEG_graph_flush_update(Main *bmain, Depsgraph *depsgraph)
 }
 
 /* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph)
+void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph, const bool do_time)
 {
   DEG::Depsgraph *graph = (DEG::Depsgraph *)depsgraph;
-  DEG::deg_graph_on_visible_update(bmain, graph);
+  DEG::deg_graph_on_visible_update(bmain, graph, do_time);
 }
 
-void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
+void DEG_on_visible_update(Main *bmain, const bool do_time)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, view_layer, false);
       if (depsgraph != NULL) {
-        DEG_graph_on_visible_update(bmain, depsgraph);
+        DEG_graph_on_visible_update(bmain, depsgraph, do_time);
       }
     }
   }

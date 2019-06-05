@@ -237,7 +237,7 @@ static void graph_build_finalize_common(DEG::Depsgraph *deg_graph, Main *bmain)
   deg_graph->scene_cow = (Scene *)deg_graph->get_cow_id(&deg_graph->scene->id);
   /* Flush visibility layer and re-schedule nodes for update. */
   DEG::deg_graph_build_finalize(bmain, deg_graph);
-  DEG_graph_on_visible_update(bmain, reinterpret_cast<::Depsgraph *>(deg_graph));
+  DEG_graph_on_visible_update(bmain, reinterpret_cast<::Depsgraph *>(deg_graph), false);
 #if 0
   if (!DEG_debug_consistency_check(deg_graph)) {
     printf("Consistency validation failed, ABORTING!\n");

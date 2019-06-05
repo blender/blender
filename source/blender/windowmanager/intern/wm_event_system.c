@@ -313,7 +313,7 @@ static void wm_notifier_clear(wmNotifier *note)
   memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
 }
 
-void wm_event_do_depsgraph(bContext *C)
+void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   /* The whole idea of locked interface is to prevent viewport and whatever
@@ -347,6 +347,10 @@ void wm_event_do_depsgraph(bContext *C)
      * across visible view layers and has overrides on it.
      */
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+    if (is_after_open_file) {
+      DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+      DEG_graph_on_visible_update(bmain, depsgraph, true);
+    }
     DEG_make_active(depsgraph);
     BKE_scene_graph_update_tagged(depsgraph, bmain);
   }
@@ -374,7 +378,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
     }
   }
 
-  wm_event_do_depsgraph(C);
+  wm_event_do_depsgraph(C, false);
 
   CTX_wm_window_set(C, NULL);
 }
