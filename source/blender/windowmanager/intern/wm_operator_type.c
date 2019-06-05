@@ -586,12 +586,13 @@ static void wm_operatortype_free_macro(wmOperatorType *ot)
 
 const char *WM_operatortype_name(struct wmOperatorType *ot, struct PointerRNA *properties)
 {
+  const char *name = NULL;
+
   if (ot->get_name && properties) {
-    return ot->get_name(ot, properties);
+    name = ot->get_name(ot, properties);
   }
-  else {
-    return RNA_struct_ui_name(ot->srna);
-  }
+
+  return (name && name[0]) ? name : RNA_struct_ui_name(ot->srna);
 }
 
 /** \} */
