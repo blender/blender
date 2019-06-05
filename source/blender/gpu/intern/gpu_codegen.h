@@ -166,7 +166,7 @@ struct GPUPass {
   uint32_t hash; /* Identity hash generated from all GLSL code. */
   struct {
     char *content;
-    int format;
+    uint format;
     int len;
   } binary;
   bool compiled; /* Did we already tried to compile the attached GPUShader. */

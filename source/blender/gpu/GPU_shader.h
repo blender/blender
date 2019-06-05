@@ -99,7 +99,7 @@ void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 
-char *GPU_shader_get_binary(GPUShader *shader, int *r_binary_format, int *r_binary_len);
+char *GPU_shader_get_binary(GPUShader *shader, uint *r_binary_format, int *r_binary_len);
 
 /* Builtin/Non-generated shaders */
 typedef enum eGPUBuiltinShader {

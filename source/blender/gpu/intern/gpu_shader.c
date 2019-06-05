@@ -845,7 +845,7 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
   return attr ? attr->location : -1;
 }
 
-char *GPU_shader_get_binary(GPUShader *shader, int *r_binary_format, int *r_binary_len)
+char *GPU_shader_get_binary(GPUShader *shader, uint *r_binary_format, int *r_binary_len)
 {
   BLI_assert(GLEW_ARB_get_program_binary);
   char *r_binary;
