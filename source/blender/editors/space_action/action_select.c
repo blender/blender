@@ -66,6 +66,163 @@
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */
 
+static bAnimListElem *actkeys_find_list_element_at_position(bAnimContext *ac,
+                                                            int filter,
+                                                            float region_x,
+                                                            float region_y)
+{
+  View2D *v2d = &ac->ar->v2d;
+
+  float view_x, view_y;
+  int channel_index;
+  UI_view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
+  UI_view2d_listview_view_to_cell(
+      0, ACHANNEL_STEP(ac), 0, ACHANNEL_FIRST_TOP(ac), view_x, view_y, NULL, &channel_index);
+
+  ListBase anim_data = {NULL, NULL};
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  bAnimListElem *ale = BLI_findlink(&anim_data, channel_index);
+  if (ale != NULL) {
+    BLI_remlink(&anim_data, ale);
+    ale->next = ale->prev = NULL;
+  }
+  ANIM_animdata_freelist(&anim_data);
+
+  return ale;
+}
+
+static void actkeys_list_element_to_keylist(bAnimContext *ac,
+                                            DLRBT_Tree *anim_keys,
+                                            bAnimListElem *ale)
+{
+  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+  bDopeSheet *ads = NULL;
+  if (ELEM(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
+    ads = ac->data;
+  }
+
+  if (ale->key_data) {
+    switch (ale->datatype) {
+      case ALE_SCE: {
+        Scene *scene = (Scene *)ale->key_data;
+        scene_to_keylist(ads, scene, anim_keys, 0);
+        break;
+      }
+      case ALE_OB: {
+        Object *ob = (Object *)ale->key_data;
+        ob_to_keylist(ads, ob, anim_keys, 0);
+        break;
+      }
+      case ALE_ACT: {
+        bAction *act = (bAction *)ale->key_data;
+        action_to_keylist(adt, act, anim_keys, 0);
+        break;
+      }
+      case ALE_FCURVE: {
+        FCurve *fcu = (FCurve *)ale->key_data;
+        fcurve_to_keylist(adt, fcu, anim_keys, 0);
+        break;
+      }
+    }
+  }
+  else if (ale->type == ANIMTYPE_SUMMARY) {
+    /* dopesheet summary covers everything */
+    summary_to_keylist(ac, anim_keys, 0);
+  }
+  else if (ale->type == ANIMTYPE_GROUP) {
+    // TODO: why don't we just give groups key_data too?
+    bActionGroup *agrp = (bActionGroup *)ale->data;
+    agroup_to_keylist(adt, agrp, anim_keys, 0);
+  }
+  else if (ale->type == ANIMTYPE_GPLAYER) {
+    // TODO: why don't we just give gplayers key_data too?
+    bGPDlayer *gpl = (bGPDlayer *)ale->data;
+    gpl_to_keylist(ads, gpl, anim_keys);
+  }
+  else if (ale->type == ANIMTYPE_MASKLAYER) {
+    // TODO: why don't we just give masklayers key_data too?
+    MaskLayer *masklay = (MaskLayer *)ale->data;
+    mask_to_keylist(ads, masklay, anim_keys);
+  }
+}
+
+static void actkeys_find_key_in_list_element(bAnimContext *ac,
+                                             bAnimListElem *ale,
+                                             float region_x,
+                                             float *r_selx,
+                                             float *r_frame,
+                                             bool *r_found)
+{
+  *r_found = false;
+
+  View2D *v2d = &ac->ar->v2d;
+
+  DLRBT_Tree anim_keys;
+  BLI_dlrbTree_init(&anim_keys);
+  actkeys_list_element_to_keylist(ac, &anim_keys, ale);
+
+  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+  /* standard channel height (to allow for some slop) */
+  float key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;
+  /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
+  key_hsize = roundf(key_hsize / 2.0f);
+
+  float xmin = UI_view2d_region_to_view_x(v2d, region_x - (int)key_hsize);
+  float xmax = UI_view2d_region_to_view_x(v2d, region_x + (int)key_hsize);
+
+  for (ActKeyColumn *ak = anim_keys.root; ak; ak = (ak->cfra < xmin) ? ak->right : ak->left) {
+    if (IN_RANGE(ak->cfra, xmin, xmax)) {
+      /* set the frame to use, and apply inverse-correction for NLA-mapping
+       * so that the frame will get selected by the selection functions without
+       * requiring to map each frame once again...
+       */
+      *r_selx = BKE_nla_tweakedit_remap(adt, ak->cfra, NLATIME_CONVERT_UNMAP);
+      *r_frame = ak->cfra;
+      *r_found = true;
+      break;
+    }
+  }
+
+  /* cleanup temporary lists */
+  BLI_dlrbTree_free(&anim_keys);
+}
+
+static void actkeys_find_key_at_position(bAnimContext *ac,
+                                         int filter,
+                                         float region_x,
+                                         float region_y,
+                                         bAnimListElem **r_ale,
+                                         float *r_selx,
+                                         float *r_frame,
+                                         bool *r_found)
+
+{
+  *r_found = false;
+  *r_ale = actkeys_find_list_element_at_position(ac, filter, region_x, region_y);
+
+  if (*r_ale != NULL) {
+    actkeys_find_key_in_list_element(ac, *r_ale, region_x, r_selx, r_frame, r_found);
+  }
+}
+
+static bool actkeys_is_key_at_position(bAnimContext *ac, float region_x, float region_y)
+{
+  bAnimListElem *ale;
+  float selx, frame;
+  bool found;
+
+  int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
+  actkeys_find_key_at_position(ac, filter, region_x, region_y, &ale, &selx, &frame, &found);
+
+  if (ale != NULL) {
+    MEM_freeN(ale);
+  }
+  return found;
+}
+
 /* ******************** Deselect All Operator ***************************** */
 /* This operator works in one of three ways:
  * 1) (de)select all (AKEY) - test if select all or deselect all
@@ -355,6 +512,21 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
 
 /* ------------------- */
 
+static int actkeys_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bool tweak = RNA_boolean_get(op->ptr, "tweak");
+  if (tweak && actkeys_is_key_at_position(&ac, event->mval[0], event->mval[1])) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 static int actkeys_box_select_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -412,7 +584,7 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   ot->description = "Select all keyframes within the specified region";
 
   /* api callbacks */
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = actkeys_box_select_invoke;
   ot->exec = actkeys_box_select_exec;
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
@@ -428,6 +600,10 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
+
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Region Select Operators ***************************** */
@@ -1491,133 +1667,13 @@ static void mouse_action_keys(bAnimContext *ac,
                               const bool column,
                               const bool same_channel)
 {
-  ListBase anim_data = {NULL, NULL};
-  DLRBT_Tree anim_keys;
-  bAnimListElem *ale;
-  int filter;
+  int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 
-  View2D *v2d = &ac->ar->v2d;
-  bDopeSheet *ads = NULL;
-  int channel_index;
+  bAnimListElem *ale = NULL;
   bool found = false;
   float frame = 0.0f; /* frame of keyframe under mouse - NLA corrections not applied/included */
   float selx = 0.0f;  /* frame of keyframe under mouse */
-  float key_hsize;
-  float x, y;
-  rctf rectf;
-
-  /* get dopesheet info */
-  if (ELEM(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
-    ads = ac->data;
-  }
-
-  /* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-  UI_view2d_listview_view_to_cell(
-      0, ACHANNEL_STEP(ac), 0, ACHANNEL_FIRST_TOP(ac), x, y, NULL, &channel_index);
-
-  /* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale
-   * (in screen/region-space), on either side of mouse click (size of keyframe icon).
-   */
-
-  /* standard channel height (to allow for some slop) */
-  key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;
-  /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
-  key_hsize = roundf(key_hsize / 2.0f);
-
-  UI_view2d_region_to_view(v2d, mval[0] - (int)key_hsize, mval[1], &rectf.xmin, &rectf.ymin);
-  UI_view2d_region_to_view(v2d, mval[0] + (int)key_hsize, mval[1], &rectf.xmax, &rectf.ymax);
-
-  /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-
-  /* try to get channel */
-  ale = BLI_findlink(&anim_data, channel_index);
-  if (ale != NULL) {
-    /* found match - must return here... */
-    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-    ActKeyColumn *ak, *akn = NULL;
-
-    /* make list of keyframes */
-    BLI_dlrbTree_init(&anim_keys);
-
-    if (ale->key_data) {
-      switch (ale->datatype) {
-        case ALE_SCE: {
-          Scene *scene = (Scene *)ale->key_data;
-          scene_to_keylist(ads, scene, &anim_keys, 0);
-          break;
-        }
-        case ALE_OB: {
-          Object *ob = (Object *)ale->key_data;
-          ob_to_keylist(ads, ob, &anim_keys, 0);
-          break;
-        }
-        case ALE_ACT: {
-          bAction *act = (bAction *)ale->key_data;
-          action_to_keylist(adt, act, &anim_keys, 0);
-          break;
-        }
-        case ALE_FCURVE: {
-          FCurve *fcu = (FCurve *)ale->key_data;
-          fcurve_to_keylist(adt, fcu, &anim_keys, 0);
-          break;
-        }
-      }
-    }
-    else if (ale->type == ANIMTYPE_SUMMARY) {
-      /* dopesheet summary covers everything */
-      summary_to_keylist(ac, &anim_keys, 0);
-    }
-    else if (ale->type == ANIMTYPE_GROUP) {
-      // TODO: why don't we just give groups key_data too?
-      bActionGroup *agrp = (bActionGroup *)ale->data;
-      agroup_to_keylist(adt, agrp, &anim_keys, 0);
-    }
-    else if (ale->type == ANIMTYPE_GPLAYER) {
-      // TODO: why don't we just give gplayers key_data too?
-      bGPDlayer *gpl = (bGPDlayer *)ale->data;
-      gpl_to_keylist(ads, gpl, &anim_keys);
-    }
-    else if (ale->type == ANIMTYPE_MASKLAYER) {
-      // TODO: why don't we just give masklayers key_data too?
-      MaskLayer *masklay = (MaskLayer *)ale->data;
-      mask_to_keylist(ads, masklay, &anim_keys);
-    }
-
-    /* start from keyframe at root of BST,
-     * traversing until we find one within the range that was clicked on */
-    for (ak = anim_keys.root; ak; ak = akn) {
-      if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
-        /* set the frame to use, and apply inverse-correction for NLA-mapping
-         * so that the frame will get selected by the selection functions without
-         * requiring to map each frame once again...
-         */
-        selx = BKE_nla_tweakedit_remap(adt, ak->cfra, NLATIME_CONVERT_UNMAP);
-        frame = ak->cfra;
-        found = true;
-        break;
-      }
-      else if (ak->cfra < rectf.xmin) {
-        akn = ak->right;
-      }
-      else {
-        akn = ak->left;
-      }
-    }
-
-    /* Remove active channel from list of channels for separate treatment
-     * (since it's needed later on). */
-    BLI_remlink(&anim_data, ale);
-    ale->next = ale->prev = NULL;
-
-    /* cleanup temporary lists */
-    BLI_dlrbTree_free(&anim_keys);
-  }
-
-  /* free list of channels, since it's not used anymore */
-  ANIM_animdata_freelist(&anim_data);
+  actkeys_find_key_at_position(ac, filter, mval[0], mval[1], &ale, &selx, &frame, &found);
 
   /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
@@ -1700,7 +1756,7 @@ static void mouse_action_keys(bAnimContext *ac,
     /* flush tagged updates
      * NOTE: We temporarily add this channel back to the list so that this can happen
      */
-    anim_data.first = anim_data.last = ale;
+    ListBase anim_data = {ale, ale};
     ANIM_animdata_update(ac, &anim_data);
 
     /* free this channel */
