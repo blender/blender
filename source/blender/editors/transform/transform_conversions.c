@@ -2414,8 +2414,8 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
       if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
-        psys_mat_hair_to_global(
-            ob, psmd_eval->mesh_final, psys->part->from, psys->particles + i, mat);
+        Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
+        psys_mat_hair_to_global(ob, mesh_final, psys->part->from, psys->particles + i, mat);
       }
 
       for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
@@ -2506,8 +2506,8 @@ void flushTransParticles(TransInfo *t)
 
       if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
-        psys_mat_hair_to_global(
-            ob, psmd_eval->mesh_final, psys->part->from, psys->particles + i, mat);
+        Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
+        psys_mat_hair_to_global(ob, mesh_final, psys->part->from, psys->particles + i, mat);
         invert_m4_m4(imat, mat);
 
         for (k = 0, key = point->keys; k < point->totkey; k++, key++) {

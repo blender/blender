@@ -38,6 +38,7 @@ struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
 struct ParticleSystemModifierData;
+struct ParticleSystemModifierDataRuntime;
 
 struct BVHTreeRay;
 struct BVHTreeRayHit;
@@ -607,6 +608,13 @@ float psys_get_current_display_percentage(struct ParticleSystem *psys,
 /* index_dmcache */
 #define DMCACHE_NOTFOUND -1
 #define DMCACHE_ISCHILD -2
+
+/* **** Particle system modifier helpers.  **** */
+
+struct Mesh *BKE_particle_modifier_mesh_final_get(struct ParticleSystemModifierData *psmd);
+struct Mesh *BKE_particle_modifier_mesh_original_get(struct ParticleSystemModifierData *psmd);
+struct ParticleSystemModifierDataRuntime *BKE_particle_modifier_runtime_ensure(
+    struct ParticleSystemModifierData *psmd);
 
 /* **** Depsgraph evaluation **** */
 

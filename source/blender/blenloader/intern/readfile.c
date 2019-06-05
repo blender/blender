@@ -5663,8 +5663,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
-      psmd->mesh_final = NULL;
-      psmd->mesh_original = NULL;
       psmd->psys = newdataadr(fd, psmd->psys);
       psmd->flag &= ~eParticleSystemFlag_psys_updated;
       psmd->flag |= eParticleSystemFlag_file_loaded;

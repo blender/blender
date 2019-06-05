@@ -882,17 +882,24 @@ enum {
   MOD_MDEF_SURFACE = 1,
 };
 
-typedef struct ParticleSystemModifierData {
-  ModifierData modifier;
-
-  struct ParticleSystem *psys;
+/* Is stored in ModifierData.runtime. */
+#
+#
+typedef struct ParticleSystemModifierDataRuntime {
   /** Final Mesh - its topology may differ from orig mesh. */
   struct Mesh *mesh_final;
   /** Original mesh that particles are attached to. */
   struct Mesh *mesh_original;
   int totdmvert, totdmedge, totdmface;
+} ParticleSystemModifierDataRuntime;
+
+typedef struct ParticleSystemModifierData {
+  ModifierData modifier;
+
+  struct ParticleSystem *psys;
+  void *_pad1;
   short flag;
-  char _pad[2];
+  char _pad[6];
 } ParticleSystemModifierData;
 
 typedef enum {

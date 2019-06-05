@@ -878,7 +878,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
                                                int from)
 {
   Scene *scene = sim->scene;
-  Mesh *final_mesh = sim->psmd->mesh_final;
+  Mesh *final_mesh = BKE_particle_modifier_mesh_final_get(sim->psmd);
   Object *ob = sim->ob;
   ParticleSystem *psys = sim->psys;
   ParticleData *pa = 0, *tpars = 0;
@@ -926,8 +926,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   if (from == PART_FROM_CHILD) {
     /* Simple children */
     if (part->childtype != PART_CHILD_FACES) {
-      distribute_simple_children(
-          scene, ob, final_mesh, sim->psmd->mesh_original, psys, use_render_params);
+      Mesh *mesh_original = BKE_particle_modifier_mesh_original_get(sim->psmd);
+      distribute_simple_children(scene, ob, final_mesh, mesh_original, psys, use_render_params);
       return 0;
     }
   }
@@ -1318,7 +1318,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
   TaskPool *task_pool;
   ParticleThreadContext ctx;
   ParticleTask *tasks;
-  Mesh *final_mesh = sim->psmd->mesh_final;
+  Mesh *final_mesh = BKE_particle_modifier_mesh_final_get(sim->psmd);
   int i, totpart, numtasks;
 
   /* create a task pool for distribution tasks */
@@ -1346,7 +1346,8 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 
   BLI_task_pool_free(task_pool);
 
-  psys_calc_dmcache(sim->ob, final_mesh, sim->psmd->mesh_original, sim->psys);
+  Mesh *mesh_original = BKE_particle_modifier_mesh_original_get(sim->psmd);
+  psys_calc_dmcache(sim->ob, final_mesh, mesh_original, sim->psys);
 
   if (ctx.mesh != final_mesh) {
     BKE_id_free(NULL, ctx.mesh);
@@ -1371,7 +1372,8 @@ void distribute_particles(ParticleSimulationData *sim, int from)
   int distr_error = 0;
 
   if (psmd) {
-    if (psmd->mesh_final) {
+    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
+    if (mesh_final) {
       distribute_particles_on_dm(sim, from);
     }
     else {

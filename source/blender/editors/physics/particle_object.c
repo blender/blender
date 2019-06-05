@@ -620,6 +620,7 @@ static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Part
 
   edit = psys->edit;
   point = edit ? edit->points : NULL;
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
 
   for (i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
     if (point) {
@@ -627,7 +628,7 @@ static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Part
       point++;
     }
 
-    psys_mat_hair_to_global(ob, psmd_eval->mesh_final, psys->part->from, pa, hairmat);
+    psys_mat_hair_to_global(ob, mesh_final, psys->part->from, pa, hairmat);
 
     for (k = 0, key = pa->hair; k < pa->totkey; k++, key++) {
       mul_m4_v3(hairmat, key->co);
@@ -725,7 +726,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   float from_ob_imat[4][4], to_ob_imat[4][4];
   float from_imat[4][4], to_imat[4][4];
 
-  if (!target_psmd->mesh_final) {
+  Mesh *target_mesh_final = BKE_particle_modifier_mesh_final_get(target_psmd);
+  if (!target_mesh_final) {
     return false;
   }
   if (!psys->part || psys->part->type != PART_HAIR) {
@@ -742,14 +744,14 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   invert_m4_m4(from_imat, from_mat);
   invert_m4_m4(to_imat, to_mat);
 
-  if (target_psmd->mesh_final->runtime.deformed_only) {
+  if (target_mesh_final->runtime.deformed_only) {
     /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
-    mesh = target_psmd->mesh_final;
+    mesh = target_mesh_final;
   }
   else {
-    mesh = target_psmd->mesh_original;
+    mesh = BKE_particle_modifier_mesh_original_get(target_psmd);
   }
-  target_mesh = target_psmd->mesh_final;
+  target_mesh = target_mesh_final;
   if (mesh == NULL) {
     return false;
   }
@@ -1155,10 +1157,13 @@ static bool copy_particle_systems_to_object(const bContext *C,
     modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
     psmd->psys = psys;
-    BKE_id_copy_ex(NULL, &final_mesh->id, (ID **)&psmd->mesh_final, LIB_ID_COPY_LOCALIZE);
 
-    BKE_mesh_calc_normals(psmd->mesh_final);
-    BKE_mesh_tessface_ensure(psmd->mesh_final);
+    /* TODO(sergey): This should probably be accessing evaluated psmd. */
+    ParticleSystemModifierDataRuntime *runtime = BKE_particle_modifier_runtime_ensure(psmd);
+    BKE_id_copy_ex(NULL, &final_mesh->id, (ID **)&runtime->mesh_final, LIB_ID_COPY_LOCALIZE);
+
+    BKE_mesh_calc_normals(runtime->mesh_final);
+    BKE_mesh_tessface_ensure(runtime->mesh_final);
 
     if (psys_from->edit) {
       copy_particle_edit(depsgraph, scene, ob_to, psys, psys_from);

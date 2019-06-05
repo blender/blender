@@ -1125,7 +1125,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     if (psys->part == NULL || psys->particles == NULL) {
       return mesh;
     }
-    if (psmd->mesh_final == NULL) {
+    if (BKE_particle_modifier_mesh_final_get(psmd) == NULL) {
       return mesh;
     }
 

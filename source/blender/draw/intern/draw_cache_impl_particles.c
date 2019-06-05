@@ -301,14 +301,15 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
     return;
   }
   ParticleData *particle = &psys->particles[parent_index];
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
   int num = particle->num_dmcache;
   if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
-    if (particle->num < psmd->mesh_final->totface) {
+    if (particle->num < mesh_final->totface) {
       num = particle->num;
     }
   }
   if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mface = &mesh_final->mface[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
     }
@@ -330,14 +331,15 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
     return;
   }
   ParticleData *particle = &psys->particles[parent_index];
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
   int num = particle->num_dmcache;
   if (num == DMCACHE_NOTFOUND || num == DMCACHE_ISCHILD) {
-    if (particle->num < psmd->mesh_final->totface) {
+    if (particle->num < mesh_final->totface) {
       num = particle->num;
     }
   }
   if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mface = &mesh_final->mface[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_mcol(mcols[j] + num, mface->v4, particle->fuv, &r_mcol[j]);
     }
@@ -361,8 +363,9 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
   }
   ChildParticle *particle = &psys->child[child_index];
   int num = particle->num;
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
   if (num != DMCACHE_NOTFOUND) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mface = &mesh_final->mface[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
     }
@@ -384,9 +387,10 @@ static void particle_interpolate_children_mcol(ParticleSystem *psys,
     return;
   }
   ChildParticle *particle = &psys->child[child_index];
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
   int num = particle->num;
   if (num != DMCACHE_NOTFOUND) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mface = &mesh_final->mface[num];
     for (int j = 0; j < num_col_layers; j++) {
       psys_interpolate_mcol(mcols[j] + num, mface->v4, particle->fuv, &r_mcol[j]);
     }
@@ -838,15 +842,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   int active_col = 0;
 
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
 
-  if (psmd != NULL && psmd->mesh_final != NULL) {
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
-      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
+  if (psmd != NULL && mesh_final != NULL) {
+    if (CustomData_has_layer(&mesh_final->ldata, CD_MLOOPUV)) {
+      cache->num_uv_layers = CustomData_number_of_layers(&mesh_final->ldata, CD_MLOOPUV);
+      active_uv = CustomData_get_active_layer(&mesh_final->ldata, CD_MLOOPUV);
     }
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL)) {
-      cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPCOL);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL);
+    if (CustomData_has_layer(&mesh_final->ldata, CD_MLOOPCOL)) {
+      cache->num_col_layers = CustomData_number_of_layers(&mesh_final->ldata, CD_MLOOPCOL);
+      active_col = CustomData_get_active_layer(&mesh_final->ldata, CD_MLOOPCOL);
     }
   }
 
@@ -890,7 +895,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertbuf_data_alloc(cache->proc_uv_buf[i], cache->strands_len);
     GPU_vertbuf_attr_get_raw_data(cache->proc_uv_buf[i], uv_id, &uv_step[i]);
 
-    const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
+    const char *name = CustomData_get_layer_name(&mesh_final->ldata, CD_MLOOPUV, i);
     uint hash = BLI_ghashutil_strhash_p(name);
     int n = 0;
     BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "u%u", hash);
@@ -906,13 +911,13 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertbuf_data_alloc(cache->proc_col_buf[i], cache->strands_len);
     GPU_vertbuf_attr_get_raw_data(cache->proc_col_buf[i], col_id, &col_step[i]);
 
-    const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPCOL, i);
+    const char *name = CustomData_get_layer_name(&mesh_final->ldata, CD_MLOOPCOL, i);
     uint hash = BLI_ghashutil_strhash_p(name);
     int n = 0;
     BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "c%u", hash);
 
     /* We only do vcols auto name that are not overridden by uvs */
-    if (CustomData_get_named_layer_index(&psmd->mesh_final->ldata, CD_MLOOPUV, name) == -1) {
+    if (CustomData_get_named_layer_index(&mesh_final->ldata, CD_MLOOPUV, name) == -1) {
       BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%u", hash);
     }
 
@@ -922,15 +927,15 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   }
 
   if (cache->num_uv_layers || cache->num_col_layers) {
-    BKE_mesh_tessface_ensure(psmd->mesh_final);
+    BKE_mesh_tessface_ensure(mesh_final);
     if (cache->num_uv_layers) {
       for (int j = 0; j < cache->num_uv_layers; j++) {
-        mtfaces[j] = (MTFace *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MTFACE, j);
+        mtfaces[j] = (MTFace *)CustomData_get_layer_n(&mesh_final->fdata, CD_MTFACE, j);
       }
     }
     if (cache->num_col_layers) {
       for (int j = 0; j < cache->num_col_layers; j++) {
-        mcols[j] = (MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, j);
+        mcols[j] = (MCol *)CustomData_get_layer_n(&mesh_final->fdata, CD_MCOL, j);
       }
     }
   }
@@ -1143,14 +1148,16 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   float(**parent_uvs)[2] = NULL;
   MCol **parent_mcol = NULL;
 
+  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
+
   if (psmd != NULL) {
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
-      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
+    if (CustomData_has_layer(&mesh_final->ldata, CD_MLOOPUV)) {
+      num_uv_layers = CustomData_number_of_layers(&mesh_final->ldata, CD_MLOOPUV);
+      active_uv = CustomData_get_active_layer(&mesh_final->ldata, CD_MLOOPUV);
     }
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL)) {
-      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPCOL);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL);
+    if (CustomData_has_layer(&mesh_final->ldata, CD_MLOOPCOL)) {
+      num_col_layers = CustomData_number_of_layers(&mesh_final->ldata, CD_MLOOPCOL);
+      active_col = CustomData_get_active_layer(&mesh_final->ldata, CD_MLOOPCOL);
     }
   }
 
@@ -1166,7 +1173,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     col_id = MEM_mallocN(sizeof(*col_id) * num_col_layers, "Col attr format");
 
     for (int i = 0; i < num_uv_layers; i++) {
-      const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
+      const char *name = CustomData_get_layer_name(&mesh_final->ldata, CD_MLOOPUV, i);
       char uuid[32];
 
       BLI_snprintf(uuid, sizeof(uuid), "u%u", BLI_ghashutil_strhash_p(name));
@@ -1178,7 +1185,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     }
 
     for (int i = 0; i < num_uv_layers; i++) {
-      const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
+      const char *name = CustomData_get_layer_name(&mesh_final->ldata, CD_MLOOPUV, i);
       char uuid[32];
 
       BLI_snprintf(uuid, sizeof(uuid), "c%u", BLI_ghashutil_strhash_p(name));
@@ -1197,17 +1204,17 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, hair_cache->elems_len, hair_cache->point_len);
 
   if (num_uv_layers || num_col_layers) {
-    BKE_mesh_tessface_ensure(psmd->mesh_final);
+    BKE_mesh_tessface_ensure(mesh_final);
     if (num_uv_layers) {
       mtfaces = MEM_mallocN(sizeof(*mtfaces) * num_uv_layers, "Faces UV layers");
       for (int i = 0; i < num_uv_layers; i++) {
-        mtfaces[i] = (MTFace *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MTFACE, i);
+        mtfaces[i] = (MTFace *)CustomData_get_layer_n(&mesh_final->fdata, CD_MTFACE, i);
       }
     }
     if (num_col_layers) {
       mcols = MEM_mallocN(sizeof(*mcols) * num_col_layers, "Color layers");
       for (int i = 0; i < num_col_layers; i++) {
-        mcols[i] = (MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, i);
+        mcols[i] = (MCol *)CustomData_get_layer_n(&mesh_final->fdata, CD_MCOL, i);
       }
     }
   }
