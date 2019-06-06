@@ -1,3 +1,4 @@
+/* Pre-compiled headers, see: D2606. */
 #include <Python.h>
 #include <pthread.h>
 #include <string>
