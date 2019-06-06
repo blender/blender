@@ -20,6 +20,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 
 #include "GPU_glew.h"
