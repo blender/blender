@@ -2001,4 +2001,12 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
   /* Clear autospace flag in evaluated mesh, so that texspace does not get recomputed when bbox is
    * (e.g. after modifiers, etc.) */
   mesh->texflag &= ~ME_AUTOSPACE;
+  /* We are here because something did change in the mesh. This means we can not trust the existing
+   * evaluated mesh, and we don't know what parts of the mesh did change. So we simply delete the
+   * evaluated mesh and let objects to re-create it with updated settings. */
+  if (mesh->runtime.mesh_eval != NULL) {
+    mesh->runtime.mesh_eval->edit_mesh = NULL;
+    BKE_id_free(NULL, mesh->runtime.mesh_eval);
+    mesh->runtime.mesh_eval = NULL;
+  }
 }
