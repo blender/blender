@@ -99,10 +99,9 @@ bm.free()
 
 
 # Add the mesh to the scene
-scene = bpy.context.scene
 obj = bpy.data.objects.new("Object", me)
-scene.objects.link(obj)
+bpy.context.collection.objects.link(obj)
 
 # Select and make active
-scene.objects.active = obj
-obj.select = True
+bpy.context.view_layer.objects.active = obj
+obj.select_set(True)

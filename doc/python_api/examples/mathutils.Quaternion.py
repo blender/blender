@@ -13,7 +13,7 @@ print("Check quaternions match", quat_a == quat_b)
 # like matrices, quaternions can be multiplied to accumulate rotational values
 quat_a = mathutils.Quaternion((0.0, 1.0, 0.0), math.radians(90.0))
 quat_b = mathutils.Quaternion((0.0, 0.0, 1.0), math.radians(45.0))
-quat_out = quat_a * quat_b
+quat_out = quat_a @ quat_b
 
 # print the quat, euler degrees for mere mortals and (axis, angle)
 print("Final Rotation:")

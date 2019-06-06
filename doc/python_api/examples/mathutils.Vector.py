@@ -32,11 +32,10 @@ vec_a <= vec_b
 # Math can be performed on Vector classes
 vec_a + vec_b
 vec_a - vec_b
-vec_a * vec_b
+vec_a @ vec_b
 vec_a * 10.0
-matrix * vec_a
-quat * vec_a
-vec_a * vec_b
+matrix @ vec_a
+quat @ vec_a
 -vec_a
 
 

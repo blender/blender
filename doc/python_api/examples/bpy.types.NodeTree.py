@@ -16,6 +16,7 @@ import bpy
 class CyclesNodeTree(bpy.types.NodeTree):
     """ This operator is only visible when Cycles is the selected render engine"""
     bl_label = "Cycles Node Tree"
+    bl_icon = 'NONE'
 
     @classmethod
     def poll(cls, context):

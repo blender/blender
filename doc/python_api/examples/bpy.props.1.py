@@ -34,8 +34,8 @@ class OBJECT_PT_property_example(bpy.types.Panel):
     bl_idname = "object_PT_property_example"
     bl_label = "Property Example"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-    bl_category = "Tools"
+    bl_region_type = 'UI'
+    bl_category = "Tool"
 
     def draw(self, context):
         # You can set the property values that should be used when the user

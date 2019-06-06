@@ -11,7 +11,7 @@ mat_sca = mathutils.Matrix.Scale(0.5, 4, (0.0, 0.0, 1.0))
 mat_rot = mathutils.Matrix.Rotation(math.radians(45.0), 4, 'X')
 
 # combine transformations
-mat_out = mat_loc * mat_rot * mat_sca
+mat_out = mat_loc @ mat_rot @ mat_sca
 print(mat_out)
 
 # extract components back out of the matrix

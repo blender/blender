@@ -28,7 +28,7 @@ obj = bpy.data.objects["Armature"]
 arm = obj.data
 
 # Set the keyframe at frame 1.
-arm.bones["Bone"].my_prop_group.nested = 10
+arm.bones["Bone"].my_prop.nested = 10
 arm.keyframe_insert(
     data_path='bones["Bone"].my_prop.nested',
     frame=1,
