@@ -966,7 +966,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 
   /* Make sure it corresponds to startFrame setting
    * (old: noFrames = scene->r.efra - scene->r.sfra +1). */
-  ;
+
   noFrames = scene->r.efra - 0;
   if (noFrames <= 0) {
     BKE_report(reports, RPT_ERROR, "No frames to export (check your animation range settings)");

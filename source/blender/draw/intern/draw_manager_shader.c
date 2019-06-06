@@ -158,7 +158,7 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
     /* Compile the shaders in the context they will be deleted. */
     DRW_opengl_context_enable_ex(false);
     DRWDeferredShader *mat_conclude;
-    while (mat_conclude = BLI_poptail(&comp->queue_conclude)) {
+    while ((mat_conclude = BLI_poptail(&comp->queue_conclude))) {
       GPU_material_compile(mat_conclude->mat);
       drw_deferred_shader_free(mat_conclude);
     }

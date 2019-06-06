@@ -338,14 +338,14 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
     while (a < size && t < tree->totchannel) {
       // locate first matching channel
       for (; t < tree->totchannel && tree->pchan[t] != chanlist[segcount - a - 1]; t++) {
-        ;
+        /* pass */
       }
       if (t >= tree->totchannel) {
         break;
       }
       for (; a < size && t < tree->totchannel && tree->pchan[t] == chanlist[segcount - a - 1];
            a++, t++) {
-        ;
+        /* pass */
       }
     }
 
@@ -1892,7 +1892,6 @@ static void execute_scene(struct Depsgraph *depsgraph,
   }
   if (i < ikscene->numchan) {
     // big problem
-    ;
   }
 }
 

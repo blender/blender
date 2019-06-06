@@ -403,28 +403,28 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 
 /* If ob is NULL, unit modelmatrix is assumed and culling is bypassed. */
 #define DRW_shgroup_call(shgrp, geom, ob) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, NULL);
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, NULL)
 
 /* Same as DRW_shgroup_call but override the obmat. Not culled. */
 #define DRW_shgroup_call_obmat(shgrp, geom, obmat) \
-  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, 0, 0, false, NULL);
+  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, 0, 0, false, NULL)
 
 /* TODO(fclem) remove this when we have DRWView */
 /* user_data is used by DRWCallVisibilityFn defined in DRWView. */
 #define DRW_shgroup_call_with_callback(shgrp, geom, ob, user_data) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, user_data);
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, false, user_data)
 
 /* Same as DRW_shgroup_call but bypass culling even if ob is not NULL. */
 #define DRW_shgroup_call_no_cull(shgrp, geom, ob) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, true, NULL);
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, 0, 0, true, NULL)
 
 /* Only draw a certain range of geom. */
 #define DRW_shgroup_call_range(shgrp, geom, ob, v_sta, v_ct) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, v_sta, v_ct, false, NULL);
+  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, v_sta, v_ct, false, NULL)
 
 /* Same as DRW_shgroup_call_range but override the obmat. Special for gpencil. */
 #define DRW_shgroup_call_range_obmat(shgrp, geom, obmat, v_sta, v_ct) \
-  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, v_sta, v_ct, false, NULL);
+  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, v_sta, v_ct, false, NULL)
 
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
