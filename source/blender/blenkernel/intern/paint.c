@@ -992,11 +992,6 @@ static void sculptsession_free_pbvh(Object *object)
   SculptSession *ss = object->sculpt;
 
   if (ss && ss->pbvh) {
-    /* Ensure all normals are updated before freeing the PBVH, because
-     * we skip updating them for performance when we don't draw the PBVH. */
-    Mesh *mesh = object->data;
-    BKE_pbvh_update_normals(ss->pbvh, mesh->runtime.subdiv_ccg);
-
     BKE_pbvh_free(ss->pbvh);
     ss->pbvh = NULL;
   }
