@@ -971,8 +971,8 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 
   DRW_draw_pass(psl->depth_pass_clip);
   DRW_draw_pass(psl->depth_pass_clip_cull);
-  DRW_draw_pass(psl->refract_depth_pass);
-  DRW_draw_pass(psl->refract_depth_pass_cull);
+  DRW_draw_pass(psl->refract_depth_pass_clip);
+  DRW_draw_pass(psl->refract_depth_pass_clip_cull);
 
   DRW_draw_pass(psl->probe_background);
   EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
