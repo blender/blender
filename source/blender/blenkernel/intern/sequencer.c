@@ -3137,8 +3137,15 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 {
   ImBuf *ibuf = NULL;
   StripAnim *sanim;
+
   bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                       (context->scene->r.scemode & R_MULTIVIEW) != 0;
+
+  IMB_Proxy_Size proxy_size = seq_rendersize_to_proxysize(context->preview_render_size);
+
+  if ((seq->flag & SEQ_USE_PROXY) == 0) {
+    proxy_size = IMB_PROXY_NONE;
+  }
 
   /* load all the videos */
   seq_open_anim_file(context->scene, seq, false);
@@ -3158,7 +3165,6 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 
     for (i = 0, sanim = seq->anims.first; sanim; sanim = sanim->next, i++) {
       if (sanim->anim) {
-        IMB_Proxy_Size proxy_size = seq_rendersize_to_proxysize(context->preview_render_size);
         IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
         ibuf_arr[i] = IMB_anim_absolute(sanim->anim,
@@ -3229,7 +3235,6 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
   monoview_movie:
     sanim = seq->anims.first;
     if (sanim && sanim->anim) {
-      IMB_Proxy_Size proxy_size = seq_rendersize_to_proxysize(context->preview_render_size);
       IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
       ibuf = IMB_anim_absolute(sanim->anim,
