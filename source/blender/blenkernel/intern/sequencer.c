@@ -4349,14 +4349,66 @@ void BKE_sequence_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
 
 void BKE_sequence_invalidate_cache_composite(Scene *scene, Sequence *seq)
 {
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    return;
+  }
+
   sequence_invalidate_cache(
       scene, seq, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
 }
 
 void BKE_sequence_invalidate_dependent(Scene *scene, Sequence *seq)
 {
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    return;
+  }
+
   sequence_invalidate_cache(
       scene, seq, false, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
+}
+
+static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->scene == scene_target) {
+      BKE_sequence_invalidate_cache_raw(scene, seq);
+    }
+
+    if (seq->seqbase.first != NULL) {
+      invalidate_scene_strips(scene, scene_target, &seq->seqbase);
+    }
+  }
+}
+
+void BKE_sequence_invalidate_scene_strips(Main *bmain, Scene *scene_target)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->ed != NULL) {
+      invalidate_scene_strips(scene, scene_target, &scene->ed->seqbase);
+    }
+  }
+}
+
+static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, ListBase *seqbase)
+{
+  for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+    if (seq->clip == clip_target) {
+      BKE_sequence_invalidate_cache_raw(scene, seq);
+    }
+
+    if (seq->seqbase.first != NULL) {
+      invalidate_movieclip_strips(scene, clip_target, &seq->seqbase);
+    }
+  }
+}
+
+void BKE_sequence_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->ed != NULL) {
+      invalidate_movieclip_strips(scene, clip_target, &scene->ed->seqbase);
+    }
+  }
 }
 
 void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
@@ -5486,6 +5538,7 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
   seq->flag |= seq_load->flag & SEQ_USE_VIEWS;
 
   seq_load_apply(CTX_data_main(C), scene, seq, seq_load);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   return seq;
 }
@@ -5688,6 +5741,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   /* can be NULL */
   seq_load_apply(CTX_data_main(C), scene, seq, seq_load);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   MEM_freeN(anim_arr);
   return seq;

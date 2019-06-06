@@ -133,6 +133,7 @@ static Sequence *rna_Sequences_new_mask(
   id_us_plus((ID *)mask);
 
   BKE_sequence_calc_disp(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -153,6 +154,7 @@ static Sequence *rna_Sequences_new_scene(
   id_us_plus((ID *)sce_seq);
 
   BKE_sequence_calc_disp(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -181,6 +183,7 @@ static Sequence *rna_Sequences_new_image(ID *id,
   }
 
   BKE_sequence_calc_disp(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -216,6 +219,7 @@ static Sequence *rna_Sequences_new_movie(ID *id,
   seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 
   BKE_sequence_calc_disp(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -340,6 +344,7 @@ static Sequence *rna_Sequences_new_effect(ID *id,
 
   BKE_sequence_calc(scene, seq);
   BKE_sequence_calc_disp(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -375,7 +380,6 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   seq->len++;
 
   BKE_sequence_calc_disp(scene, seq);
-
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return se;

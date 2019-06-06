@@ -2052,7 +2052,7 @@ static void rna_SceneCamera_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
   Scene *scene = (Scene *)ptr->id.data;
   Object *camera = scene->camera;
 
-  BKE_sequencer_cache_cleanup_all(bmain);
+  BKE_sequence_invalidate_scene_strips(bmain, scene);
 
   if (camera && (camera->type == OB_CAMERA)) {
     DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);

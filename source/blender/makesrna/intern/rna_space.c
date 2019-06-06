@@ -30,6 +30,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_studiolight.h"
+#include "BKE_sequencer.h"
 
 #include "BLI_math.h"
 
@@ -1974,9 +1975,14 @@ static void rna_SpaceConsole_rect_update(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_SPACE | ND_SPACE_CONSOLE | NA_EDITED, sc);
 }
 
-static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
-                                           Scene *UNUSED(scene),
-                                           PointerRNA *ptr)
+static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain),
+                                            Scene *scene,
+                                            PointerRNA *UNUSED(ptr))
+{
+  BKE_sequencer_cache_cleanup(scene);
+}
+
+static void rna_Sequencer_view_type_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
   ScrArea *sa = rna_area_from_space(ptr);
   ED_area_tag_refresh(sa);
@@ -4498,13 +4504,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       "Display Channel",
       "The channel number shown in the image preview. 0 is the result of all strips combined");
   RNA_def_property_range(prop, -5, MAXSEQ);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, preview_channels_items);
   RNA_def_property_ui_text(prop, "Display Channels", "Channels of the preview to draw");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "waveform_display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -4524,7 +4530,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Proxy Render Size",
                            "Display preview using full resolution or different proxy resolutions");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

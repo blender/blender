@@ -598,12 +598,14 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     MovieClip *clip = (MovieClip *)id;
 
     BKE_movieclip_reload(bmain, clip);
+    BKE_sequence_invalidate_movieclip_strips(bmain, clip);
 
     WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
     WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
   }
   else if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
+    BKE_sequence_invalidate_scene_strips(bmain, scene);
 
     if (scene->ed) {
       ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *)
@@ -641,8 +643,6 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
     }
   }
-
-  BKE_sequencer_cache_cleanup_all(bmain);
 }
 
 static char *rna_ColorManagedSequencerColorspaceSettings_path(PointerRNA *UNUSED(ptr))

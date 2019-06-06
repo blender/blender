@@ -126,8 +126,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-  /* TODO(sergey): Can be more selective here. */
-  BKE_sequencer_cache_cleanup_all(bmain);
+  BKE_sequence_invalidate_scene_strips(bmain, scene);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
