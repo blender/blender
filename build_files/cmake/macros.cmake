@@ -235,7 +235,7 @@ function(blender_add_lib__impl
   add_library(${name} ${sources})
 
   if (NOT "${library_deps}" STREQUAL "")
-    target_link_libraries(${name} "${library_deps}")
+    target_link_libraries(${name} INTERFACE "${library_deps}")
   endif()
 
   # works fine without having the includes
