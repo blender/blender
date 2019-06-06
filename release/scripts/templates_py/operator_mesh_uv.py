@@ -9,13 +9,12 @@ def main(context):
 
     uv_layer = bm.loops.layers.uv.verify()
 
-    # adjust UVs
-    for f in bm.faces:
-        for l in f.loops:
-            luv = l[uv_layer]
-            if luv.select:
-                # apply the location of the vertex as a UV
-                luv.uv = l.vert.co.xy
+    # adjust uv coordinates
+    for face in bm.faces:
+        for loop in face.loops:
+            loop_uv = loop[uv_layer]
+            # use xy position of the vertex as a uv coordinate
+            loop_uv.uv = loop.vert.co.xy
 
     bmesh.update_edit_mesh(me)
 
@@ -27,7 +26,8 @@ class UvOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.mode == 'EDIT_MESH')
+        obj = context.active_object
+        return obj and obj.type == 'MESH' and obj.mode == 'EDIT'
 
     def execute(self, context):
         main(context)
