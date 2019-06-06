@@ -378,7 +378,6 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(cloth, "quality", text="Quality Steps", slider=True)
-        col.prop(psys.settings, "show_hair_grid", text="Display Hair Grid")
 
         layout.separator()
 
@@ -1276,31 +1275,6 @@ class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
         col.prop(part, "use_dead", text="Dead")
 
 
-class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
-    bl_label = "Line"
-    bl_parent_id = "PARTICLE_PT_render"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        part = particle_get_settings(context)
-        return part.render_type == 'LINE'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        part = particle_get_settings(context)
-
-        col = layout.column()
-
-        col.separator()
-        sub = col.column(align=True)
-        sub.prop(part, "line_length_tail", text="Length Tail")
-        sub.prop(part, "line_length_head", text="Head")
-        col.prop(part, "use_velocity_length", text="Velocity Length")
-
-
 class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
     bl_label = "Path"
     bl_parent_id = "PARTICLE_PT_render"
@@ -1318,17 +1292,6 @@ class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
         part = particle_get_settings(context)
 
         col = layout.column()
-
-        col.prop(part, "use_strand_primitive")
-        sub = col.column()
-        sub.active = (part.use_strand_primitive is False)
-        sub.prop(part, "use_render_adaptive")
-        sub = col.column()
-        sub.active = part.use_render_adaptive or part.use_strand_primitive is True
-        sub.prop(part, "adaptive_angle")
-        sub = col.column()
-        sub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
-        sub.prop(part, "adaptive_pixel")
         col.prop(part, "use_hair_bspline")
         col.prop(part, "render_step", text="Steps")
 
@@ -1357,8 +1320,6 @@ class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
 
         if part.type == 'HAIR' or psys.point_cache.is_baked:
             col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
-        else:
-            col.prop(part, "trail_count")
 
         col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
         col.prop(part, "length_random", text="Random", slider=True)
@@ -1467,34 +1428,6 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
             row.prop(weight, "count")
 
 
-class PARTICLE_PT_render_trails(ParticleButtonsPanel, Panel):
-    bl_label = "Trails"
-    bl_parent_id = "PARTICLE_PT_render"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        part = particle_get_settings(context)
-        return part.render_type in {'HALO', 'LINE', 'BILLBOARD'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        part = particle_get_settings(context)
-
-        col = layout.column()
-
-        col.prop(part, "trail_count")
-
-        sub = col.column()
-        sub.active = (part.trail_count > 1)
-        sub.prop(part, "use_absolute_path_time", text="Length in Frames")
-        sub.prop(part, "path_end", text="Length", slider=not part.use_absolute_path_time)
-        sub.prop(part, "length_random", text="Random Length", slider=True)
-
-
 class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1547,14 +1480,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking")
         else:
             layout.separator()
-
-        col = layout.column()
-        col.prop(part, "show_guide_hairs", text="Guide Hairs")
-        col.prop(part, "show_size")
-        col.prop(part, "show_velocity")
-        col.prop(part, "show_number")
-        if part.physics_type == 'BOIDS':
-            col.prop(part, "show_health")
 
         if context.object:
             layout.separator()
@@ -2080,13 +2005,11 @@ classes = (
     PARTICLE_PT_physics_fluid_interaction,
     PARTICLE_PT_boidbrain,
     PARTICLE_PT_render,
-    PARTICLE_PT_render_line,
     PARTICLE_PT_render_path,
     PARTICLE_PT_render_path_timing,
     PARTICLE_PT_render_object,
     PARTICLE_PT_render_collection,
     PARTICLE_PT_render_collection_use_count,
-    PARTICLE_PT_render_trails,
     PARTICLE_PT_render_extra,
     PARTICLE_PT_draw,
     PARTICLE_PT_children,
