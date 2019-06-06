@@ -3482,7 +3482,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 
   ntree->progress = NULL;
   ntree->execdata = NULL;
-  ntree->duplilock = NULL;
 
   ntree->adt = newdataadr(fd, ntree->adt);
   direct_link_animdata(fd, ntree->adt);
