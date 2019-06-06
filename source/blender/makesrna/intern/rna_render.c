@@ -844,31 +844,41 @@ static void rna_def_render_engine(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bl_use_preview", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_PREVIEW);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Preview Render",
+      "Render engine supports being used for rendering previews of materials, lights and worlds");
 
   prop = RNA_def_property(srna, "bl_use_postprocess", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", RE_USE_POSTPROCESS);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop, "Use Post Processing", "Apply compositing on render results");
 
-  prop = RNA_def_property(srna, "bl_use_shading_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES);
+  prop = RNA_def_property(srna, "bl_use_eevee_viewport", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_EEVEE_VIEWPORT);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop, "Use Eevee Viewport", "Uses Eevee for viewport shading in LookDev shading mode");
 
   prop = RNA_def_property(srna, "bl_use_shading_nodes_custom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SHADING_NODES_CUSTOM);
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-  prop = RNA_def_property(srna, "bl_use_exclude_layers", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_EXCLUDE_LAYERS);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "Use Custom Shading Nodes",
+                           "Don't expose Cycles and Eevee shading nodes in the node editor user "
+                           "interface, so own nodes can be used instead");
 
   prop = RNA_def_property(srna, "bl_use_save_buffers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SAVE_BUFFERS);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop, "Use Save Buffers", "Support render to an on disk buffer during rendering");
 
   prop = RNA_def_property(srna, "bl_use_spherical_stereo", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_USE_SPHERICAL_STEREO);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop, "Use Spherical Stereo", "Support spherical stereo camera models");
 
   RNA_define_verify_sdna(1);
 }

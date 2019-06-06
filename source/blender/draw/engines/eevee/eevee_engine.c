@@ -476,7 +476,7 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
     NULL,
     EEVEE_ENGINE,
     N_("Eevee"),
-    RE_INTERNAL | RE_USE_SHADING_NODES | RE_USE_PREVIEW,
+    RE_INTERNAL | RE_USE_PREVIEW,
     NULL,
     &DRW_render_to_image,
     NULL,
