@@ -27,7 +27,21 @@
 
 #ifdef BUILD_DATE
 
-/* currently only these are defined in the header */
+extern char build_date[];
+extern char build_time[];
+extern char build_hash[];
+extern unsigned long build_commit_timestamp;
+extern char build_commit_date[];
+extern char build_commit_time[];
+extern char build_branch[];
+extern char build_platform[];
+extern char build_type[];
+extern char build_cflags[];
+extern char build_cxxflags[];
+extern char build_linkflags[];
+extern char build_system[];
+
+/* Currently only these are defined in the header. */
 char build_date[] = BUILD_DATE;
 char build_time[] = BUILD_TIME;
 char build_hash[] = BUILD_HASH;
