@@ -379,11 +379,20 @@ class ToolSelectPanelHelper:
     @classmethod
     def keymap_ui_hierarchy(cls, context_mode):
         # See: bpy_extras.keyconfig_utils
+
+        # Keymaps may be shared, don't show them twice.
+        visited = set()
+
         for context_mode_test, tools in cls.tools_all():
             if context_mode_test == context_mode:
                 for item in cls._tools_flatten_with_keymap(tools):
                     km_name = item.keymap[0]
                     # print((km.name, cls.bl_space_type, 'WINDOW', []))
+
+                    if km_name in visited:
+                        continue
+                    visited.add(km_name)
+
                     yield (km_name, cls.bl_space_type, 'WINDOW', [])
 
     # -------------------------------------------------------------------------
