@@ -438,7 +438,7 @@ class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
         tex = context.texture
 
         col = layout.column()
-        col.active = bool(tex.image and tex.image.use_alpha)
+        col.active = bool(tex.image and tex.image.alpha_mode != 'NONE')
         col.prop(tex, "use_calculate_alpha", text="Calculate")
         col.prop(tex, "invert_alpha", text="Invert")
 
