@@ -2566,11 +2566,13 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  RNA_def_boolean(ot->srna,
-                  "linked",
-                  0,
-                  "Linked",
-                  "Duplicate object but not object data, linking to the original data");
+  prop = RNA_def_boolean(ot->srna,
+                         "linked",
+                         0,
+                         "Linked",
+                         "Duplicate object but not object data, linking to the original data");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
   prop = RNA_def_enum(
       ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
