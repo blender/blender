@@ -1600,6 +1600,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "resolu");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1, 1024);
   RNA_def_property_ui_range(prop, 1, 64, 1, -1);
   RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction");
@@ -1607,6 +1608,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "resolv");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_range(prop, 1, 64, 1, -1);
   RNA_def_property_range(prop, 1, 1024);
   RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction");
@@ -1883,6 +1885,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "order_u", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "orderu");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 2, 6);
   RNA_def_property_ui_text(
       prop,
@@ -1893,6 +1896,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "order_v", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "orderv");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 2, 6);
   RNA_def_property_ui_text(prop,
                            "Order V",
@@ -1902,6 +1906,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "resolu");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1, 1024);
   RNA_def_property_ui_range(prop, 1, 64, 1, -1);
   RNA_def_property_ui_text(prop, "Resolution U", "Curve or Surface subdivisions per segment");
@@ -1909,6 +1914,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "resolv");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1, 1024);
   RNA_def_property_ui_range(prop, 1, 64, 1, -1);
   RNA_def_property_ui_text(prop, "Resolution V", "Surface subdivisions per segment");
@@ -1916,18 +1922,21 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_cyclic_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagu", CU_NURB_CYCLIC);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Cyclic U", "Make this curve or surface a closed loop in the U direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_cyclic_u");
 
   prop = RNA_def_property(srna, "use_cyclic_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_CYCLIC);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Cyclic V", "Make this surface a closed loop in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_cyclic_v");
 
   /* Note, endpoint and bezier flags should never be on at the same time! */
   prop = RNA_def_property(srna, "use_endpoint_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagu", CU_NURB_ENDPOINT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
       "Endpoint U",
@@ -1937,6 +1946,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_endpoint_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_ENDPOINT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Endpoint V",
                            "Make this nurbs surface meet the endpoints in the V direction "
@@ -1945,6 +1955,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_bezier_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagu", CU_NURB_BEZIER);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
       "Bezier U",
@@ -1954,6 +1965,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_bezier_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_BEZIER);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Bezier V",
                            "Make this nurbs surface act like a Bezier spline in the V direction "
