@@ -2787,7 +2787,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (ibuf->x != context->rectx || ibuf->y != context->recty) {
-    if (scene->display.render_aa > SCE_DISPLAY_AA_FXAA) {
+    if (context->for_render) {
       IMB_scaleImBuf(ibuf, (short)context->rectx, (short)context->recty);
     }
     else {
