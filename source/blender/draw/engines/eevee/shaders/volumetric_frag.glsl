@@ -50,7 +50,7 @@ void main()
 #endif
 
   volumeScattering = vec4(cl.scatter, 1.0);
-  volumeExtinction = vec4(max(vec3(1e-4), cl.absorption + cl.scatter), 1.0);
+  volumeExtinction = vec4(cl.absorption + cl.scatter, 1.0);
   volumeEmissive = vec4(cl.emission, 1.0);
 
   /* Do not add phase weight if no scattering. */

@@ -10,14 +10,14 @@ uniform sampler3D volumeExtinction;
 
 flat in int slice;
 
-layout(location = 0) out vec4 finalScattering;
-layout(location = 1) out vec4 finalTransmittance;
+layout(location = 0) out vec3 finalScattering;
+layout(location = 1) out vec3 finalTransmittance;
 
 void main()
 {
   /* Start with full transmittance and no scattered light. */
-  finalScattering = vec4(0.0);
-  finalTransmittance = vec4(1.0);
+  finalScattering = vec3(0.0);
+  finalTransmittance = vec3(1.0);
 
   vec3 tex_size = vec3(textureSize(volumeScattering, 0).xyz);
 
@@ -42,8 +42,8 @@ void main()
   for (int i = 0; i < slice; ++i) {
     ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
 
-    vec4 Lscat = texelFetch(volumeScattering, volume_cell, 0);
-    vec4 s_extinction = texelFetch(volumeExtinction, volume_cell, 0);
+    vec3 Lscat = texelFetch(volumeScattering, volume_cell, 0).rgb;
+    vec3 s_extinction = texelFetch(volumeExtinction, volume_cell, 0).rgb;
 
     float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
@@ -51,10 +51,10 @@ void main()
     /* Evaluate Scattering */
     float s_len = abs(ray_len - prev_ray_len);
     prev_ray_len = ray_len;
-    vec4 Tr = exp(-s_extinction * s_len);
+    vec3 Tr = exp(-s_extinction * s_len);
 
     /* integrate along the current step segment */
-    Lscat = (Lscat - Lscat * Tr) / s_extinction;
+    Lscat = (Lscat - Lscat * Tr) / max(vec3(1e-8), s_extinction);
     /* accumulate and also take into account the transmittance from previous steps */
     finalScattering += finalTransmittance * Lscat;
 
