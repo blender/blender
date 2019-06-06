@@ -1222,7 +1222,7 @@ macro(WINDOWS_SIGN_TARGET target)
 endmacro()
 
 macro(blender_precompile_headers target cpp header)
-  if (MSVC AND NOT MSVC_CLANG)
+  if (MSVC AND NOT ${CMAKE_GENERATOR} STREQUAL "Ninja")
     target_sources(${target} PRIVATE ${cpp} ${header})
     set_target_properties(${target} PROPERTIES COMPILE_FLAGS "/Yu${header} /FI${header}")
     set_source_files_properties(${cpp} PROPERTIES COMPILE_FLAGS "/Yc${header}")
