@@ -330,8 +330,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
       GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 
-      wmOrtho2(0, sizex, 0, sizey);
-      GPU_matrix_translate_2f(sizex / 2, sizey / 2);
+      wmOrtho2(0, scene->r.xsch, 0, scene->r.ysch);
+      GPU_matrix_translate_2f(scene->r.xsch / 2, scene->r.ysch / 2);
 
       G.f |= G_FLAG_RENDER_VIEWPORT;
       ED_annotation_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
