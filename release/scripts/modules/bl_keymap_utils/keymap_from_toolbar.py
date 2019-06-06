@@ -208,7 +208,7 @@ def generate(context, space_type):
                             properties=kmi_hack_brush_select_properties,
                             include={'KEYBOARD'},
                         )[1]
-                    elif mode == 'PARTICLE_EDIT':
+                    elif mode in {'PARTICLE_EDIT', 'SCULPT_GPENCIL'}:
                         # Doesn't use brushes
                         pass
                     else:
