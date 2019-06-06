@@ -805,9 +805,6 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   bool empty_mask = true;
   BMFace *f;
 
-  /* TODO, make mask layer optional for bmesh buffer */
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
 
@@ -827,9 +824,20 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   }
 
   if (!tottri) {
+    if (BLI_gset_len(bm_faces) != 0) {
+      /* Node is just hidden. */
+    }
+    else {
+      GPU_BATCH_DISCARD_SAFE(buffers->triangles);
+      GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
+      GPU_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
+    }
     buffers->tot_tri = 0;
     return;
   }
+
+  /* TODO, make mask layer optional for bmesh buffer */
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
 
   /* Fill vertex buffer */
   if (gpu_pbvh_vert_buf_data_set(buffers, totvert)) {
