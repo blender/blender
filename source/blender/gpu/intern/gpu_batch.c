@@ -634,12 +634,18 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     }
   }
   else {
+#ifdef __APPLE__
+    glDisable(GL_PRIMITIVE_RESTART);
+#endif
     if (GLEW_ARB_base_instance) {
       glDrawArraysInstancedBaseInstance(batch->gl_prim_type, v_first, v_count, i_count, i_first);
     }
     else {
       glDrawArraysInstanced(batch->gl_prim_type, v_first, v_count, i_count);
     }
+#ifdef __APPLE__
+    glEnable(GL_PRIMITIVE_RESTART);
+#endif
   }
 }
 

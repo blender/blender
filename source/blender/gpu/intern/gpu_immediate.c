@@ -383,9 +383,16 @@ void immEnd(void)
   }
   else {
     glUnmapBuffer(GL_ARRAY_BUFFER);
+
     if (imm.vertex_len > 0) {
       immDrawSetup();
+#ifdef __APPLE__
+      glDisable(GL_PRIMITIVE_RESTART);
+#endif
       glDrawArrays(convert_prim_type_to_gl(imm.prim_type), 0, imm.vertex_len);
+#ifdef __APPLE__
+      glEnable(GL_PRIMITIVE_RESTART);
+#endif
     }
     /* These lines are causing crash on startup on some old GPU + drivers.
      * They are not required so just comment them. (T55722) */
