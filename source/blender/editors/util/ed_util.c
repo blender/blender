@@ -54,6 +54,8 @@
 #include "BKE_workspace.h"
 #include "BKE_material.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_armature.h"
 #include "ED_buttons.h"
 #include "ED_image.h"
@@ -115,59 +117,59 @@ void ED_editors_init(bContext *C)
    * e.g. linked objects we have to ensure that they are actually the
    * active object in this scene. */
   Object *obact = CTX_data_active_object(C);
-  if (obact != NULL) {
-    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-      int mode = ob->mode;
-      if (mode == OB_MODE_OBJECT) {
-        continue;
-      }
-      else if (BKE_object_has_mode_data(ob, mode)) {
-        continue;
-      }
-      else if (ob->type == OB_GPENCIL) {
-        /* For multi-edit mode we may already have mode data.
-         * (grease pencil does not need it) */
-        continue;
-      }
+  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+    int mode = ob->mode;
+    if (mode == OB_MODE_OBJECT) {
+      continue;
+    }
+    else if (BKE_object_has_mode_data(ob, mode)) {
+      continue;
+    }
+    else if (ob->type == OB_GPENCIL) {
+      /* For multi-edit mode we may already have mode data.
+       * (grease pencil does not need it) */
+      continue;
+    }
 
-      ID *ob_data = ob->data;
-      ob->mode = OB_MODE_OBJECT;
-      if ((ob->type == obact->type) && !ID_IS_LINKED(ob) && !(ob_data && ID_IS_LINKED(ob_data))) {
-        if (mode == OB_MODE_EDIT) {
-          ED_object_editmode_enter_ex(bmain, scene, ob, 0);
-        }
-        else if (mode == OB_MODE_POSE) {
-          ED_object_posemode_enter_ex(bmain, ob);
-        }
-        else if (mode & OB_MODE_ALL_SCULPT) {
-          if (obact == ob) {
-            if (mode == OB_MODE_SCULPT) {
-              ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, reports);
-            }
-            else if (mode == OB_MODE_VERTEX_PAINT) {
-              ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
-            }
-            else if (mode == OB_MODE_WEIGHT_PAINT) {
-              ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
-            }
-            else {
-              BLI_assert(0);
-            }
+    ID *ob_data = ob->data;
+    ob->mode = OB_MODE_OBJECT;
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    if (obact && (ob->type == obact->type) && !ID_IS_LINKED(ob) &&
+        !(ob_data && ID_IS_LINKED(ob_data))) {
+      if (mode == OB_MODE_EDIT) {
+        ED_object_editmode_enter_ex(bmain, scene, ob, 0);
+      }
+      else if (mode == OB_MODE_POSE) {
+        ED_object_posemode_enter_ex(bmain, ob);
+      }
+      else if (mode & OB_MODE_ALL_SCULPT) {
+        if (obact == ob) {
+          if (mode == OB_MODE_SCULPT) {
+            ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, reports);
+          }
+          else if (mode == OB_MODE_VERTEX_PAINT) {
+            ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
+          }
+          else if (mode == OB_MODE_WEIGHT_PAINT) {
+            ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
           }
           else {
-            /* Create data for non-active objects which need it for
-             * mode-switching but don't yet support multi-editing. */
-            if (mode & OB_MODE_ALL_SCULPT) {
-              ob->mode = mode;
-              BKE_object_sculpt_data_create(ob);
-            }
+            BLI_assert(0);
           }
         }
         else {
-          /* TODO(campbell): avoid operator calls. */
-          if (obact == ob) {
-            ED_object_mode_toggle(C, mode);
+          /* Create data for non-active objects which need it for
+           * mode-switching but don't yet support multi-editing. */
+          if (mode & OB_MODE_ALL_SCULPT) {
+            ob->mode = mode;
+            BKE_object_sculpt_data_create(ob);
           }
+        }
+      }
+      else {
+        /* TODO(campbell): avoid operator calls. */
+        if (obact == ob) {
+          ED_object_mode_toggle(C, mode);
         }
       }
     }
