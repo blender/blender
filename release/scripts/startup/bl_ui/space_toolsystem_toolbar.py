@@ -1907,9 +1907,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
             None,
+            (
+                _defs_sculpt.mask_border,
+                _defs_sculpt.mask_lasso,
+            ),
             _defs_sculpt.hide_border,
-            _defs_sculpt.mask_border,
-            _defs_sculpt.mask_lasso,
             None,
             *_tools_annotate,
         ],
