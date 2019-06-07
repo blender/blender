@@ -1488,6 +1488,9 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 
   ggd->gizmos[MAN_AXIS_ROT_T]->flag |= WM_GIZMO_SELECT_BACKGROUND;
 
+  /* Prevent axis gizmos overlapping the center point, see: T63744. */
+  ggd->gizmos[MAN_AXIS_SCALE_C]->select_bias = ggd->gizmos[MAN_AXIS_TRANS_C]->select_bias = 2.0f;
+
   return ggd;
 }
 
