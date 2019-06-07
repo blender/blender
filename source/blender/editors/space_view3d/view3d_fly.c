@@ -252,50 +252,6 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
   immUnbindProgram();
 }
 
-static void fly_update_header(bContext *C, wmOperator *op, FlyInfo *fly)
-{
-  char header[UI_MAX_DRAW_STR];
-  char buf[UI_MAX_DRAW_STR];
-
-  char *p = buf;
-  int available_len = sizeof(buf);
-
-#define WM_MODALKEY(_id) \
-  WM_modalkeymap_operator_items_to_string_buf( \
-      op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
-
-  BLI_snprintf(header,
-               sizeof(header),
-               IFACE_("%s: confirm, %s: cancel, "
-                      "%s: pan enable, "
-                      "%s|%s|%s|%s|%s|%s: direction, "
-                      "%s: slow, %s: free look, "
-                      "%s: Upright x axis (%s), "
-                      "%s: Upright z axis (%s), "
-                      "%s: increase  speed, %s: decrease speed"),
-               WM_MODALKEY(FLY_MODAL_CONFIRM),
-               WM_MODALKEY(FLY_MODAL_CANCEL),
-               WM_MODALKEY(FLY_MODAL_PAN_ENABLE),
-               WM_MODALKEY(FLY_MODAL_DIR_FORWARD),
-               WM_MODALKEY(FLY_MODAL_DIR_LEFT),
-               WM_MODALKEY(FLY_MODAL_DIR_BACKWARD),
-               WM_MODALKEY(FLY_MODAL_DIR_RIGHT),
-               WM_MODALKEY(FLY_MODAL_DIR_UP),
-               WM_MODALKEY(FLY_MODAL_DIR_DOWN),
-               WM_MODALKEY(FLY_MODAL_PRECISION_ENABLE),
-               WM_MODALKEY(FLY_MODAL_FREELOOK_ENABLE),
-               WM_MODALKEY(FLY_MODAL_AXIS_LOCK_X),
-               WM_bool_as_string(fly->xlock != FLY_AXISLOCK_STATE_OFF),
-               WM_MODALKEY(FLY_MODAL_AXIS_LOCK_Z),
-               WM_bool_as_string(fly->zlock != FLY_AXISLOCK_STATE_OFF),
-               WM_MODALKEY(FLY_MODAL_ACCELERATE),
-               WM_MODALKEY(FLY_MODAL_DECELERATE));
-
-#undef WM_MODALKEY
-
-  ED_workspace_status_text(C, header);
-}
-
 /* FlyInfo->state */
 enum {
   FLY_RUNNING = 0,
@@ -411,7 +367,6 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   WM_cursor_warp(
       win, fly->ar->winrct.xmin + fly->center_mval[0], fly->ar->winrct.ymin + fly->center_mval[1]);
 
-  fly_update_header(C, op, fly);
   return 1;
 }
 
@@ -454,7 +409,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
   return OPERATOR_CANCELLED;
 }
 
-static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *event)
+static void flyEvent(FlyInfo *fly, const wmEvent *event)
 {
   if (event->type == TIMER && event->customdata == fly->timer) {
     fly->redraw = 1;
@@ -693,7 +648,6 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
           fly->xlock = FLY_AXISLOCK_STATE_ACTIVE;
           fly->xlock_momentum = 0.0;
         }
-        fly_update_header(C, op, fly);
         break;
       case FLY_MODAL_AXIS_LOCK_Z:
         if (fly->zlock != FLY_AXISLOCK_STATE_OFF) {
@@ -703,7 +657,6 @@ static void flyEvent(bContext *C, wmOperator *op, FlyInfo *fly, const wmEvent *e
           fly->zlock = FLY_AXISLOCK_STATE_ACTIVE;
           fly->zlock_momentum = 0.0;
         }
-        fly_update_header(C, op, fly);
         break;
 
       case FLY_MODAL_PRECISION_ENABLE:
@@ -1055,7 +1008,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  flyEvent(C, op, fly, event);
+  flyEvent(fly, event);
 
   WM_event_add_modal_handler(C, op);
 
@@ -1081,7 +1034,7 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   fly->redraw = 0;
 
-  flyEvent(C, op, fly, event);
+  flyEvent(fly, event);
 
 #ifdef WITH_INPUT_NDOF
   if (fly->ndof) { /* 3D mouse overrules [2D mouse + timer] */
@@ -1110,10 +1063,6 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     // puts("redraw!"); // too frequent, commented with NDOF_FLY_DRAW_TOOMUCH for now
     ED_region_tag_redraw(CTX_wm_region(C));
-  }
-
-  if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
-    ED_workspace_status_text(C, NULL);
   }
 
   return exit_code;
