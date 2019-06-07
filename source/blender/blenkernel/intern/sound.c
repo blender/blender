@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_iterator.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
 
@@ -931,27 +932,26 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
   BLI_spin_unlock(sound->spinlock);
 }
 
-static void sound_update_base(Scene *scene, Base *base, void *new_set)
+static void sound_update_base(Scene *scene, Object *object, void *new_set)
 {
-  Object *ob = base->object;
   NlaTrack *track;
   NlaStrip *strip;
   Speaker *speaker;
   float quat[4];
 
   sound_verify_evaluated_id(&scene->id);
-  sound_verify_evaluated_id(&ob->id);
+  sound_verify_evaluated_id(&object->id);
 
-  if ((ob->type != OB_SPEAKER) || !ob->adt) {
+  if ((object->type != OB_SPEAKER) || !object->adt) {
     return;
   }
 
-  for (track = ob->adt->nla_tracks.first; track; track = track->next) {
+  for (track = object->adt->nla_tracks.first; track; track = track->next) {
     for (strip = track->strips.first; strip; strip = strip->next) {
       if (strip->type != NLASTRIP_TYPE_SOUND) {
         continue;
       }
-      speaker = (Speaker *)ob->data;
+      speaker = (Speaker *)object->data;
 
       if (AUD_removeSet(scene->speaker_handles, strip->speaker_handle)) {
         if (speaker->sound) {
@@ -985,9 +985,9 @@ static void sound_update_base(Scene *scene, Base *base, void *new_set)
         AUD_SequenceEntry_setConeAngleInner(strip->speaker_handle, speaker->cone_angle_inner);
         AUD_SequenceEntry_setConeVolumeOuter(strip->speaker_handle, speaker->cone_volume_outer);
 
-        mat4_to_quat(quat, ob->obmat);
+        mat4_to_quat(quat, object->obmat);
         AUD_SequenceEntry_setAnimationData(
-            strip->speaker_handle, AUD_AP_LOCATION, CFRA, ob->obmat[3], 1);
+            strip->speaker_handle, AUD_AP_LOCATION, CFRA, object->obmat[3], 1);
         AUD_SequenceEntry_setAnimationData(
             strip->speaker_handle, AUD_AP_ORIENTATION, CFRA, quat, 1);
         AUD_SequenceEntry_setAnimationData(
@@ -1005,25 +1005,20 @@ void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
-  Base *base;
-  Scene *sce_it;
-
   void *new_set = AUD_createSet();
   void *handle;
   float quat[4];
 
   /* cheap test to skip looping over all objects (no speakers is a common case) */
   if (DEG_id_type_any_exists(depsgraph, ID_SPK)) {
-    for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
-         view_layer = view_layer->next) {
-      for (base = view_layer->object_bases.first; base; base = base->next) {
-        sound_update_base(scene, base, new_set);
-      }
+    DEG_OBJECT_ITER_BEGIN (depsgraph,
+                           object,
+                           (DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET)) {
+      sound_update_base(scene, object, new_set);
     }
-
-    for (SETLOOPER_SET_ONLY(scene, sce_it, base)) {
-      sound_update_base(scene, base, new_set);
-    }
+    DEG_OBJECT_ITER_END;
   }
 
   while ((handle = AUD_getSet(scene->speaker_handles))) {

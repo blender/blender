@@ -76,6 +76,7 @@ extern "C" {
 #include "BKE_fcurve.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -2349,12 +2350,14 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
       /* This is to support 3D audio. */
       has_audio_strips = true;
     }
-    if (seq->type == SEQ_TYPE_SCENE && seq->flag & SEQ_SCENE_STRIPS) {
-      if (seq->scene != NULL) {
+    if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
+      if (seq->flag & SEQ_SCENE_STRIPS) {
         build_scene_sequencer(seq->scene);
         ComponentKey sequence_scene_audio_key(&seq->scene->id, NodeType::AUDIO);
         add_relation(sequence_scene_audio_key, scene_audio_key, "Sequence Audio -> Scene Audio");
       }
+      ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
+      build_scene_speakers(seq->scene, sequence_view_layer);
     }
     /* TODO(sergey): Movie clip, camera, mask. */
   }
@@ -2366,6 +2369,17 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 
 void DepsgraphRelationBuilder::build_scene_audio(Scene * /*scene*/)
 {
+}
+
+void DepsgraphRelationBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+{
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    Object *object = base->object;
+    if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
+      continue;
+    }
+    build_object(NULL, base->object);
+  }
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

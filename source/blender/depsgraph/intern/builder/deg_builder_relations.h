@@ -275,6 +275,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   void build_sound(bSound *sound);
   void build_scene_sequencer(Scene *scene);
   void build_scene_audio(Scene *scene);
+  void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
 
   void build_nested_datablock(ID *owner, ID *id);
   void build_nested_nodetree(ID *owner, bNodeTree *ntree);

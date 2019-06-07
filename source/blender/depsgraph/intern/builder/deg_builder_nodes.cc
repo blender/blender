@@ -79,6 +79,7 @@ extern "C" {
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -1597,10 +1598,12 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
     if (seq->scene != NULL) {
       build_scene_parameters(seq->scene);
     }
-    if (seq->type == SEQ_TYPE_SCENE && seq->flag & SEQ_SCENE_STRIPS) {
-      if (seq->scene != NULL) {
+    if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
+      if (seq->flag & SEQ_SCENE_STRIPS) {
         build_scene_sequencer(seq->scene);
       }
+      ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
+      build_scene_speakers(seq->scene, sequence_view_layer);
     }
     /* TODO(sergey): Movie clip, scene, camera, mask. */
   }
@@ -1613,6 +1616,18 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
     return;
   }
   add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+{
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    Object *object = base->object;
+    if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
+      continue;
+    }
+    /* NOTE: Can not use base because it does not belong to a current view layer. */
+    build_object(-1, base->object, DEG_ID_LINKED_INDIRECTLY, true);
+  }
 }
 
 /* **** ID traversal callbacks functions **** */
