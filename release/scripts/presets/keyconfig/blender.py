@@ -74,15 +74,6 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    use_gizmo_drag: BoolProperty(
-        name="Drag Gizmos",
-        description=(
-            "Causes gizmos such"
-        ),
-        default=True,
-        update=update_fn,
-    )
-
     # 3D View
     use_v3d_tab_menu: BoolProperty(
         name="Tab for Pie Menu",
