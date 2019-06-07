@@ -140,7 +140,10 @@ vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
   return matcap_uv * 0.496 + 0.5;
 }
 
-vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool nearest_sampling)
+vec4 workbench_sample_texture(sampler2D image,
+                              vec2 coord,
+                              bool nearest_sampling,
+                              bool premultiplied)
 {
   vec2 tex_size = vec2(textureSize(image, 0).xy);
   /* TODO(fclem) We could do the same with sampler objects.
@@ -148,8 +151,8 @@ vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool nearest_sampling
   vec2 uv = nearest_sampling ? (floor(coord * tex_size) + 0.5) / tex_size : coord;
   vec4 color = texture(image, uv);
 
-  /* Unpremultiply, ideally shaders would be added so this is not needed. */
-  if (!(color.a == 0.0 || color.a == 1.0)) {
+  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
+  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
     color.rgb = color.rgb / color.a;
   }
 

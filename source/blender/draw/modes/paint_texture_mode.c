@@ -206,6 +206,7 @@ static void PAINT_TEXTURE_engine_init(void *vedata)
 }
 
 static DRWShadingGroup *create_texture_paint_shading_group(PAINT_TEXTURE_PassList *psl,
+                                                           const Image *image,
                                                            const struct GPUTexture *texture,
                                                            const DRWContextState *draw_ctx,
                                                            const bool nearest_interp)
@@ -219,6 +220,8 @@ static DRWShadingGroup *create_texture_paint_shading_group(PAINT_TEXTURE_PassLis
   DRWShadingGroup *grp = DRW_shgroup_create(masking_enabled ? sh_data->image_mask : sh_data->image,
                                             psl->image_faces);
   DRW_shgroup_uniform_texture(grp, "image", texture);
+  DRW_shgroup_uniform_bool_copy(
+      grp, "imagePremultiplied", (image->alpha_mode == IMA_ALPHA_PREMUL));
   DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", nearest_interp);
@@ -227,6 +230,8 @@ static DRWShadingGroup *create_texture_paint_shading_group(PAINT_TEXTURE_PassLis
     const bool masking_inverted = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) > 0;
     GPUTexture *stencil = GPU_texture_from_blender(imapaint->stencil, NULL, GL_TEXTURE_2D);
     DRW_shgroup_uniform_texture(grp, "maskingImage", stencil);
+    DRW_shgroup_uniform_bool_copy(
+        grp, "maskingImagePremultiplied", (imapaint->stencil->alpha_mode == IMA_ALPHA_PREMUL));
     DRW_shgroup_uniform_vec3(grp, "maskingColor", imapaint->stencil_col, 1);
     DRW_shgroup_uniform_bool_copy(grp, "maskingInvertStencil", masking_inverted);
   }
@@ -283,7 +288,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 
         if (tex) {
           DRWShadingGroup *grp = create_texture_paint_shading_group(
-              psl, tex, draw_ctx, interp == SHD_INTERP_CLOSEST);
+              psl, ima, tex, draw_ctx, interp == SHD_INTERP_CLOSEST);
           stl->g_data->shgroup_image_array[i] = grp;
         }
         else {
@@ -297,7 +302,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 
       if (tex) {
         DRWShadingGroup *grp = create_texture_paint_shading_group(
-            psl, tex, draw_ctx, imapaint->interp == IMAGEPAINT_INTERP_CLOSEST);
+            psl, ima, tex, draw_ctx, imapaint->interp == IMAGEPAINT_INTERP_CLOSEST);
         stl->g_data->shgroup_image_array[0] = grp;
       }
       else {

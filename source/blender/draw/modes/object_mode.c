@@ -974,9 +974,10 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
 
   const bool use_alpha_blend = (ob->empty_image_flag & OB_EMPTY_IMAGE_USE_ALPHA_BLEND) != 0;
   GPUTexture *tex = NULL;
+  Image *ima = ob->data;
 
-  if (ob->data != NULL) {
-    tex = GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D);
+  if (ima != NULL) {
+    tex = GPU_texture_from_blender(ima, ob->iuser, GL_TEXTURE_2D);
     if (tex) {
       size[0] = GPU_texture_width(tex);
       size[1] = GPU_texture_height(tex);
@@ -1023,6 +1024,8 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
     DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
     DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
     DRW_shgroup_uniform_texture(grp, "image", tex);
+    DRW_shgroup_uniform_bool_copy(
+        grp, "imagePremultiplied", (ima->alpha_mode == IMA_ALPHA_PREMUL));
     DRW_shgroup_uniform_vec4(grp, "objectColor", ob->color, 1);
     DRW_shgroup_uniform_bool_copy(grp, "useAlphaTest", !use_alpha_blend);
     if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {

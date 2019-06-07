@@ -7,11 +7,13 @@ in vec2 masking_uv_interp;
 out vec4 fragColor;
 
 uniform sampler2D image;
+uniform bool imagePremultiplied;
 uniform float alpha = 1.0;
 uniform bool nearestInterp;
 
 #ifdef TEXTURE_PAINT_MASK
 uniform sampler2D maskingImage;
+uniform bool maskingImagePremultiplied;
 uniform vec3 maskingColor;
 uniform bool maskingInvertStencil;
 #endif
@@ -26,11 +28,15 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * overlays still assume srgb. */
   vec4 color = texture(tex, co);
+  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
+  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
+    color.rgb = color.rgb / color.a;
+  }
   color.r = linearrgb_to_srgb(color.r);
   color.g = linearrgb_to_srgb(color.g);
   color.b = linearrgb_to_srgb(color.b);
@@ -45,11 +51,12 @@ void main()
     uv = (floor(uv_interp * tex_size) + 0.5) / tex_size;
   }
 
-  vec4 color = texture_read_as_srgb(image, uv);
+  vec4 color = texture_read_as_srgb(image, imagePremultiplied, uv);
   color.a *= alpha;
 
 #ifdef TEXTURE_PAINT_MASK
-  vec4 mask = vec4(texture(maskingImage, masking_uv_interp).rgb, 1.0);
+  vec4 mask = vec4(
+      texture_read_as_srgb(maskingImage, maskingImagePremultiplied, masking_uv_interp).rgb, 1.0);
   if (maskingInvertStencil) {
     mask.rgb = 1.0 - mask.rgb;
   }

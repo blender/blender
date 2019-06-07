@@ -242,29 +242,31 @@ static uint gpu_texture_create_from_ibuf(Image *ima, ImBuf *ibuf, int textarget)
         return bindcode;
       }
 
-      IMB_colormanagement_imbuf_to_srgb_texture(
-          rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb);
+      /* Texture storage of images is defined by the alpha mode of the image. The
+       * downside of this is that there can be artifacts near alpha edges. However,
+       * this allows us to use sRGB texture formats and preserves color values in
+       * zero alpha areas, and appears generally closer to what game engines that we
+       * want to be compatible with do. */
+      const bool store_premultiplied = (ima->alpha_mode == IMA_ALPHA_PREMUL);
+      IMB_colormanagement_imbuf_to_byte_texture(
+          rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb, store_premultiplied);
     }
   }
-  else if (ibuf->channels != 4) {
+  else {
     /* Float image is already in scene linear colorspace or non-color data by
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
-    rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
-    if (rect_float == NULL) {
-      return bindcode;
-    }
+    const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
 
-    IMB_buffer_float_from_float(rect_float,
-                                ibuf->rect_float,
-                                ibuf->channels,
-                                IB_PROFILE_LINEAR_RGB,
-                                IB_PROFILE_LINEAR_RGB,
-                                false,
-                                ibuf->x,
-                                ibuf->y,
-                                ibuf->x,
-                                ibuf->x);
+    if (ibuf->channels != 4 || !store_premultiplied) {
+      rect_float = MEM_mallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, __func__);
+      if (rect_float == NULL) {
+        return bindcode;
+      }
+
+      IMB_colormanagement_imbuf_to_float_texture(
+          rect_float, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+    }
   }
 
   /* Create OpenGL texture. */
@@ -348,7 +350,7 @@ static void gpu_texture_update_unscaled(
   glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 }
 
-static void gpu_texture_update_from_ibuf(ImBuf *ibuf, int x, int y, int w, int h)
+static void gpu_texture_update_from_ibuf(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
   /* Partial update of texture for texture painting. This is often much
    * quicker than fully updating the texture for high resolution images.
@@ -388,30 +390,27 @@ static void gpu_texture_update_from_ibuf(ImBuf *ibuf, int x, int y, int w, int h
 
       /* Convert to scene linear with sRGB compression, and premultiplied for
        * correct texture interpolation. */
-      IMB_colormanagement_imbuf_to_srgb_texture(rect, x, y, w, h, ibuf, compress_as_srgb);
+      const bool store_premultiplied = (ima->alpha_mode == IMA_ALPHA_PREMUL);
+      IMB_colormanagement_imbuf_to_byte_texture(
+          rect, x, y, w, h, ibuf, compress_as_srgb, store_premultiplied);
     }
   }
-  else if (ibuf->channels != 4 || scaled) {
+  else {
     /* Float pixels. */
-    rect_float = MEM_mallocN(sizeof(float) * 4 * x * y, __func__);
-    if (rect_float == NULL) {
-      return;
+    const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
+
+    if (ibuf->channels != 4 || scaled || !store_premultiplied) {
+      rect_float = MEM_mallocN(sizeof(float) * 4 * x * y, __func__);
+      if (rect_float == NULL) {
+        return;
+      }
+
+      tex_stride = w;
+      tex_offset = 0;
+
+      IMB_colormanagement_imbuf_to_float_texture(
+          rect_float, x, y, w, h, ibuf, store_premultiplied);
     }
-
-    tex_stride = w;
-    tex_offset = 0;
-
-    size_t ibuf_offset = (y * ibuf->x + x) * ibuf->channels;
-    IMB_buffer_float_from_float(rect_float,
-                                ibuf->rect_float + ibuf_offset,
-                                ibuf->channels,
-                                IB_PROFILE_LINEAR_RGB,
-                                IB_PROFILE_LINEAR_RGB,
-                                false,
-                                w,
-                                h,
-                                x,
-                                ibuf->x);
   }
 
   if (scaled) {
@@ -825,7 +824,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
     /* Partial update of texture. */
     GPU_texture_bind(ima->gputexture[TEXTARGET_TEXTURE_2D], 0);
 
-    gpu_texture_update_from_ibuf(ibuf, x, y, w, h);
+    gpu_texture_update_from_ibuf(ima, ibuf, x, y, w, h);
 
     if (GPU_get_mipmap()) {
       glGenerateMipmap(GL_TEXTURE_2D);

@@ -2176,13 +2176,14 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer,
   }
 }
 
-void IMB_colormanagement_imbuf_to_srgb_texture(unsigned char *out_buffer,
+void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
                                                const int offset_x,
                                                const int offset_y,
                                                const int width,
                                                const int height,
                                                const struct ImBuf *ibuf,
-                                               const bool compress_as_srgb)
+                                               const bool compress_as_srgb,
+                                               const bool store_premultiplied)
 {
   /* Convert byte buffer for texture storage on the GPU. These have builtin
    * support for converting sRGB to linear, which allows us to store textures
@@ -2197,7 +2198,7 @@ void IMB_colormanagement_imbuf_to_srgb_texture(unsigned char *out_buffer,
 
   /* TODO(brecht): make this multithreaded, or at least process in batches. */
   const unsigned char *in_buffer = (unsigned char *)ibuf->rect;
-  const bool use_premultiply = IMB_alpha_affects_rgb(ibuf);
+  const bool use_premultiply = IMB_alpha_affects_rgb(ibuf) && store_premultiplied;
 
   for (int y = 0; y < height; y++) {
     const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
@@ -2234,6 +2235,58 @@ void IMB_colormanagement_imbuf_to_srgb_texture(unsigned char *out_buffer,
         out[1] = in[1];
         out[2] = in[2];
         out[3] = in[3];
+      }
+    }
+  }
+}
+
+void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
+                                                const int offset_x,
+                                                const int offset_y,
+                                                const int width,
+                                                const int height,
+                                                const struct ImBuf *ibuf,
+                                                const bool store_premultiplied)
+{
+  /* Float texture are stored in scene linear color space, with premultiplied
+   * alpha depending on the image alpha mode. */
+  const float *in_buffer = ibuf->rect_float;
+  const int in_channels = ibuf->channels;
+  const bool use_unpremultiply = IMB_alpha_affects_rgb(ibuf) && !store_premultiplied;
+
+  for (int y = 0; y < height; y++) {
+    const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
+    const size_t out_offset = y * width;
+    const float *in = in_buffer + in_offset * 4;
+    float *out = out_buffer + out_offset * 4;
+
+    if (in_channels == 1) {
+      /* Copy single channel. */
+      for (int x = 0; x < width; x++, in += 1, out += 4) {
+        out[0] = in[0];
+        out[1] = in[0];
+        out[2] = in[0];
+        out[3] = in[0];
+      }
+    }
+    else if (in_channels == 3) {
+      /* Copy RGB. */
+      for (int x = 0; x < width; x++, in += 3, out += 4) {
+        out[0] = in[0];
+        out[1] = in[1];
+        out[2] = in[2];
+        out[3] = 1.0f;
+      }
+    }
+    else if (in_channels == 4) {
+      /* Copy or convert RGBA. */
+      if (use_unpremultiply) {
+        for (int x = 0; x < width; x++, in += 4, out += 4) {
+          premul_to_straight_v4_v4(out, in);
+        }
+      }
+      else {
+        memcpy(out, in, sizeof(float) * 4 * width);
       }
     }
   }

@@ -2425,6 +2425,11 @@ void tex_color_alpha_clear(vec4 color, out vec4 result)
   result = vec4(color.rgb, 1.0);
 }
 
+void tex_color_alpha_premultiply(vec4 color, out vec4 result)
+{
+  result = vec4(color.rgb * color.a, 1.0);
+}
+
 void tex_color_alpha_unpremultiply(vec4 color, out vec4 result)
 {
   if (color.a == 0.0 || color.a == 1.0) {

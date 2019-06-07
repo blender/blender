@@ -296,6 +296,8 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
       V3D_SHADING_TEXTURE_COLOR) {
     GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D);
     DRW_shgroup_uniform_texture(grp, "image", tex);
+    DRW_shgroup_uniform_bool_copy(
+        grp, "imagePremultiplied", (material->ima->alpha_mode == IMA_ALPHA_PREMUL));
     DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
   }
   else {

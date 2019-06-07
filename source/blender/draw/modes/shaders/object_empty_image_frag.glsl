@@ -9,6 +9,7 @@ out vec4 fragColor;
 
 #ifndef USE_WIRE
 uniform sampler2D image;
+uniform bool imagePremultiplied;
 #endif
 
 uniform int depthMode;
@@ -24,11 +25,15 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * overlays still assume srgb. */
   vec4 color = texture(tex, co);
+  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
+  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
+    color.rgb = color.rgb / color.a;
+  }
   color.r = linearrgb_to_srgb(color.r);
   color.g = linearrgb_to_srgb(color.g);
   color.b = linearrgb_to_srgb(color.b);
@@ -40,7 +45,7 @@ void main()
 #ifdef USE_WIRE
   fragColor = finalColor;
 #else
-  vec4 tex_col = texture_read_as_srgb(image, texCoord_interp);
+  vec4 tex_col = texture_read_as_srgb(image, imagePremultiplied, texCoord_interp);
   fragColor = finalColor * tex_col;
 
   if (useAlphaTest) {

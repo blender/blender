@@ -19,6 +19,7 @@ uniform int drawmode;
 uniform float layer_opacity;
 
 uniform sampler2D myTexture;
+uniform bool myTexturePremultiplied;
 uniform int texture_clamp;
 
 uniform int viewport_xray;
@@ -99,11 +100,15 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * grease pencil still works in srgb. */
   vec4 color = texture(tex, co);
+  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
+  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
+    color.rgb = color.rgb / color.a;
+  }
   color.r = linearrgb_to_srgb(color.r);
   color.g = linearrgb_to_srgb(color.g);
   color.b = linearrgb_to_srgb(color.b);
@@ -118,8 +123,10 @@ void main()
   vec2 rot_tex = (matrot_tex * (texCoord_interp - t_center)) + t_center + texture_offset;
   vec4 tmp_color;
   tmp_color = (texture_clamp == 0) ?
-                  texture_read_as_srgb(myTexture, rot_tex * texture_scale) :
-                  texture_read_as_srgb(myTexture, clamp(rot_tex * texture_scale, 0.0, 1.0));
+                  texture_read_as_srgb(
+                      myTexture, myTexturePremultiplied, rot_tex * texture_scale) :
+                  texture_read_as_srgb(
+                      myTexture, myTexturePremultiplied, clamp(rot_tex * texture_scale, 0.0, 1.0));
   vec4 text_color = vec4(tmp_color[0], tmp_color[1], tmp_color[2], tmp_color[3] * texture_opacity);
   vec4 chesscolor;
 

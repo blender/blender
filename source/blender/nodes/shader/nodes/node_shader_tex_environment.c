@@ -121,7 +121,20 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   }
 
   if (out[0].hasoutput) {
-    GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+    if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||
+        IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
+      /* Don't let alpha affect color output in these cases. */
+      GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+    }
+    else {
+      /* Always output with premultiplied alpha. */
+      if (ima->alpha_mode == IMA_ALPHA_PREMUL) {
+        GPU_link(mat, "tex_color_alpha_clear", out[0].link, &out[0].link);
+      }
+      else {
+        GPU_link(mat, "tex_color_alpha_premultiply", out[0].link, &out[0].link);
+      }
+    }
   }
 
   return true;

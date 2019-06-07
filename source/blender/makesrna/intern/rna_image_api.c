@@ -342,7 +342,7 @@ void RNA_api_image(StructRNA *srna)
       func,
       "Load the image into an OpenGL texture. On success, image.bindcode will contain the "
       "OpenGL texture bindcode. Colors read from the texture will be in scene linear color space "
-      "and have premultiplied alpha.");
+      "and have premultiplied or straight alpha matching the image alpha mode");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_int(
       func, "frame", 0, 0, INT_MAX, "Frame", "Frame of image sequence or movie", 0, INT_MAX);

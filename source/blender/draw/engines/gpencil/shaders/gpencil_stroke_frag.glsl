@@ -1,5 +1,6 @@
 uniform int color_type;
 uniform sampler2D myTexture;
+uniform bool myTexturePremultiplied;
 
 uniform float gradient_f;
 
@@ -37,11 +38,15 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-vec4 texture_read_as_srgb(sampler2D tex, vec2 co)
+vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * grease pencil still works in srgb. */
   vec4 color = texture(tex, co);
+  /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
+  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
+    color.rgb = color.rgb / color.a;
+  }
   color.r = linearrgb_to_srgb(color.r);
   color.g = linearrgb_to_srgb(color.g);
   color.b = linearrgb_to_srgb(color.b);
@@ -68,10 +73,11 @@ void main()
   /* texture for endcaps */
   vec4 text_color;
   if (uvfac[1] == ENDCAP) {
-    text_color = texture_read_as_srgb(myTexture, vec2(mTexCoord.x, mTexCoord.y));
+    text_color = texture_read_as_srgb(
+        myTexture, myTexturePremultiplied, vec2(mTexCoord.x, mTexCoord.y));
   }
   else {
-    text_color = texture_read_as_srgb(myTexture, mTexCoord);
+    text_color = texture_read_as_srgb(myTexture, myTexturePremultiplied, mTexCoord);
   }
 
   /* texture */
