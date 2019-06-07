@@ -64,6 +64,25 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    gizmo_action: EnumProperty(
+        name="Activate Gizmo",
+        items=(
+            ('PRESS', "Press", "Press causes immediate activation, preventing click being passed to the tool"),
+            ('DRAG', "Drag", "Drag allows click events to pass through to the tool, adding a small delay"),
+        ),
+        description="Activation event for gizmos that support drag motion",
+        update=update_fn,
+    )
+
+    use_gizmo_drag: BoolProperty(
+        name="Drag Gizmos",
+        description=(
+            "Causes gizmos such"
+        ),
+        default=True,
+        update=update_fn,
+    )
+
     # 3D View
     use_v3d_tab_menu: BoolProperty(
         name="Tab for Pie Menu",
@@ -114,10 +133,20 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
+        is_select_left = (self.select_mouse == 'LEFT')
+
         split = layout.split()
         col = split.column(align=True)
         col.label(text="Select With:")
         col.row().prop(self, "select_mouse", expand=True)
+
+        if is_select_left:
+            col.label(text="Activate Gizmo:")
+            col.row().prop(self, "gizmo_action", expand=True)
+        else:
+            col.label()
+            col.label()
+
         col.prop(self, "use_select_all_toggle")
 
         col = split.column(align=True)
@@ -156,6 +185,10 @@ def load():
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
+            use_gizmo_drag=(
+                kc_prefs.select_mouse == 'LEFT' and
+                kc_prefs.gizmo_action == 'DRAG'
+            ),
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
         ),
     )
