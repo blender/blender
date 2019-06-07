@@ -57,6 +57,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_AUDASPACE
 /* evil globals ;-) */
@@ -940,12 +941,6 @@ static void sound_update_base(Scene *scene, Base *base, void *new_set)
   sound_verify_evaluated_id(&scene->id);
   sound_verify_evaluated_id(&ob->id);
 
-  // TODO(sergey): Bring the test back, or make it a part of dependency graph update.
-  // if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
-  //   return;
-  // }
-  // ob->id.tag &= ~LIB_TAG_DOIT;
-
   if ((ob->type != OB_SPEAKER) || !ob->adt) {
     return;
   }
@@ -1005,7 +1000,7 @@ static void sound_update_base(Scene *scene, Base *base, void *new_set)
   }
 }
 
-void BKE_sound_update_scene(Main *bmain, Scene *scene)
+void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
@@ -1017,10 +1012,7 @@ void BKE_sound_update_scene(Main *bmain, Scene *scene)
   float quat[4];
 
   /* cheap test to skip looping over all objects (no speakers is a common case) */
-  if (!BLI_listbase_is_empty(&bmain->speakers)) {
-    // TODO(sergey): Bring the test back, or make it a part of dependency graph update.
-    // BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
-
+  if (DEG_id_type_any_exists(depsgraph, ID_SPK)) {
     for (ViewLayer *view_layer = scene->view_layers.first; view_layer;
          view_layer = view_layer->next) {
       for (base = view_layer->object_bases.first; base; base = base->next) {
@@ -1181,7 +1173,7 @@ void BKE_sound_set_cfra(int UNUSED(cfra))
 void BKE_sound_update_sequencer(Main *UNUSED(main), bSound *UNUSED(sound))
 {
 }
-void BKE_sound_update_scene(Main *UNUSED(bmain), Scene *UNUSED(scene))
+void BKE_sound_update_scene(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene))
 {
 }
 void BKE_sound_update_scene_sound(void *UNUSED(handle), bSound *UNUSED(sound))

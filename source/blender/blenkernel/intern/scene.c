@@ -1527,7 +1527,7 @@ static void scene_update_sound(Depsgraph *depsgraph, Main *bmain)
   if (recalc & ID_RECALC_AUDIO_LISTENER) {
     BKE_sound_update_scene_listener(scene);
   }
-  BKE_sound_update_scene(bmain, scene);
+  BKE_sound_update_scene(depsgraph, scene);
 }
 
 /* TODO(sergey): This actually should become view_layer_graph or so.
