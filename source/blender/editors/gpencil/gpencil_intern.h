@@ -603,10 +603,7 @@ struct GP_EditableStrokes_Iter {
     bGPdata *gpd_ = CTX_data_gpencil_data(C); \
     const bool is_multiedit_ = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_); \
     CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) { \
-      bGPDframe *init_gpf_ = gpl->actframe; \
-      if (is_multiedit_) { \
-        init_gpf_ = gpl->frames.first; \
-      } \
+      bGPDframe *init_gpf_ = (is_multiedit_) ? gpl->frames.first : gpl->actframe; \
       for (bGPDframe *gpf_ = init_gpf_; gpf_; gpf_ = gpf_->next) { \
         if ((gpf_ == gpl->actframe) || ((gpf_->flag & GP_FRAME_SELECT) && is_multiedit_)) { \
           ED_gpencil_parent_location(depsgraph_, obact_, gpd_, gpl, gpstroke_iter.diff_mat); \

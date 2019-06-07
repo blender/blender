@@ -1421,11 +1421,8 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
   }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDstroke *gps = NULL;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -1478,11 +1475,8 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
   }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDstroke *gps = NULL;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -1534,11 +1528,8 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
   }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDstroke *gps = NULL;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -1588,11 +1579,8 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
   }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDstroke *gps = NULL;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
