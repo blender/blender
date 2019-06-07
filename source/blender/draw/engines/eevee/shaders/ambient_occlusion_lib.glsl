@@ -177,7 +177,7 @@ void integrate_slice(
   /* Solving inner integral */
   vec2 h_2 = 2.0 * h;
   vec2 vd = -cos(h_2 - n) + cos_n + h_2 * sin(n);
-  float vis = (vd.x + vd.y) * 0.25 * n_proj_len;
+  float vis = saturate((vd.x + vd.y) * 0.25 * n_proj_len);
 
   visibility += vis;
 
