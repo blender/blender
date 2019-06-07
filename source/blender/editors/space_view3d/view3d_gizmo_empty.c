@@ -200,7 +200,7 @@ void VIEW3D_GGT_empty_image(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_empty_image_poll;
   gzgt->setup = WIDGETGROUP_empty_image_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->refresh = WIDGETGROUP_empty_image_refresh;
 }
 

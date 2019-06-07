@@ -56,6 +56,7 @@ def load():
             use_mouse_emulate_3_button=prefs.inputs.use_mouse_emulate_3_button,
             spacebar_action='SEARCH',
             use_select_all_toggle=True,
+            use_gizmo_drag=False,
             legacy=True,
         ),
     )

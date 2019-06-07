@@ -152,7 +152,7 @@ static void WM_GGT_value_operator_redo(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
   gzgt->setup = WIDGETGROUP_value_operator_redo_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->refresh = WIDGETGROUP_value_operator_redo_refresh;
 }
 

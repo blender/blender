@@ -461,7 +461,7 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
 
   gzgt->poll = ED_widgetgroup_gizmo2d_poll;
   gzgt->setup = ED_widgetgroup_gizmo2d_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->refresh = ED_widgetgroup_gizmo2d_refresh;
   gzgt->draw_prepare = ED_widgetgroup_gizmo2d_draw_prepare;
 }

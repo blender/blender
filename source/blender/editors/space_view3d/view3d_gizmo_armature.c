@@ -220,7 +220,7 @@ void VIEW3D_GGT_armature_spline(wmGizmoGroupType *gzgt)
 
   gzgt->poll = WIDGETGROUP_armature_spline_poll;
   gzgt->setup = WIDGETGROUP_armature_spline_setup;
-  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_drag;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->refresh = WIDGETGROUP_armature_spline_refresh;
 }
 

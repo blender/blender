@@ -662,6 +662,12 @@ wmKeyMap *WM_gizmogroup_setup_keymap_generic_drag(const wmGizmoGroupType *UNUSED
   return WM_gizmo_keymap_generic_drag_with_keyconfig(kc);
 }
 
+wmKeyMap *WM_gizmogroup_setup_keymap_generic_maybe_drag(const wmGizmoGroupType *UNUSED(gzgt),
+                                                        wmKeyConfig *kc)
+{
+  return WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(kc);
+}
+
 /**
  * Variation of #WM_gizmogroup_keymap_common but with keymap items for selection
  *
@@ -765,6 +771,17 @@ struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *
 struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
+}
+
+/** Drag or press depending on preference. */
+struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
+{
+  const char *idname = "Generic Gizmo Maybe Drag";
+  return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
+}
+struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
+{
+  return WM_gizmo_keymap_generic_drag_with_keyconfig(wm->defaultconf);
 }
 
 /** \} */
