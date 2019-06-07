@@ -1982,7 +1982,9 @@ static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain),
   BKE_sequencer_cache_cleanup(scene);
 }
 
-static void rna_Sequencer_view_type_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
+                                           Scene *UNUSED(scene),
+                                           PointerRNA *ptr)
 {
   ScrArea *sa = rna_area_from_space(ptr);
   ED_area_tag_refresh(sa);
