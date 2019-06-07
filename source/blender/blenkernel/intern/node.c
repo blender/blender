@@ -1099,9 +1099,8 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree, const bNode *node_src, const int flag)
   return node_dst;
 }
 
-bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const int flag)
+static void node_set_new_pointers(bNode *node_src, bNode *new_node)
 {
-  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag);
   /* Store mapping to the node itself. */
   node_src->new_node = new_node;
   /* Store mapping to inputs. */
@@ -1120,7 +1119,28 @@ bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const
     new_output_sock = new_output_sock->next;
     output_sock_src = output_sock_src->next;
   }
+}
+
+bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const int flag)
+{
+  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag);
+  node_set_new_pointers(node_src, new_node);
   return new_node;
+}
+
+bNodeTree *ntreeCopyTree_ex_new_pointers(const bNodeTree *ntree,
+                                         Main *bmain,
+                                         const bool do_id_user)
+{
+  bNodeTree *new_ntree = ntreeCopyTree_ex(ntree, bmain, do_id_user);
+  bNode *new_node = new_ntree->nodes.first;
+  bNode *node_src = ntree->nodes.first;
+  while (new_node != NULL) {
+    node_set_new_pointers(node_src, new_node);
+    new_node = new_node->next;
+    node_src = node_src->next;
+  }
+  return new_ntree;
 }
 
 /* also used via rna api, so we check for proper input output direction */

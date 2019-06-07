@@ -197,7 +197,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
    * - ngroup (i.e. the source NodeTree) is left unscathed
    * - temp copy. don't change ID usercount
    */
-  wgroup = ntreeCopyTree_ex(ngroup, bmain, false);
+  wgroup = ntreeCopyTree_ex_new_pointers(ngroup, bmain, false);
 
   /* Add the nodes into the ntree */
   for (node = wgroup->nodes.first; node; node = nextnode) {

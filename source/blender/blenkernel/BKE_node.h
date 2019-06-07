@@ -554,6 +554,9 @@ struct bNode *BKE_node_copy_ex(struct bNodeTree *ntree,
 struct bNode *BKE_node_copy_store_new_pointers(struct bNodeTree *ntree,
                                                struct bNode *node_src,
                                                const int flag);
+struct bNodeTree *ntreeCopyTree_ex_new_pointers(const struct bNodeTree *ntree,
+                                                struct Main *bmain,
+                                                const bool do_id_user);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNode *fromnode,
