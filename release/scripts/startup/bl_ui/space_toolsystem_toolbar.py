@@ -976,7 +976,7 @@ class _defs_sculpt:
         return dict(
             idname="builtin.lasso_mask",
             label="Lasso Mask",
-            icon="none",
+            icon="ops.sculpt.lasso_mask",
             widget=None,
             keymap=(),
         )
