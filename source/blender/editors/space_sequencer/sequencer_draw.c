@@ -1894,6 +1894,9 @@ static bool draw_cache_view_cb(
       else {
         return false;
       }
+
+    default:
+      return false;
   }
 
   int cfra = seq->start + nfra;
