@@ -894,20 +894,21 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   else
     sync->sync_camera(b_render, b_camera_override, width, height, "");
 
-  builtin_images_load();
-
-  /* unlock */
-  session->scene->mutex.unlock();
-
   /* reset if needed */
   if (scene->need_reset()) {
     BufferParams buffer_params = BlenderSync::get_buffer_params(
         b_render, b_v3d, b_rv3d, scene->camera, width, height);
     session->reset(buffer_params, session_params.samples);
 
+    /* After session reset, so device is not accessing image data anymore. */
+    builtin_images_load();
+
     /* reset time */
     start_resize_time = 0.0;
   }
+
+  /* unlock */
+  session->scene->mutex.unlock();
 
   /* Start rendering thread, if it's not running already. Do this
    * after all scene data has been synced at least once. */
