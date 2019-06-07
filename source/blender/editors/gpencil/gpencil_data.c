@@ -740,12 +740,9 @@ static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
     bGPDstroke *gps = NULL;
     bGPDstroke *gpsn = NULL;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -1449,10 +1446,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 
   /* loop all strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -2828,10 +2822,8 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *op)
 
   /* read all strokes and select*/
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = gpl->actframe;
-    if (is_multiedit) {
-      init_gpf = gpl->frames.first;
-    }
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
 
