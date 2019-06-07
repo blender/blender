@@ -408,7 +408,7 @@ test_style_osl_qtc: .FORCE
 #
 
 project_qtcreator: .FORCE
-	$(PYTHON) build_files/cmake/cmake_qtcreator_project.py "$(BUILD_DIR)"
+	$(PYTHON) build_files/cmake/cmake_qtcreator_project.py --build-dir "$(BUILD_DIR)"
 
 project_netbeans: .FORCE
 	$(PYTHON) build_files/cmake/cmake_netbeans_project.py "$(BUILD_DIR)"
