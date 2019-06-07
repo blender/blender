@@ -2001,6 +2001,8 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   /* Reset state before drawing */
   DRW_state_reset();
+  /* Set the default Blender draw state */
+  GPU_state_init();
 
   /* Init render result. */
   RenderResult *render_result = RE_engine_begin_result(engine,
