@@ -605,6 +605,7 @@ void *BKE_sound_add_scene_sound(
   if (sequence->sound == NULL) {
     return NULL;
   }
+  sound_verify_evaluated_id(&sequence->sound->id);
   const double fps = FPS;
   void *handle = AUD_Sequence_add(scene->sound_scene,
                                   sequence->sound->playback_handle,

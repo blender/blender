@@ -76,6 +76,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 #  include "WM_api.h"
 
 #  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_build.h"
 
 #  include "IMB_imbuf.h"
 
@@ -153,6 +154,25 @@ static void rna_Sequence_invalidate_composite_update(Main *UNUSED(bmain),
 
     BKE_sequence_invalidate_cache_composite(scene, seq);
   }
+}
+
+static void rna_Sequence_use_sequence(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  /* General update callback. */
+  rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
+  /* Chaning recursion changes set of IDs which needs to be remapped by the copy-on-write.
+   * the only way for this currently is to tag the ID for ID_RECALC_COPY_ON_WRITE. */
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+  if (ed) {
+    Sequence *seq = (Sequence *)ptr->data;
+    if (seq->scene != NULL) {
+      DEG_id_tag_update(&seq->scene->id, ID_RECALC_COPY_ON_WRITE);
+    }
+  }
+  /* The sequencer scene is to be updated as well, including new relations from the nested
+   * sequencer. */
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *iter,
@@ -2203,7 +2223,7 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SCENE_STRIPS);
   RNA_def_property_ui_text(
       prop, "Use Sequence", "Use scenes sequence strips directly, instead of rendering");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_use_sequence");
 
   prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_SCENE_NO_GPENCIL);

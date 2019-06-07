@@ -2331,6 +2331,8 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
   if (scene->ed == NULL) {
     return;
   }
+  build_scene_audio(scene);
+  ComponentKey scene_audio_key(&scene->id, NodeType::AUDIO);
   /* Make sure dependencies from sequences data goes to the sequencer evaluation. */
   ComponentKey sequencer_key(&scene->id, NodeType::SEQUENCER);
   Sequence *seq;
@@ -2342,11 +2344,22 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
       add_relation(sound_key, sequencer_key, "Sound -> Sequencer");
       has_audio_strips = true;
     }
-    /* TODO(sergey): Movie clip, scene, camera, mask. */
+    if (seq->scene != NULL) {
+      build_scene_parameters(seq->scene);
+      /* This is to support 3D audio. */
+      has_audio_strips = true;
+    }
+    if (seq->type == SEQ_TYPE_SCENE && seq->flag & SEQ_SCENE_STRIPS) {
+      if (seq->scene != NULL) {
+        build_scene_sequencer(seq->scene);
+        ComponentKey sequence_scene_audio_key(&seq->scene->id, NodeType::AUDIO);
+        add_relation(sequence_scene_audio_key, scene_audio_key, "Sequence Audio -> Scene Audio");
+      }
+    }
+    /* TODO(sergey): Movie clip, camera, mask. */
   }
   SEQ_END;
   if (has_audio_strips) {
-    ComponentKey scene_audio_key(&scene->id, NodeType::AUDIO);
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }
 }

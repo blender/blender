@@ -1582,7 +1582,8 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
   if (scene->ed == NULL) {
     return;
   }
-  Scene *scene_cow = get_cow_datablock(scene_);
+  build_scene_audio(scene);
+  Scene *scene_cow = get_cow_datablock(scene);
   add_operation_node(&scene->id,
                      NodeType::SEQUENCER,
                      OperationCode::SEQUENCES_EVAL,
@@ -1593,6 +1594,14 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
     if (seq->sound != NULL) {
       build_sound(seq->sound);
     }
+    if (seq->scene != NULL) {
+      build_scene_parameters(seq->scene);
+    }
+    if (seq->type == SEQ_TYPE_SCENE && seq->flag & SEQ_SCENE_STRIPS) {
+      if (seq->scene != NULL) {
+        build_scene_sequencer(seq->scene);
+      }
+    }
     /* TODO(sergey): Movie clip, scene, camera, mask. */
   }
   SEQ_END;
@@ -1600,6 +1609,9 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
 {
+  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_AUDIO)) {
+    return;
+  }
   add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
 }
 
