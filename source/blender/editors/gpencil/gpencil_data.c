@@ -1271,10 +1271,10 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+  bGPDlayer *gpl_act = BKE_gpencil_layer_getactive(gpd);
 
   /* sanity checks */
-  if (ELEM(NULL, gpd, gpl, gpl->actframe)) {
+  if (ELEM(NULL, gpd, gpl_act, gpl_act->actframe)) {
     return OPERATOR_CANCELLED;
   }
 
