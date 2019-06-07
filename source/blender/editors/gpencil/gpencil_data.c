@@ -1272,8 +1272,6 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
-  bGPDstroke *gps;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* sanity checks */
   if (ELEM(NULL, gpd, gpl, gpl->actframe)) {
@@ -1281,6 +1279,7 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
   }
 
   const int direction = RNA_enum_get(op->ptr, "direction");
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     /* temp listbase to store selected strokes */
