@@ -1000,24 +1000,14 @@ static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int
  *
  * If the collection or any of its parents is disabled, make it enabled.
  * Don't change the children disable state though.
- *
- * Return whether depsgraph needs update.
  */
-bool BKE_layer_collection_isolate(Scene *scene,
+void BKE_layer_collection_isolate(Scene *scene,
                                   ViewLayer *view_layer,
                                   LayerCollection *lc,
                                   bool extend)
 {
-  bool depsgraph_need_update = false;
   LayerCollection *lc_master = view_layer->layer_collections.first;
   bool hide_it = extend && (lc->runtime_flag & LAYER_COLLECTION_VISIBLE);
-
-  if ((!ID_IS_LINKED(lc->collection) && !hide_it)) {
-    if (lc->collection->flag & COLLECTION_RESTRICT_VIEWPORT) {
-      lc->collection->flag &= ~COLLECTION_RESTRICT_VIEWPORT;
-      depsgraph_need_update = true;
-    }
-  }
 
   if (!extend) {
     /* Hide all collections . */
@@ -1042,13 +1032,6 @@ bool BKE_layer_collection_isolate(Scene *scene,
     }
 
     while (lc_parent != lc) {
-      if (!ID_IS_LINKED(lc_parent->collection)) {
-        if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEWPORT) {
-          lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEWPORT;
-          depsgraph_need_update = true;
-        }
-      }
-
       lc_parent->flag &= ~LAYER_COLLECTION_HIDE;
 
       for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter;
@@ -1067,8 +1050,6 @@ bool BKE_layer_collection_isolate(Scene *scene,
   }
 
   BKE_layer_collection_sync(scene, view_layer);
-
-  return depsgraph_need_update;
 }
 
 static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCollection *lc)
@@ -1101,22 +1082,12 @@ static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCo
  * Hide/show all the elements of a collection.
  * Don't change the collection children enable/disable state,
  * but it may change it for the collection itself.
- *
- * Return true if depsgraph needs update.
  */
-bool BKE_layer_collection_set_visible(ViewLayer *view_layer,
+void BKE_layer_collection_set_visible(ViewLayer *view_layer,
                                       LayerCollection *lc,
                                       const bool visible,
                                       const bool hierarchy)
 {
-  bool depsgraph_changed = false;
-
-  if (visible && (!ID_IS_LINKED(lc->collection)) &&
-      ((lc->collection->flag & COLLECTION_RESTRICT_VIEWPORT) != 0)) {
-    lc->collection->flag &= ~COLLECTION_RESTRICT_VIEWPORT;
-    depsgraph_changed = true;
-  }
-
   if (hierarchy) {
     if (visible) {
       layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_HIDE);
@@ -1135,7 +1106,6 @@ bool BKE_layer_collection_set_visible(ViewLayer *view_layer,
       lc->flag |= LAYER_COLLECTION_HIDE;
     }
   }
-  return depsgraph_changed;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1422,7 +1392,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter)
 
 static bool base_is_in_mode(struct ObjectsInModeIteratorData *data, Base *base)
 {
-  return BASE_VISIBLE(data->v3d, base) && (base->object->type == data->object_type) &&
+  return (base->object->type == data->object_type) &&
          (base->object->mode & data->object_mode) != 0;
 }
 

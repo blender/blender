@@ -1045,7 +1045,6 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   const bool is_inside = strstr(op->idname, "inside") != NULL;
   const bool show = strstr(op->idname, "show") != NULL;
-  bool depsgraph_changed = false;
   struct CollectionEditData data = {
       .scene = scene,
       .soops = soops,
@@ -1058,17 +1057,12 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     LayerCollection *layer_collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
-    depsgraph_changed |= BKE_layer_collection_set_visible(
-        view_layer, layer_collection, show, is_inside);
+    BKE_layer_collection_set_visible(view_layer, layer_collection, show, is_inside);
   }
   BLI_gset_free(data.collections_to_edit, NULL);
 
   BKE_layer_collection_sync(scene, view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
-
-  if (depsgraph_changed) {
-    DEG_relations_tag_update(CTX_data_main(C));
-  }
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
   return OPERATOR_FINISHED;
