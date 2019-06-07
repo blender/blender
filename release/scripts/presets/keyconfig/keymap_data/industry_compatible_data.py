@@ -3391,7 +3391,7 @@ def km_object_non_modal(params):
 
 
 # ------------------------------------------------------------------------------
-# Modal Maps and Gizmos
+# Modal Maps
 
 
 def km_knife_tool_modal_map(_params):
@@ -3521,9 +3521,9 @@ def km_transform_modal_map(_params):
 
     return keymap
 
+
 # ------------------------------------------------------------------------------
 # Gizmos
-
 
 # Fallback for gizmos that don't have custom a custom key-map.
 def km_generic_gizmo(_params):

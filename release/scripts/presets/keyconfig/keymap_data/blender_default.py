@@ -35,7 +35,7 @@ class Params:
         "cursor_set_event",
         "cursor_tweak_event",
         "use_mouse_emulate_3_button",
-        # Experemental option.
+        # Experimental option.
         "pie_value",
 
         # User preferences.
@@ -50,7 +50,7 @@ class Params:
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
         "use_v3d_shade_ex_pie",
-        # Experemental option.
+        # Experimental option.
         "use_pie_click_drag",
         "v3d_tilde_action",
     )
@@ -5764,7 +5764,7 @@ def km_3d_view_tool_edit_gpencil_to_sphere(params):
     )
 
 
-def km_3d_view_tool_sculpt_gpencil_paint(params):
+def km_3d_view_tool_sculpt_gpencil_paint(_params):
     return (
         "3D View Tool: Sculpt Gpencil, Paint",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
