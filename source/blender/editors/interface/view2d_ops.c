@@ -47,6 +47,10 @@
 
 #include "PIL_time.h" /* USER_ZOOM_CONT */
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 static bool view2d_poll(bContext *C)
 {
   ARegion *ar = CTX_wm_region(C);
@@ -54,8 +58,11 @@ static bool view2d_poll(bContext *C)
   return (ar != NULL) && (ar->v2d.flag & V2D_IS_INITIALISED);
 }
 
-/* ********************************************************* */
-/* VIEW PANNING OPERATOR                                 */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Pan Operator
+ * \{ */
 
 /**
  * This group of operators come in several forms:
@@ -530,8 +537,11 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page");
 }
 
-/* ********************************************************* */
-/* SINGLE-STEP VIEW ZOOMING OPERATOR                         */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom Operator (single-step)
+ * \{ */
 
 /**
  * This group of operators come in several forms:
@@ -904,8 +914,11 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/* ********************************************************* */
-/* DRAG-ZOOM OPERATOR                                    */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Zoom Operator (modal drag-zoom)
+ * \{ */
 
 /**
  * MMB Drag - allows non-uniform scaling by dragging mouse
@@ -1256,8 +1269,11 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
   WM_operator_properties_use_cursor_init(ot);
 }
 
-/* ********************************************************* */
-/* BORDER-ZOOM */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Border Zoom Operator
+ * \{ */
 
 /**
  * The user defines a rect using standard box select tools, and we use this rect to
@@ -1427,8 +1443,11 @@ static void VIEW2D_OT_ndof(wmOperatorType *ot)
 }
 #endif /* WITH_INPUT_NDOF */
 
-/* ********************************************************* */
-/* SMOOTH VIEW */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth View Operator
+ * \{ */
 
 struct SmoothView2DStore {
   rctf orig_cur, new_cur;
@@ -1609,8 +1628,11 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
   WM_operator_properties_gesture_box(ot);
 }
 
-/* ********************************************************* */
-/* SCROLLERS */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scroll Bar Move Operator
+ * \{ */
 
 /**
  * Scrollers should behave in the following ways, when clicked on with LMB (and dragged):
@@ -2106,8 +2128,11 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
   ot->poll = scroller_activate_poll;
 }
 
-/* ********************************************************* */
-/* RESET */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Reset Operator
+ * \{ */
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2177,8 +2202,11 @@ static void VIEW2D_OT_reset(wmOperatorType *ot)
   ot->poll = view2d_poll;
 }
 
-/* ********************************************************* */
-/* Registration */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void ED_operatortypes_view2d(void)
 {
@@ -2210,3 +2238,5 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "View2D", 0, 0);
 }
+
+/** \} */
