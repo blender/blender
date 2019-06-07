@@ -1411,12 +1411,6 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
-  prop = RNA_def_property(srna, "use_deform_delay", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DELAYDEFORM);
-  RNA_def_property_ui_text(
-      prop, "Delay Deform", "Don't deform children when manipulating bones in Pose Mode");
-  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-
   prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_MIRROR_EDIT);
   RNA_def_property_ui_text(

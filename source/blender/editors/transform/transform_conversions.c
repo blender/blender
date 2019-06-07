@@ -7426,12 +7426,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-      bArmature *arm;
       bPoseChannel *pchan;
       short targetless_ik = 0;
 
       ob = tc->poseobj;
-      arm = ob->data;
 
       if ((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
         /* when running transform non-interactively (operator exec),
@@ -7468,14 +7466,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
        * only if transform wasn't canceled (or TFM_DUMMY) */
       if (!canceled && (t->mode != TFM_DUMMY)) {
         autokeyframe_pose(C, t->scene, ob, t->mode, targetless_ik);
-        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      }
-      else if (arm->flag & ARM_DELAYDEFORM) {
-        /* TODO(sergey): Armature is already updated by recalcData(), so we
-         * might save some time by skipping re-evaluating it. But this isn't
-         * possible yet within new dependency graph, and also other contexts
-         * might need to update their CoW copies.
-         */
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
       else {
