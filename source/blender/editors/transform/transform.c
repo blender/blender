@@ -2665,7 +2665,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   /* Constraint init from operator */
   if ((t->flag & T_MODAL) ||
       /* For mirror operator the constraint axes are effectively the values. */
-      (RNA_struct_find_property(op->ptr, "values") == NULL)) {
+      (RNA_struct_find_property(op->ptr, "value") == NULL)) {
     if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) &&
         RNA_property_is_set(op->ptr, prop)) {
       bool constraint_axis[3];
