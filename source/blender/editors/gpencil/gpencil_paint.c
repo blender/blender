@@ -2469,22 +2469,6 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 /* ------------------------------- */
 
-/* ensure that the correct cursor icon is set */
-static void gpencil_draw_cursor_set(tGPsdata *p)
-{
-  return;
-  /* Disable while we get a better cursor handling for direct input devices (Cintiq/Ipad)*/
-#if 0
-  Brush *brush = p->brush;
-  if ((p->paintmode == GP_PAINTMODE_ERASER) || (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
-    WM_cursor_modal_set(p->win, BC_CROSSCURSOR); /* XXX need a better cursor */
-  }
-  else {
-    WM_cursor_modal_set(p->win, CURSOR_NONE);
-  }
-#endif
-}
-
 /* update UI indicators of status, including cursor and header prints */
 static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 {
@@ -3200,11 +3184,6 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   else {
     ED_gpencil_toggle_brush_cursor(C, true, NULL);
   }
-  /* set cursor
-   * NOTE: This may change later (i.e. intentionally via brush toggle,
-   *       or unintentionally if the user scrolls outside the area)...
-   */
-  gpencil_draw_cursor_set(p);
 
   /* only start drawing immediately if we're allowed to do so... */
   if (RNA_boolean_get(op->ptr, "wait_for_input") == false) {
@@ -3771,7 +3750,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else {
     /* update status indicators - cursor, header, etc. */
     gpencil_draw_status_indicators(C, p);
-    gpencil_draw_cursor_set(p); /* cursor may have changed outside our control - T44084 */
   }
 
   /* process last operations before exiting */
