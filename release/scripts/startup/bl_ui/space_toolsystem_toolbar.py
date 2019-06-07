@@ -971,6 +971,16 @@ class _defs_sculpt:
             keymap=(),
         )
 
+    @ToolDef.from_fn
+    def mask_lasso():
+        return dict(
+            idname="builtin.lasso_mask",
+            label="Lasso Mask",
+            icon="none",
+            widget=None,
+            keymap=(),
+        )
+
 
 class _defs_vertex_paint:
 
@@ -1899,6 +1909,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_sculpt.hide_border,
             _defs_sculpt.mask_border,
+            _defs_sculpt.mask_lasso,
             None,
             *_tools_annotate,
         ],
