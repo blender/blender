@@ -524,11 +524,17 @@ void BKE_sound_destroy_scene(Scene *scene)
   if (scene->sound_scrub_handle) {
     AUD_Handle_stop(scene->sound_scrub_handle);
   }
+  if (scene->speaker_handles) {
+    void *handle;
+
+    while ((handle = AUD_getSet(scene->speaker_handles))) {
+      AUD_Sequence_remove(scene->sound_scene, handle);
+    }
+
+    AUD_destroySet(scene->speaker_handles);
+  }
   if (scene->sound_scene) {
     AUD_Sequence_free(scene->sound_scene);
-  }
-  if (scene->speaker_handles) {
-    AUD_destroySet(scene->speaker_handles);
   }
 }
 
