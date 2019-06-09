@@ -400,7 +400,7 @@ static void gpu_texture_update_from_ibuf(Image *ima, ImBuf *ibuf, int x, int y, 
     const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
 
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = MEM_mallocN(sizeof(float) * 4 * x * y, __func__);
+      rect_float = MEM_mallocN(sizeof(float) * 4 * w * h, __func__);
       if (rect_float == NULL) {
         return;
       }
