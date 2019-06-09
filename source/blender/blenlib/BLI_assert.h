@@ -89,7 +89,7 @@ extern "C" {
 #  define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
 #elif defined(_MSC_VER)
 /* Visual Studio */
-#  if _MSC_VER > 1910
+#  if (_MSC_VER > 1910) && !defined(__clang__)
 #    define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
 #  else
 #    define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
