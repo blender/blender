@@ -2320,6 +2320,7 @@ static int convert_exec(bContext *C, wmOperator *op)
         if (obact->type == OB_MBALL) {
           basact = basen;
         }
+        ED_object_base_select(basen, BA_SELECT);
 
         mballConverted = 1;
       }
@@ -2359,13 +2360,22 @@ static int convert_exec(bContext *C, wmOperator *op)
 
   if (!keep_original) {
     if (mballConverted) {
+      /* We need to remove non-basis MBalls first, otherwise we won't be able to detect them if
+       * their basis happens to be removed first. */
+      FOREACH_SCENE_OBJECT_BEGIN (scene, ob_mball) {
+        if (ob_mball->type == OB_MBALL) {
+          Object *ob_basis = NULL;
+          if (!BKE_mball_is_basis(ob_mball) &&
+              ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) && (ob_basis->flag & OB_DONE))) {
+            ED_object_base_free_and_unlink(bmain, scene, ob_mball);
+          }
+        }
+      }
+      FOREACH_SCENE_OBJECT_END;
       FOREACH_SCENE_OBJECT_BEGIN (scene, ob_mball) {
         if (ob_mball->type == OB_MBALL) {
           if (ob_mball->flag & OB_DONE) {
-            Object *ob_basis = NULL;
-            if (BKE_mball_is_basis(ob_mball) ||
-                ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) &&
-                 (ob_basis->flag & OB_DONE))) {
+            if (BKE_mball_is_basis(ob_mball)) {
               ED_object_base_free_and_unlink(bmain, scene, ob_mball);
             }
           }
