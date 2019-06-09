@@ -2320,7 +2320,6 @@ static int convert_exec(bContext *C, wmOperator *op)
         if (obact->type == OB_MBALL) {
           basact = basen;
         }
-        ED_object_base_select(basen, BA_SELECT);
 
         mballConverted = 1;
       }
@@ -2341,11 +2340,6 @@ static int convert_exec(bContext *C, wmOperator *op)
       if (ob == obact) {
         /* store new active base to update BASACT */
         basact = basen;
-      }
-
-      if (keep_original) {
-        ED_object_base_select(base, BA_DESELECT);
-        ED_object_base_select(basen, BA_SELECT);
       }
 
       basen = NULL;
