@@ -1007,6 +1007,14 @@ static void curve_to_mesh_eval_ensure(Object *object)
                                          &remapped_object.runtime.mesh_eval,
                                          false);
 
+  /* Note: this is to be consistent with `BKE_displist_make_curveTypes()`, however that is not a
+   * real issue currently, code here is broken in more than one way, fix(es) will be done
+   * separately. */
+  if (remapped_object.runtime.mesh_eval != NULL) {
+    remapped_object.runtime.mesh_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+    remapped_object.runtime.is_mesh_eval_owned = true;
+  }
+
   BKE_object_free_curve_cache(&bevel_object);
   BKE_object_free_curve_cache(&taper_object);
 }
