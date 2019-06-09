@@ -2342,6 +2342,11 @@ static int convert_exec(bContext *C, wmOperator *op)
         basact = basen;
       }
 
+      if (keep_original) {
+        ED_object_base_select(base, BA_DESELECT);
+        ED_object_base_select(basen, BA_SELECT);
+      }
+
       basen = NULL;
     }
 
