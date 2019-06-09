@@ -2024,7 +2024,7 @@ static Base *duplibase_for_convert(
 
   basen = BKE_view_layer_base_find(view_layer, obn);
   ED_object_base_select(basen, BA_SELECT);
-  ED_object_base_select(basen, BA_DESELECT);
+  ED_object_base_select(base, BA_DESELECT);
   return basen;
 }
 
