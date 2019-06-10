@@ -2009,7 +2009,7 @@ static bool convert_poll(bContext *C)
 
 /* Helper for convert_exec */
 static Base *duplibase_for_convert(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, Object *ob)
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, Base *base, Object *ob)
 {
   Object *obn;
   Base *basen;
@@ -2019,12 +2019,27 @@ static Base *duplibase_for_convert(
   }
 
   obn = BKE_object_copy(bmain, ob);
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   BKE_collection_object_add_from(bmain, scene, ob, obn);
 
   basen = BKE_view_layer_base_find(view_layer, obn);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_select(base, BA_DESELECT);
+
+  /* XXX Doing that here is stupid, it means we update and re-evaluate the whole depsgraph every
+   * time we need to duplicate an object to convert it. Even worse, this is not 100% correct, since
+   * we do not yet have duplicated obdata.
+   * However, that is a safe solution for now. Proper, longer-term solution is to refactor
+   * convert_exec to:
+   *  - duplicate all data it needs to in a first loop.
+   *  - do a single update.
+   *  - convert data in a second loop. */
+  DEG_graph_tag_relations_update(depsgraph);
+  CustomData_MeshMasks customdata_mask_prev = scene->customdata_mask;
+  CustomData_MeshMasks_update(&scene->customdata_mask, &CD_MASK_MESH);
+  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  scene->customdata_mask = customdata_mask_prev;
+
   return basen;
 }
 
@@ -2131,7 +2146,7 @@ static int convert_exec(bContext *C, wmOperator *op)
       ob->flag |= OB_DONE;
 
       if (keep_original) {
-        basen = duplibase_for_convert(bmain, scene, view_layer, base, NULL);
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
         /* decrement original mesh's usage count  */
@@ -2156,7 +2171,7 @@ static int convert_exec(bContext *C, wmOperator *op)
       ob->flag |= OB_DONE;
 
       if (keep_original) {
-        basen = duplibase_for_convert(bmain, scene, view_layer, base, NULL);
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
         /* decrement original mesh's usage count  */
@@ -2186,7 +2201,7 @@ static int convert_exec(bContext *C, wmOperator *op)
       ob->flag |= OB_DONE;
 
       if (keep_original) {
-        basen = duplibase_for_convert(bmain, scene, view_layer, base, NULL);
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
         /* decrement original curve's usage count  */
@@ -2261,7 +2276,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
       if (target == OB_MESH) {
         if (keep_original) {
-          basen = duplibase_for_convert(bmain, scene, view_layer, base, NULL);
+          basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
           newob = basen->object;
 
           /* decrement original curve's usage count  */
@@ -2296,7 +2311,7 @@ static int convert_exec(bContext *C, wmOperator *op)
       if (!(baseob->flag & OB_DONE)) {
         baseob->flag |= OB_DONE;
 
-        basen = duplibase_for_convert(bmain, scene, view_layer, base, baseob);
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, baseob);
         newob = basen->object;
 
         mb = newob->data;
