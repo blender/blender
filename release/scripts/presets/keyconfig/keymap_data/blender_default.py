@@ -1441,6 +1441,7 @@ def km_graph_editor(params):
     if params.select_mouse == 'LEFTMOUSE' and not params.legacy:
         items.extend([
             ("graph.cursor_set", {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}, None),
+            ("graph.cursor_set", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
         ])
     else:
         items.extend([
