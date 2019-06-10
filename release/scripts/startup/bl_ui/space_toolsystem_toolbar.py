@@ -1494,6 +1494,10 @@ class _defs_gpencil_weight:
             icon_prefix="ops.gpencil.sculpt_",
             type=bpy.types.GPencilSculptSettings,
             attr="weight_tool",
+            tooldef_keywords=dict(
+                operator="gpencil.sculpt_paint",
+                keymap="3D View Tool: Sculpt Gpencil, Paint",
+            ),
         )
 
 

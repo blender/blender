@@ -5765,6 +5765,7 @@ def km_3d_view_tool_edit_gpencil_to_sphere(params):
     )
 
 
+# Also used for weight paint.
 def km_3d_view_tool_sculpt_gpencil_paint(_params):
     return (
         "3D View Tool: Sculpt Gpencil, Paint",
