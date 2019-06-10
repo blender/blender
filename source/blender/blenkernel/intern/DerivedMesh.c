@@ -1033,18 +1033,18 @@ static void mesh_copy_autosmooth(Mesh *me, Mesh *me_orig)
 }
 
 static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
-                                             const CustomData_MeshMasks *dataMask,
+                                             const CustomData_MeshMasks *final_datamask,
                                              const bool sculpt_dyntopo,
                                              Mesh *mesh_final)
 {
   /* Compute normals. */
   const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
-                                (dataMask->lmask & CD_MASK_NORMAL) != 0);
+                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
   /* Some modifiers may need this info from their target (other) object,
    * simpler to generate it here as well.
    * Note that they will always be generated when no loop normals are comptuted,
    * since they are needed by drawing code. */
-  const bool do_poly_normals = ((dataMask->pmask & CD_MASK_NORMAL) != 0);
+  const bool do_poly_normals = ((final_datamask->pmask & CD_MASK_NORMAL) != 0);
 
   if (do_loop_normals) {
     /* In case we also need poly normals, add the layer and compute them here
@@ -1071,7 +1071,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
 
   if (sculpt_dyntopo == false) {
     /* watch this! after 2.75a we move to from tessface to looptri (by default) */
-    if (dataMask->fmask & CD_MASK_MFACE) {
+    if (final_datamask->fmask & CD_MASK_MFACE) {
       BKE_mesh_tessface_ensure(mesh_final);
     }
 
@@ -1197,8 +1197,9 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * this fine grained so that for example vertex groups are preserved up to
    * an armature modifier, but not through a following subsurf modifier where
    * subdividing them is expensive. */
+  CustomData_MeshMasks final_datamask = *dataMask;
   CDMaskLink *datamasks = modifiers_calcDataMasks(
-      scene, ob, md, dataMask, required_mode, previewmd, &previewmask);
+      scene, ob, md, &final_datamask, required_mode, previewmd, &previewmask);
   CDMaskLink *md_datamask = datamasks;
   /* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH_ORIGINDEX;
@@ -1316,8 +1317,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    /* Add an orco layer if needed by this modifier. */
-    if (mesh_final && mti->requiredDataMask) {
+    /* Add orco mesh as layer if needed by this modifier. */
+    if (mesh_final && mesh_orco && mti->requiredDataMask) {
       CustomData_MeshMasks mask = {0};
       mti->requiredDataMask(ob, md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
@@ -1359,7 +1360,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         nextmask = md_datamask->next->mask;
       }
       else {
-        nextmask = *dataMask;
+        nextmask = final_datamask;
       }
 
       /* apply vertex coordinates or build a Mesh as necessary */
@@ -1557,7 +1558,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   const bool is_own_mesh = (mesh_final != mesh_input);
 
   /* Add orco coordinates to final and deformed mesh if requested. */
-  if (dataMask->vmask & CD_MASK_ORCO) {
+  if (final_datamask.vmask & CD_MASK_ORCO) {
     /* No need in ORCO layer if the mesh was not deformed or modified: undeformed mesh in this case
      * matches input mesh. */
     if (is_own_mesh) {
@@ -1578,7 +1579,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   /* Compute normals. */
   if (is_own_mesh) {
-    mesh_calc_modifier_final_normals(mesh_input, dataMask, sculpt_dyntopo, mesh_final);
+    mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
   }
   else {
     Mesh_Runtime *runtime = &mesh_input->runtime;
@@ -1587,7 +1588,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BLI_mutex_lock(runtime->eval_mutex);
       if (runtime->mesh_eval == NULL) {
         mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
-        mesh_calc_modifier_final_normals(mesh_input, dataMask, sculpt_dyntopo, mesh_final);
+        mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
         mesh_calc_finalize(mesh_input, mesh_final);
         runtime->mesh_eval = mesh_final;
       }
@@ -1643,14 +1644,14 @@ bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, bool has_prev
 }
 
 static void editbmesh_calc_modifier_final_normals(const Mesh *mesh_input,
-                                                  const CustomData_MeshMasks *dataMask,
+                                                  const CustomData_MeshMasks *final_datamask,
                                                   Mesh *mesh_final)
 {
   const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
-                                (dataMask->lmask & CD_MASK_NORMAL) != 0);
+                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
   /* Some modifiers may need this info from their target (other) object,
    * simpler to generate it here as well. */
-  const bool do_poly_normals = ((dataMask->pmask & CD_MASK_NORMAL) != 0);
+  const bool do_poly_normals = ((final_datamask->pmask & CD_MASK_NORMAL) != 0);
 
   if (do_loop_normals) {
     /* In case we also need poly normals, add the layer here,
@@ -1669,7 +1670,7 @@ static void editbmesh_calc_modifier_final_normals(const Mesh *mesh_input,
    * but don't recalculate if the last modifier in the stack gives us tessfaces
    * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
    * but quiets annoying error messages since tessfaces wont be created. */
-  if (dataMask->fmask & CD_MASK_MFACE) {
+  if (final_datamask->fmask & CD_MASK_MFACE) {
     if (mesh_final->edit_mesh == NULL) {
       BKE_mesh_tessface_ensure(mesh_final);
     }
@@ -1724,13 +1725,6 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   const ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE};
   const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
 
-  /* Evaluate modifiers up to certain index to get the mesh cage. */
-  int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
-  if (r_cage && cageIndex == -1) {
-    mesh_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(em_input, dataMask, NULL);
-    mesh_copy_autosmooth(mesh_cage, mesh_input);
-  }
-
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
   VirtualModifierData virtualModifierData;
@@ -1740,10 +1734,18 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
    * this fine grained so that for example vertex groups are preserved up to
    * an armature modifier, but not through a following subsurf modifier where
    * subdividing them is expensive. */
+  CustomData_MeshMasks final_datamask = *dataMask;
   CDMaskLink *datamasks = modifiers_calcDataMasks(
-      scene, ob, md, dataMask, required_mode, NULL, NULL);
+      scene, ob, md, &final_datamask, required_mode, NULL, NULL);
   CDMaskLink *md_datamask = datamasks;
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH;
+
+  /* Evaluate modifiers up to certain index to get the mesh cage. */
+  int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
+  if (r_cage && cageIndex == -1) {
+    mesh_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(em_input, &final_datamask, NULL);
+    mesh_copy_autosmooth(mesh_cage, mesh_input);
+  }
 
   /* Clear errors before evaluation. */
   modifiers_clearErrors(ob);
@@ -1755,8 +1757,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    /* Add an orco layer if needed by this modifier. */
-    if (mesh_final && mti->requiredDataMask) {
+    /* Add an orco mesh as layer if needed by this modifier. */
+    if (mesh_final && mesh_orco && mti->requiredDataMask) {
       CustomData_MeshMasks mask = {0};
       mti->requiredDataMask(ob, md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
@@ -1903,7 +1905,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
           me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformed_verts);
         }
         mesh_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(
-            em_input, dataMask, deformed_verts ? MEM_dupallocN(deformed_verts) : NULL);
+            em_input, &final_datamask, deformed_verts ? MEM_dupallocN(deformed_verts) : NULL);
         mesh_copy_autosmooth(mesh_cage, mesh_input);
       }
     }
@@ -1937,7 +1939,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
   else {
     /* this is just a copy of the editmesh, no need to calc normals */
-    mesh_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em_input, dataMask, deformed_verts);
+    mesh_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(
+        em_input, &final_datamask, deformed_verts);
     deformed_verts = NULL;
 
     mesh_copy_autosmooth(mesh_final, mesh_input);
@@ -1953,7 +1956,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 
   /* Add orco coordinates to final and deformed mesh if requested. */
-  if (dataMask->vmask & CD_MASK_ORCO) {
+  if (final_datamask.vmask & CD_MASK_ORCO) {
     add_orco_mesh(ob, em_input, mesh_final, mesh_orco, CD_ORCO);
   }
 
@@ -1962,9 +1965,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 
   /* Compute normals. */
-  editbmesh_calc_modifier_final_normals(mesh_input, dataMask, mesh_final);
+  editbmesh_calc_modifier_final_normals(mesh_input, &final_datamask, mesh_final);
   if (mesh_cage && (mesh_cage != mesh_final)) {
-    editbmesh_calc_modifier_final_normals(mesh_input, dataMask, mesh_cage);
+    editbmesh_calc_modifier_final_normals(mesh_input, &final_datamask, mesh_cage);
   }
 
   /* Return final mesh. */

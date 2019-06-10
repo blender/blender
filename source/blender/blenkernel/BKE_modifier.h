@@ -391,15 +391,15 @@ typedef struct CDMaskLink {
   struct CustomData_MeshMasks mask;
 } CDMaskLink;
 
-/* Calculates and returns a linked list of CustomData_MeshMasks indicating the
- * data required by each modifier in the stack pointed to by md for correct
- * evaluation, assuming the data indicated by dataMask is required at the
- * end of the stack.
+/* Calculates and returns a linked list of CustomData_MeshMasks and modified
+ * final datamask, indicating the data required by each modifier in the stack
+ * pointed to by md for correct evaluation, assuming the data indicated by
+ * final_datamask is required at the end of the stack.
  */
 struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene,
                                            struct Object *ob,
                                            struct ModifierData *md,
-                                           const struct CustomData_MeshMasks *dataMask,
+                                           struct CustomData_MeshMasks *final_datamask,
                                            int required_mode,
                                            ModifierData *previewmd,
                                            const struct CustomData_MeshMasks *previewmask);
