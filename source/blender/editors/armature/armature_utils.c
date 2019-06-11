@@ -429,9 +429,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
 void ED_armature_edit_transform_mirror_update(Object *obedit)
 {
   bArmature *arm = obedit->data;
-  EditBone *ebo, *eboflip;
-
-  for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+  for (EditBone *ebo = arm->edbo->first; ebo; ebo = ebo->next) {
     ED_armature_ebone_transform_mirror_update(arm, ebo, true);
   }
 }

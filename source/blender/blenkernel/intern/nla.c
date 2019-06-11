@@ -408,8 +408,7 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
   {
     strip->end = 10.0f;
     /* quiet compiler warnings */
-    (void)scene;
-    (void)speaker;
+    UNUSED_VARS(bmain, scene, speaker);
   }
 
   /* general settings */

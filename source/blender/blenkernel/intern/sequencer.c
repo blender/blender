@@ -1057,6 +1057,7 @@ void BKE_sequence_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, cons
         seq->len = 0;
       }
 #else
+      UNUSED_VARS(bmain);
       return;
 #endif
       break;
@@ -4962,7 +4963,7 @@ void BKE_sequencer_refresh_sound_length(Main *bmain, Scene *scene)
     sequencer_refresh_sound_length_recursive(bmain, scene, &scene->ed->seqbase);
   }
 #else
-  (void)scene;
+  UNUSED_VARS(bmain, scene);
 #endif
 }
 

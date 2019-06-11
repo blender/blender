@@ -1199,7 +1199,7 @@ int BKE_sound_scene_playing(Scene *UNUSED(scene))
 }
 void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
 {
-  UNUSED_VARS(sound, stop);
+  UNUSED_VARS(sound, stop, bmain);
 }
 void BKE_sound_init_main(Main *UNUSED(bmain))
 {
