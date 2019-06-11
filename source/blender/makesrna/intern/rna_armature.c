@@ -550,7 +550,7 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
 {
   bArmature *arm = (bArmature *)ptr->id.data;
   EditBone *ebone = (EditBone *)ptr->data;
-  EditBone *child, *eboflip;
+  EditBone *child;
 
   /* update our parent */
   if (ebone->parent && ebone->flag & BONE_CONNECTED) {
