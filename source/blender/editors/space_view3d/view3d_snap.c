@@ -428,10 +428,13 @@ static int snap_selected_to_location(bContext *C,
         sub_v3_v3(cursor_parent, ob->obmat[3]);
 
         if (ob->parent) {
-          float originmat[3][3];
-          BKE_object_where_is_calc_ex(depsgraph, scene, NULL, ob, originmat);
-
-          invert_m3_m3(imat, originmat);
+          float parentmat[4][4];
+          /* The evaluated object is used here because sometimes
+           * `runtime.curve_cache` is required. */
+          Object *ob_parent_eval = DEG_get_evaluated_object(depsgraph, ob->parent);
+          BKE_object_get_parent_matrix(ob, ob_parent_eval, parentmat);
+          mul_m3_m4m4(imat, parentmat, ob->parentinv);
+          invert_m3(imat);
           mul_m3_v3(imat, cursor_parent);
         }
         if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
