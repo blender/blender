@@ -709,12 +709,13 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_SCULPT:
         case CTX_MODE_PAINT_VERTEX:
         case CTX_MODE_PAINT_WEIGHT:
-        case CTX_MODE_WEIGHT_GPENCIL:
         case CTX_MODE_PAINT_TEXTURE:
         case CTX_MODE_PAINT_GPENCIL:
           return "builtin_brush.Draw";
         case CTX_MODE_SCULPT_GPENCIL:
           return "builtin_brush.Push";
+        case CTX_MODE_WEIGHT_GPENCIL:
+          return "builtin_brush.Weight";
           /* end temporary hack. */
 
         case CTX_MODE_PARTICLE:
