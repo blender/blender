@@ -367,6 +367,63 @@ void armature_tag_unselect(bArmature *arm)
 
 /* ------------------------------------- */
 
+void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bool check_select)
+{
+  /* no layer check, correct mirror is more important */
+  if (!check_select || ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
+    EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
+    if (eboflip) {
+      /* we assume X-axis flipping for now */
+      if (check_select && ebo->flag & BONE_TIPSEL) {
+        EditBone *children;
+
+        eboflip->tail[0] = -ebo->tail[0];
+        eboflip->tail[1] = ebo->tail[1];
+        eboflip->tail[2] = ebo->tail[2];
+        eboflip->rad_tail = ebo->rad_tail;
+        eboflip->roll = -ebo->roll;
+        eboflip->curve_out_x = -ebo->curve_out_x;
+        eboflip->roll2 = -ebo->roll2;
+
+        /* Also move connected children, in case children's name aren't mirrored properly */
+        for (children = arm->edbo->first; children; children = children->next) {
+          if (children->parent == eboflip && children->flag & BONE_CONNECTED) {
+            copy_v3_v3(children->head, eboflip->tail);
+            children->rad_head = ebo->rad_tail;
+          }
+        }
+      }
+      if (!check_select || ebo->flag & BONE_ROOTSEL) {
+        eboflip->head[0] = -ebo->head[0];
+        eboflip->head[1] = ebo->head[1];
+        eboflip->head[2] = ebo->head[2];
+        eboflip->rad_head = ebo->rad_head;
+        eboflip->roll = -ebo->roll;
+        eboflip->curve_in_x = -ebo->curve_in_x;
+        eboflip->roll1 = -ebo->roll1;
+
+        /* Also move connected parent, in case parent's name isn't mirrored properly */
+        if (eboflip->parent && eboflip->flag & BONE_CONNECTED) {
+          EditBone *parent = eboflip->parent;
+          copy_v3_v3(parent->tail, eboflip->head);
+          parent->rad_tail = ebo->rad_head;
+        }
+      }
+      if (!check_select || ebo->flag & BONE_SELECTED) {
+        eboflip->dist = ebo->dist;
+        eboflip->roll = -ebo->roll;
+        eboflip->xwidth = ebo->xwidth;
+        eboflip->zwidth = ebo->zwidth;
+
+        eboflip->curve_in_x = -ebo->curve_in_x;
+        eboflip->curve_out_x = -ebo->curve_out_x;
+        eboflip->roll1 = -ebo->roll1;
+        eboflip->roll2 = -ebo->roll2;
+      }
+    }
+  }
+}
+
 /* if editbone (partial) selected, copy data */
 /* context; editmode armature, with mirror editing enabled */
 void ED_armature_edit_transform_mirror_update(Object *obedit)
@@ -375,60 +432,7 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
   EditBone *ebo, *eboflip;
 
   for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
-    /* no layer check, correct mirror is more important */
-    if (ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL)) {
-      eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
-
-      if (eboflip) {
-        /* we assume X-axis flipping for now */
-        if (ebo->flag & BONE_TIPSEL) {
-          EditBone *children;
-
-          eboflip->tail[0] = -ebo->tail[0];
-          eboflip->tail[1] = ebo->tail[1];
-          eboflip->tail[2] = ebo->tail[2];
-          eboflip->rad_tail = ebo->rad_tail;
-          eboflip->roll = -ebo->roll;
-          eboflip->curve_out_x = -ebo->curve_out_x;
-          eboflip->roll2 = -ebo->roll2;
-
-          /* Also move connected children, in case children's name aren't mirrored properly */
-          for (children = arm->edbo->first; children; children = children->next) {
-            if (children->parent == eboflip && children->flag & BONE_CONNECTED) {
-              copy_v3_v3(children->head, eboflip->tail);
-              children->rad_head = ebo->rad_tail;
-            }
-          }
-        }
-        if (ebo->flag & BONE_ROOTSEL) {
-          eboflip->head[0] = -ebo->head[0];
-          eboflip->head[1] = ebo->head[1];
-          eboflip->head[2] = ebo->head[2];
-          eboflip->rad_head = ebo->rad_head;
-          eboflip->roll = -ebo->roll;
-          eboflip->curve_in_x = -ebo->curve_in_x;
-          eboflip->roll1 = -ebo->roll1;
-
-          /* Also move connected parent, in case parent's name isn't mirrored properly */
-          if (eboflip->parent && eboflip->flag & BONE_CONNECTED) {
-            EditBone *parent = eboflip->parent;
-            copy_v3_v3(parent->tail, eboflip->head);
-            parent->rad_tail = ebo->rad_head;
-          }
-        }
-        if (ebo->flag & BONE_SELECTED) {
-          eboflip->dist = ebo->dist;
-          eboflip->roll = -ebo->roll;
-          eboflip->xwidth = ebo->xwidth;
-          eboflip->zwidth = ebo->zwidth;
-
-          eboflip->curve_in_x = -ebo->curve_in_x;
-          eboflip->curve_out_x = -ebo->curve_out_x;
-          eboflip->roll1 = -ebo->roll1;
-          eboflip->roll2 = -ebo->roll2;
-        }
-      }
-    }
+    ED_armature_ebone_transform_mirror_update(arm, ebo, true);
   }
 }
 

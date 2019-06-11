@@ -216,6 +216,9 @@ void ED_armature_ebone_to_mat4(EditBone *ebone, float mat[4][4]);
 void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3]);
 void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]);
 
+void ED_armature_ebone_transform_mirror_update(struct bArmature *arm,
+                                               EditBone *ebo,
+                                               bool check_select);
 void ED_armature_edit_transform_mirror_update(struct Object *obedit);
 void ED_armature_origin_set(
     struct Main *bmain, struct Object *ob, const float cursor[3], int centermode, int around);
