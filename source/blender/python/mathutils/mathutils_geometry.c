@@ -193,7 +193,7 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
   }
 
   result = isect_line_line_v3(UNPACK4(lines), i1, i2);
-  /* The return-code isnt exposed,
+  /* The return-code isn't exposed,
    * this way we can check know how close the lines are. */
   if (result == 1) {
     closest_to_line_v3(i2, i1, lines[2], lines[3]);

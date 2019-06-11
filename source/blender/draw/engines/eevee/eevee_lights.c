@@ -712,7 +712,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   }
   else {
     power = 1.0f / (evli->radius * evli->radius * M_PI); /* 1/(r²*Pi) */
-    /* Make illumation power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
+    /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
      * cannot reproduce so we account for that by scaling the light power. This function is the
      * result of a rough manual fitting. */
     power += 1.0f / (2.0f * M_PI); /* power *= 1 + r²/2 */

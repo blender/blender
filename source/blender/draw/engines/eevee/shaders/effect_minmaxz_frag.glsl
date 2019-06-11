@@ -1,5 +1,5 @@
 /**
- * Shader that downsample depth buffer,
+ * Shader that down-sample depth buffer,
  * saving min and max value of each texel in the above mipmaps.
  * Adapted from http://rastergrid.com/blog/2010/10/hierarchical-z-map-based-occlusion-culling/
  */

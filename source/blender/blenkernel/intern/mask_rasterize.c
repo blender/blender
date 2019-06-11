@@ -31,6 +31,7 @@
  * This file is admittedly a bit confusticated,
  * in quite few areas speed was chosen over readability,
  * though it is commented - so shouldn't be so hard to see what's going on.
+ *
  * Implementation:
  *
  * To rasterize the mask its converted into geometry that use a ray-cast for each pixel lookup.

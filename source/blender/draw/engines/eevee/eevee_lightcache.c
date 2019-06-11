@@ -1248,7 +1248,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 
   /* Assume that if lbake->gl_context is NULL
    * we are not running in this in a job, so update
-   * the scene lightcache pointer before deleting it. */
+   * the scene light-cache pointer before deleting it. */
   if (lbake->gl_context == NULL) {
     BLI_assert(BLI_thread_is_main());
     EEVEE_lightbake_update(lbake);

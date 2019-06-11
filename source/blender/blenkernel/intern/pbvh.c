@@ -1031,7 +1031,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
         if (bvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
           /* Note: This avoids `lock, add_v3_v3, unlock`
-           * and is five to ten times quicker than a spinlock.
+           * and is five to ten times quicker than a spin-lock.
            * Not exact equivalent though, since atomicity is only ensured for one component
            * of the vector at a time, but here it shall not make any sensible difference. */
           for (int k = 3; k--;) {

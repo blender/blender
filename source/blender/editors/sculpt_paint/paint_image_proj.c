@@ -3912,7 +3912,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   /* Thread stuff
    *
-   * very small brushes run a lot slower multithreaded since the advantage with
+   * very small brushes run a lot slower multi-threaded since the advantage with
    * threads is being able to fill in multiple buckets at once.
    * Only use threads for bigger brushes. */
 
@@ -5104,7 +5104,7 @@ static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
   cell->y2 = max_ii(cell->y2, (int)projPixel->y_px + 1);
 }
 
-/* run this for single and multithreaded painting */
+/* Run this for single and multi-threaded painting. */
 static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
                                    void *ph_v,
                                    int UNUSED(threadid))

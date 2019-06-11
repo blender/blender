@@ -632,7 +632,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
       ed2 = ed1->next;
 
       /* commented out... the ESC here delivers corrupted memory
-       * (and doesnt work during grab) */
+       * (and doesn't work during grab). */
       /* if (callLocalInterruptCallBack()) break; */
       if (totface >= maxface) {
         /* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */

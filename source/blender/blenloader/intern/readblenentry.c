@@ -129,7 +129,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 }
 
 /**
- * Gets the names of all the datablocks in a file of a certain type
+ * Gets the names of all the data-blocks in a file of a certain type
  * (e.g. all the scene names in a file).
  *
  * \param bh: The blendhandle to access.
@@ -161,7 +161,7 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
 }
 
 /**
- * Gets the previews of all the datablocks in a file of a certain type
+ * Gets the previews of all the data-blocks in a file of a certain type
  * (e.g. all the scene previews in a file).
  *
  * \param bh: The blendhandle to access.
@@ -251,7 +251,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 }
 
 /**
- * Gets the names of all the linkable datablock types available in a file.
+ * Gets the names of all the linkable data-block types available in a file.
  * (e.g. "Scene", "Mesh", "Light", etc.).
  *
  * \param bh: The blendhandle to access.
@@ -357,7 +357,7 @@ BlendFileData *BLO_read_from_memory(const void *mem,
  * (assuming their data are already loaded & valid).
  *
  * \param oldmain: old main,
- * from which we will keep libraries and other datablocks that should not have changed.
+ * from which we will keep libraries and other data-blocks that should not have changed.
  * \param filename: current file, only for retrieving library data.
  */
 BlendFileData *BLO_read_from_memfile(Main *oldmain,
@@ -439,7 +439,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
 #endif
         }
       }
-      /* In any case, we need to move all lib datablocks themselves - those are
+      /* In any case, we need to move all lib data-blocks themselves - those are
        * 'first level data', getting rid of them would imply updating spaces & co
        * to prevent invalid pointers access. */
       BLI_movelisttolist(&newmain->libraries, &oldmain->libraries);

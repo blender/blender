@@ -1418,7 +1418,7 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
  *   several times by modifiers requesting the time be modified, as the final result
  *   would have required using the modified time
  * - modifiers only ever receive the unmodified time, as subsequent modifiers should be
- *   working on the 'global' result of the modified curve, not some localised segment,
+ *   working on the 'global' result of the modified curve, not some localized segment,
  *   so nevaltime gets set to whatever the last time-modifying modifier likes...
  * - we start from the end of the stack, as only the last one matters for now
  *

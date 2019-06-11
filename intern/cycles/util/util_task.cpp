@@ -243,7 +243,7 @@ vector<int> distribute_threads_on_nodes(const int num_threads)
   if (num_active_group_processors >= num_threads) {
     /* If the current thread is set up in a way that its affinity allows to
      * use at least requested number of threads we do not explicitly set
-     * affinity to the worker therads.
+     * affinity to the worker threads.
      * This way we allow users to manually edit affinity of the parent
      * thread, and here we follow that affinity. This way it's possible to
      * have two Cycles/Blender instances running manually set to a different
@@ -254,7 +254,7 @@ vector<int> distribute_threads_on_nodes(const int num_threads)
   vector<int> num_per_node_processors;
   get_per_node_num_processors(&num_per_node_processors);
   if (num_per_node_processors.size() == 0) {
-    /* Error was already repported, here we can't do anything, so we simply
+    /* Error was already reported, here we can't do anything, so we simply
      * leave default affinity to all the worker threads. */
     return thread_nodes;
   }

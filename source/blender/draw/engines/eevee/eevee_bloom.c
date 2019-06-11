@@ -207,9 +207,9 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
     /**  Bloom algorithm
      *
      * Overview:
-     * - Downsample the color buffer doing a small blur during each step.
-     * - Accumulate bloom color using previously downsampled color buffers
-     *   and do an upsample blur for each new accumulated layer.
+     * - Down-sample the color buffer doing a small blur during each step.
+     * - Accumulate bloom color using previously down-sampled color buffers
+     *   and do an up-sample blur for each new accumulated layer.
      * - Finally add accumulation buffer onto the source color buffer.
      *
      *  [1/1] is original copy resolution (can be half or quarter res for performance)

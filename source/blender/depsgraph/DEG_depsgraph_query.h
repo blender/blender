@@ -81,7 +81,7 @@ void DEG_get_customdata_mask_for_object(const struct Depsgraph *graph,
 /* Get scene at its evaluated state.
  *
  * Technically, this is a copied-on-written and fully evaluated version of the input scene.
- * This function will check that the datablock has been expanded (and copied) from the original
+ * This function will check that the data-block has been expanded (and copied) from the original
  * one. Assert will happen if it's not. */
 struct Scene *DEG_get_evaluated_scene(const struct Depsgraph *graph);
 
@@ -119,13 +119,13 @@ struct ID *DEG_get_original_id(struct ID *id);
 /* Check whether given ID is an original,
  *
  * Original IDs are considered all the IDs which are not covered by copy-on-write system and are
- * not out-of-main localized datablocks. */
+ * not out-of-main localized data-blocks. */
 bool DEG_is_original_id(struct ID *id);
 bool DEG_is_original_object(struct Object *object);
 
 /* Opposite of the above.
  *
- * If the datablock is not original it must be evaluated, and vice versa. */
+ * If the data-block is not original it must be evaluated, and vice versa. */
 bool DEG_is_evaluated_id(struct ID *id);
 bool DEG_is_evaluated_object(struct Object *object);
 

@@ -226,7 +226,7 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
   if (r >= Rm)
     return 0.0f;
 
-  /* Burley refletance profile, equation (3).
+  /* Burley reflectance profile, equation (3).
    *
    * NOTES:
    * - Surface albedo is already included into sc->weight, no need to

@@ -38,7 +38,7 @@
  *      sin, cos, tan, asin, acos, atan, atan2,
  *      exp, log, sqrt, pow, fmod
  *
- * The implementation has no global state and can be used multithreaded.
+ * The implementation has no global state and can be used multi-threaded.
  */
 
 #include <math.h>

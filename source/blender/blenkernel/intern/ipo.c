@@ -933,7 +933,7 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
  * and 'root' parts of path.
  *
  * Input:
- *     - id                      - the datablock that the curve's IPO block
+ *     - id                      - the data-block that the curve's IPO block
  *                                 is attached to and/or which the new paths will start from
  *     - blocktype, adrcode      - determines setting to get
  *     - actname, constname, seq - used to build path
@@ -1934,12 +1934,12 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
 /* Called from do_versions() in readfile.c to convert the old 'IPO/adrcode' system
  * to the new 'Animato/RNA' system.
  *
- * The basic method used here, is to loop over datablocks which have IPO-data, and
- * add those IPO's to new AnimData blocks as Actions.
+ * The basic method used here, is to loop over data-blocks which have IPO-data,
+ * and add those IPO's to new AnimData blocks as Actions.
  * Action/NLA data only works well for Objects, so these only need to be checked for there.
  *
  * Data that has been converted should be freed immediately, which means that it is immediately
- * clear which datablocks have yet to be converted, and also prevent freeing errors when we exit.
+ * clear which data-blocks have yet to be converted, and also prevent freeing errors when we exit.
  */
 // XXX currently done after all file reading...
 void do_versions_ipos_to_animato(Main *bmain)

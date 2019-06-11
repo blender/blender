@@ -2094,7 +2094,7 @@ static bool file_is_blend_backup(const char *str)
 }
 
 /* TODO: Maybe we should move this to BLI?
- * On the other hand, it's using defines from spacefile area, so not sure... */
+ * On the other hand, it's using defines from space-file area, so not sure... */
 int ED_path_extension_type(const char *path)
 {
   if (BLO_has_bfile_extension(path)) {

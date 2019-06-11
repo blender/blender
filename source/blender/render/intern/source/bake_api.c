@@ -125,7 +125,7 @@ static void store_bake_pixel(void *handle, int x, int y, float u, float v)
   pixel->primitive_id = bd->primitive_id;
 
   /* At this point object_id is always 0, since this function runs for the
-   * lowpoly mesh only. The object_id lookup indices are set afterwards. */
+   * low-poly mesh only. The object_id lookup indices are set afterwards. */
 
   copy_v2_fl2(pixel->uv, u, v);
 

@@ -754,7 +754,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
   }
   planar_pool_ensure_alloc(vedata, pinfo->num_planar);
 
-  /* If lightcache auto-update is enable we tag the relevant part
+  /* If light-cache auto-update is enable we tag the relevant part
    * of the cache to update and fire up a baking job. */
   if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
       (pinfo->do_grid_update || pinfo->do_cube_update)) {

@@ -2298,7 +2298,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
   int flag = 0, index = data->totlayer;
   void *newlayerdata = NULL;
 
-  /* Passing a layerdata to copy from with an alloctype that won't copy is
+  /* Passing a layer-data to copy from with an alloctype that won't copy is
    * most likely a bug */
   BLI_assert(!layerdata || (alloctype == CD_ASSIGN) || (alloctype == CD_DUPLICATE) ||
              (alloctype == CD_REFERENCE));

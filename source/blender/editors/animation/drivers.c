@@ -182,7 +182,7 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
 
     /* Set driver expression, so that the driver works out of the box
      *
-     * The following checks define a bit of "autodetection magic" we use
+     * The following checks define a bit of "auto-detection magic" we use
      * to ensure that the drivers will behave as expected out of the box
      * when faced with properties with different units.
      */

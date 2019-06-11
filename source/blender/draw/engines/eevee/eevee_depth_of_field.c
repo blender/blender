@@ -185,7 +185,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     /**  Depth of Field algorithm
      *
      * Overview :
-     * - Downsample the color buffer into 2 buffers weighted with
+     * - Down-sample the color buffer into 2 buffers weighted with
      *   CoC values. Also output CoC into a texture.
      * - Shoot quads for every pixel and expand it depending on the CoC.
      *   Do one pass for near Dof and one pass for far Dof.

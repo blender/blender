@@ -1515,7 +1515,7 @@ static void movieclip_build_proxy_ibuf(
     scaleibuf->planes = 24;
   }
 
-  /* TODO: currently the most weak part of multithreaded proxies,
+  /* TODO: currently the most weak part of multi-threaded proxies,
    *       could be solved in a way that thread only prepares memory
    *       buffer and write to disk happens separately
    */

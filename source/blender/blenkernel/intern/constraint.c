@@ -5098,7 +5098,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(type);
   const char *newName;
 
-  /* Set up a generic constraint datablock */
+  /* Set up a generic constraint data-block. */
   con->type = type;
   con->flag |= CONSTRAINT_EXPAND | CONSTRAINT_STATICOVERRIDE_LOCAL;
   con->enforce = 1.0f;

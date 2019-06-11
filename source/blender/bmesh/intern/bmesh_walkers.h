@@ -68,8 +68,6 @@ typedef struct BMWalker {
 /* define to make BMW_init more clear */
 #define BMW_MASK_NOP 0
 
-/* initialize a walker.  searchmask restricts some (not all) walkers to
- * elements with a specific tool flag set.  flags is specific to each walker.*/
 void BMW_init(struct BMWalker *walker,
               BMesh *bm,
               int type,

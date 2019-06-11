@@ -243,7 +243,7 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 }
 
 /**
- * Tag all the selected objects of a renderlayer
+ * Tag all the selected objects of a render-layer.
  */
 void BKE_view_layer_selected_objects_tag(ViewLayer *view_layer, const int tag)
 {

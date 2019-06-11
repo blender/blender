@@ -1,5 +1,5 @@
 /**
- * Simple downsample shader. Takes the average of the 4 texels of lower mip.
+ * Simple down-sample shader. Takes the average of the 4 texels of lower mip.
  */
 
 uniform sampler2DArray source;

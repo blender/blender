@@ -528,8 +528,8 @@ bool ui_region_contains_point_px(const ARegion *ar, int x, int y)
     return false;
   }
 
-  /* also, check that with view2d, that the mouse is not over the scrollbars
-   * NOTE: care is needed here, since the mask rect may include the scrollbars
+  /* also, check that with view2d, that the mouse is not over the scroll-bars
+   * NOTE: care is needed here, since the mask rect may include the scroll-bars
    * even when they are not visible, so we need to make a copy of the mask to
    * use to check
    */

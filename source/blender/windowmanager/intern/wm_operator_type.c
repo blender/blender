@@ -219,7 +219,7 @@ void wm_operatortype_free(void)
  * #OP_PROP_TAG_ADVANCED. Previously defined ones properties not touched.
  *
  * Calling this multiple times without a call to #WM_operatortype_props_advanced_end,
- * all calls after the first one are ignored. Meaning all propereties defined after the
+ * all calls after the first one are ignored. Meaning all proprieties defined after the
  * first call are tagged as advanced.
  *
  * This doesn't do the actual tagging, #WM_operatortype_props_advanced_end does which is

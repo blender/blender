@@ -368,7 +368,7 @@ typedef struct BMVertsCalcNormalsData {
   const float (*edgevec)[3];
   const float (*vcos)[3];
 
-  /* Read-write data, protected by an atomic-based fake spinlock-like system... */
+  /* Read-write data, protected by an atomic-based fake spin-lock like system. */
   float (*vnos)[3];
 } BMVertsCalcNormalsData;
 
@@ -412,7 +412,7 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
     float *v_no = data->vnos ? data->vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
 
     /* This block is a lockless threadsafe madd_v3_v3fl.
-     * It uses the first float of the vector as a sort of cheap spinlock,
+     * It uses the first float of the vector as a sort of cheap spin-lock,
      * assuming FLT_MAX is a safe 'illegal' value that cannot be set here otherwise.
      * It also assumes that collisions between threads are highly unlikely,
      * else performances would be quite bad here. */
@@ -617,7 +617,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
         else if (do_sharp_edges_tag) {
           /* Note that we do not care about the other sharp-edge cases
            * (sharp poly, non-manifold edge, etc.),
-           * only tag edge as sharp when it is due to angle threashold. */
+           * only tag edge as sharp when it is due to angle threshold. */
           BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
         }
       }

@@ -329,7 +329,7 @@ void BKE_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
 }
 
 /**
- * Generic 'make local' function, works for most of datablock types...
+ * Generic 'make local' function, works for most of data-block types...
  */
 void BKE_id_make_local_generic(Main *bmain,
                                ID *id,
@@ -609,7 +609,7 @@ bool BKE_id_copy_is_allowed(const ID *id)
 }
 
 /**
- * Generic entry point for copying a datablock (new API).
+ * Generic entry point for copying a data-block (new API).
  *
  * \note Copy is only affecting given data-block
  * (no ID used by copied one will be affected, besides usercount).
@@ -619,7 +619,7 @@ bool BKE_id_copy_is_allowed(const ID *id)
  * \note Usercount of new copy is always set to 1.
  *
  * \param bmain: Main database, may be NULL only if LIB_ID_CREATE_NO_MAIN is specified.
- * \param id: Source datablock.
+ * \param id: Source data-block.
  * \param r_newid: Pointer to new (copied) ID pointer.
  * \param flag: Set of copy options, see DNA_ID.h enum for details
  * (leave to zero for default, full copy).
@@ -876,7 +876,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
         RNA_property_pointer_set(ptr, prop, idptr, NULL);
         RNA_property_update(C, ptr, prop);
 
-        /* tag grease pencil datablock and disable onion */
+        /* tag grease pencil data-block and disable onion */
         if (GS(id->name) == ID_GD) {
           DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
           DEG_id_tag_update(newid, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -920,7 +920,7 @@ static int libblock_management_us_min(void *UNUSED(user_data),
   return IDWALK_RET_NOP;
 }
 
-/** Add a 'NO_MAIN' datablock to given main (also sets usercounts of its IDs if needed). */
+/** Add a 'NO_MAIN' data-block to given main (also sets usercounts of its IDs if needed). */
 void BKE_libblock_management_main_add(Main *bmain, void *idv)
 {
   ID *id = idv;
@@ -950,7 +950,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   BKE_main_unlock(bmain);
 }
 
-/** Remove a datablock from given main (set it to 'NO_MAIN' status). */
+/** Remove a data-block from given main (set it to 'NO_MAIN' status). */
 void BKE_libblock_management_main_remove(Main *bmain, void *idv)
 {
   ID *id = idv;
@@ -1121,7 +1121,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 /* *********** ALLOC AND FREE *****************
  *
  * BKE_libblock_free(ListBase *lb, ID *id )
- * provide a list-basis and datablock, but only ID is read
+ * provide a list-basis and data-block, but only ID is read
  *
  * void *BKE_libblock_alloc(ListBase *lb, type, name)
  * inserts in list and returns a new ID
@@ -1129,7 +1129,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
  * **************************** */
 
 /**
- * Get allocation size fo a given datablock type and optionally allocation name.
+ * Get allocation size fo a given data-block type and optionally allocation name.
  */
 size_t BKE_libblock_get_alloc_info(short type, const char **name)
 {
@@ -1369,7 +1369,7 @@ void BKE_libblock_init_empty(ID *id)
   }
 }
 
-/** Generic helper to create a new empty datablock of given type in given \a bmain database.
+/** Generic helper to create a new empty data-block of given type in given \a bmain database.
  *
  * \param name: can be NULL, in which case we get default name for this ID type. */
 void *BKE_id_new(Main *bmain, const short type, const char *name)
@@ -1387,7 +1387,7 @@ void *BKE_id_new(Main *bmain, const short type, const char *name)
 }
 
 /**
- * Generic helper to create a new temporary empty datablock of given type,
+ * Generic helper to create a new temporary empty data-block of given type,
  * *outside* of any Main database.
  *
  * \param name: can be NULL, in which case we get default name for this ID type. */
@@ -1566,7 +1566,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
  *
  * Normally the ID that's being check is already in the ListBase, so ID *id
  * points at the new entry.  The Python Library module needs to know what
- * the name of a datablock will be before it is appended; in this case ID *id
+ * the name of a data-block will be before it is appended; in this case ID *id
  * id is NULL
  */
 
@@ -1760,7 +1760,7 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
     }
   }
 
-  /* Internal bNodeTree blocks inside datablocks also stores id->lib,
+  /* Internal bNodeTree blocks inside data-blocks also stores id->lib,
    * make sure this stays in sync. */
   if ((ntree = ntreeFromID(id))) {
     id_clear_lib_data_ex(bmain, &ntree->id, false); /* Datablocks' nodetree is never in Main. */
@@ -1906,11 +1906,11 @@ static void library_make_local_copying_check(ID *id,
   BLI_gset_remove(loop_tags, id, NULL);
 }
 
-/** Make linked datablocks local.
+/** Make linked data-blocks local.
  *
  * \param bmain: Almost certainly global main.
- * \param lib: If not NULL, only make local datablocks from this library.
- * \param untagged_only: If true, only make local datablocks not tagged with
+ * \param lib: If not NULL, only make local data-blocks from this library.
+ * \param untagged_only: If true, only make local data-blocks not tagged with
  * LIB_TAG_PRE_EXISTING. \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
  */
@@ -1947,12 +1947,12 @@ void BKE_library_make_local(Main *bmain,
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
-  /* Step 1: Detect datablocks to make local. */
+  /* Step 1: Detect data-blocks to make local. */
   for (int a = set_listbasepointers(bmain, lbarray); a--;) {
     ID *id = lbarray[a]->first;
 
     /* Do not explicitly make local non-linkable IDs (shapekeys, in fact),
-     * they are assumed to be handled by real datablocks responsible of them. */
+     * they are assumed to be handled by real data-blocks responsible of them. */
     const bool do_skip = (id && !BKE_idcode_is_linkable(GS(id->name)));
 
     for (; id; id = id->next) {
@@ -2000,11 +2000,11 @@ void BKE_library_make_local(Main *bmain,
   }
 
 #ifdef DEBUG_TIME
-  printf("Step 1: Detect datablocks to make local: Done.\n");
+  printf("Step 1: Detect data-blocks to make local: Done.\n");
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
-  /* Step 2: Check which datablocks we can directly make local
+  /* Step 2: Check which data-blocks we can directly make local
    * (because they are only used by already, or future, local data),
    * others will need to be duplicated. */
   GSet *loop_tags = BLI_gset_ptr_new(__func__);
@@ -2019,7 +2019,7 @@ void BKE_library_make_local(Main *bmain,
   BKE_main_relations_free(bmain);
 
 #ifdef DEBUG_TIME
-  printf("Step 2: Check which datablocks we can directly make local: Done.\n");
+  printf("Step 2: Check which data-blocks we can directly make local: Done.\n");
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
@@ -2385,7 +2385,7 @@ static int id_order_compare(const void *a, const void *b)
 }
 
 /**
- * Returns ordered list of datablocks for display in the UI.
+ * Returns ordered list of data-blocks for display in the UI.
  * Result is list of LinkData of IDs that must be freed.
  */
 void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb)

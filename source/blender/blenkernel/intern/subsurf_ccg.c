@@ -2294,7 +2294,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
   }
 
   if (ob->sculpt->pbvh) {
-    /* Note that we have to clean up exisitng pbvh instead of updating it in case it does not
+    /* Note that we have to clean up existing pbvh instead of updating it in case it does not
      * match current grid_pbvh status. */
     const PBVHType pbvh_type = BKE_pbvh_type(ob->sculpt->pbvh);
     if (grid_pbvh) {
@@ -3016,7 +3016,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(struct DerivedMesh *dm,
          * subsurf structure in order to save computation time since
          * re-creation is rather a complicated business.
          *
-         * TODO(sergey): There was a good eason why final calculation
+         * TODO(sergey): There was a good reason why final calculation
          * used to free entirely cached subsurf structure. reason of
          * this is to be investigated still to be sure we don't have
          * regressions here.

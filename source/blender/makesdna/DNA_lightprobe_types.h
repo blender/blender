@@ -114,8 +114,7 @@ enum {
 };
 
 /* ------- Eevee LightProbes ------- */
-/* Needs to be there because written to file
- * with the lightcache. */
+/* Needs to be there because written to file with the light-cache. */
 
 /* IMPORTANT Padding in these structs is essential. It must match
  * GLSL struct definition in lightprobe_lib.glsl. */

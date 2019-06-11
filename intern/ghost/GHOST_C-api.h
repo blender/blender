@@ -446,8 +446,8 @@ extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
  ***************************************************************************************/
 
 /**
- * Sets 3D mouse deadzone
- * \param deadzone Deadzone of the 3D mouse (both for rotation and pan) relative to full range
+ * Sets 3D mouse dead-zone.
+ * \param deadzone: Dead-zone of the 3D mouse (both for rotation and pan) relative to full range.
  */
 extern void GHOST_setNDOFDeadZone(float deadzone);
 #endif

@@ -1006,14 +1006,14 @@ typedef struct AnimOverride {
 /**
  * Animation data for some ID block (adt)
  *
- * This block of data is used to provide all of the necessary animation data for a datablock.
+ * This block of data is used to provide all of the necessary animation data for a data-block.
  * Currently, this data will not be reusable, as there shouldn't be any need to do so.
  *
  * This information should be made available for most if not all ID-blocks, which should
  * enable all of its settings to be animatable locally. Animation from 'higher-up' ID-AnimData
  * blocks may override local settings.
  *
- * This datablock should be placed immediately after the ID block where it is used, so that
+ * This data-block should be placed immediately after the ID block where it is used, so that
  * the code which retrieves this data can do so in an easier manner.
  * See blenkernel/intern/anim_sys.c for details.
  */
@@ -1098,7 +1098,7 @@ typedef enum eAnimData_Flag {
 
 /**
  * Used for #BKE_animdata_from_id()
- * All ID-datablocks which have their own 'local' AnimData
+ * All ID-data-blocks which have their own 'local' AnimData
  * should have the same arrangement in their structs.
  */
 typedef struct IdAdtTemplate {

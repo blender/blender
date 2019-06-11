@@ -38,7 +38,8 @@ struct Object;
 struct Scene;
 struct ViewLayer;
 struct bArmature;
-/* NOTE: bakeModifier() called from UI: needs to create new datablocks, hence the need for this. */
+/* NOTE: bakeModifier() called from UI:
+ * needs to create new databloc-ks, hence the need for this. */
 struct bContext;
 struct bGPDframe;
 struct bGPDlayer;
@@ -159,11 +160,11 @@ typedef struct GpencilModifierTypeInfo {
                           struct bGPDframe *gpf);
 
   /**
-   * Bake-down GP modifier's effects into the GP datablock.
+   * Bake-down GP modifier's effects into the GP data-block.
    *
    * This gets called when the user clicks the "Apply" button in the UI.
    * As such, this callback needs to go through all layers/frames in the
-   * datablock, mutating the geometry and/or creating new datablocks/objects
+   * data-block, mutating the geometry and/or creating new data-blocks/objects
    */
   void (*bakeModifier)(struct Main *bmain,
                        struct Depsgraph *depsgraph,
@@ -175,7 +176,7 @@ typedef struct GpencilModifierTypeInfo {
   /**
    * Callback for GP "time" modifiers that offset keyframe time
    * Returns the frame number to be used after apply the modifier. This is
-   * usually an offset of the animation for duplicated datablocks.
+   * usually an offset of the animation for duplicated data-blocks.
    *
    * This function is optional.
    */
@@ -243,9 +244,9 @@ typedef struct GpencilModifierTypeInfo {
 
   /**
    * Should call the given walk function with a pointer to each ID
-   * pointer (i.e. each datablock pointer) that the modifier data
+   * pointer (i.e. each data-block pointer) that the modifier data
    * stores. This is used for linking on file load and for
-   * unlinking datablocks or forwarding datablock references.
+   * unlinking data-blocks or forwarding data-block references.
    *
    * This function is optional. If it is not present, foreachObjectLink
    * will be used.

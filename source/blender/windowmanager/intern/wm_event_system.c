@@ -3485,7 +3485,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 
 /**
  * The idea here is to keep a handler alive on window queue, owning the operator.
- * The filewindow can send event to make it execute, thus ensuring
+ * The file window can send event to make it execute, thus ensuring
  * executing happens outside of lower level queues, with UI refreshed.
  * Should also allow multiwin solutions
  */

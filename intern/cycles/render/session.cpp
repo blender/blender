@@ -184,8 +184,8 @@ bool Session::draw_gpu(BufferParams &buffer_params, DeviceDrawParams &draw_param
     /* then verify the buffers have the expected size, so we don't
      * draw previous results in a resized window */
     if (!buffer_params.modified(display->params)) {
-      /* for CUDA we need to do tonemapping still, since we can
-       * only access GL buffers from the main thread */
+      /* for CUDA we need to do tone-mapping still, since we can
+       * only access GL buffers from the main thread. */
       if (gpu_need_tonemap) {
         thread_scoped_lock buffers_lock(buffers_mutex);
         tonemap(tile_manager.state.sample);

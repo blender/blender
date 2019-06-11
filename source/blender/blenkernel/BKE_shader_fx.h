@@ -153,9 +153,9 @@ typedef struct ShaderFxTypeInfo {
                             void *userData);
 
   /* Should call the given walk function with a pointer to each ID
-   * pointer (i.e. each datablock pointer) that the effect data
+   * pointer (i.e. each data-block pointer) that the effect data
    * stores. This is used for linking on file load and for
-   * unlinking datablocks or forwarding datablock references.
+   * unlinking data-blocks or forwarding data-block references.
    *
    * This function is optional. If it is not present, foreachObjectLink
    * will be used.

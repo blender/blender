@@ -1679,7 +1679,7 @@ static void editbmesh_calc_modifier_final_normals(const Mesh *mesh_input,
   if (!do_loop_normals) {
     BKE_mesh_ensure_normals_for_display(mesh_final);
 
-    /* Some modifiers, like datatransfer, may generate those data, we do not want to keep them,
+    /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
      * as they are used by display code when available (i.e. even if autosmooth is disabled). */
     if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
       CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);

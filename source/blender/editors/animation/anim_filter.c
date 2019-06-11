@@ -515,7 +515,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  * 2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
  * 2B) actions to convert to nla: include animdata block's data as there is an action that can be
  *     converted to a new NLA strip, and the filtering options allow this
- * 2C) allow non-animated datablocks to be included so that datablocks can be added
+ * 2C) allow non-animated data-blocks to be included so that data-blocks can be added
  * 3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
  * 4A) nla strip keyframes: these are the per-strip controls for time and influence
  * 4B) normal keyframes: only when there is an active action
@@ -1618,7 +1618,7 @@ static size_t animfilter_block_data(
   AnimData *adt = BKE_animdata_from_id(id);
   size_t items = 0;
 
-  /* image object datablocks have no anim-data so check for NULL */
+  /* image object data-blocks have no anim-data so check for NULL */
   if (adt) {
     IdAdtTemplate *iat = (IdAdtTemplate *)id;
 
@@ -1704,7 +1704,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
   return items;
 }
 
-/* Helper for Grease Pencil - layers within a datablock */
+/* Helper for Grease Pencil - layers within a data-block. */
 static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
                                                   bDopeSheet *ads,
                                                   bGPdata *gpd,
@@ -1737,7 +1737,7 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
   return items;
 }
 
-/* Helper for Grease Pencil - Grease Pencil datablock - GP Frames */
+/* Helper for Grease Pencil - Grease Pencil data-block - GP Frames. */
 static size_t animdata_filter_gpencil_data(ListBase *anim_data,
                                            bDopeSheet *ads,
                                            bGPdata *gpd,
@@ -1746,8 +1746,8 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data,
   size_t items = 0;
 
   /* When asked from "AnimData" blocks (i.e. the top-level containers for normal animation),
-   * for convenience, this will return GP Datablocks instead. This may cause issues down
-   * the track, but for now, this will do...
+   * for convenience, this will return GP Data-blocks instead.
+   * This may cause issues down the track, but for now, this will do.
    */
   if (filter_mode & ANIMFILTER_ANIMDATA) {
     /* just add GPD as a channel - this will add everything needed */
@@ -1781,7 +1781,7 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data,
   return items;
 }
 
-/* Grab all Grease Pencil datablocks in file */
+/* Grab all Grease Pencil data-blocks in file. */
 // TODO: should this be amalgamated with the dopesheet filtering code?
 static size_t animdata_filter_gpencil(bAnimContext *ac,
                                       ListBase *anim_data,
@@ -1847,7 +1847,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
           }
         }
 
-        /* finally, include this object's grease pencil datablock */
+        /* finally, include this object's grease pencil data-block. */
         /* XXX: Should we store these under expanders per item? */
         items += animdata_filter_gpencil_data(anim_data, ads, ob->data, filter_mode);
       }
@@ -1856,7 +1856,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   else {
     bGPdata *gpd;
 
-    /* Grab all Grease Pencil datablocks directly from main,
+    /* Grab all Grease Pencil data-blocks directly from main,
      * but only those that seem to be useful somewhere */
     for (gpd = ac->bmain->gpencils.first; gpd; gpd = gpd->id.next) {
       /* only show if gpd is used by something... */
@@ -1864,7 +1864,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
         continue;
       }
 
-      /* add GP frames from this datablock */
+      /* add GP frames from this data-block. */
       items += animdata_filter_gpencil_data(anim_data, ads, gpd, filter_mode);
     }
   }
@@ -1983,7 +1983,7 @@ static size_t animdata_filter_mask(Main *bmain,
   Mask *mask;
   size_t items = 0;
 
-  /* for now, grab mask datablocks directly from main */
+  /* For now, grab mask data-blocks directly from main. */
   // XXX: this is not good...
   for (mask = bmain->masks.first; mask; mask = mask->id.next) {
     ListBase tmp_data = {NULL, NULL};
@@ -2004,7 +2004,7 @@ static size_t animdata_filter_mask(Main *bmain,
     if (tmp_items) {
       /* include data-expand widget first */
       if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-        /* add mask datablock as channel too (if for drawing, and it has layers) */
+        /* add mask data-block as channel too (if for drawing, and it has layers) */
         ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
       }
 
@@ -3030,7 +3030,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
   }
 
   /* if only F-Curves with visible flags set can be shown, check that
-   * datablock hasn't been set to invisible
+   * data-block hasn't been set to invisible.
    */
   if (filter_mode & ANIMFILTER_CURVE_VISIBLE) {
     if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE)) {

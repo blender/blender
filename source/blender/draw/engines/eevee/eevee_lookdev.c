@@ -126,7 +126,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
         MEM_SAFE_FREE(stl->lookdev_cube_mips);
 
         /* We do this to use a special light cache for lookdev.
-         * This lightcache needs to be per viewport. But we need to
+         * This light-cache needs to be per viewport. But we need to
          * have correct freeing when the viewport is closed. So we
          * need to reference all textures to the txl and the memblocks
          * to the stl. */

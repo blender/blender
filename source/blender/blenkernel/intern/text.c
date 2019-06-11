@@ -2019,7 +2019,7 @@ static void txt_undo_add_unprefix_op(Text *text,
    * 4 bytes */
   txt_undo_store_uint32(utxt->buf, &utxt->pos, line_index_mask_len);
 
-  /* Adding linenumbers of lines that shall not be indented if undoing.
+  /* Adding line-numbers of lines that shall not be indented if undoing.
    * 'line_index_mask_len * 4' bytes */
   for (idata = line_index_mask->first; idata; idata = idata->next) {
     txt_undo_store_uint32(utxt->buf, &utxt->pos, idata->value);

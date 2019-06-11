@@ -1193,7 +1193,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
     }
     graph_->add_new_relation(
         operation_from, operation_to, "Animation -> Prop", RELATION_CHECK_BEFORE_ADD);
-    /* It is possible that animation is writing to a nested ID datablock,
+    /* It is possible that animation is writing to a nested ID data-block,
      * need to make sure animation is evaluated after target ID is copied. */
     const IDNode *id_node_from = operation_from->owner->owner;
     const IDNode *id_node_to = operation_to->owner->owner;
@@ -1397,8 +1397,8 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
     /* If it's not a Bone, handle the generic single dependency case. */
     add_relation(driver_key, property_entry_key, "Driver -> Driven Property");
     /* Similar to the case with f-curves, driver might drive a nested
-     * datablock, which means driver execution should wait for that
-     * datablock to be copied. */
+     * data-block, which means driver execution should wait for that
+     * data-block to be copied. */
     {
       PointerRNA id_ptr;
       PointerRNA ptr;
@@ -1838,11 +1838,11 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  *   Therefore, each user of a piece of shared geometry data ends up evaluating
  *   its own version of the stuff, complete with whatever modifiers it may use.
  *
- * - The datablocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU, ID_LT.)
+ * - The data-blocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU, ID_LT.)
  *   are used for
  *     1) calculating the bounding boxes of the geometry data,
  *     2) aggregating inward links from other objects (e.g. for text on curve)
- *        and also for the links coming from the shapekey datablocks
+ *        and also for the links coming from the shapekey data-blocks
  * - Animation/Drivers affecting the parameters of the geometry are made to
  *   trigger updates on the obdata geometry component, which then trigger
  *   downstream re-evaluation of the individual instances of this geometry. */
@@ -1966,7 +1966,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
         &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
     add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
   }
-  /* Object data datablock. */
+  /* Object data data-block. */
   build_object_data_geometry_datablock((ID *)object->data);
   Key *key = BKE_key_from_object(object);
   if (key != NULL) {
@@ -2502,7 +2502,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     }
     GHASH_FOREACH_END();
     /* NOTE: We currently ignore implicit relations to an external
-     * datablocks for copy-on-write operations. This means, for example,
+     * data-blocks for copy-on-write operations. This means, for example,
      * copy-on-write component of Object will not wait for copy-on-write
      * component of it's Mesh. This is because pointers are all known
      * already so remapping will happen all correct. And then If some object

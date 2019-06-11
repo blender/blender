@@ -4907,10 +4907,10 @@ static void image_user_id_eval_animation(struct Image *ima,
 void BKE_image_user_id_eval_animation(Depsgraph *depsgraph, ID *id)
 {
   /* This is called from the dependency graph to update the image
-   * users in datablocks. It computes the current frame number
+   * users in data-blocks. It computes the current frame number
    * and tags the image to be refreshed.
    * This does not consider nested node trees as these are handled
-   * as their own datablock. */
+   * as their own data-block. */
   bool skip_nested_nodes = true;
   image_walk_id_all_users(id, skip_nested_nodes, depsgraph, image_user_id_eval_animation);
 }

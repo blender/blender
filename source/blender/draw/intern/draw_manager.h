@@ -381,7 +381,7 @@ typedef struct DRWManager {
   } uniform_names;
 } DRWManager;
 
-extern DRWManager DST; /* TODO : get rid of this and allow multithreaded rendering */
+extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
 
 /* --------------- FUNCTIONS ------------- */
 

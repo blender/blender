@@ -179,7 +179,7 @@ typedef enum {
  * - Flag options defined in DNA_outliner_types.h
  * - SO_SEARCH_RECURSIVE defined in DNA_space_types.h
  *
- * - NOT in datablocks view - searching all datablocks takes way too long
+ * - NOT in data-blocks view - searching all data-blocks takes way too long
  *   to be useful
  * - not searching into RNA items helps but isn't the complete solution
  */

@@ -61,7 +61,7 @@
 #include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Docstring (snippets)
+/** \name Documentation String (snippets)
  * \{ */
 
 #define PYBVH_FIND_GENERIC_DISTANCE_DOC \

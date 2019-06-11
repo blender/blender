@@ -2574,7 +2574,7 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
 /**
  * Return the index to use based on the TreeElement ID and object type
  *
- * We use a continuum of indices until we get to the object datablocks
+ * We use a continuum of indices until we get to the object data-blocks
  * and we then make room for the object types.
  */
 static int tree_element_id_type_to_index(TreeElement *te)
@@ -3197,7 +3197,7 @@ static void outliner_draw_highlights_recursive(unsigned pos,
       else {
         if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
           /* search match highlights
-           *   we don't expand items when searching in the datablocks but we
+           *   we don't expand items when searching in the data-blocks but we
            *   still want to highlight any filter matches. */
           immUniformColor4fv(col_searchmatch);
           immRecti(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);

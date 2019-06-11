@@ -89,7 +89,7 @@ class GHOST_DropTargetWin32 : public IDropTarget {
   /* Internal helper functions */
 
   /**
-   * Base the effect on those allowed by the dropsource.
+   * Base the effect on those allowed by the drop-source.
    * \param dwAllowed Drop sources allowed drop effect.
    * \return The allowed drop effect.
    */

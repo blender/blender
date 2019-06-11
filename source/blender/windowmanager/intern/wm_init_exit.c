@@ -267,7 +267,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   BLT_lang_init();
   /* Must call first before doing any '.blend' file reading,
-   * since versionning code may create new IDs... See T57066. */
+   * since versioning code may create new IDs... See T57066. */
   BLT_lang_set(NULL);
 
   /* Init icons before reading .blend files for preview icons, which can

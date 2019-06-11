@@ -266,8 +266,8 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
       }
       if (cb_flag & IDWALK_CB_USER) {
         /* NOTE: We don't user-count IDs which are not in the main database.
-         * This is because in certain conditions we can have datablocks in
-         * the main which are referencing datablocks outside of it.
+         * This is because in certain conditions we can have data-blocks in
+         * the main which are referencing data-blocks outside of it.
          * For example, BKE_mesh_new_from_object() called on an evaluated
          * object will cause such situation.
          */
@@ -409,7 +409,7 @@ static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new
 }
 
 /**
- * Execute the 'data' part of the remapping (that is, all ID pointers from other ID datablocks).
+ * Execute the 'data' part of the remapping (that is, all ID pointers from other ID data-blocks).
  *
  * Behavior differs depending on whether given \a id is NULL or not:
  * - \a id NULL: \a old_id must be non-NULL, \a new_id may be NULL (unlinking \a old_id) or not
@@ -419,14 +419,14 @@ static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new
  * - \a id is non-NULL:
  *   + If \a old_id is NULL, \a new_id must also be NULL,
  *     and all ID pointers from \a id are cleared
- *     (i.e. \a id does not references any other datablock anymore).
+ *     (i.e. \a id does not references any other data-block anymore).
  *   + If \a old_id is non-NULL, behavior is as with a NULL \a id, but only within given \a id.
  *
  * \param bmain: the Main data storage to operate on (must never be NULL).
- * \param id: the datablock to operate on
+ * \param id: the data-block to operate on
  * (can be NULL, in which case we operate over all IDs from given bmain).
- * \param old_id: the datablock to dereference (may be NULL if \a id is non-NULL).
- * \param new_id: the new datablock to replace \a old_id references with (may be NULL).
+ * \param old_id: the data-block to dereference (may be NULL if \a id is non-NULL).
+ * \param new_id: the new data-block to replace \a old_id references with (may be NULL).
  * \param r_id_remap_data: if non-NULL, the IDRemap struct to use
  * (uselful to retrieve info about remapping process).
  */

@@ -22,7 +22,7 @@
  */
 
 /* Enable special; trickery to treat nested owned IDs (such as nodetree of
- * material) to be handled in same way as "real" datablocks, even tho some
+ * material) to be handled in same way as "real" data-blocks, even tho some
  * internal BKE routines doesn't treat them like that.
  *
  * TODO(sergey): Re-evaluate that after new ID handling is in place. */
@@ -496,7 +496,7 @@ BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
   return (id_cow->name[0] != '\0');
 }
 
-/* Those are datablocks which are not covered by dependency graph and hence
+/* Those are data-blocks which are not covered by dependency graph and hence
  * does not need any remapping or anything.
  *
  * TODO(sergey): How to make it more robust for the future, so we don't have
@@ -736,7 +736,7 @@ void update_animation_data_after_copy(const ID *id_orig, ID *id_cow)
 /* Do some special treatment of data transfer from original ID to it's
  * CoW complementary part.
  *
- * Only use for the newly created CoW datablocks. */
+ * Only use for the newly created CoW data-blocks. */
 void update_id_after_copy(const Depsgraph *depsgraph,
                           const IDNode *id_node,
                           const ID *id_orig,
@@ -784,7 +784,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
   BKE_animsys_update_driver_array(id_cow);
 }
 
-/* This callback is used to validate that all nested ID datablocks are
+/* This callback is used to validate that all nested ID data-blocks are
  * properly expanded. */
 int foreach_libblock_validate_callback(void *user_data,
                                        ID * /*id_self*/,
@@ -1483,10 +1483,10 @@ void discard_edit_mode_pointers(ID *id_cow)
 
 }  // namespace
 
-/* Free content of the CoW datablock
+/* Free content of the CoW data-block
  * Notes:
- * - Does not recurs into nested ID datablocks.
- * - Does not free datablock itself. */
+ * - Does not recurs into nested ID data-blocks.
+ * - Does not free data-block itself. */
 void deg_free_copy_on_write_datablock(ID *id_cow)
 {
   if (!check_datablock_expanded(id_cow)) {

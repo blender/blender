@@ -56,7 +56,7 @@ extern "C" {
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-// Invalidate datablock data when update is flushed on it.
+// Invalidate data-block data when update is flushed on it.
 //
 // The idea of this is to help catching cases when area is accessing data which
 // is not yet evaluated, which could happen due to missing relations. The issue
@@ -254,11 +254,11 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
                      id_orig->name,
                      (unsigned int)id_cow->recalc);
 
-    /* Inform editors. Only if the datablock is being evaluated a second
+    /* Inform editors. Only if the data-block is being evaluated a second
      * time, to distinguish between user edits and initial evaluation when
-     * the datablock becomes visible.
+     * the data-block becomes visible.
      *
-     * TODO: image datablocks do not use COW, so might not be detected
+     * TODO: image data-blocks do not use COW, so might not be detected
      * correctly. */
     if (deg_copy_on_write_is_expanded(id_cow)) {
       if (graph->is_active && id_node->is_user_modified) {

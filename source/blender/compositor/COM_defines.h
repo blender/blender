@@ -68,7 +68,7 @@ typedef enum CompositorPriority {
 
 // workscheduler threading models
 /**
- * COM_TM_QUEUE is a multithreaded model, which uses the BLI_thread_queue pattern.
+ * COM_TM_QUEUE is a multi-threaded model, which uses the BLI_thread_queue pattern.
  * This is the default option.
  */
 #define COM_TM_QUEUE 1

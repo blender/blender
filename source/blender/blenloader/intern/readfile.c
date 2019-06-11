@@ -212,7 +212,7 @@
  * - link all LibBlocks and indirect pointers to libblocks
  * - initialize #FileGlobal and copy pointers to #Global
  *
- * \note Still a weak point is the new-address function, that doesnt solve reading from
+ * \note Still a weak point is the new-address function, that doesn't solve reading from
  * multiple files at the same time.
  * (added remark: oh, i thought that was solved? will look at that... (ton).
  */
@@ -676,8 +676,8 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   m = BKE_main_new();
   BLI_addtail(mainlist, m);
 
-  /* Add library datablock itself to 'main' Main, since libraries are **never** linked data.
-   * Fixes bug where you could end with all ID_LI datablocks having the same name... */
+  /* Add library data-block itself to 'main' Main, since libraries are **never** linked data.
+   * Fixes bug where you could end with all ID_LI data-blocks having the same name... */
   lib = BKE_libblock_alloc(mainlist->first, ID_LI, BLI_path_basename(filepath), 0);
   lib->id.us = ID_FAKE_USERS(
       lib); /* Important, consistency with main ID reading code from read_libblock(). */
@@ -9488,8 +9488,8 @@ static void lib_link_all(FileData *fd, Main *main)
   BLO_main_validate_shapekeys(main, NULL);
 
   if (fd->memfile != NULL) {
-    /* When doing redo, we perform a tremendous amount of esoterics magic tricks to avoid having to
-     * re-read all library datablocks.
+    /* When doing redo, we perform a tremendous amount of esoteric magic tricks to avoid having to
+     * re-read all library data-blocks.
      * Unfortunately, that means that we do not clear Collections' parents lists, which then get
      * improperly extended in some cases by lib_link_scene() and lib_link_collection() calls above
      * (when ome local collection is parent of linked ones).
@@ -9810,7 +9810,7 @@ static void sort_bhead_old_map(FileData *fd)
 
 static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 {
-  /* skip library datablocks in undo, see comment in read_libblock */
+  /* Skip library data-blocks in undo, see comment in read_libblock. */
   if (fd->memfile) {
     return NULL;
   }
@@ -11680,7 +11680,7 @@ static void read_library_linked_ids(FileData *basefd,
         /* BLI_assert(*realid != NULL); */
 
         /* Now that we have a real ID, replace all pointers to placeholders in
-         * fd->libmap with pointers to the real datablocks. We do this for all
+         * fd->libmap with pointers to the real data-blocks. We do this for all
          * libraries since multiple might be referencing this ID. */
         change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, *realid);
 
@@ -11785,11 +11785,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
   BLO_main_expander(expand_doit_library);
 
   /* At this point the base blend file has been read, and each library blend
-   * encountered so far has a main with placeholders for linked datablocks.
+   * encountered so far has a main with placeholders for linked data-blocks.
    *
    * Now we will read the library blend files and replace the placeholders
-   * with actual datablocks. We loop over library mains multiple times in
-   * case a library needs to link additional datablocks from another library
+   * with actual data-blocks. We loop over library mains multiple times in
+   * case a library needs to link additional data-blocks from another library
    * that had been read previously. */
   while (do_it) {
     do_it = false;
@@ -11797,10 +11797,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     /* Loop over mains of all library blend files encountered so far. Note
      * this list gets longer as more indirectly library blends are found. */
     for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
-      /* Does this library have any more linked datablocks we need to read? */
+      /* Does this library have any more linked data-blocks we need to read? */
       if (has_linked_ids_to_read(mainptr)) {
 #if 0
-        printf("Reading linked datablocks from %s (%s)\n",
+        printf("Reading linked data-blocks from %s (%s)\n",
                mainptr->curlib->id.name,
                mainptr->curlib->name);
 #endif

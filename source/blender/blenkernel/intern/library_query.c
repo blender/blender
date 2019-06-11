@@ -1073,7 +1073,7 @@ FOREACH_FINALIZE:
 #undef FOREACH_CALLBACK_INVOKE
 
 /**
- * Loop over all of the ID's this datablock links to.
+ * Loop over all of the ID's this data-block links to.
  */
 void BKE_library_foreach_ID_link(
     Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
@@ -1096,7 +1096,7 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
 }
 
 /**
- * Say whether given \a id_type_owner can use (in any way) a datablock of \a id_type_used.
+ * Say whether given \a id_type_owner can use (in any way) a data-block of \a id_type_used.
  *
  * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
  * quite useful to reduce* useless iterations in some cases.
@@ -1123,7 +1123,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
   }
 
   if (BKE_animdata_from_id(id_owner)) {
-    /* AnimationData can use virtually any kind of datablocks, through drivers especially. */
+    /* AnimationData can use virtually any kind of data-blocks, through drivers especially. */
     return true;
   }
 
@@ -1409,11 +1409,11 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(void *user_data,
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)
  * in any way by any local data), including complex cases like 'linked archipelagoes', i.e.
- * linked datablocks that use each other in loops,
+ * linked data-blocks that use each other in loops,
  * which prevents their deletion by 'basic' usage checks.
  *
  * \param do_init_tag: if \a true, all linked data are checked, if \a false,
- * only linked datablocks already tagged with #LIB_TAG_DOIT are checked.
+ * only linked data-blocks already tagged with #LIB_TAG_DOIT are checked.
  */
 void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
@@ -1445,12 +1445,12 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 }
 
 /**
- * Untag linked data blocks used by other untagged linked datablocks.
- * Used to detect datablocks that we can forcefully make local
+ * Untag linked data blocks used by other untagged linked data-blocks.
+ * Used to detect data-blocks that we can forcefully make local
  * (instead of copying them to later get rid of original):
- * All datablocks we want to make local are tagged by caller,
- * after this function has ran caller knows datablocks still tagged can directly be made local,
- * since they are only used by other datablocks that will also be made fully local.
+ * All data-blocks we want to make local are tagged by caller,
+ * after this function has ran caller knows data-blocks still tagged can directly be made local,
+ * since they are only used by other data-blocks that will also be made fully local.
  */
 void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 {

@@ -3079,7 +3079,7 @@ static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
   uiBut *bt = bt_v;
   ColorBand *coba = coba_v;
 
-  /* sneaky update here, we need to sort the colorband points to be in order,
+  /* Sneaky update here, we need to sort the color-band points to be in order,
    * however the RNA pointer then is wrong, so we update it */
   BKE_colorband_update_sort(coba);
   bt->rnapoin.data = coba->data + coba->cur;

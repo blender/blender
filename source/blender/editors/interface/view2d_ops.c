@@ -2031,7 +2031,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
   const char in_scroller = UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y);
 
   /* if in a scroller, init customdata then set modal handler which will
-   * catch mousedown to start doing useful stuff */
+   * catch mouse-down to start doing useful stuff */
   if (in_scroller) {
     v2dScrollerMove *vsm;
 

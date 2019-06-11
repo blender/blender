@@ -170,7 +170,7 @@ typedef struct bGPDstroke_Runtime {
 
 /* Grease-Pencil Annotations - 'Stroke'
  * -> A stroke represents a (simplified version) of the curve
- *    drawn by the user in one 'mousedown'->'mouseup' operation
+ *    drawn by the user in one 'mouse-down'->'mouse-up' operation
  */
 typedef struct bGPDstroke {
   struct bGPDstroke *next, *prev;
@@ -457,7 +457,7 @@ typedef struct bGPgrid {
 
 /* Grease-Pencil Annotations - 'DataBlock' */
 typedef struct bGPdata {
-  /** Grease Pencil data is a datablock. */
+  /** Grease Pencil data is a data-block. */
   ID id;
   /** Animation data - for animating draw settings. */
   struct AnimData *adt;
@@ -465,7 +465,7 @@ typedef struct bGPdata {
   /* Grease-Pencil data */
   /** BGPDlayers. */
   ListBase layers;
-  /** Settings for this datablock. */
+  /** Settings for this data-block. */
   int flag;
 
   char _pad1[4];
@@ -532,9 +532,9 @@ typedef struct bGPdata {
  *       changes made during the porting process.
  */
 typedef enum eGPdata_Flag {
-  /* datablock is used for "annotations"
+  /* data-block is used for "annotations"
    * NOTE: This flag used to be used in 2.4x, but should hardly ever have been set.
-   *       We can use this freely now, as all GP datablocks from pre-2.8 will get
+   *       We can use this freely now, as all GP data-blocks from pre-2.8 will get
    *       set on file load (as many old use cases are for "annotations" only)
    */
   GP_DATA_ANNOTATIONS = (1 << 0),

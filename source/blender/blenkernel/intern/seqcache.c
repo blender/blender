@@ -40,7 +40,9 @@
 #include "BKE_scene.h"
 #include "BKE_main.h"
 
-/* ***************************** Sequencer cache design notes ******************************
+/**
+ * Sequencer Cache Design Notes
+ * ============================
  *
  * Cache key members:
  * is_temp_cache - this cache entry will be freed before rendering next frame
@@ -50,8 +52,8 @@
  *
  * Linking: We use links to reduce number of iterations needed to manage cache.
  * Entries are linked in order as they are put into cache.
- * Only pernament (is_temp_cache = 0) cache entries are linked.
- * Putting SEQ_CACHE_STORE_FINAL_OUT will reset linking
+ * Only permanent (is_temp_cache = 0) cache entries are linked.
+ * Putting #SEQ_CACHE_STORE_FINAL_OUT will reset linking
  *
  * Function:
  * All images created during rendering are added to cache, even if the cache is already full.

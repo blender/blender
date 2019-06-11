@@ -675,7 +675,7 @@ enum {
   WM_JOB_TYPE_STUDIOLIGHT,
   WM_JOB_TYPE_LIGHT_BAKE,
   WM_JOB_TYPE_FSMENU_BOOKMARK_VALIDATE,
-  /* add as needed, screencast, seq proxy build
+  /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 };
 

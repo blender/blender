@@ -663,7 +663,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
   if (result) {
     /* 99% of the time this is enough but we better support non unicode
-     * chars since blender doesnt limit this */
+     * chars since blender doesn't limit this. */
     return result;
   }
   else {

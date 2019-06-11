@@ -198,7 +198,7 @@ ccl_device void math_trimatrix_cholesky(ccl_global float *A, int n, int stride)
 }
 
 /* Solve A*S=y for S given A and y,
- * where A is symmetrical positive-semidefinite and both inputs are destroyed in the process.
+ * where A is symmetrical positive-semi-definite and both inputs are destroyed in the process.
  *
  * We can apply Cholesky decomposition to find a lower triangular L so that L*Lt = A.
  * With that we get (L*Lt)*S = L*(Lt*S) = L*b = y, defining b as Lt*S.

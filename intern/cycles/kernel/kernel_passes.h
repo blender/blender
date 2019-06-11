@@ -71,8 +71,9 @@ ccl_device_inline void kernel_write_pass_float_variance(ccl_global float *buffer
 {
   kernel_write_pass_float(buffer, value);
 
-  /* The online one-pass variance update that's used for the megakernel can't easily be implemented
-   * with atomics, so for the split kernel the E[x^2] - 1/N * (E[x])^2 fallback is used. */
+  /* The online one-pass variance update that's used for the mega-kernel can't easily be
+   * implemented with atomics,
+   * so for the split kernel the E[x^2] - 1/N * (E[x])^2 fallback is used. */
   kernel_write_pass_float(buffer + 1, value * value);
 }
 

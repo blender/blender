@@ -1198,7 +1198,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
       bool enabled = false;
 
-      /* Ensure that the datablock's onionskinning toggle flag
+      /* Ensure that the datablock's onion-skinning toggle flag
        * stays in sync with the status of the actual layers
        */
       for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {

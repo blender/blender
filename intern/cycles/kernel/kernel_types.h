@@ -314,7 +314,7 @@ enum PathRayFlag {
   /* Ray is to be terminated, but continue with transparent bounces and
    * emission as long as we encounter them. This is required to make the
    * MIS between direct and indirect light rays match, as shadow rays go
-   * through transparent surfaces to reach emisison too. */
+   * through transparent surfaces to reach emission too. */
   PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1 << 21),
   /* Ray is to be terminated. */
   PATH_RAY_TERMINATE = (PATH_RAY_TERMINATE_IMMEDIATE | PATH_RAY_TERMINATE_AFTER_TRANSPARENT),
@@ -1148,7 +1148,7 @@ typedef struct KernelCamera {
   ProjectionTransform worldtondc;
   Transform worldtocamera;
 
-  /* Stores changes in the projeciton matrix. Use for camera zoom motion
+  /* Stores changes in the projection matrix. Use for camera zoom motion
    * blur and motion pass output for perspective camera. */
   ProjectionTransform perspective_pre;
   ProjectionTransform perspective_post;

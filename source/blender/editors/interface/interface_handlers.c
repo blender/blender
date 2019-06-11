@@ -7182,8 +7182,10 @@ void UI_but_tooltip_refresh(bContext *C, uiBut *but)
   }
 }
 
-/* removes tooltip timer from active but
- * (meaning tooltip is disabled until it's reenabled again) */
+/**
+ * Removes tool-tip timer from active but
+ * (meaning tool-tip is disabled until it's re-enabled again).
+ */
 void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 {
   uiHandleButtonData *data;
@@ -8511,7 +8513,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 
 /**
  * Function used to prevent losing the open menu when using nested pull-downs,
- * when moving mouse towards the pulldown menu over other buttons that could
+ * when moving mouse towards the pull-down menu over other buttons that could
  * steal the highlight from the current button, only checks:
  *
  * - while mouse moves in triangular area defined old mouse position and

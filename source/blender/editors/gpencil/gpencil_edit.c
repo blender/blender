@@ -994,7 +994,7 @@ ListBase gp_strokes_copypastebuf = {NULL, NULL};
 
 /* Hash for hanging on to all the colors used by strokes in the buffer
  *
- * This is needed to prevent dangling and unsafe pointers when pasting across datablocks,
+ * This is needed to prevent dangling and unsafe pointers when pasting across data-blocks,
  * or after a color used by a stroke in the buffer gets deleted (via user action or undo).
  */
 static GHash *gp_strokes_copypastebuf_colors = NULL;
@@ -4026,7 +4026,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
                 /* make copy of source stroke */
                 bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps);
 
-                /* reasign material */
+                /* Reassign material. */
                 gps_dst->mat_nr = idx;
 
                 /* link to destination frame */
@@ -4052,7 +4052,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
                 gps->prev = gps->next = NULL;
                 /* relink to destination frame */
                 BLI_addtail(&gpf_dst->strokes, gps);
-                /* reasign material */
+                /* Reassign material. */
                 gps->mat_nr = idx;
               }
             }

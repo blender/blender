@@ -1856,7 +1856,7 @@ bool BKE_nla_action_stash(AnimData *adt)
   BLI_assert(nlt != NULL);
 
   /* We need to ensure that if there wasn't any previous instance,
-   * it must go to tbe bottom of the stack. */
+   * it must go to be bottom of the stack. */
   if (prev_track == NULL) {
     BLI_remlink(&adt->nla_tracks, nlt);
     BLI_addhead(&adt->nla_tracks, nlt);

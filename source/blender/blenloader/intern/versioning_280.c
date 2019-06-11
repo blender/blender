@@ -784,7 +784,7 @@ void do_versions_after_linking_280(Main *bmain)
     }
 
     /* We need to assign lib pointer to generated hidden collections *after* all have been created,
-     * otherwise we'll end up with several datablocks sharing same name/library,
+     * otherwise we'll end up with several data-blocks sharing same name/library,
      * which is FORBIDDEN!
      * Note: we need this to be recursive,
      * since a child collection may be sorted before its parent in bmain. */

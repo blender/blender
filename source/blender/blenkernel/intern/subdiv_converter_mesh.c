@@ -61,7 +61,7 @@ typedef struct ConverterStorage {
    */
   int *manifold_vertex_index;
   /* Indexed by vertex index from mesh, corresponds to whether this vertex has
-   * infinite sharpness due to non-manifol topology.
+   * infinite sharpness due to non-manifold topology.
    */
   BLI_bitmap *infinite_sharp_vertices_map;
   /* Reverse mapping to above. */

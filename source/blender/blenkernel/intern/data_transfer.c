@@ -90,8 +90,10 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
   }
 }
 
-/* Check what can do each layer type
- * (if it is actually handled by transferdata, if it supports advanced mixing... */
+/**
+ * Check what can do each layer type
+ * (if it is actually handled by transfer-data, if it supports advanced mixing.
+ */
 bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
                                                    bool *r_advanced_mixing,
                                                    bool *r_threshold)

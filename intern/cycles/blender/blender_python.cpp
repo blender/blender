@@ -138,7 +138,7 @@ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
   const char *result = _PyUnicode_AsString(py_str);
   if (result) {
     /* 99% of the time this is enough but we better support non unicode
-     * chars since blender doesnt limit this.
+     * chars since blender doesn't limit this.
      */
     return result;
   }
@@ -151,7 +151,7 @@ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
       return PyBytes_AS_STRING(*coerce);
     }
     else {
-      /* Clear the error, so Cycles can be at leadt used without
+      /* Clear the error, so Cycles can be at least used without
        * GPU and OSL support,
        */
       PyErr_Clear();

@@ -334,7 +334,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
       case ALE_FCURVE:
       default: {
         if (ked && ked->iterflags) {
-          /* make backups of the current values, so that a localised fix
+          /* make backups of the current values, so that a localized fix
            * (e.g. NLA time remapping) can be applied to these values
            */
           float f1 = ked->f1;

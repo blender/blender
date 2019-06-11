@@ -170,7 +170,7 @@ void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
                                        const char *newName);
 
 /* Fix the path after removing elements that are not ID (e.g., node).
- * Returen truth if any animation data was affected. */
+ * Return true if any animation data was affected. */
 bool BKE_animdata_fix_paths_remove(struct ID *id, const char *path);
 
 /* -------------------------------------- */

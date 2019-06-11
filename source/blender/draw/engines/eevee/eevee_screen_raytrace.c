@@ -209,7 +209,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
      * - First pass Trace rays across the depth buffer. The hit position and pdf are
      *   recorded in a RGBA16F render target for each ray (sample).
      *
-     * - We downsample the previous frame color buffer.
+     * - We down-sample the previous frame color buffer.
      *
      * - For each final pixel, we gather neighbors rays and choose a color buffer
      *   mipmap for each ray using its pdf. (filtered importance sampling)

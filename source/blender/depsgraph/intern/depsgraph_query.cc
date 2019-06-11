@@ -153,7 +153,7 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
 {
   const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
   Scene *scene_cow = deg_graph->scene_cow;
-  /* TODO(sergey): Shall we expand datablock here? Or is it OK to assume
+  /* TODO(sergey): Shall we expand data-block here? Or is it OK to assume
    * that calleer is OK with just a pointer in case scene is not updated
    * yet? */
   BLI_assert(scene_cow != NULL && DEG::deg_copy_on_write_is_expanded(&scene_cow->id));
@@ -201,7 +201,7 @@ ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
   }
   /* TODO(sergey): This is a duplicate of Depsgraph::get_cow_id(),
    * but here we never do assert, since we don't know nature of the
-   * incoming ID datablock. */
+   * incoming ID data-block. */
   const DEG::Depsgraph *deg_graph = (const DEG::Depsgraph *)depsgraph;
   const DEG::IDNode *id_node = deg_graph->find_id_node(id);
   if (id_node == NULL) {
@@ -292,14 +292,14 @@ bool DEG_is_original_id(ID *id)
    * What we want here is to be able to tell whether given ID is a result of dependency graph
    * evaluation or not.
    *
-   * All the datablocks which are created by copy-on-write mechanism will have will be tagged with
-   * LIB_TAG_COPIED_ON_WRITE tag. Those datablocks can not be original.
+   * All the data-blocks which are created by copy-on-write mechanism will have will be tagged with
+   * LIB_TAG_COPIED_ON_WRITE tag. Those data-blocks can not be original.
    *
-   * Modifier stack evaluation might create special datablocks which have all the modifiers
-   * applied, and those will be tagged with LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT. Such datablocks
+   * Modifier stack evaluation might create special data-blocks which have all the modifiers
+   * applied, and those will be tagged with LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT. Such data-blocks
    * can not be original as well.
    *
-   * Localization is usually happening from evaluated datablock, or will have some special pointer
+   * Localization is usually happening from evaluated data-block, or will have some special pointer
    * magic which will make them to act as evaluated.
    *
    * NOTE: We conder ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */

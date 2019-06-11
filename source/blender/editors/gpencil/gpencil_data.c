@@ -15,11 +15,12 @@
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
- * Operators for dealing with GP datablocks and layers
  */
 
 /** \file
  * \ingroup edgpencil
+ *
+ * Operators for dealing with GP data-blocks and layers.
  */
 
 #include <stdio.h>
@@ -539,7 +540,7 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
       Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
       int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 
-      /* reasign the stroke material to the right slot in destination object */
+      /* Reassign the stroke material to the right slot in destination object. */
       gps_dst->mat_nr = idx;
 
       /* add new stroke to frame */
@@ -1077,7 +1078,7 @@ static int gp_isolate_layer_exec(bContext *C, wmOperator *op)
   }
 
   /* Set/Clear flags as appropriate */
-  /* TODO: Include onionskinning on this list? */
+  /* TODO: Include onion-skinning on this list? */
   if (isolate) {
     /* Set flags on all "other" layers */
     for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -2322,7 +2323,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
           for (bGPDframe *gpf = gpl_new->frames.first; gpf; gpf = gpf->next) {
             for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 
-              /* reasign material. Look old material and try to find in dst */
+              /* Reassign material. Look old material and try to find in destination. */
               ma_src = give_current_material(ob_src, gps->mat_nr + 1);
               gps->mat_nr = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
 

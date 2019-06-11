@@ -3341,7 +3341,7 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
 
   return !error;
 }
-/* youll need to close yourself after!
+/* you'll need to close yourself after!
  * mode - PTCACHE_CLEAR_ALL,
  */
 

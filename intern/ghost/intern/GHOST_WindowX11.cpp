@@ -957,7 +957,7 @@ GHOST_TWindowState GHOST_WindowX11::getState() const
   state = icccmGetState();
   /*
    * In the Iconic and Withdrawn state, the window
-   * is unmaped, so only need return a Minimized state.
+   * is unmapped, so only need return a Minimized state.
    */
   if ((state == IconicState) || (state == WithdrawnState))
     state_ret = GHOST_kWindowStateMinimized;

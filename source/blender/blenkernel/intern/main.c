@@ -483,7 +483,7 @@ ListBase *which_libbase(Main *bmain, short type)
 int set_listbasepointers(Main *bmain, ListBase **lb)
 {
   /* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
-   * This is important because freeing data decreases usercounts of other datablocks,
+   * This is important because freeing data decreases user-counts of other data-blocks,
    * if this data is its self freed it can crash. */
   lb[INDEX_ID_LI] = &(
       bmain->libraries); /* Libraries may be accessed from pretty much any other ID... */

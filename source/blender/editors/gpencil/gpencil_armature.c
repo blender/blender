@@ -15,11 +15,12 @@
  *
  * The Original Code is Copyright (C) 2018, Blender Foundation
  * This is a new part of Blender
- * Operators for dealing with armatures and GP datablocks
  */
 
 /** \file
  * \ingroup edgpencil
+ *
+ * Operators for dealing with armatures and GP data-blocks.
  */
 
 #include <stdio.h>

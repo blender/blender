@@ -88,7 +88,7 @@ typedef struct bSound {
    */
   void *playback_handle;
 
-  /** Spinlock for asynchronous loading of sounds. */
+  /** Spin-lock for asynchronous loading of sounds. */
   void *spinlock;
   /* XXX unused currently (SOUND_TYPE_LIMITER) */
   /* float start, end; */

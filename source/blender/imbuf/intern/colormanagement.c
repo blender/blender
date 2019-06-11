@@ -2196,7 +2196,7 @@ void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
     processor = colorspace_to_scene_linear_processor(ibuf->rect_colorspace);
   }
 
-  /* TODO(brecht): make this multithreaded, or at least process in batches. */
+  /* TODO(brecht): make this multi-threaded, or at least process in batches. */
   const unsigned char *in_buffer = (unsigned char *)ibuf->rect;
   const bool use_premultiply = IMB_alpha_affects_rgb(ibuf) && store_premultiplied;
 

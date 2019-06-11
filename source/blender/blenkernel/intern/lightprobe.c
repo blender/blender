@@ -60,7 +60,7 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
 }
 
 /**
- * Only copy internal data of LightProbe ID from source
+ * Only copy internal data of #LightProbe ID from source
  * to already allocated/initialized destination.
  * You probably never want to use that directly,
  * use #BKE_id_copy or #BKE_id_copy_ex for typical needs.

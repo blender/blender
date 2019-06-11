@@ -1739,7 +1739,7 @@ static int BMO_opcode_from_opname_check(const char *opname)
  *
  * \note The common v/e/f suffix can be mixed,
  * so `avef` is can be used for all verts, edges and faces.
- * Order is not important so `Hfev` is also valid (all unflagged verts, edges and faces).
+ * Order is not important so `Hfev` is also valid (all un-flagged verts, edges and faces).
  */
 
 bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)

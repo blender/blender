@@ -1664,8 +1664,8 @@ struct FastNodeBuildInfo {
 
 /**
  * Recursively split the node if it exceeds the leaf_limit.
- * This function is multithreadabe since each invocation applies
- * to a sub part of the arrays
+ * This function is multi-threadabe since each invocation applies
+ * to a sub part of the arrays.
  */
 static void pbvh_bmesh_node_limit_ensure_fast(
     PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node, MemArena *arena)

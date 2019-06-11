@@ -1512,7 +1512,7 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
 {
   /* Note: we cannot use result of normal_tri_v3 here to detect colinear vectors
    * (vertex on a straight line) from zero value,
-   * because it does not normalize both vectors before making crossproduct.
+   * because it does not normalize both vectors before making cross-product.
    * Instead of adding two costly normalize computations,
    * just check ourselves for colinear case. */
   /* Note: FEPSILON might need some finer tweaking at some point?
@@ -1529,7 +1529,7 @@ float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, 
   mul_v3_v3fl(v_tmp, v2, fac);
   sub_v3_v3(v_tmp, v1);
   if (fac != 0.0f && !is_zero_v3(v1) && len_squared_v3(v_tmp) > epsilon_sq) {
-    /* Not co-linear, we can compute crossproduct and normalize it into normal. */
+    /* Not co-linear, we can compute cross-product and normalize it into normal. */
     cross_v3_v3v3(r_normal, v1, v2);
     return normalize_v3(r_normal);
   }

@@ -34,7 +34,7 @@
 #include "BKE_main.h"
 
 #include "DNA_ID.h"
-/* Those folowing are only to support hack of not listing some internal
+/* Those following are only to support hack of not listing some internal
  * 'backward' pointers in generated user_map. */
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"

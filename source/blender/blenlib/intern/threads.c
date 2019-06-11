@@ -495,7 +495,7 @@ void BLI_spin_lock(SpinLock *spin)
 #elif defined(_MSC_VER)
   while (InterlockedExchangeAcquire(spin, 1)) {
     while (*spin) {
-      /* Spinlock hint for processors with hyperthreading. */
+      /* Spin-lock hint for processors with hyperthreading. */
       YieldProcessor();
     }
   }

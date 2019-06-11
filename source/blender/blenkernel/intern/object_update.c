@@ -139,7 +139,7 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
 {
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
   /* Make sure inverse matrix is always up to date. This way users of it
-   * do not need to worry about relcalculating it. */
+   * do not need to worry about recalculating it. */
   invert_m4_m4(ob->imat, ob->obmat);
   /* Set negative scale flag in object. */
   if (is_negative_m4(ob->obmat)) {

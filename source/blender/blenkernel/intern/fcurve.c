@@ -2687,7 +2687,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 
             if (fabsf(v1[1] - v4[1]) < FLT_EPSILON && fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
                 fabsf(v3[1] - v4[1]) < FLT_EPSILON) {
-              /* Optimisation: If all the handles are flat/at the same values,
+              /* Optimization: If all the handles are flat/at the same values,
                * the value is simply the shared value (see T40372 -> F91346)
                */
               cvalue = v1[1];

@@ -423,7 +423,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* Allow view navigation??? */
   /* note, this gives issues:
    * 1) other modal ops run on top (box select),
-   * 2) middlemouse is used now 3) tablet/trackpad? */
+   * 2) middle-mouse is used now 3) tablet/trackpad? */
   else {
     return OPERATOR_PASS_THROUGH;
   }

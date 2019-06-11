@@ -2060,8 +2060,8 @@ void DRW_gpencil_populate_particles(GPENCIL_e_data *e_data, GHash *gh_objects, v
   for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
     tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
     if (cache_ob->is_dup_ob) {
-      /* reasign duplicate objects because memory for particles is not available
-       * and need to use the original datablock and runtime data */
+      /* Reassign duplicate objects because memory for particles is not available
+       * and need to use the original data-block and run-time data. */
       Object *ob = (Object *)BLI_ghash_lookup(gh_objects, cache_ob->name);
       if (ob) {
         cache_ob->ob = ob;

@@ -506,7 +506,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
  *
  * \param axis_ref: used when v1,v2,v3 form a line and to check if the corner is concave/convex.
  *
- * \note the distance from \a v1 & \a v3 to \a v2 doesnt matter
+ * \note the distance from \a v1 & \a v3 to \a v2 doesn't matter
  * (it just defines the planes).
  *
  * \return the lowest squared distance to either of the planes.

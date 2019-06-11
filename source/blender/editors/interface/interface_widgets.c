@@ -1654,7 +1654,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
 
   if ((okwidth > 0.0f) && (strwidth > okwidth)) {
     /* utf8 two-dots leader '..' (shorter than ellipsis '...'),
-     * some compilers complain with real litteral string. */
+     * some compilers complain with real literal string. */
     const char sep[] = {0xe2, 0x80, 0xA5, 0x0};
     const int sep_len = sizeof(sep) - 1;
     const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
@@ -3800,7 +3800,7 @@ static void widget_swatch(
   if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
     /* Now we reduce alpha of the inner color (i.e. the color shown)
      * so that this setting can look grayed out, while retaining
-     * the checkboard (for transparent values). This is needed
+     * the checkerboard (for transparent values). This is needed
      * here as the effects of ui_widget_color_disabled() are overwritten.
      */
     wcol->inner[3] /= 2;

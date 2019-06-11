@@ -198,7 +198,7 @@ static void UNUSED_FUNCTION(rna_GPencil_onion_skinning_update)(Main *bmain,
   bGPDlayer *gpl;
   bool enabled = false;
 
-  /* Ensure that the datablock's onionskinning toggle flag
+  /* Ensure that the data-block's onion-skinning toggle flag
    * stays in sync with the status of the actual layers
    */
   for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {

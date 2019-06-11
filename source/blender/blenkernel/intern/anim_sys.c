@@ -284,7 +284,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 /* Copying -------------------------------------------- */
 
 /**
- * Make a copy of the given AnimData - to be used when copying datablocks.
+ * Make a copy of the given AnimData - to be used when copying data-blocks.
  * \param flag: Control ID pointers management,
  * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  * \return The copied animdata.
@@ -464,7 +464,7 @@ static bool animpath_matches_basepath(const char path[], const char basepath[])
 /* Move F-Curves in src action to dst action, setting up all the necessary groups
  * for this to happen, but only if the F-Curves being moved have the appropriate
  * "base path".
- * - This is used when data moves from one datablock to another, causing the
+ * - This is used when data moves from one data-block to another, causing the
  *   F-Curves to need to be moved over too
  */
 void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const char basepath[])
@@ -638,7 +638,7 @@ void BKE_animdata_separate_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
  * they will get picked up by the dependency system.
  *
  * \param C: Context pointer - for getting active data
- * \param[in,out] ptr: RNA pointer for property's datablock.
+ * \param[in,out] ptr: RNA pointer for property's data-block.
  * May be modified as result of path remapping.
  * \param prop: RNA definition of property to add for
  * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
@@ -3260,7 +3260,7 @@ void nlastrip_evaluate(Depsgraph *depsgraph,
    * we tag the current strip as being evaluated, and clear this when we leave.
    */
   /* TODO: be careful with this flag, since some edit tools may be running and have
-   * set this while animplayback was running */
+   * set this while animation playback was running. */
   if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED) {
     return;
   }
@@ -3524,7 +3524,7 @@ static bool animsys_evaluate_nla(Depsgraph *depsgraph,
           dummy_strip->extendmode = adt->act_extendmode;
         }
 
-        /* Unless extendmode is Nothing (might be useful for flattening NLA evaluation),
+        /* Unless extend-mode is Nothing (might be useful for flattening NLA evaluation),
          * disable range. */
         if (dummy_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
           dummy_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
@@ -3938,7 +3938,7 @@ void BKE_animsys_evaluate_all_animation(Main *main,
    * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
    *   (i.e. scene/material/texture->nodetree) which we need a special exception
    *   for, otherwise they'd get skipped
-   * - ntp = "node tree parent" = datablock where node tree stuff resides
+   * - ntp = "node tree parent" = data-block where node tree stuff resides
    */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
   for (id = first; id; id = id->next) { \
@@ -3956,7 +3956,7 @@ void BKE_animsys_evaluate_all_animation(Main *main,
   (void)0
 
   /* optimization:
-   * when there are no actions, don't go over database and loop over heaps of datablocks,
+   * when there are no actions, don't go over database and loop over heaps of data-blocks,
    * which should ultimately be empty, since it is not possible for now to have any animation
    * without some actions, and drivers wouldn't get affected by any state changes
    *

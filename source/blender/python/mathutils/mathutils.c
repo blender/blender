@@ -666,7 +666,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "interpolate", (submodule = PyInit_mathutils_interpolate()));
-  /* XXX, python doesnt do imports with this usefully yet
+  /* XXX, python doesn't do imports with this usefully yet
    * 'from mathutils.geometry import PolyFill'
    * ...fails without this. */
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);

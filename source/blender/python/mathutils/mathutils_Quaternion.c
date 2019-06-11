@@ -911,7 +911,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
   return NULL;
 }
 /*------------------------obj *= obj------------------------------
- * inplace multiplication */
+ * in-place multiplication */
 static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
 {
   float scalar;

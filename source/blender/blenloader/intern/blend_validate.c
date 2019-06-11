@@ -18,7 +18,7 @@
  * \ingroup blenloader
  *
  * Utils to check/validate a Main is in sane state,
- * only checks relations between datablocks and libraries for now.
+ * only checks relations between data-blocks and libraries for now.
  *
  * \note Does not *fix* anything, only reports found errors.
  */
@@ -77,7 +77,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   for (Main *curmain = bmain->next; curmain != NULL; curmain = curmain->next) {
     Library *curlib = curmain->curlib;
     if (curlib == NULL) {
-      BKE_report(reports, RPT_ERROR, "Library database with NULL library datablock!");
+      BKE_report(reports, RPT_ERROR, "Library database with NULL library data-block!");
       continue;
     }
 

@@ -244,7 +244,7 @@ typedef struct ID {
   /** MAX_ID_NAME. */
   char name[66];
   /**
-   * LIB_... flags report on status of the datablock this ID belongs to
+   * LIB_... flags report on status of the data-block this ID belongs to
    * (persistent, saved to and read from .blend).
    */
   short flag;
@@ -262,7 +262,7 @@ typedef struct ID {
   IDOverrideStatic *override_static;
 
   /**
-   * Only set for datablocks which are coming from copy-on-write, points to
+   * Only set for data-blocks which are coming from copy-on-write, points to
    * the original version of it.
    */
   struct ID *orig_id;
@@ -403,7 +403,7 @@ typedef enum ID_Type {
   ID_LP = MAKE_ID2('L', 'P'),  /* LightProbe */
 } ID_Type;
 
-/* Only used as 'placeholder' in .blend files for directly linked datablocks. */
+/* Only used as 'placeholder' in .blend files for directly linked data-blocks. */
 #define ID_LINK_PLACEHOLDER MAKE_ID2('I', 'D') /* (internal use only) */
 
 /* Deprecated. */
@@ -499,27 +499,27 @@ enum {
    * to mark IDs needing to be expanded (only done once). */
   LIB_TAG_NEED_EXPAND = 1 << 3,
   /* RESET_AFTER_USE Flag used internally in readfile.c to mark ID
-   * placeholders for linked datablocks needing to be read. */
+   * placeholders for linked data-blocks needing to be read. */
   LIB_TAG_ID_LINK_PLACEHOLDER = 1 << 4,
   /* RESET_AFTER_USE */
   LIB_TAG_NEED_LINK = 1 << 5,
 
-  /* RESET_NEVER tag datablock as a place-holder
+  /* RESET_NEVER tag data-block as a place-holder
    * (because the real one could not be linked from its library e.g.). */
   LIB_TAG_MISSING = 1 << 6,
 
-  /* RESET_NEVER tag datablock as being up-to-date regarding its reference. */
+  /* RESET_NEVER tag data-block as being up-to-date regarding its reference. */
   LIB_TAG_OVERRIDESTATIC_REFOK = 1 << 9,
-  /* RESET_NEVER tag datablock as needing an auto-override execution, if enabled. */
+  /* RESET_NEVER tag data-block as needing an auto-override execution, if enabled. */
   LIB_TAG_OVERRIDESTATIC_AUTOREFRESH = 1 << 17,
 
-  /* tag datablock has having an extra user. */
+  /* tag data-block has having an extra user. */
   LIB_TAG_EXTRAUSER = 1 << 2,
-  /* tag datablock has having actually increased usercount for the extra virtual user. */
+  /* tag data-block has having actually increased usercount for the extra virtual user. */
   LIB_TAG_EXTRAUSER_SET = 1 << 7,
 
   /* RESET_AFTER_USE tag newly duplicated/copied IDs.
-   * Also used internally in readfile.c to mark datablocks needing do_versions. */
+   * Also used internally in readfile.c to mark data-blocks needing do_versions. */
   LIB_TAG_NEW = 1 << 8,
   /* RESET_BEFORE_USE free test flag.
    * TODO make it a RESET_AFTER_USE too. */
@@ -527,12 +527,12 @@ enum {
   /* RESET_AFTER_USE tag existing data before linking so we know what is new. */
   LIB_TAG_PRE_EXISTING = 1 << 11,
 
-  /* The datablock is a copy-on-write/localized version. */
+  /* The data-block is a copy-on-write/localized version. */
   LIB_TAG_COPIED_ON_WRITE = 1 << 12,
   LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 13,
   LIB_TAG_LOCALIZED = 1 << 14,
 
-  /* RESET_NEVER tag datablock for freeing etc. behavior
+  /* RESET_NEVER tag data-block for freeing etc. behavior
    * (usually set when copying real one into temp/runtime one). */
   LIB_TAG_NO_MAIN = 1 << 15,          /* Datablock is not listed in Main database. */
   LIB_TAG_NO_USER_REFCOUNT = 1 << 16, /* Datablock does not refcount usages of other IDs. */
@@ -556,7 +556,7 @@ typedef enum IDRecalcFlag {
    * When object of other type is tagged with this flag it makes the modifier
    * stack to be re-evaluated.
    * When object data type (mesh, curve, ...) gets tagged with this flag it
-   * makes all objects which shares this datablock to be updated. */
+   * makes all objects which shares this data-block to be updated. */
   ID_RECALC_GEOMETRY = (1 << 1),
 
   /* ** Animation or time changed and animation is to be re-evaluated. ** */
@@ -590,7 +590,7 @@ typedef enum IDRecalcFlag {
   ID_RECALC_BASE_FLAGS = (1 << 10),
   ID_RECALC_POINT_CACHE = (1 << 11),
   /* Only inform editors about the change. Is used to force update of editors
-   * when datablock which is not a part of dependency graph did change.
+   * when data-block which is not a part of dependency graph did change.
    *
    * For example, brush texture did change and the preview is to be
    * re-rendered. */
@@ -616,7 +616,7 @@ typedef enum IDRecalcFlag {
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */
 
-  /* Update animation datablock itself, without doing full re-evaluation of
+  /* Update animation data-block itself, without doing full re-evaluation of
    * all dependent objects. */
   ID_RECALC_ANIMATION_NO_FLUSH = ID_RECALC_COPY_ON_WRITE,
 
