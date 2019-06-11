@@ -140,8 +140,13 @@ static Sequence *rna_Sequences_new_mask(
   return seq;
 }
 
-static Sequence *rna_Sequences_new_scene(
-    ID *id, Editing *ed, const char *name, Scene *sce_seq, int channel, int frame_start)
+static Sequence *rna_Sequences_new_scene(ID *id,
+                                         Editing *ed,
+                                         Main *bmain,
+                                         const char *name,
+                                         Scene *sce_seq,
+                                         int channel,
+                                         int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
@@ -149,13 +154,13 @@ static Sequence *rna_Sequences_new_scene(
   seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SCENE, NULL);
   seq->scene = sce_seq;
   seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
-  seq->scene_sound = BKE_sound_scene_add_scene_sound(
-      scene, seq, frame_start, frame_start + seq->len, 0);
   id_us_plus((ID *)sce_seq);
 
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
@@ -569,7 +574,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_scene", "rna_Sequences_new_scene");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new scene sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
