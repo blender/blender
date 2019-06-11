@@ -726,7 +726,8 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
   }
 }
 
-static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
+static Sequence *cut_seq_hard(
+    Main *bmain, Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
 {
   TransSeq ts;
   Sequence *seqn = NULL;
@@ -755,7 +756,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_lis
    * blend file, or our code may have minor differences reading file length between versions.
    * This causes hard-cut to fail, see: T47862 */
   if (seq->type != SEQ_TYPE_META) {
-    BKE_sequence_reload_new_file(scene, seq, true);
+    BKE_sequence_reload_new_file(bmain, scene, seq, true);
     BKE_sequence_calc(scene, seq);
   }
 
@@ -790,7 +791,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_lis
     }
   }
 
-  BKE_sequence_reload_new_file(scene, seq, false);
+  BKE_sequence_reload_new_file(bmain, scene, seq, false);
   BKE_sequence_calc(scene, seq);
 
   if (!skip_dup) {
@@ -837,13 +838,14 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_lis
       seqn->startstill = 0;
     }
 
-    BKE_sequence_reload_new_file(scene, seqn, false);
+    BKE_sequence_reload_new_file(bmain, scene, seqn, false);
     BKE_sequence_calc(scene, seqn);
   }
   return seqn;
 }
 
-static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
+static Sequence *cut_seq_soft(
+    Main *UNUSED(bmain), Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
 {
   TransSeq ts;
   Sequence *seqn = NULL;
@@ -949,10 +951,11 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, ListBase *new_seq_lis
  * may generate strips with the same name (which will mess up animdata)
  */
 
-static bool cut_seq_list(Scene *scene,
+static bool cut_seq_list(Main *bmain,
+                         Scene *scene,
                          ListBase *slist,
                          int cutframe,
-                         Sequence *(*cut_seq)(Scene *, Sequence *, ListBase *, int))
+                         Sequence *(*cut_seq)(Main *bmain, Scene *, Sequence *, ListBase *, int))
 {
   Sequence *seq, *seq_next_iter;
   Sequence *seq_first_new = NULL;
@@ -964,7 +967,7 @@ static bool cut_seq_list(Scene *scene,
     seq->tmp = NULL;
     if (seq->flag & SELECT) {
       if (cutframe > seq->startdisp && cutframe < seq->enddisp) {
-        Sequence *seqn = cut_seq(scene, seq, slist, cutframe);
+        Sequence *seqn = cut_seq(bmain, scene, seq, slist, cutframe);
         if (seqn) {
           if (seq_first_new == NULL) {
             seq_first_new = seqn;
@@ -1040,7 +1043,7 @@ static void set_filter_seq(Scene *scene)
     if (seq->flag & SELECT) {
       if (seq->type == SEQ_TYPE_MOVIE) {
         seq->flag |= SEQ_FILTERY;
-        BKE_sequence_reload_new_file(scene, seq, false);
+        BKE_sequence_reload_new_file(bmain, scene, seq, false);
         BKE_sequence_calc(scene, seq);
       }
     }
@@ -1622,6 +1625,7 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *da
 
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SlipData *data = (SlipData *)op->customdata;
   ScrArea *sa = CTX_wm_area(C);
@@ -1702,7 +1706,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
       for (i = 0; i < data->num_seq; i++) {
         Sequence *seq = data->seq_array[i];
-        BKE_sequence_reload_new_file(scene, seq, false);
+        BKE_sequence_reload_new_file(bmain, scene, seq, false);
         BKE_sequence_calc(scene, seq);
       }
 
@@ -1956,6 +1960,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 /* reload operator */
 static int sequencer_reload_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq;
@@ -1964,7 +1969,7 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT) {
       BKE_sequencer_update_changed_seq_and_deps(scene, seq, 0, 1);
-      BKE_sequence_reload_new_file(scene, seq, !adjust_length);
+      BKE_sequence_reload_new_file(bmain, scene, seq, !adjust_length);
 
       if (adjust_length) {
         if (BKE_sequence_test_overlap(ed->seqbasep, seq)) {
@@ -2139,6 +2144,7 @@ static const EnumPropertyItem prop_cut_types[] = {
 
 static int sequencer_cut_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   int cut_side, cut_hard, cut_frame;
@@ -2150,10 +2156,10 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
   cut_side = RNA_enum_get(op->ptr, "side");
 
   if (cut_hard == SEQ_CUT_HARD) {
-    changed = cut_seq_list(scene, ed->seqbasep, cut_frame, cut_seq_hard);
+    changed = cut_seq_list(bmain, scene, ed->seqbasep, cut_frame, cut_seq_hard);
   }
   else {
-    changed = cut_seq_list(scene, ed->seqbasep, cut_frame, cut_seq_soft);
+    changed = cut_seq_list(bmain, scene, ed->seqbasep, cut_frame, cut_seq_soft);
   }
 
   if (changed) { /* got new strips ? */
@@ -3948,7 +3954,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
     /* correct start/end frames so we don't move
      * important not to set seq->len = len; allow the function to handle it */
-    BKE_sequence_reload_new_file(scene, seq, true);
+    BKE_sequence_reload_new_file(bmain, scene, seq, true);
 
     BKE_sequence_calc(scene, seq);
 

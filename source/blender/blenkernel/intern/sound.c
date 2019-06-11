@@ -145,27 +145,7 @@ bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath)
   return BKE_sound_new_file_exists_ex(bmain, filepath, NULL);
 }
 
-/** Free (or release) any data used by this sound (does not free the sound itself). */
-void BKE_sound_free(bSound *sound)
-{
-  /* No animdata here. */
-
-  if (sound->packedfile) {
-    freePackedFile(sound->packedfile);
-    sound->packedfile = NULL;
-  }
-
-  BKE_sound_free_audio(sound);
-  BKE_sound_free_waveform(sound);
-
-  if (sound->spinlock) {
-    BLI_spin_end(sound->spinlock);
-    MEM_freeN(sound->spinlock);
-    sound->spinlock = NULL;
-  }
-}
-
-void BKE_sound_free_audio(bSound *sound)
+static void sound_free_audio(bSound *sound)
 {
 #ifdef WITH_AUDASPACE
   if (sound->handle) {
@@ -181,6 +161,26 @@ void BKE_sound_free_audio(bSound *sound)
 #else
   UNUSED_VARS(sound);
 #endif /* WITH_AUDASPACE */
+}
+
+/** Free (or release) any data used by this sound (does not free the sound itself). */
+void BKE_sound_free(bSound *sound)
+{
+  /* No animdata here. */
+
+  if (sound->packedfile) {
+    freePackedFile(sound->packedfile);
+    sound->packedfile = NULL;
+  }
+
+  sound_free_audio(sound);
+  BKE_sound_free_waveform(sound);
+
+  if (sound->spinlock) {
+    BLI_spin_end(sound->spinlock);
+    MEM_freeN(sound->spinlock);
+    sound->spinlock = NULL;
+  }
 }
 
 /**
@@ -412,13 +412,7 @@ void BKE_sound_delete_cache(bSound *sound)
   }
 }
 
-void BKE_sound_load(Main *bmain, bSound *sound)
-{
-  sound_verify_evaluated_id(&sound->id);
-  BKE_sound_load_audio(bmain, sound);
-}
-
-void BKE_sound_load_audio(Main *bmain, bSound *sound)
+static void sound_load_audio(Main *bmain, bSound *sound)
 {
 
   if (sound->cache) {
@@ -492,6 +486,12 @@ void BKE_sound_load_audio(Main *bmain, bSound *sound)
   }
 }
 
+void BKE_sound_load(Main *bmain, bSound *sound)
+{
+  sound_verify_evaluated_id(&sound->id);
+  sound_load_audio(bmain, sound);
+}
+
 AUD_Device *BKE_sound_mixdown(Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
   sound_verify_evaluated_id(&scene->id);
@@ -560,7 +560,7 @@ void BKE_sound_mute_scene(Scene *scene, int muted)
   }
 }
 
-void BKE_sound_update_fps(Scene *scene)
+void BKE_sound_update_fps(Main *bmain, Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
@@ -568,7 +568,7 @@ void BKE_sound_update_fps(Scene *scene)
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
   }
 
-  BKE_sequencer_refresh_sound_length(scene);
+  BKE_sequencer_refresh_sound_length(bmain, scene);
 }
 
 void BKE_sound_update_scene_listener(Scene *scene)
@@ -895,11 +895,15 @@ void BKE_sound_free_waveform(bSound *sound)
   sound->tags &= ~SOUND_TAGS_WAVEFORM_NO_RELOAD;
 }
 
-/* TODO(sergey): Consider mamakinging this function fully autonomous, as in, not require having
- * an existing playback handle. That would make it easy to read waveforms, which doesn't seem to
- * be affected by evaluated scene (waveworm comes from file). */
-void BKE_sound_read_waveform(bSound *sound, short *stop)
+void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
 {
+  bool need_close_audio_handles = false;
+  if (sound->playback_handle == NULL) {
+    /* TOOD(sergey): Make it fully independent audio handle. */
+    sound_load_audio(bmain, sound);
+    need_close_audio_handles = true;
+  }
+
   AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
   SoundWaveform *waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");
 
@@ -936,6 +940,10 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
   sound->waveform = waveform;
   sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
   BLI_spin_unlock(sound->spinlock);
+
+  if (need_close_audio_handles) {
+    sound_free_audio(sound);
+  }
 }
 
 static void sound_update_base(Scene *scene, Object *object, void *new_set)
@@ -1047,12 +1055,16 @@ void *BKE_sound_get_factory(void *sound)
   return ((bSound *)sound)->playback_handle;
 }
 
-/* stupid wrapper because AUD_C-API.h includes Python.h which makesrna doesn't like */
-float BKE_sound_get_length(bSound *sound)
+float BKE_sound_get_length(Main *bmain, bSound *sound)
 {
-  sound_verify_evaluated_id(&sound->id);
-  AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
-
+  if (sound->playback_handle != NULL) {
+    AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
+    return info.length;
+  }
+  SoundInfo info;
+  if (!BKE_sound_info_get(bmain, sound, &info)) {
+    return 0.0f;
+  }
   return info.length;
 }
 
@@ -1063,6 +1075,29 @@ char **BKE_sound_get_device_names(void)
   }
 
   return audio_device_names;
+}
+
+static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *sound_info)
+{
+  if (playback_handle == NULL) {
+    return false;
+  }
+  AUD_SoundInfo info = AUD_getInfo(playback_handle);
+  sound_info->specs.channels = (eSoundChannels)info.specs.channels;
+  sound_info->length = info.length;
+  return true;
+}
+
+bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info)
+{
+  if (sound->playback_handle != NULL) {
+    return sound_info_from_playback_handle(sound->playback_handle, sound_info);
+  }
+  /* TOOD(sergey): Make it fully independent audio handle. */
+  sound_load_audio(main, sound);
+  const bool result = sound_info_from_playback_handle(sound->playback_handle, sound_info);
+  sound_free_audio(sound);
+  return result;
 }
 
 #else /* WITH_AUDASPACE */
@@ -1162,7 +1197,7 @@ int BKE_sound_scene_playing(Scene *UNUSED(scene))
 {
   return -1;
 }
-void BKE_sound_read_waveform(bSound *sound, short *stop)
+void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
 {
   UNUSED_VARS(sound, stop);
 }
@@ -1184,7 +1219,7 @@ void BKE_sound_update_scene_sound(void *UNUSED(handle), bSound *UNUSED(sound))
 void BKE_sound_update_scene_listener(Scene *UNUSED(scene))
 {
 }
-void BKE_sound_update_fps(Scene *UNUSED(scene))
+void BKE_sound_update_fps(Main *UNUSED(bmain), Scene *UNUSED(scene))
 {
 }
 void BKE_sound_set_scene_sound_volume(void *UNUSED(handle),
@@ -1203,7 +1238,7 @@ void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
                                      char UNUSED(animated))
 {
 }
-float BKE_sound_get_length(bSound *UNUSED(sound))
+float BKE_sound_get_length(struct Main *UNUSED(bmain), bSound *UNUSED(sound))
 {
   return 0;
 }
@@ -1217,8 +1252,11 @@ void BKE_sound_free_waveform(bSound *UNUSED(sound))
 {
 }
 
-void BKE_sound_load_audio(Main *UNUSED(bmain), bSound *UNUSED(sound))
+bool BKE_sound_info_get(struct Main *UNUSED(main),
+                        struct bSound *UNUSED(sound),
+                        SoundInfo *UNUSED(sound_info))
 {
+  return false;
 }
 
 #endif /* WITH_AUDASPACE */

@@ -909,7 +909,7 @@ static void seq_multiview_name(Scene *scene,
 }
 
 /* note: caller should run BKE_sequence_calc(scene, seq) after */
-void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_range)
+void BKE_sequence_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const bool lock_range)
 {
   char path[FILE_MAX];
   int prev_startdisp = 0, prev_enddisp = 0;
@@ -1050,7 +1050,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
       if (!seq->sound) {
         return;
       }
-      seq->len = ceil((double)AUD_getInfo(seq->sound->playback_handle).length * FPS);
+      seq->len = ceil((double)BKE_sound_get_length(bmain, seq->sound) * FPS);
       seq->len -= seq->anim_startofs;
       seq->len -= seq->anim_endofs;
       if (seq->len < 0) {
@@ -4923,24 +4923,24 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, Scene *evil_scene)
 
 /* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
 #ifdef WITH_AUDASPACE
-static bool sequencer_refresh_sound_length_recursive(Scene *scene, ListBase *seqbase)
+static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
 {
   Sequence *seq;
   bool changed = false;
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
-      if (sequencer_refresh_sound_length_recursive(scene, &seq->seqbase)) {
+      if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
         BKE_sequence_calc(scene, seq);
         changed = true;
       }
     }
     else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-      AUD_SoundInfo info = AUD_getInfo(seq->sound->playback_handle);
+      const float length = BKE_sound_get_length(bmain, seq->sound);
       int old = seq->len;
       float fac;
 
-      seq->len = (int)ceil((double)info.length * FPS);
+      seq->len = (int)ceil((double)length * FPS);
       fac = (float)seq->len / (float)old;
       old = seq->startofs;
       seq->startofs *= fac;
@@ -4955,11 +4955,11 @@ static bool sequencer_refresh_sound_length_recursive(Scene *scene, ListBase *seq
 }
 #endif
 
-void BKE_sequencer_refresh_sound_length(Scene *scene)
+void BKE_sequencer_refresh_sound_length(Main *bmain, Scene *scene)
 {
 #ifdef WITH_AUDASPACE
   if (scene->ed) {
-    sequencer_refresh_sound_length_recursive(scene, &scene->ed->seqbase);
+    sequencer_refresh_sound_length_recursive(bmain, scene, &scene->ed->seqbase);
   }
 #else
   (void)scene;
@@ -5562,17 +5562,13 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   sound = BKE_sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
-  /* Load the original sound, so we can access number of channels and length information.
-   * We free the sound handle on the original bSound datablock before existing this function, it is
-   * to be allocated on an evaluated version after this. */
-  BKE_sound_load_audio(bmain, sound);
-  AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
-  if (sound->playback_handle == NULL) {
+  SoundInfo info;
+  if (!BKE_sound_info_get(bmain, sound, &info)) {
     BKE_id_free(bmain, sound);
     return NULL;
   }
 
-  if (info.specs.channels == AUD_CHANNELS_INVALID) {
+  if (info.specs.channels == SOUND_CHANNELS_INVALID) {
     BKE_id_free(bmain, sound);
     return NULL;
   }
@@ -5602,9 +5598,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
   seq_load_apply(bmain, scene, seq, seq_load);
 
-  BKE_sound_free_audio(sound);
-
-  /* TODO(sergey): Shall we tag here or in the oeprator? */
+  /* TODO(sergey): Shall we tag here or in the operator? */
   DEG_relations_tag_update(bmain);
 
   return seq;

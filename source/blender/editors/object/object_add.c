@@ -1417,6 +1417,7 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
 
 static int object_speaker_add_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Object *ob;
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1434,7 +1435,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     /* create new data for NLA hierarchy */
     AnimData *adt = BKE_animdata_add_id(&ob->id);
     NlaTrack *nlt = BKE_nlatrack_add(adt, NULL);
-    NlaStrip *strip = BKE_nla_add_soundstrip(scene, ob->data);
+    NlaStrip *strip = BKE_nla_add_soundstrip(bmain, scene, ob->data);
     strip->start = CFRA;
     strip->end += strip->start;
 

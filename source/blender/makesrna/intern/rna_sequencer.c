@@ -69,6 +69,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_global.h"
 #  include "BKE_report.h"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
@@ -321,7 +322,7 @@ static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 
   seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
 
-  BKE_sequence_reload_new_file(scene, seq, false);
+  BKE_sequence_reload_new_file(G.main, scene, seq, false);
   do_sequence_frame_change_update(scene, seq);
 }
 
@@ -332,7 +333,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 
   seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
 
-  BKE_sequence_reload_new_file(scene, seq, false);
+  BKE_sequence_reload_new_file(G.main, scene, seq, false);
   do_sequence_frame_change_update(scene, seq);
 }
 
@@ -803,7 +804,7 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
 {
   Scene *scene = (Scene *)ptr->id.data;
   Sequence *seq = (Sequence *)(ptr->data);
-  BKE_sequence_reload_new_file(scene, seq, true);
+  BKE_sequence_reload_new_file(bmain, scene, seq, true);
   BKE_sequence_calc(scene, seq);
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
@@ -838,13 +839,13 @@ static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
   return data.seq;
 }
 
-static void rna_Sequence_tcindex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Sequence_tcindex_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   Sequence *seq = sequence_get_by_proxy(ed, ptr->data);
 
-  BKE_sequence_reload_new_file(scene, seq, false);
+  BKE_sequence_reload_new_file(bmain, scene, seq, false);
   do_sequence_frame_change_update(scene, seq);
 }
 

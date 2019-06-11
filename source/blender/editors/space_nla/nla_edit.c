@@ -857,6 +857,7 @@ void NLA_OT_transition_add(wmOperatorType *ot)
 
 static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  Main *bmain = CTX_data_main(C);
   bAnimContext ac;
 
   ListBase anim_data = {NULL, NULL};
@@ -894,7 +895,7 @@ static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     /* create a new strip, and offset it to start on the current frame */
-    strip = BKE_nla_add_soundstrip(ac.scene, ob->data);
+    strip = BKE_nla_add_soundstrip(bmain, ac.scene, ob->data);
 
     strip->start += cfra;
     strip->end += cfra;

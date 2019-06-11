@@ -1515,7 +1515,7 @@ static void scene_update_sound(Depsgraph *depsgraph, Main *bmain)
     BKE_sound_seek_scene(bmain, scene);
   }
   if (recalc & ID_RECALC_AUDIO_FPS) {
-    BKE_sound_update_fps(scene);
+    BKE_sound_update_fps(bmain, scene);
   }
   if (recalc & ID_RECALC_AUDIO_VOLUME) {
     BKE_sound_set_scene_volume(scene, scene->audio.volume);

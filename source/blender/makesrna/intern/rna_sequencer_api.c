@@ -259,17 +259,15 @@ static Sequence *rna_Sequences_new_sound(ID *id,
 
   bSound *sound = BKE_sound_new_file(bmain, file);
 
-  if (sound->playback_handle == NULL) {
+  SoundInfo info;
+  if (!BKE_sound_info_get(bmain, sound, &info)) {
     BKE_id_free(bmain, sound);
     BKE_report(reports, RPT_ERROR, "Sequences.new_sound: unable to open sound file");
     return NULL;
   }
-
   seq = alloc_generic_sequence(ed, name, frame_start, channel, SEQ_TYPE_SOUND_RAM, sound->name);
   seq->sound = sound;
-  seq->len = ceil((double)BKE_sound_get_length(sound) * FPS);
-
-  seq->scene_sound = BKE_sound_add_scene_sound(scene, seq, frame_start, frame_start + seq->len, 0);
+  seq->len = ceil((double)info.length * FPS);
 
   BKE_sequence_calc_disp(scene, seq);
 

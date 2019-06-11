@@ -80,9 +80,7 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
     PreviewJobAudio *preview_next;
     bSound *sound = previewjb->sound;
 
-    BKE_sound_load_audio(previewjb->bmain, sound);
-    BKE_sound_read_waveform(sound, stop);
-    BKE_sound_free_audio(sound);
+    BKE_sound_read_waveform(previewjb->bmain, sound, stop);
 
     if (*stop || G.is_break) {
       BLI_mutex_lock(pj->mutex);
