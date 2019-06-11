@@ -1739,6 +1739,32 @@ void WM_OT_save_userpref(wmOperatorType *ot)
   ot->exec = wm_userpref_write_exec;
 }
 
+/**
+ * When reading preferences, there are some exceptions for values which are reset.
+ */
+static void wm_userpref_read_exceptions(UserDef *userdef_curr,
+                                        const UserDef *userdef_prev,
+                                        const bool use_factory_settings)
+{
+#define USERDEF_RESTORE(member) \
+  { \
+    userdef_curr->member = userdef_prev->member; \
+  } \
+  ((void)0)
+
+  /* Current visible preferences category. */
+  USERDEF_RESTORE(userpref);
+
+  if (use_factory_settings) {
+    /* Preferences about the preferences.
+     * Technically correct not to reset however this causes issues in practice.
+     * Since loading factory settings will then overwrite your preferences on exit, see: T65702. */
+    USERDEF_RESTORE(pref_flag);
+  }
+
+#undef USERDEF_RESTORE
+}
+
 static void rna_struct_update_when_changed(bContext *C,
                                            Main *bmain,
                                            PointerRNA *ptr_a,
@@ -1811,15 +1837,7 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
                    WM_init_state_app_template_get(),
                    NULL);
 
-#define USERDEF_RESTORE(member) \
-  { \
-    U.member = U_backup.member; \
-  } \
-  ((void)0)
-
-  USERDEF_RESTORE(userpref);
-
-#undef USERDEF_RESTORE
+  wm_userpref_read_exceptions(&U, &U_backup, use_factory_settings);
 
   Main *bmain = CTX_data_main(C);
 
@@ -1883,6 +1901,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   bool use_userdef = false;
   char filepath_buf[FILE_MAX];
   const char *filepath = NULL;
+  UserDef U_backup = U;
 
   if (!use_factory_settings) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
@@ -1946,6 +1965,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     WM_init_splash(C);
   }
   SET_FLAG_FROM_TEST(G.f, use_temporary_preferences, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
+
+  if (use_userdef) {
+    wm_userpref_read_exceptions(&U, &U_backup, use_factory_settings);
+  }
 
   return OPERATOR_FINISHED;
 }
