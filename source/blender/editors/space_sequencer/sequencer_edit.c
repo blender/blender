@@ -2695,7 +2695,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
-  BKE_sequence_invalidate_cache_composite(scene, seq);
+  BKE_sequence_invalidate_cache_composite(scene, seqm);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
