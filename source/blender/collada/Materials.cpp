@@ -19,11 +19,13 @@
 MaterialNode::MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map)
     : mContext(C), material(ma), effect(nullptr), key_image_map(&key_image_map)
 {
-  ntree = prepare_material_nodetree();
+  bNodeTree *new_ntree = prepare_material_nodetree();
   setShaderType();
-  shader_node = add_node(SH_NODE_BSDF_PRINCIPLED, 0, 300, "");
-  output_node = add_node(SH_NODE_OUTPUT_MATERIAL, 300, 300, "");
-  add_link(shader_node, 0, output_node, 0);
+  if (new_ntree) {
+    shader_node = add_node(SH_NODE_BSDF_PRINCIPLED, 0, 300, "");
+    output_node = add_node(SH_NODE_OUTPUT_MATERIAL, 300, 300, "");
+    add_link(shader_node, 0, output_node, 0);
+  }
 }
 
 MaterialNode::MaterialNode(bContext *C,
@@ -32,7 +34,7 @@ MaterialNode::MaterialNode(bContext *C,
                            UidImageMap &uid_image_map)
     : mContext(C), material(ma), effect(ef), uid_image_map(&uid_image_map)
 {
-  ntree = prepare_material_nodetree();
+  prepare_material_nodetree();
   setShaderType();
 
   std::map<std::string, bNode *> nmap;
@@ -89,13 +91,18 @@ void MaterialNode::setShaderType()
 #endif
 }
 
+// returns null if material already has a node tree
 bNodeTree *MaterialNode::prepare_material_nodetree()
 {
-  if (material->nodetree == NULL) {
-    material->nodetree = ntreeAddTree(NULL, "Shader Nodetree", "ShaderNodeTree");
-    material->use_nodes = true;
+  if (material->nodetree) {
+    ntree = material->nodetree;
+    return NULL;
   }
-  return material->nodetree;
+
+  material->nodetree = ntreeAddTree(NULL, "Shader Nodetree", "ShaderNodeTree");
+  material->use_nodes = true;
+  ntree = material->nodetree;
+  return ntree;
 }
 
 bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string label)
