@@ -589,8 +589,13 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->time_base.num = (int)rd->frs_sec_base;
   }
   else {
-    c->time_base.den = rd->frs_sec * 100000;
-    c->time_base.num = ((double)rd->frs_sec_base) * 100000;
+    // This calculates a fraction (DENUM_MAX / num) which approximates the scene
+    // frame rate (frs_sec / frs_sec_base).
+    const double DENUM_MAX = 2147483647;
+    const double num = (DENUM_MAX / (double)rd->frs_sec) * rd->frs_sec_base;
+
+    c->time_base.den = (int)DENUM_MAX;
+    c->time_base.num = (int)num;
   }
 
   c->gop_size = context->ffmpeg_gop_size;
