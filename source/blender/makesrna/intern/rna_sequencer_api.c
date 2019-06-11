@@ -103,8 +103,13 @@ static Sequence *alloc_generic_sequence(
   return seq;
 }
 
-static Sequence *rna_Sequences_new_clip(
-    ID *id, Editing *ed, const char *name, MovieClip *clip, int channel, int frame_start)
+static Sequence *rna_Sequences_new_clip(ID *id,
+                                        Editing *ed,
+                                        Main *bmain,
+                                        const char *name,
+                                        MovieClip *clip,
+                                        int channel,
+                                        int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
@@ -116,13 +121,15 @@ static Sequence *rna_Sequences_new_clip(
 
   BKE_sequence_calc_disp(scene, seq);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
 }
 
 static Sequence *rna_Sequences_new_mask(
-    ID *id, Editing *ed, const char *name, Mask *mask, int channel, int frame_start)
+    ID *id, Editing *ed, Main *bmain, const char *name, Mask *mask, int channel, int frame_start)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
@@ -135,6 +142,8 @@ static Sequence *rna_Sequences_new_mask(
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
@@ -168,6 +177,7 @@ static Sequence *rna_Sequences_new_scene(ID *id,
 
 static Sequence *rna_Sequences_new_image(ID *id,
                                          Editing *ed,
+                                         Main *bmain,
                                          ReportList *reports,
                                          const char *name,
                                          const char *file,
@@ -190,6 +200,8 @@ static Sequence *rna_Sequences_new_image(ID *id,
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
@@ -226,6 +238,7 @@ static Sequence *rna_Sequences_new_movie(ID *id,
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
@@ -260,6 +273,8 @@ static Sequence *rna_Sequences_new_sound(ID *id,
 
   BKE_sequence_calc_disp(scene, seq);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
@@ -351,12 +366,14 @@ static Sequence *rna_Sequences_new_effect(ID *id,
   BKE_sequence_calc_disp(scene, seq);
   BKE_sequence_invalidate_cache_composite(scene, seq);
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return seq;
 }
 
-static void rna_Sequences_remove(ID *id, Editing *ed, ReportList *reports, PointerRNA *seq_ptr)
+static void rna_Sequences_remove(
+    ID *id, Editing *ed, Main *bmain, ReportList *reports, PointerRNA *seq_ptr)
 {
   Sequence *seq = seq_ptr->data;
   Scene *scene = (Scene *)id;
@@ -370,6 +387,8 @@ static void rna_Sequences_remove(ID *id, Editing *ed, ReportList *reports, Point
   BKE_sequence_free(scene, seq);
   RNA_POINTER_INVALIDATE(seq_ptr);
 
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
@@ -526,7 +545,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "Sequences", "Collection of Sequences");
 
   func = RNA_def_function(srna, "new_clip", "rna_Sequences_new_clip");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new movie clip sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -550,7 +569,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new mask sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -598,7 +617,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_image", "rna_Sequences_new_image");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Add a new image sequence");
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -707,7 +726,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Sequences_remove");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "Remove a Sequence");
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "Sequence to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
