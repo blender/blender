@@ -587,6 +587,7 @@ static void EDIT_MESH_cache_init(void *vedata)
     psl->facefill_occlude_cage = DRW_pass_create("Front Face Cage Color", state);
 
     if (g_data->do_faces) {
+      const bool select_face = (tsettings->selectmode & SCE_SELECT_FACE) != 0;
       DRWShadingGroup *shgrp;
 
       /* however we loose the front faces value (because we need the depth of occluded wires and
@@ -595,6 +596,7 @@ static void EDIT_MESH_cache_init(void *vedata)
                                                                    psl->facefill_occlude);
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_ivec4(shgrp, "dataMask", g_data->data_mask, 1);
+      DRW_shgroup_uniform_bool_copy(shgrp, "selectFaces", select_face);
       if (rv3d->rflag & RV3D_CLIPPING) {
         DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
@@ -603,6 +605,7 @@ static void EDIT_MESH_cache_init(void *vedata)
           sh_data->overlay_facefill, psl->facefill_occlude_cage);
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_ivec4(shgrp, "dataMask", g_data->data_mask, 1);
+      DRW_shgroup_uniform_bool_copy(shgrp, "selectFaces", select_face);
       if (rv3d->rflag & RV3D_CLIPPING) {
         DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
       }
