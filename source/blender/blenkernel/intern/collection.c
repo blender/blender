@@ -624,6 +624,26 @@ bool BKE_collection_is_empty(Collection *collection)
 
 /********************** Collection Objects *********************/
 
+static void collection_tag_update_parent_recursive(Main *bmain,
+                                                   Collection *collection,
+                                                   const int flag)
+{
+  if (collection->flag & COLLECTION_IS_MASTER) {
+    return;
+  }
+
+  DEG_id_tag_update_ex(bmain, &collection->id, flag);
+
+  for (CollectionParent *collection_parent = collection->parents.first; collection_parent;
+       collection_parent = collection_parent->next) {
+    if (collection_parent->collection->flag & COLLECTION_IS_MASTER) {
+      /* We don't care about scene/master collection here. */
+      continue;
+    }
+    collection_tag_update_parent_recursive(bmain, collection_parent->collection, flag);
+  }
+}
+
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
@@ -649,7 +669,7 @@ static bool collection_object_add(
   }
 
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    DEG_id_tag_update_ex(bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
+    collection_tag_update_parent_recursive(bmain, collection, ID_RECALC_COPY_ON_WRITE);
   }
 
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
@@ -679,7 +699,7 @@ static bool collection_object_remove(Main *bmain,
     id_us_min(&ob->id);
   }
 
-  DEG_id_tag_update_ex(bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
+  collection_tag_update_parent_recursive(bmain, collection, ID_RECALC_COPY_ON_WRITE);
 
   return true;
 }
