@@ -802,7 +802,7 @@ static bool collection_drop_poll(bContext *C,
     if (!data.from || event->ctrl) {
       tselem->flag |= TSE_DRAG_INTO;
       changed = true;
-      *tooltip = IFACE_("Link inside Collection");
+      *tooltip = TIP_("Link inside Collection");
     }
     else {
       switch (data.insert_type) {
