@@ -1171,8 +1171,8 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
   /* do header print - if interactively previewing */
   if (pld->state == PL_PREVIEW_RUNNING) {
     if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
-      ED_area_status_text(pld->sa, IFACE_("PoseLib Previewing Pose: [Showing Original Pose]"));
-      ED_workspace_status_text(C, IFACE_("Use Tab to start previewing poses again"));
+      ED_area_status_text(pld->sa, TIP_("PoseLib Previewing Pose: [Showing Original Pose]"));
+      ED_workspace_status_text(C, TIP_("Use Tab to start previewing poses again"));
     }
     else if (pld->searchstr[0]) {
       char tempstr[65];
@@ -1196,17 +1196,17 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 
       BLI_snprintf(pld->headerstr,
                    sizeof(pld->headerstr),
-                   IFACE_("PoseLib Previewing Pose: Filter - [%s] | "
-                          "Current Pose - \"%s\""),
+                   TIP_("PoseLib Previewing Pose: Filter - [%s] | "
+                        "Current Pose - \"%s\""),
                    tempstr,
                    markern);
       ED_area_status_text(pld->sa, pld->headerstr);
-      ED_workspace_status_text(C, IFACE_("Use ScrollWheel or PageUp/Down to change pose"));
+      ED_workspace_status_text(C, TIP_("Use ScrollWheel or PageUp/Down to change pose"));
     }
     else {
       BLI_snprintf(pld->headerstr,
                    sizeof(pld->headerstr),
-                   IFACE_("PoseLib Previewing Pose: \"%s\""),
+                   TIP_("PoseLib Previewing Pose: \"%s\""),
                    pld->marker->name);
       ED_area_status_text(pld->sa, pld->headerstr);
       ED_workspace_status_text(C, NULL);

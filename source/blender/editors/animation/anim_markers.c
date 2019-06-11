@@ -772,14 +772,14 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
     /* we print current marker value */
     if (use_time) {
       BLI_snprintf(
-          str, sizeof(str), IFACE_("Marker %.2f offset %s"), FRA2TIME(selmarker->frame), str_offs);
+          str, sizeof(str), TIP_("Marker %.2f offset %s"), FRA2TIME(selmarker->frame), str_offs);
     }
     else {
-      BLI_snprintf(str, sizeof(str), IFACE_("Marker %d offset %s"), selmarker->frame, str_offs);
+      BLI_snprintf(str, sizeof(str), TIP_("Marker %d offset %s"), selmarker->frame, str_offs);
     }
   }
   else {
-    BLI_snprintf(str, sizeof(str), IFACE_("Marker offset %s"), str_offs);
+    BLI_snprintf(str, sizeof(str), TIP_("Marker offset %s"), str_offs);
   }
 
   ED_area_status_text(CTX_wm_area(C), str);

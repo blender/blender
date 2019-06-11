@@ -213,7 +213,7 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
   if (lcache != NULL) {
     if (lcache->flag & LIGHTCACHE_BAKING) {
       BLI_strncpy(
-          eevee->light_cache_info, IFACE_("Baking light cache"), sizeof(eevee->light_cache_info));
+          eevee->light_cache_info, TIP_("Baking light cache"), sizeof(eevee->light_cache_info));
       return;
     }
 
@@ -224,14 +224,14 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
 
     BLI_snprintf(eevee->light_cache_info,
                  sizeof(eevee->light_cache_info),
-                 IFACE_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
+                 TIP_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
                  lcache->cube_len - 1,
                  irr_samples,
                  formatted_mem);
   }
   else {
     BLI_strncpy(eevee->light_cache_info,
-                IFACE_("No light cache in this scene"),
+                TIP_("No light cache in this scene"),
                 sizeof(eevee->light_cache_info));
   }
 }

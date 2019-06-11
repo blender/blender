@@ -418,21 +418,21 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* local view */
   if (rs->localview) {
-    spos += sprintf(spos, "%s | ", IFACE_("3D Local View"));
+    spos += sprintf(spos, "%s | ", TIP_("3D Local View"));
   }
   else if (v3d_override) {
-    spos += sprintf(spos, "%s | ", IFACE_("3D View"));
+    spos += sprintf(spos, "%s | ", TIP_("3D View"));
   }
 
   /* frame number */
-  spos += sprintf(spos, IFACE_("Frame:%d "), (scene->r.cfra));
+  spos += sprintf(spos, TIP_("Frame:%d "), (scene->r.cfra));
 
   /* previous and elapsed time */
   BLI_timecode_string_from_time_simple(info_time_str, sizeof(info_time_str), rs->lastframetime);
 
   if (rs->infostr && rs->infostr[0]) {
     if (rs->lastframetime != 0.0) {
-      spos += sprintf(spos, IFACE_("| Last:%s "), info_time_str);
+      spos += sprintf(spos, TIP_("| Last:%s "), info_time_str);
     }
     else {
       spos += sprintf(spos, "| ");
@@ -445,7 +445,7 @@ static void make_renderinfo_string(const RenderStats *rs,
     spos += sprintf(spos, "| ");
   }
 
-  spos += sprintf(spos, IFACE_("Time:%s "), info_time_str);
+  spos += sprintf(spos, TIP_("Time:%s "), info_time_str);
 
   /* statistics */
   if (rs->statstr) {
@@ -459,43 +459,43 @@ static void make_renderinfo_string(const RenderStats *rs,
     }
 
     if (rs->totvert) {
-      spos += sprintf(spos, IFACE_("Ve:%d "), rs->totvert);
+      spos += sprintf(spos, TIP_("Ve:%d "), rs->totvert);
     }
     if (rs->totface) {
-      spos += sprintf(spos, IFACE_("Fa:%d "), rs->totface);
+      spos += sprintf(spos, TIP_("Fa:%d "), rs->totface);
     }
     if (rs->tothalo) {
-      spos += sprintf(spos, IFACE_("Ha:%d "), rs->tothalo);
+      spos += sprintf(spos, TIP_("Ha:%d "), rs->tothalo);
     }
     if (rs->totstrand) {
-      spos += sprintf(spos, IFACE_("St:%d "), rs->totstrand);
+      spos += sprintf(spos, TIP_("St:%d "), rs->totstrand);
     }
     if (rs->totlamp) {
-      spos += sprintf(spos, IFACE_("Li:%d "), rs->totlamp);
+      spos += sprintf(spos, TIP_("Li:%d "), rs->totlamp);
     }
 
     if (rs->mem_peak == 0.0f) {
       spos += sprintf(spos,
-                      IFACE_("| Mem:%.2fM (%.2fM, Peak %.2fM) "),
+                      TIP_("| Mem:%.2fM (%.2fM, Peak %.2fM) "),
                       megs_used_memory,
                       mmap_used_memory,
                       megs_peak_memory);
     }
     else {
-      spos += sprintf(spos, IFACE_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
+      spos += sprintf(spos, TIP_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
     }
 
     if (rs->curfield) {
-      spos += sprintf(spos, IFACE_("Field %d "), rs->curfield);
+      spos += sprintf(spos, TIP_("Field %d "), rs->curfield);
     }
     if (rs->curblur) {
-      spos += sprintf(spos, IFACE_("Blur %d "), rs->curblur);
+      spos += sprintf(spos, TIP_("Blur %d "), rs->curblur);
     }
   }
 
   /* full sample */
   if (rs->curfsa) {
-    spos += sprintf(spos, IFACE_("| Full Sample %d "), rs->curfsa);
+    spos += sprintf(spos, TIP_("| Full Sample %d "), rs->curfsa);
   }
 
   /* extra info */

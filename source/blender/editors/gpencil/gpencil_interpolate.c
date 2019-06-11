@@ -377,7 +377,7 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
   char status_str[UI_MAX_DRAW_STR];
   char msg_str[UI_MAX_DRAW_STR];
 
-  BLI_strncpy(msg_str, IFACE_("GPencil Interpolation: "), UI_MAX_DRAW_STR);
+  BLI_strncpy(msg_str, TIP_("GPencil Interpolation: "), UI_MAX_DRAW_STR);
 
   if (hasNumInput(&p->num)) {
     char str_offs[NUM_STR_REP_LEN];
@@ -395,7 +395,7 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
 
   ED_area_status_text(p->sa, status_str);
   ED_workspace_status_text(
-      C, IFACE_("ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"));
+      C, TIP_("ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"));
 }
 
 /* Update screen and stroke */

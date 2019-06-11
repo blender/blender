@@ -451,8 +451,8 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   if (is_interactive) {
     ED_workspace_status_text(
         C,
-        IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
-               "hold Alt for smooth"));
+        TIP_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+             "hold Alt for smooth"));
     return OPERATOR_RUNNING_MODAL;
   }
   else {
@@ -668,7 +668,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
     BLI_snprintf(buf,
                  sizeof(buf),
-                 IFACE_("Number of Cuts: %s, Smooth: %s (Alt)"),
+                 TIP_("Number of Cuts: %s, Smooth: %s (Alt)"),
                  str_rep,
                  str_rep + NUM_STR_REP_LEN);
     ED_workspace_status_text(C, buf);

@@ -169,19 +169,19 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 
   BLI_snprintf(header,
                sizeof(header),
-               IFACE_("%s: confirm, "
-                      "%s: cancel, "
-                      "%s: mode (%s), "
-                      "%s: width (%s), "
-                      "%s: segments (%d), "
-                      "%s: profile (%.3f), "
-                      "%s: clamp overlap (%s), "
-                      "%s: vertex only (%s), "
-                      "%s: outer miter (%s), "
-                      "%s: inner miter (%s), "
-                      "%s: harden normals (%s), "
-                      "%s: mark seam (%s), "
-                      "%s: mark sharp (%s)"),
+               TIP_("%s: confirm, "
+                    "%s: cancel, "
+                    "%s: mode (%s), "
+                    "%s: width (%s), "
+                    "%s: segments (%d), "
+                    "%s: profile (%.3f), "
+                    "%s: clamp overlap (%s), "
+                    "%s: vertex only (%s), "
+                    "%s: outer miter (%s), "
+                    "%s: inner miter (%s), "
+                    "%s: harden normals (%s), "
+                    "%s: mark seam (%s), "
+                    "%s: mark sharp (%s)"),
                WM_MODALKEY(BEV_MODAL_CONFIRM),
                WM_MODALKEY(BEV_MODAL_CANCEL),
                WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),

@@ -2814,13 +2814,13 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   /* Text and some vertical space */
   uiLayout *col = uiLayoutColumn(layout, true);
   uiItemL(col,
-          IFACE_("For security reasons, automatic execution of Python scripts in this file was "
-                 "disabled:"),
+          TIP_("For security reasons, automatic execution of Python scripts in this file was "
+               "disabled:"),
           ICON_ERROR);
   uiLayout *sub = uiLayoutRow(col, true);
   uiLayoutSetRedAlert(sub, true);
   uiItemL(sub, G.autoexec_fail, ICON_BLANK1);
-  uiItemL(col, IFACE_("This may lead to unexpected behavior"), ICON_BLANK1);
+  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_BLANK1);
 
   uiItemS(layout);
 
@@ -2830,7 +2830,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
           &pref_ptr,
           "use_scripts_auto_execute",
           0,
-          IFACE_("Permanently allow execution of scripts"),
+          TIP_("Permanently allow execution of scripts"),
           ICON_NONE);
 
   uiItemS(layout);

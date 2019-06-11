@@ -431,7 +431,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
     char buf[128];
     BLI_snprintf(buf,
                  sizeof(buf),
-                 IFACE_("Compositing | Tile %u-%u"),
+                 TIP_("Compositing | Tile %u-%u"),
                  this->m_chunksFinished,
                  this->m_numberOfChunks);
     this->m_bTree->stats_draw(this->m_bTree->sdh, buf);

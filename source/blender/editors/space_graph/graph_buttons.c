@@ -952,29 +952,28 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
+      uiItemL(col, TIP_("ERROR: Invalid Python expression"), ICON_CANCEL);
     }
     else if (!BKE_driver_has_simple_expression(driver)) {
       if ((G.f & G_FLAG_SCRIPT_AUTOEXEC) == 0) {
         /* TODO: Add button to enable? */
-        uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
+        uiItemL(col, TIP_("WARNING: Python expressions limited for security"), ICON_ERROR);
       }
       else {
-        uiItemL(col, IFACE_("Slow Python expression"), ICON_INFO);
+        uiItemL(col, TIP_("Slow Python expression"), ICON_INFO);
       }
     }
 
     /* Explicit bpy-references are evil. Warn about these to prevent errors */
     /* TODO: put these in a box? */
     if (bpy_data_expr_error || bpy_ctx_expr_error) {
-      uiItemL(col, IFACE_("WARNING: Driver expression may not work correctly"), ICON_HELP);
+      uiItemL(col, TIP_("WARNING: Driver expression may not work correctly"), ICON_HELP);
 
       if (bpy_data_expr_error) {
-        uiItemL(
-            col, IFACE_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
+        uiItemL(col, TIP_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
       }
       if (bpy_ctx_expr_error) {
-        uiItemL(col, IFACE_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
+        uiItemL(col, TIP_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
       }
     }
   }
@@ -984,7 +983,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, IFACE_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+      uiItemL(col, TIP_("ERROR: Invalid target channel(s)"), ICON_ERROR);
     }
 
     /* Warnings about a lack of variables
@@ -994,11 +993,11 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
      *       property animation
      */
     if (BLI_listbase_is_empty(&driver->variables)) {
-      uiItemL(col, IFACE_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
+      uiItemL(col, TIP_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
 
       if (!BLI_listbase_is_empty(&fcu->modifiers)) {
-        uiItemL(col, IFACE_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
-        uiItemL(col, IFACE_("F-Modifiers can generate curves for those too"), ICON_INFO);
+        uiItemL(col, TIP_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
+        uiItemL(col, TIP_("F-Modifiers can generate curves for those too"), ICON_INFO);
       }
     }
   }
@@ -1118,7 +1117,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                          0.0,
                          0.0,
                          0.0,
-                         IFACE_("Invalid variable name, click here for details"));
+                         TIP_("Invalid variable name, click here for details"));
       UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, NULL);  // XXX: reports?
     }
 
@@ -1136,7 +1135,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                        0.0,
                        0.0,
                        0.0,
-                       IFACE_("Delete target variable"));
+                       TIP_("Delete target variable"));
     UI_but_func_set(but, driver_delete_var_cb, driver, dvar);
     UI_block_emboss_set(block, UI_EMBOSS);
 

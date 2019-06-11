@@ -442,11 +442,11 @@ static void stats_string(ViewLayer *view_layer)
 
   /* get memory statistics */
   BLI_str_format_byte_unit(formatted_mem, mem_in_use - mmap_in_use, true);
-  ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, IFACE_(" | Mem: %s"), formatted_mem);
+  ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, TIP_(" | Mem: %s"), formatted_mem);
 
   if (mmap_in_use) {
     BLI_str_format_byte_unit(formatted_mem, mmap_in_use, true);
-    BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%s)"), formatted_mem);
+    BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_(" (%s)"), formatted_mem);
   }
 
   if (GPU_mem_stats_supported()) {
@@ -455,11 +455,11 @@ static void stats_string(ViewLayer *view_layer)
     GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
 
     BLI_str_format_byte_unit(formatted_mem, gpu_free_mem, true);
-    ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, IFACE_(" | Free GPU Mem: %s"), formatted_mem);
+    ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, TIP_(" | Free GPU Mem: %s"), formatted_mem);
 
     if (gpu_tot_memory) {
       BLI_str_format_byte_unit(formatted_mem, gpu_tot_memory, true);
-      BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_("/%s"), formatted_mem);
+      BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, TIP_("/%s"), formatted_mem);
     }
   }
 
@@ -479,13 +479,13 @@ static void stats_string(ViewLayer *view_layer)
 
   if (obedit) {
     if (BKE_keyblock_from_object(obedit)) {
-      ofs += BLI_strncpy_rlen(s + ofs, IFACE_("(Key) "), MAX_INFO_LEN - ofs);
+      ofs += BLI_strncpy_rlen(s + ofs, TIP_("(Key) "), MAX_INFO_LEN - ofs);
     }
 
     if (obedit->type == OB_MESH) {
       ofs += BLI_snprintf(s + ofs,
                           MAX_INFO_LEN - ofs,
-                          IFACE_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
+                          TIP_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
                           stats_fmt.totvertsel,
                           stats_fmt.totvert,
                           stats_fmt.totedgesel,
@@ -497,7 +497,7 @@ static void stats_string(ViewLayer *view_layer)
     else if (obedit->type == OB_ARMATURE) {
       ofs += BLI_snprintf(s + ofs,
                           MAX_INFO_LEN - ofs,
-                          IFACE_("Verts:%s/%s | Bones:%s/%s"),
+                          TIP_("Verts:%s/%s | Bones:%s/%s"),
                           stats_fmt.totvertsel,
                           stats_fmt.totvert,
                           stats_fmt.totbonesel,
@@ -506,7 +506,7 @@ static void stats_string(ViewLayer *view_layer)
     else {
       ofs += BLI_snprintf(s + ofs,
                           MAX_INFO_LEN - ofs,
-                          IFACE_("Verts:%s/%s"),
+                          TIP_("Verts:%s/%s"),
                           stats_fmt.totvertsel,
                           stats_fmt.totvert);
     }
@@ -517,7 +517,7 @@ static void stats_string(ViewLayer *view_layer)
   else if (ob && (object_mode & OB_MODE_POSE)) {
     ofs += BLI_snprintf(s + ofs,
                         MAX_INFO_LEN - ofs,
-                        IFACE_("Bones:%s/%s %s%s"),
+                        TIP_("Bones:%s/%s %s%s"),
                         stats_fmt.totbonesel,
                         stats_fmt.totbone,
                         memstr,
@@ -526,7 +526,7 @@ static void stats_string(ViewLayer *view_layer)
   else if ((ob) && (ob->type == OB_GPENCIL)) {
     ofs += BLI_snprintf(s + ofs,
                         MAX_INFO_LEN - ofs,
-                        IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s | Objects:%s/%s"),
+                        TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s | Objects:%s/%s"),
                         stats_fmt.totgplayer,
                         stats_fmt.totgpframe,
                         stats_fmt.totgpstroke,
@@ -540,7 +540,7 @@ static void stats_string(ViewLayer *view_layer)
   else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
     ofs += BLI_snprintf(s + ofs,
                         MAX_INFO_LEN - ofs,
-                        IFACE_("Verts:%s | Tris:%s%s"),
+                        TIP_("Verts:%s | Tris:%s%s"),
                         stats_fmt.totvert,
                         stats_fmt.tottri,
                         gpumemstr);
@@ -548,7 +548,7 @@ static void stats_string(ViewLayer *view_layer)
   else {
     ofs += BLI_snprintf(s + ofs,
                         MAX_INFO_LEN - ofs,
-                        IFACE_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s%s%s"),
+                        TIP_("Verts:%s | Faces:%s | Tris:%s | Objects:%s/%s%s%s"),
                         stats_fmt.totvert,
                         stats_fmt.totface,
                         stats_fmt.tottri,

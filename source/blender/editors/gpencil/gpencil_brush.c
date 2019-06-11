@@ -1182,9 +1182,9 @@ static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
 
   BLI_snprintf(str,
                sizeof(str),
-               IFACE_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
-                      " | Ctrl to Invert Action | Wheel Up/Down for Size "
-                      " | Shift-Wheel Up/Down for Strength"),
+               TIP_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
+                    " | Ctrl to Invert Action | Wheel Up/Down for Size "
+                    " | Shift-Wheel Up/Down for Strength"),
                (brush_name) ? brush_name : "<?>");
 
   ED_workspace_status_text(C, str);

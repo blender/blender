@@ -280,11 +280,11 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 
   BLI_snprintf(header,
                sizeof(header),
-               IFACE_("%s: confirm, %s: cancel, "
-                      "%s: start/define cut, %s: close cut, %s: new cut, "
-                      "%s: midpoint snap (%s), %s: ignore snap (%s), "
-                      "%s: angle constraint (%s), %s: cut through (%s), "
-                      "%s: panning"),
+               TIP_("%s: confirm, %s: cancel, "
+                    "%s: start/define cut, %s: close cut, %s: new cut, "
+                    "%s: midpoint snap (%s), %s: ignore snap (%s), "
+                    "%s: angle constraint (%s), %s: cut through (%s), "
+                    "%s: panning"),
                WM_MODALKEY(KNF_MODAL_CONFIRM),
                WM_MODALKEY(KNF_MODAL_CANCEL),
                WM_MODALKEY(KNF_MODAL_ADD_CUT),

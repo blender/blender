@@ -952,10 +952,10 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
   if (sa) {
     BLI_snprintf(msg,
                  sizeof(msg),
-                 IFACE_("Sample color for %s"),
+                 TIP_("Sample color for %s"),
                  !data->sample_palette ?
-                     IFACE_("Brush. Use Left Click to sample for palette instead") :
-                     IFACE_("Palette. Use Left Click to sample more colors"));
+                     TIP_("Brush. Use Left Click to sample for palette instead") :
+                     TIP_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }

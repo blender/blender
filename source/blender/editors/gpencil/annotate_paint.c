@@ -1688,8 +1688,8 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
           /* Provide usage tips, since this is modal, and unintuitive without hints */
           ED_workspace_status_text(
               C,
-              IFACE_("Annotation Create Poly: LMB click to place next stroke vertex | "
-                     "ESC/Enter to end  (or click outside this area)"));
+              TIP_("Annotation Create Poly: LMB click to place next stroke vertex | "
+                   "ESC/Enter to end  (or click outside this area)"));
           break;
         default:
           /* Do nothing - the others are self explanatory, exit quickly once the mouse is released
@@ -1704,29 +1704,29 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
       switch (p->paintmode) {
         case GP_PAINTMODE_ERASER:
           ED_workspace_status_text(C,
-                                   IFACE_("Annotation Eraser: Hold and drag LMB or RMB to erase | "
-                                          "ESC/Enter to end  (or click outside this area)"));
+                                   TIP_("Annotation Eraser: Hold and drag LMB or RMB to erase | "
+                                        "ESC/Enter to end  (or click outside this area)"));
           break;
         case GP_PAINTMODE_DRAW_STRAIGHT:
           ED_workspace_status_text(C,
-                                   IFACE_("Annotation Line Draw: Hold and drag LMB to draw | "
-                                          "ESC/Enter to end  (or click outside this area)"));
+                                   TIP_("Annotation Line Draw: Hold and drag LMB to draw | "
+                                        "ESC/Enter to end  (or click outside this area)"));
           break;
         case GP_PAINTMODE_DRAW:
           ED_workspace_status_text(C,
-                                   IFACE_("Annotation Freehand Draw: Hold and drag LMB to draw | "
-                                          "E/ESC/Enter to end  (or click outside this area)"));
+                                   TIP_("Annotation Freehand Draw: Hold and drag LMB to draw | "
+                                        "E/ESC/Enter to end  (or click outside this area)"));
           break;
         case GP_PAINTMODE_DRAW_POLY:
           ED_workspace_status_text(
               C,
-              IFACE_("Annotation Create Poly: LMB click to place next stroke vertex | "
-                     "ESC/Enter to end  (or click outside this area)"));
+              TIP_("Annotation Create Poly: LMB click to place next stroke vertex | "
+                   "ESC/Enter to end  (or click outside this area)"));
           break;
 
         default: /* unhandled future cases */
           ED_workspace_status_text(
-              C, IFACE_("Annotation Session: ESC/Enter to end   (or click outside this area)"));
+              C, TIP_("Annotation Session: ESC/Enter to end   (or click outside this area)"));
           break;
       }
       break;

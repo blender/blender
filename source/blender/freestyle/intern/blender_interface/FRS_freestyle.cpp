@@ -307,7 +307,7 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 {
   // load mesh
-  re->i.infostr = IFACE_("Freestyle: Mesh loading");
+  re->i.infostr = TIP_("Freestyle: Mesh loading");
   re->stats_draw(re->sdh, &re->i);
   re->i.infostr = NULL;
   if (controller->LoadMesh(
@@ -502,7 +502,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   }
 
   // compute view map
-  re->i.infostr = IFACE_("Freestyle: View map creation");
+  re->i.infostr = TIP_("Freestyle: View map creation");
   re->stats_draw(re->sdh, &re->i);
   re->i.infostr = NULL;
   controller->ComputeViewMap();
@@ -669,7 +669,7 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
     // render and composite Freestyle result
     if (controller->_ViewMap) {
       // render strokes
-      re->i.infostr = IFACE_("Freestyle: Stroke rendering");
+      re->i.infostr = TIP_("Freestyle: Stroke rendering");
       re->stats_draw(re->sdh, &re->i);
       re->i.infostr = NULL;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);

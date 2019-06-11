@@ -1141,7 +1141,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 /* Helper: Draw status message while the user is running the operator */
 static void gpencil_fill_status_indicators(bContext *C, tGPDfill *UNUSED(tgpf))
 {
-  const char *status_str = IFACE_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back");
+  const char *status_str = TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back");
   ED_workspace_status_text(C, status_str);
 }
 

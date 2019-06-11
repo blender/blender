@@ -483,7 +483,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   user = ct->user;
 
   if (!user) {
-    uiItemL(layout, IFACE_("No textures in context"), ICON_NONE);
+    uiItemL(layout, TIP_("No textures in context"), ICON_NONE);
     return;
   }
 

@@ -6398,7 +6398,7 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 
 static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
 {
-  ED_workspace_status_text(C, "Click on the mesh to set the detail");
+  ED_workspace_status_text(C, TIP_("Click on the mesh to set the detail"));
   WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

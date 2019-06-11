@@ -7718,11 +7718,11 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
 
   BLI_snprintf(header,
                sizeof(header),
-               IFACE_("%s: confirm, %s: cancel, "
-                      "%s: point to mouse (%s), %s: point to Pivot, "
-                      "%s: point to object origin, %s: reset normals, "
-                      "%s: set & point to 3D cursor, %s: select & point to mesh item, "
-                      "%s: invert normals (%s), %s: spherize (%s), %s: align (%s)"),
+               TIP_("%s: confirm, %s: cancel, "
+                    "%s: point to mouse (%s), %s: point to Pivot, "
+                    "%s: point to object origin, %s: reset normals, "
+                    "%s: set & point to 3D cursor, %s: select & point to mesh item, "
+                    "%s: invert normals (%s), %s: spherize (%s), %s: align (%s)"),
                WM_MODALKEY(EDBM_CLNOR_MODAL_CONFIRM),
                WM_MODALKEY(EDBM_CLNOR_MODAL_CANCEL),
                WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),

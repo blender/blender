@@ -727,9 +727,9 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
     param_flush(ms->handle);
 
     if (sa) {
-      BLI_snprintf(str, sizeof(str), IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
+      BLI_snprintf(str, sizeof(str), TIP_("Minimize Stretch. Blend %.2f"), ms->blend);
       ED_area_status_text(sa, str);
-      ED_workspace_status_text(C, IFACE_("Press + and -, or scroll wheel to set blending"));
+      ED_workspace_status_text(C, TIP_("Press + and -, or scroll wheel to set blending"));
     }
 
     ms->lasttime = PIL_check_seconds_timer();

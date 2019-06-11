@@ -439,25 +439,25 @@ void initTransformOrientation(bContext *C, TransInfo *t)
   switch (t->orientation.user) {
     case V3D_ORIENT_GLOBAL:
       unit_m3(t->spacemtx);
-      BLI_strncpy(t->spacename, IFACE_("global"), sizeof(t->spacename));
+      BLI_strncpy(t->spacename, TIP_("global"), sizeof(t->spacename));
       break;
 
     case V3D_ORIENT_GIMBAL:
       unit_m3(t->spacemtx);
       if (ob && gimbal_axis(ob, t->spacemtx)) {
-        BLI_strncpy(t->spacename, IFACE_("gimbal"), sizeof(t->spacename));
+        BLI_strncpy(t->spacename, TIP_("gimbal"), sizeof(t->spacename));
         break;
       }
       ATTR_FALLTHROUGH; /* no gimbal fallthrough to normal */
     case V3D_ORIENT_NORMAL:
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-        BLI_strncpy(t->spacename, IFACE_("normal"), sizeof(t->spacename));
+        BLI_strncpy(t->spacename, TIP_("normal"), sizeof(t->spacename));
         ED_getTransformOrientationMatrix(C, t->spacemtx, t->around);
         break;
       }
       ATTR_FALLTHROUGH; /* we define 'normal' as 'local' in Object mode */
     case V3D_ORIENT_LOCAL:
-      BLI_strncpy(t->spacename, IFACE_("local"), sizeof(t->spacename));
+      BLI_strncpy(t->spacename, TIP_("local"), sizeof(t->spacename));
 
       if (ob) {
         copy_m3_m4(t->spacemtx, ob->obmat);
@@ -474,7 +474,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
         RegionView3D *rv3d = t->ar->regiondata;
         float mat[3][3];
 
-        BLI_strncpy(t->spacename, IFACE_("view"), sizeof(t->spacename));
+        BLI_strncpy(t->spacename, TIP_("view"), sizeof(t->spacename));
         copy_m3_m4(mat, rv3d->viewinv);
         normalize_m3(mat);
         copy_m3_m3(t->spacemtx, mat);
@@ -484,13 +484,13 @@ void initTransformOrientation(bContext *C, TransInfo *t)
       }
       break;
     case V3D_ORIENT_CURSOR: {
-      BLI_strncpy(t->spacename, IFACE_("cursor"), sizeof(t->spacename));
+      BLI_strncpy(t->spacename, TIP_("cursor"), sizeof(t->spacename));
       BKE_scene_cursor_rot_to_mat3(&t->scene->cursor, t->spacemtx);
       break;
     }
     case V3D_ORIENT_CUSTOM_MATRIX:
       /* Already set. */
-      BLI_strncpy(t->spacename, IFACE_("custom"), sizeof(t->spacename));
+      BLI_strncpy(t->spacename, TIP_("custom"), sizeof(t->spacename));
       break;
     case V3D_ORIENT_CUSTOM:
       BLI_strncpy(t->spacename, t->orientation.custom->name, sizeof(t->spacename));

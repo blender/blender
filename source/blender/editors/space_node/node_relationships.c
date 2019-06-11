@@ -562,7 +562,7 @@ static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 {
   char header[UI_MAX_DRAW_STR];
 
-  BLI_strncpy(header, IFACE_("LMB: drag node link, RMB: cancel"), sizeof(header));
+  BLI_strncpy(header, TIP_("LMB: drag node link, RMB: cancel"), sizeof(header));
   ED_workspace_status_text(C, header);
 }
 

@@ -170,7 +170,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     v3d->gizmo_flag = V3D_GIZMO_HIDE;
 
     /* Initialize modal callout. */
-    ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
+    ED_workspace_status_text(C, TIP_("LMB: Click and drag to draw cut line"));
   }
   MEM_freeN(objects);
   return ret;
@@ -202,7 +202,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* update or clear modal callout */
   if (event->type == EVT_MODAL_MAP) {
     if (event->val == GESTURE_MODAL_BEGIN) {
-      ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
+      ED_workspace_status_text(C, TIP_("LMB: Release to confirm cut line"));
     }
     else {
       ED_workspace_status_text(C, NULL);

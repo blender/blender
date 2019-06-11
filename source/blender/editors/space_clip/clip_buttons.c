@@ -814,27 +814,27 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
   /* Display frame dimensions, channels number and byffer type. */
   BKE_movieclip_get_size(clip, user, &width, &height);
-  ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("%d x %d"), width, height);
+  ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, TIP_("%d x %d"), width, height);
 
   if (ibuf) {
     if (ibuf->rect_float) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf(
-            str + ofs, sizeof(str) - ofs, IFACE_(", %d float channel(s)"), ibuf->channels);
+            str + ofs, sizeof(str) - ofs, TIP_(", %d float channel(s)"), ibuf->channels);
       }
       else if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA float"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, TIP_(", RGBA float"), sizeof(str) - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB float"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, TIP_(", RGB float"), sizeof(str) - ofs);
       }
     }
     else {
       if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGBA byte"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, TIP_(", RGBA byte"), sizeof(str) - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB byte"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, TIP_(", RGB byte"), sizeof(str) - ofs);
       }
     }
 
@@ -843,12 +843,12 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       float frs_sec_base;
       if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
         ofs += BLI_snprintf(
-            str + ofs, sizeof(str) - ofs, IFACE_(", %.2f fps"), (float)frs_sec / frs_sec_base);
+            str + ofs, sizeof(str) - ofs, TIP_(", %.2f fps"), (float)frs_sec / frs_sec_base);
       }
     }
   }
   else {
-    ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", failed to load"), sizeof(str) - ofs);
+    ofs += BLI_strncpy_rlen(str + ofs, TIP_(", failed to load"), sizeof(str) - ofs);
   }
 
   uiItemL(col, str, ICON_NONE);
@@ -856,10 +856,10 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   /* Display current frame number. */
   framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   if (framenr <= clip->len) {
-    BLI_snprintf(str, sizeof(str), IFACE_("Frame: %d / %d"), framenr, clip->len);
+    BLI_snprintf(str, sizeof(str), TIP_("Frame: %d / %d"), framenr, clip->len);
   }
   else {
-    BLI_snprintf(str, sizeof(str), IFACE_("Frame: - / %d"), clip->len);
+    BLI_snprintf(str, sizeof(str), TIP_("Frame: - / %d"), clip->len);
   }
   uiItemL(col, str, ICON_NONE);
 
@@ -876,7 +876,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       file = "-";
     }
 
-    BLI_snprintf(str, sizeof(str), IFACE_("File: %s"), file);
+    BLI_snprintf(str, sizeof(str), TIP_("File: %s"), file);
 
     uiItemL(col, str, ICON_NONE);
   }
