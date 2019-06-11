@@ -279,12 +279,24 @@ static StructRNA *rna_Panel_register(Main *bmain,
   /* check if we have registered this panel type before, and remove it */
   for (pt = art->paneltypes.first; pt; pt = pt->next) {
     if (STREQ(pt->idname, dummypt.idname)) {
+      PanelType *pt_next = pt->next;
       if (pt->ext.srna) {
         rna_Panel_unregister(bmain, pt->ext.srna);
       }
       else {
         BLI_freelinkN(&art->paneltypes, pt);
       }
+
+      /* The order of panel types will be altered on re-registration. */
+      if (dummypt.parent_id[0] && (parent == NULL)) {
+        for (pt = pt_next; pt; pt = pt->next) {
+          if (STREQ(pt->idname, dummypt.parent_id)) {
+            parent = pt;
+            break;
+          }
+        }
+      }
+
       break;
     }
 
@@ -292,6 +304,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
       parent = pt;
     }
   }
+
   if (!RNA_struct_available_or_report(reports, dummypt.idname)) {
     return NULL;
   }
