@@ -22,6 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -116,6 +117,7 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
                                                     &screen->tool_tip->pass,
                                                     &pass_delay,
                                                     &screen->tool_tip->exit_on_event);
+  copy_v2_v2_int(screen->tool_tip->event_xy, &win->eventstate->x);
   if (pass_prev != screen->tool_tip->pass) {
     /* The pass changed, add timer for next pass. */
     wmWindowManager *wm = CTX_wm_manager(C);

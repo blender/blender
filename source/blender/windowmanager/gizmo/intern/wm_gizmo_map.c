@@ -1144,10 +1144,15 @@ struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
                                          bool *r_exit_on_event)
 {
   wmGizmoMap *gzmap = ar->gizmo_map;
-  *r_exit_on_event = true;
+  *r_exit_on_event = false;
   if (gzmap) {
     wmGizmo *gz = gzmap->gzmap_context.highlight;
     if (gz) {
+      wmGizmoGroup *gzgroup = gz->parent_gzgroup;
+      if ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) != 0) {
+        /* On screen area of 3D gizmos may be large, exit on cursor motion. */
+        *r_exit_on_event = true;
+      }
       return UI_tooltip_create_from_gizmo(C, gz);
     }
   }

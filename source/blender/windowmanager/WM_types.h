@@ -787,6 +787,8 @@ typedef struct wmTooltipState {
                           bool *r_exit_on_event);
   /** Exit on any event, not needed for buttons since their highlight state is used. */
   bool exit_on_event;
+  /** Cursor location at the point of tooltip creation. */
+  int event_xy[2];
   /** Pass, use when we want multiple tips, count down to zero. */
   int pass;
 } wmTooltipState;

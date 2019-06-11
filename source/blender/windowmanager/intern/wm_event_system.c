@@ -2784,11 +2784,25 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         }
 
         if (handle_highlight) {
-          int part;
+          struct {
+            wmGizmo *gz;
+            int part;
+          } prev = {
+              .gz = gz,
+              .part = gz ? gz->highlight_part : 0,
+          };
+          int part = -1;
           gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
-          if (wm_gizmomap_highlight_set(gzmap, C, gz, part) && gz != NULL) {
-            if (U.flag & USER_TOOLTIPS) {
-              WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
+
+          if ((gz == NULL) || (prev.gz != gz) || (prev.part != part)) {
+            WM_tooltip_clear(C, CTX_wm_window(C));
+          }
+
+          if (wm_gizmomap_highlight_set(gzmap, C, gz, part)) {
+            if (gz != NULL) {
+              if (U.flag & USER_TOOLTIPS) {
+                WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
+              }
             }
           }
         }
@@ -3278,8 +3292,10 @@ void wm_event_do_handlers(bContext *C)
 
       /* Clear tool-tip on mouse move. */
       if (screen->tool_tip && screen->tool_tip->exit_on_event) {
-        if (ISMOUSE(event->type)) {
-          WM_tooltip_clear(C, win);
+        if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+          if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, &event->x) > U.move_threshold) {
+            WM_tooltip_clear(C, win);
+          }
         }
       }
 
