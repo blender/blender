@@ -175,7 +175,7 @@ typedef struct EDIT_MESH_PrivateData {
   DRWView *view_faces;
   DRWView *view_faces_cage;
   DRWView *view_edges;
-  DRWView *view_wires;
+  DRWView *view_verts;
 
   int data_mask[4];
   int ghost_ob;
@@ -333,7 +333,7 @@ static void EDIT_MESH_engine_init(void *vedata)
     stl->g_data->view_faces = (DRWView *)DRW_view_default_get();
     stl->g_data->view_faces_cage = DRW_view_create_with_zoffset(draw_ctx->rv3d, 0.5f);
     stl->g_data->view_edges = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.0f);
-    stl->g_data->view_wires = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.5f);
+    stl->g_data->view_verts = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.5f);
   }
 }
 
@@ -791,7 +791,7 @@ static void edit_mesh_draw_components(EDIT_MESH_ComponentPassList *passes,
   DRW_view_set_active(g_data->view_edges);
   DRW_draw_pass(passes->edges);
 
-  DRW_view_set_active(g_data->view_wires);
+  DRW_view_set_active(g_data->view_verts);
   DRW_draw_pass(passes->verts);
 
   DRW_view_set_active(NULL);

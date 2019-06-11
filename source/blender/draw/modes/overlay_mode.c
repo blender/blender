@@ -166,7 +166,7 @@ static void overlay_engine_init(void *vedata)
 #endif
   }
 
-  stl->g_data->view_wires = DRW_view_create_with_zoffset(draw_ctx->rv3d, 1.0f);
+  stl->g_data->view_wires = DRW_view_create_with_zoffset(draw_ctx->rv3d, 0.5f);
 }
 
 static void overlay_cache_init(void *vedata)
@@ -178,11 +178,9 @@ static void overlay_cache_init(void *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   RegionView3D *rv3d = draw_ctx->rv3d;
+  View3D *v3d = draw_ctx->v3d;
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
-  const DRWContextState *DCS = DRW_context_state_get();
-
-  View3D *v3d = DCS->v3d;
   if (v3d) {
     g_data->overlay = v3d->overlay;
     g_data->show_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
@@ -221,15 +219,6 @@ static void overlay_cache_init(void *vedata)
                      DRW_STATE_FIRST_VERTEX_CONVENTION;
     float wire_size = U.pixelsize * 0.5f;
 
-    float winmat[4][4];
-    float viewdist = rv3d->dist;
-    DRW_view_winmat_get(NULL, winmat, false);
-    /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
-    if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
-      viewdist = 1.0f / max_ff(fabsf(rv3d->winmat[0][0]), fabsf(rv3d->winmat[1][1]));
-    }
-    const float depth_ofs = bglPolygonOffsetCalc((float *)winmat, viewdist, 1.0f);
-
     const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
     GPUShader *face_wires_sh = use_select ? sh_data->select_wireframe : sh_data->face_wireframe;
 
@@ -238,7 +227,6 @@ static void overlay_cache_init(void *vedata)
     g_data->face_wires_shgrp = DRW_shgroup_create(face_wires_sh, psl->face_wireframe_pass);
     DRW_shgroup_uniform_float(
         g_data->face_wires_shgrp, "wireStepParam", &g_data->wire_step_param, 1);
-    DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "ofs", depth_ofs);
     if (use_select || USE_GEOM_SHADER_WORKAROUND) {
       DRW_shgroup_uniform_float_copy(g_data->face_wires_shgrp, "wireSize", wire_size);
       DRW_shgroup_uniform_vec2(

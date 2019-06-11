@@ -1,6 +1,5 @@
 
 uniform float wireStepParam;
-uniform float ofs;
 
 in vec3 pos;
 in vec3 nor;
@@ -31,7 +30,6 @@ flat out float edgeSharpness;
 void main()
 {
   mat4 projmat = ProjectionMatrix;
-  projmat[3][2] -= ofs;
 
   vec4 wpos = ModelMatrix * vec4(pos, 1.0);
   gl_Position = projmat * (ViewMatrix * wpos);
