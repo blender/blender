@@ -206,6 +206,11 @@ ComponentNode *IDNode::add_component(NodeType type, const char *name)
 void IDNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
   GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, components) {
+    /* Relations update does explicit animation update when needed. Here we ignore animation
+     * component to avoid loss of possible unkeyed changes. */
+    if (comp_node->type == NodeType::ANIMATION && source == DEG_UPDATE_SOURCE_RELATIONS) {
+      continue;
+    }
     comp_node->tag_update(graph, source);
   }
   GHASH_FOREACH_END();
