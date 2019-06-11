@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 from bpy.types import Header, Menu, Panel
-from .space_dopesheet import (
+from bl_ui.space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
 )
@@ -207,7 +207,7 @@ class GRAPH_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        from .space_time import marker_menu_generic
+        from bl_ui.space_time import marker_menu_generic
         marker_menu_generic(layout, context)
 
         # TODO: pose markers for action edit mode only?

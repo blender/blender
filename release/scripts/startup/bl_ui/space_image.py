@@ -24,7 +24,7 @@ from bpy.types import (
     Panel,
     UIList,
 )
-from .properties_paint_common import (
+from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
     brush_texture_settings,
     brush_texpaint_common,
@@ -34,10 +34,10 @@ from .properties_paint_common import (
     brush_texpaint_common_options,
     brush_mask_texture_settings,
 )
-from .properties_grease_pencil_common import (
+from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
 )
-from .space_toolsystem_common import (
+from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
 
@@ -548,7 +548,7 @@ class IMAGE_HT_tool_header(Header):
 
         # Active Tool
         # -----------
-        from .space_toolsystem_common import ToolSelectPanelHelper
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
         tool_mode = context.mode if tool is None else tool.mode
 
@@ -580,7 +580,7 @@ class IMAGE_HT_tool_header(Header):
 
         # Active Tool
         # -----------
-        from .space_toolsystem_common import ToolSelectPanelHelper
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
         tool_mode = context.mode if tool is None else tool.mode
 
@@ -597,7 +597,7 @@ class _draw_tool_settings_context_mode:
                 uv_sculpt = tool_settings.uv_sculpt
                 brush = uv_sculpt.brush
                 if brush:
-                    from .properties_paint_common import UnifiedPaintPanel
+                    from bl_ui.properties_paint_common import UnifiedPaintPanel
 
                     row = layout.row(align=True)
                     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True)
@@ -619,7 +619,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             UnifiedPaintPanel,
             brush_basic_texpaint_settings,
         )
@@ -770,7 +770,7 @@ class MASK_MT_editor_menus(Menu):
 # Mask (similar code in space_clip.py, keep in sync)
 # note! - panel placement does _not_ fit well with image panels... need to fix.
 
-from .properties_mask_common import (
+from bl_ui.properties_mask_common import (
     MASK_PT_mask,
     MASK_PT_layers,
     MASK_PT_spline,
@@ -1407,14 +1407,14 @@ class IMAGE_PT_uv_sculpt_brush(Panel):
         sima = context.space_data
         # TODO(campbell): nicer way to check if we're in uv sculpt mode.
         if sima and sima.show_uvedit:
-            from .space_toolsystem_common import ToolSelectPanelHelper
+            from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
             tool = ToolSelectPanelHelper.tool_active_from_context(context)
             if tool.has_datablock:
                 return True
         return False
 
     def draw(self, context):
-        from .properties_paint_common import UnifiedPaintPanel
+        from bl_ui.properties_paint_common import UnifiedPaintPanel
         layout = self.layout
 
         tool_settings = context.tool_settings

@@ -23,15 +23,15 @@ from bpy.types import (
     Menu,
     Panel,
 )
-from .properties_paint_common import (
+from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
 )
-from .properties_grease_pencil_common import (
+from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
     AnnotationOnionSkin,
     GreasePencilMaterialsPanel,
 )
-from .space_toolsystem_common import (
+from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
 from bpy.app.translations import contexts as i18n_contexts
@@ -62,7 +62,7 @@ class VIEW3D_HT_tool_header(Header):
 
         # Active Tool
         # -----------
-        from .space_toolsystem_common import ToolSelectPanelHelper
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.draw_active_tool_header(
             context, layout,
             tool_key=('VIEW_3D', tool_mode),
@@ -225,7 +225,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             brush_basic_sculpt_settings,
         )
         brush_basic_sculpt_settings(layout, context, brush, compact=True)
@@ -242,7 +242,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             UnifiedPaintPanel,
             brush_basic_texpaint_settings,
         )
@@ -263,7 +263,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             UnifiedPaintPanel,
             brush_basic_vpaint_settings,
         )
@@ -283,7 +283,7 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return
 
-        from .properties_paint_common import brush_basic_wpaint_settings
+        from bl_ui.properties_paint_common import brush_basic_wpaint_settings
         brush_basic_wpaint_settings(layout, context, brush, compact=True)
 
     @staticmethod
@@ -343,7 +343,7 @@ class _draw_tool_settings_context_mode:
         if context.object and brush.gpencil_tool in {'FILL', 'DRAW'}:
             draw_color_selector()
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             brush_basic_gpencil_paint_settings,
         )
         brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
@@ -377,7 +377,7 @@ class _draw_tool_settings_context_mode:
         settings = tool_settings.gpencil_sculpt
         brush = settings.brush
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             brush_basic_gpencil_sculpt_settings,
         )
         brush_basic_gpencil_sculpt_settings(layout, context, brush, compact=True)
@@ -390,7 +390,7 @@ class _draw_tool_settings_context_mode:
         settings = tool_settings.gpencil_sculpt
         brush = settings.brush
 
-        from .properties_paint_common import (
+        from bl_ui.properties_paint_common import (
             brush_basic_gpencil_weight_settings,
         )
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
@@ -482,7 +482,7 @@ class VIEW3D_HT_header(Header):
                 show_snap = True
             else:
 
-                from .properties_paint_common import UnifiedPaintPanel
+                from bl_ui.properties_paint_common import UnifiedPaintPanel
                 paint_settings = UnifiedPaintPanel.paint_settings(context)
 
                 if paint_settings:

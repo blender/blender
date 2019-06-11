@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 from bpy.types import Panel
-from .space_view3d import (
+from bl_ui.space_view3d import (
     VIEW3D_PT_shading_lighting,
     VIEW3D_PT_shading_color,
     VIEW3D_PT_shading_options,

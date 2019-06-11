@@ -22,7 +22,7 @@ import bpy
 from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import pgettext_iface as iface_
 from bl_ui.utils import PresetPanel
-from .properties_grease_pencil_common import (
+from bl_ui.properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
 )
@@ -1106,7 +1106,7 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
 # -----------------------------------------------------------------------------
 # Mask (similar code in space_image.py, keep in sync)
 
-from .properties_mask_common import (
+from bl_ui.properties_mask_common import (
     MASK_PT_mask,
     MASK_PT_layers,
     MASK_PT_spline,

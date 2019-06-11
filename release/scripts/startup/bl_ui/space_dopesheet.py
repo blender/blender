@@ -199,7 +199,7 @@ class DOPESHEET_HT_header(Header):
         layout.template_header()
 
         if st.mode == 'TIMELINE':
-            from .space_time import (
+            from bl_ui.space_time import (
                 TIME_MT_editor_menus,
                 TIME_HT_editor_buttons,
             )
@@ -394,7 +394,7 @@ class DOPESHEET_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        from .space_time import marker_menu_generic
+        from bl_ui.space_time import marker_menu_generic
         marker_menu_generic(layout, context)
 
         st = context.space_data

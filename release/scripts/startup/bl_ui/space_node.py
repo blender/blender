@@ -23,21 +23,21 @@ from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.utils import PresetPanel
-from .properties_grease_pencil_common import (
+from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
     GreasePencilToolsPanel,
 )
-from .space_toolsystem_common import (
+from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
-from .properties_material import (
+from bl_ui.properties_material import (
     EEVEE_MATERIAL_PT_settings,
     MATERIAL_PT_viewport
 )
-from .properties_world import (
+from bl_ui.properties_world import (
     WORLD_PT_viewport_display
 )
-from .properties_data_light import (
+from bl_ui.properties_data_light import (
     DATA_PT_light,
     DATA_PT_EEVEE_light,
 )

@@ -22,7 +22,7 @@ from bpy.types import (
     Panel,
     UIList,
 )
-from .properties_physics_common import (
+from bl_ui.properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
 )

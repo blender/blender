@@ -32,7 +32,7 @@ from bpy.types import (
 )
 
 from rna_prop_ui import PropertyPanel
-from .properties_paint_common import brush_texture_settings
+from bl_ui.properties_paint_common import brush_texture_settings
 
 
 class TEXTURE_MT_context_menu(Menu):

@@ -27,7 +27,7 @@ from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
 )
-from .properties_grease_pencil_common import (
+from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
     GreasePencilToolsPanel,
 )
@@ -362,7 +362,7 @@ class SEQUENCER_MT_marker(Menu):
         st = context.space_data
         is_sequencer_view = st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
 
-        from .space_time import marker_menu_generic
+        from bl_ui.space_time import marker_menu_generic
         marker_menu_generic(layout, context)
 
         if is_sequencer_view:
