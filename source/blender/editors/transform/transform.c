@@ -1046,6 +1046,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   char cmode = constraintModeToChar(t);
   bool handled = false;
   const int modifiers_prev = t->modifiers;
+  const int mode_prev = t->mode;
 
   t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -1101,7 +1102,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           initTranslation(t);
           initSnapping(t, NULL);  // need to reinit after mode change
           t->redraw |= TREDRAW_HARD;
-          WM_event_add_mousemove(t->context);
           handled = true;
         }
         else if (t->mode == TFM_SEQ_SLIDE) {
@@ -1136,7 +1136,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               initSnapping(t, NULL);  // need to reinit after mode change
               t->redraw |= TREDRAW_HARD;
               handled = true;
-              WM_event_add_mousemove(t->context);
             }
           }
           else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
@@ -1603,8 +1602,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   }
 
   /* if we change snap options, get the unsnapped values back */
-  if ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) !=
-      (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT))) {
+  if ((mode_prev != t->mode) || ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) !=
+                                 (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT)))) {
     applyMouseInput(t, &t->mouse, t->mval, t->values);
   }
 
