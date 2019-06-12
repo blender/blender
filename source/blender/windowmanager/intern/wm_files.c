@@ -1829,9 +1829,7 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
                    NULL);
 
   wm_userpref_read_exceptions(&U, &U_backup);
-  if (use_factory_settings) {
-    G.f |= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
-  }
+  SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
 
   Main *bmain = CTX_data_main(C);
 
@@ -1960,9 +1958,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 
   if (use_userdef) {
     wm_userpref_read_exceptions(&U, &U_backup);
-    if (use_factory_settings) {
-      G.f |= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
-    }
+    SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
   }
 
   return OPERATOR_FINISHED;
