@@ -1320,7 +1320,8 @@ class WM_OT_properties_edit(Operator):
 
         row = layout.row()
         row.prop(self, "use_soft_limits")
-        row.prop(self, "is_overridable_static")
+        if bpy.app.use_static_override:
+            row.prop(self, "is_overridable_static")
 
         row = layout.row(align=True)
         row.enabled = self.use_soft_limits
