@@ -1609,7 +1609,7 @@ static short snapCurve(SnapData *snapdata,
   bool has_snap = false;
 
   /* only vertex snapping mode (eg control points and handles) supported for now) */
-  if (snapdata->snap_to_flag != SCE_SNAP_MODE_VERTEX) {
+  if ((snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
     return 0;
   }
 
@@ -1640,8 +1640,8 @@ static short snapCurve(SnapData *snapdata,
   float(*clip_planes)[4] = snapdata->clip_plane;
   int clip_plane_len = snapdata->clip_plane_len;
 
-  if (use_obedit && snapdata->has_occlusion_plane) {
-    /* In editing mode nurbs are not occluded. */
+  if (snapdata->has_occlusion_plane) {
+    /* We snap to vertices even if coccluded. */
     clip_planes++;
     clip_plane_len--;
   }
@@ -2384,7 +2384,7 @@ static short snapObject(SnapObjectContext *sctx,
       break;
     case OB_CURVE:
       retval = snapCurve(snapdata, ob, obmat, use_obedit, dist_px, r_loc, r_no, r_index);
-      ATTR_FALLTHROUGH;
+      break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
     case OB_SURF:
     case OB_FONT: {
       if (ob->runtime.mesh_eval) {
@@ -2757,7 +2757,8 @@ static short transform_snap_context_project_view3d_mixed_impl(
     snapdata.clip_plane_len = 2;
     snapdata.has_occlusion_plane = false;
 
-    if (has_hit) {
+    /* By convention we only snap to the original elements of a curve. */
+    if (has_hit && ob->type != OB_CURVE) {
       /* Compute the new clip_pane but do not add it yet. */
       float new_clipplane[4];
       plane_from_point_normal_v3(new_clipplane, loc, no);
