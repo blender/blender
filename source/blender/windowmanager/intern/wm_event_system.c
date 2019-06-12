@@ -2794,8 +2794,11 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
           int part = -1;
           gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
 
-          if ((gz == NULL) || (prev.gz != gz) || (prev.part != part)) {
-            WM_tooltip_clear(C, CTX_wm_window(C));
+          /* If no gizmos are/were active, don't clear tool-tips. */
+          if (gz || prev.gz) {
+            if ((prev.gz != gz) || (prev.part != part)) {
+              WM_tooltip_clear(C, CTX_wm_window(C));
+            }
           }
 
           if (wm_gizmomap_highlight_set(gzmap, C, gz, part)) {
