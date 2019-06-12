@@ -2124,15 +2124,25 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     ID_Type id_type = GS(id->name);
     if (id_type == ID_MA) {
       build_material((Material *)bnode->id);
+      ComponentKey material_key(id, NodeType::SHADING);
+      add_relation(material_key, shading_key, "Material -> Node");
     }
     else if (id_type == ID_TE) {
       build_texture((Tex *)bnode->id);
+      ComponentKey texture_key(id, NodeType::GENERIC_DATABLOCK);
+      add_relation(texture_key, shading_key, "Texture -> Node");
     }
     else if (id_type == ID_IM) {
       build_image((Image *)bnode->id);
+      ComponentKey image_key(id, NodeType::GENERIC_DATABLOCK);
+      add_relation(image_key, shading_key, "Image -> Node");
     }
     else if (id_type == ID_OB) {
       build_object(NULL, (Object *)id);
+      ComponentKey object_transform_key(id, NodeType::TRANSFORM);
+      ComponentKey object_geometry_key(id, NodeType::GEOMETRY);
+      add_relation(object_transform_key, shading_key, "Object Transform -> Node");
+      add_relation(object_geometry_key, shading_key, "Object Geometry -> Node");
     }
     else if (id_type == ID_SCE) {
       Scene *node_scene = (Scene *)id;
@@ -2150,9 +2160,13 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
     else if (id_type == ID_MSK) {
       build_mask((Mask *)id);
+      OperationKey mask_key(id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
+      add_relation(mask_key, shading_key, "Mask -> Node");
     }
     else if (id_type == ID_MC) {
       build_movieclip((MovieClip *)id);
+      OperationKey clip_key(id, NodeType::PARAMETERS, OperationCode::MOVIECLIP_EVAL);
+      add_relation(clip_key, shading_key, "Clip -> Node");
     }
     else if (ELEM(bnode->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       bNodeTree *group_ntree = (bNodeTree *)id;
