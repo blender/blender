@@ -69,6 +69,14 @@ rna_space_type_prop = EnumProperty(
     default='EMPTY',
 )
 
+# Note, this can be used for more operators,
+# currently not used for all "WM_OT_context_" operators.
+rna_module_prop = StringProperty(
+    name="Module",
+    description="Optionally override the context with a module",
+    maxlen=1024,
+)
+
 
 def context_path_validate(context, data_path):
     try:
@@ -325,16 +333,24 @@ class WM_OT_context_toggle(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path: rna_path_prop
+    module: rna_module_prop
 
     def execute(self, context):
         data_path = self.data_path
 
-        if context_path_validate(context, data_path) is Ellipsis:
+        module = self.module
+        if not module:
+            base = context
+        else:
+            from importlib import import_module
+            base = import_module(self.module)
+
+        if context_path_validate(base, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("context.%s = not (context.%s)" % (data_path, data_path))
+        exec("base.%s = not (base.%s)" % (data_path, data_path))
 
-        return operator_path_undo_return(context, data_path)
+        return operator_path_undo_return(base, data_path)
 
 
 class WM_OT_context_toggle_enum(Operator):
