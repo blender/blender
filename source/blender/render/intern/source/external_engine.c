@@ -510,7 +510,16 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   engine->depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
   DEG_debug_name_set(engine->depsgraph, "RENDER");
 
-  BKE_scene_graph_update_for_newframe(engine->depsgraph, bmain);
+  if (engine->re->r.scemode & R_BUTS_PREVIEW) {
+    Depsgraph *depsgraph = engine->depsgraph;
+    DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+    DEG_evaluate_on_framechange(bmain, depsgraph, CFRA);
+    DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
+    DEG_ids_clear_recalc(bmain, depsgraph);
+  }
+  else {
+    BKE_scene_graph_update_for_newframe(engine->depsgraph, bmain);
+  }
 }
 
 static void engine_depsgraph_free(RenderEngine *engine)
