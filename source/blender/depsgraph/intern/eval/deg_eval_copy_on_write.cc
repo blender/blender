@@ -63,6 +63,7 @@ extern "C" {
 #include "DNA_sound_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "DRW_engine.h"
 
@@ -1010,6 +1011,7 @@ class SceneBackup {
   void *playback_handle;
   void *sound_scrub_handle;
   void *speaker_handles;
+  float rigidbody_last_time;
 
   SequencerBackup sequencer_backup;
 };
@@ -1025,6 +1027,7 @@ void SceneBackup::reset()
   playback_handle = NULL;
   sound_scrub_handle = NULL;
   speaker_handles = NULL;
+  rigidbody_last_time = -1;
 }
 
 void SceneBackup::init_from_scene(Scene *scene)
@@ -1033,6 +1036,10 @@ void SceneBackup::init_from_scene(Scene *scene)
   playback_handle = scene->playback_handle;
   sound_scrub_handle = scene->sound_scrub_handle;
   speaker_handles = scene->speaker_handles;
+
+  if (scene->rigidbody_world != NULL) {
+    rigidbody_last_time = scene->rigidbody_world->ltime;
+  }
 
   /* Clear pointers stored in the scene, so they are not freed when copied-on-written datablock
    * is freed for re-allocation. */
@@ -1050,6 +1057,10 @@ void SceneBackup::restore_to_scene(Scene *scene)
   scene->playback_handle = playback_handle;
   scene->sound_scrub_handle = sound_scrub_handle;
   scene->speaker_handles = speaker_handles;
+
+  if (scene->rigidbody_world != NULL) {
+    scene->rigidbody_world->ltime = rigidbody_last_time;
+  }
 
   sequencer_backup.restore_to_scene(scene);
 
