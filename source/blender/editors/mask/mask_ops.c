@@ -288,7 +288,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
               uw = NULL;
             }
             else {
-              uw = &cur_point_eval->uw[j - 1];
+              uw = &cur_point_orig->uw[j - 1];
             }
 
             point_masklay = masklay_orig;
