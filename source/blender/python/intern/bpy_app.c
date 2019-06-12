@@ -508,6 +508,12 @@ static PyGetSetDef bpy_app_getsets[] = {
      (char *)bpy_app_global_flag_doc,
      (void *)G_FLAG_EVENT_SIMULATE},
 
+    {(char *)"use_userpref_skip_save_on_exit",
+     bpy_app_global_flag_get,
+     bpy_app_global_flag_set,
+     (char *)bpy_app_global_flag_doc,
+     (void *)G_FLAG_USERPREF_NO_SAVE_ON_EXIT},
+
     {(char *)"binary_path_python",
      bpy_app_binary_path_python_get,
      NULL,

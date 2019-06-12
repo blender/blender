@@ -334,15 +334,6 @@ class TOPBAR_MT_file_defaults(Menu):
         if app_template:
             props.app_template = app_template
 
-        if prefs.use_preferences_save:
-            props = layout.operator(
-                "wm.read_factory_settings",
-                text="Load Factory Settings (Temporary)"
-            )
-            if app_template:
-                props.app_template = app_template
-            props.use_temporary_preferences = True
-
 
 class TOPBAR_MT_app_about(Menu):
     bl_label = "About"

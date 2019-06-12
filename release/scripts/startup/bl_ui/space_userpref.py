@@ -40,10 +40,21 @@ class USERPREF_HT_header(Header):
 
         row = layout.row()
         row.menu("USERPREF_MT_save_load", text="", icon='COLLAPSEMENU')
-        if not prefs.use_preferences_save:
-            sub_revert = row.row(align=True)
-            sub_revert.active = prefs.is_dirty
-            sub_revert.operator("wm.save_userpref")
+        if prefs.use_preferences_save:
+            if bpy.app.use_userpref_skip_save_on_exit:
+                # We should have an 'alert' icon, for now use 'error'.
+                sub = row.row(align=True)
+                props = sub.operator(
+                    "wm.context_toggle",
+                    text="Skip Auto-Save",
+                    icon='CHECKBOX_HLT',
+                )
+                props.module = "bpy.app"
+                props.data_path = "use_userpref_skip_save_on_exit"
+        else:
+            sub = row.row(align=True)
+            sub.active = prefs.is_dirty
+            sub.operator("wm.save_userpref")
 
     def draw(self, context):
         layout = self.layout

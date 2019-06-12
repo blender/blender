@@ -1742,9 +1742,7 @@ void WM_OT_save_userpref(wmOperatorType *ot)
 /**
  * When reading preferences, there are some exceptions for values which are reset.
  */
-static void wm_userpref_read_exceptions(UserDef *userdef_curr,
-                                        const UserDef *userdef_prev,
-                                        const bool use_factory_settings)
+static void wm_userpref_read_exceptions(UserDef *userdef_curr, const UserDef *userdef_prev)
 {
 #define USERDEF_RESTORE(member) \
   { \
@@ -1754,13 +1752,6 @@ static void wm_userpref_read_exceptions(UserDef *userdef_curr,
 
   /* Current visible preferences category. */
   USERDEF_RESTORE(userpref);
-
-  if (use_factory_settings) {
-    /* Preferences about the preferences.
-     * Technically correct not to reset however this causes issues in practice.
-     * Since loading factory settings will then overwrite your preferences on exit, see: T65702. */
-    USERDEF_RESTORE(pref_flag);
-  }
 
 #undef USERDEF_RESTORE
 }
@@ -1837,7 +1828,10 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
                    WM_init_state_app_template_get(),
                    NULL);
 
-  wm_userpref_read_exceptions(&U, &U_backup, use_factory_settings);
+  wm_userpref_read_exceptions(&U, &U_backup);
+  if (use_factory_settings) {
+    G.f |= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
+  }
 
   Main *bmain = CTX_data_main(C);
 
@@ -1933,7 +1927,6 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop_app_template = RNA_struct_find_property(op->ptr, "app_template");
   const bool use_splash = !use_factory_settings && RNA_boolean_get(op->ptr, "use_splash");
   const bool use_empty_data = RNA_boolean_get(op->ptr, "use_empty");
-  const bool use_temporary_preferences = RNA_boolean_get(op->ptr, "use_temporary_preferences");
 
   if (prop_app_template && RNA_property_is_set(op->ptr, prop_app_template)) {
     RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
@@ -1964,10 +1957,12 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   if (use_splash) {
     WM_init_splash(C);
   }
-  SET_FLAG_FROM_TEST(G.f, use_temporary_preferences, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
 
   if (use_userdef) {
-    wm_userpref_read_exceptions(&U, &U_backup, use_factory_settings);
+    wm_userpref_read_exceptions(&U, &U_backup);
+    if (use_factory_settings) {
+      G.f |= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
+    }
   }
 
   return OPERATOR_FINISHED;
@@ -2008,13 +2003,6 @@ static void read_homefile_props(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna, "use_empty", false, "Empty", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-
-  prop = RNA_def_boolean(ot->srna,
-                         "use_temporary_preferences",
-                         false,
-                         "Temporary Preferences",
-                         "Don't save preferences on exit");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
