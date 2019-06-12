@@ -174,7 +174,6 @@ typedef struct GPENCIL_Storage {
 
   int blend_mode;
   int clamp_layer;
-  float blend_opacity;
 
   /* simplify settings*/
   bool simplify_fill;
