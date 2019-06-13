@@ -33,46 +33,76 @@ float overlay_color(float a, float b)
   return rtn;
 }
 
-vec4 get_blend_color(int mode, vec4 src_color, vec4 blend_color)
+vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
 {
-  vec4 mix_color = blend_color;
   vec4 outcolor;
 
   if (mix_color.a == 0) {
-    outcolor = src_color;
-  }
-  else if (mode == MODE_OVERLAY) {
-    mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
-    outcolor.r = overlay_color(src_color.r, mix_color.r);
-    outcolor.g = overlay_color(src_color.g, mix_color.g);
-    outcolor.b = overlay_color(src_color.b, mix_color.b);
-    outcolor.a = src_color.a;
-  }
-  else if (mode == MODE_ADD) {
-    mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
-    outcolor = src_color + mix_color;
-    outcolor.a = src_color.a;
-  }
-  else if (mode == MODE_SUB) {
-    mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
-    outcolor = src_color - mix_color;
-    outcolor.a = clamp(src_color.a - mix_color.a, 0.0, 1.0);
-  }
-  else if (mode == MODE_MULTIPLY) {
-    mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
-    outcolor = src_color * mix_color;
-    outcolor.a = src_color.a;
-  }
-  else if (mode == MODE_DIVIDE) {
-    mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
-    outcolor = src_color / mix_color;
-    outcolor.a = src_color.a;
-  }
-  else {
-    outcolor = mix_color;
-    outcolor.a = src_color.a;
+    return src_color;
   }
 
+  switch(mode)
+  {
+    case MODE_REGULAR:
+    {
+      /* premult */
+      src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
+      mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
+
+      outcolor = vec4(mix(src_color.rgb, mix_color.rgb, mix_color.a),
+                        src_color.a);
+      break;
+    }
+    case MODE_OVERLAY:
+    {
+      src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
+      mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
+
+      mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
+      outcolor.r = overlay_color(src_color.r, mix_color.r);
+      outcolor.g = overlay_color(src_color.g, mix_color.g);
+      outcolor.b = overlay_color(src_color.b, mix_color.b);
+      outcolor.a = src_color.a;
+      break;
+    }
+    case MODE_ADD:
+    {
+      mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
+      outcolor = src_color + mix_color;
+      outcolor.a = src_color.a;
+      break;
+    }
+    case MODE_SUB:
+    {
+      mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
+      outcolor = src_color - mix_color;
+      outcolor.a = clamp(src_color.a - mix_color.a, 0.0, 1.0);
+      break;
+    }
+    case MODE_MULTIPLY:
+    {
+      src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
+      mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
+
+      mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
+      outcolor = src_color * mix_color;
+      outcolor.a = src_color.a;
+      break;
+    }
+    case MODE_DIVIDE:
+    {
+      mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
+      outcolor = src_color / mix_color;
+      outcolor.a = src_color.a;
+      break;
+    }
+    default:
+    {
+      outcolor = mix_color;
+      outcolor.a = src_color.a;
+      break;
+    }
+  }
   return clamp(outcolor, 0.0, 1.0);
 }
 
@@ -110,43 +140,27 @@ void main()
   vec4 mix_color = texelFetch(blendColor, uv, 0).rgba;
   float mix_depth = texelFetch(blendDepth, uv, 0).r;
 
-  /* Default mode */
-  if (mode == MODE_REGULAR) {
-    if (stroke_color.a > 0) {
-      if (mix_color.a > 0) {
-        /* premult */
-        stroke_color = vec4(vec3(stroke_color.rgb / stroke_color.a), stroke_color.a);
-        mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
-
-        FragColor = vec4(mix(stroke_color.rgb, mix_color.rgb, mix_color.a), stroke_color.a);
-        gl_FragDepth = mix_depth;
-      }
-      else {
-        FragColor = stroke_color;
-        gl_FragDepth = stroke_depth;
-      }
+  if (stroke_color.a > 0) {
+    if (mix_color.a > 0) {
+      /* apply blend mode */
+      FragColor = get_blend_color(mode, stroke_color, mix_color);
     }
     else {
-      if (clamp_layer == ON) {
-        discard;
-      }
-      else {
-        FragColor = mix_color;
-        gl_FragDepth = mix_depth;
-      }
+      FragColor = stroke_color;
     }
-    FragColor = tone(FragColor);
-    return;
+    gl_FragDepth = min(stroke_depth, mix_depth);
+  }
+  else {
+    if (clamp_layer == ON) {
+      discard;
+    }
+    else {
+      /* if not using mask, return mix color */
+      FragColor = mix_color;
+      gl_FragDepth = mix_depth;
+    }
   }
 
-  /* if not using mask, return mix color */
-  if ((stroke_color.a == 0) && (clamp_layer == OFF)) {
-    FragColor = tone(mix_color);
-    gl_FragDepth = mix_depth;
-    return;
-  }
-
-  /* apply blend mode */
-  FragColor = tone(get_blend_color(mode, stroke_color, mix_color));
-  gl_FragDepth = stroke_depth;
+  /* apply tone mapping */
+  FragColor = tone(FragColor);
 }
