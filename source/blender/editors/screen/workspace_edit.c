@@ -376,6 +376,9 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
     BLI_assert(appended_workspace != NULL);
 
     if (appended_workspace) {
+      /* Set defaults. */
+      BLO_update_defaults_workspace(appended_workspace, NULL);
+
       /* Reorder to last position. */
       BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, NULL, true);
 

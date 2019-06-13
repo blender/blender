@@ -286,7 +286,7 @@ static void blo_update_defaults_screen(bScreen *screen,
   }
 }
 
-static void blo_update_defaults_workspace(WorkSpace *workspace, const char *app_template)
+void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_template)
 {
   ListBase *layouts = BKE_workspace_layouts_get(workspace);
   for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
@@ -367,7 +367,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
   /* For all app templates. */
   for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-    blo_update_defaults_workspace(workspace, app_template);
+    BLO_update_defaults_workspace(workspace, app_template);
   }
 
   /* For builtin templates only. */

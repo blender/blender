@@ -40,6 +40,7 @@ struct Scene;
 struct UserDef;
 struct View3D;
 struct ViewLayer;
+struct WorkSpace;
 struct bContext;
 struct bScreen;
 struct wmWindowManager;
@@ -166,6 +167,7 @@ void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 /* Update defaults in startup.blend & userprefs.blend, without having to save and embed it */
 void BLO_update_defaults_userpref_blend(void);
 void BLO_update_defaults_startup_blend(struct Main *mainvar, const char *app_template);
+void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_template);
 
 /* Version patch user preferences. */
 void BLO_version_defaults_userpref_blend(struct Main *mainvar, struct UserDef *userdef);
