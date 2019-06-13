@@ -49,8 +49,7 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
       src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
       mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
 
-      outcolor = vec4(mix(src_color.rgb, mix_color.rgb, mix_color.a),
-                        src_color.a);
+      outcolor = vec4(mix(src_color.rgb, mix_color.rgb, mix_color.a), src_color.a);
       break;
     }
     case MODE_OVERLAY:
