@@ -254,12 +254,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 if _os.path.isdir(path):
                     _sys_path_ensure(path)
 
-                    # only add this to sys.modules, don't run
-                    if path_subdir == "modules":
-                        continue
-
-                    for mod in modules_from_path(path, loaded_modules):
-                        test_register(mod)
+                    # Only add to 'sys.modules' unless this is 'startup'.
+                    if path_subdir == "startup":
+                        for mod in modules_from_path(path, loaded_modules):
+                            test_register(mod)
 
     # load template (if set)
     if any(_bpy.utils.app_template_paths()):
