@@ -3353,6 +3353,22 @@ static void WM_OT_previews_ensure(wmOperatorType *ot)
 
 /* Only types supporting previews currently. */
 static const EnumPropertyItem preview_id_type_items[] = {
+    {FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO |
+         FILTER_ID_TE | FILTER_ID_IM,
+     "ALL",
+     0,
+     "All Types",
+     ""},
+    {FILTER_ID_SCE | FILTER_ID_GR | FILTER_ID_OB,
+     "GEOMETRY",
+     0,
+     "All Geometry Types",
+     "Clear previews for scenes, collections and objects"},
+    {FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
+     "SHADING",
+     0,
+     "All Shading Types",
+     "Clear previews for materiasl, lights, worlds, textures and images"},
     {FILTER_ID_SCE, "SCENE", 0, "Scenes", ""},
     {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
     {FILTER_ID_OB, "OBJECT", 0, "Objects", ""},
