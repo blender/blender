@@ -59,6 +59,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_armature_types.h"
 #include "RNA_access.h"
@@ -1325,6 +1326,9 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
                                           float strength,
                                           float cp)
 {
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+
   Mesh *me_deform;
   MDeformWeight *dw;
   MVert m;
@@ -1349,7 +1353,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
   float originalDistToBe = distToBe;
   do {
     wasChange = false;
-    me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
+    me_deform = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
     m = me_deform->mvert[index];
     copy_v3_v3(oldPos, m.co);
     distToStart = dot_v3v3(norm, oldPos) + d;
@@ -1389,7 +1393,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
         if (dw->weight > 1) {
           dw->weight = 1;
         }
-        me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
+        me_deform = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
         m = me_deform->mvert[index];
         getVerticalAndHorizontalChange(
             norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
@@ -1506,6 +1510,8 @@ static void vgroup_fix(
     const bContext *C, Scene *scene, Object *ob, float distToBe, float strength, float cp)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   int i;
 
   Mesh *me = ob->data;
@@ -1522,7 +1528,8 @@ static void vgroup_fix(
         MVert *p = MEM_callocN(sizeof(MVert) * (count), "deformedPoints");
         int k;
 
-        Mesh *me_deform = mesh_get_eval_deform(depsgraph, scene, ob, &CD_MASK_BAREMESH);
+        Mesh *me_deform = mesh_get_eval_deform(
+            depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
         k = count;
         while (k--) {
           p[k] = me_deform->mvert[verts[k]];
@@ -1540,7 +1547,7 @@ static void vgroup_fix(
             d = -dot_v3v3(norm, coord);
             /* dist = (dot_v3v3(norm, m.co) + d); */ /* UNUSED */
             moveCloserToDistanceFromPlane(
-                depsgraph, scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
+                depsgraph, scene_eval, object_eval, me, i, norm, coord, d, distToBe, strength, cp);
           }
         }
 
