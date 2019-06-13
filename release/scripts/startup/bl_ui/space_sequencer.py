@@ -1314,26 +1314,31 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
 
         sub = layout.column(align=True)
         sub.enabled = not strip.lock
-        split = sub.split(factor=0.5 + max_factor)
+        split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Start")
-        split.prop(strip, "frame_start", text=str(bpy.utils.smpte_from_frame(strip.frame_start)))
-        split = sub.split(factor=0.5 + max_factor)
+        split.prop(strip, "frame_final_start", text=str(bpy.utils.smpte_from_frame(strip.frame_final_start)))
+
+        split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="End")
         split.prop(strip, "frame_final_end", text=str(bpy.utils.smpte_from_frame(strip.frame_final_end)))
-        split = sub.split(factor=0.5 + max_factor)
+
+        split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Duration")
         split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)))
 
         if not isinstance(strip, bpy.types.EffectSequence):
+
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
+
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Soft Trim Start")
+            split.label(text="Strip Offset Start")
             split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)))
+
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
@@ -1341,31 +1346,32 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
 
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
-            split = sub.split(factor=0.5 + max_factor)
+
+            split = sub.split(factor=0.5 + max_factor,  align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Hard Trim Start")
+            split.label(text="Hold Offset Start")
             split.prop(strip, "animation_offset_start", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_start)))
+
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
             split.prop(strip, "animation_offset_end", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_end)))
 
-        playhead = frame_current - strip.frame_start
         col = layout.column(align=True)
         col = col.box()
         col.active = (
-            (frame_current >= strip.frame_start) and
-            (frame_current <= strip.frame_start + strip.frame_final_duration)
+            (frame_current >= strip.frame_final_start) and
+            (frame_current <= strip.frame_final_start + strip.frame_final_duration)
         )
-        split = col.split(factor=0.5 + max_factor)
+
+        split = col.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Playhead")
-        split.label(text="%s:   %s" % ((bpy.utils.smpte_from_frame(playhead)), (str(playhead))))
-
-        ''' Old data - anyone missing this data?
-        col.label(text=iface_("Frame Offset %d:%d") % (strip.frame_offset_start, strip.frame_offset_end),
-                  translate=False)
-        col.label(text=iface_("Frame Still %d:%d") % (strip.frame_still_start, strip.frame_still_end), translate=False)'''
+        split = split.split(factor=0.8 + max_factor, align=True)
+        playhead = frame_current - strip.frame_final_start
+        split.label(text='{:>14}'.format(bpy.utils.smpte_from_frame(playhead)+":"))
+        split.alignment = 'RIGHT'
+        split.label(text=str(playhead)+" ")
 
         elem = False
 
@@ -1375,7 +1381,7 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
             elem = strip.elements[0]
 
         if strip.type != 'SOUND':
-            split = col.split(factor=0.5 + max_factor)
+            split = col.split(factor=0.5 + max_factor, align=False)
             split.alignment = 'RIGHT'
             split.label(text="Resolution")
             if elem and elem.orig_width > 0 and elem.orig_height > 0:
