@@ -771,14 +771,9 @@ void ED_view3d_datamask(const bContext *C,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
-  const int drawtype = view3d_effective_drawtype(v3d);
-
-  if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL)) {
+  if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {
     r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
-
-    if (drawtype == OB_MATERIAL) {
-      r_cddata_masks->vmask |= CD_MASK_ORCO;
-    }
+    r_cddata_masks->vmask |= CD_MASK_ORCO;
   }
 
   if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&

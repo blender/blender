@@ -50,14 +50,6 @@
 
 #include "view3d_intern.h" /* bad level include */
 
-int view3d_effective_drawtype(const struct View3D *v3d)
-{
-  if (v3d->shading.type == OB_RENDER) {
-    return v3d->shading.prev_type;
-  }
-  return v3d->shading.type;
-}
-
 /* OpenGL Circle Drawing - Tables for Optimized Drawing Speed */
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32

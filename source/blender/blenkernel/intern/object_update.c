@@ -168,13 +168,16 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
+      if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
+        /* Make sure Freestyle edge/face marks appear in DM for render (see T40315). */
 #ifdef WITH_FREESTYLE
-      /* make sure Freestyle edge/face marks appear in DM for render (see T40315) */
-      if (DEG_get_mode(depsgraph) != DAG_EVAL_VIEWPORT) {
         cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
         cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
-      }
 #endif
+        /* Always compute UVs, vertex colors as orcos for render. */
+        cddata_masks.lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+        cddata_masks.vmask |= CD_MASK_ORCO;
+      }
       if (em) {
         makeDerivedMesh(depsgraph, scene, ob, em, &cddata_masks); /* was CD_MASK_BAREMESH */
       }

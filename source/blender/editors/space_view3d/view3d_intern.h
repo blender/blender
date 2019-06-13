@@ -126,9 +126,6 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 /* view3d_walk.c */
 void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
-/* drawobject.c */
-int view3d_effective_drawtype(const struct View3D *v3d);
-
 /* view3d_draw.c */
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
