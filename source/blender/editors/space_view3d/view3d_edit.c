@@ -5204,7 +5204,7 @@ static int toggle_xray_exec(bContext *C, wmOperator *op)
                               ELEM(v3d->shading.type, OB_WIRE, OB_SOLID));
 
     if (v3d->shading.type == OB_WIRE) {
-      v3d->shading.flag ^= V3D_SHADING_XRAY_BONE;
+      v3d->shading.flag ^= V3D_SHADING_XRAY_WIREFRAME;
     }
     else {
       v3d->shading.flag ^= V3D_SHADING_XRAY;

@@ -839,7 +839,7 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
 
   shading->type = OB_SOLID;
   shading->prev_type = OB_SOLID;
-  shading->flag = V3D_SHADING_SPECULAR_HIGHLIGHT | V3D_SHADING_XRAY_BONE;
+  shading->flag = V3D_SHADING_SPECULAR_HIGHLIGHT | V3D_SHADING_XRAY_WIREFRAME;
   shading->light = V3D_LIGHTING_STUDIO;
   shading->shadow_intensity = 0.5f;
   shading->xray_alpha = 0.5f;
