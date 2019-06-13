@@ -801,11 +801,54 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
 
 /* GPUOffScreen */
 
+#define MAX_CTX_FB_LEN 3
+
 struct GPUOffScreen {
-  GPUFrameBuffer *fb;
+  struct {
+    GPUContext *ctx;
+    GPUFrameBuffer *fb;
+  } framebuffers[MAX_CTX_FB_LEN];
+
   GPUTexture *color;
   GPUTexture *depth;
 };
+
+/* Returns the correct framebuffer for the current context. */
+static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
+{
+  GPUContext *ctx = GPU_context_active_get();
+  BLI_assert(ctx);
+
+  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
+    if (ofs->framebuffers[i].fb == NULL) {
+      ofs->framebuffers[i].ctx = ctx;
+      GPU_framebuffer_ensure_config(
+          &ofs->framebuffers[i].fb,
+          {GPU_ATTACHMENT_TEXTURE(ofs->depth), GPU_ATTACHMENT_TEXTURE(ofs->color)});
+    }
+
+    if (ofs->framebuffers[i].ctx == ctx) {
+      return ofs->framebuffers[i].fb;
+    }
+  }
+
+  /* List is full, this should never happen or
+   * it might just slow things down if it happens
+   * regulary. In this case we just empty the list
+   * and start over. This is most likely never going
+   * to happen under normal usage. */
+  BLI_assert(0);
+  printf(
+      "Warning: GPUOffscreen used in more than 3 GPUContext. "
+      "This may create performance drop.\n");
+
+  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
+    GPU_framebuffer_free(ofs->framebuffers[i].fb);
+    ofs->framebuffers[i].fb = NULL;
+  }
+
+  return gpu_offscreen_fb_get(ofs);
+}
 
 GPUOffScreen *GPU_offscreen_create(
     int width, int height, int samples, bool depth, bool high_bitdepth, char err_out[256])
@@ -834,11 +877,10 @@ GPUOffScreen *GPU_offscreen_create(
 
   gpuPushAttr(GPU_VIEWPORT_BIT);
 
-  GPU_framebuffer_ensure_config(
-      &ofs->fb, {GPU_ATTACHMENT_TEXTURE(ofs->depth), GPU_ATTACHMENT_TEXTURE(ofs->color)});
+  GPUFrameBuffer *fb = gpu_offscreen_fb_get(ofs);
 
   /* check validity at the very end! */
-  if (!GPU_framebuffer_check_valid(ofs->fb, err_out)) {
+  if (!GPU_framebuffer_check_valid(fb, err_out)) {
     GPU_offscreen_free(ofs);
     gpuPopAttr();
     return NULL;
@@ -853,8 +895,10 @@ GPUOffScreen *GPU_offscreen_create(
 
 void GPU_offscreen_free(GPUOffScreen *ofs)
 {
-  if (ofs->fb) {
-    GPU_framebuffer_free(ofs->fb);
+  for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
+    if (ofs->framebuffers[i].fb) {
+      GPU_framebuffer_free(ofs->framebuffers[i].fb);
+    }
   }
   if (ofs->color) {
     GPU_texture_free(ofs->color);
@@ -874,7 +918,8 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
     gpuPushFrameBuffer(fb);
   }
   glDisable(GL_SCISSOR_TEST);
-  GPU_framebuffer_bind(ofs->fb);
+  GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
+  GPU_framebuffer_bind(ofs_fb);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
@@ -899,7 +944,9 @@ void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
   const int w = GPU_texture_width(ofs->color);
   const int h = GPU_texture_height(ofs->color);
 
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, ofs->fb->object);
+  GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, ofs_fb->object);
   GLenum status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
 
   if (status == GL_FRAMEBUFFER_COMPLETE) {
@@ -950,7 +997,8 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
     glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
 
     /* restore the original frame-bufer */
-    glBindFramebuffer(GL_FRAMEBUFFER, ofs->fb->object);
+    GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
+    glBindFramebuffer(GL_FRAMEBUFFER, ofs_fb->object);
 
   finally:
     /* cleanup */
@@ -983,7 +1031,7 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
                                      GPUTexture **r_color,
                                      GPUTexture **r_depth)
 {
-  *r_fb = ofs->fb;
+  *r_fb = gpu_offscreen_fb_get(ofs);
   *r_color = ofs->color;
   *r_depth = ofs->depth;
 }
