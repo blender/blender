@@ -1326,6 +1326,15 @@ void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob)
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
+
+    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+     * collections to check whether the object is already in another one... */
+    if (ID_REAL_USERS(&ob->id) == 1) {
+      /* Some users seems to find it funny to use a view-layer instancing collection
+       * as RBW collection... Despite this being a bad (ab)use of the system, avoid losing objects
+       * when we remove them from RB simulation. */
+      BKE_collection_object_add(bmain, BKE_collection_master(scene), ob);
+    }
     BKE_collection_object_remove(bmain, rbw->group, ob, false);
   }
 
