@@ -1168,7 +1168,11 @@ static int arg_handle_env_system_set(int argc, const char **argv, void *UNUSED(d
 
 static const char arg_handle_playback_mode_doc[] =
     "<options> <file(s)>\n"
-    "\tPlayback <file(s)>, only operates this way when not running in background.\n\n"
+    "\tInstead of showing Blender's user interface, this runs Blender as an animation player,\n"
+    "\tto view movies and image sequences rendered in Blender (ignored if '-b' is set).\n"
+    "\n"
+    "\tPlayback Arguments:\n"
+    "\n"
     "\t-p <sx> <sy>\n"
     "\t\tOpen with lower left corner at <sx>, <sy>.\n"
     "\t-m\n"
@@ -1278,7 +1282,7 @@ static int arg_handle_no_window_focus(int UNUSED(argc),
 
 static const char arg_handle_start_with_console_doc[] =
     "\n\t"
-    "Start with the console window open (ignored if -b is set), (Windows only).";
+    "Start with the console window open (ignored if '-b' is set), (Windows only).";
 static int arg_handle_start_with_console(int UNUSED(argc),
                                          const char **UNUSED(argv),
                                          void *UNUSED(data))
@@ -1340,13 +1344,13 @@ static const char arg_handle_output_set_doc[] =
     "\n"
     "\tThe '#' characters are replaced by the frame number, and used to define zero padding.\n"
     "\n"
-    "\t* 'ani_##_test.png' becomes 'ani_01_test.png'\n"
+    "\t* 'animation_##_test.png' becomes 'animation_01_test.png'\n"
     "\t* 'test-######.png' becomes 'test-000001.png'\n"
     "\n"
     "\tWhen the filename does not contain '#', The suffix '####' is added to the filename.\n"
     "\n"
     "\tThe frame number will be added at the end of the filename, eg:\n"
-    "\t# blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n"
+    "\t# blender -b animation.blend -o //render_ -F PNG -x 1 -a\n"
     "\t'//render_' becomes '//render_####', writing frames as '//render_0001.png'";
 static int arg_handle_output_set(int argc, const char **argv, void *data)
 {
@@ -1370,7 +1374,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
 static const char arg_handle_engine_set_doc[] =
     "<engine>\n"
     "\tSpecify the render engine.\n"
-    "\tUse -E help to list available engines.";
+    "\tUse '-E' help to list available engines.";
 static int arg_handle_engine_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
@@ -1397,7 +1401,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       else {
         printf(
             "\nError: no blend loaded. "
-            "order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
+            "order the arguments so '-E / --engine' is after a blend is loaded.\n");
       }
     }
 
@@ -1412,11 +1416,11 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 static const char arg_handle_image_type_set_doc[] =
     "<format>\n"
     "\tSet the render format.\n"
-    "\tValid options are 'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
+    "\tValid options are:\n"
+    "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
     "\n"
-    "\tFormats that can be compiled into Blender, not available on all systems: 'HDR' 'TIFF' "
-    "'OPEN_EXR'\n"
-    "\t'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'";
+    "\tFormats that can be compiled into Blender, not available on all systems:\n"
+    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'";
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
