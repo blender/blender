@@ -29,10 +29,10 @@
 #  include <AUD_Device.h>
 #endif
 
+struct Depsgraph;
 struct Main;
 struct Sequence;
 struct bSound;
-struct Depsgraph;
 
 typedef struct SoundWaveform {
   int length;

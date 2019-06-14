@@ -33,7 +33,6 @@ struct Depsgraph;
 
 /* ------------------------------------------------ */
 
-struct bNodeTree;
 struct CacheFile;
 struct Collection;
 struct CustomData_MeshMasks;
@@ -44,6 +43,7 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct ViewLayer;
+struct bNodeTree;
 
 #ifdef __cplusplus
 extern "C" {

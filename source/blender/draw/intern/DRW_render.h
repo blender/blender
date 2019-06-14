@@ -81,9 +81,9 @@ struct rcti;
 
 typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
-typedef struct DRWView DRWView;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
+typedef struct DRWView DRWView;
 
 /* Opaque type to avoid usage as a DRWCall but it is exactly the same thing. */
 typedef struct DRWCallBuffer DRWCallBuffer;

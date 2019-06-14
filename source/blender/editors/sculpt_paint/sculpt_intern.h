@@ -33,8 +33,8 @@
 
 #include "BKE_pbvh.h"
 
-struct Main;
 struct KeyBlock;
+struct Main;
 struct Object;
 struct SculptOrigVertData;
 struct SculptUndoNode;
