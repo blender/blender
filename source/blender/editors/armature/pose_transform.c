@@ -694,7 +694,9 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
    */
   Main *temp_bmain = BKE_main_new();
   Object ob_copy = *ob;
+  ob_copy.adt = NULL;
   bArmature arm_copy = *((bArmature *)ob->data);
+  arm_copy.adt = NULL;
   ob_copy.data = &arm_copy;
   BLI_addtail(&temp_bmain->objects, &ob_copy);
   BLI_addtail(&temp_bmain->armatures, &arm_copy);
