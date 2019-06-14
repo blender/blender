@@ -41,10 +41,8 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
     return src_color;
   }
 
-  switch(mode)
-  {
-    case MODE_REGULAR:
-    {
+  switch (mode) {
+    case MODE_REGULAR: {
       /* premult */
       src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
       mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
@@ -52,8 +50,7 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
       outcolor = vec4(mix(src_color.rgb, mix_color.rgb, mix_color.a), src_color.a);
       break;
     }
-    case MODE_OVERLAY:
-    {
+    case MODE_OVERLAY: {
       src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
       mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
 
@@ -64,22 +61,19 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
       outcolor.a = src_color.a;
       break;
     }
-    case MODE_ADD:
-    {
+    case MODE_ADD: {
       mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
       outcolor = src_color + mix_color;
       outcolor.a = src_color.a;
       break;
     }
-    case MODE_SUB:
-    {
+    case MODE_SUB: {
       mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
       outcolor = src_color - mix_color;
       outcolor.a = clamp(src_color.a - mix_color.a, 0.0, 1.0);
       break;
     }
-    case MODE_MULTIPLY:
-    {
+    case MODE_MULTIPLY: {
       src_color = vec4(vec3(src_color.rgb / src_color.a), src_color.a);
       mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
 
@@ -88,15 +82,13 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
       outcolor.a = src_color.a;
       break;
     }
-    case MODE_DIVIDE:
-    {
+    case MODE_DIVIDE: {
       mix_color.rgb = mix(src_color.rgb, mix_color.rgb, mix_color.a);
       outcolor = src_color / mix_color;
       outcolor.a = src_color.a;
       break;
     }
-    default:
-    {
+    default: {
       outcolor = mix_color;
       outcolor.a = src_color.a;
       break;

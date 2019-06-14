@@ -2810,13 +2810,12 @@ static void outliner_draw_tree_element(bContext *C,
         active = OL_DRAWSEL_ACTIVE;
       }
     }
-    else
-      {
-        active = tree_element_type_active(
-            C, scene, view_layer, soops, te, tselem, OL_SETSEL_NONE, false);
-        /* active collection*/
-        icon_bgcolor[3] = 0.2f;
-      }
+    else {
+      active = tree_element_type_active(
+          C, scene, view_layer, soops, te, tselem, OL_SETSEL_NONE, false);
+      /* active collection*/
+      icon_bgcolor[3] = 0.2f;
+    }
 
     /* Checkbox to enable collections. */
     if ((tselem->type == TSE_LAYER_COLLECTION) &&
