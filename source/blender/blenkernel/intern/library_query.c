@@ -428,11 +428,11 @@ static void library_foreach_ID_link(Main *bmain,
       continue;
     }
 
-    if (id->override_static != NULL) {
-      CALLBACK_INVOKE_ID(id->override_static->reference,
-                         IDWALK_CB_USER | IDWALK_CB_STATIC_OVERRIDE_REFERENCE);
-      CALLBACK_INVOKE_ID(id->override_static->storage,
-                         IDWALK_CB_USER | IDWALK_CB_STATIC_OVERRIDE_REFERENCE);
+    if (id->override_library != NULL) {
+      CALLBACK_INVOKE_ID(id->override_library->reference,
+                         IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+      CALLBACK_INVOKE_ID(id->override_library->storage,
+                         IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
     }
 
     library_foreach_idproperty_ID_link(&data, id->properties, IDWALK_CB_USER);

@@ -216,7 +216,7 @@ typedef enum PropertyFlag {
   /* Pointers to data that is not owned by the struct.
    * Typical example: Bone.parent, Bone.child, etc., and nearly all ID pointers.
    * This is crucial information for processes that walk the whole data of an ID e.g.
-   * (like static override).
+   * (like library override).
    * Note that all ID pointers are enforced to this by default,
    * this probably will need to be rechecked (see ugly infamous NodeTrees of mat/tex/scene/etc.).
    */
@@ -259,7 +259,7 @@ typedef enum PropertyFlag {
 /* FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above. */
 typedef enum PropertyOverrideFlag {
   /* Means the property can be overridden by a local 'proxy' of some linked datablock. */
-  PROPOVERRIDE_OVERRIDABLE_STATIC = (1 << 0),
+  PROPOVERRIDE_OVERRIDABLE_LIBRARY = (1 << 0),
 
   /* Forbid usage of this property in comparison (& hence override) code.
    * Useful e.g. for collections of data like mesh's geometry, particles, etc. */
@@ -268,7 +268,7 @@ typedef enum PropertyOverrideFlag {
   /*** Collections-related ***/
 
   /* The property supports insertion (collections only). */
-  PROPOVERRIDE_STATIC_INSERTION = (1 << 10),
+  PROPOVERRIDE_LIBRARY_INSERTION = (1 << 10),
 
   /* Only use indices to compare items in the property, never names (collections only). */
   /* Useful when nameprop of the items is generated from other data

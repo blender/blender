@@ -557,17 +557,17 @@ static void id_local_cb(bContext *C,
   }
 }
 
-static void id_static_override_cb(bContext *C,
-                                  ReportList *UNUSED(reports),
-                                  Scene *UNUSED(scene),
-                                  TreeElement *UNUSED(te),
-                                  TreeStoreElem *UNUSED(tsep),
-                                  TreeStoreElem *tselem,
-                                  void *UNUSED(user_data))
+static void id_override_library_cb(bContext *C,
+                                   ReportList *UNUSED(reports),
+                                   Scene *UNUSED(scene),
+                                   TreeElement *UNUSED(te),
+                                   TreeStoreElem *UNUSED(tsep),
+                                   TreeStoreElem *tselem,
+                                   void *UNUSED(user_data))
 {
   if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
     Main *bmain = CTX_data_main(C);
-    ID *override_id = BKE_override_static_create_from_id(bmain, tselem->id);
+    ID *override_id = BKE_override_library_create_from_id(bmain, tselem->id);
     if (override_id != NULL) {
       BKE_main_id_clear_newpoins(bmain);
     }
@@ -1337,7 +1337,7 @@ typedef enum eOutlinerIdOpTypes {
 
   OUTLINER_IDOP_UNLINK,
   OUTLINER_IDOP_LOCAL,
-  OUTLINER_IDOP_STATIC_OVERRIDE,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY,
   OUTLINER_IDOP_SINGLE,
   OUTLINER_IDOP_DELETE,
   OUTLINER_IDOP_REMAP,
@@ -1356,11 +1356,11 @@ typedef enum eOutlinerIdOpTypes {
 static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
-    {OUTLINER_IDOP_STATIC_OVERRIDE,
-     "STATIC_OVERRIDE",
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY,
+     "OVERRIDE_LIBRARY",
      0,
-     "Add Static Override",
-     "Add a local static override of this data-block"},
+     "Add Library Override",
+     "Add a local override of this linked data-block"},
     {OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
     {OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
     {OUTLINER_IDOP_REMAP,
@@ -1389,7 +1389,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *UNUSED(C),
                                                            PropertyRNA *UNUSED(prop),
                                                            bool *r_free)
 {
-  if (BKE_override_static_is_enabled()) {
+  if (BKE_override_library_is_enabled()) {
     *r_free = false;
     return prop_id_op_types;
   }
@@ -1398,7 +1398,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *UNUSED(C),
   int totitem = 0;
 
   for (const EnumPropertyItem *it = prop_id_op_types; it->identifier != NULL; it++) {
-    if (it->value == OUTLINER_IDOP_STATIC_OVERRIDE) {
+    if (it->value == OUTLINER_IDOP_OVERRIDE_LIBRARY) {
       continue;
     }
     RNA_enum_item_add(&items, &totitem, it);
@@ -1485,11 +1485,11 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       ED_undo_push(C, "Localized Data");
       break;
     }
-    case OUTLINER_IDOP_STATIC_OVERRIDE: {
-      if (BKE_override_static_is_enabled()) {
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY: {
+      if (BKE_override_library_is_enabled()) {
         /* make local */
         outliner_do_libdata_operation(
-            C, op->reports, scene, soops, &soops->tree, id_static_override_cb, NULL);
+            C, op->reports, scene, soops, &soops->tree, id_override_library_cb, NULL);
         ED_undo_push(C, "Overridden Data");
       }
       break;

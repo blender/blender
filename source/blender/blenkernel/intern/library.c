@@ -2281,7 +2281,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
  */
 void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const ID *id)
 {
-  name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_STATIC_OVERRIDE(id) ? 'O' : ' ';
+  name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_OVERRIDE_LIBRARY(id) ? 'O' : ' ';
   name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
   name[2] = ' ';
 

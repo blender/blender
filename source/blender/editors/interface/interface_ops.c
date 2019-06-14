@@ -430,7 +430,7 @@ static bool override_type_set_button_poll(bContext *C)
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  const int override_status = RNA_property_static_override_status(&ptr, prop, index);
+  const int override_status = RNA_property_override_library_status(&ptr, prop, index);
 
   return (ptr.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE));
 }
@@ -448,20 +448,20 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 
   switch (op_type) {
     case UIOverride_Type_NOOP:
-      operation = IDOVERRIDESTATIC_OP_NOOP;
+      operation = IDOVERRIDE_LIBRARY_OP_NOOP;
       break;
     case UIOverride_Type_Replace:
-      operation = IDOVERRIDESTATIC_OP_REPLACE;
+      operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
       break;
     case UIOverride_Type_Difference:
       /* override code will automatically switch to subtract if needed. */
-      operation = IDOVERRIDESTATIC_OP_ADD;
+      operation = IDOVERRIDE_LIBRARY_OP_ADD;
       break;
     case UIOverride_Type_Factor:
-      operation = IDOVERRIDESTATIC_OP_MULTIPLY;
+      operation = IDOVERRIDE_LIBRARY_OP_MULTIPLY;
       break;
     default:
-      operation = IDOVERRIDESTATIC_OP_REPLACE;
+      operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
       BLI_assert(0);
       break;
   }
@@ -475,7 +475,7 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
     index = -1;
   }
 
-  IDOverrideStaticPropertyOperation *opop = RNA_property_override_property_operation_get(
+  IDOverrideLibraryPropertyOperation *opop = RNA_property_override_property_operation_get(
       &ptr, prop, operation, index, true, NULL, &created);
   if (!created) {
     opop->operation = operation;
@@ -491,7 +491,7 @@ static int override_type_set_button_invoke(bContext *C,
 #if 0 /* Disabled for now */
   return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
 #else
-  RNA_enum_set(op->ptr, "type", IDOVERRIDESTATIC_OP_REPLACE);
+  RNA_enum_set(op->ptr, "type", IDOVERRIDE_LIBRARY_OP_REPLACE);
   return override_type_set_button_exec(C, op);
 #endif
 }
@@ -530,7 +530,7 @@ static bool override_remove_button_poll(bContext *C)
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  const int override_status = RNA_property_static_override_status(&ptr, prop, index);
+  const int override_status = RNA_property_override_library_status(&ptr, prop, index);
 
   return (ptr.data && ptr.id.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN));
 }
@@ -547,16 +547,16 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   ID *id = ptr.id.data;
-  IDOverrideStaticProperty *oprop = RNA_property_override_property_find(&ptr, prop);
+  IDOverrideLibraryProperty *oprop = RNA_property_override_property_find(&ptr, prop);
   BLI_assert(oprop != NULL);
-  BLI_assert(id != NULL && id->override_static != NULL);
+  BLI_assert(id != NULL && id->override_library != NULL);
 
-  const bool is_template = (id->override_static->reference == NULL);
+  const bool is_template = (id->override_library->reference == NULL);
 
   /* We need source (i.e. linked data) to restore values of deleted overrides...
    * If this is an override template, we obviously do not need to restore anything. */
   if (!is_template) {
-    RNA_id_pointer_create(id->override_static->reference, &id_refptr);
+    RNA_id_pointer_create(id->override_library->reference, &id_refptr);
     if (!RNA_path_resolve(&id_refptr, oprop->rna_path, &src, NULL)) {
       BLI_assert(0 && "Failed to create matching source (linked data) RNA pointer");
     }
@@ -566,7 +566,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
     bool is_strict_find;
     /* Remove override operation for given item,
      * add singular operations for the other items as needed. */
-    IDOverrideStaticPropertyOperation *opop = BKE_override_static_property_operation_find(
+    IDOverrideLibraryPropertyOperation *opop = BKE_override_library_property_operation_find(
         oprop, NULL, NULL, index, index, false, &is_strict_find);
     BLI_assert(opop != NULL);
     if (!is_strict_find) {
@@ -575,22 +575,22 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
        * before removing generic one. */
       for (int idx = RNA_property_array_length(&ptr, prop); idx--;) {
         if (idx != index) {
-          BKE_override_static_property_operation_get(
+          BKE_override_library_property_operation_get(
               oprop, opop->operation, NULL, NULL, idx, idx, true, NULL, NULL);
         }
       }
     }
-    BKE_override_static_property_operation_delete(oprop, opop);
+    BKE_override_library_property_operation_delete(oprop, opop);
     if (!is_template) {
       RNA_property_copy(bmain, &ptr, &src, prop, index);
     }
     if (BLI_listbase_is_empty(&oprop->operations)) {
-      BKE_override_static_property_delete(id->override_static, oprop);
+      BKE_override_library_property_delete(id->override_library, oprop);
     }
   }
   else {
     /* Just remove whole generic override operation of this property. */
-    BKE_override_static_property_delete(id->override_static, oprop);
+    BKE_override_library_property_delete(id->override_library, oprop);
     if (!is_template) {
       RNA_property_copy(bmain, &ptr, &src, prop, -1);
     }

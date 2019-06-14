@@ -551,7 +551,7 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   md->type = type;
   md->mode = eGpencilModifierMode_Realtime | eGpencilModifierMode_Render |
              eGpencilModifierMode_Expanded;
-  md->flag = eGpencilModifierFlag_StaticOverride_Local;
+  md->flag = eGpencilModifierFlag_OverrideLibrary_Local;
 
   if (mti->flags & eGpencilModifierTypeFlag_EnableInEditmode) {
     md->mode |= eGpencilModifierMode_Editmode;

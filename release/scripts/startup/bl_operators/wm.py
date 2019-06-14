@@ -1079,8 +1079,8 @@ rna_use_soft_limits = BoolProperty(
     name="Use Soft Limits",
 )
 
-rna_is_overridable_static = BoolProperty(
-    name="Is Statically Overridable",
+rna_is_overridable_library = BoolProperty(
+    name="Is Library Overridable",
     default=False,
 )
 
@@ -1098,7 +1098,7 @@ class WM_OT_properties_edit(Operator):
     min: rna_min
     max: rna_max
     use_soft_limits: rna_use_soft_limits
-    is_overridable_static: rna_is_overridable_static
+    is_overridable_library: rna_is_overridable_library
     soft_min: rna_min
     soft_max: rna_max
     description: StringProperty(
@@ -1166,7 +1166,7 @@ class WM_OT_properties_edit(Operator):
         # print(exec_str)
         exec(exec_str)
 
-        exec_str = "item.property_overridable_static_set('[\"%s\"]', %s)" % (prop, self.is_overridable_static)
+        exec_str = "item.property_overridable_library_set('[\"%s\"]', %s)" % (prop, self.is_overridable_library)
         exec(exec_str)
 
         rna_idprop_ui_prop_update(item, prop)
@@ -1243,8 +1243,8 @@ class WM_OT_properties_edit(Operator):
         item = eval("context.%s" % data_path)
 
         # retrieve overridable static
-        exec_str = "item.is_property_overridable_static('[\"%s\"]')" % (self.property)
-        self.is_overridable_static = bool(eval(exec_str))
+        exec_str = "item.is_property_overridable_library('[\"%s\"]')" % (self.property)
+        self.is_overridable_library = bool(eval(exec_str))
 
         # default default value
         prop_type = type(self.get_value_eval())
@@ -1320,8 +1320,8 @@ class WM_OT_properties_edit(Operator):
 
         row = layout.row()
         row.prop(self, "use_soft_limits")
-        if bpy.app.use_static_override:
-            row.prop(self, "is_overridable_static")
+        if bpy.app.use_library_override:
+            row.prop(self, "is_overridable_library")
 
         row = layout.row(align=True)
         row.enabled = self.use_soft_limits

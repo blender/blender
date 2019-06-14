@@ -128,7 +128,7 @@ ModifierData *modifier_new(int type)
 
   md->type = type;
   md->mode = eModifierMode_Realtime | eModifierMode_Render | eModifierMode_Expanded;
-  md->flag = eModifierFlag_StaticOverride_Local;
+  md->flag = eModifierFlag_OverrideLibrary_Local;
 
   if (mti->flags & eModifierTypeFlag_EnableInEditmode) {
     md->mode |= eModifierMode_Editmode;

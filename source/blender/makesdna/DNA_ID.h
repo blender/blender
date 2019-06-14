@@ -133,7 +133,7 @@ enum {
 enum {
   /** This IDProp may be statically overridden.
    * Should only be used/be relevant for custom properties. */
-  IDP_FLAG_OVERRIDABLE_STATIC = 1 << 0,
+  IDP_FLAG_OVERRIDABLE_LIBRARY = 1 << 0,
 
   /** This means the property is set but RNA will return false when checking
    * 'RNA_property_is_set', currently this is a runtime flag */
@@ -144,8 +144,8 @@ enum {
 
 /* Static ID override structs. */
 
-typedef struct IDOverrideStaticPropertyOperation {
-  struct IDOverrideStaticPropertyOperation *next, *prev;
+typedef struct IDOverrideLibraryPropertyOperation {
+  struct IDOverrideLibraryPropertyOperation *next, *prev;
 
   /* Type of override. */
   short operation;
@@ -162,39 +162,39 @@ typedef struct IDOverrideStaticPropertyOperation {
   char *subitem_local_name;
   int subitem_reference_index;
   int subitem_local_index;
-} IDOverrideStaticPropertyOperation;
+} IDOverrideLibraryPropertyOperation;
 
 /* IDOverridePropertyOperation->operation. */
 enum {
   /* Basic operations. */
-  IDOVERRIDESTATIC_OP_NOOP = 0, /* Special value, forbids any overriding. */
+  IDOVERRIDE_LIBRARY_OP_NOOP = 0, /* Special value, forbids any overriding. */
 
-  IDOVERRIDESTATIC_OP_REPLACE = 1, /* Fully replace local value by reference one. */
+  IDOVERRIDE_LIBRARY_OP_REPLACE = 1, /* Fully replace local value by reference one. */
 
   /* Numeric-only operations. */
-  IDOVERRIDESTATIC_OP_ADD = 101, /* Add local value to reference one. */
+  IDOVERRIDE_LIBRARY_OP_ADD = 101, /* Add local value to reference one. */
   /* Subtract local value from reference one (needed due to unsigned values etc.). */
-  IDOVERRIDESTATIC_OP_SUBTRACT = 102,
+  IDOVERRIDE_LIBRARY_OP_SUBTRACT = 102,
   /* Multiply reference value by local one (more useful than diff for scales and the like). */
-  IDOVERRIDESTATIC_OP_MULTIPLY = 103,
+  IDOVERRIDE_LIBRARY_OP_MULTIPLY = 103,
 
   /* Collection-only operations. */
-  IDOVERRIDESTATIC_OP_INSERT_AFTER = 201,  /* Insert after given reference's subitem. */
-  IDOVERRIDESTATIC_OP_INSERT_BEFORE = 202, /* Insert before given reference's subitem. */
+  IDOVERRIDE_LIBRARY_OP_INSERT_AFTER = 201,  /* Insert after given reference's subitem. */
+  IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE = 202, /* Insert before given reference's subitem. */
   /* We can add more if needed (move, delete, ...). */
 };
 
 /* IDOverridePropertyOperation->flag. */
 enum {
   /** User cannot remove that override operation. */
-  IDOVERRIDESTATIC_FLAG_MANDATORY = 1 << 0,
+  IDOVERRIDE_LIBRARY_FLAG_MANDATORY = 1 << 0,
   /** User cannot change that override operation. */
-  IDOVERRIDESTATIC_FLAG_LOCKED = 1 << 1,
+  IDOVERRIDE_LIBRARY_FLAG_LOCKED = 1 << 1,
 };
 
 /** A single overridden property, contain all operations on this one. */
-typedef struct IDOverrideStaticProperty {
-  struct IDOverrideStaticProperty *next, *prev;
+typedef struct IDOverrideLibraryProperty {
+  struct IDOverrideLibraryProperty *next, *prev;
 
   /**
    * Path from ID to overridden property.
@@ -204,10 +204,10 @@ typedef struct IDOverrideStaticProperty {
 
   /** List of overriding operations (IDOverridePropertyOperation) applied to this property. */
   ListBase operations;
-} IDOverrideStaticProperty;
+} IDOverrideLibraryProperty;
 
 /* Main container for all overriding data info of a data-block. */
-typedef struct IDOverrideStatic {
+typedef struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
   struct ID *reference;
   /** List of IDOverrideProperty structs. */
@@ -220,10 +220,10 @@ typedef struct IDOverrideStatic {
   /* Temp ID storing extra override data (used for differential operations only currently).
    * Always NULL outside of read/write context. */
   struct ID *storage;
-} IDOverrideStatic;
+} IDOverrideLibrary;
 
-enum eStaticOverride_Flag {
-  STATICOVERRIDE_AUTO = 1 << 0, /* Allow automatic generation of overriding rules. */
+enum eOverrideLibrary_Flag {
+  OVERRIDE_LIBRARY_AUTO = 1 << 0, /* Allow automatic generation of overriding rules. */
 };
 
 /* watch it: Sequence has identical beginning. */
@@ -259,7 +259,7 @@ typedef struct ID {
   IDProperty *properties;
 
   /** Reference linked ID which this one overrides. */
-  IDOverrideStatic *override_static;
+  IDOverrideLibrary *override_library;
 
   /**
    * Only set for data-blocks which are coming from copy-on-write, points to
@@ -436,15 +436,15 @@ typedef enum ID_Type {
 
 #define ID_IS_LINKED(_id) (((ID *)(_id))->lib != NULL)
 
-#define ID_IS_STATIC_OVERRIDE(_id) \
-  (((ID *)(_id))->override_static != NULL && ((ID *)(_id))->override_static->reference != NULL)
+#define ID_IS_OVERRIDE_LIBRARY(_id) \
+  (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference != NULL)
 
-#define ID_IS_STATIC_OVERRIDE_TEMPLATE(_id) \
-  (((ID *)(_id))->override_static != NULL && ((ID *)(_id))->override_static->reference == NULL)
+#define ID_IS_OVERRIDE_LIBRARY_TEMPLATE(_id) \
+  (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference == NULL)
 
-#define ID_IS_STATIC_OVERRIDE_AUTO(_id) \
-  (!ID_IS_LINKED((_id)) && ID_IS_STATIC_OVERRIDE((_id)) && \
-   (((ID *)(_id))->override_static->flag & STATICOVERRIDE_AUTO))
+#define ID_IS_OVERRIDE_LIBRARY_AUTO(_id) \
+  (!ID_IS_LINKED((_id)) && ID_IS_OVERRIDE_LIBRARY((_id)) && \
+   (((ID *)(_id))->override_library->flag & OVERRIDE_LIBRARY_AUTO))
 
 /* No copy-on-write for these types.
  * Keep in sync with check_datablocks_copy_on_writable and deg_copy_on_write_is_needed */
@@ -509,9 +509,9 @@ enum {
   LIB_TAG_MISSING = 1 << 6,
 
   /* RESET_NEVER tag data-block as being up-to-date regarding its reference. */
-  LIB_TAG_OVERRIDESTATIC_REFOK = 1 << 9,
+  LIB_TAG_OVERRIDE_LIBRARY_REFOK = 1 << 9,
   /* RESET_NEVER tag data-block as needing an auto-override execution, if enabled. */
-  LIB_TAG_OVERRIDESTATIC_AUTOREFRESH = 1 << 17,
+  LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH = 1 << 17,
 
   /* tag data-block has having an extra user. */
   LIB_TAG_EXTRAUSER = 1 << 2,

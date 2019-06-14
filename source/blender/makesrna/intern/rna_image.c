@@ -722,7 +722,7 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_string_sdna(prop, NULL, "name");
   RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_reload_update");
@@ -763,7 +763,7 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Packed Files", "Collection of packed images");
 
   prop = RNA_def_property(srna, "use_view_as_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_VIEW_AS_RENDER);
   RNA_def_property_ui_text(
       prop,
@@ -772,31 +772,31 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
 
   prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DEINTERLACE);
   RNA_def_property_ui_text(prop, "Deinterlace", "Deinterlace movie file on load");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_reload_update");
 
   prop = RNA_def_property(srna, "use_multiview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_USE_VIEWS);
   RNA_def_property_ui_text(prop, "Use Multi-View", "Use Multiple Views (when available)");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_views_format_update");
 
   prop = RNA_def_property(srna, "is_stereo_3d", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, "rna_Image_is_stereo_3d_get", NULL);
   RNA_def_property_ui_text(prop, "Stereo 3D", "Image has left and right views");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_multiview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, "rna_Image_is_multiview_get", NULL);
   RNA_def_property_ui_text(prop, "Multiple Views", "Image has more than one view");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Dirty", "Image has changed and is not saved");
@@ -839,7 +839,7 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_float_sdna(prop, NULL, "aspx");
   RNA_def_property_array(prop, 2);
   RNA_def_property_range(prop, 0.1f, FLT_MAX);
@@ -890,7 +890,7 @@ static void rna_def_image(BlenderRNA *brna)
 
   prop = RNA_def_float_vector(
       srna, "resolution", 2, NULL, 0, 0, "Resolution", "X/Y pixels per meter", 0, 0);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_float_funcs(prop, "rna_Image_resolution_get", "rna_Image_resolution_set", NULL);
 
   prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_UNSIGNED);
@@ -926,7 +926,7 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 
   prop = RNA_def_property(srna, "alpha_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_enum_items(prop, alpha_mode_items);
   RNA_def_property_ui_text(prop,
                            "Alpha Mode",
@@ -936,7 +936,7 @@ static void rna_def_image(BlenderRNA *brna)
 
   /* multiview */
   prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_enum_sdna(prop, NULL, "views_format");
   RNA_def_property_enum_items(prop, rna_enum_views_format_items);
   RNA_def_property_ui_text(prop, "Views Format", "Mode to load image views");

@@ -168,7 +168,7 @@ def rna_idprop_ui_create(
 
     prop_path = rna_idprop_quote_path(prop)
 
-    item.property_overridable_static_set(prop_path, overridable)
+    item.property_overridable_library_set(prop_path, overridable)
 
     return rna_ui
 

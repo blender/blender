@@ -402,10 +402,10 @@ static int gpencil_edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, 
     return 0;
   }
 
-  if (ID_IS_STATIC_OVERRIDE(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from static override");
-    return (((GpencilModifierData *)ptr.data)->flag & eGpencilModifierFlag_StaticOverride_Local) !=
-           0;
+  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
+    return (((GpencilModifierData *)ptr.data)->flag &
+            eGpencilModifierFlag_OverrideLibrary_Local) != 0;
   }
 
   return 1;

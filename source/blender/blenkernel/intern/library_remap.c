@@ -191,7 +191,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
       new_id = NULL;
     }
 
-    const bool is_reference = (cb_flag & IDWALK_CB_STATIC_OVERRIDE_REFERENCE) != 0;
+    const bool is_reference = (cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0;
     const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
     const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
     /* Note: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
@@ -202,7 +202,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
     const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id));
     const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
-    const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_STATIC_OVERRIDE) != 0;
+    const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
     const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
 
 #ifdef DEBUG_PRINT
@@ -756,8 +756,8 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
     MEM_freeN(id->properties);
   }
 
-  if (id->override_static) {
-    BKE_override_static_free(&id->override_static);
+  if (id->override_library) {
+    BKE_override_library_free(&id->override_library);
   }
 
   /* XXX TODO remove animdata handling from each type's freeing func,

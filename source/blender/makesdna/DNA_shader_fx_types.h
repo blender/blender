@@ -54,7 +54,7 @@ typedef enum ShaderFxMode {
 
 typedef enum {
   /* This fx has been inserted in local override, and hence can be fully edited. */
-  eShaderFxFlag_StaticOverride_Local = (1 << 0),
+  eShaderFxFlag_OverrideLibrary_Local = (1 << 0),
 } ShaderFxFlag;
 
 typedef struct ShaderFxData {

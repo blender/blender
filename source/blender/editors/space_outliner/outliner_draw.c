@@ -2904,7 +2904,7 @@ static void outliner_draw_tree_element(bContext *C,
       }
       offsx += UI_UNIT_X + 4 * ufac;
     }
-    else if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_STATIC_OVERRIDE(tselem->id)) {
+    else if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
       UI_icon_draw_alpha((float)startx + offsx + 2 * ufac,
                          (float)*starty + 2 * ufac,
                          ICON_LIBRARY_DATA_OVERRIDE,

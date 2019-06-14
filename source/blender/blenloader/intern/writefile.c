@@ -708,15 +708,16 @@ static void write_iddata(void *wd, const ID *id)
     IDP_WriteProperty(id->properties, wd);
   }
 
-  if (id->override_static) {
-    writestruct(wd, DATA, IDOverrideStatic, 1, id->override_static);
+  if (id->override_library) {
+    writestruct(wd, DATA, IDOverrideLibrary, 1, id->override_library);
 
-    writelist(wd, DATA, IDOverrideStaticProperty, &id->override_static->properties);
-    for (IDOverrideStaticProperty *op = id->override_static->properties.first; op; op = op->next) {
+    writelist(wd, DATA, IDOverrideLibraryProperty, &id->override_library->properties);
+    for (IDOverrideLibraryProperty *op = id->override_library->properties.first; op;
+         op = op->next) {
       writedata(wd, DATA, strlen(op->rna_path) + 1, op->rna_path);
 
-      writelist(wd, DATA, IDOverrideStaticPropertyOperation, &op->operations);
-      for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop;
+      writelist(wd, DATA, IDOverrideLibraryPropertyOperation, &op->operations);
+      for (IDOverrideLibraryPropertyOperation *opop = op->operations.first; opop;
            opop = opop->next) {
         if (opop->subitem_reference_name) {
           writedata(
@@ -3775,9 +3776,8 @@ static bool write_file_handle(Main *mainvar,
    * avoid thumbnail detecting changes because of this. */
   mywrite_flush(wd);
 
-  OverrideStaticStorage *override_storage = wd->use_memfile ?
-                                                NULL :
-                                                BKE_override_static_operations_store_initialize();
+  OverrideLibraryStorage *override_storage =
+      wd->use_memfile ? NULL : BKE_override_library_operations_store_initialize();
 
   /* This outer loop allows to save first data-blocks from real mainvar,
    * then the temp ones from override process,
@@ -3799,10 +3799,10 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
-        const bool do_override = !ELEM(override_storage, NULL, bmain) && id->override_static;
+        const bool do_override = !ELEM(override_storage, NULL, bmain) && id->override_library;
 
         if (do_override) {
-          BKE_override_static_operations_store_start(bmain, override_storage, id);
+          BKE_override_library_operations_store_start(bmain, override_storage, id);
         }
 
         switch ((ID_Type)GS(id->name)) {
@@ -3922,7 +3922,7 @@ static bool write_file_handle(Main *mainvar,
         }
 
         if (do_override) {
-          BKE_override_static_operations_store_end(override_storage, id);
+          BKE_override_library_operations_store_end(override_storage, id);
         }
       }
 
@@ -3931,7 +3931,7 @@ static bool write_file_handle(Main *mainvar,
   } while ((bmain != override_storage) && (bmain = override_storage));
 
   if (override_storage) {
-    BKE_override_static_operations_store_finalize(override_storage);
+    BKE_override_library_operations_store_finalize(override_storage);
     override_storage = NULL;
   }
 

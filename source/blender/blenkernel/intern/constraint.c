@@ -5100,7 +5100,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 
   /* Set up a generic constraint data-block. */
   con->type = type;
-  con->flag |= CONSTRAINT_EXPAND | CONSTRAINT_STATICOVERRIDE_LOCAL;
+  con->flag |= CONSTRAINT_EXPAND | CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
   con->enforce = 1.0f;
 
   /* Determine a basic name, and info */

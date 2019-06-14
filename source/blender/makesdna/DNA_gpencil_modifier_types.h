@@ -60,7 +60,7 @@ typedef enum GpencilModifierMode {
 
 typedef enum {
   /* This modifier has been inserted in local override, and hence can be fully edited. */
-  eGpencilModifierFlag_StaticOverride_Local = (1 << 0),
+  eGpencilModifierFlag_OverrideLibrary_Local = (1 << 0),
 } GpencilModifierFlag;
 
 typedef struct GpencilModifierData {

@@ -651,9 +651,9 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
     return 0;
   }
 
-  if (ID_IS_STATIC_OVERRIDE(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from static override");
-    return (((bConstraint *)ptr.data)->flag & CONSTRAINT_STATICOVERRIDE_LOCAL) != 0;
+  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from library override");
+    return (((bConstraint *)ptr.data)->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0;
   }
 
   return 1;

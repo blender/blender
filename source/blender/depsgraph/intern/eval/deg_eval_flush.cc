@@ -265,8 +265,8 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
         deg_editors_id_update(update_ctx, id_orig);
       }
       /* ID may need to get its auto-override operations refreshed. */
-      if (ID_IS_STATIC_OVERRIDE_AUTO(id_orig)) {
-        id_orig->tag |= LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
+      if (ID_IS_OVERRIDE_LIBRARY_AUTO(id_orig)) {
+        id_orig->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
       }
       /* Inform draw engines that something was changed. */
       flush_engine_data_update(id_cow);

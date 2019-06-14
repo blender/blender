@@ -714,10 +714,10 @@ bool rna_AnimaData_override_apply(Main *UNUSED(bmain),
                                   PointerRNA *UNUSED(ptr_item_dst),
                                   PointerRNA *UNUSED(ptr_item_src),
                                   PointerRNA *UNUSED(ptr_item_storage),
-                                  IDOverrideStaticPropertyOperation *opop)
+                                  IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_REPLACE &&
+  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
              "Unsupported RNA override operation on animdata pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -1239,7 +1239,7 @@ void rna_def_animdata_common(StructRNA *srna)
   prop = RNA_def_property(srna, "animation_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "adt");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_AnimaData_override_apply");
   RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this data-block");
 }
@@ -1265,7 +1265,7 @@ static void rna_def_animdata(BlenderRNA *brna)
   prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
   /* this flag as well as the dynamic test must be defined for this to be editable... */
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_pointer_funcs(
       prop, NULL, "rna_AnimData_action_set", NULL, "rna_Action_id_poll");
   RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
@@ -1304,7 +1304,7 @@ static void rna_def_animdata(BlenderRNA *brna)
   prop = RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
   RNA_def_property_struct_type(prop, "FCurve");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this data-block");
 
   rna_api_animdata_drivers(brna, prop);

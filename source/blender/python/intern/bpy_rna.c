@@ -3681,27 +3681,27 @@ static PyObject *pyrna_struct_is_property_readonly(BPy_StructRNA *self, PyObject
   return PyBool_FromLong(!RNA_property_editable(&self->ptr, prop));
 }
 
-PyDoc_STRVAR(pyrna_struct_is_property_overridable_static_doc,
-             ".. method:: is_property_overridable_static(property)\n"
+PyDoc_STRVAR(pyrna_struct_is_property_overridable_library_doc,
+             ".. method:: is_property_overridable_library(property)\n"
              "\n"
              "   Check if a property is statically overridable.\n"
              "\n"
              "   :return: True when the property is statically overridable.\n"
              "   :rtype: boolean\n");
-static PyObject *pyrna_struct_is_property_overridable_static(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_is_property_overridable_library(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
   const char *name;
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:is_property_overridable_static", &name)) {
+  if (!PyArg_ParseTuple(args, "s:is_property_overridable_library", &name)) {
     return NULL;
   }
 
   if ((prop = RNA_struct_find_property(&self->ptr, name)) == NULL) {
     PyErr_Format(PyExc_TypeError,
-                 "%.200s.is_property_overridable_static(\"%.200s\") not found",
+                 "%.200s.is_property_overridable_library(\"%.200s\") not found",
                  RNA_struct_identifier(self->ptr.type),
                  name);
     return NULL;
@@ -3711,14 +3711,14 @@ static PyObject *pyrna_struct_is_property_overridable_static(BPy_StructRNA *self
 }
 
 PyDoc_STRVAR(
-    pyrna_struct_property_overridable_static_set_doc,
-    ".. method:: property_overridable_static_set(property)\n"
+    pyrna_struct_property_overridable_library_set_doc,
+    ".. method:: property_overridable_library_set(property)\n"
     "\n"
     "   Define a property as statically overridable or not (only for custom properties!).\n"
     "\n"
     "   :return: True when the overridable status of the property was successfully set.\n"
     "   :rtype: boolean\n");
-static PyObject *pyrna_struct_property_overridable_static_set(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_property_overridable_library_set(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
   const char *name;
@@ -3726,20 +3726,20 @@ static PyObject *pyrna_struct_property_overridable_static_set(BPy_StructRNA *sel
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "sp:property_overridable_static_set", &name, &is_overridable)) {
+  if (!PyArg_ParseTuple(args, "sp:property_overridable_library_set", &name, &is_overridable)) {
     return NULL;
   }
 
   if ((prop = RNA_struct_find_property(&self->ptr, name)) == NULL) {
     PyErr_Format(PyExc_TypeError,
-                 "%.200s.property_overridable_static_set(\"%.200s\") not found",
+                 "%.200s.property_overridable_library_set(\"%.200s\") not found",
                  RNA_struct_identifier(self->ptr.type),
                  name);
     return NULL;
   }
 
   return PyBool_FromLong(
-      (long)RNA_property_overridable_static_set(&self->ptr, prop, (bool)is_overridable));
+      (long)RNA_property_overridable_library_set(&self->ptr, prop, (bool)is_overridable));
 }
 
 PyDoc_STRVAR(pyrna_struct_path_resolve_doc,
@@ -5476,14 +5476,14 @@ static struct PyMethodDef pyrna_struct_methods[] = {
      (PyCFunction)pyrna_struct_is_property_readonly,
      METH_VARARGS,
      pyrna_struct_is_property_readonly_doc},
-    {"is_property_overridable_static",
-     (PyCFunction)pyrna_struct_is_property_overridable_static,
+    {"is_property_overridable_library",
+     (PyCFunction)pyrna_struct_is_property_overridable_library,
      METH_VARARGS,
-     pyrna_struct_is_property_overridable_static_doc},
-    {"property_overridable_static_set",
-     (PyCFunction)pyrna_struct_property_overridable_static_set,
+     pyrna_struct_is_property_overridable_library_doc},
+    {"property_overridable_library_set",
+     (PyCFunction)pyrna_struct_property_overridable_library_set,
      METH_VARARGS,
-     pyrna_struct_property_overridable_static_set_doc},
+     pyrna_struct_property_overridable_library_set_doc},
     {"path_resolve",
      (PyCFunction)pyrna_struct_path_resolve,
      METH_VARARGS,

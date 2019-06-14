@@ -691,7 +691,7 @@ typedef enum eBConstraint_Flags {
   /* use bbone curve shape when calculating headtail values (also used by dependency graph!) */
   CONSTRAINT_BBONE_SHAPE = (1 << 10),
   /* That constraint has been inserted in local override (i.e. it can be fully edited!). */
-  CONSTRAINT_STATICOVERRIDE_LOCAL = (1 << 11),
+  CONSTRAINT_OVERRIDE_LIBRARY_LOCAL = (1 << 11),
   /* use full transformation (not just segment locations) - only set at runtime  */
   CONSTRAINT_BBONE_SHAPE_FULL = (1 << 12),
 } eBConstraint_Flags;

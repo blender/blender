@@ -83,7 +83,7 @@ ShaderFxData *BKE_shaderfx_new(int type)
 
   fx->type = type;
   fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render | eShaderFxMode_Expanded;
-  fx->flag = eShaderFxFlag_StaticOverride_Local;
+  fx->flag = eShaderFxFlag_OverrideLibrary_Local;
 
   if (fxi->flags & eShaderFxTypeFlag_EnableInEditmode) {
     fx->mode |= eShaderFxMode_Editmode;

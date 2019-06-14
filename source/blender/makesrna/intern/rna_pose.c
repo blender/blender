@@ -614,9 +614,9 @@ bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
                                                 PointerRNA *UNUSED(ptr_item_dst),
                                                 PointerRNA *UNUSED(ptr_item_src),
                                                 PointerRNA *UNUSED(ptr_item_storage),
-                                                IDOverrideStaticPropertyOperation *opop)
+                                                IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   bPoseChannel *pchan_dst = (bPoseChannel *)ptr_dst->data;
@@ -946,8 +946,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   /* Bone Constraints */
   prop = RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Constraint");
-  RNA_def_property_override_flag(prop,
-                                 PROPOVERRIDE_OVERRIDABLE_STATIC | PROPOVERRIDE_STATIC_INSERTION);
+  RNA_def_property_override_flag(
+      prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
   RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel");
   RNA_def_property_override_funcs(prop, NULL, NULL, "rna_PoseChannel_constraints_override_apply");
 
@@ -987,7 +987,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   /* Transformation settings */
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, NULL, "loc");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
   RNA_def_property_ui_text(prop, "Location", "");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
@@ -996,7 +996,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "size");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
   RNA_def_property_float_array_default(prop, rna_default_scale_3d);
   RNA_def_property_ui_text(prop, "Scale", "");
@@ -1004,7 +1004,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
   RNA_def_property_float_sdna(prop, NULL, "quat");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
   RNA_def_property_float_array_default(prop, rna_default_quaternion);
   RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions");
@@ -1014,7 +1014,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
    * having a single one is better for Keyframing and other property-management situations...
    */
   prop = RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_array(prop, 4);
   RNA_def_property_float_funcs(prop,
                                "rna_PoseChannel_rotation_axis_angle_get",
@@ -1028,7 +1028,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
   RNA_def_property_float_sdna(prop, NULL, "eul");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
   RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
@@ -1277,7 +1277,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
   RNA_def_property_struct_type(prop, "PoseBone");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop,
                            "Custom Shape Transform",
                            "Bone that defines the display transform of this custom shape");
@@ -1580,7 +1580,7 @@ static void rna_def_pose(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
   RNA_def_property_struct_type(prop, "PoseBone");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature");
   /* can be removed, only for fast lookup */
   RNA_def_property_collection_funcs(
