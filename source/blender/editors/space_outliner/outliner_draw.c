@@ -2152,7 +2152,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       }
       case TSE_GP_LAYER: {
-        data.icon = ICON_GREASEPENCIL;
+        data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         break;
       }
       default:
