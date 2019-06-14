@@ -510,7 +510,7 @@ static void buttons_area_listener(wmWindow *UNUSED(win),
     case NC_GPENCIL:
       switch (wmn->data) {
         case ND_DATA:
-          if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED)) {
+          if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED, NA_SELECTED)) {
             ED_area_tag_redraw(sa);
           }
           break;

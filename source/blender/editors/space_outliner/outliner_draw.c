@@ -806,7 +806,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
           BLI_uniquename(
               &gpd->layers, gpl, "GP Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 
-          WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, gpd);
+          WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           break;
         }
         case TSE_R_LAYER: {
