@@ -3439,10 +3439,6 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
-    BKE_sequence_sound_init(scene, iseq);
-  }
-
   iseq_first = nseqbase.first;
 
   BLI_movelisttolist(ed->seqbasep, &nseqbase);
@@ -3459,6 +3455,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
