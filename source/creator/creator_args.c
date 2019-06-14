@@ -1085,8 +1085,8 @@ static int arg_handle_debug_fpe_set(int UNUSED(argc),
 }
 
 static const char arg_handle_app_template_doc[] =
-    "\n\t"
-    "Set the application template, use 'default' for none.";
+    "<template>\n"
+    "\tSet the application template (matching the directory name), use 'default' for none.";
 static int arg_handle_app_template(int argc, const char **argv, void *UNUSED(data))
 {
   if (argc > 1) {
