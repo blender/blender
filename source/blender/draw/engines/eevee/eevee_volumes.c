@@ -394,9 +394,13 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
 
   struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
+  eGPUMaterialStatus status = GPU_material_status(mat);
 
+  if (status == GPU_MAT_QUEUED) {
+    vedata->stl->g_data->queued_shaders_count++;
+  }
   /* If shader failed to compile or is currently compiling. */
-  if (GPU_material_status(mat) != GPU_MAT_SUCCESS) {
+  if (status != GPU_MAT_SUCCESS) {
     return;
   }
 

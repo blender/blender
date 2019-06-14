@@ -840,6 +840,10 @@ typedef struct EEVEE_PrivateData {
   /* Color Management */
   bool use_color_render_settings;
 
+  /* Compiling shaders count. This is to track if a shader has finished compiling. */
+  int queued_shaders_count;
+  int queued_shaders_count_prev;
+
   /* LookDev Settings */
   int studiolight_index;
   float studiolight_rot_z;

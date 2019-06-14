@@ -60,6 +60,7 @@ static void eevee_engine_init(void *ved)
   stl->g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
   stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
   stl->g_data->valid_taa_history = (txl->taa_history != NULL);
+  stl->g_data->queued_shaders_count = 0;
 
   /* Main Buffer */
   DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
@@ -145,6 +146,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
 static void eevee_cache_finish(void *vedata)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+  EEVEE_PrivateData *g_data = ((EEVEE_Data *)vedata)->stl->g_data;
 
   EEVEE_volumes_cache_finish(sldata, vedata);
   EEVEE_materials_cache_finish(sldata, vedata);
@@ -153,6 +155,13 @@ static void eevee_cache_finish(void *vedata)
 
   EEVEE_effects_draw_init(sldata, vedata);
   EEVEE_volumes_draw_init(sldata, vedata);
+
+  /* Restart taa if a shader has finish compiling. */
+  /* HACK We should use notification of some sort from the compilation job instead. */
+  if (g_data->queued_shaders_count != g_data->queued_shaders_count_prev) {
+    g_data->queued_shaders_count_prev = g_data->queued_shaders_count;
+    EEVEE_temporal_sampling_reset(vedata);
+  }
 }
 
 /* As renders in an HDR offscreen buffer, we need draw everything once
