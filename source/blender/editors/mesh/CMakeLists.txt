@@ -23,7 +23,6 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
-  ../../draw
   ../../gpu
   ../../imbuf
   ../../makesdna
