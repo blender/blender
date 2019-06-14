@@ -455,7 +455,7 @@
       <ThemeGraphEditor
         grid="#5e5e5e"
         frame_current="#5680c2"
-        scrubbing_background="#808080e6"
+        time_scrub_background="#808080e6"
         window_sliders="#969696"
         channels_region="#999999"
         dopesheet_channel="#2e6399"
@@ -580,7 +580,7 @@
         keyframe_border="#000000ff"
         keyframe_border_selected="#000000ff"
         frame_current="#5680c2"
-        scrubbing_background="#808080e6"
+        time_scrub_background="#808080e6"
         >
         <space>
           <ThemeSpaceGeneric
@@ -627,7 +627,7 @@
       <ThemeDopeSheet
         grid="#4d4d4d"
         frame_current="#5680c2"
-        scrubbing_background="#808080e6"
+        time_scrub_background="#808080e6"
         value_sliders="#000000"
         view_sliders="#969696"
         dopesheet_channel="#2e639924"
@@ -698,9 +698,6 @@
     </dopesheet_editor>
     <image_editor>
       <ThemeImageEditor
-        gp_vertex="#000000"
-        gp_vertex_select="#00cc9e"
-        gp_vertex_size="3"
         vertex="#000000"
         vertex_select="#00b38a"
         vertex_size="3"
@@ -774,9 +771,6 @@
     </image_editor>
     <sequence_editor>
       <ThemeSequenceEditor
-        gp_vertex="#000000"
-        gp_vertex_select="#ff8500"
-        gp_vertex_size="3"
         grid="#404040"
         window_sliders="#a0a0a0"
         movie_strip="#516987"
@@ -789,7 +783,7 @@
         meta_strip="#6d9183"
         text_strip="#a29700"
         frame_current="#5680c2"
-        scrubbing_background="#292929e6"
+        time_scrub_background="#292929e6"
         keyframe="#ff8500"
         draw_action="#50c8ff"
         preview_back="#000000"
@@ -910,9 +904,6 @@
     </text_editor>
     <node_editor>
       <ThemeNodeEditor
-        gp_vertex="#000000"
-        gp_vertex_select="#ff8500"
-        gp_vertex_size="3"
         node_selected="#f15800"
         node_active="#f15800"
         wire="#a7a7a7"
@@ -1142,9 +1133,6 @@
     </console>
     <clip_editor>
       <ThemeClipEditor
-        gp_vertex="#000000"
-        gp_vertex_select="#000000"
-        gp_vertex_size="1"
         marker_outline="#000000"
         marker="#7f7f00"
         active_marker="#ffffff"
@@ -1154,7 +1142,7 @@
         path_before="#ff0000"
         path_after="#0000ff"
         frame_current="#5680c2"
-        scrubbing_background="#292929e6"
+        time_scrub_background="#292929e6"
         strips="#0c0a0a"
         strips_selected="#ff8c00"
         metadatabg="#000000"
