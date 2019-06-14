@@ -42,6 +42,7 @@
 #    include <AUD_Special.h>
 #  endif
 
+#  include "BLI_math_base.h"
 #  include "BLI_utildefines.h"
 
 #  include "BKE_global.h"
@@ -588,10 +589,17 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->time_base.den = rd->frs_sec;
     c->time_base.num = (int)rd->frs_sec_base;
   }
+  else if (compare_ff(rd->frs_sec_base, 1.001f, 0.000001f)) {
+    /* This converts xx/1.001 (which is used in presets) to xx000/1001 (which is used in the rest
+     * of the world, including FFmpeg). */
+    c->time_base.den = (int)(rd->frs_sec * 1000);
+    c->time_base.num = (int)(rd->frs_sec_base * 1000);
+  }
   else {
-    // This calculates a fraction (DENUM_MAX / num) which approximates the scene
-    // frame rate (frs_sec / frs_sec_base).
-    const double DENUM_MAX = 2147483647;
+    /* This calculates a fraction (DENUM_MAX / num) which approximates the scene frame rate
+     * (frs_sec / frs_sec_base). It uses the maximum denominator allowed by FFmpeg.
+     */
+    const double DENUM_MAX = (codec_id == AV_CODEC_ID_MPEG4) ? (1L << 16) - 1 : (1L << 31) - 1;
     const double num = (DENUM_MAX / (double)rd->frs_sec) * rd->frs_sec_base;
 
     c->time_base.den = (int)DENUM_MAX;
