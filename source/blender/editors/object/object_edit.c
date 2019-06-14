@@ -1604,6 +1604,7 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
   MoveToCollectionData *menu = menu_v;
   const char *name = BKE_collection_ui_name_get(menu->collection);
 
+  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
   uiItemIntO(layout, name, ICON_NONE, menu->ot->idname, "collection_index", menu->index);
   uiItemS(layout);
 
