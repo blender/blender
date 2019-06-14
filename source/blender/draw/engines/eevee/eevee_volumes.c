@@ -571,10 +571,6 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
                                   {GPU_ATTACHMENT_NONE,
                                    GPU_ATTACHMENT_TEXTURE(txl->volume_scatter_history),
                                    GPU_ATTACHMENT_TEXTURE(txl->volume_transmit_history)});
-
-    /* Usage happens after buffer have been swapped. */
-    effects->volume_scatter = txl->volume_scatter_history;
-    effects->volume_transmit = txl->volume_transmit_history;
   }
   else {
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_scattering);
@@ -588,10 +584,10 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->volumetric_fb);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->volumetric_scat_fb);
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->volumetric_integ_fb);
-
-    effects->volume_scatter = e_data.dummy_scatter;
-    effects->volume_transmit = e_data.dummy_transmit;
   }
+
+  effects->volume_scatter = e_data.dummy_scatter;
+  effects->volume_transmit = e_data.dummy_transmit;
 }
 
 void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
@@ -617,6 +613,9 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
     SWAP(struct GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
     SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);
     SWAP(GPUTexture *, txl->volume_transmit, txl->volume_transmit_history);
+
+    effects->volume_scatter = txl->volume_scatter;
+    effects->volume_transmit = txl->volume_transmit;
 
     /* Restore */
     GPU_framebuffer_bind(fbl->main_fb);
