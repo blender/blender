@@ -660,7 +660,7 @@ void BKE_override_library_update(Main *bmain, ID *local)
    *     Actually, maybe not! Since we are swapping with original ID's local content, we want to
    *     keep user-count in correct state when freeing tmp_id
    *     (and that user-counts of IDs used by 'new' local data also remain correct). */
-  /* This would imply change in handling of usercout all over RNA
+  /* This would imply change in handling of user-count all over RNA
    * (and possibly all over Blender code).
    * Not impossible to do, but would rather see first if extra useless usual user handling
    * is actually a (performances) issue here. */
@@ -733,7 +733,7 @@ void BKE_main_override_library_update(Main *bmain)
  *    where we only define values that need differential data.
  *
  * This avoids us having to modify 'real' data-block at write time (and restoring it afterwards),
- * which is inneficient, and potentially dangerous (in case of concurrent access...), while not
+ * which is inefficient, and potentially dangerous (in case of concurrent access...), while not
  * using much extra memory in typical cases.  It also ensures stored data-block always contains
  * exact same data as "desired" ones (kind of "baked" data-blocks).
  */

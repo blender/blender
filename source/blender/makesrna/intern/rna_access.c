@@ -6802,7 +6802,7 @@ static void *rna_array_as_string_alloc(
 
 static void rna_array_as_string_elem(int type, void **buf_p, int len, DynStr *dynstr)
 {
-  /* This will print a comma seperated string of the array elements from
+  /* This will print a comma separated string of the array elements from
    * buf start to len. We will add a comma if len == 1 to preserve tuples. */
   const int end = len - 1;
   if (type == PROP_BOOLEAN) {
@@ -8149,8 +8149,8 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
 /** Generic RNA property diff function.
  *
  * \note about \a prop and \a prop_a/prop_b parameters:
- * the former is exptected to be an 'un-resolved' one,
- * while the two laters are expected to be fully resolved ones
+ * the former is expected to be an 'un-resolved' one,
+ * while the two later are expected to be fully resolved ones
  * (i.e. to be the IDProps when they should be, etc.).
  * When \a prop is given, \a prop_a and \a prop_b should always be NULL, and vice-versa.
  * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
@@ -8791,7 +8791,7 @@ void RNA_struct_override_apply(Main *bmain,
   TIMEIT_START_AVERAGED(RNA_struct_override_apply);
 #endif
   /* Note: Applying insert operations in a separate pass is mandatory.
-   * We could optimize this later, but for now, as inneficient as it is,
+   * We could optimize this later, but for now, as inefficient as it is,
    * don't think this is a critical point.
    */
   bool do_insert = false;

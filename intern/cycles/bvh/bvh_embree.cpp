@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* This class implemens a ray accelerator for Cycles using Intel's Embree library.
+/* This class implements a ray accelerator for Cycles using Intel's Embree library.
  * It supports triangles, curves, object and deformation blur and instancing.
  * Not supported are thick line segments, those have no native equivalent in Embree.
  * They could be implemented using Embree's thick curves, at the expense of wasted memory.

@@ -247,7 +247,7 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
   }
 
   if (!G.background) {
-    /* Background mode doesn't use opnegl,
+    /* Background mode doesn't use OpenGL,
      * so we can avoid freeing GPU images and save some
      * time by skipping mutex lock.
      */

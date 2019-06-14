@@ -786,8 +786,10 @@ void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
   }
 }
 
-/** Helper used by both main update code, and smoothscroll timer,
- * to try to enable rename editing from #FileSelectParams.renamefile name. */
+/**
+ * Helper used by both main update code, and smooth-scroll timer,
+ * to try to enable rename editing from #FileSelectParams.renamefile name.
+ */
 void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
 {
   BLI_assert(params->rename_flag != 0);

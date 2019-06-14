@@ -514,8 +514,8 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 
 static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 {
-  /* sample box, is clipped already, and minx etc. have been set at ibuf size.
-   * Enlarge with antialiased edges of the pixels */
+  /* Sample box, is clipped already, and minx etc. have been set at ibuf size.
+   * Enlarge with anti-aliased edges of the pixels. */
 
   float muly, mulx, div, col[4];
   int x, y, startx, endx, starty, endy;

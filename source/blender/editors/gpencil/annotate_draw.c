@@ -667,7 +667,7 @@ static void annotation_draw_strokes_edit(bGPdata *gpd,
       continue;
     }
 
-    /* Optimisation: only draw points for selected strokes
+    /* Optimization: only draw points for selected strokes
      * We assume that selected points can only occur in
      * strokes that are selected too.
      */

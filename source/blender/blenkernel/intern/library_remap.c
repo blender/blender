@@ -484,7 +484,7 @@ static void libblock_remap_data(
     FOREACH_MAIN_ID_END;
   }
 
-  /* XXX We may not want to always 'transfer' fakeuser from old to new id...
+  /* XXX We may not want to always 'transfer' fake-user from old to new id...
    *     Think for now it's desired behavior though,
    *     we can always add an option (flag) to control this later if needed. */
   if (old_id && (old_id->flag & LIB_FAKEUSER)) {

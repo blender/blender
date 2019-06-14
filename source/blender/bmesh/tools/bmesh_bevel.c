@@ -3055,7 +3055,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
  * on loop slide edges, the widths at each end could be different.
  *
  * It turns out that the dependent offsets either form chains or
- * cycles, and we can process each of those separatey.
+ * cycles, and we can process each of those separately.
  */
 static void adjust_offsets(BevelParams *bp, BMesh *bm)
 {

@@ -467,8 +467,8 @@ void GPENCIL_cache_init(void *vedata)
     DRW_shgroup_uniform_int(mix_shgrp, "do_select", &stl->storage->do_select_outline, 1);
     DRW_shgroup_uniform_vec4(mix_shgrp, "select_color", stl->storage->select_color, 1);
 
-    /* mix pass no blend used to copy between passes. A separated pass is required
-     * because if mix_pass is used, the acumulation of blend degrade the colors.
+    /* Mix pass no blend used to copy between passes. A separated pass is required
+     * because if mix_pass is used, the accumulation of blend degrade the colors.
      *
      * This pass is used too to take the snapshot used for background_pass. This image
      * will be used as the background while the user is drawing.

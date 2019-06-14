@@ -104,11 +104,10 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     const int num_face_vertices = topology_refiner->getNumFaceVertices(topology_refiner,
                                                                        face_index);
-    const int *uv_indicies = topology_refiner->getFaceFVarValueIndices(
+    const int *uv_indices = topology_refiner->getFaceFVarValueIndices(
         topology_refiner, face_index, layer_index);
     for (int vertex_index = 0; vertex_index < num_face_vertices; vertex_index++, mluv++) {
-      evaluator->setFaceVaryingData(
-          evaluator, layer_index, mluv->uv, uv_indicies[vertex_index], 1);
+      evaluator->setFaceVaryingData(evaluator, layer_index, mluv->uv, uv_indices[vertex_index], 1);
     }
   }
 }
