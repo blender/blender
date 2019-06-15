@@ -173,23 +173,36 @@ function(blender_source_group
   sources
   )
 
-  # Group by location on disk
-  source_group("Source Files" FILES CMakeLists.txt)
+  #if enabled, use the sources directories as filters.
+  if(WINDOWS_USE_VISUAL_STUDIO_SOURCE_FOLDERS)
+    foreach(_SRC ${sources})
+      # remove ../'s
+      get_filename_component(_SRC_DIR ${_SRC} REALPATH)
+      get_filename_component(_SRC_DIR ${_SRC_DIR} DIRECTORY)
+      if(${_SRC_DIR} MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/")
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" GROUP_ID ${_SRC_DIR})
+        string(REPLACE "/" "\\" GROUP_ID ${GROUP_ID})
+        source_group("${GROUP_ID}" FILES ${_SRC})
+      endif()
+    endforeach()
+  else()
+    # Group by location on disk
+    source_group("Source Files" FILES CMakeLists.txt)
+    foreach(_SRC ${sources})
+      get_filename_component(_SRC_EXT ${_SRC} LAST_EXT)
+      if((${_SRC_EXT} MATCHES ".h") OR
+         (${_SRC_EXT} MATCHES ".hpp") OR
+         (${_SRC_EXT} MATCHES ".hh"))
 
-  foreach(_SRC ${sources})
-    get_filename_component(_SRC_EXT ${_SRC} LAST_EXT)
-    if((${_SRC_EXT} MATCHES ".h") OR
-       (${_SRC_EXT} MATCHES ".hpp") OR
-       (${_SRC_EXT} MATCHES ".hh"))
-
-      set(GROUP_ID "Header Files")
-    elseif(${_SRC_EXT} MATCHES ".glsl")
-      set(GROUP_ID "Shaders")
-    else()
-      set(GROUP_ID "Source Files")
-    endif()
-    source_group("${GROUP_ID}" FILES ${_SRC})
-  endforeach()
+        set(GROUP_ID "Header Files")
+      elseif(${_SRC_EXT} MATCHES ".glsl")
+        set(GROUP_ID "Shaders")
+      else()
+        set(GROUP_ID "Source Files")
+      endif()
+      source_group("${GROUP_ID}" FILES ${_SRC})
+    endforeach()
+  endif()
 endfunction()
 
 
