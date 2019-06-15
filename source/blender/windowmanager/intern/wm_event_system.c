@@ -4134,14 +4134,15 @@ static int convert_key(GHOST_TKey key)
 
 static void wm_eventemulation(wmEvent *event, bool test_only)
 {
-  /* Store last mmb/rmb event value to make emulation work when modifier keys
-   * are released first. This really should be in a data structure somewhere. */
+  /* Store last middle-mouse event value to make emulation work
+   * when modifier keys are released first.
+   * This really should be in a data structure somewhere. */
   static int emulating_event = EVENT_NONE;
 
-  /* middlemouse and rightmouse emulation */
+  /* Middle-mouse emulation. */
   if (U.flag & USER_TWOBUTTONMOUSE) {
-    if (event->type == LEFTMOUSE) {
 
+    if (event->type == LEFTMOUSE) {
       if (event->val == KM_PRESS && event->alt) {
         event->type = MIDDLEMOUSE;
         event->alt = 0;
@@ -4150,25 +4151,11 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
           emulating_event = MIDDLEMOUSE;
         }
       }
-#ifdef __APPLE__
-      else if (event->val == KM_PRESS && event->oskey) {
-        event->type = RIGHTMOUSE;
-        event->oskey = 0;
-
-        if (!test_only) {
-          emulating_event = RIGHTMOUSE;
-        }
-      }
-#endif
       else if (event->val == KM_RELEASE) {
         /* only send middle-mouse release if emulated */
         if (emulating_event == MIDDLEMOUSE) {
           event->type = MIDDLEMOUSE;
           event->alt = 0;
-        }
-        else if (emulating_event == RIGHTMOUSE) {
-          event->type = RIGHTMOUSE;
-          event->oskey = 0;
         }
 
         if (!test_only) {
