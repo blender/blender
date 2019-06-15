@@ -11,5 +11,6 @@ pause
 mkdir "%temp%\blender\debug_logs" > NUL 2>&1
 echo.
 echo Starting blender and waiting for it to exit....
+set PYTHONPATH=
 blender --debug --debug-gpu --debug-gpu-force-workarounds --python-expr "import bpy; bpy.ops.wm.sysinfo(filepath=r'%temp%\blender\debug_logs\blender_system_info.txt')" > "%temp%\blender\debug_logs\blender_debug_output.txt" 2>&1 < %0
 explorer "%temp%\blender\debug_logs"
