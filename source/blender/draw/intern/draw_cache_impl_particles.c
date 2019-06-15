@@ -318,7 +318,7 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
 
 static void particle_calculate_parent_mcol(ParticleSystem *psys,
                                            ParticleSystemModifierData *psmd,
-                                           const int num_uv_layers,
+                                           const int num_col_layers,
                                            const int parent_index,
                                            /*const*/ MCol **mcols,
                                            MCol *r_mcol)
@@ -340,8 +340,8 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
   }
   if (num != DMCACHE_NOTFOUND && num != DMCACHE_ISCHILD) {
     MFace *mface = &mesh_final->mface[num];
-    for (int j = 0; j < num_uv_layers; j++) {
-      psys_interpolate_mcol(mcols[j] + num, mface->v4, particle->fuv, &r_mcol[j]);
+    for (int j = 0; j < num_col_layers; j++) {
+      psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);
     }
   }
 }
@@ -392,7 +392,7 @@ static void particle_interpolate_children_mcol(ParticleSystem *psys,
   if (num != DMCACHE_NOTFOUND) {
     MFace *mface = &mesh_final->mface[num];
     for (int j = 0; j < num_col_layers; j++) {
-      psys_interpolate_mcol(mcols[j] + num, mface->v4, particle->fuv, &r_mcol[j]);
+      psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);
     }
   }
 }
