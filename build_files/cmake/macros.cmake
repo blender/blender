@@ -245,7 +245,7 @@ function(blender_add_lib__impl
   blender_source_group("${sources}")
 
   #if enabled, set the FOLDER property for visual studio projects
-  if(WINDOWS_USE_VISUAL_STUDIO_FOLDERS)
+  if(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
     get_filename_component(FolderDir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
     string(REPLACE ${CMAKE_SOURCE_DIR} "" FolderDir ${FolderDir})
     set_target_properties(${name} PROPERTIES FOLDER ${FolderDir})
