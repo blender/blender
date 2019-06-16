@@ -904,7 +904,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   DriverVar *dvar;
 
   PointerRNA driver_ptr;
-  uiLayout *col, *row;
+  uiLayout *col, *row, *row_outer;
   uiBlock *block;
   uiBut *but;
 
@@ -1005,61 +1005,41 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   uiItemS(layout);
 
   /* add/copy/paste driver variables */
-  if (is_popover) {
-    /* add driver variable - add blank */
-    row = uiLayoutRow(layout, true);
-    block = uiLayoutGetBlock(row);
-    but = uiDefIconTextBut(
-        block,
-        UI_BTYPE_BUT,
-        B_IPO_DEPCHANGE,
-        ICON_ADD,
-        IFACE_("Add Input Variable"),
-        0,
-        0,
-        10 * UI_UNIT_X,
-        UI_UNIT_Y,
-        NULL,
-        0.0,
-        0.0,
-        0,
-        0,
-        TIP_("Add a Driver Variable to keep track an input used by the driver"));
-    UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+  row_outer = uiLayoutRow(layout, false);
 
+  /* add driver variable - add blank */
+  row = uiLayoutRow(row_outer, true);
+  block = uiLayoutGetBlock(row);
+  but = uiDefIconTextBut(
+      block,
+      UI_BTYPE_BUT,
+      B_IPO_DEPCHANGE,
+      ICON_ADD,
+      IFACE_("Add Input Variable"),
+      0,
+      0,
+      10 * UI_UNIT_X,
+      UI_UNIT_Y,
+      NULL,
+      0.0,
+      0.0,
+      0,
+      0,
+      TIP_("Add a Driver Variable to keep track of an input used by the driver"));
+  UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+
+  if (is_popover) {
     /* add driver variable - add using eyedropper */
     /* XXX: will this operator work like this? */
     uiItemO(row, "", ICON_EYEDROPPER, "UI_OT_eyedropper_driver");
   }
-  else {
-    /* add driver variable */
-    row = uiLayoutRow(layout, false);
-    block = uiLayoutGetBlock(row);
-    but = uiDefIconTextBut(block,
-                           UI_BTYPE_BUT,
-                           B_IPO_DEPCHANGE,
-                           ICON_ADD,
-                           IFACE_("Add Input Variable"),
-                           0,
-                           0,
-                           10 * UI_UNIT_X,
-                           UI_UNIT_Y,
-                           NULL,
-                           0.0,
-                           0.0,
-                           0,
-                           0,
-                           TIP_("Driver variables ensure that all dependencies will be accounted "
-                                "for, ensuring that drivers will update correctly"));
-    UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 
-    /* copy/paste (as sub-row) */
-    row = uiLayoutRow(row, true);
-    block = uiLayoutGetBlock(row);
+  /* copy/paste (as sub-row) */
+  row = uiLayoutRow(row_outer, true);
+  block = uiLayoutGetBlock(row);
 
-    uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
-    uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
-  }
+  uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
+  uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
 
   /* loop over targets, drawing them */
   for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
@@ -1279,6 +1259,10 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
     /* Populate Panel - With a combination of the contents of the Driven and Driver panels */
     if (fcu && fcu->driver) {
       ID *id = ptr.id.data;
+
+      PointerRNA ptr_fcurve;
+      RNA_pointer_create(id, &RNA_FCurve, fcu, &ptr_fcurve);
+      uiLayoutSetContextPointer(layout, "active_editable_fcurve", &ptr_fcurve);
 
       /* Driven Property Settings */
       uiItemL(layout, IFACE_("Driven Property:"), ICON_NONE);

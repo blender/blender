@@ -44,6 +44,8 @@
 #include "ED_screen.h"
 #include "UI_interface.h"
 
+#include "RNA_access.h"
+
 #include "graph_intern.h"  // own include
 
 /* ************************************************************** */
@@ -276,6 +278,14 @@ bool graphop_active_fcurve_poll(bContext *C)
 
   /* return success */
   return has_fcurve;
+}
+
+/* has active F-Curve in the context that's editable */
+bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
+{
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
+
+  return ptr.data != NULL;
 }
 
 /* has selected F-Curve that's editable */

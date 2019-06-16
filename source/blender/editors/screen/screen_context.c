@@ -104,7 +104,11 @@ const char *screen_context_dir[] = {
     "active_gpencil_layer",
     "active_gpencil_frame",
     "active_operator",
+    "visible_fcurves",
+    "editable_fcurves",
+    "selected_visible_fcurves",
     "selected_editable_fcurves",
+    "active_editable_fcurve",
     NULL,
 };
 
@@ -654,29 +658,59 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
       return 1;
     }
   }
-  else if (CTX_data_equals(member, "selected_editable_fcurves")) {
+  else if (CTX_data_equals(member, "editable_fcurves") ||
+           CTX_data_equals(member, "visible_fcurves") ||
+           CTX_data_equals(member, "selected_editable_fcurves") ||
+           CTX_data_equals(member, "selected_visible_fcurves")) {
     bAnimContext ac;
 
     if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-      bAnimListElem *ale;
       ListBase anim_data = {NULL, NULL};
 
-      int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
-                    ANIMFILTER_SEL) |
+      int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS) |
                    (ac.spacetype == SPACE_GRAPH ? ANIMFILTER_CURVE_VISIBLE :
                                                   ANIMFILTER_LIST_VISIBLE);
 
+      if (strstr(member, "editable_")) {
+        filter |= ANIMFILTER_FOREDIT;
+      }
+      if (STRPREFIX(member, "selected_")) {
+        filter |= ANIMFILTER_SEL;
+      }
+
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-      for (ale = anim_data.first; ale; ale = ale->next) {
-        if (ale->type == ANIMTYPE_FCURVE) {
-          CTX_data_list_add(result, ale->id, &RNA_FCurve, ale->data);
+      for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+          CTX_data_list_add(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
         }
       }
 
       ANIM_animdata_freelist(&anim_data);
 
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+      return 1;
+    }
+  }
+  else if (CTX_data_equals(member, "active_editable_fcurve")) {
+    bAnimContext ac;
+
+    if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_GRAPH)) {
+      ListBase anim_data = {NULL, NULL};
+
+      int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
+                    ANIMFILTER_CURVE_VISIBLE);
+
+      ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+      for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+        if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+          CTX_data_pointer_set(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
+          break;
+        }
+      }
+
+      ANIM_animdata_freelist(&anim_data);
       return 1;
     }
   }

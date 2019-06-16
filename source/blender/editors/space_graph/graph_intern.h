@@ -168,6 +168,7 @@ struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 bool graphop_visible_keyframes_poll(struct bContext *C);
 bool graphop_editable_keyframes_poll(struct bContext *C);
 bool graphop_active_fcurve_poll(struct bContext *C);
+bool graphop_active_editable_fcurve_ctx_poll(struct bContext *C);
 bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */

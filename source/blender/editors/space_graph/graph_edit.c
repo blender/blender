@@ -2995,29 +2995,15 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 
 static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
 {
-  bAnimContext ac;
-  bAnimListElem *ale;
   bool ok = false;
 
-  /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* clear buffer first */
-  ANIM_driver_vars_copybuf_free();
-
-  /* get the active F-Curve */
-  ale = get_active_fcurve_channel(&ac);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
 
   /* if this exists, call the copy driver vars API function */
-  if (ale && ale->data) {
-    FCurve *fcu = (FCurve *)ale->data;
+  FCurve *fcu = (FCurve *)ptr.data;
 
+  if (fcu) {
     ok = ANIM_driver_vars_copy(op->reports, fcu);
-
-    /* free temp data now */
-    MEM_freeN(ale);
   }
 
   /* successful or not? */
@@ -3034,11 +3020,11 @@ void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Driver Variables";
   ot->idname = "GRAPH_OT_driver_variables_copy";
-  ot->description = "Copy the driver variables of the active F-Curve";
+  ot->description = "Copy the driver variables of the active driver";
 
   /* api callbacks */
   ot->exec = graph_driver_vars_copy_exec;
-  ot->poll = graphop_active_fcurve_poll;
+  ot->poll = graphop_active_editable_fcurve_ctx_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3048,33 +3034,17 @@ void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
 
 static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
 {
-  bAnimContext ac;
-
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
-
   const bool replace = RNA_boolean_get(op->ptr, "replace");
   bool ok = false;
 
-  /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
+
+  /* if this exists, call the paste driver vars API function */
+  FCurve *fcu = (FCurve *)ptr.data;
+
+  if (fcu) {
+    ok = ANIM_driver_vars_paste(op->reports, fcu, replace);
   }
-
-  /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-  /* paste variables */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    FCurve *fcu = (FCurve *)ale->data;
-    ok |= ANIM_driver_vars_paste(op->reports, fcu, replace);
-  }
-
-  /* cleanup */
-  ANIM_animdata_freelist(&anim_data);
 
   /* successful or not? */
   if (ok) {
@@ -3100,7 +3070,7 @@ void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = graph_driver_vars_paste_exec;
-  ot->poll = graphop_active_fcurve_poll;
+  ot->poll = graphop_active_editable_fcurve_ctx_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
