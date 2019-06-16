@@ -398,7 +398,7 @@ bool BCAnimationCurve::add_value_from_matrix(const BCSample &sample, const int f
 {
   int array_index = curve_key.get_array_index();
 
-  /* transformation curves are feeded directly from the transformation matrix
+  /* transformation curves are fed directly from the transformation matrix
    * to resolve parent inverse matrix issues with object hierarchies.
    * Maybe this can be unified with the
    */

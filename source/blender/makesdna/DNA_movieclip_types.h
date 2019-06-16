@@ -100,7 +100,7 @@ typedef struct MovieClip {
   /**
    * Scene frame number footage starts playing at affects all data
    * which is associated with a clip such as motion tracking,
-   * camera reconstruciton and so.
+   * camera Reconstruction and so.
    */
   int start_frame;
   /**

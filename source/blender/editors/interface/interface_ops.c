@@ -1504,7 +1504,7 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Prese Button Operator
+/** \name Press Button Operator
  * \{ */
 
 static ARegion *region_event_inside_for_screen(bContext *C, const int xy[2])

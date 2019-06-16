@@ -471,7 +471,7 @@ class ViewEdge;
  *  This FEdge can represent a silhouette, a crease, a ridge/valley, a border or a suggestive
  * contour. For silhouettes,  the FEdge is oriented such as, the visible face lies on the left of
  * the edge. For borders, the FEdge is oriented such as, the face lies on the left of the edge. An
- * FEdge can represent an initial edge of the mesh or runs accross a face of the initial mesh
+ * FEdge can represent an initial edge of the mesh or runs across a face of the initial mesh
  * depending on the smoothness or sharpness of the mesh. This class is specialized into a smooth
  * and a sharp version since their properties slightly vary from one to the other.
  */
@@ -1363,19 +1363,19 @@ class FEdgeSmooth : public FEdge {
     return _FaceMark;
   }
 
-  /*! Returns the normal to the Face it is running accross. */
+  /*! Returns the normal to the Face it is running across. */
   inline const Vec3r &normal()
   {
     return _Normal;
   }
 
-  /*! Returns the index of the material of the face it is running accross. */
+  /*! Returns the index of the material of the face it is running across. */
   inline unsigned frs_materialIndex() const
   {
     return _FrsMaterialIndex;
   }
 
-  /*! Returns the material of the face it is running accross. */
+  /*! Returns the material of the face it is running across. */
   const FrsMaterial &frs_material() const;
 
   inline void setFace(void *iFace)
@@ -1389,13 +1389,13 @@ class FEdgeSmooth : public FEdge {
     _FaceMark = iFaceMark;
   }
 
-  /*! Sets the normal to the Face it is running accross. */
+  /*! Sets the normal to the Face it is running across. */
   inline void setNormal(const Vec3r &iNormal)
   {
     _Normal = iNormal;
   }
 
-  /*! Sets the index of the material of the face it is running accross. */
+  /*! Sets the index of the material of the face it is running across. */
   inline void setFrsMaterialIndex(unsigned i)
   {
     _FrsMaterialIndex = i;

@@ -1040,7 +1040,7 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
         /* pass */
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
-        /* Simple forward compat for fix for T50736.
+        /* Simple forward compatibility for fix for T50736.
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = node->storage;
         /* Not in undo case. */

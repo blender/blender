@@ -155,8 +155,10 @@ typedef struct Object_Runtime {
    * It has all modifiers applied.
    */
   struct Mesh *mesh_eval;
-  /* Denotes whether the evaluated mesh is ownbed by this object or is referenced and owned by
-   * somebody else. */
+  /**
+   * Denotes whether the evaluated mesh is owned by this object or is referenced and owned by
+   * somebody else.
+   */
   int is_mesh_eval_owned;
   int _pad3[3];
   /**

@@ -1387,9 +1387,11 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata, int UNU
 #endif
 }
 
-/* Check whether gievn loop is part of an unknown-so-far cyclic smooth fan, or not.
+/**
+ * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
  * Needed because cyclic smooth fans have no obvious 'entry point',
- * and yet we need to walk them once, and only once. */
+ * and yet we need to walk them once, and only once.
+ */
 static bool loop_split_generator_check_cyclic_smooth_fan(const MLoop *mloops,
                                                          const MPoly *mpolys,
                                                          const int (*edge_to_loops)[2],

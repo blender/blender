@@ -274,7 +274,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     int i = im_samp_map[key];
     std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
     COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)
-        samp_surf[i];  // possibly uninitialised memory ...
+        samp_surf[i];  // possibly uninitialized memory ...
     writeTextures(ep, key, sampler, t, ima, uvname);
   }
 #endif

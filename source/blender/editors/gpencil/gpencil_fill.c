@@ -446,7 +446,7 @@ static void get_pixel(const ImBuf *ibuf, const int idx, float r_col[4])
   }
   else {
     /* XXX: This case probably doesn't happen, as we only write to the float buffer,
-     * but we get compiler warnings about uninitialised vars otherwise
+     * but we get compiler warnings about uninitialized vars otherwise
      */
     BLI_assert(!"gpencil_fill.c - get_pixel() non-float case is used!");
     zero_v4(r_col);

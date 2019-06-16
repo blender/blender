@@ -137,7 +137,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 
   if (ibuf->rect_float != NULL && bitspersample != 8) {
     /* don't use the float buffer to save 8 bpp picture to prevent color banding
-     * (there's no dithering algorithm behing the logImageSetDataRGBA function) */
+     * (there's no dithering algorithm behind the logImageSetDataRGBA function) */
 
     fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float),
                                 "fbuf in imb_save_dpx_cineon");

@@ -226,9 +226,9 @@ static void EDIT_MESH_engine_init(void *vedata)
                                  datatoc_common_globals_lib_glsl,
                                  datatoc_common_view_lib_glsl,
                                  datatoc_edit_mesh_overlay_common_lib_glsl);
-    /* Use geometry shader to draw edge wireframe. This ensure us
-     * the same result accross platforms and more flexibility. But
-     * we pay the cost of running a geometry shader.
+    /* Use geometry shader to draw edge wire-frame. This ensure us
+     * the same result across platforms and more flexibility.
+     * But we pay the cost of running a geometry shader.
      * In the future we might consider using only the vertex shader
      * and loading data manually with buffer textures. */
     const bool use_geom_shader = true;

@@ -113,7 +113,7 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
    */
   ac->yscale_fac = btheme->space_action.keyframe_scale_fac;
 
-  /* clamp to avoid problems with uninitialised values... */
+  /* clamp to avoid problems with uninitialized values... */
   if (ac->yscale_fac < 0.1f) {
     ac->yscale_fac = 1.0f;
   }

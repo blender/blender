@@ -729,7 +729,7 @@ static void ffmpeg_postprocess(struct anim *anim)
     return;
   }
 
-  /* This means the data wasnt read properly,
+  /* This means the data wasn't read properly,
    * this check stops crashing */
   if (input->data[0] == 0 && input->data[1] == 0 && input->data[2] == 0 && input->data[3] == 0) {
     fprintf(stderr,

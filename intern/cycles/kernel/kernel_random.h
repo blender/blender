@@ -244,7 +244,7 @@ ccl_device_inline void path_branched_rng_2D(KernelGlobals *kg,
               fy);
 }
 
-/* Utitility functions to get light termination value,
+/* Utility functions to get light termination value,
  * since it might not be needed in many cases.
  */
 ccl_device_inline float path_state_rng_light_termination(KernelGlobals *kg,

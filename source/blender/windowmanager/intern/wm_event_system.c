@@ -5009,7 +5009,7 @@ const char *WM_window_cursor_keymap_status_get(const wmWindow *win,
 
 /**
  * Similar to #BKE_screen_area_map_find_area_xy and related functions,
- * use here since the ara is stored in the window manager.
+ * use here since the area is stored in the window manager.
  */
 ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen)
 {

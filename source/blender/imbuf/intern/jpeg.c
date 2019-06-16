@@ -356,7 +356,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
         /*
          * Because JPEG format don't support the
          * pair "key/value" like PNG, we store the
-         * stampinfo in a single "encode" string:
+         * stamp-info in a single "encode" string:
          * "Blender:key:value"
          *
          * That is why we need split it to the

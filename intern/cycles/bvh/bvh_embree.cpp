@@ -29,7 +29,7 @@
  * get a separate RTCDevice to correctly keep track of memory usage.
  *
  * Vertex and index buffers are duplicated between Cycles device arrays and Embree. These could be
- * merged, which would requrie changes to intersection refinement, shader setup, mesh light
+ * merged, which would require changes to intersection refinement, shader setup, mesh light
  * sampling and a few other places in Cycles where direct access to vertex data is required.
  */
 

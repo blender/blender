@@ -492,7 +492,7 @@ enum {
    * but is used (linked) directly by current .blend file. */
   LIB_TAG_EXTERN = 1 << 0,
   /* RESET_NEVER Datablock is from a library,
-   * and is only used (linked) inderectly through other libraries. */
+   * and is only used (linked) indirectly through other libraries. */
   LIB_TAG_INDIRECT = 1 << 1,
 
   /* RESET_AFTER_USE Flag used internally in readfile.c,
@@ -585,7 +585,7 @@ typedef enum IDRecalcFlag {
   /* Selection of the ID itself or its components (for example, vertices) did
    * change, and all the drawing data is to eb updated. */
   ID_RECALC_SELECT = (1 << 9),
-  /* Flags on the base did change, and is to be compied onto all the copies of
+  /* Flags on the base did change, and is to be copied onto all the copies of
    * corresponding objects. */
   ID_RECALC_BASE_FLAGS = (1 << 10),
   ID_RECALC_POINT_CACHE = (1 << 11),

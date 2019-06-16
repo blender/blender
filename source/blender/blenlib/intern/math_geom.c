@@ -2532,7 +2532,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
   }
 
   /*---test edges---*/
-  sub_v3_v3v3(e3, v2, v1); /* wasnt yet calculated */
+  sub_v3_v3v3(e3, v2, v1); /* wasn't yet calculated */
 
   /*e1*/
   sub_v3_v3v3(bv, v0, p1);

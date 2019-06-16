@@ -92,7 +92,7 @@ struct Scene *DEG_get_evaluated_scene(const struct Depsgraph *graph);
  *
  * Use in exceptional case if it's absolutely must to.
  *
- * Allows to pass depsgraph == NULL, wil lreturn NULL in that case. */
+ * Allows to pass depsgraph == NULL, will return NULL in that case. */
 struct Scene *DEG_get_evaluated_scene_if_exists(const struct Depsgraph *graph);
 
 /* Get view layer at its evaluated state.

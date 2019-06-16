@@ -19,7 +19,7 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to define the represenation of a triangle
+ * \brief Class to define the representation of a triangle
  */
 
 //! inherits from class Rep

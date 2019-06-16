@@ -104,7 +104,7 @@ class SpatialNoiseShader : public StrokeShader {
  *  Smoothes the stroke.
  *  (Moves the vertices to make the stroke smoother).
  *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we
- * use is anisotropic to prevent the diffusion accross corners. \see \htmlonly <a
+ * use is anisotropic to prevent the diffusion across corners. \see \htmlonly <a
  * href=/smoothing/smoothing.html>smoothing/smoothing.html</a> \endhtmlonly
  */
 class SmoothingShader : public StrokeShader {

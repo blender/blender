@@ -1846,7 +1846,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
              *
              * EXCEPTION:
              * This callback runs when unlinking actions. In that case, we don't want to
-             * stash the action, as the user is signalling that they want to detach it.
+             * stash the action, as the user is signaling that they want to detach it.
              * This can be reviewed again later,
              * but it could get annoying if we keep these instead.
              */

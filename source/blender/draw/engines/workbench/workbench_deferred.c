@@ -809,7 +809,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
   }
 
   /**
-   * Order Independant Transparency.
+   * Order Independent Transparency.
    * Similar to workbench forward. Duplicated code to avoid
    * spaghetti with workbench forward. It would be great if we unify
    * this in a clean way.
