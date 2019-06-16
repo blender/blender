@@ -1264,6 +1264,17 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
          RNA_property_collection_next(&rna_macro_iter)) { \
       PropertyRNA *prop = (PropertyRNA *)rna_macro_iter.ptr.data;
 
+#define RNA_STRUCT_BEGIN_SKIP_RNA_TYPE(sptr, prop) \
+  { \
+    CollectionPropertyIterator rna_macro_iter; \
+    RNA_property_collection_begin( \
+        sptr, RNA_struct_iterator_property((sptr)->type), &rna_macro_iter); \
+    if (rna_macro_iter.valid) { \
+      RNA_property_collection_next(&rna_macro_iter); \
+    } \
+    for (; rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+      PropertyRNA *prop = (PropertyRNA *)rna_macro_iter.ptr.data;
+
 #define RNA_STRUCT_END \
   } \
   RNA_property_collection_end(&rna_macro_iter); \
