@@ -957,7 +957,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     else if (!BKE_driver_has_simple_expression(driver)) {
       if ((G.f & G_FLAG_SCRIPT_AUTOEXEC) == 0) {
         /* TODO: Add button to enable? */
-        uiItemL(col, TIP_("WARNING: Python expressions limited for security"), ICON_ERROR);
+        uiItemL(col, TIP_("Python restricted for security"), ICON_ERROR);
       }
       else {
         uiItemL(col, TIP_("Slow Python expression"), ICON_INFO);
