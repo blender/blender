@@ -4784,7 +4784,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
 static void storeCustomLNorValue(TransDataContainer *tc, BMesh *bm)
 {
-  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
+  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
   // BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
 
   tc->custom.mode.data = lnors_ed_arr;

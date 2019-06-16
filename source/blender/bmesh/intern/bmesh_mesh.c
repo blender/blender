@@ -1395,23 +1395,40 @@ void BM_lnorspace_err(BMesh *bm)
 static void bm_loop_normal_mark_indiv_do_loop(BMLoop *l,
                                               BLI_bitmap *loops,
                                               MLoopNorSpaceArray *lnor_spacearr,
-                                              int *totloopsel)
+                                              int *totloopsel,
+                                              const bool do_all_loops_of_vert)
 {
   if (l != NULL) {
     const int l_idx = BM_elem_index_get(l);
 
-    if (!BLI_BITMAP_TEST(loops, BM_elem_index_get(l))) {
+    if (!BLI_BITMAP_TEST(loops, l_idx)) {
       /* If vert and face selected share a loop, mark it for editing. */
       BLI_BITMAP_ENABLE(loops, l_idx);
       (*totloopsel)++;
 
-      /* Mark all loops in same loop normal space (aka smooth fan). */
-      if ((lnor_spacearr->lspacearr[l_idx]->flags & MLNOR_SPACE_IS_SINGLE) == 0) {
-        for (LinkNode *node = lnor_spacearr->lspacearr[l_idx]->loops; node; node = node->next) {
-          const int lfan_idx = BM_elem_index_get((BMLoop *)node->link);
+      if (do_all_loops_of_vert) {
+        /* If required, also mark all loops shared by that vertex.
+         * This is needed when loop spaces may change
+         * (i.e. when some faces or edges might change of smooth/sharp status). */
+        BMIter liter;
+        BMLoop *lfan;
+        BM_ITER_ELEM (lfan, &liter, l->v, BM_LOOPS_OF_VERT) {
+          const int lfan_idx = BM_elem_index_get(lfan);
           if (!BLI_BITMAP_TEST(loops, lfan_idx)) {
             BLI_BITMAP_ENABLE(loops, lfan_idx);
             (*totloopsel)++;
+          }
+        }
+      }
+      else {
+        /* Mark all loops in same loop normal space (aka smooth fan). */
+        if ((lnor_spacearr->lspacearr[l_idx]->flags & MLNOR_SPACE_IS_SINGLE) == 0) {
+          for (LinkNode *node = lnor_spacearr->lspacearr[l_idx]->loops; node; node = node->next) {
+            const int lfan_idx = BM_elem_index_get((BMLoop *)node->link);
+            if (!BLI_BITMAP_TEST(loops, lfan_idx)) {
+              BLI_BITMAP_ENABLE(loops, lfan_idx);
+              (*totloopsel)++;
+            }
           }
         }
       }
@@ -1420,7 +1437,7 @@ static void bm_loop_normal_mark_indiv_do_loop(BMLoop *l,
 }
 
 /* Mark the individual clnors to be edited, if multiple selection methods are used. */
-static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
+static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do_all_loops_of_vert)
 {
   BMEditSelection *ese, *ese_prev;
   int totloopsel = 0;
@@ -1451,19 +1468,22 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
                 BM_face_vert_share_loop((BMFace *)ese->ele, (BMVert *)ese_prev->ele),
                 loops,
                 bm->lnor_spacearr,
-                &totloopsel);
+                &totloopsel,
+                do_all_loops_of_vert);
           }
           else if (ese_prev->htype == BM_EDGE) {
             BMEdge *e = (BMEdge *)ese_prev->ele;
             bm_loop_normal_mark_indiv_do_loop(BM_face_vert_share_loop((BMFace *)ese->ele, e->v1),
                                               loops,
                                               bm->lnor_spacearr,
-                                              &totloopsel);
+                                              &totloopsel,
+                                              do_all_loops_of_vert);
 
             bm_loop_normal_mark_indiv_do_loop(BM_face_vert_share_loop((BMFace *)ese->ele, e->v2),
                                               loops,
                                               bm->lnor_spacearr,
-                                              &totloopsel);
+                                              &totloopsel,
+                                              do_all_loops_of_vert);
           }
         }
       }
@@ -1478,7 +1498,8 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
       BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
         if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
           BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-            bm_loop_normal_mark_indiv_do_loop(l, loops, bm->lnor_spacearr, &totloopsel);
+            bm_loop_normal_mark_indiv_do_loop(
+                l, loops, bm->lnor_spacearr, &totloopsel, do_all_loops_of_vert);
           }
         }
       }
@@ -1491,15 +1512,18 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
       BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
           BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
-            bm_loop_normal_mark_indiv_do_loop(l, loops, bm->lnor_spacearr, &totloopsel);
+            bm_loop_normal_mark_indiv_do_loop(
+                l, loops, bm->lnor_spacearr, &totloopsel, do_all_loops_of_vert);
             /* Loops actually 'have' two edges, or said otherwise, a selected edge actually selects
              * *two* loops in each of its faces. We have to find the other one too. */
             if (BM_vert_in_edge(e, l->next->v)) {
-              bm_loop_normal_mark_indiv_do_loop(l->next, loops, bm->lnor_spacearr, &totloopsel);
+              bm_loop_normal_mark_indiv_do_loop(
+                  l->next, loops, bm->lnor_spacearr, &totloopsel, do_all_loops_of_vert);
             }
             else {
               BLI_assert(BM_vert_in_edge(e, l->prev->v));
-              bm_loop_normal_mark_indiv_do_loop(l->prev, loops, bm->lnor_spacearr, &totloopsel);
+              bm_loop_normal_mark_indiv_do_loop(
+                  l->prev, loops, bm->lnor_spacearr, &totloopsel, do_all_loops_of_vert);
             }
           }
         }
@@ -1513,7 +1537,8 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops)
       BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
           BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-            bm_loop_normal_mark_indiv_do_loop(l, loops, bm->lnor_spacearr, &totloopsel);
+            bm_loop_normal_mark_indiv_do_loop(
+                l, loops, bm->lnor_spacearr, &totloopsel, do_all_loops_of_vert);
           }
         }
       }
@@ -1546,7 +1571,8 @@ static void loop_normal_editdata_init(
   lnor_ed->loc = v->co;
 }
 
-BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm)
+BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
+                                                           const bool do_all_loops_of_vert)
 {
   BMLoop *l;
   BMVert *v;
@@ -1570,7 +1596,7 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm)
   BLI_bitmap *loops = BLI_BITMAP_NEW(bm->totloop, __func__);
 
   /* This function define loop normals to edit, based on selection modes and history. */
-  totloopsel = bm_loop_normal_mark_indiv(bm, loops);
+  totloopsel = bm_loop_normal_mark_indiv(bm, loops, do_all_loops_of_vert);
 
   if (totloopsel) {
     BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata = MEM_mallocN(

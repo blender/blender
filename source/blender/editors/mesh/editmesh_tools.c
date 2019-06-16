@@ -7689,7 +7689,7 @@ static int point_normals_init(bContext *C, wmOperator *op, const wmEvent *UNUSED
 
   BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
-  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
+  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
 
   op->customdata = lnors_ed_arr;
 
@@ -8246,7 +8246,10 @@ static int normals_split_merge(bContext *C, const bool do_merge)
   BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = do_merge ? BM_loop_normal_editdata_array_init(bm) : NULL;
+  /* Note that we need temp lnor editing data for all loops of all affected vertices, since by
+   * setting some faces/edges as smooth we are going to change clnors spaces... See also T65809. */
+  BMLoopNorEditDataArray *lnors_ed_arr = do_merge ? BM_loop_normal_editdata_array_init(bm, true) :
+                                                    NULL;
 
   mesh_set_smooth_faces(em, do_merge);
 
@@ -8573,7 +8576,7 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
 
   BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
-  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
+  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
   BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
 
   float *normal_vector = scene->toolsettings->normal_vector;
@@ -8867,7 +8870,7 @@ static int edbm_smoothen_normals_exec(bContext *C, wmOperator *op)
 
   BKE_editmesh_ensure_autosmooth(em);
   BKE_editmesh_lnorspace_update(em);
-  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
+  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
 
   float(*smooth_normal)[3] = MEM_callocN(sizeof(*smooth_normal) * lnors_ed_arr->totloop, __func__);
 
