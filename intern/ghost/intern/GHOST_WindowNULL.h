@@ -68,21 +68,13 @@ class GHOST_WindowNULL : public GHOST_Window {
   {
     return GHOST_kSuccess;
   }
-  GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                            GHOST_TUns8 mask[16][2],
-                                            int hotX,
-                                            int hotY)
-  {
-    return GHOST_kSuccess;
-  }
   GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
                                             GHOST_TUns8 *mask,
                                             int sizex,
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            int fg_color,
-                                            int bg_color)
+                                            bool canInvertColor)
   {
     return GHOST_kSuccess;
   }

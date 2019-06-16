@@ -61,8 +61,7 @@ typedef struct BCursor {
   char big_hotx;
   char big_hoty;
 
-  char fg_color;
-  char bg_color;
+  bool can_invert_color;
 
 } BCursor;
 
@@ -95,15 +94,6 @@ enum {
   BC_PAINTCROSSCURSOR,
   /* --- ALWAYS LAST ----- */
   BC_NUMCURSORS,
-};
-
-enum {
-  BC_BLACK = 0,
-  BC_WHITE,
-  BC_RED,
-  BC_BLUE,
-  BC_GREEN,
-  BC_YELLOW,
 };
 
 struct wmEvent;

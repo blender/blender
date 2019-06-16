@@ -461,19 +461,13 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Sets the cursor shape on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                            GHOST_TUns8 mask[16][2],
-                                            int hotX,
-                                            int hotY);
-
   GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
                                             GHOST_TUns8 *mask,
                                             int sizex,
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            int fg_color,
-                                            int bg_color);
+                                            bool canInvertColor);
 
   /** Pointer to system */
   GHOST_SystemWin32 *m_system;

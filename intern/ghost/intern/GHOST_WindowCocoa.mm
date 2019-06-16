@@ -1086,8 +1086,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
                                                              int sizey,
                                                              int hotX,
                                                              int hotY,
-                                                             int fg_color,
-                                                             int bg_color)
+                                                             bool canInvertColor)
 {
   int y, nbUns16;
   NSPoint hotSpotPoint;
@@ -1120,12 +1119,18 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 
   for (y = 0; y < nbUns16; y++) {
 #if !defined(__LITTLE_ENDIAN__)
-    cursorBitmap[y] = ~uns16ReverseBits((bitmap[2 * y] << 0) | (bitmap[2 * y + 1] << 8));
+    cursorBitmap[y] = uns16ReverseBits((bitmap[2 * y] << 0) | (bitmap[2 * y + 1] << 8));
     cursorBitmap[nbUns16 + y] = uns16ReverseBits((mask[2 * y] << 0) | (mask[2 * y + 1] << 8));
 #else
-    cursorBitmap[y] = ~uns16ReverseBits((bitmap[2 * y + 1] << 0) | (bitmap[2 * y] << 8));
+    cursorBitmap[y] = uns16ReverseBits((bitmap[2 * y + 1] << 0) | (bitmap[2 * y] << 8));
     cursorBitmap[nbUns16 + y] = uns16ReverseBits((mask[2 * y + 1] << 0) | (mask[2 * y] << 8));
 #endif
+
+    /* Flip white cursor with black outline to black cursor with white outline
+     * to match macOS platform conventions. */
+    if (canInvertColor) {
+      cursorBitmap[y] = ~cursorBitmap[y];
+    }
   }
 
   imSize.width = sizex;
@@ -1147,13 +1152,4 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
   }
   [pool drain];
   return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                                             GHOST_TUns8 mask[16][2],
-                                                             int hotX,
-                                                             int hotY)
-{
-  return setWindowCustomCursorShape(
-      (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotX, hotY, 0, 1);
 }

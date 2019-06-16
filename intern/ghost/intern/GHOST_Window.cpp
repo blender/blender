@@ -192,25 +192,15 @@ GHOST_TSuccess GHOST_Window::setCursorShape(GHOST_TStandardCursor cursorShape)
   }
 }
 
-GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                                  GHOST_TUns8 mask[16][2],
-                                                  int hotX,
-                                                  int hotY)
-{
-  return setCustomCursorShape(
-      (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotX, hotY, 0, 1);
-}
-
 GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap,
                                                   GHOST_TUns8 *mask,
                                                   int sizex,
                                                   int sizey,
                                                   int hotX,
                                                   int hotY,
-                                                  int fg_color,
-                                                  int bg_color)
+                                                  bool canInvertColor)
 {
-  if (setWindowCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, fg_color, bg_color)) {
+  if (setWindowCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor)) {
     m_cursorShape = GHOST_kStandardCursorCustom;
     return GHOST_kSuccess;
   }

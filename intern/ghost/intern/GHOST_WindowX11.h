@@ -216,15 +216,6 @@ class GHOST_WindowX11 : public GHOST_Window {
 
   /**
    * Sets the cursor shape on the window using
-   * native window system calls.
-   */
-  GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                            GHOST_TUns8 mask[16][2],
-                                            int hotX,
-                                            int hotY);
-
-  /**
-   * Sets the cursor shape on the window using
    * native window system calls (Arbitrary size/color).
    */
   GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
@@ -233,8 +224,7 @@ class GHOST_WindowX11 : public GHOST_Window {
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            int fg_color,
-                                            int bg_color);
+                                            bool canInvertColor);
 
  private:
   /// Force use of public constructor.

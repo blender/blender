@@ -80,32 +80,31 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 static void window_set_custom_cursor(
     wmWindow *win, unsigned char mask[16][2], unsigned char bitmap[16][2], int hotx, int hoty)
 {
-  GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, hotx, hoty);
+  GHOST_SetCustomCursorShape(
+      win->ghostwin, (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotx, hoty, true);
 }
 
 static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useBig)
 {
   if (useBig) {
-    GHOST_SetCustomCursorShapeEx(win->ghostwin,
-                                 (GHOST_TUns8 *)cursor->big_bm,
-                                 (GHOST_TUns8 *)cursor->big_mask,
-                                 cursor->big_sizex,
-                                 cursor->big_sizey,
-                                 cursor->big_hotx,
-                                 cursor->big_hoty,
-                                 cursor->fg_color,
-                                 cursor->bg_color);
+    GHOST_SetCustomCursorShape(win->ghostwin,
+                               (GHOST_TUns8 *)cursor->big_bm,
+                               (GHOST_TUns8 *)cursor->big_mask,
+                               cursor->big_sizex,
+                               cursor->big_sizey,
+                               cursor->big_hotx,
+                               cursor->big_hoty,
+                               cursor->can_invert_color);
   }
   else {
-    GHOST_SetCustomCursorShapeEx(win->ghostwin,
-                                 (GHOST_TUns8 *)cursor->small_bm,
-                                 (GHOST_TUns8 *)cursor->small_mask,
-                                 cursor->small_sizex,
-                                 cursor->small_sizey,
-                                 cursor->small_hotx,
-                                 cursor->small_hoty,
-                                 cursor->fg_color,
-                                 cursor->bg_color);
+    GHOST_SetCustomCursorShape(win->ghostwin,
+                               (GHOST_TUns8 *)cursor->small_bm,
+                               (GHOST_TUns8 *)cursor->small_mask,
+                               cursor->small_sizex,
+                               cursor->small_sizey,
+                               cursor->small_hotx,
+                               cursor->small_hoty,
+                               cursor->can_invert_color);
   }
 }
 
@@ -363,7 +362,7 @@ void WM_cursor_time(wmWindow *win, int nr)
  * the bits in a byte go right to left
  * (ie;  0x01, 0x80  represents a line of 16 pix with the first and last pix set.)
  *
- * - A 0 in the bitmap = bg_color, a 1 fg_color
+ * - A 0 in the bitmap = white, a 1 black
  * - a 0 in the mask   = transparent pix.
  *
  * Until 32x32 cursors are supported on all platforms, the size of the
@@ -420,23 +419,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor NWArrowCursor = {
-      /*small*/
+      /* small */
       nw_sbm,
       nw_smsk,
       16,
       16,
       6,
       7,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_NW_ARROWCURSOR] = &NWArrowCursor;
@@ -457,23 +455,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor NSArrowCursor = {
-      /*small*/
+      /* small */
       ns_sbm,
       ns_smsk,
       16,
       16,
       6,
       7,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_NS_ARROWCURSOR] = &NSArrowCursor;
@@ -494,23 +491,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor EWArrowCursor = {
-      /*small*/
+      /* small */
       ew_sbm,
       ew_smsk,
       16,
       16,
       7,
       6,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_EW_ARROWCURSOR] = &EWArrowCursor;
@@ -555,23 +551,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor WaitCursor = {
-      /*small*/
+      /* small */
       wait_sbm,
       wait_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       wait_lbm,
       wait_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_WAITCURSOR] = &WaitCursor;
@@ -615,23 +610,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor CrossCursor = {
-      /*small*/
+      /* small */
       cross_sbm,
       cross_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       cross_lbm,
       cross_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_CROSSCURSOR] = &CrossCursor;
@@ -652,23 +646,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor EditCrossCursor = {
-      /*small*/
+      /* small */
       editcross_sbm,
       editcross_smsk,
       16,
       16,
       9,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_EDITCROSSCURSOR] = &EditCrossCursor;
@@ -689,23 +682,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor BoxSelCursor = {
-      /*small*/
+      /* small */
       box_sbm,
       box_smsk,
       16,
       16,
       9,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_BOXSELCURSOR] = &BoxSelCursor;
@@ -750,23 +742,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor KnifeCursor = {
-      /*small*/
+      /* small */
       knife_sbm,
       knife_smsk,
       16,
       16,
       0,
       15,
-      /*big*/
+      /* big */
       knife_lbm,
       knife_lmsk,
       32,
       32,
       0,
       31,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_KNIFECURSOR] = &KnifeCursor;
@@ -813,23 +804,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor VLoopCursor = {
-      /*small*/
+      /* small */
       vloop_sbm,
       vloop_smsk,
       16,
       16,
       0,
       0,
-      /*big*/
+      /* big */
       vloop_lbm,
       vloop_lmsk,
       32,
       32,
       0,
       0,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_VLOOPCURSOR] = &VLoopCursor;
@@ -851,23 +841,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor TextEditCursor = {
-      /*small*/
+      /* small */
       textedit_sbm,
       textedit_smsk,
       16,
       16,
       9,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_TEXTEDITCURSOR] = &TextEditCursor;
@@ -889,23 +878,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor PaintBrushCursor = {
-      /*small*/
+      /* small */
       paintbrush_sbm,
       paintbrush_smsk,
       16,
       16,
       0,
       15,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_PAINTBRUSHCURSOR] = &PaintBrushCursor;
@@ -927,23 +915,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor HandCursor = {
-      /*small*/
+      /* small */
       hand_sbm,
       hand_smsk,
       16,
       16,
       8,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_HANDCURSOR] = &HandCursor;
@@ -966,23 +953,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor NSEWScrollCursor = {
-      /*small*/
+      /* small */
       nsewscroll_sbm,
       nsewscroll_smsk,
       16,
       16,
       8,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_NSEW_SCROLLCURSOR] = &NSEWScrollCursor;
@@ -1005,23 +991,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor NSScrollCursor = {
-      /*small*/
+      /* small */
       nsscroll_sbm,
       nsscroll_smsk,
       16,
       16,
       8,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_NS_SCROLLCURSOR] = &NSScrollCursor;
@@ -1044,23 +1029,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor EWScrollCursor = {
-      /*small*/
+      /* small */
       ewscroll_sbm,
       ewscroll_smsk,
       16,
       16,
       8,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_EW_SCROLLCURSOR] = &EWScrollCursor;
@@ -1083,23 +1067,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor EyedropperCursor = {
-      /*small*/
+      /* small */
       eyedropper_sbm,
       eyedropper_smsk,
       16,
       16,
       1,
       15,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_EYEDROPPER_CURSOR] = &EyedropperCursor;
@@ -1121,23 +1104,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor SwapCursor = {
-      /*small*/
+      /* small */
       swap_sbm,
       swap_smsk,
       16,
       16,
       8,
       8,
-      /*big*/
+      /* big */
       NULL,
       NULL,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_YELLOW,
-      BC_BLUE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_SWAPAREA_CURSOR] = &SwapCursor;
@@ -1182,23 +1164,22 @@ void wm_init_cursor_data(void)
       0x00, 0xC0, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   static BCursor HSplitCursor = {
-      /*small*/
+      /* small */
       hsplit_sbm,
       hsplit_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       hsplit_lbm,
       hsplit_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_H_SPLITCURSOR] = &HSplitCursor;
@@ -1243,23 +1224,22 @@ void wm_init_cursor_data(void)
       0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   static BCursor VSplitCursor = {
-      /*small*/
+      /* small */
       vsplit_sbm,
       vsplit_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       vsplit_lbm,
       vsplit_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_V_SPLITCURSOR] = &VSplitCursor;
@@ -1304,23 +1284,22 @@ void wm_init_cursor_data(void)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   static BCursor NArrowCursor = {
-      /*small*/
+      /* small */
       narrow_sbm,
       narrow_smsk,
       16,
       16,
       7,
       4,
-      /*big*/
+      /* big */
       narrow_lbm,
       narrow_lmsk,
       32,
       32,
       15,
       10,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_N_ARROWCURSOR] = &NArrowCursor;
@@ -1365,23 +1344,22 @@ void wm_init_cursor_data(void)
       0x00, 0xC0, 0x01, 0x00, 0x00, 0x80, 0x00, 0x00};
 
   static BCursor SArrowCursor = {
-      /*small*/
+      /* small */
       sarrow_sbm,
       sarrow_smsk,
       16,
       16,
       7,
       11,
-      /*big*/
+      /* big */
       sarrow_lbm,
       sarrow_lmsk,
       32,
       32,
       15,
       21,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_S_ARROWCURSOR] = &SArrowCursor;
@@ -1426,23 +1404,22 @@ void wm_init_cursor_data(void)
       0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   static BCursor EArrowCursor = {
-      /*small*/
+      /* small */
       earrow_sbm,
       earrow_smsk,
       16,
       16,
       11,
       7,
-      /*big*/
+      /* big */
       earrow_lbm,
       earrow_lmsk,
       32,
       32,
       15,
       22,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_E_ARROWCURSOR] = &EArrowCursor;
@@ -1487,23 +1464,22 @@ void wm_init_cursor_data(void)
       0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
   static BCursor WArrowCursor = {
-      /*small*/
+      /* small */
       warrow_sbm,
       warrow_smsk,
       16,
       16,
       4,
       7,
-      /*big*/
+      /* big */
       warrow_lbm,
       warrow_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_W_ARROWCURSOR] = &WArrowCursor;
@@ -1548,23 +1524,22 @@ void wm_init_cursor_data(void)
       0x00, 0xFE, 0x7F, 0x00, 0x00, 0xF0, 0x0F, 0x00};
 
   static BCursor StopCursor = {
-      /*small*/
+      /* small */
       stop_sbm,
       stop_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       stop_lbm,
       stop_lmsk,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_STOPCURSOR] = &StopCursor;
@@ -1610,23 +1585,22 @@ void wm_init_cursor_data(void)
   };
 
   static BCursor PaintCrossCursor = {
-      /*small*/
+      /* small */
       paintcross_sbm,
       paintcross_smsk,
       16,
       16,
       7,
       7,
-      /*big*/
+      /* big */
       paintcross_sbm_large,
       paintcross_smsk_large,
       32,
       32,
       15,
       15,
-      /*color*/
-      BC_BLACK,
-      BC_WHITE,
+      /* can invert color */
+      true,
   };
 
   BlenderCursor[BC_PAINTCROSSCURSOR] = &PaintCrossCursor;

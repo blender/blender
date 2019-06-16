@@ -1473,23 +1473,13 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorShape(GHOST_TStandardCursor shape
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                                           GHOST_TUns8 mask[16][2],
-                                                           int hotX,
-                                                           int hotY)
-{
-  setWindowCustomCursorShape((GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotX, hotY, 0, 1);
-  return GHOST_kSuccess;
-}
-
 GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
                                                            GHOST_TUns8 *mask,
                                                            int sizex,
                                                            int sizey,
                                                            int hotX,
                                                            int hotY,
-                                                           int /*fg_color*/,
-                                                           int /*bg_color*/)
+                                                           bool /*canInvertColor*/)
 {
   Colormap colormap = DefaultColormap(m_display, m_visualInfo->screen);
   Pixmap bitmap_pix, mask_pix;

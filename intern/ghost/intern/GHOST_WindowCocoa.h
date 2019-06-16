@@ -307,13 +307,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
                                             int sizey,
                                             int hotX,
                                             int hotY,
-                                            int fg_color,
-                                            int bg_color);
-
-  GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                            GHOST_TUns8 mask[16][2],
-                                            int hotX,
-                                            int hotY);
+                                            bool canInvertColor);
 
   /** The window containing the view */
   CocoaWindow *m_window;

@@ -287,19 +287,13 @@ class GHOST_IWindow {
    * \param   hotY    The Y coordinate of the cursor hotspot.
    * \return  Indication of success.
    */
-  virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 bitmap[16][2],
-                                              GHOST_TUns8 mask[16][2],
-                                              int hotX,
-                                              int hotY) = 0;
-
   virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap,
                                               GHOST_TUns8 *mask,
                                               int sizex,
                                               int sizey,
                                               int hotX,
                                               int hotY,
-                                              int fg_color,
-                                              int bg_color) = 0;
+                                              bool canInvertColor) = 0;
 
   /**
    * Returns the visibility state of the cursor.

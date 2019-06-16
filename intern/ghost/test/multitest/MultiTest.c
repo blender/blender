@@ -736,7 +736,7 @@ static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
     mask[y][x / 8] |= (1 << (x % 8));
   }
 
-  GHOST_SetCustomCursorShape(ew->win, bitmap, mask, 0, 0);
+  GHOST_SetCustomCursorShape(ew->win, bitmap, mask, 16, 16, 0, 0, true);
 }
 
 static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
