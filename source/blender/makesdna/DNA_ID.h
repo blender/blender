@@ -614,6 +614,8 @@ typedef enum IDRecalcFlag {
 
   ID_RECALC_AUDIO = (1 << 20),
 
+  ID_RECALC_PARAMETERS = (1 << 21),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */

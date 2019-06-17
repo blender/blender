@@ -2316,7 +2316,8 @@ static void rna_property_update(
   if (!is_rna || (prop->flag & PROP_IDPROPERTY)) {
     /* WARNING! This is so property drivers update the display!
      * not especially nice  */
-    DEG_id_tag_update(ptr->id.data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(ptr->id.data,
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
     WM_main_add_notifier(NC_WINDOW, NULL);
     /* Not nice as well, but the only way to make sure material preview
      * is updated with custom nodes.
