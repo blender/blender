@@ -86,7 +86,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
  * \note Only call outside of area/region loops
  * \return true if successful
  */
-bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
+bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
 {
   Scene *scene_new;
 
@@ -104,7 +104,14 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
     return false;
   }
 
-  WM_window_set_active_scene(bmain, C, win, scene_new);
+  for (wmWindow *win = wm->windows.first; win; win = win->next) {
+    if (win->parent != NULL) { /* We only care about main windows here... */
+      continue;
+    }
+    if (win->scene == scene) {
+      WM_window_set_active_scene(bmain, C, win, scene_new);
+    }
+  }
 
   BKE_id_delete(bmain, scene);
 
@@ -244,7 +251,7 @@ static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
 
-  if (ED_scene_delete(C, CTX_data_main(C), CTX_wm_window(C), scene) == false) {
+  if (ED_scene_delete(C, CTX_data_main(C), scene) == false) {
     return OPERATOR_CANCELLED;
   }
 

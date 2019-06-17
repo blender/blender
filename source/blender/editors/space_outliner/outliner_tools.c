@@ -399,7 +399,7 @@ static bool scene_cb(bContext *C,
   Scene *scene = (Scene *)tselem->id;
 
   if (event == OL_SCENE_OP_DELETE) {
-    if (ED_scene_delete(C, CTX_data_main(C), CTX_wm_window(C), scene)) {
+    if (ED_scene_delete(C, CTX_data_main(C), scene)) {
       WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, scene);
     }
     else {
