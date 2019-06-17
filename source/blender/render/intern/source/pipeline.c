@@ -2551,6 +2551,7 @@ void RE_RenderAnim(Render *re,
     if (is_error) {
       /* report is handled above */
       re_movie_free_all(re, mh, i + 1);
+      RE_CleanAfterRender(re);
       return;
     }
   }
