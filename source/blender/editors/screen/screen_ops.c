@@ -4230,8 +4230,12 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
       sync = (scene->flag & SCE_FRAME_DROP);
     }
 
-    if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-        isfinite(time = BKE_sound_sync_scene(scene_eval))) {
+    if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
+      /* Ignore seek here, the audio will be updated to the scene frame after jump during next
+       * dependency graph update. */
+    }
+    else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
+             isfinite(time = BKE_sound_sync_scene(scene_eval))) {
       double newfra = (double)time * FPS;
 
       /* give some space here to avoid jumps */
