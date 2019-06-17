@@ -423,6 +423,8 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
     if (RNA_struct_property_is_set(op->ptr, "rotation")) {
       *is_view_aligned = false;
+      RNA_property_enum_set(op->ptr, prop, ALIGN_WORLD);
+      alignment = ALIGN_WORLD;
     }
     else if (alignment_set) {
       *is_view_aligned = alignment == ALIGN_VIEW;
