@@ -1172,6 +1172,11 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_material(Main *bm
   if (ma) {
     return ma;
   }
+  /* If the slot is empty, remove because will be added again,
+   * if not, we will get and empty slot. */
+  if ((ob->totcol > 0) && (ob->actcol == ob->totcol)) {
+    BKE_object_material_slot_remove(bmain, ob);
+  }
   return BKE_gpencil_object_material_new(bmain, ob, "Material", NULL);
 }
 
