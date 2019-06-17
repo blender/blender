@@ -314,7 +314,7 @@ void DRW_shader_free(struct GPUShader *shader);
 /* Batches */
 
 typedef enum {
-  /** Wrtie mask */
+  /** Write mask */
   DRW_STATE_WRITE_DEPTH = (1 << 0),
   DRW_STATE_WRITE_COLOR = (1 << 1),
   DRW_STATE_WRITE_STENCIL = (1 << 2),
