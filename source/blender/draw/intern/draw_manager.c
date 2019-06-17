@@ -1494,6 +1494,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
     };
 
     drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
+    drw_engines_data_validate();
 
     for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
       DrawEngineType *draw_engine = link->data;
@@ -1590,7 +1591,6 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   /* Get list of enabled engines */
   drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
-
   drw_engines_data_validate();
 
   /* Update ubos */
@@ -2289,6 +2289,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     drw_engines_enable_from_overlays(v3d->overlay.flag);
     drw_engines_enable_from_object_mode();
   }
+  drw_engines_data_validate();
 
   /* Setup viewport */
 
@@ -2516,6 +2517,7 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
     if (DRW_state_draw_support()) {
       drw_engines_enable_from_object_mode();
     }
+    drw_engines_data_validate();
   }
 
   drw_draw_depth_loop_imp();
@@ -2563,7 +2565,10 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
   };
 
   use_drw_engine(&draw_engine_gpencil_type);
+  drw_engines_data_validate();
+
   drw_draw_depth_loop_imp();
+
   drw_engines_disable();
 
 #ifdef DEBUG
