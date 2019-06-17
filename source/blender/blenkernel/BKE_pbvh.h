@@ -33,6 +33,7 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
+struct IsectRayPrecalc;
 struct GPUBatch;
 struct GPU_PBVH_Buffers;
 struct MLoop;
