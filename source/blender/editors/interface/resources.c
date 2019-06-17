@@ -1239,7 +1239,7 @@ void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, 
   b = coloffset + (int)cp[2];
   CLAMP(b, 0, 255);
   a = alphaoffset + (int)cp[3];
-  CLAMP(b, 0, 255);
+  CLAMP(a, 0, 255);
 
   col[0] = ((float)r) / 255.0f;
   col[1] = ((float)g) / 255.0f;
