@@ -174,14 +174,14 @@ void BBC_update_centroid(BBC *bbc);
 int BB_widest_axis(const BB *bb);
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(const float ray_start[3],
-                                const float ray_normal[3],
+                                struct IsectRayPrecalc *isect_precalc,
                                 const float *t0,
                                 const float *t1,
                                 const float *t2,
                                 const float *t3,
                                 float *depth);
 bool ray_face_intersection_tri(const float ray_start[3],
-                               const float ray_normal[3],
+                               struct IsectRayPrecalc *isect_precalc,
                                const float *t0,
                                const float *t1,
                                const float *t2,
@@ -208,7 +208,7 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 /* pbvh_bmesh.c */
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
-                             const float ray_normal[3],
+                             struct IsectRayPrecalc *isect_precalc,
                              float *dist,
                              bool use_original);
 bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,

@@ -1635,7 +1635,7 @@ void BKE_pbvh_raycast(PBVH *bvh,
 }
 
 bool ray_face_intersection_quad(const float ray_start[3],
-                                const float ray_normal[3],
+                                struct IsectRayPrecalc *isect_precalc,
                                 const float t0[3],
                                 const float t1[3],
                                 const float t2[3],
@@ -1644,9 +1644,9 @@ bool ray_face_intersection_quad(const float ray_start[3],
 {
   float depth_test;
 
-  if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) &&
+  if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
        (depth_test < *depth)) ||
-      (isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &depth_test, NULL, 0.1f) &&
+      (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, NULL) &&
        (depth_test < *depth))) {
     *depth = depth_test;
     return true;
@@ -1657,15 +1657,14 @@ bool ray_face_intersection_quad(const float ray_start[3],
 }
 
 bool ray_face_intersection_tri(const float ray_start[3],
-                               const float ray_normal[3],
+                               struct IsectRayPrecalc *isect_precalc,
                                const float t0[3],
                                const float t1[3],
                                const float t2[3],
                                float *depth)
 {
   float depth_test;
-
-  if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) &&
+  if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
        (depth_test < *depth))) {
     *depth = depth_test;
     return true;
@@ -1754,7 +1753,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
                                     const PBVHNode *node,
                                     float (*origco)[3],
                                     const float ray_start[3],
-                                    const float ray_normal[3],
+                                    struct IsectRayPrecalc *isect_precalc,
                                     float *depth)
 {
   const MVert *vert = bvh->verts;
@@ -1774,7 +1773,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
     if (origco) {
       /* intersect with backuped original coordinates */
       hit |= ray_face_intersection_tri(ray_start,
-                                       ray_normal,
+                                       isect_precalc,
                                        origco[face_verts[0]],
                                        origco[face_verts[1]],
                                        origco[face_verts[2]],
@@ -1783,7 +1782,7 @@ static bool pbvh_faces_node_raycast(PBVH *bvh,
     else {
       /* intersect with current coordinates */
       hit |= ray_face_intersection_tri(ray_start,
-                                       ray_normal,
+                                       isect_precalc,
                                        vert[mloop[lt->tri[0]].v].co,
                                        vert[mloop[lt->tri[1]].v].co,
                                        vert[mloop[lt->tri[2]].v].co,
@@ -1798,7 +1797,7 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
                                     PBVHNode *node,
                                     float (*origco)[3],
                                     const float ray_start[3],
-                                    const float ray_normal[3],
+                                    struct IsectRayPrecalc *isect_precalc,
                                     float *depth)
 {
   const int totgrid = node->totprim;
@@ -1826,7 +1825,7 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
 
         if (origco) {
           hit |= ray_face_intersection_quad(ray_start,
-                                            ray_normal,
+                                            isect_precalc,
                                             origco[y * gridsize + x],
                                             origco[y * gridsize + x + 1],
                                             origco[(y + 1) * gridsize + x + 1],
@@ -1835,7 +1834,7 @@ static bool pbvh_grids_node_raycast(PBVH *bvh,
         }
         else {
           hit |= ray_face_intersection_quad(ray_start,
-                                            ray_normal,
+                                            isect_precalc,
                                             CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
                                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
                                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
@@ -1858,7 +1857,7 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
                            float (*origco)[3],
                            bool use_origco,
                            const float ray_start[3],
-                           const float ray_normal[3],
+                           struct IsectRayPrecalc *isect_precalc,
                            float *depth)
 {
   bool hit = false;
@@ -1869,13 +1868,13 @@ bool BKE_pbvh_node_raycast(PBVH *bvh,
 
   switch (bvh->type) {
     case PBVH_FACES:
-      hit |= pbvh_faces_node_raycast(bvh, node, origco, ray_start, ray_normal, depth);
+      hit |= pbvh_faces_node_raycast(bvh, node, origco, ray_start, isect_precalc, depth);
       break;
     case PBVH_GRIDS:
-      hit |= pbvh_grids_node_raycast(bvh, node, origco, ray_start, ray_normal, depth);
+      hit |= pbvh_grids_node_raycast(bvh, node, origco, ray_start, isect_precalc, depth);
       break;
     case PBVH_BMESH:
-      hit = pbvh_bmesh_node_raycast(node, ray_start, ray_normal, depth, use_origco);
+      hit = pbvh_bmesh_node_raycast(node, ray_start, isect_precalc, depth, use_origco);
       break;
   }
 

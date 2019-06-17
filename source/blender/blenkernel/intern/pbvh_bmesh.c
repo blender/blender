@@ -1508,7 +1508,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
-                             const float ray_normal[3],
+                             struct IsectRayPrecalc *isect_precalc,
                              float *depth,
                              bool use_original)
 {
@@ -1518,7 +1518,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
     for (int i = 0; i < node->bm_tot_ortri; i++) {
       const int *t = node->bm_ortri[i];
       hit |= ray_face_intersection_tri(ray_start,
-                                       ray_normal,
+                                       isect_precalc,
                                        node->bm_orco[t[0]],
                                        node->bm_orco[t[1]],
                                        node->bm_orco[t[2]],
@@ -1537,7 +1537,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
 
         BM_face_as_array_vert_tri(f, v_tri);
         hit |= ray_face_intersection_tri(
-            ray_start, ray_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth);
+            ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth);
       }
     }
   }
@@ -1547,7 +1547,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
 
 bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
                                         const float ray_start[3],
-                                        const float ray_normal[3],
+                                        struct IsectRayPrecalc *isect_precalc,
                                         float *depth,
                                         float *r_edge_length)
 {
@@ -1568,7 +1568,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
       bool hit_local;
       BM_face_as_array_vert_tri(f, v_tri);
       hit_local = ray_face_intersection_tri(
-          ray_start, ray_normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth);
+          ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth);
 
       if (hit_local) {
         f_hit = f;
