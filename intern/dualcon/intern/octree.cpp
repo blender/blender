@@ -2180,19 +2180,13 @@ void Octree::countIntersection(Node *node, int height, int &nedge, int &ncell, i
 }
 
 /* from http://eigen.tuxfamily.org/bz/show_bug.cgi?id=257 */
-template<typename _Matrix_Type_>
-void pseudoInverse(const _Matrix_Type_ &a,
-                   _Matrix_Type_ &result,
-                   double epsilon = std::numeric_limits<typename _Matrix_Type_::Scalar>::epsilon())
+static void pseudoInverse(const Eigen::Matrix3f &a, Eigen::Matrix3f &result, float tolerance)
 {
-  Eigen::JacobiSVD<_Matrix_Type_> svd = a.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-
-  typename _Matrix_Type_::Scalar tolerance = epsilon * std::max(a.cols(), a.rows()) *
-                                             svd.singularValues().array().abs().maxCoeff();
+  Eigen::JacobiSVD<Eigen::Matrix3f> svd = a.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
 
   result = svd.matrixV() *
-           _Matrix_Type_((svd.singularValues().array().abs() > tolerance)
-                             .select(svd.singularValues().array().inverse(), 0))
+           Eigen::Vector3f((svd.singularValues().array().abs() > tolerance)
+                               .select(svd.singularValues().array().inverse(), 0))
                .asDiagonal() *
            svd.matrixU().adjoint();
 }
@@ -2203,9 +2197,9 @@ static void solve_least_squares(const float halfA[],
                                 float rvalue[])
 {
   /* calculate pseudo-inverse */
-  Eigen::MatrixXf A(3, 3), pinv(3, 3);
+  Eigen::Matrix3f A, pinv;
   A << halfA[0], halfA[1], halfA[2], halfA[1], halfA[3], halfA[4], halfA[2], halfA[4], halfA[5];
-  pseudoInverse(A, pinv);
+  pseudoInverse(A, pinv, 0.1f);
 
   Eigen::Vector3f b2(b), mp(midpoint), result;
   b2 = b2 + A * -mp;
