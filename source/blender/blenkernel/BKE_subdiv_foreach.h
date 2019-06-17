@@ -116,8 +116,8 @@ typedef struct SubdivForeachContext {
   SubdivForeachVertexFromCornerCb vertex_every_corner;
   SubdivForeachVertexFromEdgeCb vertex_every_edge;
   /* Those callbacks are run once per subdivision vertex, ptex is undefined
-   * as in it will be whatever first ptex face happened to be tarversed in
-   * the multi-threaded environment ahd which shares "emitting" vertex or
+   * as in it will be whatever first ptex face happened to be traversed in
+   * the multi-threaded environment and which shares "emitting" vertex or
    * edge.
    */
   SubdivForeachVertexFromCornerCb vertex_corner;
@@ -159,7 +159,7 @@ typedef struct SubdivForeachContext {
  * Returns truth if the whole topology was traversed, without any early exits.
  *
  * TODO(sergey): Need to either get rid of subdiv or of coarse_mesh.
- * The main point here is th be abel to get base level topology, which can be
+ * The main point here is to be able to get base level topology, which can be
  * done with either of those. Having both of them is kind of redundant.
  */
 bool BKE_subdiv_foreach_subdiv_geometry(struct Subdiv *subdiv,

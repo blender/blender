@@ -55,7 +55,7 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
   add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
   /* NOTE: This is a bit overkill and can potentially pull a bit too much into the graph, but:
    *
-   * - We definitely need an ID node for the scene's compositor, othetrwise re-mapping will no
+   * - We definitely need an ID node for the scene's compositor, otherwise re-mapping will no
    *   happen correct and we will risk remapping pointers in the main database.
    * - Alternatively, we should discard compositor tree, but this might cause other headache like
    *   drivers which are coming from the tree.

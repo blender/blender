@@ -2363,7 +2363,7 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
 
     /* The target is a B-Bone:
      * FIRST: find the segment (see b_bone_deform in armature.c)
-     * Need to transform co back to bonespace, only need y. */
+     * Need to transform co back to bone-space, only need y. */
     float y = iamat[0][1] * co[0] + iamat[1][1] * co[1] + iamat[2][1] * co[2] + iamat[3][1];
 
     /* Blend the matrix. */
@@ -5238,14 +5238,16 @@ static void con_extern_cb(bConstraint *UNUSED(con),
   }
 }
 
-/* helper for BKE_constraints_copy(),
- * to be used for making sure that usercounts of copied ID's are fixed up */
+/**
+ * Helper for #BKE_constraints_copy(),
+ * to be used for making sure that user-counts of copied ID's are fixed up.
+ */
 static void con_fix_copied_refs_cb(bConstraint *UNUSED(con),
                                    ID **idpoin,
                                    bool is_reference,
                                    void *UNUSED(userData))
 {
-  /* increment usercount if this is a reference type */
+  /* Increment user-count if this is a reference type. */
   if ((*idpoin) && (is_reference)) {
     id_us_plus(*idpoin);
   }

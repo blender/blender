@@ -1659,8 +1659,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (tex = bmain->textures.first; tex; tex = tex->id.next) {
-      /* if youre picky, this isn't correct until we do a version bump
-       * since you could set saturation to be 0.0*/
+      /* If you're picky, this isn't correct until we do a version bump
+       * since you could set saturation to be 0.0. */
       if (tex->saturation == 0.0f) {
         tex->saturation = 1.0f;
       }
@@ -2030,8 +2030,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      /* Externl group node socket need to adjust their own_index to point at
-       * associated ntree inputs/outputs internal sockets. This happens in
+      /* External group node socket need to adjust their own_index to point at
+       * associated 'ntree' inputs/outputs internal sockets. This happens in
        * do_versions_after_linking_250, after lib linking. */
     }
   }

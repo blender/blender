@@ -1133,7 +1133,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-  /* TODO(sergey): Perform preliminary check for number of verticies. */
+  /* TODO(sergey): Perform preliminary check for number of vertices. */
   if (numverts) {
     /* Find attributes. */
     Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);

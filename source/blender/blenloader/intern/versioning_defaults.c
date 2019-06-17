@@ -55,7 +55,7 @@
 #include "BLO_readfile.h"
 
 /**
- * Override values in in-memory startup.blend, avoids resaving for small changes.
+ * Override values in in-memory startup.blend, avoids re-saving for small changes.
  */
 void BLO_update_defaults_userpref_blend(void)
 {

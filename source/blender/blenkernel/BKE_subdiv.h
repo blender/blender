@@ -107,7 +107,7 @@ typedef struct SubdivStats {
   double begin_timestamp_[NUM_SUBDIV_STATS_VALUES];
 } SubdivStats;
 
-/* Functor which evaluates dispalcement at a given (u, v) of given ptex face. */
+/* Functor which evaluates displacement at a given (u, v) of given ptex face. */
 typedef struct SubdivDisplacement {
   /* Initialize displacement evaluator.
    *
@@ -205,7 +205,7 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const struct Me
  * new one is created from scratch.
  *
  * NOTE: It is allowed to pass NULL as an existing subdivision surface
- * descriptor. This will create enw descriptor without any extra checks.
+ * descriptor. This will create a new descriptor without any extra checks.
  */
 Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
                                          const SubdivSettings *settings,

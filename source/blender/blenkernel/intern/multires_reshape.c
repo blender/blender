@@ -812,7 +812,7 @@ static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Mesh *coarse_mesh = object->data;
   MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
-  /* Pick maximum between multires level and dispalcement level.
+  /* Pick maximum between multires level and displacement level.
    * This is because mesh can be used by objects with multires at different
    * levels.
    *
@@ -1017,7 +1017,7 @@ bool multiresModifier_reshapeFromCCG(const int tot_level, Mesh *coarse_mesh, Sub
   }
   GridPaintMask *grid_paint_mask = CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
   Subdiv *subdiv = subdiv_ccg->subdiv;
-  /* Pick maximum between multires level and dispalcement level.
+  /* Pick maximum between multires level and displacement level.
    * This is because mesh can be used by objects with multires at different
    * levels.
    *

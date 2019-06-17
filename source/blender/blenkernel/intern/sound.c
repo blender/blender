@@ -83,7 +83,8 @@ BLI_INLINE void sound_verify_evaluated_id(ID *id)
    * Additionally, we also allow data-blocks outside of main database. Those can not be "original"
    * and could be used as a temporary evaluated result during operations like baking.
    *
-   * NOTE: We conder ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
+   * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them.
+   */
   BLI_assert(id->tag &
              (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_NO_MAIN));
 }

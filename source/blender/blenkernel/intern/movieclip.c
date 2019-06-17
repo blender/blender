@@ -148,9 +148,8 @@ static void get_sequence_fname(const MovieClip *clip, const int framenr, char *n
   BLI_strncpy(name, clip->name, sizeof(clip->name));
   BLI_stringdec(name, head, tail, &numlen);
 
-  /* movieclips always points to first image from sequence,
-   * autoguess offset for now. could be something smarter in the future
-   */
+  /* Movie-clips always points to first image from sequence, auto-guess offset for now.
+   * Could be something smarter in the future. */
   offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
   if (numlen) {

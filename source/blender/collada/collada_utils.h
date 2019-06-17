@@ -369,7 +369,7 @@ class BoneExtended {
 typedef std::map<std::string, BoneExtended *> BoneExtensionMap;
 
 /*
- * A class to organise bone extendion data for multiple Armatures.
+ * A class to organize bone extension data for multiple Armatures.
  * this is needed for the case where a Collada file contains 2 or more
  * separate armatures.
  */

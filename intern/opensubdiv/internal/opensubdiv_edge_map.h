@@ -38,7 +38,7 @@ class EdgeKey {
   int v2;
 };
 
-// Map from an edge defined by its verticies index to a custom tag value.
+// Map from an edge defined by its vertices index to a custom tag value.
 template<typename T> class EdgeTagMap {
  public:
   typedef EdgeKey key_type;

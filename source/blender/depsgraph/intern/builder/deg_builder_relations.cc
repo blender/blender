@@ -867,7 +867,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
   if (object->type == OB_MBALL && parent->transflag & OB_DUPLI) {
     ComponentKey parent_geometry_key(parent_id, NodeType::GEOMETRY);
     /* NOTE: Metaballs are evaluating geometry only after their transform,
-     * so we onl;y hook up to transform channel here. */
+     * so we only hook up to transform channel here. */
     add_relation(parent_geometry_key, ob_key, "Parent");
   }
 
@@ -1587,8 +1587,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
           &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
       /* Rigid body synchronization depends on the actual simulation. */
       add_relation(rb_simulate_key, rb_transform_copy_key, "Rigidbody Sim Eval -> RBO Sync");
-      /* Simulation uses object transformation after parenting and solving
-       * contraints. */
+      /* Simulation uses object transformation after parenting and solving constraints. */
       OperationKey object_transform_simulation_init_key(
           &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
       OperationKey object_transform_eval_key(
