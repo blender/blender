@@ -3958,7 +3958,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
   {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, sa->spacedata.first, &ptr);
-    uiItemR(layout, &ptr, "show_region_header", 0, IFACE_("Show Header"), ICON_NONE);
+    if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
+      uiItemR(layout, &ptr, "show_region_header", 0, IFACE_("Show Header"), ICON_NONE);
+    }
 
     ARegion *ar_header = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
     uiLayout *col = uiLayoutColumn(layout, 0);
@@ -3972,14 +3974,14 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
             IFACE_("Show Menus"),
             (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT,
             "SCREEN_OT_header_toggle_menus");
-
-    uiItemS(layout);
   }
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
   if (!ELEM(sa->spacetype, SPACE_TOPBAR)) {
+    uiItemS(layout);
+
     uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
   }
 
