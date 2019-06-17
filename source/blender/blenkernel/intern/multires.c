@@ -634,20 +634,20 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 
           disps = MEM_calloc_arrayN(totdisp, 3 * sizeof(float), "multires disps");
 
-          ndisps = disps;
-          hdisps = mdisp->disps;
+          if (mdisp->disps != NULL) {
+            ndisps = disps;
+            hdisps = mdisp->disps;
 
-          multires_copy_grid(ndisps, hdisps, nsize, hsize);
-          if (mdisp->hidden) {
-            BLI_bitmap *gh = multires_mdisps_downsample_hidden(mdisp->hidden, mdisp->level, lvl);
-            MEM_freeN(mdisp->hidden);
-            mdisp->hidden = gh;
+            multires_copy_grid(ndisps, hdisps, nsize, hsize);
+            if (mdisp->hidden) {
+              BLI_bitmap *gh = multires_mdisps_downsample_hidden(mdisp->hidden, mdisp->level, lvl);
+              MEM_freeN(mdisp->hidden);
+              mdisp->hidden = gh;
+            }
+
+            MEM_freeN(mdisp->disps);
           }
 
-          ndisps += nsize * nsize;
-          hdisps += hsize * hsize;
-
-          MEM_freeN(mdisp->disps);
           mdisp->disps = disps;
           mdisp->totdisp = totdisp;
           mdisp->level = lvl;
