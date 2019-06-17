@@ -1041,6 +1041,11 @@ void GPU_clear_color(float red, float green, float blue, float alpha)
   glClearColor(red, green, blue, alpha);
 }
 
+void GPU_clear_depth(float depth)
+{
+  glClearDepth(depth);
+}
+
 void GPU_clear(eGPUFrameBufferBits flags)
 {
   glClear(convert_buffer_bits_to_gl(flags));

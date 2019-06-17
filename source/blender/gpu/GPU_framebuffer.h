@@ -209,6 +209,7 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
                                      struct GPUTexture **r_depth);
 
 void GPU_clear_color(float red, float green, float blue, float alpha);
+void GPU_clear_depth(float depth);
 void GPU_clear(eGPUFrameBufferBits flags);
 
 #ifdef __cplusplus
