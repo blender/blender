@@ -4243,7 +4243,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
         scene->r.cfra++;
       }
       else {
-        scene->r.cfra = newfra + 0.5;
+        scene->r.cfra = max_ii(scene->r.cfra, newfra + 0.5);
       }
 
 #ifdef PROFILE_AUDIO_SYNCH
