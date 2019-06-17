@@ -3517,60 +3517,62 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 
     if (node->storage) {
       /* could be handlerized at some point */
-      if (ntree->type == NTREE_SHADER) {
-        if (node->type == SH_NODE_CURVE_VEC || node->type == SH_NODE_CURVE_RGB) {
+      switch (node->type) {
+        case SH_NODE_CURVE_VEC:
+        case SH_NODE_CURVE_RGB:
+        case CMP_NODE_TIME:
+        case CMP_NODE_CURVE_VEC:
+        case CMP_NODE_CURVE_RGB:
+        case CMP_NODE_HUECORRECT:
+        case TEX_NODE_CURVE_RGB:
+        case TEX_NODE_CURVE_TIME: {
           direct_link_curvemapping(fd, node->storage);
+          break;
         }
-        else if (node->type == SH_NODE_SCRIPT) {
+        case SH_NODE_SCRIPT: {
           NodeShaderScript *nss = (NodeShaderScript *)node->storage;
           nss->bytecode = newdataadr(fd, nss->bytecode);
+          break;
         }
-        else if (node->type == SH_NODE_TEX_POINTDENSITY) {
+        case SH_NODE_TEX_POINTDENSITY: {
           NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
           memset(&npd->pd, 0, sizeof(npd->pd));
+          break;
         }
-        else if (node->type == SH_NODE_TEX_IMAGE) {
+        case SH_NODE_TEX_IMAGE: {
           NodeTexImage *tex = (NodeTexImage *)node->storage;
           tex->iuser.ok = 1;
           tex->iuser.scene = NULL;
+          break;
         }
-        else if (node->type == SH_NODE_TEX_ENVIRONMENT) {
+        case SH_NODE_TEX_ENVIRONMENT: {
           NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
           tex->iuser.ok = 1;
           tex->iuser.scene = NULL;
+          break;
         }
-      }
-      else if (ntree->type == NTREE_COMPOSIT) {
-        if (ELEM(node->type,
-                 CMP_NODE_TIME,
-                 CMP_NODE_CURVE_VEC,
-                 CMP_NODE_CURVE_RGB,
-                 CMP_NODE_HUECORRECT)) {
-          direct_link_curvemapping(fd, node->storage);
-        }
-        else if (ELEM(node->type,
-                      CMP_NODE_IMAGE,
-                      CMP_NODE_R_LAYERS,
-                      CMP_NODE_VIEWER,
-                      CMP_NODE_SPLITVIEWER)) {
+        case CMP_NODE_IMAGE:
+        case CMP_NODE_R_LAYERS:
+        case CMP_NODE_VIEWER:
+        case CMP_NODE_SPLITVIEWER: {
           ImageUser *iuser = node->storage;
           iuser->ok = 1;
           iuser->scene = NULL;
+          break;
         }
-        else if (node->type == CMP_NODE_CRYPTOMATTE) {
+        case CMP_NODE_CRYPTOMATTE: {
           NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
           nc->matte_id = newdataadr(fd, nc->matte_id);
+          break;
         }
-      }
-      else if (ntree->type == NTREE_TEXTURE) {
-        if (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME) {
-          direct_link_curvemapping(fd, node->storage);
-        }
-        else if (node->type == TEX_NODE_IMAGE) {
+        case TEX_NODE_IMAGE: {
           ImageUser *iuser = node->storage;
           iuser->ok = 1;
           iuser->scene = NULL;
+          break;
         }
+        default:
+          break;
       }
     }
   }
