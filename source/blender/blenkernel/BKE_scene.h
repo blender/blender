@@ -147,6 +147,8 @@ int BKE_scene_orientation_slot_get_index(const struct TransformOrientationSlot *
 
 /* **  Scene evaluation ** */
 
+void BKE_scene_update_sound(struct Depsgraph *depsgraph, struct Main *bmain);
+
 void BKE_scene_graph_update_tagged(struct Depsgraph *depsgraph, struct Main *bmain);
 void BKE_scene_graph_evaluated_ensure(struct Depsgraph *depsgraph, struct Main *bmain);
 

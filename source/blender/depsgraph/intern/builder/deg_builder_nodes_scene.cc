@@ -27,9 +27,10 @@
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_scene_render(Scene *scene)
+void DepsgraphNodeBuilder::build_scene_render(Scene *scene, ViewLayer *view_layer)
 {
   scene_ = scene;
+  view_layer_ = view_layer;
   const bool build_compositor = (scene->r.scemode & R_DOCOMP);
   const bool build_sequencer = (scene->r.scemode & R_DOSEQ);
   IDNode *id_node = add_id_node(&scene->id);
@@ -43,6 +44,10 @@ void DepsgraphNodeBuilder::build_scene_render(Scene *scene)
   }
   if (build_sequencer) {
     build_scene_sequencer(scene);
+    build_scene_speakers(scene, view_layer);
+  }
+  if (scene->camera != NULL) {
+    build_object(-1, scene->camera, DEG_ID_LINKED_DIRECTLY, true);
   }
 }
 

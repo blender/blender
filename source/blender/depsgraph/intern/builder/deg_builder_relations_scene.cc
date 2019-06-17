@@ -27,7 +27,7 @@
 
 namespace DEG {
 
-void DepsgraphRelationBuilder::build_scene_render(Scene *scene)
+void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_layer)
 {
   scene_ = scene;
   const bool build_compositor = (scene->r.scemode & R_DOCOMP);
@@ -40,6 +40,10 @@ void DepsgraphRelationBuilder::build_scene_render(Scene *scene)
   }
   if (build_sequencer) {
     build_scene_sequencer(scene);
+    build_scene_speakers(scene, view_layer);
+  }
+  if (scene->camera != NULL) {
+    build_object(NULL, scene->camera);
   }
 }
 

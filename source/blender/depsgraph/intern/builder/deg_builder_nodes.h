@@ -153,7 +153,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   void build_id(ID *id);
 
-  void build_scene_render(Scene *scene);
+  void build_scene_render(Scene *scene, ViewLayer *view_layer);
   void build_scene_parameters(Scene *scene);
   void build_scene_compositor(Scene *scene);
 
