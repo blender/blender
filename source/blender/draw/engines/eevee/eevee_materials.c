@@ -1078,7 +1078,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   {
     DRWState state = (DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES |
-                      DRW_STATE_WRITE_STENCIL);
+                      DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS);
     DRW_PASS_CREATE(psl->sss_pass, state);
     DRW_PASS_CREATE(psl->sss_pass_cull, state | DRW_STATE_CULL_BACK);
     e_data.sss_count = 0;

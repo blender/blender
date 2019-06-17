@@ -79,6 +79,34 @@ void drw_state_set(DRWState state)
     }
   }
 
+  /* Stencil Write */
+  {
+    DRWState test;
+    if (CHANGED_ANY_STORE_VAR(DRW_STATE_WRITE_STENCIL_ENABLED, test)) {
+      /* Stencil Write */
+      if (test) {
+        glStencilMask(0xFF);
+        if (test & DRW_STATE_WRITE_STENCIL) {
+          glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        }
+        else if (test & DRW_STATE_WRITE_STENCIL_SHADOW_PASS) {
+          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+        }
+        else if (test & DRW_STATE_WRITE_STENCIL_SHADOW_FAIL) {
+          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+        }
+        else {
+          BLI_assert(0);
+        }
+      }
+      else {
+        glStencilMask(0x00);
+      }
+    }
+  }
+
   /* Color Write */
   {
     int test;
@@ -130,10 +158,7 @@ void drw_state_set(DRWState state)
   /* Depth Test */
   {
     DRWState test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_LESS_EQUAL |
-                                  DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER |
-                                  DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_DEPTH_ALWAYS,
-                              test)) {
+    if (CHANGED_ANY_STORE_VAR(DRW_STATE_DEPTH_TEST_ENABLED, test)) {
       if (test) {
         glEnable(GL_DEPTH_TEST);
 
@@ -161,6 +186,20 @@ void drw_state_set(DRWState state)
       }
       else {
         glDisable(GL_DEPTH_TEST);
+      }
+    }
+  }
+
+  /* Stencil Test */
+  {
+    int test;
+    if (CHANGED_ANY_STORE_VAR(DRW_STATE_STENCIL_TEST_ENABLED, test)) {
+      DST.stencil_mask = STENCIL_UNDEFINED;
+      if (test) {
+        glEnable(GL_STENCIL_TEST);
+      }
+      else {
+        glDisable(GL_STENCIL_TEST);
       }
     }
   }
@@ -264,49 +303,6 @@ void drw_state_set(DRWState state)
     }
   }
 
-  /* Stencil */
-  {
-    DRWState test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS |
-                                  DRW_STATE_WRITE_STENCIL_SHADOW_FAIL | DRW_STATE_STENCIL_EQUAL |
-                                  DRW_STATE_STENCIL_NEQUAL,
-                              test)) {
-      if (test) {
-        glEnable(GL_STENCIL_TEST);
-        /* Stencil Write */
-        if ((state & DRW_STATE_WRITE_STENCIL) != 0) {
-          glStencilMask(0xFF);
-          glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        }
-        else if ((state & DRW_STATE_WRITE_STENCIL_SHADOW_PASS) != 0) {
-          glStencilMask(0xFF);
-          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-        }
-        else if ((state & DRW_STATE_WRITE_STENCIL_SHADOW_FAIL) != 0) {
-          glStencilMask(0xFF);
-          glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-          glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-        }
-        /* Stencil Test */
-        else if ((state & (DRW_STATE_STENCIL_EQUAL | DRW_STATE_STENCIL_NEQUAL)) != 0) {
-          glStencilMask(0x00); /* disable write */
-          DST.stencil_mask = STENCIL_UNDEFINED;
-        }
-        else {
-          BLI_assert(0);
-        }
-      }
-      else {
-        /* disable write & test */
-        DST.stencil_mask = 0;
-        glStencilMask(0x00);
-        glStencilFunc(GL_ALWAYS, 0, 0xFF);
-        glDisable(GL_STENCIL_TEST);
-      }
-    }
-  }
-
   /* Provoking Vertex */
   {
     int test;
@@ -331,11 +327,9 @@ static void drw_stencil_set(uint mask)
 {
   if (DST.stencil_mask != mask) {
     DST.stencil_mask = mask;
-    /* Stencil Write */
-    if ((DST.state & DRW_STATE_WRITE_STENCIL) != 0) {
+    if ((DST.state & DRW_STATE_STENCIL_ALWAYS) != 0) {
       glStencilFunc(GL_ALWAYS, mask, 0xFF);
     }
-    /* Stencil Test */
     else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
       glStencilFunc(GL_EQUAL, mask, 0xFF);
     }
@@ -350,6 +344,18 @@ void DRW_state_reset_ex(DRWState state)
 {
   DST.state = ~state;
   drw_state_set(state);
+}
+
+static void drw_state_validate(void)
+{
+  /* Cannot write to stencil buffer without stencil test. */
+  if ((DST.state & DRW_STATE_WRITE_STENCIL_ENABLED)) {
+    BLI_assert(DST.state & DRW_STATE_STENCIL_TEST_ENABLED);
+  }
+  /* Cannot write to depth buffer without depth test. */
+  if ((DST.state & DRW_STATE_WRITE_DEPTH)) {
+    BLI_assert(DST.state & DRW_STATE_DEPTH_TEST_ENABLED);
+  }
 }
 
 /**
@@ -980,6 +986,7 @@ static void drw_draw_pass_ex(DRWPass *pass,
   drw_state_set(DST.state | DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
   drw_state_set(pass->state);
+  drw_state_validate();
 
   DRW_stats_query_start(pass->name);
 
