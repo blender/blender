@@ -58,6 +58,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_stack.h"
 
 #include "DNA_mesh_types.h"
@@ -86,7 +87,7 @@ typedef enum {
   CAP_START = 1,
   CAP_END = 2,
   SEAM_FRAME = 4,
-  ROOT = 8,
+  FLIP_NORMAL = 8,
 } SkinNodeFlag;
 
 typedef struct Frame {
@@ -513,12 +514,18 @@ static void end_node_frames(int v,
       negate_v3(mat[0]);
     }
 
-    /* End frame */
-    create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, 0);
-  }
+    Frame *frame = &skin_nodes[v].frames[0];
 
-  if (nodes[v].flag & MVERT_SKIN_ROOT) {
-    skin_nodes[v].flag |= ROOT;
+    /* End frame */
+    create_frame(frame, mvert[v].co, rad, mat, 0);
+
+    /* The caps might need to have their normals inverted. So check if they
+     * need to be flipped when creating faces. */
+    float normal[3];
+    normal_quad_v3(normal, frame->co[0], frame->co[1], frame->co[2], frame->co[3]);
+    if (dot_v3v3(mat[0], normal) < 0.0f) {
+      skin_nodes[v].flag |= FLIP_NORMAL;
+    }
   }
 }
 
@@ -1577,7 +1584,7 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int totv
     }
 
     if (sn->flag & CAP_START) {
-      if (sn->flag & ROOT) {
+      if (sn->flag & FLIP_NORMAL) {
         add_poly(so,
                  sn->frames[0].verts[0],
                  sn->frames[0].verts[1],
