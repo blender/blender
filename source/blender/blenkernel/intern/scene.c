@@ -2468,8 +2468,10 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
       }
     }
     if (seq->scene_sound) {
-      if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
-        BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
+      if (seq->sound != NULL) {
+        if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
+          BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
+        }
       }
       BKE_sound_set_scene_sound_volume(
           seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
