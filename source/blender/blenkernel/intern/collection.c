@@ -43,6 +43,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
@@ -286,6 +287,16 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 
       collection_object_add(bmain, collection_new, ob_new, 0, true);
       collection_object_remove(bmain, collection_new, ob_old, false);
+
+      if (ob_new->rigidbody_object != NULL) {
+        BLI_assert(ob_old->rigidbody_object != NULL);
+        for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+          if (scene->rigidbody_world != NULL &&
+              BKE_collection_has_object(scene->rigidbody_world->group, ob_old)) {
+            collection_object_add(bmain, scene->rigidbody_world->group, ob_new, 0, true);
+          }
+        }
+      }
     }
   }
 
