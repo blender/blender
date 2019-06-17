@@ -153,7 +153,7 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
     temp_dupli_object->base_flag |= BASE_VISIBLE;
 
     int ob_visibility = BKE_object_visibility(temp_dupli_object, data->eval_mode);
-    if (ob_visibility == 0) {
+    if ((ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) == 0) {
       continue;
     }
 
