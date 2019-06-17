@@ -32,7 +32,7 @@
  * todo: clean this up ... */
 
 extern "C" {
-void BKE_image_user_frame_calc(void *iuser, int cfra);
+void BKE_image_user_frame_calc(void *ima, void *iuser, int cfra);
 void BKE_image_user_file_path(void *iuser, void *ima, char *path);
 unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame);
 float *BKE_image_get_float_pixels_for_frame(void *image, int frame);
@@ -233,14 +233,14 @@ static inline int render_resolution_y(BL::RenderSettings &b_render)
 static inline string image_user_file_path(BL::ImageUser &iuser, BL::Image &ima, int cfra)
 {
   char filepath[1024];
-  BKE_image_user_frame_calc(iuser.ptr.data, cfra);
+  BKE_image_user_frame_calc(NULL, iuser.ptr.data, cfra);
   BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, filepath);
   return string(filepath);
 }
 
 static inline int image_user_frame_number(BL::ImageUser &iuser, int cfra)
 {
-  BKE_image_user_frame_calc(iuser.ptr.data, cfra);
+  BKE_image_user_frame_calc(NULL, iuser.ptr.data, cfra);
   return iuser.frame_current();
 }
 

@@ -150,7 +150,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   ImageUser *iuser = ptr->data;
   ID *id = ptr->id.data;
 
-  BKE_image_user_frame_calc(iuser, scene->r.cfra);
+  BKE_image_user_frame_calc(NULL, iuser, scene->r.cfra);
 
   if (id) {
     if (GS(id->name) == ID_NT) {

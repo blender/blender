@@ -798,7 +798,7 @@ void uiTemplateImage(uiLayout *layout,
   ImageUser *iuser = userptr->data;
 
   Scene *scene = CTX_data_scene(C);
-  BKE_image_user_frame_calc(iuser, (int)scene->r.cfra);
+  BKE_image_user_frame_calc(ima, iuser, (int)scene->r.cfra);
 
   uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
   uiLayoutSetContextPointer(layout, "edit_image_user", userptr);

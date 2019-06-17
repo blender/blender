@@ -1952,6 +1952,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
     ima->cache = newimaadr(fd, ima->cache);
     if (ima->cache == NULL) {
       ima->gpuflag = 0;
+      ima->gpuframenr = INT_MAX;
       for (i = 0; i < TEXTARGET_COUNT; i++) {
         ima->gputexture[i] = NULL;
       }
@@ -4226,6 +4227,7 @@ static void direct_link_image(FileData *fd, Image *ima)
   /* if not restored, we keep the binded opengl index */
   if (!ima->cache) {
     ima->gpuflag = 0;
+    ima->gpuframenr = INT_MAX;
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       ima->gputexture[i] = NULL;
     }

@@ -65,7 +65,7 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
   }
 
   if (tex->ima && BKE_image_is_animated(tex->ima)) {
-    BKE_image_user_frame_calc(&tex->iuser, DEG_get_ctime(ctx->depsgraph));
+    BKE_image_user_frame_calc(tex->ima, &tex->iuser, DEG_get_ctime(ctx->depsgraph));
   }
 }
 

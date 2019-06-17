@@ -125,7 +125,8 @@ typedef struct Image {
 
   /* GPU texture flag. */
   short gpuflag;
-  char _pad2[6];
+  char _pad2[2];
+  int gpuframenr;
 
   /** Deprecated. */
   struct PackedFile *packedfile DNA_DEPRECATED;

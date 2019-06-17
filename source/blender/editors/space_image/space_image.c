@@ -292,8 +292,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
   Image *ima;
 
   ima = ED_space_image(sima);
-
-  BKE_image_user_frame_calc(&sima->iuser, scene->r.cfra);
+  BKE_image_user_frame_calc(ima, &sima->iuser, scene->r.cfra);
 
   /* check if we have to set the image from the editmesh */
   if (ima && (ima->source == IMA_SRC_VIEWER && sima->mode == SI_MODE_MASK)) {

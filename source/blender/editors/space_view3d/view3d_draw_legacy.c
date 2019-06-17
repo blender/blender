@@ -366,7 +366,7 @@ static void view3d_draw_bgpic(Scene *scene,
 
         ImageUser iuser = bgpic->iuser;
         iuser.scene = scene; /* Needed for render results. */
-        BKE_image_user_frame_calc(&iuser, (int)DEG_get_ctime(depsgraph));
+        BKE_image_user_frame_calc(ima, &iuser, (int)DEG_get_ctime(depsgraph));
         if (ima->source == IMA_SRC_SEQUENCE && !(iuser.flag & IMA_USER_FRAME_IN_RANGE)) {
           ibuf = NULL; /* frame is out of range, dont show */
         }
