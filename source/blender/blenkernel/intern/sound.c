@@ -1328,5 +1328,9 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, float time)
 void BKE_sound_evaluate(Depsgraph *depsgraph, Main *bmain, bSound *sound)
 {
   DEG_debug_print_eval(depsgraph, __func__, sound->id.name, sound);
+  if (sound->id.recalc & ID_RECALC_AUDIO) {
+    BKE_sound_load(bmain, sound);
+    return;
+  }
   BKE_sound_ensure_loaded(bmain, sound);
 }

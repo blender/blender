@@ -223,6 +223,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_AUDIO_VOLUME:
     case ID_RECALC_AUDIO_MUTE:
     case ID_RECALC_AUDIO_LISTENER:
+    case ID_RECALC_AUDIO:
       *component_type = NodeType::AUDIO;
       break;
     case ID_RECALC_ALL:
@@ -656,6 +657,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "AUDIO_MUTE";
     case ID_RECALC_AUDIO_LISTENER:
       return "AUDIO_LISTENER";
+    case ID_RECALC_AUDIO:
+      return "AUDIO";
     case ID_RECALC_ALL:
       return "ALL";
   }

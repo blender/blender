@@ -32,9 +32,12 @@
 #  include "BKE_context.h"
 #  include "BKE_sequencer.h"
 
-static void rna_Sound_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+#  include "DEG_depsgraph.h"
+
+static void rna_Sound_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  BKE_sound_load(bmain, (bSound *)ptr->data);
+  bSound *sound = (bSound *)ptr->data;
+  DEG_id_tag_update(&sound->id, ID_RECALC_AUDIO);
 }
 
 static bool rna_Sound_caching_get(PointerRNA *ptr)
