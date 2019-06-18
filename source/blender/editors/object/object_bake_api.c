@@ -1221,7 +1221,7 @@ cleanup:
   if (highpoly) {
     int i;
     for (i = 0; i < tot_highpoly; i++) {
-      if (highpoly[i].me) {
+      if (highpoly[i].ob_eval) {
         BKE_object_to_mesh_clear(highpoly[i].ob_eval);
       }
     }
@@ -1252,11 +1252,11 @@ cleanup:
     MEM_freeN(result);
   }
 
-  if (me_low) {
+  if (ob_low_eval) {
     BKE_object_to_mesh_clear(ob_low_eval);
   }
 
-  if (me_cage) {
+  if (ob_cage_eval) {
     BKE_object_to_mesh_clear(ob_cage_eval);
   }
 

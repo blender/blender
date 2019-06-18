@@ -108,6 +108,7 @@ typedef struct TSpace {
 typedef struct TriTessFace {
   const MVert *mverts[3];
   const TSpace *tspace[3];
+  float *loop_normal[3];
   float normal[3]; /* for flat faces */
   bool is_smooth;
 } TriTessFace;
@@ -442,7 +443,8 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 {
   int i;
   MVert *mvert;
-  TSpace *tspace;
+  TSpace *tspace = NULL;
+  float(*loop_normals)[3] = NULL;
 
   const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *looptri;
@@ -454,17 +456,20 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 
   mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
-  triangles = MEM_mallocN(sizeof(TriTessFace) * tottri, __func__);
+  triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
+
+  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
   if (tangent) {
     BKE_mesh_ensure_normals_for_display(me_eval);
+    BKE_mesh_calc_normals_split(me_eval);
     BKE_mesh_calc_loop_tangents(me_eval, true, NULL, 0);
 
     tspace = CustomData_get_layer(&me_eval->ldata, CD_TANGENT);
     BLI_assert(tspace);
-  }
 
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+    loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
+  }
 
   const float *precomputed_normals = CustomData_get_layer(&me->pdata, CD_NORMAL);
   const bool calculate_normal = precomputed_normals ? false : true;
@@ -482,6 +487,12 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
       triangles[i].tspace[0] = &tspace[lt->tri[0]];
       triangles[i].tspace[1] = &tspace[lt->tri[1]];
       triangles[i].tspace[2] = &tspace[lt->tri[2]];
+    }
+
+    if (loop_normals) {
+      triangles[i].loop_normal[0] = loop_normals[lt->tri[0]];
+      triangles[i].loop_normal[1] = loop_normals[lt->tri[1]];
+      triangles[i].loop_normal[2] = loop_normals[lt->tri[2]];
     }
 
     if (calculate_normal) {
@@ -869,10 +880,12 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
       const TSpace *ts;
 
       if (is_smooth) {
-        normal_short_to_float_v3(normals[j], triangle->mverts[j]->no);
-      }
-      else {
-        normal[j] = triangle->normal[j];
+        if (triangle->loop_normal[j]) {
+          copy_v3_v3(normals[j], triangle->loop_normal[j]);
+        }
+        else {
+          normal_short_to_float_v3(normals[j], triangle->mverts[j]->no);
+        }
       }
 
       ts = triangle->tspace[j];
@@ -887,6 +900,9 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     /* normal */
     if (is_smooth) {
       interp_barycentric_tri_v3(normals, u, v, normal);
+    }
+    else {
+      copy_v3_v3(normal, triangle->normal);
     }
 
     /* tangent */
