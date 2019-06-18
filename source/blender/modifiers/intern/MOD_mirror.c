@@ -334,6 +334,67 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
     }
   }
 
+  /* handle custom split normals */
+  if ((((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
+      CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL)) {
+    const int totloop = result->totloop;
+    const int totpoly = result->totpoly;
+    float(*loop_normals)[3] = MEM_calloc_arrayN((size_t)totloop, sizeof(*loop_normals), __func__);
+    CustomData *ldata = &result->ldata;
+    short(*clnors)[2] = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
+    MLoopNorSpaceArray lnors_spacearr = {NULL};
+    float(*poly_normals)[3] = MEM_mallocN(sizeof(*poly_normals) * totpoly, __func__);
+
+    /* calculate custom normals into loop_normals, then mirror first half into second half */
+
+    BKE_mesh_calc_normals_poly(result->mvert,
+                               NULL,
+                               result->totvert,
+                               result->mloop,
+                               result->mpoly,
+                               totloop,
+                               totpoly,
+                               poly_normals,
+                               false);
+
+    BKE_mesh_normals_loop_split(result->mvert,
+                                result->totvert,
+                                result->medge,
+                                result->totedge,
+                                result->mloop,
+                                loop_normals,
+                                totloop,
+                                result->mpoly,
+                                poly_normals,
+                                totpoly,
+                                true,
+                                mesh->smoothresh,
+                                &lnors_spacearr,
+                                clnors,
+                                NULL);
+
+    /* mirroring has to account for loops being reversed in polys in second half */
+    mp = result->mpoly;
+    for (i = 0; i < maxPolys; i++, mp++) {
+      MPoly *mpmirror = result->mpoly + maxPolys + i;
+      int j;
+
+      for (j = mp->loopstart; j < mp->loopstart + mp->totloop; j++) {
+        int mirrorj = mpmirror->loopstart;
+        if (j > mp->loopstart)
+          mirrorj += mpmirror->totloop - (j - mp->loopstart);
+        copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
+        loop_normals[mirrorj][axis] = -loop_normals[j][axis];
+        BKE_lnor_space_custom_normal_to_data(
+            lnors_spacearr.lspacearr[mirrorj], loop_normals[mirrorj], clnors[mirrorj]);
+      }
+    }
+
+    MEM_freeN(poly_normals);
+    MEM_freeN(loop_normals);
+    BKE_lnor_spacearr_free(&lnors_spacearr);
+  }
+
   /* handle vgroup stuff */
   if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vdata, CD_MDEFORMVERT)) {
     MDeformVert *dvert = (MDeformVert *)CustomData_get_layer(&result->vdata, CD_MDEFORMVERT) +
