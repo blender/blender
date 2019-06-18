@@ -47,6 +47,7 @@
 #include "util/util_system.h"
 #include "util/util_types.h"
 #include "util/util_time.h"
+#include "util/util_windows.h"
 
 #include "kernel/split/kernel_split_data_types.h"
 
@@ -2659,6 +2660,14 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     cuDeviceGetAttribute(&timeout_attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num);
     cuDeviceGetAttribute(&preempt_attr, CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED, num);
 
+    /* The CUDA driver reports compute preemption as not being available on
+     * Windows 10 even when it is, due to an issue in application profiles.
+     * Detect case where we expect it to be available and override. */
+    if (preempt_attr == 0 && (major >= 6) && system_windows_version_at_least(10, 17134)) {
+      VLOG(1) << "Assuming device has compute preemption on Windows 10.";
+      preempt_attr = 1;
+    }
+
     if (timeout_attr && !preempt_attr) {
       VLOG(1) << "Device is recognized as display.";
       info.description += " (Display)";
@@ -2666,6 +2675,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
       display_devices.push_back(info);
     }
     else {
+      VLOG(1) << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
     VLOG(1) << "Added device \"" << name << "\" with id \"" << info.id << "\".";

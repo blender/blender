@@ -33,4 +33,10 @@
 
 #endif /* _WIN32 */
 
+CCL_NAMESPACE_BEGIN
+
+bool system_windows_version_at_least(int major, int build);
+
+CCL_NAMESPACE_END
+
 #endif /* __UTIL_WINDOWS_H__ */
