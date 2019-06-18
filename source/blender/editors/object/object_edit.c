@@ -1709,7 +1709,7 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Move to Collection";
-  ot->description = "Move objects to a scene collection";
+  ot->description = "Move objects to a collection";
   ot->idname = "OBJECT_OT_move_to_collection";
 
   /* api callbacks */
