@@ -616,7 +616,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("Misc Options:\n");
   BLI_argsPrintArgDoc(ba, "--app-template");
   BLI_argsPrintArgDoc(ba, "--factory-startup");
-  BLI_argsPrintArgDoc(ba, "--enable-static-override");
+  BLI_argsPrintArgDoc(ba, "--enable-library-override");
   BLI_argsPrintArgDoc(ba, "--enable-event-simulate");
   printf("\n");
   BLI_argsPrintArgDoc(ba, "--env-system-datafiles");
