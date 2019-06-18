@@ -166,18 +166,17 @@ static void EDIT_TEXT_cache_init(void *vedata)
         "Font Wire", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
     stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
 
-    psl->overlay_select_pass = DRW_pass_create("Font Select",
-                                               DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
+    /* Show selection & cursor on-top of everything (x-ray). */
+
+    psl->overlay_select_pass = DRW_pass_create("Font Select", DRW_STATE_WRITE_COLOR);
     stl->g_data->overlay_select_shgrp = DRW_shgroup_create(e_data.overlay_select_sh,
                                                            psl->overlay_select_pass);
 
-    psl->overlay_cursor_pass = DRW_pass_create("Font Cursor",
-                                               DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
+    psl->overlay_cursor_pass = DRW_pass_create("Font Cursor", DRW_STATE_WRITE_COLOR);
     stl->g_data->overlay_cursor_shgrp = DRW_shgroup_create(e_data.overlay_cursor_sh,
                                                            psl->overlay_cursor_pass);
 
-    psl->text_box_pass = DRW_pass_create("Font Text Boxes",
-                                         DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
+    psl->text_box_pass = DRW_pass_create("Font Text Boxes", DRW_STATE_WRITE_COLOR);
     stl->g_data->box_shgrp = buffer_dynlines_dashed_uniform_color(
         psl->text_box_pass, G_draw.block.colorWire, draw_ctx->sh_cfg);
     stl->g_data->box_active_shgrp = buffer_dynlines_dashed_uniform_color(
