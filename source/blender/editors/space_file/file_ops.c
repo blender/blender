@@ -1646,9 +1646,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   ScrArea *sa = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   ARegion *ar, *oldar = CTX_wm_region(C);
-  int offset;
-  int numfiles, numfiles_layout;
-  int edit_idx = -1;
+  const bool is_horizontal = (sfile->layout->flag & FILE_LAYOUT_HOR) != 0;
   int i;
 
   /* escape if not our timer */
@@ -1656,7 +1654,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
     return OPERATOR_PASS_THROUGH;
   }
 
-  numfiles = filelist_files_ensure(sfile->files);
+  const int numfiles = filelist_files_ensure(sfile->files);
 
   /* Due to async nature of file listing, we may execute this code before `file_refresh()`
    * editing entry is available in our listing,
@@ -1668,6 +1666,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   }
 
   /* check if we are editing a name */
+  int edit_idx = -1;
   for (i = 0; i < numfiles; ++i) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL) &
         (FILE_SEL_EDITING | FILE_SEL_HIGHLIGHTED)) {
@@ -1695,34 +1694,59 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
     return OPERATOR_PASS_THROUGH;
   }
 
-  offset = max_ii(
-      0,
-      ED_fileselect_layout_offset(sfile->layout, (int)ar->v2d.cur.xmin, (int)-ar->v2d.cur.ymax));
+  /* Number of items in a block (i.e. lines in a column in horizontal layout, or columns in a line
+   * in vertical layout).
+   */
+  const int items_block_size = is_horizontal ? sfile->layout->rows : sfile->layout->columns;
 
-  /* scroll offset is the first file in the row/column we are editing in */
+  /* Scroll offset is the first file in the row/column we are editing in. */
   if (sfile->scroll_offset == 0) {
-    if (sfile->layout->flag & FILE_LAYOUT_HOR) {
-      sfile->scroll_offset = (edit_idx / sfile->layout->rows) * sfile->layout->rows;
-      if (sfile->scroll_offset <= offset) {
-        sfile->scroll_offset -= sfile->layout->rows;
-      }
-    }
-    else {
-      sfile->scroll_offset = (edit_idx / sfile->layout->columns) * sfile->layout->columns;
-      if (sfile->scroll_offset <= offset) {
-        sfile->scroll_offset -= sfile->layout->columns;
-      }
-    }
+    sfile->scroll_offset = (edit_idx / items_block_size) * items_block_size;
   }
 
-  numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
-  /* Using margins helps avoiding scrolling to stop when target item
-   * is barely visible on one side of the screen (i.e. it centers a bit more the target). */
-  int numfiles_layout_margin = max_ii(0, numfiles_layout / 3);
+  const int numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
+  const int first_visible_item = ED_fileselect_layout_offset(
+      sfile->layout, (int)ar->v2d.cur.xmin, (int)-ar->v2d.cur.ymax);
+  const int last_visible_item = first_visible_item + numfiles_layout + 1;
 
-  /* check if we have reached our final scroll position */
-  if ((sfile->scroll_offset >= offset + numfiles_layout_margin) &&
-      (sfile->scroll_offset < offset + numfiles_layout - numfiles_layout_margin)) {
+  /* Note: the special case for vertical layout is because filename is at the bottom of items then,
+   * so we artificially move current row back one step, to ensure we show bottom of
+   * active item rather than its top (important in case visible height is low). */
+  const int middle_offset = max_ii(
+      0, (first_visible_item + last_visible_item) / 2 - (is_horizontal ? 0 : items_block_size));
+
+  const int min_middle_offset = numfiles_layout / 2;
+  const int max_middle_offset = ((numfiles / items_block_size) * items_block_size +
+                                 ((numfiles % items_block_size) != 0 ? items_block_size : 0)) -
+                                (numfiles_layout / 2);
+  /* Actual (physical) scrolling info, in pixels, used to detect whether we are fully at the
+   * begining/end of the view. */
+  /* Note that there is a weird glitch, that sometimes tot rctf is smaller than cur rctf...
+   * that is why we still need to keep the min/max_middle_offset checks too. :( */
+  const float min_tot_scroll = is_horizontal ? ar->v2d.tot.xmin : -ar->v2d.tot.ymax;
+  const float max_tot_scroll = is_horizontal ? ar->v2d.tot.xmax : -ar->v2d.tot.ymin;
+  const float min_curr_scroll = is_horizontal ? ar->v2d.cur.xmin : -ar->v2d.cur.ymax;
+  const float max_curr_scroll = is_horizontal ? ar->v2d.cur.xmax : -ar->v2d.cur.ymin;
+
+  /* Check if we have reached our final scroll position. */
+  /* Filelist has to be ready, otherwise it makes no sense to stop scrolling yet. */
+  const bool is_ready = filelist_is_ready(sfile->files);
+  /* Edited item must be in the 'middle' of shown area (kind of approximative).
+   * Note that we have to do the check in 'block space', not in 'item space' here. */
+  const bool is_centered = (abs(middle_offset / items_block_size -
+                                sfile->scroll_offset / items_block_size) == 0);
+  /* OR edited item must be towards the begining, and we are scrolled fully to the start. */
+  const bool is_full_start = ((sfile->scroll_offset < min_middle_offset) &&
+                              (min_curr_scroll - min_tot_scroll < 1.0f) &&
+                              (middle_offset - min_middle_offset < items_block_size));
+  /* OR edited item must be towards the end, and we are scrolled fully to the end.
+   * This one is crucial (unlike the one for the begining), because without it we won't scroll
+   * fully to the end, and last column or row wil end up only partially drawn. */
+  const bool is_full_end = ((sfile->scroll_offset > max_middle_offset) &&
+                            (max_tot_scroll - max_curr_scroll < 1.0f) &&
+                            (max_middle_offset - middle_offset < items_block_size));
+
+  if (is_ready && (is_centered || is_full_start || is_full_end)) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
     sfile->smoothscroll_timer = NULL;
     /* Post-scroll (after rename has been validated by user) is done,
@@ -1734,27 +1758,53 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
     return OPERATOR_FINISHED;
   }
 
-  /* temporarily set context to the main window region,
-   * so the scroll operators work */
+  /* Temporarily set context to the main window region,
+   * so that the pan operator works. */
   CTX_wm_region_set(C, ar);
 
   /* scroll one step in the desired direction */
-  if (sfile->scroll_offset < offset) {
-    if (sfile->layout->flag & FILE_LAYOUT_HOR) {
-      WM_operator_name_call(C, "VIEW2D_OT_scroll_left", 0, NULL);
+  PointerRNA op_ptr;
+  int deltax = 0;
+  int deltay = 0;
+
+  /* We adjust speed of scrolling to avoid tens of seconds of it in e.g. directories with tens of
+   * thousands of folders... See T65782. */
+  /* This will slow down scrolling when approaching final goal, also avoids going too far and
+   * having to bounce back... */
+
+  /* Number of blocks (columns in horizontal layout, rows otherwise) between current middle of
+   * screen, and final goal position. */
+  const int diff_offset = sfile->scroll_offset / items_block_size -
+                          middle_offset / items_block_size;
+  /* convert diff_offset into pixels. */
+  const int diff_offset_delta = abs(diff_offset) *
+                                (is_horizontal ?
+                                     sfile->layout->tile_w + 2 * sfile->layout->tile_border_x :
+                                     sfile->layout->tile_h + 2 * sfile->layout->tile_border_y);
+  const int scroll_delta = max_ii(2, diff_offset_delta / 15);
+
+  if (diff_offset < 0) {
+    if (is_horizontal) {
+      deltax = -scroll_delta;
     }
     else {
-      WM_operator_name_call(C, "VIEW2D_OT_scroll_up", 0, NULL);
+      deltay = scroll_delta;
     }
   }
   else {
-    if (sfile->layout->flag & FILE_LAYOUT_HOR) {
-      WM_operator_name_call(C, "VIEW2D_OT_scroll_right", 0, NULL);
+    if (is_horizontal) {
+      deltax = scroll_delta;
     }
     else {
-      WM_operator_name_call(C, "VIEW2D_OT_scroll_down", 0, NULL);
+      deltay = -scroll_delta;
     }
   }
+  WM_operator_properties_create(&op_ptr, "VIEW2D_OT_pan");
+  RNA_int_set(&op_ptr, "deltax", deltax);
+  RNA_int_set(&op_ptr, "deltay", deltay);
+
+  WM_operator_name_call(C, "VIEW2D_OT_pan", WM_OP_EXEC_DEFAULT, &op_ptr);
+  WM_operator_properties_free(&op_ptr);
 
   ED_region_tag_redraw(ar);
 
