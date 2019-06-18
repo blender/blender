@@ -441,8 +441,10 @@ void CLOSURE_NAME(vec3 N
   /*       Ambient Occlusion      */
   /* ---------------------------- */
 #if defined(CLOSURE_GLOSSY) || defined(CLOSURE_DIFFUSE)
+  /* HACK: Fix for translucent BSDF. (see T65631) */
+  bool same_side = dot((gl_FrontFacing) ? worldNormal : -worldNormal, N) > 0.0;
   vec3 bent_normal;
-  float final_ao = occlusion_compute(N, viewPosition, ao, rand, bent_normal);
+  float final_ao = occlusion_compute(same_side ? N : -N, viewPosition, ao, rand, bent_normal);
 #endif
 
   /* ---------------------------- */
