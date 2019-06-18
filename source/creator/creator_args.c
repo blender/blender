@@ -650,10 +650,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("Argument Parsing:\n");
   printf("\tArguments must be separated by white space, eg:\n");
   printf("\t# blender -ba test.blend\n");
-  printf("\t...will ignore the 'a'.\n");
-  printf("\t# blender -b test.blend -f8\n");
-  printf(
-      "\t...will ignore '8' because there is no space between the '-f' and the frame value.\n\n");
+  printf("\t...will exit since '-ba' is an unknown argument.\n");
 
   printf("Argument Order:\n");
   printf("\tArguments are executed in the order they are given. eg:\n");

@@ -115,9 +115,9 @@ class Prefs(bpy.types.KeyConfigPreferences):
             "Activate some pie menus on drag,\n"
             "allowing the tapping the same key to have a secondary action.\n"
             "\n"
-             "\u2022 Tapping Tab in the 3D view toggles edit-mode, drag for mode menu.\n"
-             "\u2022 Tapping Z in the 3D view toggles wireframe, drag for draw modes.\n"
-             "\u2022 Tapping Tilde in the 3D view for first person navigation, drag for view axes"
+            "\u2022 Tapping Tab in the 3D view toggles edit-mode, drag for mode menu.\n"
+            "\u2022 Tapping Z in the 3D view toggles wireframe, drag for draw modes.\n"
+            "\u2022 Tapping Tilde in the 3D view for first person navigation, drag for view axes"
         ),
         default=False,
         update=update_fn,
