@@ -1691,7 +1691,9 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_state_reset();
 
   if (DST.draw_ctx.evil_C) {
+    GPU_depth_test(false);
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.ar, REGION_DRAW_POST_VIEW);
+    GPU_depth_test(true);
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
