@@ -2059,6 +2059,8 @@ typedef struct MeshBatchCache {
 
   /* Valid only if edge_detection is up to date. */
   bool is_manifold;
+
+  bool no_loose_wire;
 } MeshBatchCache;
 
 BLI_INLINE void mesh_batch_cache_add_request(MeshBatchCache *cache, DRWBatchFlag new_flag)
@@ -3850,6 +3852,7 @@ static void mesh_create_loops_line_strips(MeshRenderData *rdata,
 
 static void mesh_create_loose_edges_lines(MeshRenderData *rdata,
                                           GPUIndexBuf *ibo,
+                                          bool *r_no_loose_wire,
                                           const bool use_hide)
 {
   const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
@@ -3891,6 +3894,8 @@ static void mesh_create_loose_edges_lines(MeshRenderData *rdata,
       GPU_indexbuf_add_line_verts(&elb, medge->v1, medge->v2);
     }
   }
+
+  *r_no_loose_wire = (elb.index_len == 0);
 
   GPU_indexbuf_build_in_place(&elb, ibo);
 }
@@ -4291,7 +4296,12 @@ GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_add_request(cache, MBC_LOOSE_EDGES);
-  return DRW_batch_request(&cache->batch.loose_edges);
+  if (cache->no_loose_wire) {
+    return NULL;
+  }
+  else {
+    return DRW_batch_request(&cache->batch.loose_edges);
+  }
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)
@@ -5304,7 +5314,8 @@ void DRW_mesh_batch_cache_create_requested(
         rdata, cache->ibo.edges_adj_lines, &cache->is_manifold, use_hide);
   }
   if (DRW_ibo_requested(cache->ibo.loose_edges_lines)) {
-    mesh_create_loose_edges_lines(rdata, cache->ibo.loose_edges_lines, use_hide);
+    mesh_create_loose_edges_lines(
+        rdata, cache->ibo.loose_edges_lines, &cache->no_loose_wire, use_hide);
   }
   if (DRW_ibo_requested(cache->ibo.surf_tris)) {
     mesh_create_surf_tris(rdata, cache->ibo.surf_tris, use_hide);
