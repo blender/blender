@@ -32,7 +32,7 @@ ExternalProject_Add(external_ffi
   INSTALL_DIR ${LIBDIR}/ffi
 )
 
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE)
   ExternalProject_Add_Step(external_ffi after_install
     COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/ffi/lib/libffi.a ${LIBDIR}/ffi/lib/libffi_pic.a
     DEPENDEES install

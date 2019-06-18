@@ -19,7 +19,7 @@
 set(SSL_CONFIGURE_COMMAND ./Configure)
 set(SSL_PATCH_CMD echo .)
 
-if (APPLE)
+if(APPLE)
   set(SSL_OS_COMPILER "blender-darwin-x86_64")
 else()
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")

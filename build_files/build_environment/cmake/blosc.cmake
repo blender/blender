@@ -58,7 +58,7 @@ if(WIN32)
   )
 endif()
 
-if (WIN32)
+if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_blosc after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/blosc/lib/libblosc.lib ${HARVEST_TARGET}/blosc/lib/libblosc.lib

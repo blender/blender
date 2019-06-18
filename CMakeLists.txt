@@ -740,7 +740,7 @@ endif()
 # Auto-enable CUDA dynload if toolkit is not found.
 if(NOT WITH_CUDA_DYNLOAD)
   find_package(CUDA)
-  if (NOT CUDA_FOUND)
+  if(NOT CUDA_FOUND)
     message("CUDA toolkit not found, using dynamic runtime loading of libraries instead")
     set(WITH_CUDA_DYNLOAD ON)
   endif()
@@ -815,7 +815,7 @@ set(PLATFORM_LINKLIBS "")
 set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
-if (NOT CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
   if(WITH_COMPILER_ASAN)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${COMPILER_ASAN_CFLAGS}")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${COMPILER_ASAN_CFLAGS}")
@@ -965,9 +965,9 @@ if(MSVC)
   # for some reason this fails on msvc
   add_definitions(-D__LITTLE_ENDIAN__)
 
-# OSX-Note: as we do cross-compiling with specific set architecture,
-# endianess-detection and auto-setting is counterproductive
-# so we just set endianness according CMAKE_OSX_ARCHITECTURES
+  # OSX-Note: as we do cross-compiling with specific set architecture,
+  # endianess-detection and auto-setting is counterproductive
+  # so we just set endianness according CMAKE_OSX_ARCHITECTURES
 
 elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
   add_definitions(-D__LITTLE_ENDIAN__)

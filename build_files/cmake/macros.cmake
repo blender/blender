@@ -251,7 +251,7 @@ function(blender_add_lib__impl
 
   add_library(${name} ${sources})
 
-  if (NOT "${library_deps}" STREQUAL "")
+  if(NOT "${library_deps}" STREQUAL "")
     target_link_libraries(${name} INTERFACE "${library_deps}")
   endif()
 
@@ -1240,7 +1240,7 @@ macro(WINDOWS_SIGN_TARGET target)
 endmacro()
 
 macro(blender_precompile_headers target cpp header)
-  if (MSVC)
+  if(MSVC)
     # get the name for the pch output file
     get_filename_component( pchbase ${cpp} NAME_WE )
     set( pchfinal "${CMAKE_CURRENT_BINARY_DIR}/${pchbase}.pch" )

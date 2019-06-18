@@ -25,7 +25,7 @@ ExternalProject_Add(external_zlib
   INSTALL_DIR ${LIBDIR}/zlib
 )
 
-if (WIN32)
+if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_zlib after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zlib/lib/zlibstatic${LIBEXT} ${HARVEST_TARGET}/zlib/lib/libz_st${LIBEXT}

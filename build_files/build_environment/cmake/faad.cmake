@@ -18,7 +18,7 @@
 
 set(FAAD_EXTRA_ARGS)
 
-if (WIN32)
+if(WIN32)
   set(FAAD_EXTRA_CONFIGURE "utils\\win32\\ac2ver.exe" "faad2" "configure.ac" > libfaad\\win32_ver.h)
 else()
   set(FAAD_EXTRA_CONFIGURE echo .)
