@@ -363,8 +363,9 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
     if (merge) {
       update_render_result(b_rr, b_rlay, rtile);
     }
-
-    end_render_result(b_engine, b_rr, true, highlight, merge);
+    else {
+      end_render_result(b_engine, b_rr, true, highlight, merge);
+    }
   }
   else {
     /* Write final render result. */
