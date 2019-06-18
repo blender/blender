@@ -996,6 +996,13 @@ bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup)
   return shgroup->calls.first == NULL;
 }
 
+/* This is a workaround function waiting for the clearing operation to be available inside the
+ * shgroups. */
+DRWShadingGroup *DRW_shgroup_get_next(DRWShadingGroup *shgroup)
+{
+  return shgroup->next;
+}
+
 DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 {
   DRWShadingGroup *shgroup_new = BLI_memblock_alloc(DST.vmempool->shgroups);
