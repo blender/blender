@@ -240,7 +240,10 @@ static RenderPass *render_layer_add_pass(RenderResult *rr,
                           false);
     }
   }
-  else {
+
+  /* Always allocate combined for display, in case of save buffers
+   * other passes are not allocated and only saved to the EXR file. */
+  if (rl->exrhandle == NULL || STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
     float *rect;
     int x;
 
@@ -853,10 +856,14 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
   for (rl = rr->layers.first; rl; rl = rl->next) {
     rlp = RE_GetRenderLayer(rrpart, rl->name);
     if (rlp) {
-      /* passes are allocated in sync */
+      /* Passes are allocated in sync. */
       for (rpass = rl->passes.first, rpassp = rlp->passes.first; rpass && rpassp;
            rpass = rpass->next) {
-        /* renderresult have all passes, renderpart only the active view's passes */
+        /* For save buffers, skip any passes that are only saved to disk. */
+        if (rpass->rect == NULL || rpassp->rect == NULL) {
+          continue;
+        }
+        /* Renderresult have all passes, renderpart only the active view's passes. */
         if (strcmp(rpassp->fullname, rpass->fullname) != 0) {
           continue;
         }

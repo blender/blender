@@ -137,10 +137,7 @@ static void image_buffer_rect_update(RenderJob *rj,
   ColorManagedViewSettings *view_settings;
   ColorManagedDisplaySettings *display_settings;
 
-  /* Exception for exr tiles -- display buffer conversion happens here,
-   * NOT in the color management pipeline.
-   */
-  if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID && rr->do_exr_tile == false) {
+  if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
     /* The whole image buffer it so be color managed again anyway. */
     return;
   }
@@ -631,7 +628,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
      * this case GLSL doesn't have original float buffer to
      * operate with.
      */
-    if (rr->do_exr_tile || !rj->supports_glsl_draw || ibuf->channels == 1 ||
+    if (!rj->supports_glsl_draw || ibuf->channels == 1 ||
         ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
       image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, renrect, viewname);
     }

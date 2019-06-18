@@ -288,6 +288,7 @@ void RE_engine_end_result(
     if (re->result->do_exr_tile) {
       if (!cancel && merge_results) {
         render_result_exr_file_merge(re->result, result, re->viewname);
+        render_result_merge(re->result, result);
       }
     }
     else if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
