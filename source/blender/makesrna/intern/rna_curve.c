@@ -1724,7 +1724,7 @@ static void rna_def_curve(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_map_taper", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_MAP_TAPER);
   RNA_def_property_ui_text(
-      prop, "Map Taper", "Map effect of taper object on actually beveled curve");
+      prop, "Map Taper", "Map effect of the taper object to the beveled part of the curve");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   /* texture space */
