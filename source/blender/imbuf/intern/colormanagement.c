@@ -2667,8 +2667,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf,
                                                  ibuf->invalid_rect.xmin,
                                                  ibuf->invalid_rect.ymin,
                                                  ibuf->invalid_rect.xmax,
-                                                 ibuf->invalid_rect.ymax,
-                                                 false);
+                                                 ibuf->invalid_rect.ymax);
     }
 
     BLI_rcti_init(&ibuf->invalid_rect, 0, 0, 0, 0);
@@ -3526,7 +3525,6 @@ static void imb_partial_display_buffer_update_ex(
     int ymin,
     int xmax,
     int ymax,
-    bool copy_display_to_byte_buffer,
     bool do_threads)
 {
   ColormanageCacheViewSettings cache_view_settings;
@@ -3562,12 +3560,6 @@ static void imb_partial_display_buffer_update_ex(
     ibuf->display_buffer_flags[display_index] |= view_flag;
 
     BLI_thread_unlock(LOCK_COLORMANAGE);
-  }
-
-  if (display_buffer == NULL) {
-    if (copy_display_to_byte_buffer) {
-      display_buffer = (unsigned char *)ibuf->rect;
-    }
   }
 
   if (display_buffer) {
@@ -3628,15 +3620,6 @@ static void imb_partial_display_buffer_update_ex(
 
     IMB_display_buffer_release(cache_handle);
   }
-
-  if (copy_display_to_byte_buffer && (unsigned char *)ibuf->rect != display_buffer) {
-    int y;
-    for (y = ymin; y < ymax; y++) {
-      size_t index = (size_t)y * buffer_width * 4;
-      memcpy(
-          (unsigned char *)ibuf->rect + index, display_buffer + index, (size_t)(xmax - xmin) * 4);
-    }
-  }
 }
 
 void IMB_partial_display_buffer_update(ImBuf *ibuf,
@@ -3650,8 +3633,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf,
                                        int xmin,
                                        int ymin,
                                        int xmax,
-                                       int ymax,
-                                       bool copy_display_to_byte_buffer)
+                                       int ymax)
 {
   imb_partial_display_buffer_update_ex(ibuf,
                                        linear_buffer,
@@ -3665,7 +3647,6 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf,
                                        ymin,
                                        xmax,
                                        ymax,
-                                       copy_display_to_byte_buffer,
                                        false);
 }
 
@@ -3681,8 +3662,7 @@ void IMB_partial_display_buffer_update_threaded(
     int xmin,
     int ymin,
     int xmax,
-    int ymax,
-    bool copy_display_to_byte_buffer)
+    int ymax)
 {
   int width = xmax - xmin;
   int height = ymax - ymin;
@@ -3699,7 +3679,6 @@ void IMB_partial_display_buffer_update_threaded(
                                        ymin,
                                        xmax,
                                        ymax,
-                                       copy_display_to_byte_buffer,
                                        do_threads);
 }
 

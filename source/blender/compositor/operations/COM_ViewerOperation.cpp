@@ -190,8 +190,7 @@ void ViewerOperation::updateImage(rcti *rect)
                                     rect->xmin,
                                     rect->ymin,
                                     rect->xmax,
-                                    rect->ymax,
-                                    false);
+                                    rect->ymax);
 
   this->updateDraw();
 }

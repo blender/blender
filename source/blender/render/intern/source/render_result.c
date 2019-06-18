@@ -90,18 +90,6 @@ void render_result_free(RenderResult *res)
   while (res->layers.first) {
     RenderLayer *rl = res->layers.first;
 
-    /* acolrect and scolrect are optionally allocated in shade_tile,
-     * only free here since it can be used for drawing. */
-    if (rl->acolrect) {
-      MEM_freeN(rl->acolrect);
-    }
-    if (rl->scolrect) {
-      MEM_freeN(rl->scolrect);
-    }
-    if (rl->display_buffer) {
-      MEM_freeN(rl->display_buffer);
-    }
-
     while (rl->passes.first) {
       RenderPass *rpass = rl->passes.first;
       if (rpass->rect) {
@@ -350,12 +338,6 @@ RenderResult *render_result_new(Render *re,
     rl->recty = recty;
 
     if (rr->do_exr_tile) {
-      rl->display_buffer = MEM_mapallocN((size_t)rectx * recty * sizeof(unsigned int),
-                                         "Combined display space rgba");
-      if (rl->display_buffer == NULL) {
-        render_result_free(rr);
-        return NULL;
-      }
       rl->exrhandle = IMB_exr_get_handle();
     }
 
@@ -470,8 +452,6 @@ RenderResult *render_result_new(Render *re,
 
     /* duplicate code... */
     if (rr->do_exr_tile) {
-      rl->display_buffer = MEM_mapallocN(rectx * recty * sizeof(unsigned int),
-                                         "Combined display space rgba");
       rl->exrhandle = IMB_exr_get_handle();
     }
 
@@ -1653,15 +1633,6 @@ static RenderLayer *duplicate_render_layer(RenderLayer *rl)
   new_rl->next = new_rl->prev = NULL;
   new_rl->passes.first = new_rl->passes.last = NULL;
   new_rl->exrhandle = NULL;
-  if (new_rl->acolrect != NULL) {
-    new_rl->acolrect = MEM_dupallocN(new_rl->acolrect);
-  }
-  if (new_rl->scolrect != NULL) {
-    new_rl->scolrect = MEM_dupallocN(new_rl->scolrect);
-  }
-  if (new_rl->display_buffer != NULL) {
-    new_rl->display_buffer = MEM_dupallocN(new_rl->display_buffer);
-  }
   for (RenderPass *rpass = rl->passes.first; rpass != NULL; rpass = rpass->next) {
     RenderPass *new_rpass = duplicate_render_pass(rpass);
     BLI_addtail(&new_rl->passes, new_rpass);

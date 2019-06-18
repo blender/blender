@@ -4135,7 +4135,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   ImBuf *ibuf;
   int from_render = (ima->render_slot == ima->last_render_slot);
   int actview;
-  bool byte_buffer_in_display_space = false;
 
   if (!(iuser && iuser->scene)) {
     return NULL;
@@ -4221,16 +4220,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
       RenderPass *rpass = image_render_pass_get(rl, pass, actview, NULL);
       if (rpass) {
         rectf = rpass->rect;
-        if (pass == 0) {
-          if (rectf == NULL) {
-            /* Happens when Save Buffers is enabled.
-             * Use display buffer stored in the render layer.
-             */
-            rect = (unsigned int *)rl->display_buffer;
-            byte_buffer_in_display_space = true;
-          }
-        }
-        else {
+        if (pass != 0) {
           channels = rpass->channels;
           dither = 0.0f; /* don't dither passes */
         }
@@ -4261,16 +4251,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    * For other cases we need to be sure it stays to default byte buffer space.
    */
   if (ibuf->rect != rect) {
-    if (byte_buffer_in_display_space) {
-      const char *colorspace = IMB_colormanagement_get_display_colorspace_name(
-          &iuser->scene->view_settings, &iuser->scene->display_settings);
-      IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
-    }
-    else {
-      const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
-          COLOR_ROLE_DEFAULT_BYTE);
-      IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
-    }
+    const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+    IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
   }
 
   /* invalidate color managed buffers if render result changed */

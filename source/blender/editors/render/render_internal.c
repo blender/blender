@@ -248,17 +248,8 @@ static void image_buffer_rect_update(RenderJob *rj,
     linear_offset_y = 0;
   }
 
-  if (rr->do_exr_tile) {
-    /* We don't support changing color management settings during rendering
-     * when using Save Buffers option.
-     */
-    view_settings = &rj->view_settings;
-    display_settings = &rj->display_settings;
-  }
-  else {
-    view_settings = &scene->view_settings;
-    display_settings = &scene->display_settings;
-  }
+  view_settings = &scene->view_settings;
+  display_settings = &scene->display_settings;
 
   IMB_partial_display_buffer_update(ibuf,
                                     rectf,
@@ -271,8 +262,7 @@ static void image_buffer_rect_update(RenderJob *rj,
                                     rxmin,
                                     rymin,
                                     rxmin + xmax,
-                                    rymin + ymax,
-                                    rr->do_exr_tile);
+                                    rymin + ymax);
 }
 
 /* ****************************** render invoking ***************** */

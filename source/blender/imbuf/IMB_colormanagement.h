@@ -269,8 +269,7 @@ void IMB_partial_display_buffer_update(struct ImBuf *ibuf,
                                        int xmin,
                                        int ymin,
                                        int xmax,
-                                       int ymax,
-                                       bool copy_display_to_byte_buffer);
+                                       int ymax);
 
 void IMB_partial_display_buffer_update_threaded(
     struct ImBuf *ibuf,
@@ -284,8 +283,7 @@ void IMB_partial_display_buffer_update_threaded(
     int xmin,
     int ymin,
     int xmax,
-    int ymax,
-    bool copy_display_to_byte_buffer);
+    int ymax);
 
 void IMB_partial_display_buffer_update_delayed(
     struct ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax);

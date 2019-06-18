@@ -100,16 +100,6 @@ typedef struct RenderLayer {
   char name[RE_MAXNAME];
   int layflag, passflag, pass_xor;
 
-  /* MULTIVIEW_TODO: acolrect and scolrect are not supported by multiview at the moment.
-   * If they are really required they should be in RenderView instead */
-
-  /** 4 float, optional transparent buffer, needs storage for display updates */
-  float *acolrect;
-  /** 4 float, optional strand buffer, needs storage for display updates */
-  float *scolrect;
-  /** 4 char, optional color managed display buffer which is used when
-   * Save Buffer is enabled to display combined pass of the screen. */
-  int *display_buffer;
   int rectx, recty;
 
   /** Optional saved endresult on disk. */
