@@ -1596,6 +1596,11 @@ class VIEW3D_MT_select_edit_text(Menu):
 
         layout.separator()
 
+        layout.operator("font.case_set", text="To Uppercase").case = 'UPPER'
+        layout.operator("font.case_set", text="To Lowercase").case = 'LOWER'
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_edit_text_chars")
 
 
