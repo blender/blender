@@ -2001,10 +2001,10 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
     BLI_rcti_init(&render_rect, 0, size[0], 0, size[1]);
   }
 
-  /* Reset state before drawing */
-  DRW_state_reset();
   /* Set the default Blender draw state */
   GPU_state_init();
+  /* Reset state before drawing */
+  DRW_state_reset();
 
   /* Init render result. */
   RenderResult *render_result = RE_engine_begin_result(engine,
