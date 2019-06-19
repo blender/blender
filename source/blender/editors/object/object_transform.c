@@ -971,10 +971,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   const float *cursor = scene->cursor.location;
   int centermode = RNA_enum_get(op->ptr, "type");
 
-  ListBase ctx_data_list;
-  CollectionPointerLink *ctx_ob;
-  CollectionPointerLink *ctx_ob_act = NULL;
-
   /* keep track of what is changed */
   int tot_change = 0, tot_lib_error = 0, tot_multiuser_arm_error = 0;
 
@@ -1043,21 +1039,22 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  CTX_data_selected_editable_objects(C, &ctx_data_list);
+  int num_objects;
+  Object **objects = sorted_selected_editable_objects(C, &num_objects);
+  if (objects == NULL) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* reset flags */
-  for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
-    Object *ob = ctx_ob->ptr.data;
+  for (int object_index = 0; object_index < num_objects; ++object_index) {
+    Object *ob = objects[object_index];
     ob->flag &= ~OB_DONE;
 
     /* move active first */
     if (ob == obact) {
-      ctx_ob_act = ctx_ob;
+      memmove(&objects[1], objects, object_index);
+      objects[0] = ob;
     }
-  }
-
-  if (ctx_ob_act) {
-    BLI_listbase_rotate_first(&ctx_data_list, (LinkData *)ctx_ob_act);
   }
 
   for (tob = bmain->objects.first; tob; tob = tob->id.next) {
@@ -1069,8 +1066,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (ctx_ob = ctx_data_list.first; ctx_ob; ctx_ob = ctx_ob->next) {
-    Object *ob = ctx_ob->ptr.data;
+  for (int object_index = 0; object_index < num_objects; ++object_index) {
+    Object *ob = objects[object_index];
 
     if ((ob->flag & OB_DONE) == 0) {
       bool do_inverse_offset = false;
@@ -1345,7 +1342,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
       /* offset other selected objects */
       if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
-        CollectionPointerLink *ctx_link_other;
         float obmat[4][4];
 
         /* was the object data modified
@@ -1369,9 +1365,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         //{
 
         /* use existing context looper */
-        for (ctx_link_other = ctx_data_list.first; ctx_link_other;
-             ctx_link_other = ctx_link_other->next) {
-          Object *ob_other = ctx_link_other->ptr.data;
+        for (int other_object_index = 0; other_object_index < num_objects; ++other_object_index) {
+          Object *ob_other = objects[other_object_index];
 
           if ((ob_other->flag & OB_DONE) == 0 &&
               ((ob->data && (ob->data == ob_other->data)) ||
@@ -1395,7 +1390,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
   }
-  BLI_freelistN(&ctx_data_list);
+  MEM_freeN(objects);
 
   for (tob = bmain->objects.first; tob; tob = tob->id.next) {
     if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
