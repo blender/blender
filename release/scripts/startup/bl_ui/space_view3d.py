@@ -4617,10 +4617,6 @@ class VIEW3D_MT_edit_gpencil_transform(Menu):
         layout.operator("transform.tosphere", text="To Sphere")
         layout.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
-        layout.separator()
-
-        layout.operator("gpencil.reproject")
-
 
 class VIEW3D_MT_edit_gpencil_interpolate(Menu):
     bl_label = "Interpolate"
