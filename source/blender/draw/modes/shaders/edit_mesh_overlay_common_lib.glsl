@@ -65,7 +65,7 @@ vec4 EDIT_MESH_face_color(int face_flag)
 vec4 EDIT_MESH_facedot_color(float facedot_flag)
 {
   if (facedot_flag < 0.0f) {
-    return colorEditMeshActive;
+    return vec4(colorEditMeshActive.xyz, 1.0);
   }
   else if (facedot_flag > 0.0f) {
     return colorFaceDot;
