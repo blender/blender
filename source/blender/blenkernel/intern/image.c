@@ -4812,7 +4812,7 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
 
     iuser->framenr = framenr;
 
-    if (ima && ima->gpuframenr != framenr) {
+    if (ima && BKE_image_is_animated(ima) && ima->gpuframenr != framenr) {
       /* Note: a single texture and refresh doesn't really work when
        * multiple image users may use different frames, this is to
        * be improved with perhaps a GPU texture cache. */
