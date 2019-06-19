@@ -459,6 +459,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = CTX_wm_view3d(C);
   Object *ob = OBACT(view_layer);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   SculptSession *ss = ob->sculpt;
@@ -560,7 +561,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
       }
     }
 
-    tag_update |= ((Mesh *)ob->data)->id.us > 1;
+    tag_update |= ((Mesh *)ob->data)->id.us > 1 || !BKE_sculptsession_use_pbvh_draw(ob, v3d);
 
     if (ss->kb || ss->modifiers_active) {
       Mesh *mesh = ob->data;
