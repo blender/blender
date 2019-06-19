@@ -6324,7 +6324,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
     char *tmp = NULL;
 
     if (type == BUT_GET_LABEL) {
-      if (but->str) {
+      if (but->str && but->str[0]) {
         const char *str_sep;
         size_t str_len;
 
