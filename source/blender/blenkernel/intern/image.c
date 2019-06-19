@@ -5075,9 +5075,10 @@ bool BKE_image_is_animated(Image *image)
 }
 
 /* Image modifications */
-bool BKE_image_is_dirty(Image *image)
+bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
 {
   bool is_dirty = false;
+  bool is_writable = false;
 
   BLI_spin_lock(&image_spin);
   if (image->cache != NULL) {
@@ -5086,6 +5087,7 @@ bool BKE_image_is_dirty(Image *image)
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
       if (ibuf->userflags & IB_BITMAPDIRTY) {
+        is_writable = BKE_image_buffer_format_writable(ibuf);
         is_dirty = true;
         break;
       }
@@ -5095,12 +5097,29 @@ bool BKE_image_is_dirty(Image *image)
   }
   BLI_spin_unlock(&image_spin);
 
+  if (r_is_writable) {
+    *r_is_writable = is_writable;
+  }
+
   return is_dirty;
+}
+
+bool BKE_image_is_dirty(Image *image)
+{
+  return BKE_image_is_dirty_writable(image, NULL);
 }
 
 void BKE_image_mark_dirty(Image *UNUSED(image), ImBuf *ibuf)
 {
   ibuf->userflags |= IB_BITMAPDIRTY;
+}
+
+bool BKE_image_buffer_format_writable(ImBuf *ibuf)
+{
+  ImageFormatData im_format;
+  ImbFormatOptions options_dummy;
+  BKE_imbuf_to_image_format(&im_format, ibuf);
+  return (BKE_image_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
 }
 
 void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)

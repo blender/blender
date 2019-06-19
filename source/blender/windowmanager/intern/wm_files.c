@@ -2949,11 +2949,9 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   UI_popup_block_close(C, win, arg_block);
 
   if (save_images_when_file_is_closed) {
-    ReportList *reports = CTX_wm_reports(C);
-    if (!ED_image_save_all_modified(C, reports)) {
+    if (!ED_image_should_save_modified(C)) {
       execute_callback = false;
     }
-    WM_report_banner_show();
   }
 
   Main *bmain = CTX_data_main(C);
@@ -3059,10 +3057,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C, struct ARegi
                  0,
                  0,
                  "");
+  }
 
-    LISTBASE_FOREACH (Report *, report, &reports.list) {
-      uiItemL(layout, report->message, ICON_ERROR);
-    }
+  LISTBASE_FOREACH (Report *, report, &reports.list) {
+    uiItemL(layout, report->message, ICON_ERROR);
   }
 
   BKE_reports_clear(&reports);

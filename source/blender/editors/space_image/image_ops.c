@@ -234,14 +234,6 @@ static bool image_not_packed_poll(bContext *C)
   return (ima && BLI_listbase_is_empty(&ima->packedfiles));
 }
 
-static bool imbuf_format_writeable(const ImBuf *ibuf)
-{
-  ImageFormatData im_format;
-  ImbFormatOptions options_dummy;
-  BKE_imbuf_to_image_format(&im_format, ibuf);
-  return (BKE_image_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
-}
-
 bool space_image_main_region_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -2060,7 +2052,7 @@ static bool image_file_path_saveable(bContext *C, Image *ima, ImageUser *iuser)
     else if (!BLI_file_is_writable(name)) {
       CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
     }
-    else if (!imbuf_format_writeable(ibuf)) {
+    else if (!BKE_image_buffer_format_writable(ibuf)) {
       CTX_wm_operator_poll_msg_set(C, "image format is read-only");
     }
     else {
@@ -2254,9 +2246,9 @@ static bool image_should_be_saved_when_modified(Image *ima)
   return !ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE);
 }
 
-static bool image_should_be_saved(Image *ima)
+static bool image_should_be_saved(Image *ima, bool *is_format_writable)
 {
-  if (BKE_image_is_dirty(ima) &&
+  if (BKE_image_is_dirty_writable(ima, is_format_writable) &&
       (ima->source == IMA_SRC_FILE || ima->source == IMA_SRC_GENERATED)) {
     return image_should_be_saved_when_modified(ima);
   }
@@ -2272,7 +2264,15 @@ static bool image_has_valid_path(Image *ima)
 
 bool ED_image_should_save_modified(const bContext *C)
 {
-  return ED_image_save_all_modified_info(C, NULL) > 0;
+  ReportList reports;
+  BKE_reports_init(&reports, RPT_STORE);
+
+  uint modified_images_count = ED_image_save_all_modified_info(C, &reports);
+  bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
+
+  BKE_reports_clear(&reports);
+
+  return should_save;
 }
 
 int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
@@ -2283,7 +2283,9 @@ int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
   int num_saveable_images = 0;
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-    if (image_should_be_saved(ima)) {
+    bool is_format_writable;
+
+    if (image_should_be_saved(ima, &is_format_writable)) {
       if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
         if (ima->id.lib == NULL) {
           num_saveable_images++;
@@ -2292,9 +2294,15 @@ int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Packed library image: %s from library %s can't be saved",
-                      ima->id.name,
+                      ima->id.name + 2,
                       ima->id.lib->name);
         }
+      }
+      else if (!is_format_writable) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Image %s can't be saved automatically, must use a different file format",
+                    ima->id.name + 2);
       }
       else {
         if (image_has_valid_path(ima)) {
@@ -2313,7 +2321,7 @@ int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Image %s can't be saved, no valid file path: %s",
-                      ima->id.name,
+                      ima->id.name + 2,
                       ima->name);
         }
       }
@@ -2332,11 +2340,13 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
   bool ok = true;
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-    if (image_should_be_saved(ima)) {
+    bool is_format_writable;
+
+    if (image_should_be_saved(ima, &is_format_writable)) {
       if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
         BKE_image_memorypack(ima);
       }
-      else {
+      else if (is_format_writable) {
         if (image_has_valid_path(ima)) {
           ImageSaveOptions opts;
           Scene *scene = CTX_data_scene(C);
