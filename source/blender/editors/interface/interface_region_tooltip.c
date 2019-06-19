@@ -608,6 +608,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
 static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 {
+  uiStringInfo but_label = {BUT_GET_LABEL, NULL};
   uiStringInfo but_tip = {BUT_GET_TIP, NULL};
   uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
   uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
@@ -623,6 +624,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
   UI_but_string_info_get(C,
                          but,
+                         &but_label,
                          &but_tip,
                          &enum_label,
                          &enum_tip,
@@ -631,6 +633,17 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
                          &rna_struct,
                          &rna_prop,
                          NULL);
+
+  /* Tip Label (only for buttons not already showing the label).
+   * Check prefix instead of comparing because the button may include the shortcut. */
+  if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo)) {
+    uiTooltipField *field = text_field_add(data,
+                                           &(uiTooltipFormat){
+                                               .style = UI_TIP_STYLE_HEADER,
+                                               .color_id = UI_TIP_LC_NORMAL,
+                                           });
+    field->text = BLI_sprintfN("%s.", but_label.strinfo);
+  }
 
   /* Tip */
   if (but_tip.strinfo) {
@@ -844,6 +857,9 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
   }
 
   /* Free strinfo's... */
+  if (but_label.strinfo) {
+    MEM_freeN(but_label.strinfo);
+  }
   if (but_tip.strinfo) {
     MEM_freeN(but_tip.strinfo);
   }
