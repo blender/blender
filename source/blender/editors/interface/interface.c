@@ -6401,18 +6401,35 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           }
         }
       }
-      else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
-        MenuType *mt = UI_but_menutype_get(but);
-        if (mt) {
-          /* not all menus are from python */
-          if (mt->ext.srna) {
+      else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
+        {
+          MenuType *mt = UI_but_menutype_get(but);
+          if (mt) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(RNA_struct_ui_name(mt->ext.srna));
+              tmp = BLI_strdup(mt->label);
             }
             else {
-              const char *t = RNA_struct_ui_description(mt->ext.srna);
-              if (t && t[0]) {
-                tmp = BLI_strdup(t);
+              /* Not all menus are from Python. */
+              if (mt->ext.srna) {
+                const char *t = RNA_struct_ui_description(mt->ext.srna);
+                if (t && t[0]) {
+                  tmp = BLI_strdup(t);
+                }
+              }
+            }
+          }
+        }
+
+        if (tmp == NULL) {
+          PanelType *pt = UI_but_paneltype_get(but);
+          if (pt) {
+            if (type == BUT_GET_RNA_LABEL) {
+              tmp = BLI_strdup(pt->label);
+            }
+            else {
+              /* Not all panels are from Python. */
+              if (pt->ext.srna) {
+                /* Panels don't yet have descriptions, this may be added. */
               }
             }
           }
