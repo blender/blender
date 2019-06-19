@@ -53,6 +53,7 @@
 #include "BKE_multires.h"
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_tracking.h"
 #include "BKE_gpencil.h"
 
@@ -478,6 +479,55 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
   }
 }
 
+static void append_sorted_object_parent_hierarchy(Object *root_object,
+                                                  Object *object,
+                                                  Object **sorted_objects,
+                                                  int *object_index)
+{
+  if (object->parent != NULL && object->parent != root_object) {
+    append_sorted_object_parent_hierarchy(
+        root_object, object->parent, sorted_objects, object_index);
+  }
+  if (object->id.tag & LIB_TAG_DOIT) {
+    sorted_objects[*object_index] = object;
+    (*object_index)++;
+    object->id.tag &= ~LIB_TAG_DOIT;
+  }
+}
+
+static Object **sorted_selected_editable_objects(bContext *C, int *r_num_objects)
+{
+  Main *bmain = CTX_data_main(C);
+
+  /* Count all objects, but also tag all the selected ones. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  int num_objects = 0;
+  CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
+    object->id.tag |= LIB_TAG_DOIT;
+    num_objects++;
+  }
+  CTX_DATA_END;
+  if (num_objects == 0) {
+    *r_num_objects = 0;
+    return NULL;
+  }
+
+  /* Append all the objects. */
+  Object **sorted_objects = MEM_malloc_arrayN(num_objects, sizeof(Object *), "sorted objects");
+  int object_index = 0;
+  CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
+    if ((object->id.tag & LIB_TAG_DOIT) == 0) {
+      continue;
+    }
+    append_sorted_object_parent_hierarchy(object, object, sorted_objects, &object_index);
+  }
+  CTX_DATA_END;
+
+  *r_num_objects = num_objects;
+
+  return sorted_objects;
+}
+
 static int apply_objects_internal(bContext *C,
                                   ReportList *reports,
                                   bool apply_loc,
@@ -621,7 +671,14 @@ static int apply_objects_internal(bContext *C,
   changed = false;
 
   /* now execute */
-  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+  int num_objects;
+  Object **objects = sorted_selected_editable_objects(C, &num_objects);
+  if (objects == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  for (int object_index = 0; object_index < num_objects; ++object_index) {
+    Object *ob = objects[object_index];
 
     /* calculate rotation/scale matrix */
     if (apply_scale && apply_rot) {
@@ -798,7 +855,8 @@ static int apply_objects_internal(bContext *C,
 
     changed = true;
   }
-  CTX_DATA_END;
+
+  MEM_freeN(objects);
 
   if (!changed) {
     BKE_report(reports, RPT_WARNING, "Objects have no data to transform");
