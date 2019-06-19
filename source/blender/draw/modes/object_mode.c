@@ -3221,10 +3221,12 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
             break;
           }
           geom = DRW_cache_lattice_wire_get(ob, false);
+          if (geom == NULL) {
+            break;
+          }
           if (theme_id == TH_UNDEFINED) {
             theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
           }
-
           shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
           DRW_shgroup_call(shgroup, geom, ob);
         }
@@ -3236,6 +3238,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
             break;
           }
           geom = DRW_cache_curve_edge_wire_get(ob);
+          if (geom == NULL) {
+            break;
+          }
           if (theme_id == TH_UNDEFINED) {
             theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
           }
