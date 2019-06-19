@@ -2720,16 +2720,14 @@ def km_curve(params):
 
 
     items.extend([
-        ("curve.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
-        ("curve.vertex_add", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True}, None),
-        ("curve.select_all", {"type": 'A', "value": 'CLICK', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
-        ("curve.select_all", {"type": 'A', "value": 'CLICK', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
-        ("curve.select_all", {"type": 'I', "value": 'CLICK', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+        ("curve.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
+        ("curve.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
+        ("curve.select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
         ("curve.select_row", {"type": 'R', "value": 'PRESS', "shift": True}, None),
         ("curve.select_more", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
         ("curve.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
         ("curve.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS'}, None),
-        ("curve.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True, "shift": True}, None),
+        ("curve.shortest_path_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
         ("curve.duplicate_move", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         op_menu("VIEW3D_MT_edit_curve_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_edit_curve_delete", {"type": 'DEL', "value": 'PRESS'}),
