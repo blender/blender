@@ -460,11 +460,10 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 
 /* use this when the loc/size/rot of the parent has changed but the children
  * should stay in the same place, e.g. for apply-size-rot or object center */
-static void ignore_parent_tx(const bContext *C, Main *bmain, Scene *scene, Object *ob)
+static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   Object workob;
   Object *ob_child;
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
   /* a change was made, adjust the children to compensate */
   for (ob_child = bmain->objects.first; ob_child; ob_child = ob_child->id.next) {
@@ -793,7 +792,7 @@ static int apply_objects_internal(bContext *C,
       BKE_pose_where_is(depsgraph, scene, ob_eval);
     }
 
-    ignore_parent_tx(C, bmain, scene, ob);
+    ignore_parent_tx(bmain, depsgraph, scene, ob);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
@@ -1166,7 +1165,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           BKE_object_where_is_calc(depsgraph, scene, ob);
           BKE_pose_where_is(depsgraph, scene, ob); /* needed for bone parents */
 
-          ignore_parent_tx(C, bmain, scene, ob);
+          ignore_parent_tx(bmain, depsgraph, scene, ob);
 
           if (obedit) {
             break;
@@ -1305,7 +1304,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           BKE_pose_where_is(depsgraph, scene, ob); /* needed for bone parents */
         }
 
-        ignore_parent_tx(C, bmain, scene, ob);
+        ignore_parent_tx(bmain, depsgraph, scene, ob);
 
         /* other users? */
         // CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
@@ -1331,7 +1330,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
               /* needed for bone parents */
               BKE_pose_where_is(depsgraph, scene, ob_other);
             }
-            ignore_parent_tx(C, bmain, scene, ob_other);
+            ignore_parent_tx(bmain, depsgraph, scene, ob_other);
           }
         }
         // CTX_DATA_END;
