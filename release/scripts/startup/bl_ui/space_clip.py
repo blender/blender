@@ -465,17 +465,17 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         row = layout.row(align=True)
         row.label(text="Track:")
 
-        props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
+        props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS_SINGLE')
         props.backwards = True
         props.sequence = False
         props = row.operator("clip.track_markers", text="",
-                             icon='PLAY_REVERSE')
+                             icon='TRACKING_BACKWARDS')
         props.backwards = True
         props.sequence = True
-        props = row.operator("clip.track_markers", text="", icon='PLAY')
+        props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS')
         props.backwards = False
         props.sequence = True
-        props = row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS_SINGLE')
         props.backwards = False
         props.sequence = False
 
@@ -484,10 +484,10 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         row.label(text="Clear:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.clear_track_path", text="", icon='BACK')
+        props = row.operator("clip.clear_track_path", text="", icon='TRACKING_CLEAR_BACKWARDS')
         props.action = 'UPTO'
 
-        props = row.operator("clip.clear_track_path", text="", icon='FORWARD')
+        props = row.operator("clip.clear_track_path", text="", icon='TRACKING_CLEAR_FORWARDS')
         props.action = 'REMAINED'
 
         col = layout.column()
@@ -495,10 +495,10 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         row.label(text="Refine:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.refine_markers", text="", icon='LOOP_BACK')
+        props = row.operator("clip.refine_markers", text="", icon='TRACKING_REFINE_BACKWARDS')
         props.backwards = True
 
-        props = row.operator("clip.refine_markers", text="", icon='LOOP_FORWARDS')
+        props = row.operator("clip.refine_markers", text="", icon='TRACKING_REFINE_FORWARDS')
         props.backwards = False
 
         col = layout.column(align=True)
@@ -1113,6 +1113,7 @@ from bl_ui.properties_mask_common import (
     MASK_PT_point,
     MASK_PT_display,
     MASK_PT_transforms,
+    MASK_PT_tools
 )
 
 
@@ -1151,6 +1152,10 @@ class CLIP_PT_tools_mask_transforms(MASK_PT_transforms, Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Mask"
 
+class CLIP_PT_tools_mask_tools(MASK_PT_tools, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "Mask"
 
 # --- end mask ---
 
@@ -1226,6 +1231,7 @@ class CLIP_MT_view(Menu):
             layout.prop(sc, "show_region_ui")
             layout.prop(sc, "show_region_toolbar")
             layout.prop(sc, "show_region_hud")
+            layout.prop(sc, "show_region_tool_header")
 
             layout.separator()
 
@@ -1421,9 +1427,16 @@ class CLIP_MT_select_grouped(Menu):
 
         layout.operator_enum("clip.select_grouped", "group")
 
+class CLIP_MT_mask_handle_type_menu(Menu):
+    bl_label = "Set Handle Type"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_enum("mask.handle_type_set", "type")
 
 class CLIP_MT_tracking_context_menu(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     @classmethod
     def poll(cls, context):
@@ -1432,25 +1445,73 @@ class CLIP_MT_tracking_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("clip.disable_markers",
-                        text="Enable Markers").action = 'ENABLE'
+        mode = _context.space_data.mode
 
-        layout.operator("clip.disable_markers",
-                        text="Disable Markers").action = 'DISABLE'
+        if mode == 'TRACKING':
 
-        layout.separator()
-        layout.operator("clip.set_origin")
+            layout.operator("clip.track_settings_to_track")
+            layout.operator("clip.track_settings_as_default")
 
-        layout.separator()
-        layout.operator("clip.hide_tracks")
-        layout.operator("clip.hide_tracks_clear", text="Show Tracks")
+            layout.separator()
 
-        layout.separator()
-        layout.operator("clip.lock_tracks", text="Lock Tracks").action = 'LOCK'
+            layout.operator("clip.track_copy_color")
 
-        layout.operator("clip.lock_tracks",
-                        text="Unlock Tracks").action = 'UNLOCK'
+            layout.separator()
 
+            layout.operator("clip.copy_tracks", icon='COPYDOWN')
+            layout.operator("clip.paste_tracks", icon='PASTEDOWN')
+
+            layout.separator()
+
+            layout.operator("clip.disable_markers",
+                            text="Disable Markers").action = 'DISABLE'
+            layout.operator("clip.disable_markers",
+                            text="Enable Markers").action = 'ENABLE'
+
+            layout.separator()
+
+            layout.operator("clip.hide_tracks")
+            layout.operator("clip.hide_tracks_clear", text="Show Tracks")
+
+            layout.separator()
+
+            layout.operator("clip.lock_tracks", text="Lock Tracks").action = 'LOCK'
+            layout.operator("clip.lock_tracks",
+                            text="Unlock Tracks").action = 'UNLOCK'
+
+            layout.separator()
+
+            layout.operator("clip.join_tracks")
+
+            layout.separator()
+
+            layout.operator("clip.delete_track")
+
+        elif mode == 'MASK':
+
+            layout.menu("CLIP_MT_mask_handle_type_menu")
+            layout.operator("mask.switch_direction")
+            layout.operator("mask.cyclic_toggle")
+
+            layout.separator()
+
+            layout.operator("mask.copy_splines", icon='COPYDOWN')
+            layout.operator("mask.paste_splines", icon='PASTEDOWN')
+
+            layout.separator()
+
+            layout.operator("mask.shape_key_rekey", text="Re-key Shape Points")
+            layout.operator("mask.feather_weight_clear")
+            layout.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
+
+            layout.separator()
+
+            layout.operator("mask.parent_set")
+            layout.operator("mask.parent_clear")
+
+            layout.separator()
+
+            layout.operator("mask.delete")
 
 class CLIP_PT_camera_presets(PresetPanel, Panel):
     """Predefined tracking camera intrinsics"""
@@ -1696,6 +1757,7 @@ classes = (
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
     CLIP_PT_tools_mask_transforms,
+    CLIP_PT_tools_mask_tools,
     CLIP_PT_tools_scenesetup,
     CLIP_PT_grease_pencil,
     CLIP_PT_tools_grease_pencil_draw,
@@ -1717,7 +1779,8 @@ classes = (
     CLIP_MT_marker_pie,
     CLIP_MT_tracking_pie,
     CLIP_MT_reconstruction_pie,
-    CLIP_MT_solving_pie
+    CLIP_MT_solving_pie,
+    CLIP_MT_mask_handle_type_menu
 )
 
 if __name__ == "__main__":  # only for live edit.
