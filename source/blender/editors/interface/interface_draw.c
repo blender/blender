@@ -1526,6 +1526,7 @@ static void ui_draw_colorband_handle(uint shdr_pos,
     immUniformArray4fv(
         "colors", (float *)(float[][4]){{0.8f, 0.8f, 0.8f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
     immUniform1f("dash_width", active ? 4.0f : 2.0f);
+    immUniform1f("dash_factor", 0.5f);
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(shdr_pos, x, y1);

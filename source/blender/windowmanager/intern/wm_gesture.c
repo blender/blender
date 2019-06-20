@@ -215,6 +215,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 8.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   float xmin = (float)rect->xmin;
   float ymin = (float)rect->ymin;
@@ -257,6 +258,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 8.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   imm_draw_box_wire_2d(
       shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
@@ -295,6 +297,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 4.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   imm_draw_circle_wire_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
 
@@ -418,6 +421,7 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 2.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   immBegin((gt->type == WM_GESTURE_LASSO) ? GPU_PRIM_LINE_LOOP : GPU_PRIM_LINE_STRIP, numverts);
 
@@ -451,6 +455,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 8.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 4);
 

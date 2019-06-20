@@ -182,6 +182,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{0.0f, 0.0f, 0.0f, alpha}, {1.0f, 1.0f, 1.0f, alpha}}, 2);
   immUniform1f("dash_width", 6.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
 

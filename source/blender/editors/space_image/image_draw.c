@@ -699,6 +699,7 @@ void draw_image_sample_line(SpaceImage *sima)
     immUniformArray4fv(
         "colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
     immUniform1f("dash_width", 2.0f);
+    immUniform1f("dash_factor", 0.5f);
 
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2fv(shdr_dashed_pos, hist->co[0]);

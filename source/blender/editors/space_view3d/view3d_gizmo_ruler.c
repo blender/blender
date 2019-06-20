@@ -563,6 +563,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}},
         2);
     immUniform1f("dash_width", 6.0f);
+    immUniform1f("dash_factor", 0.5f);
 
     immBegin(GPU_PRIM_LINE_STRIP, 3);
 
@@ -725,6 +726,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}},
         2);
     immUniform1f("dash_width", 6.0f);
+    immUniform1f("dash_factor", 0.5f);
 
     immBegin(GPU_PRIM_LINES, 2);
 

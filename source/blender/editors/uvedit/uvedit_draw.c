@@ -117,6 +117,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 8.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 8);
 
@@ -137,6 +138,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
   immUniformArray4fv(
       "colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
   immUniform1f("dash_width", 2.0f);
+  immUniform1f("dash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 8);
 
@@ -360,6 +362,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
             edges, "viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
         GPU_batch_uniform_1i(edges, "colors_len", 2); /* "advanced" mode */
         GPU_batch_uniform_1f(edges, "dash_width", 4.0f);
+        GPU_batch_uniform_1f(edges, "dash_factor", 0.5f);
         GPU_batch_draw(edges);
         break;
       }

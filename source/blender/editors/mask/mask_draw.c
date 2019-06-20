@@ -500,6 +500,7 @@ static void mask_draw_curve_type(const bContext *C,
       immUniform1i("colors_len", 2); /* "advanced" mode */
       immUniformArray4fv("colors", colors, 2);
       immUniform1f("dash_width", 4.0f);
+      immUniform1f("dash_factor", 0.5f);
       GPU_line_width(1.0f);
 
       mask_draw_array(pos, draw_method, points, tot_point);
