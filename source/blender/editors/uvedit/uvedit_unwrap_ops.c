@@ -1272,10 +1272,11 @@ static void uv_map_rotation_matrix_ex(float result[4][4],
   }
 
   /* but shifting */
-  copy_v4_fl(viewmatrix[3], 0.0f);
+  zero_v3(viewmatrix[3]);
 
   /* get rotation of the current object matrix */
   copy_m4_m4(rotobj, ob->obmat);
+  zero_v3(rotobj[3]);
 
   /* but shifting */
   add_v4_v4(rotobj[3], offset);
