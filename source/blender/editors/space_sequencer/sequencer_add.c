@@ -625,13 +625,14 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
     }
   }
 
-  if (seq_load.tot_success == 0) {
-    BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", seq_load.path);
-    return OPERATOR_CANCELLED;
-  }
-
   if (op->customdata) {
     MEM_freeN(op->customdata);
+  }
+
+  if (seq_load.tot_success == 0) {
+    BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", seq_load.path);
+
+    return OPERATOR_CANCELLED;
   }
 
   BKE_sequencer_sort(scene);
