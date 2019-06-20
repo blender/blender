@@ -934,29 +934,28 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     layout.prop(strip, "use_scale_to_length")
 
         elif strip.type == 'TRANSFORM':
-            layout = self.layout
             col = layout.column()
 
             col.prop(strip, "interpolation")
             col.prop(strip, "translation_unit")
-            layout = layout.column(align=True)
-            layout.prop(strip, "translate_start_x", text="Position X")
-            layout.prop(strip, "translate_start_y", text="Y")
-
-            layout.separator()
-
             col = layout.column(align=True)
-            col.prop(strip, "use_uniform_scale")
+            col.prop(strip, "translate_start_x", text="Position X")
+            col.prop(strip, "translate_start_y", text="Y")
+
+            col.separator()
+
+            colsub = col.column(align=True)
+            colsub.prop(strip, "use_uniform_scale")
             if strip.use_uniform_scale:
-                col = layout.column(align=True)
-                col.prop(strip, "scale_start_x", text="Scale")
+                colsub = col.column(align=True)
+                colsub.prop(strip, "scale_start_x", text="Scale")
             else:
-                layout.prop(strip, "scale_start_x", text="Scale X")
-                layout.prop(strip, "scale_start_y", text="Y")
+                col.prop(strip, "scale_start_x", text="Scale X")
+                col.prop(strip, "scale_start_y", text="Y")
 
-            layout.separator()
+            col.separator()
 
-            layout.prop(strip, "rotation_start", text="Rotation")
+            col.prop(strip, "rotation_start", text="Rotation")
 
         elif strip.type == 'MULTICAM':
             col = layout.column(align=True)
@@ -1021,9 +1020,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect Fader")
         elif strip.type == 'GAUSSIAN_BLUR':
-            layout = layout.column(align=True)
-            layout.prop(strip, "size_x", text="Size X")
-            layout.prop(strip, "size_y", text="Y")
+            col = layout.column(align=True)
+            col.prop(strip, "size_x", text="Size X")
+            col.prop(strip, "size_y", text="Y")
         elif strip.type == 'COLORMIX':
             layout.prop(strip, "blend_effect", text="Blend Mode")
             row = layout.row(align=True)
@@ -1046,11 +1045,11 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
 
         return strip.type in {'MOVIE', 'IMAGE', 'SOUND'}
 
-        ''', 'SCENE', 'MOVIECLIP', 'META',
-        'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-        'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
-        'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-        'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX' }'''
+        # , 'SCENE', 'MOVIECLIP', 'META',
+        # 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+        # 'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+        # 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+        # 'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX' }
 
     def draw(self, context):
         layout = self.layout
@@ -1263,6 +1262,8 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
         return strip.type
 
     def draw(self, context):
+        from bpy.utils import smpte_from_frame
+
         layout = self.layout
         layout.use_property_split = False
         layout.use_property_decorate = False
@@ -1302,17 +1303,17 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Start")
-        split.prop(strip, "frame_final_start", text=str(bpy.utils.smpte_from_frame(strip.frame_final_start)))
+        split.prop(strip, "frame_final_start", text=smpte_from_frame(strip.frame_final_start))
 
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="End")
-        split.prop(strip, "frame_final_end", text=str(bpy.utils.smpte_from_frame(strip.frame_final_end)))
+        split.prop(strip, "frame_final_end", text=smpte_from_frame(strip.frame_final_end))
 
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Duration")
-        split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)))
+        split.prop(strip, "frame_final_duration", text=smpte_from_frame(strip.frame_final_duration))
 
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -1327,25 +1328,25 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Strip Offset Start")
-            split.prop(strip, "frame_offset_start", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_start)))
+            split.prop(strip, "frame_offset_start", text=smpte_from_frame(strip.frame_offset_start))
 
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
-            split.prop(strip, "frame_offset_end", text=str(bpy.utils.smpte_from_frame(strip.frame_offset_end)))
+            split.prop(strip, "frame_offset_end", text=smpte_from_frame(strip.frame_offset_end))
 
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
 
-            split = sub.split(factor=0.5 + max_factor,  align=True)
+            split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Hold Offset Start")
-            split.prop(strip, "animation_offset_start", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_start)))
+            split.prop(strip, "animation_offset_start", text=smpte_from_frame(strip.animation_offset_start))
 
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text='End')
-            split.prop(strip, "animation_offset_end", text=str(bpy.utils.smpte_from_frame(strip.animation_offset_end)))
+            split.prop(strip, "animation_offset_end", text=smpte_from_frame(strip.animation_offset_end))
 
         col = layout.column(align=True)
         col = col.box()
@@ -1359,9 +1360,9 @@ class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
         split.label(text="Playhead")
         split = split.split(factor=0.8 + max_factor, align=True)
         playhead = frame_current - strip.frame_final_start
-        split.label(text='{:>14}'.format(bpy.utils.smpte_from_frame(playhead)+":"))
+        split.label(text='{:>14}'.format(smpte_from_frame(playhead) + ":"))
         split.alignment = 'RIGHT'
-        split.label(text=str(playhead)+" ")
+        split.label(text=str(playhead) + " ")
 
         elem = False
 
@@ -1505,7 +1506,6 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         row.prop(strip, "use_flip_y", text="Y", toggle=True)
 
 
-
 class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
     bl_label = "Video"
     bl_parent_id = "SEQUENCER_PT_adjust"
@@ -1552,6 +1552,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
             col.separator()
 
         col.prop(strip, "playback_direction")
+
 
 class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
     bl_label = "Color"
@@ -1624,7 +1625,6 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
@@ -1682,15 +1682,14 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
                 if proxy.use_proxy_custom_file:
                     flow.prop(proxy, "filepath")
 
-            layout = layout.box()
-            row = layout.row(align=True)
+            box = layout.box()
+            row = box.row(align=True)
             row.prop(strip.proxy, "build_25")
             row.prop(strip.proxy, "build_75")
-            row = layout.row(align=True)
+            row = box.row(align=True)
             row.prop(strip.proxy, "build_50")
             row.prop(strip.proxy, "build_100")
 
-            layout = self.layout
             layout.use_property_split = True
             layout.use_property_decorate = False
 
@@ -1716,6 +1715,7 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
             return False
         if act_strip(context) is not None:
             return True
+        return False
 
     def draw_header(self, context):
         strip = act_strip(context)
@@ -1723,13 +1723,12 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
         strip = act_strip(context)
         layout.active = strip.override_cache_settings
-        
+
         col = layout.column()
         col.prop(strip, "use_cache_raw")
         col.prop(strip, "use_cache_preprocessed")
@@ -1747,6 +1746,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
+
         render = context.scene.render
 
         col = layout.column()
