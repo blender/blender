@@ -325,6 +325,7 @@ data_to_c_simple(modes/shaders/paint_wire_vert.glsl SRC)
 data_to_c_simple(modes/shaders/paint_vert_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_vert.glsl SRC)
+data_to_c_simple(modes/shaders/pose_selection_vert.glsl SRC)
 data_to_c_simple(modes/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(modes/shaders/volume_velocity_vert.glsl SRC)
 

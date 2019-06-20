@@ -35,6 +35,10 @@
 #include "draw_common.h"
 #include "draw_mode_engines.h"
 
+extern char datatoc_common_view_lib_glsl[];
+extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
+extern char datatoc_pose_selection_vert_glsl[];
+
 /* *********** LISTS *********** */
 /**
  * All lists are per viewport specific datas.
@@ -93,12 +97,18 @@ static bool POSE_is_bone_selection_overlay_active(void)
 static void POSE_engine_init(void *UNUSED(vedata))
 {
   if (!e_data.bone_selection_sh) {
-    e_data.bone_selection_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+    e_data.bone_selection_sh = DRW_shader_create_with_lib(
+        datatoc_pose_selection_vert_glsl,
+        NULL,
+        datatoc_gpu_shader_uniform_color_frag_glsl,
+        datatoc_common_view_lib_glsl,
+        NULL);
   }
 }
 
 static void POSE_engine_free(void)
 {
+  DRW_SHADER_FREE_SAFE(e_data.bone_selection_sh);
 }
 
 /* Here init all passes and shading groups
