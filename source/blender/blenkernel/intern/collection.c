@@ -443,15 +443,13 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
       BLI_addtail(lb, base);
     }
 
-    int object_restrict = base->object->restrictflag;
-
-    if (((child_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0) &&
-        ((object_restrict & OB_RESTRICT_VIEWPORT) == 0)) {
+    /* Only collection flags are checked here currently, object restrict flag is checked
+     * in FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN since it can be animated
+     * without updating the cache. */
+    if (((child_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0)) {
       base->flag |= BASE_ENABLED_VIEWPORT;
     }
-
-    if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
-        ((object_restrict & OB_RESTRICT_RENDER) == 0)) {
+    if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0)) {
       base->flag |= BASE_ENABLED_RENDER;
     }
   }
