@@ -1958,8 +1958,8 @@ static void rna_def_filter_video(StructRNA *srna)
   };
 
   static const EnumPropertyItem playback_direction_items[] = {
-      {0, "FORWARDS", 0, "Forwards", "Play clip forwards"},
-      {SEQ_REVERSE_FRAMES, "BACKWARDS", 0, "Backwards", "Play clip backwards"},
+      {0, "FORWARD", 0, "Forwards", "Play strip forwards"},
+      {SEQ_REVERSE_FRAMES, "BACKWARD", 0, "Backwards", "Play strip backwards"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1992,7 +1992,7 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "playback_direction", PROP_ENUM, PROP_NONE); /* as an enum */
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, playback_direction_items);
-  RNA_def_property_ui_text(prop, "Playback Direction", "Play clip forwards or backwards");
+  RNA_def_property_ui_text(prop, "Playback Direction", "Play strip forwards or backwards");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
@@ -2408,7 +2408,8 @@ static void rna_def_sound(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_waveform", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
-  RNA_def_property_ui_text(prop, "Display Waveform", "Display the audio waveform inside the clip");
+  RNA_def_property_ui_text(
+      prop, "Display Waveform", "Display the audio waveform inside the strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   rna_def_input(srna);
