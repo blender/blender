@@ -250,6 +250,11 @@ class FILEBROWSER_MT_view(Menu):
         st = context.space_data
         params = st.params
 
+        layout.prop(st, "show_region_toolbar")
+        layout.prop(st, "show_region_ui", text="File Path")
+
+        layout.separator()
+
         layout.prop_menu_enum(params, "display_size")
         layout.prop_menu_enum(params, "recursion_level")
 
