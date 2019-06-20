@@ -952,7 +952,7 @@ class IMAGE_PT_render_slots(Panel):
         col = row.column()
         col.template_list(
             "IMAGE_UL_render_slots", "render_slots", ima,
-            "render_slots", ima.render_slots, "active_index", rows=3
+            "render_slots", ima.render_slots, "active_index", rows=3,
         )
 
         col = row.column(align=True)

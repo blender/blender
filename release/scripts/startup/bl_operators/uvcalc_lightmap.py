@@ -233,15 +233,16 @@ class prettyface:
         return self.width, self.height
 
 
-def lightmap_uvpack(meshes,
-                    PREF_SEL_ONLY=True,
-                    PREF_NEW_UVLAYER=False,
-                    PREF_PACK_IN_ONE=False,
-                    PREF_APPLY_IMAGE=False,
-                    PREF_IMG_PX_SIZE=512,
-                    PREF_BOX_DIV=8,
-                    PREF_MARGIN_DIV=512
-                    ):
+def lightmap_uvpack(
+        meshes,
+        PREF_SEL_ONLY=True,
+        PREF_NEW_UVLAYER=False,
+        PREF_PACK_IN_ONE=False,
+        PREF_APPLY_IMAGE=False,
+        PREF_IMG_PX_SIZE=512,
+        PREF_BOX_DIV=8,
+        PREF_MARGIN_DIV=512,
+):
     """
     BOX_DIV if the maximum division of the UV map that
     a box may be consolidated into.

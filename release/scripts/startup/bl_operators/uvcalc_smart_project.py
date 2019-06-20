@@ -1011,7 +1011,7 @@ class SmartProject(Operator):
     use_aspect: BoolProperty(
         name="Correct Aspect",
         description="Map UVs taking image aspect ratio into account",
-        default=True
+        default=True,
     )
     stretch_to_bounds: BoolProperty(
         name="Stretch to UV Bounds",
@@ -1029,8 +1029,8 @@ class SmartProject(Operator):
              self.angle_limit,
              self.user_area_weight,
              self.use_aspect,
-             self.stretch_to_bounds
-             )
+             self.stretch_to_bounds,
+        )
         return {'FINISHED'}
 
     def invoke(self, context, _event):

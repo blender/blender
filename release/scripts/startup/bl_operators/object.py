@@ -126,7 +126,7 @@ class SelectCamera(Operator):
     extend: BoolProperty(
         name="Extend",
         description="Extend the selection",
-        default=False
+        default=False,
     )
 
     def execute(self, context):
@@ -887,7 +887,7 @@ class LoadImageAsEmpty:
 
     view_align: BoolProperty(
         name="Align to view",
-        default=True
+        default=True,
     )
 
     @classmethod

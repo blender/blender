@@ -135,7 +135,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
         row = layout.row()
         row.template_list(
             "UI_UL_list", "point_caches", cache, "point_caches",
-            cache.point_caches, "active_index", rows=1
+            cache.point_caches, "active_index", rows=1,
         )
         col = row.column(align=True)
         col.operator("ptcache.add", icon='ADD', text="")

@@ -436,7 +436,7 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
         name="Include Focal Length",
         description="Include focal length into the preset",
         options={'SKIP_SAVE'},
-        default=True
+        default=True,
     )
 
     @property
