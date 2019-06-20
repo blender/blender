@@ -808,26 +808,9 @@ class SequencerButtonsPanel_Output:
         return cls.has_preview(context)
 
 
-class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
-    bl_label = "Info"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Strip"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        strip = act_strip(context)
-
-        row = layout.row(align=True)
-        row.prop(strip, "name", text=strip.type.title())
-        row.prop(strip, "lock", toggle=True, icon_only=True)
-
-
-class SEQUENCER_PT_adjust_offset(SequencerButtonsPanel, Panel):
+class SEQUENCER_PT_adjust_transform_offset(SequencerButtonsPanel, Panel):
     bl_label = "Offset"
-    bl_parent_id = "SEQUENCER_PT_adjust"
+    bl_parent_id = "SEQUENCER_PT_adjust_transform"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -848,13 +831,13 @@ class SEQUENCER_PT_adjust_offset(SequencerButtonsPanel, Panel):
 
         col = layout.column(align=True)
         col.prop(strip.transform, "offset_x", text="Position X")
-        col.prop(strip.transform, "offset_y", text="Position Y")
+        col.prop(strip.transform, "offset_y", text="Y")
         col.active = strip.use_translation
 
 
-class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
+class SEQUENCER_PT_adjust_transform_crop(SequencerButtonsPanel, Panel):
     bl_label = "Crop"
-    bl_parent_id = "SEQUENCER_PT_adjust"
+    bl_parent_id = "SEQUENCER_PT_adjust_transform"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -1047,9 +1030,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.prop(strip, "factor", slider=True)
 
 
-class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
-    bl_label = "Input"
-    bl_parent_id = "SEQUENCER_PT_info"
+class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
+    bl_label = "Source"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -1081,7 +1063,8 @@ class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
 
         # draw a filename if we have one
         if seq_type == 'IMAGE':
-            layout.prop(strip, "directory", text="")
+            col = layout.column()
+            col.prop(strip, "directory", text="")
 
             # Current element for the filename
 
@@ -1089,31 +1072,31 @@ class SEQUENCER_PT_info_input(SequencerButtonsPanel, Panel):
             if elem:
                 layout.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
-            layout.prop(strip.colorspace_settings, "name", text="Color Space")
+            col.prop(strip.colorspace_settings, "name", text="Color Space")
 
-            layout.prop(strip, "alpha_mode", text="Alpha")
-            sub = layout.column(align=True)
+            col.prop(strip, "alpha_mode", text="Alpha")
+            sub = col.column(align=True)
             sub.operator("sequencer.change_path", text="Change Data/Files", icon='FILEBROWSER').filter_image = True
 
         elif seq_type == 'MOVIE':
-            layout.prop(strip, "filepath", text="")
 
-            layout.prop(strip.colorspace_settings, "name", text="Color Space")
-
-            layout.prop(strip, "mpeg_preseek")
-            layout.prop(strip, "stream_index")
+            col = layout.column()
+            col.prop(strip, "filepath", text="")
+            col.prop(strip.colorspace_settings, "name", text="Color Space")
+            col.prop(strip, "mpeg_preseek")
+            col.prop(strip, "stream_index")
+            col.prop(strip, "use_deinterlace")
 
         elif seq_type == 'SOUND':
             sound = strip.sound
             layout.template_ID(strip, "sound", open="sound.open")
             if sound is not None:
-                layout.prop(sound, "filepath", text="")
 
-                layout.use_property_split = True
-                layout.use_property_decorate = False
+                col = layout.column()
+                col.prop(sound, "filepath", text="")
 
-                layout.alignment = 'RIGHT'
-                sub = layout.column(align=True)
+                col.alignment = 'RIGHT'
+                sub = col.column(align=True)
                 split = sub.split(factor=0.5, align=True)
                 split.alignment = 'RIGHT'
                 if sound.packed_file:
@@ -1263,10 +1246,10 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
             layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
 
 
-class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
-    bl_label = "Timecodes"
+class SEQUENCER_PT_info(SequencerButtonsPanel, Panel):
+    bl_label = "Info"
+    bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
-    bl_parent_id = "SEQUENCER_PT_info"
 
     @classmethod
     def poll(cls, context):
@@ -1305,6 +1288,8 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
         max_length = max(len(x) for x in length_list)
         max_factor = (1.9 - max_length) / 30
 
+        layout.prop(strip, "name", text="")
+
         sub = layout.row(align=True)
         sub.enabled = not strip.lock
         split = sub.split(factor=0.5 + max_factor)
@@ -1328,6 +1313,11 @@ class SEQUENCER_PT_info_timecodes(SequencerButtonsPanel, Panel):
         split.alignment = 'RIGHT'
         split.label(text="Duration")
         split.prop(strip, "frame_final_duration", text=str(bpy.utils.smpte_from_frame(strip.frame_final_duration)))
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        layout.prop(strip, "lock", text="Lock Transform", toggle=False)
+        layout.use_property_split = False
 
         if not isinstance(strip, bpy.types.EffectSequence):
 
@@ -1476,6 +1466,46 @@ class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
         sub.prop(strip, "mute", toggle=True, icon_only=True)
 
 
+class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
+    bl_label = "Transform"
+    bl_parent_id = "SEQUENCER_PT_adjust"
+    bl_category = "Strip"
+
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type in {
+            'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
+            'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
+            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
+            'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX'
+        }
+
+    def draw(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        split = layout.split()
+
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Mirror")
+
+        col = split.column()
+        row = col.row(align=True)
+        row.prop(strip, "use_flip_x", text="X", toggle=True)
+        row.prop(strip, "use_flip_y", text="Y", toggle=True)
+
+
+
 class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
     bl_label = "Video"
     bl_parent_id = "SEQUENCER_PT_adjust"
@@ -1501,12 +1531,14 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+        col = layout.column()
+
         strip = act_strip(context)
 
-        col = layout.column()
         col.prop(strip, "strobe")
 
         if strip.type == 'MOVIECLIP':
@@ -1519,14 +1551,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
             col.prop(strip, "undistort")
             col.separator()
 
-        col.prop(strip, "use_reverse_frames", text="Backwards")
-        col.prop(strip, "use_deinterlace")
-
-        col.separator()
-
-        col.prop(strip, "use_flip_x", text="Flip X")
-        col.prop(strip, "use_flip_y", text="Flip Y")
-
+        col.prop(strip, "playback_direction")
 
 class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
     bl_label = "Color"
@@ -1574,14 +1599,19 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         ed = context.scene.sequence_editor
 
-        layout.prop(ed, "use_cache_raw")
-        layout.prop(ed, "use_cache_preprocessed")
-        layout.prop(ed, "use_cache_composite")
-        layout.prop(ed, "use_cache_final")
-        layout.separator()
-        layout.prop(ed, "recycle_max_cost")
+        col = layout.column()
+
+        col.prop(ed, "use_cache_raw")
+        col.prop(ed, "use_cache_preprocessed")
+        col.prop(ed, "use_cache_composite")
+        col.prop(ed, "use_cache_final")
+        col.separator()
+        col.prop(ed, "recycle_max_cost")
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
@@ -1594,6 +1624,10 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         ed = context.scene.sequence_editor
         flow = layout.column_flow()
         flow.prop(ed, "proxy_storage", text="Storage")
@@ -1689,12 +1723,17 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         strip = act_strip(context)
         layout.active = strip.override_cache_settings
-
-        layout.prop(strip, "use_cache_raw")
-        layout.prop(strip, "use_cache_preprocessed")
-        layout.prop(strip, "use_cache_composite")
+        
+        col = layout.column()
+        col.prop(strip, "use_cache_raw")
+        col.prop(strip, "use_cache_preprocessed")
+        col.prop(strip, "use_cache_composite")
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
@@ -1957,19 +1996,21 @@ classes = (
 
     SEQUENCER_PT_adjust,
     SEQUENCER_PT_adjust_comp,
-    SEQUENCER_PT_adjust_offset,
-    SEQUENCER_PT_adjust_crop,
+    SEQUENCER_PT_adjust_transform,
+    SEQUENCER_PT_adjust_transform_offset,
+    SEQUENCER_PT_adjust_transform_crop,
     SEQUENCER_PT_adjust_video,
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
 
     SEQUENCER_PT_info,
-    SEQUENCER_PT_info_input,
-    SEQUENCER_PT_info_timecodes,
+    SEQUENCER_PT_source,
 
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
+
+    SEQUENCER_PT_modifiers,
 
     SEQUENCER_PT_cache_settings,
     SEQUENCER_PT_strip_cache,
@@ -1977,8 +2018,6 @@ classes = (
     SEQUENCER_PT_strip_proxy,
 
     SEQUENCER_PT_custom_props,
-
-    SEQUENCER_PT_modifiers,
 
     SEQUENCER_PT_preview,
     SEQUENCER_PT_view,
