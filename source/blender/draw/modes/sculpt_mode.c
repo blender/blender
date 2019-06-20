@@ -155,7 +155,8 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
   if (ob->sculpt) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
 
-    if ((ob == draw_ctx->obact) && BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d)) {
+    if ((ob == draw_ctx->obact) &&
+        (BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) || !ob->sculpt->modifiers_active)) {
       PBVH *pbvh = ob->sculpt->pbvh;
       if (pbvh && pbvh_has_mask(pbvh)) {
         DRW_shgroup_call_sculpt(stl->g_data->mask_overlay_grp, ob, false, true, false);
