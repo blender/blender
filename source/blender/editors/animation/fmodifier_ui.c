@@ -70,8 +70,18 @@
 #define B_REDR 1
 #define B_FMODIFIER_REDRAW 20
 
+/* callback to update depsgraph on value changes */
+static void deg_update(bContext *C, void *owner_id, void *UNUSED(var2))
+{
+  /* send notifiers */
+  /* XXX for now, this is the only way to get updates in all the right places...
+   * but would be nice to have a special one in this case. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  DEG_id_tag_update(owner_id, ID_RECALC_ANIMATION);
+}
+
 /* callback to verify modifier data */
-static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED(arg))
+static void validate_fmodifier_cb(bContext *C, void *fcm_v, void *owner_id)
 {
   FModifier *fcm = (FModifier *)fcm_v;
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
@@ -79,6 +89,9 @@ static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED
   /* call the verify callback on the modifier if applicable */
   if (fmi && fmi->verify_data) {
     fmi->verify_data(fcm);
+  }
+  if (owner_id) {
+    deg_update(C, owner_id, NULL);
   }
 }
 
@@ -98,13 +111,8 @@ static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
 
   ED_undo_push(C, "Delete F-Curve Modifier");
 
-  /* send notifiers */
-  /* XXX for now, this is the only way to get updates in all the right places...
-   * but would be nice to have a special one in this case. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-  DEG_id_tag_update(ctx->fcurve_owner_id, ID_RECALC_ANIMATION);
+  deg_update(C, ctx->fcurve_owner_id, NULL);
 }
-
 /* --------------- */
 
 /* draw settings for generator modifier */
@@ -176,6 +184,7 @@ static void draw_modifier__generator(uiLayout *layout,
       /* draw polynomial order selector */
       row = uiLayoutRow(layout, false);
       block = uiLayoutGetBlock(row);
+
       but = uiDefButI(
           block,
           UI_BTYPE_NUM,
@@ -191,7 +200,7 @@ static void draw_modifier__generator(uiLayout *layout,
           0,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
-      UI_but_func_set(but, validate_fmodifier_cb, fcm, NULL);
+      UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
 
       /* calculate maximum width of label for "x^n" labels */
       if (data->arraysize > 2) {
@@ -207,6 +216,9 @@ static void draw_modifier__generator(uiLayout *layout,
       /* draw controls for each coefficient and a + sign at end of row */
       row = uiLayoutRow(layout, true);
       block = uiLayoutGetBlock(row);
+
+      /* Update depsgraph when values change */
+      UI_block_func_set(block, deg_update, fcurve_owner_id, NULL);
 
       cp = data->coefficients;
       for (i = 0; (i < data->arraysize) && (cp); i++, cp++) {
@@ -310,6 +322,7 @@ static void draw_modifier__generator(uiLayout *layout,
       /* draw polynomial order selector */
       row = uiLayoutRow(layout, false);
       block = uiLayoutGetBlock(row);
+
       but = uiDefButI(
           block,
           UI_BTYPE_NUM,
@@ -325,11 +338,14 @@ static void draw_modifier__generator(uiLayout *layout,
           0,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
-      UI_but_func_set(but, validate_fmodifier_cb, fcm, NULL);
+      UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
 
       /* draw controls for each pair of coefficients */
       row = uiLayoutRow(layout, true);
       block = uiLayoutGetBlock(row);
+
+      /* Update depsgraph when values change */
+      UI_block_func_set(block, deg_update, fcurve_owner_id, NULL);
 
       cp = data->coefficients;
       for (i = 0; (i < data->poly_order) && (cp); i++, cp += 2) {
