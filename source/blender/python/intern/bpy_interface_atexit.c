@@ -17,7 +17,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This file inserts an exit callback into pythons 'atexit' module.
+ * This file inserts an exit callback into Python's 'atexit' module.
  * Without this sys.exit() can crash because blender is not properly closing
  * resources.
  */

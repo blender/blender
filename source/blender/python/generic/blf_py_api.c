@@ -468,7 +468,7 @@ static PyMethodDef BLF_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-PyDoc_STRVAR(BLF_doc, "This module provides access to blenders text drawing functions.");
+PyDoc_STRVAR(BLF_doc, "This module provides access to Blender's text drawing functions.");
 static struct PyModuleDef BLF_module_def = {
     PyModuleDef_HEAD_INIT,
     "blf",       /* m_name */

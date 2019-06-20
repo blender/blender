@@ -342,8 +342,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     # Split registering up into 3 steps so we can undo
     # if it fails par way through.
 
-    # disable the context, using the context at all is
-    # really bad while loading an addon, don't do it!
+    # Disable the context: using the context at all
+    # while loading an addon is really bad, don't do it!
     with RestrictBlend():
 
         # 1) try import
@@ -362,16 +362,16 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                 _addon_remove(module_name)
             return None
 
-        # 1.1) fail when add-on is too old
+        # 1.1) Fail when add-on is too old.
         # This is a temporary 2.8x migration check, so we can manage addons that are supported.
 
         if mod.bl_info.get("blender", (0, 0, 0)) < (2, 80, 0):
             if _bpy.app.debug:
-                print(f"Warning: Add-on '{module_name:s}' has not been upgraded to 2.8, ignoring")
+                print(f"Warning: Add-on '{module_name:s}' was not upgraded for 2.80, ignoring")
             return None
 
-        # 2) try register collected modules
-        # removed, addons need to handle own registration now.
+        # 2) Try register collected modules.
+        # Removed register_module, addons need to handle their own registration now.
 
         use_owner = mod.bl_info.get("use_owner", True)
         if use_owner:
@@ -379,7 +379,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             owner_id_prev = _bl_owner_id_get()
             _bl_owner_id_set(module_name)
 
-        # 3) try run the modules register function
+        # 3) Try run the modules register function.
         try:
             mod.register()
         except Exception as ex:

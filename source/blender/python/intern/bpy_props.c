@@ -2986,8 +2986,8 @@ PyDoc_STRVAR(
     "      .. warning::\n"
     "\n"
     "         There is a known bug with using a callback,\n"
-    "         Python must keep a reference to the strings returned or Blender will misbehave\n"
-    "         or even crash."
+    "         Python must keep a reference to the strings returned by the callback or Blender\n"
+    "         will misbehave or even crash."
     "\n"
     "   :type items: sequence of string tuples or a function\n" BPY_PROPDEF_NAME_DOC
         BPY_PROPDEF_DESC_DOC

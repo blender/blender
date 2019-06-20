@@ -19,9 +19,9 @@
  *
  * This file exposed blend file library appending/linking to python, typically
  * this would be done via RNA api but in this case a hand written python api
- * allows us to use pythons context manager (__enter__ and __exit__).
+ * allows us to use Python's context manager (`__enter__` and `__exit__`).
  *
- * Everything here is exposed via bpy.data.libraries.load(...) which returns
+ * Everything here is exposed via `bpy.data.libraries.load(...)` which returns
  * a context manager.
  */
 
