@@ -617,7 +617,7 @@ static bool get_primitive_attribute(KernelGlobals *kg,
     return set_attribute_float3(fval, type, derivatives, val);
   }
   else if (attr.type == TypeFloat2) {
-    float2 fval[2];
+    float2 fval[3];
     fval[0] = primitive_attribute_float2(
         kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
     return set_attribute_float2(fval, type, derivatives, val);

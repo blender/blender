@@ -1222,6 +1222,8 @@ void MeshManager::update_osl_attributes(Device *device,
           osl_attr.type = TypeDesc::TypeFloat;
         else if (req.curve_type == TypeDesc::TypeMatrix)
           osl_attr.type = TypeDesc::TypeMatrix;
+        else if (req.curve_type == TypeFloat2)
+          osl_attr.type = TypeFloat2;
         else
           osl_attr.type = TypeDesc::TypeColor;
 
@@ -1243,6 +1245,8 @@ void MeshManager::update_osl_attributes(Device *device,
           osl_attr.type = TypeDesc::TypeFloat;
         else if (req.subd_type == TypeDesc::TypeMatrix)
           osl_attr.type = TypeDesc::TypeMatrix;
+        else if (req.subd_type == TypeFloat2)
+          osl_attr.type = TypeFloat2;
         else
           osl_attr.type = TypeDesc::TypeColor;
 
