@@ -671,7 +671,7 @@ void ui_draw_aligned_panel(uiStyle *style,
 
   rcti titlerect = headrect;
   if (is_subpanel) {
-    titlerect.xmin += (0.7f * UI_UNIT_X);
+    titlerect.xmin += (0.7f * UI_UNIT_X) / block->aspect + 0.001f;
   }
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
