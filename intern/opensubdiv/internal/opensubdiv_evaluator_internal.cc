@@ -812,11 +812,8 @@ OpenSubdiv_EvaluatorInternal *openSubdiv_createEvaluatorInternal(
         StencilTableFactory::Create(*refiner, face_varying_stencil_options));
   }
   // Generate bi-cubic patch table for the limit surface.
-  // TODO(sergey): Ideally we would want to expose end-cap settings via
-  // C-API to make it more generic. Currently it matches old Blender's
-  // subsurf code.
   PatchTableFactory::Options patch_options(level);
-  patch_options.SetEndCapType(PatchTableFactory::Options::ENDCAP_BSPLINE_BASIS);
+  patch_options.SetEndCapType(PatchTableFactory::Options::ENDCAP_GREGORY_BASIS);
   patch_options.useInfSharpPatch = use_inf_sharp_patch;
   patch_options.generateFVarTables = has_face_varying_data;
   patch_options.generateFVarLegacyLinearPatches = false;
