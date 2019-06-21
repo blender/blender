@@ -130,6 +130,7 @@ ShaderOutput *ShaderNode::output(ustring name)
 void ShaderNode::remove_input(ShaderInput *input)
 {
   assert(input->link == NULL);
+  delete input;
   inputs.erase(remove(inputs.begin(), inputs.end(), input), inputs.end());
 }
 
