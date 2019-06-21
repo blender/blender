@@ -1888,7 +1888,7 @@ bool CustomData_merge(const struct CustomData *source,
     else if ((maxnumber != -1) && (number >= maxnumber)) {
       continue;
     }
-    else if (CustomData_get_layer_named(dest, type, layer->name)) {
+    else if (CustomData_get_named_layer_index(dest, type, layer->name) != -1) {
       continue;
     }
 
