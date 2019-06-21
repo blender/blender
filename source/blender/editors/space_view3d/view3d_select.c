@@ -138,6 +138,9 @@ struct EDSelectID_Context {
   uint bases_len;
   /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
   uint base_array_index_len;
+  /** Used to check for changes. (Use depsgraph instead?). */
+  float persmat[4][4];
+  short select_mode;
 };
 
 static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, char dt)
@@ -191,6 +194,14 @@ static void ed_select_id_draw_bases(struct EDSelectID_Context *sel_id_ctx,
   DRW_framebuffer_select_id_release(vc->ar);
 }
 
+void ED_view3d_select_id_validate_view_matrices(const struct EDSelectID_Context *sel_id_ctx,
+                                                ViewContext *vc)
+{
+  if (!compare_m4m4(sel_id_ctx->persmat, vc->rv3d->persmat, FLT_EPSILON)) {
+    ed_select_id_draw_bases(sel_id_ctx, vc, sel_id_ctx->select_mode);
+  }
+}
+
 uint ED_view3d_select_id_context_offset_for_object_elem(
     const struct EDSelectID_Context *sel_id_ctx, int base_index, char elem_type)
 {
@@ -223,7 +234,8 @@ struct EDSelectID_Context *ED_view3d_select_id_context_create(ViewContext *vc,
                                                      __func__);
   sel_id_ctx->bases = bases;
   sel_id_ctx->bases_len = bases_len;
-
+  copy_m4_m4(sel_id_ctx->persmat, vc->rv3d->persmat);
+  sel_id_ctx->select_mode = select_mode;
   ed_select_id_draw_bases(sel_id_ctx, vc, select_mode);
 
   return sel_id_ctx;
@@ -3520,6 +3532,7 @@ static bool mesh_circle_select(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
 
   if (use_zbuf) {
+    ED_view3d_select_id_validate_view_matrices(esel->sel_id_ctx, vc);
     const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
     esel->select_bitmap = ED_select_buffer_bitmap_from_circle(buffer_len, mval, (int)(rad + 1.0f));
   }
