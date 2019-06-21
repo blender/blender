@@ -5807,6 +5807,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
   }
 
   WM_cursor_wait(0);
+  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   return OPERATOR_FINISHED;
 }
