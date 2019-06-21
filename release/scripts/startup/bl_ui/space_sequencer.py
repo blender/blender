@@ -843,7 +843,7 @@ class SEQUENCER_PT_adjust_transform_offset(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.active = strip.use_translation or not strip.mute
+        layout.active = strip.use_translation and (not strip.mute)
 
         col = layout.column(align=True)
         col.prop(strip.transform, "offset_x", text="Position X")
@@ -872,7 +872,7 @@ class SEQUENCER_PT_adjust_transform_crop(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.active = strip.use_crop or not strip.mute
+        layout.active = strip.use_crop and (not strip.mute)
 
         col = layout.column(align=True)
         col.prop(strip.crop, "min_x")
