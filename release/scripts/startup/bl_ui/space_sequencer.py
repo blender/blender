@@ -807,6 +807,7 @@ class SequencerButtonsPanel_Output:
     def poll(cls, context):
         return cls.has_preview(context)
 
+
 class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
@@ -848,7 +849,6 @@ class SEQUENCER_PT_adjust_transform_offset(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(strip.transform, "offset_x", text="Position X")
         col.prop(strip.transform, "offset_y", text="Y")
-        
 
 
 class SEQUENCER_PT_adjust_transform_crop(SequencerButtonsPanel, Panel):
@@ -1134,12 +1134,14 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
             box.active = strip.views_format == 'STEREO_3D'
             box.template_image_stereo_3d(strip.stereo_3d_format)
 
-        elem = False
-
         if strip.type == 'IMAGE':
-            elem = strip.strip_elem_from_frame(frame_current)
+            # Alreay set above.
+            # elem = strip.strip_elem_from_frame(scene.frame_current)
+            pass
         elif strip.type == 'MOVIE':
             elem = strip.elements[0]
+        else:
+            elem = None
 
         if strip.type != 'SOUND':
             col = layout.column(align=True)
@@ -1360,8 +1362,6 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.alignment = 'RIGHT'
         split.label(text="Duration")
         split.prop(strip, "frame_final_duration", text=smpte_from_frame(strip.frame_final_duration))
-
-
 
         if not isinstance(strip, bpy.types.EffectSequence):
 
