@@ -830,7 +830,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const Int32ArraySamplePtr &face_indices = mesh_data.face_indices;
   const Int32ArraySamplePtr &face_counts = mesh_data.face_counts;
   const V2fArraySamplePtr &uvs = mesh_data.uvs;
-  const size_t uvs_size = uvs->size();
+  const size_t uvs_size = uvs == nullptr ? 0 : uvs->size();
 
   const UInt32ArraySamplePtr &uvs_indices = mesh_data.uvs_indices;
   const N3fArraySamplePtr &normals = mesh_data.face_normals;
