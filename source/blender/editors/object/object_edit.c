@@ -869,6 +869,8 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
   return OPERATOR_FINISHED;
 }
 

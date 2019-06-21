@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_object_force_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -2206,6 +2207,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           }
           else if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
             data.icon = ICON_OUTLINER_OB_IMAGE;
+          }
+          else if (ob->pd && ob->pd->forcefield) {
+            data.icon = ICON_OUTLINER_OB_FORCE_FIELD;
           }
           else {
             data.icon = ICON_OUTLINER_OB_EMPTY;
