@@ -2208,6 +2208,16 @@ static void rna_def_scene(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem scene_input_items[] = {
+      {0, "3D_CAMERA", ICON_VIEW3D, "3D Camera", "Use the Scene's 3D camera as input"},
+      {SEQ_SCENE_STRIPS,
+       "SEQUENCE",
+       ICON_SEQUENCE,
+       "Sequence",
+       "Use the Scene's Sequencer timeline as input"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
   RNA_def_struct_ui_text(
       srna, "Scene Sequence", "Sequence strip to used the rendered image of a scene");
@@ -2224,10 +2234,10 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Camera Override", "Override the scenes active camera");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
-  prop = RNA_def_property(srna, "use_sequence", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SCENE_STRIPS);
-  RNA_def_property_ui_text(
-      prop, "Use Sequence", "Use scenes sequence strips directly, instead of rendering");
+  prop = RNA_def_property(srna, "scene_input", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, scene_input_items);
+  RNA_def_property_ui_text(prop, "Input", "Input type to use for the Scene strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_use_sequence");
 
   prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);

@@ -1217,6 +1217,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1225,22 +1226,21 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.template_ID(strip, "scene")
 
         scene = strip.scene
-        layout.prop(strip, "use_sequence")
+        layout.prop(strip, "scene_input")
 
         if scene:
             layout.prop(scene, "audio_volume", text="Volume")
 
-        if not strip.use_sequence:
+        if strip.scene_input == '3D_CAMERA':
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
             split = sub.split(factor=0.5, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Camera Override")
+            split.label(text="Camera")
             split.template_ID(strip, "scene_camera")
 
             layout.prop(strip, "use_grease_pencil", text="Show Grease Pencil")
 
-        if not strip.use_sequence:
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
@@ -2018,12 +2018,12 @@ classes = (
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
 
-    SEQUENCER_PT_time,
-    SEQUENCER_PT_source,
-
     SEQUENCER_PT_effect,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_mask,
+
+    SEQUENCER_PT_time,
+    SEQUENCER_PT_source,
 
     SEQUENCER_PT_modifiers,
 
