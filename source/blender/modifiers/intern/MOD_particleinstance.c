@@ -415,11 +415,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
             ChildParticle *cpa = psys->child + (p - psys->totpart);
             pa = psys->particles + (between ? cpa->pa[0] : cpa->parent);
           }
-          psys_mat_hair_to_global(sim.ob,
-                                  BKE_particle_modifier_mesh_final_get(sim.psmd),
-                                  sim.psys->part->from,
-                                  pa,
-                                  hairmat);
+          psys_mat_hair_to_global(sim.ob, sim.psmd->mesh_final, sim.psys->part->from, pa, hairmat);
           copy_m3_m4(mat, hairmat);
           /* to quaternion */
           mat3_to_quat(frame, mat);

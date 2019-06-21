@@ -778,7 +778,6 @@ static void foreach_mouse_hit_key_iter(void *__restrict iter_data_v,
   }
   ParticleSystem *psys = edit->psys;
   ParticleSystemModifierData *psmd_eval = iter_data->edit->psmd_eval;
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
   ParticleEditSettings *pset = PE_settings(data->scene);
   const int selected = iter_data->selected;
   float mat[4][4], imat[4][4];
@@ -794,7 +793,7 @@ static void foreach_mouse_hit_key_iter(void *__restrict iter_data_v,
         if (key_inside_circle(data, data->rad, KEY_WCO, &mouse_distance)) {
           if (edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
             psys_mat_hair_to_global(
-                data->ob, mesh_final, psys->part->from, psys->particles + iter, mat);
+                data->ob, psmd_eval->mesh_final, psys->part->from, psys->particles + iter, mat);
             invert_m4_m4(imat, mat);
           }
           iter_data->func(data, mat, imat, iter, point->totkey - 1, key, mouse_distance);
@@ -813,7 +812,7 @@ static void foreach_mouse_hit_key_iter(void *__restrict iter_data_v,
         if (key_inside_circle(data, data->rad, KEY_WCO, &mouse_distance)) {
           if (edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
             psys_mat_hair_to_global(
-                data->ob, mesh_final, psys->part->from, psys->particles + iter, mat);
+                data->ob, psmd_eval->mesh_final, psys->part->from, psys->particles + iter, mat);
             invert_m4_m4(imat, mat);
           }
           iter_data->func(data, mat, imat, iter, k, key, mouse_distance);
@@ -928,9 +927,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
   psmd_eval = edit->psmd_eval;
   totpart = psys->totpart;
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-
-  if (!mesh_final) {
+  if (!psmd_eval->mesh_final) {
     return;
   }
 
@@ -940,7 +937,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
   LOOP_PARTICLES
   {
     key = pa->hair;
-    psys_mat_hair_to_orco(ob, mesh_final, psys->part->from, pa, mat);
+    psys_mat_hair_to_orco(ob, psmd_eval->mesh_final, psys->part->from, pa, mat);
     copy_v3_v3(co, key->co);
     mul_m4_v3(mat, co);
     BLI_kdtree_3d_insert(tree, p, co);
@@ -956,7 +953,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
   LOOP_PARTICLES
   {
     key = pa->hair;
-    psys_mat_hair_to_orco(ob, mesh_final, psys->part->from, pa, mat);
+    psys_mat_hair_to_orco(ob, psmd_eval->mesh_final, psys->part->from, pa, mat);
     copy_v3_v3(co, key->co);
     mul_m4_v3(mat, co);
     co[0] = -co[0];
@@ -1087,9 +1084,8 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 
   edit = psys->edit;
   psmd_eval = edit->psmd_eval;
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
 
-  if (!mesh_final) {
+  if (!psmd_eval->mesh_final) {
     return;
   }
 
@@ -1106,7 +1102,7 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
   LOOP_POINTS
   {
     if (point->flag & PEP_EDIT_RECALC) {
-      PE_mirror_particle(ob, mesh_final, psys, psys->particles + p, NULL);
+      PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
 
       if (edit->mirror_cache[p] != -1) {
         edit->points[edit->mirror_cache[p]].flag &= ~PEP_EDIT_RECALC;
@@ -1156,8 +1152,8 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
   float *vec, *nor, dvec[3], dot, dist_1st = 0.0f;
   const float dist = iter_data->dist;
   const float emitterdist = iter_data->emitterdist;
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-  psys_mat_hair_to_object(object, mesh_final, psys->part->from, psys->particles + iter, hairmat);
+  psys_mat_hair_to_object(
+      object, psmd_eval->mesh_final, psys->part->from, psys->particles + iter, hairmat);
 
   LOOP_KEYS
   {
@@ -1221,8 +1217,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 
   psys = edit->psys;
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(edit->psmd_eval);
-  if (!mesh_final) {
+  if (!edit->psmd_eval->mesh_final) {
     return;
   }
 
@@ -1387,7 +1382,7 @@ void recalc_lengths(PTCacheEdit *edit)
 void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), ParticleSystem *psys)
 {
   PTCacheEdit *edit = psys->edit;
-  Mesh *mesh = BKE_particle_modifier_mesh_final_get(edit->psmd_eval);
+  Mesh *mesh = edit->psmd_eval->mesh_final;
   float *vec, *nor;
   int i, totface /*, totvert*/;
 
@@ -1494,16 +1489,15 @@ void update_world_cos(Depsgraph *UNUSED(depsgraph), Object *ob, PTCacheEdit *edi
   KEY_K;
   float hairmat[4][4];
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-
-  if (psys == 0 || psys->edit == 0 || mesh_final == NULL) {
+  if (psys == 0 || psys->edit == 0 || psmd_eval->mesh_final == NULL) {
     return;
   }
 
   LOOP_POINTS
   {
     if (!(psys->flag & PSYS_GLOBAL_HAIR)) {
-      psys_mat_hair_to_global(ob, mesh_final, psys->part->from, psys->particles + p, hairmat);
+      psys_mat_hair_to_global(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, hairmat);
     }
 
     LOOP_KEYS
@@ -2275,12 +2269,11 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const
     data.is_changed |= PE_deselect_all_visible_ex(edit);
   }
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-
   LOOP_VISIBLE_POINTS
   {
     if (edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-      psys_mat_hair_to_global(ob, mesh_final, psys->part->from, psys->particles + p, mat);
+      psys_mat_hair_to_global(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
     }
 
     if (pset->selectmode == SCE_SELECT_POINT) {
@@ -2746,11 +2739,10 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
   if (mirror) {
     /* mirror tags */
     psmd_eval = edit->psmd_eval;
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
 
     LOOP_TAGGED_POINTS
     {
-      PE_mirror_particle(ob, mesh_final, psys, psys->particles + p, NULL);
+      PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
     }
   }
 
@@ -2839,13 +2831,12 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
     ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
     ParticleSystemModifierData *psmd_eval = (ParticleSystemModifierData *)modifier_get_evaluated(
         depsgraph, ob, &psmd->modifier);
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
 
     LOOP_POINTS
     {
       LOOP_TAGGED_KEYS
       {
-        PE_mirror_particle(ob, mesh_final, psys, psys->particles + p, NULL);
+        PE_mirror_particle(ob, psmd_eval->mesh_final, psys, psys->particles + p, NULL);
         break;
       }
     }
@@ -3072,8 +3063,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
   psmd_eval = edit->psmd_eval;
   totremoved = 0;
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-
   do {
     removed = 0;
 
@@ -3082,7 +3071,8 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
     /* insert particles into kd tree */
     LOOP_SELECTED_POINTS
     {
-      psys_mat_hair_to_object(ob, mesh_final, psys->part->from, psys->particles + p, mat);
+      psys_mat_hair_to_object(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
       copy_v3_v3(co, point->keys->co);
       mul_m4_v3(mat, co);
       BLI_kdtree_3d_insert(tree, p, co);
@@ -3093,7 +3083,8 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
     /* tag particles to be removed */
     LOOP_SELECTED_POINTS
     {
-      psys_mat_hair_to_object(ob, mesh_final, psys->part->from, psys->particles + p, mat);
+      psys_mat_hair_to_object(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
       copy_v3_v3(co, point->keys->co);
       mul_m4_v3(mat, co);
 
@@ -3356,22 +3347,20 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
   }
 
   psmd_eval = edit->psmd_eval;
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-  Mesh *mesh_original = BKE_particle_modifier_mesh_original_get(psmd_eval);
-
-  if (!mesh_final) {
+  if (!psmd_eval->mesh_final) {
     return;
   }
 
   const bool use_dm_final_indices = (psys->part->use_modifier_stack &&
-                                     !mesh_final->runtime.deformed_only);
+                                     !psmd_eval->mesh_final->runtime.deformed_only);
 
   /* NOTE: this is not nice to use tessfaces but hard to avoid since pa->num uses tessfaces */
   BKE_mesh_tessface_ensure(me);
 
   /* NOTE: In case psys uses Mesh tessface indices, we mirror final Mesh itself, not orig mesh.
    * Avoids an (impossible) mesh -> orig -> mesh tessface indices conversion. */
-  mirrorfaces = mesh_get_x_mirror_faces(ob, NULL, use_dm_final_indices ? mesh_final : NULL);
+  mirrorfaces = mesh_get_x_mirror_faces(
+      ob, NULL, use_dm_final_indices ? psmd_eval->mesh_final : NULL);
 
   if (!edit->mirror_cache) {
     PE_update_mirror_cache(ob, psys);
@@ -3387,7 +3376,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
       if (point_is_selected(point)) {
         if (edit->mirror_cache[p] != -1) {
           /* already has a mirror, don't need to duplicate */
-          PE_mirror_particle(ob, mesh_final, psys, pa, NULL);
+          PE_mirror_particle(ob, psmd_eval->mesh_final, psys, pa, NULL);
           continue;
         }
         else {
@@ -3402,7 +3391,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
   }
 
   if (newtotpart != psys->totpart) {
-    MFace *mtessface = use_dm_final_indices ? mesh_final->mface : me->mface;
+    MFace *mtessface = use_dm_final_indices ? psmd_eval->mesh_final->mface : me->mface;
 
     /* allocate new arrays and copy existing */
     new_pars = MEM_callocN(newtotpart * sizeof(ParticleData), "ParticleData new");
@@ -3478,7 +3467,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
       }
       else {
         newpa->num_dmcache = psys_particle_dm_face_lookup(
-            mesh_final, mesh_original, newpa->num, newpa->fuv, NULL);
+            psmd_eval->mesh_final, psmd_eval->mesh_original, newpa->num, newpa->fuv, NULL);
       }
 
       /* update edit key pointers */
@@ -3489,7 +3478,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
       }
 
       /* map key positions as mirror over x axis */
-      PE_mirror_particle(ob, mesh_final, psys, pa, newpa);
+      PE_mirror_particle(ob, psmd_eval->mesh_final, psys, pa, newpa);
 
       newpa++;
       newpoint++;
@@ -4168,18 +4157,19 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
                               0,
                               0,
                               0)) {
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-    Mesh *mesh_original = BKE_particle_modifier_mesh_original_get(psmd_eval);
-    if (psys->part->use_modifier_stack && !mesh_final->runtime.deformed_only) {
+    if (psys->part->use_modifier_stack && !psmd_eval->mesh_final->runtime.deformed_only) {
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
     }
-    else if (iter_data->mesh == mesh_original) {
+    else if (iter_data->mesh == psmd_eval->mesh_original) {
       /* Final DM is not same topology as orig mesh,
        * we have to map num_dmcache to real final dm. */
       add_pars[iter].num = add_pars[iter].num_dmcache;
-      add_pars[iter].num_dmcache = psys_particle_dm_face_lookup(
-          mesh_final, mesh_original, add_pars[iter].num, add_pars[iter].fuv, NULL);
+      add_pars[iter].num_dmcache = psys_particle_dm_face_lookup(psmd_eval->mesh_final,
+                                                                psmd_eval->mesh_original,
+                                                                add_pars[iter].num,
+                                                                add_pars[iter].fuv,
+                                                                NULL);
     }
     else {
       add_pars[iter].num = add_pars[iter].num_dmcache;
@@ -4237,12 +4227,11 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   timestep = psys_get_timestep(&sim);
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-  if (psys->part->use_modifier_stack || mesh_final->runtime.deformed_only) {
-    mesh = mesh_final;
+  if (psys->part->use_modifier_stack || psmd_eval->mesh_final->runtime.deformed_only) {
+    mesh = psmd_eval->mesh_final;
   }
   else {
-    mesh = BKE_particle_modifier_mesh_original_get(psmd_eval);
+    mesh = psmd_eval->mesh_original;
   }
   BLI_assert(mesh);
 
@@ -4326,7 +4315,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
       tree = BLI_kdtree_3d_new(psys->totpart);
 
       for (i = 0, pa = psys->particles; i < totpart; i++, pa++) {
-        psys_particle_on_dm(mesh_final,
+        psys_particle_on_dm(psmd_eval->mesh_final,
                             psys->part->from,
                             pa->num,
                             pa->num_dmcache,
@@ -4383,7 +4372,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         int w, maxw;
         float maxd, totw = 0.0, weight[3];
 
-        psys_particle_on_dm(mesh_final,
+        psys_particle_on_dm(psmd_eval->mesh_final,
                             psys->part->from,
                             pa->num,
                             pa->num_dmcache,
@@ -4461,7 +4450,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         }
       }
       for (k = 0, hkey = pa->hair; k < pset->totaddkey; k++, hkey++) {
-        psys_mat_hair_to_global(ob, mesh_final, psys->part->from, pa, hairmat);
+        psys_mat_hair_to_global(ob, psmd_eval->mesh_final, psys->part->from, pa, hairmat);
         invert_m4_m4(imat, hairmat);
         mul_m4_v3(imat, hkey->co);
       }
@@ -4662,7 +4651,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
         }
         case PE_BRUSH_PUFF: {
           if (edit->psys) {
-            data.mesh = BKE_particle_modifier_mesh_final_get(psmd_eval);
+            data.mesh = psmd_eval->mesh_final;
             data.mval = mval;
             data.rad = pe_brush_size_get(scene, brush);
             data.select = selected;
@@ -4719,7 +4708,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
         }
         case PE_BRUSH_WEIGHT: {
           if (edit->psys) {
-            data.mesh = BKE_particle_modifier_mesh_final_get(psmd_eval);
+            data.mesh = psmd_eval->mesh_final;
             data.mval = mval;
             data.rad = pe_brush_size_get(scene, brush);
 
@@ -5093,8 +5082,8 @@ int PE_minmax(Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
   LOOP_VISIBLE_POINTS
   {
     if (psys) {
-      Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-      psys_mat_hair_to_global(ob, mesh_final, psys->part->from, psys->particles + p, mat);
+      psys_mat_hair_to_global(
+          ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
     }
 
     LOOP_SELECTED_KEYS
@@ -5135,8 +5124,7 @@ void PE_create_particle_edit(
   }
 
   /* no psmd->dm happens in case particle system modifier is not enabled */
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd_eval);
-  if (!(psys && psmd && mesh_final) && !cache) {
+  if (!(psys && psmd && psmd_eval->mesh_final) && !cache) {
     return;
   }
 

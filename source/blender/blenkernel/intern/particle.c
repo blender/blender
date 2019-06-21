@@ -1889,8 +1889,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd,
                               float vtan[3],
                               float orco[3])
 {
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
-  if (psmd && mesh_final) {
+  if (psmd && psmd->mesh_final) {
     if (psmd->psys->part->distr == PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT) {
       if (vec) {
         copy_v3_v3(vec, fuv);
@@ -1903,7 +1902,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd,
     }
     /* we cant use the num_dmcache */
     psys_particle_on_dm(
-        mesh_final, from, index, index_dmcache, fuv, foffset, vec, nor, utan, vtan, orco);
+        psmd->mesh_final, from, index, index_dmcache, fuv, foffset, vec, nor, utan, vtan, orco);
   }
   else {
     psys_particle_on_shape(from, index, fuv, vec, nor, utan, vtan, orco);
@@ -2254,15 +2253,13 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 
   tree = BLI_kdtree_3d_new(totparent);
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
-
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(
         sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco);
 
     /* Check if particle doesn't exist because of texture influence.
      * Insert only existing particles into kdtree. */
-    get_cpa_texture(mesh_final,
+    get_cpa_texture(sim->psmd->mesh_final,
                     psys,
                     part,
                     psys->particles + cpa->pa[0],
@@ -2430,8 +2427,6 @@ static void psys_thread_create_path(ParticleTask *task,
     return;
   }
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(ctx->sim.psmd);
-
   if (ctx->between) {
     ParticleData *pa = psys->particles + cpa->pa[0];
     int w, needupdate;
@@ -2536,7 +2531,7 @@ static void psys_thread_create_path(ParticleTask *task,
       sub_v3_v3v3(off1[w], co, key[w]->co);
     }
 
-    psys_mat_hair_to_global(ob, mesh_final, psys->part->from, pa, hairmat);
+    psys_mat_hair_to_global(ob, ctx->sim.psmd->mesh_final, psys->part->from, pa, hairmat);
   }
   else {
     ParticleData *pa = psys->particles + cpa->parent;
@@ -2567,7 +2562,7 @@ static void psys_thread_create_path(ParticleTask *task,
                                                                            pa->num_dmcache;
 
     /* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
-    if (cpa_num > mesh_final->totface) {
+    if (cpa_num > ctx->sim.psmd->mesh_final->totface) {
       cpa_num = 0;
     }
     cpa_fuv = pa->fuv;
@@ -2584,7 +2579,7 @@ static void psys_thread_create_path(ParticleTask *task,
                              0,
                              orco);
 
-    psys_mat_hair_to_global(ob, mesh_final, psys->part->from, pa, hairmat);
+    psys_mat_hair_to_global(ob, ctx->sim.psmd->mesh_final, psys->part->from, pa, hairmat);
   }
 
   child_keys->segments = ctx->segments;
@@ -2930,21 +2925,19 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
     copy_v3_v3(col, &ma->r);
   }
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
-
   if ((psys->flag & PSYS_GLOBAL_HAIR) == 0) {
     if ((psys->part->flag & PART_CHILD_EFFECT) == 0) {
-      vg_effector = psys_cache_vgroup(mesh_final, psys, PSYS_VG_EFFECTOR);
+      vg_effector = psys_cache_vgroup(psmd->mesh_final, psys, PSYS_VG_EFFECTOR);
     }
 
     if (!psys->totchild) {
-      vg_length = psys_cache_vgroup(mesh_final, psys, PSYS_VG_LENGTH);
+      vg_length = psys_cache_vgroup(psmd->mesh_final, psys, PSYS_VG_LENGTH);
     }
   }
 
   /* ensure we have tessfaces to be used for mapping */
   if (part->from != PART_FROM_VERT) {
-    BKE_mesh_tessface_ensure(mesh_final);
+    BKE_mesh_tessface_ensure(psmd->mesh_final);
   }
 
   /*---first main loop: create all actual particles' paths---*/
@@ -2954,7 +2947,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
       psys_get_texture(sim, pa, &ptex, PAMAP_LENGTH, 0.f);
       pa_length = ptex.length * (1.0f - part->randlength * psys_frand(psys, psys->seed + p));
       if (vg_length) {
-        pa_length *= psys_particle_value_from_verts(mesh_final, part->from, pa, vg_length);
+        pa_length *= psys_particle_value_from_verts(psmd->mesh_final, part->from, pa, vg_length);
       }
     }
 
@@ -2972,7 +2965,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
     init_particle_interpolation(sim->ob, sim->psys, pa, &pind);
 
     /* hairmat is needed for for non-hair particle too so we get proper rotations */
-    psys_mat_hair_to_global(sim->ob, mesh_final, psys->part->from, pa, hairmat);
+    psys_mat_hair_to_global(sim->ob, psmd->mesh_final, psys->part->from, pa, hairmat);
     copy_v3_v3(rotmat[0], hairmat[2]);
     copy_v3_v3(rotmat[1], hairmat[1]);
     copy_v3_v3(rotmat[2], hairmat[0]);
@@ -3030,7 +3023,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
         float effector = 1.0f;
         if (vg_effector) {
           effector *= psys_particle_value_from_verts(
-              mesh_final, psys->part->from, pa, vg_effector);
+              psmd->mesh_final, psys->part->from, pa, vg_effector);
         }
 
         sub_v3_v3v3(vec, (cache[p] + 1)->co, cache[p]->co);
@@ -3165,8 +3158,7 @@ static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
   init_particle_interpolation(ob, psys, pa, &pind);
 
   if (psys) {
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
-    psys_mat_hair_to_global(ob, mesh_final, psys->part->from, pa, hairmat);
+    psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
     copy_v3_v3(rotmat[0], hairmat[2]);
     copy_v3_v3(rotmat[1], hairmat[1]);
     copy_v3_v3(rotmat[2], hairmat[0]);
@@ -4046,9 +4038,8 @@ void psys_get_texture(
             mul_m4_v3(mtex->object->imat, texvec);
           }
           break;
-        case TEXCO_UV: {
-          Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
-          if (get_particle_uv(mesh_final,
+        case TEXCO_UV:
+          if (get_particle_uv(sim->psmd->mesh_final,
                               pa,
                               0,
                               pa->fuv,
@@ -4059,7 +4050,6 @@ void psys_get_texture(
           }
           /* no break, failed to get uv's, so let's try orco's */
           ATTR_FALLTHROUGH;
-        }
         case TEXCO_ORCO:
           psys_particle_on_emitter(sim->psmd,
                                    sim->psys->part->from,
@@ -4333,8 +4323,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       }
       else if (!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         if ((pa->flag & PARS_REKEY) == 0) {
-          Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
-          psys_mat_hair_to_global(sim->ob, mesh_final, part->from, pa, hairmat);
+          psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, part->from, pa, hairmat);
           mul_m4_v3(hairmat, state->co);
           mul_mat3_m4_v3(hairmat, state->vel);
 
@@ -4416,8 +4405,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
                                  0,
                                  par_orco);
         if (part->type == PART_HAIR) {
-          Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
-          psys_mat_hair_to_global(sim->ob, mesh_final, psys->part->from, pa, hairmat);
+          psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
         }
         else {
           unit_m4(hairmat);
@@ -4449,10 +4437,9 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
                                  0,
                                  par_orco);
         if (part->type == PART_HAIR) {
-          Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
           psys_particle_on_emitter(
               psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, 0, 0, 0, orco);
-          psys_mat_hair_to_global(sim->ob, mesh_final, psys->part->from, pa, hairmat);
+          psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
         }
         else {
           copy_v3_v3(orco, cpa->fuv);
@@ -4463,7 +4450,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       /* get different child parameters from textures & vgroups */
       memset(&ctx, 0, sizeof(ParticleThreadContext));
       ctx.sim = *sim;
-      ctx.mesh = BKE_particle_modifier_mesh_final_get(psmd);
+      ctx.mesh = psmd->mesh_final;
       ctx.ma = ma;
       /* TODO: assign vertex groups */
       get_child_modifier_parameters(part, &ctx, cpa, cpa_from, cpa_num, cpa_fuv, orco, &ptex);
@@ -4728,16 +4715,14 @@ void psys_get_dupli_texture(ParticleSystem *psys,
   /* Grid distribution doesn't support UV or emit from vertex mode */
   bool is_grid = (part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT);
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(psmd);
-
   if (cpa) {
-    if ((part->childtype == PART_CHILD_FACES) && (mesh_final != NULL)) {
-      CustomData *mtf_data = &mesh_final->fdata;
+    if ((part->childtype == PART_CHILD_FACES) && (psmd->mesh_final != NULL)) {
+      CustomData *mtf_data = &psmd->mesh_final->fdata;
       const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
       mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
 
       if (mtface && !is_grid) {
-        mface = CustomData_get(&mesh_final->fdata, cpa->num, CD_MFACE);
+        mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
         mtface += cpa->num;
         psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
       }
@@ -4760,8 +4745,8 @@ void psys_get_dupli_texture(ParticleSystem *psys,
     }
   }
 
-  if ((part->from == PART_FROM_FACE) && (mesh_final != NULL) && !is_grid) {
-    CustomData *mtf_data = &mesh_final->fdata;
+  if ((part->from == PART_FROM_FACE) && (psmd->mesh_final != NULL) && !is_grid) {
+    CustomData *mtf_data = &psmd->mesh_final->fdata;
     const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
     mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
 
@@ -4771,14 +4756,14 @@ void psys_get_dupli_texture(ParticleSystem *psys,
       num = pa->num;
     }
 
-    if (num >= mesh_final->totface) {
+    if (num >= psmd->mesh_final->totface) {
       /* happens when simplify is enabled
        * gives invalid coords but would crash otherwise */
       num = DMCACHE_NOTFOUND;
     }
 
     if (mtface && !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-      mface = CustomData_get(&mesh_final->fdata, num, CD_MFACE);
+      mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
       mtface += num;
       psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
     }
@@ -4899,10 +4884,8 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
     int p, h;
     float hairmat[4][4], imat[4][4];
 
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim.psmd);
-
     for (p = 0; p < psys->totpart; p++, pa++) {
-      psys_mat_hair_to_global(sim.ob, mesh_final, psys->part->from, pa, hairmat);
+      psys_mat_hair_to_global(sim.ob, sim.psmd->mesh_final, psys->part->from, pa, hairmat);
       invert_m4_m4(imat, hairmat);
 
       hkey = pa->hair;
@@ -4936,41 +4919,4 @@ void BKE_particle_batch_cache_free(ParticleSystem *psys)
   if (psys->batch_cache) {
     BKE_particle_batch_cache_free_cb(psys);
   }
-}
-
-/* **** Particle system modifier helpers.  **** */
-
-Mesh *BKE_particle_modifier_mesh_final_get(ParticleSystemModifierData *psmd)
-{
-  if (psmd == NULL) {
-    return NULL;
-  }
-  ParticleSystemModifierDataRuntime *runtime = psmd->modifier.runtime;
-  if (runtime == NULL) {
-    return NULL;
-  }
-  return runtime->mesh_final;
-}
-
-Mesh *BKE_particle_modifier_mesh_original_get(ParticleSystemModifierData *psmd)
-{
-  if (psmd == NULL) {
-    return NULL;
-  }
-  ParticleSystemModifierDataRuntime *runtime = psmd->modifier.runtime;
-  if (runtime == NULL) {
-    return NULL;
-  }
-  return runtime->mesh_original;
-}
-
-ParticleSystemModifierDataRuntime *BKE_particle_modifier_runtime_ensure(
-    ParticleSystemModifierData *psmd)
-{
-  BLI_assert(psmd != NULL);
-  if (psmd->modifier.runtime == NULL) {
-    psmd->modifier.runtime = MEM_callocN(sizeof(ParticleSystemModifierDataRuntime),
-                                         "psmd runtime");
-  }
-  return psmd->modifier.runtime;
 }

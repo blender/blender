@@ -497,13 +497,12 @@ void BKE_object_free_caches(Object *object)
   for (md = object->modifiers.first; md != NULL; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-      ParticleSystemModifierDataRuntime *psmd_runtime = BKE_particle_modifier_runtime_ensure(psmd);
-      if (psmd_runtime->mesh_final) {
-        BKE_id_free(NULL, psmd_runtime->mesh_final);
-        psmd_runtime->mesh_final = NULL;
-        if (psmd_runtime->mesh_original) {
-          BKE_id_free(NULL, psmd_runtime->mesh_original);
-          psmd_runtime->mesh_original = NULL;
+      if (psmd->mesh_final) {
+        BKE_id_free(NULL, psmd->mesh_final);
+        psmd->mesh_final = NULL;
+        if (psmd->mesh_original) {
+          BKE_id_free(NULL, psmd->mesh_original);
+          psmd->mesh_original = NULL;
         }
         psmd->flag |= eParticleSystemFlag_file_loaded;
         update_flag |= ID_RECALC_GEOMETRY;

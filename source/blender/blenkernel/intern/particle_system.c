@@ -467,7 +467,7 @@ void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData
 {
   memset(ctx, 0, sizeof(ParticleThreadContext));
   ctx->sim = *sim;
-  ctx->mesh = BKE_particle_modifier_mesh_final_get(ctx->sim.psmd);
+  ctx->mesh = ctx->sim.psmd->mesh_final;
   ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
 }
 
@@ -3348,7 +3348,6 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
 
   /* make vgroup for pin roots etc.. */
   hair_index = 1;
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
   LOOP_PARTICLES
   {
     if (!(pa->flag & PARS_UNEXIST)) {
@@ -3359,7 +3358,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
       pa->hair_index = hair_index;
       use_hair = psys_hair_use_simulation(pa, max_length);
 
-      psys_mat_hair_to_object(sim->ob, mesh_final, psys->part->from, pa, hairmat);
+      psys_mat_hair_to_object(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
       mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
       normalize_m4(root_mat);
 
@@ -3525,9 +3524,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
 
   if (psys->recalc & ID_RECALC_PSYS_RESET) {
     /* need this for changing subsurf levels */
-    Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
-    Mesh *mesh_original = BKE_particle_modifier_mesh_original_get(sim->psmd);
-    psys_calc_dmcache(sim->ob, mesh_final, mesh_original, psys);
+    psys_calc_dmcache(sim->ob, sim->psmd->mesh_final, sim->psmd->mesh_original, psys);
 
     if (psys->clmd) {
       cloth_free_modifier(psys->clmd);
@@ -3579,8 +3576,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
     if (pa->totkey) {
       sub_v3_v3(key->co, root->co);
-      Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim->psmd);
-      psys_vec_rot_to_face(mesh_final, pa, key->co);
+      psys_vec_rot_to_face(sim->psmd->mesh_final, pa, key->co);
     }
 
     key->time = pa->state.time;
@@ -4614,13 +4610,12 @@ void particle_system_update(struct Depsgraph *depsgraph,
     }
   }
 
-  Mesh *mesh_final = BKE_particle_modifier_mesh_final_get(sim.psmd);
-  if (!mesh_final) {
+  if (!sim.psmd->mesh_final) {
     return;
   }
 
   if (part->from != PART_FROM_VERT) {
-    BKE_mesh_tessface_ensure(mesh_final);
+    BKE_mesh_tessface_ensure(sim.psmd->mesh_final);
   }
 
   /* to verify if we need to restore object afterwards */

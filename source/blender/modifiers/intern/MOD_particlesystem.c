@@ -23,8 +23,6 @@
 
 #include <stddef.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
@@ -44,32 +42,43 @@ static void initData(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
   psmd->psys = NULL;
+  psmd->mesh_final = NULL;
+  psmd->mesh_original = NULL;
+  psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 }
-
-static void freeRuntimeData(void *runtime_data_v)
-{
-  if (runtime_data_v == NULL) {
-    return;
-  }
-  ParticleSystemModifierDataRuntime *runtime_data = runtime_data_v;
-  if (runtime_data->mesh_final) {
-    BKE_id_free(NULL, runtime_data->mesh_final);
-  }
-  if (runtime_data->mesh_original) {
-    BKE_id_free(NULL, runtime_data->mesh_original);
-  }
-  MEM_freeN(runtime_data);
-}
-
 static void freeData(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-  freeRuntimeData(md->runtime);
+
+  if (psmd->mesh_final) {
+    BKE_id_free(NULL, psmd->mesh_final);
+    psmd->mesh_final = NULL;
+    if (psmd->mesh_original) {
+      BKE_id_free(NULL, psmd->mesh_original);
+      psmd->mesh_original = NULL;
+    }
+  }
+  psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
+
   /* ED_object_modifier_remove may have freed this first before calling
    * modifier_free (which calls this function) */
   if (psmd->psys) {
     psmd->psys->flag |= PSYS_DELETE;
   }
+}
+
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+{
+#if 0
+  const ParticleSystemModifierData *psmd = (const ParticleSystemModifierData *)md;
+#endif
+  ParticleSystemModifierData *tpsmd = (ParticleSystemModifierData *)target;
+
+  modifier_copyData_generic(md, target, flag);
+
+  tpsmd->mesh_final = NULL;
+  tpsmd->mesh_original = NULL;
+  tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -111,16 +120,14 @@ static void deformVerts(ModifierData *md,
     }
   }
 
-  ParticleSystemModifierDataRuntime *runtime = BKE_particle_modifier_runtime_ensure(psmd);
-
   /* clear old dm */
-  bool had_mesh_final = (runtime->mesh_final != NULL);
-  if (runtime->mesh_final) {
-    BKE_id_free(NULL, runtime->mesh_final);
-    runtime->mesh_final = NULL;
-    if (runtime->mesh_original) {
-      BKE_id_free(NULL, runtime->mesh_original);
-      runtime->mesh_original = NULL;
+  bool had_mesh_final = (psmd->mesh_final != NULL);
+  if (psmd->mesh_final) {
+    BKE_id_free(NULL, psmd->mesh_final);
+    psmd->mesh_final = NULL;
+    if (psmd->mesh_original) {
+      BKE_id_free(NULL, psmd->mesh_original);
+      psmd->mesh_original = NULL;
     }
   }
   else if (psmd->flag & eParticleSystemFlag_file_loaded) {
@@ -136,13 +143,13 @@ static void deformVerts(ModifierData *md,
   }
 
   /* make new mesh */
-  runtime->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
-  BKE_mesh_apply_vert_coords(runtime->mesh_final, vertexCos);
-  BKE_mesh_calc_normals(runtime->mesh_final);
+  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
+  BKE_mesh_apply_vert_coords(psmd->mesh_final, vertexCos);
+  BKE_mesh_calc_normals(psmd->mesh_final);
 
-  BKE_mesh_tessface_ensure(runtime->mesh_final);
+  BKE_mesh_tessface_ensure(psmd->mesh_final);
 
-  if (!runtime->mesh_final->runtime.deformed_only) {
+  if (!psmd->mesh_final->runtime.deformed_only) {
     /* Get the original mesh from the object, this is what the particles
      * are attached to so in case of non-deform modifiers we need to remap
      * them to the final mesh (typically subdivision surfaces). */
@@ -153,7 +160,7 @@ static void deformVerts(ModifierData *md,
 
       if (em) {
         /* In edit mode get directly from the edit mesh. */
-        runtime->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL);
+        psmd->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL);
       }
       else {
         /* Otherwise get regular mesh. */
@@ -168,13 +175,13 @@ static void deformVerts(ModifierData *md,
       /* Make a persistent copy of the mesh. We don't actually need
        * all this data, just some topology for remapping. Could be
        * optimized once. */
-      runtime->mesh_original = BKE_mesh_copy_for_eval(mesh_original, false);
+      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original, false);
     }
 
-    BKE_mesh_tessface_ensure(runtime->mesh_original);
+    BKE_mesh_tessface_ensure(psmd->mesh_original);
   }
 
-  if (mesh_src != runtime->mesh_final && mesh_src != mesh) {
+  if (mesh_src != psmd->mesh_final && mesh_src != mesh) {
     BKE_id_free(NULL, mesh_src);
   }
 
@@ -182,13 +189,13 @@ static void deformVerts(ModifierData *md,
    * This is an unreliable check for the topology check, but allows some
    * handy configuration like emitting particles from inside particle
    * instance. */
-  if (had_mesh_final && (runtime->mesh_final->totvert != runtime->totdmvert ||
-                         runtime->mesh_final->totedge != runtime->totdmedge ||
-                         runtime->mesh_final->totface != runtime->totdmface)) {
+  if (had_mesh_final && (psmd->mesh_final->totvert != psmd->totdmvert ||
+                         psmd->mesh_final->totedge != psmd->totdmedge ||
+                         psmd->mesh_final->totface != psmd->totdmface)) {
     psys->recalc |= ID_RECALC_PSYS_RESET;
-    runtime->totdmvert = runtime->mesh_final->totvert;
-    runtime->totdmedge = runtime->mesh_final->totedge;
-    runtime->totdmface = runtime->mesh_final->totface;
+    psmd->totdmvert = psmd->mesh_final->totvert;
+    psmd->totdmedge = psmd->mesh_final->totedge;
+    psmd->totdmface = psmd->mesh_final->totface;
   }
 
   if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
@@ -238,11 +245,12 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* structSize */ sizeof(ParticleSystemModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_UsesPointCache, /* |
+        eModifierTypeFlag_UsesPointCache /* |
                           eModifierTypeFlag_SupportsEditmode |
                           eModifierTypeFlag_EnableInEditmode */
+    ,
 
-    /* copyData */ modifier_copyData_generic,
+    /* copyData */ copyData,
 
     /* deformVerts */ deformVerts,
     /* deformMatrices */ NULL,
@@ -260,5 +268,5 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ freeRuntimeData,
+    /* freeRuntimeData */ NULL,
 };
