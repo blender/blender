@@ -106,8 +106,6 @@ class SEQUENCER_HT_header(Header):
 
         layout.separator_spacer()
 
-        layout.template_running_jobs()
-
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             layout.separator()
             layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="")
