@@ -842,7 +842,6 @@ class SEQUENCER_PT_adjust_transform_offset(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         layout.active = strip.use_translation and (not strip.mute)
 
@@ -870,7 +869,6 @@ class SEQUENCER_PT_adjust_transform_crop(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         layout.active = strip.use_crop and (not strip.mute)
 
@@ -904,7 +902,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1175,7 +1172,6 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
         sound = strip.sound
@@ -1221,7 +1217,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1271,7 +1266,6 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1441,7 +1435,6 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         st = context.space_data
         strip = act_strip(context)
@@ -1475,7 +1468,6 @@ class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1553,7 +1545,6 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
         layout = self.layout
 
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         col = layout.column()
 
@@ -1602,7 +1593,6 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
 
@@ -1894,7 +1884,6 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
 
         strip = act_strip(context)
         ed = context.scene.sequence_editor
