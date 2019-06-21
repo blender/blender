@@ -968,7 +968,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
 class PREFERENCES_OT_studiolight_new(Operator):
     """Save custom studio light from the studio light editor settings"""
     bl_idname = "preferences.studiolight_new"
-    bl_label = "Save custom Studio light"
+    bl_label = "Save Custom Studio Light"
 
     filename: StringProperty(
         name="Name",
