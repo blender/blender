@@ -213,7 +213,7 @@ size_t BLI_timecode_string_from_time_simple(char *str,
   const int hr = ((int)time_seconds) / (60 * 60);
   const int min = (((int)time_seconds) / 60) % 60;
   const int sec = ((int)time_seconds) % 60;
-  const int hun = ((int)(time_seconds * 100.0)) % 100;
+  const int hun = ((int)(fmod(time_seconds, 1.0) * 100));
 
   if (hr) {
     rlen = BLI_snprintf(str, maxncpy, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);

@@ -118,6 +118,8 @@ NODE_DEFINE(Camera)
   stereo_eye_enum.insert("right", STEREO_RIGHT);
   SOCKET_ENUM(stereo_eye, "Stereo Eye", stereo_eye_enum, STEREO_NONE);
 
+  SOCKET_BOOLEAN(use_spherical_stereo, "Use Spherical Stereo", false);
+
   SOCKET_FLOAT(interocular_distance, "Interocular Distance", 0.065f);
   SOCKET_FLOAT(convergence_distance, "Convergence Distance", 30.0f * 0.065f);
 

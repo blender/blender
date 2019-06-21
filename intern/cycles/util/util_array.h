@@ -63,7 +63,9 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     }
     else {
       data_ = mem_allocate(from.datasize_);
-      memcpy(data_, from.data_, from.datasize_ * sizeof(T));
+      if (from.datasize_ > 0) {
+        memcpy(data_, from.data_, from.datasize_ * sizeof(T));
+      }
       datasize_ = from.datasize_;
       capacity_ = datasize_;
     }
@@ -73,7 +75,9 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   {
     if (this != &from) {
       resize(from.size());
-      memcpy((void *)data_, from.data_, datasize_ * sizeof(T));
+      if (datasize_ > 0) {
+        memcpy((void *)data_, from.data_, datasize_ * sizeof(T));
+      }
     }
 
     return *this;
@@ -83,7 +87,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   {
     resize(from.size());
 
-    if (from.size() > 0) {
+    if (from.size() > 0 && datasize_ > 0) {
       memcpy(data_, &from[0], datasize_ * sizeof(T));
     }
 
@@ -99,6 +103,9 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   {
     if (datasize_ != other.datasize_) {
       return false;
+    }
+    if (datasize_ == 0) {
+      return true;
     }
 
     return memcmp(data_, other.data_, datasize_ * sizeof(T)) == 0;

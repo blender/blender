@@ -91,16 +91,31 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
 {
   memset((void *)bcam, 0, sizeof(BlenderCamera));
 
+  bcam->nearclip = 1e-5f;
+  bcam->farclip = 1e5f;
+
   bcam->type = CAMERA_PERSPECTIVE;
+  bcam->ortho_scale = 1.0f;
+
+  bcam->lens = 50.0f;
+  bcam->shuttertime = 1.0f;
+
+  bcam->rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
+  bcam->rolling_shutter_duration = 0.1f;
+
+  bcam->aperturesize = 0.0f;
+  bcam->apertureblades = 0;
+  bcam->aperturerotation = 0.0f;
+  bcam->focaldistance = 10.0f;
+
   bcam->zoom = 1.0f;
   bcam->pixelaspect = make_float2(1.0f, 1.0f);
+  bcam->aperture_ratio = 1.0f;
+
   bcam->sensor_width = 36.0f;
   bcam->sensor_height = 24.0f;
   bcam->sensor_fit = BlenderCamera::AUTO;
-  bcam->shuttertime = 1.0f;
   bcam->motion_position = Camera::MOTION_POSITION_CENTER;
-  bcam->rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
-  bcam->rolling_shutter_duration = 0.1f;
   bcam->border.right = 1.0f;
   bcam->border.top = 1.0f;
   bcam->pano_viewplane.right = 1.0f;
@@ -108,6 +123,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->viewport_camera_border.right = 1.0f;
   bcam->viewport_camera_border.top = 1.0f;
   bcam->offscreen_dicing_scale = 1.0f;
+  bcam->matrix = transform_identity();
 
   /* render resolution */
   bcam->full_width = render_resolution_x(b_render);
