@@ -29,19 +29,8 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 #~      message(FATAL_ERROR "CMake test directory not found!")
 #~  endif()
 
-# all calls to blender use this
-if(APPLE)
-  if(${CMAKE_GENERATOR} MATCHES "Xcode")
-    set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/Debug/blender.app/Contents/MacOS/blender)
-  else()
-    set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender.app/Contents/MacOS/blender)
-  endif()
-else()
-  set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender)
-endif()
-
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
-set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+set(TEST_BLENDER_EXE $<TARGET_FILE:blender> --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
 
 # ------------------------------------------------------------------------------

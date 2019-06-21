@@ -42,7 +42,7 @@ if not os.path.exists(blender_bin):
 
 if not os.path.exists(blender_bin):
     if sys.platform == 'darwin':
-        blender_app_path = '/Applications/blender.app/Contents/MacOS/blender'
+        blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
         if os.path.exists(blender_app_path):
             blender_bin = blender_app_path
 

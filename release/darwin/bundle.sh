@@ -69,8 +69,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -d "${SRC_DIR}/blender.app" ]; then
-    echo "use --source parameter to set source directory where blender.app can be found"
+if [ ! -d "${SRC_DIR}/Blender.app" ]; then
+    echo "use --source parameter to set source directory where Blender.app can be found"
     exit 1
 fi
 
@@ -91,8 +91,8 @@ fi
 
 # let's go.
 
-echo -n "Copying blender.app..."
-cp -r "${SRC_DIR}/blender.app" "${_tmpdir}/" || exit 1
+echo -n "Copying Blender.app..."
+cp -r "${SRC_DIR}/Blender.app" "${_tmpdir}/" || exit 1
 echo
 
 # Create the disk image
@@ -130,10 +130,10 @@ if [ ! -z "${C_CERT}" ]; then
     # codesigning seems to be thingie. all libs and binaries need to be
     # signed separately. todo: use some find magic to find those
     echo -n "Codesigning..."
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/blender.app/Contents/Resources/2.80/python/bin/python3.7m"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/blender.app/Contents/Resources/2.80/python/lib/python3.7/site-packages/libextern_draco.dylib"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/blender.app/Contents/Resources/lib/libomp.dylib"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/blender.app"
+    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/Blender.app/Contents/Resources/2.80/python/bin/python3.7m"
+    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/Blender.app/Contents/Resources/2.80/python/lib/python3.7/site-packages/libextern_draco.dylib"
+    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/Blender.app/Contents/Resources/lib/libomp.dylib"
+    codesign --timestamp --options runtime --sign "${C_CERT}" "${MOUNT_DIR}/Blender.app"
     echo
 else
     echo "No codesigning cert given, skipping..."

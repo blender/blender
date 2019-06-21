@@ -17,7 +17,7 @@ $ ./bundle.sh --source <sourcedir> --dmg <dmg> --bundle-id <bundleid> --username
 
 where:
 
-<sourcedir> directory where built blender.app is
+<sourcedir> directory where built Blender.app is
 <dmg>	    location and name of the final disk image
 <bundleid>  id on notarization, you choose (for example org.blender.release)
 <username>  your appleid

@@ -18,7 +18,7 @@ if sys.platform == 'darwin':
     inkscape_app_path = '/Applications/Inkscape.app/Contents/Resources/script'
     if os.path.exists(inkscape_app_path):
         inkscape_bin = inkscape_app_path
-    blender_app_path = '/Applications/blender.app/Contents/MacOS/blender'
+    blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
     if os.path.exists(blender_app_path):
         blender_bin = blender_app_path
 
