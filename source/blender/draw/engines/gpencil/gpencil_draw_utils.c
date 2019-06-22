@@ -478,7 +478,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(GPENCIL_e_data *e_data,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
     stl->shgroups[id].texture_clamp = 0;
     DRW_shgroup_uniform_int(grp, "texture_clamp", &stl->shgroups[id].texture_clamp, 1);
   }
@@ -643,7 +643,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(GPENCIL_e_data *e_data,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
   }
 
   return grp;
@@ -801,7 +801,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
   }
   else {
     /* if no texture defined, need a blank texture to avoid errors in draw manager */
-    DRW_shgroup_uniform_texture(grp, "myTexture", e_data->gpencil_blank_texture);
+    DRW_shgroup_uniform_texture(grp, "myTexture", stl->g_data->gpencil_blank_texture);
   }
 
   return grp;
@@ -1539,23 +1539,17 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
               (const int *)stl->storage->shade_render);
         }
 
-        /* clean previous version of the batch */
-        if (stl->storage->buffer_stroke) {
-          GPU_BATCH_DISCARD_SAFE(e_data->batch_buffer_stroke);
-          MEM_SAFE_FREE(e_data->batch_buffer_stroke);
-          stl->storage->buffer_stroke = false;
-        }
-
         /* use unit matrix because the buffer is in screen space and does not need conversion */
         if (gpd->runtime.mode == GP_STYLE_MODE_LINE) {
-          e_data->batch_buffer_stroke = DRW_gpencil_get_buffer_stroke_geom(gpd, lthick);
+          stl->g_data->batch_buffer_stroke = DRW_gpencil_get_buffer_stroke_geom(gpd, lthick);
         }
         else {
-          e_data->batch_buffer_stroke = DRW_gpencil_get_buffer_point_geom(gpd, lthick);
+          stl->g_data->batch_buffer_stroke = DRW_gpencil_get_buffer_point_geom(gpd, lthick);
         }
 
         /* buffer strokes, must show stroke always */
-        DRW_shgroup_call(stl->g_data->shgrps_drawing_stroke, e_data->batch_buffer_stroke, NULL);
+        DRW_shgroup_call(
+            stl->g_data->shgrps_drawing_stroke, stl->g_data->batch_buffer_stroke, NULL);
 
         if ((gpd->runtime.sbuffer_size >= 3) &&
             (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
@@ -1569,18 +1563,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
           stl->g_data->shgrps_drawing_fill = DRW_shgroup_create(e_data->gpencil_drawing_fill_sh,
                                                                 psl->drawing_pass);
 
-          /* clean previous version of the batch */
-          if (stl->storage->buffer_fill) {
-            GPU_BATCH_DISCARD_SAFE(e_data->batch_buffer_fill);
-            MEM_SAFE_FREE(e_data->batch_buffer_fill);
-            stl->storage->buffer_fill = false;
-          }
-
-          e_data->batch_buffer_fill = DRW_gpencil_get_buffer_fill_geom(gpd);
-          DRW_shgroup_call(stl->g_data->shgrps_drawing_fill, e_data->batch_buffer_fill, NULL);
-          stl->storage->buffer_fill = true;
+          stl->g_data->batch_buffer_fill = DRW_gpencil_get_buffer_fill_geom(gpd);
+          DRW_shgroup_call(stl->g_data->shgrps_drawing_fill, stl->g_data->batch_buffer_fill, NULL);
         }
-        stl->storage->buffer_stroke = true;
       }
     }
   }
@@ -1598,18 +1583,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
     const float *viewport_size = DRW_viewport_size_get();
     DRW_shgroup_uniform_vec2(shgrp, "Viewport", viewport_size, 1);
 
-    /* clean previous version of the batch */
-    if (stl->storage->buffer_ctrlpoint) {
-      GPU_BATCH_DISCARD_SAFE(e_data->batch_buffer_ctrlpoint);
-      MEM_SAFE_FREE(e_data->batch_buffer_ctrlpoint);
-      stl->storage->buffer_ctrlpoint = false;
-    }
+    stl->g_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
 
-    e_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
-
-    DRW_shgroup_call(shgrp, e_data->batch_buffer_ctrlpoint, NULL);
-
-    stl->storage->buffer_ctrlpoint = true;
+    DRW_shgroup_call(shgrp, stl->g_data->batch_buffer_ctrlpoint, NULL);
   }
 }
 

@@ -158,11 +158,9 @@ typedef struct GPENCIL_Storage {
   bool is_playing;
   bool is_render;
   bool is_mat_preview;
+  bool background_ready;
   int is_xray;
   bool reset_cache;
-  bool buffer_stroke;
-  bool buffer_fill;
-  bool buffer_ctrlpoint;
   const float *pixsize;
   float render_pixsize;
   int tonemapping;
@@ -243,6 +241,10 @@ typedef struct GPENCIL_TextureList {
   struct GPUTexture *multisample_color;
   struct GPUTexture *multisample_depth;
 
+  /* Background textures for speed-up drawing. */
+  struct GPUTexture *background_depth_tx;
+  struct GPUTexture *background_color_tx;
+
 } GPENCIL_TextureList;
 
 typedef struct GPENCIL_Data {
@@ -269,6 +271,31 @@ typedef struct g_data {
   int gp_cache_used; /* total objects in cache */
   int gp_cache_size; /* size of the cache */
   struct tGPencilObjectCache *gp_object_cache;
+
+  /* for buffer only one batch is nedeed because the drawing is only of one stroke */
+  GPUBatch *batch_buffer_stroke;
+  GPUBatch *batch_buffer_fill;
+  GPUBatch *batch_buffer_ctrlpoint;
+
+  /* grid geometry */
+  GPUBatch *batch_grid;
+
+  /* textures */
+  struct GPUTexture *gpencil_blank_texture;
+
+  /* runtime pointers texture */
+  struct GPUTexture *input_depth_tx;
+  struct GPUTexture *input_color_tx;
+
+  /* working textures */
+  struct GPUTexture *temp_color_tx_a;
+  struct GPUTexture *temp_depth_tx_a;
+
+  struct GPUTexture *temp_color_tx_b;
+  struct GPUTexture *temp_depth_tx_b;
+
+  struct GPUTexture *temp_color_tx_fx;
+  struct GPUTexture *temp_depth_tx_fx;
 
   int session_flag;
   bool do_instances;
@@ -312,34 +339,6 @@ typedef struct GPENCIL_e_data {
   struct GPUShader *gpencil_fx_shadow_resolve_sh;
   struct GPUShader *gpencil_fx_swirl_sh;
   struct GPUShader *gpencil_fx_wave_sh;
-
-  /* textures */
-  struct GPUTexture *background_depth_tx;
-  struct GPUTexture *background_color_tx;
-
-  struct GPUTexture *gpencil_blank_texture;
-
-  /* runtime pointers texture */
-  struct GPUTexture *input_depth_tx;
-  struct GPUTexture *input_color_tx;
-
-  /* working textures */
-  struct GPUTexture *temp_color_tx_a;
-  struct GPUTexture *temp_depth_tx_a;
-
-  struct GPUTexture *temp_color_tx_b;
-  struct GPUTexture *temp_depth_tx_b;
-
-  struct GPUTexture *temp_color_tx_fx;
-  struct GPUTexture *temp_depth_tx_fx;
-
-  /* for buffer only one batch is nedeed because the drawing is only of one stroke */
-  GPUBatch *batch_buffer_stroke;
-  GPUBatch *batch_buffer_fill;
-  GPUBatch *batch_buffer_ctrlpoint;
-
-  /* grid geometry */
-  GPUBatch *batch_grid;
 
 } GPENCIL_e_data; /* Engine data */
 

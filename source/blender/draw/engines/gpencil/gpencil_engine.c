@@ -102,6 +102,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 {
   GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+  GPENCIL_TextureList *txl = ((GPENCIL_Data *)vedata)->txl;
 
   /* Go full 32bits for rendering */
   eGPUTextureFormat fb_format = DRW_state_is_image_render() ? GPU_RGBA32F : GPU_RGBA16F;
@@ -119,49 +120,56 @@ static void GPENCIL_create_framebuffers(void *vedata)
     /* Framebufers for basic object drawing */
     if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_BASIC) {
       /* temp textures for ping-pong buffers */
-      e_data.temp_depth_tx_a = DRW_texture_pool_query_2d(
+      stl->g_data->temp_depth_tx_a = DRW_texture_pool_query_2d(
           size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_gpencil_type);
-      e_data.temp_color_tx_a = DRW_texture_pool_query_2d(
+      stl->g_data->temp_color_tx_a = DRW_texture_pool_query_2d(
           size[0], size[1], fb_format, &draw_engine_gpencil_type);
       GPU_framebuffer_ensure_config(&fbl->temp_fb_a,
                                     {
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_depth_tx_a),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_color_tx_a),
                                     });
 
-      e_data.temp_depth_tx_b = DRW_texture_pool_query_2d(
+      stl->g_data->temp_depth_tx_b = DRW_texture_pool_query_2d(
           size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_gpencil_type);
-      e_data.temp_color_tx_b = DRW_texture_pool_query_2d(
+      stl->g_data->temp_color_tx_b = DRW_texture_pool_query_2d(
           size[0], size[1], fb_format, &draw_engine_gpencil_type);
       GPU_framebuffer_ensure_config(&fbl->temp_fb_b,
                                     {
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_depth_tx_b),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_color_tx_b),
                                     });
 
       /* used for FX effects and Layer blending */
-      e_data.temp_depth_tx_fx = DRW_texture_pool_query_2d(
+      stl->g_data->temp_depth_tx_fx = DRW_texture_pool_query_2d(
           size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_gpencil_type);
-      e_data.temp_color_tx_fx = DRW_texture_pool_query_2d(
+      stl->g_data->temp_color_tx_fx = DRW_texture_pool_query_2d(
           size[0], size[1], fb_format, &draw_engine_gpencil_type);
       GPU_framebuffer_ensure_config(&fbl->temp_fb_fx,
                                     {
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_fx),
-                                        GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_fx),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_depth_tx_fx),
+                                        GPU_ATTACHMENT_TEXTURE(stl->g_data->temp_color_tx_fx),
                                     });
     }
 
-    /* background framebuffer to speed up drawing process (always 16 bits) */
+    /* background framebuffer to speed up drawing process */
     if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_DRAW) {
-      e_data.background_depth_tx = DRW_texture_pool_query_2d(
-          size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_gpencil_type);
-      e_data.background_color_tx = DRW_texture_pool_query_2d(
-          size[0], size[1], GPU_RGBA32F, &draw_engine_gpencil_type);
+      if (txl->background_color_tx == NULL) {
+        stl->storage->background_ready = false;
+      }
+      DRW_texture_ensure_2d(
+          &txl->background_depth_tx, size[0], size[1], GPU_DEPTH_COMPONENT24, DRW_TEX_FILTER);
+      DRW_texture_ensure_2d(
+          &txl->background_color_tx, size[0], size[1], GPU_RGBA16F, DRW_TEX_FILTER);
       GPU_framebuffer_ensure_config(&fbl->background_fb,
                                     {
-                                        GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
-                                        GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx),
+                                        GPU_ATTACHMENT_TEXTURE(txl->background_depth_tx),
+                                        GPU_ATTACHMENT_TEXTURE(txl->background_color_tx),
                                     });
+    }
+    else {
+      DRW_TEXTURE_FREE_SAFE(txl->background_depth_tx);
+      DRW_TEXTURE_FREE_SAFE(txl->background_color_tx);
     }
   }
 }
@@ -262,13 +270,6 @@ void GPENCIL_engine_init(void *vedata)
   /* create shaders */
   GPENCIL_create_shaders();
   GPENCIL_create_fx_shaders(&e_data);
-
-  /* blank texture used if no texture defined for fill shader */
-  if (!e_data.gpencil_blank_texture) {
-    float rect[16][16][4] = {{{0.0f}}};
-    e_data.gpencil_blank_texture = DRW_texture_create_2d(
-        16, 16, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
-  }
 }
 
 static void GPENCIL_engine_free(void)
@@ -284,20 +285,6 @@ static void GPENCIL_engine_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gpencil_background_sh);
   DRW_SHADER_FREE_SAFE(e_data.gpencil_paper_sh);
 
-  DRW_TEXTURE_FREE_SAFE(e_data.gpencil_blank_texture);
-
-  GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_stroke);
-  MEM_SAFE_FREE(e_data.batch_buffer_stroke);
-
-  GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_fill);
-  MEM_SAFE_FREE(e_data.batch_buffer_fill);
-
-  GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_ctrlpoint);
-  MEM_SAFE_FREE(e_data.batch_buffer_ctrlpoint);
-
-  GPU_BATCH_DISCARD_SAFE(e_data.batch_grid);
-  MEM_SAFE_FREE(e_data.batch_grid);
-
   /* effects */
   GPENCIL_delete_fx_shaders(&e_data);
 }
@@ -306,6 +293,7 @@ void GPENCIL_cache_init(void *vedata)
 {
   GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
   GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+  GPENCIL_TextureList *txl = ((GPENCIL_Data *)vedata)->txl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
@@ -340,6 +328,18 @@ void GPENCIL_cache_init(void *vedata)
 
   stl->g_data->shgrps_edit_line = NULL;
   stl->g_data->shgrps_edit_point = NULL;
+
+  /* reset textures */
+  stl->g_data->gpencil_blank_texture = NULL;
+  stl->g_data->batch_buffer_stroke = NULL;
+  stl->g_data->batch_buffer_fill = NULL;
+  stl->g_data->batch_buffer_ctrlpoint = NULL;
+  stl->g_data->batch_grid = NULL;
+
+  /* blank texture used if no texture defined for fill shader */
+  float rect[1][1][4] = {{{0.0f}}};
+  stl->g_data->gpencil_blank_texture = DRW_texture_create_2d(
+      1, 1, GPU_RGBA8, DRW_TEX_FILTER, (float *)rect);
 
   if (!stl->shgroups) {
     /* Alloc maximum size because count strokes is very slow and can be very complex due onion
@@ -424,7 +424,7 @@ void GPENCIL_cache_init(void *vedata)
 
     /* detect if painting session */
     if ((obact_gpd) && (obact_gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
-        (stl->storage->is_playing == false)) {
+        (stl->storage->is_playing == false) && (stl->storage->background_ready == true)) {
       /* need the original to avoid cow overhead while drawing */
       bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&obact_gpd->id);
       if (((gpd_orig->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
@@ -470,8 +470,8 @@ void GPENCIL_cache_init(void *vedata)
                                         DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     DRWShadingGroup *mix_shgrp = DRW_shgroup_create(e_data.gpencil_fullscreen_sh, psl->mix_pass);
     DRW_shgroup_call(mix_shgrp, quad, NULL);
-    DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeColor", &e_data.input_color_tx);
-    DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeDepth", &e_data.input_depth_tx);
+    DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeColor", &stl->g_data->input_color_tx);
+    DRW_shgroup_uniform_texture_ref(mix_shgrp, "strokeDepth", &stl->g_data->input_depth_tx);
     DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
     DRW_shgroup_uniform_int(mix_shgrp, "do_select", &stl->storage->do_select_outline, 1);
     DRW_shgroup_uniform_vec4(mix_shgrp, "select_color", stl->storage->select_color, 1);
@@ -488,8 +488,10 @@ void GPENCIL_cache_init(void *vedata)
     DRWShadingGroup *mix_shgrp_noblend = DRW_shgroup_create(e_data.gpencil_fullscreen_sh,
                                                             psl->mix_pass_noblend);
     DRW_shgroup_call(mix_shgrp_noblend, quad, NULL);
-    DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeColor", &e_data.input_color_tx);
-    DRW_shgroup_uniform_texture_ref(mix_shgrp_noblend, "strokeDepth", &e_data.input_depth_tx);
+    DRW_shgroup_uniform_texture_ref(
+        mix_shgrp_noblend, "strokeColor", &stl->g_data->input_color_tx);
+    DRW_shgroup_uniform_texture_ref(
+        mix_shgrp_noblend, "strokeDepth", &stl->g_data->input_depth_tx);
     DRW_shgroup_uniform_int(mix_shgrp_noblend, "tonemapping", &stl->storage->tonemapping, 1);
     DRW_shgroup_uniform_int(mix_shgrp_noblend, "do_select", &stl->storage->do_select_outline, 1);
     DRW_shgroup_uniform_vec4(mix_shgrp_noblend, "select_color", stl->storage->select_color, 1);
@@ -506,8 +508,8 @@ void GPENCIL_cache_init(void *vedata)
     DRWShadingGroup *background_shgrp = DRW_shgroup_create(e_data.gpencil_background_sh,
                                                            psl->background_pass);
     DRW_shgroup_call(background_shgrp, quad, NULL);
-    DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeColor", &e_data.background_color_tx);
-    DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeDepth", &e_data.background_depth_tx);
+    DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeColor", &txl->background_color_tx);
+    DRW_shgroup_uniform_texture_ref(background_shgrp, "strokeDepth", &txl->background_depth_tx);
 
     /* pass for drawing paper (only if viewport)
      * In render, the v3d is null so the paper is disabled
@@ -538,10 +540,10 @@ void GPENCIL_cache_init(void *vedata)
     DRWShadingGroup *blend_shgrp = DRW_shgroup_create(e_data.gpencil_blend_fullscreen_sh,
                                                       psl->blend_pass);
     DRW_shgroup_call(blend_shgrp, quad, NULL);
-    DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeColor", &e_data.temp_color_tx_a);
-    DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeDepth", &e_data.temp_depth_tx_a);
-    DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendColor", &e_data.temp_color_tx_fx);
-    DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendDepth", &e_data.temp_depth_tx_fx);
+    DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeColor", &stl->g_data->temp_color_tx_a);
+    DRW_shgroup_uniform_texture_ref(blend_shgrp, "strokeDepth", &stl->g_data->temp_depth_tx_a);
+    DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendColor", &stl->g_data->temp_color_tx_fx);
+    DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendDepth", &stl->g_data->temp_depth_tx_fx);
     DRW_shgroup_uniform_int(blend_shgrp, "mode", &stl->storage->blend_mode, 1);
     DRW_shgroup_uniform_int(blend_shgrp, "clamp_layer", &stl->storage->clamp_layer, 1);
     DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
@@ -655,10 +657,8 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
         (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact) &&
         ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0) &&
         ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) == 0)) {
-      GPU_BATCH_DISCARD_SAFE(e_data.batch_grid);
-      MEM_SAFE_FREE(e_data.batch_grid);
 
-      e_data.batch_grid = DRW_gpencil_get_grid(ob);
+      stl->g_data->batch_grid = DRW_gpencil_get_grid(ob);
 
       /* define grid orientation */
       switch (ts->gp_sculpt.lock_axis) {
@@ -688,7 +688,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
         copy_v3_v3(grid_matrix[3], ob->obmat[3]);
       }
 
-      DRW_shgroup_call_obmat(stl->g_data->shgrps_grid, e_data.batch_grid, grid_matrix);
+      DRW_shgroup_call_obmat(stl->g_data->shgrps_grid, stl->g_data->batch_grid, grid_matrix);
     }
   }
 }
@@ -762,11 +762,28 @@ static void gpencil_prepare_fast_drawing(GPENCIL_StorageList *stl,
     DRW_draw_pass(pass);
     /* set default framebuffer again */
     GPU_framebuffer_bind(dfbl->default_fb);
+
+    stl->storage->background_ready = true;
   }
 }
 
-static void gpencil_free_obj_runtime(GPENCIL_StorageList *stl)
+static void gpencil_free_runtime_data(GPENCIL_StorageList *stl)
 {
+  /* free gpu data */
+  DRW_TEXTURE_FREE_SAFE(stl->g_data->gpencil_blank_texture);
+
+  GPU_BATCH_DISCARD_SAFE(stl->g_data->batch_buffer_stroke);
+  MEM_SAFE_FREE(stl->g_data->batch_buffer_stroke);
+
+  GPU_BATCH_DISCARD_SAFE(stl->g_data->batch_buffer_fill);
+  MEM_SAFE_FREE(stl->g_data->batch_buffer_fill);
+
+  GPU_BATCH_DISCARD_SAFE(stl->g_data->batch_buffer_ctrlpoint);
+  MEM_SAFE_FREE(stl->g_data->batch_buffer_ctrlpoint);
+
+  GPU_BATCH_DISCARD_SAFE(stl->g_data->batch_grid);
+  MEM_SAFE_FREE(stl->g_data->batch_grid);
+
   if (stl->g_data->gp_object_cache == NULL) {
     return;
   }
@@ -892,7 +909,7 @@ void GPENCIL_draw_scene(void *ved)
   if (DRW_state_is_select() || DRW_state_is_depth()) {
     drw_gpencil_select_render(stl, psl);
     /* free memory */
-    gpencil_free_obj_runtime(stl);
+    gpencil_free_runtime_data(stl);
     return;
   }
 
@@ -915,15 +932,16 @@ void GPENCIL_draw_scene(void *ved)
 
     MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, dfbl->default_fb, txl);
 
-    /* free memory */
-    gpencil_free_obj_runtime(stl);
-
     /* grid pass */
     if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
       if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (v3d->gp_flag & V3D_GP_SHOW_GRID)) {
         DRW_draw_pass(psl->grid_pass);
       }
     }
+
+    /* free memory */
+    gpencil_free_runtime_data(stl);
+
     return;
   }
 
@@ -988,8 +1006,8 @@ void GPENCIL_draw_scene(void *ved)
               stl->storage->tonemapping = 0;
 
               /* Copy B texture to A texture to follow loop */
-              e_data.input_depth_tx = e_data.temp_depth_tx_b;
-              e_data.input_color_tx = e_data.temp_color_tx_b;
+              stl->g_data->input_depth_tx = stl->g_data->temp_depth_tx_b;
+              stl->g_data->input_color_tx = stl->g_data->temp_color_tx_b;
 
               GPU_framebuffer_bind(fbl->temp_fb_a);
               GPU_framebuffer_clear_color_depth(fbl->temp_fb_a, clearcol, 1.0f);
@@ -1014,8 +1032,8 @@ void GPENCIL_draw_scene(void *ved)
           DRW_gpencil_fx_draw(&e_data, vedata, cache_ob);
         }
 
-        e_data.input_depth_tx = e_data.temp_depth_tx_a;
-        e_data.input_color_tx = e_data.temp_color_tx_a;
+        stl->g_data->input_depth_tx = stl->g_data->temp_depth_tx_a;
+        stl->g_data->input_color_tx = stl->g_data->temp_color_tx_a;
 
         /* Combine with scene buffer */
         if ((!is_render) || (fbl->main == NULL)) {
@@ -1072,7 +1090,7 @@ void GPENCIL_draw_scene(void *ved)
     }
   }
   /* free memory */
-  gpencil_free_obj_runtime(stl);
+  gpencil_free_runtime_data(stl);
 
   /* reset  */
   if (DRW_state_is_fbo()) {
