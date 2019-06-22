@@ -381,13 +381,13 @@ class SEQUENCER_MT_change(Menu):
         prop = layout.operator("sequencer.change_path", text="Path/Files")
 
         if strip:
-            stype = strip.type
+            strip_type = strip.type
 
-            if stype == 'IMAGE':
+            if strip_type == 'IMAGE':
                 prop.filter_image = True
-            elif stype == 'MOVIE':
+            elif strip_type == 'MOVIE':
                 prop.filter_movie = True
-            elif stype == 'SOUND':
+            elif strip_type == 'SOUND':
                 prop.filter_sound = True
 
 
@@ -586,13 +586,13 @@ class SEQUENCER_MT_strip_input(Menu):
         layout.operator("sequencer.swap_data", text="Swap Data")
 
         if strip:
-            stype = strip.type
+            strip_type = strip.type
 
-            if stype == 'IMAGE':
+            if strip_type == 'IMAGE':
                 prop.filter_image = True
-            elif stype == 'MOVIE':
+            elif strip_type == 'MOVIE':
                 prop.filter_movie = True
-            elif stype == 'SOUND':
+            elif strip_type == 'SOUND':
                 prop.filter_sound = True
 
 
@@ -660,14 +660,14 @@ class SEQUENCER_MT_strip(Menu):
         strip = act_strip(context)
 
         if strip:
-            stype = strip.type
+            strip_type = strip.type
 
-            if stype != 'SOUND':
+            if strip_type != 'SOUND':
                 layout.separator()
                 layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
                 layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
 
-            if stype in {
+            if strip_type in {
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                     'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
                     'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
@@ -675,19 +675,19 @@ class SEQUENCER_MT_strip(Menu):
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
-            elif stype in {'MOVIE'}:
+            elif strip_type == 'MOVIE':
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_movie")
-            elif stype in {'IMAGE'}:
+            elif strip_type == 'IMAGE':
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
-            elif stype == 'META':
+            elif strip_type == 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
                 layout.operator("sequencer.meta_separate")
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
-            if stype != 'META':
+            if strip_type != 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
@@ -732,9 +732,9 @@ class SEQUENCER_MT_context_menu(Menu):
         strip = act_strip(context)
 
         if strip:
-            stype = strip.type
+            strip_type = strip.type
 
-            if stype != 'SOUND':
+            if strip_type != 'SOUND':
 
                 layout.separator()
                 layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
@@ -749,7 +749,7 @@ class SEQUENCER_MT_context_menu(Menu):
                 layout.separator()
                 layout.operator("sequencer.crossfade_sounds", text="Crossfade Sounds")
 
-            if stype in {
+            if strip_type in {
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                     'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
                     'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
@@ -757,19 +757,19 @@ class SEQUENCER_MT_context_menu(Menu):
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
-            elif stype in {'MOVIE'}:
+            elif strip_type in 'MOVIE':
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_movie")
-            elif stype in {'IMAGE'}:
+            elif strip_type == 'IMAGE':
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 layout.operator("sequencer.images_separate")
-            elif stype == 'META':
+            elif strip_type == 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
                 layout.operator("sequencer.meta_separate")
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
-            if stype != 'META':
+            if strip_type != 'META':
                 layout.separator()
                 layout.operator("sequencer.meta_make")
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
@@ -912,10 +912,12 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if strip.input_count > 1:
                 col.prop(strip, "input_2")
 
-        if strip.type == 'COLOR':
+        strip_type = strip.type
+
+        if strip_type == 'COLOR':
             layout.prop(strip, "color")
 
-        elif strip.type == 'WIPE':
+        elif strip_type == 'WIPE':
             col = layout.column()
             col.prop(strip, "transition_type")
             col.alignment = 'RIGHT'
@@ -926,7 +928,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if strip.transition_type in {'SINGLE', 'DOUBLE'}:
                 col.prop(strip, "angle")
 
-        elif strip.type == 'GLOW':
+        elif strip_type == 'GLOW':
             flow = layout.column_flow()
             flow.prop(strip, "threshold", slider=True)
             flow.prop(strip, "clamp", slider=True)
@@ -937,7 +939,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.prop(strip, "quality", slider=True)
             row.prop(strip, "use_only_boost")
 
-        elif strip.type == 'SPEED':
+        elif strip_type == 'SPEED':
             layout.prop(strip, "use_default_fade", text="Stretch to input strip length")
             if not strip.use_default_fade:
                 layout.prop(strip, "use_as_speed")
@@ -947,7 +949,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     layout.prop(strip, "speed_factor", text="Frame Number")
                     layout.prop(strip, "use_scale_to_length")
 
-        elif strip.type == 'TRANSFORM':
+        elif strip_type == 'TRANSFORM':
             col = layout.column()
 
             col.prop(strip, "interpolation")
@@ -971,7 +973,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             col.prop(strip, "rotation_start", text="Rotation")
 
-        elif strip.type == 'MULTICAM':
+        elif strip_type == 'MULTICAM':
             col = layout.column(align=True)
             strip_channel = strip.channel
 
@@ -1004,7 +1006,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                 col.separator()
                 col.label(text="Two or more channels are needed below this strip", icon='INFO')
 
-        elif strip.type == 'TEXT':
+        elif strip_type == 'TEXT':
             col = layout.column()
             col.prop(strip, "text")
             col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
@@ -1027,17 +1029,17 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
 
         col = layout.column(align=True)
-        if strip.type == 'SPEED':
+        if strip_type == 'SPEED':
             col.prop(strip, "multiply_speed")
-        elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
+        elif strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
             col.prop(strip, "use_default_fade", text="Default fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect Fader")
-        elif strip.type == 'GAUSSIAN_BLUR':
+        elif strip_type == 'GAUSSIAN_BLUR':
             col = layout.column(align=True)
             col.prop(strip, "size_x", text="Size X")
             col.prop(strip, "size_y", text="Y")
-        elif strip.type == 'COLORMIX':
+        elif strip_type == 'COLORMIX':
             layout.prop(strip, "blend_effect", text="Blend Mode")
             row = layout.row(align=True)
             row.prop(strip, "factor", slider=True)
@@ -1066,12 +1068,12 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
 
         scene = context.scene
         strip = act_strip(context)
-        seq_type = strip.type
+        strip_type = strip.type
 
         layout.active = not strip.mute
 
         # Draw a filename if we have one.
-        if seq_type == 'SOUND':
+        if strip_type == 'SOUND':
             sound = strip.sound
             layout.template_ID(strip, "sound", open="sound.open")
             if sound is not None:
@@ -1092,7 +1094,7 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
 
                 layout.prop(sound, "use_memory_cache")
         else:
-            if seq_type == 'IMAGE':
+            if strip_type == 'IMAGE':
                 col = layout.column()
                 col.prop(strip, "directory", text="")
 
@@ -1106,7 +1108,7 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 col.prop(strip, "alpha_mode", text="Alpha")
                 sub = col.column(align=True)
                 sub.operator("sequencer.change_path", text="Change Data/Files", icon='FILEBROWSER').filter_image = True
-            else:  # elif seq_type == 'MOVIE':
+            else:  # elif strip_type == 'MOVIE':
                 elem = strip.elements[0]
 
                 col = layout.column()
