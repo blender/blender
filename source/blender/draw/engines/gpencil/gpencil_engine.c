@@ -924,10 +924,12 @@ void GPENCIL_draw_scene(void *ved)
   if ((!is_render) && (stl->g_data->session_flag & GP_DRW_PAINT_PAINTING)) {
     GPU_framebuffer_bind(dfbl->default_fb);
 
-    MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
     if (obact->dt != OB_BOUNDBOX) {
       DRW_draw_pass(psl->background_pass);
     }
+
+    MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
+
     DRW_draw_pass(psl->drawing_pass);
 
     MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, dfbl->default_fb, txl);
