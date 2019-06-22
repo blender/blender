@@ -116,7 +116,7 @@ class AnnotationDrawingToolsPanel:
         col.separator()
         col.separator()
 
-        if context.space_data.type in {'CLIP_EDITOR'}:
+        if context.space_data.type == 'CLIP_EDITOR':
             col.separator()
             col.label(text="Data Source:")
             row = col.row(align=True)

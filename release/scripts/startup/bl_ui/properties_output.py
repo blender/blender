@@ -381,7 +381,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if needs_codec and ffmpeg.codec == 'NONE':
             return
 
-        if ffmpeg.codec in {'DNXHD'}:
+        if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
 
         # Output quality
