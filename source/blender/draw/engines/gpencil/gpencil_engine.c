@@ -424,12 +424,13 @@ void GPENCIL_cache_init(void *vedata)
 
     /* detect if painting session */
     if ((obact_gpd) && (obact_gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
-        (stl->storage->is_playing == false) && (stl->storage->background_ready == true)) {
+        (stl->storage->is_playing == false)) {
       /* need the original to avoid cow overhead while drawing */
       bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&obact_gpd->id);
       if (((gpd_orig->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
           (gpd_orig->runtime.sbuffer_size > 0) &&
-          ((gpd_orig->flag & GP_DATA_STROKE_POLYGON) == 0) && !DRW_state_is_depth()) {
+          ((gpd_orig->flag & GP_DATA_STROKE_POLYGON) == 0) && !DRW_state_is_depth() &&
+          (stl->storage->background_ready == true)) {
         stl->g_data->session_flag |= GP_DRW_PAINT_PAINTING;
       }
       else {
