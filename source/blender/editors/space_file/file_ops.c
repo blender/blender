@@ -802,33 +802,48 @@ void FILE_OT_select_walk(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int file_select_all_exec(bContext *C, wmOperator *op)
 {
   ScrArea *sa = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelection sel;
   const int numfiles = filelist_files_ensure(sfile->files);
-  const bool has_selection = file_is_any_selected(sfile->files);
+  int action = RNA_enum_get(op->ptr, "action");
+
+  if (action == SEL_TOGGLE) {
+    action = file_is_any_selected(sfile->files) ? SEL_DESELECT : SEL_SELECT;
+  }
 
   sel.first = 0;
   sel.last = numfiles - 1;
 
-  /* select all only if previously no file was selected */
-  if (has_selection) {
-    filelist_entries_select_index_range_set(
-        sfile->files, &sel, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
-    sfile->params->active_file = -1;
+  FileCheckType check_type;
+  FileSelType filesel_type;
+
+  switch (action) {
+    case SEL_SELECT:
+    case SEL_INVERT: {
+      check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS : CHECK_FILES;
+      filesel_type = (action == SEL_INVERT) ? FILE_SEL_TOGGLE : FILE_SEL_ADD;
+      break;
+    }
+    case SEL_DESELECT: {
+      check_type = CHECK_ALL;
+      filesel_type = FILE_SEL_REMOVE;
+      break;
+    }
+    default: {
+      BLI_assert(0);
+      return OPERATOR_CANCELLED;
+    }
   }
-  else {
-    const FileCheckType check_type = (sfile->params->flag & FILE_DIRSEL_ONLY) ? CHECK_DIRS :
-                                                                                CHECK_FILES;
-    int i;
 
-    filelist_entries_select_index_range_set(
-        sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_SELECTED, check_type);
+  filelist_entries_select_index_range_set(
+      sfile->files, &sel, filesel_type, FILE_SEL_SELECTED, check_type);
 
-    /* set active_file to first selected */
-    for (i = 0; i < numfiles; i++) {
+  sfile->params->active_file = -1;
+  if (action != SEL_DESELECT) {
+    for (int i = 0; i < numfiles; i++) {
       if (filelist_entry_select_index_get(sfile->files, i, check_type)) {
         sfile->params->active_file = i;
         break;
@@ -855,6 +870,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
   ot->poll = ED_operator_file_active;
 
   /* properties */
+  WM_operator_properties_select_all(ot);
 }
 
 /* ---------- BOOKMARKS ----------- */
