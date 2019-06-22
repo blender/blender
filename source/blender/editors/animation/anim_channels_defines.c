@@ -4520,8 +4520,8 @@ static void draw_setting_widget(bAnimContext *ac,
   /* get the base icon for the setting */
   switch (setting) {
     case ACHANNEL_SETTING_VISIBLE: /* visibility eyes */
-      // icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
-      icon = ICON_VISIBLE_IPO_OFF;
+      // icon = ((enabled) ? ICON_HIDE_OFF : ICON_HIDE_ON);
+      icon = ICON_HIDE_ON;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         tooltip = TIP_("F-Curve is visible in Graph Editor for editing");

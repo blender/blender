@@ -431,8 +431,6 @@ set(ICON_NAMES
   key_hlt
   mute_ipo_off
   mute_ipo_on
-  visible_ipo_off
-  visible_ipo_on
   driver
   solo_off
   solo_on

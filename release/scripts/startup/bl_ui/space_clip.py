@@ -106,7 +106,7 @@ class CLIP_PT_clip_display(Panel):
         row.separator()
         row.prop(sc, "use_grayscale_preview", text="B/W", toggle=True)
         row.separator()
-        row.prop(sc, "use_mute_footage", text="", icon='VISIBLE_IPO_ON', toggle=True)
+        row.prop(sc, "use_mute_footage", text="", icon='HIDE_OFF', toggle=True)
 
         layout.separator()
 
@@ -1633,7 +1633,7 @@ class CLIP_MT_tracking_pie(Menu):
         prop.backwards = False
         prop.sequence = True
         # Disable Marker
-        pie.operator("clip.disable_markers", icon='VISIBLE_IPO_ON').action = 'TOGGLE'
+        pie.operator("clip.disable_markers", icon='HIDE_OFF').action = 'TOGGLE'
         # Detect Features
         pie.operator("clip.detect_features", icon='ZOOM_SELECTED')
         # Clear Path Backwards
