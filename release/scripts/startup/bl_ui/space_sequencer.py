@@ -1079,7 +1079,7 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
 
             elem = strip.strip_elem_from_frame(scene.frame_current)
             if elem:
-                layout.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
+                col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
             col.prop(strip.colorspace_settings, "name", text="Color Space")
 
