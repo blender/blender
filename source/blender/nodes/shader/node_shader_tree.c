@@ -172,6 +172,16 @@ static void update(bNodeTree *ntree)
   }
 }
 
+static bool shader_validate_link(bNodeTree *UNUSED(ntree), bNodeLink *link)
+{
+  /* Can't connect shader into other socket types, other way around is fine
+   * since it will be interpreted as emission. */
+  if (link->fromsock->type == SOCK_SHADER) {
+    return (link->tosock->type == SOCK_SHADER);
+  }
+  return true;
+}
+
 bNodeTreeType *ntreeType_Shader;
 
 void register_node_tree_type_sh(void)
@@ -192,6 +202,7 @@ void register_node_tree_type_sh(void)
   tt->update = update;
   tt->poll = shader_tree_poll;
   tt->get_from_context = shader_get_from_context;
+  tt->validate_link = shader_validate_link;
 
   tt->ext.srna = &RNA_ShaderNodeTree;
 
