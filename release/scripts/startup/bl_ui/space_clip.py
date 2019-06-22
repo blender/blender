@@ -82,7 +82,7 @@ class CLIP_PT_marker_display(Panel):
 
         if view.mode != 'MASK':
             col.prop(view, "show_bundles", text="3D Markers")
-        col.prop(view, "show_tiny_markers", text="Draw Thin")
+        col.prop(view, "show_tiny_markers", text="Display Thin")
 
 
 class CLIP_PT_clip_display(Panel):
