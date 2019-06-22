@@ -2209,11 +2209,11 @@ static void rna_def_scene(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem scene_input_items[] = {
-      {0, "3D_CAMERA", ICON_VIEW3D, "3D Camera", "Use the Scene's 3D camera as input"},
+      {0, "CAMERA", ICON_VIEW3D, "Camera", "Use the Scene's 3D camera as input"},
       {SEQ_SCENE_STRIPS,
-       "SEQUENCE",
+       "SEQUENCER",
        ICON_SEQUENCE,
-       "Sequence",
+       "Sequencer",
        "Use the Scene's Sequencer timeline as input"},
       {0, NULL, 0, NULL, NULL},
   };
