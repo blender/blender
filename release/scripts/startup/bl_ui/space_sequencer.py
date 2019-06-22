@@ -1070,33 +1070,8 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
 
         layout.active = not strip.mute
 
-        # draw a filename if we have one
-        if seq_type == 'IMAGE':
-            col = layout.column()
-            col.prop(strip, "directory", text="")
-
-            # Current element for the filename
-
-            elem = strip.strip_elem_from_frame(scene.frame_current)
-            if elem:
-                col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
-
-            col.prop(strip.colorspace_settings, "name", text="Color Space")
-
-            col.prop(strip, "alpha_mode", text="Alpha")
-            sub = col.column(align=True)
-            sub.operator("sequencer.change_path", text="Change Data/Files", icon='FILEBROWSER').filter_image = True
-
-        elif seq_type == 'MOVIE':
-
-            col = layout.column()
-            col.prop(strip, "filepath", text="")
-            col.prop(strip.colorspace_settings, "name", text="Color Space")
-            col.prop(strip, "mpeg_preseek")
-            col.prop(strip, "stream_index")
-            col.prop(strip, "use_deinterlace")
-
-        elif seq_type == 'SOUND':
+        # Draw a filename if we have one.
+        if seq_type == 'SOUND':
             sound = strip.sound
             layout.template_ID(strip, "sound", open="sound.open")
             if sound is not None:
@@ -1116,37 +1091,53 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                     split.operator("sound.pack", icon='UGLYPACKAGE', text="")
 
                 layout.prop(sound, "use_memory_cache")
-
-        if scene.render.use_multiview and seq_type in {'IMAGE', 'MOVIE'}:
-            layout.prop(strip, "use_multiview")
-
-            col = layout.column()
-            col.active = strip.use_multiview
-
-            col.row().prop(strip, "views_format", expand=True)
-
-            box = col.box()
-            box.active = strip.views_format == 'STEREO_3D'
-            box.template_image_stereo_3d(strip.stereo_3d_format)
-
-        if strip.type == 'IMAGE':
-            # Alreay set above.
-            # elem = strip.strip_elem_from_frame(scene.frame_current)
-            pass
-        elif strip.type == 'MOVIE':
-            elem = strip.elements[0]
         else:
-            elem = None
+            if seq_type == 'IMAGE':
+                col = layout.column()
+                col.prop(strip, "directory", text="")
 
-        if strip.type != 'SOUND':
+                # Current element for the filename.
+                elem = strip.strip_elem_from_frame(scene.frame_current)
+                if elem:
+                    col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
+
+                col.prop(strip.colorspace_settings, "name", text="Color Space")
+
+                col.prop(strip, "alpha_mode", text="Alpha")
+                sub = col.column(align=True)
+                sub.operator("sequencer.change_path", text="Change Data/Files", icon='FILEBROWSER').filter_image = True
+            else:  # elif seq_type == 'MOVIE':
+                elem = strip.elements[0]
+
+                col = layout.column()
+                col.prop(strip, "filepath", text="")
+                col.prop(strip.colorspace_settings, "name", text="Color Space")
+                col.prop(strip, "mpeg_preseek")
+                col.prop(strip, "stream_index")
+                col.prop(strip, "use_deinterlace")
+
+            if scene.render.use_multiview:
+                layout.prop(strip, "use_multiview")
+
+                col = layout.column()
+                col.active = strip.use_multiview
+
+                col.row().prop(strip, "views_format", expand=True)
+
+                box = col.box()
+                box.active = strip.views_format == 'STEREO_3D'
+                box.template_image_stereo_3d(strip.stereo_3d_format)
+
+            # Resolution.
             col = layout.column(align=True)
             col = col.box()
             split = col.split(factor=0.5, align=False)
             split.alignment = 'RIGHT'
             split.label(text="Resolution")
-            if elem and elem.orig_width > 0 and elem.orig_height > 0:
+            size = (elem.orig_width, elem.orig_height) if elem else (0, 0)
+            if size[0] and size[1]:
                 split.alignment = 'LEFT'
-                split.label(text="%dx%d" % (elem.orig_width, elem.orig_height), translate=False)
+                split.label(text="%dx%d" % size, translate=False)
             else:
                 split.label(text="None")
 
