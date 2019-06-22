@@ -194,7 +194,7 @@ static void ed_select_id_draw_bases(struct EDSelectID_Context *sel_id_ctx,
   DRW_framebuffer_select_id_release(vc->ar);
 }
 
-void ED_view3d_select_id_validate_view_matrices(const struct EDSelectID_Context *sel_id_ctx,
+void ED_view3d_select_id_validate_view_matrices(struct EDSelectID_Context *sel_id_ctx,
                                                 ViewContext *vc)
 {
   if (!compare_m4m4(sel_id_ctx->persmat, vc->rv3d->persmat, FLT_EPSILON)) {

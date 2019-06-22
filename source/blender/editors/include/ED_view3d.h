@@ -519,7 +519,7 @@ struct EDSelectID_Context *ED_view3d_select_id_context_create(struct ViewContext
                                                               short select_mode);
 
 void ED_view3d_select_id_context_destroy(struct EDSelectID_Context *sel_id_ctx);
-void ED_view3d_select_id_validate_view_matrices(const struct EDSelectID_Context *sel_id_ctx,
+void ED_view3d_select_id_validate_view_matrices(struct EDSelectID_Context *sel_id_ctx,
                                                 struct ViewContext *vc);
 
 uint ED_view3d_select_id_context_offset_for_object_elem(
