@@ -381,8 +381,9 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
       for (j = mp->loopstart; j < mp->loopstart + mp->totloop; j++) {
         int mirrorj = mpmirror->loopstart;
-        if (j > mp->loopstart)
+        if (j > mp->loopstart) {
           mirrorj += mpmirror->totloop - (j - mp->loopstart);
+        }
         copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
         loop_normals[mirrorj][axis] = -loop_normals[j][axis];
         BKE_lnor_space_custom_normal_to_data(
