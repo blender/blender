@@ -139,7 +139,13 @@ typedef struct Object_Runtime {
 
   /** Selection id of this object; only available in the original object */
   int select_id;
-  char _pad1[4];
+  char _pad1[3];
+
+  /**
+   * Denotes whether the evaluated mesh is owned by this object or is referenced and owned by
+   * somebody else.
+   */
+  char is_mesh_eval_owned;
 
   /** Axis aligned boundbox (in localspace). */
   struct BoundBox *bb;
@@ -155,12 +161,6 @@ typedef struct Object_Runtime {
    * It has all modifiers applied.
    */
   struct Mesh *mesh_eval;
-  /**
-   * Denotes whether the evaluated mesh is owned by this object or is referenced and owned by
-   * somebody else.
-   */
-  int is_mesh_eval_owned;
-  int _pad3[3];
   /**
    * Mesh structure created during object evaluation.
    * It has deforemation only modifiers applied on it.
