@@ -334,9 +334,7 @@ static void set_wireframe_color(Object *ob,
         float wire_col[3];
         hsv_to_rgb_v(hsv, &wire_col[0]);
 
-        stl->shgroups[id].wire_color[0] = wire_col[0];
-        stl->shgroups[id].wire_color[1] = wire_col[1];
-        stl->shgroups[id].wire_color[2] = wire_col[2];
+        copy_v3_v3(stl->shgroups[id].wire_color, wire_col);
         stl->shgroups[id].wire_color[3] = alpha;
         break;
       }
