@@ -200,7 +200,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 
   /* props */
   RNA_def_int(ot->srna, "steps", 9, 0, 1000000, "Steps", "Steps", 0, 1000);
-  RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
+  RNA_def_boolean(ot->srna, "dupli", 0, "Duplicate", "Make Duplicates");
   prop = RNA_def_float(ot->srna,
                        "angle",
                        DEG2RADF(90.0f),
