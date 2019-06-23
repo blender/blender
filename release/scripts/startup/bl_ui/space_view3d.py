@@ -1113,7 +1113,7 @@ class VIEW3D_MT_view_navigation(Menu):
 
         layout.operator("view3d.zoom", text="Zoom In").delta = 1
         layout.operator("view3d.zoom", text="Zoom Out").delta = -1
-        layout.operator("view3d.zoom_border", text="Zoom Border...")
+        layout.operator("view3d.zoom_border", text="Zoom Region...")
         layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
 
         layout.separator()
