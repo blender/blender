@@ -821,31 +821,31 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
                 'OVER_DROP', 'GLOW', 'TRANSFORM', 'SPEED', 'MULTICAM',
                 'GAUSSIAN_BLUR', 'COLORMIX',
         }:
-            icon_header='SHADERFX'
+            icon_header = 'SHADERFX'
         elif strip_type in {
                 'CROSS', 'GAMMA_CROSS', 'WIPE',
         }:
-            icon_header='ARROW_LEFTRIGHT'
+            icon_header = 'ARROW_LEFTRIGHT'
         elif strip_type == 'SCENE':
-            icon_header='SCENE_DATA'
+            icon_header = 'SCENE_DATA'
         elif strip_type == 'MOVIECLIP':
-            icon_header='TRACKER'
+            icon_header = 'TRACKER'
         elif strip_type == 'MASK':
-            icon_header='MOD_MASK'
+            icon_header = 'MOD_MASK'
         elif strip_type == 'MOVIE':
-            icon_header='FILE_MOVIE'
+            icon_header = 'FILE_MOVIE'
         elif strip_type == 'SOUND':
-            icon_header='FILE_SOUND'
+            icon_header = 'FILE_SOUND'
         elif strip_type == 'IMAGE':
-            icon_header='FILE_IMAGE'
+            icon_header = 'FILE_IMAGE'
         elif strip_type == 'COLOR':
-            icon_header='COLOR'
+            icon_header = 'COLOR'
         elif strip_type == 'TEXT':
-            icon_header='FONT_DATA'
+            icon_header = 'FONT_DATA'
         elif strip_type == 'ADJUSTMENT':
-            icon_header='COLOR'
+            icon_header = 'COLOR'
         else:
-            icon_header='SEQ_SEQUENCER'
+            icon_header = 'SEQ_SEQUENCER'
 
         row = layout.row()
         row.label(text="", icon=icon_header)
