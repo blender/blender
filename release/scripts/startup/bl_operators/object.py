@@ -586,9 +586,9 @@ class JoinUVs(Operator):
 
 
 class MakeDupliFace(Operator):
-    """Convert objects into dupli-face instanced"""
+    """Convert objects into instanced faces"""
     bl_idname = "object.make_dupli_face"
-    bl_label = "Make Dupli-Face"
+    bl_label = "Make Instance Face"
     bl_options = {'REGISTER', 'UNDO'}
 
     @staticmethod
