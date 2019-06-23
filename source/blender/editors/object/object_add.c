@@ -1921,8 +1921,8 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make Duplicates Real";
-  ot->description = "Make dupli objects attached to this object real";
+  ot->name = "Make Instances Real";
+  ot->description = "Make instanced objects attached to this object real";
   ot->idname = "OBJECT_OT_duplicates_make_real";
 
   /* api callbacks */
