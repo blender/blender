@@ -2673,7 +2673,7 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
 void NODE_OT_viewer_border(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Viewer Border";
+  ot->name = "Viewer Region";
   ot->description = "Set the boundaries for viewer operations";
   ot->idname = "NODE_OT_viewer_border";
 
