@@ -357,8 +357,7 @@ static void set_wireframe_color(Object *ob,
 }
 
 /* create shading group for filling */
-static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(GPENCIL_e_data *e_data,
-                                                        GPENCIL_Data *vedata,
+static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(GPENCIL_Data *vedata,
                                                         DRWPass *pass,
                                                         GPUShader *shader,
                                                         Object *ob,
@@ -498,8 +497,7 @@ bool DRW_gpencil_onion_active(bGPdata *gpd)
 }
 
 /* create shading group for strokes */
-DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(GPENCIL_e_data *e_data,
-                                                   GPENCIL_Data *vedata,
+DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(GPENCIL_Data *vedata,
                                                    DRWPass *pass,
                                                    GPUShader *shader,
                                                    Object *ob,
@@ -650,8 +648,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(GPENCIL_e_data *e_data,
 }
 
 /* create shading group for points */
-static DRWShadingGroup *DRW_gpencil_shgroup_point_create(GPENCIL_e_data *e_data,
-                                                         GPENCIL_Data *vedata,
+static DRWShadingGroup *DRW_gpencil_shgroup_point_create(GPENCIL_Data *vedata,
                                                          DRWPass *pass,
                                                          GPUShader *shader,
                                                          Object *ob,
@@ -1508,7 +1505,6 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       if (gpd->runtime.sbuffer_size > 1) {
         if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
           stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_stroke_create(
-              e_data,
               vedata,
               psl->drawing_pass,
               e_data->gpencil_stroke_sh,
@@ -1524,7 +1520,6 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
         }
         else {
           stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_point_create(
-              e_data,
               vedata,
               psl->drawing_pass,
               e_data->gpencil_point_sh,
@@ -1692,8 +1687,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Stroke: {
         const int len = elm->vertex_idx - start_stroke;
 
-        shgrp = DRW_gpencil_shgroup_stroke_create(e_data,
-                                                  vedata,
+        shgrp = DRW_gpencil_shgroup_stroke_create(vedata,
                                                   stroke_pass,
                                                   e_data->gpencil_stroke_sh,
                                                   ob,
@@ -1715,8 +1709,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Point: {
         const int len = elm->vertex_idx - start_point;
 
-        shgrp = DRW_gpencil_shgroup_point_create(e_data,
-                                                 vedata,
+        shgrp = DRW_gpencil_shgroup_point_create(vedata,
                                                  stroke_pass,
                                                  e_data->gpencil_point_sh,
                                                  ob,
@@ -1739,8 +1732,7 @@ static void DRW_gpencil_shgroups_create(GPENCIL_e_data *e_data,
       case eGpencilBatchGroupType_Fill: {
         const int len = elm->vertex_idx - start_fill;
 
-        shgrp = DRW_gpencil_shgroup_fill_create(e_data,
-                                                vedata,
+        shgrp = DRW_gpencil_shgroup_fill_create(vedata,
                                                 stroke_pass,
                                                 e_data->gpencil_fill_sh,
                                                 ob,
