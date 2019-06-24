@@ -79,6 +79,10 @@
 #include "sculpt_intern.h"
 #include "paint_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 /* Use for 'blur' brush, align with PBVH nodes, created and freed on each update. */
 struct VPaintAverageAccum {
   uint len;
@@ -1100,6 +1104,8 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Enter Vertex/Weight Paint Mode
  * \{ */
@@ -1264,7 +1270,9 @@ void ED_object_wpaintmode_exit(struct bContext *C)
 
 /** \} */
 
-/* *************** set wpaint operator ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Toggle Weight Paint Operator
+ * \{ */
 
 /**
  * \note Keep in sync with #vpaint_mode_toggle_exec
@@ -1361,7 +1369,11 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
-/* ************ weight paint operator ********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Weight Paint Operator
+ * \{ */
 
 struct WPaintData {
   ViewContext vc;
@@ -2464,7 +2476,11 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
   paint_stroke_operator_properties(ot);
 }
 
-/* ************ set / clear vertex paint mode ********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Vertex Paint Operator
+ * \{ */
 
 /**
  * \note Keep in sync with #wpaint_mode_toggle_exec
@@ -2527,7 +2543,11 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
-/* ********************** vertex paint operator ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Paint Operator
+ * \{ */
 
 /* Implementation notes:
  *
@@ -3397,3 +3417,5 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 
   paint_stroke_operator_properties(ot);
 }
+
+/** \} */
