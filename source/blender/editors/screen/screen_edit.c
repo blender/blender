@@ -681,6 +681,15 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
             area_iter->type->deactivate(area_iter);
           }
 
+          if (ar == old_ar && ar != scr->active_region) {
+            wmGizmoMap *gzmap = old_ar->gizmo_map;
+            if (gzmap) {
+              if (WM_gizmo_highlight_set(gzmap, NULL)) {
+                ED_region_tag_redraw_no_rebuild(old_ar);
+              }
+            }
+          }
+
           if (ar == old_ar || ar == scr->active_region) {
             do_draw = true;
           }

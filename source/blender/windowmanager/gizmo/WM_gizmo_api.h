@@ -67,7 +67,7 @@ void WM_gizmo_unlink(ListBase *gizmolist,
 
 bool WM_gizmo_select_unlink(struct wmGizmoMap *gzmap, struct wmGizmo *gz);
 bool WM_gizmo_select_set(struct wmGizmoMap *gzmap, struct wmGizmo *gz, bool select);
-void WM_gizmo_highlight_set(struct wmGizmoMap *gzmap, struct wmGizmo *gz);
+bool WM_gizmo_highlight_set(struct wmGizmoMap *gzmap, struct wmGizmo *gz);
 
 void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
                                    struct bContext *C,
