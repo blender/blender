@@ -1947,9 +1947,10 @@ class PARTICLE_PT_hair_shape(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.particle_system is None:
+        psys = context.particle_system
+        if psys is None:
             return False
-        return particle_panel_poll(cls, context)
+        return particle_panel_poll(cls, context) and psys.settings.type == 'HAIR'
 
     def draw(self, context):
         layout = self.layout
