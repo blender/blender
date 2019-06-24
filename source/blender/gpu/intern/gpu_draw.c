@@ -501,6 +501,9 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
   *tex = GPU_texture_from_bindcode(textarget, bindcode);
+
+  GPU_texture_orig_size_set(*tex, ibuf->x, ibuf->y);
+
   return *tex;
 }
 

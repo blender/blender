@@ -1008,8 +1008,8 @@ static void DRW_shgroup_empty_image(OBJECT_Shaders *sh_data,
   if (ima != NULL) {
     tex = GPU_texture_from_blender(ima, ob->iuser, GL_TEXTURE_2D);
     if (tex) {
-      size[0] = GPU_texture_width(tex);
-      size[1] = GPU_texture_height(tex);
+      size[0] = GPU_texture_orig_width(tex);
+      size[1] = GPU_texture_orig_height(tex);
     }
   }
 

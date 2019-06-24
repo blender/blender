@@ -68,6 +68,7 @@ typedef enum eGPUTextureFormatFlag {
 /* GPUTexture */
 struct GPUTexture {
   int w, h, d;        /* width/height/depth */
+  int orig_w, orig_h; /* width/height (of source data), optional. */
   int number;         /* number for multitexture binding */
   int refcount;       /* reference count */
   GLenum target;      /* GL_TEXTURE_* */
@@ -1776,6 +1777,22 @@ int GPU_texture_width(const GPUTexture *tex)
 int GPU_texture_height(const GPUTexture *tex)
 {
   return tex->h;
+}
+
+int GPU_texture_orig_width(const GPUTexture *tex)
+{
+  return tex->orig_w;
+}
+
+int GPU_texture_orig_height(const GPUTexture *tex)
+{
+  return tex->orig_h;
+}
+
+void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h)
+{
+  tex->orig_w = w;
+  tex->orig_h = h;
 }
 
 int GPU_texture_layers(const GPUTexture *tex)
