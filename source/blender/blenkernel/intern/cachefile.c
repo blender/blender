@@ -100,7 +100,9 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
 void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reader)
 {
 #ifdef WITH_ALEMBIC
-  BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  if (cache_file) {
+    BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  }
 
   if (*reader != NULL) {
     CacheReader_free(*reader);
@@ -108,7 +110,7 @@ void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reade
 
     /* Multiple modifiers and constraints can call this function concurrently. */
     BLI_spin_lock(&spin);
-    if (cache_file->handle_readers) {
+    if (cache_file && cache_file->handle_readers) {
       BLI_gset_remove(cache_file->handle_readers, reader, NULL);
     }
     BLI_spin_unlock(&spin);
