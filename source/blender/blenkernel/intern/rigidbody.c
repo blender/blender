@@ -56,6 +56,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #ifdef WITH_BULLET
@@ -1296,7 +1297,76 @@ RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
   return scene->rigidbody_world;
 }
 
-void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob)
+static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
+{
+  /* Add rigid body world and group if they don't exist for convenience */
+  RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
+  if (rbw == NULL) {
+    rbw = BKE_rigidbody_create_world(scene);
+    if (rbw == NULL) {
+      return false;
+    }
+
+    BKE_rigidbody_validate_sim_world(scene, rbw, false);
+    scene->rigidbody_world = rbw;
+  }
+
+  if (rbw->group == NULL) {
+    rbw->group = BKE_collection_add(bmain, NULL, "RigidBodyWorld");
+    id_fake_user_set(&rbw->group->id);
+  }
+
+  /* Add object to rigid body group. */
+  BKE_collection_object_add(bmain, rbw->group, ob);
+  BKE_rigidbody_cache_reset(rbw);
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&rbw->group->id, ID_RECALC_COPY_ON_WRITE);
+
+  return true;
+}
+
+void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
+{
+  if (ob->rigidbody_object == NULL) {
+    return;
+  }
+
+  /* Add newly local object to scene. */
+  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    if (BKE_scene_object_find(scene, ob)) {
+      rigidbody_add_object_to_scene(bmain, scene, ob);
+    }
+  }
+}
+
+bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
+{
+  if (ob->type != OB_MESH) {
+    BKE_report(reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
+    return false;
+  }
+
+  /* Add object to rigid body world in scene. */
+  if (!rigidbody_add_object_to_scene(bmain, scene, ob)) {
+    BKE_report(reports, RPT_ERROR, "Can't create Rigid Body world");
+    return false;
+  }
+
+  /* make rigidbody object settings */
+  if (ob->rigidbody_object == NULL) {
+    ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, type);
+  }
+  ob->rigidbody_object->type = type;
+  ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_VALIDATE;
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
+  return true;
+}
+
+void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob)
 {
   RigidBodyWorld *rbw = scene->rigidbody_world;
   RigidBodyCon *rbc;
@@ -1343,6 +1413,10 @@ void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob)
 
   /* flag cache as outdated */
   BKE_rigidbody_cache_reset(rbw);
+
+  /* Dependency graph update */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 }
 
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)

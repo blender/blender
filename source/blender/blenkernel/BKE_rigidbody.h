@@ -32,6 +32,7 @@ struct Collection;
 struct Depsgraph;
 struct Main;
 struct Object;
+struct ReportList;
 struct Scene;
 
 /* -------------- */
@@ -94,6 +95,12 @@ void BKE_rigidbody_calc_center_of_mass(struct Object *ob, float r_center[3]);
 /* Utilities */
 
 struct RigidBodyWorld *BKE_rigidbody_get_world(struct Scene *scene);
+bool BKE_rigidbody_add_object(struct Main *bmain,
+                              struct Scene *scene,
+                              struct Object *ob,
+                              int type,
+                              struct ReportList *reports);
+void BKE_rigidbody_ensure_local_object(struct Main *bmain, struct Object *ob);
 void BKE_rigidbody_remove_object(struct Main *bmain, struct Scene *scene, struct Object *ob);
 void BKE_rigidbody_remove_constraint(struct Scene *scene, struct Object *ob);
 

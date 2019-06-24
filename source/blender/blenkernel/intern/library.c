@@ -57,6 +57,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lightprobe_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
@@ -2038,6 +2039,10 @@ void BKE_library_make_local(Main *bmain,
       id_clear_lib_data_ex(bmain, id, true);
       BKE_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
+
+      if (GS(id->name) == ID_OB) {
+        BKE_rigidbody_ensure_local_object(bmain, (Object *)id);
+      }
     }
     else {
       /* In this specific case, we do want to make ID local even if it has no local usage yet...
@@ -2053,6 +2058,10 @@ void BKE_library_make_local(Main *bmain,
       }
 
       if (id->newid) {
+        if (GS(id->newid->name) == ID_OB) {
+          BKE_rigidbody_ensure_local_object(bmain, (Object *)id->newid);
+        }
+
         /* Reuse already allocated LinkNode (transferring it from todo_ids to copied_ids). */
         BLI_linklist_prepend_nlink(&copied_ids, id, it);
       }
@@ -2175,25 +2184,6 @@ void BKE_library_make_local(Main *bmain,
     if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL &&
         ob->pose->flag & POSE_RECALC) {
       BKE_pose_rebuild(bmain, ob, ob->data, true);
-    }
-  }
-
-  /* Reset rigid body objects. */
-  for (LinkNode *it = copied_ids; it; it = it->next) {
-    ID *id = it->link;
-    if (GS(id->name) == ID_OB) {
-      Object *ob = (Object *)id;
-
-      /* If there was ever any rigidbody settings in the object, we reset it. */
-      if (ob->rigidbody_object) {
-        for (Scene *scene_iter = bmain->scenes.first; scene_iter;
-             scene_iter = scene_iter->id.next) {
-          if (scene_iter->rigidbody_world) {
-            BKE_rigidbody_remove_object(bmain, scene_iter, ob);
-          }
-        }
-        BKE_rigidbody_free_object(ob, NULL);
-      }
     }
   }
 
