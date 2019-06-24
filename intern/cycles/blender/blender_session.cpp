@@ -363,9 +363,8 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
     if (merge) {
       update_render_result(b_rr, b_rlay, rtile);
     }
-    else {
-      end_render_result(b_engine, b_rr, true, highlight, merge);
-    }
+
+    end_render_result(b_engine, b_rr, true, highlight, merge);
   }
   else {
     /* Write final render result. */
@@ -826,9 +825,6 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult &b_rr,
     if (buffers->get_pass_rect(PASS_COMBINED, exposure, sample, 4, &pixels[0], "Combined"))
       b_combined_pass.rect(&pixels[0]);
   }
-
-  /* tag result as updated */
-  b_engine.update_result(b_rr);
 }
 
 void BlenderSession::write_render_result(BL::RenderResult &b_rr,
