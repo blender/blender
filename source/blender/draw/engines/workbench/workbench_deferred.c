@@ -1268,14 +1268,14 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
     DRW_draw_pass(psl->composite_pass);
   }
 
+  /* In order to not draw on top of ghost objects, we clear the stencil
+   * to 0xFF and the ghost object to 0x00 and only draw overlays on top if
+   * stencil is not 0. */
+  GPU_framebuffer_bind(dfbl->depth_only_fb);
+  GPU_framebuffer_clear_stencil(dfbl->depth_only_fb, 0xFF);
+
   /* TODO(fclem): only enable when needed (when there is overlays). */
   if (GHOST_ENABLED(psl)) {
-    /* In order to not draw on top of ghost objects, we clear the stencil
-     * to 0xFF and the ghost object to 0x00 and only draw overlays on top if
-     * stencil is not 0. */
-    GPU_framebuffer_bind(dfbl->depth_only_fb);
-    GPU_framebuffer_clear_stencil(dfbl->depth_only_fb, 0xFF);
-
     DRWState state = DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS;
     DRW_pass_state_set(psl->ghost_prepass_pass, state);
     DRW_pass_state_set(psl->ghost_prepass_hair_pass, state);

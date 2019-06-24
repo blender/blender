@@ -674,7 +674,7 @@ void workbench_forward_draw_background(WORKBENCH_Data *UNUSED(vedata))
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   DRW_stats_group_start("Clear depth");
   GPU_framebuffer_bind(dfbl->default_fb);
-  GPU_framebuffer_clear_depth(dfbl->default_fb, clear_depth);
+  GPU_framebuffer_clear_depth_stencil(dfbl->default_fb, clear_depth, 0xFF);
   DRW_stats_group_end();
 }
 
