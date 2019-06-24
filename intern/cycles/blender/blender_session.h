@@ -70,12 +70,12 @@ class BlenderSession {
             const int depth,
             float pixels[]);
 
-  void write_render_result(BL::RenderResult &b_rr, BL::RenderLayer &b_rlay, RenderTile &rtile);
+  void write_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile);
   void write_render_tile(RenderTile &rtile);
 
   /* update functions are used to update display buffer only after sample was rendered
    * only needed for better visual feedback */
-  void update_render_result(BL::RenderResult &b_rr, BL::RenderLayer &b_rlay, RenderTile &rtile);
+  void update_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile);
   void update_render_tile(RenderTile &rtile, bool highlight);
 
   /* interactive updates */
@@ -150,8 +150,7 @@ class BlenderSession {
  protected:
   void stamp_view_layer_metadata(Scene *scene, const string &view_layer_name);
 
-  void do_write_update_render_result(BL::RenderResult &b_rr,
-                                     BL::RenderLayer &b_rlay,
+  void do_write_update_render_result(BL::RenderLayer &b_rlay,
                                      RenderTile &rtile,
                                      bool do_update_only);
   void do_write_update_render_tile(RenderTile &rtile, bool do_update_only, bool highlight);

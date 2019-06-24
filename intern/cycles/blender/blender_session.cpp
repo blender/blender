@@ -361,14 +361,14 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
     bool merge = (rtile.sample != 0) && (rtile.task != RenderTile::DENOISE);
 
     if (merge) {
-      update_render_result(b_rr, b_rlay, rtile);
+      update_render_result(b_rlay, rtile);
     }
 
     end_render_result(b_engine, b_rr, true, highlight, merge);
   }
   else {
     /* Write final render result. */
-    write_render_result(b_rr, b_rlay, rtile);
+    write_render_result(b_rlay, rtile);
     end_render_result(b_engine, b_rr, false, false, true);
   }
 }
@@ -765,8 +765,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   sync = NULL;
 }
 
-void BlenderSession::do_write_update_render_result(BL::RenderResult &b_rr,
-                                                   BL::RenderLayer &b_rlay,
+void BlenderSession::do_write_update_render_result(BL::RenderLayer &b_rlay,
                                                    RenderTile &rtile,
                                                    bool do_update_only)
 {
@@ -827,18 +826,14 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult &b_rr,
   }
 }
 
-void BlenderSession::write_render_result(BL::RenderResult &b_rr,
-                                         BL::RenderLayer &b_rlay,
-                                         RenderTile &rtile)
+void BlenderSession::write_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile)
 {
-  do_write_update_render_result(b_rr, b_rlay, rtile, false);
+  do_write_update_render_result(b_rlay, rtile, false);
 }
 
-void BlenderSession::update_render_result(BL::RenderResult &b_rr,
-                                          BL::RenderLayer &b_rlay,
-                                          RenderTile &rtile)
+void BlenderSession::update_render_result(BL::RenderLayer &b_rlay, RenderTile &rtile)
 {
-  do_write_update_render_result(b_rr, b_rlay, rtile, true);
+  do_write_update_render_result(b_rlay, rtile, true);
 }
 
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
