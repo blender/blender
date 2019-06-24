@@ -1542,6 +1542,56 @@ class WM_OT_tool_set_by_id(Operator):
             return {'CANCELLED'}
 
 
+class WM_OT_tool_set_by_index(Operator):
+    """Set the tool by index (for keymaps)"""
+    bl_idname = "wm.tool_set_by_index"
+    bl_label = "Set Tool By Index"
+    index: IntProperty(
+        name="Index in toolbar",
+        default=0,
+    )
+    cycle: BoolProperty(
+        name="Cycle",
+        description="Cycle through tools in this group",
+        default=False,
+        options={'SKIP_SAVE'},
+    )
+
+    expand: BoolProperty(
+        description="Include tool sub-groups",
+        default=False,
+    )
+
+    space_type: rna_space_type_prop
+
+    def execute(self, context):
+        from bl_ui.space_toolsystem_common import (
+            activate_by_id,
+            activate_by_id_or_cycle,
+            item_from_index,
+            item_from_flat_index,
+        )
+
+        if self.properties.is_property_set("space_type"):
+            space_type = self.space_type
+        else:
+            space_type = context.space_data.type
+
+        fn = item_from_flat_index if self.expand else item_from_index
+        item = fn(context, space_type, self.index)
+        if item is None:
+            # Don't report, since the number of tools may change.
+            return {'CANCELLED'}
+
+        # Same as: WM_OT_tool_set_by_id
+        fn = activate_by_id_or_cycle if self.cycle else activate_by_id
+        if fn(context, space_type, item.idname):
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, f"Tool {self.name!r:s} not found for space {space_type!r:s}.")
+            return {'CANCELLED'}
+
+
 class WM_OT_toolbar(Operator):
     bl_idname = "wm.toolbar"
     bl_label = "Toolbar"
@@ -1810,6 +1860,7 @@ classes = (
     WM_OT_owner_enable,
     WM_OT_url_open,
     WM_OT_tool_set_by_id,
+    WM_OT_tool_set_by_index,
     WM_OT_toolbar,
     WM_MT_splash,
 )
