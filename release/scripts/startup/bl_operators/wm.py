@@ -1559,7 +1559,7 @@ class WM_OT_tool_set_by_index(Operator):
 
     expand: BoolProperty(
         description="Include tool sub-groups",
-        default=False,
+        default=True,
     )
 
     space_type: rna_space_type_prop

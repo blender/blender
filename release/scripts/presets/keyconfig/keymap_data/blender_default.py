@@ -316,6 +316,15 @@ def _template_items_tool_select_actions_simple(operator, *, type, value, propert
     ]
 
 
+def _template_items_legacy_tools_from_numbers():
+    return [
+        ("wm.tool_set_by_index",
+         {"type": NUMBERS_1[i % 10], "value": 'PRESS', "shift": i >= 10},
+         {"properties": [("index", i)]})
+        for i in range(20)
+    ]
+
+
 # ------------------------------------------------------------------------------
 # Window, Screen, Areas, Regions
 
@@ -3629,6 +3638,9 @@ def km_image_paint(params):
         op_panel("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
     ])
 
+    if params.legacy:
+        items.extend(_template_items_legacy_tools_from_numbers())
+
     return keymap
 
 
@@ -3671,6 +3683,9 @@ def km_vertex_paint(params):
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
         op_panel("VIEW3D_PT_paint_vertex_context_menu", params.context_menu_event),
     ])
+
+    if params.legacy:
+        items.extend(_template_items_legacy_tools_from_numbers())
 
     return keymap
 
@@ -3715,6 +3730,10 @@ def km_weight_paint(params):
         items.extend([
             ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ])
+
+
+    if params.legacy:
+        items.extend(_template_items_legacy_tools_from_numbers())
 
     return keymap
 
@@ -3809,6 +3828,9 @@ def km_sculpt(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
     ])
+
+    if params.legacy:
+        items.extend(_template_items_legacy_tools_from_numbers())
 
     return keymap
 
