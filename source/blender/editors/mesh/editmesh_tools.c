@@ -8571,6 +8571,10 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
+  if (bm->totloop == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
   const int mode = RNA_enum_get(op->ptr, "mode");
   const bool absolute = RNA_boolean_get(op->ptr, "absolute");
 

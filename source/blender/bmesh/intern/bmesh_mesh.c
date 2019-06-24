@@ -1582,7 +1582,7 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
 
   BLI_assert(bm->spacearr_dirty == 0);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = MEM_mallocN(sizeof(*lnors_ed_arr), __func__);
+  BMLoopNorEditDataArray *lnors_ed_arr = MEM_callocN(sizeof(*lnors_ed_arr), __func__);
   lnors_ed_arr->lidx_to_lnor_editdata = MEM_callocN(
       sizeof(*lnors_ed_arr->lidx_to_lnor_editdata) * bm->totloop, __func__);
 
