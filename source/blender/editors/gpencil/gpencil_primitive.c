@@ -770,8 +770,9 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
         is_depth = false;
       }
       else {
-        if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
-            (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST)) {
+        if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) &&
+            ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
+             (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))) {
           int first_valid = 0;
           int last_valid = 0;
 
