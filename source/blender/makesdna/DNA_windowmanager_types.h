@@ -505,8 +505,17 @@ enum {
    * Typically this shouldn't make any difference, but it rare cases its needed
    * (see smooth-view) */
   OP_IS_INVOKE = (1 << 0),
-  /** So we can detect if an operators exec() call is activated from an interactive repeat. */
+  /** So we can detect if an operators exec() call is activated by adjusting the last action. */
   OP_IS_REPEAT = (1 << 1),
+  /**
+   * So we can detect if an operators exec() call is activated from #SCREEN_OT_repeat_last.
+   *
+   * This difference can be important because previous settings may be used,
+   * even with #PROP_SKIP_SAVE the repeat last operator will use the previous settings.
+   * Unlike #OP_IS_REPEAT the selection (and context generally) may be be different each time.
+   * See T60777 for an example of when this is needed.
+   */
+  OP_IS_REPEAT_LAST = (1 << 1),
 
   /** When the cursor is grabbed */
   OP_IS_MODAL_GRAB_CURSOR = (1 << 2),

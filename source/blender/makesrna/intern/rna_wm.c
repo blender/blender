@@ -1795,7 +1795,12 @@ static void rna_def_operator_options_runtime(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "is_repeat", PROP_BOOLEAN, PROP_BOOLEAN);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_REPEAT);
-  RNA_def_property_ui_text(prop, "Repeat", "True when run from the redo panel");
+  RNA_def_property_ui_text(prop, "Repeat", "True when run from the 'Adjust Last Operation' panel");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_repeat_last", PROP_BOOLEAN, PROP_BOOLEAN);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", OP_IS_REPEAT_LAST);
+  RNA_def_property_ui_text(prop, "Repeat Call", "True when run from the operator 'Repeat Last'");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "use_cursor_region", PROP_BOOLEAN, PROP_BOOLEAN);
