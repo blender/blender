@@ -1588,8 +1588,8 @@ class WM_OT_tool_set_by_index(Operator):
         if fn(context, space_type, item.idname):
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, f"Tool {self.name!r:s} not found for space {space_type!r:s}.")
-            return {'CANCELLED'}
+            # Since we already have the tool, this can't happen.
+            raise Exception("Internal error setting tool")
 
 
 class WM_OT_toolbar(Operator):
