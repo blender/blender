@@ -1254,7 +1254,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if scene:
             layout.prop(scene, "audio_volume", text="Volume")
 
-        if strip.scene_input == '3D_CAMERA':
+        if strip.scene_input == 'CAMERA':
             layout.alignment = 'RIGHT'
             sub = layout.column(align=True)
             split = sub.split(factor=0.5, align=True)
