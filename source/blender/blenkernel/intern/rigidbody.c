@@ -2032,6 +2032,16 @@ struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 {
   return NULL;
 }
+
+void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
+{
+}
+
+bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
+{
+  return false;
+}
+
 void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob)
 {
 }
