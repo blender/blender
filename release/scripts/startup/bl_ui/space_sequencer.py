@@ -106,10 +106,6 @@ class SEQUENCER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-            layout.separator()
-            layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="")
-
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "display_mode", text="", icon_only=True)
 
@@ -224,6 +220,10 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.menu("SEQUENCER_MT_navigation")
             layout.menu("SEQUENCER_MT_range")
+
+            layout.separator()
+
+            layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="Refresh All")
 
             layout.separator()
 
