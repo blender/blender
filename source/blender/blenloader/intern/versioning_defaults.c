@@ -468,4 +468,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
     brush->blur_kernel_radius = 2;
   }
+
+  {
+    /* Change the spacing of the Smear brush to 3.0% */
+    Brush *brush = BLI_findstring(&bmain->brushes, "Smear", offsetof(ID, name) + 2);
+    if (brush) {
+      brush->spacing = 3.0;
+    }
+  }
 }
