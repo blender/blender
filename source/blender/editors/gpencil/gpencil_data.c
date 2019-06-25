@@ -2895,3 +2895,45 @@ void GPENCIL_OT_color_select(wmOperatorType *ot)
   ot->prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Unselect strokes");
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+/* Parent GPencil object to Lattice */
+bool ED_gpencil_add_lattice_modifier(const bContext *C,
+                                     ReportList *reports,
+                                     Object *ob,
+                                     Object *ob_latt)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  if (ob == NULL) {
+    return false;
+  }
+
+  /* if no lattice modifier, add a new one */
+  GpencilModifierData *md = BKE_gpencil_modifiers_findByType(ob, eGpencilModifierType_Lattice);
+  if (md == NULL) {
+    md = ED_object_gpencil_modifier_add(
+        reports, bmain, scene, ob, "Lattice", eGpencilModifierType_Lattice);
+    if (md == NULL) {
+      BKE_report(reports, RPT_ERROR, "Unable to add a new Lattice modifier to object");
+      return false;
+    }
+    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  }
+
+  /* verify lattice */
+  LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
+  if (mmd->object == NULL) {
+    mmd->object = ob_latt;
+  }
+  else {
+    if (ob_latt != mmd->object) {
+      BKE_report(reports,
+                 RPT_ERROR,
+                 "The existing Lattice modifier is already using a different Lattice object");
+      return false;
+    }
+  }
+
+  return true;
+}

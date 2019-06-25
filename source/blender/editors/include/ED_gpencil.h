@@ -187,6 +187,12 @@ bool ED_gpencil_add_armature_weights(const struct bContext *C,
                                      struct Object *ob_arm,
                                      int mode);
 
+/* Add Lattice modifier using Parent operator */
+bool ED_gpencil_add_lattice_modifier(const struct bContext *C,
+                                     struct ReportList *reports,
+                                     struct Object *ob,
+                                     struct Object *ob_latt);
+
 /* keep this aligned with gpencil_armature enum */
 #define GP_PAR_ARMATURE_NAME 0
 #define GP_PAR_ARMATURE_AUTO 1
