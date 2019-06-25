@@ -1692,7 +1692,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
   else {
-    if (U.flag & USER_RELEASECONFIRM) {
+    if (ISMOUSE(t->launch_event) && (U.flag & USER_RELEASECONFIRM)) {
+      /* Global "release confirm" on mouse bindings */
       t->flag |= T_RELEASE_CONFIRM;
     }
   }
