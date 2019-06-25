@@ -1485,40 +1485,6 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
   return buf;
 }
 
-void GPU_texture_read_rect(GPUTexture *tex,
-                           eGPUDataFormat gpu_data_format,
-                           const rcti *rect,
-                           void *r_buf)
-{
-  gpu_validate_data_format(tex->format, gpu_data_format);
-
-  GPUFrameBuffer *cur_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *tmp_fb = GPU_framebuffer_create();
-  GPU_framebuffer_texture_attach(tmp_fb, tex, 0, 0);
-
-  GPU_framebuffer_bind(tmp_fb);
-  glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-  GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
-  GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
-
-  glReadPixels(rect->xmin,
-               rect->ymin,
-               BLI_rcti_size_x(rect),
-               BLI_rcti_size_y(rect),
-               data_format,
-               data_type,
-               r_buf);
-
-  if (cur_fb) {
-    GPU_framebuffer_bind(cur_fb);
-  }
-  else {
-    GPU_framebuffer_restore();
-  }
-  GPU_framebuffer_free(tmp_fb);
-}
-
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *pixels)
 {
   GPU_texture_update_sub(tex, data_format, pixels, 0, 0, 0, tex->w, tex->h, tex->d);
