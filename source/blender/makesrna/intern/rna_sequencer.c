@@ -2738,7 +2738,7 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
-  prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_PERCENTAGE);
+  prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "loc");
   RNA_def_property_ui_text(prop, "Location", "Location of the text");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
