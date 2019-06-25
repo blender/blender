@@ -632,7 +632,6 @@ class SEQUENCER_MT_strip_movie(Menu):
         layout = self.layout
 
         layout.operator("sequencer.rendersize")
-        layout.operator("sequencer.images_separate")
         layout.operator("sequencer.deinterlace_selected_movies")
 
 
