@@ -49,14 +49,17 @@ def check_maps():
     test = maps_py - maps_bl
     if test:
         print("Keymaps that are in 'bl_keymap_utils.keymap_hierarchy' but not blender")
-        for km_id in sorted(test):
+        for km_id in test:
+            if callable(km_id):
+                # Keymap functions of tools are not in blender anyway...
+                continue
             print("\t%s" % km_id)
-        err = True
+            err = True
 
     test = maps_bl - maps_py
     if test:
         print("Keymaps that are in blender but not in 'bl_keymap_utils.keymap_hierarchy'")
-        for km_id in sorted(test):
+        for km_id in test:
             km = keyconf.keymaps[km_id]
             print("    ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
         err = True
