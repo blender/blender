@@ -1374,13 +1374,19 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 
   BLF_batch_draw_begin();
 
-  if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
-      /* No need to display gizmo and this info. */
-      (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE))) {
+  if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)) {
     /* pass */
   }
   else {
-    draw_view_axis(rv3d, &rect);
+    switch ((eUserpref_MiniAxisType)U.mini_axis_type) {
+      case USER_MINI_AXIS_TYPE_GIZMO:
+        /* The gizmo handles it's own drawing. */
+        break;
+      case USER_MINI_AXIS_TYPE_MINIMAL:
+        draw_view_axis(rv3d, &rect);
+      case USER_MINI_AXIS_TYPE_NONE:
+        break;
+    }
   }
 
   int xoffset = rect.xmin + U.widget_unit;

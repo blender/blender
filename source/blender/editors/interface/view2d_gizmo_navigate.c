@@ -126,6 +126,14 @@ struct NavigateWidgetGroup {
   int region_size[2];
 };
 
+static bool WIDGETGROUP_navigate_poll(const bContext *UNUSED(C), wmGizmoGroupType *UNUSED(gzgt))
+{
+  if ((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) {
+    return false;
+  }
+  return true;
+}
+
 static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
@@ -242,6 +250,7 @@ void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname)
   gzgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT | WM_GIZMOGROUPTYPE_SCALE |
                  WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL);
 
+  gzgt->poll = WIDGETGROUP_navigate_poll;
   gzgt->setup = WIDGETGROUP_navigate_setup;
   gzgt->draw_prepare = WIDGETGROUP_navigate_draw_prepare;
 }

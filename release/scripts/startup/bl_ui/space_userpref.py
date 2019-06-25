@@ -263,6 +263,7 @@ class USERPREF_PT_interface_editors(PreferencePanel, Panel):
 
         flow.prop(system, "use_region_overlap")
         flow.prop(view, "show_layout_ui", text="Corner Splitting")
+        flow.prop(view, "show_navigate_ui")
         flow.prop(view, "color_picker_type")
         flow.row().prop(view, "header_align")
         flow.prop(view, "factor_display_type")
@@ -639,10 +640,8 @@ class USERPREF_PT_viewport_display(PreferencePanel, Panel):
         col.prop(view, "mini_axis_type", text="3D Viewport Axis")
 
         if view.mini_axis_type == 'MINIMAL':
-            sub = col.column()
-            sub.active = view.mini_axis_type == 'MINIMAL'
-            sub.prop(view, "mini_axis_size", text="Size")
-            sub.prop(view, "mini_axis_brightness", text="Brightness")
+            col.prop(view, "mini_axis_size", text="Size")
+            col.prop(view, "mini_axis_brightness", text="Brightness")
 
 
 class USERPREF_PT_viewport_quality(PreferencePanel, Panel):

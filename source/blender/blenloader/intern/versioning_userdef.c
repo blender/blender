@@ -253,7 +253,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     if (userdef->rvisize == 0) {
       userdef->rvisize = 15;
       userdef->rvibright = 8;
-      userdef->uiflag |= USER_SHOW_GIZMO_AXIS;
+      userdef->uiflag |= USER_SHOW_GIZMO_NAVIGATE;
     }
   }
   if (!USER_VERSION_ATLEAST(244, 0)) {

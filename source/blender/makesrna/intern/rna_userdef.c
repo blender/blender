@@ -230,6 +230,13 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_gizmo_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  WM_reinit_gizmomap_all(bmain);
+
+  rna_userdef_update(bmain, scene, ptr);
+}
+
 static void rna_userdef_theme_update_icons(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   UI_icons_reload_internal_textures();
@@ -4118,6 +4125,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       prop, "Editor Corner Splitting", "Split and join editors by dragging from corners");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update");
 
+  prop = RNA_def_property(srna, "show_navigate_ui", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_GIZMO_NAVIGATE);
+  RNA_def_property_ui_text(
+      prop,
+      "Navigation Buttons",
+      "Show navigation buttons in 2D & 3D views which do not have scroll bars");
+  RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
+
   /* menus */
   prop = RNA_def_property(srna, "use_mouse_over_open", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MENUOPENAUTO);
@@ -4229,24 +4244,24 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   /* mini axis */
   static const EnumPropertyItem mini_axis_type_items[] = {
-      {0, "MINIMAL", 0, "Simple Axis", ""},
-      {USER_SHOW_GIZMO_AXIS, "GIZMO", 0, "Interactive Navigation", ""},
+      {USER_MINI_AXIS_TYPE_NONE, "NONE", 0, "Off", ""},
+      {USER_MINI_AXIS_TYPE_MINIMAL, "MINIMAL", 0, "Simple Axis", ""},
+      {USER_MINI_AXIS_TYPE_GIZMO, "GIZMO", 0, "Interactive Navigation", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   prop = RNA_def_property(srna, "mini_axis_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, mini_axis_type_items);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
   RNA_def_property_ui_text(prop,
                            "Mini Axes Type",
                            "Show a small rotating 3D axes in the top right corner of the 3D View");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "rvisize");
   RNA_def_property_range(prop, 10, 64);
   RNA_def_property_ui_text(prop, "Mini Axes Size", "The axes icon's size");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   prop = RNA_def_property(srna, "mini_axis_brightness", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "rvibright");
