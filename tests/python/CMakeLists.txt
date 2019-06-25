@@ -26,7 +26,8 @@ set(TEST_DATA_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests_data)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 
 # ugh, any better way to do this on testing only?
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
+file(MAKE_DIRECTORY ${TEST_OUT_DIR})
+file(MAKE_DIRECTORY ${TEST_OUT_DIR}/io_tests)
 
 #~  if(NOT IS_DIRECTORY ${TEST_SRC_DIR})
 #~      message(FATAL_ERROR "CMake test directory not found!")
@@ -151,7 +152,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/cube.obj'\)
   --md5=39cce4bacac2d1b18fc470380279bc15 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_obj_cube.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_cube.blend
 )
 
 add_test(
@@ -160,7 +161,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/nurbs_cyclic.obj'\)
   --md5=ad3c307e5883224a0492378cd32691ab --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_obj_nurbs_cyclic.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_nurbs_cyclic.blend
 )
 
 add_test(
@@ -169,7 +170,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/makehuman.obj'\)
   --md5=c9f78b185e58358daa4ecaecfa75464e --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_obj_makehuman.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_makehuman.blend
 )
 endif()
 
@@ -179,9 +180,9 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_cube.obj',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_obj_cube.obj
-  --md5_source=${TEST_OUT_DIR}/export_obj_cube.mtl
+  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_cube.obj',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.obj
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.mtl
   --md5=95832f81160f07101dc566cb286a9f76 --md5_method=FILE
 )
 
@@ -190,9 +191,9 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_nurbs.obj',use_selection=False,use_nurbs=True\)
-  --md5_source=${TEST_OUT_DIR}/export_obj_nurbs.obj
-  --md5_source=${TEST_OUT_DIR}/export_obj_nurbs.mtl
+  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_nurbs.obj',use_selection=False,use_nurbs=True\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_nurbs.obj
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_nurbs.mtl
   --md5=a733ae4fa4a591ea9b0912da3af042de --md5_method=FILE
 )
 
@@ -203,9 +204,9 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
-  --md5_source=${TEST_OUT_DIR}/export_obj_all_objects.obj
-  --md5_source=${TEST_OUT_DIR}/export_obj_all_objects.mtl
+  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_all_objects.obj
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_all_objects.mtl
   --md5=04b3ed97cede07a19548fc518ce9f8ca --md5_method=FILE
 )
 endif()
@@ -219,7 +220,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/cube_ascii.ply'\)
   --md5=527134343c27fc0ea73115b85fbfd3ac --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_ply_cube.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_cube.blend
 )
 
 add_test(
@@ -228,7 +229,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/bunny2.ply'\)
   --md5=6ea5b8533400a17accf928b8fd024eaa --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_ply_bunny.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_bunny.blend
 )
 
 add_test(
@@ -237,7 +238,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/many_small_holes.ply'\)
   --md5=c3093e26ecae5b6d59fbbcf2a0d0b39f --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_ply_small_holes.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_small_holes.blend
 )
 
 # PLY Export
@@ -248,8 +249,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/cube_all_data.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_cube_all_data.ply'\)
-  --md5_source=${TEST_OUT_DIR}/export_ply_cube_all_data.ply
+  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_cube_all_data.ply'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_cube_all_data.ply
   --md5=6adc3748ceae8298496f99d0e7e76c15 --md5_method=FILE
 )
 
@@ -258,8 +259,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/suzanne_all_data.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_suzanne_all_data.ply'\)
-  --md5_source=${TEST_OUT_DIR}/export_ply_suzanne_all_data.ply
+  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_suzanne_all_data.ply'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_suzanne_all_data.ply
   --md5=68ba23f02efd6511bfd093f45f703221 --md5_method=FILE
 )
 endif()
@@ -269,8 +270,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/vertices.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_vertices.ply'\)
-  --md5_source=${TEST_OUT_DIR}/export_ply_vertices.ply
+  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_vertices.ply'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_vertices.ply
   --md5=37faba0aa2014451b27f951afa92f870 --md5_method=FILE
 )
 
@@ -284,7 +285,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/cube.stl'\)
   --md5=8ceb5bb7e1cb5f4342fa1669988c66b4 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_stl_cube.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_stl_cube.blend
 )
 
 add_test(
@@ -293,7 +294,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/conrod.stl'\)
   --md5=690a4b8eb9002dcd8631c5a575ea7348 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_stl_conrod.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_stl_conrod.blend
 )
 
 add_test(
@@ -302,7 +303,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/knot_max_simplified.stl'\)
   --md5=baf82803f45a84ec4ddbad9cef57dd3e --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_stl_knot_max_simplified.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_stl_knot_max_simplified.blend
 )
 endif()
 
@@ -314,8 +315,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/cube_all_data.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_cube_all_data.stl'\)
-  --md5_source=${TEST_OUT_DIR}/export_stl_cube_all_data.stl
+  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/io_tests/export_stl_cube_all_data.stl'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_stl_cube_all_data.stl
   --md5=64cb97c0cabb015e1c3f76369835075a --md5_method=FILE
 )
 
@@ -324,8 +325,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/suzanne_all_data.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_suzanne_all_data.stl'\)
-  --md5_source=${TEST_OUT_DIR}/export_stl_suzanne_all_data.stl
+  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/io_tests/export_stl_suzanne_all_data.stl'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_stl_suzanne_all_data.stl
   --md5=e9b23c97c139ad64961c635105bb9192 --md5_method=FILE
 )
 
@@ -334,8 +335,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/vertices.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_vertices.stl'\)
-  --md5_source=${TEST_OUT_DIR}/export_stl_vertices.stl
+  --run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/io_tests/export_stl_vertices.stl'\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_stl_vertices.stl
   --md5=3fd3c877e573beeebc782532cc005820 --md5_method=FILE
 )
 endif()
@@ -350,7 +351,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/color_cube.x3d'\)
   --md5=3fae9be004199c145941cd3f9f80ad7b --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_x3d_cube.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_x3d_cube.blend
 )
 
 add_test(
@@ -359,7 +360,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/teapot.x3d'\)
   --md5=8ee196c71947dce4199d55698501691e --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_x3d_teapot.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_x3d_teapot.blend
 )
 
 add_test(
@@ -368,7 +369,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/suzanne_material.x3d'\)
   --md5=3edea1353257d8b5a5f071942f417be6 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_x3d_suzanne_material.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_x3d_suzanne_material.blend
 )
 
 # X3D Export
@@ -377,8 +378,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_x3d_cube.x3d
+  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/io_tests/export_x3d_cube.x3d',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_x3d_cube.x3d
   --md5=05312d278fe41da33560fdfb9bdb268f --md5_method=FILE
 )
 
@@ -387,8 +388,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_nurbs.x3d',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_x3d_nurbs.x3d
+  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/io_tests/export_x3d_nurbs.x3d',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_x3d_nurbs.x3d
   --md5=4286d4a2aa507ef78b22ddcbdcc88481 --md5_method=FILE
 )
 
@@ -397,8 +398,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
+  --run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/io_tests/export_x3d_all_objects.x3d',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_x3d_all_objects.x3d
   --md5=f5f9fa4c5619a0eeab66685aafd2f7f0 --md5_method=FILE
 )
 endif()
@@ -414,7 +415,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/cube.3ds'\)
   --md5=cb5a45c35a343c3f5beca2a918472951 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_3ds_cube.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_3ds_cube.blend
 )
 
 add_test(
@@ -423,7 +424,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_lara.3ds'\)
   --md5=766c873d9fdb5f190e43796cfbae63b6 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_3ds_hierarchy_lara.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_3ds_hierarchy_lara.blend
 )
 
 add_test(
@@ -432,7 +433,7 @@ add_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
   --run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_greek_trireme.3ds'\)
   --md5=b62ee30101e8999cb91ef4f8a8760056 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/import_3ds_hierarchy_greek_trireme.blend
+  --write-blend=${TEST_OUT_DIR}/io_tests/import_3ds_hierarchy_greek_trireme.blend
 )
 endif()
 
@@ -444,8 +445,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_cube.3ds',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_3ds_cube.3ds
+  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/io_tests/export_3ds_cube.3ds',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_3ds_cube.3ds
   --md5=a31f5071b6c6dc7445b9099cdc7f63b3 --md5_method=FILE
 )
 
@@ -454,8 +455,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_nurbs.3ds',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_3ds_nurbs.3ds
+  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/io_tests/export_3ds_nurbs.3ds',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_3ds_nurbs.3ds
   --md5=5bdd21be3c80d814fbc83cb25edb08c2 --md5_method=FILE
 )
 
@@ -464,8 +465,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_all_objects.3ds',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/export_3ds_all_objects.3ds
+  --run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/io_tests/export_3ds_all_objects.3ds',use_selection=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_3ds_all_objects.3ds
   --md5=68447761ab0ca38e1e22e7c177ed48a8 --md5_method=FILE
 )
 endif()
@@ -481,8 +482,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_cube.fbx',use_selection=False,use_metadata=False\)
-  --md5_source=${TEST_OUT_DIR}/export_fbx_cube.fbx
+  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/io_tests/export_fbx_cube.fbx',use_selection=False,use_metadata=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_fbx_cube.fbx
   --md5=59a35577462f95f9a0b4e6035226ce9b --md5_method=FILE
 )
 
@@ -491,8 +492,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_nurbs.fbx',use_selection=False,use_metadata=False\)
-  --md5_source=${TEST_OUT_DIR}/export_fbx_nurbs.fbx
+  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/io_tests/export_fbx_nurbs.fbx',use_selection=False,use_metadata=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_fbx_nurbs.fbx
   --md5=d31875f18f613fa0c3b16e978f87f6f8 --md5_method=FILE
 )
 
@@ -501,8 +502,8 @@ add_test(
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
-  --md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
+  --run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/io_tests/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
+  --md5_source=${TEST_OUT_DIR}/io_tests/export_fbx_all_objects.fbx
   --md5=b35eb2a9d0e73762ecae2278c25a38ac --md5_method=FILE
 )
 endif()
