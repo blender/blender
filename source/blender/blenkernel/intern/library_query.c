@@ -456,6 +456,7 @@ static void library_foreach_ID_link(Main *bmain,
         CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
         CALLBACK_INVOKE(scene->set, IDWALK_CB_NEVER_SELF);
         CALLBACK_INVOKE(scene->clip, IDWALK_CB_USER);
+        CALLBACK_INVOKE(scene->gpd, IDWALK_CB_USER);
         CALLBACK_INVOKE(scene->r.bake.cage_object, IDWALK_CB_NOP);
         if (scene->nodetree) {
           /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
