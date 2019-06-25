@@ -781,7 +781,7 @@ struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *
 }
 struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 {
-  return WM_gizmo_keymap_generic_drag_with_keyconfig(wm->defaultconf);
+  return WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wm->defaultconf);
 }
 
 /** \} */
