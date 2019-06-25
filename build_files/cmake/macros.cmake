@@ -1243,7 +1243,7 @@ macro(blender_precompile_headers target cpp header)
   if(MSVC)
     # get the name for the pch output file
     get_filename_component( pchbase ${cpp} NAME_WE )
-    set( pchfinal "${CMAKE_CURRENT_BINARY_DIR}/${pchbase}.pch" )
+    set( pchfinal "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${pchbase}.pch" )
 
     # mark the cpp as the one outputting the pch
     set_property(SOURCE ${cpp} APPEND PROPERTY OBJECT_OUTPUTS "${pchfinal}")
