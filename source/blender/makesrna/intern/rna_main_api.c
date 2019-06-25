@@ -664,6 +664,16 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name)
   return probe;
 }
 
+static bGPdata *rna_Main_gpencils_new(Main *bmain, const char *name)
+{
+  char safe_name[MAX_ID_NAME - 2];
+  rna_idname_validate(name, safe_name);
+
+  bGPdata *gpd = BKE_gpencil_data_addnew(bmain, safe_name);
+  id_us_min(&gpd->id);
+  return gpd;
+}
+
 /* tag functions, all the same */
 #  define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type) \
     static void rna_Main_##_func_name##_tag(Main *bmain, bool value) \
@@ -1866,8 +1876,8 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "new", "BKE_gpencil_data_addnew");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_MAIN);
+  func = RNA_def_function(srna, "new", "rna_Main_gpencils_new");
+  RNA_def_function_ui_description(func, "Add a new grease pencil datablock to the main database");
   parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   /* return type */
