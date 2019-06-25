@@ -116,7 +116,7 @@ class PlayRenderedAnim(Operator):
             file = rd.frame_path(frame=scene.frame_start, preview=scene.use_preview_range)
             file = bpy.path.abspath(file)  # expand '//'
             if not os.path.exists(file):
-                err_msg = tip_("File %s not found") % file
+                err_msg = tip_("File %r not found") % file
                 self.report({'WARNING'}, err_msg)
                 path_valid = False
 
@@ -124,7 +124,7 @@ class PlayRenderedAnim(Operator):
             if scene.use_preview_range and not path_valid:
                 file = rd.frame_path(frame=scene.frame_start, preview=False)
                 file = bpy.path.abspath(file)  # expand '//'
-                err_msg = tip_("File %s not found") % file
+                err_msg = tip_("File %r not found") % file
                 if not os.path.exists(file):
                     self.report({'WARNING'}, err_msg)
 
@@ -183,7 +183,7 @@ class PlayRenderedAnim(Operator):
         try:
             subprocess.Popen(cmd, env=env_copy)
         except Exception as e:
-            err_msg = tip_("Couldn't run external animation player with command %s\n%s") % (cmd, e)
+            err_msg = tip_("Couldn't run external animation player with command %r\n%s") % (cmd, e)
             self.report(
                 {'ERROR'},
                 err_msg,
