@@ -91,7 +91,7 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("OpenGL Draw Test Report", output_dir, idiff)
+    report = render_report.Report("OpenGL Draw", output_dir, idiff)
     ok = report.run(test_dir, render_file)
 
     sys.exit(not ok)

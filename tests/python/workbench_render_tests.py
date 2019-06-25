@@ -109,7 +109,7 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("Workbench Test Report", output_dir, idiff)
+    report = render_report.Report("Workbench", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
     report.set_compare_engines('workbench', 'eevee')

@@ -122,7 +122,7 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("Eevee Test Report", output_dir, idiff)
+    report = render_report.Report("Eevee", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("eevee_renders")
     report.set_compare_engines('eevee', 'cycles')

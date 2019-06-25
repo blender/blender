@@ -159,6 +159,23 @@ class Report:
             filepath = os.path.join(outdir, "compare.data")
             pathlib.Path(filepath).write_text(self.compare_tests)
 
+    def _navigation_item(self, title, href, active):
+        if active:
+            return """<li class="breadcrumb-item active" aria-current="page">%s</li>""" % title
+        else:
+            return """<li class="breadcrumb-item"><a href="%s">%s</a></li>""" % (href, title)
+
+    def _navigation_html(self, comparison):
+        html = """<nav aria-label="breadcrumb"><ol class="breadcrumb">"""
+        html += self._navigation_item("Test Reports", "../report.html", False)
+        html += self._navigation_item(self.title, "report.html", not comparison)
+        if self.compare_engines:
+            compare_title = "Compare with %s" % self.compare_engines[1].capitalize()
+            html += self._navigation_item(compare_title, "compare.html", comparison)
+        html += """</ol></nav>"""
+
+        return html
+
     def _write_html(self, comparison=False):
         # Gather intermediate data for all tests.
         if comparison:
@@ -186,17 +203,25 @@ class Report:
         else:
             image_rendering = 'auto'
 
+        # Navigation
+        menu = self._navigation_html(comparison)
+
         failed = len(failed_tests) > 0
         if failed:
-            message = "<p>Run <tt>BLENDER_TEST_UPDATE=1 ctest</tt> to create or update reference images for failed tests.</p>"
+            message = """<div class="alert alert-danger" role="alert">"""
+            message += """Run this command to update reference images for failed tests, or create images for new tests:<br>"""
+            message += """<tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt>""" % self.title.lower()
+            message += """</div>"""
         else:
             message = ""
 
         if comparison:
-            title = "Render Test Compare"
-            columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % self.compare_engines
+            title = self.title + " Test Compare"
+            engine_self = self.compare_engines[0].capitalize()
+            engine_other = self.compare_engines[1].capitalize()
+            columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % (engine_self, engine_other)
         else:
-            title = self.title
+            title = self.title + " Test Report"
             columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff</th>"
 
         html = """
@@ -226,16 +251,16 @@ class Report:
         }}
         table td:first-child {{ width: 256px; }}
     </style>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
     <div class="container">
         <br/>
         <h1>{title}</h1>
+        {menu}
         {message}
-        <br/>
         <table class="table table-striped">
-            <thead class="thead-default">
+            <thead class="thead-dark">
                 {columns_html}
             </thead>
             {tests_html}
@@ -245,6 +270,7 @@ class Report:
 </body>
 </html>
             """ . format(title=title,
+                         menu=menu,
                          message=message,
                          image_rendering=image_rendering,
                          tests_html=tests_html,
@@ -256,12 +282,11 @@ class Report:
 
         print_message("Report saved to: " + pathlib.Path(filepath).as_uri())
 
-
         # Update global report
-        link_name = "Renders" if not comparison else "Comparison"
-        global_output_dir = os.path.dirname(self.output_dir)
-        global_failed = failed if not comparison else None
-        global_report.add(global_output_dir, self.title, link_name, filepath, global_failed)
+        if not comparison:
+            global_output_dir = os.path.dirname(self.output_dir)
+            global_failed = failed if not comparison else None
+            global_report.add(global_output_dir, "Render", self.title, filepath, global_failed)
 
     def _relative_url(self, filepath):
         relpath = os.path.relpath(filepath, self.output_dir)
@@ -274,7 +299,7 @@ class Report:
         old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir)
 
         status = error if error else ""
-        tr_style = """ style="background-color: #f99;" """ if error else ""
+        tr_style = """ class="table-danger" """ if error else ""
 
         new_url = self._relative_url(new_img)
         ref_url = self._relative_url(ref_img)
