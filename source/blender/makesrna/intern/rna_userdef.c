@@ -4129,8 +4129,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_GIZMO_NAVIGATE);
   RNA_def_property_ui_text(
       prop,
-      "Navigation Buttons",
-      "Show navigation buttons in 2D & 3D views which do not have scroll bars");
+      "Navigation Controls",
+      "Show navigation controls in 2D & 3D views which do not have scroll bars");
   RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   /* menus */
