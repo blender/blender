@@ -20,6 +20,8 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 
+from bpy.app.translations import pgettext_tip as tip_
+
 
 class CYCLES_OT_use_shading_nodes(Operator):
     """Enable nodes on a material, world or light"""
@@ -98,7 +100,8 @@ class CYCLES_OT_denoise_animation(Operator):
 
                 if not os.path.isfile(filepath):
                     scene.render.filepath = original_filepath
-                    self.report({'ERROR'}, f"Frame '{filepath}' not found, animation must be complete.")
+                    err_msg = tip_("Frame '%s' not found, animation must be complete") % filepath
+                    self.report({'ERROR'}, err_msg)
                     return {'CANCELLED'}
 
                 scene.render.filepath = out_filepath
