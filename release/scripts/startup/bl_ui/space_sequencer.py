@@ -1052,8 +1052,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             rowsub.active = strip.use_shadow
             rowsub.prop(strip, "shadow_color", text="")
 
-            col.prop(strip, "align_x")
-            col.prop(strip, "align_y", text="Y")
+            col.prop(strip, "align_x", text="Horizontal")
+            col.prop(strip, "align_y", text="Vertical")
             row = col.row(align=True)
             row.prop(strip, "location", text="Location")
             col.prop(strip, "wrap_width")

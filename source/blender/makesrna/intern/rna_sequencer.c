@@ -2693,15 +2693,15 @@ static void rna_def_gaussian_blur(StructRNA *srna)
 static void rna_def_text(StructRNA *srna)
 {
   static const EnumPropertyItem text_align_x_items[] = {
-      {SEQ_TEXT_ALIGN_X_LEFT, "LEFT", 0, "Left", ""},
-      {SEQ_TEXT_ALIGN_X_CENTER, "CENTER", 0, "Center", ""},
-      {SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", 0, "Right", ""},
+      {SEQ_TEXT_ALIGN_X_LEFT, "LEFT", ICON_ALIGN_LEFT, "Left", ""},
+      {SEQ_TEXT_ALIGN_X_CENTER, "CENTER", ICON_ALIGN_CENTER, "Center", ""},
+      {SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", ICON_ALIGN_RIGHT, "Right", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static const EnumPropertyItem text_align_y_items[] = {
-      {SEQ_TEXT_ALIGN_Y_TOP, "TOP", 0, "Top", ""},
-      {SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", 0, "Center", ""},
-      {SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", ""},
+      {SEQ_TEXT_ALIGN_Y_TOP, "TOP", ICON_ALIGN_TOP, "Top", ""},
+      {SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", ICON_ALIGN_MIDDLE, "Center", ""},
+      {SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", ICON_ALIGN_BOTTOM, "Bottom", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2738,7 +2738,7 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
-  prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
+  prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_sdna(prop, NULL, "loc");
   RNA_def_property_ui_text(prop, "Location", "Location of the text");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
@@ -2775,7 +2775,7 @@ static void rna_def_text(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_TEXT_SHADOW);
-  RNA_def_property_ui_text(prop, "Shadow", "Draw text with shadow");
+  RNA_def_property_ui_text(prop, "Shadow", "Display shadow behind text");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 }
