@@ -20,7 +20,7 @@ class OBJECT_MT_display_presets(Menu):
     bl_label = "Object Display Presets"
     preset_subdir = "object/display"
     preset_operator = "script.execute_preset"
-    display = Menu.display_preset
+    draw = Menu.draw_preset
 
 
 class AddPresetObjectDisplay(AddPresetBase, Operator):
@@ -54,8 +54,8 @@ def panel_func(self, context):
 
     row = layout.row(align=True)
     row.menu(OBJECT_MT_display_presets.__name__, text=OBJECT_MT_display_presets.bl_label)
-    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOMIN')
-    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOMOUT').remove_active = True
+    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOM_IN')
+    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOM_OUT').remove_active = True
 
 
 classes = (
