@@ -42,9 +42,6 @@ set(WITH_PYTHON_INSTALL_REQUESTS ON CACHE BOOL "" FORCE)
 
 set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}" CACHE BOOL "" FORCE)
 
-# TODO(sergey): Remove once Python is oficially bumped to 3.7.
-set(PYTHON_VERSION    3.7 CACHE BOOL "" FORCE)
-
 # Platform specific configuration, to ensure static linking against everything.
 
 set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
