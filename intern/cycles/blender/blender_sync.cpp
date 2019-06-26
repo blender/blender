@@ -216,6 +216,10 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   mesh_synced.clear();
 
+  /* Shader sync done at the end, since object sync uses it.
+   * false = don't delete unused shaders, not supported. */
+  shader_map.post_sync(false);
+
   free_data_after_sync(b_depsgraph);
 }
 

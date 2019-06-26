@@ -1437,9 +1437,6 @@ void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph)
   sync_world(b_depsgraph, auto_refresh_update);
   sync_lights(b_depsgraph, auto_refresh_update);
   sync_materials(b_depsgraph, auto_refresh_update);
-
-  /* false = don't delete unused shaders, not supported */
-  shader_map.post_sync(false);
 }
 
 CCL_NAMESPACE_END

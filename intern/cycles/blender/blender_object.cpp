@@ -116,14 +116,17 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   /* test if we need to sync */
   Light *light;
   ObjectKey key(b_parent, persistent_id, b_ob_instance);
-
-  if (!light_map.sync(&light, b_ob, b_parent, key)) {
-    if (light->is_portal)
-      *use_portal = true;
-    return;
-  }
-
   BL::Light b_light(b_ob.data());
+
+  /* Update if either object or light data changed. */
+  if (!light_map.sync(&light, b_ob, b_parent, key)) {
+    Shader *shader;
+    if (!shader_map.sync(&shader, b_light)) {
+      if (light->is_portal)
+        *use_portal = true;
+      return;
+    }
+  }
 
   /* type */
   switch (b_light.type()) {
