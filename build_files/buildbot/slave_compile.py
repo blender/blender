@@ -52,8 +52,8 @@ if 'cmake' in builder:
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
     install_dir = os.path.abspath(os.path.join('..', 'install', builder))
     targets = ['blender']
+    command_prefix = []
 
-    chroot_name = None  # If not None command will be delegated to that chroot
     bits = 64
 
     # Config file to be used (relative to blender's sources root)
@@ -77,25 +77,19 @@ if 'cmake' in builder:
             cmake_options.extend(['-G', 'Visual Studio 15 2017'])
 
     elif builder.startswith('linux'):
+        cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
         tokens = builder.split("_")
         glibc = tokens[1]
         if glibc == 'glibc224':
             deb_name = "stretch"
-        elif glibc == 'glibc219':
-            deb_name = "jessie"
-        elif glibc == 'glibc211':
-            deb_name = "squeeze"
-        cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
-        if builder.endswith('x86_64_cmake'):
-            chroot_name = 'buildbot_' + deb_name + '_x86_64'
-            targets = ['blender']
-        elif builder.endswith('i686_cmake'):
-            bits = 32
-            chroot_name = 'buildbot_' + deb_name + '_i686'
-            targets = ['blender']
-        if deb_name != "stretch":
-            cmake_extra_options.extend(["-DCMAKE_C_COMPILER=/usr/bin/gcc-7",
-                                        "-DCMAKE_CXX_COMPILER=/usr/bin/g++-7"])
+            if builder.endswith('x86_64_cmake'):
+                chroot_name = 'buildbot_' + deb_name + '_x86_64'
+            elif builder.endswith('i686_cmake'):
+                bits = 32
+                chroot_name = 'buildbot_' + deb_name + '_i686'
+            command_prefix = ['schroot', '-c', chroot_name, '--']
+        elif glibc == 'glibc217':
+            command_prefix = ['scl', 'enable', 'devtoolset-6', 'bash']
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
@@ -110,12 +104,6 @@ if 'cmake' in builder:
 
     cmake_options += cmake_extra_options
 
-    # Prepare chroot command prefix if needed
-    if chroot_name:
-        chroot_prefix = ['schroot', '-c', chroot_name, '--']
-    else:
-        chroot_prefix = []
-
     # Make sure no garbage remained from the previous run
     if os.path.isdir(install_dir):
         shutil.rmtree(install_dir)
@@ -124,7 +112,7 @@ if 'cmake' in builder:
         print("Building target %s" % (target))
         # Construct build directory name based on the target
         target_build_dir = build_dir
-        target_chroot_prefix = chroot_prefix[:]
+        target_command_prefix = command_prefix[:]
         if target != 'blender':
             target_build_dir += '_' + target
         target_name = 'install'
@@ -136,7 +124,7 @@ if 'cmake' in builder:
         print("Fetching remotes")
         command = ['git', 'fetch', '--all']
         print(command)
-        retcode = subprocess.call(target_chroot_prefix + command)
+        retcode = subprocess.call(target_command_prefix + command)
         if retcode != 0:
             sys.exit(retcode)
         # Make sure build directory exists and enter it
@@ -155,7 +143,7 @@ if 'cmake' in builder:
             if os.path.exists(full_path):
                 print("Removing {}" . format(buildinfo))
                 os.remove(full_path)
-        retcode = subprocess.call(target_chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
+        retcode = subprocess.call(target_command_prefix + ['cmake', blender_dir] + target_cmake_options)
         if retcode != 0:
             print('Configuration FAILED!')
             sys.exit(retcode)
@@ -167,7 +155,7 @@ if 'cmake' in builder:
 
         print("Executing command:")
         print(command)
-        retcode = subprocess.call(target_chroot_prefix + command)
+        retcode = subprocess.call(target_command_prefix + command)
 
         if retcode != 0:
             sys.exit(retcode)
