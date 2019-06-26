@@ -81,6 +81,11 @@ if(WIN32)
     ${OSL_EXTRA_ARGS}
     -DPUGIXML_HOME=${LIBDIR}/pugixml
   )
+elseif(UNIX AND NOT APPLE)
+  set(OSL_EXTRA_ARGS
+    ${OSL_EXTRA_ARGS}
+    -DPUGIXML_HOME=${LIBDIR}/pugixml
+  )
 elseif(APPLE)
   # Make symbol hiding consistent with OIIO which defaults to OFF,
   # avoids linker warnings on macOS
