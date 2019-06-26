@@ -831,9 +831,10 @@ static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, Pointer
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_LISTENER);
 }
 
-static void rna_Scene_volume_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_volume_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_VOLUME);
+  Scene *scene = (Scene *)ptr->id.data;
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_VOLUME | ID_RECALC_SEQUENCER_STRIPS);
 }
 
 static const char *rna_Scene_statistics_string_get(Scene *scene,

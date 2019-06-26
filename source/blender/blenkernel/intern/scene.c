@@ -2467,7 +2467,14 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
         }
       }
     }
-    if (seq->scene_sound) {
+    if (seq->scene_sound != NULL) {
+      /* Make sure changing volume via sequence's properties panel works correct.
+       *
+       * Ideally, the entire BKE_scene_update_sound() will happen from a dependency graph, so
+       * then it is no longer needed to do such manual forced updates. */
+      if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
+        BKE_sound_set_scene_volume(seq->scene, seq->scene->audio.volume);
+      }
       if (seq->sound != NULL) {
         if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
           BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
