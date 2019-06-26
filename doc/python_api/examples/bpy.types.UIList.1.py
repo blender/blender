@@ -47,10 +47,10 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
 
 
 # And now we can use this list everywhere in Blender. Here is a small example panel.
-class UIListPanelExample(bpy.types.Panel):
+class UIListPanelExample1(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "UIList Panel"
-    bl_idname = "OBJECT_PT_ui_list_example"
+    bl_label = "UIList Example 1 Panel"
+    bl_idname = "OBJECT_PT_ui_list_example_1"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -73,12 +73,12 @@ class UIListPanelExample(bpy.types.Panel):
 
 def register():
     bpy.utils.register_class(MATERIAL_UL_matslots_example)
-    bpy.utils.register_class(UIListPanelExample)
+    bpy.utils.register_class(UIListPanelExample1)
 
 
 def unregister():
+    bpy.utils.unregister_class(UIListPanelExample1)
     bpy.utils.unregister_class(MATERIAL_UL_matslots_example)
-    bpy.utils.unregister_class(UIListPanelExample)
 
 
 if __name__ == "__main__":
