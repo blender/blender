@@ -87,13 +87,14 @@ struct BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a,
                                          const BMBVHTree *bmtree_b,
                                          unsigned int *r_overlap_tot);
 
-/* BKE_bmbvh_new flag parameter */
+/** #BKE_bmbvh_new flag parameter. */
 enum {
-  BMBVH_RETURN_ORIG =
-      (1 << 0), /* use with 'cos_cage', returns hits in relation to original geometry */
-  BMBVH_RESPECT_SELECT =
-      (1 << 1), /* restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN) */
-  BMBVH_RESPECT_HIDDEN = (1 << 2), /* omit hidden geometry */
+  /** Use with 'cos_cage', returns hits in relation to original geometry. */
+  BMBVH_RETURN_ORIG = (1 << 0),
+  /** Restrict to hidden geometry (overrides BMBVH_RESPECT_HIDDEN). */
+  BMBVH_RESPECT_SELECT = (1 << 1),
+  /** Omit hidden geometry. */
+  BMBVH_RESPECT_HIDDEN = (1 << 2),
 };
 
 #endif /* __BKE_EDITMESH_BVH_H__ */

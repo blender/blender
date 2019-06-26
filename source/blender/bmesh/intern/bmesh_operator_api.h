@@ -300,8 +300,8 @@ typedef struct BMOpSlot {
 /* BMOpDefine->type_flag */
 typedef enum {
   BMO_OPTYPE_FLAG_NOP = 0,
-  BMO_OPTYPE_FLAG_UNTAN_MULTIRES =
-      (1 << 0), /* switch from multires tangent space to absolute coordinates */
+  /** Switch from multires tangent space to absolute coordinates. */
+  BMO_OPTYPE_FLAG_UNTAN_MULTIRES = (1 << 0),
   BMO_OPTYPE_FLAG_NORMALS_CALC = (1 << 1),
   BMO_OPTYPE_FLAG_SELECT_FLUSH = (1 << 2),
   BMO_OPTYPE_FLAG_SELECT_VALIDATE = (1 << 3),

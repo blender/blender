@@ -452,29 +452,38 @@ enum {
   EVT_FILESELECT_EXTERNAL_CANCEL = 4,
 };
 
-/* Gesture */
-/* NOTE: these values are saved in keymap files, do not change them but just add new ones */
+/**
+ * Gesture
+ * Used in #wmEvent.val
+ *
+ * \note These values are saved in keymap files,
+ * do not change them but just add new ones.
+ */
 enum {
   GESTURE_MODAL_CANCEL = 1,
   GESTURE_MODAL_CONFIRM = 2,
 
-  /* Uses 'deselect' operator property. */
+  /** Uses 'deselect' operator property. */
   GESTURE_MODAL_SELECT = 3,
   GESTURE_MODAL_DESELECT = 4,
 
-  GESTURE_MODAL_NOP = 5, /* circle select when no mouse button is pressed */
+  /** Circle select: when no mouse button is pressed */
+  GESTURE_MODAL_NOP = 5,
 
-  GESTURE_MODAL_CIRCLE_ADD = 6, /* circle sel: larger brush */
-  GESTURE_MODAL_CIRCLE_SUB = 7, /* circle sel: smaller brush */
+  /** Circle select: larger brush. */
+  GESTURE_MODAL_CIRCLE_ADD = 6,
+  /** Circle select: smaller brush. */
+  GESTURE_MODAL_CIRCLE_SUB = 7,
 
-  GESTURE_MODAL_BEGIN =
-      8, /* box select/straight line, activate, use release to detect which button */
+  /** Box select/straight line, activate, use release to detect which button. */
+  GESTURE_MODAL_BEGIN = 8,
 
-  /* Uses 'zoom_out' operator property. */
+  /** Uses 'zoom_out' operator property. */
   GESTURE_MODAL_IN = 9,
   GESTURE_MODAL_OUT = 10,
 
-  GESTURE_MODAL_CIRCLE_SIZE = 11, /* circle sel: size brush (for trackpad event) */
+  /** circle select: size brush (for trackpad event). */
+  GESTURE_MODAL_CIRCLE_SIZE = 11,
 };
 
 #endif /* __WM_EVENT_TYPES_H__ */

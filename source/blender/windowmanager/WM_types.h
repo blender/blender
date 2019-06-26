@@ -572,9 +572,10 @@ typedef struct wmNDOFMotionData {
 } wmNDOFMotionData;
 #endif /* WITH_INPUT_NDOF */
 
-typedef enum { /* Timer flags */
-               WM_TIMER_NO_FREE_CUSTOM_DATA =
-                   1 << 0, /* Do not attempt to free customdata pointer even if non-NULL. */
+/** Timer flags. */
+typedef enum {
+  /** Do not attempt to free customdata pointer even if non-NULL. */
+  WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
 } wmTimerFlags;
 
 typedef struct wmTimer {

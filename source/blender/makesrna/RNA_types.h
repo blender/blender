@@ -63,7 +63,7 @@ typedef struct PropertyPointerRNA {
 typedef struct PathResolvedRNA {
   struct PointerRNA ptr;
   struct PropertyRNA *prop;
-  /* -1 for non-array access */
+  /** -1 for non-array access. */
   int prop_index;
 } PathResolvedRNA;
 
@@ -104,9 +104,9 @@ typedef enum PropertyUnit {
 
 #define RNA_STACK_ARRAY 32
 
-/* also update enums in bpy_props.c when adding items here
- * watch it: these values are written to files as part of
- * node socket button subtypes!
+/**
+ * \note Also update enums in bpy_props.c when adding items here.
+ * Watch it: these values are written to files as part of node socket button subtypes!
  */
 typedef enum PropertySubType {
   PROP_NONE = 0,
@@ -115,10 +115,11 @@ typedef enum PropertySubType {
   PROP_FILEPATH = 1,
   PROP_DIRPATH = 2,
   PROP_FILENAME = 3,
-  PROP_BYTESTRING =
-      4, /* a string which should be represented as bytes in python, NULL terminated though. */
+  /** A string which should be represented as bytes in python, NULL terminated though. */
+  PROP_BYTESTRING = 4,
   /* 5 was used by "PROP_TRANSLATE" sub-type, which is now a flag. */
-  PROP_PASSWORD = 6, /* a string which should not be displayed in UI */
+  /** A string which should not be displayed in UI. */
+  PROP_PASSWORD = 6,
 
   /* numbers */
   PROP_PIXEL = 12,
@@ -127,7 +128,7 @@ typedef enum PropertySubType {
   PROP_FACTOR = 15,
   PROP_ANGLE = 16 | PROP_UNIT_ROTATION,
   PROP_TIME = 17 | PROP_UNIT_TIME,
-  /* distance in 3d space, don't use for pixel distance for eg. */
+  /** Distance in 3d space, don't use for pixel distance for eg. */
   PROP_DISTANCE = 18 | PROP_UNIT_LENGTH,
   PROP_DISTANCE_CAMERA = 19 | PROP_UNIT_CAMERA,
 
@@ -143,14 +144,16 @@ typedef enum PropertySubType {
   PROP_AXISANGLE = 28,
   PROP_XYZ = 29,
   PROP_XYZ_LENGTH = 29 | PROP_UNIT_LENGTH,
-  PROP_COLOR_GAMMA = 30, /* used for colors which would be color managed before display */
-  PROP_COORDS = 31, /* generic array, no units applied, only that x/y/z/w are used (python vec) */
+  /** Used for colors which would be color managed before display. */
+  PROP_COLOR_GAMMA = 30,
+  /** Generic array, no units applied, only that x/y/z/w are used (Python vector). */
+  PROP_COORDS = 31,
 
   /* booleans */
   PROP_LAYER = 40,
   PROP_LAYER_MEMBER = 41,
 
-  /* light */
+  /** Light */
   PROP_POWER = 42 | PROP_UNIT_POWER,
 } PropertySubType;
 
@@ -158,62 +161,72 @@ typedef enum PropertySubType {
 /* HIGHEST FLAG IN USE: 1 << 31
  * FREE FLAGS: 2, 9, 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
-  /* editable means the property is editable in the user
+  /**
+   * Editable means the property is editable in the user
    * interface, properties are editable by default except
-   * for pointers and collections. */
+   * for pointers and collections.
+   */
   PROP_EDITABLE = (1 << 0),
-
-  /* this property is editable even if it is lib linked,
+  /**
+   * This property is editable even if it is lib linked,
    * meaning it will get lost on reload, but it's useful
-   * for editing. */
+   * for editing.
+   */
   PROP_LIB_EXCEPTION = (1 << 16),
-
-  /* animatable means the property can be driven by some
+  /**
+   * Animatable means the property can be driven by some
    * other input, be it animation curves, expressions, ..
    * properties are animatable by default except for pointers
-   * and collections */
+   * and collections.
+   */
   PROP_ANIMATABLE = (1 << 1),
-
-  /* This flag means when the property's widget is in 'textedit' mode, it will be updated
+  /**
+   * This flag means when the property's widget is in 'textedit' mode, it will be updated
    * after every typed char, instead of waiting final validation. Used e.g. for text searchbox.
    * It will also cause UI_BUT_VALUE_CLEAR to be set for text buttons. We could add an own flag
-   * for search/filter properties, but this works just fine for now. */
+   * for search/filter properties, but this works just fine for now.
+   */
   PROP_TEXTEDIT_UPDATE = (1u << 31),
 
   /* icon */
   PROP_ICONS_CONSECUTIVE = (1 << 12),
   PROP_ICONS_REVERSE = (1 << 8),
 
-  /* hidden in  the user interface */
+  /** Hidden in  the user interface. */
   PROP_HIDDEN = (1 << 19),
-  /* do not write in presets */
+  /** Do not write in presets. */
   PROP_SKIP_SAVE = (1 << 28),
 
   /* numbers */
 
-  /* each value is related proportionally (object scale, image size) */
+  /** Each value is related proportionally (object scale, image size). */
   PROP_PROPORTIONAL = (1 << 26),
 
   /* pointers */
   PROP_ID_REFCOUNT = (1 << 6),
 
-  /* disallow assigning a variable to its self, eg an object tracking its self
-   * only apply this to types that are derived from an ID ()*/
+  /**
+   * Disallow assigning a variable to its self, eg an object tracking its self
+   * only apply this to types that are derived from an ID ().
+   */
   PROP_ID_SELF_CHECK = (1 << 20),
-  /* use for...
+  /**
+   * Use for...
    * - pointers: in the UI and python so unsetting or setting to None won't work.
    * - strings: so our internal generated get/length/set
    *   functions know to do NULL checks before access T30865.
    */
   PROP_NEVER_NULL = (1 << 18),
-  /* currently only used for UI, this is similar to PROP_NEVER_NULL
+  /**
+   * Currently only used for UI, this is similar to PROP_NEVER_NULL
    * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
    * but setting NULL on a mesh object is not possible.
    * So, if its not NULL, setting NULL cant be done!
    */
   PROP_NEVER_UNLINK = (1 << 25),
 
-  /* Pointers to data that is not owned by the struct.
+  /**
+   * Pointers to data that is not owned by the struct.
    * Typical example: Bone.parent, Bone.child, etc., and nearly all ID pointers.
    * This is crucial information for processes that walk the whole data of an ID e.g.
    * (like library override).
@@ -222,11 +235,12 @@ typedef enum PropertyFlag {
    */
   PROP_PTR_NO_OWNERSHIP = (1 << 7),
 
-  /* flag contains multiple enums.
+  /**
+   * flag contains multiple enums.
    * note: not to be confused with prop->enumbitflags
    * this exposes the flag as multiple options in python and the UI.
    *
-   * note: these can't be animated so use with care.
+   * \note These can't be animated so use with care.
    */
   PROP_ENUM_FLAG = (1 << 21),
 
@@ -238,55 +252,72 @@ typedef enum PropertyFlag {
   PROP_REGISTER = (1 << 4),
   PROP_REGISTER_OPTIONAL = PROP_REGISTER | (1 << 5),
 
-  /* Use for arrays or for any data that should not have a reference kept
-   * most common case is functions that return arrays where the array */
+  /**
+   * Use for arrays or for any data that should not have a reference kept
+   * most common case is functions that return arrays where the array.
+   */
   PROP_THICK_WRAP = (1 << 23),
 
-  PROP_IDPROPERTY = (1 << 10),      /* This is an IDProperty, not a DNA one. */
-  PROP_DYNAMIC = (1 << 17),         /* for dynamic arrays, and retvals of type string */
-  PROP_ENUM_NO_CONTEXT = (1 << 24), /* for enum that shouldn't be contextual */
-  PROP_ENUM_NO_TRANSLATE =
-      (1 << 29), /* for enums not to be translated (e.g. viewlayers' names in nodes) */
+  /** This is an IDProperty, not a DNA one. */
+  PROP_IDPROPERTY = (1 << 10),
+  /** For dynamic arrays, and retvals of type string. */
+  PROP_DYNAMIC = (1 << 17),
+  /** For enum that shouldn't be contextual */
+  PROP_ENUM_NO_CONTEXT = (1 << 24),
+  /** For enums not to be translated (e.g. viewlayers' names in nodes). */
+  PROP_ENUM_NO_TRANSLATE = (1 << 29),
 
-  /* Don't do dependency graph tag from a property update callback.
+  /**
+   * Don't do dependency graph tag from a property update callback.
    * Use this for properties which defines interface state, for example,
-   * properties which denotes whether modifier panel is collapsed or not. */
+   * properties which denotes whether modifier panel is collapsed or not.
+   */
   PROP_NO_DEG_UPDATE = (1 << 30),
 } PropertyFlag;
 
-/* Flags related to comparing and overriding RNA properties.
- * Make sure enums are updated with these */
-/* FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above. */
+/**
+ * Flags related to comparing and overriding RNA properties.
+ * Make sure enums are updated with these.
+ *
+ * FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above.
+ */
 typedef enum PropertyOverrideFlag {
-  /* Means the property can be overridden by a local 'proxy' of some linked datablock. */
+  /** Means the property can be overridden by a local 'proxy' of some linked datablock. */
   PROPOVERRIDE_OVERRIDABLE_LIBRARY = (1 << 0),
 
-  /* Forbid usage of this property in comparison (& hence override) code.
-   * Useful e.g. for collections of data like mesh's geometry, particles, etc. */
+  /**
+   * Forbid usage of this property in comparison (& hence override) code.
+   * Useful e.g. for collections of data like mesh's geometry, particles, etc.
+   */
   PROPOVERRIDE_NO_COMPARISON = (1 << 1),
 
   /*** Collections-related ***/
 
-  /* The property supports insertion (collections only). */
+  /** The property supports insertion (collections only). */
   PROPOVERRIDE_LIBRARY_INSERTION = (1 << 10),
 
-  /* Only use indices to compare items in the property, never names (collections only). */
-  /* Useful when nameprop of the items is generated from other data
-   * (e.g. name of material slots is actually name of assigned material). */
+  /** Only use indices to compare items in the property, never names (collections only).
+   *
+   * Useful when nameprop of the items is generated from other data
+   * (e.g. name of material slots is actually name of assigned material).
+   */
   PROPOVERRIDE_NO_PROP_NAME = (1 << 11),
 } PropertyOverrideFlag;
 
-/* Function parameters flags.
- * WARNING: 16bits only. */
+/**
+ * Function parameters flags.
+ * \warning 16bits only.
+ */
 typedef enum ParameterFlag {
   PARM_REQUIRED = (1 << 0),
   PARM_OUTPUT = (1 << 1),
   PARM_RNAPTR = (1 << 2),
-  /* This allows for non-breaking API updates,
+  /**
+   * This allows for non-breaking API updates,
    * when adding non-critical new parameter to a callback function.
    * This way, old py code defining funcs without that parameter would still work.
    * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
-   * NOTE: only for input parameters!
+   * \note only for input parameters!
    */
   PARM_PYFUNC_OPTIONAL = (1 << 3),
 } ParameterFlag;
@@ -303,17 +334,20 @@ typedef struct ListBaseIterator {
 
 typedef struct ArrayIterator {
   char *ptr;
-  /* Past the last valid pointer, only for comparisons, ignores skipped values. */
+  /** Past the last valid pointer, only for comparisons, ignores skipped values. */
   char *endptr;
-  /* Will be freed if set. */
+  /** Will be freed if set. */
   void *free_ptr;
   int itemsize;
 
-  /* Array length with no skip functions applied,
-   * take care not to compare against index from animsys or python indices. */
+  /**
+   * Array length with no skip functions applied,
+   * take care not to compare against index from animsys or Python indices.
+   */
   int length;
 
-  /* Optional skip function,
+  /**
+   * Optional skip function,
    * when set the array as viewed by rna can contain only a subset of the members.
    * this changes indices so quick array index lookups are not possible when skip function is used.
    */
@@ -343,7 +377,7 @@ typedef struct CollectionPointerLink {
   PointerRNA ptr;
 } CollectionPointerLink;
 
-/* Copy of ListBase for RNA... */
+/** Copy of ListBase for RNA. */
 typedef struct CollectionListBase {
   struct CollectionPointerLink *first, *last;
 } CollectionListBase;
@@ -448,13 +482,13 @@ typedef struct PropertyRNA PropertyRNA;
 /* Parameter List */
 
 typedef struct ParameterList {
-  /* storage for parameters */
+  /** Storage for parameters*. */
   void *data;
 
-  /* function passed at creation time */
+  /** Function passed at creation time. */
   struct FunctionRNA *func;
 
-  /* store the parameter size */
+  /** Store the parameter size. */
   int alloc_size;
 
   int arg_count, ret_count;
@@ -470,32 +504,41 @@ typedef struct ParameterIterator {
   int valid;
 } ParameterIterator;
 
-/* mainly to avoid confusing casts */
+/** Mainly to avoid confusing casts. */
 typedef struct ParameterDynAlloc {
-  intptr_t array_tot; /* important, this breaks when set to an int */
+  /** Important, this breaks when set to an int. */
+  intptr_t array_tot;
   void *array;
 } ParameterDynAlloc;
 
 /* Function */
 
+/**
+ * Options affecting callback signature.
+ *
+ * Those add additional parameters at the beginning of the C callback, like that:
+ * <pre>
+ * rna_my_func([ID *_selfid],
+ *             [<DNA_STRUCT> *self|StructRNA *type],
+ *             [Main *bmain],
+ *             [bContext *C],
+ *             [ReportList *reports],
+ *             <other RNA-defined parameters>);
+ * </pre>
+ */
 typedef enum FunctionFlag {
-  /***** Options affecting callback signature. *****/
-  /* Those add additional parameters at the beginning of the C callback, like that:
-   *     rna_my_func([ID *_selfid],
-   *                 [<DNA_STRUCT> *self|StructRNA *type],
-   *                 [Main *bmain],
-   *                 [bContext *C],
-   *                 [ReportList *reports],
-   *                 <other RNA-defined parameters>);
+  /**
+   * Pass ID owning 'self' data
+   * (i.e. ptr->id.data, might be same as self in case data is an ID...).
    */
-  /* Pass ID owning 'self' data
-   * (i.e. ptr->id.data, might be same as self in case data is an ID...). */
   FUNC_USE_SELF_ID = (1 << 11),
 
-  /* Do not pass the object (DNA struct pointer) from which it is called,
-   * used to define static or class functions. */
+  /**
+   * Do not pass the object (DNA struct pointer) from which it is called,
+   * used to define static or class functions.
+   */
   FUNC_NO_SELF = (1 << 0),
-  /* Pass RNA type, used to define class functions, only valid when FUNC_NO_SELF is set. */
+  /** Pass RNA type, used to define class functions, only valid when #FUNC_NO_SELF is set. */
   FUNC_USE_SELF_TYPE = (1 << 1),
 
   /* Pass Main, bContext and/or ReportList. */
@@ -503,26 +546,32 @@ typedef enum FunctionFlag {
   FUNC_USE_CONTEXT = (1 << 3),
   FUNC_USE_REPORTS = (1 << 4),
 
-  /***** Registering of python subclasses. *****/
-  /* This function is part of the registerable class' interface,
-   * and can be implemented/redefined in python. */
+  /***** Registering of Python subclasses. *****/
+  /**
+   * This function is part of the registerable class' interface,
+   * and can be implemented/redefined in Python.
+   */
   FUNC_REGISTER = (1 << 5),
-  /* Subclasses can choose not to implement this function. */
+  /** Subclasses can choose not to implement this function. */
   FUNC_REGISTER_OPTIONAL = FUNC_REGISTER | (1 << 6),
-  /* If not set, the python function implementing this call
+  /**
+   * If not set, the Python function implementing this call
    * is not allowed to write into data-blocks.
-   * Except for WindowManager and Screen currently, see rna_id_write_error() in bpy_rna.c */
+   * Except for WindowManager and Screen currently, see rna_id_write_error() in bpy_rna.c
+   */
   FUNC_ALLOW_WRITE = (1 << 12),
 
   /***** Internal flags. *****/
-  /* UNUSED CURRENTLY? ??? */
+  /** UNUSED CURRENTLY? ??? */
   FUNC_BUILTIN = (1 << 7),
-  /* UNUSED CURRENTLY. ??? */
+  /** UNUSED CURRENTLY. ??? */
   FUNC_EXPORT = (1 << 8),
-  /* Function has been defined at runtime, not statically in RNA source code. */
+  /** Function has been defined at runtime, not statically in RNA source code. */
   FUNC_RUNTIME = (1 << 9),
-  /* UNUSED CURRENTLY? Function owns its identifier and description strings,
-   * and has to free them when deleted. */
+  /**
+   * UNUSED CURRENTLY? Function owns its identifier and description strings,
+   * and has to free them when deleted.
+   */
   FUNC_FREE_POINTERS = (1 << 10),
 } FunctionFlag;
 
@@ -536,21 +585,26 @@ typedef struct FunctionRNA FunctionRNA;
 /* Struct */
 
 typedef enum StructFlag {
-  /* indicates that this struct is an ID struct, and to use refcounting */
+  /** Indicates that this struct is an ID struct, and to use reference-counting. */
   STRUCT_ID = (1 << 0),
   STRUCT_ID_REFCOUNT = (1 << 1),
-  STRUCT_UNDO = (1 << 2), /* defaults on, clear for user preferences and similar */
+  /** defaults on, clear for user preferences and similar */
+  STRUCT_UNDO = (1 << 2),
 
   /* internal flags */
   STRUCT_RUNTIME = (1 << 3),
   STRUCT_GENERATED = (1 << 4),
   STRUCT_FREE_POINTERS = (1 << 5),
-  STRUCT_NO_IDPROPERTIES = (1 << 6),           /* Menus and Panels don't need properties */
-  STRUCT_NO_DATABLOCK_IDPROPERTIES = (1 << 7), /* e.g. for Operator */
-  STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES =
-      (1 << 8),                       /* for PropertyGroup which contains pointers to datablocks */
-  STRUCT_PUBLIC_NAMESPACE = (1 << 9), /* Added to type-map #BlenderRNA.structs_map */
-  STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10), /* All subtypes are added too. */
+  /** Menus and Panels don't need properties */
+  STRUCT_NO_IDPROPERTIES = (1 << 6),
+  /** e.g. for Operator */
+  STRUCT_NO_DATABLOCK_IDPROPERTIES = (1 << 7),
+  /** for PropertyGroup which contains pointers to datablocks */
+  STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES = (1 << 8),
+  /** Added to type-map #BlenderRNA.structs_map */
+  STRUCT_PUBLIC_NAMESPACE = (1 << 9),
+  /** All subtypes are added too. */
+  STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10),
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
@@ -572,17 +626,19 @@ typedef void **(*StructInstanceFunc)(PointerRNA *ptr);
 
 typedef struct StructRNA StructRNA;
 
-/* Blender RNA
+/**
+ * Blender RNA
  *
- * Root RNA data structure that lists all struct types. */
-
+ * Root RNA data structure that lists all struct types.
+ */
 typedef struct BlenderRNA BlenderRNA;
 
-/* Extending
+/**
+ * Extending
  *
  * This struct must be embedded in *Type structs in
- * order to make then definable through RNA. */
-
+ * order to make then definable through RNA.
+ */
 typedef struct ExtensionRNA {
   void *data;
   StructRNA *srna;

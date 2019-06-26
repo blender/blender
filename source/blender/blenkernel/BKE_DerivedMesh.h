@@ -105,8 +105,8 @@ typedef enum DerivedMeshType {
 
 typedef enum DMForeachFlag {
   DM_FOREACH_NOP = 0,
-  DM_FOREACH_USE_NORMAL =
-      (1 << 0), /* foreachMappedVert, foreachMappedLoop, foreachMappedFaceCenter */
+  /* foreachMappedVert, foreachMappedLoop, foreachMappedFaceCenter */
+  DM_FOREACH_USE_NORMAL = (1 << 0),
 } DMForeachFlag;
 
 typedef enum DMDirtyFlag {

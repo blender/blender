@@ -187,16 +187,22 @@ typedef struct ClothSpring {
 /* SIMULATION FLAGS: goal flags,.. */
 /* These are the bits used in SimSettings.flags. */
 typedef enum {
-  CLOTH_SIMSETTINGS_FLAG_COLLOBJ =
-      (1 << 2),  // object is only collision object, no cloth simulation is done
-  CLOTH_SIMSETTINGS_FLAG_GOAL = (1 << 3),                    /* DEPRECATED, for versioning only. */
-  CLOTH_SIMSETTINGS_FLAG_TEARING = (1 << 4),                 // true if tearing is enabled
-  CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8),                 /* DEPRECATED, for versioning only. */
-  CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),            /* edit cache in editmode */
-  CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS = (1 << 13), /* don't allow spring compression */
-  CLOTH_SIMSETTINGS_FLAG_SEW = (1 << 14), /* pull ends of loose edges together */
-  CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH =
-      (1 << 15), /* make simulation respect deformations in the base object */
+  /** Object is only collision object, no cloth simulation is done. */
+  CLOTH_SIMSETTINGS_FLAG_COLLOBJ = (1 << 2),
+  /** DEPRECATED, for versioning only. */
+  CLOTH_SIMSETTINGS_FLAG_GOAL = (1 << 3),
+  /** True if tearing is enabled. */
+  CLOTH_SIMSETTINGS_FLAG_TEARING = (1 << 4),
+  /** DEPRECATED, for versioning only. */
+  CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8),
+  /** Edit cache in edit-mode. */
+  CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),
+  /** Don't allow spring compression. */
+  CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS = (1 << 13),
+  /** Pull ends of loose edges together. */
+  CLOTH_SIMSETTINGS_FLAG_SEW = (1 << 14),
+  /** Make simulation respect deformations in the base object. */
+  CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH = (1 << 15),
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* ClothSimSettings.bending_model. */
