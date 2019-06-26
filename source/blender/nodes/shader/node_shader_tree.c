@@ -43,6 +43,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_library.h"
 
 #include "RNA_access.h"
 
@@ -551,28 +552,28 @@ static bool ntree_shader_has_displacement(bNodeTree *ntree,
   return displacement->link != NULL;
 }
 
-static bool ntree_shader_relink_node_normal(bNodeTree *ntree,
+static void ntree_shader_relink_node_normal(bNodeTree *ntree,
                                             bNode *node,
                                             bNode *node_from,
                                             bNodeSocket *socket_from)
 {
-  bNodeSocket *sock = ntree_shader_node_find_input(node, "Normal");
   /* TODO(sergey): Can we do something smarter here than just a name-based
    * matching?
    */
-  if (sock == NULL) {
-    /* There's no Normal input, nothing to link. */
-    return false;
+  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+    if (STREQ(sock->identifier, "Normal") && sock->link == NULL) {
+      /* It's a normal input and nothing is connected to it. */
+      nodeAddLink(ntree, node_from, socket_from, node, sock);
+    }
+    else if (sock->link) {
+      bNodeLink *link = sock->link;
+      if (ELEM(link->fromnode->type, SH_NODE_NEW_GEOMETRY, SH_NODE_TEX_COORD) &&
+          STREQ(link->fromsock->identifier, "Normal")) {
+        /* Linked to a geometry node normal output. */
+        nodeAddLink(ntree, node_from, socket_from, node, sock);
+      }
+    }
   }
-  if (sock->link != NULL) {
-    /* Something is linked to the normal input already. can't
-     * use other input for that.
-     */
-    return false;
-  }
-  /* Create connection between specified node and the normal input. */
-  nodeAddLink(ntree, node_from, socket_from, node, sock);
-  return true;
 }
 
 static void ntree_shader_link_builtin_group_normal(bNodeTree *ntree,
@@ -596,45 +597,8 @@ static void ntree_shader_link_builtin_group_normal(bNodeTree *ntree,
   /* Assumes sockets are always added at the end. */
   bNodeSocket *group_node_normal_socket = group_node->inputs.last;
   if (displacement_node == group_node) {
-    /* If displacement is coming from this node group we need to perform
-     * some internal re-linking in order to avoid cycles.
-     */
-    bNode *group_output_node = ntreeFindType(group_ntree, NODE_GROUP_OUTPUT);
-    if (group_output_node == NULL) {
-      return;
-    }
-    bNodeSocket *group_output_node_displacement_socket = nodeFindSocket(
-        group_output_node, SOCK_IN, displacement_socket->identifier);
-    bNodeLink *group_displacement_link = group_output_node_displacement_socket->link;
-    if (group_displacement_link == NULL) {
-      /* Displacement output is not connected to anything, can just stop
-       * right away.
-       */
-      return;
-    }
-    /* This code is similar to ntree_shader_relink_displacement() */
-    bNode *group_displacement_node = group_displacement_link->fromnode;
-    bNodeSocket *group_displacement_socket = group_displacement_link->fromsock;
-    /* Create and link bump node.
-     * Can't re-use bump node from parent tree because it'll cause cycle.
-     */
-    bNode *bump_node = nodeAddStaticNode(NULL, group_ntree, SH_NODE_BUMP);
-    bNodeSocket *bump_input_socket = ntree_shader_node_find_input(bump_node, "Height");
-    bNodeSocket *bump_output_socket = ntree_shader_node_find_output(bump_node, "Normal");
-    BLI_assert(bump_input_socket != NULL);
-    BLI_assert(bump_output_socket != NULL);
-    nodeAddLink(group_ntree,
-                group_displacement_node,
-                group_displacement_socket,
-                bump_node,
-                bump_input_socket);
-    /* Relink normals inside of the instanced tree. */
-    ntree_shader_link_builtin_normal(group_ntree,
-                                     bump_node,
-                                     bump_output_socket,
-                                     group_displacement_node,
-                                     group_displacement_socket);
-    ntreeUpdateTree(G.main, group_ntree);
+    /* This should never happen as all displacement nodes are duplicated and tagged. */
+    BLI_assert(0);
   }
   else if (group_input_node) {
     /* Connect group node normal input. */
@@ -665,6 +629,10 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
       /* Don't connect node itself! */
       continue;
     }
+    if (node->tmp_flag == -2) {
+      /* This node is used inside the displacement tree. Skip to avoid cycles. */
+      continue;
+    }
     if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
       /* Special re-linking for group nodes. */
       ntree_shader_link_builtin_group_normal(
@@ -677,6 +645,127 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
     }
     ntree_shader_relink_node_normal(ntree, node, node_from, socket_from);
   }
+}
+
+static void ntree_shader_bypass_bump_link(bNodeTree *ntree, bNode *bump_node, bNodeLink *bump_link)
+{
+  /* Bypass bump nodes. This replicates cycles "implicit" behavior. */
+  bNodeSocket *bump_normal_input = ntree_shader_node_find_input(bump_node, "Normal");
+  bNode *fromnode;
+  bNodeSocket *fromsock;
+  /* Default to builtin normals if there is no link. */
+  if (bump_normal_input->link) {
+    fromsock = bump_normal_input->link->fromsock;
+    fromnode = bump_normal_input->link->fromnode;
+  }
+  else {
+    fromnode = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
+    fromsock = ntree_shader_node_find_output(fromnode, "Normal");
+  }
+  /* Bypass the bump node by creating a link between the previous and next node. */
+  nodeAddLink(ntree, fromnode, fromsock, bump_link->tonode, bump_link->tosock);
+  nodeRemLink(ntree, bump_link);
+}
+
+static void ntree_shader_bypass_tagged_bump_nodes(bNodeTree *ntree)
+{
+  /* Bypass bump links inside copied nodes */
+  bNodeLink *link, *link_next;
+  for (link = ntree->links.first; link; link = link_next) {
+    /* link might be freed by ntree_shader_bypass_bump_link. */
+    link_next = link->next;
+    bNode *node = link->fromnode;
+    /* If node is a copy. */
+    if (node->tmp_flag == -2 && node->type == SH_NODE_BUMP) {
+      ntree_shader_bypass_bump_link(ntree, node, link);
+    }
+  }
+  /* Do the same inside nodegroups. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    /* If node is a copy. */
+    if (node->tmp_flag == -2 && ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
+      bNodeTree *group_ntree = (bNodeTree *)node->id;
+      /* Tag all nodes inside this group as copies. */
+      LISTBASE_FOREACH (bNode *, group_node, &group_ntree->nodes) {
+        group_node->tmp_flag = -2;
+      }
+      /* Recursive. */
+      ntree_shader_bypass_tagged_bump_nodes(group_ntree);
+    }
+  }
+  ntreeUpdateTree(G.main, ntree);
+}
+
+static bool ntree_branch_count_and_tag_nodes(bNode *fromnode,
+                                             bNode *tonode,
+                                             void *userdata,
+                                             const bool UNUSED(reversed))
+{
+  int *node_count = (int *)userdata;
+  if (fromnode->tmp_flag == -1) {
+    fromnode->tmp_flag = *node_count;
+    (*node_count)++;
+  }
+  if (tonode->tmp_flag == -1) {
+    tonode->tmp_flag = *node_count;
+    (*node_count)++;
+  }
+  return true;
+}
+
+static void ntree_shader_copy_branch_displacement(bNodeTree *ntree,
+                                                  bNode *displacement_node,
+                                                  bNodeSocket *displacement_socket,
+                                                  bNodeLink *displacement_link)
+{
+  /* Init tmp flag. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->tmp_flag = -1;
+  }
+  /* Count and tag all nodes inside the displacement branch of the tree. */
+  displacement_node->tmp_flag = 0;
+  int node_count = 1;
+  nodeChainIter(ntree, displacement_node, ntree_branch_count_and_tag_nodes, &node_count, true);
+  /* Make a full copy of the branch */
+  bNode **nodes_copy = MEM_mallocN(sizeof(bNode *) * node_count, __func__);
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->tmp_flag >= 0) {
+      int id = node->tmp_flag;
+      nodes_copy[id] = BKE_node_copy_ex(ntree, node, LIB_ID_CREATE_NO_USER_REFCOUNT);
+      nodes_copy[id]->tmp_flag = -2; /* Copy */
+      if (ELEM(nodes_copy[id]->type, NODE_GROUP, NODE_CUSTOM_GROUP) && nodes_copy[id]->id) {
+        nodes_copy[id]->id = (ID *)ntreeLocalize((bNodeTree *)nodes_copy[id]->id);
+      }
+      /* Make sure to clear all sockets links as they are invalid. */
+      LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->inputs) {
+        sock->link = NULL;
+      }
+      LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->outputs) {
+        sock->link = NULL;
+      }
+    }
+  }
+  /* Recreate links between copied nodes. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->fromnode->tmp_flag >= 0 && link->tonode->tmp_flag >= 0) {
+      bNode *fromnode = nodes_copy[link->fromnode->tmp_flag];
+      bNode *tonode = nodes_copy[link->tonode->tmp_flag];
+      bNodeSocket *fromsock = ntree_shader_node_find_output(fromnode, link->fromsock->identifier);
+      bNodeSocket *tosock = ntree_shader_node_find_input(tonode, link->tosock->identifier);
+      nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+    }
+  }
+  /* Replace displacement socket/node/link. */
+  bNode *tonode = displacement_link->tonode;
+  bNodeSocket *tosock = displacement_link->tosock;
+  displacement_node = nodes_copy[displacement_node->tmp_flag];
+  displacement_socket = ntree_shader_node_find_output(displacement_node,
+                                                      displacement_socket->identifier);
+  nodeRemLink(ntree, displacement_link);
+  nodeAddLink(ntree, displacement_node, displacement_socket, tonode, tosock);
+  MEM_freeN(nodes_copy);
+
+  ntreeUpdateTree(G.main, ntree);
 }
 
 /* Re-link displacement output to unconnected normal sockets via bump node.
@@ -692,6 +781,18 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
     /* There is no displacement output connected, nothing to re-link. */
     return;
   }
+
+  /* Copy the whole displacement branch to avoid cyclic dependancy
+   * and issue when bypassing bump nodes. */
+  ntree_shader_copy_branch_displacement(
+      ntree, displacement_node, displacement_socket, displacement_link);
+  /* Bypass bump nodes inside the copied branch to mimic cycles behavior. */
+  ntree_shader_bypass_tagged_bump_nodes(ntree);
+
+  /* Displacement Node may have changed because of branch copy and bump bypass. */
+  ntree_shader_has_displacement(
+      ntree, output_node, &displacement_node, &displacement_socket, &displacement_link);
+
   /* We have to disconnect displacement output socket, otherwise we'll have
    * cycles in the Cycles material :)
    */
@@ -700,14 +801,11 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   /* Convert displacement vector to bump height. */
   bNode *dot_node = nodeAddStaticNode(NULL, ntree, SH_NODE_VECT_MATH);
   bNode *geo_node = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
+  bNodeSocket *normal_socket = ntree_shader_node_find_output(geo_node, "Normal");
   dot_node->custom1 = 3; /* dot product */
 
   nodeAddLink(ntree, displacement_node, displacement_socket, dot_node, dot_node->inputs.first);
-  nodeAddLink(ntree,
-              geo_node,
-              ntree_shader_node_find_output(geo_node, "Normal"),
-              dot_node,
-              dot_node->inputs.last);
+  nodeAddLink(ntree, geo_node, normal_socket, dot_node, dot_node->inputs.last);
   displacement_node = dot_node;
   displacement_socket = ntree_shader_node_find_output(dot_node, "Value");
 
@@ -723,12 +821,17 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
    * connected to.
    */
   nodeAddLink(ntree, displacement_node, displacement_socket, bump_node, bump_input_socket);
-  /* Connect all free-standing Normal inputs. */
+
+  /* Tag as part of the new displacmeent tree. */
+  dot_node->tmp_flag = -2;
+  geo_node->tmp_flag = -2;
+  bump_node->tmp_flag = -2;
+
+  ntreeUpdateTree(G.main, ntree);
+
+  /* Connect all free-standing Normal inputs and relink geometry/coordinate nodes. */
   ntree_shader_link_builtin_normal(
       ntree, bump_node, bump_output_socket, displacement_node, displacement_socket);
-  /* TODO(sergey): Reconnect Geometry Info->Normal sockets to the new
-   * bump node.
-   */
   /* We modified the tree, it needs to be updated now. */
   ntreeUpdateTree(G.main, ntree);
 }
