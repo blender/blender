@@ -45,7 +45,7 @@ void BKE_lightprobe_init(LightProbe *probe)
   probe->vis_blur = 0.2f;
   probe->intensity = 1.0f;
 
-  probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE | LIGHTPROBE_FLAG_SHOW_DATA;
+  probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE;
 }
 
 void *BKE_lightprobe_add(Main *bmain, const char *name)
