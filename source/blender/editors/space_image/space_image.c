@@ -602,6 +602,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
   UI_GetThemeColor3fv(TH_BACK, col);
   GPU_clear_color(col[0], col[1], col[2], 0.0f);
   GPU_clear(GPU_COLOR_BIT);
+  GPU_depth_test(false);
 
   image_user_refresh_scene(C, sima);
 
