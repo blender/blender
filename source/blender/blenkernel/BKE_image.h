@@ -218,6 +218,7 @@ void BKE_image_signal(struct Main *bmain, struct Image *ima, struct ImageUser *i
 void BKE_image_walk_all_users(const struct Main *mainp,
                               void *customdata,
                               void callback(struct Image *ima,
+                                            struct ID *iuser_id,
                                             struct ImageUser *iuser,
                                             void *customdata));
 

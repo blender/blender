@@ -2945,11 +2945,11 @@ void BKE_image_verify_viewer_views(const RenderData *rd, Image *ima, ImageUser *
   BLI_thread_unlock(LOCK_DRAW_IMAGE);
 }
 
-static void image_walk_ntree_all_users(bNodeTree *ntree,
-                                       void *customdata,
-                                       void callback(Image *ima,
-                                                     ImageUser *iuser,
-                                                     void *customdata))
+static void image_walk_ntree_all_users(
+    bNodeTree *ntree,
+    ID *id,
+    void *customdata,
+    void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   switch (ntree->type) {
     case NTREE_SHADER:
@@ -2958,12 +2958,12 @@ static void image_walk_ntree_all_users(bNodeTree *ntree,
           if (node->type == SH_NODE_TEX_IMAGE) {
             NodeTexImage *tex = node->storage;
             Image *ima = (Image *)node->id;
-            callback(ima, &tex->iuser, customdata);
+            callback(ima, id, &tex->iuser, customdata);
           }
           if (node->type == SH_NODE_TEX_ENVIRONMENT) {
             NodeTexImage *tex = node->storage;
             Image *ima = (Image *)node->id;
-            callback(ima, &tex->iuser, customdata);
+            callback(ima, id, &tex->iuser, customdata);
           }
         }
       }
@@ -2973,7 +2973,7 @@ static void image_walk_ntree_all_users(bNodeTree *ntree,
         if (node->id && node->type == TEX_NODE_IMAGE) {
           Image *ima = (Image *)node->id;
           ImageUser *iuser = node->storage;
-          callback(ima, iuser, customdata);
+          callback(ima, id, iuser, customdata);
         }
       }
       break;
@@ -2982,66 +2982,67 @@ static void image_walk_ntree_all_users(bNodeTree *ntree,
         if (node->id && node->type == CMP_NODE_IMAGE) {
           Image *ima = (Image *)node->id;
           ImageUser *iuser = node->storage;
-          callback(ima, iuser, customdata);
+          callback(ima, id, iuser, customdata);
         }
       }
       break;
   }
 }
 
-static void image_walk_id_all_users(ID *id,
-                                    bool skip_nested_nodes,
-                                    void *customdata,
-                                    void callback(Image *ima, ImageUser *iuser, void *customdata))
+static void image_walk_id_all_users(
+    ID *id,
+    bool skip_nested_nodes,
+    void *customdata,
+    void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   switch (GS(id->name)) {
     case ID_OB: {
       Object *ob = (Object *)id;
       if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data) {
-        callback(ob->data, ob->iuser, customdata);
+        callback(ob->data, &ob->id, ob->iuser, customdata);
       }
       break;
     }
     case ID_MA: {
       Material *ma = (Material *)id;
       if (ma->nodetree && ma->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(ma->nodetree, customdata, callback);
+        image_walk_ntree_all_users(ma->nodetree, &ma->id, customdata, callback);
       }
       break;
     }
     case ID_LA: {
       Light *light = (Light *)id;
       if (light->nodetree && light->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(light->nodetree, customdata, callback);
+        image_walk_ntree_all_users(light->nodetree, &light->id, customdata, callback);
       }
       break;
     }
     case ID_WO: {
       World *world = (World *)id;
       if (world->nodetree && world->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(world->nodetree, customdata, callback);
+        image_walk_ntree_all_users(world->nodetree, &world->id, customdata, callback);
       }
       break;
     }
     case ID_TE: {
       Tex *tex = (Tex *)id;
       if (tex->type == TEX_IMAGE && tex->ima) {
-        callback(tex->ima, &tex->iuser, customdata);
+        callback(tex->ima, &tex->id, &tex->iuser, customdata);
       }
       if (tex->nodetree && tex->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(tex->nodetree, customdata, callback);
+        image_walk_ntree_all_users(tex->nodetree, &tex->id, customdata, callback);
       }
       break;
     }
     case ID_NT: {
       bNodeTree *ntree = (bNodeTree *)id;
-      image_walk_ntree_all_users(ntree, customdata, callback);
+      image_walk_ntree_all_users(ntree, &ntree->id, customdata, callback);
       break;
     }
     case ID_CA: {
       Camera *cam = (Camera *)id;
       for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
-        callback(bgpic->ima, &bgpic->iuser, customdata);
+        callback(bgpic->ima, NULL, &bgpic->iuser, customdata);
       }
       break;
     }
@@ -3053,7 +3054,7 @@ static void image_walk_id_all_users(ID *id,
         for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
           if (sa->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = sa->spacedata.first;
-            callback(sima->image, &sima->iuser, customdata);
+            callback(sima->image, NULL, &sima->iuser, customdata);
           }
         }
       }
@@ -3062,7 +3063,7 @@ static void image_walk_id_all_users(ID *id,
     case ID_SCE: {
       Scene *scene = (Scene *)id;
       if (scene->nodetree && scene->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(scene->nodetree, customdata, callback);
+        image_walk_ntree_all_users(scene->nodetree, &scene->id, customdata, callback);
       }
     }
     default:
@@ -3070,9 +3071,10 @@ static void image_walk_id_all_users(ID *id,
   }
 }
 
-void BKE_image_walk_all_users(const Main *mainp,
-                              void *customdata,
-                              void callback(Image *ima, ImageUser *iuser, void *customdata))
+void BKE_image_walk_all_users(
+    const Main *mainp,
+    void *customdata,
+    void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   for (Scene *scene = mainp->scenes.first; scene; scene = scene->id.next) {
     image_walk_id_all_users(&scene->id, false, customdata, callback);
@@ -3111,17 +3113,22 @@ void BKE_image_walk_all_users(const Main *mainp,
   }
 }
 
-static void image_tag_frame_recalc(Image *ima, ImageUser *iuser, void *customdata)
+static void image_tag_frame_recalc(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata)
 {
   Image *changed_image = customdata;
 
   if (ima == changed_image && BKE_image_is_animated(ima)) {
     iuser->flag |= IMA_NEED_FRAME_RECALC;
     iuser->ok = 1;
+
+    if (iuser_id) {
+      /* Must copy image user changes to CoW datablock. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
+    }
   }
 }
 
-static void image_tag_reload(Image *ima, ImageUser *iuser, void *customdata)
+static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata)
 {
   Image *changed_image = customdata;
 
@@ -3129,6 +3136,10 @@ static void image_tag_reload(Image *ima, ImageUser *iuser, void *customdata)
     iuser->ok = 1;
     if (iuser->scene) {
       image_update_views_format(ima, iuser);
+    }
+    if (iuser_id) {
+      /* Must copy image user changes to CoW datablock. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 }
@@ -3210,7 +3221,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 
       ima->ok = 1;
       if (iuser) {
-        image_tag_frame_recalc(ima, iuser, ima);
+        image_tag_frame_recalc(ima, NULL, iuser, ima);
       }
       BKE_image_walk_all_users(bmain, ima, image_tag_frame_recalc);
 
@@ -3250,7 +3261,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       }
 
       if (iuser) {
-        image_tag_reload(ima, iuser, ima);
+        image_tag_reload(ima, NULL, iuser, ima);
       }
       BKE_image_walk_all_users(bmain, ima, image_tag_reload);
       break;
@@ -4836,7 +4847,10 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
 }
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-static void image_editors_update_frame(Image *ima, ImageUser *iuser, void *customdata)
+static void image_editors_update_frame(Image *ima,
+                                       ID *UNUSED(iuser_id),
+                                       ImageUser *iuser,
+                                       void *customdata)
 {
   int cfra = *(int *)customdata;
 
@@ -4853,7 +4867,10 @@ void BKE_image_editors_update_frame(const Main *bmain, int cfra)
   image_walk_id_all_users(&wm->id, false, &cfra, image_editors_update_frame);
 }
 
-static void image_user_id_has_animation(Image *ima, ImageUser *UNUSED(iuser), void *customdata)
+static void image_user_id_has_animation(Image *ima,
+                                        ID *UNUSED(iuser_id),
+                                        ImageUser *UNUSED(iuser),
+                                        void *customdata)
 {
   if (ima && BKE_image_is_animated(ima)) {
     *(bool *)customdata = true;
@@ -4870,7 +4887,10 @@ bool BKE_image_user_id_has_animation(ID *id)
   return has_animation;
 }
 
-static void image_user_id_eval_animation(Image *ima, ImageUser *iuser, void *customdata)
+static void image_user_id_eval_animation(Image *ima,
+                                         ID *UNUSED(iduser_id),
+                                         ImageUser *iuser,
+                                         void *customdata)
 {
   if (ima && BKE_image_is_animated(ima)) {
     Depsgraph *depsgraph = (Depsgraph *)customdata;
