@@ -207,18 +207,21 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
     child_pt->parent = NULL;
   }
 
+  const char space_type = pt->space_type;
   BLI_freelistN(&pt->children);
   BLI_freelinkN(&art->paneltypes, pt);
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
       for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-        ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-        for (ARegion *region = regionbase->first; region; region = region->next) {
-          if (region->type == art) {
-            for (Panel *pa = region->panels.first; pa; pa = pa->next) {
-              if (pa->type == pt) {
-                pa->type = NULL;
+        if (sl->spacetype == space_type) {
+          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          for (ARegion *region = regionbase->first; region; region = region->next) {
+            if (region->type == art) {
+              for (Panel *pa = region->panels.first; pa; pa = pa->next) {
+                if (pa->type == pt) {
+                  pa->type = NULL;
+                }
               }
             }
           }
