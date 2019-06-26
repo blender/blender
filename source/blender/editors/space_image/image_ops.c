@@ -2499,7 +2499,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
   }
 
   ima = BKE_image_add_generated(
-      bmain, width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color, stereo3d);
+      bmain, width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color, stereo3d, false);
 
   if (!ima) {
     image_new_free(op);

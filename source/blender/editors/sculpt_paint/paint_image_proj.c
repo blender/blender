@@ -6435,13 +6435,16 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
     alpha = RNA_boolean_get(op->ptr, "alpha");
     RNA_string_get(op->ptr, "name", imagename);
   }
-  ima = BKE_image_add_generated(
-      bmain, width, height, imagename, alpha ? 32 : 24, use_float, gen_type, color, false);
-
-  if (is_data) {
-    STRNCPY(ima->colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
-  }
+  ima = BKE_image_add_generated(bmain,
+                                width,
+                                height,
+                                imagename,
+                                alpha ? 32 : 24,
+                                use_float,
+                                gen_type,
+                                color,
+                                false,
+                                is_data);
 
   return ima;
 }

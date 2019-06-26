@@ -679,40 +679,47 @@ Image *BKE_image_add_generated(Main *bmain,
                                int floatbuf,
                                short gen_type,
                                const float color[4],
-                               const bool stereo3d)
+                               const bool stereo3d,
+                               const bool is_data)
 {
   /* on save, type is changed to FILE in editsima.c */
   Image *ima = image_alloc(bmain, name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+  if (ima == NULL) {
+    return NULL;
+  }
 
-  if (ima) {
-    int view_id;
-    const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
+  int view_id;
+  const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
-    /* STRNCPY(ima->name, name); */ /* don't do this, this writes in ain invalid filepath! */
-    ima->gen_x = width;
-    ima->gen_y = height;
-    ima->gen_type = gen_type;
-    ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
-    ima->gen_depth = depth;
-    copy_v4_v4(ima->gen_color, color);
+  /* STRNCPY(ima->name, name); */ /* don't do this, this writes in ain invalid filepath! */
+  ima->gen_x = width;
+  ima->gen_y = height;
+  ima->gen_type = gen_type;
+  ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
+  ima->gen_depth = depth;
+  copy_v4_v4(ima->gen_color, color);
 
-    for (view_id = 0; view_id < 2; view_id++) {
-      ImBuf *ibuf;
-      ibuf = add_ibuf_size(
-          width, height, ima->name, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
-      image_assign_ibuf(ima, ibuf, stereo3d ? view_id : IMA_NO_INDEX, 0);
+  if (is_data) {
+    STRNCPY(ima->colorspace_settings.name,
+            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+  }
 
-      /* image_assign_ibuf puts buffer to the cache, which increments user counter. */
-      IMB_freeImBuf(ibuf);
-      if (!stereo3d) {
-        break;
-      }
+  for (view_id = 0; view_id < 2; view_id++) {
+    ImBuf *ibuf;
+    ibuf = add_ibuf_size(
+        width, height, ima->name, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
+    image_assign_ibuf(ima, ibuf, stereo3d ? view_id : IMA_NO_INDEX, 0);
 
-      image_add_view(ima, names[view_id], "");
+    /* image_assign_ibuf puts buffer to the cache, which increments user counter. */
+    IMB_freeImBuf(ibuf);
+    if (!stereo3d) {
+      break;
     }
 
-    ima->ok = IMA_OK_LOADED;
+    image_add_view(ima, names[view_id], "");
   }
+
+  ima->ok = IMA_OK_LOADED;
 
   return ima;
 }

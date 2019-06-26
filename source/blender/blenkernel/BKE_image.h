@@ -205,7 +205,8 @@ struct Image *BKE_image_add_generated(struct Main *bmain,
                                       int floatbuf,
                                       short gen_type,
                                       const float color[4],
-                                      const bool stereo3d);
+                                      const bool stereo3d,
+                                      const bool is_data);
 /* adds image from imbuf, owns imbuf */
 struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, const char *name);
 
