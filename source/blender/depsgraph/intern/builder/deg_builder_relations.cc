@@ -1199,7 +1199,10 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
     const IDNode *id_node_to = operation_to->owner->owner;
     if (id_node_from != id_node_to) {
       ComponentKey cow_key(id_node_to->id_orig, NodeType::COPY_ON_WRITE);
-      add_relation(cow_key, adt_key, "Animated CoW -> Animation", RELATION_CHECK_BEFORE_ADD);
+      add_relation(cow_key,
+                   adt_key,
+                   "Animated CoW -> Animation",
+                   RELATION_CHECK_BEFORE_ADD | RELATION_FLAG_NO_FLUSH);
     }
   }
 }
