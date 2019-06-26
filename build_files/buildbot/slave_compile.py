@@ -54,7 +54,6 @@ if 'cmake' in builder:
     targets = ['blender']
 
     chroot_name = None  # If not None command will be delegated to that chroot
-    build_cubins = True  # Whether to build Cycles CUDA kernels
     bits = 64
 
     # Config file to be used (relative to blender's sources root)
@@ -101,7 +100,7 @@ if 'cmake' in builder:
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
     # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.
-    if bits == 64 and build_cubins:
+    if bits == 64:
         cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=ON")
         cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
     else:
