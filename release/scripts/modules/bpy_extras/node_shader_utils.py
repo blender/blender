@@ -758,7 +758,7 @@ class ShaderImageTextureWrapper():
 
 
     def use_min_get(self):
-        return self.node_mapping.use_min if self_mapping.node is not None else False
+        return self.node_mapping.use_min if self.node_mapping is not None else False
 
     @_set_check
     def use_min_set(self, use_min):
@@ -768,7 +768,7 @@ class ShaderImageTextureWrapper():
 
 
     def use_max_get(self):
-        return self.node_mapping.use_max if self_mapping.node is not None else False
+        return self.node_mapping.use_max if self.node_mapping is not None else False
 
     @_set_check
     def use_max_set(self, use_max):
