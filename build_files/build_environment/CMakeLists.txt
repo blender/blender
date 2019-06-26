@@ -91,7 +91,11 @@ include(cmake/openvdb.cmake)
 include(cmake/python.cmake)
 include(cmake/python_site_packages.cmake)
 include(cmake/numpy.cmake)
-include(cmake/pugixml.cmake)
+if(UNIX AND NOT APPLE)
+  # Rely on PugiXML compiled with OpenImageIO
+else()
+  include(cmake/pugixml.cmake)
+endif()
 
 if(WITH_WEBP)
   include(cmake/webp.cmake)
