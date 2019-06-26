@@ -137,11 +137,11 @@ if builder.find('cmake') != -1:
         blender_glibc = builder.split('_')[1]
         command_prefix = []
         bits = 64
+        blender_arch = 'x86_64'
 
         if blender_glibc == 'glibc224':
             if builder.endswith('x86_64_cmake'):
                 chroot_name = 'buildbot_stretch_x86_64'
-                blender_arch = 'x86_64'
             elif builder.endswith('i686_cmake'):
                 chroot_name = 'buildbot_stretch_i686'
                 bits = 32
