@@ -1003,6 +1003,13 @@ DRWShadingGroup *DRW_shgroup_get_next(DRWShadingGroup *shgroup)
   return shgroup->next;
 }
 
+/* This is a workaround function waiting for the clearing operation to be available inside the
+ * shgroups. */
+uint DRW_shgroup_stencil_mask_get(DRWShadingGroup *shgroup)
+{
+  return shgroup->stencil_mask;
+}
+
 DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 {
   DRWShadingGroup *shgroup_new = BLI_memblock_alloc(DST.vmempool->shgroups);

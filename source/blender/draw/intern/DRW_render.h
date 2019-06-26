@@ -531,7 +531,11 @@ void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, 
 void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
+
+/* TODO: workaround functions waiting for the clearing operation to be available inside the
+ * shgroups. */
 DRWShadingGroup *DRW_shgroup_get_next(DRWShadingGroup *shgroup);
+uint DRW_shgroup_stencil_mask_get(DRWShadingGroup *shgroup);
 
 /* Passes */
 DRWPass *DRW_pass_create(const char *name, DRWState state);
