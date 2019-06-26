@@ -85,7 +85,7 @@ static void deformStroke(GpencilModifierData *md,
   }
 
   copy_v3_v3(factor, mmd->hsv);
-  /* keep Hue equals. */
+  /* keep initial values unchanged, subtracting the default values. */
   factor[0] -= 0.5f;
   factor[1] -= 1.0f;
   factor[2] -= 1.0f;
