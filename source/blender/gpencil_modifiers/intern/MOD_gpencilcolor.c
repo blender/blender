@@ -49,7 +49,7 @@ static void initData(GpencilModifierData *md)
 {
   ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
   gpmd->pass_index = 0;
-  ARRAY_SET_ITEMS(gpmd->hsv, 1.0f, 1.0f, 1.0f);
+  ARRAY_SET_ITEMS(gpmd->hsv, 0.5f, 1.0f, 1.0f);
   gpmd->layername[0] = '\0';
   gpmd->flag |= GP_COLOR_CREATE_COLORS;
   gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
@@ -85,7 +85,10 @@ static void deformStroke(GpencilModifierData *md,
   }
 
   copy_v3_v3(factor, mmd->hsv);
-  add_v3_fl(factor, -1.0f);
+  /* keep Hue equals. */
+  factor[0] -= 0.5f;
+  factor[1] -= 1.0f;
+  factor[2] -= 1.0f;
 
   if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
     rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);

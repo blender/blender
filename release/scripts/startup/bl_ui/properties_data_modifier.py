@@ -1919,9 +1919,9 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Color:")
-        col.prop(md, "hue", text="H")
-        col.prop(md, "saturation", text="S")
-        col.prop(md, "value", text="V")
+        col.prop(md, "hue", text="H", slider=True)
+        col.prop(md, "saturation", text="S", slider=True)
+        col.prop(md, "value", text="V", slider=True)
 
         row = layout.row()
         row.prop(md, "create_materials")

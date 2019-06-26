@@ -988,8 +988,8 @@ static void rna_def_modifier_gpencilcolor(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "hue", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.0, 2.0);
-  RNA_def_property_ui_range(prop, 0.0, 2.0, 0.1, 3);
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 3);
   RNA_def_property_float_sdna(prop, NULL, "hsv[0]");
   RNA_def_property_ui_text(prop, "Hue", "Color Hue");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
