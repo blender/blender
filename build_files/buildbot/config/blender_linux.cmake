@@ -2,33 +2,22 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 
-# Detect which libc we'll be linking against.
-# Some of the paths will depend on this
-
+# For libc-2.24 we are using chroot which runs on a 64bit system.
+# There we can not use CPU bitness check since it is always 64bit. So instead
+# we check for a specific libraries.
+#
+# Other builders we are runnign in a bare virtual machine, and the libraries
+# are installed to /opt/.
+# We assume that only 64bit builders exists in such configuration.
 if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")
   message(STATUS "Building in GLibc-2.24 environment")
-  set(GLIBC "2.24")
-  set(MULTILIB "/x86_64-linux-gnu")
   set(LIBDIR_NAME "linux_x86_64")
 elseif(EXISTS "/lib/i386-linux-gnu//libc-2.24.so")
   message(STATUS "Building in GLibc-2.24 environment")
-  set(GLIBC "2.24")
-  set(MULTILIB "/i386-linux-gnu")
   set(LIBDIR_NAME "linux_i686")
-elseif(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
-  message(STATUS "Building in GLibc-2.19 environment")
-  set(GLIBC "2.19")
-  set(MULTILIB "/x86_64-linux-gnu")
-elseif(EXISTS "/lib/i386-linux-gnu//libc-2.19.so")
-  message(STATUS "Building in GLibc-2.19 environment")
-  set(GLIBC "2.19")
-  set(MULTILIB "/i386-linux-gnu")
-elseif(EXISTS "/lib/libc-2.11.3.so")
-  message(STATUS "Building in GLibc-2.11 environment")
-  set(GLIBC "2.11")
-  set(MULTILIB "")
 else()
-  message(FATAL_ERROR "Unknown build environment")
+  message(STATUS "Building in generic 64bit environment")
+  set(LIBDIR_NAME "linux_x86_64")
 endif()
 
 # Default to only build Blender
