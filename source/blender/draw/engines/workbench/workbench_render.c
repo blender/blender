@@ -82,8 +82,14 @@ static bool workbench_render_framebuffers_init(void)
   const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA16F, NULL, NULL);
-  dtxl->depth = GPU_texture_create_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
+
+  /* When doing a multi view rendering the first view will allocate the buffers
+   * the other views will reuse these buffers */
+  if (dtxl->color == NULL) {
+    BLI_assert(dtxl->depth == NULL);
+    dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA16F, NULL, NULL);
+    dtxl->depth = GPU_texture_create_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
+  }
 
   if (!(dtxl->depth && dtxl->color)) {
     return false;
