@@ -103,16 +103,17 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 
   invert_m4_m4(viewmat, viewinv);
 
-  DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
-  DRW_view_default_set(view);
-  DRW_view_set_active(view);
+  /* Reuse the view created by EEVEE or Workbench */
+  if (DRW_view_default_get() == NULL) {
+    DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+    DRW_view_default_set(view);
+    DRW_view_set_active(view);
+  }
 
-  DRW_view_persmat_get(view, persmat, false);
+  DRW_view_persmat_get(NULL, persmat, false);
 
   /* calculate pixel size for render */
   stl->storage->render_pixsize = get_render_pixelsize(persmat, viewport_size[0], viewport_size[1]);
-
-  stl->storage->view = view;
 
   /* INIT CACHE */
   GPENCIL_cache_init(vedata);
@@ -212,7 +213,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
     GPENCIL_render_update_vecs(vedata);
 
     float winmat[4][4];
-    DRW_view_winmat_get(stl->storage->view, winmat, false);
+    DRW_view_winmat_get(NULL, winmat, false);
 
     /* Convert ogl depth [0..1] to view Z [near..far] */
     for (int i = 0; i < BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect); i++) {

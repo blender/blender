@@ -186,7 +186,6 @@ typedef struct GPENCIL_Storage {
   float mix_stroke_factor;
 
   /* Render Matrices and data */
-  DRWView *view;
   float view_vecs[2][4]; /* vec4[2] */
 
   int shade_render[2];

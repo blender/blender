@@ -1998,15 +1998,14 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   for (RenderView *render_view = render_result->views.first; render_view != NULL;
        render_view = render_view->next) {
     RE_SetActiveRenderView(render, render_view->name);
+    /* Reset the view. */
+    DST.view_default = NULL;
+    DST.view_active = NULL;
+    DST.view_previous = NULL;
     engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
     /* grease pencil: render result is merged in the previous render result. */
     if (DRW_render_check_grease_pencil(depsgraph)) {
       DRW_state_reset();
-      /* HACK: this is just for sanity and not trigger asserts. */
-      DST.view_default = NULL;
-      DST.view_active = NULL;
-      DST.view_previous = NULL;
-
       DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
     }
     DST.buffer_finish_called = false;
