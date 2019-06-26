@@ -89,7 +89,7 @@ if 'cmake' in builder:
                 chroot_name = 'buildbot_' + deb_name + '_i686'
             command_prefix = ['schroot', '-c', chroot_name, '--']
         elif glibc == 'glibc217':
-            command_prefix = ['scl', 'enable', 'devtoolset-6', 'bash']
+            command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
