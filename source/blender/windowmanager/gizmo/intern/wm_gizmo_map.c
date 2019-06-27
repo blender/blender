@@ -629,7 +629,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   {
     for (int select_id = 0; select_id < visible_gizmos_len; select_id++) {
       wmGizmo *gz = visible_gizmos[select_id];
-      /* With both defined, favor the 3D, incase the gizmo can be used in 2D or 3D views. */
+      /* With both defined, favor the 3D, in case the gizmo can be used in 2D or 3D views. */
       if (gz->type->test_select && (gz->type->draw_select == NULL)) {
         if ((*r_part = gz->type->test_select(C, gz, co)) != -1) {
           hit = select_id;
@@ -1257,8 +1257,8 @@ void WM_gizmoconfig_update_tag_remove(wmGizmoMapType *gzmap_type, wmGizmoGroupTy
 }
 
 /**
- * Run incase new types have been added (runs often, early exit where possible).
- * Follows #WM_keyconfig_update concentions.
+ * Run in case new types have been added (runs often, early exit where possible).
+ * Follows #WM_keyconfig_update conventions.
  */
 void WM_gizmoconfig_update(struct Main *bmain)
 {
