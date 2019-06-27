@@ -899,7 +899,10 @@ Closure nodetree_exec(void); /* Prototype */
 
 #    if defined(USE_ALPHA_BLEND)
 /* Prototype because this file is included before volumetric_lib.glsl */
-vec4 volumetric_resolve(vec4 scene_color, vec2 frag_uvs, float frag_depth);
+void volumetric_resolve(vec2 frag_uvs,
+                        float frag_depth,
+                        out vec3 transmittance,
+                        out vec3 scattering);
 #    endif
 
 #    define NODETREE_EXEC
@@ -914,7 +917,9 @@ void main()
 #    if defined(USE_ALPHA_BLEND)
   /* XXX fragile, better use real viewport resolution */
   vec2 uvs = gl_FragCoord.xy / vec2(2 * textureSize(maxzBuffer, 0).xy);
-  fragColor.rgb = volumetric_resolve(vec4(cl.radiance, cl.opacity), uvs, gl_FragCoord.z).rgb;
+  vec3 transmittance, scattering;
+  volumetric_resolve(uvs, gl_FragCoord.z, transmittance, scattering);
+  fragColor.rgb = cl.radiance * transmittance + scattering;
   fragColor.a = cl.opacity;
 #    else
   fragColor = vec4(cl.radiance, cl.opacity);

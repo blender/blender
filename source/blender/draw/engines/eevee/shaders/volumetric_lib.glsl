@@ -145,15 +145,13 @@ vec3 irradiance_volumetric(vec3 wpos)
 uniform sampler3D inScattering;
 uniform sampler3D inTransmittance;
 
-vec4 volumetric_resolve(vec4 scene_color, vec2 frag_uvs, float frag_depth)
+void volumetric_resolve(vec2 frag_uvs,
+                        float frag_depth,
+                        out vec3 transmittance,
+                        out vec3 scattering)
 {
   vec3 volume_cos = ndc_to_volume(vec3(frag_uvs, frag_depth));
 
-  vec3 scattering = texture(inScattering, volume_cos).rgb;
-  vec3 transmittance = texture(inTransmittance, volume_cos).rgb;
-
-  /* Approximate volume alpha by using a monochromatic transmitance
-   * and adding it to the scene alpha. */
-  float final_alpha = mix(1.0, scene_color.a, dot(transmittance, vec3(1.0 / 3.0)));
-  return vec4(scene_color.rgb * transmittance + scattering, final_alpha);
+  scattering = texture(inScattering, volume_cos).rgb;
+  transmittance = texture(inTransmittance, volume_cos).rgb;
 }
