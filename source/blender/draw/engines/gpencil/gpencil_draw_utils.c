@@ -1574,7 +1574,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
           stl->g_data->shgrps_drawing_fill = DRW_shgroup_create(e_data->gpencil_drawing_fill_sh,
                                                                 psl->drawing_pass);
           /* Disable stencil for this type */
-          DRW_shgroup_state_disable(stl->g_data->shgrps_drawing_stroke,
+          DRW_shgroup_state_disable(stl->g_data->shgrps_drawing_fill,
                                     DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
 
           stl->g_data->batch_buffer_fill = gpencil_get_buffer_fill_geom(gpd);
