@@ -347,12 +347,14 @@ typedef enum {
   DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (1 << 20),
   DRW_STATE_BLEND_OIT = (1 << 21),
   DRW_STATE_BLEND_MUL = (1 << 22),
+  /** Use dual source blending. WARNING: Only one color buffer allowed. */
+  DRW_STATE_BLEND_CUSTOM = (1 << 23),
 
-  DRW_STATE_CLIP_PLANES = (1 << 23),
-  DRW_STATE_WIRE_SMOOTH = (1 << 24),
-  DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 25),
+  DRW_STATE_CLIP_PLANES = (1 << 28),
+  DRW_STATE_WIRE_SMOOTH = (1 << 29),
+  DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
   /** DO NOT USE. Assumed always enabled. Only used internally. */
-  DRW_STATE_PROGRAM_POINT_SIZE = (1 << 26),
+  DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
 } DRWState;
 
 #define DRW_STATE_DEFAULT \

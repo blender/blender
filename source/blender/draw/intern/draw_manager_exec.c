@@ -225,7 +225,7 @@ void drw_state_set(DRWState state)
     if (CHANGED_ANY_STORE_VAR(DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL |
                                   DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL |
                                   DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
-                                  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL,
+                                  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL | DRW_STATE_BLEND_CUSTOM,
                               test)) {
       if (test) {
         glEnable(GL_BLEND);
@@ -261,6 +261,11 @@ void drw_state_set(DRWState state)
         else if ((state & DRW_STATE_BLEND_ADD_FULL) != 0) {
           /* Let alpha accumulate. */
           glBlendFunc(GL_ONE, GL_ONE);
+        }
+        else if ((state & DRW_STATE_BLEND_CUSTOM) != 0) {
+          /* Custom blend parameters using dual source blending.
+           * Can only be used with one Draw Buffer. */
+          glBlendFunc(GL_ONE, GL_SRC1_COLOR);
         }
         else {
           BLI_assert(0);
