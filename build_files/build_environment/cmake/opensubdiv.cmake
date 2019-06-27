@@ -70,7 +70,6 @@ ExternalProject_Add(external_opensubdiv
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH MD5=${OPENSUBDIV_Hash}
   PREFIX ${BUILD_DIR}/opensubdiv
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/opensubdiv/src/external_opensubdiv < ${PATCH_DIR}/opensubdiv.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opensubdiv -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${OPENSUBDIV_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/opensubdiv
 )

@@ -105,8 +105,8 @@ set(CUEW_GIT_UID 1744972026de9cf27c8a7dc39cf39cd83d5f922f)
 set(CUEW_URI https://github.com/CudaWrangler/cuew/archive/${CUEW_GIT_UID}.zip)
 set(CUEW_HASH 86760d62978ebfd96cd93f5aa1abaf4a)
 
-set(OPENSUBDIV_VERSION v3_3_3)
-set(OPENSUBDIV_Hash 29c79dc01ef616aab02670bed5544ddd)
+set(OPENSUBDIV_VERSION v3_4_0_RC2)
+set(OPENSUBDIV_Hash f6a10ba9efaa82fde86fe65aad346319)
 set(OPENSUBDIV_URI https://github.com/PixarAnimationStudios/OpenSubdiv/archive/${OPENSUBDIV_VERSION}.tar.gz)
 
 set(SDL_VERSION 2.0.8)
