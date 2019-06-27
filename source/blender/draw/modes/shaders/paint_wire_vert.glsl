@@ -42,6 +42,7 @@ void main()
 #endif
 
   finalColor.a = nor.w;
+  gl_PointSize = sizeVertex * 2.0;
 
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(world_pos);
