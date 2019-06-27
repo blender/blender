@@ -186,7 +186,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
           /* Even if the group-type was has been linked, it's possible the space types
            * were not previously using it. (happens with multiple windows.) */
           wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
-          WM_gizmoconfig_update_tag_init(gzmap_type, gzgt);
+          WM_gizmoconfig_update_tag_group_type_init(gzmap_type, gzgt);
         }
       }
     }

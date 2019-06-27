@@ -159,10 +159,10 @@ struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
 /* wm_gizmo_map.c */
 
 /* Dynamic Updates (for RNA runtime registration) */
-void WM_gizmoconfig_update_tag_init(struct wmGizmoMapType *gzmap_type,
-                                    struct wmGizmoGroupType *gzgt);
-void WM_gizmoconfig_update_tag_remove(struct wmGizmoMapType *gzmap_type,
-                                      struct wmGizmoGroupType *gzgt);
+void WM_gizmoconfig_update_tag_group_type_init(struct wmGizmoMapType *gzmap_type,
+                                               struct wmGizmoGroupType *gzgt);
+void WM_gizmoconfig_update_tag_group_type_remove(struct wmGizmoMapType *gzmap_type,
+                                                 struct wmGizmoGroupType *gzgt);
 void WM_gizmoconfig_update(struct Main *bmain);
 
 /* wm_maniulator_target_props.c */

@@ -1238,7 +1238,7 @@ void wm_gizmos_keymap(wmKeyConfig *keyconf)
  *
  * \{ */
 
-void WM_gizmoconfig_update_tag_init(wmGizmoMapType *gzmap_type, wmGizmoGroupType *gzgt)
+void WM_gizmoconfig_update_tag_group_type_init(wmGizmoMapType *gzmap_type, wmGizmoGroupType *gzgt)
 {
   /* tag for update on next use */
   gzmap_type->type_update_flag |= (WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT);
@@ -1247,7 +1247,8 @@ void WM_gizmoconfig_update_tag_init(wmGizmoMapType *gzmap_type, wmGizmoGroupType
   wm_gzmap_type_update_flag |= WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT;
 }
 
-void WM_gizmoconfig_update_tag_remove(wmGizmoMapType *gzmap_type, wmGizmoGroupType *gzgt)
+void WM_gizmoconfig_update_tag_group_type_remove(wmGizmoMapType *gzmap_type,
+                                                 wmGizmoGroupType *gzgt)
 {
   /* tag for update on next use */
   gzmap_type->type_update_flag |= WM_GIZMOMAPTYPE_UPDATE_REMOVE;

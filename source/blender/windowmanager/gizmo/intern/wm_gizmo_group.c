@@ -970,7 +970,7 @@ void WM_gizmo_group_type_add_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzma
 {
   WM_gizmomaptype_group_link_ptr(gzmap_type, gzgt);
 
-  WM_gizmoconfig_update_tag_init(gzmap_type, gzgt);
+  WM_gizmoconfig_update_tag_group_type_init(gzmap_type, gzgt);
 }
 void WM_gizmo_group_type_add_ptr(wmGizmoGroupType *gzgt)
 {
@@ -1050,7 +1050,7 @@ void WM_gizmo_group_type_reinit(struct Main *bmain, const char *idname)
 
 void WM_gizmo_group_type_unlink_delayed_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type)
 {
-  WM_gizmoconfig_update_tag_remove(gzmap_type, gzgt);
+  WM_gizmoconfig_update_tag_group_type_remove(gzmap_type, gzgt);
 }
 
 void WM_gizmo_group_type_unlink_delayed_ptr(wmGizmoGroupType *gzgt)
