@@ -128,11 +128,16 @@ bool WM_toolsystem_ref_ensure(struct WorkSpace *workspace, const bToolKey *tkey,
 
 /** \} */
 
-static void toolsystem_unlink_ref(bContext *C, WorkSpace *workspace, bToolRef *tref)
+/**
+ * \param do_gizmo: Make removing the gizmo optional because it complicates multi-window support
+ * since the tool might be used in another window. The gizmos poll function must handle this,
+ * since this is needed for switching workspaces anyway.
+ */
+static void toolsystem_unlink_ref(bContext *C, WorkSpace *workspace, bToolRef *tref, bool do_gizmo)
 {
   bToolRef_Runtime *tref_rt = tref->runtime;
 
-  if (tref_rt->gizmo_group[0]) {
+  if (do_gizmo && tref_rt->gizmo_group[0]) {
     wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
     if (gzgt != NULL) {
       bool found = false;
@@ -165,7 +170,7 @@ void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tke
 {
   bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
   if (tref && tref->runtime) {
-    toolsystem_unlink_ref(C, workspace, tref);
+    toolsystem_unlink_ref(C, workspace, tref, false);
   }
 }
 
@@ -312,7 +317,7 @@ void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace)
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->runtime) {
       if (tref->tag == 0) {
-        toolsystem_unlink_ref(C, workspace, tref);
+        toolsystem_unlink_ref(C, workspace, tref, true);
         tref->tag = 1;
       }
     }
@@ -359,7 +364,7 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
   Main *bmain = CTX_data_main(C);
 
   if (tref->runtime) {
-    toolsystem_unlink_ref(C, workspace, tref);
+    toolsystem_unlink_ref(C, workspace, tref, false);
   }
 
   STRNCPY(tref->idname, idname);
