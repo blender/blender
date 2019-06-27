@@ -77,7 +77,7 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
   if (U.gpencil_multisamples > 0) {
     int rect_w = (int)viewport_size[0];
     int rect_h = (int)viewport_size[1];
-    DRW_gpencil_multisample_ensure(vedata, rect_w, rect_h);
+    gpencil_multisample_ensure(vedata, rect_w, rect_h);
   }
 
   vedata->render_depth_tx = DRW_texture_pool_query_2d(

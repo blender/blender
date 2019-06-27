@@ -397,65 +397,65 @@ typedef struct GpencilBatchCache {
 } GpencilBatchCache;
 
 /* general drawing functions */
-struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(struct GPENCIL_Data *vedata,
-                                                          struct DRWPass *pass,
-                                                          struct GPUShader *shader,
-                                                          struct Object *ob,
-                                                          struct bGPdata *gpd,
-                                                          struct bGPDlayer *gpl,
-                                                          struct bGPDstroke *gps,
-                                                          struct MaterialGPencilStyle *gp_style,
-                                                          int id,
-                                                          bool onion,
-                                                          const float scale,
-                                                          const int shading_type[2]);
-void DRW_gpencil_populate_datablock(struct GPENCIL_e_data *e_data,
-                                    void *vedata,
-                                    struct Object *ob,
-                                    struct tGPencilObjectCache *cache_ob);
-void DRW_gpencil_populate_buffer_strokes(struct GPENCIL_e_data *e_data,
-                                         void *vedata,
-                                         struct ToolSettings *ts,
-                                         struct Object *ob);
-void DRW_gpencil_populate_multiedit(struct GPENCIL_e_data *e_data,
-                                    void *vedata,
-                                    struct Object *ob,
-                                    struct tGPencilObjectCache *cache_ob);
-void DRW_gpencil_triangulate_stroke_fill(struct Object *ob, struct bGPDstroke *gps);
-void DRW_gpencil_populate_particles(struct GPENCIL_e_data *e_data,
-                                    struct GHash *gh_objects,
-                                    void *vedata);
+struct DRWShadingGroup *gpencil_shgroup_stroke_create(struct GPENCIL_Data *vedata,
+                                                      struct DRWPass *pass,
+                                                      struct GPUShader *shader,
+                                                      struct Object *ob,
+                                                      struct bGPdata *gpd,
+                                                      struct bGPDlayer *gpl,
+                                                      struct bGPDstroke *gps,
+                                                      struct MaterialGPencilStyle *gp_style,
+                                                      int id,
+                                                      bool onion,
+                                                      const float scale,
+                                                      const int shading_type[2]);
+void gpencil_populate_datablock(struct GPENCIL_e_data *e_data,
+                                void *vedata,
+                                struct Object *ob,
+                                struct tGPencilObjectCache *cache_ob);
+void gpencil_populate_buffer_strokes(struct GPENCIL_e_data *e_data,
+                                     void *vedata,
+                                     struct ToolSettings *ts,
+                                     struct Object *ob);
+void gpencil_populate_multiedit(struct GPENCIL_e_data *e_data,
+                                void *vedata,
+                                struct Object *ob,
+                                struct tGPencilObjectCache *cache_ob);
+void gpencil_triangulate_stroke_fill(struct Object *ob, struct bGPDstroke *gps);
+void gpencil_populate_particles(struct GPENCIL_e_data *e_data,
+                                struct GHash *gh_objects,
+                                void *vedata);
 
-void DRW_gpencil_multisample_ensure(struct GPENCIL_Data *vedata, int rect_w, int rect_h);
+void gpencil_multisample_ensure(struct GPENCIL_Data *vedata, int rect_w, int rect_h);
 
 /* create geometry functions */
-void DRW_gpencil_get_point_geom(struct GpencilBatchCacheElem *be,
-                                struct bGPDstroke *gps,
-                                short thickness,
-                                const float ink[4],
-                                const int follow_mode);
-void DRW_gpencil_get_stroke_geom(struct GpencilBatchCacheElem *be,
-                                 struct bGPDstroke *gps,
-                                 short thickness,
-                                 const float ink[4]);
-void DRW_gpencil_get_fill_geom(struct GpencilBatchCacheElem *be,
-                               struct Object *ob,
-                               struct bGPDstroke *gps,
-                               const float color[4]);
-void DRW_gpencil_get_edit_geom(struct GpencilBatchCacheElem *be,
-                               struct bGPDstroke *gps,
-                               float alpha,
-                               short dflag);
-void DRW_gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
-                                struct bGPDstroke *gps,
-                                float alpha,
-                                short dflag);
+void gpencil_get_point_geom(struct GpencilBatchCacheElem *be,
+                            struct bGPDstroke *gps,
+                            short thickness,
+                            const float ink[4],
+                            const int follow_mode);
+void gpencil_get_stroke_geom(struct GpencilBatchCacheElem *be,
+                             struct bGPDstroke *gps,
+                             short thickness,
+                             const float ink[4]);
+void gpencil_get_fill_geom(struct GpencilBatchCacheElem *be,
+                           struct Object *ob,
+                           struct bGPDstroke *gps,
+                           const float color[4]);
+void gpencil_get_edit_geom(struct GpencilBatchCacheElem *be,
+                           struct bGPDstroke *gps,
+                           float alpha,
+                           short dflag);
+void gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be,
+                            struct bGPDstroke *gps,
+                            float alpha,
+                            short dflag);
 
-struct GPUBatch *DRW_gpencil_get_buffer_stroke_geom(struct bGPdata *gpd, short thickness);
-struct GPUBatch *DRW_gpencil_get_buffer_fill_geom(struct bGPdata *gpd);
-struct GPUBatch *DRW_gpencil_get_buffer_point_geom(struct bGPdata *gpd, short thickness);
-struct GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(struct bGPdata *gpd);
-struct GPUBatch *DRW_gpencil_get_grid(Object *ob);
+struct GPUBatch *gpencil_get_buffer_stroke_geom(struct bGPdata *gpd, short thickness);
+struct GPUBatch *gpencil_get_buffer_fill_geom(struct bGPdata *gpd);
+struct GPUBatch *gpencil_get_buffer_point_geom(struct bGPdata *gpd, short thickness);
+struct GPUBatch *gpencil_get_buffer_ctrlpoint_geom(struct bGPdata *gpd);
+struct GPUBatch *gpencil_get_grid(Object *ob);
 
 /* object cache functions */
 struct tGPencilObjectCache *gpencil_object_cache_add(struct tGPencilObjectCache *cache_array,
@@ -463,7 +463,7 @@ struct tGPencilObjectCache *gpencil_object_cache_add(struct tGPencilObjectCache 
                                                      int *gp_cache_size,
                                                      int *gp_cache_used);
 
-bool DRW_gpencil_onion_active(struct bGPdata *gpd);
+bool gpencil_onion_active(struct bGPdata *gpd);
 
 /* shading groups cache functions */
 struct GpencilBatchGroup *gpencil_group_cache_add(struct GpencilBatchGroup *cache_array,
@@ -484,12 +484,12 @@ void GPENCIL_create_fx_shaders(struct GPENCIL_e_data *e_data);
 void GPENCIL_delete_fx_shaders(struct GPENCIL_e_data *e_data);
 void GPENCIL_create_fx_passes(struct GPENCIL_PassList *psl);
 
-void DRW_gpencil_fx_prepare(struct GPENCIL_e_data *e_data,
-                            struct GPENCIL_Data *vedata,
-                            struct tGPencilObjectCache *cache_ob);
-void DRW_gpencil_fx_draw(struct GPENCIL_e_data *e_data,
-                         struct GPENCIL_Data *vedata,
-                         struct tGPencilObjectCache *cache_ob);
+void gpencil_fx_prepare(struct GPENCIL_e_data *e_data,
+                        struct GPENCIL_Data *vedata,
+                        struct tGPencilObjectCache *cache_ob);
+void gpencil_fx_draw(struct GPENCIL_e_data *e_data,
+                     struct GPENCIL_Data *vedata,
+                     struct tGPencilObjectCache *cache_ob);
 
 /* main functions */
 void GPENCIL_engine_init(void *vedata);
