@@ -2526,22 +2526,27 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 
   wt->wcol = *(wt->wcol_theme);
 
+  const char *color_blend = NULL;
+  if (drawflag & UI_BUT_ANIMATED_CHANGED) {
+    color_blend = wcol_state->inner_changed_sel;
+  }
+  else if (state & UI_BUT_ANIMATED_KEY) {
+    color_blend = wcol_state->inner_key_sel;
+  }
+  else if (state & UI_BUT_ANIMATED) {
+    color_blend = wcol_state->inner_anim_sel;
+  }
+  else if (state & UI_BUT_DRIVEN) {
+    color_blend = wcol_state->inner_driven_sel;
+  }
+  else if (state & UI_BUT_OVERRIDEN) {
+    color_blend = wcol_state->inner_overridden_sel;
+  }
+
   if (state & UI_SELECT) {
     copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
-    if (drawflag & UI_BUT_ANIMATED_CHANGED) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_changed_sel, wcol_state->blend);
-    }
-    else if (state & UI_BUT_ANIMATED_KEY) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
-    }
-    else if (state & UI_BUT_ANIMATED) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_anim_sel, wcol_state->blend);
-    }
-    else if (state & UI_BUT_DRIVEN) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
-    }
-    else if (state & UI_BUT_OVERRIDEN) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_overridden_sel, wcol_state->blend);
+    if (color_blend != NULL) {
+      widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
@@ -2551,20 +2556,8 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
     }
   }
   else {
-    if (drawflag & UI_BUT_ANIMATED_CHANGED) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_changed, wcol_state->blend);
-    }
-    else if (state & UI_BUT_ANIMATED_KEY) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_key, wcol_state->blend);
-    }
-    else if (state & UI_BUT_ANIMATED) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_anim, wcol_state->blend);
-    }
-    else if (state & UI_BUT_DRIVEN) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_driven, wcol_state->blend);
-    }
-    else if (state & UI_BUT_OVERRIDEN) {
-      widget_state_blend(wt->wcol.inner, wcol_state->inner_overridden, wcol_state->blend);
+    if (color_blend != NULL) {
+      widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     if (state & UI_ACTIVE) { /* mouse over? */
