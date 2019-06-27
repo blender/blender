@@ -1181,19 +1181,26 @@ def km_mask_editing(params):
         {"items": items},
     )
 
+    if params.select_mouse == 'RIGHTMOUSE':
+        # mask.slide_point performs mostly the same function, so for the left
+        # click select keymap it's fine to have the context menu instead.
+        items.extend([
+            ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
+             {"properties": [("extend", False), ("deselect", False), ("toggle", False),
+                             ("deselect_all", not params.legacy)]}),
+            ("transform.translate", {"type": 'RIGHTMOUSE', "value": 'ANY'}, None),
+        ])
+
     items.extend([
         ("mask.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         op_menu("MASK_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.use_proportional_edit_mask')]}),
-        ("mask.add_vertex_slide", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True}, None),
-        ("mask.add_feather_vertex_slide", {"type": params.action_mouse, "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("mask.add_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ("mask.add_feather_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("mask.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("mask.delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("mask.select", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("extend", False), ("deselect", False), ("toggle", False),
-                         ("deselect_all", not params.legacy)]}),
         ("mask.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", True)]}),
         *_template_items_select_actions(params, "mask.select_all"),
@@ -1218,8 +1225,8 @@ def km_mask_editing(params):
         ("clip.select", {"type": params.select_mouse, "value": 'PRESS', "ctrl": True},
          {"properties": [("extend", False)]}),
         ("mask.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
-        ("mask.slide_point", {"type": params.action_mouse, "value": 'PRESS'}, None),
-        ("mask.slide_spline_curvature", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("mask.slide_point", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("mask.slide_spline_curvature", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("mask.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
         ("mask.normals_make_consistent", {"type": 'N', "value": 'PRESS', "ctrl" if params.legacy else "shift": True}, None),
         ("mask.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -1230,7 +1237,6 @@ def km_mask_editing(params):
         ("mask.copy_splines", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("mask.paste_splines", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},

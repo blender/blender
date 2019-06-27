@@ -704,8 +704,6 @@ def km_mask_editing(params):
         ("mask.add_feather_vertex_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("mask.delete", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         ("mask.delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("mask.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-         {"properties": [("extend", False), ("deselect", False), ("toggle", False), ("deselect_all", True)]}),
         ("mask.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", True)]}),
         ("mask.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
@@ -744,7 +742,6 @@ def km_mask_editing(params):
         ("mask.copy_splines", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("mask.paste_splines", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
 
