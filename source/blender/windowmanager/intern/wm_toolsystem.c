@@ -661,8 +661,6 @@ bToolRef *WM_toolsystem_ref_set_by_id(
   WM_operator_properties_create_ptr(&op_props, ot);
   RNA_string_set(&op_props, "name", name);
 
-    BLI_assert((1 << tkey->space_type) & WM_TOOLSYSTEM_SPACE_MASK);
-
   BLI_assert((1 << tkey->space_type) & WM_TOOLSYSTEM_SPACE_MASK);
 
   RNA_enum_set(&op_props, "space_type", tkey->space_type);
