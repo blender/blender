@@ -1596,7 +1596,8 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
     DRWShadingGroup *shgrp = DRW_shgroup_create(e_data->gpencil_edit_point_sh, psl->drawing_pass);
     const float *viewport_size = DRW_viewport_size_get();
     DRW_shgroup_uniform_vec2(shgrp, "Viewport", viewport_size, 1);
-
+    /* Disable stencil for this type */
+    DRW_shgroup_state_disable(shgrp, DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
     stl->g_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
 
     DRW_shgroup_call(shgrp, stl->g_data->batch_buffer_ctrlpoint, NULL);
