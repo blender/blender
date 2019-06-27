@@ -1,7 +1,6 @@
 
 uniform float faceAlphaMod;
 uniform ivec4 dataMask = ivec4(0xFF);
-uniform float ofs;
 
 in ivec4 data;
 in vec3 pos;
@@ -23,24 +22,13 @@ void main()
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
   vec3 world_pos = point_object_to_world(pos);
-
-#if !defined(FACE)
-  /* TODO override the ViewProjection Matrix for this case. */
-  mat4 projmat = ProjectionMatrix;
-  projmat[3][2] -= ofs;
-
-  gl_Position = projmat * (ViewMatrix * vec4(world_pos, 1.0));
-#else
-
   gl_Position = point_world_to_ndc(world_pos);
-#endif
 
   ivec4 m_data = data & dataMask;
 
 #if defined(VERT)
   finalColor = EDIT_MESH_vertex_color(m_data.y);
   gl_PointSize = sizeVertex * 2.0;
-  gl_Position.z -= 3e-5 * ((ProjectionMatrix[3][3] == 0.0) ? 1.0 : 0.0);
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0) {
     gl_Position.z -= 1e-7;
