@@ -1212,6 +1212,9 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
         BKE_movieclip_get_size(clip, &bgpic->cuser, &image_width, &image_height);
         image_aspect = (image_width * image_aspect_x) / (image_height * image_aspect_y);
       }
+      else {
+        continue;
+      }
 
       /* ensure link_data is allocated to store matrice */
       CameraEngineBGData *bg_data;
