@@ -1552,6 +1552,7 @@ def km_image(params):
              )
         ),
         op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        op_menu("IMAGE_MT_mask_context_menu", params.context_menu_event),
         ("image.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
     ])

@@ -724,6 +724,9 @@ class IMAGE_HT_header(Header):
             if ima.is_stereo_3d:
                 row = layout.row()
                 row.prop(sima, "show_stereo_3d", text="")
+            if show_maskedit:
+                row = layout.row()
+                row.popover(panel='CLIP_PT_mask_display')
 
             # layers.
             layout.template_image_layers(ima, iuser)
@@ -773,6 +776,51 @@ class MASK_MT_editor_menus(Menu):
             layout.menu("MASK_MT_mask")
 
 
+class IMAGE_MT_mask_context_menu(Menu):
+    bl_label = "Mask Context Menu"
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        return (sima.show_maskedit)
+
+    def draw(self, context):
+        layout = self.layout
+        sima = context.space_data
+
+        if not sima.mask:
+            layout.operator("mask.new")
+            layout.separator()
+            layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
+            layout.operator("mask.primitive_square_add", icon='MESH_PLANE')
+        else:
+            layout.operator_menu_enum("mask.handle_type_set", "type")
+            layout.operator("mask.switch_direction")
+            layout.operator("mask.cyclic_toggle")
+
+            layout.separator()
+            layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
+            layout.operator("mask.primitive_square_add", icon='MESH_PLANE')
+
+            layout.separator()
+            layout.operator("mask.copy_splines", icon='COPYDOWN')
+            layout.operator("mask.paste_splines", icon='PASTEDOWN')
+
+            layout.separator()
+
+            layout.operator("mask.shape_key_rekey", text="Re-key Shape Points")
+            layout.operator("mask.feather_weight_clear")
+            layout.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
+
+            layout.separator()
+
+            layout.operator("mask.parent_set")
+            layout.operator("mask.parent_clear")
+
+            layout.separator()
+
+            layout.operator("mask.delete")
+
 # -----------------------------------------------------------------------------
 # Mask (similar code in space_clip.py, keep in sync)
 # note! - panel placement does _not_ fit well with image panels... need to fix.
@@ -789,31 +837,25 @@ from bl_ui.properties_mask_common import (
 class IMAGE_PT_mask(MASK_PT_mask, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Mask"
 
 
 class IMAGE_PT_mask_layers(MASK_PT_layers, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
-
-
-class IMAGE_PT_mask_display(MASK_PT_display, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Mask"
 
 
 class IMAGE_PT_active_mask_spline(MASK_PT_spline, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Mask"
 
 
 class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Mask"
 
 
 # --- end mask ---
@@ -1667,6 +1709,7 @@ classes = (
     IMAGE_MT_uvs_weldalign,
     IMAGE_MT_uvs_select_mode,
     IMAGE_MT_uvs_context_menu,
+    IMAGE_MT_mask_context_menu,
     IMAGE_MT_pivot_pie,
     IMAGE_MT_uvs_snap_pie,
     IMAGE_HT_tool_header,
@@ -1675,7 +1718,6 @@ classes = (
     IMAGE_PT_active_tool,
     IMAGE_PT_mask,
     IMAGE_PT_mask_layers,
-    IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
     IMAGE_PT_snapping,
