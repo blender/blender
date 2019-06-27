@@ -1217,7 +1217,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
           BKE_gpencil_smooth_stroke(gps, i, brush->gpencil_settings->draw_smoothfac - reduce);
           BKE_gpencil_smooth_stroke_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
         }
-        reduce += 0.25f;  // reduce the factor
+        reduce += 0.25f; /* reduce the factor */
       }
     }
     /* smooth thickness */
@@ -2393,11 +2393,6 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
       WM_cursor_modal_restore(CTX_wm_window(C));
     }
     else {
-      ///* or restore paint if 3D view */
-      // if ((p) && (p->paintmode == GP_PAINTMODE_ERASER)) {
-      //  WM_cursor_modal_set(p->win, CURSOR_STD);
-      //}
-
       /* drawing batch cache is dirty now */
       bGPdata *gpd = CTX_data_gpencil_data(C);
       if (gpd) {
@@ -2410,8 +2405,6 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
     gpencil_undo_finish();
 
     /* cleanup */
-    // WM_cursor_modal_set(p->win, CURSOR_STD);
-
     gp_paint_cleanup(p);
     gp_session_cleanup(p);
     ED_gpencil_toggle_brush_cursor(C, true, NULL);
