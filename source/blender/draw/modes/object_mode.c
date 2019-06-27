@@ -535,7 +535,10 @@ static void OBJECT_engine_init(void *vedata)
 
     /* Lightprobes */
     sh_data->lightprobe_grid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_lightprobe_grid_vert_glsl, NULL},
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_object_lightprobe_grid_vert_glsl,
+                                 NULL},
         .frag = (const char *[]){datatoc_gpu_shader_flat_id_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
@@ -2794,7 +2797,7 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
   OBJECT_LightProbeEngineData *prb_data = (OBJECT_LightProbeEngineData *)DRW_drawdata_ensure(
       &ob->id, &draw_engine_object_type, sizeof(OBJECT_LightProbeEngineData), NULL, NULL);
 
-  if ((DRW_state_is_select() || do_outlines) && ((prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0)) {
+  if (DRW_state_is_select() || do_outlines) {
     int *call_id = shgroup_theme_id_to_probe_outline_counter(stl, theme_id, ob->base_flag);
 
     if (prb->type == LIGHTPROBE_TYPE_GRID) {
@@ -2832,6 +2835,7 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
 
       uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
       DRWShadingGroup *grp = DRW_shgroup_create(sh_data->lightprobe_grid, psl->lightprobes);
+      DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_int_copy(grp, "call_id", *call_id);
       DRW_shgroup_uniform_int(grp, "baseId", call_id, 1); /* that's correct */
       DRW_shgroup_uniform_vec3(grp, "corner", prb_data->corner, 1);
@@ -2839,10 +2843,11 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
       DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
       DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
       DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
-      DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
       if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
         DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
       }
+      DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
+      *call_id += 1;
     }
     else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
       float draw_size = 1.0f;
@@ -2857,14 +2862,14 @@ static void DRW_shgroup_lightprobe(OBJECT_Shaders *sh_data,
        * to keep the call ids correct. */
       zero_m4(probe_cube_mat);
       DRW_buffer_add_entry(buf, call_id, &draw_size, probe_cube_mat);
+      *call_id += 1;
     }
-    else {
+    else if (prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) {
       float draw_size = 1.0f;
       DRWCallBuffer *buf = buffer_theme_id_to_probe_planar_outline_shgrp(stl, theme_id);
       DRW_buffer_add_entry(buf, call_id, &draw_size, ob->obmat);
+      *call_id += 1;
     }
-
-    *call_id += 1;
   }
 
   switch (prb->type) {
