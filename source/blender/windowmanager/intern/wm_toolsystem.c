@@ -177,7 +177,12 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
     wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
     if (gzgt != NULL) {
       if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) == 0) {
-        WM_gizmo_group_type_ensure_ptr(gzgt);
+        if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
+          /* Even if the group-type was has been linked, it's possible the space types
+           * were not previously using it. (happens with multiple windows.) */
+          wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
+          WM_gizmoconfig_update_tag_init(gzmap_type, gzgt);
+        }
       }
     }
     else {
