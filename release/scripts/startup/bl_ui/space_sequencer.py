@@ -1054,7 +1054,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "align_x", text="Horizontal")
             col.prop(strip, "align_y", text="Vertical")
             row = col.row(align=True)
-            row.prop(strip, "location", text="Location")
+            row.prop(strip, "location", text="Location", slider=True)
             col.prop(strip, "wrap_width")
 
             layout.operator("sequencer.export_subtitles", text="Export Subtitles", icon='EXPORT')
