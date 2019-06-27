@@ -645,11 +645,18 @@ class IMAGE_HT_header(Header):
             tool_settings = context.tool_settings
 
             # Snap.
+            snap_uv_element = tool_settings.snap_uv_element
+            act_snap_uv_element = tool_settings.bl_rna.properties['snap_uv_element'].enum_items[snap_uv_element]
+
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap", text="")
-            row.prop(tool_settings, "snap_uv_element", icon_only=True)
-            if tool_settings.snap_uv_element != 'INCREMENT':
-                row.prop(tool_settings, "snap_target", text="")
+
+            sub = row.row(align=True)
+            sub.popover(
+                panel="IMAGE_PT_snapping",
+                icon=act_snap_uv_element.icon,
+                text="",
+            )
 
             # Proportional Editing
             row = layout.row(align=True)
@@ -810,6 +817,30 @@ class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
 
 
 # --- end mask ---
+
+class IMAGE_PT_snapping(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Snapping")
+        col.prop(tool_settings, "snap_uv_element", expand=True)
+
+        if tool_settings.snap_uv_element != 'INCREMENT':
+            col.label(text="Target")
+            row = col.row(align=True)
+            row.prop(tool_settings, "snap_target", expand=True)
+
+        col.label(text="Affect")
+        row = col.row(align=True)
+        row.prop(tool_settings, "use_snap_translate", text="Move", toggle=True)
+        row.prop(tool_settings, "use_snap_rotate", text="Rotate", toggle=True)
+        row.prop(tool_settings, "use_snap_scale", text="Scale", toggle=True)
 
 
 class IMAGE_PT_image_properties(Panel):
@@ -1647,6 +1678,7 @@ classes = (
     IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
+    IMAGE_PT_snapping,
     IMAGE_PT_image_properties,
     IMAGE_UL_render_slots,
     IMAGE_PT_render_slots,
