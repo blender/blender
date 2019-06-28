@@ -1481,7 +1481,7 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
 
 static const char arg_handle_verbosity_set_doc[] =
     "<verbose>\n"
-    "\tSet logging verbosity level.";
+    "\tSet logging verbosity level for debug messages which supports it.";
 static int arg_handle_verbosity_set(int argc, const char **argv, void *UNUSED(data))
 {
   const char *arg_id = "--verbose";
