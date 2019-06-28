@@ -799,12 +799,23 @@ void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,
                                              wmMsgSubscribeKey *UNUSED(msg_key),
                                              wmMsgSubscribeValue *msg_val)
 {
-  WorkSpace *workspace = CTX_wm_workspace(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
   ScrArea *sa = msg_val->user_data;
-  int space_type = sa->spacetype;
+  Main *bmain = CTX_data_main(C);
+  wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
+  if (win->next != NULL) {
+    do {
+      bScreen *screen = WM_window_get_active_screen(win);
+      if (BLI_findindex(&screen->areabase, sa) != -1) {
+        break;
+      }
+    } while ((win = win->next));
+  }
+
+  WorkSpace *workspace = WM_window_get_active_workspace(win);
+  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+
   const bToolKey tkey = {
-      .space_type = space_type,
+      .space_type = sa->spacetype,
       .mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
   };
   WM_toolsystem_refresh(C, workspace, &tkey);
