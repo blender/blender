@@ -29,7 +29,7 @@ import addon_utils
 
 import os
 import sys
-import imp
+import importlib
 
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
@@ -121,7 +121,7 @@ def reload_addons(do_reload=True, do_reverse=True):
 
             # now test reloading
             if do_reload:
-                imp.reload(sys.modules[mod_name])
+                sys.modules[mod_name] = importlib.reload(sys.modules[mod_name])
 
         if do_reverse:
             # in case order matters when it shouldn't
