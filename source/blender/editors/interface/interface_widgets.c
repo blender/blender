@@ -2509,6 +2509,28 @@ static void widget_active_color(char cp[3])
   cp[2] = cp[2] >= 240 ? 255 : cp[2] + 15;
 }
 
+static const char *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
+                                                 int state,
+                                                 int drawflag)
+{
+  if (drawflag & UI_BUT_ANIMATED_CHANGED) {
+    return wcol_state->inner_changed_sel;
+  }
+  if (state & UI_BUT_ANIMATED_KEY) {
+    return wcol_state->inner_key_sel;
+  }
+  if (state & UI_BUT_ANIMATED) {
+    return wcol_state->inner_anim_sel;
+  }
+  if (state & UI_BUT_DRIVEN) {
+    return wcol_state->inner_driven_sel;
+  }
+  if (state & UI_BUT_OVERRIDEN) {
+    return wcol_state->inner_overridden_sel;
+  }
+  return NULL;
+}
+
 /* copy colors from theme, and set changes in it based on state */
 static void widget_state(uiWidgetType *wt, int state, int drawflag)
 {
@@ -2526,22 +2548,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 
   wt->wcol = *(wt->wcol_theme);
 
-  const char *color_blend = NULL;
-  if (drawflag & UI_BUT_ANIMATED_CHANGED) {
-    color_blend = wcol_state->inner_changed_sel;
-  }
-  else if (state & UI_BUT_ANIMATED_KEY) {
-    color_blend = wcol_state->inner_key_sel;
-  }
-  else if (state & UI_BUT_ANIMATED) {
-    color_blend = wcol_state->inner_anim_sel;
-  }
-  else if (state & UI_BUT_DRIVEN) {
-    color_blend = wcol_state->inner_driven_sel;
-  }
-  else if (state & UI_BUT_OVERRIDEN) {
-    color_blend = wcol_state->inner_overridden_sel;
-  }
+  const char *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
 
   if (state & UI_SELECT) {
     copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
@@ -2600,44 +2607,13 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
 
   /* now, set the inner-part so that it reflects state settings too */
   /* TODO: maybe we should have separate settings for the blending colors used for this case? */
-  if (state & UI_SELECT) {
-
-    if (drawflag & UI_BUT_ANIMATED_CHANGED) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_changed_sel, blend);
-    }
-    else if (state & UI_BUT_ANIMATED_KEY) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_key_sel, blend);
-    }
-    else if (state & UI_BUT_ANIMATED) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_anim_sel, blend);
-    }
-    else if (state & UI_BUT_DRIVEN) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_driven_sel, blend);
-    }
-    else if (state & UI_BUT_OVERRIDEN) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_overridden_sel, blend);
-    }
-
-    if (state & UI_SELECT) {
-      SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
-    }
+  const char *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
+  if (color_blend != NULL) {
+    widget_state_blend(wt->wcol.item, color_blend, blend);
   }
-  else {
-    if (drawflag & UI_BUT_ANIMATED_CHANGED) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_changed, blend);
-    }
-    else if (state & UI_BUT_ANIMATED_KEY) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_key, blend);
-    }
-    else if (state & UI_BUT_ANIMATED) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_anim, blend);
-    }
-    else if (state & UI_BUT_DRIVEN) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_driven, blend);
-    }
-    else if (state & UI_BUT_OVERRIDEN) {
-      widget_state_blend(wt->wcol.item, wcol_state->inner_overridden, blend);
-    }
+
+  if (state & UI_SELECT) {
+    SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
   }
 }
 
