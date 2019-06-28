@@ -17,6 +17,7 @@ echo - format [path] ^(Format the source using clang-format, path is optional, r
 echo.
 echo Configuration options
 echo - verbose ^(enable diagnostic output during configuration^)
+echo - developer ^(enable faster builds, error checking and tests, recommended for developers^)
 echo - with_tests ^(enable building unit tests^)
 echo - nobuildinfo ^(disable buildinfo^)
 echo - debug ^(Build an unoptimized debuggable build^)

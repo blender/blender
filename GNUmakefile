@@ -37,6 +37,7 @@ Convenience Targets
    * bpy:           Build as a python module which can be loaded from python directly.
    * deps:          Build library dependencies (intended only for platform maintainers).
 
+   * developer:     Enable faster builds, error checking and tests, recommended for developers.
    * config:        Run cmake configuration tool to set build options.
 
    Note: passing the argument 'BUILD_DIR=path' when calling make will override the default build dir.
@@ -221,6 +222,10 @@ ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake"
 endif
 
+ifneq "$(findstring developer, $(MAKECMDGOALS))" ""
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_developer.cmake"
+endif
+
 
 # -----------------------------------------------------------------------------
 # Blender binary path
@@ -294,6 +299,7 @@ lite: all
 cycles: all
 headless: all
 bpy: all
+developer: all
 
 # -----------------------------------------------------------------------------
 # Build dependencies

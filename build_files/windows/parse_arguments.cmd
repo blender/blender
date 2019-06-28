@@ -41,6 +41,8 @@ if NOT "%1" == "" (
 	) else if "%1" == "release" (
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake"
 		set TARGET=Release
+	) else if "%1" == "developer" (
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -C"%BLENDER_DIR%\build_files\cmake\config\blender_developer.cmake"
 	) else if "%1" == "asan" (
 		set WITH_ASAN=1
 	) else if "%1" == "x86" (
