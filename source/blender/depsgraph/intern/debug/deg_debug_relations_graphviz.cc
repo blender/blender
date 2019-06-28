@@ -435,6 +435,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx, const Node *node)
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:
     case NodeType::AUDIO:
+    case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK: {
       ComponentNode *comp_node = (ComponentNode *)node;
       if (!comp_node->operations.empty()) {

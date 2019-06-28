@@ -107,6 +107,8 @@ const char *nodeTypeAsString(NodeType type)
       return "SYNCHRONIZATION";
     case NodeType::AUDIO:
       return "AUDIO";
+    case NodeType::ARMATURE:
+      return "ARMATURE";
     case NodeType::GENERIC_DATABLOCK:
       return "GENERIC_DATABLOCK";
 

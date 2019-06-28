@@ -228,7 +228,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     /* Armature-level bone mapped to Armature Eval, and thus Pose Init.
      * Drivers have special code elsewhere that links them to the pose
      * bone components, instead of using this generic code. */
-    node_identifier.type = NodeType::PARAMETERS;
+    node_identifier.type = NodeType::ARMATURE;
     node_identifier.operation_code = OperationCode::ARMATURE_EVAL;
     /* If trying to look up via an Object, e.g. due to lookup via
      * obj.pose.bones[].bone in a driver attached to the Object,

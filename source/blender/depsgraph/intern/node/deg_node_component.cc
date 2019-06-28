@@ -365,6 +365,7 @@ DEG_COMPONENT_NODE_DEFINE(ObjectFromLayer, OBJECT_FROM_LAYER, 0);
 DEG_COMPONENT_NODE_DEFINE(Dupli, DUPLI, 0);
 DEG_COMPONENT_NODE_DEFINE(Synchronization, SYNCHRONIZATION, 0);
 DEG_COMPONENT_NODE_DEFINE(Audio, AUDIO, 0);
+DEG_COMPONENT_NODE_DEFINE(Armature, ARMATURE, 0);
 DEG_COMPONENT_NODE_DEFINE(GenericDatablock, GENERIC_DATABLOCK, 0);
 
 /* Node Types Register =================================== */
@@ -392,6 +393,7 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_DUPLI);
   register_node_typeinfo(&DNTI_SYNCHRONIZATION);
   register_node_typeinfo(&DNTI_AUDIO);
+  register_node_typeinfo(&DNTI_ARMATURE);
   register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
 }
 

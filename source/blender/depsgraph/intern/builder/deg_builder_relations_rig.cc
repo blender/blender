@@ -263,7 +263,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
   add_relation(pose_init_ik_key, pose_done_key, "Pose Init IK -> Pose Cleanup");
   /* Make sure pose is up-to-date with armature updates. */
   build_armature(armature);
-  OperationKey armature_key(&armature->id, NodeType::PARAMETERS, OperationCode::ARMATURE_EVAL);
+  OperationKey armature_key(&armature->id, NodeType::ARMATURE, OperationCode::ARMATURE_EVAL);
   add_relation(armature_key, pose_init_key, "Data dependency");
   /* Run cleanup even when there are no bones. */
   add_relation(pose_init_key, pose_cleanup_key, "Init -> Cleanup");

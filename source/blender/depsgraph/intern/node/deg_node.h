@@ -94,6 +94,7 @@ enum class NodeType {
   OBJECT_FROM_LAYER,
   /* Audio-related evaluation. */
   AUDIO,
+  ARMATURE,
   /* Un-interestying datablock, which is a part of dependency graph, but does
    * not have very distinctive update procedure.  */
   GENERIC_DATABLOCK,
