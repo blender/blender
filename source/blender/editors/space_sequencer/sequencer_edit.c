@@ -1320,6 +1320,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
   /* as last: */
   BKE_sequencer_sort(scene);
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
