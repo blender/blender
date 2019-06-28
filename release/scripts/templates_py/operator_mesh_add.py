@@ -1,6 +1,6 @@
 import bpy
 import bmesh
-
+from bpy_extras.object_utils import AddObjectHelper
 
 def add_box(width, height, depth):
     """
@@ -38,6 +38,7 @@ def add_box(width, height, depth):
 from bpy.props import (
     BoolProperty,
     BoolVectorProperty,
+    EnumProperty,
     FloatProperty,
     FloatVectorProperty,
 )
