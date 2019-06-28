@@ -17,6 +17,7 @@
 #include "util/util_logging.h"
 
 #include "util/util_math.h"
+#include "util/util_string.h"
 
 #include <stdio.h>
 #ifdef _MSC_VER
@@ -24,6 +25,17 @@
 #endif
 
 CCL_NAMESPACE_BEGIN
+
+static bool is_verbosity_set()
+{
+  using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
+
+  std::string verbosity;
+  if (!GetCommandLineOption("v", &verbosity)) {
+    return false;
+  }
+  return verbosity != "0";
+}
 
 void util_logging_init(const char *argv0)
 {
@@ -36,7 +48,9 @@ void util_logging_init(const char *argv0)
 
   google::InitGoogleLogging(argv0);
   SetCommandLineOption("logtostderr", "1");
-  SetCommandLineOption("v", "0");
+  if (!is_verbosity_set()) {
+    SetCommandLineOption("v", "0");
+  }
   SetCommandLineOption("stderrthreshold", severity_fatal);
   SetCommandLineOption("minloglevel", severity_fatal);
 #else
@@ -49,7 +63,9 @@ void util_logging_start()
 #ifdef WITH_CYCLES_LOGGING
   using CYCLES_GFLAGS_NAMESPACE::SetCommandLineOption;
   SetCommandLineOption("logtostderr", "1");
-  SetCommandLineOption("v", "2");
+  if (!is_verbosity_set()) {
+    SetCommandLineOption("v", "2");
+  }
   SetCommandLineOption("stderrthreshold", "1");
   SetCommandLineOption("minloglevel", "0");
 #endif
