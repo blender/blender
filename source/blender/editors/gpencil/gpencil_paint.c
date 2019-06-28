@@ -2472,6 +2472,7 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 /* ensure that the correct cursor icon is set */
 static void gpencil_draw_cursor_set(tGPsdata *p)
 {
+  UNUSED_VARS(p);
   return;
   /* Disable while we get a better cursor handling for direct input devices (Cintiq/Ipad)*/
 #if 0
