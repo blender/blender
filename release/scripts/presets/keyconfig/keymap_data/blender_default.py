@@ -2322,6 +2322,7 @@ def km_sequencer(params):
         ("sequencer.reload", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("sequencer.reload", {"type": 'R', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("adjust_length", True)]}),
+        ("sequencer.refresh_all", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.offset_clear", {"type": 'O', "value": 'PRESS', "alt": True}, None),
         ("sequencer.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
