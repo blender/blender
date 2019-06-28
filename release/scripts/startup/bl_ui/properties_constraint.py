@@ -548,10 +548,7 @@ class ConstraintButtonsPanel:
     def FLOOR(self, _context, layout, con):
         self.target_template(layout, con)
 
-        row = layout.row()
-        row.prop(con, "use_sticky")
-        row.prop(con, "use_rotation")
-
+        layout.prop(con, "use_rotation")
         layout.prop(con, "offset")
 
         row = layout.row()

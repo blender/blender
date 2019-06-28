@@ -3329,7 +3329,6 @@ static void minmax_new_data(void *cdata)
 
   data->minmaxflag = TRACK_Z;
   data->offset = 0.0f;
-  zero_v3(data->cache);
   data->flag = 0;
 }
 
@@ -3426,15 +3425,6 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 
     if (val1 > val2) {
       obmat[3][index] = tarmat[3][index] + data->offset;
-      if (data->flag & MINMAX_STICKY) {
-        if (data->flag & MINMAX_STUCK) {
-          copy_v3_v3(obmat[3], data->cache);
-        }
-        else {
-          copy_v3_v3(data->cache, obmat[3]);
-          data->flag |= MINMAX_STUCK;
-        }
-      }
       if (data->flag & MINMAX_USEROT) {
         /* get out of localspace */
         mul_m4_m4m4(tmat, ct->matrix, obmat);
@@ -3443,9 +3433,6 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
       else {
         copy_v3_v3(cob->matrix[3], obmat[3]);
       }
-    }
-    else {
-      data->flag &= ~MINMAX_STUCK;
     }
   }
 }

@@ -1738,17 +1738,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         bConstraint *curcon;
         for (curcon = list->first; curcon; curcon = curcon->next) {
           switch (curcon->type) {
-            case CONSTRAINT_TYPE_MINMAX: {
-              bMinMaxConstraint *data = curcon->data;
-              if (data->sticky == 1) {
-                data->flag |= MINMAX_STICKY;
-              }
-              else {
-                data->flag &= ~MINMAX_STICKY;
-              }
-
-              break;
-            }
             case CONSTRAINT_TYPE_ROTLIKE: {
               bRotateLikeConstraint *data = curcon->data;
 
@@ -1770,16 +1759,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
             for (curcon = pchan->constraints.first; curcon; curcon = curcon->next) {
               switch (curcon->type) {
-                case CONSTRAINT_TYPE_MINMAX: {
-                  bMinMaxConstraint *data = curcon->data;
-                  if (data->sticky == 1) {
-                    data->flag |= MINMAX_STICKY;
-                  }
-                  else {
-                    data->flag &= ~MINMAX_STICKY;
-                  }
-                  break;
-                }
                 case CONSTRAINT_TYPE_KINEMATIC: {
                   bKinematicConstraint *data = curcon->data;
                   if (!(data->flag & CONSTRAINT_IK_POS)) {

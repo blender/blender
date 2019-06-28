@@ -1483,11 +1483,6 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
       prop, "Floor Location", "Location of target that object will not pass through");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
-  prop = RNA_def_property(srna, "use_sticky", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MINMAX_STICKY);
-  RNA_def_property_ui_text(prop, "Sticky", "Immobilize object while constrained");
-  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
-
   prop = RNA_def_property(srna, "use_rotation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MINMAX_USEROT);
   RNA_def_property_ui_text(prop, "Use Rotation", "Use the target's rotation to determine floor");

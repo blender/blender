@@ -315,12 +315,9 @@ typedef struct bMinMaxConstraint {
   int minmaxflag;
   float offset;
   int flag;
-  /** For backward compatibility. */
-  short sticky, stuck;
-  char _pad[4];
-  float cache[3];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
+  int _pad;
 } bMinMaxConstraint;
 
 /* Action Constraint */
@@ -945,8 +942,8 @@ typedef enum eArmature_Flags {
 
 /* MinMax (floor) flags */
 typedef enum eFloor_Flags {
-  MINMAX_STICKY = (1 << 0),
-  MINMAX_STUCK = (1 << 1),
+  /* MINMAX_STICKY = (1 << 0), */ /* Deprecated. */
+  /* MINMAX_STUCK = (1 << 1), */  /* Deprecated. */
   MINMAX_USEROT = (1 << 2),
 } eFloor_Flags;
 
