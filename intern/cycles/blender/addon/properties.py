@@ -291,6 +291,21 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=0.01,
     )
 
+    min_light_bounces: IntProperty(
+            name="Min Light Bounces",
+            description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
+                        "but can also be less efficient for more complex geometry like hair and volumes",
+            min=0, max=1024,
+            default=0,
+    )
+    min_transparent_bounces: IntProperty(
+            name="Min Transparent Bounces",
+            description="Minimum number of transparnet bounces. Setting this higher reduces noise in the first bounces, "
+                        "but can also be less efficient for more complex geometry like hair and volumes",
+            min=0, max=1024,
+            default=0,
+    )
+
     caustics_reflective: BoolProperty(
         name="Reflective Caustics",
         description="Use reflective caustics, resulting in a brighter image (more noise but added realism)",
