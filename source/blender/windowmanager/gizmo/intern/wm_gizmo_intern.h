@@ -99,6 +99,9 @@ struct wmGizmoMap {
   /** Private, true when not yet used. */
   bool is_init;
 
+  /** When set, one of of the items in 'groups' has #wmGizmoGroup.tag_remove set. */
+  bool tag_remove_group;
+
   /**
    * \brief Gizmo map runtime context
    *

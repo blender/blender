@@ -70,7 +70,9 @@
 wmGizmoGroup *wm_gizmogroup_new_from_type(wmGizmoMap *gzmap, wmGizmoGroupType *gzgt)
 {
   wmGizmoGroup *gzgroup = MEM_callocN(sizeof(*gzgroup), "gizmo-group");
+
   gzgroup->type = gzgt;
+  gzgroup->type->users += 1;
 
   /* keep back-link */
   gzgroup->parent_gzmap = gzmap;
@@ -130,7 +132,21 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 
   BLI_remlink(&gzmap->groups, gzgroup);
 
+  if (gzgroup->tag_remove == false) {
+    gzgroup->type->users -= 1;
+  }
+
   MEM_freeN(gzgroup);
+}
+
+void WM_gizmo_group_tag_remove(wmGizmoGroup *gzgroup)
+{
+  if (gzgroup->tag_remove == false) {
+    gzgroup->tag_remove = true;
+    gzgroup->type->users -= 1;
+    BLI_assert(gzgroup->type->users >= 0);
+    WM_gizmoconfig_update_tag_group_remove(gzgroup->parent_gzmap);
+  }
 }
 
 /**
@@ -1097,6 +1113,22 @@ void WM_gizmo_group_type_unlink_delayed(const char *idname)
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != NULL);
   WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
+}
+
+void WM_gizmo_group_unlink_delayed_ptr_from_space(wmGizmoGroupType *gzgt,
+                                                  wmGizmoMapType *gzmap_type,
+                                                  ScrArea *sa)
+{
+  for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+    wmGizmoMap *gzmap = ar->gizmo_map;
+    if (gzmap && gzmap->type == gzmap_type) {
+      for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
+        if (gzgroup->type == gzgt) {
+          WM_gizmo_group_tag_remove(gzgroup);
+        }
+      }
+    }
+  }
 }
 
 /** \} */

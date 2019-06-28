@@ -34,6 +34,7 @@ struct GHashIterator;
 struct IDProperty;
 struct Main;
 struct PropertyRNA;
+struct ScrArea;
 struct bToolRef;
 struct wmGizmo;
 struct wmGizmoGroup;
@@ -165,6 +166,8 @@ void WM_gizmoconfig_update_tag_group_type_init(struct wmGizmoMapType *gzmap_type
 void WM_gizmoconfig_update_tag_group_type_remove(struct wmGizmoMapType *gzmap_type,
                                                  struct wmGizmoGroupType *gzgt);
 void WM_gizmoconfig_update(struct Main *bmain);
+
+void WM_gizmoconfig_update_tag_group_remove(struct wmGizmoMap *gzmap);
 
 /* wm_maniulator_target_props.c */
 struct wmGizmoProperty *WM_gizmo_target_property_array(struct wmGizmo *gz);
@@ -354,6 +357,10 @@ void WM_gizmo_group_type_unlink_delayed_ptr_ex(struct wmGizmoGroupType *gzgt,
 void WM_gizmo_group_type_unlink_delayed_ptr(struct wmGizmoGroupType *gzgt);
 void WM_gizmo_group_type_unlink_delayed(const char *idname);
 
+void WM_gizmo_group_unlink_delayed_ptr_from_space(struct wmGizmoGroupType *gzgt,
+                                                  struct wmGizmoMapType *gzmap_type,
+                                                  struct ScrArea *sa);
+
 /* Has the result of unlinking and linking (re-initializes gizmo's). */
 void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
                                        struct wmGizmoGroupType *gzgt,
@@ -369,5 +376,7 @@ void WM_gizmo_group_remove_by_tool(struct bContext *C,
                                    struct Main *bmain,
                                    const struct wmGizmoGroupType *gzgt,
                                    const struct bToolRef *tref);
+
+void WM_gizmo_group_tag_remove(struct wmGizmoGroup *gzgroup);
 
 #endif /* __WM_GIZMO_API_H__ */

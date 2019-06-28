@@ -417,6 +417,12 @@ typedef struct wmGizmoGroupType {
   /** Same as gizmo-maps, so registering/unregistering goes to the correct region. */
   struct wmGizmoMapType_Params gzmap_params;
 
+  /**
+   * Number of #wmGizmoGroup instances.
+   * Decremented when 'tag_remove' is set, or when removed.
+   */
+  int users;
+
 } wmGizmoGroupType;
 
 typedef struct wmGizmoGroup {
@@ -431,6 +437,8 @@ typedef struct wmGizmoGroup {
   void *py_instance;
   /** Errors and warnings storage. */
   struct ReportList *reports;
+
+  bool tag_remove;
 
   void *customdata;
   /** For freeing customdata from above. */
