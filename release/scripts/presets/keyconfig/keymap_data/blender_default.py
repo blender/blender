@@ -1188,7 +1188,7 @@ def km_mask_editing(params):
             ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
              {"properties": [("extend", False), ("deselect", False), ("toggle", False),
                              ("deselect_all", not params.legacy)]}),
-            ("transform.translate", {"type": 'RIGHTMOUSE', "value": 'ANY'}, None),
+            ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),
         ])
 
     items.extend([
