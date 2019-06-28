@@ -43,6 +43,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
+#include "ED_gpencil.h"
 #include "ED_screen.h"
 
 #include "ED_object.h" /* own include */
@@ -286,6 +287,12 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
       }
       ED_object_posemode_exit_ex(bmain, ob);
     }
+  }
+  else if ((ob->type == OB_GPENCIL) && ((ob->mode & OB_MODE_OBJECT) == 0)) {
+    if (only_test) {
+      return true;
+    }
+    ED_object_gpencil_exit(bmain, ob);
   }
   else {
     if (only_test) {

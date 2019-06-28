@@ -4515,3 +4515,23 @@ void GPENCIL_OT_stroke_cutter(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_lasso(ot);
 }
+
+bool ED_object_gpencil_exit(struct Main *bmain, Object *ob)
+{
+  bool ok = false;
+  if (ob) {
+    bGPdata *gpd = (bGPdata *)ob->data;
+
+    gpd->flag &= ~(GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE |
+                   GP_DATA_STROKE_WEIGHTMODE);
+
+    ob->restore_mode = ob->mode;
+    ob->mode &= ~(OB_MODE_PAINT_GPENCIL | OB_MODE_EDIT_GPENCIL | OB_MODE_SCULPT_GPENCIL |
+                  OB_MODE_WEIGHT_GPENCIL);
+
+    /* Inform all CoW versions that we changed the mode. */
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+    ok = true;
+  }
+  return ok;
+}

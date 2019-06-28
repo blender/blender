@@ -226,6 +226,7 @@ struct Object *ED_gpencil_add_object(struct bContext *C,
 void ED_gpencil_add_defaults(struct bContext *C, struct Object *ob);
 /* set object modes */
 void ED_gpencil_setup_modes(struct bContext *C, struct bGPdata *gpd, int newmode);
+bool ED_object_gpencil_exit(struct Main *bmain, struct Object *ob);
 
 void ED_gp_project_stroke_to_plane(const struct Scene *scene,
                                    const struct Object *ob,
