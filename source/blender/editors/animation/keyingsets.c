@@ -154,7 +154,7 @@ static int remove_active_keyingset_exec(bContext *C, wmOperator *op)
    * - return error if it doesn't exist
    */
   if (scene->active_keyingset == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No active keying set to remove");
+    BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove");
     return OPERATOR_CANCELLED;
   }
   else if (scene->active_keyingset < 0) {
@@ -203,7 +203,7 @@ static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
    * - return error if it doesn't exist
    */
   if (scene->active_keyingset == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No active keying set to add empty path to");
+    BKE_report(op->reports, RPT_ERROR, "No active Keying Set to add empty path to");
     return OPERATOR_CANCELLED;
   }
   else {
@@ -253,12 +253,12 @@ static int remove_active_ks_path_exec(bContext *C, wmOperator *op)
       ks->active_path--;
     }
     else {
-      BKE_report(op->reports, RPT_ERROR, "No active keying set path to remove");
+      BKE_report(op->reports, RPT_ERROR, "No active Keying Set path to remove");
       return OPERATOR_CANCELLED;
     }
   }
   else {
-    BKE_report(op->reports, RPT_ERROR, "No active keying set to remove a path from");
+    BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove a path from");
     return OPERATOR_CANCELLED;
   }
 
@@ -409,7 +409,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
    * - return error if it doesn't exist
    */
   if (scene->active_keyingset == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No active keying set to remove property from");
+    BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove property from");
     return OPERATOR_CANCELLED;
   }
   else if (scene->active_keyingset < 0) {

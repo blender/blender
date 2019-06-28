@@ -2034,7 +2034,7 @@ static int delete_key_exec(bContext *C, wmOperator *op)
     int type = RNA_property_enum_get(op->ptr, op->type->prop);
     ks = ANIM_keyingset_get_from_enum_type(scene, type);
     if (ks == NULL) {
-      BKE_report(op->reports, RPT_ERROR, "No active keying set");
+      BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
       return OPERATOR_CANCELLED;
     }
   }
@@ -2044,7 +2044,7 @@ static int delete_key_exec(bContext *C, wmOperator *op)
     ks = ANIM_keyingset_get_from_idname(scene, type_id);
 
     if (ks == NULL) {
-      BKE_reportf(op->reports, RPT_ERROR, "No active keying set '%s' not found", type_id);
+      BKE_reportf(op->reports, RPT_ERROR, "Active Keying Set '%s' not found", type_id);
       return OPERATOR_CANCELLED;
     }
   }
@@ -3000,7 +3000,7 @@ static KeyingSet *keyingset_get_from_op_with_error(wmOperator *op, PropertyRNA *
     int type = RNA_property_enum_get(op->ptr, prop);
     ks = ANIM_keyingset_get_from_enum_type(scene, type);
     if (ks == NULL) {
-      BKE_report(op->reports, RPT_ERROR, "No active keying set");
+      BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
     }
   }
   else if (prop_type == PROP_STRING) {
