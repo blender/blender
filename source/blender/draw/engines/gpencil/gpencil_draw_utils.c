@@ -1827,7 +1827,7 @@ static void gpencil_shgroups_create(GPENCIL_e_data *e_data,
     if ((shgrp != NULL) && (tag_first)) {
       array_elm = &cache_ob->shgrp_array[idx];
       array_elm->mode = idx == 0 ? eGplBlendMode_Regular : gpl->blend_mode;
-      array_elm->clamp_layer = gpl->flag & GP_LAYER_USE_MASK;
+      array_elm->mask_layer = gpl->flag & GP_LAYER_USE_MASK;
       array_elm->blend_opacity = gpl->opacity;
       array_elm->init_shgrp = shgrp;
       cache_ob->tot_layers++;

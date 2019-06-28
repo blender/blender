@@ -70,7 +70,7 @@ typedef struct tGPencilObjectCache_shgrp {
   /** type of blend (regular, add, mult, etc...) */
   int mode;
   /** flag to enable the layer clamping */
-  bool clamp_layer;
+  bool mask_layer;
   /** factor to define the opacity of the layer */
   float blend_opacity;
   DRWShadingGroup *init_shgrp;
@@ -171,7 +171,7 @@ typedef struct GPENCIL_Storage {
   short framebuffer_flag; /* flag what framebuffer need to create */
 
   int blend_mode;
-  int clamp_layer;
+  int mask_layer;
 
   /* simplify settings*/
   bool simplify_fill;

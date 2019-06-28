@@ -7,7 +7,7 @@ uniform sampler2D strokeDepth;
 uniform sampler2D blendColor;
 uniform sampler2D blendDepth;
 uniform int mode;
-uniform int clamp_layer;
+uniform int mask_layer;
 uniform int tonemapping;
 
 #define ON 1
@@ -142,7 +142,7 @@ void main()
     gl_FragDepth = min(stroke_depth, mix_depth);
   }
   else {
-    if (clamp_layer == ON) {
+    if (mask_layer == ON) {
       discard;
     }
     else {

@@ -549,7 +549,7 @@ void GPENCIL_cache_init(void *vedata)
     DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendColor", &stl->g_data->temp_color_tx_fx);
     DRW_shgroup_uniform_texture_ref(blend_shgrp, "blendDepth", &stl->g_data->temp_depth_tx_fx);
     DRW_shgroup_uniform_int(blend_shgrp, "mode", &stl->storage->blend_mode, 1);
-    DRW_shgroup_uniform_int(blend_shgrp, "clamp_layer", &stl->storage->clamp_layer, 1);
+    DRW_shgroup_uniform_int(blend_shgrp, "mask_layer", &stl->storage->mask_layer, 1);
     DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
 
     /* create effects passes */
@@ -1043,7 +1043,7 @@ void GPENCIL_draw_scene(void *ved)
             array_elm = &cache_ob->shgrp_array[e];
 
             if (((array_elm->mode == eGplBlendMode_Regular) && (!use_blend) &&
-                 (!array_elm->clamp_layer)) ||
+                 (!array_elm->mask_layer)) ||
                 (e == 0)) {
               if (init_shgrp == NULL) {
                 init_shgrp = array_elm->init_shgrp;
@@ -1069,7 +1069,7 @@ void GPENCIL_draw_scene(void *ved)
               GPU_framebuffer_bind(fbl->temp_fb_b);
               GPU_framebuffer_clear_color_depth_stencil(fbl->temp_fb_b, clearcol, 1.0f, 0x0);
               stl->storage->blend_mode = array_elm->mode;
-              stl->storage->clamp_layer = (int)array_elm->clamp_layer;
+              stl->storage->mask_layer = (int)array_elm->mask_layer;
               stl->storage->tonemapping = DRW_state_do_color_management() ? 0 : 1;
               DRW_draw_pass(psl->blend_pass);
               stl->storage->tonemapping = 0;

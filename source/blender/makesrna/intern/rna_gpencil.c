@@ -1435,11 +1435,11 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
       prop, "Disallow Locked Materials Editing", "Avoids editing locked materials in the layer");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-  prop = RNA_def_property(srna, "clamp_layer", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "mask_layer", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_USE_MASK);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Clamp Layer", "Clamp any pixel outside underlying layers drawing");
+      prop, "Mask Layer", "Remove any pixel outside underlying layers drawing");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* solo mode: Only display frames with keyframe */

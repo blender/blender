@@ -137,8 +137,8 @@ class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):
 
             srow = col.row(align=True)
             srow.prop(gpl, "opacity", text="Opacity", slider=True)
-            srow.prop(gpl, "clamp_layer", text="",
-                      icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE')
+            srow.prop(gpl, "mask_layer", text="",
+                      icon='MOD_MASK' if gpl.mask_layer else 'LAYER_ACTIVE')
 
             srow = col.row(align=True)
             srow.prop(gpl, "use_solo_mode", text="Show Only On Keyframed")
