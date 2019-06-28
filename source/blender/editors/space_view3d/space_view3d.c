@@ -980,7 +980,7 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
                                                  struct WorkSpace *UNUSED(workspace),
                                                  struct Scene *UNUSED(scene),
                                                  struct bScreen *UNUSED(screen),
-                                                 struct ScrArea *sa,
+                                                 struct ScrArea *UNUSED(sa),
                                                  struct ARegion *ar,
                                                  struct wmMsgBus *mbus)
 {
@@ -1053,16 +1053,6 @@ static void view3d_main_region_message_subscribe(const struct bContext *C,
       default:
         break;
     }
-  }
-
-  {
-    wmMsgSubscribeValue msg_sub_value_region_tag_refresh = {
-        .owner = ar,
-        .user_data = sa,
-        .notify = WM_toolsystem_do_msg_notify_tag_refresh,
-    };
-    WM_msg_subscribe_rna_anon_prop(mbus, Object, mode, &msg_sub_value_region_tag_refresh);
-    WM_msg_subscribe_rna_anon_prop(mbus, LayerObjects, active, &msg_sub_value_region_tag_refresh);
   }
 }
 

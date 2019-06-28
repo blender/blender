@@ -99,10 +99,6 @@ void WM_toolsystem_update_from_context(struct bContext *C,
 
 bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
 
-void WM_toolsystem_do_msg_notify_tag_refresh(struct bContext *C,
-                                             struct wmMsgSubscribeKey *msg_key,
-                                             struct wmMsgSubscribeValue *msg_val);
-
 struct IDProperty *WM_toolsystem_ref_properties_ensure_idprops(struct bToolRef *tref);
 void WM_toolsystem_ref_properties_ensure_ex(struct bToolRef *tref,
                                             const char *idname,
