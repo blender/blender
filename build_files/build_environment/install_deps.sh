@@ -358,7 +358,7 @@ OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # OpenSubdiv needs to be compiled for now
-OSD_VERSION="3.3.3"
+OSD_VERSION="3.4.0_RC2"
 OSD_VERSION_MIN=$OSD_VERSION
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
