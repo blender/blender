@@ -34,6 +34,7 @@ struct GHashIterator;
 struct IDProperty;
 struct Main;
 struct PropertyRNA;
+struct bToolRef;
 struct wmGizmo;
 struct wmGizmoGroup;
 struct wmGizmoGroupType;
@@ -364,5 +365,9 @@ void WM_gizmo_group_type_reinit(struct Main *bmain, const char *idname);
 bool WM_gizmo_context_check_drawstep(const struct bContext *C, eWM_GizmoFlagMapDrawStep step);
 
 bool WM_gizmo_group_type_poll(const struct bContext *C, const struct wmGizmoGroupType *gzgt);
+void WM_gizmo_group_remove_by_tool(struct bContext *C,
+                                   struct Main *bmain,
+                                   const struct wmGizmoGroupType *gzgt,
+                                   const struct bToolRef *tref);
 
 #endif /* __WM_GIZMO_API_H__ */

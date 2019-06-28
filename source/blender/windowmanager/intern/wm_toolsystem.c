@@ -128,41 +128,15 @@ bool WM_toolsystem_ref_ensure(struct WorkSpace *workspace, const bToolKey *tkey,
 
 /** \} */
 
-/**
- * \param do_gizmo: Make removing the gizmo optional because it complicates multi-window support
- * since the tool might be used in another window. The gizmos poll function must handle this,
- * since this is needed for switching workspaces anyway.
- */
-static void toolsystem_unlink_ref(bContext *C, WorkSpace *workspace, bToolRef *tref, bool do_gizmo)
+static void toolsystem_unlink_ref(bContext *C, WorkSpace *UNUSED(workspace), bToolRef *tref)
 {
   bToolRef_Runtime *tref_rt = tref->runtime;
 
-  if (do_gizmo && tref_rt->gizmo_group[0]) {
+  if (tref_rt->gizmo_group[0]) {
     wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
     if (gzgt != NULL) {
-      bool found = false;
-
-      /* TODO(campbell) */
       Main *bmain = CTX_data_main(C);
-#if 0
-      wmWindowManager *wm = bmain->wm.first;
-      /* Check another workspace isn't using this tool. */
-      for (wmWindow *win = wm->windows.first; win; win = win->next) {
-        const WorkSpace *workspace_iter = WM_window_get_active_workspace(win);
-        if (workspace != workspace_iter) {
-          if (STREQ(workspace->tool.gizmo_group, workspace_iter->tool.gizmo_group)) {
-            found = true;
-            break;
-          }
-        }
-      }
-#else
-      UNUSED_VARS(workspace);
-#endif
-      if (!found) {
-        wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
-        WM_gizmomaptype_group_unlink(C, bmain, gzmap_type, gzgt);
-      }
+      WM_gizmo_group_remove_by_tool(C, bmain, gzgt, tref);
     }
   }
 }
@@ -170,7 +144,7 @@ void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tke
 {
   bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
   if (tref && tref->runtime) {
-    toolsystem_unlink_ref(C, workspace, tref, false);
+    toolsystem_unlink_ref(C, workspace, tref);
   }
 }
 
@@ -317,7 +291,7 @@ void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace)
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (tref->runtime) {
       if (tref->tag == 0) {
-        toolsystem_unlink_ref(C, workspace, tref, true);
+        toolsystem_unlink_ref(C, workspace, tref);
         tref->tag = 1;
       }
     }
@@ -364,7 +338,7 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
   Main *bmain = CTX_data_main(C);
 
   if (tref->runtime) {
-    toolsystem_unlink_ref(C, workspace, tref, false);
+    toolsystem_unlink_ref(C, workspace, tref);
   }
 
   STRNCPY(tref->idname, idname);

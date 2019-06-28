@@ -61,6 +61,8 @@ struct wmGizmoGroup *wm_gizmogroup_new_from_type(struct wmGizmoMap *gzmap,
                                                  struct wmGizmoGroupType *gzgt);
 void wm_gizmogroup_free(bContext *C, struct wmGizmoGroup *gzgroup);
 void wm_gizmogroup_gizmo_register(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz);
+struct wmGizmoGroup *wm_gizmogroup_find_by_type(const struct wmGizmoMap *gzmap,
+                                                const struct wmGizmoGroupType *gzgt);
 struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
                                                      const struct wmGizmoGroup *gzgroup,
                                                      struct bContext *C,
