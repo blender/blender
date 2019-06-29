@@ -66,7 +66,7 @@ void DRW_edit_mesh_mode_text_measure_stats(ARegion *ar,
   /* when 2 edge-info options are enabled, space apart */
   const bool do_edge_textpair = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) &&
                                 (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG);
-  const short edge_texpair_sep = (short)(5.0f * U.ui_scale);
+  const short edge_texpair_sep = (short)(5.0f * U.dpi_fac);
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
