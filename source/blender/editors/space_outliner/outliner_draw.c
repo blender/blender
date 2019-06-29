@@ -1057,7 +1057,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     0,
                                     0,
-                                    TIP_("Temporarly hide in viewport\n"
+                                    TIP_("Temporarily hide in viewport\n"
                                          "* Shift to set children"));
             UI_but_func_set(
                 bt, outliner__base_set_flag_recursive_cb, base, (void *)"hide_viewport");
