@@ -105,6 +105,8 @@ void WM_init_opengl(struct Main *bmain);
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
 
+uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, int r_size[2]);
+
 int WM_window_pixels_x(const struct wmWindow *win);
 int WM_window_pixels_y(const struct wmWindow *win);
 void WM_window_rect_calc(const struct wmWindow *win, struct rcti *r_rect);

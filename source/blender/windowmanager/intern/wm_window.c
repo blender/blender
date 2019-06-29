@@ -1937,6 +1937,50 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Window Screen Shot Utility
+ *
+ * Include here since it can involve low level buffer switching.
+ *
+ * \{ */
+
+uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
+{
+  bool setup_context = wm->windrawable != win;
+
+  if (setup_context) {
+    GHOST_ActivateWindowDrawingContext(win->ghostwin);
+    GPU_context_active_set(win->gpuctx);
+  }
+
+  r_size[0] = WM_window_pixels_x(win);
+  r_size[1] = WM_window_pixels_y(win);
+  const uint rect_len = r_size[0] * r_size[1];
+  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+
+  glReadBuffer(GL_FRONT);
+  glReadPixels(0, 0, r_size[0], r_size[1], GL_RGBA, GL_UNSIGNED_BYTE, rect);
+  glFinish();
+  glReadBuffer(GL_BACK);
+
+  if (setup_context) {
+    if (wm->windrawable) {
+      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
+      GPU_context_active_set(wm->windrawable->gpuctx);
+    }
+  }
+
+  /* Clear alpha, it is not set to a meaningful value in OpenGL. */
+  uchar *cp = (uchar *)rect;
+  uint i;
+  for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
+    *cp = 0xff;
+  }
+  return (uint *)rect;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Initial Window State API
  * \{ */
 

@@ -43,8 +43,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -63,59 +61,25 @@ typedef struct ScreenshotData {
   ImageFormatData im_format;
 } ScreenshotData;
 
-static void screenshot_read_pixels(int x, int y, int w, int h, unsigned char *rect)
-{
-  int i;
-
-  glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-  glFinish();
-
-  /* clear alpha, it is not set to a meaningful value in opengl */
-  for (i = 0, rect += 3; i < w * h; i++, rect += 4) {
-    *rect = 255;
-  }
-}
-
-/* get shot from frontbuffer */
-static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy)
-{
-  wmWindow *win = CTX_wm_window(C);
-  int x = 0, y = 0;
-  unsigned int *dumprect = NULL;
-
-  x = 0;
-  y = 0;
-  *dumpsx = WM_window_pixels_x(win);
-  *dumpsy = WM_window_pixels_y(win);
-
-  if (*dumpsx && *dumpsy) {
-
-    dumprect = MEM_mallocN(sizeof(int) * (*dumpsx) * (*dumpsy), "dumprect");
-    glReadBuffer(GL_FRONT);
-    screenshot_read_pixels(x, y, *dumpsx, *dumpsy, (unsigned char *)dumprect);
-    glReadBuffer(GL_BACK);
-  }
-
-  return dumprect;
-}
-
 /* call from both exec and invoke */
 static int screenshot_data_create(bContext *C, wmOperator *op)
 {
-  unsigned int *dumprect;
-  int dumpsx, dumpsy;
+  int dumprect_size[2];
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
 
   /* do redraw so we don't show popups/menus */
   WM_redraw_windows(C);
 
-  dumprect = screenshot(C, &dumpsx, &dumpsy);
+  uint *dumprect = WM_window_pixels_read(wm, win, dumprect_size);
 
   if (dumprect) {
     ScreenshotData *scd = MEM_callocN(sizeof(ScreenshotData), "screenshot");
     ScrArea *sa = CTX_wm_area(C);
 
-    scd->dumpsx = dumpsx;
-    scd->dumpsy = dumpsy;
+    scd->dumpsx = dumprect_size[0];
+    scd->dumpsy = dumprect_size[1];
     scd->dumprect = dumprect;
     if (sa) {
       scd->crop = sa->totrct;
