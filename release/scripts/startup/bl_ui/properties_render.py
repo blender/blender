@@ -228,7 +228,7 @@ class RENDER_PT_eevee_bloom(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
-    bl_label = "Volumetric"
+    bl_label = "Volumetrics"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
