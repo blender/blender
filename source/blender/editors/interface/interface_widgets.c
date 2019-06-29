@@ -2502,6 +2502,31 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
   wt->wcol_theme = &wcol_theme_s;
 }
 
+static void rgb_tint(char cp[3], int tint)
+{
+  cp[0] = clamp_i(cp[0] + tint, 0, 255);
+  cp[1] = clamp_i(cp[1] + tint, 0, 255);
+  cp[2] = clamp_i(cp[2] + tint, 0, 255);
+}
+
+static void rgb_ensure_contrast(char cp[3], const char cp_other[3], int contrast)
+{
+  BLI_assert(contrast > 0);
+  const int item_value = rgb_to_grayscale_byte((const uchar *)cp);
+  const int inner_value = rgb_to_grayscale_byte((const uchar *)cp_other);
+  const int delta = item_value - inner_value;
+  if (delta >= 0) {
+    if (contrast > delta) {
+      rgb_tint(cp, contrast - delta);
+    }
+  }
+  else {
+    if (contrast > -delta) {
+      rgb_tint(cp, -contrast - delta);
+    }
+  }
+}
+
 static void widget_active_color(char cp[3])
 {
   cp[0] = cp[0] >= 240 ? 255 : cp[0] + 15;
@@ -2599,17 +2624,19 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
-  /* XXX special tweak to make sure that bar will still be visible */
-  float blend = wcol_state->blend - 0.2f;
 
   /* call this for option button */
   widget_state(wt, state, drawflag);
 
-  /* now, set the inner-part so that it reflects state settings too */
-  /* TODO: maybe we should have separate settings for the blending colors used for this case? */
   const char *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
   if (color_blend != NULL) {
-    widget_state_blend(wt->wcol.item, color_blend, blend);
+    /* Set the slider 'item' so that it reflects state settings too.
+     * De-saturate so the color of the slider doesn't conflict with the blend color,
+     * which can make the color hard to see when the slider is set to full (see T66102). */
+    wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(
+        (const uchar *)wt->wcol.item);
+    widget_state_blend(wt->wcol.item, color_blend, wcol_state->blend);
+    rgb_ensure_contrast(wt->wcol.item, wt->wcol.inner, 20);
   }
 
   if (state & UI_SELECT) {
