@@ -28,13 +28,17 @@ CCL_NAMESPACE_BEGIN
 
 static bool is_verbosity_set()
 {
-  using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
+#ifdef WITH_CYCLES_LOGGING
+using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
 
   std::string verbosity;
   if (!GetCommandLineOption("v", &verbosity)) {
     return false;
   }
   return verbosity != "0";
+#else
+	return false;
+#endif
 }
 
 void util_logging_init(const char *argv0)
