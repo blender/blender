@@ -25,12 +25,6 @@
 
 #  include <stdlib.h>
 
-#  include <libavformat/avformat.h>
-#  include <libavcodec/avcodec.h>
-#  include <libavutil/rational.h>
-#  include <libavutil/samplefmt.h>
-#  include <libswscale/swscale.h>
-
 #  include "MEM_guardedalloc.h"
 
 #  include "DNA_scene_types.h"
@@ -55,6 +49,14 @@
 #  include "BKE_writeffmpeg.h"
 
 #  include "IMB_imbuf.h"
+
+/* This needs to be included after BLI_math_base.h otherwise it will redefine some math defines
+ * like M_SQRT1_2 leading to warnings with MSVC */
+#  include <libavformat/avformat.h>
+#  include <libavcodec/avcodec.h>
+#  include <libavutil/rational.h>
+#  include <libavutil/samplefmt.h>
+#  include <libswscale/swscale.h>
 
 #  include "ffmpeg_compat.h"
 
