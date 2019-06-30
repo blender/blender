@@ -2782,10 +2782,10 @@ void OBJECT_OT_join(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Join as Shape Key Operator
+/** \name Transfer Mix Operator for Shape Keys
  * \{ */
 
-static bool join_shapes_poll(bContext *C)
+static bool shape_key_transfer_mix_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
@@ -2802,12 +2802,12 @@ static bool join_shapes_poll(bContext *C)
   }
 }
 
-static int join_shapes_exec(bContext *C, wmOperator *op)
+static int shape_key_transfer_mix_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
 
   if (ob->mode & OB_MODE_EDIT) {
-    BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
+    BKE_report(op->reports, RPT_ERROR, "Shape Keys cannot be transfered in edit mode");
     return OPERATOR_CANCELLED;
   }
   else if (BKE_object_obdata_is_libdata(ob)) {
@@ -2822,16 +2822,16 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-void OBJECT_OT_join_shapes(wmOperatorType *ot)
+void OBJECT_OT_shape_key_transfer_mix(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Join as Shapes";
-  ot->description = "Merge selected objects to shapes of active object";
-  ot->idname = "OBJECT_OT_join_shapes";
+  ot->name = "Transfer Mix";
+  ot->description = "Copy the current resulting shape of another selected object to this one";
+  ot->idname = "OBJECT_OT_shape_key_transfer_mix";
 
   /* api callbacks */
-  ot->exec = join_shapes_exec;
-  ot->poll = join_shapes_poll;
+  ot->exec = shape_key_transfer_mix_exec;
+  ot->poll = shape_key_transfer_mix_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
