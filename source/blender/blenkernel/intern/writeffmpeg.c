@@ -601,7 +601,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     /* This calculates a fraction (DENUM_MAX / num) which approximates the scene frame rate
      * (frs_sec / frs_sec_base). It uses the maximum denominator allowed by FFmpeg.
      */
-    const double DENUM_MAX = (codec_id == AV_CODEC_ID_MPEG4) ? (1L << 16) - 1 : (1L << 31) - 1;
+    const double DENUM_MAX = (codec_id == AV_CODEC_ID_MPEG4) ? (1UL << 16) - 1 : (1UL << 31) - 1;
     const double num = (DENUM_MAX / (double)rd->frs_sec) * rd->frs_sec_base;
 
     c->time_base.den = (int)DENUM_MAX;
