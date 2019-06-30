@@ -1355,7 +1355,7 @@ static void rna_def_armature(BlenderRNA *brna)
   prop = RNA_def_property(srna, "display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "drawtype");
   RNA_def_property_enum_items(prop, prop_drawtype_items);
-  RNA_def_property_ui_text(prop, "Display Type Type", "");
+  RNA_def_property_ui_text(prop, "Display Type", "");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
