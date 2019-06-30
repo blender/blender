@@ -263,14 +263,14 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     initNumInput(&opdata->num_input[i]);
     opdata->num_input[i].idx_max = 0;
     opdata->num_input[i].val_flag[0] |= NUM_NO_NEGATIVE;
+    opdata->num_input[i].unit_type[0] = B_UNIT_NONE;
     if (i == SEGMENTS_VALUE) {
       opdata->num_input[i].val_flag[0] |= NUM_NO_FRACTION | NUM_NO_ZERO;
     }
     if (i == OFFSET_VALUE) {
       opdata->num_input[i].unit_sys = scene->unit.system;
+      opdata->num_input[i].unit_type[0] = B_UNIT_LENGTH;
     }
-    /* Not sure this is a factor or a unit? */
-    opdata->num_input[i].unit_type[0] = B_UNIT_NONE;
   }
 
   /* avoid the cost of allocating a bm copy */
