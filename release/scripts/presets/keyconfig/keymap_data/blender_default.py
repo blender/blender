@@ -3008,6 +3008,9 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.stroke_join", {"type": 'J', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("type", 'JOINCOPY')]}),
+        # Close strokes
+        ("gpencil.stroke_cyclical_set", {"type": 'F', "value": 'PRESS'},
+         {"properties": [("type", 'CLOSE'), ("geometry", True)]}),
         # Copy + paset
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
