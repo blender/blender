@@ -1507,27 +1507,19 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 /** \name Press Button Operator
  * \{ */
 
-static ARegion *region_event_inside_for_screen(bContext *C, const int xy[2])
-{
-  bScreen *sc = CTX_wm_screen(C);
-  if (sc) {
-    for (ARegion *ar = sc->regionbase.first; ar; ar = ar->next) {
-      if (BLI_rcti_isect_pt_v(&ar->winrct, xy)) {
-        return ar;
-      }
-    }
-  }
-  return NULL;
-}
-
 static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  bScreen *sc = CTX_wm_screen(C);
   const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
   ARegion *ar_prev = CTX_wm_region(C);
-  ARegion *ar = region_event_inside_for_screen(C, &event->x);
+  ARegion *ar = sc ? BKE_screen_find_region_xy(sc, RGN_TYPE_ANY, event->x, event->y) : NULL;
 
   if (ar == NULL) {
     ar = ar_prev;
+  }
+
+  if (ar == NULL) {
+    return OPERATOR_PASS_THROUGH;
   }
 
   CTX_wm_region_set(C, ar);
