@@ -215,7 +215,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
             if gpcolor.fill_style == 'TEXTURE':
-                col.prop(gpcolor, "use_fill_pattern", text="Use As Pattern")
+                col.prop(gpcolor, "use_fill_pattern", text="Use As Stencil Mask")
                 if gpcolor.use_fill_pattern is True:
                     col.prop(gpcolor, "fill_color", text="Color")
 
