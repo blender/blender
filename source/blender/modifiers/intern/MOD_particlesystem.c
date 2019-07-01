@@ -138,8 +138,16 @@ static void deformVerts(ModifierData *md,
     }
     /* TODO(sergey): This is not how particles were working prior to copy on
      * write, but now evaluation is similar to case when one duplicates the
-     * object. In that case particles were doing reset here. */
-    psys->recalc |= ID_RECALC_PSYS_RESET;
+     * object. In that case particles were doing reset here.
+     *
+     * Don't do reset when entering particle edit mode, as that will destroy the edit mode data.
+     * Shouldn't be an issue, since particles are supposed to be evaluated once prior to entering
+     * edit mode anyway.
+     * Could in theory be an issue when everything is done in a script, but then solution is
+     * not known to me. */
+    if (ctx->object->mode != OB_MODE_PARTICLE_EDIT) {
+      psys->recalc |= ID_RECALC_PSYS_RESET;
+    }
   }
 
   /* make new mesh */
@@ -193,10 +201,10 @@ static void deformVerts(ModifierData *md,
                          psmd->mesh_final->totedge != psmd->totdmedge ||
                          psmd->mesh_final->totface != psmd->totdmface)) {
     psys->recalc |= ID_RECALC_PSYS_RESET;
-    psmd->totdmvert = psmd->mesh_final->totvert;
-    psmd->totdmedge = psmd->mesh_final->totedge;
-    psmd->totdmface = psmd->mesh_final->totface;
   }
+  psmd->totdmvert = psmd->mesh_final->totvert;
+  psmd->totdmedge = psmd->mesh_final->totedge;
+  psmd->totdmface = psmd->mesh_final->totface;
 
   if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
     struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
