@@ -3871,10 +3871,10 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("transform.rotate_normal", text="Rotate")
+        layout.operator("transform.rotate_normal", text="Rotate...")
+        layout.operator("mesh.point_normals", text="Point to Target...")
         layout.operator_context = 'EXEC_DEFAULT'
 
-        layout.operator("mesh.point_normals", text="Point to Target")
         layout.operator("mesh.merge_normals", text="Merge")
         layout.operator("mesh.split_normals", text="Split")
         layout.menu("VIEW3D_MT_edit_mesh_normals_average", text="Average")
@@ -6301,7 +6301,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
         op = layout.operator("gpencil.stroke_cyclical_set", text="Close")
         op.type = 'CLOSE'
         op.geometry = True
-		
+
         layout.separator()
 
         layout.menu("VIEW3D_MT_mirror")
