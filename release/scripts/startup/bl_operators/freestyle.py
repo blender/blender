@@ -219,7 +219,7 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, _context):
-        text = bpy.data.texts.load(self.filepath, self.make_internal)
+        text = bpy.data.texts.load(self.filepath, internal=self.make_internal)
         self.freestyle_module.script = text
         return {'FINISHED'}
 
