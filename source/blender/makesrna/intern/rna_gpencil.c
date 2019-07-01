@@ -710,7 +710,10 @@ static void rna_GPencil_stroke_select_set(PointerRNA *ptr, const bool value)
   }
 }
 
-static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, int frame_number)
+static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer,
+                                        ReportList *reports,
+                                        int frame_number,
+                                        bool active)
 {
   bGPDframe *frame;
 
@@ -720,7 +723,9 @@ static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, i
   }
 
   frame = BKE_gpencil_frame_addnew(layer, frame_number);
-
+  if (active) {
+    layer->actframe = BKE_gpencil_layer_getframe(layer, frame_number, GP_GETFRAME_USE_PREV);
+  }
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 
   return frame;
@@ -1222,6 +1227,7 @@ static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
                      MINAFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_boolean(func, "active", 0, "Active", "");
   parm = RNA_def_pointer(func, "frame", "GPencilFrame", "", "The newly created frame");
   RNA_def_function_return(func, parm);
 
