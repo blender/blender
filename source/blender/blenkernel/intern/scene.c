@@ -2445,6 +2445,21 @@ void BKE_scene_cursor_from_mat4(View3DCursor *cursor, const float mat[4][4], boo
 
 /* Dependency graph evaluation. */
 
+static void scene_sequencer_disable_sound_strips(Scene *scene)
+{
+  if (scene->sound_scene == NULL) {
+    return;
+  }
+  Sequence *seq;
+  SEQ_BEGIN (scene->ed, seq) {
+    if (seq->scene_sound != NULL) {
+      BKE_sound_remove_scene_sound(scene, seq->scene_sound);
+      seq->scene_sound = NULL;
+    }
+  }
+  SEQ_END;
+}
+
 void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
 {
   DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
@@ -2474,6 +2489,9 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
        * then it is no longer needed to do such manual forced updates. */
       if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
         BKE_sound_set_scene_volume(seq->scene, seq->scene->audio.volume);
+        if ((seq->flag & SEQ_SCENE_STRIPS) == 0) {
+          scene_sequencer_disable_sound_strips(seq->scene);
+        }
       }
       if (seq->sound != NULL) {
         if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
