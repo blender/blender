@@ -172,6 +172,7 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool
   input[3] = (uint)(material_template->roughness * 512);
   result += BLI_ghashutil_uinthash_v4_murmur(input);
 
+  result += BLI_ghashutil_uinthash((uint)(material_template->alpha * 512));
   result += BLI_ghashutil_uinthash((uint)is_ghost);
   result += BLI_ghashutil_uinthash(material_template->color_type);
 
