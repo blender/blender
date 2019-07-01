@@ -570,9 +570,14 @@ class TOPBAR_MT_help(Menu):
 
         show_developer = context.preferences.view.show_developer_ui
 
+        if bpy.app.version_cycle in {'rc', 'release'}:
+            manual_version = '%d.%d' % bpy.app.version[:2]
+        else:
+            manual_version = 'dev'
+
         layout.operator(
             "wm.url_open", text="Manual", icon='HELP',
-        ).url = "https://docs.blender.org/manual/en/dev/"
+        ).url = "https://docs.blender.org/manual/en/" + manual_version + "/"
         layout.operator(
             "wm.url_open", text="Tutorials", icon='URL',
         ).url = "https://www.blender.org/tutorials"
