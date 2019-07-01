@@ -3278,9 +3278,18 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob_ctx = ED_object_context(C);
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len, ob_ctx->mode);
+  uint objects_len;
+  Object **objects;
+  if (ob_ctx->mode == OB_MODE_WEIGHT_PAINT) {
+    /* Until weight paint supports multi-edit, use only the active. */
+    objects_len = 1;
+    objects = &ob_ctx;
+  }
+  else {
+    objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
+        view_layer, CTX_wm_view3d(C), &objects_len, ob_ctx->mode);
+  }
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
 
@@ -3296,7 +3305,9 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
   }
-  MEM_freeN(objects);
+  if (objects != &ob_ctx) {
+    MEM_freeN(objects);
+  }
 
   return OPERATOR_FINISHED;
 }
