@@ -286,6 +286,7 @@ class PREFERENCES_OT_keymap_restore(Operator):
             km = context.keymap
             km.restore_to_default()
 
+        context.preferences.is_dirty = True
         return {'FINISHED'}
 
 
@@ -333,6 +334,7 @@ class PREFERENCES_OT_keyitem_add(Operator):
             km.show_expanded_items = True
             km.show_expanded_children = True
 
+        context.preferences.is_dirty = True
         return {'FINISHED'}
 
 
@@ -354,6 +356,8 @@ class PREFERENCES_OT_keyitem_remove(Operator):
         km = context.keymap
         kmi = km.keymap_items.from_id(self.item_id)
         km.keymap_items.remove(kmi)
+
+        context.preferences.is_dirty = True
         return {'FINISHED'}
 
 
