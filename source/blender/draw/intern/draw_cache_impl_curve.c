@@ -791,7 +791,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
     }
     else if (bp) {
       int pt_len = nu->pntsu * nu->pntsv;
-      for (int a = 0; a < pt_len; a++, bp++) {
+      for (int a = 0; a < pt_len; a++, bp++, vbo_len_used += 1) {
         if (bp->hide == true) {
           continue;
         }
@@ -819,7 +819,6 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
         if (vbo_pos) {
           GPU_vertbuf_attr_set(vbo_pos, attr_id.pos, vbo_len_used, bp->vec);
         }
-        vbo_len_used += 1;
       }
     }
   }
