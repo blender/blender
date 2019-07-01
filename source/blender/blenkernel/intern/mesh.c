@@ -50,6 +50,7 @@
 #include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 enum {
   MESHCMP_DVERT_WEIGHTMISMATCH = 1,
@@ -1995,9 +1996,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
 {
   DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
-  if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
-    BKE_mesh_texspace_calc(mesh);
-  }
+  BKE_mesh_texspace_calc(mesh);
   /* Clear autospace flag in evaluated mesh, so that texspace does not get recomputed when bbox is
    * (e.g. after modifiers, etc.) */
   mesh->texflag &= ~ME_AUTOSPACE;
@@ -2008,5 +2007,17 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
     mesh->runtime.mesh_eval->edit_mesh = NULL;
     BKE_id_free(NULL, mesh->runtime.mesh_eval);
     mesh->runtime.mesh_eval = NULL;
+  }
+  if (DEG_is_active(depsgraph)) {
+    Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);
+    BoundBox *bb = mesh->bb;
+    if (bb != NULL) {
+      if (mesh_orig->bb == NULL) {
+        mesh_orig->bb = MEM_mallocN(sizeof(*mesh_orig->bb), __func__);
+      }
+      *mesh_orig->bb = *bb;
+      copy_v3_v3(mesh_orig->loc, mesh->loc);
+      copy_v3_v3(mesh_orig->size, mesh->size);
+    }
   }
 }
