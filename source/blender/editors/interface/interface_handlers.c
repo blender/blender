@@ -551,12 +551,15 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
   return true;
 }
 
-static void ui_but_update_preferences_dirty(uiBut *but)
+static void ui_rna_update_preferences_dirty(PointerRNA *ptr, PropertyRNA *prop)
 {
   /* Not very elegant, but ensures preference changes force re-save. */
   bool tag = false;
-  if (but->rnaprop) {
-    StructRNA *base = RNA_struct_base(but->rnapoin.type);
+  if (prop && !(RNA_property_flag(prop) & PROP_NO_DEG_UPDATE)) {
+    StructRNA *base = RNA_struct_base(ptr->type);
+    if (base == NULL) {
+      base = ptr->type;
+    }
     if (ELEM(base, &RNA_AddonPreferences, &RNA_KeyConfigPreferences, &RNA_KeyMapItem)) {
       tag = true;
     }
@@ -566,6 +569,16 @@ static void ui_but_update_preferences_dirty(uiBut *but)
     U.runtime.is_dirty = true;
     WM_main_add_notifier(NC_WINDOW, NULL);
   }
+}
+
+static void ui_but_update_preferences_dirty(uiBut *but)
+{
+  ui_rna_update_preferences_dirty(&but->rnapoin, but->rnaprop);
+}
+
+static void ui_afterfunc_update_preferences_dirty(uiAfterFunc *after)
+{
+  ui_rna_update_preferences_dirty(&after->rnapoin, after->rnaprop);
 }
 
 /** \} */
@@ -842,6 +855,8 @@ static void ui_apply_but_funcs_after(bContext *C)
     if (after.rename_orig) {
       MEM_freeN(after.rename_orig);
     }
+
+    ui_afterfunc_update_preferences_dirty(&after);
 
     if (after.undostr[0]) {
       ED_undo_push(C, after.undostr);
