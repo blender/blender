@@ -2826,7 +2826,7 @@ void OBJECT_OT_join_shapes(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Join as Shapes";
-  ot->description = "Merge selected objects to shapes of active object";
+  ot->description = "Copy the current resulting shape of another selected object to this one";
   ot->idname = "OBJECT_OT_join_shapes";
 
   /* api callbacks */

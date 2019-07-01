@@ -312,8 +312,7 @@ class SubdivisionSet(Operator):
 
 
 class ShapeTransfer(Operator):
-    """Copy another selected objects active shape to this one by """ \
-        """applying the relative offsets"""
+    """Copy the active shape key of another selected object to this one"""
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
