@@ -178,7 +178,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
                                  wpd->transparent_accum_uniform_sh,
                              psl->transparent_accum_pass);
     DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
-    DRW_shgroup_uniform_float_copy(grp, "alpha", wpd->shading.xray_alpha);
+    DRW_shgroup_uniform_float_copy(grp, "alpha", material_template.alpha);
     DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
     workbench_material_copy(material, &material_template);
     if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {

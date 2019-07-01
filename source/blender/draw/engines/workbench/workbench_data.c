@@ -24,6 +24,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "ED_view3d.h"
+
 #include "UI_resources.h"
 
 #include "GPU_batch.h"
@@ -55,6 +57,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     wpd->shading = v3d->shading;
     wpd->use_color_render_settings = false;
   }
+  wpd->shading.xray_alpha = XRAY_ALPHA(v3d);
 
   wpd->use_color_management = BKE_scene_check_color_management_enabled(scene);
 

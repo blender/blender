@@ -286,6 +286,7 @@ typedef struct WORKBENCH_MaterialData {
   float base_color[3];
   float diffuse_color[3];
   float specular_color[3];
+  float alpha;
   float metallic;
   float roughness;
   int object_id;

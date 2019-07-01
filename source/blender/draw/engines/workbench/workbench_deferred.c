@@ -451,6 +451,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
   WORKBENCH_PrivateData *wpd = stl->g_data;
   workbench_private_data_init(wpd);
 
+  wpd->shading.xray_alpha = 1.0f;
+
   workbench_dof_engine_init(vedata, camera);
 
   if (OIT_ENABLED(wpd)) {
@@ -987,8 +989,6 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           int color_type = workbench_material_determine_color_type(
               wpd, image, ob, use_sculpt_pbvh);
           if (color_type == V3D_SHADING_MATERIAL_COLOR && mat && mat->a < 1.0) {
-            /* Hack */
-            wpd->shading.xray_alpha = mat->a;
             material = workbench_forward_get_or_create_material_data(
                 vedata, ob, mat, image, iuser, color_type, 0, use_sculpt_pbvh);
             has_transp_mat = true;
@@ -1009,8 +1009,6 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
       int color_type = workbench_material_determine_color_type(wpd, NULL, ob, use_sculpt_pbvh);
 
       if ((ob->color[3] < 1.0f) && (color_type == V3D_SHADING_OBJECT_COLOR)) {
-        /* Hack */
-        wpd->shading.xray_alpha = ob->color[3];
         material = workbench_forward_get_or_create_material_data(
             vedata, ob, NULL, NULL, NULL, color_type, 0, use_sculpt_pbvh);
         has_transp_mat = true;
@@ -1046,8 +1044,6 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
         for (int i = 0; i < materials_len; ++i) {
           struct Material *mat = give_current_material(ob, i + 1);
           if (mat != NULL && mat->a < 1.0f) {
-            /* Hack */
-            wpd->shading.xray_alpha = mat->a;
             material = workbench_forward_get_or_create_material_data(
                 vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, use_sculpt_pbvh);
             has_transp_mat = true;
@@ -1071,8 +1067,6 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
           if (geoms != NULL && geoms[i] != NULL) {
             Material *mat = give_current_material(ob, i + 1);
             if (mat != NULL && mat->a < 1.0f) {
-              /* Hack */
-              wpd->shading.xray_alpha = mat->a;
               material = workbench_forward_get_or_create_material_data(
                   vedata, ob, mat, NULL, NULL, V3D_SHADING_MATERIAL_COLOR, 0, use_sculpt_pbvh);
               has_transp_mat = true;

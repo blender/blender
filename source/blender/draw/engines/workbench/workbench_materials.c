@@ -53,6 +53,7 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
   copy_v3_fl3(data->specular_color, 0.05f, 0.05f, 0.05f); /* Dielectric: 5% reflective. */
   data->metallic = 0.0f;
   data->roughness = 0.632455532f; /* sqrtf(0.4f); */
+  data->alpha = wpd->shading.xray_alpha;
 
   if (color_type == V3D_SHADING_SINGLE_COLOR) {
     copy_v3_v3(data->diffuse_color, wpd->shading.single_color);
@@ -72,10 +73,12 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
   else if (ELEM(color_type, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_VERTEX_COLOR)) {
     copy_v3_v3(data->diffuse_color, ob->color);
     copy_v3_v3(data->base_color, data->diffuse_color);
+    data->alpha *= ob->color[3];
   }
   else {
     /* V3D_SHADING_MATERIAL_COLOR */
     if (mat) {
+      data->alpha *= mat->a;
       if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
         copy_v3_v3(data->base_color, &mat->r);
         mul_v3_v3fl(data->diffuse_color, &mat->r, 1.0f - mat->metallic);
