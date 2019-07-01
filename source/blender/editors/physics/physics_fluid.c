@@ -46,6 +46,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -1216,7 +1217,7 @@ static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
     return OPERATOR_CANCELLED;
   }
 
-  if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), true)) {
+  if (!fluidsimBake(C, op->reports, ED_object_context(C), true)) {
     return OPERATOR_CANCELLED;
   }
 
