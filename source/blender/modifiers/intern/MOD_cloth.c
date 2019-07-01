@@ -125,12 +125,14 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
   if (clmd != NULL) {
-    DEG_add_collision_relations(ctx->node,
-                                ctx->object,
-                                clmd->coll_parms->group,
-                                eModifierType_Collision,
-                                NULL,
-                                "Cloth Collision");
+    if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+      DEG_add_collision_relations(ctx->node,
+                                  ctx->object,
+                                  clmd->coll_parms->group,
+                                  eModifierType_Collision,
+                                  NULL,
+                                  "Cloth Collision");
+    }
     DEG_add_forcefield_relations(
         ctx->node, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
   }

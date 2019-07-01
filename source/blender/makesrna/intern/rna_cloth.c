@@ -824,7 +824,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_collision", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_COLLSETTINGS_FLAG_ENABLED);
   RNA_def_property_ui_text(prop, "Enable Collision", "Enable collisions with other objects");
-  RNA_def_property_update(prop, 0, "rna_cloth_update");
+  RNA_def_property_update(prop, 0, "rna_cloth_dependency_update");
 
   prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "epsilon");
