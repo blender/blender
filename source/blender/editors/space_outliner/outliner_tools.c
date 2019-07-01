@@ -288,31 +288,33 @@ static void unlink_object_cb(bContext *C,
                              TreeStoreElem *tselem,
                              void *UNUSED(user_data))
 {
-  Main *bmain = CTX_data_main(C);
-  Object *ob = (Object *)tselem->id;
+  if (tsep && tsep->id) {
+    Main *bmain = CTX_data_main(C);
+    Object *ob = (Object *)tselem->id;
 
-  if (GS(tsep->id->name) == ID_OB) {
-    /* Parented objects need to find which collection to unlink from. */
-    TreeElement *te_parent = te->parent;
-    while (tsep && GS(tsep->id->name) == ID_OB) {
-      te_parent = te_parent->parent;
-      tsep = te_parent ? TREESTORE(te_parent) : NULL;
+    if (GS(tsep->id->name) == ID_OB) {
+      /* Parented objects need to find which collection to unlink from. */
+      TreeElement *te_parent = te->parent;
+      while (tsep && GS(tsep->id->name) == ID_OB) {
+        te_parent = te_parent->parent;
+        tsep = te_parent ? TREESTORE(te_parent) : NULL;
+      }
     }
-  }
 
-  if (tsep) {
-    if (GS(tsep->id->name) == ID_GR) {
-      Collection *parent = (Collection *)tsep->id;
-      BKE_collection_object_remove(bmain, parent, ob, true);
-      DEG_id_tag_update(&parent->id, ID_RECALC_COPY_ON_WRITE);
-      DEG_relations_tag_update(bmain);
-    }
-    else if (GS(tsep->id->name) == ID_SCE) {
-      Scene *scene = (Scene *)tsep->id;
-      Collection *parent = BKE_collection_master(scene);
-      BKE_collection_object_remove(bmain, parent, ob, true);
-      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
-      DEG_relations_tag_update(bmain);
+    if (tsep && tsep->id) {
+      if (GS(tsep->id->name) == ID_GR) {
+        Collection *parent = (Collection *)tsep->id;
+        BKE_collection_object_remove(bmain, parent, ob, true);
+        DEG_id_tag_update(&parent->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_relations_tag_update(bmain);
+      }
+      else if (GS(tsep->id->name) == ID_SCE) {
+        Scene *scene = (Scene *)tsep->id;
+        Collection *parent = BKE_collection_master(scene);
+        BKE_collection_object_remove(bmain, parent, ob, true);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_relations_tag_update(bmain);
+      }
     }
   }
 }
