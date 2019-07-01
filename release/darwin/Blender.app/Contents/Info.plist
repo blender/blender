@@ -26,7 +26,7 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>blender</string>
+	<string>Blender</string>
 	<key>CFBundleGetInfoString</key>
 	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 	<key>CFBundleIconFile</key>
