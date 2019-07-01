@@ -723,7 +723,7 @@ bool UI_block_active_only_flagged_buttons(const struct bContext *C,
                                           struct ARegion *ar,
                                           struct uiBlock *block);
 
-void UI_but_execute(const struct bContext *C, uiBut *but);
+void UI_but_execute(const struct bContext *C, struct ARegion *ar, uiBut *but);
 
 bool UI_but_online_manual_id(const uiBut *but,
                              char *r_str,

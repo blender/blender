@@ -1347,7 +1347,7 @@ static bool ui_drag_toggle_set_xy_xy(
             /* is it pressed? */
             int pushed_state_but = ui_drag_toggle_but_pushed_state(C, but);
             if (pushed_state_but != pushed_state) {
-              UI_but_execute(C, but);
+              UI_but_execute(C, ar, but);
               if (do_check) {
                 ui_but_update_edited(but);
               }
@@ -7939,6 +7939,8 @@ void ui_but_execute_begin(struct bContext *UNUSED(C),
                           uiBut *but,
                           void **active_back)
 {
+  BLI_assert(ar != NULL);
+  BLI_assert(BLI_findindex(&ar->uiblocks, but->block) != -1);
   /* note: ideally we would not have to change 'but->active' however
    * some functions we call don't use data (as they should be doing) */
   uiHandleButtonData *data;
@@ -9269,7 +9271,7 @@ static int ui_handle_menu_event(bContext *C,
             for (but = block->buttons.first; but; but = but->next) {
               if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
                 if (but->type == UI_BTYPE_BUT) {
-                  UI_but_execute(C, but);
+                  UI_but_execute(C, ar, but);
                 }
                 else {
                   ui_handle_button_activate_by_type(C, ar, but);
@@ -9350,7 +9352,7 @@ static int ui_handle_menu_event(bContext *C,
             ar, UI_BUT_ACTIVE_DEFAULT, UI_HIDDEN);
         if ((but_default != NULL) && (but_default->active == NULL)) {
           if (but_default->type == UI_BTYPE_BUT) {
-            UI_but_execute(C, but_default);
+            UI_but_execute(C, ar, but_default);
           }
           else {
             ui_handle_button_activate_by_type(C, ar, but_default);

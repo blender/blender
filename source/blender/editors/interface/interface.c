@@ -896,9 +896,8 @@ bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *ar, uiBloc
 }
 
 /* simulate button click */
-void UI_but_execute(const bContext *C, uiBut *but)
+void UI_but_execute(const bContext *C, ARegion *ar, uiBut *but)
 {
-  ARegion *ar = CTX_wm_region(C);
   void *active_back;
   ui_but_execute_begin((bContext *)C, ar, but, &active_back);
   /* Value is applied in begin. No further action required. */

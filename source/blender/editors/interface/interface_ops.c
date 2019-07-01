@@ -1545,7 +1545,7 @@ static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *ev
    * having this avoids a minor drawing glitch. */
   void *but_optype = but->optype;
 
-  UI_but_execute(C, but);
+  UI_but_execute(C, ar, but);
 
   but->optype = but_optype;
 
