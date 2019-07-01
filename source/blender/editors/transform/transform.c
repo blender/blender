@@ -6440,6 +6440,8 @@ static void slide_origdata_create_data(TransDataContainer *tc,
 
     layer_index_dst = 0;
 
+    /* TODO: We don't need `sod->layer_math_map` when there are no loops linked
+     * to one of the sliding vertices. */
     if (CustomData_has_math(&bm->ldata)) {
       /* over alloc, only 'math' layers are indexed */
       sod->layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
@@ -6583,7 +6585,7 @@ static void slide_origdata_interp_data_vert(SlideOrigData *sod,
     }
   }
 
-  if (sod->layer_math_map_num) {
+  if (sod->layer_math_map_num && sv->cd_loop_groups) {
     if (do_loop_weight) {
       for (j = 0; j < sod->layer_math_map_num; j++) {
         BM_vert_loop_groups_data_layer_merge_weights(
