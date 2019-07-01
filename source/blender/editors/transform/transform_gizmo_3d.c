@@ -1489,7 +1489,12 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
   ggd->gizmos[MAN_AXIS_ROT_T]->flag |= WM_GIZMO_SELECT_BACKGROUND;
 
   /* Prevent axis gizmos overlapping the center point, see: T63744. */
-  ggd->gizmos[MAN_AXIS_SCALE_C]->select_bias = ggd->gizmos[MAN_AXIS_TRANS_C]->select_bias = 2.0f;
+  ggd->gizmos[MAN_AXIS_TRANS_C]->select_bias = 2.0f;
+
+  ggd->gizmos[MAN_AXIS_SCALE_C]->select_bias = -2.0f;
+
+  /* Use 1/6 since this is '0.2' if the main scale is 1.2. */
+  RNA_float_set(ggd->gizmos[MAN_AXIS_SCALE_C]->ptr, "arc_inner_factor", 1.0 / 6.0);
 
   return ggd;
 }
@@ -1589,6 +1594,9 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
         }
         else if (axis_idx == MAN_AXIS_ROT_C) {
           WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_VALUE, true);
+          WM_gizmo_set_scale(axis, 1.2f);
+        }
+        else if (axis_idx == MAN_AXIS_SCALE_C) {
           WM_gizmo_set_scale(axis, 1.2f);
         }
         else {
