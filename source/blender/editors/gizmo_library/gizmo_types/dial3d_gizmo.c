@@ -129,7 +129,26 @@ static void dial_geom_draw(const float color[4],
   immUniformColor4fv(color);
 
   if (filled) {
-    imm_draw_circle_fill_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+    if (arc_partial_angle == 0.0f) {
+      if (arc_inner_factor == 0.0f) {
+        imm_draw_circle_fill_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+      }
+      else {
+        imm_draw_disk_partial_fill_2d(
+            pos, 0, 0, arc_inner_factor, 1.0f, DIAL_RESOLUTION, 0, RAD2DEGF(M_PI * 2));
+      }
+    }
+    else {
+      float arc_partial_deg = RAD2DEGF((M_PI * 2) - arc_partial_angle);
+      imm_draw_disk_partial_fill_2d(pos,
+                                    0,
+                                    0,
+                                    arc_inner_factor,
+                                    1.0f,
+                                    DIAL_RESOLUTION,
+                                    -arc_partial_deg / 2,
+                                    arc_partial_deg);
+    }
   }
   else {
     if (arc_partial_angle == 0.0f) {
