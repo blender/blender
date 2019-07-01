@@ -92,6 +92,8 @@ struct wmJob {
   /** Running jobs each have own timer */
   double timestep;
   wmTimer *wt;
+  /** Only start job after specified time delay */
+  double start_delay_time;
   /** The notifier event timers should send */
   unsigned int note, endnote;
 
@@ -356,6 +358,11 @@ void WM_jobs_timer(wmJob *wm_job, double timestep, unsigned int note, unsigned i
   wm_job->endnote = endnote;
 }
 
+void WM_jobs_delay_start(wmJob *wm_job, double delay_time)
+{
+  wm_job->start_delay_time = delay_time;
+}
+
 void WM_jobs_callbacks(wmJob *wm_job,
                        void (*startjob)(void *, short *, short *, float *),
                        void (*initjob)(void *),
@@ -386,9 +393,9 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
   bool suspend = false;
 
   /* job added with suspend flag, we wait 1 timer step before activating it */
-  if (test->flag & WM_JOB_SUSPEND) {
+  if (test->start_delay_time > 0.0) {
     suspend = true;
-    test->flag &= ~WM_JOB_SUSPEND;
+    test->start_delay_time = 0.0;
   }
   else {
     /* check other jobs */
@@ -441,6 +448,8 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
   else {
 
     if (wm_job->customdata && wm_job->startjob) {
+      const double timestep = (wm_job->start_delay_time > 0.0) ? wm_job->start_delay_time :
+                                                                 wm_job->timestep;
 
       wm_jobs_test_suspend_stop(wm, wm_job);
 
@@ -467,8 +476,12 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
       }
 
       /* restarted job has timer already */
+      if (wm_job->wt && (wm_job->wt->timestep > timestep)) {
+        WM_event_remove_timer(wm, wm_job->win, wm_job->wt);
+        wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, timestep);
+      }
       if (wm_job->wt == NULL) {
-        wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, wm_job->timestep);
+        wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, timestep);
       }
 
       wm_job->start_time = PIL_check_seconds_timer();

@@ -914,7 +914,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   wmJob *wm_job;
   RenderJob *rj;
   Image *ima;
-  int jobflag;
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
@@ -972,12 +971,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* ensure at least 1 area shows result */
   sa = render_view_open(C, event->x, event->y, op->reports);
-
-  jobflag = WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS;
-
-  if (RNA_struct_property_is_set(op->ptr, "layer")) {
-    jobflag |= WM_JOB_SUSPEND;
-  }
 
   /* job custom data */
   rj = MEM_callocN(sizeof(RenderJob), "render job");
@@ -1038,11 +1031,19 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
     name = "Render";
   }
 
-  wm_job = WM_jobs_get(
-      CTX_wm_manager(C), CTX_wm_window(C), scene, name, jobflag, WM_JOB_TYPE_RENDER);
+  wm_job = WM_jobs_get(CTX_wm_manager(C),
+                       CTX_wm_window(C),
+                       scene,
+                       name,
+                       WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
+                       WM_JOB_TYPE_RENDER);
   WM_jobs_customdata_set(wm_job, rj, render_freejob);
   WM_jobs_timer(wm_job, 0.2, NC_SCENE | ND_RENDER_RESULT, 0);
   WM_jobs_callbacks(wm_job, render_startjob, NULL, NULL, render_endjob);
+
+  if (RNA_struct_property_is_set(op->ptr, "layer")) {
+    WM_jobs_delay_start(wm_job, 0.2);
+  }
 
   /* get a render result image, and make sure it is empty */
   ima = BKE_image_verify_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");

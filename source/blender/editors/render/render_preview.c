@@ -1340,8 +1340,13 @@ void ED_preview_icon_render(
   BLI_freelistN(&ip.sizes);
 }
 
-void ED_preview_icon_job(
-    const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
+void ED_preview_icon_job(const bContext *C,
+                         void *owner,
+                         ID *id,
+                         unsigned int *rect,
+                         int sizex,
+                         int sizey,
+                         const bool delay)
 {
   wmJob *wm_job;
   IconPreview *ip, *old_ip;
@@ -1353,7 +1358,7 @@ void ED_preview_icon_job(
                        CTX_wm_window(C),
                        owner,
                        "Icon Preview",
-                       WM_JOB_EXCL_RENDER | WM_JOB_SUSPEND,
+                       WM_JOB_EXCL_RENDER,
                        WM_JOB_TYPE_RENDER_PREVIEW);
 
   ip = MEM_callocN(sizeof(IconPreview), "icon preview");
@@ -1385,10 +1390,11 @@ void ED_preview_icon_job(
 
   /* setup job */
   WM_jobs_customdata_set(wm_job, ip, icon_preview_free);
+  WM_jobs_timer(wm_job, 0.1, NC_WINDOW, NC_WINDOW);
   /* Wait 2s to start rendering icon previews, to not bog down user interaction.
    * Particularly important for heavy scenes and Eevee using OpenGL that blocks
    * the user interface drawing. */
-  WM_jobs_timer(wm_job, 2.0, NC_WINDOW, NC_WINDOW);
+  WM_jobs_delay_start(wm_job, (delay) ? 2.0 : 0.0);
   WM_jobs_callbacks(wm_job, icon_preview_startjob_all_sizes, NULL, NULL, icon_preview_endjob);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);

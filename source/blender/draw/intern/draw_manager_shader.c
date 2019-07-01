@@ -202,12 +202,8 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
   /* Get the running job or a new one if none is running. Can only have one job per type & owner.
    */
-  wmJob *wm_job = WM_jobs_get(wm,
-                              win,
-                              scene,
-                              "Shaders Compilation",
-                              WM_JOB_PROGRESS | WM_JOB_SUSPEND,
-                              WM_JOB_TYPE_SHADER_COMPILATION);
+  wmJob *wm_job = WM_jobs_get(
+      wm, win, scene, "Shaders Compilation", WM_JOB_PROGRESS, WM_JOB_TYPE_SHADER_COMPILATION);
 
   DRWShaderCompiler *old_comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
 
@@ -238,6 +234,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
   WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);
   WM_jobs_timer(wm_job, 0.1, NC_MATERIAL | ND_SHADING_DRAW, 0);
+  WM_jobs_delay_start(wm_job, 0.1);
   WM_jobs_callbacks(wm_job, drw_deferred_shader_compilation_exec, NULL, NULL, NULL);
   WM_jobs_start(wm, wm_job);
 }
@@ -252,12 +249,8 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
       continue;
     }
     for (wmWindow *win = wm->windows.first; win; win = win->next) {
-      wmJob *wm_job = WM_jobs_get(wm,
-                                  win,
-                                  scene,
-                                  "Shaders Compilation",
-                                  WM_JOB_PROGRESS | WM_JOB_SUSPEND,
-                                  WM_JOB_TYPE_SHADER_COMPILATION);
+      wmJob *wm_job = WM_jobs_get(
+          wm, win, scene, "Shaders Compilation", WM_JOB_PROGRESS, WM_JOB_TYPE_SHADER_COMPILATION);
 
       DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
       if (comp != NULL) {

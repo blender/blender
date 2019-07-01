@@ -93,7 +93,8 @@ void ED_preview_icon_job(const struct bContext *C,
                          struct ID *id,
                          unsigned int *rect,
                          int sizex,
-                         int sizey);
+                         int sizey,
+                         const bool delay);
 void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain);
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);
