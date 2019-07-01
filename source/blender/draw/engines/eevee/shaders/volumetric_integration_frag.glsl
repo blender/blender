@@ -48,6 +48,10 @@ void main()
     float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
 
+    /* Emission does not work of there is no extinction because
+     * Tr evaluates to 1.0 leading to Lscat = 0.0. (See T65771) */
+    s_extinction = max(vec3(1e-7) * step(1e-5, Lscat), s_extinction);
+
     /* Evaluate Scattering */
     float s_len = abs(ray_len - prev_ray_len);
     prev_ray_len = ray_len;
