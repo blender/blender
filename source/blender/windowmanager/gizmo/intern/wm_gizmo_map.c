@@ -1283,32 +1283,6 @@ void WM_gizmoconfig_update(struct Main *bmain)
     return;
   }
 
-  if (wm_gzmap_type_update_flag & WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE) {
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-          for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
-            wmGizmoMap *gzmap = ar->gizmo_map;
-            if (gzmap != NULL && gzmap->tag_remove_group) {
-              gzmap->tag_remove_group = false;
-
-              for (wmGizmoGroup *gzgroup = gzmap->groups.first, *gzgroup_next; gzgroup;
-                   gzgroup = gzgroup_next) {
-                gzgroup_next = gzgroup->next;
-                if (gzgroup->tag_remove) {
-                  wm_gizmogroup_free(NULL, gzgroup);
-                  ED_region_tag_redraw(ar);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    wm_gzmap_type_update_flag &= ~WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
-  }
-
   if (wm_gzmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
     for (wmGizmoMapType *gzmap_type = gizmomaptypes.first; gzmap_type;
          gzmap_type = gzmap_type->next) {
@@ -1351,6 +1325,32 @@ void WM_gizmoconfig_update(struct Main *bmain)
     }
 
     wm_gzmap_type_update_flag &= ~WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT;
+  }
+
+  if (wm_gzmap_type_update_flag & WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+        for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+          ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+          for (ARegion *ar = regionbase->first; ar; ar = ar->next) {
+            wmGizmoMap *gzmap = ar->gizmo_map;
+            if (gzmap != NULL && gzmap->tag_remove_group) {
+              gzmap->tag_remove_group = false;
+
+              for (wmGizmoGroup *gzgroup = gzmap->groups.first, *gzgroup_next; gzgroup;
+                   gzgroup = gzgroup_next) {
+                gzgroup_next = gzgroup->next;
+                if (gzgroup->tag_remove) {
+                  wm_gizmogroup_free(NULL, gzgroup);
+                  ED_region_tag_redraw(ar);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    wm_gzmap_type_update_flag &= ~WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
   }
 }
 
