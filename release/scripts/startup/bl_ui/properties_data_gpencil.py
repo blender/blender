@@ -81,7 +81,8 @@ class GPENCIL_MT_layer_context_menu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        gpd = context.gpencil
+        ob = context.object
+        gpd = ob.data
 
         layout.operator("gpencil.layer_duplicate", icon='ADD')  # XXX: needs a dedicated icon
 
