@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
@@ -3798,6 +3799,7 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
 {
   const int loop_len = mesh_render_data_loops_len_get(rdata);
   const int poly_len = mesh_render_data_polys_len_get(rdata);
+  const int edge_len = mesh_render_data_edges_len_get(rdata);
 
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init(&elb, GPU_PRIM_LINES, loop_len, loop_len);
@@ -3807,8 +3809,8 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
     BLI_assert(0);
   }
   else {
-    /* contains all edges where at least one face has been selected */
-    EdgeHash *edge_hash = BLI_edgehash_new(__func__);
+    /* Each edge has two bits used to count selected edges as 0, 1, 2+. */
+    BLI_bitmap *edges_used = BLI_BITMAP_NEW(edge_len * 2, __func__);
 
     /* Fill the EdgeHash tables. */
     for (int poly = 0; poly < poly_len; poly++) {
@@ -3819,19 +3821,17 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
         continue;
       }
 
-      for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-        const MLoop *mloop = &rdata->mloop[mpoly->loopstart + loop_index];
-        const MEdge *edge = (MEdge *)rdata->medge + mloop->e;
-        const int v1 = edge->v1;
-        const int v2 = edge->v2;
-
-        void **edge_value;
-
-        if (BLI_edgehash_ensure_p(edge_hash, v1, v2, &edge_value)) {
-          *edge_value = POINTER_FROM_INT(POINTER_AS_INT(*edge_value) + 1);
+      for (int loop_index = mpoly->loopstart, loop_index_end = mpoly->loopstart + mpoly->totloop;
+           loop_index < loop_index_end;
+           loop_index++) {
+        const MLoop *mloop = &rdata->mloop[loop_index];
+        const int e_a = mloop->e * 2;
+        const int e_b = e_a + 1;
+        if (!BLI_BITMAP_TEST(edges_used, e_a)) {
+          BLI_BITMAP_ENABLE(edges_used, e_a);
         }
         else {
-          *edge_value = POINTER_FROM_INT(1);
+          BLI_BITMAP_ENABLE(edges_used, e_b);
         }
       }
     }
@@ -3839,21 +3839,23 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
     for (int poly = 0; poly < poly_len; poly++) {
       const MPoly *mpoly = &rdata->mpoly[poly];
       if (!(mpoly->flag & ME_HIDE)) {
-        for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-          const MLoop *mloop = &rdata->mloop[mpoly->loopstart + loop_index];
-          const MEdge *edge = (MEdge *)rdata->medge + mloop->e;
-          int v1 = mpoly->loopstart + loop_index;
-          int v2 = mpoly->loopstart + (loop_index + 1) % mpoly->totloop;
 
-          void *edge_value = BLI_edgehash_lookup(edge_hash, edge->v1, edge->v2);
-          if (edge_value == NULL || POINTER_AS_INT(edge_value) == 1) {
-            GPU_indexbuf_add_line_verts(&elb, v1, v2);
+        for (int loop_index_next = mpoly->loopstart,
+                 loop_index_end = mpoly->loopstart + mpoly->totloop,
+                 loop_index_curr = loop_index_end - 1;
+             loop_index_next < loop_index_end;
+             loop_index_curr = loop_index_next++) {
+          const MLoop *mloop = &rdata->mloop[loop_index_curr];
+          const int e_a = mloop->e * 2;
+          const int e_b = e_a + 1;
+          if (BLI_BITMAP_TEST(edges_used, e_a) && !BLI_BITMAP_TEST(edges_used, e_b)) {
+            GPU_indexbuf_add_line_verts(&elb, loop_index_curr, loop_index_next);
           }
         }
       }
     }
 
-    BLI_edgehash_free(edge_hash, NULL);
+    MEM_freeN(edges_used);
   }
 
   GPU_indexbuf_build_in_place(&elb, ibo);
