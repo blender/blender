@@ -248,6 +248,9 @@ struct wmGizmo {
 
   struct IDProperty *properties;
 
+  /** Redraw tag. */
+  bool do_draw;
+
   /** Temporary data (assume dirty). */
   union {
     float f;

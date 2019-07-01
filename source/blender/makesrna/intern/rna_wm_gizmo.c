@@ -243,6 +243,12 @@ static void rna_Gizmo_bl_idname_set(PointerRNA *ptr, const char *value)
   }
 }
 
+static void rna_Gizmo_update_redraw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  wmGizmo *gizmo = ptr->data;
+  gizmo->do_draw = true;
+}
+
 static wmGizmo *rna_GizmoProperties_find_operator(PointerRNA *ptr)
 {
 #  if 0
@@ -1123,7 +1129,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Alpha", "");
   RNA_def_property_float_funcs(prop, "rna_Gizmo_alpha_get", "rna_Gizmo_alpha_set", NULL);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* Color & Alpha (highlight) */
   prop = RNA_def_property(srna, "color_highlight", PROP_FLOAT, PROP_COLOR);
@@ -1134,28 +1140,28 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(prop, "Alpha", "");
   RNA_def_property_float_funcs(prop, "rna_Gizmo_alpha_hi_get", "rna_Gizmo_alpha_hi_set", NULL);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "matrix_space", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(prop, "Space Matrix", "");
   RNA_def_property_float_funcs(
       prop, "rna_Gizmo_matrix_space_get", "rna_Gizmo_matrix_space_set", NULL);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(prop, "Basis Matrix", "");
   RNA_def_property_float_funcs(
       prop, "rna_Gizmo_matrix_basis_get", "rna_Gizmo_matrix_basis_set", NULL);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "matrix_offset", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(prop, "Offset Matrix", "");
   RNA_def_property_float_funcs(
       prop, "rna_Gizmo_matrix_offset_get", "rna_Gizmo_matrix_offset_set", NULL);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1168,13 +1174,13 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_float_funcs(
       prop, "rna_Gizmo_scale_basis_get", "rna_Gizmo_scale_basis_set", NULL);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "line_width", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_text(prop, "Line Width", "");
   RNA_def_property_float_funcs(prop, "rna_Gizmo_line_width_get", "rna_Gizmo_line_width_set", NULL);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   prop = RNA_def_property(srna, "select_bias", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Select Bias", "Depth bias used for selection");
@@ -1187,39 +1193,39 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Gizmo_flag_hide_get", "rna_Gizmo_flag_hide_set");
   RNA_def_property_ui_text(prop, "Hide", "");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_HIDDEN_SELECT */
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_hide_select_get", "rna_Gizmo_flag_hide_select_set");
   RNA_def_property_ui_text(prop, "Hide Select", "");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_MOVE_CURSOR */
   prop = RNA_def_property(srna, "use_grab_cursor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_grab_cursor_get", "rna_Gizmo_flag_use_grab_cursor_set");
   RNA_def_property_ui_text(prop, "Grab Cursor", "");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* WM_GIZMO_DRAW_HOVER */
   prop = RNA_def_property(srna, "use_draw_hover", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_hover_get", "rna_Gizmo_flag_use_draw_hover_set");
   RNA_def_property_ui_text(prop, "Draw Hover", "");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_DRAW_MODAL */
   prop = RNA_def_property(srna, "use_draw_modal", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_modal_get", "rna_Gizmo_flag_use_draw_modal_set");
   RNA_def_property_ui_text(prop, "Draw Active", "Draw while dragging");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_DRAW_VALUE */
   prop = RNA_def_property(srna, "use_draw_value", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_value_get", "rna_Gizmo_flag_use_draw_value_set");
   RNA_def_property_ui_text(
       prop, "Draw Value", "Show an indicator for the current value while dragging");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_DRAW_OFFSET_SCALE */
   prop = RNA_def_property(srna, "use_draw_offset_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
@@ -1227,20 +1233,20 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
                                  "rna_Gizmo_flag_use_draw_offset_scale_set");
   RNA_def_property_ui_text(
       prop, "Scale Offset", "Scale the offset matrix (use to apply screen-space offset)");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_DRAW_NO_SCALE (negated) */
   prop = RNA_def_property(srna, "use_draw_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_Gizmo_flag_use_draw_scale_get", "rna_Gizmo_flag_use_draw_scale_set");
   RNA_def_property_ui_text(prop, "Scale", "Use scale when calculating the matrix");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
   /* WM_GIZMO_SELECT_BACKGROUND */
   prop = RNA_def_property(srna, "use_select_background", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
                                  "rna_Gizmo_flag_use_select_background_get",
                                  "rna_Gizmo_flag_use_select_background_set");
   RNA_def_property_ui_text(prop, "Select Background", "Don't write into the depth buffer");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* WM_GIZMO_OPERATOR_TOOL_INIT */
   prop = RNA_def_property(srna, "use_operator_tool_properties", PROP_BOOLEAN, PROP_NONE);
@@ -1251,7 +1257,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
       prop,
       "Tool Property Init",
       "Merge active tool properties on activation (does not overwrite existing)");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* WM_GIZMO_EVENT_HANDLE_ALL */
   prop = RNA_def_property(srna, "use_event_handle_all", PROP_BOOLEAN, PROP_NONE);
@@ -1261,7 +1267,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
                            "Handle All Events",
                            "When highlighted, "
                            "do not pass events through to be handled by other keymaps");
-  RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+  RNA_def_property_update(prop, 0, "rna_Gizmo_update_redraw");
 
   /* wmGizmo.state (readonly) */
   /* WM_GIZMO_STATE_HIGHLIGHT */
