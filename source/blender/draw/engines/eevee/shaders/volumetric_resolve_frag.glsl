@@ -2,9 +2,7 @@
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
-/* Step 4 : Apply final integration on top of the scene color.
- * Note that we do the blending ourself instead of relying
- * on hardware blending which would require 2 pass. */
+/* Step 4 : Apply final integration on top of the scene color. */
 
 uniform sampler2D inSceneDepth;
 

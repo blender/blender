@@ -178,6 +178,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   common_data->vol_coord_scale[0] = viewport_size[0] / (float)(tile_size * tex_size[0]);
   common_data->vol_coord_scale[1] = viewport_size[1] / (float)(tile_size * tex_size[1]);
+  common_data->vol_coord_scale[2] = 1.0f / viewport_size[0];
+  common_data->vol_coord_scale[3] = 1.0f / viewport_size[1];
 
   /* TODO compute snap to maxZBuffer for clustered rendering */
   if ((common_data->vol_tex_size[0] != tex_size[0]) ||

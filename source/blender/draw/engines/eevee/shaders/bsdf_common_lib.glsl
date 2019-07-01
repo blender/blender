@@ -915,8 +915,7 @@ void main()
 #    endif
 
 #    if defined(USE_ALPHA_BLEND)
-  /* XXX fragile, better use real viewport resolution */
-  vec2 uvs = gl_FragCoord.xy / vec2(2 * textureSize(maxzBuffer, 0).xy);
+  vec2 uvs = gl_FragCoord.xy * volCoordScale.zw;
   vec3 transmittance, scattering;
   volumetric_resolve(uvs, gl_FragCoord.z, transmittance, scattering);
   fragColor.rgb = cl.radiance * transmittance + scattering;

@@ -653,11 +653,11 @@ typedef struct EEVEE_CommonUniformBuffer {
   float ao_offset, ao_bounce_fac, ao_quality, ao_settings; /* vec4 */
   /* Volumetric */
   /* -- 16 byte aligned -- */
-  int vol_tex_size[3], pad3;         /* ivec3 */
-  float vol_depth_param[3], pad4;    /* vec3 */
-  float vol_inv_tex_size[3], pad5;   /* vec3 */
-  float vol_jitter[3], pad6;         /* vec3 */
-  float vol_coord_scale[2], pad7[2]; /* vec2 */
+  int vol_tex_size[3], pad3;       /* ivec3 */
+  float vol_depth_param[3], pad4;  /* vec3 */
+  float vol_inv_tex_size[3], pad5; /* vec3 */
+  float vol_jitter[3], pad6;       /* vec3 */
+  float vol_coord_scale[4];        /* vec4 */
   /* -- 16 byte aligned -- */
   float vol_history_alpha; /* float */
   float vol_light_clamp;   /* float */
