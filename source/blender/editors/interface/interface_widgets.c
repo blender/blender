@@ -2636,7 +2636,7 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
     wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(
         (const uchar *)wt->wcol.item);
     widget_state_blend(wt->wcol.item, color_blend, wcol_state->blend);
-    rgb_ensure_contrast(wt->wcol.item, wt->wcol.inner, 20);
+    rgb_ensure_contrast(wt->wcol.item, wt->wcol.inner, 30);
   }
 
   if (state & UI_SELECT) {
