@@ -40,6 +40,30 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.80" date="2019-07-18">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Revamped user interface</li>
+                    <li>Toolbar with tools and gizmos</li>
+                    <li>Eevee - physically based realtime renderer</li>
+                    <li>Modern 3D viewport</li>
+                    <li>Full 2D animation and drawing system</li>
+                    <li>New shaders for hair, sss, volumes, bevel and AO</li>
+                    <li>Cryptomatte compositing</li>
+                    <li>Collections system for organizing objects</li>
+                    <li>glTF import and export</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Multi-object editing</li>
+                    <li>Animation and rigging improvements</li>
+                    <li>Cloth simulation improvements</li>
+                    <li>More powerful unit system</li>
+                    <li>...And many more!</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.79b" date="2018-03-26">
             <description>
                 <p>New features:</p>
@@ -50,7 +74,6 @@
                     <li>Shadow catcher</li>
                     <li>Surface Deform modifier</li>
                     <li>More bundled add-ons</li>
-                    <li>...And many more!</li>
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
