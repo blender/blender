@@ -2590,6 +2590,8 @@ void DRW_draw_depth_object(ARegion *ar, GPUViewport *viewport, Object *object)
     world_clip_planes = rv3d->clip_local;
   }
 
+  drw_batch_cache_validate(object);
+
   switch (object->type) {
     case OB_MESH: {
       GPUBatch *batch;
