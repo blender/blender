@@ -2203,7 +2203,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.icon = ICON_OUTLINER_OB_LIGHTPROBE;
           break;
         case OB_EMPTY:
-          if (ob->instance_collection) {
+          if (ob->instance_collection && (ob->transflag & OB_DUPLICOLLECTION)) {
             data.icon = ICON_OUTLINER_OB_GROUP_INSTANCE;
           }
           else if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
