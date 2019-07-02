@@ -61,7 +61,8 @@ if 'cmake' in builder:
 
     # Set build options.
     cmake_options = []
-    cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
+    cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release',
+                           '-DWITH_GTESTS=ON']
 
     if builder.startswith('mac'):
         # Set up OSX architecture

@@ -33,27 +33,28 @@ builder = sys.argv[1]
 blender_dir = '../blender.git'
 
 if "cmake" in builder:
-    # cmake
-
-    print("Automated tests are still DISABLED!")
-    sys.exit(0)
-
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
-    chroot_name = None
-    chroot_prefix = []
+    command_prefix = []
 
-    """
-    if builder.endswith('x86_64_cmake'):
-        chroot_name = 'buildbot_jessie_x86_64'
-    elif builder.endswith('i686_cmake'):
-        chroot_name = 'buildbot_jessie_i686'
-    if chroot_name:
-        chroot_prefix = ['schroot', '-c', chroot_name, '--']
-    """
+    if builder.startswith('linux'):
+        tokens = builder.split("_")
+        glibc = tokens[1]
+        if glibc == 'glibc224':
+            deb_name = "stretch"
+            if builder.endswith('x86_64_cmake'):
+                chroot_name = 'buildbot_' + deb_name + '_x86_64'
+            elif builder.endswith('i686_cmake'):
+                chroot_name = 'buildbot_' + deb_name + '_i686'
+            command_prefix = ['schroot', '-c', chroot_name, '--']
+        elif glibc == 'glibc217':
+            command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
 
     os.chdir(build_dir)
-    retcode = subprocess.call(chroot_prefix + ['ctest', '--output-on-failure'])
-    sys.exit(retcode)
+    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'])
+
+    # Always exit with a success, for until we know all the tests are passing
+    # on all builders.
+    sys.exit(0)
 else:
     print("Unknown building system")
     sys.exit(1)
