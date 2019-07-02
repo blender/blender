@@ -24,6 +24,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
+#include "BKE_library.h"
 
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
     {SOCK_RGBA, 0, N_("Image")},
@@ -42,6 +43,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   MovieClipUser *user = MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
 
   node->id = (ID *)scene->clip;
+  id_us_plus(node->id);
   node->storage = user;
   user->framenr = 1;
 }

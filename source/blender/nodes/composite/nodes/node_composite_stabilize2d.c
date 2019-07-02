@@ -24,6 +24,7 @@
 #include "node_composite_util.h"
 
 #include "BKE_context.h"
+#include "BKE_library.h"
 
 /* **************** Translate  ******************** */
 
@@ -43,6 +44,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   Scene *scene = CTX_data_scene(C);
 
   node->id = (ID *)scene->clip;
+  id_us_plus(node->id);
 
   /* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
   node->custom1 = 1;

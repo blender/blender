@@ -32,6 +32,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
@@ -514,6 +515,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   int sock_index = 0;
 
   node->id = &scene->id;
+  id_us_plus(node->id);
 
   for (bNodeSocket *sock = node->outputs.first; sock; sock = sock->next, sock_index++) {
     NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
