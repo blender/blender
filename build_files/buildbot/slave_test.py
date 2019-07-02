@@ -38,6 +38,7 @@ if "cmake" in builder:
     # NOTE: For quick test only to see if the approach work.
     # n the future must be replaced with an actual blender version.
     blender_version = '2.80'
+    blender_version_dir = os.path,join(install_dir, blender_version)
     command_prefix = []
 
     if builder.startswith('linux'):
@@ -54,7 +55,8 @@ if "cmake" in builder:
             command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
 
     ctest_env = os.environ.copy()
-    ctest_env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(install_dir, blender_version)
+    ctest_env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(blender_version_dir, 'scripts')
+    ctest_env['BLENDER_SYSTEM_DATAFILES'] = os.path.join(blender_version_dir, 'datafiles')
 
     os.chdir(build_dir)
     retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'], env=ctest_env)
