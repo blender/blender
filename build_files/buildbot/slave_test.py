@@ -34,6 +34,10 @@ blender_dir = '../blender.git'
 
 if "cmake" in builder:
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
+    install_dir = os.path.abspath(os.path.join('..', 'install', builder))
+    # NOTE: For quick test only to see if the approach work.
+    # n the future must be replaced with an actual blender version.
+    blender_version = '2.80'
     command_prefix = []
 
     if builder.startswith('linux'):
@@ -49,8 +53,11 @@ if "cmake" in builder:
         elif glibc == 'glibc217':
             command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
 
+    ctest_env = os.environ.copy()
+    ctest_env['BLENDER_SYSTEM_SCRIPTS'] = os.path.join(install_dir, blender_version)
+
     os.chdir(build_dir)
-    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'])
+    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'], env=ctest_env)
 
     # Always exit with a success, for until we know all the tests are passing
     # on all builders.
