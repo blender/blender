@@ -40,8 +40,11 @@ if "cmake" in builder:
     blender_version = '2.80'
     blender_version_dir = os.path.join(install_dir, blender_version)
     command_prefix = []
+    extra_ctest_args = []
 
-    if builder.startswith('linux'):
+    if builder.startswith('win'):
+        extra_ctest_args += ['-C', 'Release']
+    elif builder.startswith('linux'):
         tokens = builder.split("_")
         glibc = tokens[1]
         if glibc == 'glibc224':
@@ -59,7 +62,8 @@ if "cmake" in builder:
     ctest_env['BLENDER_SYSTEM_DATAFILES'] = os.path.join(blender_version_dir, 'datafiles')
 
     os.chdir(build_dir)
-    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'], env=ctest_env)
+    retcode = subprocess.call(command_prefix + ['ctest', '--output-on-failure'] + extra_ctest_args,
+                              env=ctest_env)
 
     # Always exit with a success, for until we know all the tests are passing
     # on all builders.
