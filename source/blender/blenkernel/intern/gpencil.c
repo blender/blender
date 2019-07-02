@@ -1324,6 +1324,7 @@ void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
     return;
   }
 
+  const float scalef = mat4_to_scale(mat);
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     /* FIXME: For now, we just skip parented layers.
      * Otherwise, we have to update each frame to find
@@ -1340,6 +1341,7 @@ void BKE_gpencil_transform(bGPdata *gpd, float mat[4][4])
 
         for (pt = gps->points, i = 0; i < gps->totpoints; pt++, i++) {
           mul_m4_v3(mat, &pt->x);
+          pt->pressure *= scalef;
         }
 
         /* TODO: Do we need to do this? distortion may mean we need to re-triangulate */
