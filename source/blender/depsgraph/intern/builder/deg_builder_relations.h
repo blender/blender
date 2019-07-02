@@ -186,7 +186,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                               const char *description,
                                               int flags = 0);
 
-  /* Adds relation from proper transformation opertation to the modifier.
+  /* Adds relation from proper transformation operation to the modifier.
    * Takes care of checking for possible physics solvers modifying position
    * of this object. */
   void add_modifier_to_transform_relation(const DepsNodeHandle *handle, const char *description);

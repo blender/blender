@@ -320,7 +320,7 @@ typedef struct wmGizmoType {
   wmGizmoFnDrawSelect draw_select;
 
   /** Determine if the mouse intersects with the gizmo.
-   * The calculation should be done in the callback itself, -1 for no seleciton. */
+   * The calculation should be done in the callback itself, -1 for no selection. */
   wmGizmoFnTestSelect test_select;
 
   /** Handler used by the gizmo. Usually handles interaction tied to a gizmo type. */

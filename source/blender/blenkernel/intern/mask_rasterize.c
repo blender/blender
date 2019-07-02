@@ -965,8 +965,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       }
 
       /* --- inefficient self-intersect case --- */
-      /* if self intersections are found, its too trickty to attempt to map vertices
-       * so just realloc and add entirely new vertices - the result of the self-intersect check
+      /* if self intersections are found, its too tricky to attempt to map vertices
+       * so just realloc and add entirely new vertices - the result of the self-intersect check.
        */
       if ((masklay->flag & MASK_LAYERFLAG_FILL_OVERLAP) &&
           (is_isect = BLI_scanfill_calc_self_isect(

@@ -166,7 +166,7 @@ void WM_init_state_start_with_console_set(bool value)
 /**
  * Since we cannot know in advance if we will require the draw manager
  * context when starting blender in background mode (specially true with
- * scripts) we deferre the ghost initialization the most as possible
+ * scripts) we defer the ghost initialization the most as possible
  * so that it does not break anything that can run in headless mode (as in
  * without display server attached).
  */

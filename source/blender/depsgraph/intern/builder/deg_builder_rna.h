@@ -85,7 +85,7 @@ class RNANodeQuery {
   /* Indexed by an ID, returns RNANodeQueryIDData associated with that ID. */
   GHash *id_data_map_;
 
-  /* Construct identifier of the node which correspods given configuration
+  /* Construct identifier of the node which corresponds given configuration
    * of RNA property. */
   RNANodeIdentifier construct_node_identifier(const PointerRNA *ptr,
                                               const PropertyRNA *prop,

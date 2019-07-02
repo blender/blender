@@ -101,7 +101,7 @@ typedef struct UndoType {
    * None of these callbacks manage list add/removal.
    *
    * Note that 'step_encode_init' is optional,
-   * some undo types need to perform operatons before undo push finishes.
+   * some undo types need to perform operations before undo push finishes.
    */
   void (*step_encode_init)(struct bContext *C, UndoStep *us);
 
@@ -122,7 +122,7 @@ typedef struct UndoType {
   int step_size;
 } UndoType;
 
-/* expose since we need to perform operations on spesific undo types (rarely). */
+/* Expose since we need to perform operations on specific undo types (rarely). */
 extern const UndoType *BKE_UNDOSYS_TYPE_IMAGE;
 extern const UndoType *BKE_UNDOSYS_TYPE_MEMFILE;
 extern const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE;

@@ -98,7 +98,7 @@
  * Without tools using press events which would prevent click/drag events getting to the gizmos.
  *
  * This is not a fool proof solution since since it's possible the gizmo operators would pass
- * through thse events when called, see: T65479.
+ * through these events when called, see: T65479.
  */
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 

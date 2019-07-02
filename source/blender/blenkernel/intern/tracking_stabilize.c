@@ -672,14 +672,14 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
   }
   else {
     /* No usable tracking data on any track on this frame.
-     * Use data from neighbouring frames to extrapolate...
+     * Use data from neighboring frames to extrapolate...
      */
     int next_lower = MINAFRAME;
     int next_higher = MAXFRAME;
     use_values_from_fcurves(ctx, true);
     for (track = tracking->tracks.first; track; track = track->next) {
       /* Note: we deliberately do not care if this track
-       *       is already initialized for stabilisation */
+       *       is already initialized for stabilization. */
       if (track->flag & TRACK_USE_2D_STAB) {
         int startpoint = search_closest_marker_index(track, framenr);
         retrieve_next_higher_usable_frame(ctx, track, startpoint, framenr, &next_higher);

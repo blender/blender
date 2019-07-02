@@ -2455,7 +2455,7 @@ static void ntree_interface_identifier(bNodeTree *ntree,
                                        char *description)
 {
   /* There is a possibility that different node tree names get mapped to the same identifier
-   * after sanitization (e.g. "SomeGroup_A", "SomeGroup.A" both get sanitized to "SomeGroup_A").
+   * after sanitation (e.g. "SomeGroup_A", "SomeGroup.A" both get sanitized to "SomeGroup_A").
    * On top of the sanitized id string add a number suffix if necessary to avoid duplicates.
    */
   identifier[0] = '\0';

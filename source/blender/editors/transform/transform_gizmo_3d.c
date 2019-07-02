@@ -1876,7 +1876,7 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
 
   GizmoGroup *ggd = gzgroup->customdata;
 
-  /* Support gizmo spesific orientation. */
+  /* Support gizmo specific orientation. */
   if (gz != ggd->gizmos[MAN_AXIS_ROT_T]) {
     Scene *scene = CTX_data_scene(C);
     wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);

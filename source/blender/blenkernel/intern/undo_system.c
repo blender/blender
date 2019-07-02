@@ -50,7 +50,7 @@
 /** Make sure all ID's created at the point we add an undo step that uses ID's. */
 #define WITH_GLOBAL_UNDO_ENSURE_UPDATED
 
-/** Make sure we don't apply edits ontop of a newer memfile state, see: T56163.
+/** Make sure we don't apply edits on top of a newer memfile state, see: T56163.
  * \note Keep an eye on this, could solve differently. */
 #define WITH_GLOBAL_UNDO_CORRECT_ORDER
 
@@ -120,7 +120,7 @@ static const UndoType *BKE_undosys_type_from_context(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Internal Callback Wrappers
  *
- * #UndoRefID is simply a way to avoid inlining name copy and lookups,
+ * #UndoRefID is simply a way to avoid in-lining name copy and lookups,
  * since it's easy to forget a single case when done inline (crashing in some cases).
  *
  * \{ */
@@ -550,7 +550,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
       BLI_strncpy(us->name, name, sizeof(us->name));
     }
     us->type = ut;
-    /* initialized, not added yet. */
+    /* Initialized, not added yet. */
 
     if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
       MEM_freeN(us);

@@ -95,7 +95,7 @@ enum class NodeType {
   /* Audio-related evaluation. */
   AUDIO,
   ARMATURE,
-  /* Un-interestying datablock, which is a part of dependency graph, but does
+  /* Un-interesting data-block, which is a part of dependency graph, but does
    * not have very distinctive update procedure.  */
   GENERIC_DATABLOCK,
 

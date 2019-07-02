@@ -607,7 +607,7 @@ static void docube(PROCESS *process, CUBE *cube)
     }
   }
 
-  /* Using faces[] table, adds neighbouring cube if surface intersects face in this direction. */
+  /* Using faces[] table, adds neighboring cube if surface intersects face in this direction. */
   if (MB_BIT(faces[index], 0)) {
     add_cube(process, cube->i - 1, cube->j, cube->k);
   }

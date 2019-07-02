@@ -1239,7 +1239,7 @@ void wm_gizmos_keymap(wmKeyConfig *keyconf)
 /** \} */ /* wmGizmoMapType */
 
 /* -------------------------------------------------------------------- */
-/** \name Updates for Dynamic Type Registraion
+/** \name Updates for Dynamic Type Registration
  *
  * \{ */
 
