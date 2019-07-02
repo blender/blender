@@ -50,7 +50,7 @@ if "cmake" in builder:
                 chroot_name = 'buildbot_' + deb_name + '_x86_64'
             elif builder.endswith('i686_cmake'):
                 chroot_name = 'buildbot_' + deb_name + '_i686'
-            command_prefix = ['schroot', '-c', chroot_name, '--']
+            command_prefix = ['schroot', '--preserve-environment', '-c', chroot_name, '--']
         elif glibc == 'glibc217':
             command_prefix = ['scl', 'enable', 'devtoolset-6', '--']
 
