@@ -38,7 +38,7 @@ if "cmake" in builder:
     # NOTE: For quick test only to see if the approach work.
     # n the future must be replaced with an actual blender version.
     blender_version = '2.80'
-    blender_version_dir = os.path,join(install_dir, blender_version)
+    blender_version_dir = os.path.join(install_dir, blender_version)
     command_prefix = []
 
     if builder.startswith('linux'):
