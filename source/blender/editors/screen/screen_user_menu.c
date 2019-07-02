@@ -298,7 +298,7 @@ void ED_screen_user_menu_register(void)
 {
   MenuType *mt = MEM_callocN(sizeof(MenuType), __func__);
   strcpy(mt->idname, "SCREEN_MT_user_menu");
-  strcpy(mt->label, "Quick Favorites");
+  strcpy(mt->label, N_("Quick Favorites"));
   strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = screen_user_menu_draw;
   WM_menutype_add(mt);
