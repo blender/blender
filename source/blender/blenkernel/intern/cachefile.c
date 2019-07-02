@@ -100,11 +100,11 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
 void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reader)
 {
 #ifdef WITH_ALEMBIC
-  if (cache_file) {
-    BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
-  }
-
   if (*reader != NULL) {
+    if (cache_file) {
+      BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
+    }
+
     CacheReader_free(*reader);
     *reader = NULL;
 

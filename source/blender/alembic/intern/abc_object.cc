@@ -263,9 +263,6 @@ void AbcObjectReader::setupObjectTransform(const float time)
 
     data->cache_file = m_settings->cache_file;
     id_us_plus(&data->cache_file->id);
-
-    data->reader = reinterpret_cast<CacheReader *>(this);
-    this->incref();
   }
 }
 
