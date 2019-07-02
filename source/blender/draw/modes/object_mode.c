@@ -322,6 +322,7 @@ typedef struct OBJECT_DupliData {
   GPUBatch *outline_geom;
   DRWShadingGroup *extra_shgrp;
   GPUBatch *extra_geom;
+  short base_flag;
 } OBJECT_DupliData;
 
 static struct {
@@ -3398,6 +3399,10 @@ BLI_INLINE OBJECT_DupliData *OBJECT_duplidata_get(Object *ob, void *vedata, bool
       *dupli_data = MEM_callocN(sizeof(OBJECT_DupliData), "OBJECT_DupliData");
       *init = true;
     }
+    else if ((*dupli_data)->base_flag != ob->base_flag) {
+      /* Select state might have change, reinit. */
+      *init = true;
+    }
     return *dupli_data;
   }
   return NULL;
@@ -3458,6 +3463,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
       if (dupli_data && !init_duplidata) {
         geom = dupli_data->outline_geom;
         shgroup = dupli_data->outline_shgrp;
+        /* TODO: Remove. Only here to increment outline id counter. */
+        theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+        shgroup = shgroup_theme_id_to_outline_or_null(stl, theme_id, ob->base_flag);
       }
       else {
         if (stl->g_data->xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
@@ -3665,6 +3673,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
     if (init_duplidata) {
       dupli_data->extra_shgrp = shgroup;
       dupli_data->extra_geom = geom;
+      dupli_data->base_flag = ob->base_flag;
     }
   }
 

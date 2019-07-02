@@ -50,6 +50,7 @@
 typedef struct OVERLAY_DupliData {
   DRWShadingGroup *shgrp;
   struct GPUBatch *geom;
+  short base_flag;
 } OVERLAY_DupliData;
 
 typedef struct OVERLAY_StorageList {
@@ -370,9 +371,16 @@ static void overlay_cache_populate(void *vedata, Object *ob)
       }
       else {
         if ((*dupli_data)->shgrp && (*dupli_data)->geom) {
-          DRW_shgroup_call((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
+          if ((*dupli_data)->base_flag == ob->base_flag) {
+            DRW_shgroup_call((*dupli_data)->shgrp, (*dupli_data)->geom, ob);
+          }
+          else {
+            /* Continue and create a new Shgroup. */
+          }
         }
-        return;
+        else {
+          return;
+        }
       }
     }
 
@@ -437,6 +445,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
       if (dupli_data) {
         (*dupli_data)->shgrp = shgrp;
         (*dupli_data)->geom = geom;
+        (*dupli_data)->base_flag = ob->base_flag;
       }
     }
   }
