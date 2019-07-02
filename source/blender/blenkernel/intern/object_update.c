@@ -393,6 +393,12 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
   }
 }
 
+void BKE_object_select_update(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+  BKE_object_data_select_update(depsgraph, object->data);
+}
+
 void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
                                      Scene *scene,
                                      const int view_layer_index,

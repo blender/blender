@@ -1988,10 +1988,16 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     }
   }
   /* Syncronization back to original object. */
-  ComponentKey final_geometry_jey(&object->id, NodeType::GEOMETRY);
+  ComponentKey final_geometry_key(&object->id, NodeType::GEOMETRY);
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
-  add_relation(final_geometry_jey, synchronize_key, "Synchronize to Original");
+  add_relation(final_geometry_key, synchronize_key, "Synchronize to Original");
+  /* Batch cache. */
+  OperationKey object_data_select_key(
+      obdata, NodeType::BATCH_CACHE, OperationCode::GEOMETRY_SELECT_UPDATE);
+  OperationKey object_select_key(
+      &object->id, NodeType::BATCH_CACHE, OperationCode::GEOMETRY_SELECT_UPDATE);
+  add_relation(object_data_select_key, object_select_key, "Data Selection -> Object Selection");
 }
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
