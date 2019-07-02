@@ -698,8 +698,8 @@ void BPH_hair_volume_normalize_vertex_grid(HairGrid *grid)
   }
 }
 
-static const float density_threshold =
-    0.001f; /* cells with density below this are considered empty */
+/* Cells with density below this are considered empty. */
+static const float density_threshold = 0.001f;
 
 /* Contribution of target density pressure to the laplacian in the pressure poisson equation.
  * This is based on the model found in

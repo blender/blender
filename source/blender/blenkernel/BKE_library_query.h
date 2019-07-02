@@ -65,9 +65,10 @@ enum {
 
 enum {
   IDWALK_RET_NOP = 0,
-  IDWALK_RET_STOP_ITER = 1 << 0, /* Completely stop iteration. */
-  IDWALK_RET_STOP_RECURSION =
-      1 << 1, /* Stop recursion, that is, do not loop over ID used by current one. */
+  /** Completely stop iteration. */
+  IDWALK_RET_STOP_ITER = 1 << 0,
+  /** Stop recursion, that is, do not loop over ID used by current one. */
+  IDWALK_RET_STOP_RECURSION = 1 << 1,
 };
 
 /**

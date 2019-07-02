@@ -1201,8 +1201,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 //#  define USE_WIN_ACTIVATE
 #endif
 
-        wm->winactive =
-            win; /* no context change! c->wm->windrawable is drawable, or for area queues */
+        /* No context change! C->wm->windrawable is drawable, or for area queues. */
+        wm->winactive = win;
 
         win->active = 1;
         //              window_handle(win, INPUTCHANGE, win->active);
@@ -1454,8 +1454,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.prevx = event.x;
         event.prevy = event.y;
 
-        wm->winactive =
-            win; /* no context change! c->wm->windrawable is drawable, or for area queues */
+        /* No context change! C->wm->windrawable is drawable, or for area queues. */
+        wm->winactive = win;
+
         win->active = 1;
 
         wm_event_add(win, &event);

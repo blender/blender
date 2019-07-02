@@ -1522,8 +1522,8 @@ void what_does_obaction(
   workob->constraints.first = ob->constraints.first;
   workob->constraints.last = ob->constraints.last;
 
-  workob->pose =
-      pose; /* need to set pose too, since this is used for both types of Action Constraint */
+  /* Need to set pose too, since this is used for both types of Action Constraint. */
+  workob->pose = pose;
   if (pose) {
     /* This function is most likely to be used with a temporary pose with a single bone in there.
      * For such cases it makes no sense to create hash since it'll only waste CPU ticks on memory

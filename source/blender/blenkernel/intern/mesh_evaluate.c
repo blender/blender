@@ -1164,8 +1164,10 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
    */
   const unsigned int mv_pivot_index = ml_curr->v; /* The vertex we are "fanning" around! */
   const MVert *mv_pivot = &mverts[mv_pivot_index];
-  const MEdge *me_org =
-      &medges[ml_curr->e]; /* ml_curr would be mlfan_prev if we needed that one */
+
+  /* ml_curr would be mlfan_prev if we needed that one. */
+  const MEdge *me_org = &medges[ml_curr->e];
+
   const int *e2lfan_curr;
   float vec_curr[3], vec_prev[3], vec_org[3];
   const MLoop *mlfan_curr;

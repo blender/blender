@@ -1855,8 +1855,9 @@ static void library_make_local_copying_check(ID *id,
   MainIDRelationsEntry *entry = BLI_ghash_lookup(id_relations->id_used_to_user, id);
   BLI_gset_insert(loop_tags, id);
   for (; entry != NULL; entry = entry->next) {
-    ID *par_id =
-        (ID *)entry->id_pointer; /* used_to_user stores ID pointer, not pointer to ID pointer... */
+
+    /* Used_to_user stores ID pointer, not pointer to ID pointer. */
+    ID *par_id = (ID *)entry->id_pointer;
 
     /* Our oh-so-beloved 'from' pointers... */
     if (entry->usage_flag & IDWALK_CB_LOOPBACK) {

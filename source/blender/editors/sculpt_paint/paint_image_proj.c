@@ -1554,9 +1554,8 @@ static void screen_px_from_persp(const float uv[2],
     w_int[2] *= wtot_inv;
   }
   else {
-    w[0] = w[1] = w[2] =
-        /* dummy values for zero area face */
-        w_int[0] = w_int[1] = w_int[2] = 1.0f / 3.0f;
+    /* Dummy values for zero area face. */
+    w[0] = w[1] = w[2] = w_int[0] = w_int[1] = w_int[2] = 1.0f / 3.0f;
   }
   /* done re-weighting */
 

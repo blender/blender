@@ -791,8 +791,8 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
   std::vector<Object *> ob_arms;
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 
-  leaf_bone_length =
-      FLT_MAX; /*TODO: Make this work for more than one armature in the import file*/
+  /* TODO: Make this work for more than one armature in the import file. */
+  leaf_bone_length = FLT_MAX;
 
   for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
 

@@ -198,8 +198,10 @@ static PyObject *Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject
                                    &py_sv_it)) {
     return NULL;
   }
-  ((BPy_StrokeVertex *)py_sv)->py_cp.py_if0D.borrowed =
-      true; /* make the wrapped StrokeVertex internal */
+
+  /* Make the wrapped StrokeVertex internal. */
+  ((BPy_StrokeVertex *)py_sv)->py_cp.py_if0D.borrowed = true;
+
   StrokeVertex *sv = ((BPy_StrokeVertex *)py_sv)->sv;
   StrokeInternal::StrokeVertexIterator sv_it(*(((BPy_StrokeVertexIterator *)py_sv_it)->sv_it));
   self->s->InsertVertex(sv, sv_it);

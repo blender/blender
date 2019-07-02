@@ -335,8 +335,10 @@ RenderResult *render_result_new(Render *re,
 
     BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
     rl->layflag = view_layer->layflag;
-    rl->passflag =
-        view_layer->passflag; /* for debugging: view_layer->passflag | SCE_PASS_RAYHITS; */
+
+    /* for debugging: view_layer->passflag | SCE_PASS_RAYHITS; */
+    rl->passflag = view_layer->passflag;
+
     rl->rectx = rectx;
     rl->recty = recty;
 

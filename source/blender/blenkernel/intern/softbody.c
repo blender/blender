@@ -155,8 +155,8 @@ typedef struct SB_thread_context {
 #define BFF_INTERSECT 1 /* collider edge   intrudes face */
 #define BFF_CLOSEVERT 2 /* collider vertex repulses face */
 
-static float SoftHeunTol =
-    1.0f; /* humm .. this should be calculated from sb parameters and sizes */
+/* humm .. this should be calculated from sb parameters and sizes. */
+static float SoftHeunTol = 1.0f;
 
 /* local prototypes */
 static void free_softbody_intern(SoftBody *sb);

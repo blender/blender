@@ -1449,12 +1449,12 @@ static StructRNA *rna_Operator_register(Main *bmain,
 
   /* setup dummy operator & operator type to store static properties in */
   dummyop.type = &dummyot;
-  dummyot.idname = temp_buffers.idname;           /* only assigne the pointer, string is NULL'd */
-  dummyot.name = temp_buffers.name;               /* only assigne the pointer, string is NULL'd */
-  dummyot.description = temp_buffers.description; /* only assigne the pointer, string is NULL'd */
+  dummyot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
+  dummyot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
+  dummyot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
   dummyot.translation_context =
-      temp_buffers.translation_context;         /* only assigne the pointer, string is NULL'd */
-  dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
+      temp_buffers.translation_context;         /* only assign the pointer, string is NULL'd */
+  dummyot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
   RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
   /* clear in case they are left unset */
@@ -1597,12 +1597,12 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
 
   /* setup dummy operator & operator type to store static properties in */
   dummyop.type = &dummyot;
-  dummyot.idname = temp_buffers.idname;           /* only assigne the pointer, string is NULL'd */
-  dummyot.name = temp_buffers.name;               /* only assigne the pointer, string is NULL'd */
-  dummyot.description = temp_buffers.description; /* only assigne the pointer, string is NULL'd */
+  dummyot.idname = temp_buffers.idname;           /* only assign the pointer, string is NULL'd */
+  dummyot.name = temp_buffers.name;               /* only assign the pointer, string is NULL'd */
+  dummyot.description = temp_buffers.description; /* only assign the pointer, string is NULL'd */
   dummyot.translation_context =
-      temp_buffers.translation_context;         /* only assigne the pointer, string is NULL'd */
-  dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
+      temp_buffers.translation_context;         /* only assign the pointer, string is NULL'd */
+  dummyot.undo_group = temp_buffers.undo_group; /* only assign the pointer, string is NULL'd */
   RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
 
   /* clear in case they are left unset */

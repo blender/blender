@@ -841,8 +841,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       /* notice we use 'mp->totloop' which is later overwritten,
        * we could lookup the original face but there's no point since this is a copy
        * and will have the same value, just take care when changing order of assignment */
-      k1 = mpoly[pidx].loopstart +
-           (((edge_order[eidx] - 1) + mp->totloop) % mp->totloop); /* prev loop */
+
+      /* prev loop */
+      k1 = mpoly[pidx].loopstart + (((edge_order[eidx] - 1) + mp->totloop) % mp->totloop);
+
       k2 = mpoly[pidx].loopstart + (edge_order[eidx]);
 
       mp->totloop = 4;

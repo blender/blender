@@ -1408,8 +1408,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   SpaceTransform auto_space_transform;
 
   Mesh *me_src;
-  bool dirty_nors_dst =
-      true; /* Assumed always true if not using an evaluated mesh as destination. */
+  /* Assumed always true if not using an evaluated mesh as destination. */
+  bool dirty_nors_dst = true;
   int i;
 
   MDeformVert *mdef = NULL;

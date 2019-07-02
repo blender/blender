@@ -242,9 +242,9 @@ static void checker_board_color_fill(
   }
 
   for (y = offset; y < height + offset; y++) {
+    /* Use a number lower then 1.0 else its too bright. */
+    hsv[2] = 0.1 + (y * (0.4 / total_height));
 
-    hsv[2] = 0.1 +
-             (y * (0.4 / total_height)); /* use a number lower then 1.0 else its too bright */
     for (x = 0; x < width; x++) {
       hsv[0] = (float)((double)(x / hue_step) * 1.0 / width * hue_step);
       hsv_to_rgb_v(hsv, rgb);

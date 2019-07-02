@@ -656,8 +656,10 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
 
   int poly_prev = 0;
   const int temp_poly_group_id = 3; /* Placeholder value. */
-  const int poly_group_id_overflowed =
-      5; /* Group we could not find any available bit, will be reset to 0 at end */
+
+  /* Group we could not find any available bit, will be reset to 0 at end. */
+  const int poly_group_id_overflowed = 5;
+
   int tot_group = 0;
   bool group_id_overflow = false;
 
@@ -780,8 +782,10 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
             "Warning, could not find an available id for current smooth group, faces will me "
             "marked "
             "as out of any smooth group...\n");
-        poly_group_id =
-            poly_group_id_overflowed; /* Can't use 0, will have to set them to this value later. */
+
+        /* Can't use 0, will have to set them to this value later. */
+        poly_group_id = poly_group_id_overflowed;
+
         group_id_overflow = true;
       }
       if (gid_bit > tot_group) {

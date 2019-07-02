@@ -73,8 +73,8 @@ static void brush_defaults(Brush *brush)
   brush->topology_rake_factor = 0.0f;
   brush->crease_pinch_factor = 0.5f;
   brush->sculpt_plane = SCULPT_DISP_DIR_AREA;
-  brush->plane_offset =
-      0.0f; /* how far above or below the plane that is found by averaging the faces */
+  /* How far above or below the plane that is found by averaging the faces. */
+  brush->plane_offset = 0.0f;
   brush->plane_trim = 0.5f;
   brush->clone.alpha = 0.5f;
   brush->normal_weight = 0.0f;
@@ -82,7 +82,8 @@ static void brush_defaults(Brush *brush)
   brush->flag |= BRUSH_ALPHA_PRESSURE;
 
   /* BRUSH PAINT TOOL SETTINGS */
-  brush->rgb[0] = 1.0f; /* default rgb color of the brush when painting - white */
+  /* Default rgb color of the brush when painting - white. */
+  brush->rgb[0] = 1.0f;
   brush->rgb[1] = 1.0f;
   brush->rgb[2] = 1.0f;
 
@@ -90,13 +91,14 @@ static void brush_defaults(Brush *brush)
 
   /* BRUSH STROKE SETTINGS */
   brush->flag |= (BRUSH_SPACE | BRUSH_SPACE_ATTEN);
-  brush->spacing =
-      10; /* how far each brush dot should be spaced as a percentage of brush diameter */
+  /* How far each brush dot should be spaced as a percentage of brush diameter. */
+  brush->spacing = 10;
 
   brush->smooth_stroke_radius = 75;
   brush->smooth_stroke_factor = 0.9f;
 
-  brush->rate = 0.1f; /* time delay between dots of paint or sculpting when doing airbrush mode */
+  /* Time delay between dots of paint or sculpting when doing airbrush mode. */
+  brush->rate = 0.1f;
 
   brush->jitter = 0.0f;
 
