@@ -47,17 +47,6 @@
 
 /* ******************************************** */
 
-/* Invert line handling */
-
-#define GL_TOGGLE(mode, onoff) (((onoff) ? glEnable : glDisable)(mode))
-
-void set_inverted_drawing(int enable)
-{
-  glLogicOp(enable ? GL_INVERT : GL_COPY);
-  GL_TOGGLE(GL_COLOR_LOGIC_OP, enable);
-  GL_TOGGLE(GL_DITHER, !enable);
-}
-
 static int get_cached_work_texture(int *r_w, int *r_h)
 {
   static GLint texid = -1;

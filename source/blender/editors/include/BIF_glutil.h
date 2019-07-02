@@ -172,8 +172,6 @@ int ED_draw_imbuf_method(struct ImBuf *ibuf);
 /* OpenGL drawing utility functions. Do not use these in new code, these
  * are intended to be moved or removed in the future. */
 
-void set_inverted_drawing(int enable);
-
 /* own working polygon offset */
 float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist);
 void bglPolygonOffset(float viewdist, float dist);

@@ -175,3 +175,17 @@ void GPU_finish(void)
 {
   glFinish();
 }
+
+void GPU_logic_op_invert_set(bool enable)
+{
+  if (enable) {
+    glLogicOp(GL_INVERT);
+    glEnable(GL_COLOR_LOGIC_OP);
+    glDisable(GL_DITHER);
+  }
+  else {
+    glLogicOp(GL_COPY);
+    glDisable(GL_COLOR_LOGIC_OP);
+    glEnable(GL_DITHER);
+  }
+}

@@ -863,9 +863,9 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColor(TH_GRID);
 
-    set_inverted_drawing(1);
+    GPU_logic_op_invert_set(true);
     imm_drawcircball(t->center_global, t->prop_size, imat, pos);
-    set_inverted_drawing(0);
+    GPU_logic_op_invert_set(false);
 
     immUnbindProgram();
 

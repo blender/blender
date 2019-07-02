@@ -59,4 +59,6 @@ void GPU_viewport_size_get_i(int coords[4]);
 void GPU_flush(void);
 void GPU_finish(void);
 
+void GPU_logic_op_invert_set(bool enable);
+
 #endif /* __GPU_STATE_H__ */

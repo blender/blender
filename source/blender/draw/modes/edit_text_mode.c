@@ -383,10 +383,10 @@ static void EDIT_TEXT_draw_scene(void *vedata)
     DRW_draw_pass(psl->text_box_pass);
   }
 
-  set_inverted_drawing(1);
+  GPU_logic_op_invert_set(true);
   DRW_draw_pass(psl->overlay_select_pass);
   DRW_draw_pass(psl->overlay_cursor_pass);
-  set_inverted_drawing(0);
+  GPU_logic_op_invert_set(false);
 
   /* If you changed framebuffer, double check you rebind
    * the default one with its textures attached before finishing */
