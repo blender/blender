@@ -707,7 +707,7 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 /* create new mesh with edit mode changes and modifiers applied */
 static Mesh *bake_mesh_new_from_object(Object *object)
 {
-  Mesh *me = BKE_object_to_mesh(NULL, object, false);
+  Mesh *me = BKE_mesh_new_from_object(NULL, object, false);
 
   if (me->flag & ME_AUTOSMOOTH) {
     BKE_mesh_split_faces(me, true);
@@ -927,7 +927,7 @@ static int bake(Render *re,
       }
     }
     else if (is_cage) {
-      BKE_object_eval_reset(ob_low_eval);
+      bool is_changed = false;
 
       ModifierData *md = ob_low_eval->modifiers.first;
       while (md) {
@@ -942,11 +942,23 @@ static int bake(Render *re,
         if (md->type == eModifierType_EdgeSplit) {
           BLI_remlink(&ob_low_eval->modifiers, md);
           modifier_free(md);
+          is_changed = true;
         }
         md = md_next;
       }
 
-      me_cage = BKE_object_to_mesh(NULL, ob_low_eval, false);
+      if (is_changed) {
+        /* Make sure object is evaluated with the new modifier settings.
+         *
+         * NOTE: Since the dependency graph was fully evaluated prior to bake, and we only made
+         * single modification to this object all the possible dependencies for evaluation are
+         * already up to date. This means we can do a cheap single object update
+         * (as an opposite of full depsgraph update). */
+        BKE_object_eval_reset(ob_low_eval);
+        BKE_object_handle_data_update(depsgraph, scene, ob_low_eval);
+      }
+
+      me_cage = BKE_mesh_new_from_object(NULL, ob_low_eval, false);
       RE_bake_pixels_populate(me_cage, pixel_array_low, num_pixels, &bake_images, uv_layer);
     }
 
@@ -965,7 +977,7 @@ static int bake(Render *re,
       highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
       highpoly[i].ob_eval->restrictflag &= ~OB_RESTRICT_RENDER;
       highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE | BASE_ENABLED_RENDER);
-      highpoly[i].me = BKE_object_to_mesh(NULL, highpoly[i].ob_eval, false);
+      highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false);
 
       /* lowpoly to highpoly transformation matrix */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
@@ -1088,7 +1100,7 @@ static int bake(Render *re,
           }
 
           /* Evaluate modifiers again. */
-          me_nores = BKE_object_to_mesh(NULL, ob_low_eval, false);
+          me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false);
           RE_bake_pixels_populate(me_nores, pixel_array_low, num_pixels, &bake_images, uv_layer);
 
           RE_bake_normal_world_to_tangent(pixel_array_low,
@@ -1098,7 +1110,7 @@ static int bake(Render *re,
                                           me_nores,
                                           normal_swizzle,
                                           ob_low_eval->obmat);
-          BKE_object_to_mesh_clear(ob_low_eval);
+          BKE_id_free(NULL, &me_nores->id);
 
           if (md) {
             md->mode = mode;
@@ -1221,8 +1233,8 @@ cleanup:
   if (highpoly) {
     int i;
     for (i = 0; i < tot_highpoly; i++) {
-      if (highpoly[i].ob_eval) {
-        BKE_object_to_mesh_clear(highpoly[i].ob_eval);
+      if (highpoly[i].me != NULL) {
+        BKE_id_free(NULL, &highpoly[i].me->id);
       }
     }
     MEM_freeN(highpoly);
@@ -1252,12 +1264,12 @@ cleanup:
     MEM_freeN(result);
   }
 
-  if (ob_low_eval) {
-    BKE_object_to_mesh_clear(ob_low_eval);
+  if (me_low != NULL) {
+    BKE_id_free(NULL, &me_low->id);
   }
 
-  if (ob_cage_eval) {
-    BKE_object_to_mesh_clear(ob_cage_eval);
+  if (me_cage != NULL) {
+    BKE_id_free(NULL, &me_cage->id);
   }
 
   DEG_graph_free(depsgraph);
