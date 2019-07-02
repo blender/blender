@@ -696,9 +696,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   if (codec_id == AV_CODEC_ID_QTRLE) {
-    if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
-      c->pix_fmt = AV_PIX_FMT_ARGB;
-    }
+    /* Always write to ARGB. The default pixel format of QTRLE is RGB24, which uses 3 bytes per
+     * pixels, which breaks the export. */
+    c->pix_fmt = AV_PIX_FMT_ARGB;
   }
 
   if (codec_id == AV_CODEC_ID_PNG) {
