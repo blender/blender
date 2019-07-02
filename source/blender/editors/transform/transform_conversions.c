@@ -2935,11 +2935,16 @@ static void VertsToTransData(TransInfo *t,
   }
   else if (t->mode == TFM_SKIN_RESIZE) {
     MVertSkin *vs = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MVERT_SKIN);
-    /* skin node size */
-    td->ext = tx;
-    copy_v3_v3(tx->isize, vs->radius);
-    tx->size = vs->radius;
-    td->val = vs->radius;
+    if (vs) {
+      /* skin node size */
+      td->ext = tx;
+      copy_v3_v3(tx->isize, vs->radius);
+      tx->size = vs->radius;
+      td->val = vs->radius;
+    }
+    else {
+      td->flag |= TD_SKIP;
+    }
   }
   else if (t->mode == TFM_SHRINKFATTEN) {
     td->ext = tx;
