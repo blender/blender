@@ -54,6 +54,7 @@
 #include "BKE_material.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "CLG_log.h"
 
@@ -5431,8 +5432,19 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu,
 void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
 {
   DEG_debug_print_eval(depsgraph, __func__, curve->id.name, curve);
-  if (curve->bb == NULL || (curve->bb->flag & BOUNDBOX_DIRTY)) {
-    BKE_curve_texspace_calc(curve);
+  BKE_curve_texspace_calc(curve);
+  if (DEG_is_active(depsgraph)) {
+    Curve *curve_orig = (Curve *)DEG_get_original_id(&curve->id);
+    BoundBox *bb = curve->bb;
+    if (bb != NULL) {
+      if (curve_orig->bb == NULL) {
+        curve_orig->bb = MEM_mallocN(sizeof(*curve_orig->bb), __func__);
+      }
+      *curve_orig->bb = *bb;
+      copy_v3_v3(curve_orig->loc, curve->loc);
+      copy_v3_v3(curve_orig->size, curve->size);
+      copy_v3_v3(curve_orig->rot, curve->rot);
+    }
   }
 }
 
