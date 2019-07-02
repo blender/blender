@@ -33,6 +33,9 @@ builder = sys.argv[1]
 blender_dir = '../blender.git'
 
 if "cmake" in builder:
+    print("Automated tests are still DISABLED!")
+    sys.exit(0)
+
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
     install_dir = os.path.abspath(os.path.join('..', 'install', builder))
     # NOTE: For quick test only to see if the approach work.
