@@ -1878,6 +1878,7 @@ static void make_object_duplilist_real(
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
       }
     }
+    base->object->instance_collection = NULL;
   }
 
   BLI_ghash_free(dupli_gh, NULL, NULL);
