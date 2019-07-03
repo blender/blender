@@ -233,7 +233,6 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
           /* lets intersect the faces */
           for (i = 0; i < totface; i++, mface++) {
             ParticleData *pa1 = NULL, *pa2 = NULL;
-            bool isect1 = false, isect2 = false;
 
             copy_v3_v3(v1, mvert[mface->v1].co);
             copy_v3_v3(v2, mvert[mface->v2].co);
@@ -243,7 +242,6 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
                 co1, &isect_precalc, v1, v2, v3, &lambda, NULL);
             if (intersects_tri) {
               pa1 = (pa + (int)(lambda * size[a]) * a0mul);
-              isect1 = true;
             }
 
             if (mface->v4 && (!intersects_tri || from == PART_FROM_VOLUME)) {
@@ -251,28 +249,24 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 
               if (isect_ray_tri_watertight_v3(co1, &isect_precalc, v1, v3, v4, &lambda, NULL)) {
                 pa2 = (pa + (int)(lambda * size[a]) * a0mul);
-                isect2 = true;
               }
             }
 
-            if (pa1 == pa2) {
-              isect1 |= isect2;
-            }
-            else if (isect2) {
-              if (from == PART_FROM_FACE) {
-                pa2->flag &= ~PARS_UNEXIST;
-              }
-              else { /* store number of intersections */
-                pa2->hair_index++;
-              }
-            }
-
-            if (isect1) {
+            if (pa1) {
               if (from == PART_FROM_FACE) {
                 pa1->flag &= ~PARS_UNEXIST;
               }
               else { /* store number of intersections */
                 pa1->hair_index++;
+              }
+            }
+
+            if (pa2 && pa2 != pa1) {
+              if (from == PART_FROM_FACE) {
+                pa2->flag &= ~PARS_UNEXIST;
+              }
+              else { /* store number of intersections */
+                pa2->hair_index++;
               }
             }
           }
