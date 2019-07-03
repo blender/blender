@@ -438,6 +438,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     med_new->v2 = med_orig->v2;
     med_new->crease = med_orig->crease;
     med_new->flag = med_orig->flag & ~ME_LOOSEEDGE;
+    /* Tag mvert as not loose.
+     * NOTE: ME_VERT_TMP_TAG is given to be cleared by BKE_mesh_new_nomain_from_template. */
+    mvert_new[med_orig->v1].flag |= ME_VERT_TMP_TAG;
+    mvert_new[med_orig->v2].flag |= ME_VERT_TMP_TAG;
   }
 
   /* build polygon -> edge map */
@@ -899,6 +903,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
       med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
+      if ((mv_new_base->flag & ME_VERT_TMP_TAG) == 0) {
+        med_new->flag |= ME_LOOSEEDGE;
+      }
       med_new++;
     }
   }
@@ -917,6 +924,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
       med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
+      if ((mvert_new[i].flag & ME_VERT_TMP_TAG) == 0) {
+        med_new->flag |= ME_LOOSEEDGE;
+      }
       med_new++;
     }
   }
