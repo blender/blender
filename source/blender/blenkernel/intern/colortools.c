@@ -628,8 +628,6 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 {
   CurveMapPoint *cmp = cuma->curve;
   BezTriple *bezt;
-  float *fp, *allpoints, *lastpoint, curf, range;
-  int a, totpoint;
 
   if (cuma->curve == NULL) {
     return;
@@ -642,7 +640,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
   /* hrmf... we now rely on blender ipo beziers, these are more advanced */
   bezt = MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr");
 
-  for (a = 0; a < cuma->totpoint; a++) {
+  for (int a = 0; a < cuma->totpoint; a++) {
     cuma->mintable = min_ff(cuma->mintable, cmp[a].x);
     cuma->maxtable = max_ff(cuma->maxtable, cmp[a].x);
     bezt[a].vec[1][0] = cmp[a].x;
@@ -659,7 +657,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
   }
 
   const BezTriple *bezt_prev = NULL;
-  for (a = 0; a < cuma->totpoint; a++) {
+  for (int a = 0; a < cuma->totpoint; a++) {
     const BezTriple *bezt_next = (a != cuma->totpoint - 1) ? &bezt[a + 1] : NULL;
     calchandle_curvemap(&bezt[a], bezt_prev, bezt_next);
     bezt_prev = &bezt[a];
@@ -687,7 +685,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
         sub_v3_v3v3(bezt[0].vec[0], bezt[0].vec[1], vec);
       }
     }
-    a = cuma->totpoint - 1;
+    int a = cuma->totpoint - 1;
     if (bezt[a].h2 == HD_AUTO) {
 
       hlen = len_v3v3(bezt[a].vec[1], bezt[a].vec[0]); /* original handle length */
@@ -710,23 +708,25 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
   if (cuma->table) {
     MEM_freeN(cuma->table);
   }
-  totpoint = (cuma->totpoint - 1) * CM_RESOL;
-  fp = allpoints = MEM_callocN(totpoint * 2 * sizeof(float), "table");
 
-  for (a = 0; a < cuma->totpoint - 1; a++, fp += 2 * CM_RESOL) {
+  int totpoint = (cuma->totpoint - 1) * CM_RESOL;
+  float *allpoints = MEM_callocN(totpoint * 2 * sizeof(float), "table");
+  float *point = allpoints;
+
+  for (int a = 0; a < cuma->totpoint - 1; a++, point += 2 * CM_RESOL) {
     correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a + 1].vec[0], bezt[a + 1].vec[1]);
     BKE_curve_forward_diff_bezier(bezt[a].vec[1][0],
                                   bezt[a].vec[2][0],
                                   bezt[a + 1].vec[0][0],
                                   bezt[a + 1].vec[1][0],
-                                  fp,
+                                  point,
                                   CM_RESOL - 1,
                                   2 * sizeof(float));
     BKE_curve_forward_diff_bezier(bezt[a].vec[1][1],
                                   bezt[a].vec[2][1],
                                   bezt[a + 1].vec[0][1],
                                   bezt[a + 1].vec[1][1],
-                                  fp + 1,
+                                  point + 1,
                                   CM_RESOL - 1,
                                   2 * sizeof(float));
   }
@@ -734,49 +734,54 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
   /* store first and last handle for extrapolation, unit length */
   cuma->ext_in[0] = bezt[0].vec[0][0] - bezt[0].vec[1][0];
   cuma->ext_in[1] = bezt[0].vec[0][1] - bezt[0].vec[1][1];
-  range = sqrtf(cuma->ext_in[0] * cuma->ext_in[0] + cuma->ext_in[1] * cuma->ext_in[1]);
-  cuma->ext_in[0] /= range;
-  cuma->ext_in[1] /= range;
+  float ext_in_range = sqrtf(cuma->ext_in[0] * cuma->ext_in[0] +
+                             cuma->ext_in[1] * cuma->ext_in[1]);
+  cuma->ext_in[0] /= ext_in_range;
+  cuma->ext_in[1] /= ext_in_range;
 
-  a = cuma->totpoint - 1;
-  cuma->ext_out[0] = bezt[a].vec[1][0] - bezt[a].vec[2][0];
-  cuma->ext_out[1] = bezt[a].vec[1][1] - bezt[a].vec[2][1];
-  range = sqrtf(cuma->ext_out[0] * cuma->ext_out[0] + cuma->ext_out[1] * cuma->ext_out[1]);
-  cuma->ext_out[0] /= range;
-  cuma->ext_out[1] /= range;
+  int out_a = cuma->totpoint - 1;
+  cuma->ext_out[0] = bezt[out_a].vec[1][0] - bezt[out_a].vec[2][0];
+  cuma->ext_out[1] = bezt[out_a].vec[1][1] - bezt[out_a].vec[2][1];
+  float ext_out_range = sqrtf(cuma->ext_out[0] * cuma->ext_out[0] +
+                              cuma->ext_out[1] * cuma->ext_out[1]);
+  cuma->ext_out[0] /= ext_out_range;
+  cuma->ext_out[1] /= ext_out_range;
 
   /* cleanup */
   MEM_freeN(bezt);
 
-  range = CM_TABLEDIV * (cuma->maxtable - cuma->mintable);
+  float range = CM_TABLEDIV * (cuma->maxtable - cuma->mintable);
   cuma->range = 1.0f / range;
 
   /* now make a table with CM_TABLE equal x distances */
-  fp = allpoints;
-  lastpoint = allpoints + 2 * (totpoint - 1);
+  float *firstpoint = allpoints;
+  float *lastpoint = allpoints + 2 * (totpoint - 1);
+  point = allpoints;
+
   cmp = MEM_callocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "dist table");
 
-  for (a = 0; a <= CM_TABLE; a++) {
-    curf = cuma->mintable + range * (float)a;
-    cmp[a].x = curf;
+  for (int a = 0; a <= CM_TABLE; a++) {
+    float cur_x = cuma->mintable + range * (float)a;
+    cmp[a].x = cur_x;
 
-    /* get the first x coordinate larger than curf */
-    while (curf >= fp[0] && fp != lastpoint) {
-      fp += 2;
+    /* Get the first point with x coordinate larger than cur_x. */
+    while (cur_x >= point[0] && point != lastpoint) {
+      point += 2;
     }
-    if (fp == allpoints || (curf >= fp[0] && fp == lastpoint)) {
-      cmp[a].y = curvemap_calc_extend(cuma, curf, allpoints, lastpoint);
+
+    if (point == firstpoint || (point == lastpoint && cur_x >= point[0])) {
+      cmp[a].y = curvemap_calc_extend(cuma, cur_x, firstpoint, lastpoint);
     }
     else {
-      float fac1 = fp[0] - fp[-2];
-      float fac2 = fp[0] - curf;
+      float fac1 = point[0] - point[-2];
+      float fac2 = point[0] - cur_x;
       if (fac1 > FLT_EPSILON) {
         fac1 = fac2 / fac1;
       }
       else {
         fac1 = 0.0f;
       }
-      cmp[a].y = fac1 * fp[-1] + (1.0f - fac1) * fp[1];
+      cmp[a].y = fac1 * point[-1] + (1.0f - fac1) * point[1];
     }
   }
 
