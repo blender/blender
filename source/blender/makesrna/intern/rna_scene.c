@@ -1666,6 +1666,13 @@ static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
   DEG_relations_tag_update(CTX_data_main(C));
 }
 
+static void rna_Physics_relations_update(Main *bmain,
+                                         Scene *UNUSED(scene),
+                                         PointerRNA *UNUSED(ptr))
+{
+  DEG_relations_tag_update(bmain);
+}
+
 static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->id.data;
@@ -7346,7 +7353,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_world");
   RNA_def_property_struct_type(prop, "RigidBodyWorld");
   RNA_def_property_ui_text(prop, "Rigid Body World", "");
-  RNA_def_property_update(prop, NC_SCENE, NULL);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Physics_relations_update");
 
   /* Tool Settings */
   prop = RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
