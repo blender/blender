@@ -755,28 +755,6 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
                            P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
 }
 
-static bool skin_resize_poll(bContext *C)
-{
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
-
-  bool ok = false;
-
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-    if (obedit->type == OB_MESH) {
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      if (em && CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN)) {
-        ok = true;
-      }
-    }
-  }
-  MEM_freeN(objects);
-
-  return ok;
-}
-
 static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -790,7 +768,7 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = skin_resize_poll;
+  ot->poll = ED_operator_screenactive;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_vector(
