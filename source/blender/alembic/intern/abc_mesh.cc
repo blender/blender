@@ -973,8 +973,7 @@ static void *add_customdata_cb(void *user_data, const char *name, int data_type)
     return cd_ptr;
   }
 
-  /* create a new layer, taking care to construct the hopefully-soon-to-be-removed
-   * CD_MTEXPOLY layer too, with the same name. */
+  /* Create a new layer. */
   numloops = mesh->totloop;
   cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, NULL, numloops, name);
   return cd_ptr;

@@ -2282,7 +2282,6 @@ static void uvedit_unwrap_cube_project(BMesh *bm,
    * component, but clusters all together around the center of map. */
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    /* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
     if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       continue;
     }

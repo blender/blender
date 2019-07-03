@@ -1180,12 +1180,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* MTexPoly now removed. */
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
-      const int cd_mtexpoly = 15; /* CD_MTEXPOLY, deprecated */
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
         /* If we have UV's, so this file will have MTexPoly layers too! */
         if (me->mloopuv != NULL) {
           CustomData_update_typemap(&me->pdata);
-          CustomData_free_layers(&me->pdata, cd_mtexpoly, me->totpoly);
+          CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
           BKE_mesh_update_customdata_pointers(me, false);
         }
       }

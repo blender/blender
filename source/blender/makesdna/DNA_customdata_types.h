@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+#include "DNA_defs.h"
+
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
   /** Type of data in layer. */
@@ -107,9 +109,11 @@ typedef enum CustomDataType {
   CD_PROP_FLT = 10,
   CD_PROP_INT = 11,
   CD_PROP_STR = 12,
-  CD_ORIGSPACE = 13,               /* for modifier stack face location mapping */
-  CD_ORCO = 14,                    /* undeformed vertex coordinates, normalized to 0..1 range */
-  /*  CD_MTEXPOLY         = 15, */ /* deprecated */
+  CD_ORIGSPACE = 13, /* for modifier stack face location mapping */
+  CD_ORCO = 14,      /* undeformed vertex coordinates, normalized to 0..1 range */
+#ifdef DNA_DEPRECATED
+  CD_MTEXPOLY = 15, /* deprecated */
+#endif
   CD_MLOOPUV = 16,
   CD_MLOOPCOL = 17,
   CD_TANGENT = 18,

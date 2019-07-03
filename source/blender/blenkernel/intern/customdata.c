@@ -26,6 +26,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Since we have versioning code here (CustomData_verify_versions()). */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ID.h"
@@ -4191,9 +4194,10 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
      * Better to be safe here, and fix issue on the fly rather than crash... */
     /* 0 structnum is used in writing code to tag layer types that should not be written. */
     else if (typeInfo->structnum == 0 &&
-             /* XXX Not sure why those two are exception, maybe that should be fixed? */
-             !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP)) {
+             /* XXX Not sure why those three are exception, maybe that should be fixed? */
+             !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP, CD_MTEXPOLY)) {
       keeplayer = false;
+      printf("%d\n", layer->type);
       CLOG_WARN(&LOG, ".blend file read: removing a data layer that should not have been written");
     }
   }
