@@ -618,9 +618,49 @@ void WM_OT_append(wmOperatorType *ot)
       "Localize all appended data, including those indirectly linked from other libraries");
 }
 
-/** \name Reload/relocate libraries.
+/** \name Append single datablock and return it.
+ *
+ * Used for appending workspace from startup files.
  *
  * \{ */
+
+ID *WM_file_append_datablock(bContext *C,
+                             const char *filepath,
+                             const short id_code,
+                             const char *id_name)
+{
+  Main *bmain = CTX_data_main(C);
+
+  /* Tag everything so we can make local only the new datablock. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
+
+  /* Define working data, with just the one item we want to append. */
+  WMLinkAppendData *lapp_data = wm_link_append_data_new(0);
+
+  wm_link_append_data_library_add(lapp_data, filepath);
+  WMLinkAppendDataItem *item = wm_link_append_data_item_add(lapp_data, id_name, id_code, NULL);
+  BLI_BITMAP_ENABLE(item->libraries, 0);
+
+  /* Link datablock. */
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  wm_link_do(lapp_data, NULL, bmain, scene, view_layer, v3d);
+
+  /* Get linked datablock and free working data. */
+  ID *id = item->new_id;
+  wm_link_append_data_free(lapp_data);
+
+  /* Make datablock local. */
+  BKE_library_make_local(bmain, NULL, NULL, true, false);
+
+  /* Clear pre existing tag. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+
+  return id;
+}
+
+/** \} */
 
 static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {

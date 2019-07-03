@@ -331,30 +331,6 @@ static void WORKSPACE_OT_delete(wmOperatorType *ot)
   ot->exec = workspace_delete_exec;
 }
 
-static bool workspace_append_activate_poll(bContext *C)
-{
-  wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
-  return WM_operator_poll(C, ot);
-}
-
-static int workspace_append(bContext *C, const char *directory, const char *idname)
-{
-  wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
-  PointerRNA opptr;
-  int retval;
-
-  WM_operator_properties_create_ptr(&opptr, ot);
-  RNA_string_set(&opptr, "directory", directory);
-  RNA_string_set(&opptr, "filename", idname);
-  RNA_boolean_set(&opptr, "autoselect", false);
-
-  retval = WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &opptr);
-
-  WM_operator_properties_free(&opptr);
-
-  return retval;
-}
-
 static int workspace_append_activate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -367,23 +343,20 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "idname", idname);
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (workspace_append(C, filepath, idname) != OPERATOR_CANCELLED) {
-    WorkSpace *appended_workspace = BLI_findstring(
-        &bmain->workspaces, idname, offsetof(ID, name) + 2);
-    BLI_assert(appended_workspace != NULL);
+  WorkSpace *appended_workspace = (WorkSpace *)WM_file_append_datablock(
+      C, filepath, ID_WS, idname);
 
-    if (appended_workspace) {
-      /* Set defaults. */
-      BLO_update_defaults_workspace(appended_workspace, NULL);
+  if (appended_workspace) {
+    /* Set defaults. */
+    BLO_update_defaults_workspace(appended_workspace, NULL);
 
-      /* Reorder to last position. */
-      BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, NULL, true);
+    /* Reorder to last position. */
+    BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, NULL, true);
 
-      /* Changing workspace changes context. Do delayed! */
-      WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
+    /* Changing workspace changes context. Do delayed! */
+    WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
 
-      return OPERATOR_FINISHED;
-    }
+    return OPERATOR_FINISHED;
   }
 
   return OPERATOR_CANCELLED;
@@ -398,7 +371,6 @@ static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = workspace_append_activate_exec;
-  ot->poll = workspace_append_activate_poll;
 
   RNA_def_string(ot->srna,
                  "idname",
@@ -449,20 +421,17 @@ static void workspace_append_button(uiLayout *layout,
 {
   const ID *id = (ID *)workspace;
   PointerRNA opptr;
-  char lib_path[FILE_MAX_LIBEXTRA];
   const char *filepath = from_main->name;
 
   if (strlen(filepath) == 0) {
     filepath = BLO_EMBEDDED_STARTUP_BLEND;
   }
 
-  BLI_path_join(lib_path, sizeof(lib_path), filepath, BKE_idcode_to_name(GS(id->name)), NULL);
-
   BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
   uiItemFullO_ptr(
       layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
   RNA_string_set(&opptr, "idname", id->name + 2);
-  RNA_string_set(&opptr, "filepath", lib_path);
+  RNA_string_set(&opptr, "filepath", filepath);
 }
 
 static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)

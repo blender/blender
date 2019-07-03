@@ -42,6 +42,7 @@ extern "C" {
 struct ARegion;
 struct GHashIterator;
 struct GPUViewport;
+struct ID;
 struct IDProperty;
 struct ImBuf;
 struct ImageFormatData;
@@ -178,6 +179,10 @@ void WM_autosave_init(struct wmWindowManager *wm);
 void WM_recover_last_session(struct bContext *C, struct ReportList *reports);
 void WM_file_tag_modified(void);
 
+struct ID *WM_file_append_datablock(struct bContext *C,
+                                    const char *filepath,
+                                    const short id_code,
+                                    const char *id_name);
 void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports);
 
 /* mouse cursors */
