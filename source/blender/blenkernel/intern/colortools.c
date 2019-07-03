@@ -769,8 +769,17 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
       point += 2;
     }
 
+    /* Check if we are on or outside the start or end point. */
     if (point == firstpoint || (point == lastpoint && cur_x >= point[0])) {
-      cmp[a].y = curvemap_calc_extend(cuma, cur_x, firstpoint, lastpoint);
+      if (compare_ff(cur_x, point[0], 1e-6f)) {
+        /* When on the point exactly, use the value directly to avoid precision
+         * issues with extrapolation of extreme slopes. */
+        cmp[a].y = point[1];
+      }
+      else {
+        /* Extrapolate values that lie outside the start and end point. */
+        cmp[a].y = curvemap_calc_extend(cuma, cur_x, firstpoint, lastpoint);
+      }
     }
     else {
       float fac1 = point[0] - point[-2];
