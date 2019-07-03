@@ -397,7 +397,7 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
 void BKE_object_select_update(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  if (!object->runtime.is_mesh_eval_owned) {
+  if (object->type == OB_MESH && !object->runtime.is_mesh_eval_owned) {
     Mesh *mesh_input = object->runtime.mesh_orig;
     Mesh_Runtime *mesh_runtime = &mesh_input->runtime;
     BLI_mutex_lock(mesh_runtime->eval_mutex);
