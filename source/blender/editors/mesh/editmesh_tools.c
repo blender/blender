@@ -534,6 +534,9 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
     EDBM_update_generic(em, true, true);
+
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
   MEM_freeN(objects);
