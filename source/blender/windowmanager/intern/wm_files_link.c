@@ -464,6 +464,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   if (lapp_data->num_items == 0) {
     /* Early out in case there is nothing to link. */
     wm_link_append_data_free(lapp_data);
+    /* Clear pre existing tag. */
+    BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
     return OPERATOR_CANCELLED;
   }
 
