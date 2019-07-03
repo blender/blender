@@ -434,9 +434,8 @@ static void workspace_append_button(uiLayout *layout,
   RNA_string_set(&opptr, "filepath", filepath);
 }
 
-static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
+static void workspace_add_menu(bContext *UNUSED(C), uiLayout *layout, void *template_v)
 {
-  Main *bmain = CTX_data_main(C);
   const char *app_template = template_v;
   bool has_startup_items = false;
 
@@ -448,10 +447,6 @@ static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
     for (WorkSpace *workspace = startup_config->workspaces.first; workspace;
          workspace = workspace->id.next) {
       uiLayout *row = uiLayoutRow(layout, false);
-      if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
-        uiLayoutSetActive(row, false);
-      }
-
       workspace_append_button(row, ot_append, workspace, startup_config->main);
       has_startup_items = true;
     }
@@ -475,10 +470,6 @@ static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
       }
 
       uiLayout *row = uiLayoutRow(layout, false);
-      if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
-        uiLayoutSetActive(row, false);
-      }
-
       workspace_append_button(row, ot_append, workspace, builtin_config->main);
     }
   }
