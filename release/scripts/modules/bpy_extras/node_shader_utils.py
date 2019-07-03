@@ -496,6 +496,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_normalmap,
             self.node_normalmap.inputs["Color"],
             grid_row_diff=-2,
+            colorspace_is_data=True,
         )
 
     normalmap_texture = property(normalmap_texture_get)
@@ -521,6 +522,7 @@ class ShaderImageTextureWrapper():
         "is_readonly",
         "grid_row_diff",
         "use_alpha",
+        "colorspace_is_data",
         *NODES_LIST,
     )
 
@@ -532,13 +534,15 @@ class ShaderImageTextureWrapper():
         owner_shader._textures[(node_dst, socket_dst)] = instance
         return instance
 
-    def __init__(self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0, use_alpha=False):
+    def __init__(self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
+                 use_alpha=False, colorspace_is_data=...):
         self.owner_shader = owner_shader
         self.is_readonly = owner_shader.is_readonly
         self.node_dst = node_dst
         self.socket_dst = socket_dst
         self.grid_row_diff = grid_row_diff
         self.use_alpha = use_alpha
+        self.colorspace_is_data = colorspace_is_data
 
         self._node_image = ...
         self._node_mapping = ...
@@ -639,6 +643,8 @@ class ShaderImageTextureWrapper():
 
     @_set_check
     def image_set(self, image):
+        if self.colorspace_is_data is not ...:
+            image.colorspace_settings.is_data = self.colorspace_is_data
         self.node_image.image = image
 
     image = property(image_get, image_set)
