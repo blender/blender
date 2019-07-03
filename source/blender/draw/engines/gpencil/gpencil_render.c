@@ -103,12 +103,9 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 
   invert_m4_m4(viewmat, viewinv);
 
-  /* Reuse the view created by EEVEE or Workbench */
-  if (DRW_view_default_get() == NULL) {
-    DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
-    DRW_view_default_set(view);
-    DRW_view_set_active(view);
-  }
+  DRWView *view = DRW_view_create(viewmat, winmat, NULL, NULL, NULL);
+  DRW_view_default_set(view);
+  DRW_view_set_active(view);
 
   DRW_view_persmat_get(NULL, persmat, false);
 

@@ -284,7 +284,9 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 
   GPU_framebuffer_blit(dfbl->color_only_fb, 0, fbl->effect_taa_fb, 0, GPU_COLOR_BIT);
 
-  DRW_view_set_active(NULL);
+  if (!DRW_state_is_image_render()) {
+    DRW_view_set_active(NULL);
+  }
 
   if (effect_info->jitter_index != 0 && !DRW_state_is_image_render()) {
     DRW_viewport_request_redraw();
