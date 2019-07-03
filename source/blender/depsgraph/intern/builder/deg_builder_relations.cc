@@ -1998,6 +1998,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   OperationKey object_select_key(
       &object->id, NodeType::BATCH_CACHE, OperationCode::GEOMETRY_SELECT_UPDATE);
   add_relation(object_data_select_key, object_select_key, "Data Selection -> Object Selection");
+  add_relation(
+      geom_key, object_select_key, "Object Geometry -> Select Update", RELATION_FLAG_NO_FLUSH);
 }
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
