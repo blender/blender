@@ -204,7 +204,7 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder,
    * converting in place to avoid extra allocation */
   GLushort *data = (GLushort *)builder->data;
 
-  if (max_index > 0xFFFF) {
+  if (max_index >= 0xFFFF) {
     elem->base_index = min_index;
     for (uint i = 0; i < index_len; ++i) {
       data[i] = (values[i] == RESTART_INDEX) ? 0xFFFF : (GLushort)(values[i] - min_index);
