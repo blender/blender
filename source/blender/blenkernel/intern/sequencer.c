@@ -5203,6 +5203,8 @@ void BKE_sequencer_offset_animdata(Scene *scene, Sequence *seq, int ofs)
       }
     }
   }
+
+  DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION);
 }
 
 void BKE_sequencer_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
