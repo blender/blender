@@ -200,6 +200,11 @@ static OperationCode bone_target_opcode(ID *target,
   return OperationCode::BONE_DONE;
 }
 
+static bool object_have_geometry_component(const Object *object)
+{
+  return ELEM(object->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
+}
+
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -2157,9 +2162,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     else if (id_type == ID_OB) {
       build_object(NULL, (Object *)id);
       ComponentKey object_transform_key(id, NodeType::TRANSFORM);
-      ComponentKey object_geometry_key(id, NodeType::GEOMETRY);
       add_relation(object_transform_key, shading_key, "Object Transform -> Node");
-      add_relation(object_geometry_key, shading_key, "Object Geometry -> Node");
+      if (object_have_geometry_component(reinterpret_cast<Object *>(id))) {
+        ComponentKey object_geometry_key(id, NodeType::GEOMETRY);
+        add_relation(object_geometry_key, shading_key, "Object Geometry -> Node");
+      }
     }
     else if (id_type == ID_SCE) {
       Scene *node_scene = (Scene *)id;
