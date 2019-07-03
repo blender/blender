@@ -4197,7 +4197,6 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
              /* XXX Not sure why those three are exception, maybe that should be fixed? */
              !ELEM(layer->type, CD_PAINT_MASK, CD_FACEMAP, CD_MTEXPOLY)) {
       keeplayer = false;
-      printf("%d\n", layer->type);
       CLOG_WARN(&LOG, ".blend file read: removing a data layer that should not have been written");
     }
   }
