@@ -697,6 +697,12 @@ void DepsgraphNodeBuilder::build_object_data(Object *object, bool is_object_visi
       break;
     }
   }
+  /* Materials. */
+  Material ***materials_ptr = give_matarar(object);
+  if (materials_ptr != NULL) {
+    short *num_materials_ptr = give_totcolp(object);
+    build_materials(*materials_ptr, *num_materials_ptr);
+  }
 }
 
 void DepsgraphNodeBuilder::build_object_data_camera(Object *object)
@@ -1195,14 +1201,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_ob
       function_bind(BKE_object_eval_uber_data, _1, scene_cow, object_cow));
   op_node->set_as_exit();
   /* Materials. */
-  if (object->totcol != 0) {
-    for (int a = 1; a <= object->totcol; a++) {
-      Material *ma = give_current_material(object, a);
-      if (ma != NULL) {
-        build_material(ma);
-      }
-    }
-  }
+  build_materials(object->mat, object->totcol);
   /* Point caches. */
   build_object_pointcache(object);
   /* Geometry. */
@@ -1432,6 +1431,16 @@ void DepsgraphNodeBuilder::build_material(Material *material)
   build_parameters(&material->id);
   /* Material's nodetree. */
   build_nodetree(material->nodetree);
+}
+
+void DepsgraphNodeBuilder::build_materials(Material **materials, int num_materials)
+{
+  for (int i = 0; i < num_materials; ++i) {
+    if (materials[i] == NULL) {
+      continue;
+    }
+    build_material(materials[i]);
+  }
 }
 
 /* Recursively build graph for texture */

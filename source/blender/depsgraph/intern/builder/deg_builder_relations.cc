@@ -751,6 +751,12 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     add_relation(key_key, geometry_key, "Shapekeys");
     build_nested_shapekey(&object->id, key);
   }
+  /* Materials. */
+  Material ***materials_ptr = give_matarar(object);
+  if (materials_ptr != NULL) {
+    short *num_materials_ptr = give_totcolp(object);
+    build_materials(*materials_ptr, *num_materials_ptr);
+  }
 }
 
 void DepsgraphRelationBuilder::build_object_data_camera(Object *object)
@@ -1934,14 +1940,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     }
   }
   /* Materials. */
-  if (object->totcol) {
-    for (int a = 1; a <= object->totcol; a++) {
-      Material *ma = give_current_material(object, a);
-      if (ma != NULL) {
-        build_material(ma);
-      }
-    }
-  }
+  build_materials(object->mat, object->totcol);
   /* Geometry collision. */
   if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
     // add geometry collider relations
@@ -2233,6 +2232,16 @@ void DepsgraphRelationBuilder::build_material(Material *material)
     OperationKey material_key(&material->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
     add_relation(ntree_key, material_key, "Material's NTree");
     build_nested_nodetree(&material->id, material->nodetree);
+  }
+}
+
+void DepsgraphRelationBuilder::build_materials(Material **materials, int num_materials)
+{
+  for (int i = 0; i < num_materials; ++i) {
+    if (materials[i] == NULL) {
+      continue;
+    }
+    build_material(materials[i]);
   }
 }
 

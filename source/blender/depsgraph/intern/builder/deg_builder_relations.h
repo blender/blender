@@ -264,6 +264,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   void build_light(Light *lamp);
   void build_nodetree(bNodeTree *ntree);
   void build_material(Material *ma);
+  void build_materials(Material **materials, int num_materials);
   void build_texture(Tex *tex);
   void build_image(Image *image);
   void build_gpencil(bGPdata *gpd);
