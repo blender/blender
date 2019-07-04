@@ -843,6 +843,11 @@ static void image_buttons_region_listener(wmWindow *UNUSED(win),
         ED_region_tag_redraw(ar);
       }
       break;
+    case NC_BRUSH:
+      if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(ar);
+      }
+      break;
   }
 }
 
@@ -944,6 +949,11 @@ static void image_header_region_listener(wmWindow *UNUSED(win),
         case ND_SELECT:
           ED_region_tag_redraw(ar);
           break;
+      }
+      break;
+    case NC_BRUSH:
+      if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(ar);
       }
       break;
   }
