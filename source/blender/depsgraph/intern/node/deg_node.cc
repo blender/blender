@@ -177,6 +177,8 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
 NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component)
 {
   switch (component) {
+    case DEG_OB_COMP_ANY:
+      return NodeType::UNDEFINED;
     case DEG_OB_COMP_PARAMETERS:
       return NodeType::PARAMETERS;
     case DEG_OB_COMP_PROXY:

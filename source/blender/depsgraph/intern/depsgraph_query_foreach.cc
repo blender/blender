@@ -70,6 +70,7 @@ void deg_foreach_clear_flags(const Depsgraph *graph)
 
 void deg_foreach_dependent_operation(const Depsgraph *graph,
                                      const ID *id,
+                                     eDepsObjectComponentType source_component,
                                      DEGForeachOperation callback,
                                      void *user_data)
 {
@@ -85,6 +86,10 @@ void deg_foreach_dependent_operation(const Depsgraph *graph,
   /* Start with scheduling all operations from ID node. */
   TraversalQueue queue;
   GHASH_FOREACH_BEGIN (ComponentNode *, comp_node, target_id_node->components) {
+    if (source_component != DEG_OB_COMP_ANY &&
+        nodeTypeToObjectComponent(comp_node->type) != source_component) {
+      continue;
+    }
     for (OperationNode *op_node : comp_node->operations) {
       queue.push_back(op_node);
       op_node->scheduled = true;
@@ -144,13 +149,15 @@ void deg_foreach_dependent_component_callback(OperationNode *op_node, void *user
 
 void deg_foreach_dependent_ID_component(const Depsgraph *graph,
                                         const ID *id,
+                                        eDepsObjectComponentType source_component,
                                         DEGForeachIDComponentCallback callback,
                                         void *user_data)
 {
   ForeachIDComponentData data;
   data.callback = callback;
   data.user_data = user_data;
-  deg_foreach_dependent_operation(graph, id, deg_foreach_dependent_component_callback, &data);
+  deg_foreach_dependent_operation(
+      graph, id, source_component, deg_foreach_dependent_component_callback, &data);
 }
 
 struct ForeachIDData {
@@ -177,7 +184,8 @@ void deg_foreach_dependent_ID(const Depsgraph *graph,
   ForeachIDData data;
   data.callback = callback;
   data.user_data = user_data;
-  deg_foreach_dependent_operation(graph, id, deg_foreach_dependent_ID_callback, &data);
+  deg_foreach_dependent_operation(
+      graph, id, DEG_OB_COMP_ANY, deg_foreach_dependent_ID_callback, &data);
 }
 
 void deg_foreach_ancestor_ID(const Depsgraph *graph,
@@ -269,11 +277,12 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
 
 void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         const ID *id,
+                                        eDepsObjectComponentType source_component,
                                         DEGForeachIDComponentCallback callback,
                                         void *user_data)
 {
   DEG::deg_foreach_dependent_ID_component(
-      (const DEG::Depsgraph *)depsgraph, id, callback, user_data);
+      (const DEG::Depsgraph *)depsgraph, id, source_component, callback, user_data);
 }
 
 void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,

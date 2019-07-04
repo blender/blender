@@ -110,6 +110,9 @@ typedef enum eDepsSceneComponentType {
 } eDepsSceneComponentType;
 
 typedef enum eDepsObjectComponentType {
+  /* Used in query API, to denote which component caller is interested in. */
+  DEG_OB_COMP_ANY,
+
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
   DEG_OB_COMP_PARAMETERS,

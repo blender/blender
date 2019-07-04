@@ -235,8 +235,11 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               DEGForeachIDCallback callback,
                               void *user_data);
 
+/* Starts traversal from given component of the given ID, invokes callback for every other
+ * component  which is directly on indirectly dependent on the source one. */
 void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         const ID *id,
+                                        eDepsObjectComponentType source_component,
                                         DEGForeachIDComponentCallback callback,
                                         void *user_data);
 
