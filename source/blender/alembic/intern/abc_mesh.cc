@@ -1085,7 +1085,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
     BKE_mesh_validate(mesh, false, false);
   }
 
-  readFaceSetsSample(bmain, mesh, 0, sample_sel);
+  readFaceSetsSample(bmain, mesh, sample_sel);
 
   if (has_animations(m_schema, m_settings)) {
     addCacheModifier();
@@ -1189,7 +1189,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     size_t num_polys = new_mesh->totpoly;
     if (num_polys > 0) {
       std::map<std::string, int> mat_map;
-      assign_facesets_to_mpoly(sample_sel, 0, new_mesh->mpoly, num_polys, mat_map);
+      assign_facesets_to_mpoly(sample_sel, new_mesh->mpoly, num_polys, mat_map);
     }
 
     return new_mesh;
@@ -1203,7 +1203,6 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 }
 
 void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
-                                             size_t poly_start,
                                              MPoly *mpoly,
                                              int totpoly,
                                              std::map<std::string, int> &r_mat_map)
@@ -1239,7 +1238,7 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
     const size_t num_group_faces = group_faces->size();
 
     for (size_t l = 0; l < num_group_faces; l++) {
-      size_t pos = (*group_faces)[l] + poly_start;
+      size_t pos = (*group_faces)[l];
 
       if (pos >= totpoly) {
         std::cerr << "Faceset overflow on " << faceset.getName() << '\n';
@@ -1252,13 +1251,10 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
   }
 }
 
-void AbcMeshReader::readFaceSetsSample(Main *bmain,
-                                       Mesh *mesh,
-                                       size_t poly_start,
-                                       const ISampleSelector &sample_sel)
+void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSelector &sample_sel)
 {
   std::map<std::string, int> mat_map;
-  assign_facesets_to_mpoly(sample_sel, poly_start, mesh->mpoly, mesh->totpoly, mat_map);
+  assign_facesets_to_mpoly(sample_sel, mesh->mpoly, mesh->totpoly, mat_map);
   utils::assign_materials(bmain, m_object, mat_map);
 }
 
