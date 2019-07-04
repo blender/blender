@@ -43,6 +43,7 @@
 
 #define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR)
 #define VERTEX_COLORS_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR)
+#define MATERIAL_COLORS_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_MATERIAL_COLOR)
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
 #define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
@@ -81,8 +82,6 @@
    (!STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)))
 #define OBJECT_OUTLINE_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
-#define MATDATA_PASS_ENABLED(wpd) \
-  (wpd->shading.color_type != V3D_SHADING_SINGLE_COLOR || MATCAP_ENABLED(wpd))
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) \
   (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd))
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) \
@@ -208,12 +207,14 @@ typedef struct WORKBENCH_PrivateData {
   struct GPUShader *prepass_hair_sh;
   struct GPUShader *prepass_uniform_sh;
   struct GPUShader *prepass_uniform_hair_sh;
+  struct GPUShader *prepass_textured_sh;
   struct GPUShader *composite_sh;
   struct GPUShader *background_sh;
   struct GPUShader *transparent_accum_sh;
   struct GPUShader *transparent_accum_hair_sh;
   struct GPUShader *transparent_accum_uniform_sh;
   struct GPUShader *transparent_accum_uniform_hair_sh;
+  struct GPUShader *transparent_accum_textured_sh;
   View3DShading shading;
   StudioLight *studio_light;
   const UserDef *preferences;
@@ -354,6 +355,32 @@ BLI_INLINE bool workbench_is_fxaa_enabled(WORKBENCH_PrivateData *wpd)
   }
 }
 
+/** Is texture paint mode enabled (globally) */
+BLI_INLINE bool workbench_is_in_texture_paint_mode(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  return draw_ctx->object_mode == OB_MODE_TEXTURE_PAINT;
+}
+
+/** Is texture paint mode active for the given object */
+BLI_INLINE bool workbench_is_object_in_texture_paint_mode(Object *ob)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  if (ob->type == OB_MESH && (draw_ctx->obact == ob)) {
+    const enum eContextObjectMode mode = CTX_data_mode_enum_ex(
+        draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
+    return (mode == CTX_MODE_PAINT_TEXTURE);
+  }
+
+  return false;
+}
+
+BLI_INLINE bool workbench_is_matdata_pass_enabled(WORKBENCH_PrivateData *wpd)
+{
+  return (wpd->shading.color_type != V3D_SHADING_SINGLE_COLOR || MATCAP_ENABLED(wpd)) ||
+         workbench_is_in_texture_paint_mode();
+}
+
 /* workbench_deferred.c */
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);
@@ -383,8 +410,7 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(WORKBENCH_
                                                                       Image *ima,
                                                                       ImageUser *iuser,
                                                                       int color_type,
-                                                                      int interp,
-                                                                      bool use_sculpt_pbvh);
+                                                                      int interp);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
@@ -422,19 +448,23 @@ void workbench_material_get_image_and_mat(
     Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
                                        bool is_uniform_color,
-                                       bool is_hair);
+                                       bool is_hair,
+                                       bool is_texture_painting);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Object *ob,
                                     Material *mat,
-                                    WORKBENCH_MaterialData *data);
+                                    WORKBENCH_MaterialData *data,
+                                    int color_type);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd);
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
                                                 bool is_uniform_color,
-                                                bool is_hair);
+                                                bool is_hair,
+                                                bool is_texture_painting);
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
                                               bool is_uniform_color,
-                                              bool is_hair);
+                                              bool is_hair,
+                                              bool is_texture_painting);
 void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         DRWShadingGroup *grp,
                                         WORKBENCH_MaterialData *material,

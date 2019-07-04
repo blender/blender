@@ -41,13 +41,9 @@
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
                                     Object *ob,
                                     Material *mat,
-                                    WORKBENCH_MaterialData *data)
+                                    WORKBENCH_MaterialData *data,
+                                    int color_type)
 {
-  /* When V3D_SHADING_TEXTURE_COLOR is active, use V3D_SHADING_MATERIAL_COLOR as fallback when no
-   * texture could be determined */
-  int color_type = wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR ?
-                       V3D_SHADING_MATERIAL_COLOR :
-                       wpd->shading.color_type;
   copy_v3_fl3(data->diffuse_color, 0.8f, 0.8f, 0.8f);
   copy_v3_v3(data->base_color, data->diffuse_color);
   copy_v3_fl3(data->specular_color, 0.05f, 0.05f, 0.05f); /* Dielectric: 5% reflective. */
@@ -57,6 +53,10 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
 
   if (color_type == V3D_SHADING_SINGLE_COLOR) {
     copy_v3_v3(data->diffuse_color, wpd->shading.single_color);
+    copy_v3_v3(data->base_color, data->diffuse_color);
+  }
+  else if (color_type == V3D_SHADING_ERROR_COLOR) {
+    copy_v3_fl3(data->diffuse_color, 0.8, 0.0, 0.8);
     copy_v3_v3(data->base_color, data->diffuse_color);
   }
   else if (color_type == V3D_SHADING_RANDOM_COLOR) {
@@ -76,7 +76,7 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
     data->alpha *= ob->color[3];
   }
   else {
-    /* V3D_SHADING_MATERIAL_COLOR */
+    /* V3D_SHADING_MATERIAL_COLOR or V3D_SHADING_TEXTURE_COLOR */
     if (mat) {
       data->alpha *= mat->a;
       if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
@@ -97,12 +97,18 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd,
 
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
                                        bool is_uniform_color,
-                                       bool is_hair)
+                                       bool is_hair,
+                                       bool is_texture_painting)
 {
   char *str = NULL;
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
+
+  if (is_texture_painting) {
+    use_textures = true;
+    use_vertex_colors = false;
+  }
 
   DynStr *ds = BLI_dynstr_new();
 
@@ -130,7 +136,7 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd,
   if (OBJECT_ID_PASS_ENABLED(wpd)) {
     BLI_dynstr_append(ds, "#define OBJECT_ID_PASS_ENABLED\n");
   }
-  if (MATDATA_PASS_ENABLED(wpd)) {
+  if (workbench_is_matdata_pass_enabled(wpd)) {
     BLI_dynstr_append(ds, "#define MATDATA_PASS_ENABLED\n");
   }
   if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
@@ -193,22 +199,27 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd)
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 2);
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 3);
   SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 4);
-  SET_FLAG_FROM_TEST(index, MATDATA_PASS_ENABLED(wpd), 1 << 5);
+  SET_FLAG_FROM_TEST(index, workbench_is_matdata_pass_enabled(wpd), 1 << 5);
   BLI_assert(index < MAX_COMPOSITE_SHADERS);
   return index;
 }
 
 int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
                                                 bool is_uniform_color,
-                                                bool is_hair)
+                                                bool is_hair,
+                                                bool is_texture_painting)
 {
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
+  if (is_texture_painting) {
+    use_textures = true;
+    use_vertex_colors = false;
+  }
   /* NOTE: change MAX_PREPASS_SHADERS accordingly when modifying this function. */
   int index = 0;
   SET_FLAG_FROM_TEST(index, is_hair, 1 << 0);
-  SET_FLAG_FROM_TEST(index, MATDATA_PASS_ENABLED(wpd), 1 << 1);
+  SET_FLAG_FROM_TEST(index, workbench_is_matdata_pass_enabled(wpd), 1 << 1);
   SET_FLAG_FROM_TEST(index, OBJECT_ID_PASS_ENABLED(wpd), 1 << 2);
   SET_FLAG_FROM_TEST(index, NORMAL_VIEWPORT_PASS_ENABLED(wpd), 1 << 3);
   SET_FLAG_FROM_TEST(index, MATCAP_ENABLED(wpd), 1 << 4);
@@ -220,11 +231,18 @@ int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd,
 
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd,
                                               bool is_uniform_color,
-                                              bool is_hair)
+                                              bool is_hair,
+                                              bool is_texture_painting)
 {
   bool use_textures = (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR) && !is_uniform_color;
   bool use_vertex_colors = (wpd->shading.color_type == V3D_SHADING_VERTEX_COLOR) &&
                            !is_uniform_color;
+  if (is_texture_painting) {
+    use_textures = true;
+    use_vertex_colors = false;
+    is_hair = false;
+  }
+
   /* NOTE: change MAX_ACCUM_SHADERS accordingly when modifying this function. */
   int index = 0;
   /* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
@@ -252,6 +270,13 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd,
   }
   if (color_type == V3D_SHADING_VERTEX_COLOR && (me == NULL || me->mloopcol == NULL)) {
     color_type = V3D_SHADING_OBJECT_COLOR;
+  }
+
+  /* Force V3D_SHADING_TEXTURE_COLOR for active object when in texture painting
+   * no matter the shading color that the user has chosen, when there is no
+   * texture we will render the object with the error color */
+  if (workbench_is_object_in_texture_paint_mode(ob)) {
+    color_type = ima ? V3D_SHADING_TEXTURE_COLOR : V3D_SHADING_ERROR_COLOR;
   }
   return color_type;
 }
@@ -292,7 +317,7 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         const bool deferred,
                                         const int interp)
 {
-  if (deferred && !MATDATA_PASS_ENABLED(wpd)) {
+  if (deferred && !workbench_is_matdata_pass_enabled(wpd)) {
     return;
   }
 

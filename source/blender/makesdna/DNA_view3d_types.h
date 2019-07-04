@@ -433,6 +433,10 @@ enum {
   V3D_SHADING_TEXTURE_COLOR = 3,
   V3D_SHADING_OBJECT_COLOR = 4,
   V3D_SHADING_VERTEX_COLOR = 5,
+
+  /* Is used to display the object using the error color. For example when in
+   * solid texture paint mode without any textures configured */
+  V3D_SHADING_ERROR_COLOR = 999,
 };
 
 /** #View3DShading.background_type */
