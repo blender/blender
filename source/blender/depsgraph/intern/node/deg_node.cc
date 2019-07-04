@@ -133,6 +133,47 @@ NodeType nodeTypeFromSceneComponent(eDepsSceneComponentType component)
   return NodeType::UNDEFINED;
 }
 
+eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
+{
+  switch (type) {
+    case NodeType::PARAMETERS:
+      return DEG_SCENE_COMP_PARAMETERS;
+    case NodeType::ANIMATION:
+      return DEG_SCENE_COMP_ANIMATION;
+    case NodeType::SEQUENCER:
+      return DEG_SCENE_COMP_SEQUENCER;
+
+    case NodeType::OPERATION:
+    case NodeType::TIMESOURCE:
+    case NodeType::ID_REF:
+    case NodeType::LAYER_COLLECTIONS:
+    case NodeType::COPY_ON_WRITE:
+    case NodeType::OBJECT_FROM_LAYER:
+    case NodeType::AUDIO:
+    case NodeType::ARMATURE:
+    case NodeType::GENERIC_DATABLOCK:
+    case NodeType::PARTICLE_SYSTEM:
+    case NodeType::PARTICLE_SETTINGS:
+    case NodeType::SHADING_PARAMETERS:
+    case NodeType::POINT_CACHE:
+    case NodeType::BATCH_CACHE:
+    case NodeType::DUPLI:
+    case NodeType::SYNCHRONIZATION:
+    case NodeType::UNDEFINED:
+    case NodeType::NUM_TYPES:
+    case NodeType::TRANSFORM:
+    case NodeType::GEOMETRY:
+    case NodeType::EVAL_POSE:
+    case NodeType::BONE:
+    case NodeType::SHADING:
+    case NodeType::CACHE:
+    case NodeType::PROXY:
+      return DEG_SCENE_COMP_PARAMETERS;
+  }
+  BLI_assert(!"Unhandled node type, not suppsed to happen.");
+  return DEG_SCENE_COMP_PARAMETERS;
+}
+
 NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component)
 {
   switch (component) {
@@ -156,6 +197,53 @@ NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component)
       return NodeType::CACHE;
   }
   return NodeType::UNDEFINED;
+}
+
+eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
+{
+  switch (type) {
+    case NodeType::PARAMETERS:
+      return DEG_OB_COMP_PARAMETERS;
+    case NodeType::PROXY:
+      return DEG_OB_COMP_PROXY;
+    case NodeType::ANIMATION:
+      return DEG_OB_COMP_ANIMATION;
+    case NodeType::TRANSFORM:
+      return DEG_OB_COMP_TRANSFORM;
+    case NodeType::GEOMETRY:
+      return DEG_OB_COMP_GEOMETRY;
+    case NodeType::EVAL_POSE:
+      return DEG_OB_COMP_EVAL_POSE;
+    case NodeType::BONE:
+      return DEG_OB_COMP_BONE;
+    case NodeType::SHADING:
+      return DEG_OB_COMP_SHADING;
+    case NodeType::CACHE:
+      return DEG_OB_COMP_CACHE;
+
+    case NodeType::OPERATION:
+    case NodeType::TIMESOURCE:
+    case NodeType::ID_REF:
+    case NodeType::SEQUENCER:
+    case NodeType::LAYER_COLLECTIONS:
+    case NodeType::COPY_ON_WRITE:
+    case NodeType::OBJECT_FROM_LAYER:
+    case NodeType::AUDIO:
+    case NodeType::ARMATURE:
+    case NodeType::GENERIC_DATABLOCK:
+    case NodeType::PARTICLE_SYSTEM:
+    case NodeType::PARTICLE_SETTINGS:
+    case NodeType::SHADING_PARAMETERS:
+    case NodeType::POINT_CACHE:
+    case NodeType::BATCH_CACHE:
+    case NodeType::DUPLI:
+    case NodeType::SYNCHRONIZATION:
+    case NodeType::UNDEFINED:
+    case NodeType::NUM_TYPES:
+      return DEG_OB_COMP_PARAMETERS;
+  }
+  BLI_assert(!"Unhandled node type, not suppsed to happen.");
+  return DEG_OB_COMP_PARAMETERS;
 }
 
 /*******************************************************************************

@@ -133,7 +133,10 @@ enum class NodeType {
 const char *nodeTypeAsString(NodeType type);
 
 NodeType nodeTypeFromSceneComponent(eDepsSceneComponentType component);
+eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type);
+
 NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component);
+eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type);
 
 /* All nodes in Depsgraph are descended from this. */
 struct Node {
