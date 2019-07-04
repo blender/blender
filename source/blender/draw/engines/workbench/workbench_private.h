@@ -381,6 +381,30 @@ BLI_INLINE bool workbench_is_matdata_pass_enabled(WORKBENCH_PrivateData *wpd)
          workbench_is_in_texture_paint_mode();
 }
 
+/**
+ * Get the default texture format to be used by the color and history buffers.
+ *
+ * Use GPU_RGBA16F for final renderings and for drawing textures. This
+ * allows displaying HDRI textures. Vertex Colors uses GPU_RGBA16 to resolve
+ * color banding issues (T66100). All other modes use GPU_RGBA8 to reduce
+ * bandwidth and gpu memory.
+ */
+BLI_INLINE const eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_PrivateData *wpd)
+{
+  eGPUTextureFormat result;
+  if (DRW_state_is_image_render() || workbench_is_in_texture_paint_mode() ||
+      TEXTURE_DRAWING_ENABLED(wpd)) {
+    result = GPU_RGBA16F;
+  }
+  else if (VERTEX_COLORS_ENABLED(wpd)) {
+    result = GPU_RGBA16;
+  }
+  else {
+    result = GPU_RGBA8;
+  }
+  return result;
+}
+
 /* workbench_deferred.c */
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);

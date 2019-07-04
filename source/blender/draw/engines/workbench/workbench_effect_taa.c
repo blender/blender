@@ -170,10 +170,10 @@ DRWPass *workbench_taa_create_pass(WORKBENCH_Data *vedata, GPUTexture **color_bu
   WORKBENCH_TextureList *txl = vedata->txl;
   WORKBENCH_EffectInfo *effect_info = stl->effects;
   WORKBENCH_FramebufferList *fbl = vedata->fbl;
+  const WORKBENCH_PrivateData *wpd = stl->g_data;
 
   {
-    const eGPUTextureFormat hist_buffer_format = DRW_state_is_image_render() ? GPU_RGBA16F :
-                                                                               GPU_RGBA8;
+    const eGPUTextureFormat hist_buffer_format = workbench_color_texture_format(wpd);
     DRW_texture_ensure_fullscreen_2d(&txl->history_buffer_tx, hist_buffer_format, 0);
     DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
   }
