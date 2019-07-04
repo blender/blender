@@ -174,9 +174,9 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
   return DEG_SCENE_COMP_PARAMETERS;
 }
 
-NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component)
+NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component_type)
 {
-  switch (component) {
+  switch (component_type) {
     case DEG_OB_COMP_ANY:
       return NodeType::UNDEFINED;
     case DEG_OB_COMP_PARAMETERS:

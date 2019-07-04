@@ -239,7 +239,7 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
  * component  which is directly on indirectly dependent on the source one. */
 void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
                                         const ID *id,
-                                        eDepsObjectComponentType source_component,
+                                        eDepsObjectComponentType source_component_type,
                                         DEGForeachIDComponentCallback callback,
                                         void *user_data);
 
