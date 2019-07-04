@@ -1208,27 +1208,6 @@ offers a set of extensive examples, including advanced features.
    :arg x, y, z: Specify the x, y, and z coordinates of a translation vector.
 
 
-.. function:: glVertex (x,y,z,w,v):
-
-   B{glVertex2d, glVertex2f, glVertex2i, glVertex2s, glVertex3d, glVertex3f, glVertex3i,
-   glVertex3s, glVertex4d, glVertex4f, glVertex4i, glVertex4s, glVertex2dv, glVertex2fv,
-   glVertex2iv, glVertex2sv, glVertex3dv, glVertex3fv, glVertex3iv, glVertex3sv, glVertex4dv,
-   glVertex4fv, glVertex4iv, glVertex4sv}
-
-   Specify a vertex
-
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glVertex.xml>`__
-
-   :type x, y, z, w: Depends on function prototype (z and w for '3' and '4' prototypes only)
-   :arg x, y, z, w: Specify x, y, z, and w coordinates of a vertex. Not all parameters
-      are present in all forms of the command.
-   :type v: :class:`bgl.Buffer` object. Depends of function prototype (for 'v'
-      prototypes only)
-   :arg v: Specifies a pointer to an array of two, three, or four elements. The
-      elements of a two-element array are x and y; of a three-element array,
-      x, y, and z; and of a four-element array, x, y, z, and w.
-
-
 .. function:: glViewport(x,y,width,height):
 
    Set the viewport
