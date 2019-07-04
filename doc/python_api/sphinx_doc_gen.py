@@ -1623,6 +1623,16 @@ def write_sphinx_conf_py(basepath):
 
     fw("html_title = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
     fw("html_theme = 'sphinx_rtd_theme'\n")
+    fw("html_theme_options = {\n")
+    fw("    'canonical_url': 'https://docs.blender.org/api/current/',\n")
+    # fw("    'analytics_id': '',\n")
+    # fw("    'collapse_navigation': True,\n")
+    fw("    'sticky_navigation': False,\n")
+    fw("    'navigation_depth': 1,\n")
+    # fw("    'includehidden': True,\n")
+    # fw("    'titles_only': False\n")
+    fw("    }\n\n")
+
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
