@@ -120,6 +120,44 @@ const char *nodeTypeAsString(NodeType type)
   return "UNKNOWN";
 }
 
+NodeType nodeTypeFromSceneComponent(eDepsSceneComponentType component)
+{
+  switch (component) {
+    case DEG_SCENE_COMP_PARAMETERS:
+      return NodeType::PARAMETERS;
+    case DEG_SCENE_COMP_ANIMATION:
+      return NodeType::ANIMATION;
+    case DEG_SCENE_COMP_SEQUENCER:
+      return NodeType::SEQUENCER;
+  }
+  return NodeType::UNDEFINED;
+}
+
+NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component)
+{
+  switch (component) {
+    case DEG_OB_COMP_PARAMETERS:
+      return NodeType::PARAMETERS;
+    case DEG_OB_COMP_PROXY:
+      return NodeType::PROXY;
+    case DEG_OB_COMP_ANIMATION:
+      return NodeType::ANIMATION;
+    case DEG_OB_COMP_TRANSFORM:
+      return NodeType::TRANSFORM;
+    case DEG_OB_COMP_GEOMETRY:
+      return NodeType::GEOMETRY;
+    case DEG_OB_COMP_EVAL_POSE:
+      return NodeType::EVAL_POSE;
+    case DEG_OB_COMP_BONE:
+      return NodeType::BONE;
+    case DEG_OB_COMP_SHADING:
+      return NodeType::SHADING;
+    case DEG_OB_COMP_CACHE:
+      return NodeType::CACHE;
+  }
+  return NodeType::UNDEFINED;
+}
+
 /*******************************************************************************
  * Type information.
  */

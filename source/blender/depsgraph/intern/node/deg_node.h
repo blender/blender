@@ -27,6 +27,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "DEG_depsgraph_build.h"
+
 struct GHash;
 struct ID;
 struct Scene;
@@ -129,6 +131,9 @@ enum class NodeType {
   NUM_TYPES,
 };
 const char *nodeTypeAsString(NodeType type);
+
+NodeType nodeTypeFromSceneComponent(eDepsSceneComponentType component);
+NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component);
 
 /* All nodes in Depsgraph are descended from this. */
 struct Node {
