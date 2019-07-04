@@ -122,7 +122,7 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
 static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
-                         bool &smooth_normal)
+                         bool &r_smooth_normal)
 {
   const int num_poly = mesh->totpoly;
   const int num_loops = mesh->totloop;
@@ -139,7 +139,7 @@ static void get_topology(struct Mesh *mesh,
     MPoly &poly = mpoly[i];
     loop_counts.push_back(poly.totloop);
 
-    smooth_normal |= ((poly.flag & ME_SMOOTH) != 0);
+    r_smooth_normal |= ((poly.flag & ME_SMOOTH) != 0);
 
     MLoop *loop = mloop + poly.loopstart + (poly.totloop - 1);
 
@@ -995,7 +995,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
                              const IPolyMeshSchema &schema,
                              const ISampleSelector &selector,
                              CDStreamConfig &config,
-                             bool &do_normals)
+                             bool &r_do_normals)
 {
   const IPolyMeshSchema::Sample sample = schema.getValue(selector);
 
@@ -1006,7 +1006,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
 
   read_normals_params(abc_mesh_data, schema.getNormalsParam(), selector);
 
-  do_normals = (abc_mesh_data.face_normals != NULL);
+  r_do_normals = (abc_mesh_data.face_normals != NULL);
 
   get_weight_and_index(config, schema.getTimeSampling(), schema.getNumSamples());
 
