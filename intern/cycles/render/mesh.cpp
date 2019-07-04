@@ -2315,6 +2315,9 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
   dscene->attributes_float3.free();
   dscene->attributes_uchar4.free();
 
+  /* Signal for shaders like displacement not to do ray tracing. */
+  dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;
+
 #ifdef WITH_OSL
   OSLGlobals *og = (OSLGlobals *)device->osl_memory();
 
