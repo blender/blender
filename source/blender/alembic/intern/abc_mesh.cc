@@ -919,11 +919,19 @@ ABC_INLINE void read_normals_params(AbcMeshData &abc_data,
 
   IN3fGeomParam::Sample normsamp = normals.getExpandedValue(selector);
 
-  if (normals.getScope() == kFacevaryingScope) {
-    abc_data.face_normals = normsamp.getVals();
-  }
-  else if ((normals.getScope() == kVertexScope) || (normals.getScope() == kVaryingScope)) {
-    abc_data.vertex_normals = N3fArraySamplePtr();
+  Alembic::AbcGeom::GeometryScope scope = normals.getScope();
+  switch (scope) {
+    case Alembic::AbcGeom::kFacevaryingScope:
+      abc_data.face_normals = normsamp.getVals();
+      break;
+    case Alembic::AbcGeom::kVertexScope:
+    case Alembic::AbcGeom::kVaryingScope:
+      abc_data.vertex_normals = N3fArraySamplePtr();
+      break;
+    case Alembic::AbcGeom::kConstantScope:
+    case Alembic::AbcGeom::kUniformScope:
+    case Alembic::AbcGeom::kUnknownScope:
+      break;
   }
 }
 
