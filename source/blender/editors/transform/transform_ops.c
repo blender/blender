@@ -768,7 +768,7 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_editmesh;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_vector(
