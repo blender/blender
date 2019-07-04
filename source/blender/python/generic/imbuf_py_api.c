@@ -138,14 +138,11 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
 }
 
 static struct PyMethodDef Py_ImBuf_methods[] = {
-    {"resize",
-     (PyCFunction)py_imbuf_resize,
-     METH_VARARGS | METH_KEYWORDS,
-     (char *)py_imbuf_resize_doc},
-    {"free", (PyCFunction)py_imbuf_free, METH_NOARGS, (char *)py_imbuf_free_doc},
-    {"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
-    {"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
-    {"__deepcopy__", (PyCFunction)py_imbuf_deepcopy, METH_VARARGS, (char *)py_imbuf_copy_doc},
+    {"resize", (PyCFunction)py_imbuf_resize, METH_VARARGS | METH_KEYWORDS, py_imbuf_resize_doc},
+    {"free", (PyCFunction)py_imbuf_free, METH_NOARGS, py_imbuf_free_doc},
+    {"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
+    {"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
+    {"__deepcopy__", (PyCFunction)py_imbuf_deepcopy, METH_VARARGS, py_imbuf_copy_doc},
     {NULL, NULL, 0, NULL},
 };
 
