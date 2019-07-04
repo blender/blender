@@ -1753,12 +1753,17 @@ class WM_MT_splash(Menu):
         if found_recent:
             col2_title.label(text="Recent Files")
         else:
+            if bpy.app.version_cycle in {'rc', 'release'}:
+                manual_version = '%d.%d' % bpy.app.version[:2]
+            else:
+                manual_version = 'dev'
+
             # Links if no recent files
             col2_title.label(text="Getting Started")
 
             col2.operator(
                 "wm.url_open", text="Manual", icon='URL'
-            ).url = "https://docs.blender.org/manual/en/dev/"
+            ).url = "https://docs.blender.org/manual/en/" + manual_version + "/"
             col2.operator(
                 "wm.url_open", text="Release Notes", icon='URL',
             ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]

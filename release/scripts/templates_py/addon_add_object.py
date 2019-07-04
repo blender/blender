@@ -68,11 +68,11 @@ def add_object_button(self, context):
         icon='PLUGIN')
 
 
-# This allows you to right click on a button and link to the manual
+# This allows you to right click on a button and link to documentation
 def add_object_manual_map():
-    url_manual_prefix = "https://docs.blender.org/manual/en/dev/"
+    url_manual_prefix = "https://docs.blender.org/manual/en/latest/"
     url_manual_mapping = (
-        ("bpy.ops.mesh.add_object", "editors/3dview/object"),
+        ("bpy.ops.mesh.add_object", "scene_layout/object/types.html"),
     )
     return url_manual_prefix, url_manual_mapping
 

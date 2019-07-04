@@ -22,7 +22,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "description": "Cycles renderer integration",
     "warning": "",
-    "wiki_url": "https://docs.blender.org/manual/en/dev/render/cycles/",
+    "wiki_url": "https://docs.blender.org/manual/en/latest/render/cycles/",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Render"}
