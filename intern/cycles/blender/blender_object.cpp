@@ -357,7 +357,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 #endif
 
   /* Clear camera visibility for indirect only objects. */
-  bool use_indirect_only = b_parent.indirect_only_get(PointerRNA_NULL, b_view_layer);
+  bool use_indirect_only = !use_holdout &&
+                           b_parent.indirect_only_get(PointerRNA_NULL, b_view_layer);
   if (use_indirect_only) {
     visibility &= ~PATH_RAY_CAMERA;
   }
