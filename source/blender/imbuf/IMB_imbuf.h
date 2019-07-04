@@ -67,6 +67,7 @@
  * \attention defined in ???
  */
 struct ImBuf;
+struct rcti;
 
 /**
  *
@@ -221,6 +222,8 @@ void IMB_blend_color_byte(unsigned char dst[4],
                           unsigned char src2[4],
                           IMB_BlendMode mode);
 void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_BlendMode mode);
+
+void IMB_rect_crop(struct ImBuf *ibuf, const struct rcti *crop);
 
 void IMB_rectclip(struct ImBuf *dbuf,
                   struct ImBuf *sbuf,

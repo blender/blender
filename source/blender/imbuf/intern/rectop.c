@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
@@ -34,6 +35,8 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_colormanagement.h"
+
+#include "MEM_guardedalloc.h"
 
 void IMB_blend_color_byte(unsigned char dst[4],
                           unsigned char src1[4],
@@ -205,6 +208,72 @@ void IMB_blend_color_float(float dst[4], float src1[4], float src2[4], IMB_Blend
       dst[3] = src1[3];
       break;
   }
+}
+
+/** Crop */
+
+static void rect_crop_4bytes(void **buf_p, const int size_src[2], const rcti *crop)
+{
+  if (*buf_p == NULL) {
+    return;
+  }
+  const int size_dst[2] = {
+      BLI_rcti_size_x(crop) + 1,
+      BLI_rcti_size_y(crop) + 1,
+  };
+  uint *src = *buf_p;
+  uint *dst = src + crop->ymin * size_src[0] + crop->xmin;
+  for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
+    memmove(src, dst, sizeof(uint) * size_dst[0]);
+  }
+  *buf_p = MEM_reallocN(*buf_p, sizeof(uint) * size_dst[0] * size_dst[1]);
+}
+
+static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *crop)
+{
+  if (*buf_p == NULL) {
+    return;
+  }
+  const int size_dst[2] = {
+      BLI_rcti_size_x(crop) + 1,
+      BLI_rcti_size_y(crop) + 1,
+  };
+  uint(*src)[4] = *buf_p;
+  uint(*dst)[4] = src + crop->ymin * size_src[0] + crop->xmin;
+  for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
+    memmove(src, dst, sizeof(uint[4]) * size_dst[0]);
+  }
+  *buf_p = (void *)MEM_reallocN(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]);
+}
+
+/**
+ * In-place image crop.
+ */
+void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
+{
+  const int size_src[2] = {
+      ibuf->x,
+      ibuf->y,
+  };
+  const int size_dst[2] = {
+      BLI_rcti_size_x(crop) + 1,
+      BLI_rcti_size_y(crop) + 1,
+  };
+  BLI_assert(size_dst[0] > 0 && size_dst[0] > 0);
+  BLI_assert(crop->xmin >= 0 && crop->ymin >= 0);
+  BLI_assert(crop->xmax < ibuf->x && crop->ymax < ibuf->y);
+
+  if ((size_dst[0] == ibuf->x) && (size_dst[1] == ibuf->y)) {
+    return;
+  }
+
+  rect_crop_4bytes((void **)&ibuf->rect, size_src, crop);
+  rect_crop_4bytes((void **)&ibuf->zbuf, size_src, crop);
+  rect_crop_4bytes((void **)&ibuf->zbuf_float, size_src, crop);
+  rect_crop_16bytes((void **)&ibuf->rect_float, size_src, crop);
+
+  ibuf->x = size_dst[0];
+  ibuf->y = size_dst[1];
 }
 
 /* clipping */

@@ -110,24 +110,6 @@ static void screenshot_data_free(wmOperator *op)
   }
 }
 
-static void screenshot_crop(ImBuf *ibuf, rcti crop)
-{
-  unsigned int *to = ibuf->rect;
-  unsigned int *from = ibuf->rect + crop.ymin * ibuf->x + crop.xmin;
-  int crop_x = BLI_rcti_size_x(&crop);
-  int crop_y = BLI_rcti_size_y(&crop);
-  int y;
-
-  if (crop_x > 0 && crop_y > 0) {
-    for (y = 0; y < crop_y; y++, to += crop_x, from += ibuf->x) {
-      memmove(to, from, sizeof(unsigned int) * crop_x);
-    }
-
-    ibuf->x = crop_x;
-    ibuf->y = crop_y;
-  }
-}
-
 static int screenshot_exec(bContext *C, wmOperator *op)
 {
   ScreenshotData *scd = op->customdata;
@@ -153,7 +135,8 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 
       /* crop to show only single editor */
       if (!RNA_boolean_get(op->ptr, "full")) {
-        screenshot_crop(ibuf, scd->crop);
+        IMB_rect_crop(ibuf, &scd->crop);
+        scd->dumprect = ibuf->rect;
       }
 
       if (scd->im_format.planes == R_IMF_PLANES_BW) {
