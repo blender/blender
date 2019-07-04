@@ -353,7 +353,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
 
   /* Read the vertex colors */
   void *cd_data = config.add_customdata_cb(
-      config.user_data, prop_header.getName().c_str(), CD_MLOOPCOL);
+      config.mesh, prop_header.getName().c_str(), CD_MLOOPCOL);
   MCol *cfaces = static_cast<MCol *>(cd_data);
   MPoly *mpolys = config.mpoly;
   MLoop *mloops = config.mloop;
@@ -437,8 +437,7 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
     return;
   }
 
-  void *cd_data = config.add_customdata_cb(
-      config.user_data, prop_header.getName().c_str(), CD_MLOOPUV);
+  void *cd_data = config.add_customdata_cb(config.mesh, prop_header.getName().c_str(), CD_MLOOPUV);
 
   read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
 }

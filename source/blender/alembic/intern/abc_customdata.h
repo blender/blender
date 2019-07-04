@@ -28,6 +28,7 @@
 #include <Alembic/AbcGeom/All.h>
 
 struct CustomData;
+struct Mesh;
 struct MLoop;
 struct MLoopUV;
 struct MPoly;
@@ -60,8 +61,8 @@ struct CDStreamConfig {
   /* TODO(kevin): might need a better way to handle adding and/or updating
    * custom datas such that it updates the custom data holder and its pointers
    * properly. */
-  void *user_data;
-  void *(*add_customdata_cb)(void *user_data, const char *name, int data_type);
+  Mesh *mesh;
+  void *(*add_customdata_cb)(Mesh *mesh, const char *name, int data_type);
 
   float weight;
   float time;
@@ -75,7 +76,7 @@ struct CDStreamConfig {
         totpoly(0),
         totvert(0),
         pack_uvs(false),
-        user_data(NULL),
+        mesh(NULL),
         add_customdata_cb(NULL),
         weight(0.0f),
         time(0.0f),

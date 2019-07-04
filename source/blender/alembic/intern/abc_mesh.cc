@@ -900,7 +900,7 @@ ABC_INLINE void read_uvs_params(CDStreamConfig &config,
       name = uv.getName();
     }
 
-    void *cd_ptr = config.add_customdata_cb(config.user_data, name.c_str(), CD_MLOOPUV);
+    void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_MLOOPUV);
     config.mloopuv = static_cast<MLoopUV *>(cd_ptr);
   }
 }
@@ -960,9 +960,8 @@ static void set_smooth_poly_flag(Mesh *mesh)
   }
 }
 
-static void *add_customdata_cb(void *user_data, const char *name, int data_type)
+static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
 {
-  Mesh *mesh = static_cast<Mesh *>(user_data);
   CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
   void *cd_ptr;
   CustomData *loopdata;
@@ -1047,7 +1046,7 @@ CDStreamConfig get_config(Mesh *mesh)
 
   BLI_assert(mesh->mvert || mesh->totvert == 0);
 
-  config.user_data = mesh;
+  config.mesh = mesh;
   config.mvert = mesh->mvert;
   config.mloop = mesh->mloop;
   config.mpoly = mesh->mpoly;
