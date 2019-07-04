@@ -87,6 +87,7 @@ extern "C" {
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
 }
@@ -683,10 +684,22 @@ void set_particle_system_modifiers_loaded(Object *object_cow)
   }
 }
 
+void reset_particle_system_edit_eval(Object *object_cow)
+{
+  LISTBASE_FOREACH (ParticleSystem *, psys, &object_cow->particlesystem) {
+    ParticleSystem *orig_psys = psys->orig_psys;
+    if (orig_psys->edit != NULL) {
+      orig_psys->edit->psys_eval = NULL;
+      orig_psys->edit->psmd_eval = NULL;
+    }
+  }
+}
+
 void update_particles_after_copy(const Object *object_orig, Object *object_cow)
 {
   update_particle_system_orig_pointers(object_orig, object_cow);
   set_particle_system_modifiers_loaded(object_cow);
+  reset_particle_system_edit_eval(object_cow);
 }
 
 void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)

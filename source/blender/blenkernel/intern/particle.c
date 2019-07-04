@@ -3291,6 +3291,10 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
   int segments = 1 << pset->draw_step;
   int totpart = edit->totpoint, recalc_set = 0;
 
+  if (edit->psmd_eval == NULL) {
+    return;
+  }
+
   segments = MAX2(segments, 4);
 
   if (!cache || edit->totpoint != edit->totcached) {
