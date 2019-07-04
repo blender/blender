@@ -1916,7 +1916,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   DST.buffer_finish_called = false;
 }
 
-static void drw_view_reset()
+static void drw_view_reset(void)
 {
   DST.view_default = NULL;
   DST.view_active = NULL;
