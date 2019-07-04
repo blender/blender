@@ -219,6 +219,9 @@ void DEG_iterator_ids_end(struct BLI_Iterator *iter);
 /* ************************ DEG traversal ********************* */
 
 typedef void (*DEGForeachIDCallback)(ID *id, void *user_data);
+typedef void (*DEGForeachIDComponentCallback)(ID *id,
+                                              eDepsObjectComponentType component,
+                                              void *user_data);
 
 /* NOTE: Modifies runtime flags in depsgraph nodes, so can not be used in
  * parallel. Keep an eye on that!
@@ -231,6 +234,11 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
                               DEGForeachIDCallback callback,
                               void *user_data);
+
+void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
+                                        const ID *id,
+                                        DEGForeachIDComponentCallback callback,
+                                        void *user_data);
 
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback, void *user_data);
 
