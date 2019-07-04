@@ -28,6 +28,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_geom.h"
 #include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
@@ -86,48 +87,6 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
   normalize_v3(r_normal);
 }
 
-/* Get points of stroke always flat to view not affected by camera view or view position */
-static void gpencil_stroke_project_2d(const bGPDspoint *points, int totpoints, vec2f *points2d)
-{
-  const bGPDspoint *pt0 = &points[0];
-  const bGPDspoint *pt1 = &points[1];
-  const bGPDspoint *pt3 = &points[(int)(totpoints * 0.75)];
-
-  float locx[3];
-  float locy[3];
-  float loc3[3];
-  float normal[3];
-
-  /* local X axis (p0 -> p1) */
-  sub_v3_v3v3(locx, &pt1->x, &pt0->x);
-
-  /* point vector at 3/4 */
-  sub_v3_v3v3(loc3, &pt3->x, &pt0->x);
-
-  /* vector orthogonal to polygon plane */
-  cross_v3_v3v3(normal, locx, loc3);
-
-  /* local Y axis (cross to normal/x axis) */
-  cross_v3_v3v3(locy, normal, locx);
-
-  /* Normalize vectors */
-  normalize_v3(locx);
-  normalize_v3(locy);
-
-  /* Get all points in local space */
-  for (int i = 0; i < totpoints; i++) {
-    const bGPDspoint *pt = &points[i];
-    float loc[3];
-
-    /* Get local space using first point as origin */
-    sub_v3_v3v3(loc, &pt->x, &pt0->x);
-
-    vec2f *point = &points2d[i];
-    point->x = dot_v3v3(loc, locx);
-    point->y = dot_v3v3(loc, locy);
-  }
-}
-
 /* Stroke Simplify ------------------------------------- */
 
 /* Reduce a series of points to a simplified version, but
@@ -136,15 +95,15 @@ static void gpencil_stroke_project_2d(const bGPDspoint *points, int totpoints, v
  * Ramer - Douglas - Peucker algorithm
  * by http ://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
  */
-static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
+void BKE_gpencil_simplify_stroke(bGPDstroke *gps, float epsilon)
 {
-  vec2f *old_points2d = points2d;
+  bGPDspoint *old_points = MEM_dupallocN(gps->points);
   int totpoints = gps->totpoints;
   char *marked = NULL;
   char work;
 
-  int start = 1;
-  int end = gps->totpoints - 2;
+  int start = 0;
+  int end = gps->totpoints - 1;
 
   marked = MEM_callocN(totpoints, "GP marked array");
   marked[start] = 1;
@@ -163,7 +122,6 @@ static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
     /* while not over interval */
     while (ls < end) {
       int max_i = 0;
-      float v1[2];
       /* divided to get more control */
       float max_dist = epsilon / 10.0f;
 
@@ -172,25 +130,14 @@ static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
         le++;
       }
 
-      /* perpendicular vector to ls-le */
-      v1[1] = old_points2d[le].x - old_points2d[ls].x;
-      v1[0] = old_points2d[ls].y - old_points2d[le].y;
-
       for (int i = ls + 1; i < le; i++) {
-        float mul;
+        float point_on_line[3];
         float dist;
-        float v2[2];
 
-        v2[0] = old_points2d[i].x - old_points2d[ls].x;
-        v2[1] = old_points2d[i].y - old_points2d[ls].y;
+        closest_to_line_segment_v3(
+            point_on_line, &old_points[i].x, &old_points[ls].x, &old_points[le].x);
 
-        if (v2[0] == 0 && v2[1] == 0) {
-          continue;
-        }
-
-        mul = (float)(v1[0] * v2[0] + v1[1] * v2[1]) / (float)(v2[0] * v2[0] + v2[1] * v2[1]);
-
-        dist = mul * mul * (v2[0] * v2[0] + v2[1] * v2[1]);
+        dist = len_v3v3(point_on_line, &old_points[i].x);
 
         if (dist > max_dist) {
           max_dist = dist;
@@ -210,7 +157,6 @@ static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
   }
 
   /* adding points marked */
-  bGPDspoint *old_points = MEM_dupallocN(gps->points);
   MDeformVert *old_dvert = NULL;
   MDeformVert *dvert_src = NULL;
 
@@ -251,19 +197,6 @@ static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
   MEM_SAFE_FREE(old_points);
   MEM_SAFE_FREE(old_dvert);
   MEM_SAFE_FREE(marked);
-}
-
-/* Simplify stroke using Ramer-Douglas-Peucker algorithm */
-void BKE_gpencil_simplify_stroke(bGPDstroke *gps, float factor)
-{
-  /* first create temp data and convert points to 2D */
-  vec2f *points2d = MEM_mallocN(sizeof(vec2f) * gps->totpoints, "GP Stroke temp 2d points");
-
-  gpencil_stroke_project_2d(gps->points, gps->totpoints, points2d);
-
-  gpencil_rdp_stroke(gps, points2d, factor);
-
-  MEM_SAFE_FREE(points2d);
 }
 
 /* Simplify alternate vertex of stroke except extremes */
