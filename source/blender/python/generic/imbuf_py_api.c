@@ -24,6 +24,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_rect.h"
 
 #include "py_capi_utils.h"
 
@@ -105,6 +106,43 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(py_imbuf_crop_doc,
+             ".. method:: crop(min, max)\n"
+             "\n"
+             "   Crop the image.\n"
+             "\n"
+             "   :arg min: X, Y minimum.\n"
+             "   :type min: pair of ints\n"
+             "   :arg max: X, Y maximum.\n"
+             "   :type max: pair of ints\n");
+static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+
+  rcti crop;
+
+  static const char *_keywords[] = {"min", "max", NULL};
+  static _PyArg_Parser _parser = {"(II)(II):crop", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax)) {
+    return NULL;
+  }
+
+  if (/* X range. */
+      (!(crop.xmin >= 0 && crop.xmax < self->ibuf->x)) ||
+      /* Y range. */
+      (!(crop.ymin >= 0 && crop.ymax < self->ibuf->y)) ||
+      /* X order. */
+      (!(crop.xmin <= crop.xmax)) ||
+      /* Y order. */
+      (!(crop.ymin <= crop.ymax))) {
+    PyErr_SetString(PyExc_ValueError, "ImBuf crop min/max not in range");
+    return NULL;
+  }
+  IMB_rect_crop(self->ibuf, &crop);
+  Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(py_imbuf_copy_doc,
              ".. method:: copy()\n"
              "\n"
@@ -139,6 +177,7 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
 
 static struct PyMethodDef Py_ImBuf_methods[] = {
     {"resize", (PyCFunction)py_imbuf_resize, METH_VARARGS | METH_KEYWORDS, py_imbuf_resize_doc},
+    {"crop", (PyCFunction)py_imbuf_crop, METH_VARARGS | METH_KEYWORDS, (char *)py_imbuf_crop_doc},
     {"free", (PyCFunction)py_imbuf_free, METH_NOARGS, py_imbuf_free_doc},
     {"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
     {"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, py_imbuf_copy_doc},
