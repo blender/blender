@@ -53,6 +53,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -861,94 +862,106 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
 
 /* ------------- Child-Of Constraint ------------------ */
 
-static void child_get_inverse_matrix(const bContext *C,
-                                     Scene *scene,
-                                     Object *ob,
-                                     bConstraint *con,
-                                     float invmat[4][4],
-                                     const int owner)
+static void child_get_inverse_matrix_owner_bone(
+    const bContext *C, wmOperator *op, Scene *scene, Object *ob, float invmat[4][4])
+{
+  /* For bone owner we want to do this in evaluated domain.
+   * BKE_pose_where_is / BKE_pose_where_is_bone relies on (re)evaluating parts of the scene
+   * and copying new evaluated stuff back to original.
+   */
+  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  bConstraint *con_eval = edit_constraint_property_get(op, ob_eval, CONSTRAINT_TYPE_CHILDOF);
+
+  /* nullify inverse matrix first */
+  unit_m4(invmat);
+
+  bPoseChannel *pchan_eval = BKE_pose_channel_active(ob_eval);
+
+  /* try to find a pose channel - assume that this is the constraint owner */
+  /* TODO: get from context instead? */
+  if (ob_eval && ob_eval->pose && pchan_eval) {
+    bConstraint *con_last;
+
+    /* calculate/set inverse matrix:
+     * We just calculate all transform-stack eval up to but not including this constraint.
+     * This is because inverse should just inverse correct for just the constraint's influence
+     * when it gets applied; that is, at the time of application, we don't know anything about
+     * what follows.
+     */
+    float imat[4][4], tmat[4][4];
+    float pmat[4][4];
+
+    /* make sure we passed the correct constraint */
+    BLI_assert(BLI_findindex(&pchan_eval->constraints, con_eval) != -1);
+
+    /* 1. calculate posemat where inverse doesn't exist yet (inverse was cleared above),
+     * to use as baseline ("pmat") to derive delta from. This extra calc saves users
+     * from having pressing "Clear Inverse" first
+     */
+    BKE_pose_where_is(depsgraph, scene, ob_eval);
+    copy_m4_m4(pmat, pchan_eval->pose_mat);
+
+    /* 2. knock out constraints starting from this one */
+    con_last = pchan_eval->constraints.last;
+    pchan_eval->constraints.last = con_eval->prev;
+
+    if (con_eval->prev) {
+      /* new end must not point to this one, else this chain cutting is useless */
+      con_eval->prev->next = NULL;
+    }
+    else {
+      /* constraint was first */
+      pchan_eval->constraints.first = NULL;
+    }
+
+    /* 3. solve pose without disabled constraints */
+    BKE_pose_where_is(depsgraph, scene, ob_eval);
+
+    /* 4. determine effect of constraint by removing the newly calculated
+     * pchan->pose_mat from the original pchan->pose_mat, thus determining
+     * the effect of the constraint
+     */
+    invert_m4_m4(imat, pchan_eval->pose_mat);
+    mul_m4_m4m4(tmat, pmat, imat);
+    invert_m4_m4(invmat, tmat);
+
+    /* 5. restore constraints */
+    pchan_eval->constraints.last = con_last;
+
+    if (con_eval->prev) {
+      /* hook up prev to this one again */
+      con_eval->prev->next = con_eval;
+    }
+    else {
+      /* set as first again */
+      pchan_eval->constraints.first = con_eval;
+    }
+
+    /* 6. recalculate pose with new inv-mat applied */
+    /* this one is unnecessary? (DEG seems to update correctly without)
+     + if we leave this in, we have to click "Set Inverse" twice to see updates...
+    BKE_pose_where_is(depsgraph, scene, ob_eval); */
+  }
+}
+
+static void child_get_inverse_matrix_owner_object(
+    const bContext *C, Scene *scene, Object *ob, bConstraint *con, float invmat[4][4])
 {
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
   /* nullify inverse matrix first */
   unit_m4(invmat);
 
-  if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
-    bPoseChannel *pchan;
-    /* try to find a pose channel - assume that this is the constraint owner */
-    /* TODO: get from context instead? */
-    if (ob && ob->pose && (pchan = BKE_pose_channel_active(ob))) {
-      bConstraint *con_last;
-      /* calculate/set inverse matrix:
-       * We just calculate all transform-stack eval up to but not including this constraint.
-       * This is because inverse should just inverse correct for just the constraint's influence
-       * when it gets applied; that is, at the time of application, we don't know anything about
-       * what follows.
-       */
-      float imat[4][4], tmat[4][4];
-      float pmat[4][4];
+  if (ob) {
+    Object workob;
 
-      /* make sure we passed the correct constraint */
-      BLI_assert(BLI_findindex(&pchan->constraints, con) != -1);
+    /* make sure we passed the correct constraint */
+    BLI_assert(BLI_findindex(&ob->constraints, con) != -1);
 
-      /* 1. calculate posemat where inverse doesn't exist yet (inverse was cleared above),
-       * to use as baseline ("pmat") to derive delta from. This extra calc saves users
-       * from having pressing "Clear Inverse" first
-       */
-      BKE_pose_where_is(depsgraph, scene, ob);
-      copy_m4_m4(pmat, pchan->pose_mat);
-
-      /* 2. knock out constraints starting from this one */
-      con_last = pchan->constraints.last;
-      pchan->constraints.last = con->prev;
-
-      if (con->prev) {
-        /* new end must not point to this one, else this chain cutting is useless */
-        con->prev->next = NULL;
-      }
-      else {
-        /* constraint was first */
-        pchan->constraints.first = NULL;
-      }
-
-      /* 3. solve pose without disabled constraints */
-      BKE_pose_where_is(depsgraph, scene, ob);
-
-      /* 4. determine effect of constraint by removing the newly calculated
-       * pchan->pose_mat from the original pchan->pose_mat, thus determining
-       * the effect of the constraint
-       */
-      invert_m4_m4(imat, pchan->pose_mat);
-      mul_m4_m4m4(tmat, pmat, imat);
-      invert_m4_m4(invmat, tmat);
-
-      /* 5. restore constraints */
-      pchan->constraints.last = con_last;
-
-      if (con->prev) {
-        /* hook up prev to this one again */
-        con->prev->next = con;
-      }
-      else {
-        /* set as first again */
-        pchan->constraints.first = con;
-      }
-
-      /* 6. recalculate pose with new inv-mat applied */
-      BKE_pose_where_is(depsgraph, scene, ob);
-    }
-  }
-  if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
-    if (ob) {
-      Object workob;
-
-      /* make sure we passed the correct constraint */
-      BLI_assert(BLI_findindex(&ob->constraints, con) != -1);
-
-      /* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
-      BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-      invert_m4_m4(invmat, workob.obmat);
-    }
+    /* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
+    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
+    invert_m4_m4(invmat, workob.obmat);
   }
 }
 
@@ -969,7 +982,12 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  child_get_inverse_matrix(C, scene, ob, con, data->invmat, owner);
+  if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
+    child_get_inverse_matrix_owner_object(C, scene, ob, con, data->invmat);
+  }
+  else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
+    child_get_inverse_matrix_owner_bone(C, op, scene, ob, data->invmat);
+  }
 
   ED_object_constraint_update(bmain, ob);
   WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
@@ -1203,6 +1221,7 @@ void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
 
 static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
@@ -1216,8 +1235,14 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  child_get_inverse_matrix(C, scene, ob, con, data->invmat, owner);
+  if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
+    child_get_inverse_matrix_owner_object(C, scene, ob, con, data->invmat);
+  }
+  else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
+    child_get_inverse_matrix_owner_bone(C, op, scene, ob, data->invmat);
+  }
 
+  ED_object_constraint_update(bmain, ob);
   WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 
   return OPERATOR_FINISHED;
