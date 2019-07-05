@@ -1626,6 +1626,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
   if (basact == NULL) {
     return OPERATOR_CANCELLED;
   }
+  UNUSED_VARS_NDEBUG(v3d);
   BLI_assert(BASE_SELECTABLE(v3d, basact));
 
   if (extend) {

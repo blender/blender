@@ -958,6 +958,7 @@ static void child_get_inverse_matrix_owner_object(
 
     /* make sure we passed the correct constraint */
     BLI_assert(BLI_findindex(&ob->constraints, con) != -1);
+    UNUSED_VARS_NDEBUG(con);
 
     /* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
