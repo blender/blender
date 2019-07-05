@@ -628,7 +628,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
-    const bool use_texture_paint_drawing = workbench_is_object_in_texture_paint_mode(ob) && me &&
+    const bool use_texture_paint_drawing = !(DRW_state_is_image_render() &&
+                                             draw_ctx->v3d == NULL) &&
+                                           workbench_is_object_in_texture_paint_mode(ob) && me &&
                                            me->mloopuv;
 
     if (use_texture_paint_drawing) {

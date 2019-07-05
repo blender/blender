@@ -1026,7 +1026,9 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
     const int materials_len = MAX2(1, ob->totcol);
     const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
     bool has_transp_mat = false;
-    const bool use_texture_paint_drawing = workbench_is_object_in_texture_paint_mode(ob) && me &&
+    const bool use_texture_paint_drawing = !(DRW_state_is_image_render() &&
+                                             draw_ctx->v3d == NULL) &&
+                                           workbench_is_object_in_texture_paint_mode(ob) && me &&
                                            me->mloopuv;
 
     if (use_texture_paint_drawing) {
