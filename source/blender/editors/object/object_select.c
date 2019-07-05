@@ -130,7 +130,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
   WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
-  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 }
 
 bool ED_object_base_deselect_all_ex(ViewLayer *view_layer,

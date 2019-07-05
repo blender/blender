@@ -230,11 +230,12 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 
   BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
   psys_free_path_cache(edit->psys, edit);
-  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
 
@@ -243,7 +244,7 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
   }
 
   /* Sync tool setting changes from original to evaluated scenes. */
-  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)

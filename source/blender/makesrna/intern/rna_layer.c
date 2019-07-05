@@ -349,7 +349,6 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, NULL, "rna_LayerCollection_exclude_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Exclude from View Layer", "Exclude from view layer");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_exclude_update");
 
