@@ -3848,7 +3848,9 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
           const MLoop *mloop = &rdata->mloop[loop_index_curr];
           const int e_a = mloop->e * 2;
           const int e_b = e_a + 1;
-          if (BLI_BITMAP_TEST(edges_used, e_a) && !BLI_BITMAP_TEST(edges_used, e_b)) {
+
+          /* Draw if a boundary or entirely unselected. */
+          if (!BLI_BITMAP_TEST(edges_used, e_b)) {
             GPU_indexbuf_add_line_verts(&elb, loop_index_curr, loop_index_next);
           }
         }
