@@ -227,8 +227,9 @@ static void PAINT_VERTEX_cache_init(void *vedata)
   }
 
   {
-    DRWPass *pass = DRW_pass_create(
-        "Wire Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+    DRWPass *pass = DRW_pass_create("Wire Pass",
+                                    (DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
+                                     DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL));
     for (int i = 0; i < MODE_LEN; i++) {
       DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[i].wire_overlay, pass);
       DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);

@@ -32,16 +32,17 @@ void main()
 
 #ifdef USE_SELECT
   finalColor = (is_select) ? colSel : colorWire;
+  finalColor.a = nor.w;
 #else
 #  ifdef VERTEX_MODE
-  finalColor = colorWire;
+  finalColor.xyz = colorWire.xyz;
+  finalColor.a = 1.0;
 #  else
   /* Weight paint needs a light color to contrasts with dark weights. */
-  finalColor.xyz = vec3(0.8, 0.8, 0.8);
+  finalColor = vec4(1, 1, 1, 0.2);
 #  endif
 #endif
 
-  finalColor.a = nor.w;
   gl_PointSize = sizeVertex * 2.0;
 
 #ifdef USE_WORLD_CLIP_PLANES
