@@ -119,18 +119,27 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 }
 
 /**
+ * Call when the active base has changed.
+ */
+void ED_object_base_active_refresh(Main *bmain, Scene *scene, ViewLayer *view_layer)
+{
+  WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  struct wmMsgBus *mbus = ((wmWindowManager *)bmain->wm.first)->message_bus;
+  if (mbus != NULL) {
+    WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
+  }
+}
+
+/**
  * Change active base, it includes the notifier
  */
 void ED_object_base_activate(bContext *C, Base *base)
 {
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   view_layer->basact = base;
-
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-  WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  ED_object_base_active_refresh(CTX_data_main(C), scene, view_layer);
 }
 
 bool ED_object_base_deselect_all_ex(ViewLayer *view_layer,

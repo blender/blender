@@ -278,15 +278,18 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene)
   LayerCollection *lc = (LayerCollection *)ptr->data;
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
-  /* Set/Unset it recursively to match the behaviour of excluding via the menu or shortcuts. */
-  rna_LayerCollection_exclude_update_recursive(&lc->layer_collections,
-                                               (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0);
+  /* Set/Unset it recursively to match the behavior of excluding via the menu or shortcuts. */
+  const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
+  rna_LayerCollection_exclude_update_recursive(&lc->layer_collections, exclude);
 
   BKE_layer_collection_sync(scene, view_layer);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
+  if (exclude) {
+    ED_object_base_active_refresh(bmain, scene, view_layer);
+  }
 }
 
 static void rna_LayerCollection_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

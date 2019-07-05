@@ -121,6 +121,9 @@ void ED_object_parent_clear(struct Object *ob, const int type);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
+void ED_object_base_active_refresh(struct Main *bmain,
+                                   struct Scene *scene,
+                                   struct ViewLayer *view_layer);
 void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);
 bool ED_object_base_deselect_all_ex(struct ViewLayer *view_layer,
                                     struct View3D *v3d,
