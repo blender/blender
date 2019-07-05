@@ -6451,7 +6451,7 @@ static void set_trans_object_base_deps_flag_cb(ID *id,
   if (GS(id->name) != ID_OB) {
     return;
   }
-  if (component != DEG_OB_COMP_TRANSFORM) {
+  if (!ELEM(component, DEG_OB_COMP_TRANSFORM, DEG_OB_COMP_GEOMETRY)) {
     return;
   }
   id->tag |= LIB_TAG_DOIT;
