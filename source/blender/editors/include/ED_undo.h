@@ -54,6 +54,9 @@ bool ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
 bool ED_undo_is_memfile_compatible(const struct bContext *C);
 
+/* Unfortunate workaround for limits mixing undo systems. */
+bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, struct ID *id);
+
 void ED_undo_object_editmode_restore_helper(struct bContext *C,
                                             struct Object **object_array,
                                             uint object_array_len,

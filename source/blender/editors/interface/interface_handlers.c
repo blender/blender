@@ -756,6 +756,14 @@ static void ui_apply_but_undo(uiBut *but)
       str = "Unknown Action";
     }
 
+    /* Optionally override undo when undo system doesn't support storing properties. */
+    if (but->rnapoin.id.data) {
+      ID *id = but->rnapoin.id.data;
+      if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
+        str = "";
+      }
+    }
+
     /* delayed, after all other funcs run, popups are closed, etc */
     after = ui_afterfunc_new();
     BLI_strncpy(after->undostr, str, sizeof(after->undostr));

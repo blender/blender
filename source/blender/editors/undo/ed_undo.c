@@ -322,6 +322,39 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
 }
 
 /**
+ * When a property of ID changes, return false.
+ *
+ * This is to avoid changes to a property making undo pushes
+ * which are ignored by the undo-system.
+ * For example, changing a brush property isn't stored by sculpt-mode undo steps.
+ * This workaround is needed until the limitation is removed, see: T61948.
+ */
+bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  if (view_layer != NULL) {
+    Object *obact = OBACT(view_layer);
+    if (obact != NULL) {
+      if (obact->mode & OB_MODE_ALL_PAINT) {
+        /* Don't store property changes when painting
+         * (only do undo pushes on brush strokes which each paint operator handles on it's own). */
+        CLOG_INFO(&LOG, 1, "skipping undo for paint-mode");
+        return false;
+      }
+      else if (obact->mode & OB_MODE_EDIT) {
+        if ((id == NULL) || (obact->data == NULL) ||
+            (GS(id->name) != GS(((ID *)obact->data)->name))) {
+          /* No undo push on id type mismatch in edit-mode. */
+          CLOG_INFO(&LOG, 1, "skipping undo for edit-mode");
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+/**
  * Ideally we wont access the stack directly,
  * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
  *
