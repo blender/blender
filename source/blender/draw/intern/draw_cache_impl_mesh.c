@@ -3809,55 +3809,70 @@ static void mesh_create_loops_lines_paint_mask(MeshRenderData *rdata, GPUIndexBu
     BLI_assert(0);
   }
   else {
-    /* Each edge has two bits used to count selected edges as 0, 1, 2+. */
-    BLI_bitmap *edges_used = BLI_BITMAP_NEW(edge_len * 2, __func__);
+    if (rdata->me->editflag & ME_EDIT_PAINT_FACE_SEL) {
+      /* Each edge has two bits used to count selected edges as 0, 1, 2+. */
+      BLI_bitmap *edges_used = BLI_BITMAP_NEW(edge_len * 2, __func__);
 
-    /* Fill the EdgeHash tables. */
-    for (int poly = 0; poly < poly_len; poly++) {
-      const MPoly *mpoly = &rdata->mpoly[poly];
+      /* Fill the edge bitmap table. */
+      for (int poly = 0; poly < poly_len; poly++) {
+        const MPoly *mpoly = &rdata->mpoly[poly];
 
-      /* Do not check faces that are hidden and faces that aren't selected */
-      if (mpoly->flag & ME_HIDE || ((mpoly->flag & ME_FACE_SEL) == 0)) {
-        continue;
+        /* Do not check faces that are hidden and faces that aren't selected */
+        if (mpoly->flag & ME_HIDE || ((mpoly->flag & ME_FACE_SEL) == 0)) {
+          continue;
+        }
+
+        for (int loop_index = mpoly->loopstart, loop_index_end = mpoly->loopstart + mpoly->totloop;
+             loop_index < loop_index_end;
+             loop_index++) {
+          const MLoop *mloop = &rdata->mloop[loop_index];
+          const int e_a = mloop->e * 2;
+          const int e_b = e_a + 1;
+          if (!BLI_BITMAP_TEST(edges_used, e_a)) {
+            BLI_BITMAP_ENABLE(edges_used, e_a);
+          }
+          else {
+            BLI_BITMAP_ENABLE(edges_used, e_b);
+          }
+        }
       }
 
-      for (int loop_index = mpoly->loopstart, loop_index_end = mpoly->loopstart + mpoly->totloop;
-           loop_index < loop_index_end;
-           loop_index++) {
-        const MLoop *mloop = &rdata->mloop[loop_index];
-        const int e_a = mloop->e * 2;
-        const int e_b = e_a + 1;
-        if (!BLI_BITMAP_TEST(edges_used, e_a)) {
-          BLI_BITMAP_ENABLE(edges_used, e_a);
-        }
-        else {
-          BLI_BITMAP_ENABLE(edges_used, e_b);
+      for (int poly = 0; poly < poly_len; poly++) {
+        const MPoly *mpoly = &rdata->mpoly[poly];
+        if (!(mpoly->flag & ME_HIDE)) {
+
+          for (int loop_index_next = mpoly->loopstart,
+                   loop_index_end = mpoly->loopstart + mpoly->totloop,
+                   loop_index_curr = loop_index_end - 1;
+               loop_index_next < loop_index_end;
+               loop_index_curr = loop_index_next++) {
+            const MLoop *mloop = &rdata->mloop[loop_index_curr];
+            const int e_a = mloop->e * 2;
+            const int e_b = e_a + 1;
+
+            /* Draw if a boundary or entirely unselected. */
+            if (!BLI_BITMAP_TEST(edges_used, e_b)) {
+              GPU_indexbuf_add_line_verts(&elb, loop_index_curr, loop_index_next);
+            }
+          }
         }
       }
+
+      MEM_freeN(edges_used);
     }
-
-    for (int poly = 0; poly < poly_len; poly++) {
-      const MPoly *mpoly = &rdata->mpoly[poly];
-      if (!(mpoly->flag & ME_HIDE)) {
-
+    else {
+      /* Add edges. */
+      for (int poly = 0; poly < poly_len; poly++) {
+        const MPoly *mpoly = &rdata->mpoly[poly];
         for (int loop_index_next = mpoly->loopstart,
                  loop_index_end = mpoly->loopstart + mpoly->totloop,
                  loop_index_curr = loop_index_end - 1;
              loop_index_next < loop_index_end;
              loop_index_curr = loop_index_next++) {
-          const MLoop *mloop = &rdata->mloop[loop_index_curr];
-          const int e_a = mloop->e * 2;
-          const int e_b = e_a + 1;
-
-          /* Draw if a boundary or entirely unselected. */
-          if (!BLI_BITMAP_TEST(edges_used, e_b)) {
-            GPU_indexbuf_add_line_verts(&elb, loop_index_curr, loop_index_next);
-          }
+          GPU_indexbuf_add_line_verts(&elb, loop_index_curr, loop_index_next);
         }
       }
     }
-
-    MEM_freeN(edges_used);
   }
 
   GPU_indexbuf_build_in_place(&elb, ibo);
