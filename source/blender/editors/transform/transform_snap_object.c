@@ -2820,7 +2820,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
   return 0;
 }
 
-bool ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
+short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                 const unsigned short snap_to,
                                                 const struct SnapObjectParams *params,
                                                 const float mval[2],
@@ -2856,7 +2856,7 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                              float r_no[3])
 {
   return ED_transform_snap_object_project_view3d_ex(
-      sctx, snap_to, params, mval, dist_px, r_loc, r_no, NULL, NULL, NULL);
+      sctx, snap_to, params, mval, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
 }
 
 /**

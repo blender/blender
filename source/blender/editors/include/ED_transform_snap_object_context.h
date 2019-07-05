@@ -121,7 +121,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
                                               bool sort,
                                               struct ListBase *r_hit_list);
 
-bool ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
+short ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                 const unsigned short snap_to,
                                                 const struct SnapObjectParams *params,
                                                 const float mval[2],
