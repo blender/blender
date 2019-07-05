@@ -1,14 +1,14 @@
 
 #ifndef LIT_SURFACE_UNIFORM
-#define LIT_SURFACE_UNIFORM
+#  define LIT_SURFACE_UNIFORM
 
 uniform float refractionDepth;
 
-#ifndef UTIL_TEX
-#  define UTIL_TEX
+#  ifndef UTIL_TEX
+#    define UTIL_TEX
 uniform sampler2DArray utilTex;
-#  define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
-#endif /* UTIL_TEX */
+#    define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
+#  endif /* UTIL_TEX */
 
 in vec3 worldPosition;
 in vec3 viewPosition;
@@ -16,7 +16,7 @@ in vec3 viewPosition;
 in vec3 worldNormal;
 in vec3 viewNormal;
 
-#ifdef HAIR_SHADER
+#  ifdef HAIR_SHADER
 in vec3 hairTangent; /* world space */
 in float hairThickTime;
 in float hairThickness;
@@ -24,7 +24,7 @@ in float hairTime;
 flat in int hairStrandID;
 
 uniform int hairThicknessRes = 1;
-#endif
+#  endif
 
 #endif /* LIT_SURFACE_UNIFORM */
 
@@ -33,82 +33,82 @@ uniform int hairThicknessRes = 1;
  * This leads to a lot of deadcode. Better idea would be to only generate the one needed.
  */
 #if !defined(SURFACE_DEFAULT)
-#define SURFACE_DEFAULT
-#define CLOSURE_NAME eevee_closure_default
-#define CLOSURE_DIFFUSE
-#define CLOSURE_GLOSSY
+#  define SURFACE_DEFAULT
+#  define CLOSURE_NAME eevee_closure_default
+#  define CLOSURE_DIFFUSE
+#  define CLOSURE_GLOSSY
 #endif /* SURFACE_DEFAULT */
 
 #if !defined(SURFACE_DEFAULT_CLEARCOAT) && !defined(CLOSURE_NAME)
-#define SURFACE_DEFAULT_CLEARCOAT
-#define CLOSURE_NAME eevee_closure_default_clearcoat
-#define CLOSURE_DIFFUSE
-#define CLOSURE_GLOSSY
-#define CLOSURE_CLEARCOAT
+#  define SURFACE_DEFAULT_CLEARCOAT
+#  define CLOSURE_NAME eevee_closure_default_clearcoat
+#  define CLOSURE_DIFFUSE
+#  define CLOSURE_GLOSSY
+#  define CLOSURE_CLEARCOAT
 #endif /* SURFACE_DEFAULT_CLEARCOAT */
 
 #if !defined(SURFACE_PRINCIPLED) && !defined(CLOSURE_NAME)
-#define SURFACE_PRINCIPLED
-#define CLOSURE_NAME eevee_closure_principled
-#define CLOSURE_DIFFUSE
-#define CLOSURE_GLOSSY
-#define CLOSURE_CLEARCOAT
-#define CLOSURE_REFRACTION
-#define CLOSURE_SUBSURFACE
+#  define SURFACE_PRINCIPLED
+#  define CLOSURE_NAME eevee_closure_principled
+#  define CLOSURE_DIFFUSE
+#  define CLOSURE_GLOSSY
+#  define CLOSURE_CLEARCOAT
+#  define CLOSURE_REFRACTION
+#  define CLOSURE_SUBSURFACE
 #endif /* SURFACE_PRINCIPLED */
 
 #if !defined(SURFACE_CLEARCOAT) && !defined(CLOSURE_NAME)
-#define SURFACE_CLEARCOAT
-#define CLOSURE_NAME eevee_closure_clearcoat
-#define CLOSURE_GLOSSY
-#define CLOSURE_CLEARCOAT
+#  define SURFACE_CLEARCOAT
+#  define CLOSURE_NAME eevee_closure_clearcoat
+#  define CLOSURE_GLOSSY
+#  define CLOSURE_CLEARCOAT
 #endif /* SURFACE_CLEARCOAT */
 
 #if !defined(SURFACE_DIFFUSE) && !defined(CLOSURE_NAME)
-#define SURFACE_DIFFUSE
-#define CLOSURE_NAME eevee_closure_diffuse
-#define CLOSURE_DIFFUSE
+#  define SURFACE_DIFFUSE
+#  define CLOSURE_NAME eevee_closure_diffuse
+#  define CLOSURE_DIFFUSE
 #endif /* SURFACE_DIFFUSE */
 
 #if !defined(SURFACE_SUBSURFACE) && !defined(CLOSURE_NAME)
-#define SURFACE_SUBSURFACE
-#define CLOSURE_NAME eevee_closure_subsurface
-#define CLOSURE_DIFFUSE
-#define CLOSURE_SUBSURFACE
+#  define SURFACE_SUBSURFACE
+#  define CLOSURE_NAME eevee_closure_subsurface
+#  define CLOSURE_DIFFUSE
+#  define CLOSURE_SUBSURFACE
 #endif /* SURFACE_SUBSURFACE */
 
 #if !defined(SURFACE_SKIN) && !defined(CLOSURE_NAME)
-#define SURFACE_SKIN
-#define CLOSURE_NAME eevee_closure_skin
-#define CLOSURE_DIFFUSE
-#define CLOSURE_SUBSURFACE
-#define CLOSURE_GLOSSY
+#  define SURFACE_SKIN
+#  define CLOSURE_NAME eevee_closure_skin
+#  define CLOSURE_DIFFUSE
+#  define CLOSURE_SUBSURFACE
+#  define CLOSURE_GLOSSY
 #endif /* SURFACE_SKIN */
 
 #if !defined(SURFACE_GLOSSY) && !defined(CLOSURE_NAME)
-#define SURFACE_GLOSSY
-#define CLOSURE_NAME eevee_closure_glossy
-#define CLOSURE_GLOSSY
+#  define SURFACE_GLOSSY
+#  define CLOSURE_NAME eevee_closure_glossy
+#  define CLOSURE_GLOSSY
 #endif /* SURFACE_GLOSSY */
 
 #if !defined(SURFACE_REFRACT) && !defined(CLOSURE_NAME)
-#define SURFACE_REFRACT
-#define CLOSURE_NAME eevee_closure_refraction
-#define CLOSURE_REFRACTION
+#  define SURFACE_REFRACT
+#  define CLOSURE_NAME eevee_closure_refraction
+#  define CLOSURE_REFRACTION
 #endif /* SURFACE_REFRACT */
 
 #if !defined(SURFACE_GLASS) && !defined(CLOSURE_NAME)
-#define SURFACE_GLASS
-#define CLOSURE_NAME eevee_closure_glass
-#define CLOSURE_GLOSSY
-#define CLOSURE_REFRACTION
+#  define SURFACE_GLASS
+#  define CLOSURE_NAME eevee_closure_glass
+#  define CLOSURE_GLOSSY
+#  define CLOSURE_REFRACTION
 #endif /* SURFACE_GLASS */
 
 /* Safety : CLOSURE_CLEARCOAT implies CLOSURE_GLOSSY */
 #ifdef CLOSURE_CLEARCOAT
-#ifndef CLOSURE_GLOSSY
-#  define CLOSURE_GLOSSY
-#endif
+#  ifndef CLOSURE_GLOSSY
+#    define CLOSURE_GLOSSY
+#  endif
 #endif /* CLOSURE_CLEARCOAT */
 
 void CLOSURE_NAME(vec3 N
@@ -184,7 +184,7 @@ void CLOSURE_NAME(vec3 N
 
 #ifdef SHADOW_SHADER
   return;
-#endif
+#else
 
   /* Zero length vectors cause issues, see: T51979. */
   float len = length(N);
@@ -193,23 +193,23 @@ void CLOSURE_NAME(vec3 N
   }
   N /= len;
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   len = length(C_N);
   if (isnan(len)) {
     return;
   }
   C_N /= len;
-#endif
+#  endif
 
-#if defined(CLOSURE_GLOSSY) || defined(CLOSURE_REFRACTION)
+#  if defined(CLOSURE_GLOSSY) || defined(CLOSURE_REFRACTION)
   roughness = clamp(roughness, 1e-8, 0.9999);
   float roughnessSquared = roughness * roughness;
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   C_roughness = clamp(C_roughness, 1e-8, 0.9999);
   float C_roughnessSquared = C_roughness * C_roughness;
-#endif
+#  endif
 
   vec3 V = cameraVec;
 
@@ -219,16 +219,16 @@ void CLOSURE_NAME(vec3 N
   /* -------------------- SCENE LIGHTS LIGHTING --------------------- */
   /* ---------------------------------------------------------------- */
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   vec2 lut_uv = lut_coords_ltc(dot(N, V), roughness);
   vec4 ltc_mat = texture(utilTex, vec3(lut_uv, 0.0)).rgba;
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   vec2 lut_uv_clear = lut_coords_ltc(dot(C_N, V), C_roughness);
   vec4 ltc_mat_clear = texture(utilTex, vec3(lut_uv_clear, 0.0)).rgba;
   vec3 out_spec_clear = vec3(0.0);
-#endif
+#  endif
 
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
     LightData ld = lights_data[i];
@@ -245,34 +245,34 @@ void CLOSURE_NAME(vec3 N
 
     vec3 l_color_vis = ld.l_color * l_vis;
 
-#ifdef CLOSURE_DIFFUSE
+#  ifdef CLOSURE_DIFFUSE
     out_diff += l_color_vis * light_diffuse(ld, N, V, l_vector);
-#endif
+#  endif
 
-#ifdef CLOSURE_SUBSURFACE
+#  ifdef CLOSURE_SUBSURFACE
     out_trans += ld.l_color * light_translucent(ld, worldPosition, -N, l_vector, sss_scale);
-#endif
+#  endif
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
     out_spec += l_color_vis * light_specular(ld, ltc_mat, N, V, l_vector) * ld.l_spec;
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
     out_spec_clear += l_color_vis * light_specular(ld, ltc_mat_clear, C_N, V, l_vector) *
                       ld.l_spec;
-#endif
+#  endif
   }
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   vec2 brdf_lut_lights = texture(utilTex, vec3(lut_uv, 1.0)).ba;
   out_spec *= F_area(f0, f90, brdf_lut_lights.xy);
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   vec2 brdf_lut_lights_clear = texture(utilTex, vec3(lut_uv_clear, 1.0)).ba;
   out_spec_clear *= F_area(vec3(0.04), vec3(1.0), brdf_lut_lights_clear.xy);
   out_spec += out_spec_clear * C_intensity;
-#endif
+#  endif
 
   /* ---------------------------------------------------------------- */
   /* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
@@ -280,19 +280,19 @@ void CLOSURE_NAME(vec3 N
 
   /* Accumulate incoming light from all sources until accumulator is full. Then apply Occlusion and
    * BRDF. */
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   vec4 spec_accum = vec4(0.0);
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   vec4 C_spec_accum = vec4(0.0);
-#endif
+#  endif
 
-#ifdef CLOSURE_REFRACTION
+#  ifdef CLOSURE_REFRACTION
   vec4 refr_accum = vec4(0.0);
-#endif
+#  endif
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   /* ---------------------------- */
   /*      Planar Reflections      */
   /* ---------------------------- */
@@ -310,23 +310,23 @@ void CLOSURE_NAME(vec3 N
         accumulate_light(spec, fade, spec_accum);
       }
 
-#ifdef CLOSURE_CLEARCOAT
+#    ifdef CLOSURE_CLEARCOAT
       vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, C_roughness, fade);
       accumulate_light(C_spec, fade, C_spec_accum);
-#endif
+#    endif
     }
   }
-#endif
+#  endif
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   vec3 C_spec_dir = get_specular_reflection_dominant_dir(C_N, V, C_roughnessSquared);
-#endif
+#  endif
 
-#ifdef CLOSURE_REFRACTION
+#  ifdef CLOSURE_REFRACTION
   /* Refract the view vector using the depth heuristic.
    * Then later Refract a second time the already refracted
    * ray using the inverse ior. */
@@ -337,13 +337,13 @@ void CLOSURE_NAME(vec3 N
                           worldPosition, refr_V, worldPosition - N * refractionDepth, N) :
                       worldPosition;
   vec3 refr_dir = get_specular_refraction_dominant_dir(N, refr_V, roughness, final_ior);
-#endif
+#  endif
 
-#ifdef CLOSURE_REFRACTION
+#  ifdef CLOSURE_REFRACTION
 /* ---------------------------- */
 /*   Screen Space Refraction    */
 /* ---------------------------- */
-#ifdef USE_REFRACTION
+#    ifdef USE_REFRACTION
   if (ssrToggle && roughness < ssrMaxRoughness + 0.2) {
     /* Find approximated position of the 2nd refraction event. */
     vec3 refr_vpos = (refractionDepth > 0.0) ? transform_point(ViewMatrix, refr_pos) :
@@ -352,25 +352,25 @@ void CLOSURE_NAME(vec3 N
     trans.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness);
     accumulate_light(trans.rgb, trans.a, refr_accum);
   }
-#endif
+#    endif
 
-#endif
+#  endif
 
   /* ---------------------------- */
   /*       Specular probes        */
   /* ---------------------------- */
-#if defined(CLOSURE_GLOSSY) || defined(CLOSURE_REFRACTION)
+#  if defined(CLOSURE_GLOSSY) || defined(CLOSURE_REFRACTION)
 
-#if defined(CLOSURE_GLOSSY) && defined(CLOSURE_REFRACTION)
-#  define GLASS_ACCUM 1
-#  define ACCUM min(refr_accum.a, spec_accum.a)
-#elif defined(CLOSURE_REFRACTION)
-#  define GLASS_ACCUM 0
-#  define ACCUM refr_accum.a
-#else
-#  define GLASS_ACCUM 0
-#  define ACCUM spec_accum.a
-#endif
+#    if defined(CLOSURE_GLOSSY) && defined(CLOSURE_REFRACTION)
+#      define GLASS_ACCUM 1
+#      define ACCUM min(refr_accum.a, spec_accum.a)
+#    elif defined(CLOSURE_REFRACTION)
+#      define GLASS_ACCUM 0
+#      define ACCUM refr_accum.a
+#    else
+#      define GLASS_ACCUM 0
+#      define ACCUM spec_accum.a
+#    endif
 
   /* Starts at 1 because 0 is world probe */
   for (int i = 1; ACCUM < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
@@ -378,80 +378,80 @@ void CLOSURE_NAME(vec3 N
 
     if (fade > 0.0) {
 
-#if GLASS_ACCUM
+#    if GLASS_ACCUM
       if (spec_accum.a < 0.999) {
-#endif
-#ifdef CLOSURE_GLOSSY
+#    endif
+#    ifdef CLOSURE_GLOSSY
         if (!(ssrToggle && ssr_id == outputSsrId)) {
           vec3 spec = probe_evaluate_cube(i, worldPosition, spec_dir, roughness);
           accumulate_light(spec, fade, spec_accum);
         }
-#endif
+#    endif
 
-#ifdef CLOSURE_CLEARCOAT
+#    ifdef CLOSURE_CLEARCOAT
         vec3 C_spec = probe_evaluate_cube(i, worldPosition, C_spec_dir, C_roughness);
         accumulate_light(C_spec, fade, C_spec_accum);
-#endif
-#if GLASS_ACCUM
+#    endif
+#    if GLASS_ACCUM
       }
-#endif
+#    endif
 
-#if GLASS_ACCUM
+#    if GLASS_ACCUM
       if (refr_accum.a < 0.999) {
-#endif
-#ifdef CLOSURE_REFRACTION
+#    endif
+#    ifdef CLOSURE_REFRACTION
         vec3 trans = probe_evaluate_cube(i, refr_pos, refr_dir, roughnessSquared);
         accumulate_light(trans, fade, refr_accum);
-#endif
-#if GLASS_ACCUM
+#    endif
+#    if GLASS_ACCUM
       }
-#endif
+#    endif
     }
   }
 
-#undef GLASS_ACCUM
-#undef ACCUM
+#    undef GLASS_ACCUM
+#    undef ACCUM
 
 /* ---------------------------- */
 /*          World Probe         */
 /* ---------------------------- */
-#ifdef CLOSURE_GLOSSY
+#    ifdef CLOSURE_GLOSSY
   if (spec_accum.a < 0.999) {
     if (!(ssrToggle && ssr_id == outputSsrId)) {
       vec3 spec = probe_evaluate_world_spec(spec_dir, roughness);
       accumulate_light(spec, 1.0, spec_accum);
     }
 
-#  ifdef CLOSURE_CLEARCOAT
+#      ifdef CLOSURE_CLEARCOAT
     vec3 C_spec = probe_evaluate_world_spec(C_spec_dir, C_roughness);
     accumulate_light(C_spec, 1.0, C_spec_accum);
-#  endif
+#      endif
   }
-#endif
+#    endif
 
-#ifdef CLOSURE_REFRACTION
+#    ifdef CLOSURE_REFRACTION
   if (refr_accum.a < 0.999) {
     vec3 trans = probe_evaluate_world_spec(refr_dir, roughnessSquared);
     accumulate_light(trans, 1.0, refr_accum);
   }
-#endif
-#endif /* Specular probes */
+#    endif
+#  endif /* Specular probes */
 
   /* ---------------------------- */
   /*       Ambient Occlusion      */
   /* ---------------------------- */
-#if defined(CLOSURE_GLOSSY) || defined(CLOSURE_DIFFUSE)
+#  if defined(CLOSURE_GLOSSY) || defined(CLOSURE_DIFFUSE)
   /* HACK: Fix for translucent BSDF. (see T65631) */
   bool same_side = dot((gl_FrontFacing) ? worldNormal : -worldNormal, N) > 0.0;
   vec3 bent_normal;
   float final_ao = occlusion_compute(same_side ? N : -N, viewPosition, ao, rand, bent_normal);
-#endif
+#  endif
 
   /* ---------------------------- */
   /*        Specular Output       */
   /* ---------------------------- */
   float NV = dot(N, V);
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   vec2 uv = lut_coords(NV, roughness);
   vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
 
@@ -466,15 +466,15 @@ void CLOSURE_NAME(vec3 N
   }
 
   out_spec += spec_accum.rgb * ssr_spec * spec_occlu;
-#endif
+#  endif
 
-#ifdef CLOSURE_REFRACTION
+#  ifdef CLOSURE_REFRACTION
   float btdf = get_btdf_lut(utilTex, NV, roughness, ior);
 
   out_refr += refr_accum.rgb * btdf;
-#endif
+#  endif
 
-#ifdef CLOSURE_CLEARCOAT
+#  ifdef CLOSURE_CLEARCOAT
   NV = dot(C_N, V);
   vec2 C_uv = lut_coords(NV, C_roughness);
   vec2 C_brdf_lut = texture(utilTex, vec3(C_uv, 1.0)).rg;
@@ -482,19 +482,19 @@ void CLOSURE_NAME(vec3 N
                    specular_occlusion(NV, final_ao, C_roughness);
 
   out_spec += C_spec_accum.rgb * C_fresnel * C_intensity;
-#endif
+#  endif
 
-#ifdef CLOSURE_GLOSSY
+#  ifdef CLOSURE_GLOSSY
   /* Global toggle for lightprobe baking. */
   out_spec *= float(specToggle);
-#endif
+#  endif
 
   /* ---------------------------------------------------------------- */
   /* ---------------- DIFFUSE ENVIRONMENT LIGHTING ------------------ */
   /* ---------------------------------------------------------------- */
 
   /* Accumulate light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
-#ifdef CLOSURE_DIFFUSE
+#  ifdef CLOSURE_DIFFUSE
   vec4 diff_accum = vec4(0.0);
 
   /* ---------------------------- */
@@ -522,6 +522,7 @@ void CLOSURE_NAME(vec3 N
   }
 
   out_diff += diff_accum.rgb * gtao_multibounce(final_ao, albedo);
+#  endif
 #endif
 }
 
@@ -529,21 +530,21 @@ void CLOSURE_NAME(vec3 N
 #undef CLOSURE_NAME
 
 #ifdef CLOSURE_DIFFUSE
-#undef CLOSURE_DIFFUSE
+#  undef CLOSURE_DIFFUSE
 #endif
 
 #ifdef CLOSURE_GLOSSY
-#undef CLOSURE_GLOSSY
+#  undef CLOSURE_GLOSSY
 #endif
 
 #ifdef CLOSURE_CLEARCOAT
-#undef CLOSURE_CLEARCOAT
+#  undef CLOSURE_CLEARCOAT
 #endif
 
 #ifdef CLOSURE_REFRACTION
-#undef CLOSURE_REFRACTION
+#  undef CLOSURE_REFRACTION
 #endif
 
 #ifdef CLOSURE_SUBSURFACE
-#undef CLOSURE_SUBSURFACE
+#  undef CLOSURE_SUBSURFACE
 #endif
