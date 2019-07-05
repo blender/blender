@@ -359,12 +359,12 @@ typedef struct GpencilBatchCacheElem {
 } GpencilBatchCacheElem;
 
 typedef struct GpencilBatchGroup {
-  bGPDlayer *gpl;  /* reference to original layer */
-  bGPDframe *gpf;  /* reference to original frame */
-  bGPDstroke *gps; /* reference to original stroke */
-  short type;      /* type of element */
-  bool onion;      /* the group is part of onion skin */
-  int vertex_idx;  /* index of vertex data */
+  struct bGPDlayer *gpl;  /* reference to original layer */
+  struct bGPDframe *gpf;  /* reference to original frame */
+  struct bGPDstroke *gps; /* reference to original stroke */
+  short type;             /* type of element */
+  bool onion;             /* the group is part of onion skin */
+  int vertex_idx;         /* index of vertex data */
 } GpencilBatchGroup;
 
 typedef enum GpencilBatchGroup_Type {
@@ -506,6 +506,10 @@ void GPENCIL_render_to_image(void *vedata,
                              struct RenderEngine *engine,
                              struct RenderLayer *render_layer,
                              const rcti *rect);
+
+/* TODO: GPXX workaround function to call free memory from draw manager while draw manager support
+ * scene finish callback. */
+void DRW_gpencil_free_runtime_data(void *ved);
 
 /* Use of multisample framebuffers. */
 #define MULTISAMPLE_GP_SYNC_ENABLE(lvl, fbl) \

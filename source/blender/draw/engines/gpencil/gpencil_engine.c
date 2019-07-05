@@ -771,8 +771,11 @@ static void gpencil_prepare_fast_drawing(GPENCIL_StorageList *stl,
   }
 }
 
-static void gpencil_free_runtime_data(GPENCIL_StorageList *stl)
+void DRW_gpencil_free_runtime_data(void *ved)
 {
+  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
+  GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+
   /* free gpu data */
   DRW_TEXTURE_FREE_SAFE(stl->g_data->gpencil_blank_texture);
 
@@ -976,8 +979,6 @@ void GPENCIL_draw_scene(void *ved)
   /* if the draw is for select, do a basic drawing and return */
   if (DRW_state_is_select() || DRW_state_is_depth()) {
     drw_gpencil_select_render(stl, psl);
-    /* free memory */
-    gpencil_free_runtime_data(stl);
     return;
   }
 
@@ -1010,7 +1011,7 @@ void GPENCIL_draw_scene(void *ved)
     }
 
     /* free memory */
-    gpencil_free_runtime_data(stl);
+    DRW_gpencil_free_runtime_data(ved);
 
     return;
   }
@@ -1159,7 +1160,7 @@ void GPENCIL_draw_scene(void *ved)
     }
   }
   /* free memory */
-  gpencil_free_runtime_data(stl);
+  DRW_gpencil_free_runtime_data(ved);
 
   /* reset  */
   if (DRW_state_is_fbo()) {
