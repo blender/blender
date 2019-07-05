@@ -43,6 +43,11 @@ void main()
 #  endif
 #endif
 
+  /* Needed for Radeon (TM) RX 480 Graphics. */
+#if defined(GPU_ATI)
+  gl_PointSize = sizeVertex * 2.0;
+#endif
+
 #ifdef USE_WORLD_CLIP_PLANES
   world_clip_planes_calc_clip_distance(world_pos);
 #endif
