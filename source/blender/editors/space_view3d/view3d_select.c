@@ -1602,30 +1602,61 @@ static const EnumPropertyItem *object_select_menu_enum_itemf(bContext *C,
 static int object_select_menu_exec(bContext *C, wmOperator *op)
 {
   const int name_index = RNA_enum_get(op->ptr, "name");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
   bool changed = false;
   const char *name = object_mouse_select_menu_data[name_index].idname;
 
-  if (!toggle) {
-    CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
-      if ((base->flag & BASE_SELECTED) != 0) {
-        ED_object_base_select(base, BA_DESELECT);
-        changed = true;
-      }
-    }
-    CTX_DATA_END;
-  }
+  View3D *v3d = CTX_wm_view3d(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const Base *oldbasact = BASACT(view_layer);
 
+  Base *basact = NULL;
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     /* This is a bit dodgy, there should only be ONE object with this name,
      * but library objects can mess this up. */
     if (STREQ(name, base->object->id.name + 2)) {
-      ED_object_base_activate(C, base);
-      ED_object_base_select(base, BA_SELECT);
-      changed = true;
+      basact = base;
+      break;
     }
   }
   CTX_DATA_END;
+
+  if (basact == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+  BLI_assert(BASE_SELECTABLE(v3d, basact));
+
+  if (extend) {
+    ED_object_base_select(basact, BA_SELECT);
+    changed = true;
+  }
+  else if (deselect) {
+    ED_object_base_select(basact, BA_DESELECT);
+    changed = true;
+  }
+  else if (toggle) {
+    if (basact->flag & BASE_SELECTED) {
+      if (basact == oldbasact) {
+        ED_object_base_select(basact, BA_DESELECT);
+        changed = true;
+      }
+    }
+    else {
+      ED_object_base_select(basact, BA_SELECT);
+      changed = true;
+    }
+  }
+  else {
+    object_deselect_all_except(view_layer, basact);
+    ED_object_base_select(basact, BA_SELECT);
+    changed = true;
+  }
+
+  if ((oldbasact != basact)) {
+    ED_object_base_activate(C, basact);
+  }
 
   /* weak but ensures we activate menu again before using the enum */
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
@@ -1664,12 +1695,19 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 
-  RNA_def_boolean(
-      ot->srna, "toggle", 0, "Toggle", "Toggle selection instead of deselecting everything first");
+  RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 }
 
-static Base *object_mouse_select_menu(
-    bContext *C, ViewContext *vc, uint *buffer, int hits, const int mval[2], bool toggle)
+static Base *object_mouse_select_menu(bContext *C,
+                                      ViewContext *vc,
+                                      uint *buffer,
+                                      int hits,
+                                      const int mval[2],
+                                      bool extend,
+                                      bool deselect,
+                                      bool toggle)
 {
   short baseCount = 0;
   bool ok;
@@ -1739,6 +1777,8 @@ static Base *object_mouse_select_menu(
       PointerRNA ptr;
 
       WM_operator_properties_create_ptr(&ptr, ot);
+      RNA_boolean_set(&ptr, "extend", extend);
+      RNA_boolean_set(&ptr, "deselect", deselect);
       RNA_boolean_set(&ptr, "toggle", toggle);
       WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
       WM_operator_properties_free(&ptr);
@@ -2122,7 +2162,7 @@ static bool ed_object_select_pick(bContext *C,
 
     /* note; shift+alt goes to group-flush-selecting */
     if (enumerate) {
-      basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, toggle);
+      basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, extend, deselect, toggle);
     }
     else {
       base = startbase;
@@ -2190,7 +2230,7 @@ static bool ed_object_select_pick(bContext *C,
 
       /* note; shift+alt goes to group-flush-selecting */
       if (enumerate) {
-        basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, toggle);
+        basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, extend, deselect, toggle);
       }
       else {
         basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, has_bones, do_nearest);
