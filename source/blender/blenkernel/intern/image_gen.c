@@ -46,11 +46,9 @@ static void image_buf_fill_color_slice(
 
   /* blank image */
   if (rect_float) {
-    float linear_color[4];
-    srgb_to_linearrgb_v4(linear_color, color);
     for (y = 0; y < height; y++) {
       for (x = 0; x < width; x++) {
-        copy_v4_v4(rect_float, linear_color);
+        copy_v4_v4(rect_float, color);
         rect_float += 4;
       }
     }

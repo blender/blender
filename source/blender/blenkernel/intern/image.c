@@ -617,6 +617,7 @@ static ImBuf *add_ibuf_size(unsigned int width,
   ImBuf *ibuf;
   unsigned char *rect = NULL;
   float *rect_float = NULL;
+  float fill_color[4];
 
   if (floatbuf) {
     ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
@@ -631,6 +632,15 @@ static ImBuf *add_ibuf_size(unsigned int width,
     if (ibuf != NULL) {
       rect_float = ibuf->rect_float;
       IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
+    }
+
+    if (IMB_colormanagement_space_name_is_data(colorspace_settings->name)) {
+      copy_v4_v4(fill_color, color);
+    }
+    else {
+      /* The input color here should ideally be linear already, but for now
+       * we just convert and postpone breaking the API for later. */
+      srgb_to_linearrgb_v4(fill_color, color);
     }
   }
   else {
@@ -647,6 +657,8 @@ static ImBuf *add_ibuf_size(unsigned int width,
       rect = (unsigned char *)ibuf->rect;
       IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
     }
+
+    copy_v4_v4(fill_color, color);
   }
 
   if (!ibuf) {
@@ -663,7 +675,7 @@ static ImBuf *add_ibuf_size(unsigned int width,
       BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
       break;
     default:
-      BKE_image_buf_fill_color(rect, rect_float, width, height, color);
+      BKE_image_buf_fill_color(rect, rect_float, width, height, fill_color);
       break;
   }
 
