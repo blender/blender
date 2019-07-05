@@ -71,7 +71,7 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_HANDLE_SIZE_HOTSPOT (0.6f * U.widget_unit)
 
 /** Don't allow scroll thumb to show below this size (so it's never too small to click on). */
-#define V2D_SCROLL_THUMB_SIZE_MIN (50.0 * UI_DPI_FAC)
+#define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_DPI_FAC)
 
 /* ------ Define for UI_view2d_sync ----- */
 
