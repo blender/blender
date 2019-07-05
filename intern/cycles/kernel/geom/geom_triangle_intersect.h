@@ -232,27 +232,36 @@ ccl_device_inline int ray_triangle_intersect8(KernelGlobals *kg,
     mask_final_256 = _mm256_andnot_si256(mask0, mask_final_256);  //(~mask_minmaxUVW_pos) &(~mask)
     mask_final_256 = _mm256_andnot_si256(
         maskden256, mask_final_256);  //(~mask_minmaxUVW_pos) &(~mask) & (~maskden)
-    unsigned char mask_final = _mm256_movemask_ps(_mm256_castsi256_ps(mask_final_256));
+    int mask_final = _mm256_movemask_ps(_mm256_castsi256_ps(mask_final_256));
     if ((mask_final & prim_num_mask) == 0) {
       return false;
     }
-    const int i = __bsf(mask_final);
-    __m256 inv_den_256 = _mm256_rcp_ps(den_256);
-    U_256 = _mm256_mul_ps(U_256, inv_den_256);
-    V_256 = _mm256_mul_ps(V_256, inv_den_256);
-    T_256 = _mm256_mul_ps(T_256, inv_den_256);
-    _mm256_store_ps(U8, U_256);
-    _mm256_store_ps(V8, V_256);
-    _mm256_store_ps(T8, T_256);
-    /* NOTE: Here we assume visibility for all triangles in the node is
-     * the same. */
-    (*isect)->u = U8[i];
-    (*isect)->v = V8[i];
-    (*isect)->t = T8[i];
-    (*isect)->prim = (prim_addr + i);
-    (*isect)->object = object;
-    (*isect)->type = PRIMITIVE_TRIANGLE;
-    return true;
+    while (mask_final != 0) {
+      const int i = __bscf(mask_final);
+      if (i >= prim_num) {
+        return false;
+      }
+#  ifdef __VISIBILITY_FLAG__
+      if ((kernel_tex_fetch(__prim_visibility, (prim_addr + i)) & visibility) == 0) {
+        continue;
+      }
+#  endif
+      __m256 inv_den_256 = _mm256_rcp_ps(den_256);
+      U_256 = _mm256_mul_ps(U_256, inv_den_256);
+      V_256 = _mm256_mul_ps(V_256, inv_den_256);
+      T_256 = _mm256_mul_ps(T_256, inv_den_256);
+      _mm256_store_ps(U8, U_256);
+      _mm256_store_ps(V8, V_256);
+      _mm256_store_ps(T8, T_256);
+      (*isect)->u = U8[i];
+      (*isect)->v = V8[i];
+      (*isect)->t = T8[i];
+      (*isect)->prim = (prim_addr + i);
+      (*isect)->object = object;
+      (*isect)->type = PRIMITIVE_TRIANGLE;
+      return true;
+    }
+    return false;
   }
   else {
     _mm256_store_ps(den8, den_256);
