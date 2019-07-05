@@ -2042,8 +2042,6 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   if (ed) {
     /* draw the data */
     draw_seq_strips(C, ed, ar);
-    draw_cache_view(C);
-
     /* text draw cached (for sequence names), in pixelspace now */
     UI_view2d_text_cache_draw(ar);
   }
@@ -2063,8 +2061,12 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
   }
   ED_markers_draw(C, marker_draw_flag);
 
-  /* preview range */
   UI_view2d_view_ortho(v2d);
+  /* draw cache on top of markers area */
+  if (ed) {
+    draw_cache_view(C);
+  }
+  /* preview range */
   ANIM_draw_previewrange(C, v2d, 1);
 
   /* overlap playhead */
