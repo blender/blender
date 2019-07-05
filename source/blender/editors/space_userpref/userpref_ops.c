@@ -26,6 +26,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "RNA_types.h"
@@ -45,8 +46,10 @@
 
 static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  Main *bmain = CTX_data_main(C);
   UI_theme_init_default();
   UI_style_init_default();
+  WM_reinit_gizmomap_all(bmain);
   WM_event_add_notifier(C, NC_WINDOW, NULL);
   U.runtime.is_dirty = true;
   return OPERATOR_FINISHED;
