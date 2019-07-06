@@ -1635,6 +1635,7 @@ def write_sphinx_conf_py(basepath):
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
     fw("html_split_index = True\n")
+    fw("html_static_path = ['static']\n")
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
     fw("html_logo = 'static/blender_logo.svg'\n\n")
@@ -1657,11 +1658,12 @@ class PatchedPythonDomain(PythonDomain):
             del node['refspecific']
         return super(PatchedPythonDomain, self).resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
-
-def setup(sphinx):
-    sphinx.override_domain(PatchedPythonDomain)
 """)
     # end workaround
+
+    fw("def setup(app):\n")
+    fw("    app.add_stylesheet('css/theme_overrides.css')\n")
+    fw("    app.override_domain(PatchedPythonDomain)\n\n")
 
     file.close()
 
