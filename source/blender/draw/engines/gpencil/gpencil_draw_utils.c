@@ -240,7 +240,7 @@ static void gpencil_recalc_geometry_caches(Object *ob,
   if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
     /* Calculate triangles cache for filling area (must be done only after changes) */
     if ((gps->tot_triangles == 0) || (gps->triangles == NULL)) {
-      if ((gps->totpoints > 2) &&
+      if ((gps->totpoints > 2) && (gp_style->flag & GP_STYLE_FILL_SHOW) &&
           ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0) ||
            (gpl->blend_mode != eGplBlendMode_Regular))) {
         gpencil_triangulate_stroke_fill(ob, gps);
