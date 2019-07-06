@@ -320,8 +320,6 @@ EXTRA_SOURCE_FILES = (
     "../../../release/scripts/templates_py/ui_previews_custom_icon.py",
     "../examples/bmesh.ops.1.py",
     "../examples/bpy.app.translations.py",
-    "../static/favicon.ico",
-    "../static/blender_logo.svg",
 )
 
 
@@ -1637,9 +1635,9 @@ def write_sphinx_conf_py(basepath):
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
     fw("html_split_index = True\n")
-    fw("html_extra_path = ['__/static/favicon.ico', '__/static/blender_logo.svg']\n")
-    fw("html_favicon = '__/static/favicon.ico'\n")
-    fw("html_logo = '__/static/blender_logo.svg'\n\n")
+    fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
+    fw("html_favicon = 'static/favicon.ico'\n")
+    fw("html_logo = 'static/blender_logo.svg'\n\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
@@ -1922,6 +1920,12 @@ def copy_handwritten_extra(basepath):
         shutil.copy2(f_src, f_dst)
 
 
+def copy_theme_assets(basepath):
+    shutil.copytree(os.path.join(SCRIPT_DIR, "static"),
+                    os.path.join(basepath, "static"),
+                    copy_function=shutil.copy)
+
+
 def rna2sphinx(basepath):
 
     try:
@@ -1955,6 +1959,9 @@ def rna2sphinx(basepath):
 
     # copy source files referenced
     copy_handwritten_extra(basepath)
+
+    # copy extra files needed for theme
+    copy_theme_assets(basepath)
 
 
 def align_sphinx_in_to_sphinx_in_tmp(dir_src, dir_dst):
