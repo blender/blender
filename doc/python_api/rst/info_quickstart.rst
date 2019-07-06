@@ -51,7 +51,7 @@ A quick list of helpful things to know before starting:
   | ``scripts/startup/bl_operators`` for operators.
 
   Exact location depends on platform, see:
-  :ref:`Configuration and Data Paths <blender_manual:getting-started_installing-config-directories>`.
+  :ref:`directory layout docs <blender_manual:blender-directory-layout>`.
 
 
 Running Scripts

@@ -45,7 +45,7 @@ scene manipulation, automation, defining your own toolset and customization.
 
 On startup Blender scans the ``scripts/startup/`` directory for Python modules and imports them.
 The exact location of this directory depends on your installation.
-See the :ref:`directory layout docs <blender_manual:getting-started_installing-config-directories>`.
+See the :ref:`directory layout docs <blender_manual:blender-directory-layout>`.
 
 
 Script Loading
