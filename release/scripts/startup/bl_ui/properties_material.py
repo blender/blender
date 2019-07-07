@@ -105,7 +105,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         if ob:
             is_sortable = len(ob.material_slots) > 1
             rows = 3
-            if (is_sortable):
+            if is_sortable:
                 rows = 5
 
             row = layout.row()

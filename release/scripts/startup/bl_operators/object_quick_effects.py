@@ -233,7 +233,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
                 nodes = mat.node_tree.nodes
                 for node in nodes:
-                    if (node.type == 'OUTPUT_MATERIAL'):
+                    if node.type == 'OUTPUT_MATERIAL':
                         node_out_mat = node
                         break
 

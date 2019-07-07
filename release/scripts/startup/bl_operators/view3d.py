@@ -168,7 +168,6 @@ class VIEW3D_OT_transform_gizmo_set(Operator):
         space_data = context.space_data
         space_data.show_gizmo = True
         attrs = ("show_gizmo_object_translate", "show_gizmo_object_rotate", "show_gizmo_object_scale")
-        attr_t, attr_r, attr_s = attrs
         attr_active = tuple(
             attrs[('TRANSLATE', 'ROTATE', 'SCALE').index(t)]
             for t in self.type
