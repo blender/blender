@@ -1151,38 +1151,27 @@ typedef struct wmOpPopUp {
 /* Only invoked by OK button in popups created with wm_block_dialog_create() */
 static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 {
-  wmOpPopUp *data = arg1;
-  uiBlock *block = arg2;
+  wmOperator *op;
+  {
+    /* Execute will free the operator.
+     * In this case, wm_operator_ui_popup_cancel wont run. */
+    wmOpPopUp *data = arg1;
+    op = data->op;
+    MEM_freeN(data);
+  }
 
+  uiBlock *block = arg2;
   /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
    * in case WM_operator_call_ex exits/reloads the current file (T49199). */
+
   UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
-
-  WM_operator_call_ex(C, data->op, true);
-
-  /* let execute handle freeing it */
-  // data->free_op = false;
-  // data->op = NULL;
-
-  /* in this case, wm_operator_ui_popup_cancel wont run */
-  MEM_freeN(data);
 
   /* Get context data *after* WM_operator_call_ex
    * which might have closed the current file and changed context. */
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, block);
 
-  /* check window before 'block->handle' incase the
-   * popup execution closed the window and freed the block. see T44688.
-   */
-  /* Post 2.78 TODO: Check if this fix and others related to T44688 are still
-   * needed or can be improved now that requesting context data has been corrected
-   * (see above). We're close to release so not a good time for experiments.
-   * -- Julian
-   */
-  if (BLI_findindex(&wm->windows, win) != -1) {
-    UI_popup_block_close(C, win, block);
-  }
+  WM_operator_call_ex(C, op, true);
 }
 
 /* Dialogs are popups that require user verification (click OK) before exec */
