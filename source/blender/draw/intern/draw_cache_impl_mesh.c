@@ -47,6 +47,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 
 #include "atomic_ops.h"
@@ -1813,6 +1814,36 @@ static bool add_edit_facedot_mapped(MeshRenderData *rdata,
 
   return true;
 }
+static bool add_edit_facedot_subdiv(MeshRenderData *rdata,
+                                    GPUVertBuf *vbo,
+                                    const uint fdot_pos_id,
+                                    const uint fdot_nor_flag_id,
+                                    const int vert,
+                                    const int poly,
+                                    const int base_vert_idx)
+{
+  BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+  const int *p_origindex = rdata->mapped.p_origindex;
+  const int p_orig = p_origindex[poly];
+  if (p_orig == ORIGINDEX_NONE) {
+    return false;
+  }
+  BMEditMesh *em = rdata->edit_bmesh;
+  const BMFace *efa = BM_face_at_index(em->bm, p_orig);
+  if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+    return false;
+  }
+
+  Mesh *me_cage = em->mesh_eval_cage;
+  const MVert *mvert = &me_cage->mvert[vert];
+
+  GPUPackedNormal nor = GPU_normal_convert_i10_s3(mvert->no);
+  nor.w = BM_elem_flag_test(efa, BM_ELEM_SELECT) ? ((efa == em->bm->act_face) ? -1 : 1) : 0;
+  GPU_vertbuf_attr_set(vbo, fdot_nor_flag_id, base_vert_idx, &nor);
+  GPU_vertbuf_attr_set(vbo, fdot_pos_id, base_vert_idx, mvert->co);
+
+  return true;
+}
 
 /** \} */
 
@@ -2722,7 +2753,10 @@ static void mesh_create_edit_vertex_loops(MeshRenderData *rdata,
 }
 
 /* TODO: We could use gl_PrimitiveID as index instead of using another VBO. */
-static void mesh_create_edit_facedots_select_id(MeshRenderData *rdata, GPUVertBuf *vbo)
+static void mesh_create_edit_facedots_select_id(MeshRenderData *rdata,
+                                                GPUVertBuf *vbo,
+                                                Scene *scene,
+                                                Object *ob)
 {
   const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
 
@@ -2757,12 +2791,32 @@ static void mesh_create_edit_facedots_select_id(MeshRenderData *rdata, GPUVertBu
   }
   else {
     const int *p_origindex = rdata->mapped.p_origindex;
-    for (int poly = 0; poly < poly_len; poly++) {
-      const int p_orig = p_origindex[poly];
-      if (p_orig != ORIGINDEX_NONE) {
-        const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
-        if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-          *((uint *)GPU_vertbuf_raw_step(&idx_step)) = p_orig;
+    if (modifiers_usesSubsurfFacedots(scene, ob)) {
+      Mesh *me_cage = rdata->mapped.me_cage;
+      const MPoly *mpoly = me_cage->mpoly;
+      for (int p = 0; p < poly_len; p++, mpoly++) {
+        const int p_orig = p_origindex[p];
+        if (p_orig != ORIGINDEX_NONE) {
+          const MLoop *mloop = me_cage->mloop + mpoly->loopstart;
+          for (int l = 0; l < mpoly->totloop; l++, mloop++) {
+            if (me_cage->mvert[mloop->v].flag & ME_VERT_FACEDOT) {
+              const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
+              if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+                *((uint *)GPU_vertbuf_raw_step(&idx_step)) = p_orig;
+              }
+            }
+          }
+        }
+      }
+    }
+    else {
+      for (int poly = 0; poly < poly_len; poly++) {
+        const int p_orig = p_origindex[poly];
+        if (p_orig != ORIGINDEX_NONE) {
+          const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
+          if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+            *((uint *)GPU_vertbuf_raw_step(&idx_step)) = p_orig;
+          }
         }
       }
     }
@@ -3372,7 +3426,10 @@ static void mesh_create_loop_vcol(MeshRenderData *rdata, GPUVertBuf *vbo)
 #undef USE_COMP_MESH_DATA
 }
 
-static void mesh_create_edit_facedots(MeshRenderData *rdata, GPUVertBuf *vbo_facedots_pos_nor_data)
+static void mesh_create_edit_facedots(MeshRenderData *rdata,
+                                      GPUVertBuf *vbo_facedots_pos_nor_data,
+                                      Scene *scene,
+                                      Object *ob)
 {
   const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
   const int verts_facedot_len = poly_len;
@@ -3414,21 +3471,37 @@ static void mesh_create_edit_facedots(MeshRenderData *rdata, GPUVertBuf *vbo_fac
     }
   }
   else {
-#if 0 /* TODO(fclem): Mapped facedots are not following the original face. */
-    Mesh *me_cage = rdata->mapped.me_cage;
-    const MVert *mvert = me_cage->mvert;
-    const MEdge *medge = me_cage->medge;
-    const int *e_origindex = rdata->mapped.e_origindex;
-    const int *v_origindex = rdata->mapped.v_origindex;
-#endif
-    for (int i = 0; i < poly_len; i++) {
-      if (add_edit_facedot_mapped(rdata,
-                                  vbo_facedots_pos_nor_data,
-                                  attr_id.fdot_pos,
-                                  attr_id.fdot_nor_flag,
-                                  i,
-                                  facedot_len_used)) {
-        facedot_len_used += 1;
+    if (modifiers_usesSubsurfFacedots(scene, ob)) {
+      /* Facedots that follow surbsurf face center. */
+      Mesh *me_cage = rdata->mapped.me_cage;
+      const MPoly *mpoly = me_cage->mpoly;
+      for (int p = 0; p < poly_len; p++, mpoly++) {
+        const MLoop *mloop = me_cage->mloop + mpoly->loopstart;
+        for (int l = 0; l < mpoly->totloop; l++, mloop++) {
+          if (me_cage->mvert[mloop->v].flag & ME_VERT_FACEDOT) {
+            if (add_edit_facedot_subdiv(rdata,
+                                        vbo_facedots_pos_nor_data,
+                                        attr_id.fdot_pos,
+                                        attr_id.fdot_nor_flag,
+                                        mloop->v,
+                                        p,
+                                        facedot_len_used)) {
+              facedot_len_used += 1;
+            }
+          }
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < poly_len; i++) {
+        if (add_edit_facedot_mapped(rdata,
+                                    vbo_facedots_pos_nor_data,
+                                    attr_id.fdot_pos,
+                                    attr_id.fdot_nor_flag,
+                                    i,
+                                    facedot_len_used)) {
+          facedot_len_used += 1;
+        }
       }
     }
   }
@@ -5447,10 +5520,12 @@ void DRW_mesh_batch_cache_create_requested(
                                   cache->edit.loop_face_idx);
   }
   if (DRW_vbo_requested(cache->edit.facedots_pos_nor_data)) {
-    mesh_create_edit_facedots(rdata, cache->edit.facedots_pos_nor_data);
+    Scene *scene = DRW_context_state_get()->scene;
+    mesh_create_edit_facedots(rdata, cache->edit.facedots_pos_nor_data, scene, ob);
   }
   if (DRW_vbo_requested(cache->edit.facedots_idx)) {
-    mesh_create_edit_facedots_select_id(rdata, cache->edit.facedots_idx);
+    Scene *scene = DRW_context_state_get()->scene;
+    mesh_create_edit_facedots_select_id(rdata, cache->edit.facedots_idx, scene, ob);
   }
   if (DRW_ibo_requested(cache->ibo.edit_loops_points) ||
       DRW_ibo_requested(cache->ibo.edit_loops_lines)) {

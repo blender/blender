@@ -778,6 +778,38 @@ bool modifiers_usesArmature(Object *ob, bArmature *arm)
   return false;
 }
 
+bool modifiers_usesSubsurfFacedots(struct Scene *scene, Object *ob)
+{
+  /* Search (backward) in the modifier stack to find if we have a subsurf modifier (enabled) before
+   * the last modifier displayed on cage (or if the subsurf is the last). */
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+  int cage_index = modifiers_getCageIndex(scene, ob, NULL, 1);
+  /* Find first modifier enabled on cage. */
+  for (int i; md && i < cage_index; i++) {
+    md = md->next;
+  }
+  /* Now from this point, search for subsurf modifier. */
+  for (; md; md = md->prev) {
+    const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+    if (md->type == eModifierType_Subsurf) {
+      ModifierMode mode = eModifierMode_Realtime | eModifierMode_Editmode;
+      if (modifier_isEnabled(scene, md, mode)) {
+        return true;
+      }
+    }
+    else if (mti->type == eModifierTypeType_OnlyDeform) {
+      /* Theses modifiers do not reset the subdiv flag nor change the topology.
+       * We can still search for a subsurf modifier. */
+    }
+    else {
+      /* Other modifiers may reset the subdiv facedot flag or create. */
+      return false;
+    }
+  }
+  return false;
+}
+
 bool modifier_isCorrectableDeformed(ModifierData *md)
 {
   const ModifierTypeInfo *mti = modifierType_getInfo(md->type);

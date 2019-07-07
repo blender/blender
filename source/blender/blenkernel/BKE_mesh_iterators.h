@@ -59,6 +59,11 @@ void BKE_mesh_foreach_mapped_face_center(
     void (*func)(void *userData, int index, const float cent[3], const float no[3]),
     void *userData,
     MeshForeachFlag flag);
+void BKE_mesh_foreach_mapped_subdiv_face_center(
+    struct Mesh *mesh,
+    void (*func)(void *userData, int index, const float cent[3], const float no[3]),
+    void *userData,
+    MeshForeachFlag flag);
 
 void BKE_mesh_foreach_mapped_vert_coords_get(struct Mesh *me_eval,
                                              float (*r_cos)[3],

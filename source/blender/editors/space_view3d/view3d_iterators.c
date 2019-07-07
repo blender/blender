@@ -38,6 +38,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_iterators.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -293,8 +294,15 @@ void mesh_foreachScreenFace(
   data.clip_flag = clip_flag;
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_FACE);
-  BKE_mesh_foreach_mapped_face_center(
-      me, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
+
+  if (modifiers_usesSubsurfFacedots(vc->scene, vc->obedit)) {
+    BKE_mesh_foreach_mapped_subdiv_face_center(
+        me, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
+  }
+  else {
+    BKE_mesh_foreach_mapped_face_center(
+        me, mesh_foreachScreenFace__mapFunc, &data, MESH_FOREACH_NOP);
+  }
 }
 
 /* ------------------------------------------------------------------------ */

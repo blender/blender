@@ -570,6 +570,8 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
     normalize_v3(N);
     normal_float_to_short_v3(subdiv_vert->no, N);
   }
+  /* Remove facedot flag. This can happen if there is more than one subsurf modifier. */
+  subdiv_vert->flag &= ~ME_VERT_FACEDOT;
 }
 
 static void evaluate_vertex_and_apply_displacement_interpolate(
@@ -719,6 +721,31 @@ static void subdiv_mesh_vertex_edge(const SubdivForeachContext *foreach_context,
       ctx, ptex_face_index, u, v, &tls->vertex_interpolation, subdiv_vert);
 }
 
+static bool subdiv_mesh_is_center_vertex(const MPoly *coarse_poly, const float u, const float v)
+{
+  if (coarse_poly->totloop == 4) {
+    if (u == 0.5f && v == 0.5f) {
+      return true;
+    }
+  }
+  else {
+    if (u == 1.0f && v == 1.0f) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void subdiv_mesh_tag_center_vertex(const MPoly *coarse_poly,
+                                          MVert *subdiv_vert,
+                                          const float u,
+                                          const float v)
+{
+  if (subdiv_mesh_is_center_vertex(coarse_poly, u, v)) {
+    subdiv_vert->flag |= ME_VERT_FACEDOT;
+  }
+}
+
 static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context,
                                      void *tls_v,
                                      const int ptex_face_index,
@@ -741,6 +768,7 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
   subdiv_vertex_data_interpolate(ctx, subdiv_vert, &tls->vertex_interpolation, u, v);
   eval_final_point_and_vertex_normal(
       subdiv, ptex_face_index, u, v, subdiv_vert->co, subdiv_vert->no);
+  subdiv_mesh_tag_center_vertex(coarse_poly, subdiv_vert, u, v);
 }
 
 /* =============================================================================
@@ -1098,8 +1126,8 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
     foreach_context->vertex_every_edge = subdiv_mesh_vertex_every_edge;
   }
   else {
-    foreach_context->vertex_every_corner = NULL;
-    foreach_context->vertex_every_edge = NULL;
+    foreach_context->vertex_every_corner = subdiv_mesh_vertex_every_corner;
+    foreach_context->vertex_every_edge = subdiv_mesh_vertex_every_edge;
   }
   foreach_context->vertex_corner = subdiv_mesh_vertex_corner;
   foreach_context->vertex_edge = subdiv_mesh_vertex_edge;

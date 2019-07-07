@@ -180,6 +180,54 @@ void BKE_mesh_foreach_mapped_face_center(
   }
 }
 
+/* Copied from cdDM_foreachMappedFaceCenter */
+void BKE_mesh_foreach_mapped_subdiv_face_center(
+    Mesh *mesh,
+    void (*func)(void *userData, int index, const float cent[3], const float no[3]),
+    void *userData,
+    MeshForeachFlag flag)
+{
+  const MPoly *mp = mesh->mpoly;
+  const MLoop *ml;
+  const MVert *mv;
+  float _no_buf[3];
+  float *no = (flag & MESH_FOREACH_USE_NORMAL) ? _no_buf : NULL;
+  const int *index = CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX);
+
+  if (index) {
+    for (int i = 0; i < mesh->totpoly; i++, mp++) {
+      const int orig = *index++;
+      if (orig == ORIGINDEX_NONE) {
+        continue;
+      }
+      ml = &mesh->mloop[mp->loopstart];
+      for (int j = 0; j < mp->totloop; j++, ml++) {
+        mv = &mesh->mvert[ml->v];
+        if (mv->flag & ME_VERT_FACEDOT) {
+          if (flag & MESH_FOREACH_USE_NORMAL) {
+            normal_short_to_float_v3(no, mv->no);
+          }
+          func(userData, orig, mv->co, no);
+        }
+      }
+    }
+  }
+  else {
+    for (int i = 0; i < mesh->totpoly; i++, mp++) {
+      ml = &mesh->mloop[mp->loopstart];
+      for (int j = 0; j < mp->totloop; j++, ml++) {
+        mv = &mesh->mvert[ml->v];
+        if (mv->flag & ME_VERT_FACEDOT) {
+          if (flag & MESH_FOREACH_USE_NORMAL) {
+            normal_short_to_float_v3(no, mv->no);
+          }
+          func(userData, i, mv->co, no);
+        }
+      }
+    }
+  }
+}
+
 /* Helpers based on above foreach loopers> */
 
 typedef struct MappedVCosData {
