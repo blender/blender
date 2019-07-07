@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
 static bool is_verbosity_set()
 {
 #ifdef WITH_CYCLES_LOGGING
-using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
+  using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
 
   std::string verbosity;
   if (!GetCommandLineOption("v", &verbosity)) {
@@ -37,7 +37,7 @@ using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
   }
   return verbosity != "0";
 #else
-	return false;
+  return false;
 #endif
 }
 

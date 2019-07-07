@@ -2821,15 +2821,15 @@ static short transform_snap_context_project_view3d_mixed_impl(
 }
 
 short ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
-                                                const unsigned short snap_to,
-                                                const struct SnapObjectParams *params,
-                                                const float mval[2],
-                                                float *dist_px,
-                                                float r_loc[3],
-                                                float r_no[3],
-                                                int *r_index,
-                                                Object **r_ob,
-                                                float r_obmat[4][4])
+                                                 const unsigned short snap_to,
+                                                 const struct SnapObjectParams *params,
+                                                 const float mval[2],
+                                                 float *dist_px,
+                                                 float r_loc[3],
+                                                 float r_no[3],
+                                                 int *r_index,
+                                                 Object **r_ob,
+                                                 float r_obmat[4][4])
 {
   return transform_snap_context_project_view3d_mixed_impl(
              sctx, snap_to, params, mval, dist_px, r_loc, r_no, r_index, r_ob, r_obmat) != 0;
@@ -2856,7 +2856,7 @@ bool ED_transform_snap_object_project_view3d(SnapObjectContext *sctx,
                                              float r_no[3])
 {
   return ED_transform_snap_object_project_view3d_ex(
-      sctx, snap_to, params, mval, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
+             sctx, snap_to, params, mval, dist_px, r_loc, r_no, NULL, NULL, NULL) != 0;
 }
 
 /**
