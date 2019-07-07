@@ -132,6 +132,9 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
       tot_doubles += 1;
       copy_v3_v3(mvert_new[i].co, axis_co);
     }
+    else {
+      mvert_new[i].flag &= ~ME_VERT_TMP_TAG & 0xFF;
+    }
   }
 
   if (tot_doubles != 0) {
