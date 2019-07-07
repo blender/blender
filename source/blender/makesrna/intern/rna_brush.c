@@ -1807,9 +1807,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Topology Rake",
                            "Automatically align edges to the brush direction to "
-                           "to generate cleaner topology and define sharp features "
-                           "dynamic topology. Best used on low-poly meshes as it has "
-                           "a performance impact");
+                           "generate cleaner topology and define sharp features. "
+                           "Best used on low-poly meshes as it has a performance impact");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "stencil_pos", PROP_FLOAT, PROP_XYZ);
