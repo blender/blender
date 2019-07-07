@@ -6036,7 +6036,7 @@ class VIEW3D_PT_gpencil_guide(Panel):
             else:
                 col.prop(settings, "spacing")
 
-        if settings.type in ('CIRCULAR', 'RADIAL'):
+        if settings.type in {'CIRCULAR', 'RADIAL'}:
             col.label(text="Reference Point")
             row = col.row(align=True)
             row.prop(settings, "reference_point", expand=True)
