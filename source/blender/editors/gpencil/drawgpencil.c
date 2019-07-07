@@ -888,7 +888,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 
     /* if disable fill, the colors with fill must be omitted too except fill boundary strokes */
     if ((tgpw->disable_fill == 1) && (gp_style->fill_rgba[3] > 0.0f) &&
-        ((gps->flag & GP_STROKE_NOFILL) == 0)) {
+        ((gps->flag & GP_STROKE_NOFILL) == 0) && (gp_style->flag & GP_STYLE_FILL_SHOW)) {
       continue;
     }
 
