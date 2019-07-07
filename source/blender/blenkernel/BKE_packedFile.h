@@ -33,11 +33,13 @@ struct ReportList;
 struct VFont;
 struct bSound;
 
-enum ePF_FileStatus {
-  PF_EQUAL = 0,
-  PF_DIFFERS = 1,
-  PF_NOFILE = 2,
+enum ePF_FileCompare {
+  PF_CMP_EQUAL = 0,
+  PF_CMP_DIFFERS = 1,
+  PF_CMP_NOFILE = 2,
+};
 
+enum ePF_FileStatus {
   PF_WRITE_ORIGINAL = 3,
   PF_WRITE_LOCAL = 4,
   PF_USE_LOCAL = 5,
@@ -94,9 +96,9 @@ void BKE_packedfile_free(struct PackedFile *pf);
 
 /* info */
 int BKE_packedfile_count_all(struct Main *bmain);
-int BKE_packedfile_compare_to_file(const char *ref_file_name,
-                                   const char *filename,
-                                   struct PackedFile *pf);
+enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
+                                                    const char *filename,
+                                                    struct PackedFile *pf);
 
 /* read */
 int BKE_packedfile_seek(struct PackedFile *pf, int offset, int whence);

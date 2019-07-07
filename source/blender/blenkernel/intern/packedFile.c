@@ -349,10 +349,12 @@ int BKE_packedfile_write_to_file(ReportList *reports,
  * - PF_DIFFERENT: the packed file and original file differ
  * - PF_NOFILE:    the original file doesn't exist
  */
-int BKE_packedfile_compare_to_file(const char *ref_file_name, const char *filename, PackedFile *pf)
+enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
+                                                    const char *filename,
+                                                    PackedFile *pf)
 {
   BLI_stat_t st;
-  int ret_val, i, len, file;
+  enum ePF_FileCompare ret_val;
   char buf[4096];
   char name[FILE_MAX];
 
@@ -360,35 +362,35 @@ int BKE_packedfile_compare_to_file(const char *ref_file_name, const char *filena
   BLI_path_abs(name, ref_file_name);
 
   if (BLI_stat(name, &st) == -1) {
-    ret_val = PF_NOFILE;
+    ret_val = PF_CMP_NOFILE;
   }
   else if (st.st_size != pf->size) {
-    ret_val = PF_DIFFERS;
+    ret_val = PF_CMP_DIFFERS;
   }
   else {
     /* we'll have to compare the two... */
 
-    file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+    const int file = BLI_open(name, O_BINARY | O_RDONLY, 0);
     if (file == -1) {
-      ret_val = PF_NOFILE;
+      ret_val = PF_CMP_NOFILE;
     }
     else {
-      ret_val = PF_EQUAL;
+      ret_val = PF_CMP_EQUAL;
 
-      for (i = 0; i < pf->size; i += sizeof(buf)) {
-        len = pf->size - i;
+      for (int i = 0; i < pf->size; i += sizeof(buf)) {
+        int len = pf->size - i;
         if (len > sizeof(buf)) {
           len = sizeof(buf);
         }
 
         if (read(file, buf, len) != len) {
           /* read error ... */
-          ret_val = PF_DIFFERS;
+          ret_val = PF_CMP_DIFFERS;
           break;
         }
         else {
           if (memcmp(buf, ((char *)pf->data) + i, len)) {
-            ret_val = PF_DIFFERS;
+            ret_val = PF_CMP_DIFFERS;
             break;
           }
         }
