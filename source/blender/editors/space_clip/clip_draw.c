@@ -1378,10 +1378,11 @@ static void draw_plane_marker_ex(SpaceClip *sc,
         immEnd();
       }
     }
+    immUnbindProgram();
 
     /* Draw sliders. */
     if (is_selected_track) {
-      immUniform1f("dash_factor", 2.0f); /* Solid line */
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
       if (draw_outline) {
         immUniformThemeColor(TH_MARKER_OUTLINE);
@@ -1400,9 +1401,8 @@ static void draw_plane_marker_ex(SpaceClip *sc,
                                  px,
                                  shdr_pos);
       }
+      immUnbindProgram();
     }
-
-    immUnbindProgram();
   }
 }
 
