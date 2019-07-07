@@ -145,7 +145,7 @@ void BKE_packedfile_free(PackedFile *pf)
     MEM_freeN(pf);
   }
   else {
-    printf("BKE_packedfile_free: Trying to free a NULL pointer\n");
+    printf("%s: Trying to free a NULL pointer\n", __func__);
   }
 }
 
@@ -416,14 +416,13 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
                                     const char *abs_name,
                                     const char *local_name,
                                     PackedFile *pf,
-                                    int how)
+                                    enum ePF_FileStatus how)
 {
   char *newname = NULL;
   const char *temp = NULL;
 
   if (pf != NULL) {
     switch (how) {
-      case -1:
       case PF_KEEP:
         break;
       case PF_REMOVE:
@@ -469,7 +468,7 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
         }
         break;
       default:
-        printf("BKE_packedfile_unpack_to_file: unknown return_value %d\n", how);
+        printf("%s: unknown return_value %u\n", __func__, how);
         break;
     }
 
@@ -526,7 +525,10 @@ static void unpack_generate_paths(const char *name,
   }
 }
 
-int BKE_packedfile_unpack_vfont(Main *bmain, ReportList *reports, VFont *vfont, int how)
+int BKE_packedfile_unpack_vfont(Main *bmain,
+                                ReportList *reports,
+                                VFont *vfont,
+                                enum ePF_FileStatus how)
 {
   char localname[FILE_MAX], absname[FILE_MAX];
   char *newname;
@@ -549,7 +551,10 @@ int BKE_packedfile_unpack_vfont(Main *bmain, ReportList *reports, VFont *vfont, 
   return (ret_value);
 }
 
-int BKE_packedfile_unpack_sound(Main *bmain, ReportList *reports, bSound *sound, int how)
+int BKE_packedfile_unpack_sound(Main *bmain,
+                                ReportList *reports,
+                                bSound *sound,
+                                enum ePF_FileStatus how)
 {
   char localname[FILE_MAX], absname[FILE_MAX];
   char *newname;
@@ -576,7 +581,10 @@ int BKE_packedfile_unpack_sound(Main *bmain, ReportList *reports, bSound *sound,
   return (ret_value);
 }
 
-int BKE_packedfile_unpack_image(Main *bmain, ReportList *reports, Image *ima, int how)
+int BKE_packedfile_unpack_image(Main *bmain,
+                                ReportList *reports,
+                                Image *ima,
+                                enum ePF_FileStatus how)
 {
   int ret_value = RET_ERROR;
 
@@ -680,7 +688,7 @@ void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports)
   }
 }
 
-void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, int how)
+void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileStatus how)
 {
   Image *ima;
   VFont *vf;
@@ -732,7 +740,7 @@ bool BKE_packedfile_id_check(ID *id)
 }
 
 /* ID should be not NULL */
-void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, int how)
+void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF_FileStatus how)
 {
   switch (GS(id->name)) {
     case ID_IM: {

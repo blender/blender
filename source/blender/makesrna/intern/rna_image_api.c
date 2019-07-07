@@ -36,13 +36,14 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BKE_packedFile.h"
+
 #include "rna_internal.h" /* own include */
 
 #ifdef RNA_RUNTIME
 
 #  include <errno.h>
 #  include "BKE_image.h"
-#  include "BKE_packedFile.h"
 #  include "BKE_main.h"
 
 #  include "IMB_imbuf.h"

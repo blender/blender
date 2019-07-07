@@ -26,11 +26,11 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BKE_packedFile.h"
+
 #include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
-
-#  include "BKE_packedFile.h"
 
 static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 {

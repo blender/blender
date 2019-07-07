@@ -33,6 +33,22 @@ struct ReportList;
 struct VFont;
 struct bSound;
 
+enum ePF_FileStatus {
+  PF_EQUAL = 0,
+  PF_DIFFERS = 1,
+  PF_NOFILE = 2,
+
+  PF_WRITE_ORIGINAL = 3,
+  PF_WRITE_LOCAL = 4,
+  PF_USE_LOCAL = 5,
+  PF_USE_ORIGINAL = 6,
+  PF_KEEP = 7,
+  PF_REMOVE = 8,
+  PF_NOOP = 9,
+
+  PF_ASK = 10,
+};
+
 /* pack */
 struct PackedFile *BKE_packedfile_duplicate(const struct PackedFile *pf_src);
 struct PackedFile *BKE_packedfile_new(struct ReportList *reports,
@@ -49,20 +65,22 @@ char *BKE_packedfile_unpack_to_file(struct ReportList *reports,
                                     const char *abs_name,
                                     const char *local_name,
                                     struct PackedFile *pf,
-                                    int how);
+                                    enum ePF_FileStatus how);
 int BKE_packedfile_unpack_vfont(struct Main *bmain,
                                 struct ReportList *reports,
                                 struct VFont *vfont,
-                                int how);
+                                enum ePF_FileStatus how);
 int BKE_packedfile_unpack_sound(struct Main *bmain,
                                 struct ReportList *reports,
                                 struct bSound *sound,
-                                int how);
+                                enum ePF_FileStatus how);
 int BKE_packedfile_unpack_image(struct Main *bmain,
                                 struct ReportList *reports,
                                 struct Image *ima,
-                                int how);
-void BKE_packedfile_unpack_all(struct Main *bmain, struct ReportList *reports, int how);
+                                enum ePF_FileStatus how);
+void BKE_packedfile_unpack_all(struct Main *bmain,
+                               struct ReportList *reports,
+                               enum ePF_FileStatus how);
 int BKE_packedfile_unpack_all_libraries(struct Main *bmain, struct ReportList *reports);
 
 int BKE_packedfile_write_to_file(struct ReportList *reports,
@@ -91,6 +109,6 @@ bool BKE_packedfile_id_check(struct ID *id);
 void BKE_packedfile_id_unpack(struct Main *bmain,
                               struct ID *id,
                               struct ReportList *reports,
-                              int how);
+                              enum ePF_FileStatus how);
 
 #endif

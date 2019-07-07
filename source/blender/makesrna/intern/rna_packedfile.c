@@ -27,6 +27,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BKE_packedFile.h"
+
 #include "rna_internal.h"
 
 const EnumPropertyItem rna_enum_unpack_method_items[] = {
