@@ -81,13 +81,13 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
                 continue
             is_enabled = module_name in owner_ids
             row = col.row()
+            row.alignment = 'LEFT'
             row.operator(
                 "wm.owner_disable" if is_enabled else "wm.owner_enable",
                 icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
-                text="",
+                text="%s: %s" % (info["category"], info["name"]),
                 emboss=False,
             ).owner_id = module_name
-            row.label(text="%s: %s" % (info["category"], info["name"]))
             if is_enabled:
                 owner_ids.remove(module_name)
 
@@ -97,13 +97,13 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
             col = layout.box().column(align=True)
             for module_name in sorted(owner_ids):
                 row = col.row()
+                row.alignment = 'LEFT'
                 row.operator(
                     "wm.owner_disable",
                     icon='CHECKBOX_HLT',
-                    text="",
+                    text=module_name,
                     emboss=False,
                 ).owner_id = module_name
-                row.label(text=module_name)
 
 
 class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
