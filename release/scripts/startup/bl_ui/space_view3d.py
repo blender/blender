@@ -6036,15 +6036,16 @@ class VIEW3D_PT_gpencil_guide(Panel):
             else:
                 col.prop(settings, "spacing")
 
-        col.label(text="Reference Point")
-        row = col.row(align=True)
-        row.prop(settings, "reference_point", expand=True)
-        if settings.reference_point == 'CUSTOM':
-            col.prop(settings, "location", text="Custom Location")
-        elif settings.reference_point == 'OBJECT':
-            col.prop(settings, "reference_object", text="Object Location")
-            if not settings.reference_object:
-                col.label(text="No object selected, using cursor")
+        if settings.type in ('CIRCULAR', 'RADIAL'):
+            col.label(text="Reference Point")
+            row = col.row(align=True)
+            row.prop(settings, "reference_point", expand=True)
+            if settings.reference_point == 'CUSTOM':
+                col.prop(settings, "location", text="Custom Location")
+            elif settings.reference_point == 'OBJECT':
+                col.prop(settings, "reference_object", text="Object Location")
+                if not settings.reference_object:
+                    col.label(text="No object selected, using cursor")
 
 
 class VIEW3D_PT_overlay_gpencil_options(Panel):
