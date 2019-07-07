@@ -449,7 +449,7 @@ class WXFaceLayer {
   unsigned int GetSmoothEdgeIndex() const;
 
   /*! retrieves the edges of the triangle for which the signs are different (a null value is not
-   * considered) for the dotp values at each edge extrimity
+   * considered) for the dotp values at each edge extremity
    */
   void RetrieveCuspEdgesIndices(vector<int> &oCuspEdges);
 

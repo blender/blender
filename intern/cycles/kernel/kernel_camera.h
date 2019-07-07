@@ -128,7 +128,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
 #ifdef __RAY_DIFFERENTIALS__
     /* Ray differentials, computed from scratch using the raster coordinates
      * because we don't want to be affected by depth of field. We compute
-     * ray origin and direction for the center and two neighbouring pixels
+     * ray origin and direction for the center and two neighboring pixels
      * and simply take their differences. */
     float3 Pnostereo = transform_point(&cameratoworld, make_float3(0.0f, 0.0f, 0.0f));
 
@@ -303,7 +303,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 #ifdef __RAY_DIFFERENTIALS__
   /* Ray differentials, computed from scratch using the raster coordinates
    * because we don't want to be affected by depth of field. We compute
-   * ray origin and direction for the center and two neighbouring pixels
+   * ray origin and direction for the center and two neighboring pixels
    * and simply take their differences. */
   float3 Pcenter = Pcamera;
   float3 Dcenter = panorama_to_direction(cam, Pcenter.x, Pcenter.y);

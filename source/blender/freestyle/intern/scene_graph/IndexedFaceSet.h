@@ -168,7 +168,7 @@ class IndexedFaceSet : public Rep {
   }
 
   /*! Desctructor
-   *  desallocates all the ressources
+   *  desallocates all the resources
    */
   virtual ~IndexedFaceSet();
 

@@ -21,7 +21,7 @@
  *
  * Use for tools to hover over data before activation.
  *
- * \note This is a slight mis-use of gizmo's, since clicking performs no action.
+ * \note This is a slight misuse of gizmo's, since clicking performs no action.
  */
 
 #include "MEM_guardedalloc.h"

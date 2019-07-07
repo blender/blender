@@ -34,7 +34,7 @@ class Tile;
 
 class DenoiseParams {
  public:
-  /* Pixel radius for neighbouring pixels to take into account. */
+  /* Pixel radius for neighboring pixels to take into account. */
   int radius;
   /* Controls neighbor pixel weighting for the denoising filter. */
   float strength;

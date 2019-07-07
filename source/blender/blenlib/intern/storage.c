@@ -15,12 +15,12 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Reorganised mar-01 nzc
- * Some really low-level file thingies.
  */
 
 /** \file
  * \ingroup bli
+ *
+ * Some really low-level file operations.
  */
 
 #include <sys/types.h>

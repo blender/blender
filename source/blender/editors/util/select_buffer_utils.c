@@ -44,7 +44,7 @@
 /** \name Select Bitmap from ID's
  *
  * Given a buffer of select ID's, fill in a booleans (true/false) per index.
- * #BLI_bitmap is used for memory effeciency.
+ * #BLI_bitmap is used for memory efficiency.
  *
  * \{ */
 
@@ -215,7 +215,7 @@ uint ED_select_buffer_sample_point(const int center[2])
 
 /**
  * Find the selection id closest to \a center.
- * \param dist[in,out]: Use to initalize the distance,
+ * \param dist[in,out]: Use to initialize the distance,
  * when found, this value is set to the distance of the selection thats returned.
  */
 uint ED_select_buffer_find_nearest_to_point(const int center[2],
@@ -223,7 +223,7 @@ uint ED_select_buffer_find_nearest_to_point(const int center[2],
                                             const uint id_max,
                                             uint *dist)
 {
-  /* Smart function to sample a rect spiralling outside, nice for selection ID. */
+  /* Smart function to sample a rect spiraling outside, nice for selection ID. */
 
   /* Create region around center (typically the mouse cursor).
    * This must be square and have an odd width,

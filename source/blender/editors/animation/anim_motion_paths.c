@@ -322,8 +322,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
   /* reset original environment */
   /* NOTE: We don't always need to reevaluate the main scene, as the depsgraph
-   * may be a temporary one that works on a subset of the data. We always have
-   * to resoture the current frame though. */
+   * may be a temporary one that works on a subset of the data.
+   * We always have to restore the current frame though. */
   CFRA = cfra;
   if (!current_frame_only && restore) {
     motionpaths_calc_update_scene(bmain, depsgraph);

@@ -251,7 +251,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
 /*
  * for each target object/face the axis aligned bounding box (AABB) is stored
  * faces parallel to global axes
- * so only simple "value" in [min, max] ckecks are used
+ * so only simple "value" in [min, max] checks are used
  * float operations still
  */
 

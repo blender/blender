@@ -16,7 +16,7 @@
 
 /** \file
  * \ingroup freestyle
- * \brief A Set of indexed faces to represent a surfacic object
+ * \brief A Set of indexed faces to represent a surface object
  */
 
 #include "IndexedFaceSet.h"

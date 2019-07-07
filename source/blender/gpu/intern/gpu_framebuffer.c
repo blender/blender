@@ -837,7 +837,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 
   /* List is full, this should never happen or
    * it might just slow things down if it happens
-   * regulary. In this case we just empty the list
+   * regularly. In this case we just empty the list
    * and start over. This is most likely never going
    * to happen under normal usage. */
   BLI_assert(0);

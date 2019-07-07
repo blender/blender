@@ -109,7 +109,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 
   if (ccl_global_id(0) == 0 && ccl_global_id(1) == 0) {
     /* If we are here, then it means that scene-intersect kernel
-     * has already been executed atleast once. From the next time,
+     * has already been executed at least once. From the next time,
      * scene-intersect kernel may operate on queues to fetch ray index
      */
     *kernel_split_params.use_queues_flag = 1;

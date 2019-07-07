@@ -251,7 +251,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
           }
         }
         /* We assume two buttons can only share one side at most - for until
-         * we have sperical UI... */
+         * we have spherical UI. */
         return;
       }
     }

@@ -23,7 +23,7 @@
  * usage.
  *
  * Since Embree allows object to be either curves or triangles but not both, Cycles object IDs are
- * maapped to Embree IDs by multiplying by two and adding one for curves.
+ * mapped to Embree IDs by multiplying by two and adding one for curves.
  *
  * This implementation shares RTCDevices between Cycles instances. Eventually each instance should
  * get a separate RTCDevice to correctly keep track of memory usage.

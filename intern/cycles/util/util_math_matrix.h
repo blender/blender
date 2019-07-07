@@ -236,7 +236,7 @@ ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A,
   }
 }
 
-/* Perform the Jacobi Eigenvalue Methon on matrix A.
+/* Perform the Jacobi Eigenvalue Method on matrix A.
  * A is assumed to be a symmetrical matrix, therefore only the lower-triangular part is ever
  * accessed. The algorithm overwrites the contents of A.
  *

@@ -17,7 +17,7 @@
 /** \file
  * \ingroup wm
  *
- * Generic helper utilies that aren't assosiated with a particular area.
+ * Generic helper utilities that aren't associated with a particular area.
  */
 
 #include "WM_types.h"

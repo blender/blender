@@ -883,7 +883,7 @@ static void gpencil_add_move_points(bGPDframe *gpf, bGPDstroke *gps)
     }
     gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
-    /* if first point, add new point at the begining */
+    /* If first point, add new point at the beginning. */
     if (do_first) {
       copy_move_point(gps, temp_points, temp_dverts, 0, 0, true);
       /* deselect old */

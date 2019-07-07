@@ -289,7 +289,7 @@ bool DEG_is_original_id(ID *id)
    * Localization is usually happening from evaluated data-block, or will have some special pointer
    * magic which will make them to act as evaluated.
    *
-   * NOTE: We conder ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
+   * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
   if (id->tag &
       (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_LOCALIZED)) {
     return false;

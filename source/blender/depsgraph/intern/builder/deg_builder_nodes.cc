@@ -595,7 +595,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   }
   /* Object data. */
   build_object_data(object, is_visible);
-  /* Paramaters, used by both drivers/animation and also to inform dependency
+  /* Parameters, used by both drivers/animation and also to inform dependency
    * from object's data. */
   build_parameters(&object->id);
   /* Build animation data,
@@ -759,7 +759,7 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
                      NodeType::TRANSFORM,
                      OperationCode::TRANSFORM_EVAL,
                      function_bind(BKE_object_eval_uber_transform, _1, ob_cow));
-  /* Operation to take of rigid body simulation. soft bodies and other firends
+  /* Operation to take of rigid body simulation. soft bodies and other friends
    * in the context of point cache invalidation. */
   add_operation_node(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
   /* Object transform is done. */

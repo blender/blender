@@ -334,15 +334,16 @@ bool BCAnimationSampler::get_object_samples(BCMatrixSampleMap &samples, Object *
 
 #if 0
 /**
- * Add sampled values to FCurve
- * If no FCurve exists, create a temporary FCurve;
- * Note: The temporary FCurve will later be removed when the
- * BCAnimationSampler is removed (by its destructor)
+ * Add sampled values to #FCurve
+ * If no #FCurve exists, create a temporary #FCurve;
+ * \note The temporary #FCurve will later be removed when the
+ * #BCAnimationSampler is removed (by its destructor).
  *
- * curve: The curve to whioch the data is added
- * matrices: The set of matrix values from where the data is taken
- * animation_type BC_ANIMATION_EXPORT_SAMPLES: Use all matrix data
- * animation_type BC_ANIMATION_EXPORT_KEYS: Only take data from matrices for keyframes
+ * \param curve: The curve to which the data is added.
+ * \param matrices: The set of matrix values from where the data is taken.
+ * \param animation_type:
+ * - #BC_ANIMATION_EXPORT_SAMPLES: Use all matrix data.
+ * - #BC_ANIMATION_EXPORT_KEYS: Only take data from matrices for keyframes.
  */
 void BCAnimationSampler::add_value_set(BCAnimationCurve &curve,
                                        BCFrameSampleMap &samples,

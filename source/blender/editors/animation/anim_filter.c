@@ -2231,7 +2231,7 @@ static size_t animdata_filter_ds_textures(
     }
   }
 
-  /* Firstly check that we actuallly have some textures,
+  /* Firstly check that we actually have some textures,
    * by gathering all textures in a temp list. */
   for (a = 0; a < MAX_MTEX; a++) {
     Tex *tex = (mtex[a]) ? mtex[a]->tex : NULL;

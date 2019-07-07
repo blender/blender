@@ -111,8 +111,8 @@ ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, ccl_addr_space 
     }
     else if (shader_flag & SD_NEED_ATTRIBUTES) {
       /* We want to render world or objects without any volume grids
-       * as homogenous, but can only verify this at runtime since other
-       * heterogenous volume objects may be using the same shader. */
+       * as homogeneous, but can only verify this at run-time since other
+       * heterogeneous volume objects may be using the same shader. */
       int object = stack[i].object;
       if (object != OBJECT_NONE) {
         int object_flag = kernel_tex_fetch(__object_flag, object);

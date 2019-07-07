@@ -1736,7 +1736,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
                                  ((numfiles % items_block_size) != 0 ? items_block_size : 0)) -
                                 (numfiles_layout / 2);
   /* Actual (physical) scrolling info, in pixels, used to detect whether we are fully at the
-   * begining/end of the view. */
+   * beginning/end of the view. */
   /* Note that there is a weird glitch, that sometimes tot rctf is smaller than cur rctf...
    * that is why we still need to keep the min/max_middle_offset checks too. :( */
   const float min_tot_scroll = is_horizontal ? ar->v2d.tot.xmin : -ar->v2d.tot.ymax;
@@ -1747,16 +1747,16 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   /* Check if we have reached our final scroll position. */
   /* Filelist has to be ready, otherwise it makes no sense to stop scrolling yet. */
   const bool is_ready = filelist_is_ready(sfile->files);
-  /* Edited item must be in the 'middle' of shown area (kind of approximative).
+  /* Edited item must be in the 'middle' of shown area (kind of approximated).
    * Note that we have to do the check in 'block space', not in 'item space' here. */
   const bool is_centered = (abs(middle_offset / items_block_size -
                                 sfile->scroll_offset / items_block_size) == 0);
-  /* OR edited item must be towards the begining, and we are scrolled fully to the start. */
+  /* OR edited item must be towards the beginning, and we are scrolled fully to the start. */
   const bool is_full_start = ((sfile->scroll_offset < min_middle_offset) &&
                               (min_curr_scroll - min_tot_scroll < 1.0f) &&
                               (middle_offset - min_middle_offset < items_block_size));
   /* OR edited item must be towards the end, and we are scrolled fully to the end.
-   * This one is crucial (unlike the one for the begining), because without it we won't scroll
+   * This one is crucial (unlike the one for the beginning), because without it we won't scroll
    * fully to the end, and last column or row wil end up only partially drawn. */
   const bool is_full_end = ((sfile->scroll_offset > max_middle_offset) &&
                             (max_tot_scroll - max_curr_scroll < 1.0f) &&

@@ -135,18 +135,18 @@ static const int CUBE_SIZE = 8;
  *
  * The way the algorithm works is as follows:
  *
- * - the coordinates of active voxels from a dense volume (or 3d image) are
- * gathered inside an auxialliary volume.
- * - each set of coordinates of an CUBE_SIZE cube are mapped to the same
- * coordinate of the auxilliary volume.
- * - quads are created between active and non-active voxels in the auxialliary
- * volume to generate a tight mesh around the volume.
+ * - The coordinates of active voxels from a dense volume (or 3d image) are
+ *   gathered inside an auxiliary volume.
+ * - Each set of coordinates of an CUBE_SIZE cube are mapped to the same
+ *   coordinate of the auxiliary volume.
+ * - Quads are created between active and non-active voxels in the auxiliary
+ *   volume to generate a tight mesh around the volume.
  */
 class VolumeMeshBuilder {
-  /* Auxilliary volume that is used to check if a node already added. */
+  /* Auxiliary volume that is used to check if a node already added. */
   vector<char> grid;
 
-  /* The resolution of the auxilliary volume, set to be equal to 1/CUBE_SIZE
+  /* The resolution of the auxiliary volume, set to be equal to 1/CUBE_SIZE
    * of the original volume on each axis. */
   int3 res;
 

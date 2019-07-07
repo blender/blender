@@ -687,7 +687,7 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd, float *r
           sampled = i;
 
           /* Rescale to reuse for direction sample, to better
-           * preserve stratifaction. */
+           * preserve stratification. */
           *randu = (r - partial_sum) / sc->sample_weight;
           break;
         }

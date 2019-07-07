@@ -731,7 +731,7 @@ void GHOST_WindowCocoa::setNativePixelSize(void)
  * \note Fullscreen switch is not actual fullscreen with display capture.
  * As this capture removes all OS X window manager features.
  *
- * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.
+ * Instead, the menu bar and the dock are hidden, and the window is made border-less and enlarged.
  * Thus, process switch, exposé, spaces, ... still work in fullscreen mode
  */
 GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)

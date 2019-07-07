@@ -427,7 +427,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
   }
   const uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
 #    ifdef __KERNEL_GPU__
-  /* On GPU we do trickey with tracing opaque ray first, this avoids speed
+  /* On GPU we do tricky with tracing opaque ray first, this avoids speed
    * regressions in some files.
    *
    * TODO(sergey): Check why using record-all behavior causes slowdown in such

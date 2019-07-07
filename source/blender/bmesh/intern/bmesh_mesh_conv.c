@@ -984,7 +984,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 /**
  * A version of #BM_mesh_bm_to_me intended for getting the mesh
  * to pass to the modifier stack for evaluation,
- * instad of mode switching (where we make sure all data is kept
+ * instead of mode switching (where we make sure all data is kept
  * and do expensive lookups to maintain shape keys).
  *
  * Key differences:
