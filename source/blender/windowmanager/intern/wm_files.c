@@ -1376,7 +1376,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
   /* operator now handles overwrite checks */
 
   if (G.fileflags & G_FILE_AUTOPACK) {
-    packAll(bmain, reports, false);
+    BKE_packedfile_pack_all(bmain, reports, false);
   }
 
   /* don't forget not to return without! */

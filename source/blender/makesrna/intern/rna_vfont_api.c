@@ -34,7 +34,7 @@
 
 static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 {
-  vfont->packedfile = newPackedFile(reports, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
+  vfont->packedfile = BKE_packedfile_new(reports, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 }
 
 static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports, int method)
@@ -44,7 +44,7 @@ static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports
   }
   else {
     /* reports its own error on failure */
-    unpackVFont(bmain, reports, vfont, method);
+    BKE_packedfile_unpack_vfont(bmain, reports, vfont, method);
   }
 }
 

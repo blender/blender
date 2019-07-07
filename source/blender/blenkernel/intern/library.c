@@ -1502,7 +1502,7 @@ void *BKE_libblock_copy_for_localize(const ID *id)
 void BKE_library_free(Library *lib)
 {
   if (lib->packedfile) {
-    freePackedFile(lib->packedfile);
+    BKE_packedfile_free(lib->packedfile);
   }
 }
 

@@ -1391,7 +1391,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
     BKE_image_init_imageuser(ima, iuser);
   }
 
-  /* XXX unpackImage frees image buffers */
+  /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
@@ -1601,7 +1601,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
     sima->image->source = IMA_SRC_FILE;
   }
 
-  /* XXX unpackImage frees image buffers */
+  /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   BKE_icon_changed(BKE_icon_id_ensure(&sima->image->id));
@@ -2401,7 +2401,7 @@ static int image_reload_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* XXX unpackImage frees image buffers */
+  /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
@@ -2859,10 +2859,10 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
                "AutoPack is enabled, so image will be packed again on file save");
   }
 
-  /* XXX unpackImage frees image buffers */
+  /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  unpackImage(CTX_data_main(C), op->reports, ima, method);
+  BKE_packedfile_unpack_image(CTX_data_main(C), op->reports, ima, method);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 

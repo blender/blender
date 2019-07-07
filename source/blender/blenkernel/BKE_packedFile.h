@@ -34,49 +34,63 @@ struct VFont;
 struct bSound;
 
 /* pack */
-struct PackedFile *dupPackedFile(const struct PackedFile *pf_src);
-struct PackedFile *newPackedFile(struct ReportList *reports,
-                                 const char *filename,
-                                 const char *relabase);
-struct PackedFile *newPackedFileMemory(void *mem, int memlen);
+struct PackedFile *BKE_packedfile_duplicate(const struct PackedFile *pf_src);
+struct PackedFile *BKE_packedfile_new(struct ReportList *reports,
+                                      const char *filename,
+                                      const char *relabase);
+struct PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen);
 
-void packAll(struct Main *bmain, struct ReportList *reports, bool verbose);
-void packLibraries(struct Main *bmain, struct ReportList *reports);
+void BKE_packedfile_pack_all(struct Main *bmain, struct ReportList *reports, bool verbose);
+void BKE_packedfile_pack_all_libraries(struct Main *bmain, struct ReportList *reports);
 
 /* unpack */
-char *unpackFile(struct ReportList *reports,
-                 const char *ref_file_name,
-                 const char *abs_name,
-                 const char *local_name,
-                 struct PackedFile *pf,
-                 int how);
-int unpackVFont(struct Main *bmain, struct ReportList *reports, struct VFont *vfont, int how);
-int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *sound, int how);
-int unpackImage(struct Main *bmain, struct ReportList *reports, struct Image *ima, int how);
-void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
-int unpackLibraries(struct Main *bmain, struct ReportList *reports);
+char *BKE_packedfile_unpack_to_file(struct ReportList *reports,
+                                    const char *ref_file_name,
+                                    const char *abs_name,
+                                    const char *local_name,
+                                    struct PackedFile *pf,
+                                    int how);
+int BKE_packedfile_unpack_vfont(struct Main *bmain,
+                                struct ReportList *reports,
+                                struct VFont *vfont,
+                                int how);
+int BKE_packedfile_unpack_sound(struct Main *bmain,
+                                struct ReportList *reports,
+                                struct bSound *sound,
+                                int how);
+int BKE_packedfile_unpack_image(struct Main *bmain,
+                                struct ReportList *reports,
+                                struct Image *ima,
+                                int how);
+void BKE_packedfile_unpack_all(struct Main *bmain, struct ReportList *reports, int how);
+int BKE_packedfile_unpack_all_libraries(struct Main *bmain, struct ReportList *reports);
 
-int writePackedFile(struct ReportList *reports,
-                    const char *ref_file_name,
-                    const char *filename,
-                    struct PackedFile *pf,
-                    const bool guimode);
+int BKE_packedfile_write_to_file(struct ReportList *reports,
+                                 const char *ref_file_name,
+                                 const char *filename,
+                                 struct PackedFile *pf,
+                                 const bool guimode);
 
 /* free */
-void freePackedFile(struct PackedFile *pf);
+void BKE_packedfile_free(struct PackedFile *pf);
 
 /* info */
-int countPackedFiles(struct Main *bmain);
-int checkPackedFile(const char *ref_file_name, const char *filename, struct PackedFile *pf);
+int BKE_packedfile_count_all(struct Main *bmain);
+int BKE_packedfile_compare_to_file(const char *ref_file_name,
+                                   const char *filename,
+                                   struct PackedFile *pf);
 
 /* read */
-int seekPackedFile(struct PackedFile *pf, int offset, int whence);
-void rewindPackedFile(struct PackedFile *pf);
-int readPackedFile(struct PackedFile *pf, void *data, int size);
+int BKE_packedfile_seek(struct PackedFile *pf, int offset, int whence);
+void BKE_packedfile_rewind(struct PackedFile *pf);
+int BKE_packedfile_read(struct PackedFile *pf, void *data, int size);
 
 /* ID should be not NULL, return 1 if there's a packed file */
-bool BKE_pack_check(struct ID *id);
+bool BKE_packedfile_id_check(struct ID *id);
 /* ID should be not NULL, throws error when ID is Library */
-void BKE_unpack_id(struct Main *bmain, struct ID *id, struct ReportList *reports, int how);
+void BKE_packedfile_id_unpack(struct Main *bmain,
+                              struct ID *id,
+                              struct ReportList *reports,
+                              int how);
 
 #endif

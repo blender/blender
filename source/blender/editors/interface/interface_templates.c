@@ -952,7 +952,7 @@ static void template_ID(bContext *C,
 
   /* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
    * Only for images, sound and fonts */
-  if (id && BKE_pack_check(id)) {
+  if (id && BKE_packedfile_id_check(id)) {
     but = uiDefIconButO(block,
                         UI_BTYPE_BUT,
                         "FILE_OT_unpack_item",

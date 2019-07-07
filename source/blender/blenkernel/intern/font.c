@@ -86,7 +86,7 @@ void BKE_vfont_free_data(struct VFont *vfont)
   }
 
   if (vfont->temp_pf) {
-    freePackedFile(vfont->temp_pf); /* NULL when the font file can't be found on disk */
+    BKE_packedfile_free(vfont->temp_pf); /* NULL when the font file can't be found on disk */
     vfont->temp_pf = NULL;
   }
 }
@@ -97,7 +97,7 @@ void BKE_vfont_free(struct VFont *vf)
   BKE_vfont_free_data(vf);
 
   if (vf->packedfile) {
-    freePackedFile(vf->packedfile);
+    BKE_packedfile_free(vf->packedfile);
     vf->packedfile = NULL;
   }
 }
@@ -114,7 +114,7 @@ void BKE_vfont_copy_data(Main *UNUSED(bmain),
   vfont_dst->temp_pf = NULL;
 
   if (vfont_dst->packedfile) {
-    vfont_dst->packedfile = dupPackedFile(vfont_dst->packedfile);
+    vfont_dst->packedfile = BKE_packedfile_duplicate(vfont_dst->packedfile);
   }
 
   if (vfont_dst->data) {
@@ -148,7 +148,7 @@ static PackedFile *get_builtin_packedfile(void)
 
     memcpy(mem, builtin_font_data, builtin_font_size);
 
-    return newPackedFileMemory(mem, builtin_font_size);
+    return BKE_packedfile_new_from_memory(mem, builtin_font_size);
   }
 }
 
@@ -183,14 +183,15 @@ static VFontData *vfont_get_data(VFont *vfont)
 
         /* We need to copy a tmp font to memory unless it is already there */
         if (vfont->temp_pf == NULL) {
-          vfont->temp_pf = dupPackedFile(pf);
+          vfont->temp_pf = BKE_packedfile_duplicate(pf);
         }
       }
       else {
-        pf = newPackedFile(NULL, vfont->name, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+        pf = BKE_packedfile_new(NULL, vfont->name, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
         if (vfont->temp_pf == NULL) {
-          vfont->temp_pf = newPackedFile(NULL, vfont->name, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+          vfont->temp_pf = BKE_packedfile_new(
+              NULL, vfont->name, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
         }
       }
       if (!pf) {
@@ -208,7 +209,7 @@ static VFontData *vfont_get_data(VFont *vfont)
     if (pf) {
       vfont->data = BLI_vfontdata_from_freetypefont(pf);
       if (pf != vfont->packedfile) {
-        freePackedFile(pf);
+        BKE_packedfile_free(pf);
       }
     }
 
@@ -234,7 +235,7 @@ void BKE_vfont_init(VFont *vfont)
     }
 
     /* Free the packed file */
-    freePackedFile(pf);
+    BKE_packedfile_free(pf);
   }
 }
 
@@ -253,7 +254,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   }
   else {
     BLI_split_file_part(filepath, filename, sizeof(filename));
-    pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
+    pf = BKE_packedfile_new(NULL, filepath, BKE_main_blendfile_path(bmain));
 
     is_builtin = false;
   }
@@ -279,13 +280,13 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 
       /* Do not add FO_BUILTIN_NAME to temporary listbase */
       if (!STREQ(filename, FO_BUILTIN_NAME)) {
-        vfont->temp_pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
+        vfont->temp_pf = BKE_packedfile_new(NULL, filepath, BKE_main_blendfile_path(bmain));
       }
     }
 
     /* Free the packed file */
     if (!vfont || vfont->packedfile != pf) {
-      freePackedFile(pf);
+      BKE_packedfile_free(pf);
     }
   }
 

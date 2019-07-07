@@ -198,7 +198,7 @@ static void image_free_packedfiles(Image *ima)
   while (ima->packedfiles.last) {
     ImagePackedFile *imapf = ima->packedfiles.last;
     if (imapf->packedfile) {
-      freePackedFile(imapf->packedfile);
+      BKE_packedfile_free(imapf->packedfile);
     }
     BLI_remlink(&ima->packedfiles, imapf);
     MEM_freeN(imapf);
@@ -377,7 +377,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
     STRNCPY(imapf_dst->filepath, imapf_src->filepath);
 
     if (imapf_src->packedfile) {
-      imapf_dst->packedfile = dupPackedFile(imapf_src->packedfile);
+      imapf_dst->packedfile = BKE_packedfile_duplicate(imapf_src->packedfile);
     }
 
     BLI_addtail(lb_dst, imapf_dst);
@@ -838,7 +838,7 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
   if (totfiles == 1) {
     ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image packed file");
     BLI_addtail(&ima->packedfiles, imapf);
-    imapf->packedfile = newPackedFile(reports, ima->name, basepath);
+    imapf->packedfile = BKE_packedfile_new(reports, ima->name, basepath);
     if (imapf->packedfile) {
       STRNCPY(imapf->filepath, ima->name);
     }
@@ -852,7 +852,7 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
       ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image packed file");
       BLI_addtail(&ima->packedfiles, imapf);
 
-      imapf->packedfile = newPackedFile(reports, iv->filepath, basepath);
+      imapf->packedfile = BKE_packedfile_new(reports, iv->filepath, basepath);
       if (imapf->packedfile) {
         STRNCPY(imapf->filepath, iv->filepath);
       }
@@ -876,7 +876,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
   else {
     ImagePackedFile *imapf = MEM_mallocN(sizeof(ImagePackedFile), __func__);
     BLI_addtail(&ima->packedfiles, imapf);
-    imapf->packedfile = newPackedFileMemory(data, data_len);
+    imapf->packedfile = BKE_packedfile_new_from_memory(data, data_len);
     STRNCPY(imapf->filepath, ima->name);
   }
 }
@@ -3241,9 +3241,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
           ImagePackedFile *imapf;
           for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
             PackedFile *pf;
-            pf = newPackedFile(NULL, imapf->filepath, ID_BLEND_PATH(bmain, &ima->id));
+            pf = BKE_packedfile_new(NULL, imapf->filepath, ID_BLEND_PATH(bmain, &ima->id));
             if (pf) {
-              freePackedFile(imapf->packedfile);
+              BKE_packedfile_free(imapf->packedfile);
               imapf->packedfile = pf;
             }
             else {
@@ -4014,7 +4014,8 @@ static ImBuf *load_image_single(Image *ima,
         BLI_addtail(&ima->packedfiles, imapf);
 
         STRNCPY(imapf->filepath, filepath);
-        imapf->packedfile = newPackedFile(NULL, filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
+        imapf->packedfile = BKE_packedfile_new(
+            NULL, filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
       }
     }
   }
