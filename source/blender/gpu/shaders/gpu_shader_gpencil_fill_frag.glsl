@@ -22,7 +22,7 @@ uniform sampler2D myTexture;
 #define SOLID 0
 #define GRADIENT 1
 #define RADIAL 2
-#define CHESS 3
+#define CHECKER 3
 #define TEXTURE 4
 
 in vec2 texCoord_interp;
@@ -104,7 +104,7 @@ void main()
   vec2 rot_tex = (matrot_tex * (texCoord_interp - t_center)) + t_center + t_offset;
   vec4 tmp_color = texture2D(myTexture, rot_tex * t_scale);
   vec4 text_color = vec4(tmp_color[0], tmp_color[1], tmp_color[2], tmp_color[3] * t_opacity);
-  vec4 chesscolor;
+  vec4 checker_color;
 
   /* solid fill */
   if (fill_type == SOLID) {
@@ -144,32 +144,32 @@ void main()
       }
       set_color(color, color2, text_color, mix_factor, intensity, t_mix, t_flip, fragColor);
     }
-    /* chessboard */
-    if (fill_type == CHESS) {
+    /* Checkerboard */
+    if (fill_type == CHECKER) {
       vec2 pos = rot / g_boxsize;
       if ((fract(pos.x) < 0.5 && fract(pos.y) < 0.5) ||
           (fract(pos.x) > 0.5 && fract(pos.y) > 0.5)) {
         if (t_flip == 0) {
-          chesscolor = color;
+          checker_color = color;
         }
         else {
-          chesscolor = color2;
+          checker_color = color2;
         }
       }
       else {
         if (t_flip == 0) {
-          chesscolor = color2;
+          checker_color = color2;
         }
         else {
-          chesscolor = color;
+          checker_color = color;
         }
       }
       /* mix with texture */
       if (t_mix == 1) {
-        fragColor = mix(chesscolor, text_color, mix_factor);
+        fragColor = mix(checker_color, text_color, mix_factor);
       }
       else {
-        fragColor = chesscolor;
+        fragColor = checker_color;
       }
     }
     /* texture */
