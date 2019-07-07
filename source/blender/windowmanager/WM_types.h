@@ -19,24 +19,35 @@
 
 /** \file
  * \ingroup wm
- */
-
-#ifndef __WM_TYPES_H__
-#define __WM_TYPES_H__
-
-/**
+ *
+ *
  * Overview of WM structs
  * ======================
  *
- * <pre>
- * > wmWindowManager    (window manager stores a list of windows)
- * > > wmWindow         (window has an active screen)
- * > > > bScreen        (link to ScrAreas via 'areabase')
- * > > > > ScrArea      (stores multiple spaces via space links via 'spacedata')
- * > > > > > SpaceLink  (base struct for space data for all different space types)
- * > > > > ScrArea      (stores multiple regions via 'regionbase')
- * > > > > > ARegion
- * </pre>
+ * - #wmWindowManager.windows -> #wmWindow <br>
+ *   Window manager stores a list of windows.
+ *
+ *   - #wmWindow.screen -> #bScreen <br>
+ *     Window has an active screen.
+ *
+ *     - #bScreen.areabase -> #ScrArea <br>
+ *       Link to #ScrArea.
+ *
+ *       - #ScrArea.spacedata <br>
+ *         Stores multiple spaces via space links.
+ *
+ *         - #SpaceLink <br>
+ *           Base struct for space data for all different space types.
+ *
+ *       - #ScrArea.regionbase -> #ARegion <br>
+ *         Stores multiple regions.
+ *
+ *     - #bScreen.regionbase -> #ARegion <br>
+ *       Global screen level regions, e.g. popups, popovers, menus.
+ *
+ *   - #wmWindow.global_areas -> #ScrAreaMap <br>
+ *     Global screen via 'areabase', e.g. top-bar & status-bar.
+ *
  *
  * Window Layout
  * =============
@@ -94,6 +105,9 @@
  * }
  * \endcode
  */
+
+#ifndef __WM_TYPES_H__
+#define __WM_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
