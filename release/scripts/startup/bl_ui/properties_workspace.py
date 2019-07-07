@@ -73,7 +73,10 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
 
         for addon in prefs.addons:
             module_name = addon.module
-            info = addon_utils.module_bl_info(addon_map[module_name])
+            module = addon_map.get(module_name)
+            if module is None:
+                continue
+            info = addon_utils.module_bl_info(module)
             if not info["use_owner"]:
                 continue
             is_enabled = module_name in owner_ids
