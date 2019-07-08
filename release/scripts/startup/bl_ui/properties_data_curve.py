@@ -177,9 +177,11 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
 
         col.prop(curve, "taper_object")
 
-        sub = col.column()
-        sub.active = curve.taper_object is not None
-        sub.prop(curve, "use_map_taper")
+        if type(curve) is not TextCurve:
+            # This setting makes no sense for texts, since we have no control over start/end of the bevel object curve.
+            sub = col.column()
+            sub.active = curve.taper_object is not None
+            sub.prop(curve, "use_map_taper")
 
 
 class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
