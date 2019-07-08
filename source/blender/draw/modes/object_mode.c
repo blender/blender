@@ -3277,12 +3277,7 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
     ParticleSettings *part = psys->part;
     int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-    if (part->type == PART_HAIR) {
-      /* Hairs should have been rendered by the render engine.*/
-      continue;
-    }
-
-    if (!ELEM(draw_as, PART_DRAW_NOT, PART_DRAW_OB, PART_DRAW_GR)) {
+    if (draw_as != PART_DRAW_PATH) {
       struct GPUBatch *geom = DRW_cache_particles_get_dots(ob, psys);
       DRWShadingGroup *shgrp = NULL;
       struct GPUBatch *shape = NULL;
@@ -3292,7 +3287,6 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
       Material *ma = give_current_material(ob, part->omat);
 
       switch (draw_as) {
-        default:
         case PART_DRAW_DOT:
           shgrp = DRW_shgroup_create(sh_data->part_dot, psl->particle);
           DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
@@ -3326,6 +3320,8 @@ static void OBJECT_cache_populate_particles(OBJECT_Shaders *sh_data,
           DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
           DRW_shgroup_uniform_bool_copy(shgrp, "screen_space", false);
           DRW_shgroup_call_instances_with_attribs(shgrp, NULL, shape, geom);
+          break;
+        default:
           break;
       }
     }
