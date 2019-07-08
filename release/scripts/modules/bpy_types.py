@@ -655,6 +655,12 @@ class Gizmo(StructRNA):
         return (batch, shader)
 
 
+    # Dummy class to keep the reference in `bpy_types_dict` and avoid
+# erros like: "TypeError: expected GizmoGroup subclass of class ..."
+class GizmoGroup(StructRNA):
+    __slots__ = ()
+
+
 # Only defined so operators members can be used by accessing self.order
 # with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=RNAMeta):
