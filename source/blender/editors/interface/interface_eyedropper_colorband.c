@@ -84,22 +84,40 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 
   uiBut *but = UI_context_active_but_get(C);
 
+  PointerRNA rna_update_ptr = PointerRNA_NULL;
+  PropertyRNA *rna_update_prop = NULL;
+  bool is_undo = true;
+
   if (but == NULL) {
     /* pass */
   }
-  else if (but->type == UI_BTYPE_COLORBAND) {
-    /* When invoked with a hotkey, we can find the band in 'but->poin'. */
-    band = (ColorBand *)but->poin;
-  }
   else {
-    /* When invoked from a button it's in custom_data field. */
-    band = (ColorBand *)but->custom_data;
+    if (but->type == UI_BTYPE_COLORBAND) {
+      /* When invoked with a hotkey, we can find the band in 'but->poin'. */
+      band = (ColorBand *)but->poin;
+    }
+    else {
+      /* When invoked from a button it's in custom_data field. */
+      band = (ColorBand *)but->custom_data;
+    }
+
+    if (band) {
+      rna_update_ptr = ((Colorband_RNAUpdateCb *)but->func_argN)->ptr;
+      rna_update_prop = ((Colorband_RNAUpdateCb *)but->func_argN)->prop;
+      is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
+    }
   }
 
   if (!band) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
     if (ptr.data != NULL) {
       band = ptr.data;
+
+      /* Set this to a sub-member of the property to trigger an update. */
+      extern PropertyRNA rna_ColorRamp_color_mode;
+      rna_update_ptr = ptr;
+      rna_update_prop = &rna_ColorRamp_color_mode;
+      is_undo = RNA_struct_undo_check(ptr.type);
     }
   }
 
@@ -113,9 +131,9 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
   eye->color_buffer_len = 0;
   eye->color_band = band;
   eye->init_color_band = *eye->color_band;
-  eye->ptr = ((Colorband_RNAUpdateCb *)but->func_argN)->ptr;
-  eye->prop = ((Colorband_RNAUpdateCb *)but->func_argN)->prop;
-  eye->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
+  eye->ptr = rna_update_ptr;
+  eye->prop = rna_update_prop;
+  eye->is_undo = is_undo;
 
   op->customdata = eye;
 
@@ -186,7 +204,9 @@ static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
   BKE_colorband_init_from_table_rgba(
       eye->color_band, eye->color_buffer, eye->color_buffer_len, filter_samples);
   eye->is_set = true;
-  RNA_property_update(C, &eye->ptr, eye->prop);
+  if (eye->prop) {
+    RNA_property_update(C, &eye->ptr, eye->prop);
+  }
 }
 
 static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
@@ -194,7 +214,9 @@ static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
   EyedropperColorband *eye = op->customdata;
   if (eye->is_set) {
     *eye->color_band = eye->init_color_band;
-    RNA_property_update(C, &eye->ptr, eye->prop);
+    if (eye->prop) {
+      RNA_property_update(C, &eye->ptr, eye->prop);
+    }
   }
   eyedropper_colorband_exit(C, op);
 }
@@ -267,7 +289,9 @@ static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const w
         break;
       case EYE_MODAL_SAMPLE_RESET:
         *eye->color_band = eye->init_color_band;
-        RNA_property_update(C, &eye->ptr, eye->prop);
+        if (eye->prop) {
+          RNA_property_update(C, &eye->ptr, eye->prop);
+        }
         eye->color_buffer_len = 0;
         break;
     }
