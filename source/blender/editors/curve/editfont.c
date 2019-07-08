@@ -73,9 +73,9 @@ static int kill_selection(Object *obedit, int ins);
 
 /************************* utilities ******************************/
 
-static char findaccent(char char1, unsigned int code)
+static wchar_t findaccent(wchar_t char1, unsigned int code)
 {
-  char new = 0;
+  wchar_t new = 0;
 
   if (char1 == 'a') {
     if (code == '`') {
@@ -170,7 +170,7 @@ static char findaccent(char char1, unsigned int code)
       new = 186;
     }
     else if (code == 'e') {
-      new = 143;
+      new = 339;
     }
     else if (code == 'c') {
       new = 169;
@@ -191,7 +191,7 @@ static char findaccent(char char1, unsigned int code)
   }
   else if (char1 == 't') {
     if (code == 'm') {
-      new = 153;
+      new = 8482;
     }
   }
   else if (char1 == 'u') {
@@ -342,7 +342,7 @@ static char findaccent(char char1, unsigned int code)
       new = 247;
     }
     if (code == '|') {
-      new = 135;
+      new = 8224;
     }
     if (code == '+') {
       new = 177;
@@ -350,15 +350,15 @@ static char findaccent(char char1, unsigned int code)
   }
   else if (char1 == '|') {
     if (code == '-') {
-      new = 135;
+      new = 8224;
     }
     if (code == '=') {
-      new = 136;
+      new = 8225;
     }
   }
   else if (char1 == '=') {
     if (code == '|') {
-      new = 136;
+      new = 8225;
     }
   }
   else if (char1 == '+') {
