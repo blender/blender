@@ -1459,7 +1459,9 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
       break;
   }
 
-  void *buf = MEM_mallocN(buf_size, "GPU_texture_read");
+  /* AMD Pro driver have a bug that write 2 bytes past buffer size
+   * if the texture is big. (see T66573) */
+  void *buf = MEM_mallocN(buf_size + 8, "GPU_texture_read");
 
   GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
   GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
