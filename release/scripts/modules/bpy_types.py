@@ -17,14 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
-
 from _bpy import types as bpy_types
 import _bpy
 
 StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # StructRNA = bpy_types.Struct
-
 bpy_types.BlendDataLibraries.load = _bpy._library_load
 bpy_types.BlendDataLibraries.write = _bpy._library_write
 bpy_types.BlendData.user_map = _bpy._rna_id_collection_user_map
@@ -37,10 +35,8 @@ class Context(StructRNA):
     def copy(self):
         from types import BuiltinMethodType
         new_context = {}
-        generic_attrs = (
-            *StructRNA.__dict__.keys(),
-            "bl_rna", "rna_type", "copy",
-        )
+        generic_attrs = (*StructRNA.__dict__.keys(),
+            "bl_rna", "rna_type", "copy",)
         for attr in dir(self):
             if not (attr.startswith("_") or attr in generic_attrs):
                 value = getattr(self, attr)
@@ -83,8 +79,7 @@ class Texture(bpy_types.ID):
         return tuple(mat for mat in bpy.data.materials
                      if self in [slot.texture
                                  for slot in mat.texture_slots
-                                 if slot]
-                     )
+                                 if slot])
 
     @property
     def users_object_modifier(self):
@@ -93,8 +88,7 @@ class Texture(bpy_types.ID):
         return tuple(obj for obj in bpy.data.objects if
                      self in [mod.texture
                               for mod in obj.modifiers
-                              if mod.type == 'DISPLACE']
-                     )
+                              if mod.type == 'DISPLACE'])
 
 
 class Collection(bpy_types.ID):
@@ -147,15 +141,11 @@ class WindowManager(bpy_types.ID):
         finally:
             self.popmenu_end__internal(popup)
 
-    def popover(
-            self, draw_func, *,
+    def popover(self, draw_func, *,
             ui_units_x=0,
-            keymap=None,
-    ):
+            keymap=None,):
         import bpy
-        popup = self.popover_begin__internal(
-            ui_units_x=ui_units_x,
-        )
+        popup = self.popover_begin__internal(ui_units_x=ui_units_x,)
 
         try:
             draw_func(popup, bpy.context)
@@ -481,18 +471,14 @@ class MeshLoopTriangle(StructRNA):
         """The midpoint of the face."""
         face_verts = self.vertices[:]
         mesh_verts = self.id_data.vertices
-        return (mesh_verts[face_verts[0]].co +
-                mesh_verts[face_verts[1]].co +
-                mesh_verts[face_verts[2]].co
-                ) / 3.0
+        return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co) / 3.0
 
     @property
     def edge_keys(self):
         verts = self.vertices[:]
         return (ord_ind(verts[0], verts[1]),
                 ord_ind(verts[1], verts[2]),
-                ord_ind(verts[2], verts[0]),
-                )
+                ord_ind(verts[2], verts[0]),)
 
 
 class MeshPolygon(StructRNA):
@@ -653,6 +639,12 @@ class Gizmo(StructRNA):
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
         batch.program_set(shader)
         return (batch, shader)
+
+
+# Dummy class to keep the reference in `bpy_types_dict` and avoid
+# erros like: "TypeError: expected GizmoGroup subclass of class ..."
+class GizmoGroup(StructRNA):
+    __slots__ = ()
 
 
 # Only defined so operators members can be used by accessing self.order
@@ -854,14 +846,11 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         # collect paths
         files = []
         for directory in searchpaths:
-            files.extend(
-                [(f, os.path.join(directory, f))
+            files.extend([(f, os.path.join(directory, f))
                  for f in os.listdir(directory)
                  if (not f.startswith("."))
-                 if ((filter_ext is None) or
-                     (filter_ext(os.path.splitext(f)[1])))
-                 if ((filter_path is None) or
-                     (filter_path(f)))
+                 if ((filter_ext is None) or (filter_ext(os.path.splitext(f)[1])))
+                 if ((filter_path is None) or (filter_path(f)))
                  ])
 
         files.sort()
@@ -873,11 +862,9 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             # since the callback may want to use part a directory in the name.
             row = col.row(align=True)
             name = display_name(filepath) if display_name else bpy.path.display_name(f)
-            props = row.operator(
-                operator,
+            props = row.operator(operator,
                 text=name,
-                translate=False,
-            )
+                translate=False,)
 
             if props_default is not None:
                 for attr, value in props_default.items():
@@ -960,8 +947,7 @@ class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
     def links(self):
         """List of node links from or to this socket. Warning: takes O(len(nodetree.links)) time."""
         return tuple(link for link in self.id_data.links
-                     if (link.from_socket == self or
-                         link.to_socket == self))
+                     if (link.from_socket == self or link.to_socket == self))
 
 
 class NodeSocketInterface(StructRNA, metaclass=RNAMetaPropGroup):
