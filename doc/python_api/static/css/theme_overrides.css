@@ -5,3 +5,7 @@
    max-height: 245px;
    overflow-y: auto !important;
 }
+
+/* Hide home icon in search area */
+.wy-side-nav-search > a:hover {background: none; opacity: 0.9}
+.wy-side-nav-search > a.icon::before {content: none}
