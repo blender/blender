@@ -56,8 +56,8 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
     return;
   }
+  build_parameters(&scene->id);
   add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
-  add_operation_node(&scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
   /* NOTE: This is a bit overkill and can potentially pull a bit too much into the graph, but:
    *
    * - We definitely need an ID node for the scene's compositor, otherwise re-mapping will no
