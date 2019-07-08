@@ -374,6 +374,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
     /* Fill the only the line buffer. */
     GPUIndexBufBuilder elb_lines;
     GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tottri * 3, INT_MAX);
+    int vert_idx = 0;
 
     for (i = 0; i < face_indices_len; ++i) {
       const MLoopTri *lt = &looptri[face_indices[i]];
@@ -384,9 +385,10 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const int (*face_vert_indices)[3],
       }
 
       /* TODO skip "non-real" edges. */
-      GPU_indexbuf_add_line_verts(&elb_lines, i * 3 + 0, i * 3 + 1);
-      GPU_indexbuf_add_line_verts(&elb_lines, i * 3 + 1, i * 3 + 2);
-      GPU_indexbuf_add_line_verts(&elb_lines, i * 3 + 2, i * 3 + 0);
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 0, vert_idx * 3 + 1);
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 1, vert_idx * 3 + 2);
+      GPU_indexbuf_add_line_verts(&elb_lines, vert_idx * 3 + 2, vert_idx * 3 + 0);
+      vert_idx++;
     }
     buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
   }
