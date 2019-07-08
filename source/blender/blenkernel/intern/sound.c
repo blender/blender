@@ -389,7 +389,6 @@ void BKE_sound_cache(bSound *sound)
 {
   sound_verify_evaluated_id(&sound->id);
 
-  sound->flags |= SOUND_FLAGS_CACHING;
   if (sound->cache) {
     AUD_Sound_free(sound->cache);
   }
@@ -405,7 +404,6 @@ void BKE_sound_cache(bSound *sound)
 
 void BKE_sound_delete_cache(bSound *sound)
 {
-  sound->flags &= ~SOUND_FLAGS_CACHING;
   if (sound->cache) {
     AUD_Sound_free(sound->cache);
     sound->cache = NULL;

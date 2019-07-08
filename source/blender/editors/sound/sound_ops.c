@@ -104,7 +104,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
   }
 
   if (RNA_boolean_get(op->ptr, "cache")) {
-    BKE_sound_cache(sound);
+    sound->flags |= SOUND_FLAGS_CACHING;
   }
 
   /* hook into UI */

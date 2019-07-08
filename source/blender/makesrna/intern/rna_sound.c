@@ -40,26 +40,10 @@ static void rna_Sound_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
   DEG_id_tag_update(&sound->id, ID_RECALC_AUDIO);
 }
 
-static bool rna_Sound_caching_get(PointerRNA *ptr)
+static void rna_Sound_caching_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  bSound *sound = (bSound *)(ptr->data);
-  return (sound->flags & SOUND_FLAGS_CACHING) != 0;
-}
-
-static void rna_Sound_caching_set(PointerRNA *ptr, const bool value)
-{
-  bSound *sound = (bSound *)(ptr->data);
-  if (value) {
-    BKE_sound_cache(sound);
-  }
-  else {
-    BKE_sound_delete_cache(sound);
-  }
-}
-
-static void rna_Sound_caching_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
-{
-  BKE_sequencer_update_sound(scene, (bSound *)(ptr->data));
+  rna_Sound_update(bmain, scene, ptr);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
 #else
@@ -87,7 +71,7 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Packed File", "");
 
   prop = RNA_def_property(srna, "use_memory_cache", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SOUND_FLAGS_CACHING);
   RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM");
   RNA_def_property_update(prop, 0, "rna_Sound_caching_update");
 

@@ -5400,7 +5400,7 @@ static void seq_load_apply(Main *bmain, Scene *scene, Sequence *seq, SeqLoadInfo
 
     if (seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
       if (seq->sound) {
-        BKE_sound_cache(seq->sound);
+        seq->sound->flags |= SOUND_FLAGS_CACHING;
       }
     }
 
