@@ -290,15 +290,6 @@ class MASK_PT_tools:
         col.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
         col.operator("mask.shape_key_rekey", text="Re-Key Shape Points")
 
-class MASK_MT_add(Menu):
-    bl_label = "Add"
-
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator("mask.primitive_circle_add", icon='MESH_CIRCLE')
-        layout.operator("mask.primitive_square_add", icon='MESH_PLANE')
-
 
 class MASK_MT_mask(Menu):
     bl_label = "Mask"
@@ -391,7 +382,6 @@ class MASK_MT_select(Menu):
 
 classes = (
     MASK_UL_layers,
-    MASK_MT_add,
     MASK_MT_mask,
     MASK_MT_visibility,
     MASK_MT_transform,
