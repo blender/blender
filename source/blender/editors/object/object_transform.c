@@ -465,6 +465,7 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
 {
   Object workob;
   Object *ob_child;
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   /* a change was made, adjust the children to compensate */
   for (ob_child = bmain->objects.first; ob_child; ob_child = ob_child->id.next) {
@@ -475,6 +476,10 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
       invert_m4_m4(ob_child->parentinv, workob.obmat);
       /* Copy result of BKE_object_apply_mat4(). */
       BKE_object_transform_copy(ob_child, ob_child_eval);
+      /* Make sure evaluated object is in a consistent state with the original one.
+       * It might be needed for applying transform on its children. */
+      copy_m4_m4(ob_child_eval->parentinv, ob_child->parentinv);
+      BKE_object_eval_transform_all(depsgraph, scene_eval, ob_child_eval);
       /* Tag for update.
        * This is because parent matrix did change, so in theory the child object might now be
        * evaluated to a different location in another editing context. */
