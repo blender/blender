@@ -475,6 +475,9 @@ void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
 
 float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist)
 {
+  /* Seems like we have a factor of 2 more offset than 2.79 for some reason. Correct for this. */
+  dist *= 0.5f;
+
   if (winmat[15] > 0.5f) {
 #if 1
     return 0.00001f * dist * viewdist;  // ortho tweaking
