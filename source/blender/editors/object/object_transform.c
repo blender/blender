@@ -1226,8 +1226,10 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           arm->id.tag |= LIB_TAG_DOIT;
           /* do_inverse_offset = true; */ /* docenter_armature() handles this */
 
-          BKE_object_where_is_calc(depsgraph, scene, ob);
-          BKE_pose_where_is(depsgraph, scene, ob); /* needed for bone parents */
+          Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+          BKE_object_transform_copy(ob_eval, ob);
+          BKE_object_where_is_calc(depsgraph, scene, ob_eval);
+          BKE_pose_where_is(depsgraph, scene, ob_eval); /* needed for bone parents */
 
           ignore_parent_tx(bmain, depsgraph, scene, ob);
 
@@ -1362,9 +1364,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
         add_v3_v3(ob->loc, centn);
 
-        BKE_object_where_is_calc(depsgraph, scene, ob);
+        Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+        BKE_object_transform_copy(ob_eval, ob);
+        BKE_object_where_is_calc(depsgraph, scene, ob_eval);
         if (ob->type == OB_ARMATURE) {
-          BKE_pose_where_is(depsgraph, scene, ob); /* needed for bone parents */
+          /* needed for bone parents */
+          BKE_pose_where_is(depsgraph, scene, ob_eval);
         }
 
         ignore_parent_tx(bmain, depsgraph, scene, ob);
@@ -1387,10 +1392,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
             mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
             add_v3_v3(ob_other->loc, centn);
 
-            BKE_object_where_is_calc(depsgraph, scene, ob_other);
+            Object *ob_other_eval = DEG_get_evaluated_object(depsgraph, ob_other);
+            BKE_object_transform_copy(ob_other_eval, ob_other);
+            BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
             if (ob_other->type == OB_ARMATURE) {
               /* needed for bone parents */
-              BKE_pose_where_is(depsgraph, scene, ob_other);
+              BKE_pose_where_is(depsgraph, scene, ob_other_eval);
             }
             ignore_parent_tx(bmain, depsgraph, scene, ob_other);
           }
