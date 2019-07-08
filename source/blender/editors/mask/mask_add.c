@@ -869,7 +869,7 @@ static int primitive_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   return op->type->exec(C, op);
 }
 
-static void define_prinitive_add_properties(wmOperatorType *ot)
+static void define_primitive_add_properties(wmOperatorType *ot)
 {
   RNA_def_float(
       ot->srna, "size", 100, -FLT_MAX, FLT_MAX, "Size", "Size of new circle", -FLT_MAX, FLT_MAX);
@@ -913,7 +913,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  define_prinitive_add_properties(ot);
+  define_primitive_add_properties(ot);
 }
 
 /******************** primitive add suqare *********************/
@@ -944,5 +944,5 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  define_prinitive_add_properties(ot);
+  define_primitive_add_properties(ot);
 }
