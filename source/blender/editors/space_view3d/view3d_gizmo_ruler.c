@@ -113,6 +113,13 @@ typedef struct RulerInfo {
   wmWindow *win;
   ScrArea *sa;
   ARegion *ar; /* re-assigned every modal update */
+
+  /* Track changes in state. */
+  struct {
+    bool do_snap;
+    bool do_thickness;
+  } drag_state_prev;
+
 } RulerInfo;
 
 /* -------------------------------------------------------------------- */
@@ -280,6 +287,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
     /* pass */
   }
   else if (state == RULER_STATE_DRAG) {
+    memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
     ruler_info->snap_context = ED_transform_snap_object_context_create_view3d(
         bmain, CTX_data_scene(C), CTX_data_depsgraph(C), 0, ruler_info->ar, CTX_wm_view3d(C));
   }
@@ -857,27 +865,43 @@ static int gizmo_ruler_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
 static int gizmo_ruler_modal(bContext *C,
                              wmGizmo *gz,
                              const wmEvent *event,
-                             eWM_GizmoFlagTweak UNUSED(tweak_flag))
+                             eWM_GizmoFlagTweak tweak_flag)
 {
   bool do_draw = false;
   int exit_code = OPERATOR_RUNNING_MODAL;
   RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *ar = CTX_wm_region(C);
+  bool do_cursor_update = false;
 
   ruler_info->ar = ar;
 
   switch (event->type) {
     case MOUSEMOVE: {
-      if (ruler_info->state == RULER_STATE_DRAG) {
-        if (view3d_ruler_item_mousemove(
-                ruler_info, ruler_item, event->mval, event->shift != 0, event->ctrl != 0)) {
-          do_draw = true;
-        }
-      }
+      do_cursor_update = true;
       break;
     }
   }
+
+  const bool do_snap = tweak_flag & WM_GIZMO_TWEAK_SNAP;
+  const bool do_thickness = tweak_flag & WM_GIZMO_TWEAK_PRECISE;
+  if ((ruler_info->drag_state_prev.do_snap != do_snap) ||
+      (ruler_info->drag_state_prev.do_thickness != do_thickness)) {
+    do_cursor_update = true;
+  }
+
+  if (do_cursor_update) {
+    if (ruler_info->state == RULER_STATE_DRAG) {
+      if (view3d_ruler_item_mousemove(
+              ruler_info, ruler_item, event->mval, do_thickness, do_snap)) {
+        do_draw = true;
+      }
+    }
+  }
+
+  ruler_info->drag_state_prev.do_snap = do_snap;
+  ruler_info->drag_state_prev.do_thickness = do_thickness;
+
   if (do_draw) {
     ED_region_tag_redraw(ar);
   }
@@ -920,8 +944,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
       }
 
       /* update the new location */
-      view3d_ruler_item_mousemove(
-          ruler_info, ruler_item_pick, event->mval, event->shift != 0, event->ctrl != 0);
+      view3d_ruler_item_mousemove(ruler_info, ruler_item_pick, event->mval, false, false);
     }
   }
   else {
