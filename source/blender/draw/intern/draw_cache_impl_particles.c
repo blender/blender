@@ -835,7 +835,9 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
                                                                ParticleHairCache *cache)
 {
   int active_uv = 0;
+  int render_uv = 0;
   int active_col = 0;
+  int render_col = 0;
 
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -843,10 +845,12 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
       cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
       active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
+      render_uv = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL)) {
       cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPCOL);
       active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL);
+      render_col = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_MLOOPCOL);
     }
   }
 
@@ -897,7 +901,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%u", hash);
 
     if (i == active_uv) {
-      BLI_strncpy(cache->uv_layer_names[i][n], "u", MAX_LAYER_NAME_LEN);
+      BLI_strncpy(cache->uv_layer_names[i][n++], "au", MAX_LAYER_NAME_LEN);
+    }
+    if (i == render_uv) {
+      BLI_strncpy(cache->uv_layer_names[i][n++], "u", MAX_LAYER_NAME_LEN);
     }
   }
   /* Vertex colors */
@@ -917,7 +924,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     }
 
     if (i == active_col) {
-      BLI_strncpy(cache->col_layer_names[i][n], "c", MAX_LAYER_NAME_LEN);
+      BLI_strncpy(cache->col_layer_names[i][n++], "ac", MAX_LAYER_NAME_LEN);
+    }
+    if (i == render_col) {
+      BLI_strncpy(cache->col_layer_names[i][n++], "c", MAX_LAYER_NAME_LEN);
     }
   }
 

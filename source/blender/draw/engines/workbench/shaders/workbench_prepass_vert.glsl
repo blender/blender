@@ -2,14 +2,14 @@
 #ifndef HAIR_SHADER
 in vec3 pos;
 in vec3 nor;
-in vec2 u; /* active texture layer */
+in vec2 au; /* active texture layer */
 #  ifdef V3D_SHADING_VERTEX_COLOR
-in vec3 c; /* active color */
+in vec3 ac; /* active color */
 #  endif
-#  define uv u
+#  define uv au
 #else /* HAIR_SHADER */
 #  ifdef V3D_SHADING_TEXTURE_COLOR
-uniform samplerBuffer u; /* active texture layer */
+uniform samplerBuffer au; /* active texture layer */
 #  endif
 flat out float hair_rand;
 #endif /* HAIR_SHADER */
@@ -58,7 +58,7 @@ void main()
 {
 #ifdef HAIR_SHADER
 #  ifdef V3D_SHADING_TEXTURE_COLOR
-  vec2 uv = hair_get_customdata_vec2(u);
+  vec2 uv = hair_get_customdata_vec2(au);
 #  endif
   float time, thick_time, thickness;
   vec3 world_pos, tan, binor;
@@ -86,7 +86,7 @@ void main()
 
 #ifdef V3D_SHADING_VERTEX_COLOR
 #  ifndef HAIR_SHADER
-  vertexColor = srgb_to_linear_attr(c);
+  vertexColor = srgb_to_linear_attr(ac);
 #  endif
 #endif
 

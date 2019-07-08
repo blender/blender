@@ -246,17 +246,21 @@ typedef struct MeshRenderData {
   struct {
     struct {
       MLoopUV **uv;
+      MLoopCol **vcol;
+      float (**tangent)[4];
+
       int uv_len;
       int uv_active;
+      int uv_render;
       int uv_mask_active;
 
-      MLoopCol **vcol;
       int vcol_len;
       int vcol_active;
+      int vcol_render;
 
-      float (**tangent)[4];
       int tangent_len;
       int tangent_active;
+      int tangent_render;
 
       bool *auto_vcol;
     } layers;
@@ -471,7 +475,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           case CD_MTFACE: {
             if (layer == -1) {
               layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-                                          CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
             }
             if (layer != -1) {
               cd_used.uv |= (1 << layer);
@@ -481,11 +485,11 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           case CD_TANGENT: {
             if (layer == -1) {
               layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-                                          CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
 
               /* Only fallback to orco (below) when we have no UV layers, see: T56545 */
               if (layer == -1 && name[0] != '\0') {
-                layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+                layer = CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
               }
             }
             if (layer != -1) {
@@ -501,7 +505,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           case CD_MCOL: {
             if (layer == -1) {
               layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name) :
-                                          CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL);
             }
             if (layer != -1) {
               cd_used.vcol |= (1 << layer);
@@ -885,9 +889,12 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
     }
 
     rdata->cd.layers.uv_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    rdata->cd.layers.uv_render = CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
     rdata->cd.layers.uv_mask_active = CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV);
     rdata->cd.layers.vcol_active = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+    rdata->cd.layers.vcol_render = CustomData_get_render_layer(cd_ldata, CD_MLOOPCOL);
     rdata->cd.layers.tangent_active = rdata->cd.layers.uv_active;
+    rdata->cd.layers.tangent_render = rdata->cd.layers.uv_render;
 
 #define CD_VALIDATE_ACTIVE_LAYER(active_index, used) \
   if ((active_index != -1) && (used & (1 << active_index)) == 0) { \
@@ -896,9 +903,12 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
   ((void)0)
 
     CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_active, cd_used->uv);
+    CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_render, cd_used->uv);
     CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.uv_mask_active, cd_used->uv);
     CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_active, cd_used->tan);
+    CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.tangent_render, cd_used->tan);
     CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_active, cd_used->vcol);
+    CD_VALIDATE_ACTIVE_LAYER(rdata->cd.layers.vcol_render, cd_used->vcol);
 
 #undef CD_VALIDATE_ACTIVE_LAYER
 
@@ -982,12 +992,16 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
      * NOTE 2 : Replicate changes to code_generate_vertex_new() in gpu_codegen.c */
     if (rdata->cd.layers.vcol_len != 0) {
       int act_vcol = rdata->cd.layers.vcol_active;
+      int ren_vcol = rdata->cd.layers.vcol_render;
       for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.vcol_len; i_src++, i_dst++) {
         if ((cd_used->vcol & (1 << i_src)) == 0) {
           /* This is a non-used VCol slot. Skip. */
           i_dst--;
           if (rdata->cd.layers.vcol_active >= i_src) {
             act_vcol--;
+          }
+          if (rdata->cd.layers.vcol_render >= i_src) {
+            ren_vcol--;
           }
         }
         else {
@@ -1011,9 +1025,12 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
           }
         }
       }
+      /* Actual active Vcol slot inside vcol layers used for shading. */
       if (rdata->cd.layers.vcol_active != -1) {
-        /* Actual active Vcol slot inside vcol layers used for shading. */
         rdata->cd.layers.vcol_active = act_vcol;
+      }
+      if (rdata->cd.layers.vcol_render != -1) {
+        rdata->cd.layers.vcol_render = ren_vcol;
       }
     }
 
@@ -1022,11 +1039,15 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
     CustomData_free_layers(cd_ldata, CD_MLOOPTANGENT, rdata->loop_len);
 
     if (rdata->cd.layers.uv_len != 0) {
+      int ren_uv = rdata->cd.layers.uv_render;
       int act_uv = rdata->cd.layers.uv_active;
       for (int i_src = 0, i_dst = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
         if ((cd_used->uv & (1 << i_src)) == 0) {
           /* This is a non-used UV slot. Skip. */
           i_dst--;
+          if (rdata->cd.layers.uv_render >= i_src) {
+            ren_uv--;
+          }
           if (rdata->cd.layers.uv_active >= i_src) {
             act_uv--;
           }
@@ -1045,8 +1066,11 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
               rdata->cd.uuid.auto_mix[i_dst], sizeof(*rdata->cd.uuid.auto_mix), "a%u", hash);
         }
       }
+      /* Actual active / Render UV slot inside uv layers used for shading. */
+      if (rdata->cd.layers.uv_render != -1) {
+        rdata->cd.layers.uv_render = ren_uv;
+      }
       if (rdata->cd.layers.uv_active != -1) {
-        /* Actual active UV slot inside uv layers used for shading. */
         rdata->cd.layers.uv_active = act_uv;
       }
     }
@@ -1145,9 +1169,13 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
 
       int i_dst = 0;
       int act_tan = rdata->cd.layers.tangent_active;
+      int ren_tan = rdata->cd.layers.tangent_render;
       for (int i_src = 0; i_src < cd_layers_src.uv_len; i_src++, i_dst++) {
         if ((cd_used->tan & (1 << i_src)) == 0) {
           i_dst--;
+          if (rdata->cd.layers.tangent_render >= i_src) {
+            ren_tan--;
+          }
           if (rdata->cd.layers.tangent_active >= i_src) {
             act_tan--;
           }
@@ -1173,9 +1201,12 @@ static MeshRenderData *mesh_render_data_create_ex(Mesh *me,
           }
         }
       }
+      /* Actual active rangent slot inside uv layers used for shading. */
       if (rdata->cd.layers.tangent_active != -1) {
-        /* Actual active UV slot inside uv layers used for shading. */
         rdata->cd.layers.tangent_active = act_tan;
+      }
+      if (rdata->cd.layers.tangent_render != -1) {
+        rdata->cd.layers.tangent_render = ren_tan;
       }
 
       if (cd_used->tan_orco != 0) {
@@ -3258,8 +3289,11 @@ static void mesh_create_loop_uv_and_tan(MeshRenderData *rdata, GPUVertBuf *vbo)
     attr_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
     GPU_vertformat_alias_add(&format, attr_name);
 
-    if (i == rdata->cd.layers.uv_active) {
+    if (i == rdata->cd.layers.uv_render) {
       GPU_vertformat_alias_add(&format, "u");
+    }
+    if (i == rdata->cd.layers.uv_active) {
+      GPU_vertformat_alias_add(&format, "au");
     }
     if (i == rdata->cd.layers.uv_mask_active) {
       GPU_vertformat_alias_add(&format, "mu");
@@ -3274,8 +3308,11 @@ static void mesh_create_loop_uv_and_tan(MeshRenderData *rdata, GPUVertBuf *vbo)
 #else
     tangent_id[i] = GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 #endif
-    if (i == rdata->cd.layers.tangent_active) {
+    if (i == rdata->cd.layers.tangent_render) {
       GPU_vertformat_alias_add(&format, "t");
+    }
+    if (i == rdata->cd.layers.tangent_active) {
+      GPU_vertformat_alias_add(&format, "at");
     }
   }
 
@@ -3375,8 +3412,11 @@ static void mesh_create_loop_vcol(MeshRenderData *rdata, GPUVertBuf *vbo)
       attr_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
       GPU_vertformat_alias_add(&format, attr_name);
     }
-    if (i == rdata->cd.layers.vcol_active) {
+    if (i == rdata->cd.layers.vcol_render) {
       GPU_vertformat_alias_add(&format, "c");
+    }
+    if (i == rdata->cd.layers.vcol_active) {
+      GPU_vertformat_alias_add(&format, "ac");
     }
   }
 

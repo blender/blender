@@ -24,7 +24,7 @@
 #ifndef __DRAW_HAIR_PRIVATE_H__
 #define __DRAW_HAIR_PRIVATE_H__
 
-#define MAX_LAYER_NAME_CT 3 /* u0123456789, u, a0123456789 */
+#define MAX_LAYER_NAME_CT 4 /* u0123456789, u, au, a0123456789 */
 #define MAX_LAYER_NAME_LEN DECIMAL_DIGITS_BOUND(uint) + 2
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
