@@ -772,6 +772,7 @@ typedef enum eDopeSheet_FilterFlag {
 /* DopeSheet filter-flags - Overflow (filterflag2) */
 typedef enum eDopeSheet_FilterFlag2 {
   ADS_FILTER_NOCACHEFILES = (1 << 1),
+  ADS_FILTER_NOMOVIECLIPS = (1 << 2),
 } eDopeSheet_FilterFlag2;
 
 /* DopeSheet general flags */
