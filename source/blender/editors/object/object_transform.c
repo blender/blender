@@ -547,7 +547,7 @@ static int apply_objects_internal(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
   float rsmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
   bool changed = true;
 
