@@ -126,7 +126,8 @@ static void partialvis_update_mesh(Object *ob,
 
 /* Hide or show elements in multires grids with a special GridFlags
  * customdata layer. */
-static void partialvis_update_grids(Object *ob,
+static void partialvis_update_grids(Depsgraph *depsgraph,
+                                    Object *ob,
                                     PBVH *pbvh,
                                     PBVHNode *node,
                                     PartialVisAction action,
@@ -208,7 +209,7 @@ static void partialvis_update_grids(Object *ob,
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
     BKE_pbvh_node_fully_hidden_set(node, !any_visible);
-    multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
+    multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
   }
 }
 
@@ -378,7 +379,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
         partialvis_update_mesh(ob, pbvh, nodes[i], action, area, clip_planes);
         break;
       case PBVH_GRIDS:
-        partialvis_update_grids(ob, pbvh, nodes[i], action, area, clip_planes);
+        partialvis_update_grids(depsgraph, ob, pbvh, nodes[i], action, area, clip_planes);
         break;
       case PBVH_BMESH:
         partialvis_update_bmesh(ob, pbvh, nodes[i], action, area, clip_planes);

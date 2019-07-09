@@ -5186,15 +5186,13 @@ static void sculpt_flush_update_step(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   SculptSession *ss = ob->sculpt;
   ARegion *ar = CTX_wm_region(C);
   MultiresModifierData *mmd = ss->multires;
   View3D *v3d = CTX_wm_view3d(C);
 
   if (mmd != NULL) {
-    /* NOTE: SubdivCCG is living in the evaluated object. */
-    multires_mark_as_modified(ob_eval, MULTIRES_COORDS_MODIFIED);
+    multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);

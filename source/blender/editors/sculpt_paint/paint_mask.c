@@ -167,7 +167,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
       0, totnode, &data, mask_flood_fill_task_cb, &settings);
 
   if (multires) {
-    multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+    multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
   sculpt_undo_push_end();
@@ -341,7 +341,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *
   }
 
   if (multires) {
-    multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+    multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
   sculpt_undo_push_end();
@@ -528,7 +528,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     }
 
     if (multires) {
-      multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+      multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
     }
 
     sculpt_undo_push_end();

@@ -554,10 +554,10 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
     if (BKE_sculpt_multires_active(scene, ob)) {
       if (rebuild) {
-        multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
+        multires_mark_as_modified(depsgraph, ob, MULTIRES_HIDDEN_MODIFIED);
       }
       else {
-        multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
+        multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
       }
     }
 
