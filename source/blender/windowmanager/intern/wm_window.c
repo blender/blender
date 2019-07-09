@@ -714,8 +714,14 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 
       wm_window_ghostwindow_add(wm, "Blender", win);
     }
-    /* happens after fileread */
-    wm_window_ensure_eventstate(win);
+
+    if (win->ghostwin != NULL) {
+      /* If we have no ghostwin this is a buggy window that should be removed.
+       * However we still need to initialize it correctly so the screen doesn't hang. */
+
+      /* happens after fileread */
+      wm_window_ensure_eventstate(win);
+    }
 
     /* add keymap handlers (1 handler for all keys in map!) */
     keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
