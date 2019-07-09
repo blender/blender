@@ -1367,7 +1367,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Start")
-        split.prop(strip, "frame_final_start", text=smpte_from_frame(strip.frame_final_start))
+        split.prop(strip, "frame_start", text=smpte_from_frame(strip.frame_start))
 
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
