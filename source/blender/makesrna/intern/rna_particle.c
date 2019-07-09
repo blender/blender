@@ -2822,11 +2822,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "count", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "totpart");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  /* This limit is for those freaks who have the machine power to handle it. */
-  /* 10M particles take around 2.2 Gb of memory / disk space in saved file and */
-  /* each cached frame takes around 0.5 Gb of memory / disk space depending on cache mode. */
-  RNA_def_property_range(prop, 0, 10000000);
-  RNA_def_property_ui_range(prop, 0, 100000, 1, -1);
+  RNA_def_property_ui_range(prop, 0, 1000000, 1, -1);
   RNA_def_property_ui_text(prop, "Number", "Total number of particles");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
