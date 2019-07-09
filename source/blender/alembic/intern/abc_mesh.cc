@@ -1122,7 +1122,9 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = "Error reading mesh sample; more detail on the console";
+    if (err_str != nullptr) {
+      *err_str = "Error reading mesh sample; more detail on the console";
+    }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_schema.getName().c_str(),
@@ -1417,7 +1419,9 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = "Error reading mesh sample; more detail on the console";
+    if (err_str != nullptr) {
+      *err_str = "Error reading mesh sample; more detail on the console";
+    }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_schema.getName().c_str(),
