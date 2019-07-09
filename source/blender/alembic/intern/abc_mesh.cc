@@ -409,6 +409,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
 {
   std::vector<Imath::V3f> points, normals;
   std::vector<int32_t> poly_verts, loop_counts;
+  std::vector<Imath::V3f> velocities;
 
   bool smooth_normal = false;
 
@@ -458,9 +459,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
   }
 
   if (m_is_liquid) {
-    std::vector<Imath::V3f> velocities;
     getVelocities(mesh, velocities);
-
     m_mesh_sample.setVelocities(V3fArraySample(velocities));
   }
 
