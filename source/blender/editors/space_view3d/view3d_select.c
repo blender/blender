@@ -2548,6 +2548,9 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
         /* pass */
       }
     }
+    if (retval) {
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
   }
   else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
     retval = PE_mouse_particles(C, location, extend, deselect, toggle);
