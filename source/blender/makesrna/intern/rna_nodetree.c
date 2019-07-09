@@ -1711,6 +1711,12 @@ static void rna_Node_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
   ED_node_tag_update_nodetree(bmain, ntree, node);
 }
 
+static void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_Node_update(bmain, scene, ptr);
+  DEG_relations_tag_update(bmain);
+}
+
 static void rna_Node_socket_value_update(ID *id, bNode *node, bContext *C)
 {
   ED_node_tag_update_nodetree(CTX_data_main(C), (bNodeTree *)id, node);
@@ -4458,7 +4464,7 @@ static void def_sh_tex_coord(StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_ui_text(
       prop, "Object", "Use coordinates from this object (for object texture coordinates output)");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "from_instancer", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
