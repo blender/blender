@@ -1460,7 +1460,7 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int mipl
       break;
   }
 
-  /* AMD Pro driver have a bug that write 2 bytes past buffer size
+  /* AMD Pro driver have a bug that write 8 bytes past buffer size
    * if the texture is big. (see T66573) */
   void *buf = MEM_mallocN(buf_size + 8, "GPU_texture_read");
 
