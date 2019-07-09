@@ -344,7 +344,7 @@ void CLOSURE_NAME(vec3 N
 /*   Screen Space Refraction    */
 /* ---------------------------- */
 #    ifdef USE_REFRACTION
-  if (ssrToggle && roughness < ssrMaxRoughness + 0.2) {
+  if (ssrefractToggle && roughness < ssrMaxRoughness + 0.2) {
     /* Find approximated position of the 2nd refraction event. */
     vec3 refr_vpos = (refractionDepth > 0.0) ? transform_point(ViewMatrix, refr_pos) :
                                                viewPosition;

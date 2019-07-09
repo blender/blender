@@ -212,6 +212,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   common_data->spec_toggle = true;
   common_data->ssr_toggle = true;
+  common_data->ssrefract_toggle = true;
   common_data->sss_toggle = true;
 
   /* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
@@ -1264,6 +1265,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   common_data->prb_num_planar = 0;
   /* Turn off ssr to avoid black specular */
   common_data->ssr_toggle = false;
+  common_data->ssrefract_toggle = false;
   common_data->sss_toggle = false;
 
   common_data->ray_type = EEVEE_RAY_GLOSSY;
@@ -1281,6 +1283,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   /* Restore */
   common_data->prb_num_planar = pinfo->num_planar;
   common_data->ssr_toggle = true;
+  common_data->ssrefract_toggle = true;
   common_data->sss_toggle = true;
 
   /* Prefilter for SSR */

@@ -23,6 +23,7 @@ layout(std140) uniform common_block
   float ssrFireflyFac;
   float ssrBrdfBias;
   bool ssrToggle;
+  bool ssrefractToggle;
   /* SubSurface Scattering */
   float sssJitterThreshold;
   bool sssToggle;
