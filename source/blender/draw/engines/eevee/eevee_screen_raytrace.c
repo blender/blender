@@ -135,6 +135,12 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       stl->g_data->valid_double_buffer = false;
     }
 
+    if (!effects->ssr_was_valid_double_buffer) {
+      DRW_viewport_request_redraw();
+      EEVEE_temporal_sampling_reset(vedata);
+    }
+    effects->ssr_was_valid_double_buffer = stl->g_data->valid_double_buffer;
+
     effects->reflection_trace_full = (scene_eval->eevee.flag & SCE_EEVEE_SSR_HALF_RESOLUTION) == 0;
     common_data->ssr_thickness = scene_eval->eevee.ssr_thickness;
     common_data->ssr_border_fac = scene_eval->eevee.ssr_border_fade;

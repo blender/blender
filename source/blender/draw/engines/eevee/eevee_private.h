@@ -562,6 +562,7 @@ typedef struct EEVEE_EffectsInfo {
   /* SSR */
   bool reflection_trace_full;
   bool ssr_was_persp;
+  bool ssr_was_valid_double_buffer;
   int ssr_neighbor_ofs;
   int ssr_halfres_ofs[2];
   struct GPUTexture *ssr_normal_input; /* Textures from pool */

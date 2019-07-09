@@ -303,6 +303,16 @@ static void eevee_draw_background(void *vedata)
     DRW_stats_group_end();
 
     DRW_view_set_active(NULL);
+
+    if (DRW_state_is_image_render() && (stl->effects->enabled_effects & EFFECT_SSR) &&
+        !stl->effects->ssr_was_valid_double_buffer) {
+      /* SSR needs one iteration to start properly. */
+      loop_len++;
+      /* Reset sampling (and accumulation) after the first sample to avoid
+       * washed out first bounce for SSR. */
+      EEVEE_temporal_sampling_reset(vedata);
+      stl->effects->ssr_was_valid_double_buffer = stl->g_data->valid_double_buffer;
+    }
   }
 
   /* Tonemapping and transfer result to default framebuffer. */
