@@ -465,6 +465,7 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
 {
   Object workob;
   Object *ob_child;
+
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   /* a change was made, adjust the children to compensate */
@@ -974,7 +975,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
   Object *tob;
   float cent[3], cent_neg[3], centn[3];
   const float *cursor = scene->cursor.location;
