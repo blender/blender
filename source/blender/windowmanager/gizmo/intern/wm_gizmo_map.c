@@ -552,6 +552,9 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
 
   bool use_select_bias = false;
 
+  /* TODO: waiting for the GPU in the middle of the event loop for every
+   * mouse move is bad for performance, we need to find a solution to not
+   * use the GPU or draw something once. (see T61474) */
   GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
   /* do the drawing */
   gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
@@ -644,7 +647,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
           break;
         }
       }
-      else {
+      else if (gz->type->draw_select != NULL) {
         has_3d = true;
       }
     }
