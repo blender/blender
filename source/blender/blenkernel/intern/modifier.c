@@ -786,7 +786,7 @@ bool modifiers_usesSubsurfFacedots(struct Scene *scene, Object *ob)
   ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
   int cage_index = modifiers_getCageIndex(scene, ob, NULL, 1);
   /* Find first modifier enabled on cage. */
-  for (int i; md && i < cage_index; i++) {
+  for (int i = 0; md && i < cage_index; i++) {
     md = md->next;
   }
   /* Now from this point, search for subsurf modifier. */
