@@ -412,10 +412,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
     }
   }
   if (verts || facedots) {
-    float pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
     UI_GetThemeColor4fv(TH_VERTEX_SELECT, col2);
     if (verts) {
-      float pinned_col[4] = {1.0f, 0.0f, 0.0f, 1.0f}; /* TODO Theme? */
+      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
+      const float pinned_col[4] = {1.0f, 0.0f, 0.0f, 1.0f}; /* TODO Theme? */
       UI_GetThemeColor4fv(TH_VERTEX, col1);
       GPU_blend(true);
       GPU_program_point_size(true);
@@ -424,7 +424,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
       GPU_batch_uniform_4f(verts, "vertColor", col1[0], col1[1], col1[2], 1.0f);
       GPU_batch_uniform_4fv(verts, "selectColor", transparent);
       GPU_batch_uniform_4fv(verts, "pinnedColor", pinned_col);
-      GPU_batch_uniform_1f(verts, "pointSize", (pointsize + 1.5f) * M_SQRT2);
+      GPU_batch_uniform_1f(verts, "pointSize", (point_size + 1.5f) * M_SQRT2);
       GPU_batch_uniform_1f(verts, "outlineWidth", 0.75f);
       GPU_batch_draw(verts);
 
@@ -441,7 +441,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
       GPU_program_point_size(false);
     }
     if (facedots) {
-      GPU_point_size(pointsize);
+      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE);
+      GPU_point_size(point_size);
 
       UI_GetThemeColor4fv(TH_WIRE, col1);
       GPU_batch_program_set_builtin(facedots, GPU_SHADER_2D_UV_FACEDOTS);
