@@ -1062,7 +1062,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
     /* move active first */
     if (ob == obact) {
-      memmove(&objects[1], objects, object_index);
+      memmove(&objects[1], objects, object_index * sizeof(Object *));
       objects[0] = ob;
     }
   }
