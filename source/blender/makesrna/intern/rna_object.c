@@ -638,7 +638,7 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
       id_us_plus(&ob->instance_collection->id);
     }
     else {
-      BKE_report(NULL, RPT_ERROR, "Only empty objects support group instances");
+      BKE_report(NULL, RPT_ERROR, "Only empty objects support collection instances");
     }
   }
   else {

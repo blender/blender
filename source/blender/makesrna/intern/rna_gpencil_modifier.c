@@ -663,7 +663,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   /* Mode */
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_gpencil_simplify_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "How simplify the stroke");
+  RNA_def_property_ui_text(prop, "Mode", "How to simplify the stroke");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "step", PROP_INT, PROP_NONE);

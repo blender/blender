@@ -593,7 +593,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   if (ID_IS_LINKED(active_collection) ||
       ((active_collection->flag & COLLECTION_IS_MASTER) && ID_IS_LINKED(scene))) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot add a colection to a linked collection/scene");
+    BKE_report(op->reports, RPT_ERROR, "Cannot add a collection to a linked collection/scene");
     return OPERATOR_CANCELLED;
   }
 
