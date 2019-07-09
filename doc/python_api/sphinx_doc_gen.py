@@ -399,7 +399,6 @@ is_release = bpy.app.version_cycle in {"rc", "release"}
 
 # converting bytes to strings, due to T30154
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
-BLENDER_DATE = str(bpy.app.build_date, 'utf_8')
 
 if is_release:
     # '2.62a'
@@ -407,9 +406,13 @@ if is_release:
 else:
     # '2.62.1'
     BLENDER_VERSION_DOTS = ".".join(blender_version_strings)
+
 if BLENDER_REVISION != "Unknown":
     # '2.62a SHA1' (release) or '2.62.1 SHA1' (non-release)
-    BLENDER_VERSION_DOTS += " " + BLENDER_REVISION
+    BLENDER_VERSION_HASH = BLENDER_REVISION
+else:
+    # Fallback: Should not be used
+    BLENDER_VERSION_HASH = "Hash Unknown"
 
 if is_release:
     # '2_62a_release'
@@ -1608,18 +1611,18 @@ def write_sphinx_conf_py(basepath):
     fw("import sys, os\n\n")
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
-    fw("project = 'Blender'\n")
+    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
     fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
-    fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
+    fw("version = '%s'\n" % BLENDER_VERSION_HASH)
+    fw("release = '%s'\n" % BLENDER_VERSION_HASH)
 
     # Quiet file not in table-of-contents warnings.
     fw("exclude_patterns = [\n")
     fw("    'include__bmesh.rst',\n")
     fw("]\n\n")
 
-    fw("html_title = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
+    fw("html_title = 'Blender Python API'\n")
     fw("html_theme = 'sphinx_rtd_theme'\n")
     fw("html_theme_options = {\n")
     fw("    'canonical_url': 'https://docs.blender.org/api/current/',\n")
@@ -1639,7 +1642,8 @@ def write_sphinx_conf_py(basepath):
     fw("html_static_path = ['static']\n")
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
-    fw("html_logo = 'static/blender_logo.svg'\n\n")
+    fw("html_logo = 'static/blender_logo.svg'\n")
+    fw("html_last_updated_fmt = '%m/%d/%Y'\n\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
@@ -1684,14 +1688,14 @@ def write_rst_contents(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
-    fw(title_string("Blender Python API Documentation", "%", double=True))
+    fw(title_string("Blender %s Python API Documentation" % BLENDER_VERSION_DOTS, "%", double=True))
     fw("\n")
-    fw("Welcome to the API reference for Blender %s, built %s.\n" %
-       (BLENDER_VERSION_DOTS, BLENDER_DATE))
+    fw("Welcome to the Python API documentation for `Blender <https://www.blender.org>`__, ")
+    fw("the free and open source 3D creation suite.\n")
     fw("\n")
 
     # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
-    fw("This site can be downloaded for offline use: `Download the full Documentation (zipped HTML files) <%s>`_\n" %
+    fw("This site can be used offline: `Download the full documentation (zipped HTML files) <%s>`__\n" %
        BLENDER_ZIP_FILENAME)
     fw("\n")
 
