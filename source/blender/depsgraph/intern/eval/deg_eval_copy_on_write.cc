@@ -1334,6 +1334,50 @@ void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
   }
 }
 
+/* Backup of movie clip runtime data. */
+
+class MovieClipBackup {
+ public:
+  MovieClipBackup();
+
+  void reset();
+
+  void init_from_movieclip(MovieClip *movieclip);
+  void restore_to_movieclip(MovieClip *movieclip);
+
+  struct anim *anim;
+  struct MovieClipCache *cache;
+};
+
+MovieClipBackup::MovieClipBackup()
+{
+  reset();
+}
+
+void MovieClipBackup::reset()
+{
+  anim = NULL;
+  cache = NULL;
+}
+
+void MovieClipBackup::init_from_movieclip(MovieClip *movieclip)
+{
+  anim = movieclip->anim;
+  cache = movieclip->cache;
+  /* Clear pointers stored in the movie clip, so they are not freed when copied-on-written
+   * datablock is freed for re-allocation. */
+  movieclip->anim = NULL;
+  movieclip->cache = NULL;
+}
+
+void MovieClipBackup::restore_to_movieclip(MovieClip *movieclip)
+{
+  movieclip->anim = anim;
+  movieclip->cache = cache;
+
+  reset();
+}
+
 class RuntimeBackup {
  public:
   RuntimeBackup() : drawdata_ptr(NULL)
@@ -1352,6 +1396,7 @@ class RuntimeBackup {
   ObjectRuntimeBackup object_backup;
   DrawDataList drawdata_backup;
   DrawDataList *drawdata_ptr;
+  MovieClipBackup movieclip_backup;
 };
 
 void RuntimeBackup::init_from_id(ID *id)
@@ -1369,6 +1414,9 @@ void RuntimeBackup::init_from_id(ID *id)
       break;
     case ID_SO:
       sound_backup.init_from_sound(reinterpret_cast<bSound *>(id));
+      break;
+    case ID_MC:
+      movieclip_backup.init_from_movieclip(reinterpret_cast<MovieClip *>(id));
       break;
     default:
       break;
@@ -1394,6 +1442,9 @@ void RuntimeBackup::restore_to_id(ID *id)
       break;
     case ID_SO:
       sound_backup.restore_to_sound(reinterpret_cast<bSound *>(id));
+      break;
+    case ID_MC:
+      movieclip_backup.restore_to_movieclip(reinterpret_cast<MovieClip *>(id));
       break;
     default:
       break;
