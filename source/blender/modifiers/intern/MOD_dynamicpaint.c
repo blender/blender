@@ -112,16 +112,17 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   return mesh;
 }
 
-static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
+static bool is_brush_cb(Object *UNUSED(ob), ModifierData *md)
 {
-  return ((DynamicPaintModifierData *)pmd)->brush != NULL;
+  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  return (pmd->brush != NULL && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
   /* Add relation from canvases to all brush objects. */
-  if (pmd->canvas != NULL) {
+  if (pmd->canvas != NULL && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
     for (DynamicPaintSurface *surface = pmd->canvas->surfaces.first; surface;
          surface = surface->next) {
       if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
