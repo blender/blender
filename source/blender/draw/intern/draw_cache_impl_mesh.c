@@ -2295,6 +2295,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
       GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_pos_nor);
       GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
       GPU_BATCH_DISCARD_SAFE(cache->batch.wire_loops);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.wire_edges);
       if (cache->surf_per_mat) {
         for (int i = 0; i < cache->mat_len; i++) {
           GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
