@@ -37,6 +37,7 @@ in VertexData
 vData[];
 
 #define DEGENERATE_TRIS_WORKAROUND
+#define DEGENERATE_TRIS_AREA_THRESHOLD 4e-17
 
 #define len_sqr(a) dot(a, a)
 
@@ -67,7 +68,7 @@ void main()
 #ifdef DEGENERATE_TRIS_WORKAROUND
   /* Check if area is null */
   vec2 faces_area = vec2(len_sqr(n1), len_sqr(n2));
-  bvec2 degen_faces = equal(abs(faces_area), vec2(0.0));
+  bvec2 degen_faces = lessThan(abs(faces_area), vec2(DEGENERATE_TRIS_AREA_THRESHOLD));
 
   /* Both triangles are degenerate, abort. */
   if (all(degen_faces)) {
