@@ -116,6 +116,10 @@ static void outliner_tree_dimensions(SpaceOutliner *soops, int *r_width, int *r_
  */
 static bool is_object_data_in_editmode(const ID *id, const Object *obact)
 {
+  if (id == NULL) {
+    return false;
+  }
+
   const short id_type = GS(id->name);
 
   if (id_type == ID_GD && obact && obact->data == id) {
