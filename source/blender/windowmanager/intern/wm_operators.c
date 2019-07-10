@@ -1467,43 +1467,111 @@ static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), vo
   ED_region_tag_refresh_ui(ar_menu);
 }
 
-static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
+static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, int *y)
 {
-  uiBlock *block;
-  uiBut *but;
+  if (!(label && label[0])) {
+    return;
+  }
+
   uiStyle *style = UI_style_get();
 
+  BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
+  int label_width = BLF_width(style->widgetlabel.uifont_id, label, strlen(label));
+  label_width = label_width + U.widget_unit;
+
+  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+
+  uiBut *but = uiDefBut(block,
+                        UI_BTYPE_LABEL,
+                        0,
+                        label,
+                        x - label_width,
+                        *y,
+                        label_width,
+                        UI_UNIT_Y,
+                        NULL,
+                        0,
+                        0,
+                        0,
+                        0,
+                        NULL);
+
+  /* 1 = UI_SELECT, internal flag to draw in white. */
+  UI_but_flag_enable(but, 1);
+  UI_block_emboss_set(block, UI_EMBOSS);
+  *y -= 12 * U.dpi_fac;
+}
+
+static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
+{
+  /* Version number. */
+  const char *version_suffix = NULL;
+  bool show_build_info = true;
+
+  if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
+    version_suffix = " Alpha";
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
+    version_suffix = " Beta";
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
+    version_suffix = " Release Candidate";
+    show_build_info = false;
+  }
+  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
+    version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
+    show_build_info = false;
+  }
+
+  char version_buf[256] = "\0";
+  BLI_snprintf(version_buf,
+               sizeof(version_buf),
+               "v %d.%d%s",
+               BLENDER_VERSION / 100,
+               BLENDER_VERSION % 100,
+               version_suffix);
+
+  wm_block_splash_add_label(block, version_buf, x, &y);
+
+#ifdef WITH_BUILDINFO
+  if (show_build_info) {
+    extern unsigned long build_commit_timestamp;
+    extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
+
+    /* Date, hidden for builds made from tag. */
+    if (build_commit_timestamp != 0) {
+      char date_buf[256] = "\0";
+      BLI_snprintf(
+          date_buf, sizeof(date_buf), "Date: %s %s", build_commit_date, build_commit_time);
+      wm_block_splash_add_label(block, date_buf, x, &y);
+    }
+
+    /* Hash. */
+    char hash_buf[256] = "\0";
+    BLI_snprintf(hash_buf, sizeof(hash_buf), "Hash: %s", build_hash);
+    wm_block_splash_add_label(block, hash_buf, x, &y);
+
+    /* Branch. */
+    if (!STREQ(build_branch, "master")) {
+      char branch_buf[256] = "\0";
+      BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
+
+      wm_block_splash_add_label(block, branch_buf, x, &y);
+    }
+  }
+#endif /* WITH_BUILDINFO */
+}
+
+static ImBuf *wm_block_splash_image()
+{
 #ifndef WITH_HEADLESS
   extern char datatoc_splash_png[];
   extern int datatoc_splash_png_size;
-
   extern char datatoc_splash_2x_png[];
   extern int datatoc_splash_2x_png_size;
-  ImBuf *ibuf;
-#else
+
   ImBuf *ibuf = NULL;
-#endif
 
-#ifdef WITH_BUILDINFO
-  int label_delta = 0;
-  int hash_width, date_width;
-  char date_buf[128] = "\0";
-  char hash_buf[128] = "\0";
-  extern unsigned long build_commit_timestamp;
-  extern char build_hash[], build_commit_date[], build_commit_time[], build_branch[];
-
-  /* Builds made from tag only shows tag sha */
-  BLI_snprintf(hash_buf, sizeof(hash_buf), "Hash: %s", build_hash);
-  BLI_snprintf(date_buf, sizeof(date_buf), "Date: %s %s", build_commit_date, build_commit_time);
-
-  BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
-  hash_width = (int)BLF_width(style->widgetlabel.uifont_id, hash_buf, sizeof(hash_buf)) +
-               U.widget_unit;
-  date_width = (int)BLF_width(style->widgetlabel.uifont_id, date_buf, sizeof(date_buf)) +
-               U.widget_unit;
-#endif /* WITH_BUILDINFO */
-
-#ifndef WITH_HEADLESS
   if (U.dpi_fac > 1.0) {
     ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_splash_2x_png,
                                  datatoc_splash_2x_png_size,
@@ -1554,7 +1622,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
       }
     }
   }
+  return ibuf;
+#else
+  return NULL;
 #endif
+}
+
+static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
+{
+  uiBlock *block;
+  uiBut *but;
+  uiStyle *style = UI_style_get();
 
   block = UI_block_begin(C, ar, "splash", UI_EMBOSS);
 
@@ -1564,6 +1642,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
+  ImBuf *ibuf = wm_block_splash_image();
   but = uiDefBut(block,
                  UI_BTYPE_IMAGE,
                  0,
@@ -1581,104 +1660,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
   UI_but_func_set(but, wm_block_splash_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
-  /* label for 'a' bugfix releases, or 'Release Candidate 1'...
-   * avoids recreating splash for version updates */
-  const char *version_suffix = NULL;
+  int x = U.dpi_fac * 502;
+  int y = U.dpi_fac * 237;
 
-  if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-    version_suffix = " Alpha";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
-    version_suffix = " Beta";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-    version_suffix = " Release Candidate";
-  }
-  else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-    version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
-  }
-
-  char *version = BLI_sprintfN(
-      "Version %d.%d%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, version_suffix);
-
-  if (version != NULL && version[0]) {
-    /* placed after the version number in the image,
-     * placing y is tricky to match baseline */
-    /* hack to have text draw 'text_sel' */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    int x = 202 * U.dpi_fac;
-    int y = 130 * U.dpi_fac;
-    int w = 240 * U.dpi_fac;
-
-    but = uiDefBut(block, UI_BTYPE_LABEL, 0, version, x, y, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-    /* XXX, set internal flag - UI_SELECT */
-    UI_but_flag_enable(but, 1);
-    UI_block_emboss_set(block, UI_EMBOSS);
-  }
-
-  MEM_freeN(version);
-
-#ifdef WITH_BUILDINFO
-  if (build_commit_timestamp != 0) {
-    but = uiDefBut(block,
-                   UI_BTYPE_LABEL,
-                   0,
-                   date_buf,
-                   U.dpi_fac * 502 - date_width,
-                   U.dpi_fac * 237,
-                   date_width,
-                   UI_UNIT_Y,
-                   NULL,
-                   0,
-                   0,
-                   0,
-                   0,
-                   NULL);
-    /* XXX, set internal flag - UI_SELECT */
-    UI_but_flag_enable(but, 0);
-    label_delta = 12;
-  }
-  but = uiDefBut(block,
-                 UI_BTYPE_LABEL,
-                 0,
-                 hash_buf,
-                 U.dpi_fac * 502 - hash_width,
-                 U.dpi_fac * (237 - label_delta),
-                 hash_width,
-                 UI_UNIT_Y,
-                 NULL,
-                 0,
-                 0,
-                 0,
-                 0,
-                 NULL);
-  /* XXX, set internal flag - UI_SELECT */
-  UI_but_flag_enable(but, 0);
-
-  if (!STREQ(build_branch, "master")) {
-    char branch_buf[128] = "\0";
-    int branch_width;
-    BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
-    branch_width = (int)BLF_width(style->widgetlabel.uifont_id, branch_buf, sizeof(branch_buf)) +
-                   U.widget_unit;
-    but = uiDefBut(block,
-                   UI_BTYPE_LABEL,
-                   0,
-                   branch_buf,
-                   U.dpi_fac * 502 - branch_width,
-                   U.dpi_fac * (225 - label_delta),
-                   branch_width,
-                   UI_UNIT_Y,
-                   NULL,
-                   0,
-                   0,
-                   0,
-                   0,
-                   NULL);
-    /* XXX, set internal flag - UI_SELECT */
-    UI_but_flag_enable(but, 0);
-  }
-#endif /* WITH_BUILDINFO */
+  wm_block_splash_add_labels(block, x, y);
 
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
