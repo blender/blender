@@ -683,17 +683,30 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
       }
     }
 
-    undosys_step_decode(C, G_MAIN, ustack, us, -1);
-
-    ustack->step_active = us_prev;
-    undosys_stack_validate(ustack, true);
+    UndoStep *us_active = us_prev;
     if (use_skip) {
-      if (ustack->step_active && ustack->step_active->skip) {
-        CLOG_INFO(
-            &LOG, 2, "undo continue with skip %p '%s', type='%s'", us, us->name, us->type->name);
-        BKE_undosys_step_undo_with_data(ustack, C, ustack->step_active);
+      while (us_active->skip && us_active->prev) {
+        us_active = us_active->prev;
       }
     }
+
+    {
+      UndoStep *us_iter = us_prev;
+      do {
+        const bool is_final = (us_iter == us_active);
+        if (is_final == false) {
+          CLOG_INFO(&LOG,
+                    2,
+                    "undo continue with skip %p '%s', type='%s'",
+                    us_iter,
+                    us_iter->name,
+                    us_iter->type->name);
+        }
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
+        ustack->step_active = us_iter;
+      } while ((us_active != us_iter) && (us_iter = us_iter->prev));
+    }
+
     return true;
   }
   return false;
@@ -737,14 +750,28 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
       }
     }
 
-    undosys_step_decode(C, G_MAIN, ustack, us, 1);
-    ustack->step_active = us_next;
+    UndoStep *us_active = us_next;
     if (use_skip) {
-      if (ustack->step_active && ustack->step_active->skip) {
-        CLOG_INFO(
-            &LOG, 2, "redo continue with skip %p '%s', type='%s'", us, us->name, us->type->name);
-        BKE_undosys_step_redo_with_data(ustack, C, ustack->step_active);
+      while (us_active->skip && us_active->prev) {
+        us_active = us_active->next;
       }
+    }
+
+    {
+      UndoStep *us_iter = us_next;
+      do {
+        const bool is_final = (us_iter == us_active);
+        if (is_final == false) {
+          CLOG_INFO(&LOG,
+                    2,
+                    "redo continue with skip %p '%s', type='%s'",
+                    us_iter,
+                    us_iter->name,
+                    us_iter->type->name);
+        }
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
+        ustack->step_active = us_iter;
+      } while ((us_active != us_iter) && (us_iter = us_iter->next));
     }
     return true;
   }
