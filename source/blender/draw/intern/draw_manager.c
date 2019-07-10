@@ -2730,6 +2730,14 @@ void DRW_draw_select_id_object(Scene *scene,
     select_mode = ts->selectmode;
   }
 
+  /* Init the scene of the draw context. When using face dot selection on
+   * when the subsurf modifier is active on the cage, the scene needs to be
+   * valid. It is read from the context in the
+   * `DRW_mesh_batch_cache_create_requested` and used in the `isDisabled`
+   * method of the SubSurfModifier. */
+  DRWContextState *draw_ctx = &DST.draw_ctx;
+  draw_ctx->scene = scene;
+
   GPU_matrix_mul(ob->obmat);
 
   const float(*world_clip_planes)[4] = NULL;
