@@ -428,8 +428,8 @@ static PyObject *FrsMaterial_shininess_get(BPy_FrsMaterial *self, void *UNUSED(c
 static int FrsMaterial_shininess_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
   float scalar;
-  if ((scalar = PyFloat_AsDouble(value)) == -1.0f &&
-      PyErr_Occurred()) { /* parsed item not a number */
+  if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
+    /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError, "value must be a number");
     return -1;
   }

@@ -969,8 +969,8 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
   ExrHandle *data = (ExrHandle *)handle;
   ExrChannel *echan;
 
-  if (BLI_exists(filename) &&
-      BLI_file_size(filename) > 32) { /* 32 is arbitrary, but zero length files crashes exr */
+  /* 32 is arbitrary, but zero length files crashes exr. */
+  if (BLI_exists(filename) && BLI_file_size(filename) > 32) {
     /* avoid crash/abort when we don't have permission to write here */
     try {
       data->ifile_stream = new IFileStream(filename);
@@ -1957,8 +1957,8 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           }
         }
 
-        if (is_multi &&
-            ((flags & IB_thumbnail) == 0)) { /* only enters with IB_multilayer flag set */
+        /* Only enters with IB_multilayer flag set. */
+        if (is_multi && ((flags & IB_thumbnail) == 0)) {
           /* constructs channels for reading, allocates memory in channels */
           ExrHandle *handle = imb_exr_begin_read_mem(*membuf, *file, width, height);
           if (handle) {

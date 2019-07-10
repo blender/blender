@@ -200,8 +200,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   updateFaceCount(ctx, dmd, bm->totface);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL);
-  BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL &&
-             bm->ftoolflagpool == NULL); /* make sure we never alloc'd these */
+  /* make sure we never alloc'd these */
+  BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);
   BLI_assert(bm->vtable == NULL && bm->etable == NULL && bm->ftable == NULL);
 
   BM_mesh_free(bm);

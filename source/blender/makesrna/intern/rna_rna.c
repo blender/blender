@@ -1870,8 +1870,8 @@ int rna_property_override_diff_default(Main *bmain,
 #  undef RNA_PATH_FREE
       }
 
-      equals = equals && !(iter_a.valid || iter_b.valid) &&
-               !abort; /* Not same number of items in both collections... */
+      /* Not same number of items in both collections. */
+      equals = equals && !(iter_a.valid || iter_b.valid) && !abort;
       RNA_property_collection_end(&iter_a);
       RNA_property_collection_end(&iter_b);
 

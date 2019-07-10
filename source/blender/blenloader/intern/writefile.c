@@ -553,10 +553,8 @@ static void writestruct_id(
   writestruct_at_address_id(wd, filecode, structname, nr, adr, adr);
 }
 
-static void writedata(WriteData *wd,
-                      int filecode,
-                      int len,
-                      const void *adr) /* do not use for structs */
+/* do not use for structs */
+static void writedata(WriteData *wd, int filecode, int len, const void *adr)
 {
   BHead bh;
 

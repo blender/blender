@@ -78,8 +78,8 @@ static void node_shader_exec_vect_math(void *UNUSED(data),
     out[1]->vec[0] = normalize_v3(out[0]->vec);
   }
   else if (node->custom1 == 5) { /* Normalize */
-    if (in[0]->hasinput ||
-        !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
+    /* This one only takes one input, so we've got to choose. */
+    if (in[0]->hasinput || !in[1]->hasinput) {
       out[0]->vec[0] = vec1[0];
       out[0]->vec[1] = vec1[1];
       out[0]->vec[2] = vec1[2];

@@ -1402,9 +1402,9 @@ static void emit_from_particles(Object *flow_ob,
                                 Scene *scene,
                                 float dt)
 {
+  /* Is particle system selected. */
   if (sfs && sfs->psys && sfs->psys->part &&
-      ELEM(sfs->psys->part->type, PART_EMITTER, PART_FLUID))  // is particle system selected
-  {
+      ELEM(sfs->psys->part->type, PART_EMITTER, PART_FLUID)) {
     ParticleSimulationData sim;
     ParticleSystem *psys = sfs->psys;
     float *particle_pos;

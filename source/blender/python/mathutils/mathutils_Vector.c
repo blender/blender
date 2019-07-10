@@ -1415,8 +1415,8 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
     return -1;
   }
 
-  if ((scalar = PyFloat_AsDouble(value)) == -1.0f &&
-      PyErr_Occurred()) { /* parsed item not a number */
+  if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
+    /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError,
                     "vector[index] = x: "
                     "assigned value not a number");
@@ -1950,8 +1950,8 @@ static PyObject *Vector_div(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  if ((scalar = PyFloat_AsDouble(v2)) == -1.0f &&
-      PyErr_Occurred()) { /* parsed item not a number */
+  if ((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) {
+    /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError,
                     "Vector division: "
                     "Vector must be divided by a float");
@@ -1989,8 +1989,8 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  if ((scalar = PyFloat_AsDouble(v2)) == -1.0f &&
-      PyErr_Occurred()) { /* parsed item not a number */
+  if ((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) {
+    /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError,
                     "Vector division: "
                     "Vector must be divided by a float");

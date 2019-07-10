@@ -1818,8 +1818,9 @@ void BKE_curve_bevel_make(Object *ob, ListBase *disp)
     fp[3] = fp[4] = 0.0;
     fp[5] = cu->ext1;
   }
-  else if ((cu->flag & (CU_FRONT | CU_BACK)) == 0 &&
-           cu->ext1 == 0.0f) { /* we make a full round bevel in that case */
+  else if ((cu->flag & (CU_FRONT | CU_BACK)) == 0 && cu->ext1 == 0.0f) {
+    /* We make a full round bevel in that case. */
+
     nr = 4 + 2 * cu->bevresol;
 
     dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
@@ -4742,8 +4743,8 @@ bool BKE_nurb_check_valid_u(const Nurb *nu)
   if (nu->pntsu < nu->orderu) {
     return false;
   }
-  if (((nu->flagu & CU_NURB_CYCLIC) == 0) &&
-      (nu->flagu & CU_NURB_BEZIER)) { /* Bezier U Endpoints */
+  if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) {
+    /* Bezier U Endpoints */
     if (nu->orderu == 4) {
       if (nu->pntsu < 5) {
         return false; /* bezier with 4 orderu needs 5 points */
@@ -4769,8 +4770,8 @@ bool BKE_nurb_check_valid_v(const Nurb *nu)
   if (nu->pntsv < nu->orderv) {
     return false;
   }
-  if (((nu->flagv & CU_NURB_CYCLIC) == 0) &&
-      (nu->flagv & CU_NURB_BEZIER)) { /* Bezier V Endpoints */
+  if (((nu->flagv & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) {
+    /* Bezier V Endpoints */
     if (nu->orderv == 4) {
       if (nu->pntsv < 5) {
         return false; /* bezier with 4 orderu needs 5 points */

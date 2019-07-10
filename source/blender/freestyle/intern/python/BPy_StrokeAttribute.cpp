@@ -577,8 +577,8 @@ static int StrokeAttribute_alpha_set(BPy_StrokeAttribute *self,
                                      void *UNUSED(closure))
 {
   float scalar;
-  if ((scalar = PyFloat_AsDouble(value)) == -1.0f &&
-      PyErr_Occurred()) { /* parsed item not a number */
+  if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
+    /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError, "value must be a number");
     return -1;
   }

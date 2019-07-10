@@ -1712,22 +1712,26 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 /** \name Old/New Pointer Map
  * \{ */
 
-static void *newdataadr(FileData *fd, const void *adr) /* only direct databocks */
+/* only direct databocks */
+static void *newdataadr(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
-static void *newdataadr_no_us(FileData *fd, const void *adr) /* only direct databocks */
+/* only direct databocks */
+static void *newdataadr_no_us(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
-static void *newglobadr(FileData *fd, const void *adr) /* direct data-locks with global linking */
+/* direct datablocks with global linking */
+static void *newglobadr(FileData *fd, const void *adr)
 {
   return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-static void *newimaadr(FileData *fd, const void *adr) /* used to restore image data after undo */
+/* used to restore image data after undo */
+static void *newimaadr(FileData *fd, const void *adr)
 {
   if (fd->imamap && adr) {
     return oldnewmap_lookup_and_inc(fd->imamap, adr, true);
@@ -1735,7 +1739,8 @@ static void *newimaadr(FileData *fd, const void *adr) /* used to restore image d
   return NULL;
 }
 
-static void *newsceadr(FileData *fd, const void *adr) /* used to restore scene data after undo */
+/* used to restore scene data after undo */
+static void *newsceadr(FileData *fd, const void *adr)
 {
   if (fd->scenemap && adr) {
     return oldnewmap_lookup_and_inc(fd->scenemap, adr, true);
@@ -1743,8 +1748,8 @@ static void *newsceadr(FileData *fd, const void *adr) /* used to restore scene d
   return NULL;
 }
 
-static void *newmclipadr(FileData *fd,
-                         const void *adr) /* used to restore movie clip data after undo */
+/* used to restore movie clip data after undo */
+static void *newmclipadr(FileData *fd, const void *adr)
 {
   if (fd->movieclipmap && adr) {
     return oldnewmap_lookup_and_inc(fd->movieclipmap, adr, true);
@@ -1752,7 +1757,8 @@ static void *newmclipadr(FileData *fd,
   return NULL;
 }
 
-static void *newsoundadr(FileData *fd, const void *adr) /* used to restore sound data after undo */
+/* used to restore sound data after undo */
+static void *newsoundadr(FileData *fd, const void *adr)
 {
   if (fd->soundmap && adr) {
     return oldnewmap_lookup_and_inc(fd->soundmap, adr, true);
@@ -1760,8 +1766,8 @@ static void *newsoundadr(FileData *fd, const void *adr) /* used to restore sound
   return NULL;
 }
 
-static void *newpackedadr(FileData *fd,
-                          const void *adr) /* used to restore packed data after undo */
+/* used to restore packed data after undo */
+static void *newpackedadr(FileData *fd, const void *adr)
 {
   if (fd->packedmap && adr) {
     return oldnewmap_lookup_and_inc(fd->packedmap, adr, true);
@@ -1770,19 +1776,20 @@ static void *newpackedadr(FileData *fd,
   return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
-static void *newlibadr(FileData *fd, const void *lib, const void *adr) /* only lib data */
+/* only lib data */
+static void *newlibadr(FileData *fd, const void *lib, const void *adr)
 {
   return oldnewmap_liblookup(fd->libmap, adr, lib);
 }
 
-void *blo_do_versions_newlibadr(FileData *fd, const void *lib, const void *adr) /* only lib data */
+/* only lib data */
+void *blo_do_versions_newlibadr(FileData *fd, const void *lib, const void *adr)
 {
   return newlibadr(fd, lib, adr);
 }
 
-static void *newlibadr_us(FileData *fd,
-                          const void *lib,
-                          const void *adr) /* increases user number */
+/* increases user number */
+static void *newlibadr_us(FileData *fd, const void *lib, const void *adr)
 {
   ID *id = newlibadr(fd, lib, adr);
 
@@ -1791,16 +1798,14 @@ static void *newlibadr_us(FileData *fd,
   return id;
 }
 
-void *blo_do_versions_newlibadr_us(FileData *fd,
-                                   const void *lib,
-                                   const void *adr) /* increases user number */
+/* increases user number */
+void *blo_do_versions_newlibadr_us(FileData *fd, const void *lib, const void *adr)
 {
   return newlibadr_us(fd, lib, adr);
 }
 
-static void *newlibadr_real_us(FileData *fd,
-                               const void *lib,
-                               const void *adr) /* ensures real user */
+/* ensures real user */
+static void *newlibadr_real_us(FileData *fd, const void *lib, const void *adr)
 {
   ID *id = newlibadr(fd, lib, adr);
 
