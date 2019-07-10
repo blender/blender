@@ -1370,7 +1370,11 @@ static void armature_vert_task(void *__restrict userdata,
   if (use_dverts || armature_def_nr != -1) {
     if (data->mesh) {
       BLI_assert(i < data->mesh->totvert);
-      dvert = data->mesh->dvert + i;
+      if (data->mesh->dvert != NULL) {
+        dvert = data->mesh->dvert + i;
+      } else {
+        dvert = NULL;
+      }
     }
     else if (data->dverts && i < data->target_totvert) {
       dvert = data->dverts + i;
