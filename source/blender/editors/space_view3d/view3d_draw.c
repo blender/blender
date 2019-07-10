@@ -804,7 +804,11 @@ void ED_view3d_draw_depth(Depsgraph *depsgraph, ARegion *ar, View3D *v3d, bool a
   GPU_depth_test(true);
 
   GPUViewport *viewport = WM_draw_region_get_viewport(ar, 0);
-  DRW_draw_depth_loop(depsgraph, ar, v3d, viewport);
+  /* When Blender is starting, a click event can trigger a depth test while the viewport is not
+   * yet available. */
+  if (viewport != NULL) {
+    DRW_draw_depth_loop(depsgraph, ar, v3d, viewport);
+  }
 
   if (rv3d->rflag & RV3D_CLIPPING) {
     ED_view3d_clipping_disable();
