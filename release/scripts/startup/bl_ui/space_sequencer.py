@@ -1360,7 +1360,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         sub = layout.row(align=True)
         split = sub.split(factor=0.5 + max_factor)
         split.alignment = 'RIGHT'
-        split.label(text='Channel')
+        split.label(text="Channel")
         split.prop(strip, "channel", text="")
 
         sub = layout.column(align=True)
@@ -1391,7 +1391,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
 
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
-            split.label(text='End')
+            split.label(text="End")
             split.prop(strip, "frame_offset_end", text=smpte_from_frame(strip.frame_offset_end))
 
             layout.alignment = 'RIGHT'
@@ -1404,7 +1404,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
 
             split = sub.split(factor=0.5 + max_factor, align=True)
             split.alignment = 'RIGHT'
-            split.label(text='End')
+            split.label(text="End")
             split.prop(strip, "animation_offset_end", text=smpte_from_frame(strip.animation_offset_end))
 
         col = layout.column(align=True)
@@ -1419,7 +1419,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.label(text="Playhead")
         split = split.split(factor=0.8 + max_factor, align=True)
         playhead = frame_current - strip.frame_final_start
-        split.label(text='{:>14}'.format(smpte_from_frame(playhead) + ":"))
+        split.label(text="{:>14}".format(smpte_from_frame(playhead) + ":"))
         split.alignment = 'RIGHT'
         split.label(text=str(playhead) + " ")
 
