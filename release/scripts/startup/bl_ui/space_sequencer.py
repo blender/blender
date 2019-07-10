@@ -222,10 +222,11 @@ class SEQUENCER_MT_view(Menu):
             layout.menu("SEQUENCER_MT_range")
 
             layout.separator()
-
+            layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="Refresh All")
 
             layout.separator()
+            layout.operator_context = 'INVOKE_DEFAULT'
 
         if is_preview:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
@@ -557,7 +558,7 @@ class SEQUENCER_MT_strip_transform(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("transform.transform", text="Move").mode = 'TRANSLATION'
+        layout.operator("transform.seq_slide", text="Move")
         layout.operator("transform.transform", text="Move/Extend from Playhead").mode = 'TIME_EXTEND'
         layout.operator("sequencer.slip", text="Slip Strip Contents")
 
