@@ -2301,7 +2301,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
           GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
         }
       }
-      cache->batch_ready &= ~(MBC_SURFACE | MBC_WIRE_LOOPS | MBC_SURF_PER_MAT);
+      cache->batch_ready &= ~(MBC_SURFACE | MBC_WIRE_EDGES | MBC_WIRE_LOOPS | MBC_SURF_PER_MAT);
       break;
     case BKE_MESH_BATCH_DIRTY_ALL:
       cache->is_dirty = true;
