@@ -1559,6 +1559,8 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
       wm_block_splash_add_label(block, branch_buf, x, &y);
     }
   }
+#else
+  UNUSED_VARS(show_build_info);
 #endif /* WITH_BUILDINFO */
 }
 
