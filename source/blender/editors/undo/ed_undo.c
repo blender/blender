@@ -99,6 +99,10 @@ void ED_undo_push(bContext *C, const char *str)
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, 0, memory_limit);
   }
 
+  if (CLOG_CHECK(&LOG, 1)) {
+    BKE_undosys_print(wm->undo_stack);
+  }
+
   WM_file_tag_modified();
 }
 
@@ -235,6 +239,10 @@ static int ed_undo_step_impl(
 
   Main *bmain = CTX_data_main(C);
   WM_toolsystem_refresh_screen_all(bmain);
+
+  if (CLOG_CHECK(&LOG, 1)) {
+    BKE_undosys_print(wm->undo_stack);
+  }
 
   return OPERATOR_FINISHED;
 }
