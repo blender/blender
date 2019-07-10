@@ -207,6 +207,8 @@ bool DRW_object_use_hide_faces(const struct Object *ob)
     const Mesh *me = ob->data;
 
     switch (ob->mode) {
+      case OB_MODE_SCULPT:
+        return true;
       case OB_MODE_TEXTURE_PAINT:
         return (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
       case OB_MODE_VERTEX_PAINT:

@@ -4037,7 +4037,7 @@ void drw_batch_cache_generate_requested(Object *ob)
   const enum eContextObjectMode mode = CTX_data_mode_enum_ex(
       draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
   const bool is_paint_mode = ELEM(
-      mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
+      mode, CTX_MODE_SCULPT, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
 
   const bool use_hide = ((ob->type == OB_MESH) &&
                          ((is_paint_mode && (ob == draw_ctx->obact) &&
