@@ -130,7 +130,7 @@ static void text_undosys_step_decode_redo_impl(Text *text, TextUndoStep *us)
   us->step.is_applied = true;
 }
 
-static void text_undosys_step_decode_undo(Text *text, TextUndoStep *us)
+static void text_undosys_step_decode_undo(TextUndoStep *us)
 {
   TextUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
@@ -139,13 +139,19 @@ static void text_undosys_step_decode_undo(Text *text, TextUndoStep *us)
     }
     us_iter = (TextUndoStep *)us_iter->step.next;
   }
+  Text *text_prev = NULL;
   while (us_iter != us) {
+    Text *text = us_iter->text_ref.ptr;
     text_undosys_step_decode_undo_impl(text, us_iter);
+    if (text_prev != text) {
+      text_update_edited(text);
+      text_prev = text;
+    }
     us_iter = (TextUndoStep *)us_iter->step.prev;
   }
 }
 
-static void text_undosys_step_decode_redo(Text *text, TextUndoStep *us)
+static void text_undosys_step_decode_redo(TextUndoStep *us)
 {
   TextUndoStep *us_iter = us;
   while (us_iter->step.prev && (us_iter->step.prev->type == us_iter->step.type)) {
@@ -154,8 +160,14 @@ static void text_undosys_step_decode_redo(Text *text, TextUndoStep *us)
     }
     us_iter = (TextUndoStep *)us_iter->step.prev;
   }
+  Text *text_prev = NULL;
   while (us_iter && (us_iter->step.is_applied == false)) {
+    Text *text = us_iter->text_ref.ptr;
     text_undosys_step_decode_redo_impl(text, us_iter);
+    if (text_prev != text) {
+      text_update_edited(text);
+      text_prev = text;
+    }
     if (us_iter == us) {
       break;
     }
@@ -169,21 +181,20 @@ static void text_undosys_step_decode(struct bContext *C,
                                      int dir)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
-  Text *text = us->text_ref.ptr;
 
   if (dir < 0) {
-    text_undosys_step_decode_undo(text, us);
+    text_undosys_step_decode_undo(us);
   }
   else {
-    text_undosys_step_decode_redo(text, us);
+    text_undosys_step_decode_redo(us);
   }
 
+  Text *text = us->text_ref.ptr;
   SpaceText *st = CTX_wm_space_text(C);
   if (st) {
     /* Not essential, always show text being undo where possible. */
     st->text = text;
   }
-  text_update_edited(text);
   text_update_cursor_moved(C);
   text_drawcache_tag_update(st, 1);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
