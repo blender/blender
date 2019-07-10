@@ -173,7 +173,8 @@ static bool undosys_step_encode(bContext *C, Main *bmain, UndoStack *ustack, Und
   return ok;
 }
 
-static void undosys_step_decode(bContext *C, Main *bmain, UndoStack *ustack, UndoStep *us, int dir)
+static void undosys_step_decode(
+    bContext *C, Main *bmain, UndoStack *ustack, UndoStep *us, int dir, bool is_final)
 {
   CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
@@ -188,7 +189,7 @@ static void undosys_step_decode(bContext *C, Main *bmain, UndoStack *ustack, Und
           else {
             /* Load the previous memfile state so any ID's referenced in this
              * undo step will be correctly resolved, see: T56163. */
-            undosys_step_decode(C, bmain, ustack, us_iter, dir);
+            undosys_step_decode(C, bmain, ustack, us_iter, dir, false);
             /* May have been freed on memfile read. */
             bmain = G.main;
           }
@@ -203,7 +204,7 @@ static void undosys_step_decode(bContext *C, Main *bmain, UndoStack *ustack, Und
   }
 
   UNDO_NESTED_CHECK_BEGIN;
-  us->type->step_decode(C, bmain, us, dir);
+  us->type->step_decode(C, bmain, us, dir, is_final);
   UNDO_NESTED_CHECK_END;
 
 #ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
@@ -678,7 +679,8 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
          * - skip successive steps that store the same data, eg: memfile steps.
          * - or steps that include another steps data, eg: a memfile step includes text undo data.
          */
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, false);
+
         us_iter = us_iter->prev;
       }
     }
@@ -702,7 +704,7 @@ bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack,
                     us_iter->name,
                     us_iter->type->name);
         }
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, -1, is_final);
         ustack->step_active = us_iter;
       } while ((us_active != us_iter) && (us_iter = us_iter->prev));
     }
@@ -745,7 +747,7 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
     if (ustack->step_active && ustack->step_active->next) {
       UndoStep *us_iter = ustack->step_active->next;
       while (us_iter != us) {
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, false);
         us_iter = us_iter->next;
       }
     }
@@ -769,7 +771,7 @@ bool BKE_undosys_step_redo_with_data_ex(UndoStack *ustack,
                     us_iter->name,
                     us_iter->type->name);
         }
-        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
+        undosys_step_decode(C, G_MAIN, ustack, us_iter, 1, is_final);
         ustack->step_active = us_iter;
       } while ((us_active != us_iter) && (us_iter = us_iter->next));
     }

@@ -174,7 +174,8 @@ static bool armature_undosys_step_encode(struct bContext *C,
 static void armature_undosys_step_decode(struct bContext *C,
                                          struct Main *UNUSED(bmain),
                                          UndoStep *us_p,
-                                         int UNUSED(dir))
+                                         int UNUSED(dir),
+                                         bool UNUSED(is_final))
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 

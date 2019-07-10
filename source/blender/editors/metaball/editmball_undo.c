@@ -185,7 +185,8 @@ static bool mball_undosys_step_encode(struct bContext *C,
 static void mball_undosys_step_decode(struct bContext *C,
                                       struct Main *UNUSED(bmain),
                                       UndoStep *us_p,
-                                      int UNUSED(dir))
+                                      int UNUSED(dir),
+                                      bool UNUSED(is_final))
 {
   MBallUndoStep *us = (MBallUndoStep *)us_p;
 

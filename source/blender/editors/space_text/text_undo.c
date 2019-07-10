@@ -175,10 +175,8 @@ static void text_undosys_step_decode_redo(TextUndoStep *us)
   }
 }
 
-static void text_undosys_step_decode(struct bContext *C,
-                                     struct Main *UNUSED(bmain),
-                                     UndoStep *us_p,
-                                     int dir)
+static void text_undosys_step_decode(
+    struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int dir, bool UNUSED(is_final))
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
 
