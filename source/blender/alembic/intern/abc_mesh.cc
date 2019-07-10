@@ -122,7 +122,7 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
 static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
-                         bool &r_smooth_normal)
+                         bool &r_export_loop_normals)
 {
   const int num_poly = mesh->totpoly;
   const int num_loops = mesh->totloop;
@@ -139,7 +139,7 @@ static void get_topology(struct Mesh *mesh,
     MPoly &poly = mpoly[i];
     loop_counts.push_back(poly.totloop);
 
-    r_smooth_normal |= ((poly.flag & ME_SMOOTH) != 0);
+    r_export_loop_normals |= (poly.flag & ME_SMOOTH) != 0;
 
     MLoop *loop = mloop + poly.loopstart + (poly.totloop - 1);
 
@@ -411,10 +411,10 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
   std::vector<int32_t> poly_verts, loop_counts;
   std::vector<Imath::V3f> velocities;
 
-  bool smooth_normal = false;
+  bool export_loop_normals = false;
 
   get_vertices(mesh, points);
-  get_topology(mesh, poly_verts, loop_counts, smooth_normal);
+  get_topology(mesh, poly_verts, loop_counts, export_loop_normals);
 
   if (m_first_frame && m_settings.export_face_sets) {
     writeFaceSets(mesh, m_mesh_schema);
@@ -442,7 +442,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
   }
 
   if (m_settings.export_normals) {
-    if (smooth_normal) {
+    if (export_loop_normals) {
       get_loop_normals(mesh, normals);
     }
     else {
@@ -451,7 +451,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
 
     ON3fGeomParam::Sample normals_sample;
     if (!normals.empty()) {
-      normals_sample.setScope((smooth_normal) ? kFacevaryingScope : kVertexScope);
+      normals_sample.setScope(export_loop_normals ? kFacevaryingScope : kVertexScope);
       normals_sample.setVals(V3fArraySample(normals));
     }
 
@@ -477,10 +477,10 @@ void AbcGenericMeshWriter::writeSubD(struct Mesh *mesh)
   std::vector<int32_t> poly_verts, loop_counts;
   std::vector<int32_t> crease_indices, crease_lengths;
 
-  bool smooth_normal = false;
+  bool export_loop_normals = false;
 
   get_vertices(mesh, points);
-  get_topology(mesh, poly_verts, loop_counts, smooth_normal);
+  get_topology(mesh, poly_verts, loop_counts, export_loop_normals);
   get_creases(mesh, crease_indices, crease_lengths, crease_sharpness);
 
   if (m_first_frame && m_settings.export_face_sets) {
