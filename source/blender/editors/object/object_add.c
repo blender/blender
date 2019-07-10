@@ -2036,7 +2036,13 @@ static void curvetomesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   Curve *curve = ob->data;
+
   Mesh *mesh = BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object_eval, true);
+  if (mesh == NULL) {
+    /* Unable to convert the curve to a mesh. */
+    return;
+  }
+
   BKE_object_free_modifiers(ob, 0);
   /* Replace curve used by the object itself. */
   ob->data = mesh;
@@ -2125,7 +2131,7 @@ static Base *duplibase_for_convert(
 static int convert_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Base *basen = NULL, *basact = NULL;
@@ -2344,8 +2350,9 @@ static int convert_exec(bContext *C, wmOperator *op)
       BKE_curve_curve_dimension_update(cu);
 
       if (target == OB_MESH) {
+        /* No assumption should be made that the resulting objects is a mesh, as conversion can
+         * fail. */
         curvetomesh(bmain, depsgraph, newob);
-
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
       }
@@ -2368,8 +2375,9 @@ static int convert_exec(bContext *C, wmOperator *op)
           newob = ob;
         }
 
+        /* No assumption should be made that the resulting objects is a mesh, as conversion can
+         * fail. */
         curvetomesh(bmain, depsgraph, newob);
-
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
       }

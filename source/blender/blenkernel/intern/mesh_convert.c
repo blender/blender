@@ -1048,6 +1048,7 @@ static Mesh *mesh_new_from_curve_type_object(Object *object)
   /* BKE_mesh_from_nurbs changes the type to a mesh, check it worked. If it didn't the curve did
    * not have any segments or otherwise would have generated an empty mesh. */
   if (temp_object->type != OB_MESH) {
+    BKE_id_free(NULL, temp_object->data);
     BKE_id_free(NULL, temp_object);
     return NULL;
   }
@@ -1216,6 +1217,10 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
                                         bool preserve_all_data_layers)
 {
   Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers);
+  if (mesh == NULL) {
+    /* Unable to convert the object to a mesh. */
+    return NULL;
+  }
 
   /* Make sure mesh only points original datablocks, also increase users of materials and other
    * possibly referenced data-blocks.
