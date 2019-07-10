@@ -1562,7 +1562,7 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
 #endif /* WITH_BUILDINFO */
 }
 
-static ImBuf *wm_block_splash_image()
+static ImBuf *wm_block_splash_image(void)
 {
 #ifndef WITH_HEADLESS
   extern char datatoc_splash_png[];
