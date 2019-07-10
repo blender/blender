@@ -1445,11 +1445,12 @@ static void drw_particle_get_hair_source(Object *object,
                                          PTCacheEdit *edit,
                                          ParticleDrawSource *r_draw_source)
 {
+  const DRWContextState *draw_ctx = DRW_context_state_get();
   r_draw_source->object = object;
   r_draw_source->psys = psys;
   r_draw_source->md = md;
   r_draw_source->edit = edit;
-  if ((object->mode & OB_MODE_PARTICLE_EDIT) != 0) {
+  if (psys_in_edit_mode(draw_ctx->depsgraph, psys)) {
     r_draw_source->object = DEG_get_original_object(object);
     r_draw_source->psys = psys_orig_get(psys);
   }
