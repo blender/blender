@@ -130,7 +130,7 @@ static void text_undosys_step_decode_redo_impl(Text *text, TextUndoStep *us)
   us->step.is_applied = true;
 }
 
-static void text_undosys_step_decode_undo(TextUndoStep *us)
+static void text_undosys_step_decode_undo(TextUndoStep *us, bool is_final)
 {
   TextUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
@@ -140,12 +140,15 @@ static void text_undosys_step_decode_undo(TextUndoStep *us)
     us_iter = (TextUndoStep *)us_iter->step.next;
   }
   Text *text_prev = NULL;
-  while (us_iter != us) {
+  while ((us_iter != us) || (is_final && us_iter == us)) {
     Text *text = us_iter->text_ref.ptr;
     text_undosys_step_decode_undo_impl(text, us_iter);
     if (text_prev != text) {
       text_update_edited(text);
       text_prev = text;
+    }
+    if (is_final) {
+      break;
     }
     us_iter = (TextUndoStep *)us_iter->step.prev;
   }
@@ -176,12 +179,12 @@ static void text_undosys_step_decode_redo(TextUndoStep *us)
 }
 
 static void text_undosys_step_decode(
-    struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int dir, bool UNUSED(is_final))
+    struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int dir, bool is_final)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
 
   if (dir < 0) {
-    text_undosys_step_decode_undo(us);
+    text_undosys_step_decode_undo(us, is_final);
   }
   else {
     text_undosys_step_decode_redo(us);
