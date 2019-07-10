@@ -1789,7 +1789,7 @@ class WM_MT_splash(Menu):
             "wm.url_open", text="Release Notes", icon='URL',
         ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
         col2.operator(
-            "wm.url_open", text="Development Fund", icon='URL'
+            "wm.url_open", text="Development Fund", icon='FUND'
         ).url = "https://fund.blender.org"
 
         layout.separator()

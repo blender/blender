@@ -368,7 +368,7 @@ class TOPBAR_MT_app_support(Menu):
         layout = self.layout
 
         layout.operator(
-            "wm.url_open", text="Development Fund", icon='URL',
+            "wm.url_open", text="Development Fund", icon='FUND',
         ).url = "https://fund.blender.org"
 
         layout.separator()
