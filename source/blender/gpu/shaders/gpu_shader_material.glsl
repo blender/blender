@@ -2224,7 +2224,7 @@ void node_tex_coord_background(vec3 I,
   generated = coords;
   normal = -coords;
   uv = vec3(attr_uv.xy, 0.0);
-  object = coords;
+  object = (obmatinv * vec4(coords, 1.0)).xyz;
 
   camera = vec3(co.xy, -co.z);
   window = vec3(mtex_2d_mapping(I).xy * camerafac.xy + camerafac.zw, 0.0);
