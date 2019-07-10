@@ -1683,7 +1683,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
                                      UI_LAYOUT_PANEL,
-                                     U.dpi_fac * 40,
+                                     U.dpi_fac * 26,
                                      0,
                                      U.dpi_fac * 450,
                                      U.dpi_fac * 110,
