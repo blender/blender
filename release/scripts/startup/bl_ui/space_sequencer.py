@@ -1371,13 +1371,19 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
 
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
-        split.label(text="End")
-        split.prop(strip, "frame_final_end", text=smpte_from_frame(strip.frame_final_end))
-
-        split = sub.split(factor=0.5 + max_factor, align=True)
-        split.alignment = 'RIGHT'
         split.label(text="Duration")
         split.prop(strip, "frame_final_duration", text=smpte_from_frame(strip.frame_final_duration))
+
+        # Use label, editing this value from the UI allows negative values,
+        # users can adjust duration.
+        split = sub.split(factor=0.5 + max_factor, align=True)
+        split.alignment = 'RIGHT'
+        split.label(text="End")
+        split = split.split(factor=0.8 + max_factor, align=True)
+        split.label(text="{:>14}".format(smpte_from_frame(strip.frame_final_end) + ":"))
+        split.alignment = 'RIGHT'
+        split.label(text=str(strip.frame_final_end) + " ")
+
 
         if not isinstance(strip, bpy.types.EffectSequence):
 
