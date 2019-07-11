@@ -83,10 +83,8 @@ static bool memfile_undosys_step_encode(struct bContext *UNUSED(C),
   return true;
 }
 
-static void memfile_undosys_step_decode(struct bContext *C,
-                                        struct Main *bmain,
-                                        UndoStep *us_p,
-                                        int UNUSED(dir))
+static void memfile_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir), bool UNUSED(is_final))
 {
   ED_editors_exit(bmain, false);
 

@@ -174,7 +174,7 @@ ccl_device_inline bool scene_intersect_valid(const Ray *ray)
    * From production scenes so far it seems it's enough to test first element
    * only.
    */
-  return isfinite(ray->P.x);
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x);
 }
 
 /* Note: ray is passed by value to work around a possible CUDA compiler bug. */

@@ -356,7 +356,8 @@ static bool font_undosys_step_encode(struct bContext *C,
 static void font_undosys_step_decode(struct bContext *C,
                                      struct Main *UNUSED(bmain),
                                      UndoStep *us_p,
-                                     int UNUSED(dir))
+                                     int UNUSED(dir),
+                                     bool UNUSED(is_final))
 {
   /* TODO(campbell): undo_system: use low-level API to set mode. */
   ED_object_mode_set(C, OB_MODE_EDIT);

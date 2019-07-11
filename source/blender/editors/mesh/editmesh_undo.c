@@ -741,7 +741,8 @@ static bool mesh_undosys_step_encode(struct bContext *C,
 static void mesh_undosys_step_decode(struct bContext *C,
                                      struct Main *UNUSED(bmain),
                                      UndoStep *us_p,
-                                     int UNUSED(dir))
+                                     int UNUSED(dir),
+                                     bool UNUSED(is_final))
 {
   MeshUndoStep *us = (MeshUndoStep *)us_p;
 

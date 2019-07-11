@@ -106,7 +106,8 @@ typedef struct UndoType {
   void (*step_encode_init)(struct bContext *C, UndoStep *us);
 
   bool (*step_encode)(struct bContext *C, struct Main *bmain, UndoStep *us);
-  void (*step_decode)(struct bContext *C, struct Main *bmain, UndoStep *us, int dir);
+  void (*step_decode)(
+      struct bContext *C, struct Main *bmain, UndoStep *us, int dir, bool is_final);
 
   /**
    * \note When freeing all steps,

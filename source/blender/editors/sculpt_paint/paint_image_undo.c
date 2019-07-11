@@ -540,10 +540,8 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
   }
 }
 
-static void image_undosys_step_decode(struct bContext *C,
-                                      struct Main *bmain,
-                                      UndoStep *us_p,
-                                      int dir)
+static void image_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool UNUSED(is_final))
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
 #if 0

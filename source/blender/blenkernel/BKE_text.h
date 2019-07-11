@@ -54,7 +54,7 @@ void BKE_text_write(struct Text *text, struct TextUndoBuf *utxt, const char *str
 int BKE_text_file_modified_check(struct Text *text);
 void BKE_text_file_modified_ignore(struct Text *text);
 
-char *txt_to_buf(struct Text *text);
+char *txt_to_buf(struct Text *text, int *r_buf_strlen);
 void txt_clean_text(struct Text *text);
 void txt_order_cursors(struct Text *text, const bool reverse);
 int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
@@ -83,7 +83,7 @@ void txt_delete_selected(struct Text *text, struct TextUndoBuf *utxt);
 void txt_sel_all(struct Text *text);
 void txt_sel_clear(struct Text *text);
 void txt_sel_line(struct Text *text);
-char *txt_sel_to_buf(struct Text *text);
+char *txt_sel_to_buf(struct Text *text, int *r_buf_strlen);
 void txt_insert_buf(struct Text *text, struct TextUndoBuf *utxt, const char *in_buffer);
 void txt_undo_add_op(struct Text *text, struct TextUndoBuf *utxt, int op);
 void txt_do_undo(struct Text *text, struct TextUndoBuf *utxt);

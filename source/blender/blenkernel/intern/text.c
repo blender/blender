@@ -1289,7 +1289,7 @@ static void txt_delete_sel(Text *text, TextUndoBuf *utxt)
   txt_order_cursors(text, false);
 
   if (!undoing) {
-    buf = txt_sel_to_buf(text);
+    buf = txt_sel_to_buf(text, NULL);
     txt_undo_add_blockop(text, utxt, UNDO_DBLOCK, buf);
     MEM_freeN(buf);
   }
@@ -1353,12 +1353,16 @@ void txt_sel_line(Text *text)
 /* Cut and paste functions */
 /***************************/
 
-char *txt_to_buf(Text *text)
+char *txt_to_buf(Text *text, int *r_buf_strlen)
 {
   int length;
   TextLine *tmp, *linef, *linel;
   int charf, charl;
   char *buf;
+
+  if (r_buf_strlen) {
+    *r_buf_strlen = 0;
+  }
 
   if (!text->curl) {
     return NULL;
@@ -1419,6 +1423,10 @@ char *txt_to_buf(Text *text)
     buf[length] = 0;
   }
 
+  if (r_buf_strlen) {
+    *r_buf_strlen = length;
+  }
+
   return buf;
 }
 
@@ -1475,12 +1483,16 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
   }
 }
 
-char *txt_sel_to_buf(Text *text)
+char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
 {
   char *buf;
   int length = 0;
   TextLine *tmp, *linef, *linel;
   int charf, charl;
+
+  if (r_buf_strlen) {
+    *r_buf_strlen = 0;
+  }
 
   if (!text->curl) {
     return NULL;
@@ -1554,6 +1566,10 @@ char *txt_sel_to_buf(Text *text)
     length += charl;
 
     buf[length] = 0;
+  }
+
+  if (r_buf_strlen) {
+    *r_buf_strlen = length;
   }
 
   return buf;
