@@ -932,7 +932,7 @@ static void txt_copy_clipboard(Text *text)
     return;
   }
 
-  buf = txt_sel_to_buf(text);
+  buf = txt_sel_to_buf(text, NULL);
 
   if (buf) {
     WM_clipboard_text_set(buf, 0);
@@ -2994,7 +2994,7 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
   char *buffer;
 
   if (txt_has_sel(text)) {
-    buffer = txt_sel_to_buf(text);
+    buffer = txt_sel_to_buf(text, NULL);
     WM_clipboard_text_set(buffer, 1);
     MEM_freeN(buffer);
   }
@@ -3308,7 +3308,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 
   /* Replace current */
   if (mode != TEXT_FIND && txt_has_sel(text)) {
-    tmp = txt_sel_to_buf(text);
+    tmp = txt_sel_to_buf(text, NULL);
 
     if (flags & ST_MATCH_CASE) {
       found = STREQ(st->findstr, tmp);
@@ -3406,7 +3406,7 @@ static int text_find_set_selected_exec(bContext *C, wmOperator *op)
   Text *text = CTX_data_edit_text(C);
   char *tmp;
 
-  tmp = txt_sel_to_buf(text);
+  tmp = txt_sel_to_buf(text, NULL);
   BLI_strncpy(st->findstr, tmp, ST_MAX_FIND_STR);
   MEM_freeN(tmp);
 
@@ -3437,7 +3437,7 @@ static int text_replace_set_selected_exec(bContext *C, wmOperator *UNUSED(op))
   Text *text = CTX_data_edit_text(C);
   char *tmp;
 
-  tmp = txt_sel_to_buf(text);
+  tmp = txt_sel_to_buf(text, NULL);
   BLI_strncpy(st->replacestr, tmp, ST_MAX_FIND_STR);
   MEM_freeN(tmp);
 
