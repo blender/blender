@@ -723,35 +723,33 @@ static void shader_preview_updatejob(void *spv)
 {
   ShaderPreview *sp = spv;
 
-  if (sp->id) {
-    if (sp->pr_method == PR_NODE_RENDER) {
-      if (GS(sp->id->name) == ID_MA) {
-        Material *mat = (Material *)sp->id;
+  if (sp->pr_method == PR_NODE_RENDER) {
+    if (GS(sp->id->name) == ID_MA) {
+      Material *mat = (Material *)sp->id;
 
-        if (sp->matcopy && mat->nodetree && sp->matcopy->nodetree) {
-          ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
-        }
+      if (sp->matcopy && mat->nodetree && sp->matcopy->nodetree) {
+        ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
       }
-      else if (GS(sp->id->name) == ID_TE) {
-        Tex *tex = (Tex *)sp->id;
+    }
+    else if (GS(sp->id->name) == ID_TE) {
+      Tex *tex = (Tex *)sp->id;
 
-        if (sp->texcopy && tex->nodetree && sp->texcopy->nodetree) {
-          ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
-        }
+      if (sp->texcopy && tex->nodetree && sp->texcopy->nodetree) {
+        ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
       }
-      else if (GS(sp->id->name) == ID_WO) {
-        World *wrld = (World *)sp->id;
+    }
+    else if (GS(sp->id->name) == ID_WO) {
+      World *wrld = (World *)sp->id;
 
-        if (sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree) {
-          ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
-        }
+      if (sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree) {
+        ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
       }
-      else if (GS(sp->id->name) == ID_LA) {
-        Light *la = (Light *)sp->id;
+    }
+    else if (GS(sp->id->name) == ID_LA) {
+      Light *la = (Light *)sp->id;
 
-        if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree) {
-          ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
-        }
+      if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree) {
+        ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
       }
     }
   }
@@ -946,57 +944,80 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
   *do_update = true;
 }
 
+static void preview_id_copy_free(ID *id)
+{
+  struct IDProperty *properties;
+  /* get rid of copied ID */
+  properties = IDP_GetProperties(id, false);
+  if (properties) {
+    IDP_FreePropertyContent_ex(properties, false);
+    MEM_freeN(properties);
+  }
+  switch (GS(id->name)) {
+    case ID_MA:
+      BKE_material_free((Material *)id);
+      break;
+    case ID_TE:
+      BKE_texture_free((Tex *)id);
+      break;
+    case ID_LA:
+      BKE_light_free((Light *)id);
+      break;
+    case ID_WO:
+      BKE_world_free((World *)id);
+      break;
+    default:
+      BLI_assert(!"ID type preview not supported.");
+      break;
+  }
+  MEM_freeN(id);
+}
+
 static void shader_preview_free(void *customdata)
 {
   ShaderPreview *sp = customdata;
   Main *pr_main = sp->pr_main;
+  ID *main_id_copy = NULL;
+  ID *sub_id_copy = NULL;
 
   if (sp->matcopy) {
-    sp->id_copy = (ID *)sp->matcopy;
+    main_id_copy = (ID *)sp->matcopy;
     BLI_remlink(&pr_main->materials, sp->matcopy);
   }
   if (sp->texcopy) {
-    sp->id_copy = (ID *)sp->texcopy;
+    BLI_assert(main_id_copy == NULL);
+    main_id_copy = (ID *)sp->texcopy;
     BLI_remlink(&pr_main->textures, sp->texcopy);
   }
   if (sp->worldcopy) {
-    sp->id_copy = (ID *)sp->worldcopy;
+    /* worldcopy is also created for material with `Preview World` enabled */
+    if (main_id_copy) {
+      sub_id_copy = (ID *)sp->worldcopy;
+    }
+    else {
+      main_id_copy = (ID *)sp->worldcopy;
+    }
     BLI_remlink(&pr_main->worlds, sp->worldcopy);
   }
   if (sp->lampcopy) {
-    sp->id_copy = (ID *)sp->lampcopy;
+    BLI_assert(main_id_copy == NULL);
+    main_id_copy = (ID *)sp->lampcopy;
     BLI_remlink(&pr_main->lights, sp->lampcopy);
   }
-  if (sp->id_copy) {
+  if (main_id_copy || sp->id_copy) {
     /* node previews */
     shader_preview_updatejob(sp);
   }
-  if (sp->id_copy && sp->own_id_copy) {
-    struct IDProperty *properties;
-    /* get rid of copied ID */
-    properties = IDP_GetProperties(sp->id_copy, false);
-    if (properties) {
-      IDP_FreePropertyContent_ex(properties, false);
-      MEM_freeN(properties);
+  if (sp->own_id_copy) {
+    if (sp->id_copy) {
+      preview_id_copy_free(sp->id_copy);
     }
-    switch (GS(sp->id_copy->name)) {
-      case ID_MA:
-        BKE_material_free((Material *)sp->id_copy);
-        break;
-      case ID_TE:
-        BKE_texture_free((Tex *)sp->id_copy);
-        break;
-      case ID_LA:
-        BKE_light_free((Light *)sp->id_copy);
-        break;
-      case ID_WO:
-        BKE_world_free((World *)sp->id_copy);
-        break;
-      default:
-        BLI_assert(!"ID type preview not supported.");
-        break;
+    if (main_id_copy) {
+      preview_id_copy_free(main_id_copy);
     }
-    MEM_freeN(sp->id_copy);
+    if (sub_id_copy) {
+      preview_id_copy_free(sub_id_copy);
+    }
   }
 
   MEM_freeN(sp);
@@ -1301,12 +1322,7 @@ static void icon_preview_free(void *customdata)
   IconPreview *ip = (IconPreview *)customdata;
 
   if (ip->id_copy) {
-    /* Feels a bit hacky just to reuse shader_preview_free() */
-    ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
-    sp->id_copy = ip->id_copy;
-    sp->own_id_copy = true;
-    shader_preview_free(sp);
-    ip->id_copy = NULL;
+    preview_id_copy_free(ip->id_copy);
   }
 
   BLI_freelistN(&ip->sizes);
