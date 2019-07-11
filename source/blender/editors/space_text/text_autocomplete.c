@@ -260,7 +260,7 @@ static void get_suggest_prefix(Text *text, int offset)
   texttool_suggest_prefix(line + i, len);
 }
 
-static void confirm_suggestion(Text *text, TextUndoBuf *utxt)
+static void confirm_suggestion(Text *text)
 {
   SuggItem *sel;
   int i, over = 0;
@@ -285,7 +285,7 @@ static void confirm_suggestion(Text *text, TextUndoBuf *utxt)
   //  for (i = 0; i < skipleft; i++)
   //      txt_move_left(text, 0);
   BLI_assert(memcmp(sel->name, &line[i], over) == 0);
-  txt_insert_buf(text, utxt, sel->name + over);
+  txt_insert_buf(text, sel->name + over);
 
   //  for (i = 0; i < skipleft; i++)
   //      txt_move_right(text, 0);
@@ -308,8 +308,8 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *
     ED_area_tag_redraw(CTX_wm_area(C));
 
     if (texttool_suggest_first() == texttool_suggest_last()) {
-      TextUndoBuf *utxt = ED_text_undo_push_init(C);
-      confirm_suggestion(st->text, utxt);
+      ED_text_undo_push_init(C);
+      confirm_suggestion(st->text);
       text_update_line_edited(st->text->curl);
       text_autocomplete_free(C, op);
       ED_undo_push(C, op->type->name);
@@ -371,8 +371,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case MIDDLEMOUSE:
       if (event->val == KM_PRESS) {
         if (text_do_suggest_select(st, ar)) {
-          TextUndoBuf *utxt = ED_text_undo_push_init(C);
-          confirm_suggestion(st->text, utxt);
+          ED_text_undo_push_init(C);
+          confirm_suggestion(st->text);
           text_update_line_edited(st->text->curl);
           ED_undo_push(C, op->type->name);
           swallow = 1;
@@ -410,8 +410,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case PADENTER:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
-          TextUndoBuf *utxt = ED_text_undo_push_init(C);
-          confirm_suggestion(st->text, utxt);
+          ED_text_undo_push_init(C);
+          confirm_suggestion(st->text);
           text_update_line_edited(st->text->curl);
           ED_undo_push(C, op->type->name);
           swallow = 1;
