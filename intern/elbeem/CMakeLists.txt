@@ -119,4 +119,10 @@ else()
   add_definitions(-DPARALLEL=0)
 endif()
 
+# Work around hang with GCC and ASAN.
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-sanitize=vptr")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-sanitize=vptr")
+endif()
+
 blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
