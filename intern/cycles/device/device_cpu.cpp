@@ -980,14 +980,11 @@ class CPUDevice : public Device {
 
   void thread_shader(DeviceTask &task)
   {
-    KernelGlobals kg = kernel_globals;
+    KernelGlobals *kg = new KernelGlobals(thread_kernel_globals_init());
 
-#ifdef WITH_OSL
-    OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
-#endif
     for (int sample = 0; sample < task.num_samples; sample++) {
       for (int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-        shader_kernel()(&kg,
+        shader_kernel()(kg,
                         (uint4 *)task.shader_input,
                         (float4 *)task.shader_output,
                         task.shader_eval_type,
@@ -1002,9 +999,8 @@ class CPUDevice : public Device {
       task.update_progress(NULL);
     }
 
-#ifdef WITH_OSL
-    OSLShader::thread_free(&kg);
-#endif
+    thread_kernel_globals_free(kg);
+    delete kg;
   }
 
   int get_split_task_count(DeviceTask &task)
