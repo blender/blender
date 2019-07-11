@@ -2537,6 +2537,7 @@ void flushTransParticles(TransInfo *t)
     }
 
     PE_update_object(t->depsgraph, scene, OBACT(view_layer), 1);
+    BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     DEG_id_tag_update(&ob->id, ID_RECALC_PSYS_REDO);
   }
 }
