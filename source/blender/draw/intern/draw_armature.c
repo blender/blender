@@ -1886,17 +1886,21 @@ static void draw_armature_edit(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   EditBone *eBone;
-  bArmature *arm = ob->data;
   int index;
   const bool is_select = DRW_state_is_select();
-
-  update_color(ob, NULL);
-  edbo_compute_bbone_child(arm);
 
   const bool show_text = DRW_state_show_text();
   const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
   const Object *ob_orig = DEG_get_original_object(ob);
+  /* FIXME(campbell): We should be able to use the CoW object,
+   * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
+   * for now we can draw from the original armature. See: T66773. */
+  // bArmature *arm = ob->data;
+  bArmature *arm = ob_orig->data;
+
+  update_color(ob, NULL);
+  edbo_compute_bbone_child(arm);
 
   for (eBone = arm->edbo->first, index = ob_orig->runtime.select_id; eBone;
        eBone = eBone->next, index += 0x10000) {
