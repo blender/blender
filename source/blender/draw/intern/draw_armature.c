@@ -1896,9 +1896,9 @@ static void draw_armature_edit(Object *ob)
   const bool show_text = DRW_state_show_text();
   const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
-  const Object *orig_object = DEG_get_original_object(ob);
+  const Object *ob_orig = DEG_get_original_object(ob);
 
-  for (eBone = arm->edbo->first, index = orig_object->runtime.select_id; eBone;
+  for (eBone = arm->edbo->first, index = ob_orig->runtime.select_id; eBone;
        eBone = eBone->next, index += 0x10000) {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
@@ -1993,8 +1993,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
     }
 
     if (arm->flag & ARM_POSEMODE) {
-      const Object *orig_object = DEG_get_original_object(ob);
-      index = orig_object->runtime.select_id;
+      const Object *ob_orig = DEG_get_original_object(ob);
+      index = ob_orig->runtime.select_id;
     }
   }
 
