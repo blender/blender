@@ -126,15 +126,18 @@ if [ ! -z "${C_CERT}" ]; then
     # Codesigning requires all libs and binaries to be signed separately.
     echo -n "Codesigning Python"
     for f in $(find "${_mount_dir}/Blender.app/Contents/Resources" -name "python*"); do
-	if [ -x ${f} ] && [ ! -d ${f} ]; then
-	    codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
-	fi
+        if [ -x ${f} ] && [ ! -d ${f} ]; then
+            codesign --remove-signature "${f}"
+            codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
+        fi
     done
     echo ; echo -n "Codesigning .dylib and .so libraries"
     for f in $(find "${_mount_dir}/Blender.app" -name "*.dylib" -o -name "*.so"); do
-	codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
+        codesign --remove-signature "${f}"
+        codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
     done
     echo ; echo -n "Codesigning Blender.app"
+    codesign --remove-signature "${_mount_dir}/Blender.app"
     codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app"
     echo
 else
