@@ -745,9 +745,6 @@ static short layer_collection_sync(ViewLayer *view_layer,
       }
 
       lc->runtime_flag |= LAYER_COLLECTION_HAS_OBJECTS;
-
-      /* Make sure flags on base are usable right away. */
-      BKE_base_eval_flags(base);
     }
 
     runtime_flag |= lc->runtime_flag;
@@ -813,6 +810,10 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   BLI_freelistN(&view_layer->object_bases);
   view_layer->object_bases = new_object_bases;
+
+  for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+    BKE_base_eval_flags(base);
+  }
 
   /* Always set a valid active collection. */
   LayerCollection *active = view_layer->active_collection;
