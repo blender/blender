@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
@@ -230,6 +231,11 @@ ARegionType *ED_area_type_hud(int space_type)
   art->draw = hud_region_draw;
   art->init = hud_region_init;
   art->free = hud_region_free;
+
+  /* We need to indicate a preferred size to avoid false `RGN_FLAG_TOO_SMALL`
+   * the first time the region is created. */
+  art->prefsizex = AREAMINX;
+  art->prefsizey = HEADERY;
 
   hud_panels_register(art, space_type, art->regionid);
 
