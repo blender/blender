@@ -634,7 +634,17 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
     /* confusing this global... */
     G.relbase_valid = 1;
-    retval = BKE_blendfile_read(C, filepath, &(const struct BlendFileReadParams){0}, reports);
+    retval = BKE_blendfile_read(
+        C,
+        filepath,
+        /* Loading preferences when the user intended to load a regular file is a security risk,
+         * because the excluded path list is also loaded.
+         * Further it's just confusing if a user loads a file and various preferences change. */
+        &(const struct BlendFileReadParams){
+            .is_startup = false,
+            .skip_flags = BLO_READ_SKIP_USERDEF,
+        },
+        reports);
 
     /* BKE_file_read sets new Main into context. */
     Main *bmain = CTX_data_main(C);
