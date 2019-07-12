@@ -143,9 +143,18 @@ _km_hierarchy = [
     ('Timeline', 'TIMELINE', 'WINDOW', []),
 
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-        ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image)
-        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
+        # Image (reverse order, UVEdit before Image).
+        ('UV Editor', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('IMAGE_EDITOR', 'UV'),
+        ]),
         ('UV Sculpt', 'EMPTY', 'WINDOW', []),
+        # Image and view3d.
+        ('Image Paint', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('IMAGE_EDITOR', 'PAINT'),
+        ]),
+        ('Image View', 'IMAGE_EDITOR', 'WINDOW', [
+            _km_expand_from_toolsystem('IMAGE_EDITOR', 'VIEW'),
+        ]),
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [
             _km_expand_from_toolsystem('IMAGE_EDITOR', None),
         ]),
