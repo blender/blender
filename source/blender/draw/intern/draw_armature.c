@@ -883,7 +883,7 @@ static void update_color(const Object *ob, const float const_color[4])
 #define NO_ALPHA(c) (((c)[3] = 1.0f), (c))
 
   UI_GetThemeColor3fv(TH_SELECT, NO_ALPHA(g_theme.select_color));
-  UI_GetThemeColor3fv(TH_EDGE_SELECT, NO_ALPHA(g_theme.edge_select_color));
+  UI_GetThemeColorShade3fv(TH_EDGE_SELECT, 60, NO_ALPHA(g_theme.edge_select_color));
   UI_GetThemeColorShade3fv(TH_EDGE_SELECT, -20, NO_ALPHA(g_theme.bone_select_color));
   UI_GetThemeColor3fv(TH_WIRE, NO_ALPHA(g_theme.wire_color));
   UI_GetThemeColor3fv(TH_WIRE_EDIT, NO_ALPHA(g_theme.wire_edit_color));
