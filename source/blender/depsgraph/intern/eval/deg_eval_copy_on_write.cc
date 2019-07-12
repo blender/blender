@@ -578,6 +578,7 @@ void update_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
   const bArmature *armature_orig = (const bArmature *)id_orig;
   bArmature *armature_cow = (bArmature *)id_cow;
   armature_cow->edbo = armature_orig->edbo;
+  armature_cow->act_edbone = armature_orig->act_edbone;
 }
 
 void update_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
