@@ -5730,6 +5730,27 @@ float form_factor_hemi_poly(
 }
 
 /**
+ * Check if the edge is convex or concave
+ * (depends on face winding)
+ * Copied from BM_edge_is_convex().
+ */
+bool is_edge_convex_v3(const float v1[3],
+                       const float v2[3],
+                       const float f1_no[3],
+                       const float f2_no[3])
+{
+  if (!equals_v3v3(f1_no, f2_no)) {
+    float cross[3];
+    float l_dir[3];
+    cross_v3_v3v3(cross, f1_no, f2_no);
+    /* we assume contiguous normals, otherwise the result isn't meaningful */
+    sub_v3_v3v3(l_dir, v2, v1);
+    return (dot_v3v3(l_dir, cross) > 0.0f);
+  }
+  return false;
+}
+
+/**
  * Evaluate if entire quad is a proper convex quad
  */
 bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])

@@ -31,7 +31,7 @@
 #include "BLI_assert.h"
 
 #define GPU_VERT_ATTR_MAX_LEN 16
-#define GPU_VERT_ATTR_MAX_NAMES 5
+#define GPU_VERT_ATTR_MAX_NAMES 6
 #define GPU_VERT_ATTR_NAME_AVERAGE_LEN 11
 #define GPU_VERT_ATTR_NAMES_BUF_LEN ((GPU_VERT_ATTR_NAME_AVERAGE_LEN + 1) * GPU_VERT_ATTR_MAX_LEN)
 
@@ -88,6 +88,8 @@ typedef struct GPUVertFormat {
   uint packed : 1;
   /** Current offset in names[]. */
   uint name_offset : 8;
+  /** Store each attrib in one contiguous buffer region. */
+  uint deinterleaved : 1;
 
   GPUVertAttr attrs[GPU_VERT_ATTR_MAX_LEN];
   char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
@@ -103,6 +105,8 @@ void GPU_vertformat_from_interface(GPUVertFormat *format,
 uint GPU_vertformat_attr_add(
     GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+
+void GPU_vertformat_deinterleave(GPUVertFormat *format);
 
 int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
 
@@ -122,7 +126,59 @@ typedef struct GPUPackedNormal {
   int w : 2; /* 0 by default, can manually set to { -2, -1, 0, 1 } */
 } GPUPackedNormal;
 
-GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3]);
-GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3]);
+/* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
+ * Of the code here, only struct GPUPackedNormal needs to change. */
+
+#define SIGNED_INT_10_MAX 511
+#define SIGNED_INT_10_MIN -512
+
+BLI_INLINE int clampi(int x, int min_allowed, int max_allowed)
+{
+#if TRUST_NO_ONE
+  assert(min_allowed <= max_allowed);
+#endif
+  if (x < min_allowed) {
+    return min_allowed;
+  }
+  else if (x > max_allowed) {
+    return max_allowed;
+  }
+  else {
+    return x;
+  }
+}
+
+BLI_INLINE int gpu_convert_normalized_f32_to_i10(float x)
+{
+  int qx = x * 511.0f;
+  return clampi(qx, SIGNED_INT_10_MIN, SIGNED_INT_10_MAX);
+}
+
+BLI_INLINE int gpu_convert_i16_to_i10(short x)
+{
+  /* 16-bit signed --> 10-bit signed */
+  /* TODO: round? */
+  return x >> 6;
+}
+
+BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
+{
+  GPUPackedNormal n = {
+      .x = gpu_convert_normalized_f32_to_i10(data[0]),
+      .y = gpu_convert_normalized_f32_to_i10(data[1]),
+      .z = gpu_convert_normalized_f32_to_i10(data[2]),
+  };
+  return n;
+}
+
+BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
+{
+  GPUPackedNormal n = {
+      .x = gpu_convert_i16_to_i10(data[0]),
+      .y = gpu_convert_i16_to_i10(data[1]),
+      .z = gpu_convert_i16_to_i10(data[2]),
+  };
+  return n;
+}
 
 #endif /* __GPU_VERTEX_FORMAT_H__ */

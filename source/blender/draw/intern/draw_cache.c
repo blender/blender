@@ -4033,7 +4033,7 @@ void drw_batch_cache_validate(Object *ob)
 void drw_batch_cache_generate_requested(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const ToolSettings *ts = draw_ctx->scene->toolsettings;
+  const Scene *scene = draw_ctx->scene;
   const enum eContextObjectMode mode = CTX_data_mode_enum_ex(
       draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
   const bool is_paint_mode = ELEM(
@@ -4047,13 +4047,13 @@ void drw_batch_cache_generate_requested(Object *ob)
   struct Mesh *mesh_eval = ob->runtime.mesh_eval;
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_create_requested(ob, (Mesh *)ob->data, ts, is_paint_mode, use_hide);
+      DRW_mesh_batch_cache_create_requested(ob, (Mesh *)ob->data, scene, is_paint_mode, use_hide);
       break;
     case OB_CURVE:
     case OB_FONT:
     case OB_SURF:
       if (mesh_eval) {
-        DRW_mesh_batch_cache_create_requested(ob, mesh_eval, ts, is_paint_mode, use_hide);
+        DRW_mesh_batch_cache_create_requested(ob, mesh_eval, scene, is_paint_mode, use_hide);
       }
       DRW_curve_batch_cache_create_requested(ob);
       break;

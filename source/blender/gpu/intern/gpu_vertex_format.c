@@ -218,6 +218,29 @@ int GPU_vertformat_attr_id_get(const GPUVertFormat *format, const char *name)
   return -1;
 }
 
+/* Make attribute layout non-interleaved.
+ * Warning! This does not change data layout!
+ * Use direct buffer access to fill the data.
+ * This is for advanced usage.
+ *
+ * Deinterleaved data means all attrib data for each attrib
+ * is stored continuously like this :
+ * 000011112222
+ * instead of :
+ * 012012012012
+ *
+ * Note this is per attrib deinterleaving, NOT per component.
+ *  */
+void GPU_vertformat_deinterleave(GPUVertFormat *format)
+{
+  /* Ideally we should change the stride and offset here. This would allow
+   * us to use GPU_vertbuf_attr_set / GPU_vertbuf_attr_fill. But since
+   * we use only 11 bits for attr->offset this limits the size of the
+   * buffer considerably. So instead we do the conversion when creating
+   * bindings in create_bindings(). */
+  format->deinterleaved = true;
+}
+
 uint padding(uint offset, uint alignment)
 {
   const uint mod = offset % alignment;
@@ -390,59 +413,4 @@ void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterfa
       attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
     }
   }
-}
-
-/* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
- * Of the code here, only struct GPUPackedNormal needs to change. */
-
-#define SIGNED_INT_10_MAX 511
-#define SIGNED_INT_10_MIN -512
-
-static int clampi(int x, int min_allowed, int max_allowed)
-{
-#if TRUST_NO_ONE
-  assert(min_allowed <= max_allowed);
-#endif
-  if (x < min_allowed) {
-    return min_allowed;
-  }
-  else if (x > max_allowed) {
-    return max_allowed;
-  }
-  else {
-    return x;
-  }
-}
-
-static int quantize(float x)
-{
-  int qx = x * 511.0f;
-  return clampi(qx, SIGNED_INT_10_MIN, SIGNED_INT_10_MAX);
-}
-
-static int convert_i16(short x)
-{
-  /* 16-bit signed --> 10-bit signed */
-  /* TODO: round? */
-  return x >> 6;
-}
-
-GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
-{
-  GPUPackedNormal n = {
-      .x = quantize(data[0]),
-      .y = quantize(data[1]),
-      .z = quantize(data[2]),
-  };
-  return n;
-}
-
-GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
-{
-  GPUPackedNormal n = {
-      .x = convert_i16(data[0]),
-      .y = convert_i16(data[1]),
-      .z = convert_i16(data[2]),
-  };
-  return n;
 }

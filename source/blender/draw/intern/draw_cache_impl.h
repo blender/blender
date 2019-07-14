@@ -119,7 +119,7 @@ struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 /* Mesh */
 void DRW_mesh_batch_cache_create_requested(struct Object *ob,
                                            struct Mesh *me,
-                                           const struct ToolSettings *ts,
+                                           const struct Scene *scene,
                                            const bool is_paint_mode,
                                            const bool use_hide);
 
@@ -143,6 +143,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_edges(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_vnors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_lnors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 /* edit-mesh selection */

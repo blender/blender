@@ -128,8 +128,7 @@ typedef struct EDIT_MESH_Shaders {
   GPUShader *depth;
 
   /* Mesh analysis shader */
-  GPUShader *mesh_analysis_face;
-  GPUShader *mesh_analysis_vertex;
+  GPUShader *mesh_analysis;
 } EDIT_MESH_Shaders;
 
 /* *********** STATIC *********** */
@@ -307,15 +306,9 @@ static void EDIT_MESH_engine_init(void *vedata)
     });
 
     /* Mesh Analysis */
-    sh_data->mesh_analysis_face = GPU_shader_create_from_arrays({
+    sh_data->mesh_analysis = GPU_shader_create_from_arrays({
         .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl, NULL},
         .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define FACE_COLOR\n", NULL},
-    });
-    sh_data->mesh_analysis_vertex = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_mesh_analysis_vert_glsl, NULL},
-        .frag = (const char *[]){datatoc_edit_mesh_overlay_mesh_analysis_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define VERTEX_COLOR\n", NULL},
     });
 
     MEM_freeN(lib);
@@ -548,10 +541,9 @@ static void EDIT_MESH_cache_init(void *vedata)
     /* Mesh Analysis Pass */
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
     psl->mesh_analysis_pass = DRW_pass_create("Mesh Analysis", state);
-    const bool is_vertex_color = scene->toolsettings->statvis.type == SCE_STATVIS_SHARP;
-    g_data->mesh_analysis_shgrp = DRW_shgroup_create(
-        is_vertex_color ? sh_data->mesh_analysis_vertex : sh_data->mesh_analysis_face,
-        psl->mesh_analysis_pass);
+    g_data->mesh_analysis_shgrp = DRW_shgroup_create(sh_data->mesh_analysis,
+                                                     psl->mesh_analysis_pass);
+    DRW_shgroup_uniform_texture(g_data->mesh_analysis_shgrp, "weightTex", G_draw.weight_ramp);
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(g_data->mesh_analysis_shgrp, DRW_STATE_CLIP_PLANES);
     }
@@ -704,17 +696,10 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
         geom = DRW_cache_mesh_surface_weights_get(ob);
         DRW_shgroup_call_no_cull(g_data->fweights_shgrp, geom, ob);
       }
-
-      if (do_show_mesh_analysis && !XRAY_ACTIVE(v3d)) {
-        Mesh *me = (Mesh *)ob->data;
-        BMEditMesh *embm = me->edit_mesh;
-        const bool is_original = embm->mesh_eval_final &&
-                                 (embm->mesh_eval_final->runtime.is_original == true);
-        if (is_original) {
-          geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
-          if (geom) {
-            DRW_shgroup_call_no_cull(g_data->mesh_analysis_shgrp, geom, ob);
-          }
+      else if (do_show_mesh_analysis && !XRAY_ACTIVE(v3d)) {
+        geom = DRW_cache_mesh_surface_mesh_analysis_get(ob);
+        if (geom) {
+          DRW_shgroup_call_no_cull(g_data->mesh_analysis_shgrp, geom, ob);
         }
       }
 
@@ -727,7 +712,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
       }
 
       if (vnormals_do) {
-        geom = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
+        geom = DRW_mesh_batch_cache_get_edit_vnors(ob->data);
         DRW_shgroup_call_no_cull(g_data->vnormals_shgrp, geom, ob);
       }
       if (lnormals_do) {

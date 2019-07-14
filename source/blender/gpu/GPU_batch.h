@@ -40,7 +40,7 @@ typedef enum {
   GPU_BATCH_READY_TO_DRAW,
 } GPUBatchPhase;
 
-#define GPU_BATCH_VBO_MAX_LEN 4
+#define GPU_BATCH_VBO_MAX_LEN 5
 #define GPU_BATCH_VAO_STATIC_LEN 3
 #define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
 
@@ -115,6 +115,7 @@ void GPU_batch_vao_cache_clear(GPUBatch *);
 void GPU_batch_callback_free_set(GPUBatch *, void (*callback)(GPUBatch *, void *), void *);
 
 void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
+void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);
 
 int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 

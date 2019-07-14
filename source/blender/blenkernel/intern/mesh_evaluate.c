@@ -2378,6 +2378,24 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
   }
 }
 
+float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
+{
+
+  int i, l_iter = mpoly->loopstart;
+  float area;
+  float(*vertexcos)[2] = BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
+
+  /* pack vertex cos into an array for area_poly_v2 */
+  for (i = 0; i < mpoly->totloop; i++, l_iter++) {
+    copy_v2_v2(vertexcos[i], uv_array[l_iter].uv);
+  }
+
+  /* finally calculate the area */
+  area = area_poly_v2((const float(*)[2])vertexcos, (unsigned int)mpoly->totloop);
+
+  return area;
+}
+
 /**
  * Calculate the volume and volume-weighted centroid of the volume
  * formed by the polygon and the origin.

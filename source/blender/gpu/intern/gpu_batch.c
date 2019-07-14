@@ -182,6 +182,25 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
   }
 }
 
+void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
+{
+  BLI_assert(elem != NULL);
+  /* redo the bindings */
+  GPU_batch_vao_cache_clear(batch);
+
+  if (batch->elem != NULL && (batch->owns_flag & GPU_BATCH_OWNS_INDEX)) {
+    GPU_indexbuf_discard(batch->elem);
+  }
+  batch->elem = elem;
+
+  if (own_ibo) {
+    batch->owns_flag |= GPU_BATCH_OWNS_INDEX;
+  }
+  else {
+    batch->owns_flag &= ~GPU_BATCH_OWNS_INDEX;
+  }
+}
+
 /* Returns the index of verts in the batch. */
 int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 {
@@ -362,13 +381,23 @@ static void create_bindings(GPUVertBuf *verts,
   const GPUVertFormat *format = &verts->format;
 
   const uint attr_len = format->attr_len;
-  const uint stride = format->stride;
+  uint stride = format->stride;
+  uint offset = 0;
 
   GPU_vertbuf_use(verts);
 
   for (uint a_idx = 0; a_idx < attr_len; ++a_idx) {
     const GPUVertAttr *a = &format->attrs[a_idx];
-    const GLvoid *pointer = (const GLubyte *)0 + a->offset + v_first * stride;
+
+    if (format->deinterleaved) {
+      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].sz) * verts->vertex_len;
+      stride = a->sz;
+    }
+    else {
+      offset = a->offset;
+    }
+
+    const GLvoid *pointer = (const GLubyte *)0 + offset + v_first * stride;
 
     for (uint n_idx = 0; n_idx < a->name_len; ++n_idx) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
@@ -419,8 +448,11 @@ static void create_bindings(GPUVertBuf *verts,
 
 static void batch_update_program_bindings(GPUBatch *batch, uint v_first)
 {
-  for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN && batch->verts[v] != NULL; ++v) {
-    create_bindings(batch->verts[v], batch->interface, (batch->inst) ? 0 : v_first, false);
+  /* Reverse order so first vbos have more prevalence (in term of attrib override). */
+  for (int v = GPU_BATCH_VBO_MAX_LEN - 1; v > -1; --v) {
+    if (batch->verts[v] != NULL) {
+      create_bindings(batch->verts[v], batch->interface, (batch->inst) ? 0 : v_first, false);
+    }
   }
   if (batch->inst) {
     create_bindings(batch->inst, batch->interface, v_first, true);
@@ -550,10 +582,10 @@ static void *elem_offset(const GPUIndexBuf *el, int v_first)
 {
 #if GPU_TRACK_INDEX_RANGE
   if (el->index_type == GPU_INDEX_U16) {
-    return (GLushort *)0 + v_first;
+    return (GLushort *)0 + v_first + el->index_start;
   }
 #endif
-  return (GLuint *)0 + v_first;
+  return (GLuint *)0 + v_first + el->index_start;
 }
 
 /* Use when drawing with GPU_batch_draw_advanced */
