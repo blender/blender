@@ -926,7 +926,7 @@ static const char arg_handle_debug_mode_generic_set_doc_ffmpeg[] =
 #  ifdef WITH_FREESTYLE
 static const char arg_handle_debug_mode_generic_set_doc_freestyle[] =
     "\n\t"
-    "Enable debug messages for FreeStyle.";
+    "Enable debug messages for Freestyle.";
 #  endif
 static const char arg_handle_debug_mode_generic_set_doc_python[] =
     "\n\t"
