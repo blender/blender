@@ -18,6 +18,7 @@ _tmp_dir="$(mktemp -d)"
 _tmp_dmg="/tmp/blender-tmp.dmg"
 _background_image="${_script_dir}/background.tif"
 _mount_dir="/Volumes/${_volume_name}"
+_entitlements="${_script_dir}/entitlements.plist"
 
 # Handle arguments.
 while [[ $# -gt 0 ]]; do
@@ -128,17 +129,17 @@ if [ ! -z "${C_CERT}" ]; then
     for f in $(find "${_mount_dir}/Blender.app/Contents/Resources" -name "python*"); do
         if [ -x ${f} ] && [ ! -d ${f} ]; then
             codesign --remove-signature "${f}"
-            codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
+            codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${f}"
         fi
     done
     echo ; echo -n "Codesigning .dylib and .so libraries"
     for f in $(find "${_mount_dir}/Blender.app" -name "*.dylib" -o -name "*.so"); do
         codesign --remove-signature "${f}"
-        codesign --timestamp --options runtime --sign "${C_CERT}" "${f}"
+        codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${f}"
     done
     echo ; echo -n "Codesigning Blender.app"
     codesign --remove-signature "${_mount_dir}/Blender.app"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app"
+    codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${_mount_dir}/Blender.app"
     echo
 else
     echo "No codesigning cert given, skipping..."
