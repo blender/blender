@@ -685,8 +685,13 @@ void set_particle_system_modifiers_loaded(Object *object_cow)
   }
 }
 
-void reset_particle_system_edit_eval(Object *object_cow)
+void reset_particle_system_edit_eval(const Depsgraph *depsgraph, Object *object_cow)
 {
+  /* Inactive (and render) dependency graphs are living in own little bubble, should not care about
+   * edit mode at all. */
+  if (!DEG_is_active(reinterpret_cast<const ::Depsgraph *>(depsgraph))) {
+    return;
+  }
   LISTBASE_FOREACH (ParticleSystem *, psys, &object_cow->particlesystem) {
     ParticleSystem *orig_psys = psys->orig_psys;
     if (orig_psys->edit != NULL) {
@@ -696,11 +701,13 @@ void reset_particle_system_edit_eval(Object *object_cow)
   }
 }
 
-void update_particles_after_copy(const Object *object_orig, Object *object_cow)
+void update_particles_after_copy(const Depsgraph *depsgraph,
+                                 const Object *object_orig,
+                                 Object *object_cow)
 {
   update_particle_system_orig_pointers(object_orig, object_cow);
   set_particle_system_modifiers_loaded(object_cow);
-  reset_particle_system_edit_eval(object_cow);
+  reset_particle_system_edit_eval(depsgraph, object_cow);
 }
 
 void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
@@ -779,7 +786,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
         }
         BKE_pose_pchan_index_rebuild(object_cow->pose);
       }
-      update_particles_after_copy(object_orig, object_cow);
+      update_particles_after_copy(depsgraph, object_orig, object_cow);
       update_modifiers_orig_pointers(object_orig, object_cow);
       break;
     }
