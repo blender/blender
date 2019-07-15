@@ -996,8 +996,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       float factor;
 
       /* get interpolation factor */
-      factor = (float)(cframe - prevFrame->framenum) /
-               (nextFrame->framenum - prevFrame->framenum + 1);
+      float framerange = nextFrame->framenum - prevFrame->framenum;
+      CLAMP_MIN(framerange, 1.0f);
+      factor = (float)(cframe - prevFrame->framenum) / framerange;
 
       if (ipo_settings->type == GP_IPO_CURVEMAP) {
         /* custom curvemap */
