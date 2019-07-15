@@ -378,7 +378,13 @@ void gpu_extensions_init(void)
       GG.dfdyfactors[1] = 1.0;
     }
 
-    if (strstr(renderer, "HD Graphics 4000")) {
+    if (strstr(version, "Build 10.18.10.3574") ||
+        strstr(version, "Build 10.18.10.4252") ||
+        strstr(version, "Build 10.18.10.4358") ||
+        strstr(version, "Build 10.18.10.5069") ||
+        strstr(version, "Build 10.18.14.4264") ||
+        strstr(version, "Build 10.18.14.4432") ||
+        strstr(version, "Build 10.18.14.5067")) {
       GG.context_local_shaders_workaround = true;
     }
   }
