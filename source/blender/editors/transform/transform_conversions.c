@@ -1289,7 +1289,6 @@ static void createTransPose(TransInfo *t)
     bPose *pose = ob->pose;
 
     bArmature *arm;
-    short ik_on = 0;
 
     /* check validity of state */
     arm = BKE_armature_from_object(tc->poseobj);
@@ -1315,8 +1314,7 @@ static void createTransPose(TransInfo *t)
 
     /* do we need to add temporal IK chains? */
     if ((pose->flag & POSE_AUTO_IK) && t->mode == TFM_TRANSLATION) {
-      ik_on = pose_grab_with_ik(bmain, ob);
-      if (ik_on) {
+      if (pose_grab_with_ik(bmain, ob)) {
         t->flag |= T_AUTOIK;
         has_translate_rotate[0] = true;
       }
@@ -1359,7 +1357,6 @@ static void createTransPose(TransInfo *t)
     Object *ob = tc->poseobj;
     TransData *td;
     TransDataExtension *tdx;
-    short ik_on = 0;
     int i;
 
     PoseInitData_Mirror *pid = tc->custom.type.data;
@@ -1407,7 +1404,7 @@ static void createTransPose(TransInfo *t)
     }
 
     /* initialize initial auto=ik chainlen's? */
-    if (ik_on) {
+    if (t->flag & T_AUTOIK) {
       transform_autoik_update(t, 0);
     }
   }
