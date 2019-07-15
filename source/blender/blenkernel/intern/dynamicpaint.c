@@ -1216,9 +1216,11 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
 {
   /* Init modifier */
   tpmd->type = pmd->type;
-  if ((pmd->canvas && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) ||
-      (pmd->brush && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH)) {
-    dynamicPaint_createType(tpmd, pmd->type, NULL);
+  if (pmd->canvas) {
+    dynamicPaint_createType(tpmd, MOD_DYNAMICPAINT_TYPE_CANVAS, NULL);
+  }
+  if (pmd->brush) {
+    dynamicPaint_createType(tpmd, MOD_DYNAMICPAINT_TYPE_BRUSH, NULL);
   }
 
   /* Copy data */
@@ -1229,6 +1231,8 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
     if (tpmd->canvas->surfaces.first) {
       dynamicPaint_freeSurface(tpmd, tpmd->canvas->surfaces.first);
     }
+
+    tpmd->canvas->active_sur = pmd->canvas->active_sur;
 
     /* copy existing surfaces */
     for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
@@ -1296,7 +1300,7 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
       BLI_strncpy(t_surface->output_name2, surface->output_name2, sizeof(t_surface->output_name2));
     }
   }
-  else if (tpmd->brush) {
+  if (tpmd->brush) {
     DynamicPaintBrushSettings *brush = pmd->brush, *t_brush = tpmd->brush;
     t_brush->pmd = tpmd;
 
