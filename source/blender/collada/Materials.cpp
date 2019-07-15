@@ -131,18 +131,24 @@ void MaterialNode::add_link(bNode *from_node, int from_index, bNode *to_node, in
 void MaterialNode::set_reflectivity(COLLADAFW::FloatOrParam &val)
 {
   float reflectivity = val.getFloatValue();
-  bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Metallic");
-  ((bNodeSocketValueFloat *)socket->default_value)->value = reflectivity;
-
-  material->metallic = reflectivity;
+  if (reflectivity >= 0) {
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Metallic");
+    ((bNodeSocketValueFloat *)socket->default_value)->value = reflectivity;
+    material->metallic = reflectivity;
+  }
 }
 
+#if 0
+// needs rework to be done for 2.81
 void MaterialNode::set_shininess(COLLADAFW::FloatOrParam &val)
 {
   float roughness = val.getFloatValue();
-  bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Roughness");
-  ((bNodeSocketValueFloat *)socket->default_value)->value = roughness;
+  if (roughness >= 0) {
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Roughness");
+    ((bNodeSocketValueFloat *)socket->default_value)->value = roughness;
+  }
 }
+#endif
 
 void MaterialNode::set_ior(COLLADAFW::FloatOrParam &val)
 {

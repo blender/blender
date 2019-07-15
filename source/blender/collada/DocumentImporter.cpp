@@ -804,7 +804,10 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
   matNode.set_alpha(ef->getOpaqueMode(), ef->getTransparent(), ef->getTransparency());
 
   /* following mapping still needs to be verified */
+#if 0
+  // needs rework to be done for 2.81
   matNode.set_shininess(ef->getShininess());
+#endif
   matNode.set_reflectivity(ef->getReflectivity());
 
   /* not supported by principled BSDF */
