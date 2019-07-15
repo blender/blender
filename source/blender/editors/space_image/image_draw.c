@@ -797,6 +797,9 @@ void draw_image_main(const bContext *C, ARegion *ar)
   ima = ED_space_image(sima);
   ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
+  /* Tag image as in active use for garbage collector. */
+  BKE_image_tag_time(ima);
+
   show_viewer = (ima && ima->source == IMA_SRC_VIEWER) != 0;
   show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT) != 0;
   show_paint = (ima && (sima->mode == SI_MODE_PAINT) && (show_viewer == false) &&

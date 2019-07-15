@@ -475,6 +475,9 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
     ima->gpuflag &= ~IMA_GPU_REFRESH;
   }
 
+  /* Tag as in active use for garbage collector. */
+  BKE_image_tag_time(ima);
+
   /* Test if we already have a texture. */
   GPUTexture **tex = gpu_get_image_gputexture(ima, textarget);
   if (*tex) {
