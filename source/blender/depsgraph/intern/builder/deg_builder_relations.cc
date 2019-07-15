@@ -2329,6 +2329,24 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
   /* Final mask evaluation. */
   OperationKey mask_eval_key(mask_id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
   add_relation(mask_animation_key, mask_eval_key, "Mask Animation -> Mask Eval");
+  /* Build parents. */
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
+    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
+      for (int i = 0; i < spline->tot_point; i++) {
+        MaskSplinePoint *point = &spline->points[i];
+        MaskParent *parent = &point->parent;
+        if (parent == NULL || parent->id == NULL) {
+          continue;
+        }
+        build_id(parent->id);
+        if (parent->id_type == ID_MC) {
+          OperationKey movieclip_eval_key(
+              parent->id, NodeType::PARAMETERS, OperationCode::MOVIECLIP_EVAL);
+          add_relation(movieclip_eval_key, mask_eval_key, "Movie Clip -> Mask Eval");
+        }
+      }
+    }
+  }
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
