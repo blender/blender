@@ -173,7 +173,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
   }
 
   const float *full_size = DRW_viewport_size_get();
-  int size[2] = {full_size[0] / 2, full_size[1] / 2};
+  int size[2] = {max_ii(1, (int)full_size[0] / 2), max_ii(1, (int)full_size[1] / 2)};
 #if 0
   /* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture.  */
   int shrink_h_size[2] = {ceilf(size[0] / 8.0f), size[1]};

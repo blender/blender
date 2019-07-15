@@ -159,6 +159,9 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     const bool high_qual_input = true; /* TODO dither low quality input */
     const eGPUTextureFormat format = (high_qual_input) ? GPU_RGBA16F : GPU_RGBA8;
 
+    tracing_res[0] = max_ii(1, tracing_res[0]);
+    tracing_res[1] = max_ii(1, tracing_res[1]);
+
     /* MRT for the shading pass in order to output needed data for the SSR pass. */
     effects->ssr_specrough_input = DRW_texture_pool_query_2d(
         size_fs[0], size_fs[1], format, &draw_engine_eevee_type);
