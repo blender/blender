@@ -41,6 +41,7 @@
 
 #include "DEG_depsgraph.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "WM_api.h"
@@ -629,8 +630,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 
 static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int type)
 {
-  Object *obedit = ED_object_context(C);
-  Mesh *me = obedit->data;
+  Mesh *me = ED_mesh_context(C);
 
   int tot;
   CustomData *data = mesh_customdata_get_type(me, htype, &tot);
@@ -788,8 +788,7 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 /* Clear custom loop normals */
 static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Object *ob = ED_object_context(C);
-  Mesh *me = ob->data;
+  Mesh *me = ED_mesh_context(C);
 
   if (!BKE_mesh_has_custom_loop_normals(me)) {
     CustomData *data = GET_CD_DATA(me, ldata);
@@ -853,7 +852,7 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mesh_customdata_custom_splitnormals_add_exec;
-  ot->poll = ED_operator_object_active_editable_mesh;
+  ot->poll = ED_operator_editable_mesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -861,8 +860,7 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 
 static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Object *ob = ED_object_context(C);
-  Mesh *me = ob->data;
+  Mesh *me = ED_mesh_context(C);
 
   if (BKE_mesh_has_custom_loop_normals(me)) {
     return mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_CUSTOMLOOPNORMAL);
@@ -879,7 +877,7 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mesh_customdata_custom_splitnormals_clear_exec;
-  ot->poll = ED_operator_object_active_editable_mesh;
+  ot->poll = ED_operator_editable_mesh;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1288,4 +1286,24 @@ void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char sel
 void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
 {
   ED_mesh_report_mirror_ex(op, totmirr, totfail, SCE_SELECT_VERTEX);
+}
+
+Mesh *ED_mesh_context(struct bContext *C)
+{
+  Mesh *mesh = CTX_data_pointer_get_type(C, "mesh", &RNA_Mesh).data;
+  if (mesh != NULL) {
+    return mesh;
+  }
+
+  Object *ob = ED_object_active_context(C);
+  if (ob == NULL) {
+    return NULL;
+  }
+
+  ID *data = (ID *)ob->data;
+  if (data == NULL || GS(data->name) != ID_ME) {
+    return NULL;
+  }
+
+  return (Mesh *)data;
 }

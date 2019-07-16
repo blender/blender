@@ -393,6 +393,9 @@ bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, char selectmode);
 
+/* Returns the pinned mesh, the mesh from the pinned object, or the mesh from the active object. */
+struct Mesh *ED_mesh_context(struct bContext *C);
+
 /* mesh backup */
 typedef struct BMBackup {
   struct BMesh *bmcopy;

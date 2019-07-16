@@ -74,6 +74,7 @@
 #include "ED_clip.h"
 #include "ED_image.h"
 #include "ED_keyframes_draw.h"
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -369,6 +370,12 @@ bool ED_operator_object_active_editable_font(bContext *C)
 {
   Object *ob = ED_object_active_context(C);
   return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) && (ob->type == OB_FONT));
+}
+
+bool ED_operator_editable_mesh(bContext *C)
+{
+  Mesh *mesh = ED_mesh_context(C);
+  return (mesh != NULL) && !ID_IS_LINKED(mesh);
 }
 
 bool ED_operator_editmesh(bContext *C)

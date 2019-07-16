@@ -337,6 +337,7 @@ bool ED_operator_object_active(struct bContext *C);
 bool ED_operator_object_active_editable(struct bContext *C);
 bool ED_operator_object_active_editable_mesh(struct bContext *C);
 bool ED_operator_object_active_editable_font(struct bContext *C);
+bool ED_operator_editable_mesh(struct bContext *C);
 bool ED_operator_editmesh(struct bContext *C);
 bool ED_operator_editmesh_view3d(struct bContext *C);
 bool ED_operator_editmesh_region_view3d(struct bContext *C);
