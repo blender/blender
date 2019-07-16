@@ -340,7 +340,7 @@ def km_window(params):
     )
 
     if params.legacy:
-        # Old shorctus
+        # Old shortcuts
         items.extend([
             ("wm.save_homefile", {"type": 'U', "value": 'PRESS', "ctrl": True}, None),
             ("wm.open_mainfile", {"type": 'F1', "value": 'PRESS'}, None),
