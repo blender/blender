@@ -1590,7 +1590,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 
   pid->stack_index = pid->cache->index;
 
-  pid->default_step = 10;
+  pid->default_step = 1;
   pid->max_step = 20;
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
@@ -1655,7 +1655,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
   pid->info_types = (1 << BPHYS_DATA_TIMES);
 
-  pid->default_step = 10;
+  pid->default_step = 1;
   pid->max_step = 20;
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
