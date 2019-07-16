@@ -670,9 +670,14 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
   }
 
   if (bfd) {
-    workspace_config = MEM_mallocN(sizeof(*workspace_config), __func__);
+    workspace_config = MEM_callocN(sizeof(*workspace_config), __func__);
     workspace_config->main = bfd->main;
-    workspace_config->workspaces = bfd->main->workspaces;
+
+    /* Only 2.80+ files have actual workspaces, don't try to use screens
+     * from older versions. */
+    if (bfd->main->versionfile >= 280) {
+      workspace_config->workspaces = bfd->main->workspaces;
+    }
 
     MEM_freeN(bfd);
   }
