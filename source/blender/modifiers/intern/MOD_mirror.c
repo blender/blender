@@ -335,7 +335,7 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
   }
 
   /* handle custom split normals */
-  if ((((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
+  if (ob->type == OB_MESH && (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL)) {
     const int totloop = result->totloop;
     const int totpoly = result->totpoly;
