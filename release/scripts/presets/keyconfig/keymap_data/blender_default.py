@@ -5618,7 +5618,7 @@ def km_3d_view_tool_sculpt_box_hide(params):
              {"properties": [("action", 'HIDE')]}),
             ("paint.hide_show", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
              {"properties": [("action", 'SHOW')]}),
-            ("paint.hide_show", {"type": params.select_mouse, "value": 'PRESS'},
+            ("paint.hide_show", {"type": params.select_mouse, "value": params.select_mouse_value},
              {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
         ]},
     )
