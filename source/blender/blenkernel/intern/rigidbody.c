@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 
 #ifdef WITH_BULLET
 #  include "RBI_api.h"
@@ -228,7 +229,7 @@ void BKE_rigidbody_free_constraint(Object *ob)
  * be added to relevant groups later...
  */
 
-RigidBodyOb *BKE_rigidbody_copy_object(const Object *ob, const int flag)
+static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
 {
   RigidBodyOb *rboN = NULL;
 
@@ -249,7 +250,7 @@ RigidBodyOb *BKE_rigidbody_copy_object(const Object *ob, const int flag)
   return rboN;
 }
 
-RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int UNUSED(flag))
+static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int UNUSED(flag))
 {
   RigidBodyCon *rbcN = NULL;
 
@@ -266,6 +267,54 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int UNUSED(f
 
   /* return new copy of settings */
   return rbcN;
+}
+
+void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
+{
+  ob_dst->rigidbody_object = rigidbody_copy_object(ob_src, flag);
+  ob_dst->rigidbody_constraint = rigidbody_copy_constraint(ob_src, flag);
+
+  if (flag & LIB_ID_CREATE_NO_MAIN) {
+    return;
+  }
+
+  /* We have to ensure that duplicated object ends up in relevant rigidbody collections...
+   * Otherwise duplicating the RB data itself is meaningless. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    RigidBodyWorld *rigidbody_world = scene->rigidbody_world;
+
+    if (rigidbody_world != NULL) {
+      bool need_objects_update = false;
+      bool need_constraints_update = false;
+
+      if (ob_dst->rigidbody_object) {
+        if (BKE_collection_has_object(rigidbody_world->group, ob_src)) {
+          BKE_collection_object_add(bmain, rigidbody_world->group, ob_dst);
+          need_objects_update = true;
+        }
+      }
+      if (ob_dst->rigidbody_constraint) {
+        if (BKE_collection_has_object(rigidbody_world->constraints, ob_src)) {
+          BKE_collection_object_add(bmain, rigidbody_world->constraints, ob_dst);
+          need_constraints_update = true;
+        }
+      }
+
+      if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 &&
+          (need_objects_update || need_constraints_update)) {
+        BKE_rigidbody_cache_reset(rigidbody_world);
+
+        DEG_relations_tag_update(bmain);
+        if (need_objects_update) {
+          DEG_id_tag_update(&rigidbody_world->group->id, ID_RECALC_COPY_ON_WRITE);
+        }
+        if (need_constraints_update) {
+          DEG_id_tag_update(&rigidbody_world->constraints->id, ID_RECALC_COPY_ON_WRITE);
+        }
+        DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM);
+      }
+    }
+  }
 }
 
 /* ************************************** */
@@ -1983,13 +2032,8 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 #    pragma GCC diagnostic ignored "-Wunused-parameter"
 #  endif
 
-struct RigidBodyOb *BKE_rigidbody_copy_object(const Object *ob, const int flag)
+void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
-  return NULL;
-}
-struct RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int flag)
-{
-  return NULL;
 }
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {

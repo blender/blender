@@ -287,16 +287,6 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 
       collection_object_add(bmain, collection_new, ob_new, 0, true);
       collection_object_remove(bmain, collection_new, ob_old, false);
-
-      if (ob_new->rigidbody_object != NULL) {
-        BLI_assert(ob_old->rigidbody_object != NULL);
-        for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-          if (scene->rigidbody_world != NULL &&
-              BKE_collection_has_object(scene->rigidbody_world->group, ob_old)) {
-            collection_object_add(bmain, scene->rigidbody_world->group, ob_new, 0, true);
-          }
-        }
-      }
     }
   }
 
@@ -572,7 +562,7 @@ bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection 
 
 /******************* Collection Object Membership *******************/
 
-bool BKE_collection_has_object(Collection *collection, Object *ob)
+bool BKE_collection_has_object(Collection *collection, const Object *ob)
 {
   if (ELEM(NULL, collection, ob)) {
     return false;

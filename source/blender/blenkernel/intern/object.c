@@ -1417,8 +1417,7 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
     }
   }
   BKE_object_copy_softbody(ob_dst, ob_src, flag_subdata);
-  ob_dst->rigidbody_object = BKE_rigidbody_copy_object(ob_src, flag_subdata);
-  ob_dst->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob_src, flag_subdata);
+  BKE_rigidbody_object_copy(bmain, ob_dst, ob_src, flag_subdata);
 
   BKE_object_copy_particlesystems(ob_dst, ob_src, flag_subdata);
 
