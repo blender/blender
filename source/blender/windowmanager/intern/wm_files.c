@@ -1871,7 +1871,9 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 {
   ot->name = "Load Factory Preferences";
   ot->idname = "WM_OT_read_factory_userpref";
-  ot->description = "Load default preferences";
+  ot->description =
+      "Load factory default preferences. "
+      "To make changes to preferences permanent, use \"Save Preferences\"";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_userpref_read_exec;
@@ -2044,7 +2046,9 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
 {
   ot->name = "Load Factory Settings";
   ot->idname = "WM_OT_read_factory_settings";
-  ot->description = "Load default file and preferences";
+  ot->description =
+      "Load factory default startup file and preferences. "
+      "To make changes permanent, use \"Save Startup File\" and \"Save Preferences\"";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_homefile_read_exec;
