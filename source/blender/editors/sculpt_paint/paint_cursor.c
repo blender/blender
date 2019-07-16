@@ -964,9 +964,9 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     float selec_col[4], handle_col[4], pivot_col[4];
-    UI_GetThemeColor4fv(TH_VERTEX_SELECT, selec_col);
-    UI_GetThemeColor4fv(TH_PAINT_CURVE_HANDLE, handle_col);
-    UI_GetThemeColor4fv(TH_PAINT_CURVE_PIVOT, pivot_col);
+    UI_GetThemeColorType4fv(TH_VERTEX_SELECT, SPACE_VIEW3D, selec_col);
+    UI_GetThemeColorType4fv(TH_PAINT_CURVE_HANDLE, SPACE_VIEW3D, handle_col);
+    UI_GetThemeColorType4fv(TH_PAINT_CURVE_PIVOT, SPACE_VIEW3D, pivot_col);
 
     for (i = 0; i < pc->tot_points - 1; i++, cp++) {
       int j;
