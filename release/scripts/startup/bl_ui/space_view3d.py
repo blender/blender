@@ -5801,23 +5801,36 @@ class VIEW3D_PT_overlay_pose(Panel):
             row.prop(overlay, "show_xray_bone")
 
 
-class VIEW3D_PT_overlay_paint(Panel):
+class VIEW3D_PT_overlay_texture_paint(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = ""
+    bl_label = "Texture Paint"
 
     @classmethod
     def poll(cls, context):
-        return context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}
+        return context.mode == 'PAINT_TEXTURE'
 
-    def draw_header(self, context):
+    def draw(self, context):
         layout = self.layout
-        layout.label(text={
-            'PAINT_TEXTURE': "Texture Paint",
-            'PAINT_VERTEX': "Vertex Paint",
-            'PAINT_WEIGHT': "Weight Paint",
-        }[context.mode])
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+        col.prop(overlay, "texture_paint_mode_opacity")
+
+
+class VIEW3D_PT_overlay_vertex_paint(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Vertex Paint"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'PAINT_VERTEX'
 
     def draw(self, context):
         layout = self.layout
@@ -5828,22 +5841,37 @@ class VIEW3D_PT_overlay_paint(Panel):
         col = layout.column()
         col.active = display_all
 
-        col.prop(overlay, {
-            'PAINT_TEXTURE': "texture_paint_mode_opacity",
-            'PAINT_VERTEX': "vertex_paint_mode_opacity",
-            'PAINT_WEIGHT': "weight_paint_mode_opacity",
-        }[context.mode], text="Opacity")
+        col.prop(overlay, "vertex_paint_mode_opacity", text="Opacity")
+        col.prop(overlay, "show_paint_wire")
 
-        if context.mode == 'PAINT_WEIGHT':
-            row = col.split(factor=0.33)
-            row.label(text="Zero Weights")
-            sub = row.row()
-            sub.prop(context.tool_settings, "vertex_group_user", expand=True)
 
-            col.prop(overlay, "show_wpaint_contours")
+class VIEW3D_PT_overlay_weight_paint(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Weight Paint"
 
-        if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
-            col.prop(overlay, "show_paint_wire")
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'PAINT_WEIGHT'
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        overlay = view.overlay
+        display_all = overlay.show_overlays
+
+        col = layout.column()
+        col.active = display_all
+
+        col.prop(overlay, "weight_paint_mode_opacity", text="Opacity")
+        row = col.split(factor=0.33)
+        row.label(text="Zero Weights")
+        sub = row.row()
+        sub.prop(context.tool_settings, "vertex_group_user", expand=True)
+
+        col.prop(overlay, "show_wpaint_contours")
+        col.prop(overlay, "show_paint_wire")
 
 
 class VIEW3D_PT_pivot_point(Panel):
@@ -6668,7 +6696,9 @@ classes = (
     VIEW3D_PT_overlay_edit_mesh_normals,
     VIEW3D_PT_overlay_edit_mesh_freestyle,
     VIEW3D_PT_overlay_edit_curve,
-    VIEW3D_PT_overlay_paint,
+    VIEW3D_PT_overlay_texture_paint,
+    VIEW3D_PT_overlay_vertex_paint,
+    VIEW3D_PT_overlay_weight_paint,
     VIEW3D_PT_overlay_pose,
     VIEW3D_PT_overlay_sculpt,
     VIEW3D_PT_pivot_point,
