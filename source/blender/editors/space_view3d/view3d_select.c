@@ -2395,7 +2395,7 @@ static bool ed_object_select_pick(bContext *C,
       }
       else {
         /* When enabled, this puts other objects out of multi pose-mode. */
-        if (is_pose_mode == false) {
+        if (is_pose_mode == false || (basact->object->mode & OB_MODE_POSE) == 0) {
           object_deselect_all_except(view_layer, basact);
           ED_object_base_select(basact, BA_SELECT);
         }
