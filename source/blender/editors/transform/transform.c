@@ -7705,7 +7705,7 @@ void projectEdgeSlideData(TransInfo *t, bool is_final)
 
     SlideOrigData *sod = &sld->orig_data;
     if (sod->use_origfaces == false) {
-      return;
+      continue;
     }
 
     slide_origdata_interp_data(tc->obedit,
