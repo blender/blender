@@ -1115,6 +1115,10 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
                                                  Object *ob,
                                                  RegionView3D *rv3d)
 {
+  if (DRW_state_is_select()) {
+    return;
+  }
+
   if (!BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d)) {
     return;
   }
