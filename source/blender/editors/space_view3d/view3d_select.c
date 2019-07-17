@@ -72,6 +72,7 @@
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -2149,6 +2150,12 @@ static bool ed_object_select_pick(bContext *C,
   /* In pose mode we don't want to mess with object selection. */
   const bool is_pose_mode = (vc.obact && vc.obact->mode & OB_MODE_POSE);
 
+  /* Support changing pose objects when the a mesh uses multiple armatures. */
+  Object *old_obpose = NULL;
+  if (vc.obact && vc.obact->mode & OB_MODE_WEIGHT_PAINT) {
+    old_obpose = BKE_object_pose_armature_get(vc.obact);
+  }
+
   /* always start list from basact in wire mode */
   startbase = FIRSTBASE(view_layer);
   if (oldbasact && oldbasact->next) {
@@ -2373,6 +2380,17 @@ static bool ed_object_select_pick(bContext *C,
     if (vc.obedit) {
       /* only do select */
       object_deselect_all_except(view_layer, basact);
+      ED_object_base_select(basact, BA_SELECT);
+    }
+    else if (old_obpose && modifiers_usesArmatureObject(oldbasact->object, basact->object)) {
+      /* The user is in weight-paint mode with an armature selected,
+       * in this case the user is selecting a new armature which is
+       * also used by the mesh. In this case use selection to switch
+       * the pose object, keeping the weight paint object active. */
+      Base *old_basepose = BKE_view_layer_base_find(view_layer, old_obpose);
+      if (old_basepose != NULL) {
+        ED_object_base_select(old_basepose, BA_DESELECT);
+      }
       ED_object_base_select(basact, BA_SELECT);
     }
     /* also prevent making it active on mouse selection */

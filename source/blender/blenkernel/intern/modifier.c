@@ -778,6 +778,23 @@ bool modifiers_usesArmature(Object *ob, bArmature *arm)
   return false;
 }
 
+bool modifiers_usesArmatureObject(Object *ob, Object *ob_armature)
+{
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+
+  for (; md; md = md->next) {
+    if (md->type == eModifierType_Armature) {
+      ArmatureModifierData *amd = (ArmatureModifierData *)md;
+      if (amd->object && amd->object == ob_armature) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 bool modifiers_usesSubsurfFacedots(struct Scene *scene, Object *ob)
 {
   /* Search (backward) in the modifier stack to find if we have a subsurf modifier (enabled) before
