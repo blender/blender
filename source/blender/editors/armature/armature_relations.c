@@ -415,6 +415,10 @@ int join_armature_exec(bContext *C, wmOperator *op)
         }
       }
 
+      arm->layer_used |= curarm->layer_used;
+      arm->layer |= curarm->layer;
+      arm->layer_protected |= curarm->layer_protected;
+
       /* Free the old object data */
       ED_object_base_free_and_unlink(bmain, scene, ob_iter);
     }
