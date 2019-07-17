@@ -1121,6 +1121,8 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
     add_v3_v3v3(bone->tail, bone->head, imat[2]);  // bone with unit length 1, pointing up Z
   }
 
+  ED_armature_edit_refresh_layer_used(obedit->data);
+
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 

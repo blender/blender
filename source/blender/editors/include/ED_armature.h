@@ -184,6 +184,8 @@ EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *
 void ED_armature_edit_sync_selection(struct ListBase *edbo);
 void ED_armature_edit_validate_active(struct bArmature *arm);
 
+void ED_armature_edit_refresh_layer_used(struct bArmature *arm);
+
 struct Base *ED_armature_base_and_ebone_from_select_buffer(struct Base **bases,
                                                            uint bases_len,
                                                            int hit,

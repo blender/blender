@@ -872,6 +872,8 @@ static int pose_bone_layers_exec(bContext *C, wmOperator *op)
     RNA_boolean_set_array(&ptr, "layers", layers);
 
     if (prev_ob != ob) {
+      BKE_armature_refresh_layer_used(ob->data);
+
       /* Note, notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
       DEG_id_tag_update((ID *)ob->data, ID_RECALC_COPY_ON_WRITE);
@@ -948,6 +950,8 @@ static int armature_bone_layers_exec(bContext *C, wmOperator *op)
     RNA_boolean_set_array(&ptr, "layers", layers);
   }
   CTX_DATA_END;
+
+  ED_armature_edit_refresh_layer_used(ob->data);
 
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
