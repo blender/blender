@@ -7100,6 +7100,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
           FOREACH_TRANS_DATA_CONTAINER (t, tc) {
             EdgeSlideData *sld = tc->custom.mode.data;
 
+            if (sld == NULL) {
+              continue;
+            }
+
             /* Free temporary faces to avoid auto-merging and deleting
              * during cleanup - psy-fi. */
             freeEdgeSlideTempFaces(sld);
