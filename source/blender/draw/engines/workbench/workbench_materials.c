@@ -317,33 +317,31 @@ void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd,
                                         const bool deferred,
                                         const int interp)
 {
-  if (deferred && !workbench_is_matdata_pass_enabled(wpd)) {
-    return;
-  }
-
-  if (workbench_material_determine_color_type(wpd, material->ima, ob, false) ==
-      V3D_SHADING_TEXTURE_COLOR) {
-    GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D);
-    DRW_shgroup_uniform_texture(grp, "image", tex);
-    DRW_shgroup_uniform_bool_copy(
-        grp, "imagePremultiplied", (material->ima->alpha_mode == IMA_ALPHA_PREMUL));
-    DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
-  }
-  else {
-    DRW_shgroup_uniform_vec3(grp,
-                             "materialDiffuseColor",
-                             (use_metallic) ? material->base_color : material->diffuse_color,
-                             1);
-  }
-
-  if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
-    if (use_metallic) {
-      DRW_shgroup_uniform_float(grp, "materialMetallic", &material->metallic, 1);
+  if (!deferred || workbench_is_matdata_pass_enabled(wpd)) {
+    if (workbench_material_determine_color_type(wpd, material->ima, ob, false) ==
+        V3D_SHADING_TEXTURE_COLOR) {
+      GPUTexture *tex = GPU_texture_from_blender(material->ima, material->iuser, GL_TEXTURE_2D);
+      DRW_shgroup_uniform_texture(grp, "image", tex);
+      DRW_shgroup_uniform_bool_copy(
+          grp, "imagePremultiplied", (material->ima->alpha_mode == IMA_ALPHA_PREMUL));
+      DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
     }
     else {
-      DRW_shgroup_uniform_vec3(grp, "materialSpecularColor", material->specular_color, 1);
+      DRW_shgroup_uniform_vec3(grp,
+                               "materialDiffuseColor",
+                               (use_metallic) ? material->base_color : material->diffuse_color,
+                               1);
     }
-    DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+
+    if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
+      if (use_metallic) {
+        DRW_shgroup_uniform_float(grp, "materialMetallic", &material->metallic, 1);
+      }
+      else {
+        DRW_shgroup_uniform_vec3(grp, "materialSpecularColor", material->specular_color, 1);
+      }
+      DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+    }
   }
 
   if (WORLD_CLIPPING_ENABLED(wpd)) {
