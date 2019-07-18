@@ -192,9 +192,8 @@ void gpencil_apply_modifier_material(
       BLI_ghash_insert(gh_color, mat->id.name, newmat);
       DEG_id_tag_update(&newmat->id, ID_RECALC_COPY_ON_WRITE);
     }
-    /* Reaasign color index. */
-    int idx = BKE_gpencil_object_material_get_index(ob, newmat);
-    gps->mat_nr = idx - 1;
+    /* Reassign color index. */
+    gps->mat_nr = BKE_gpencil_object_material_get_index(ob, newmat);
   }
   else {
     /* reuse existing color (but update only first time) */
