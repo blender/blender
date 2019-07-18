@@ -4157,6 +4157,13 @@ def km_particle(params):
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
         op_menu("VIEW3D_MT_particle_context_menu", params.context_menu_event),
         ("particle.weight_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
+        *(
+            (("wm.context_set_enum",
+              {"type": NUMBERS_1[i], "value": 'PRESS'},
+              {"properties": [("data_path", "tool_settings.particle_edit.select_mode"), ("value", value)]})
+             for i, value in enumerate(('PATH', 'POINT', 'TIP'))
+             )
+        ),
         *_template_items_proportional_editing(connected=False),
     ])
 
