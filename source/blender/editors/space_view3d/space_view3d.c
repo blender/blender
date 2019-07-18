@@ -662,7 +662,10 @@ static void view3d_widgets(void)
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
+  /* TODO(campbell): Not working well enough, disable for now. */
+#if 0
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
+#endif
 
   WM_gizmogrouptype_append(VIEW3D_GGT_xform_gizmo);
   WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
