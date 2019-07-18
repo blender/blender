@@ -1978,6 +1978,7 @@ static void draw_armature_edit(Object *ob)
 static void draw_armature_pose(Object *ob, const float const_color[4])
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
   bArmature *arm = ob->data;
   bPoseChannel *pchan;
   int index = -1;
@@ -1990,19 +1991,35 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
     return;
   }
 
-  // if (!(base->flag & OB_FROMDUPLI)) // TODO
-  {
+  bool is_pose_select = false;
+  /* Object can be edited in the scene. */
+  if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
     if ((draw_ctx->object_mode & OB_MODE_POSE) || (ob == draw_ctx->object_pose)) {
       arm->flag |= ARM_POSEMODE;
     }
+    is_pose_select =
+        /* If we're in pose-mode or object-mode with the ability to enter pose mode. */
+        (
+            /* Draw as if in pose mode (when selection is possible). */
+            (arm->flag & ARM_POSEMODE) ||
+            /* When we're in object mode, which may select bones. */
+            ((ob->mode & OB_MODE_POSE) &&
+             (
+                 /* Switch from object mode when object lock is disabled. */
+                 ((draw_ctx->object_mode == OB_MODE_OBJECT) &&
+                  (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) ||
+                 /* Allow selection when in weight-paint mode
+                  * (selection code ensures this wont become active). */
+                 ((draw_ctx->object_mode == OB_MODE_WEIGHT_PAINT) &&
+                  (draw_ctx->object_pose != NULL))))) &&
+        DRW_state_is_select();
 
-    if (arm->flag & ARM_POSEMODE) {
+    if (is_pose_select) {
       const Object *ob_orig = DEG_get_original_object(ob);
       index = ob_orig->runtime.select_id;
     }
   }
 
-  const bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
   const bool show_text = DRW_state_show_text();
   const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
