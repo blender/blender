@@ -2321,10 +2321,15 @@ static bool ed_object_select_pick(bContext *C,
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
           DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
-          /* in weightpaint, we use selected bone to select vertexgroup,
-           * so no switch to new active object */
+          /* In weight-paint, we use selected bone to select vertex-group,
+           * so don't switch to new active object. */
           if (oldbasact && (oldbasact->object->mode & OB_MODE_WEIGHT_PAINT)) {
-            /* prevent activating */
+            /* Prevent activating.
+             * Selection causes this to be considered the 'active' pose in weight-paint mode.
+             * Eventually this limitation may be removed.
+             * For now, de-select all other pose objects deforming this mesh. */
+            ED_armature_pose_select_in_wpaint_mode(view_layer, basact);
+
             basact = NULL;
           }
         }

@@ -170,6 +170,10 @@ bool ED_armature_pose_select_pick_with_buffer(struct ViewLayer *view_layer,
                                               bool deselect,
                                               bool toggle,
                                               bool do_nearest);
+
+void ED_armature_pose_select_in_wpaint_mode(struct ViewLayer *view_layer,
+                                            struct Base *base_select);
+
 bool ED_armature_edit_select_pick(
     struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
