@@ -623,8 +623,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   /* we didn't succeed, now try to read Blender file */
   if (retval == BKE_READ_EXOTIC_OK_BLEND) {
-    bool use_data = true;
-    bool use_userdef = false;
     const int G_f_orig = G.f;
     ListBase wmbase;
 
@@ -670,18 +668,14 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
     WM_check(C); /* opens window(s), checks keymaps */
 
-    if (retval == BKE_BLENDFILE_READ_OK_USERPREFS) {
-      /* in case a userdef is read from regular .blend */
-      wm_init_userdef(bmain, false);
-      use_userdef = true;
-    }
-
     if (retval != BKE_BLENDFILE_READ_FAIL) {
       if (do_history) {
         wm_history_file_update();
       }
     }
 
+    const bool use_data = true;
+    const bool use_userdef = false;
     wm_file_read_post(C, false, false, use_data, use_userdef, false);
 
     success = true;
