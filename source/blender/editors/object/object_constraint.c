@@ -34,6 +34,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -1815,10 +1816,15 @@ static bool get_new_constraint_target(
          */
         if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) &&
             (!only_curve && !only_mesh)) {
-          /* just use the active bone, and assume that it is visible + usable */
-          *tar_ob = ob;
-          *tar_pchan = BKE_pose_channel_active(ob);
-          found = true;
+
+          /* Only use the object & bone if the bone is visible & selected
+           * since we may have multiple objects in pose mode at once.  */
+          bPoseChannel *pchan = BKE_pose_channel_active_or_first_selected(ob);
+          if (pchan != NULL) {
+            *tar_pchan = pchan;
+            *tar_ob = ob;
+            found = true;
+          }
 
           break;
         }
