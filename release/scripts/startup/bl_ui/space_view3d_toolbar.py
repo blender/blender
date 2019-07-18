@@ -1781,7 +1781,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
             col.prop(gp_settings, "angle_factor", text="Factor", slider=True)
 
             ob = context.object
-            if ob:
+            if ob and brush.gpencil_settings.use_material_pin is False:
                 ma = ob.active_material
             elif brush.gpencil_settings.material:
                 ma = brush.gpencil_settings.material
