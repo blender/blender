@@ -30,6 +30,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
+#include "BLI_linklist.h"
 
 #include "BKE_action.h"
 #include "BKE_camera.h"
@@ -38,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -962,8 +964,8 @@ static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
  * we want to select pose bones (this doesn't switch modes). */
 static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void *user_data)
 {
-  const Object *ob_pose = user_data;
-  return (DEG_get_original_object(ob) == ob_pose);
+  LinkNode *ob_pose_list = user_data;
+  return ob_pose_list && (BLI_linklist_index(ob_pose_list, DEG_get_original_object(ob)) != -1);
 }
 
 /**
@@ -1044,10 +1046,22 @@ int view3d_opengl_select(ViewContext *vc,
     case VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK: {
       Object *obact = vc->obact;
       BLI_assert(obact && (obact->mode & OB_MODE_WEIGHT_PAINT));
-      Object *ob_pose = BKE_object_pose_armature_get(obact);
 
+      /* While this uses 'alloca' in a loop (which we typically avoid),
+       * the number of items is nearly always 1, maybe 2..3 in rare cases. */
+      LinkNode *ob_pose_list = NULL;
+      VirtualModifierData virtualModifierData;
+      const ModifierData *md = modifiers_getVirtualModifierList(obact, &virtualModifierData);
+      for (; md; md = md->next) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
+            BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
+          }
+        }
+      }
       object_filter.fn = drw_select_filter_object_mode_lock_for_weight_paint;
-      object_filter.user_data = ob_pose;
+      object_filter.user_data = ob_pose_list;
       break;
     }
     case VIEW3D_SELECT_FILTER_NOP:
