@@ -324,6 +324,24 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
   }
 }
 
+static void armature_refresh_layer_used_recursive(bArmature *arm, ListBase *bones)
+{
+  for (Bone *bone = bones->first; bone; bone = bone->next) {
+    arm->layer_used |= bone->layer;
+    armature_refresh_layer_used_recursive(arm, &bone->childbase);
+  }
+}
+
+/* Update the layers_used variable after bones are moved between layer
+ * NOTE: Used to be done in drawing code in 2.7, but that won't work with
+ *       Copy-on-Write, as drawing uses evaluated copies.
+ */
+void BKE_armature_refresh_layer_used(bArmature *arm)
+{
+  arm->layer_used = 0;
+  armature_refresh_layer_used_recursive(arm, &arm->bonebase);
+}
+
 /* Finds the best possible extension to the name on a particular axis. (For renaming, check for
  * unique names afterwards) strip_number: removes number extensions  (TODO: not used)
  * axis: the axis to name on

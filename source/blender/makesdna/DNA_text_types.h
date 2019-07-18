@@ -55,8 +55,6 @@ typedef struct Text {
 } Text;
 
 #define TXT_TABSIZE 4
-#define TXT_INIT_UNDO 1024
-#define TXT_MAX_UNDO (TXT_INIT_UNDO * TXT_INIT_UNDO)
 
 /* text flags */
 enum {

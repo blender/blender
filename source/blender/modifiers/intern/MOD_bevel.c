@@ -187,7 +187,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
     }
   }
 
-  if (harden_normals && !(((Mesh *)ctx->object->data)->flag & ME_AUTOSMOOTH)) {
+  Object *ob = ctx->object;
+
+  if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
     modifier_setError(md, "Enable 'Auto Smooth' option in mesh settings for hardening");
     harden_normals = false;
   }

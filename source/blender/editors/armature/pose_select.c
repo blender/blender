@@ -40,6 +40,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -181,10 +182,17 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
 
     if (!extend && !deselect && !toggle) {
       {
-        uint bases_len = 0;
-        Base **bases = BKE_object_pose_base_array_get_unique(view_layer, v3d, &bases_len);
-        ED_pose_deselect_all_multi_ex(bases, bases_len, SEL_DESELECT, true);
-        MEM_freeN(bases);
+        /* Don't use 'BKE_object_pose_base_array_get_unique'
+         * because we may be selecting from object mode. */
+        FOREACH_VISIBLE_BASE_BEGIN (view_layer, v3d, base_iter) {
+          Object *ob_iter = base_iter->object;
+          if ((ob_iter->type == OB_ARMATURE) && (ob_iter->mode & OB_MODE_POSE)) {
+            if (ED_pose_deselect_all(ob_iter, SEL_DESELECT, true)) {
+              ED_pose_bone_select_tag_update(ob_iter);
+            }
+          }
+        }
+        FOREACH_VISIBLE_BASE_END;
       }
       nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       arm->act_bone = nearBone;
@@ -238,6 +246,38 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
   }
 
   return nearBone != NULL;
+}
+
+/**
+ * While in weight-paint mode, a single pose may be active as well.
+ * While not common, it's possible we have multiple armatures deforming a mesh.
+ *
+ * This function de-selects all other objects, and selects the new base.
+ * It can't be set to the active object because we need
+ * to keep this set to the weight paint object.
+ */
+void ED_armature_pose_select_in_wpaint_mode(ViewLayer *view_layer, Base *base_select)
+{
+  BLI_assert(base_select && (base_select->object->type == OB_ARMATURE));
+  Object *ob_active = OBACT(view_layer);
+  BLI_assert(ob_active && (ob_active->mode & OB_MODE_WEIGHT_PAINT));
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = modifiers_getVirtualModifierList(ob_active, &virtualModifierData);
+  for (; md; md = md->next) {
+    if (md->type == eModifierType_Armature) {
+      ArmatureModifierData *amd = (ArmatureModifierData *)md;
+      Object *ob_arm = amd->object;
+      if (ob_arm != NULL) {
+        Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
+        if ((base_arm != NULL) && (base_arm != base_select) && (base_arm->flag & BASE_SELECTED)) {
+          ED_object_base_select(base_arm, BA_DESELECT);
+        }
+      }
+    }
+  }
+  if ((base_select->flag & BASE_SELECTED) == 0) {
+    ED_object_base_select(base_select, BA_SELECT);
+  }
 }
 
 /* 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.

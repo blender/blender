@@ -225,8 +225,8 @@ static void gp_primitive_update_cps(tGPDprimitive *tgpi)
   }
   else if (tgpi->type == GP_STROKE_CURVE) {
     mid_v2_v2v2(tgpi->midpoint, tgpi->start, tgpi->end);
-    copy_v2_v2(tgpi->cp1, tgpi->midpoint);
-    copy_v2_v2(tgpi->cp2, tgpi->cp1);
+    interp_v2_v2v2(tgpi->cp1, tgpi->midpoint, tgpi->start, 0.33f);
+    interp_v2_v2v2(tgpi->cp2, tgpi->midpoint, tgpi->end, 0.33f);
   }
   else if (tgpi->type == GP_STROKE_ARC) {
     if (tgpi->flip) {

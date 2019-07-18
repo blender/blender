@@ -170,6 +170,10 @@ bool ED_armature_pose_select_pick_with_buffer(struct ViewLayer *view_layer,
                                               bool deselect,
                                               bool toggle,
                                               bool do_nearest);
+
+void ED_armature_pose_select_in_wpaint_mode(struct ViewLayer *view_layer,
+                                            struct Base *base_select);
+
 bool ED_armature_edit_select_pick(
     struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
@@ -183,6 +187,8 @@ EditBone *ED_armature_ebone_find_name(const struct ListBase *edbo, const char *n
 EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *ebo);
 void ED_armature_edit_sync_selection(struct ListBase *edbo);
 void ED_armature_edit_validate_active(struct bArmature *arm);
+
+void ED_armature_edit_refresh_layer_used(struct bArmature *arm);
 
 struct Base *ED_armature_base_and_ebone_from_select_buffer(struct Base **bases,
                                                            uint bases_len,

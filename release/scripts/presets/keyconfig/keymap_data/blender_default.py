@@ -3483,15 +3483,17 @@ def km_paint_curve(params):
 
     items.extend([
         ("paintcurve.add_point_slide", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True}, None),
-        ("paintcurve.select", {"type": params.select_mouse, "value": params.select_mouse_value}, None),
-        ("paintcurve.select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True},
+        ("paintcurve.select", {"type": params.select_mouse, "value": 'PRESS'},
+         {"properties": [("extend", False)]}),
+        ("paintcurve.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
-        ("paintcurve.slide", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("paintcurve.slide", {"type": params.action_mouse, "value": 'PRESS'},
+         {"properties": [("align", False)]}),
         ("paintcurve.slide", {"type": params.action_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("align", True)]}),
         ("paintcurve.select", {"type": 'A', "value": 'PRESS'},
          {"properties": [("toggle", True)]}),
-        ("paintcurve.cursor", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("paintcurve.cursor", {"type": params.action_mouse, "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("paintcurve.delete_point", {"type": 'X', "value": 'PRESS'}, None),
         ("paintcurve.delete_point", {"type": 'DEL', "value": 'PRESS'}, None),
         ("paintcurve.draw", {"type": 'RET', "value": 'PRESS'}, None),
@@ -4155,6 +4157,13 @@ def km_particle(params):
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
         op_menu("VIEW3D_MT_particle_context_menu", params.context_menu_event),
         ("particle.weight_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
+        *(
+            (("wm.context_set_enum",
+              {"type": NUMBERS_1[i], "value": 'PRESS'},
+              {"properties": [("data_path", "tool_settings.particle_edit.select_mode"), ("value", value)]})
+             for i, value in enumerate(('PATH', 'POINT', 'TIP'))
+             )
+        ),
         *_template_items_proportional_editing(connected=False),
     ])
 
@@ -5618,7 +5627,7 @@ def km_3d_view_tool_sculpt_box_hide(params):
              {"properties": [("action", 'HIDE')]}),
             ("paint.hide_show", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
              {"properties": [("action", 'SHOW')]}),
-            ("paint.hide_show", {"type": params.select_mouse, "value": 'PRESS'},
+            ("paint.hide_show", {"type": params.select_mouse, "value": params.select_mouse_value},
              {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
         ]},
     )

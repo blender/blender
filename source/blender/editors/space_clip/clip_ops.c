@@ -1515,6 +1515,11 @@ static int mode_set_exec(bContext *C, wmOperator *op)
 
   sc->mode = mode;
 
+  if (sc->mode == SC_MODE_MASKEDIT && sc->view != SC_VIEW_CLIP) {
+    /* Make sure we are in the right view for mask editing */
+    sc->view = SC_VIEW_CLIP;
+  }
+
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CLIP, NULL);
 
   return OPERATOR_FINISHED;

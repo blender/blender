@@ -85,6 +85,18 @@ void ED_armature_edit_validate_active(struct bArmature *arm)
   }
 }
 
+/* Update the layers_used variable after bones are moved between layer
+ * NOTE: Used to be done in drawing code in 2.7, but that won't work with
+ *       Copy-on-Write, as drawing uses evaluated copies.
+ */
+void ED_armature_edit_refresh_layer_used(bArmature *arm)
+{
+  arm->layer_used = 0;
+  for (EditBone *ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    arm->layer_used |= ebo->layer;
+  }
+}
+
 /* *************************************************************** */
 /* Bone Operations */
 

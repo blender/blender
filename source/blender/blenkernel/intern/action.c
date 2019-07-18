@@ -43,6 +43,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
@@ -521,6 +522,38 @@ bPoseChannel *BKE_pose_channel_active(Object *ob)
     }
   }
 
+  return NULL;
+}
+
+/**
+ * Use this when detecting the "other selected bone",
+ * when we have multiple armatures in pose mode.
+ *
+ * In this case the active-selected is an obvious choice when finding the target for a
+ * constraint for eg. however from the users perspective the active pose bone of the
+ * active object is the _real_ active bone, so any other non-active selected bone
+ * is a candidate for being the other selected bone, see: T58447.
+ */
+bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob)
+{
+  bArmature *arm = (ob) ? ob->data : NULL;
+
+  if (ELEM(NULL, ob, ob->pose, arm)) {
+    return NULL;
+  }
+
+  bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  if (pchan && (pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
+    return pchan;
+  }
+
+  for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    if (pchan->bone != NULL) {
+      if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
+        return pchan;
+      }
+    }
+  }
   return NULL;
 }
 

@@ -55,16 +55,17 @@ void main()
 #endif
 
 #ifdef USE_POINTS
-  gl_PointSize = sizeVertex;
+  float size = sizeVertex * 2.0;
+  gl_PointSize = size;
 
   /* calculate concentric radii in pixels */
-  float radius = 0.5 * sizeVertex;
+  float radius = sizeVertex;
 
   /* start at the outside and progress toward the center */
   radii[0] = radius;
   radii[1] = radius - 1.0;
 
   /* convert to PointCoord units */
-  radii /= sizeVertex;
+  radii /= size;
 #endif
 }

@@ -862,6 +862,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
   }
 
   /* updates */
+  ED_armature_edit_refresh_layer_used(arm);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
 
   /* free points */
@@ -1053,6 +1054,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 
     /* updates */
     ED_armature_edit_sync_selection(arm->edbo);
+    ED_armature_edit_refresh_layer_used(arm);
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
   }
   MEM_freeN(objects);
@@ -1460,8 +1462,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
       changed_multi = true;
 
       ED_armature_edit_sync_selection(arm->edbo);
+      ED_armature_edit_refresh_layer_used(arm);
       BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
-
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     }
   }
@@ -1635,6 +1637,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
     if (changed) {
       changed_multi = true;
       ED_armature_edit_sync_selection(arm->edbo);
+      ED_armature_edit_refresh_layer_used(arm);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     }
   }

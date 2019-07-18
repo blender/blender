@@ -933,6 +933,40 @@ static void outliner_restrict_properties_enable_layer_collection_set(
   }
 }
 
+static bool outliner_restrict_properties_collection_set(Scene *scene,
+                                                        TreeElement *te,
+                                                        PointerRNA *collection_ptr,
+                                                        PointerRNA *layer_collection_ptr,
+                                                        RestrictProperties *props,
+                                                        RestrictPropertiesActive *props_active)
+{
+  TreeStoreElem *tselem = TREESTORE(te);
+  LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ? te->directdata :
+                                                                               NULL;
+  Collection *collection = outliner_collection_from_tree_element(te);
+
+  if ((collection->flag & COLLECTION_IS_MASTER) ||
+      (layer_collection && ((layer_collection->flag & LAYER_COLLECTION_EXCLUDE) != 0))) {
+    return false;
+  }
+
+  /* Create the PointerRNA. */
+  RNA_id_pointer_create(&collection->id, collection_ptr);
+  if (layer_collection != NULL) {
+    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, layer_collection_ptr);
+  }
+
+  /* Update the restriction column values for the collection children. */
+  if (layer_collection) {
+    outliner_restrict_properties_enable_layer_collection_set(
+        layer_collection_ptr, collection_ptr, props, props_active);
+  }
+  else {
+    outliner_restrict_properties_enable_collection_set(collection_ptr, props, props_active);
+  }
+  return true;
+}
+
 static void outliner_draw_restrictbuts(uiBlock *block,
                                        Scene *scene,
                                        ViewLayer *view_layer,
@@ -1337,30 +1371,16 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
       }
       else if (outliner_is_collection_tree_element(te)) {
-        LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ?
-                                                te->directdata :
-                                                NULL;
-        Collection *collection = outliner_collection_from_tree_element(te);
-        if ((!layer_collection || !(layer_collection->flag & LAYER_COLLECTION_EXCLUDE)) &&
-            !(collection->flag & COLLECTION_IS_MASTER)) {
+        PointerRNA collection_ptr;
+        PointerRNA layer_collection_ptr;
 
-          PointerRNA collection_ptr;
-          PointerRNA layer_collection_ptr;
-          RNA_id_pointer_create(&collection->id, &collection_ptr);
-          if (layer_collection != NULL) {
-            RNA_pointer_create(
-                &scene->id, &RNA_LayerCollection, layer_collection, &layer_collection_ptr);
-          }
+        if (outliner_restrict_properties_collection_set(
+                scene, te, &collection_ptr, &layer_collection_ptr, &props, &props_active)) {
 
-          /* Update the restriction column values for the collection children. */
-          if (layer_collection) {
-            outliner_restrict_properties_enable_layer_collection_set(
-                &layer_collection_ptr, &collection_ptr, &props, &props_active);
-          }
-          else {
-            outliner_restrict_properties_enable_collection_set(
-                &collection_ptr, &props, &props_active);
-          }
+          LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ?
+                                                  te->directdata :
+                                                  NULL;
+          Collection *collection = outliner_collection_from_tree_element(te);
 
           if (layer_collection != NULL) {
             if (soops->show_restrict_flags & SO_RESTRICT_HIDE) {
@@ -1562,6 +1582,12 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           }
         }
       }
+    }
+    else if (outliner_is_collection_tree_element(te)) {
+      PointerRNA collection_ptr;
+      PointerRNA layer_collection_ptr;
+      outliner_restrict_properties_collection_set(
+          scene, te, &collection_ptr, &layer_collection_ptr, &props, &props_active);
     }
 
     if (TSELEM_OPEN(tselem, soops)) {

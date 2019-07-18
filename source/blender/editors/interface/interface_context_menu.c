@@ -1030,23 +1030,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
                                 0,
                                 "");
         UI_but_func_set(but2, popup_change_shortcut_func, but, NULL);
-
-        but2 = uiDefIconTextBut(block,
-                                UI_BTYPE_BUT,
-                                0,
-                                ICON_BLANK1,
-                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
-                                0,
-                                0,
-                                w,
-                                UI_UNIT_Y,
-                                NULL,
-                                0,
-                                0,
-                                0,
-                                0,
-                                "");
-        UI_but_func_set(but2, remove_shortcut_func, but, NULL);
       }
       else {
         but2 = uiDefIconTextBut(block,
@@ -1067,6 +1050,23 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
                                      "please use User Preferences otherwise"));
         UI_but_flag_enable(but2, UI_BUT_DISABLED);
       }
+
+      but2 = uiDefIconTextBut(block,
+                              UI_BTYPE_BUT,
+                              0,
+                              ICON_BLANK1,
+                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
+                              0,
+                              0,
+                              w,
+                              UI_UNIT_Y,
+                              NULL,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+      UI_but_func_set(but2, remove_shortcut_func, but, NULL);
     }
     /* only show 'assign' if there's a suitable key map for it to go in */
     else if (WM_keymap_guess_opname(C, idname)) {

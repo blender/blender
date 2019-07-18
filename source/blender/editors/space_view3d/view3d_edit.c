@@ -4661,6 +4661,7 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
   cam->flag |= CAM_SHOW_BG_IMAGE;
 
   WM_event_add_notifier(C, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
+  DEG_id_tag_update(&cam->id, ID_RECALC_COPY_ON_WRITE);
 
   return OPERATOR_FINISHED;
 }
@@ -4721,6 +4722,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
     BKE_camera_background_image_remove(cam, bgpic_rem);
 
     WM_event_add_notifier(C, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
+    DEG_id_tag_update(&cam->id, ID_RECALC_COPY_ON_WRITE);
+
     return OPERATOR_FINISHED;
   }
   else {

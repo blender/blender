@@ -420,6 +420,14 @@ static void clip_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, S
         ED_area_tag_redraw(sa);
       }
       break;
+    case NC_WM:
+      switch (wmn->data) {
+        case ND_FILEREAD:
+        case ND_UNDO:
+          clip_area_sync_frame_from_scene(sa, scene);
+          break;
+      }
+      break;
   }
 }
 

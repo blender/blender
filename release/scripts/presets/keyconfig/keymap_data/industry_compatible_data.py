@@ -2697,10 +2697,12 @@ def km_paint_curve(params):
 
     items.extend([
         ("paintcurve.add_point_slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
-        ("paintcurve.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("paintcurve.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("extend", False)]}),
         ("paintcurve.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
-        ("paintcurve.slide", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("paintcurve.slide", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("align", False)]}),
         ("paintcurve.slide", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("align", True)]}),
         ("paintcurve.select", {"type": 'A', "value": 'PRESS'},

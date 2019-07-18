@@ -253,7 +253,6 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
         if (!DRW_state_is_image_render()) {
           effects->taa_current_sample += 1;
           repro_flag = 0;
-          EEVEE_temporal_sampling_update_matrices(vedata);
         }
       }
       else {

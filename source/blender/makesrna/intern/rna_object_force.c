@@ -523,6 +523,8 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
   if (!particle_id_check(ptr)) {
     Object *ob = (Object *)ptr->id.data;
     ED_object_check_force_modifiers(bmain, scene, ob);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
   }
