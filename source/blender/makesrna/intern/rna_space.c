@@ -2105,6 +2105,13 @@ static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain),
 {
   SpaceClip *sc = (SpaceClip *)(ptr->data);
 
+  if (sc->mode == SC_MODE_MASKEDIT && sc->view != SC_VIEW_CLIP) {
+    /* Make sure we are in the right view for mask editing */
+    sc->view = SC_VIEW_CLIP;
+    ScrArea *sa = rna_area_from_space(ptr);
+    ED_area_tag_refresh(sa);
+  }
+
   sc->scopes.ok = 0;
 }
 
