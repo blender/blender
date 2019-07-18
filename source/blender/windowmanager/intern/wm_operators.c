@@ -1515,7 +1515,7 @@ static void wm_block_splash_add_labels(uiBlock *block, int x, int y)
     version_suffix = " Beta";
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-    version_suffix = " Release Candidate";
+    version_suffix = " Release Candidate 2";
     show_build_info = false;
   }
   else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
