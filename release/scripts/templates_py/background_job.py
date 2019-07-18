@@ -44,7 +44,7 @@ def example_function(text, save_path, render_path):
 
     # Light
     light_data = bpy.data.lights.new("MyLight", 'POINT')
-    light_ob = bpy.data.objects.new(name="MyCam", object_data=light_data)
+    light_ob = bpy.data.objects.new(name="MyLight", object_data=light_data)
     scene.collection.objects.link(light_ob)
     light_ob.location = 2.0, 2.0, 5.0
 

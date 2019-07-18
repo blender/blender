@@ -3018,7 +3018,7 @@ static void mesh_create_loop_edge_fac(MeshRenderData *rdata, GPUVertBuf *vbo)
         BM_ITER_ELEM (loop, &iter_loop, efa, BM_LOOPS_OF_FACE) {
           float ratio = mesh_loop_edge_factor_get(
               efa->no, loop->v->co, loop->v->no, loop->next->v->co);
-          vertbuf_raw_step(&wd_step, ratio * 255);
+          vertbuf_raw_step(&wd_step, ratio * 253 + 1);
         }
       }
       BLI_assert(GPU_vertbuf_raw_used(&wd_step) == loop_len);

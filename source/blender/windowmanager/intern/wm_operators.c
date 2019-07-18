@@ -1600,7 +1600,7 @@ static ImBuf *wm_block_splash_image(void)
       BLI_join_dirfile(splash_filepath,
                        sizeof(splash_filepath),
                        template_directory,
-                       (U.pixelsize == 2) ? "splash_2x.png" : "splash.png");
+                       (U.dpi_fac > 1.0) ? "splash_2x.png" : "splash.png");
       ibuf_template = IMB_loadiffname(splash_filepath, IB_rect, NULL);
       if (ibuf_template) {
         const int x_expect = ibuf->x;

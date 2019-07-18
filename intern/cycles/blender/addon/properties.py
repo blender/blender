@@ -300,7 +300,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
     min_transparent_bounces: IntProperty(
             name="Min Transparent Bounces",
-            description="Minimum number of transparnet bounces. Setting this higher reduces noise in the first bounces, "
+            description="Minimum number of transparent bounces. Setting this higher reduces noise in the first bounces, "
                         "but can also be less efficient for more complex geometry like hair and volumes",
             min=0, max=1024,
             default=0,

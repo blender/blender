@@ -337,10 +337,13 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
     }
   }
 
-  if (edit) {
+  /* Don't consider inactive or render dependency graphs, since they might be evaluated for a
+   * different number of childrem. or have different pointer to evaluated particle system or
+   * modifier which will also cause troubles. */
+  if (edit && DEG_is_active(depsgraph)) {
     edit->pid = *pid;
     if (edit->flags & PT_CACHE_EDIT_UPDATE_PARTICLE_FROM_EVAL) {
-      if (edit->psys != NULL) {
+      if (edit->psys != NULL && edit->psys_eval != NULL) {
         psys_copy_particles(edit->psys, edit->psys_eval);
         pe_update_hair_particle_edit_pointers(edit);
       }

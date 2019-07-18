@@ -883,7 +883,7 @@ static void update_color(const Object *ob, const float const_color[4])
 #define NO_ALPHA(c) (((c)[3] = 1.0f), (c))
 
   UI_GetThemeColor3fv(TH_SELECT, NO_ALPHA(g_theme.select_color));
-  UI_GetThemeColor3fv(TH_EDGE_SELECT, NO_ALPHA(g_theme.edge_select_color));
+  UI_GetThemeColorShade3fv(TH_EDGE_SELECT, 60, NO_ALPHA(g_theme.edge_select_color));
   UI_GetThemeColorShade3fv(TH_EDGE_SELECT, -20, NO_ALPHA(g_theme.bone_select_color));
   UI_GetThemeColor3fv(TH_WIRE, NO_ALPHA(g_theme.wire_color));
   UI_GetThemeColor3fv(TH_WIRE_EDIT, NO_ALPHA(g_theme.wire_edit_color));
@@ -1886,19 +1886,23 @@ static void draw_armature_edit(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   EditBone *eBone;
-  bArmature *arm = ob->data;
   int index;
   const bool is_select = DRW_state_is_select();
-
-  update_color(ob, NULL);
-  edbo_compute_bbone_child(arm);
 
   const bool show_text = DRW_state_show_text();
   const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 
-  const Object *orig_object = DEG_get_original_object(ob);
+  const Object *ob_orig = DEG_get_original_object(ob);
+  /* FIXME(campbell): We should be able to use the CoW object,
+   * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
+   * for now we can draw from the original armature. See: T66773. */
+  // bArmature *arm = ob->data;
+  bArmature *arm = ob_orig->data;
 
-  for (eBone = arm->edbo->first, index = orig_object->runtime.select_id; eBone;
+  update_color(ob, NULL);
+  edbo_compute_bbone_child(arm);
+
+  for (eBone = arm->edbo->first, index = ob_orig->runtime.select_id; eBone;
        eBone = eBone->next, index += 0x10000) {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
@@ -1993,8 +1997,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
     }
 
     if (arm->flag & ARM_POSEMODE) {
-      const Object *orig_object = DEG_get_original_object(ob);
-      index = orig_object->runtime.select_id;
+      const Object *ob_orig = DEG_get_original_object(ob);
+      index = ob_orig->runtime.select_id;
     }
   }
 

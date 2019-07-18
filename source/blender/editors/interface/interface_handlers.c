@@ -758,9 +758,17 @@ static void ui_apply_but_undo(uiBut *but)
 
     /* Optionally override undo when undo system doesn't support storing properties. */
     if (but->rnapoin.id.data) {
-      ID *id = but->rnapoin.id.data;
-      if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
-        str = "";
+      /* Exception for renaming ID data, we always need undo pushes in this case,
+       * because undo systems track data by their ID, see: T67002. */
+      extern PropertyRNA rna_ID_name;
+      if (but->rnaprop == &rna_ID_name) {
+        /* pass */
+      }
+      else {
+        ID *id = but->rnapoin.id.data;
+        if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
+          str = "";
+        }
       }
     }
 

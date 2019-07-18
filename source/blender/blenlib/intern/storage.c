@@ -303,12 +303,24 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
   void *mem = NULL;
 
   if (fp) {
-    fseek(fp, 0L, SEEK_END);
+    struct stat st;
+    if (fstat(fileno(fp), &st) == -1) {
+      goto finally;
+    }
+    if (S_ISDIR(st.st_mode)) {
+      goto finally;
+    }
+    if (fseek(fp, 0L, SEEK_END) == -1) {
+      goto finally;
+    }
+    /* Don't use the 'st_size' because it may be the symlink. */
     const long int filelen = ftell(fp);
     if (filelen == -1) {
       goto finally;
     }
-    fseek(fp, 0L, SEEK_SET);
+    if (fseek(fp, 0L, SEEK_SET) == -1) {
+      goto finally;
+    }
 
     mem = MEM_mallocN(filelen + pad_bytes, __func__);
     if (mem == NULL) {
@@ -344,12 +356,24 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
   void *mem = NULL;
 
   if (fp) {
-    fseek(fp, 0L, SEEK_END);
+    struct stat st;
+    if (fstat(fileno(fp), &st) == -1) {
+      goto finally;
+    }
+    if (S_ISDIR(st.st_mode)) {
+      goto finally;
+    }
+    if (fseek(fp, 0L, SEEK_END) == -1) {
+      goto finally;
+    }
+    /* Don't use the 'st_size' because it may be the symlink. */
     const long int filelen = ftell(fp);
     if (filelen == -1) {
       goto finally;
     }
-    fseek(fp, 0L, SEEK_SET);
+    if (fseek(fp, 0L, SEEK_SET) == -1) {
+      goto finally;
+    }
 
     mem = MEM_mallocN(filelen + pad_bytes, __func__);
     if (mem == NULL) {

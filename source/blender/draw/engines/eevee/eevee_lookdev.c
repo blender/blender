@@ -71,6 +71,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
   View3D *v3d = draw_ctx->v3d;
   Scene *scene = draw_ctx->scene;
 
+  effects->lookdev_view = NULL;
+
   if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
     /* Viewport / Spheres size. */
     rcti rect;

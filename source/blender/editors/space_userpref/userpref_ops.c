@@ -26,6 +26,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -71,7 +72,39 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Toggle Auto-Save Override
+ *
+ * This operator only exists so there is a useful tool-tip for for adjusting the global flag.
+ * \{ */
+
+static int preferences_autosave_override_toggle_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  G.f ^= G_FLAG_USERPREF_NO_SAVE_ON_EXIT;
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_autosave_override_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Override Auto-Save";
+  ot->idname = "PREFERENCES_OT_autosave_override_toggle";
+  ot->description =
+      "The current session has \"Factory Preferences\" loaded "
+      "which disables automatically saving.\n"
+      "Disable this to auto-save the preferences";
+
+  /* callbacks */
+  ot->exec = preferences_autosave_override_toggle_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
 void ED_operatortypes_userpref(void)
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
+  WM_operatortype_append(PREFERENCES_OT_autosave_override_toggle);
 }

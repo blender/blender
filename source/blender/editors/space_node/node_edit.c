@@ -210,6 +210,7 @@ static void compo_initjob(void *cjv)
 
   /* NOTE: Don't update animation to preserve unkeyed changes, this means can not use
    * evaluate_on_framechange. */
+  DEG_graph_flush_update(bmain, cj->compositor_depsgraph);
   DEG_evaluate_on_refresh(cj->compositor_depsgraph);
 
   bNodeTree *ntree_eval = (bNodeTree *)DEG_get_evaluated_id(cj->compositor_depsgraph,

@@ -18,6 +18,7 @@ _tmp_dir="$(mktemp -d)"
 _tmp_dmg="/tmp/blender-tmp.dmg"
 _background_image="${_script_dir}/background.tif"
 _mount_dir="/Volumes/${_volume_name}"
+_entitlements="${_script_dir}/entitlements.plist"
 
 # Handle arguments.
 while [[ $# -gt 0 ]]; do
@@ -124,12 +125,21 @@ sleep 5
 
 if [ ! -z "${C_CERT}" ]; then
     # Codesigning requires all libs and binaries to be signed separately.
-    # TODO: use find to get the list automatically
-    echo -n "Codesigning..."
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app/Contents/Resources/*/python/bin/python*"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app/Contents/Resources/*/python/lib/python*/site-packages/libextern_draco.dylib"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app/Contents/Resources/lib/libomp.dylib"
-    codesign --timestamp --options runtime --sign "${C_CERT}" "${_mount_dir}/Blender.app"
+    echo -n "Codesigning Python"
+    for f in $(find "${_mount_dir}/Blender.app/Contents/Resources" -name "python*"); do
+        if [ -x ${f} ] && [ ! -d ${f} ]; then
+            codesign --remove-signature "${f}"
+            codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${f}"
+        fi
+    done
+    echo ; echo -n "Codesigning .dylib and .so libraries"
+    for f in $(find "${_mount_dir}/Blender.app" -name "*.dylib" -o -name "*.so"); do
+        codesign --remove-signature "${f}"
+        codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${f}"
+    done
+    echo ; echo -n "Codesigning Blender.app"
+    codesign --remove-signature "${_mount_dir}/Blender.app"
+    codesign --timestamp --options runtime --entitlements="${_entitlements}" --sign "${C_CERT}" "${_mount_dir}/Blender.app"
     echo
 else
     echo "No codesigning cert given, skipping..."
@@ -161,6 +171,7 @@ if [ ! -z "${N_USERNAME}" ] && [ ! -z "${N_PASSWORD}" ] && [ ! -z "${N_BUNDLE_ID
     # Send to Apple
     echo -n "Sending ${DEST_DMG} for notarization..."
     _tmpout=$(mktemp)
+    echo xcrun altool --notarize-app -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}"
     xcrun altool --notarize-app -f "${DEST_DMG}" --primary-bundle-id "${N_BUNDLE_ID}" --username "${N_USERNAME}" --password "${N_PASSWORD}" >${_tmpout} 2>&1
 
     # Parse request uuid

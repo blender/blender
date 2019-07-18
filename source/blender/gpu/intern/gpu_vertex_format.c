@@ -365,6 +365,11 @@ void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterfa
       input = next;
       next = input->next;
 
+      /* OpenGL attributes such as `gl_VertexID` have a location of -1. */
+      if (input->location < 0) {
+        continue;
+      }
+
       format->name_len++; /* multiname support */
       format->attr_len++;
 

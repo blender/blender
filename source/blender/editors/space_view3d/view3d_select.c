@@ -2319,6 +2319,7 @@ static bool ed_object_select_pick(bContext *C,
           retval = true;
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
+          DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
           /* in weightpaint, we use selected bone to select vertexgroup,
            * so no switch to new active object */

@@ -31,6 +31,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_string.h"
@@ -102,8 +103,9 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data && !ID_IS_LINKED(v3d->camera->data)) {
-        RNA_id_pointer_create(v3d->camera->data, &ddr->ptr);
-        ddr->prop = RNA_struct_find_property(&ddr->ptr, "dof_distance");
+        Camera *camera = (Camera *)v3d->camera->data;
+        RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
+        ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
         ddr->is_undo = true;
       }
     }

@@ -97,6 +97,9 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
 
     int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 
+    buffer_size[0] = max_ii(1, buffer_size[0]);
+    buffer_size[1] = max_ii(1, buffer_size[1]);
+
     eGPUTextureFormat down_format = DRW_state_draw_background() ? GPU_R11F_G11F_B10F : GPU_RGBA16F;
 
     effects->dof_down_near = DRW_texture_pool_query_2d(

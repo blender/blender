@@ -1,34 +1,50 @@
-Bundling guide:
 
-Have your signing identity ready, you can check it by running:
+macOS app bundling guide
+========================
 
-$ secruity find-identity -v -p codesign
+Install Code Signing Certificate
+--------------------------------
 
-Check that your appleID has two step verification and app specified password generated. https://support.apple.com/en-us/HT204397
-Add it to the login keychain so it won't be in cleartext.
+* Go to https://developer.apple.com/account/resources/certificates/list
+* Download the Developer ID Application certifate.
+* Double click the file and add to key chain (default options).
+* Delete the file from the Downloads folder.
 
-$ security add-generic-password -a "AC_USERNAME" -w <secret> -s "AC_PASSWORD"
+Find the codesigning identity by running:
 
-You need then to make sure altool can access your keychain. First time run, there is popup, always allow. Or you can also add it on Keychain Access.
+$ security find-identity -v -p codesigning
 
-Then you can make neat bundle using ./bundle.sh by
+"Developer ID Application: Stichting Blender Foundation" is the identity needed.
+The long code at the start of the line is used as <identity> below.
 
-$ ./bundle.sh --source <sourcedir> --dmg <dmg> --bundle-id <bundleid> --username <username> --password <password> --codesign <identity>
+Setup Apple ID
+--------------
 
-where:
+* The Apple ID must have two step verification enabled.
+* Create an app specific password for the code signing app (label can be anything):
+https://support.apple.com/en-us/HT204397
+* Add the app specific password to keychain:
 
-<sourcedir> directory where built Blender.app is
-<dmg>	    location and name of the final disk image
-<bundleid>  id on notarization, you choose (for example org.blender.release)
-<username>  your appleid
-<password>  your password. having it in keychain, use "@keychain:AC_PASSWORD"
-<identity>  codesigning identity
+$ security add-generic-password -a <apple-id> -w <app-specific-password> -s altool-password
 
-Only --sourcedir and --dmg are required flags.
+When running the bundle script, there will be a popup. To avoid that either:
+* Click Always Allow in the popup
+* In the Keychain Access app, change the Access Control settings on altool-password
+
+Bundle
+------
+
+Then the bundle is created as follows:
+
+$ ./bundle.sh --source <sourcedir> --dmg <dmg> --bundle-id <bundleid> --username <apple-id> --password "@keychain:altool-password" --codesign <identity>
+
+<sourcedir>  directory where built Blender.app is
+<dmg>	       location and name of the final disk image
+<bundleid>   id on notarization, for example org.blenderfoundation.blender.release
+<apple-id>   your appleid email
+<identity>   codesigning identity
+
+When specifying only --sourcedir and --dmg, the build will not be signed.
 
 Example :
-$ ./bundle.sh --source /data/build --dmg /data/Blender-2.8-alpha-macOS-10.11.dmg --bundle-id org.blender.alpha --username "foo@mac.com" --password "@keychain:AC_PASSWORD" --codesign AE825E26F12D08B692F360133210AF46F4CF7B97
-
-
-
-
+$ ./bundle.sh --source /data/build/bin --dmg /data/Blender-2.8-alpha-macOS-10.11.dmg --bundle-id org.blenderfoundation.blender.release --username "foo@mac.com" --password "@keychain:altool-password" --codesign AE825E26F12D08B692F360133210AF46F4CF7B97

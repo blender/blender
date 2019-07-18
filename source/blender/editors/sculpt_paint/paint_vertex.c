@@ -2271,7 +2271,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   vwpaint_update_cache_variants(C, wp, ob, itemptr);
 
   float mat[4][4];
-  float mval[2];
 
   const float brush_alpha_value = BKE_brush_alpha_get(scene, brush);
 
@@ -2321,7 +2320,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, vc->ar, mval);
+  paint_last_stroke_update(scene, vc->ar, ss->cache->mouse);
 
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
@@ -3273,12 +3272,12 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   VPaint *vp = ts->vpaint;
   ViewContext *vc = &vpd->vc;
   Object *ob = vc->obact;
+  SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   vwpaint_update_cache_variants(C, vp, ob, itemptr);
 
   float mat[4][4];
-  float mval[2];
 
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
@@ -3300,7 +3299,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   /* calculate pivot for rotation around seletion if needed */
   /* also needed for "View Selected" on last stroke */
-  paint_last_stroke_update(scene, vc->ar, mval);
+  paint_last_stroke_update(scene, vc->ar, ss->cache->mouse);
 
   ED_region_tag_redraw(vc->ar);
 

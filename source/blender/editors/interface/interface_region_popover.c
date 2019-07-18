@@ -355,7 +355,7 @@ uiPopover *UI_popover_begin(bContext *C, int ui_size_x)
   }
   pup->ui_size_x = ui_size_x;
 
-  /* Opertor context default same as menus, change if needed. */
+  /* Operator context default same as menus, change if needed. */
   ui_popover_create_block(C, pup, WM_OP_EXEC_REGION_WIN);
 
   /* create in advance so we can let buttons point to retval already */
@@ -404,7 +404,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 
   /* TODO(campbell): we may want to make this configurable.
    * The begin/end stype of calling popups doesn't allow to 'can_refresh' to be set.
-   * For now close this style of popvers when accessed. */
+   * For now close this style of popovers when accessed. */
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 
   /* panels are created flipped (from event handling pov) */

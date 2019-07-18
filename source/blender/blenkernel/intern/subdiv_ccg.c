@@ -962,14 +962,30 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
   const int num_face_grids = face->num_grids;
   const int grid_size = subdiv_ccg->grid_size;
   CCGElem *prev_grid = grids[face->start_grid_index + num_face_grids - 1];
+  /* Average boundary between neighbor grid. */
   for (int corner = 0; corner < num_face_grids; corner++) {
     CCGElem *grid = grids[face->start_grid_index + corner];
-    for (int i = 0; i < grid_size; i++) {
+    for (int i = 1; i < grid_size; i++) {
       CCGElem *prev_grid_element = CCG_grid_elem(key, prev_grid, i, 0);
       CCGElem *grid_element = CCG_grid_elem(key, grid, 0, i);
       average_grid_element(subdiv_ccg, key, prev_grid_element, grid_element);
     }
     prev_grid = grid;
+  }
+  /* Average all grids centers into a single accumulator, and share it.
+   * Guarantees corrent and smooth averaging in the center. */
+  GridElementAccumulator center_accumulator;
+  element_accumulator_init(&center_accumulator);
+  for (int corner = 0; corner < num_face_grids; corner++) {
+    CCGElem *grid = grids[face->start_grid_index + corner];
+    CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
+    element_accumulator_add(&center_accumulator, subdiv_ccg, key, grid_center_element);
+  }
+  element_accumulator_mul_fl(&center_accumulator, 1.0f / (float)num_face_grids);
+  for (int corner = 0; corner < num_face_grids; corner++) {
+    CCGElem *grid = grids[face->start_grid_index + corner];
+    CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
+    element_accumulator_copy(subdiv_ccg, key, grid_center_element, &center_accumulator);
   }
 }
 
