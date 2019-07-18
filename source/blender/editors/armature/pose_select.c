@@ -181,10 +181,17 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
 
     if (!extend && !deselect && !toggle) {
       {
-        uint bases_len = 0;
-        Base **bases = BKE_object_pose_base_array_get_unique(view_layer, v3d, &bases_len);
-        ED_pose_deselect_all_multi_ex(bases, bases_len, SEL_DESELECT, true);
-        MEM_freeN(bases);
+        /* Don't use 'BKE_object_pose_base_array_get_unique'
+         * because we may be selecting from object mode. */
+        FOREACH_VISIBLE_BASE_BEGIN (view_layer, v3d, base_iter) {
+          Object *ob_iter = base_iter->object;
+          if ((ob_iter->type == OB_ARMATURE) && (ob_iter->mode & OB_MODE_POSE)) {
+            if (ED_pose_deselect_all(ob_iter, SEL_DESELECT, true)) {
+              ED_pose_bone_select_tag_update(ob_iter);
+            }
+          }
+        }
+        FOREACH_VISIBLE_BASE_END;
       }
       nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       arm->act_bone = nearBone;
