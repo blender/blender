@@ -1659,14 +1659,17 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           char *name = auto_layer_names;
           for (int j = 0; j < auto_layer_count; ++j) {
             /* TODO don't add these uniform when not needed (default pass shaders). */
+            /* FIXME: This is broken, as it overrides any autolayers srgb bool of the previous mesh
+             * that shares the same material.  */
             if (shgrp_array[i]) {
-              DRW_shgroup_uniform_bool(shgrp_array[i], name, &auto_layer_is_srgb[j], 1);
+              DRW_shgroup_uniform_bool_copy(shgrp_array[i], name, auto_layer_is_srgb[j]);
             }
             if (shgrp_depth_array[i]) {
-              DRW_shgroup_uniform_bool(shgrp_depth_array[i], name, &auto_layer_is_srgb[j], 1);
+              DRW_shgroup_uniform_bool_copy(shgrp_depth_array[i], name, auto_layer_is_srgb[j]);
             }
             if (shgrp_depth_clip_array[i]) {
-              DRW_shgroup_uniform_bool(shgrp_depth_clip_array[i], name, &auto_layer_is_srgb[j], 1);
+              DRW_shgroup_uniform_bool_copy(
+                  shgrp_depth_clip_array[i], name, auto_layer_is_srgb[j]);
             }
             /* Go to next layer name. */
             while (*name != '\0') {
