@@ -1144,8 +1144,7 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
 #ifdef DEBUG_PRINT
           printf("%s: deleting %s (%d)\n", __func__, id->name, id->us);
 #endif
-          /* Text always has a single user, skip assert in this case. */
-          BLI_assert((id->us == 0) || ELEM(GS(id->name), ID_TXT));
+          BLI_assert(id->us == 0);
         }
         BKE_id_free_ex(bmain, id, free_flag, !do_tagged_deletion);
       }
