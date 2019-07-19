@@ -634,14 +634,12 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
   TransVertStore tvs = {NULL};
   TransVert *tv;
   float bmat[3][3], vec[3], min[3], max[3], centroid[3];
-  int count, a;
+  int count = 0;
 
-  count = 0;
   INIT_MINMAX(min, max);
   zero_v3(centroid);
 
   if (obedit) {
-    int global_transverts_tot = 0;
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -662,13 +660,13 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
         ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
       }
 
-      global_transverts_tot += tvs.transverts_tot;
+      count += tvs.transverts_tot;
       if (tvs.transverts_tot != 0) {
         Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
         copy_m3_m4(bmat, obedit_eval->obmat);
 
         tv = tvs.transverts;
-        for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+        for (int i = 0; i < tvs.transverts_tot; i++, tv++) {
           copy_v3_v3(vec, tv->loc);
           mul_m3_v3(bmat, vec);
           add_v3_v3(vec, obedit_eval->obmat[3]);
@@ -679,14 +677,6 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
       ED_transverts_free(&tvs);
     }
     MEM_freeN(objects);
-
-    if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN) {
-      mul_v3_fl(centroid, 1.0f / (float)global_transverts_tot);
-      copy_v3_v3(cursor, centroid);
-    }
-    else {
-      mid_v3_v3v3(cursor, min, max);
-    }
   }
   else {
     Object *obact = CTX_data_active_object(C);
@@ -725,18 +715,18 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
       }
       FOREACH_SELECTED_OBJECT_END;
     }
+  }
 
-    if (count == 0) {
-      return false;
-    }
+  if (count == 0) {
+    return false;
+  }
 
-    if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN) {
-      mul_v3_fl(centroid, 1.0f / (float)count);
-      copy_v3_v3(cursor, centroid);
-    }
-    else {
-      mid_v3_v3v3(cursor, min, max);
-    }
+  if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN) {
+    mul_v3_fl(centroid, 1.0f / (float)count);
+    copy_v3_v3(cursor, centroid);
+  }
+  else {
+    mid_v3_v3v3(cursor, min, max);
   }
   return true;
 }
