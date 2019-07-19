@@ -35,7 +35,7 @@ void main()
 
   vertFlag = data;
 
-  gl_PointSize = sizeVertex;
+  gl_PointSize = sizeVertex * 2.0;
   gl_Position = pPos;
 
 #ifdef USE_WORLD_CLIP_PLANES
