@@ -555,6 +555,8 @@ static Text *rna_Main_texts_load(Main *bmain,
 
   errno = 0;
   txt = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), is_internal);
+  /* Texts have no user by default... Only the 'real' user flag. */
+  id_us_min(&txt->id);
 
   if (!txt) {
     BKE_reportf(reports,

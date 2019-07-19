@@ -241,6 +241,8 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
   PropertyRNA *prop;
 
   text = BKE_text_add(bmain, "Text");
+  /* Texts have no user by default... Only the 'real' user flag. */
+  id_us_min(&text->id);
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
@@ -307,6 +309,8 @@ static int text_open_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", str);
 
   text = BKE_text_load_ex(bmain, str, BKE_main_blendfile_path(bmain), internal);
+  /* Texts have no user by default... Only the 'real' user flag. */
+  id_us_min(&text->id);
 
   if (!text) {
     if (op->customdata) {
@@ -321,8 +325,6 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
   /* hook into UI */
   pprop = op->customdata;
-
-  id_us_ensure_real(&text->id);
 
   if (pprop->prop) {
     RNA_id_pointer_create(&text->id, &idptr);

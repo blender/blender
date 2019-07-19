@@ -166,6 +166,8 @@ Text *BKE_text_add(Main *bmain, const char *name)
   Text *ta;
 
   ta = BKE_libblock_alloc(bmain, ID_TXT, name, 0);
+  /* Texts always have 'real' user (see also read code). */
+  id_us_ensure_real(&ta->id);
 
   BKE_text_init(ta);
 
@@ -354,7 +356,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   }
 
   ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(filepath_abs), 0);
-  ta->id.us = 0;
+  /* Texts always have 'real' user (see also read code). */
+  id_us_ensure_real(&ta->id);
 
   BLI_listbase_clear(&ta->lines);
   ta->curl = ta->sell = NULL;
