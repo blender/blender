@@ -6133,6 +6133,8 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
     MEM_freeN(custom_data->data);
     custom_data->data = NULL;
   }
+
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
 static void createTransSeqData(bContext *C, TransInfo *t)
