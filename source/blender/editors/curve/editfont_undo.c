@@ -62,7 +62,7 @@ typedef struct UndoFont {
   wchar_t *textbuf;
   struct CharInfo *textbufinfo;
 
-  int len, pos;
+  int len, pos, selstart, selend;
 
 #ifdef USE_ARRAY_STORE
   struct {
@@ -241,9 +241,9 @@ static void undofont_to_editfont(UndoFont *uf, Curve *cu)
   memcpy(ef->textbufinfo, uf->textbufinfo, final_size);
 
   ef->pos = uf->pos;
+  ef->selstart = uf->selstart;
+  ef->selend = uf->selend;
   ef->len = uf->len;
-
-  ef->selstart = ef->selend = 0;
 
 #ifdef USE_ARRAY_STORE
   uf_arraystore_expand_clear(uf);
@@ -269,6 +269,8 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
   memcpy(uf->textbufinfo, ef->textbufinfo, final_size);
 
   uf->pos = ef->pos;
+  uf->selstart = ef->selstart;
+  uf->selend = ef->selend;
   uf->len = ef->len;
 
 #ifdef USE_ARRAY_STORE
