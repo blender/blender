@@ -3201,7 +3201,7 @@ static BoundVert *pipe_test(BevVert *bv)
   /* check face planes: all should have normals perpendicular to epipe */
   for (e = &bv->edges[0]; e != &bv->edges[bv->edgecount]; e++) {
     if (e->fnext) {
-      if (dot_v3v3(dir1, e->fnext->no) > BEVEL_EPSILON_BIG) {
+      if (fabsf(dot_v3v3(dir1, e->fnext->no)) > BEVEL_EPSILON_BIG) {
         return NULL;
       }
     }
