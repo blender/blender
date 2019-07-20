@@ -378,8 +378,8 @@ typedef enum eGPencil_PaintModes {
   GP_PAINTMODE_SET_CP,
 } eGPencil_PaintModes;
 
-/* maximum sizes of gp-session buffer */
-#define GP_STROKE_BUFFER_MAX 5000
+/* chunk size for gp-session buffer (the total size is a multiple of this number) */
+#define GP_STROKE_BUFFER_CHUNK 2048
 
 /* stroke editing ----- */
 

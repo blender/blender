@@ -924,7 +924,7 @@ static void annotation_draw_data_layers(
        * i.e. tGPspoints NOT bGPDspoints
        */
       annotation_draw_stroke_buffer(gpd->runtime.sbuffer,
-                                    gpd->runtime.sbuffer_size,
+                                    gpd->runtime.sbuffer_used,
                                     lthick,
                                     dflag,
                                     gpd->runtime.sbuffer_sflag,

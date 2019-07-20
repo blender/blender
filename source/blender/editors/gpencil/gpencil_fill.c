@@ -135,7 +135,7 @@ typedef struct tGPDfill {
   short fill_factor;
 
   /** number of elements currently in cache */
-  short sbuffer_size;
+  short sbuffer_used;
   /** temporary points */
   void *sbuffer;
   /** depth array for reproject */
@@ -918,7 +918,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 {
   tGPspoint *ptc;
   ToolSettings *ts = tgpf->scene->toolsettings;
-  int totpoints = tgpf->sbuffer_size;
+  int totpoints = tgpf->sbuffer_used;
   int i = 0;
 
   if (totpoints == 0) {
@@ -984,7 +984,7 @@ static void gpencil_points_from_stack(tGPDfill *tgpf)
     return;
   }
 
-  tgpf->sbuffer_size = (short)totpoints;
+  tgpf->sbuffer_used = (short)totpoints;
   tgpf->sbuffer = MEM_callocN(sizeof(tGPspoint) * totpoints, __func__);
 
   point2D = tgpf->sbuffer;
@@ -1020,7 +1020,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   MDeformVert *dvert = NULL;
   tGPspoint *point2D;
 
-  if (tgpf->sbuffer_size == 0) {
+  if (tgpf->sbuffer_used == 0) {
     return;
   }
 
@@ -1041,8 +1041,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   gps->mat_nr = BKE_gpencil_object_material_ensure(tgpf->bmain, tgpf->ob, tgpf->mat);
 
   /* allocate memory for storage points */
-  gps->totpoints = tgpf->sbuffer_size;
-  gps->points = MEM_callocN(sizeof(bGPDspoint) * tgpf->sbuffer_size, "gp_stroke_points");
+  gps->totpoints = tgpf->sbuffer_used;
+  gps->points = MEM_callocN(sizeof(bGPDspoint) * tgpf->sbuffer_used, "gp_stroke_points");
 
   /* initialize triangle memory to dummy data */
   gps->tot_triangles = 0;
@@ -1069,7 +1069,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     dvert = gps->dvert;
   }
 
-  for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++) {
+  for (int i = 0; i < tgpf->sbuffer_used && point2D; i++, point2D++, pt++) {
     /* convert screen-coordinates to 3D coordinates */
     gp_stroke_convertcoords_tpoint(tgpf->scene,
                                    tgpf->ar,
@@ -1120,7 +1120,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   }
 
   /* if parented change position relative to parent object */
-  for (int a = 0; a < tgpf->sbuffer_size; a++) {
+  for (int a = 0; a < tgpf->sbuffer_used; a++) {
     pt = &gps->points[a];
     gp_apply_parent_point(tgpf->depsgraph, tgpf->ob, tgpf->gpd, tgpf->gpl, pt);
   }
@@ -1225,7 +1225,7 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->lock_axis = ts->gp_sculpt.lock_axis;
 
   tgpf->oldkey = -1;
-  tgpf->sbuffer_size = 0;
+  tgpf->sbuffer_used = 0;
   tgpf->sbuffer = NULL;
   tgpf->depth_arr = NULL;
 

@@ -3144,10 +3144,7 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
 
   /* 3rd: add all points */
   for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
-    /* check if still room in buffer */
-    if (gps_a->totpoints <= GP_STROKE_BUFFER_MAX - 2) {
-      gpencil_stroke_copy_point(gps_a, pt, i, delta, pt->pressure, pt->strength, deltatime);
-    }
+    gpencil_stroke_copy_point(gps_a, pt, i, delta, pt->pressure, pt->strength, deltatime);
   }
 }
 

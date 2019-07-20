@@ -412,7 +412,7 @@ typedef enum eGPLayerBlendModes {
 typedef struct bGPdata_Runtime {
   /** Last region where drawing was originated. */
   struct ARegion *ar;
-  /** Stroke buffer (can hold GP_STROKE_BUFFER_MAX). */
+  /** Stroke buffer. */
   void *sbuffer;
 
   /* GP Object drawing */
@@ -431,11 +431,13 @@ typedef struct bGPdata_Runtime {
    * - buffer must be initialized before use, but freed after
    *   whole paint operation is over
    */
-  /** Number of elements currently in cache. */
-  short sbuffer_size;
+  /** Number of elements currently used in cache. */
+  short sbuffer_used;
   /** Flags for stroke that cache represents. */
   short sbuffer_sflag;
-  char _pad[6];
+  /** Number of total elements available in cache. */
+  short sbuffer_size;
+  char _pad[4];
 
   /** Number of control-points for stroke. */
   int tot_cp_points;

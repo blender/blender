@@ -1493,7 +1493,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
   /* Check if may need to draw the active stroke cache, only if this layer is the active layer
    * that is being edited. (Stroke buffer is currently stored in gp-data)
    */
-  if (gpd->runtime.sbuffer_size > 0) {
+  if (gpd->runtime.sbuffer_used > 0) {
     if ((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
       /* It should also be noted that sbuffer contains temporary point types
        * i.e. tGPspoints NOT bGPDspoints
@@ -1506,7 +1506,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
       stl->storage->alignment_mode = (gp_style) ? gp_style->alignment_mode : GP_STYLE_FOLLOW_PATH;
 
       /* if only one point, don't need to draw buffer because the user has no time to see it */
-      if (gpd->runtime.sbuffer_size > 1) {
+      if (gpd->runtime.sbuffer_used > 1) {
         if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
           stl->g_data->shgrps_drawing_stroke = gpencil_shgroup_stroke_create(
               vedata,
@@ -1562,7 +1562,7 @@ void gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data,
         DRW_shgroup_call(
             stl->g_data->shgrps_drawing_stroke, stl->g_data->batch_buffer_stroke, NULL);
 
-        if ((gpd->runtime.sbuffer_size >= 3) &&
+        if ((gpd->runtime.sbuffer_used >= 3) &&
             (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
             ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
             ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0) &&
