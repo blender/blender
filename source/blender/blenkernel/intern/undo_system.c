@@ -427,7 +427,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     /* Hack, we need to keep at least one BKE_UNDOSYS_TYPE_MEMFILE. */
     if (us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
       us_exclude = us->prev;
-      while (us_exclude && us_exclude->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+      while (us_exclude && us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
         us_exclude = us_exclude->prev;
       }
       if (us_exclude) {
