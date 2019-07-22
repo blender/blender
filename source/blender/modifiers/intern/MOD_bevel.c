@@ -130,9 +130,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
   if (vertex_only) {
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (!BM_vert_is_manifold(v)) {
-        continue;
-      }
       if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
         weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
         if (weight == 0.0f) {
