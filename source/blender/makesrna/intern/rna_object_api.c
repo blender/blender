@@ -729,7 +729,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
-  parm = RNA_def_boolean(func, "result", 0, "", "Object hideed");
+  parm = RNA_def_boolean(func, "result", 0, "", "Object hidden");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "hide_set", "rna_Object_hide_set");
