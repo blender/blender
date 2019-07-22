@@ -3495,9 +3495,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  {
-    /* Versioning code until next subversion bump goes here. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 280, 75)) {
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (scene->master_collection != NULL) {
         scene->master_collection->flag &= ~(COLLECTION_RESTRICT_VIEWPORT |
@@ -3533,5 +3531,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       arm->flag &= ~(ARM_FLAG_UNUSED_6);
     }
+  }
+
+  {
+    /* Versioning code until next subversion bump goes here. */
   }
 }
