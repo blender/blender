@@ -168,13 +168,37 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
                              COLLADAFW::ColorOrTexture &cot,
                              COLLADAFW::FloatOrParam &val)
 {
+  /*  Handling the alpha value according to the Collada 1.4 reference guide
+   *  see page 7-5 Determining Transparency (Opacity)
+   */
+
   if (effect == nullptr) {
     return;
   }
 
   if (cot.isColor() || !cot.isValid()) {
-    COLLADAFW::Color col = (cot.isValid()) ? cot.getColor() : COLLADAFW::Color(1, 1, 1, 1);
-    float alpha = val.getFloatValue() * col.getAlpha();  // Assuming A_ONE opaque mode
+    // transparent_cot is either a color or not defined
+
+    float transparent_alpha;
+    if (cot.isValid()) {
+      COLLADAFW::Color col = cot.getColor();
+      transparent_alpha = col.getAlpha();
+    }
+    else {
+      // no transparent color defined
+      transparent_alpha = 1;
+    }
+
+    float transparency_alpha = val.getFloatValue();
+    if (transparency_alpha < 0) {
+      // transparency is not defined
+      transparency_alpha = 1;  // set to opaque
+    }
+
+    float alpha = transparent_alpha * transparency_alpha;
+    if (mode == COLLADASW::EffectProfile::RGB_ZERO) {
+      alpha = 1 - alpha;
+    }
 
     bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Alpha");
     ((bNodeSocketValueFloat *)socket->default_value)->value = alpha;
@@ -182,7 +206,6 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
   else if (cot.isTexture()) {
     int locy = -300 * (node_map.size() - 2);
     add_texture_node(cot, -300, locy, "Alpha");
-    // TODO: Connect node
   }
 }
 
