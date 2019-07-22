@@ -102,7 +102,12 @@ void EffectsExporter::set_shader_type(COLLADASW::EffectProfile &ep, Material *ma
 void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *ma)
 {
   double alpha = bc_get_alpha(ma);
-  ep.setTransparency(alpha, false, "alpha");
+  if (alpha < 1) {
+    // workaround use <transparent> to avoid wrong handling of <transparency> by other tools
+    COLLADASW::ColorOrTexture cot = bc_get_cot(0, 0, 0, alpha);
+    ep.setTransparent(cot, false, "alpha");
+    ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
+  }
 }
 
 void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *ma)
@@ -134,7 +139,9 @@ void EffectsExporter::set_reflective(COLLADASW::EffectProfile &ep, Material *ma)
 void EffectsExporter::set_reflectivity(COLLADASW::EffectProfile &ep, Material *ma)
 {
   double reflectivity = bc_get_reflectivity(ma);
-  ep.setReflectivity(reflectivity, false, "specular");
+  if (reflectivity > 0.0) {
+    ep.setReflectivity(reflectivity, false, "specular");
+  }
 }
 
 void EffectsExporter::set_emission(COLLADASW::EffectProfile &ep, Material *ma)
