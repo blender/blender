@@ -184,6 +184,49 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
   return PyC_UnicodeFromByte(path ? path : "");
 }
 
+PyDoc_STRVAR(bpy_system_resource_doc,
+             ".. function:: system_resource(type, path=\"\")\n"
+             "\n"
+             "   Return a system resource path.\n"
+             "\n"
+             "   :arg type: string in ['DATAFILES', 'SCRIPTS', 'PYTHON'].\n"
+             "   :type type: string\n"
+             "   :arg path: Optional subdirectory.\n"
+             "   :type path: string\n");
+static PyObject *bpy_system_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+{
+  const char *type;
+  const char *subdir = NULL;
+  int folder_id;
+
+  const char *path;
+
+  static const char *_keywords[] = {"type", "path", NULL};
+  static _PyArg_Parser _parser = {"s|s:system_resource", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &type, &subdir)) {
+    return NULL;
+  }
+
+  /* stupid string compare */
+  if (STREQ(type, "DATAFILES")) {
+    folder_id = BLENDER_SYSTEM_DATAFILES;
+  }
+  else if (STREQ(type, "SCRIPTS")) {
+    folder_id = BLENDER_SYSTEM_SCRIPTS;
+  }
+  else if (STREQ(type, "PYTHON")) {
+    folder_id = BLENDER_SYSTEM_PYTHON;
+  }
+  else {
+    PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+    return NULL;
+  }
+
+  path = BKE_appdir_folder_id(folder_id, subdir);
+
+  return PyC_UnicodeFromByte(path ? path : "");
+}
+
 PyDoc_STRVAR(
     bpy_resource_path_doc,
     ".. function:: resource_path(type, major=bpy.app.version[0], minor=bpy.app.version[1])\n"
@@ -292,6 +335,12 @@ static PyMethodDef meth_bpy_user_resource = {
     METH_VARARGS | METH_KEYWORDS,
     NULL,
 };
+static PyMethodDef meth_bpy_system_resource = {
+    "system_resource",
+    (PyCFunction)bpy_system_resource,
+    METH_VARARGS | METH_KEYWORDS,
+    bpy_system_resource_doc,
+};
 static PyMethodDef meth_bpy_resource_path = {
     "resource_path",
     (PyCFunction)bpy_resource_path,
@@ -397,6 +446,9 @@ void BPy_init_modules(void)
   PyModule_AddObject(mod,
                      meth_bpy_user_resource.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
+  PyModule_AddObject(mod,
+                     meth_bpy_system_resource.ml_name,
+                     (PyObject *)PyCFunction_New(&meth_bpy_system_resource, NULL));
   PyModule_AddObject(mod,
                      meth_bpy_resource_path.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
