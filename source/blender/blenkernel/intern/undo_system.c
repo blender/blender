@@ -311,13 +311,20 @@ static void undosys_stack_clear_all_last(UndoStack *ustack, UndoStep *us)
   }
 }
 
-static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us)
+static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoStep *us_exclude)
 {
+  if (us && us == us_exclude) {
+    us = us->prev;
+  }
+
   if (us) {
     bool is_not_empty = true;
     UndoStep *us_iter;
     do {
       us_iter = ustack->steps.first;
+      if (us_iter == us_exclude) {
+        us_iter = us_iter->next;
+      }
       BLI_assert(us_iter != ustack->step_active);
       undosys_step_free_and_unlink(ustack, us_iter);
       undosys_stack_validate(ustack, is_not_empty);
@@ -395,9 +402,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
 
   CLOG_INFO(&LOG, 1, "steps=%d, memory_limit=%zu", steps, memory_limit);
   UndoStep *us;
-#ifdef WITH_GLOBAL_UNDO_KEEP_ONE
   UndoStep *us_exclude = NULL;
-#endif
   /* keep at least two (original + other) */
   size_t data_size_all = 0;
   size_t us_count = 0;
@@ -427,23 +432,14 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     /* Hack, we need to keep at least one BKE_UNDOSYS_TYPE_MEMFILE. */
     if (us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
       us_exclude = us->prev;
-      while (us_exclude && us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+      while (us_exclude && us_exclude->type != BKE_UNDOSYS_TYPE_MEMFILE) {
         us_exclude = us_exclude->prev;
-      }
-      if (us_exclude) {
-        BLI_remlink(&ustack->steps, us_exclude);
       }
     }
 #endif
     /* Free from first to last, free functions may update de-duplication info
      * (see #MemFileUndoStep). */
-    undosys_stack_clear_all_first(ustack, us->prev);
-
-#ifdef WITH_GLOBAL_UNDO_KEEP_ONE
-    if (us_exclude) {
-      BLI_addhead(&ustack->steps, us_exclude);
-    }
-#endif
+    undosys_stack_clear_all_first(ustack, us->prev, us_exclude);
   }
 }
 
