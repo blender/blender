@@ -143,7 +143,6 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
     /* no traceback available when SyntaxError.
      * python has no api's to this. reference parse_syntax_error() from pythonrun.c */
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
-    PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
 
     if (value) { /* should always be true */
       PyObject *message;
@@ -165,6 +164,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
         *lineno = -1;
       }
     }
+    PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
   }
   else {
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
