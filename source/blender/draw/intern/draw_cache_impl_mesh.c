@@ -4830,7 +4830,7 @@ static void uvedit_fill_buffer_data(MeshRenderData *rdata,
     /* Tag hidden faces */
     BM_elem_flag_set(efa, BM_ELEM_TAG, uvedit_face_visible_nolocal_ex(rdata->toolsettings, efa));
 
-    if (vbo_area && BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+    if (vbo_area) {
       edit_uv_preprocess_stretch_area(
           efa, cd_loop_uv_offset, fidx++, &totarea, &totuvarea, faces_areas);
     }
