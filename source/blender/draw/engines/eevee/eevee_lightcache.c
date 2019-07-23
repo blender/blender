@@ -266,7 +266,8 @@ static bool EEVEE_lightcache_validate(const LightCache *light_cache,
         (irr_size[2] == light_cache->grid_tx.tex_size[2]) && (grid_len == light_cache->grid_len)) {
       int mip_len = (int)(floorf(log2f(cube_res)) - MIN_CUBE_LOD_LEVEL);
       if ((cube_res == light_cache->cube_tx.tex_size[0]) &&
-          (cube_len == light_cache->cube_tx.tex_size[2]) && (mip_len == light_cache->mips_len)) {
+          (cube_len == light_cache->cube_tx.tex_size[2]) && (cube_len == light_cache->cube_len) &&
+          (mip_len == light_cache->mips_len)) {
         return true;
       }
     }
