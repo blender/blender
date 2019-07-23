@@ -263,9 +263,8 @@ static void axisProjection(const TransInfo *t,
       /* Use ray-ray intersection instead of line-line because this gave
        * precision issues adding small values to large numbers. */
       float mul;
-      if (isect_ray_ray_v3(v, norm, t_con_center, axis, &mul, NULL)) {
-        madd_v3_v3v3fl(out, t_con_center, axis, mul);
-        sub_v3_v3(out, t_con_center);
+      if (isect_ray_ray_v3(t_con_center, axis, v, norm, &mul, NULL)) {
+        mul_v3_v3fl(out, axis, mul);
       }
       else {
         /* In practice this should never fail. */
