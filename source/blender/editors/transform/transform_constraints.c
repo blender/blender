@@ -235,8 +235,7 @@ static void axisProjection(const TransInfo *t,
     normalize_v3_v3_length(out, axis, -factor);
   }
   else {
-    float v[3], i1[3], i2[3];
-    float v2[3], v4[3];
+    float v[3];
     float norm_center[3];
     float plane[3];
 
@@ -261,14 +260,17 @@ static void axisProjection(const TransInfo *t,
       }
     }
     else {
-      add_v3_v3v3(v2, t_con_center, axis);
-      add_v3_v3v3(v4, v, norm);
-
-      isect_line_line_v3(t_con_center, v2, v, v4, i1, i2);
-
-      sub_v3_v3v3(v, i2, v);
-
-      sub_v3_v3v3(out, i1, t_con_center);
+      /* Use ray-ray intersection instead of line-line because this gave
+       * precision issues adding small values to large numbers. */
+      float mul;
+      if (isect_ray_ray_v3(v, norm, t_con_center, axis, &mul, NULL)) {
+        madd_v3_v3v3fl(out, t_con_center, axis, mul);
+        sub_v3_v3(out, t_con_center);
+      }
+      else {
+        /* In practice this should never fail. */
+        BLI_assert(0);
+      }
 
       /* possible some values become nan when
        * viewpoint and object are both zero */
