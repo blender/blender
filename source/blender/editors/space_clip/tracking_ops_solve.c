@@ -122,8 +122,14 @@ static void solve_camera_freejob(void *scv)
 
   solved = BKE_tracking_reconstruction_finish(scj->context, tracking);
   if (!solved) {
-    BKE_report(
-        scj->reports, RPT_WARNING, "Some data failed to reconstruct (see console for details)");
+    const char *error_message = BKE_tracking_reconstruction_error_message_get(scj->context);
+    if (error_message[0]) {
+      BKE_report(scj->reports, RPT_ERROR, error_message);
+    }
+    else {
+      BKE_report(
+          scj->reports, RPT_WARNING, "Some data failed to reconstruct (see console for details)");
+    }
   }
   else {
     BKE_reportf(scj->reports,

@@ -65,6 +65,9 @@ typedef struct MovieReconstructContext {
   TracksMap *tracks_map;
 
   int sfra, efra;
+
+  /* Details about reconstruction error, reported by Libmv. */
+  char error_message[1024];
 } MovieReconstructContext;
 
 typedef struct ReconstructProgressData {
@@ -426,7 +429,24 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieClip *clip
   context->keyframe2 = keyframe2;
   context->refine_flags = reconstruct_refine_intrinsics_get_flags(tracking, object);
 
+  context->error_message[0] = '\0';
+
   return context;
+}
+
+void BKE_tracking_reconstruction_report_error_message(MovieReconstructContext *context,
+                                                      const char *error_message)
+{
+  if (context->error_message[0]) {
+    /* Only keep initial error message, the rest are inducted ones. */
+    return;
+  }
+  BLI_strncpy(context->error_message, error_message, sizeof(context->error_message));
+}
+
+const char *BKE_tracking_reconstruction_error_message_get(const MovieReconstructContext *context)
+{
+  return context->error_message;
 }
 
 /* Free memory used by a reconstruction process. */
@@ -534,7 +554,8 @@ bool BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieT
   MovieTrackingObject *object;
 
   if (!libmv_reconstructionIsValid(context->reconstruction)) {
-    printf("Failed solve the motion: most likely there are no good keyframes\n");
+    BKE_tracking_reconstruction_report_error_message(
+        context, "Failed to solve the motion: most likely there are no good keyframes");
     return false;
   }
 
