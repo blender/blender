@@ -136,7 +136,7 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
       /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
       g_vbo_id.msk = GPU_vertformat_attr_add(&format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
       g_vbo_id.col = GPU_vertformat_attr_add(
-          &format, "c", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+          &format, "ac", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     }
     buffers->vert_buf = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
   }
