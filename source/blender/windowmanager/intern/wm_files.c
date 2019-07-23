@@ -2956,7 +2956,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, arg_block);
 
-  if (save_images_when_file_is_closed) {
+  int modified_images_count = ED_image_save_all_modified_info(C, NULL);
+  if (modified_images_count > 0 && save_images_when_file_is_closed) {
     if (ED_image_should_save_modified(C)) {
       ReportList *reports = CTX_wm_reports(C);
       ED_image_save_all_modified(C, reports);
