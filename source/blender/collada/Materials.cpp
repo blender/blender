@@ -196,7 +196,7 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
     }
 
     float alpha = transparent_alpha * transparency_alpha;
-    if (mode == COLLADASW::EffectProfile::RGB_ZERO) {
+    if (mode == COLLADAFW::EffectCommon::RGB_ZERO) {
       alpha = 1 - alpha;
     }
 
