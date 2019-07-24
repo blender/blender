@@ -1256,7 +1256,7 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
 
       if (!DRW_state_is_image_render()) {
         rctf render_border;
-        ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &render_border, true);
+        ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &render_border, false);
         camera_width = render_border.xmax - render_border.xmin;
         camera_height = render_border.ymax - render_border.ymin;
         camera_aspect = camera_width / camera_height;
