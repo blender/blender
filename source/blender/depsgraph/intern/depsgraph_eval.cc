@@ -61,6 +61,7 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
     BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->ctime);
   }
   DEG::deg_evaluate_on_refresh(deg_graph);
+  deg_graph->need_update_time = false;
 }
 
 /* Frame-change happened for root scene that graph belongs to. */
@@ -79,6 +80,7 @@ void DEG_evaluate_on_framechange(Main *bmain, Depsgraph *graph, float ctime)
   }
   /* Perform recalculation updates. */
   DEG::deg_evaluate_on_refresh(deg_graph);
+  deg_graph->need_update_time = false;
 }
 
 bool DEG_needs_eval(Depsgraph *graph)

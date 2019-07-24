@@ -39,6 +39,7 @@
 
 extern "C" {
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "DRW_engine.h"
 } /* extern "C" */
@@ -53,6 +54,7 @@ extern "C" {
 #include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_time.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
@@ -348,8 +350,15 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
   BLI_assert(bmain != NULL);
   BLI_assert(graph != NULL);
   /* Nothing to update, early out. */
-  if (BLI_gset_len(graph->entry_tags) == 0) {
+  if (BLI_gset_len(graph->entry_tags) == 0 && !graph->need_update_time) {
     return;
+  }
+  if (graph->need_update_time) {
+    const Scene *scene_orig = graph->scene;
+    const float ctime = scene_orig->r.cfra + scene_orig->r.subframe;
+    DEG::TimeSourceNode *time_source = graph->find_time_source();
+    graph->ctime = ctime;
+    time_source->tag_update(graph, DEG::DEG_UPDATE_SOURCE_TIME);
   }
   /* Reset all flags, get ready for the flush. */
   flush_prepare(graph);

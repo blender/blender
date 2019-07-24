@@ -229,6 +229,9 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_PARAMETERS:
       *component_type = NodeType::PARAMETERS;
       break;
+    case ID_RECALC_TIME:
+      BLI_assert(!"Should be handled outside of this function");
+      break;
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
       BLI_assert(!"Should not happen");
@@ -357,6 +360,12 @@ static void graph_id_tag_update_single_flag(Main *bmain,
   if (tag == ID_RECALC_EDITORS) {
     if (graph != NULL) {
       depsgraph_update_editors_tag(bmain, graph, id);
+    }
+    return;
+  }
+  else if (tag == ID_RECALC_TIME) {
+    if (graph != NULL) {
+      graph->need_update_time = true;
     }
     return;
   }
@@ -664,6 +673,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "AUDIO";
     case ID_RECALC_PARAMETERS:
       return "PARAMETERS";
+    case ID_RECALC_TIME:
+      return "TIME";
     case ID_RECALC_ALL:
       return "ALL";
   }

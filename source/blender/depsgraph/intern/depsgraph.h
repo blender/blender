@@ -160,6 +160,10 @@ struct Depsgraph {
   /* Nodes which have been tagged as "directly modified". */
   GSet *entry_tags;
 
+  /* Special entry tag for time source. Allows to tag invisible dependency graphs for update when
+   * scene frame changes, so then when dependency graph becomes visible it is on a proper state. */
+  bool need_update_time;
+
   /* Convenience Data ................... */
 
   /* XXX: should be collected after building (if actually needed?) */

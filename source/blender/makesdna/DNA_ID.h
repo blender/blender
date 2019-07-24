@@ -616,6 +616,10 @@ typedef enum IDRecalcFlag {
 
   ID_RECALC_PARAMETERS = (1 << 21),
 
+  /* Makes it so everything what depends on time.
+   * Basically, the same what changing frame in a timeline will do. */
+  ID_RECALC_TIME = (1 << 22),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */

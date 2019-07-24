@@ -68,6 +68,7 @@ template<typename T> static void remove_from_vector(vector<T> *vector, const T &
 Depsgraph::Depsgraph(Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(NULL),
       need_update(true),
+      need_update_time(false),
       scene(scene),
       view_layer(view_layer),
       mode(mode),
