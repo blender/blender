@@ -1,0 +1,48 @@
+name: blender
+summary: Blender is the free and open source 3D creation suite.
+description: |
+    Blender is the free and open source 3D creation suite. It supports the
+    entirety of the 3D pipeline—modeling, rigging, animation, simulation,
+    rendering, compositing and motion tracking, and video editing.
+
+    Blender is a public project, made by hundreds of people from around the
+    world; by studios and individual artists, professionals and hobbyists,
+    scientists, students, VFX experts, animators, game artists, modders, and
+    the list goes on.
+
+    The standard snap channels are used in the following way:
+
+           stable - Latest stable release.
+        candidate - Test builds for the upcoming stable release.
+
+icon: ../icons/scalable/apps/blender.svg
+
+passthrough:
+    license: GPL-3.0
+
+confinement: classic
+
+apps:
+    blender:
+        command: ./blender
+        desktop: ./blender.desktop
+
+version: @VERSION@
+grade: @GRADE@
+
+parts:
+    blender:
+        plugin: dump
+        source: @URL@
+        build-attributes: [keep-execstack, no-patchelf]
+        override-build: |
+            snapcraftctl build
+            sed -i 's|Icon=blender|Icon=${SNAP}/blender.svg|' ${SNAPCRAFT_PART_INSTALL}/blender.desktop
+        stage-packages:
+            - libxcb1
+            - libxext6
+            - libx11-6
+            - libxi6
+            - libxfixes3
+            - libxrender1
+            - libxxf86vm1
