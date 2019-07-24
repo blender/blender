@@ -239,6 +239,35 @@ bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)
   return arm_copy;
 }
 
+static void copy_bone_transform(Bone *bone_dst, const Bone *bone_src)
+{
+  bone_dst->roll = bone_src->roll;
+
+  copy_v3_v3(bone_dst->head, bone_src->head);
+  copy_v3_v3(bone_dst->tail, bone_src->tail);
+
+  copy_m3_m3(bone_dst->bone_mat, bone_src->bone_mat);
+
+  copy_v3_v3(bone_dst->arm_head, bone_src->arm_head);
+  copy_v3_v3(bone_dst->arm_tail, bone_src->arm_tail);
+
+  copy_m4_m4(bone_dst->arm_mat, bone_src->arm_mat);
+
+  bone_dst->arm_roll = bone_src->arm_roll;
+}
+
+void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature *armature_src)
+{
+  Bone *bone_dst = armature_dst->bonebase.first;
+  const Bone *bone_src = armature_src->bonebase.first;
+  while (bone_dst != NULL) {
+    BLI_assert(bone_src != NULL);
+    copy_bone_transform(bone_dst, bone_src);
+    bone_dst = bone_dst->next;
+    bone_src = bone_src->next;
+  }
+}
+
 static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
 {
   Bone *curBone, *rbone;

@@ -856,6 +856,7 @@ static int apply_objects_internal(bContext *C,
     BKE_object_where_is_calc(depsgraph, scene, ob_eval);
     if (ob->type == OB_ARMATURE) {
       /* needed for bone parents */
+      BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
       BKE_pose_where_is(depsgraph, scene, ob_eval);
     }
 
@@ -1229,6 +1230,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
           Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
           BKE_object_transform_copy(ob_eval, ob);
+          BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
           BKE_object_where_is_calc(depsgraph, scene, ob_eval);
           BKE_pose_where_is(depsgraph, scene, ob_eval); /* needed for bone parents */
 
@@ -1370,6 +1372,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         BKE_object_where_is_calc(depsgraph, scene, ob_eval);
         if (ob->type == OB_ARMATURE) {
           /* needed for bone parents */
+          BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
           BKE_pose_where_is(depsgraph, scene, ob_eval);
         }
 
@@ -1398,6 +1401,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
             BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
             if (ob_other->type == OB_ARMATURE) {
               /* needed for bone parents */
+              BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
               BKE_pose_where_is(depsgraph, scene, ob_other_eval);
             }
             ignore_parent_tx(bmain, depsgraph, scene, ob_other);

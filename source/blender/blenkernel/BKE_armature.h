@@ -75,6 +75,9 @@ void BKE_armature_copy_data(struct Main *bmain,
                             const int flag);
 struct bArmature *BKE_armature_copy(struct Main *bmain, const struct bArmature *arm);
 
+void BKE_armature_copy_bone_transforms(struct bArmature *armature_dst,
+                                       const struct bArmature *armature_src);
+
 /* Bounding box. */
 struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
 
