@@ -2157,16 +2157,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       }
     }
 
-    /* do we check for parameter? */
-    if (transformModeUseSnap(t)) {
-      if (t->modifiers & MOD_SNAP) {
-        ts->snap_flag |= SCE_SNAP;
-      }
-      else {
-        ts->snap_flag &= ~SCE_SNAP;
-      }
-    }
-
     if (t->spacetype == SPACE_VIEW3D) {
       if ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
           !RNA_property_is_set(op->ptr, prop) &&
@@ -2176,6 +2166,18 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         BLI_assert(((orient_slot->index_custom == -1) && (t->orientation.custom == NULL)) ||
                    (BKE_scene_transform_orientation_get_index(t->scene, t->orientation.custom) ==
                     orient_slot->index_custom));
+      }
+    }
+  }
+
+  if (t->flag & T_MODAL) {
+    /* do we check for parameter? */
+    if (transformModeUseSnap(t)) {
+      if (t->modifiers & MOD_SNAP) {
+        ts->snap_flag |= SCE_SNAP;
+      }
+      else {
+        ts->snap_flag &= ~SCE_SNAP;
       }
     }
   }
