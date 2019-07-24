@@ -495,13 +495,16 @@ bool BM_face_split_edgenet(BMesh *bm,
     return false;
   }
 
+  /* These arrays used to be stack memory, however they can be
+   * large for singe faces with complex edgenets, see: T65980. */
+
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
-  edge_order = BLI_array_alloca(edge_order, edge_order_len);
+  edge_order = MEM_mallocN(sizeof(*edge_order) * edge_order_len, __func__);
 
   /* use later */
-  face_verts = BLI_array_alloca(face_verts, edge_net_len + f->len);
+  face_verts = MEM_mallocN(sizeof(*face_verts) * (edge_net_len + f->len), __func__);
 
-  vert_queue = BLI_array_alloca(vert_queue, edge_net_len + f->len);
+  vert_queue = MEM_mallocN(sizeof(vert_queue) * (edge_net_len + f->len), __func__);
   STACK_INIT(vert_queue, f->len + edge_net_len);
 
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);
@@ -686,6 +689,10 @@ bool BM_face_split_edgenet(BMesh *bm,
       MEM_freeN(face_arr);
     }
   }
+
+  MEM_freeN(edge_order);
+  MEM_freeN(face_verts);
+  MEM_freeN(vert_queue);
 
   return true;
 }
@@ -1247,7 +1254,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
    */
 
   const uint edge_arr_len = (uint)edge_net_init_len + (uint)f->len;
-  BMEdge **edge_arr = BLI_array_alloca(edge_arr, edge_arr_len);
+  BMEdge **edge_arr = BLI_memarena_alloc(mem_arena, sizeof(*edge_arr) * edge_arr_len);
   bool ok = false;
   uint edge_net_new_len = (uint)edge_net_init_len;
 
@@ -1342,7 +1349,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
             BM_elem_flag_disable(e_iter, EDGE_NOT_IN_STACK);
             unique_edges_in_group++;
 
-            BLI_linklist_prepend_alloca(&edge_links, e_iter);
+            BLI_linklist_prepend_arena(&edge_links, e_iter, mem_arena);
 
             BMVert *v_other = BM_edge_other_vert(e_iter, v_iter);
             if (BM_elem_flag_test(v_other, VERT_NOT_IN_STACK)) {
@@ -1353,7 +1360,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_iter)) != v_iter->e);
       }
 
-      struct EdgeGroupIsland *g = alloca(sizeof(*g));
+      struct EdgeGroupIsland *g = BLI_memarena_alloc(mem_arena, sizeof(*g));
       g->vert_len = unique_verts_in_group;
       g->edge_len = unique_edges_in_group;
       edge_in_group_tot += unique_edges_in_group;
