@@ -1242,7 +1242,7 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
       unit_m4(win_m4_scale);
       unit_m4(win_m4_translate);
       unit_m4(scale_m4);
-      axis_angle_to_mat4_single(rot_m4, 'Z', bgpic->rotation);
+      axis_angle_to_mat4_single(rot_m4, 'Z', -bgpic->rotation);
       unit_m4(translate_m4);
 
       const float *size = DRW_viewport_size_get();
@@ -1311,9 +1311,9 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
       scale_m4[0][0] = scale_x;
       scale_m4[1][1] = scale_y;
 
-      // translate
-      translate_m4[3][0] = bgpic->offset[0];
-      translate_m4[3][1] = bgpic->offset[1];
+      /* Translate, using coordinates that aren't squashed by the aspect. */
+      translate_m4[3][0] = bgpic->offset[0] * 2.0f * max_ff(1.0f, 1.0f / camera_aspect);
+      translate_m4[3][1] = bgpic->offset[1] * 2.0f * max_ff(1.0f, camera_aspect);
 
       mul_m4_series(bg_data->transform_mat,
                     win_m4_translate,
