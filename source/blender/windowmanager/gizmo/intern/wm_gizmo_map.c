@@ -973,7 +973,8 @@ bool WM_gizmomap_cursor_set(const wmGizmoMap *gzmap, wmWindow *win)
 bool wm_gizmomap_highlight_set(wmGizmoMap *gzmap, const bContext *C, wmGizmo *gz, int part)
 {
   if ((gz != gzmap->gzmap_context.highlight) || (gz && part != gz->highlight_part)) {
-    const bool init_last_cursor = (gzmap->gzmap_context.highlight == NULL);
+    const bool init_last_cursor = !(gzmap->gzmap_context.highlight &&
+                                    gzmap->gzmap_context.last_cursor != -1);
     if (gzmap->gzmap_context.highlight) {
       gzmap->gzmap_context.highlight->state &= ~WM_GIZMO_STATE_HIGHLIGHT;
       gzmap->gzmap_context.highlight->highlight_part = -1;
