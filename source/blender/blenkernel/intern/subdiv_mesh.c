@@ -1086,20 +1086,27 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   const MEdge *coarse_edge = &coarse_mesh->medge[coarse_edge_index];
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   MVert *subdiv_mvert = subdiv_mesh->mvert;
+  const bool is_simple = ctx->subdiv->settings.is_simple;
   /* Find neighbors of the current loose edge. */
   const MEdge *neighbors[2];
   find_edge_neighbors(ctx, coarse_edge, neighbors);
-  /* Get points for b-spline interpolation. */
-  float points[4][3];
-  points_for_loose_edges_interpolation_get(ctx, coarse_edge, neighbors, points);
-  /* Perform interpolation. */
-  float weights[4];
-  key_curve_position_weights(u, weights, KEY_BSPLINE);
   /* Interpolate custom data. */
   subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
-  /* Initialize  */
+  /* Interpolate coordinate. */
   MVert *subdiv_vertex = &subdiv_mvert[subdiv_vertex_index];
-  interp_v3_v3v3v3v3(subdiv_vertex->co, points[0], points[1], points[2], points[3], weights);
+  if (is_simple) {
+    const MVert *coarse_mvert = coarse_mesh->mvert;
+    const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
+    const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
+    interp_v2_v2v2(subdiv_vertex->co, vert_1->co, vert_2->co, u);
+  }
+  else {
+    float points[4][3];
+    points_for_loose_edges_interpolation_get(ctx, coarse_edge, neighbors, points);
+    float weights[4];
+    key_curve_position_weights(u, weights, KEY_BSPLINE);
+    interp_v3_v3v3v3v3(subdiv_vertex->co, points[0], points[1], points[2], points[3], weights);
+  }
   /* Reset flags and such. */
   subdiv_vertex->flag = 0;
   /* TODO(sergey): This matches old behavior, but we can as well interpolate
