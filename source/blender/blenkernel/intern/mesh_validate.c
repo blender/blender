@@ -1200,7 +1200,7 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
     int i = p->loopstart;
     int stop = i + p->totloop;
 
-    if (stop > me->totloop || stop < i) {
+    if (stop > me->totloop || stop < i || p->loopstart < 0) {
       invalid = true;
     }
     else {
