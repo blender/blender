@@ -1053,7 +1053,7 @@ void wm_homefile_read(bContext *C,
     wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
   }
 
-  if (use_factory_settings) {
+  if (use_userdef) {
     /*  Clear keymaps because the current default keymap may have been initialized
      *  from user preferences, which have been reset. */
     for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
