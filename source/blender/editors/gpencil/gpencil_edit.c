@@ -3401,12 +3401,6 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
     if (gps->flag & GP_STROKE_SELECT) {
       bGPDspoint *pt;
       int i;
-      float inverse_diff_mat[4][4];
-
-      /* Compute inverse matrix for unapplying parenting once instead of doing per-point */
-      /* TODO: add this bit to the iteration macro? */
-      invert_m4_m4(inverse_diff_mat, gpstroke_iter.diff_mat);
-
       /* Adjust each point */
       for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
         float xy[2];
@@ -3493,7 +3487,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
         /* Unapply parent corrections */
         if (!ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP)) {
-          mul_m4_v3(inverse_diff_mat, &pt->x);
+          mul_m4_v3(gpstroke_iter.inverse_diff_mat, &pt->x);
         }
       }
     }

@@ -583,6 +583,7 @@ typedef enum ACTCONT_TYPES {
 
 struct GP_EditableStrokes_Iter {
   float diff_mat[4][4];
+  float inverse_diff_mat[4][4];
 };
 
 /**
@@ -607,6 +608,7 @@ struct GP_EditableStrokes_Iter {
       for (bGPDframe *gpf_ = init_gpf_; gpf_; gpf_ = gpf_->next) { \
         if ((gpf_ == gpl->actframe) || ((gpf_->flag & GP_FRAME_SELECT) && is_multiedit_)) { \
           ED_gpencil_parent_location(depsgraph_, obact_, gpd_, gpl, gpstroke_iter.diff_mat); \
+          invert_m4_m4(gpstroke_iter.inverse_diff_mat, gpstroke_iter.diff_mat); \
           /* loop over strokes */ \
           for (bGPDstroke *gps = gpf_->strokes.first; gps; gps = gps->next) { \
             /* skip strokes that are invalid for current view */ \
