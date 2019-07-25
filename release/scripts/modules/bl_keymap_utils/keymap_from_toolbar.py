@@ -432,7 +432,7 @@ def generate(context, space_type):
         )
         kmi.properties.name = tap_reset_tool
 
-    if use_release_confirm:
+    if use_release_confirm and (kmi_toolbar_type is not None):
         kmi = keymap.keymap_items.new(
             "ui.button_execute",
             type=kmi_toolbar_type,
