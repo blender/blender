@@ -1582,6 +1582,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
               id_us_plus(&ob_dst->instance_collection->id);
               ob_dst->transflag |= OB_DUPLICOLLECTION;
             }
+            DEG_id_tag_update(&ob_dst->id, ID_RECALC_COPY_ON_WRITE);
             break;
           case MAKE_LINKS_MODIFIERS:
             BKE_object_link_modifiers(scene, ob_dst, ob_src);
