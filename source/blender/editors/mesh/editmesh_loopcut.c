@@ -272,7 +272,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 
   em_setup_viewcontext(C, &lcd->vc);
 
-  lcd->depsgraph = CTX_data_depsgraph(C);
+  lcd->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* assign the drawing handle for drawing preview line... */
   lcd->ar = CTX_wm_region(C);

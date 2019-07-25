@@ -259,7 +259,7 @@ bGPdata *ED_gpencil_data_get_active_evaluated(const bContext *C)
   ID *screen_id = (ID *)CTX_wm_screen(C);
   ScrArea *sa = CTX_wm_area(C);
 
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -548,7 +548,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
   if (sa->spacetype == SPACE_VIEW3D) {
     wmWindow *win = CTX_wm_window(C);
     Scene *scene = CTX_data_scene(C);
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     View3D *v3d = (View3D *)CTX_wm_space_data(C);
     RegionView3D *rv3d = ar->regiondata;
 
@@ -560,8 +560,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
-      ED_view3d_calc_camera_border(
-          scene, CTX_data_depsgraph(C), ar, v3d, rv3d, &r_gsc->subrect_data, true);
+      ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &r_gsc->subrect_data, true);
       r_gsc->subrect = &r_gsc->subrect_data;
     }
   }
@@ -929,7 +928,7 @@ void ED_gp_get_drawing_reference(
 void ED_gpencil_project_stroke_to_view(bContext *C, bGPDlayer *gpl, bGPDstroke *gps)
 {
   Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   GP_SpaceConversion gsc = {NULL};

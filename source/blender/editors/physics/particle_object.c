@@ -652,7 +652,7 @@ static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Part
 
 static int disconnect_hair_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_context(C);
   ParticleSystem *psys = NULL;
@@ -934,7 +934,7 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
 
 static int connect_hair_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_context(C);
   ParticleSystem *psys = NULL;
@@ -1086,7 +1086,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
                                             bool duplicate_settings)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ModifierData *md;
   ParticleSystem *psys_start = NULL, *psys, *psys_from;
   ParticleSystem **tmp_psys;

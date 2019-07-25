@@ -465,6 +465,8 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
   return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
+/* TOOD(sergey): Make the Python API more clear that evaluation might happen, or requite passing
+ * fully evaluated depsgraph. */
 static Object *eval_object_ensure(Object *ob,
                                   bContext *C,
                                   ReportList *reports,
@@ -474,7 +476,7 @@ static Object *eval_object_ensure(Object *ob,
     Object *ob_orig = ob;
     Depsgraph *depsgraph = rnaptr_depsgraph != NULL ? rnaptr_depsgraph->data : NULL;
     if (depsgraph == NULL) {
-      depsgraph = CTX_data_depsgraph(C);
+      depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
     if (depsgraph != NULL) {
       ob = DEG_get_evaluated_object(depsgraph, ob);
@@ -502,6 +504,8 @@ static void rna_Object_ray_cast(Object *ob,
 {
   bool success = false;
 
+  /* TODO(sergey): This isn't very reliable check. It is possible to have non-NULL pointer but
+   * which is out of date, and possibly dangling one. */
   if (ob->runtime.mesh_eval == NULL &&
       (ob = eval_object_ensure(ob, C, reports, rnaptr_depsgraph)) == NULL) {
     return;

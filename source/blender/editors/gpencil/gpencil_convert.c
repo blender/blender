@@ -162,7 +162,10 @@ static void gp_strokepoint_convertcoords(bContext *C,
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *ar = CTX_wm_region(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* TODO(sergey): This function might be called from a loop, but no tagging is happening in it,
+   * so it's not that expensive to ensure evaluated depsgraph  here. However, ideally all the
+   * parameters are to wrapped into a context style struct and queried from Context once.*/
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
   bGPDspoint mypt, *pt;
 
@@ -1241,7 +1244,7 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
       Scene *scene = CTX_data_scene(C);
-      Depsgraph *depsgraph = CTX_data_depsgraph(C);
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, subrect, true);
       return 1;
     }

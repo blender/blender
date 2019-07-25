@@ -859,7 +859,7 @@ static int light_cache_bake_exec(bContext *C, wmOperator *op)
   EEVEE_lightbake_job_data_free(rj);
 
   // no redraw needed, we leave state as we entered it
-  ED_update_for_newframe(bmain, CTX_data_depsgraph(C));
+  ED_update_for_newframe(bmain, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 

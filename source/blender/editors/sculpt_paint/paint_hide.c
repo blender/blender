@@ -339,7 +339,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 {
   ARegion *ar = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mesh *me = ob->data;
   PartialVisAction action;
   PartialVisArea area;

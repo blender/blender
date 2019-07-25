@@ -473,7 +473,7 @@ static void dpaint_bake_startjob(void *customdata, short *stop, short *do_update
  */
 static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_ = ED_object_context(C);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob_);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -505,7 +505,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
   DynamicPaintBakeJob *job = MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob");
   job->bmain = CTX_data_main(C);
   job->scene = scene_eval;
-  job->depsgraph = CTX_data_depsgraph(C);
+  job->depsgraph = depsgraph;
   job->ob = object_eval;
   job->canvas = canvas;
   job->surface = surface;

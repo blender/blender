@@ -7094,16 +7094,17 @@ static bool match_texture_space_poll(bContext *C)
 
 static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
+  /* Need to ensure the dependency graph is fully evaluated, so the display list is at a correct
+   * state. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  (void)depsgraph;
+
   Object *object = CTX_data_active_object(C);
   Curve *curve = (Curve *)object->data;
   float min[3], max[3], size[3], loc[3];
   int a;
 
-  if (object->runtime.curve_cache == NULL) {
-    BKE_displist_make_curveTypes(depsgraph, scene, object, false, false);
-  }
+  BLI_assert(object->runtime.curve_cache != NULL);
 
   INIT_MINMAX(min, max);
   BKE_displist_minmax(&object->runtime.curve_cache->disp, min, max);

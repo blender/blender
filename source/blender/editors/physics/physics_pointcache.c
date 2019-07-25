@@ -156,7 +156,8 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
   baker->bmain = CTX_data_main(C);
   baker->scene = CTX_data_scene(C);
   baker->view_layer = CTX_data_view_layer(C);
-  baker->depsgraph = CTX_data_depsgraph(C);
+  /* Depsgraph is used to sweep the frame range and evaluate scene at different times. */
+  baker->depsgraph = CTX_data_depsgraph_pointer(C);
   baker->bake = RNA_boolean_get(op->ptr, "bake");
   baker->render = 0;
   baker->anim_init = 0;

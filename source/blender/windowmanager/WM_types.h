@@ -180,8 +180,6 @@ enum {
   OPTYPE_LOCK_BYPASS = (1 << 9),
   /** Special type of undo which doesn't store itself multiple times. */
   OPTYPE_UNDO_GROUPED = (1 << 10),
-  /** Need evaluated data (i.e. a valid, up-to-date depsgraph for current context). */
-  OPTYPE_USE_EVAL_DATA = (1 << 11),
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */

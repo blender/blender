@@ -39,6 +39,7 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -395,7 +396,6 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   ListBase *tracksbase;
   Object *object;
   Object *camera = get_camera_with_movieclip(scene, clip);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   int tot = 0;
   float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3] = {0.0f, 0.0f, 0.0f};
   int plane = RNA_enum_get(op->ptr, "plane");
@@ -484,7 +484,13 @@ static int set_plane_exec(bContext *C, wmOperator *op)
     BKE_object_apply_mat4(object, mat, 0, 0);
   }
 
-  BKE_object_where_is_calc(depsgraph, scene, object);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  BKE_object_transform_copy(object_eval, object);
+  BKE_object_where_is_calc(depsgraph, scene_eval, object_eval);
+  BKE_object_transform_copy(object, object_eval);
+
   set_axis(scene, object, clip, tracking_object, axis_track, 'X');
 
   DEG_id_tag_update(&clip->id, 0);

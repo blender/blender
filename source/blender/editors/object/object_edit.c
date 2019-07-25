@@ -906,7 +906,9 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, bool current_frame_
   }
 
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
+   * nested pointers, like animation data. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ListBase targets = {NULL, NULL};
 
   /* loop over objects in scene */

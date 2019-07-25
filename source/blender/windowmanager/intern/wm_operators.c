@@ -3157,7 +3157,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   const int cfra = scene->r.cfra;
   int a, iter_steps = 0;
   const char *infostr = "";
-  struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+
+  /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation here.
+   */
+  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   WM_cursor_wait(1);
 

@@ -1528,7 +1528,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
  * for each relevant engine / mode engine. */
 void DRW_draw_view(const bContext *C)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ARegion *ar = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = DEG_get_evaluated_scene(depsgraph);

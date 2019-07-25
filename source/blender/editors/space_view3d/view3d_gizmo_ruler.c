@@ -289,7 +289,12 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
     ruler_info->snap_context = ED_transform_snap_object_context_create_view3d(
-        bmain, CTX_data_scene(C), CTX_data_depsgraph(C), 0, ruler_info->ar, CTX_wm_view3d(C));
+        bmain,
+        CTX_data_scene(C),
+        CTX_data_ensure_evaluated_depsgraph(C),
+        0,
+        ruler_info->ar,
+        CTX_wm_view3d(C));
   }
   else {
     BLI_assert(0);

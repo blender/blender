@@ -72,7 +72,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   float u = 0.0f;
   float scalex, scaley;
 
-  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);

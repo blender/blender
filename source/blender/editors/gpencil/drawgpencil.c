@@ -1117,7 +1117,8 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
   RegionView3D *rv3d = ar->regiondata;
   tGPDinterpolate_layer *tgpil;
   Object *obact = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* Drawing code is expected to run with fully evaluated depsgraph. */
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
 
   float color[4];
 

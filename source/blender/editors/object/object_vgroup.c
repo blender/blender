@@ -1514,7 +1514,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
 static void vgroup_fix(
     const bContext *C, Scene *UNUSED(scene), Object *ob, float distToBe, float strength, float cp)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   int i;

@@ -66,7 +66,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 /** Snaps every individual object center to its nearest point on the grid. */
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Object *obedit = CTX_data_edit_object(C);
   Scene *scene = CTX_data_scene(C);
@@ -226,7 +226,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
   ot->poll = ED_operator_region_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* *************************************************** */
@@ -243,7 +243,6 @@ static int snap_selected_to_location(bContext *C,
                                      const float snap_target_global[3],
                                      const bool use_offset)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
@@ -431,6 +430,7 @@ static int snap_selected_to_location(bContext *C,
           float originmat[3][3], parentmat[4][4];
           /* Use the evaluated object here because sometimes
            * `ob->parent->runtime.curve_cache` is required. */
+          Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
           Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
           BKE_object_get_parent_matrix(ob_eval, ob_eval->parent, parentmat);
@@ -486,7 +486,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* rna */
   RNA_def_boolean(ot->srna,
@@ -523,7 +523,7 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* *************************************************** */
@@ -626,7 +626,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 /** Snaps the 3D cursor location to the median point of the selection. */
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Object *obedit = CTX_data_edit_object(C);
   Scene *scene = CTX_data_scene(C);
@@ -757,7 +757,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ********************************************** */
@@ -804,7 +804,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* **************************************************** */

@@ -1348,7 +1348,7 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
   return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
 }
 
-Depsgraph *CTX_data_depsgraph(const bContext *C)
+Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1361,9 +1361,18 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
   return depsgraph;
 }
 
-Depsgraph *CTX_data_evaluated_depsgraph(const bContext *C)
+Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  /* TODO(sergey): Assert that the dependency graph is fully evaluated.
+   * Note that first the depsgraph and scene post-eval hooks needs to run extra round of updates
+   * first to make check here really reliable. */
+  return depsgraph;
+}
+
+Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Main *bmain = CTX_data_main(C);
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   return depsgraph;

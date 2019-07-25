@@ -334,6 +334,7 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 }
 
 static void fluid_init_all_channels(bContext *C,
+                                    Depsgraph *depsgraph,
                                     Object *UNUSED(fsDomain),
                                     FluidsimSettings *domainSettings,
                                     FluidAnimChannels *channels,
@@ -341,7 +342,6 @@ static void fluid_init_all_channels(bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Base *base;
   int i;
   int length = channels->length;
@@ -514,9 +514,11 @@ static void fluid_init_all_channels(bContext *C,
   }
 }
 
-static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *scene, int length)
+static void export_fluid_objects(Depsgraph *depsgraph,
+                                 ListBase *fobjects,
+                                 Scene *scene,
+                                 int length)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   FluidObject *fobj;
 
   for (fobj = fobjects->first; fobj; fobj = fobj->next) {
@@ -922,7 +924,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   int i;
   FluidsimSettings *domainSettings;
 
@@ -1051,11 +1053,11 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
                            (double)noFrames;
 
   /* ******** initialize and allocate animation channels ******** */
-  fluid_init_all_channels(C, fsDomain, domainSettings, channels, fobjects);
+  fluid_init_all_channels(C, depsgraph, fsDomain, domainSettings, channels, fobjects);
 
   /* reset to original current frame */
   scene->r.cfra = origFrame;
-  ED_update_for_newframe(CTX_data_main(C), depsgraph);
+  ED_update_for_newframe(CTX_data_main(C), CTX_data_depsgraph_pointer(C));
 
   /* ******** init domain object's matrix ******** */
   copy_m4_m4(domainMat, fsDomain->obmat);
@@ -1153,7 +1155,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
   elbeemAddDomain(fsset);
 
   /* ******** export all fluid objects to elbeem ******** */
-  export_fluid_objects(C, fobjects, scene, channels->length);
+  export_fluid_objects(depsgraph, fobjects, scene, channels->length);
 
   /* custom data for fluid bake job */
   fb->settings = fsset;

@@ -86,7 +86,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   eMaskWhichHandle which_handle = MASK_WHICH_HANDLE_NONE;
   int width, height;
 
-  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);
@@ -241,7 +241,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   float scalex, scaley;
   int width, height;
 
-  Depsgraph *depsgraph = CTX_data_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
 
   ED_mask_get_size(sa, &width, &height);

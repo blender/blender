@@ -171,14 +171,6 @@ void ED_object_mode_toggle(bContext *C, eObjectMode mode)
 
     if (opstring) {
       wmOperatorType *ot = WM_operatortype_find(opstring, false);
-      if (ot->flag & OPTYPE_USE_EVAL_DATA) {
-        /* We need to force refresh of depsgraph after undo step,
-         * redoing the operator *may* rely on some valid evaluated data. */
-        struct Main *bmain = CTX_data_main(C);
-        Scene *scene = CTX_data_scene(C);
-        ViewLayer *view_layer = CTX_data_view_layer(C);
-        BKE_scene_view_layer_graph_evaluated_ensure(bmain, scene, view_layer);
-      }
       WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, NULL);
     }
   }

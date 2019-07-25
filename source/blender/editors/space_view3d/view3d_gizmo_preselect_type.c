@@ -176,7 +176,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
       const float(*coords)[3] = NULL;
       {
         Object *ob = gz_ele->bases[gz_ele->base_index]->object;
-        Depsgraph *depsgraph = CTX_data_depsgraph(C);
+        Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
         if (me_eval->runtime.edit_data) {
           coords = me_eval->runtime.edit_data->vertexCos;
@@ -334,7 +334,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
       const float(*coords)[3] = NULL;
       {
         Object *ob = gz_ring->bases[gz_ring->base_index]->object;
-        Depsgraph *depsgraph = CTX_data_depsgraph(C);
+        Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
         Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
         if (me_eval->runtime.edit_data) {
           coords = me_eval->runtime.edit_data->vertexCos;

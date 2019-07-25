@@ -211,7 +211,7 @@ static struct Depsgraph *rna_Context_evaluated_depsgraph_get(bContext *C)
   BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-  depsgraph = CTX_data_evaluated_depsgraph(C);
+  depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
 #  ifdef WITH_PYTHON
   BPy_END_ALLOW_THREADS;

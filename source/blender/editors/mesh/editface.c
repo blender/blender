@@ -77,7 +77,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
     BKE_mesh_flush_select_from_polys(me);
   }
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
   if (ob_eval == NULL) {

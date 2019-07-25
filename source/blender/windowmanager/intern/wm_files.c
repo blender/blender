@@ -1229,7 +1229,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
 
   /* gets scaled to BLEN_THUMB_SIZE */
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (scene->camera) {
     ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,

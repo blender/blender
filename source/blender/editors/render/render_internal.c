@@ -368,7 +368,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   RE_SetReports(re, NULL);
 
   // no redraw needed, we leave state as we entered it
-  ED_update_for_newframe(mainp, CTX_data_depsgraph(C));
+  ED_update_for_newframe(mainp, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
@@ -978,8 +978,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->scene = scene;
   rj->current_scene = rj->scene;
   rj->single_layer = single_layer;
-  /* TODO(sergey): Render engine should be using own depsgraph. */
-  rj->depsgraph = CTX_data_depsgraph(C);
+  /* TODO(sergey): Render engine should be using own depsgraph.
+   *
+   * NOTE: Currently is only used by ED_update_for_newframe() at the end of the render, so no
+   * need to ensure evaluation here. */
+  rj->depsgraph = CTX_data_depsgraph_pointer(C);
   rj->camera_override = camera_override;
   rj->anim = is_animation;
   rj->write_still = is_write_still && !is_animation;

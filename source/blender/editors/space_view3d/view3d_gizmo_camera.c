@@ -437,7 +437,8 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
   struct CameraViewWidgetGroup *viewgroup = gzgroup->customdata;
 
   ARegion *ar = CTX_wm_region(C);
-  struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* Drawing code should happen with fully evaluated graph. */
+  struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   RegionView3D *rv3d = ar->regiondata;
   if (rv3d->persp == RV3D_CAMOB) {
     Scene *scene = CTX_data_scene(C);

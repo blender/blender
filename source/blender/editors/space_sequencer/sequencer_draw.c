@@ -1546,7 +1546,7 @@ void sequencer_draw_preview(const bContext *C,
                             bool draw_backdrop)
 {
   struct Main *bmain = CTX_data_main(C);
-  struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   struct View2D *v2d = &ar->v2d;
   struct ImBuf *ibuf = NULL;
   struct ImBuf *scope = NULL;

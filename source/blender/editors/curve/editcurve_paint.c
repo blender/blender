@@ -586,7 +586,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   }
   else {
     cdd->vc.bmain = CTX_data_main(C);
-    cdd->vc.depsgraph = CTX_data_depsgraph(C);
+    cdd->vc.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     cdd->vc.scene = CTX_data_scene(C);
     cdd->vc.view_layer = CTX_data_view_layer(C);
     cdd->vc.obedit = CTX_data_edit_object(C);

@@ -135,7 +135,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
           /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
            * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
            * we will loose updates stored in the graph. */
-          engine->type->view_update(engine, C, CTX_data_depsgraph(C));
+          engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
         }
         else {
           RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);

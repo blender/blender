@@ -576,7 +576,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
   SpaceImage *sima = CTX_wm_space_image(C);
   Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   Mask *mask = NULL;
   bool show_uvedit = false;
   bool show_curve = false;

@@ -426,7 +426,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->rv3d = CTX_wm_region_view3d(C);
   walk->v3d = CTX_wm_view3d(C);
   walk->ar = CTX_wm_region(C);
-  walk->depsgraph = CTX_data_depsgraph(C);
+  walk->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   walk->scene = CTX_data_scene(C);
 
 #ifdef NDOF_WALK_DEBUG
@@ -520,7 +520,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->rv3d->rflag |= RV3D_NAVIGATING;
 
   walk->snap_context = ED_transform_snap_object_context_create_view3d(
-      bmain, walk->scene, CTX_data_depsgraph(C), 0, walk->ar, walk->v3d);
+      bmain, walk->scene, CTX_data_ensure_evaluated_depsgraph(C), 0, walk->ar, walk->v3d);
 
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph,

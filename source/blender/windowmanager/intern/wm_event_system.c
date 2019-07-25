@@ -495,7 +495,7 @@ void wm_event_do_notifiers(bContext *C)
        * twice which can depgraph update the same object at once */
       if (G.is_rendering == false) {
         /* depsgraph gets called, might send more notifiers */
-        Depsgraph *depsgraph = CTX_data_depsgraph(C);
+        Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
         ED_update_for_newframe(CTX_data_main(C), depsgraph);
       }
     }

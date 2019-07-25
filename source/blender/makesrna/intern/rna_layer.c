@@ -178,8 +178,8 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr, ViewLayer *view_layer, Main 
 
   Scene *scene = (Scene *)id_ptr;
   Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-  /* NOTE: This is similar to CTX_data_depsgraph(). Ideally such access would be de-duplicated
-   * across all possible cases, but for now this is safest and easiest way to go.
+  /* NOTE: This is similar to CTX_data_depsgraph_pointer(). Ideally such access would be
+   * de-duplicated across all possible cases, but for now this is safest and easiest way to go.
    *
    * The reason for this is that it's possible to have Python operator which asks view layer to
    * be updated. After re-do of such operator view layer's dependency graph will not be marked

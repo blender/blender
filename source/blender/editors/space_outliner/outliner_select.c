@@ -113,7 +113,7 @@ static void do_outliner_activate_obdata(
     bContext *C, Scene *scene, ViewLayer *view_layer, Base *base, const bool extend)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = OBACT(view_layer);
   Object *ob = base->object;
   bool use_all = false;
@@ -161,7 +161,7 @@ static void do_outliner_activate_pose(
     bContext *C, Scene *scene, ViewLayer *view_layer, Base *base, const bool extend)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = OBACT(view_layer);
   Object *ob = base->object;
   bool use_all = false;
@@ -341,7 +341,7 @@ static eOLDrawState tree_element_set_active_object(bContext *C,
       if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
         if (object_mode == OB_MODE_OBJECT) {
           struct Main *bmain = CTX_data_main(C);
-          Depsgraph *depsgraph = CTX_data_depsgraph(C);
+          Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
           ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
         }
         if (!BKE_object_is_mode_compat(base->object, object_mode)) {

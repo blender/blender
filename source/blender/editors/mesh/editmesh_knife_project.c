@@ -57,7 +57,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
                                                Object *ob,
                                                LinkNode *polys)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *ar = CTX_wm_region(C);
   struct Mesh *me_eval;
   bool me_eval_needs_free;
@@ -173,7 +173,7 @@ void MESH_OT_knife_project(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   /* parameters */
   RNA_def_boolean(ot->srna,

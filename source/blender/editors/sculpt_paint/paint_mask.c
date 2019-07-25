@@ -130,7 +130,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
   ARegion *ar = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintMaskFloodMode mode;
   float value;
   PBVH *pbvh;
@@ -277,7 +277,7 @@ static void mask_box_select_task_cb(void *__restrict userdata,
 
 bool ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Sculpt *sd = vc->scene->toolsettings->sculpt;
   BoundBox bb;
   float clip_planes[4][4];
@@ -444,7 +444,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
   const int(*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
   if (mcords) {
-    Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     float clip_planes[4][4], clip_planes_final[4][4];
     BoundBox bb;
     Object *ob;

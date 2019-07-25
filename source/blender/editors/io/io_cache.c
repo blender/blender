@@ -147,7 +147,7 @@ static int cachefile_reload_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_cachefile_reload(depsgraph, cache_file);
 
   return OPERATOR_FINISHED;

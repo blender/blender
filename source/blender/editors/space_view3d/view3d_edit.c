@@ -219,7 +219,7 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
   /* store data */
   op->customdata = vod;
   vod->bmain = CTX_data_main(C);
-  vod->depsgraph = CTX_data_depsgraph(C);
+  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   vod->scene = CTX_data_scene(C);
   vod->sa = CTX_wm_area(C);
   vod->ar = CTX_wm_region(C);
@@ -249,7 +249,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   static float lastofs[3] = {0, 0, 0};
   bool is_set = false;
 
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   View3D *v3d = CTX_wm_view3d(C);
@@ -373,7 +373,7 @@ static void viewops_data_create(bContext *C,
                                 const wmEvent *event,
                                 enum eViewOpsFlag viewops_flag)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewOpsData *vod = op->customdata;
   RegionView3D *rv3d = vod->rv3d;
 
@@ -1317,7 +1317,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewOpsData *vod;
   View3D *v3d;
   RegionView3D *rv3d;
@@ -1397,7 +1397,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     return OPERATOR_CANCELLED;
   }
 
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewOpsData *vod;
   View3D *v3d;
   RegionView3D *rv3d;
@@ -1511,7 +1511,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const wmNDOFMotionData *ndof = event->customdata;
@@ -2188,7 +2188,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int viewzoom_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   View3D *v3d;
   RegionView3D *rv3d;
@@ -2553,7 +2553,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 
   ED_view3d_depth_tag_update(rv3d);
 
-  ED_view3d_camera_lock_sync(CTX_data_depsgraph(C), v3d, rv3d);
+  ED_view3d_camera_lock_sync(CTX_data_ensure_evaluated_depsgraph(C), v3d, rv3d);
 
   ED_region_tag_redraw(ar);
 
@@ -2588,7 +2588,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (vod->rv3d->persp != RV3D_PERSP) {
     if (vod->rv3d->persp == RV3D_CAMOB) {
       /* ignore rv3d->lpersp because dolly only makes sense in perspective mode */
-      const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+      const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       ED_view3d_persp_switch_from_camera(depsgraph, vod->v3d, vod->rv3d, RV3D_PERSP);
     }
     else {
@@ -2749,8 +2749,9 @@ static void view3d_from_minmax(bContext *C,
     }
 
     if (ok_dist) {
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       new_dist = ED_view3d_radius_to_dist(
-          v3d, ar, CTX_data_depsgraph(C), persp, true, (size / 2) * VIEW3D_MARGIN);
+          v3d, ar, depsgraph, persp, true, (size / 2) * VIEW3D_MARGIN);
       if (rv3d->is_persp) {
         /* don't zoom closer than the near clipping plane */
         new_dist = max_ff(new_dist, v3d->clip_start * 1.5f);
@@ -2817,7 +2818,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Scene *scene = CTX_data_scene(C);
-  const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Base *base_eval;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -2922,7 +2923,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Object *ob_eval = OBACT(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
@@ -3120,7 +3121,8 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 
     if (obact && obact->type == OB_ARMATURE) {
       if (obact->mode & OB_MODE_POSE) {
-        Object *obact_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), obact);
+        Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+        Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
         bPoseChannel *pcham_act = BKE_pose_channel_active(obact_eval);
         if (pcham_act) {
           BLI_strncpy(v3d->ob_centre_bone, pcham_act->name, sizeof(v3d->ob_centre_bone));
@@ -3216,7 +3218,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   ARegion *ar = CTX_wm_region(C);
 
   if (rv3d) {
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     float new_ofs[3];
     const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
@@ -3262,7 +3264,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   float xfac, yfac;
   float size[2];
@@ -3361,7 +3363,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
   /* calculate range */
 
   if (rv3d->persp == RV3D_CAMOB) {
-    Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &vb, false);
   }
   else {
@@ -3530,7 +3532,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
   ED_view3d_dist_range_get(v3d, dist_range);
 
   /* Get Z Depths, needed for perspective, nice for ortho */
-  ED_view3d_draw_depth(CTX_data_depsgraph(C), ar, v3d, true);
+  ED_view3d_draw_depth(CTX_data_ensure_evaluated_depsgraph(C), ar, v3d, true);
 
   {
     /* avoid allocating the whole depth buffer */
@@ -3619,7 +3621,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* TODO(campbell): 'is_camera_lock' not currently working well. */
   const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
   if ((rv3d->persp == RV3D_CAMOB) && (is_camera_lock == false)) {
-    Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
   }
 
@@ -3686,7 +3688,7 @@ static void view3d_set_1_to_1_viewborder(Scene *scene,
 
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
 
   View3D *v3d;
@@ -3794,7 +3796,8 @@ static void axis_set_view(bContext *C,
     dist = rv3d->dist;
 
     /* so we animate _from_ the camera location */
-    Object *camera_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), v3d->camera);
+    Object *camera_eval = DEG_get_evaluated_object(CTX_data_ensure_evaluated_depsgraph(C),
+                                                   v3d->camera);
     ED_view3d_from_object(camera_eval, rv3d->ofs, NULL, &rv3d->dist, NULL);
 
     ED_view3d_smooth_view(C,
@@ -4124,7 +4127,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
       float quat_new[4];
 
       if (view_opposite == RV3D_VIEW_USER) {
-        const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
         ED_view3d_persp_ensure(depsgraph, v3d, ar);
       }
 
@@ -4874,7 +4877,7 @@ void ED_view3d_cursor3d_position(bContext *C,
   }
 
   if (use_depth) { /* maybe this should be accessed some other way */
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
     view3d_operator_needs_opengl(C);
     if (ED_view3d_autodist(depsgraph, ar, v3d, mval, cursor_co, true, NULL)) {
@@ -4930,7 +4933,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_co[3];
 
     struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-        bmain, scene, CTX_data_depsgraph(C), 0, ar, v3d);
+        bmain, scene, CTX_data_ensure_evaluated_depsgraph(C), 0, ar, v3d);
 
     float obmat[4][4];
     Object *ob_dummy = NULL;

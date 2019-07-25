@@ -1082,7 +1082,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 static void view3d_draw_border(const bContext *C, ARegion *ar)
 {
   Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   RegionView3D *rv3d = ar->regiondata;
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -1453,7 +1453,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 static void view3d_draw_view(const bContext *C, ARegion *ar)
 {
   ED_view3d_draw_setup_view(CTX_wm_window(C),
-                            CTX_data_depsgraph(C),
+                            CTX_data_expect_evaluated_depsgraph(C),
                             CTX_data_scene(C),
                             ar,
                             CTX_wm_view3d(C),

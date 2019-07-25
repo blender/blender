@@ -111,8 +111,6 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   int totitem = 0;
   const int data_type = RNA_enum_get(ptr, "data_type");
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_reverse_transfer");
   const bool reverse_transfer = prop != NULL && RNA_property_boolean_get(ptr, prop);
   const int layers_select_dst = reverse_transfer ? RNA_enum_get(ptr, "layers_select_src") :
@@ -158,6 +156,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       Mesh *me_eval;
       int num_data, i;
 
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
@@ -183,6 +182,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       Mesh *me_eval;
       int num_data, i;
 
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
@@ -397,7 +397,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
 static int data_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_src = ED_object_active_context(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   ListBase ctx_objects;
@@ -613,7 +613,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
   ot->check = data_transfer_check;
 
   /* Flags.*/
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties.*/
   prop = RNA_def_boolean(ot->srna,
@@ -767,7 +767,7 @@ static bool datalayout_transfer_poll(bContext *C)
 static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_act = ED_object_active_context(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   DataTransferModifierData *dtmd;
 
@@ -873,7 +873,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
   ot->check = data_transfer_check;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties.*/
   edit_modifier_properties(ot);

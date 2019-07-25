@@ -71,7 +71,15 @@
  * that are bone-parented to armature */
 static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Object *armob)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* Depsgraph has been ensured to be evaluated at the beginning of the operator.
+   *
+   * Must not evaluate depsgraph here yet, since this will ruin object matrix which we want to
+   * preserve after other changes has been done in the operator.
+   *
+   * TODO(sergey): This seems very similar to `ignore_parent_tx()`, which was now ensured to work
+   * quite reliably. Can we de-duplicate the code? Or at least verify we don't need an extra logic
+   * in this function. */
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Main *bmain = CTX_data_main(C);
   Object workob, *ob;
 
@@ -318,7 +326,7 @@ static void applyarmature_process_selected_rec(bArmature *arm,
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   // must be active object, not edit-object
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
@@ -422,7 +430,7 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
   ot->ui = apply_armature_pose2bones_ui;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna,
                   "selected",
@@ -436,7 +444,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     /* loop over all selected pchans
@@ -1026,6 +1034,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
                                              void (*clear_func)(bPoseChannel *),
                                              const char default_ksName[])
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   bool changed_multi = false;
 
@@ -1041,8 +1050,8 @@ static int pose_clear_transform_generic_exec(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
   FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
-    Object *ob_eval = DEG_get_evaluated_object(
-        CTX_data_depsgraph(C), ob_iter);  // XXX: UGLY HACK (for autokey + clear transforms)
+    // XXX: UGLY HACK (for autokey + clear transforms)
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
     ListBase dsources = {NULL, NULL};
     bool changed = false;
 

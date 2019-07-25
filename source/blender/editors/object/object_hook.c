@@ -528,7 +528,7 @@ static int add_hook_object(const bContext *C,
                            int mode,
                            ReportList *reports)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ModifierData *md = NULL;
   HookModifierData *hmd = NULL;
   float cent[3];
@@ -603,13 +603,14 @@ static int add_hook_object(const bContext *C,
   /* matrix calculus */
   /* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
   /*        (parentinv         )                          */
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  BKE_object_transform_copy(ob_eval, ob);
-  BKE_object_where_is_calc(depsgraph, scene, ob_eval);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  BKE_object_transform_copy(object_eval, ob);
+  BKE_object_where_is_calc(depsgraph, scene_eval, object_eval);
 
-  invert_m4_m4(ob_eval->imat, ob_eval->obmat);
+  invert_m4_m4(object_eval->imat, object_eval->obmat);
   /* apparently this call goes from right to left... */
-  mul_m4_series(hmd->parentinv, pose_mat, ob_eval->imat, obedit->obmat);
+  mul_m4_series(hmd->parentinv, pose_mat, object_eval->imat, obedit->obmat);
 
   DEG_relations_tag_update(bmain);
 

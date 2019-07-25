@@ -273,7 +273,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
 static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = oglrender->scene;
   ARegion *ar = oglrender->ar;
   View3D *v3d = oglrender->v3d;
@@ -592,7 +592,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->scene = scene;
   oglrender->workspace = workspace;
   oglrender->view_layer = CTX_data_view_layer(C);
-  oglrender->depsgraph = CTX_data_depsgraph(C);
+  /* NOTE: The depsgraph is not only used to update scene for a new frames, but also to initialize
+   * output video handles, which does need evaluated scene. */
+  oglrender->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   oglrender->cfrao = scene->r.cfra;
   oglrender->ofs_samples = samples;
 

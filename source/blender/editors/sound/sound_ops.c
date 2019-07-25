@@ -305,7 +305,9 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  /* NOTE: We will be forefully evaluating dependency graph at every frame, so no need to ensure
+   * current scene state is evaluated as it will be lost anyway. */
+  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   int oldfra = scene->r.cfra;
   int cfra;
 
@@ -343,7 +345,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 #ifdef WITH_AUDASPACE
   char path[FILE_MAX];
   char filename[FILE_MAX];
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Main *bmain = CTX_data_main(C);
   int split;

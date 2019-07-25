@@ -1213,7 +1213,7 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->ar = CTX_wm_region(C);
   tgpf->rv3d = tgpf->ar->regiondata;
   tgpf->v3d = tgpf->sa->spacedata.first;
-  tgpf->depsgraph = CTX_data_depsgraph(C);
+  tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
 
   /* set GP datablock */

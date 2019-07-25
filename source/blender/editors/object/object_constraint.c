@@ -864,13 +864,12 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
 /* ------------- Child-Of Constraint ------------------ */
 
 static void child_get_inverse_matrix_owner_bone(
-    const bContext *C, wmOperator *op, Scene *scene, Object *ob, float invmat[4][4])
+    Depsgraph *depsgraph, wmOperator *op, Scene *scene, Object *ob, float invmat[4][4])
 {
   /* For bone owner we want to do this in evaluated domain.
    * BKE_pose_where_is / BKE_pose_where_is_bone relies on (re)evaluating parts of the scene
    * and copying new evaluated stuff back to original.
    */
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bConstraint *con_eval = edit_constraint_property_get(op, ob_eval, CONSTRAINT_TYPE_CHILDOF);
 
@@ -947,9 +946,8 @@ static void child_get_inverse_matrix_owner_bone(
 }
 
 static void child_get_inverse_matrix_owner_object(
-    const bContext *C, Scene *scene, Object *ob, bConstraint *con, float invmat[4][4])
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bConstraint *con, float invmat[4][4])
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
   /* nullify inverse matrix first */
   unit_m4(invmat);
@@ -971,6 +969,7 @@ static void child_get_inverse_matrix_owner_object(
 static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
@@ -985,10 +984,10 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
   }
 
   if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
-    child_get_inverse_matrix_owner_object(C, scene, ob, con, data->invmat);
+    child_get_inverse_matrix_owner_object(depsgraph, scene, ob, con, data->invmat);
   }
   else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
-    child_get_inverse_matrix_owner_bone(C, op, scene, ob, data->invmat);
+    child_get_inverse_matrix_owner_bone(depsgraph, op, scene, ob, data->invmat);
   }
 
   ED_object_constraint_update(bmain, ob);
@@ -1224,6 +1223,7 @@ void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
 static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
@@ -1238,10 +1238,10 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
   }
 
   if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
-    child_get_inverse_matrix_owner_object(C, scene, ob, con, data->invmat);
+    child_get_inverse_matrix_owner_object(depsgraph, scene, ob, con, data->invmat);
   }
   else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
-    child_get_inverse_matrix_owner_bone(C, op, scene, ob, data->invmat);
+    child_get_inverse_matrix_owner_bone(depsgraph, op, scene, ob, data->invmat);
   }
 
   ED_object_constraint_update(bmain, ob);

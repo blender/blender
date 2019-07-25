@@ -1731,9 +1731,6 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
     if (IS_AUTOKEY_MODE(scene, NORMAL)) {
       // remake_action_ipos(ob->action);
     }
-    else {
-      BKE_pose_where_is(CTX_data_depsgraph(C), scene, ob);
-    }
   }
 
   /* Request final redraw of the view. */

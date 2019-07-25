@@ -464,7 +464,7 @@ static const EnumPropertyItem *rigidbody_materials_itemf(bContext *UNUSED(C),
 
 static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   int material = RNA_enum_get(op->ptr, "material");
   float density;
   bool changed = false;
@@ -537,7 +537,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   ot->poll = ED_operator_scene_editable;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
   ot->prop = prop = RNA_def_enum(

@@ -270,7 +270,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   fly->rv3d = CTX_wm_region_view3d(C);
   fly->v3d = CTX_wm_view3d(C);
   fly->ar = CTX_wm_region(C);
-  fly->depsgraph = CTX_data_depsgraph(C);
+  fly->depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   fly->scene = CTX_data_scene(C);
 
 #ifdef NDOF_FLY_DEBUG
@@ -337,12 +337,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     fly->zlock = FLY_AXISLOCK_STATE_IDLE;
   }
 
-  fly->v3d_camera_control = ED_view3d_cameracontrol_acquire(CTX_data_depsgraph(C),
-                                                            fly->scene,
-                                                            fly->v3d,
-                                                            fly->rv3d,
-                                                            (U.uiflag & USER_CAM_LOCK_NO_PARENT) ==
-                                                                0);
+  fly->v3d_camera_control = ED_view3d_cameracontrol_acquire(
+      fly->depsgraph, fly->scene, fly->v3d, fly->rv3d, (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
   /* calculate center */
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {

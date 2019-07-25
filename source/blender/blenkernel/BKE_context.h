@@ -318,7 +318,14 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
  * evaluated data points of view.
  *
  * NOTE: Can not be used if access to a fully evaluated datablock is needed. */
-struct Depsgraph *CTX_data_depsgraph(const bContext *C);
+struct Depsgraph *CTX_data_depsgraph_pointer(const bContext *C);
+
+/* Get dependency graph which is expected to be fully evaluated.
+ *
+ * In the release builds it is the same as CTX_data_depsgraph_pointer(). In the debug builds extra
+ * sanity checks are done. Additionally, this provides more semantic meaning to what is exactly
+ * expected to happen. */
+struct Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
 
 /* Gets fully updated and evaluated dependency graph.
  *
@@ -326,7 +333,7 @@ struct Depsgraph *CTX_data_depsgraph(const bContext *C);
  *
  * NOTE: Will be expensive if there are relations or objects tagged for update.
  * NOTE: If there are pending updates depsgraph hooks will be invoked. */
-struct Depsgraph *CTX_data_evaluated_depsgraph(const bContext *C);
+struct Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
 
 /* Will Return NULL if depsgraph is not allocated yet.
  * Only used by handful of operators which are run on file load.
