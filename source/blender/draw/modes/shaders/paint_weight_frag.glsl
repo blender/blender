@@ -95,6 +95,11 @@ void main()
     color = mix(weight_color, colorVertexUnreferenced, alert * alert);
   }
 
+#ifdef DRW_STATE_BLEND_ALPHA
+  /* alpha blending mix */
+  fragColor = vec4(color.rgb, opacity);
+#else
   /* mix with 1.0 -> is like opacity when using multiply blend mode */
   fragColor = vec4(mix(vec3(1.0), color.rgb, opacity), 1.0);
+#endif
 }

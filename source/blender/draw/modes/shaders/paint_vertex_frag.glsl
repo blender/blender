@@ -2,7 +2,7 @@
 in vec3 finalColor;
 
 out vec4 fragColor;
-uniform float white_factor = 1.0;
+uniform float opacity = 1.0;
 
 vec3 linear_to_srgb_attr(vec3 c)
 {
@@ -14,6 +14,11 @@ vec3 linear_to_srgb_attr(vec3 c)
 
 void main()
 {
-  fragColor.rgb = mix(linear_to_srgb_attr(finalColor), vec3(1.0), white_factor);
+  vec3 color = linear_to_srgb_attr(finalColor);
+#ifdef DRW_STATE_BLEND_ALPHA
+  fragColor = vec4(color, opacity);
+#else
+  fragColor.rgb = mix(vec3(1.0), color, opacity);
   fragColor.a = 1.0;
+#endif
 }

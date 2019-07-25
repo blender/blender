@@ -78,7 +78,8 @@ typedef struct PAINT_VERTEX_Data {
 
 typedef struct PAINT_VERTEX_Shaders {
   struct {
-    struct GPUShader *color_face;
+    struct GPUShader *color_face_mul_blending;
+    struct GPUShader *color_face_alpha_blending;
     struct GPUShader *wire_overlay;
     struct GPUShader *wire_select_overlay;
   } by_mode[MODE_LEN];
@@ -114,7 +115,7 @@ static void PAINT_VERTEX_engine_init(void *vedata)
   const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
   if (!sh_data->face_select_overlay) {
-    sh_data->by_mode[VERTEX_MODE].color_face = GPU_shader_create_from_arrays({
+    sh_data->by_mode[VERTEX_MODE].color_face_mul_blending = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
                                  datatoc_common_view_lib_glsl,
                                  datatoc_paint_vertex_vert_glsl,
@@ -122,7 +123,15 @@ static void PAINT_VERTEX_engine_init(void *vedata)
         .frag = (const char *[]){datatoc_paint_vertex_frag_glsl, NULL},
         .defs = (const char *[]){sh_cfg_data->def, NULL},
     });
-    sh_data->by_mode[WEIGHT_MODE].color_face = GPU_shader_create_from_arrays({
+    sh_data->by_mode[VERTEX_MODE].color_face_alpha_blending = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_paint_vertex_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_paint_vertex_frag_glsl, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define DRW_STATE_BLEND_ALPHA\n", NULL},
+    });
+    sh_data->by_mode[WEIGHT_MODE].color_face_mul_blending = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
                                  datatoc_common_view_lib_glsl,
                                  datatoc_common_globals_lib_glsl,
@@ -131,7 +140,18 @@ static void PAINT_VERTEX_engine_init(void *vedata)
         .frag = (const char *[]){datatoc_common_globals_lib_glsl,
                                  datatoc_paint_weight_frag_glsl,
                                  NULL},
-        .defs = (const char *[]){sh_cfg_data->def, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define DRW_STATE_BLEND_MUL\n", NULL},
+    });
+    sh_data->by_mode[WEIGHT_MODE].color_face_alpha_blending = GPU_shader_create_from_arrays({
+        .vert = (const char *[]){sh_cfg_data->lib,
+                                 datatoc_common_view_lib_glsl,
+                                 datatoc_common_globals_lib_glsl,
+                                 datatoc_paint_weight_vert_glsl,
+                                 NULL},
+        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
+                                 datatoc_paint_weight_frag_glsl,
+                                 NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define DRW_STATE_BLEND_ALPHA\n", NULL},
     });
 
     sh_data->face_select_overlay = GPU_shader_create_from_arrays({
@@ -140,7 +160,7 @@ static void PAINT_VERTEX_engine_init(void *vedata)
                                  datatoc_paint_face_selection_vert_glsl,
                                  NULL},
         .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, NULL},
+        .defs = (const char *[]){sh_cfg_data->def, "#define DRW_STATE_BLEND_MUL\n", NULL},
     });
     sh_data->vert_select_overlay = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg_data->lib,
@@ -195,13 +215,17 @@ static void PAINT_VERTEX_cache_init(void *vedata)
   const RegionView3D *rv3d = draw_ctx->rv3d;
   PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
+  const bool use_alpha_blending = draw_ctx->v3d->shading.type == OB_WIRE;
+  DRWState draw_state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL |
+                        (use_alpha_blending ? DRW_STATE_BLEND_ALPHA : DRW_STATE_BLEND_MUL);
   /* Vertex color pass */
   {
-    DRWPass *pass = DRW_pass_create(
-        "Vert Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL);
-    DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[VERTEX_MODE].color_face, pass);
-    DRW_shgroup_uniform_float_copy(
-        shgrp, "white_factor", 1.0f - v3d->overlay.vertex_paint_mode_opacity);
+    DRWPass *pass = DRW_pass_create("Vert Color Pass", draw_state);
+    GPUShader *shader = use_alpha_blending ?
+                            sh_data->by_mode[VERTEX_MODE].color_face_alpha_blending :
+                            sh_data->by_mode[VERTEX_MODE].color_face_mul_blending;
+    DRWShadingGroup *shgrp = DRW_shgroup_create(shader, pass);
+    DRW_shgroup_uniform_float(shgrp, "opacity", &v3d->overlay.vertex_paint_mode_opacity, 1);
     if (rv3d->rflag & RV3D_CLIPPING) {
       DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
     }
@@ -211,9 +235,11 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 
   /* Weight color pass */
   {
-    DRWPass *pass = DRW_pass_create(
-        "Weight Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_MUL);
-    DRWShadingGroup *shgrp = DRW_shgroup_create(sh_data->by_mode[WEIGHT_MODE].color_face, pass);
+    DRWPass *pass = DRW_pass_create("Weight Pass", draw_state);
+    GPUShader *shader = use_alpha_blending ?
+                            sh_data->by_mode[WEIGHT_MODE].color_face_alpha_blending :
+                            sh_data->by_mode[WEIGHT_MODE].color_face_mul_blending;
+    DRWShadingGroup *shgrp = DRW_shgroup_create(shader, pass);
     DRW_shgroup_uniform_bool_copy(
         shgrp, "drawContours", (v3d->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0);
     DRW_shgroup_uniform_float(shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
