@@ -1606,6 +1606,11 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   float sizey_solid = sizey * 0.25f;
   float y1 = rect->ymin;
 
+  /* exit early if too narrow */
+  if (sizex <= 0) {
+    return;
+  }
+
   GPUVertFormat *format = immVertexFormat();
   pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
