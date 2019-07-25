@@ -340,8 +340,11 @@ void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bo
  */
 void WM_operator_properties_use_cursor_init(wmOperatorType *ot)
 {
-  PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "use_cursor_init", true, "Cursor Init", "Use initial cursor position");
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "use_cursor_init",
+                                      true,
+                                      "Use Mouse Position",
+                                      "Allow the initial mouse position to be used");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
