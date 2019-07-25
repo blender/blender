@@ -747,6 +747,7 @@ static void clear_animdata_cb(int UNUSED(event),
                               void *UNUSED(arg))
 {
   BKE_animdata_free(tselem->id, true);
+  DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
 static void unlinkact_animdata_cb(int UNUSED(event),
@@ -756,6 +757,7 @@ static void unlinkact_animdata_cb(int UNUSED(event),
 {
   /* just set action to NULL */
   BKE_animdata_set_action(NULL, tselem->id, NULL);
+  DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
 static void cleardrivers_animdata_cb(int UNUSED(event),
@@ -767,6 +769,7 @@ static void cleardrivers_animdata_cb(int UNUSED(event),
 
   /* just free drivers - stored as a list of F-Curves */
   free_fcurves(&iat->adt->drivers);
+  DEG_id_tag_update(tselem->id, ID_RECALC_ANIMATION);
 }
 
 static void refreshdrivers_animdata_cb(int UNUSED(event),
@@ -1899,7 +1902,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
   eOutliner_AnimDataOps event;
-  short updateDeps = 0;
 
   /* check for invalid states */
   if (soops == NULL) {
@@ -1943,7 +1945,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
       // ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
-      updateDeps = 1;
       break;
 
     case OUTLINER_ANIMOP_CLEAR_DRV:
@@ -1952,7 +1953,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
       ED_undo_push(C, "Clear Drivers");
-      updateDeps = 1;
       break;
 
     default:  // invalid
@@ -1960,10 +1960,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
   }
 
   /* update dependencies */
-  if (updateDeps) {
-    /* rebuild depsgraph for the new deps */
-    DEG_relations_tag_update(CTX_data_main(C));
-  }
+  DEG_relations_tag_update(CTX_data_main(C));
 
   return OPERATOR_FINISHED;
 }
