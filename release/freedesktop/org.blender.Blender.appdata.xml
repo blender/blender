@@ -10,15 +10,15 @@
         <p>
             Blender is the free and open source 3D creation suite. It supports
             the entirety of the 3D pipeline — modeling, rigging, animation,
-            simulation, rendering, compositing and motion tracking, even video
-            editing and game creation.
+            simulation, rendering, compositing, motion tracking, and video
+            editing.
         </p>
 
         <p>
-            Advanced users can employ Blender’s API for Python scripting to
-            customize the application and write specialized tools. Blender is
-            well suited to individuals and small studios who benefit from its
-            unified pipeline and responsive development process.
+            Blender is a public project, made by hundreds of people from around the
+            world; by studios and individual artists, professionals and hobbyists,
+            scientists, students, VFX experts, animators, game artists, modders, and
+            the list goes on.
         </p>
     </description>
     <url type="homepage">https://www.blender.org</url>
@@ -40,7 +40,7 @@
         </screenshot>
     </screenshots>
     <releases>
-        <release version="2.80" date="2019-07-18">
+        <release version="2.80" date="2019-07-30">
             <description>
                 <p>New features:</p>
                 <ul>
