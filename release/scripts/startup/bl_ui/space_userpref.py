@@ -1700,6 +1700,7 @@ class USERPREF_PT_addons(Panel):
     def draw(self, context):
         import os
         import addon_utils
+        from bl_ui_utils.bug_report_url import url_prefill_from_blender
 
         layout = self.layout
 
@@ -1879,7 +1880,7 @@ class USERPREF_PT_addons(Panel):
                                 "wm.url_open", text="Report a Bug", icon='URL',
                             ).url = info.get(
                                 "tracker_url",
-                                "https://developer.blender.org/maniphest/task/edit/form/2",
+                                url_prefill_from_blender(info),
                             )
                         if user_addon:
                             sub.operator(
