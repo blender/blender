@@ -507,7 +507,7 @@ static void image_undosys_step_decode_redo_impl(ImageUndoStep *us)
   us->step.is_applied = true;
 }
 
-static void image_undosys_step_decode_undo(ImageUndoStep *us)
+static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
 {
   ImageUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
@@ -516,8 +516,11 @@ static void image_undosys_step_decode_undo(ImageUndoStep *us)
     }
     us_iter = (ImageUndoStep *)us_iter->step.next;
   }
-  while (us_iter != us) {
+  while (us_iter != us || (is_final && us_iter == us)) {
     image_undosys_step_decode_undo_impl(us_iter);
+    if (is_final) {
+      break;
+    }
     us_iter = (ImageUndoStep *)us_iter->step.prev;
   }
 }
@@ -541,7 +544,7 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
 }
 
 static void image_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool UNUSED(is_final))
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool is_final)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
 #if 0
@@ -549,7 +552,7 @@ static void image_undosys_step_decode(
 #endif
 
   if (dir < 0) {
-    image_undosys_step_decode_undo(us);
+    image_undosys_step_decode_undo(us, is_final);
   }
   else {
     image_undosys_step_decode_redo(us);
