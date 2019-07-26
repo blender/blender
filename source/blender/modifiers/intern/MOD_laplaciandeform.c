@@ -671,8 +671,9 @@ static void LaplacianDeformModifier_do(
               &lmd->modifier, "Edges changed from %d to %d", sys->total_edges, mesh->totedge);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
-          modifier_setError(
-              &lmd->modifier, "Vertex group '%s' is not valid", sys->anchor_grp_name);
+          modifier_setError(&lmd->modifier,
+                            "Vertex group '%s' is not valid, or maybe empty",
+                            sys->anchor_grp_name);
         }
       }
     }
@@ -683,7 +684,8 @@ static void LaplacianDeformModifier_do(
   }
   else {
     if (!isValidVertexGroup(lmd, ob, mesh)) {
-      modifier_setError(&lmd->modifier, "Vertex group '%s' is not valid", lmd->anchor_grp_name);
+      modifier_setError(
+          &lmd->modifier, "Vertex group '%s' is not valid, or maybe empty", lmd->anchor_grp_name);
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
     else if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
