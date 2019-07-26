@@ -36,6 +36,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_appdir.h"
 #include "BKE_brush.h"
@@ -357,6 +359,20 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
                    &gp_primitive_curve->clipr,
                    CURVE_PRESET_BELL,
                    CURVEMAP_SLOPE_POSITIVE);
+  }
+
+  /* Correct default startup UV's. */
+  Mesh *me = BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2);
+  if (me && (me->totloop == 24) && (me->mloopuv != NULL)) {
+    const float uv_values[24][2] = {
+        {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
+        {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
+        {0.125, 0.50}, {0.375, 0.50}, {0.375, 0.75}, {0.125, 0.75}, {0.375, 0.50}, {0.625, 0.50},
+        {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
+    };
+    for (int i = 0; i < ARRAY_SIZE(uv_values); i++) {
+      copy_v2_v2(me->mloopuv[i].uv, uv_values[i]);
+    }
   }
 }
 
