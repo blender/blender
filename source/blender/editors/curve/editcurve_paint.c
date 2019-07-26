@@ -89,8 +89,6 @@ struct StrokeElem {
 };
 
 struct CurveDrawData {
-  Depsgraph *depsgraph;
-
   short init_event_type;
   short curve_type;
 
@@ -577,8 +575,6 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   BLI_assert(op->customdata == NULL);
 
   struct CurveDrawData *cdd = MEM_callocN(sizeof(*cdd), __func__);
-
-  cdd->depsgraph = CTX_data_depsgraph(C);
 
   if (is_invoke) {
     ED_view3d_viewcontext_init(C, &cdd->vc);
