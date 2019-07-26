@@ -516,9 +516,9 @@ static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
     }
     us_iter = (ImageUndoStep *)us_iter->step.next;
   }
-  while (us_iter != us || (is_final && us_iter == us)) {
+  while (us_iter != us || (!is_final && us_iter == us)) {
     image_undosys_step_decode_undo_impl(us_iter);
-    if (is_final) {
+    if (us_iter == us) {
       break;
     }
     us_iter = (ImageUndoStep *)us_iter->step.prev;
