@@ -69,7 +69,10 @@ typedef struct UndoImageTile {
 
   int x, y;
 
-  Image *ima;
+  /* TODO(campbell): avoid storing the ID per tile,
+   * adds unnecessary overhead restoring undo steps when most tiles share the same image. */
+  UndoRefID_Image image_ref;
+
   short source, use_float;
   char gen_type;
   bool valid;
@@ -245,7 +248,7 @@ void *image_undo_push_tile(ListBase *undo_tiles,
   tile->source = ima->source;
   tile->use_float = use_float;
   tile->valid = true;
-  tile->ima = ima;
+  tile->image_ref.ptr = ima;
 
   if (valid) {
     *valid = &tile->valid;
@@ -284,7 +287,7 @@ static void image_undo_restore_runtime(ListBase *lb)
   tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
   for (tile = lb->first; tile; tile = tile->next) {
-    Image *ima = tile->ima;
+    Image *ima = tile->image_ref.ptr;
     ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
     undo_copy_tile(tile, tmpibuf, ibuf, RESTORE);
@@ -304,19 +307,15 @@ static void image_undo_restore_runtime(ListBase *lb)
   IMB_freeImBuf(tmpibuf);
 }
 
-static void image_undo_restore_list(ListBase *lb, struct UndoIDPtrMap *id_map)
+static void image_undo_restore_list(ListBase *lb)
 {
   ImBuf *tmpibuf = IMB_allocImBuf(
       IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
-  /* Store last found image. */
-  ID *image_prev[2] = {NULL};
-
   for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
     short use_float;
 
-    Image *ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(id_map, &tile->ima->id, image_prev);
-
+    Image *ima = tile->image_ref.ptr;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
     if (ima && ibuf && !STREQ(tile->ibufname, ibuf->name)) {
@@ -398,32 +397,7 @@ typedef struct ImageUndoStep {
   ListBase tiles;
   bool is_encode_init;
   ePaintMode paint_mode;
-
-  /* Use for all ID lookups (can be NULL). */
-  struct UndoIDPtrMap *id_map;
 } ImageUndoStep;
-
-static void image_undosys_step_encode_store_ids(ImageUndoStep *us)
-{
-  us->id_map = BKE_undosys_ID_map_create();
-
-  ID *image_prev = NULL;
-  for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
-    BKE_undosys_ID_map_add_with_prev(us->id_map, &tile->ima->id, &image_prev);
-  }
-}
-
-/* Restore at runtime. */
-#if 0
-static void paint_undosys_step_decode_restore_ids(ImageUndoStep *us)
-{
-  ID *image_prev[2] = {NULL};
-  for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
-    tile->ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(
-        us->id_map, &tile->ima->id, image_prev);
-  }
-}
-#endif
 
 static bool image_undosys_poll(bContext *C)
 {
@@ -486,8 +460,6 @@ static bool image_undosys_step_encode(struct bContext *C,
     us->paint_mode = paint_mode;
   }
 
-  image_undosys_step_encode_store_ids(us);
-
   us_p->is_applied = true;
 
   return true;
@@ -496,14 +468,14 @@ static bool image_undosys_step_encode(struct bContext *C,
 static void image_undosys_step_decode_undo_impl(ImageUndoStep *us)
 {
   BLI_assert(us->step.is_applied == true);
-  image_undo_restore_list(&us->tiles, us->id_map);
+  image_undo_restore_list(&us->tiles);
   us->step.is_applied = false;
 }
 
 static void image_undosys_step_decode_redo_impl(ImageUndoStep *us)
 {
   BLI_assert(us->step.is_applied == false);
-  image_undo_restore_list(&us->tiles, us->id_map);
+  image_undo_restore_list(&us->tiles);
   us->step.is_applied = true;
 }
 
@@ -547,10 +519,6 @@ static void image_undosys_step_decode(
     struct bContext *C, struct Main *bmain, UndoStep *us_p, int dir, bool is_final)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-#if 0
-  paint_undosys_step_decode_restore_ids(us);
-#endif
-
   if (dir < 0) {
     image_undosys_step_decode_undo(us, is_final);
   }
@@ -570,7 +538,6 @@ static void image_undosys_step_free(UndoStep *us_p)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
   image_undo_free_list(&us->tiles);
-  BKE_undosys_ID_map_destroy(us->id_map);
 }
 
 static void image_undosys_foreach_ID_ref(UndoStep *us_p,
@@ -578,8 +545,8 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
                                          void *user_data)
 {
   ImageUndoStep *us = (ImageUndoStep *)us_p;
-  if (us->id_map != NULL) {
-    BKE_undosys_ID_map_foreach_ID_ref(us->id_map, foreach_ID_ref_fn, user_data);
+  for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
+    foreach_ID_ref_fn(user_data, ((UndoRefID *)&tile->image_ref));
   }
 }
 
