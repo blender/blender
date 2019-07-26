@@ -560,12 +560,15 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
   }
 
   if (use_memfile_step) {
-    const char *name_internal = "MemFile Internal (post)";
+    /* Make this the user visible undo state, so redo always applies
+     * on top of the mem-file undo instead of skipping it. see: T67256. */
+    UndoStep *us_prev = ustack->step_active;
+    const char *name_internal = us_prev->name;
     const bool ok = undosys_stack_push_main(ustack, name_internal, G_MAIN);
     if (ok) {
       UndoStep *us = ustack->steps.last;
       BLI_assert(STREQ(us->name, name_internal));
-      us->skip = true;
+      us_prev->skip = true;
 #ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
       ustack->step_active_memfile = us;
 #endif
