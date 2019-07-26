@@ -302,8 +302,8 @@ typedef enum eGP_SelectGrouped {
 /* On each visible layer, check for selected strokes - if found, select all others */
 static void gp_select_same_layer(bContext *C)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);

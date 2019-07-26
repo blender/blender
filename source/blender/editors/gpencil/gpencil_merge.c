@@ -98,11 +98,11 @@ static void gpencil_insert_points_to_stroke(bGPDstroke *gps,
 static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpoints)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
 
   const bool back = RNA_boolean_get(op->ptr, "back");
   const bool additive = RNA_boolean_get(op->ptr, "additive");

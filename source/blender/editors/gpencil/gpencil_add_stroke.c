@@ -215,8 +215,8 @@ static const ColorTemplate gp_stroke_material_grey = {
 void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
   bGPdata *gpd = (bGPdata *)ob->data;
   bGPDstroke *gps;
 

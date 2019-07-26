@@ -2089,7 +2089,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 {
   Scene *scene = p->scene;
   ToolSettings *ts = scene->toolsettings;
-  int cfra_eval = (int)DEG_get_ctime(p->depsgraph);
+  int cfra_eval = CFRA;
 
   /* get active layer (or add a new one if non-existent) */
   p->gpl = BKE_gpencil_layer_getactive(p->gpd);

@@ -1274,8 +1274,8 @@ static void gp_layer_to_curve(bContext *C,
   struct Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Collection *collection = CTX_data_collection(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
 
   bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
   bGPDstroke *gps, *prev_gps = NULL;
@@ -1406,8 +1406,8 @@ static void gp_layer_to_curve(bContext *C,
  */
 static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
 
   bGPDframe *gpf = NULL;
   bGPDstroke *gps = NULL;
@@ -1468,8 +1468,8 @@ static void gp_convert_set_end_frame(struct Main *UNUSED(main),
 static bool gp_convert_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  Scene *scene = CTX_data_scene(C);
+  int cfra_eval = CFRA;
 
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return false;
