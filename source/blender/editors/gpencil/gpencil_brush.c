@@ -1477,7 +1477,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso,
 
       /* Skip if neither one is selected
        * (and we are only allowed to edit/consider selected points) */
-      if (gso->settings->flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) {
+      if ((gso->settings->flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) && (!gso->is_weight_mode)) {
         if (!(pt1->flag & GP_SPOINT_SELECT) && !(pt2->flag & GP_SPOINT_SELECT)) {
           include_last = false;
           continue;
