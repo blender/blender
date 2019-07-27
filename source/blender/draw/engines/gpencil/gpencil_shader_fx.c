@@ -463,12 +463,11 @@ static void gpencil_fx_shadow(ShaderFxData *fx,
     DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
   }
 
-  const int nowave = -1;
   if (fxd->flag & FX_SHADOW_USE_WAVE) {
     DRW_shgroup_uniform_int(fx_shgrp, "orientation", &fxd->orientation, 1);
   }
   else {
-    DRW_shgroup_uniform_int(fx_shgrp, "orientation", &nowave, 1);
+    DRW_shgroup_uniform_int_copy(fx_shgrp, "orientation", -1);
   }
   DRW_shgroup_uniform_float(fx_shgrp, "amplitude", &fxd->amplitude, 1);
   DRW_shgroup_uniform_float(fx_shgrp, "period", &fxd->period, 1);
