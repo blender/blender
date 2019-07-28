@@ -1940,8 +1940,10 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
                         *ndvert = *dvert;
                         ndvert->dw = MEM_dupallocN(dvert->dw);
                         ndvert++;
-                        dvert++;
                       }
+                    }
+                    if (gps->dvert != NULL) {
+                      dvert++;
                     }
                   }
                   break;
@@ -1970,8 +1972,10 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
                         *ndvert = *dvert;
                         ndvert->dw = MEM_dupallocN(dvert->dw);
                         ndvert++;
-                        dvert++;
                       }
+                    }
+                    if (gps->dvert != NULL) {
+                      dvert++;
                     }
                   }
                   /* copy last segment */
@@ -2001,8 +2005,10 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
                         *ndvert = *dvert;
                         ndvert->dw = MEM_dupallocN(dvert->dw);
                         ndvert++;
-                        dvert++;
                       }
+                    }
+                    if (gps->dvert != NULL) {
+                      dvert++;
                     }
                   }
                   break;
