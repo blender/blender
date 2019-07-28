@@ -93,13 +93,13 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 /******************** mouse select operator ********************/
 
 typedef struct {
-  int coord;     /* coordinate index of found entity (0 = X-axis, 1 = Y-axis) */
+  eClipCurveValueSource value_source;
   bool has_prev; /* if there's valid coordinate of previous point of curve segment */
 
-  float min_dist_sq, /* minimal distance between mouse and currently found entity */
-      mouse_co[2],   /* mouse coordinate */
-      prev_co[2],    /* coordinate of previous point of segment */
-      min_co[2];     /* coordinate of entity with minimal distance */
+  float min_dist_sq; /* minimal distance between mouse and currently found entity */
+  float mouse_co[2]; /* mouse coordinate */
+  float prev_co[2];  /* coordinate of previous point of segment */
+  float min_co[2];   /* coordinate of entity with minimal distance */
 
   MovieTrackingTrack *track;   /* nearest found track */
   MovieTrackingMarker *marker; /* nearest found marker */
@@ -108,7 +108,7 @@ typedef struct {
 static void find_nearest_tracking_segment_cb(void *userdata,
                                              MovieTrackingTrack *track,
                                              MovieTrackingMarker *UNUSED(marker),
-                                             int coord,
+                                             eClipCurveValueSource value_source,
                                              int scene_framenr,
                                              float val)
 {
@@ -121,7 +121,7 @@ static void find_nearest_tracking_segment_cb(void *userdata,
     if (data->track == NULL || dist_sq < data->min_dist_sq) {
       data->track = track;
       data->min_dist_sq = dist_sq;
-      data->coord = coord;
+      data->value_source = value_source;
       copy_v2_v2(data->min_co, co);
     }
   }
@@ -130,7 +130,8 @@ static void find_nearest_tracking_segment_cb(void *userdata,
   copy_v2_v2(data->prev_co, co);
 }
 
-static void find_nearest_tracking_segment_end_cb(void *userdata, int UNUSED(coord))
+static void find_nearest_tracking_segment_end_cb(void *userdata,
+                                                 eClipCurveValueSource UNUSED(source_value))
 {
   MouseSelectUserData *data = userdata;
 
@@ -140,7 +141,7 @@ static void find_nearest_tracking_segment_end_cb(void *userdata, int UNUSED(coor
 static void find_nearest_tracking_knot_cb(void *userdata,
                                           MovieTrackingTrack *track,
                                           MovieTrackingMarker *marker,
-                                          int coord,
+                                          eClipCurveValueSource value_source,
                                           int scene_framenr,
                                           float val)
 {
@@ -154,7 +155,7 @@ static void find_nearest_tracking_knot_cb(void *userdata,
     data->track = track;
     data->marker = marker;
     data->min_dist_sq = dist_sq;
-    data->coord = coord;
+    data->value_source = value_source;
     copy_v2_v2(data->min_co, co);
   }
 }
@@ -199,7 +200,7 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
                                       toggle_selection_cb);
         }
 
-        if (userdata.coord == 0) {
+        if (userdata.value_source == CLIP_VALUE_SOURCE_SPEED_X) {
           if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_X) != 0) {
             userdata.marker->flag &= ~MARKER_GRAPH_SEL_X;
           }
@@ -207,7 +208,7 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
             userdata.marker->flag |= MARKER_GRAPH_SEL_X;
           }
         }
-        else {
+        else if (userdata.value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
           if (extend && (userdata.marker->flag & MARKER_GRAPH_SEL_Y) != 0) {
             userdata.marker->flag &= ~MARKER_GRAPH_SEL_Y;
           }
@@ -356,16 +357,19 @@ typedef struct BoxSelectuserData {
 static void box_select_cb(void *userdata,
                           MovieTrackingTrack *UNUSED(track),
                           MovieTrackingMarker *marker,
-                          int coord,
+                          eClipCurveValueSource value_source,
                           int scene_framenr,
                           float val)
 {
   BoxSelectuserData *data = (BoxSelectuserData *)userdata;
+  if (!ELEM(value_source, CLIP_VALUE_SOURCE_SPEED_X, CLIP_VALUE_SOURCE_SPEED_Y)) {
+    return;
+  }
 
   if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
     int flag = 0;
 
-    if (coord == 0) {
+    if (value_source == CLIP_VALUE_SOURCE_SPEED_X) {
       flag = MARKER_GRAPH_SEL_X;
     }
     else {
@@ -591,7 +595,7 @@ typedef struct {
 static void view_all_cb(void *userdata,
                         MovieTrackingTrack *UNUSED(track),
                         MovieTrackingMarker *UNUSED(marker),
-                        int UNUSED(coord),
+                        eClipCurveValueSource UNUSED(value_source),
                         int UNUSED(scene_framenr),
                         float val)
 {

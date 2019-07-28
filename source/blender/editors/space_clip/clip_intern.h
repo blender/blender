@@ -112,35 +112,42 @@ void CLIP_OT_cursor_set(struct wmOperatorType *ot);
 struct ARegion *ED_clip_has_properties_region(struct ScrArea *sa);
 
 /* clip_utils.c */
-void clip_graph_tracking_values_iterate_track(
-    struct SpaceClip *sc,
-    struct MovieTrackingTrack *track,
-    void *userdata,
-    void (*func)(void *userdata,
-                 struct MovieTrackingTrack *track,
-                 struct MovieTrackingMarker *marker,
-                 int coord,
-                 int scene_framenr,
-                 float val),
-    void (*segment_start)(
-        void *userdata, struct MovieTrackingTrack *track, int coord, bool is_point),
-    void (*segment_end)(void *userdata, int coord));
+
+typedef enum {
+  CLIP_VALUE_SOURCE_SPEED_X,
+  CLIP_VALUE_SOURCE_SPEED_Y,
+  CLIP_VALUE_SOURCE_REPROJECTION_ERROR,
+} eClipCurveValueSource;
+
+typedef void (*ClipTrackValueCallback)(void *userdata,
+                                       struct MovieTrackingTrack *track,
+                                       struct MovieTrackingMarker *marker,
+                                       eClipCurveValueSource value_source,
+                                       int scene_framenr,
+                                       float val);
+
+typedef void (*ClipTrackValueSegmentStartCallback)(void *userdata,
+                                                   struct MovieTrackingTrack *track,
+                                                   eClipCurveValueSource value_source,
+                                                   bool is_point);
+
+typedef void (*ClipTrackValueSegmentEndCallback)(void *userdata,
+                                                 eClipCurveValueSource value_source);
+
+void clip_graph_tracking_values_iterate_track(struct SpaceClip *sc,
+                                              struct MovieTrackingTrack *track,
+                                              void *userdata,
+                                              ClipTrackValueCallback func,
+                                              ClipTrackValueSegmentStartCallback segment_start,
+                                              ClipTrackValueSegmentEndCallback segment_end);
 
 void clip_graph_tracking_values_iterate(struct SpaceClip *sc,
                                         bool selected_only,
                                         bool include_hidden,
                                         void *userdata,
-                                        void (*func)(void *userdata,
-                                                     struct MovieTrackingTrack *track,
-                                                     struct MovieTrackingMarker *marker,
-                                                     int coord,
-                                                     int scene_framenr,
-                                                     float val),
-                                        void (*segment_start)(void *userdata,
-                                                              struct MovieTrackingTrack *track,
-                                                              int coord,
-                                                              bool is_point),
-                                        void (*segment_end)(void *userdata, int coord));
+                                        ClipTrackValueCallback func,
+                                        ClipTrackValueSegmentStartCallback segment_start,
+                                        ClipTrackValueSegmentEndCallback segment_end);
 
 void clip_graph_tracking_iterate(struct SpaceClip *sc,
                                  bool selected_only,

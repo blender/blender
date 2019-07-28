@@ -57,7 +57,7 @@ typedef struct TrackMotionCurveUserData {
 static void tracking_segment_point_cb(void *userdata,
                                       MovieTrackingTrack *UNUSED(track),
                                       MovieTrackingMarker *UNUSED(marker),
-                                      int UNUSED(coord),
+                                      eClipCurveValueSource UNUSED(value_source),
                                       int scene_framenr,
                                       float val)
 {
@@ -68,13 +68,22 @@ static void tracking_segment_point_cb(void *userdata,
 
 static void tracking_segment_start_cb(void *userdata,
                                       MovieTrackingTrack *track,
-                                      int coord,
+                                      eClipCurveValueSource value_source,
                                       bool is_point)
 {
   TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  col[coord] = 1.0f;
+  switch (value_source) {
+    case CLIP_VALUE_SOURCE_SPEED_X:
+      col[0] = 1.0f;
+      break;
+    case CLIP_VALUE_SOURCE_SPEED_Y:
+      col[1] = 1.0f;
+      break;
+    default:
+      return;
+  }
 
   if (track == data->act_track) {
     col[3] = 1.0f;
@@ -96,7 +105,8 @@ static void tracking_segment_start_cb(void *userdata,
   }
 }
 
-static void tracking_segment_end_cb(void *UNUSED(userdata), int UNUSED(coord))
+static void tracking_segment_end_cb(void *UNUSED(userdata),
+                                    eClipCurveValueSource UNUSED(value_source))
 {
   immEnd();
 }
@@ -104,7 +114,7 @@ static void tracking_segment_end_cb(void *UNUSED(userdata), int UNUSED(coord))
 static void tracking_segment_knot_cb(void *userdata,
                                      MovieTrackingTrack *track,
                                      MovieTrackingMarker *marker,
-                                     int coord,
+                                     eClipCurveValueSource value_source,
                                      int scene_framenr,
                                      float val)
 {
@@ -114,8 +124,11 @@ static void tracking_segment_knot_cb(void *userdata,
   if (track != data->act_track) {
     return;
   }
+  if (!ELEM(value_source, CLIP_VALUE_SOURCE_SPEED_X, CLIP_VALUE_SOURCE_SPEED_Y)) {
+    return;
+  }
 
-  sel_flag = coord == 0 ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
+  sel_flag = value_source == CLIP_VALUE_SOURCE_SPEED_X ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
   sel = (marker->flag & sel_flag) ? 1 : 0;
 
   if (sel == data->sel) {
@@ -196,11 +209,11 @@ typedef struct TrackErrorCurveUserData {
 static void tracking_error_segment_point_cb(void *userdata,
                                             MovieTrackingTrack *track,
                                             MovieTrackingMarker *marker,
-                                            int coord,
+                                            eClipCurveValueSource value_source,
                                             int scene_framenr,
                                             float UNUSED(value))
 {
-  if (coord == 1) {
+  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
     TrackErrorCurveUserData *data = (TrackErrorCurveUserData *)userdata;
     float reprojected_position[4], bundle_position[4], marker_position[2], delta[2];
     float reprojection_error;
@@ -238,10 +251,10 @@ static void tracking_error_segment_point_cb(void *userdata,
 
 static void tracking_error_segment_start_cb(void *userdata,
                                             MovieTrackingTrack *track,
-                                            int coord,
+                                            eClipCurveValueSource value_source,
                                             bool is_point)
 {
-  if (coord == 1) {
+  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
     TrackErrorCurveUserData *data = (TrackErrorCurveUserData *)userdata;
     float col[4] = {0.0f, 0.0f, 1.0f, 1.0f};
 
@@ -266,9 +279,10 @@ static void tracking_error_segment_start_cb(void *userdata,
   }
 }
 
-static void tracking_error_segment_end_cb(void *UNUSED(userdata), int coord)
+static void tracking_error_segment_end_cb(void *UNUSED(userdata),
+                                          eClipCurveValueSource value_source)
 {
-  if (coord == 1) {
+  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
     immEnd();
   }
 }
