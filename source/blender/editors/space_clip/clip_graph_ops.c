@@ -93,12 +93,12 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 /******************** mouse select operator ********************/
 
 typedef struct {
-  int coord;     /* coordinate index of found entuty (0 = X-axis, 1 = Y-axis) */
+  int coord;     /* coordinate index of found entity (0 = X-axis, 1 = Y-axis) */
   bool has_prev; /* if there's valid coordinate of previous point of curve segment */
 
   float min_dist_sq, /* minimal distance between mouse and currently found entity */
       mouse_co[2],   /* mouse coordinate */
-      prev_co[2],    /* coordinate of previeous point of segment */
+      prev_co[2],    /* coordinate of previous point of segment */
       min_co[2];     /* coordinate of entity with minimal distance */
 
   MovieTrackingTrack *track;   /* nearest found track */
@@ -281,7 +281,7 @@ static int mouse_select(bContext *C, float co[2], bool extend)
   sel = mouse_select_knot(C, co, extend);
 
   if (!sel) {
-    /* if there's no close enough knot to mouse osition, select nearest curve */
+    /* if there's no close enough knot to mouse position, select nearest curve */
     sel = mouse_select_curve(C, co, extend);
   }
 
