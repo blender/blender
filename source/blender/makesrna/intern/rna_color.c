@@ -597,7 +597,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
   else if (GS(id->name) == ID_MC) {
     MovieClip *clip = (MovieClip *)id;
 
-    BKE_movieclip_reload(bmain, clip);
+    DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
     BKE_sequence_invalidate_movieclip_strips(bmain, clip);
 
     WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);

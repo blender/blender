@@ -53,6 +53,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
@@ -1772,13 +1773,32 @@ static void movieclip_selection_synchronize(MovieClip *clip_dst, const MovieClip
   }
 }
 
-void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, MovieClip *clip)
+void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
-  DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
+  BKE_movieclip_reload(bmain, clip);
+  if (DEG_is_active(depsgraph)) {
+    MovieClip *clip_orig = (MovieClip *)DEG_get_original_id(&clip->id);
+    BKE_movieclip_reload(bmain, clip_orig);
+  }
+}
+
+void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip *clip)
+{
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
   if (DEG_is_active(depsgraph)) {
     MovieClip *clip_orig = (MovieClip *)DEG_get_original_id(&clip->id);
     BKE_tracking_dopesheet_tag_update(&clip_orig->tracking);
+  }
+}
+
+void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+{
+  DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
+  if (clip->id.recalc & ID_RECALC_SOURCE) {
+    movieclip_eval_update_reload(depsgraph, bmain, clip);
+  }
+  else {
+    movieclip_eval_update_generic(depsgraph, clip);
   }
 }
 

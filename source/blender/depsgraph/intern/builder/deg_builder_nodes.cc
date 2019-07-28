@@ -1557,7 +1557,7 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
   add_operation_node(clip_id,
                      NodeType::PARAMETERS,
                      OperationCode::MOVIECLIP_EVAL,
-                     function_bind(BKE_movieclip_eval_update, _1, clip_cow));
+                     function_bind(BKE_movieclip_eval_update, _1, bmain_, clip_cow));
 
   add_operation_node(clip_id,
                      NodeType::BATCH_CACHE,
