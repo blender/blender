@@ -1773,7 +1773,7 @@ static void movieclip_selection_synchronize(MovieClip *clip_dst, const MovieClip
   }
 }
 
-void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   BKE_movieclip_reload(bmain, clip);
   if (DEG_is_active(depsgraph)) {
@@ -1782,7 +1782,7 @@ void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, Movi
   }
 }
 
-void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip *clip)
+static void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip *clip)
 {
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
   if (DEG_is_active(depsgraph)) {
