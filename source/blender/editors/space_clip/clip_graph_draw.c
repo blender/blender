@@ -48,6 +48,7 @@
 #include "clip_intern.h"  // own include
 
 typedef struct TrackMotionCurveUserData {
+  SpaceClip *sc;
   MovieTrackingTrack *act_track;
   bool sel;
   float xscale, yscale, hsize;
@@ -72,7 +73,12 @@ static void tracking_segment_start_cb(void *userdata,
                                       bool is_point)
 {
   TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  SpaceClip *sc = data->sc;
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+  if (!clip_graph_value_visible(sc, value_source)) {
+    return;
+  }
 
   switch (value_source) {
     case CLIP_VALUE_SOURCE_SPEED_X:
@@ -81,8 +87,9 @@ static void tracking_segment_start_cb(void *userdata,
     case CLIP_VALUE_SOURCE_SPEED_Y:
       col[1] = 1.0f;
       break;
-    default:
-      return;
+    case CLIP_VALUE_SOURCE_REPROJECTION_ERROR:
+      col[2] = 1.0f;
+      break;
   }
 
   if (track == data->act_track) {
@@ -105,9 +112,13 @@ static void tracking_segment_start_cb(void *userdata,
   }
 }
 
-static void tracking_segment_end_cb(void *UNUSED(userdata),
-                                    eClipCurveValueSource UNUSED(value_source))
+static void tracking_segment_end_cb(void *userdata, eClipCurveValueSource value_source)
 {
+  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  SpaceClip *sc = data->sc;
+  if (!clip_graph_value_visible(sc, value_source)) {
+    return;
+  }
   immEnd();
 }
 
@@ -144,34 +155,39 @@ static void tracking_segment_knot_cb(void *userdata,
   }
 }
 
-static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int pos)
+static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, unsigned int pos)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
+  const bool draw_knots = (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) != 0;
+
   int width, height;
-  TrackMotionCurveUserData userdata;
-
   BKE_movieclip_get_size(clip, &sc->user, &width, &height);
-
   if (!width || !height) {
     return;
   }
 
-  /* non-selected knot handles */
+  TrackMotionCurveUserData userdata;
+  userdata.sc = sc;
   userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
   userdata.sel = false;
   userdata.act_track = act_track;
   userdata.pos = pos;
-  UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
-  clip_graph_tracking_values_iterate(sc,
-                                     (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
-                                     (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
-                                     &userdata,
-                                     tracking_segment_knot_cb,
-                                     NULL,
-                                     NULL);
-  /* draw graph lines */
+
+  /* Non-selected knot handles. */
+  if (draw_knots) {
+    UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
+    clip_graph_tracking_values_iterate(sc,
+                                       (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+                                       (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
+                                       &userdata,
+                                       tracking_segment_knot_cb,
+                                       NULL,
+                                       NULL);
+  }
+
+  /* Draw graph lines. */
   GPU_blend(true);
   clip_graph_tracking_values_iterate(sc,
                                      (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
@@ -182,137 +198,17 @@ static void draw_tracks_motion_curves(View2D *v2d, SpaceClip *sc, unsigned int p
                                      tracking_segment_end_cb);
   GPU_blend(false);
 
-  /* selected knot handles on top of curves */
-  userdata.sel = true;
-  clip_graph_tracking_values_iterate(sc,
-                                     (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
-                                     (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
-                                     &userdata,
-                                     tracking_segment_knot_cb,
-                                     NULL,
-                                     NULL);
-}
-
-typedef struct TrackErrorCurveUserData {
-  MovieClip *clip;
-  MovieTracking *tracking;
-  MovieTrackingObject *tracking_object;
-  MovieTrackingTrack *active_track;
-  bool matrix_initialized;
-  int matrix_frame;
-  float projection_matrix[4][4];
-  int width, height;
-  float aspy;
-  unsigned int pos;
-} TrackErrorCurveUserData;
-
-static void tracking_error_segment_point_cb(void *userdata,
-                                            MovieTrackingTrack *track,
-                                            MovieTrackingMarker *marker,
-                                            eClipCurveValueSource value_source,
-                                            int scene_framenr,
-                                            float UNUSED(value))
-{
-  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
-    TrackErrorCurveUserData *data = (TrackErrorCurveUserData *)userdata;
-    float reprojected_position[4], bundle_position[4], marker_position[2], delta[2];
-    float reprojection_error;
-    float weight = BKE_tracking_track_get_weight_for_marker(data->clip, track, marker);
-
-    if (!data->matrix_initialized || data->matrix_frame != scene_framenr) {
-      BKE_tracking_get_projection_matrix(data->tracking,
-                                         data->tracking_object,
-                                         scene_framenr,
-                                         data->width,
-                                         data->height,
-                                         data->projection_matrix);
-    }
-
-    copy_v3_v3(bundle_position, track->bundle_pos);
-    bundle_position[3] = 1;
-
-    mul_v4_m4v4(reprojected_position, data->projection_matrix, bundle_position);
-    reprojected_position[0] = (reprojected_position[0] / (reprojected_position[3] * 2.0f) + 0.5f) *
-                              data->width;
-    reprojected_position[1] = (reprojected_position[1] / (reprojected_position[3] * 2.0f) + 0.5f) *
-                              data->height * data->aspy;
-
-    BKE_tracking_distort_v2(data->tracking, reprojected_position, reprojected_position);
-
-    marker_position[0] = (marker->pos[0] + track->offset[0]) * data->width;
-    marker_position[1] = (marker->pos[1] + track->offset[1]) * data->height * data->aspy;
-
-    sub_v2_v2v2(delta, reprojected_position, marker_position);
-    reprojection_error = len_v2(delta) * weight;
-
-    immVertex2f(data->pos, scene_framenr, reprojection_error);
+  /* Selected knot handles on top of curves. */
+  if (draw_knots) {
+    userdata.sel = true;
+    clip_graph_tracking_values_iterate(sc,
+                                       (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
+                                       (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
+                                       &userdata,
+                                       tracking_segment_knot_cb,
+                                       NULL,
+                                       NULL);
   }
-}
-
-static void tracking_error_segment_start_cb(void *userdata,
-                                            MovieTrackingTrack *track,
-                                            eClipCurveValueSource value_source,
-                                            bool is_point)
-{
-  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
-    TrackErrorCurveUserData *data = (TrackErrorCurveUserData *)userdata;
-    float col[4] = {0.0f, 0.0f, 1.0f, 1.0f};
-
-    if (track == data->active_track) {
-      col[3] = 1.0f;
-      GPU_line_width(2.0f);
-    }
-    else {
-      col[3] = 0.5f;
-      GPU_line_width(1.0f);
-    }
-
-    immUniformColor4fv(col);
-
-    if (is_point) { /* This probably never happens here, but just in case... */
-      immBeginAtMost(GPU_PRIM_POINTS, 1);
-    }
-    else {
-      /* Graph can be composed of smaller segments, if any marker is disabled */
-      immBeginAtMost(GPU_PRIM_LINE_STRIP, track->markersnr);
-    }
-  }
-}
-
-static void tracking_error_segment_end_cb(void *UNUSED(userdata),
-                                          eClipCurveValueSource value_source)
-{
-  if (value_source == CLIP_VALUE_SOURCE_SPEED_Y) {
-    immEnd();
-  }
-}
-
-static void draw_tracks_error_curves(SpaceClip *sc, unsigned int pos)
-{
-  MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  TrackErrorCurveUserData data;
-
-  data.clip = clip;
-  data.tracking = tracking;
-  data.tracking_object = BKE_tracking_object_get_active(tracking);
-  data.active_track = BKE_tracking_track_get_active(tracking);
-  data.matrix_initialized = false;
-  data.pos = pos;
-  BKE_movieclip_get_size(clip, &sc->user, &data.width, &data.height);
-  data.aspy = 1.0f / tracking->camera.pixel_aspect;
-
-  if (!data.width || !data.height) {
-    return;
-  }
-
-  clip_graph_tracking_values_iterate(sc,
-                                     (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
-                                     (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
-                                     &data,
-                                     tracking_error_segment_point_cb,
-                                     tracking_error_segment_start_cb,
-                                     tracking_error_segment_end_cb);
 }
 
 static void draw_frame_curves(SpaceClip *sc, unsigned int pos)
@@ -364,12 +260,8 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 
     GPU_point_size(3.0f);
 
-    if (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) {
-      draw_tracks_motion_curves(v2d, sc, pos);
-    }
-
-    if (sc->flag & SC_SHOW_GRAPH_TRACKS_ERROR) {
-      draw_tracks_error_curves(sc, pos);
+    if (sc->flag & (SC_SHOW_GRAPH_TRACKS_MOTION | SC_SHOW_GRAPH_TRACKS_ERROR)) {
+      draw_tracks_motion_and_error_curves(v2d, sc, pos);
     }
 
     if (sc->flag & SC_SHOW_GRAPH_FRAMES) {

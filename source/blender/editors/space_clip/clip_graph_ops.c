@@ -64,7 +64,7 @@ static bool clip_graph_knots_poll(bContext *C)
   if (ED_space_clip_graph_poll(C)) {
     SpaceClip *sc = CTX_wm_space_clip(C);
 
-    return (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) != 0;
+    return (sc->flag & (SC_SHOW_GRAPH_TRACKS_MOTION | SC_SHOW_GRAPH_TRACKS_ERROR)) != 0;
   }
   return false;
 }
@@ -93,6 +93,7 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 /******************** mouse select operator ********************/
 
 typedef struct {
+  SpaceClip *sc;
   eClipCurveValueSource value_source;
   bool has_prev; /* if there's valid coordinate of previous point of curve segment */
 
@@ -114,6 +115,10 @@ static void find_nearest_tracking_segment_cb(void *userdata,
 {
   MouseSelectUserData *data = userdata;
   float co[2] = {scene_framenr, val};
+
+  if (!clip_graph_value_visible(data->sc, value_source)) {
+    return;
+  }
 
   if (data->has_prev) {
     float dist_sq = dist_squared_to_line_segment_v2(data->mouse_co, data->prev_co, co);
@@ -149,6 +154,10 @@ static void find_nearest_tracking_knot_cb(void *userdata,
   float mdiff[2] = {scene_framenr - data->mouse_co[0], val - data->mouse_co[1]};
   float dist_sq = len_squared_v2(mdiff);
 
+  if (!clip_graph_value_visible(data->sc, value_source)) {
+    return;
+  }
+
   if (data->marker == NULL || dist_sq < data->min_dist_sq) {
     float co[2] = {scene_framenr, val};
 
@@ -160,9 +169,11 @@ static void find_nearest_tracking_knot_cb(void *userdata,
   }
 }
 
-static void mouse_select_init_data(MouseSelectUserData *userdata, const float co[2])
+static void mouse_select_init_data(bContext *C, MouseSelectUserData *userdata, const float co[2])
 {
+  SpaceClip *sc = CTX_wm_space_clip(C);
   memset(userdata, 0, sizeof(MouseSelectUserData));
+  userdata->sc = sc;
   userdata->min_dist_sq = FLT_MAX;
   copy_v2_v2(userdata->mouse_co, co);
 }
@@ -180,7 +191,7 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
   if (act_track) {
     MouseSelectUserData userdata;
 
-    mouse_select_init_data(&userdata, co);
+    mouse_select_init_data(C, &userdata, co);
     clip_graph_tracking_values_iterate_track(
         sc, act_track, &userdata, find_nearest_tracking_knot_cb, NULL, NULL);
 
@@ -233,7 +244,7 @@ static bool mouse_select_curve(bContext *C, float co[2], bool extend)
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
   MouseSelectUserData userdata;
 
-  mouse_select_init_data(&userdata, co);
+  mouse_select_init_data(C, &userdata, co);
   clip_graph_tracking_values_iterate(sc,
                                      (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
                                      (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,

@@ -134,6 +134,8 @@ typedef void (*ClipTrackValueSegmentStartCallback)(void *userdata,
 typedef void (*ClipTrackValueSegmentEndCallback)(void *userdata,
                                                  eClipCurveValueSource value_source);
 
+bool clip_graph_value_visible(struct SpaceClip *sc, eClipCurveValueSource value_source);
+
 void clip_graph_tracking_values_iterate_track(struct SpaceClip *sc,
                                               struct MovieTrackingTrack *track,
                                               void *userdata,
