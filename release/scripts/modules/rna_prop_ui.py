@@ -280,7 +280,7 @@ class PropertyPanel:
     """
     bl_label = "Custom Properties"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_order = 1000 # Order panel after all others
+    bl_order = 1000  # Order panel after all others
 
     @classmethod
     def poll(cls, context):

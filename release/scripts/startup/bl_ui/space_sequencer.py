@@ -1348,7 +1348,6 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         frame_offset_start = strip.frame_offset_start
         frame_offset_end = strip.frame_offset_end
 
-
         length_list = (
             str(frame_start),
             str(frame_final_end),

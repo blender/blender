@@ -655,7 +655,7 @@ class Gizmo(StructRNA):
         return (batch, shader)
 
 
-    # Dummy class to keep the reference in `bpy_types_dict` and avoid
+# Dummy class to keep the reference in `bpy_types_dict` and avoid
 # erros like: "TypeError: expected GizmoGroup subclass of class ..."
 class GizmoGroup(StructRNA):
     __slots__ = ()

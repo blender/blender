@@ -173,9 +173,9 @@ class NODE_HT_header(Header):
 
         # Backdrop
         if is_compositor:
-            row=layout.row(align=True)
+            row = layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
-            sub=row.row(align=True)
+            sub = row.row(align=True)
             sub.active = snode.show_backdrop
             sub.prop(snode, "backdrop_channels", icon_only=True, text="", expand=True)
 
