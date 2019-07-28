@@ -697,6 +697,15 @@ Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
       me_src, verts_len, edges_len, tessface_len, loops_len, polys_len, CD_MASK_EVERYTHING);
 }
 
+void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
+{
+  /* Evaluated mesh may point to edit mesh, but never owns it. */
+  mesh_eval->edit_mesh = NULL;
+  BKE_mesh_free(mesh_eval);
+  BKE_libblock_free_data(&mesh_eval->id, false);
+  MEM_freeN(mesh_eval);
+}
+
 Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 {
   int flags = LIB_ID_COPY_LOCALIZE;

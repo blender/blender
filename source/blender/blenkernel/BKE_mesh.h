@@ -123,6 +123,8 @@ struct Mesh *BKE_mesh_new_nomain_from_template(const struct Mesh *me_src,
                                                int loops_len,
                                                int polys_len);
 
+void BKE_mesh_eval_delete(struct Mesh *me_eval);
+
 /* Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory. */
 struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);

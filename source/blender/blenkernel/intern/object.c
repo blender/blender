@@ -442,19 +442,13 @@ void BKE_object_free_derived_caches(Object *ob)
   if (ob->runtime.mesh_eval != NULL) {
     if (ob->runtime.is_mesh_eval_owned) {
       Mesh *mesh_eval = ob->runtime.mesh_eval;
-      /* Evaluated mesh points to edit mesh, but does not own it. */
-      mesh_eval->edit_mesh = NULL;
-      BKE_mesh_free(mesh_eval);
-      BKE_libblock_free_data(&mesh_eval->id, false);
-      MEM_freeN(mesh_eval);
+      BKE_mesh_eval_delete(mesh_eval);
     }
     ob->runtime.mesh_eval = NULL;
   }
   if (ob->runtime.mesh_deform_eval != NULL) {
     Mesh *mesh_deform_eval = ob->runtime.mesh_deform_eval;
-    BKE_mesh_free(mesh_deform_eval);
-    BKE_libblock_free_data(&mesh_deform_eval->id, false);
-    MEM_freeN(mesh_deform_eval);
+    BKE_mesh_eval_delete(mesh_deform_eval);
     ob->runtime.mesh_deform_eval = NULL;
   }
 
