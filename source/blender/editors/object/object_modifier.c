@@ -912,7 +912,10 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 
 /********** generic functions for operators using mod names and data context *********************/
 
-bool edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
+bool edit_modifier_poll_generic(bContext *C,
+                                StructRNA *rna_type,
+                                int obtype_flag,
+                                const bool is_editmode_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
   Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
@@ -932,12 +935,17 @@ bool edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_fla
     return (((ModifierData *)ptr.data)->flag & eModifierFlag_OverrideLibrary_Local) != 0;
   }
 
+  if (!is_editmode_allowed && CTX_data_edit_object(C) != NULL) {
+    CTX_wm_operator_poll_msg_set(C, "This modifier operation is not allowed from Edit mode");
+    return 0;
+  }
+
   return 1;
 }
 
 bool edit_modifier_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_Modifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_Modifier, 0, true);
 }
 
 void edit_modifier_properties(wmOperatorType *ot)
@@ -1274,7 +1282,7 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 
 static bool multires_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_MultiresModifier, (1 << OB_MESH));
+  return edit_modifier_poll_generic(C, &RNA_MultiresModifier, (1 << OB_MESH), true);
 }
 
 static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
@@ -1627,14 +1635,13 @@ static void modifier_skin_customdata_delete(Object *ob)
 
 static bool skin_poll(bContext *C)
 {
-  return (!CTX_data_edit_object(C) &&
-          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH)));
+  return (edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), false));
 }
 
 static bool skin_edit_poll(bContext *C)
 {
   return (CTX_data_edit_object(C) &&
-          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH)));
+          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), true));
 }
 
 static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_skin_offset)
@@ -1987,7 +1994,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 
 static bool correctivesmooth_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_CorrectiveSmoothModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_CorrectiveSmoothModifier, 0, true);
 }
 
 static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
@@ -2065,7 +2072,7 @@ void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
 
 static bool meshdeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, 0, true);
 }
 
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
@@ -2138,7 +2145,7 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 
 static bool explode_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_ExplodeModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_ExplodeModifier, 0, true);
 }
 
 static int explode_refresh_exec(bContext *C, wmOperator *op)
@@ -2188,7 +2195,7 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 
 static bool ocean_bake_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0, true);
 }
 
 typedef struct OceanBakeJob {
@@ -2389,7 +2396,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 
 static bool laplaciandeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_LaplacianDeformModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_LaplacianDeformModifier, 0, false);
 }
 
 static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
@@ -2464,7 +2471,7 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
 
 static bool surfacedeform_bind_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0);
+  return edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0, true);
 }
 
 static int surfacedeform_bind_exec(bContext *C, wmOperator *op)

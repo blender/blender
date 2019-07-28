@@ -760,7 +760,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 
 static bool datalayout_transfer_poll(bContext *C)
 {
-  return (edit_modifier_poll_generic(C, &RNA_DataTransferModifier, (1 << OB_MESH)) ||
+  return (edit_modifier_poll_generic(C, &RNA_DataTransferModifier, (1 << OB_MESH), true) ||
           data_transfer_poll(C));
 }
 
