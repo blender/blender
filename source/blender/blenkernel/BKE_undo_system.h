@@ -195,24 +195,6 @@ void BKE_undosys_foreach_ID_ref(UndoStack *ustack,
                                 void *user_data);
 #endif
 
-/* Use when the undo step stores many arbitrary pointers. */
-struct UndoIDPtrMap;
-struct UndoIDPtrMap *BKE_undosys_ID_map_create(void);
-void BKE_undosys_ID_map_destroy(struct UndoIDPtrMap *map);
-void BKE_undosys_ID_map_add(struct UndoIDPtrMap *map, ID *id);
-struct ID *BKE_undosys_ID_map_lookup(const struct UndoIDPtrMap *map, const struct ID *id_src);
-
-void BKE_undosys_ID_map_add_with_prev(struct UndoIDPtrMap *map,
-                                      struct ID *id,
-                                      struct ID **id_prev);
-struct ID *BKE_undosys_ID_map_lookup_with_prev(const struct UndoIDPtrMap *map,
-                                               struct ID *id_src,
-                                               struct ID *id_prev_match[2]);
-
-void BKE_undosys_ID_map_foreach_ID_ref(struct UndoIDPtrMap *map,
-                                       UndoTypeForEachIDRefFn foreach_ID_ref_fn,
-                                       void *user_data);
-
 void BKE_undosys_print(UndoStack *ustack);
 
 #endif /* __BKE_UNDO_SYSTEM_H__ */

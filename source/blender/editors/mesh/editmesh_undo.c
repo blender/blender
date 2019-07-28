@@ -699,7 +699,6 @@ typedef struct MeshUndoStep_Elem {
 
 typedef struct MeshUndoStep {
   UndoStep step;
-  struct UndoIDPtrMap *id_map;
   MeshUndoStep_Elem *elems;
   uint elems_len;
 } MeshUndoStep;
@@ -788,10 +787,6 @@ static void mesh_undosys_step_free(UndoStep *us_p)
     undomesh_free_data(&elem->data);
   }
   MEM_freeN(us->elems);
-
-  if (us->id_map != NULL) {
-    BKE_undosys_ID_map_destroy(us->id_map);
-  }
 }
 
 static void mesh_undosys_foreach_ID_ref(UndoStep *us_p,
@@ -803,10 +798,6 @@ static void mesh_undosys_foreach_ID_ref(UndoStep *us_p,
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
     foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
-  }
-
-  if (us->id_map != NULL) {
-    BKE_undosys_ID_map_foreach_ID_ref(us->id_map, foreach_ID_ref_fn, user_data);
   }
 }
 
