@@ -229,6 +229,9 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_PARAMETERS:
       *component_type = NodeType::PARAMETERS;
       break;
+    case ID_RECALC_SOURCE:
+      *component_type = NodeType::PARAMETERS;
+      break;
     case ID_RECALC_TIME:
       BLI_assert(!"Should be handled outside of this function");
       break;
@@ -703,6 +706,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "PARAMETERS";
     case ID_RECALC_TIME:
       return "TIME";
+    case ID_RECALC_SOURCE:
+      return "SOURCE";
     case ID_RECALC_ALL:
       return "ALL";
   }
