@@ -45,7 +45,6 @@ void IMB_thumb_clear_translations(void)
 {
   for (int i = ARRAY_SIZE(thumb_str); i-- > 0;) {
     i18n_thumb_str[i] = NULL;
-    printf("%s: clearing i18n string %d\n", __func__, i);
   }
 }
 
@@ -53,7 +52,6 @@ void IMB_thumb_ensure_translations(void)
 {
   for (int i = ARRAY_SIZE(thumb_str); i-- > 0;) {
     i18n_thumb_str[i] = BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]);
-    printf("%s: translated %s to %s\n", __func__, thumb_str[i], i18n_thumb_str[i]);
   }
 }
 
