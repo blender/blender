@@ -42,6 +42,8 @@
 
 #include "BKE_appdir.h"
 
+#include "IMB_thumbs.h"
+
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -288,6 +290,7 @@ void BLT_lang_set(const char *str)
   (void)str;
 #endif
   blt_lang_check_ime_supported();
+  IMB_thumb_clear_translations();
 }
 
 /* Get the current locale (short code, e.g. es_ES). */

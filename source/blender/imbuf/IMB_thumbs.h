@@ -59,27 +59,34 @@ typedef enum ThumbSource {
 #define THUMB_DEFAULT_HASH "00000000000000000000000000000000"
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
+struct ImBuf *IMB_thumb_create(const char *path,
+                               ThumbSize size,
+                               ThumbSource source,
+                               struct ImBuf *ibuf);
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
-ImBuf *IMB_thumb_read(const char *path, ThumbSize size);
+struct ImBuf *IMB_thumb_read(const char *path, ThumbSize size);
 
 /* delete all thumbs for the file */
 void IMB_thumb_delete(const char *path, ThumbSize size);
 
 /* return the state of the thumb, needed to determine how to manage the thumb */
-ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
+struct ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
 
 /* create the necessary dirs to store the thumbnails */
 void IMB_thumb_makedirs(void);
 
 /* special function for loading a thumbnail embedded into a blend file */
-ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const char *blen_id);
+struct ImBuf *IMB_thumb_load_blend(const char *blen_path,
+                                   const char *blen_group,
+                                   const char *blen_id);
 void IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float aspect);
 
 /* special function for previewing fonts */
-ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
+struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
+void IMB_thumb_clear_translations(void);
+void IMB_thumb_ensure_translations(void);
 
 /* Threading */
 void IMB_thumb_locks_acquire(void);

@@ -50,6 +50,7 @@
  */
 void BLF_thumb_preview(const char *filename,
                        const char **draw_str,
+                       const char **i18n_draw_str,
                        const unsigned char draw_str_lines,
                        const float font_color[4],
                        const int font_size,
@@ -90,7 +91,7 @@ void BLF_thumb_preview(const char *filename,
   blf_draw_buffer__start(font);
 
   for (i = 0; i < draw_str_lines; i++) {
-    const char *draw_str_i18n = BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, draw_str[i]);
+    const char *draw_str_i18n = i18n_draw_str[i] != NULL ? i18n_draw_str[i] : draw_str[i];
     const size_t draw_str_i18n_len = strlen(draw_str_i18n);
     int draw_str_i18n_nbr = 0;
 

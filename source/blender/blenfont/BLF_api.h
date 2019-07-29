@@ -223,6 +223,7 @@ void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
 /* blf_thumbs.c */
 void BLF_thumb_preview(const char *filename,
                        const char **draw_str,
+                       const char **i18n_draw_str,
                        const unsigned char draw_str_lines,
                        const float font_color[4],
                        const int font_size,

@@ -32,14 +32,30 @@
 #include "../../blenfont/BLF_api.h"
 #include "../../blentranslation/BLT_translation.h"
 
-static const char *thumb_str[] = {
-    N_("AaBbCc"),
+#define THUMB_TXT_ITEMS \
+  N_("AaBbCc"), N_("The quick"), N_("brown fox"), N_("jumps over"), N_("the lazy dog"),
 
-    N_("The quick"),
-    N_("brown fox"),
-    N_("jumps over"),
-    N_("the lazy dog"),
-};
+static const char *thumb_str[] = {THUMB_TXT_ITEMS};
+
+static const char *i18n_thumb_str[] = {THUMB_TXT_ITEMS};
+
+#undef THUMB_TXT_ITEMS
+
+void IMB_thumb_clear_translations(void)
+{
+  for (int i = ARRAY_SIZE(thumb_str); i-- > 0;) {
+    i18n_thumb_str[i] = NULL;
+    printf("%s: clearing i18n string %d\n", __func__, i);
+  }
+}
+
+void IMB_thumb_ensure_translations(void)
+{
+  for (int i = ARRAY_SIZE(thumb_str); i-- > 0;) {
+    i18n_thumb_str[i] = BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]);
+    printf("%s: translated %s to %s\n", __func__, thumb_str[i], i18n_thumb_str[i]);
+  }
+}
 
 struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y)
 {
@@ -62,6 +78,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned
 
   BLF_thumb_preview(filename,
                     thumb_str,
+                    i18n_thumb_str,
                     ARRAY_SIZE(thumb_str),
                     font_color,
                     font_size,
@@ -87,8 +104,9 @@ bool IMB_thumb_load_font_get_hash(char *r_hash)
   len += BLI_strncpy_rlen(str + len, THUMB_DEFAULT_HASH, sizeof(buf) - len);
 
   for (i = 0; (i < draw_str_lines) && (len < sizeof(buf)); i++) {
-    len += BLI_strncpy_rlen(
-        str + len, BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
+    len += BLI_strncpy_rlen(str + len,
+                            i18n_thumb_str[i] != NULL ? i18n_thumb_str[i] : thumb_str[i],
+                            sizeof(buf) - len);
   }
 
   BLI_hash_md5_buffer(str, len, digest);
