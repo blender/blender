@@ -52,6 +52,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -527,6 +528,7 @@ static int add_hook_object(const bContext *C,
                            int mode,
                            ReportList *reports)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ModifierData *md = NULL;
   HookModifierData *hmd = NULL;
   float cent[3];
@@ -601,11 +603,13 @@ static int add_hook_object(const bContext *C,
   /* matrix calculus */
   /* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
   /*        (parentinv         )                          */
-  BKE_object_where_is_calc(CTX_data_depsgraph(C), scene, ob);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  BKE_object_transform_copy(ob_eval, ob);
+  BKE_object_where_is_calc(depsgraph, scene, ob_eval);
 
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob_eval->imat, ob_eval->obmat);
   /* apparently this call goes from right to left... */
-  mul_m4_series(hmd->parentinv, pose_mat, ob->imat, obedit->obmat);
+  mul_m4_series(hmd->parentinv, pose_mat, ob_eval->imat, obedit->obmat);
 
   DEG_relations_tag_update(bmain);
 
