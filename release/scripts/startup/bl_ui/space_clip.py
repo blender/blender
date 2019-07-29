@@ -1204,7 +1204,7 @@ class CLIP_PT_tools_scenesetup(Panel):
 
 
 # Grease Pencil properties
-class CLIP_PT_grease_pencil(AnnotationDataPanel, CLIP_PT_clip_view_panel, Panel):
+class CLIP_PT_annotation(AnnotationDataPanel, CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Annotation"
@@ -1762,7 +1762,7 @@ classes = (
     CLIP_PT_tools_mask_transforms,
     CLIP_PT_tools_mask_tools,
     CLIP_PT_tools_scenesetup,
-    CLIP_PT_grease_pencil,
+    CLIP_PT_annotation,
     CLIP_PT_tools_grease_pencil_draw,
     CLIP_MT_view,
     CLIP_MT_clip,

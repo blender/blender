@@ -1684,7 +1684,7 @@ class IMAGE_PT_uv_cursor(Panel):
 
 
 # Grease Pencil properties
-class IMAGE_PT_grease_pencil(AnnotationDataPanel, Panel):
+class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "View"
@@ -1750,7 +1750,7 @@ classes = (
     IMAGE_PT_sample_line,
     IMAGE_PT_scope_sample,
     IMAGE_PT_uv_cursor,
-    IMAGE_PT_grease_pencil,
+    IMAGE_PT_annotation,
 )
 
 

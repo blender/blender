@@ -25,7 +25,6 @@ from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.utils import PresetPanel
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
-    GreasePencilToolsPanel,
 )
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
@@ -656,7 +655,7 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
 
 
 # Grease Pencil properties
-class NODE_PT_grease_pencil(AnnotationDataPanel, Panel):
+class NODE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "View"
@@ -668,17 +667,6 @@ class NODE_PT_grease_pencil(AnnotationDataPanel, Panel):
     def poll(cls, context):
         snode = context.space_data
         return snode is not None and snode.node_tree is not None
-
-
-class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    # NOTE: this is just a wrapper around the generic GP tools panel
-    # It contains access to some essential tools usually found only in
-    # toolbar, but which may not necessarily be open
 
 
 def node_draw_tree_view(_layout, _context):
@@ -717,8 +705,7 @@ classes = (
     NODE_PT_active_tool,
     NODE_PT_backdrop,
     NODE_PT_quality,
-    NODE_PT_grease_pencil,
-    NODE_PT_grease_pencil_tools,
+    NODE_PT_annotation,
     NODE_UL_interface_sockets,
 
     node_panel(EEVEE_MATERIAL_PT_settings),

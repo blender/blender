@@ -29,7 +29,6 @@ from bpy.app.translations import (
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
-    GreasePencilToolsPanel,
 )
 from rna_prop_ui import PropertyPanel
 
@@ -1992,23 +1991,13 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                         col.prop(mod, "gamma")
 
 
-class SEQUENCER_PT_grease_pencil(AnnotationDataPanel, SequencerButtonsPanel_Output, Panel):
+class SEQUENCER_PT_annotation(AnnotationDataPanel, SequencerButtonsPanel_Output, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "View"
 
     # NOTE: this is just a wrapper around the generic GP Panel
     # But, it should only show up when there are images in the preview region
-
-
-class SEQUENCER_PT_grease_pencil_tools(GreasePencilToolsPanel, SequencerButtonsPanel_Output, Panel):
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-
-    # NOTE: this is just a wrapper around the generic GP tools panel
-    # It contains access to some essential tools usually found only in
-    # toolbar, which doesn't exist here...
 
 
 class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
@@ -2078,8 +2067,7 @@ classes = (
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,
 
-    SEQUENCER_PT_grease_pencil,
-    SEQUENCER_PT_grease_pencil_tools,
+    SEQUENCER_PT_annotation,
 )
 
 if __name__ == "__main__":  # only for live edit.
