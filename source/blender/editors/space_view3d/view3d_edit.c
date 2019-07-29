@@ -2924,12 +2924,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-  bGPdata *gpd = CTX_data_gpencil_data(C);
-  const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
-  const bool is_face_map = ((is_gp_edit == false) && ar->gizmo_map &&
-                            WM_gizmomap_is_any_selected(ar->gizmo_map));
   Object *ob_eval = OBACT(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
+  const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL) ? ob_eval->data : NULL;
+  const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
+  const bool is_face_map = ((is_gp_edit == false) && ar->gizmo_map &&
+                            WM_gizmomap_is_any_selected(ar->gizmo_map));
   float min[3], max[3];
   bool ok = false, ok_dist = true;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
