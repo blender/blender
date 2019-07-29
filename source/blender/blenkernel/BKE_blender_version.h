@@ -36,7 +36,7 @@
 /** Can be left blank, otherwise a,b,c... etc with no quotes. */
 #define BLENDER_VERSION_CHAR
 /** alpha/beta/rc/release, docs use this. */
-#define BLENDER_VERSION_CYCLE rc
+#define BLENDER_VERSION_CYCLE release
 
 /** Defined in from blender.c */
 extern char versionstr[];
