@@ -216,7 +216,6 @@ void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
   bGPdata *gpd = (bGPdata *)ob->data;
   bGPDstroke *gps;
 
@@ -236,8 +235,8 @@ void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
   bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
 
   /* frames */
-  bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, cfra_eval);
-  bGPDframe *frame_lines = BKE_gpencil_frame_addnew(lines, cfra_eval);
+  bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, CFRA);
+  bGPDframe *frame_lines = BKE_gpencil_frame_addnew(lines, CFRA);
   UNUSED_VARS(frame_color);
 
   /* generate stroke */

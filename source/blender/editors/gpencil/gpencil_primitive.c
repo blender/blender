@@ -306,7 +306,7 @@ static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi)
 static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 {
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
+  int cfra = CFRA;
 
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 
@@ -318,7 +318,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 
   /* create a new temporary frame */
   tgpi->gpf = MEM_callocN(sizeof(bGPDframe), "Temp bGPDframe");
-  tgpi->gpf->framenum = tgpi->cframe = cfra_eval;
+  tgpi->gpf->framenum = tgpi->cframe = cfra;
 
   /* create new temp stroke */
   bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "Temp bGPDstroke");
@@ -1098,8 +1098,6 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Paint *paint = &ts->gp_paint->paint;
 
-  int cfra_eval = CFRA;
-
   /* create temporary operator data */
   tGPDprimitive *tgpi = MEM_callocN(sizeof(tGPDprimitive), "GPencil Primitive Data");
   op->customdata = tgpi;
@@ -1121,7 +1119,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->orign_type = RNA_enum_get(op->ptr, "type");
 
   /* set current frame number */
-  tgpi->cframe = cfra_eval;
+  tgpi->cframe = CFRA;
 
   /* set GP datablock */
   tgpi->gpd = gpd;

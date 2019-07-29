@@ -1052,9 +1052,8 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
   Object *ob = CTX_data_active_object(C);
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
 
-  bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_ADD_NEW);
+  bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
   bGPDstroke *gps;
 
   float delta[3];
@@ -1399,10 +1398,10 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
 
   bGPDlayer *gpl;
   Scene *scene = gso->scene;
-  int cfra_eval = CFRA;
+  int cfra = CFRA;
 
   /* only try to add a new frame if this is the first stroke, or the frame has changed */
-  if ((gpd == NULL) || (cfra_eval == gso->cfra)) {
+  if ((gpd == NULL) || (cfra == gso->cfra)) {
     return;
   }
 
@@ -1418,14 +1417,14 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
        *   spent too much time editing the wrong frame.
        */
       // XXX: should this be allowed when framelock is enabled?
-      if (gpf->framenum != cfra_eval) {
-        BKE_gpencil_frame_addcopy(gpl, cfra_eval);
+      if (gpf->framenum != cfra) {
+        BKE_gpencil_frame_addcopy(gpl, cfra);
       }
     }
   }
 
   /* save off new current frame, so that next update works fine */
-  gso->cfra = cfra_eval;
+  gso->cfra = cfra;
 }
 
 /* Apply ----------------------------------------------- */

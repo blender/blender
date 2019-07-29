@@ -1275,9 +1275,8 @@ static void gp_layer_to_curve(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Collection *collection = CTX_data_collection(C);
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
 
-  bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
+  bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV);
   bGPDstroke *gps, *prev_gps = NULL;
   Object *ob;
   Curve *cu;
@@ -1407,7 +1406,6 @@ static void gp_layer_to_curve(bContext *C,
 static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
 
   bGPDframe *gpf = NULL;
   bGPDstroke *gps = NULL;
@@ -1416,7 +1414,7 @@ static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOpe
   int i;
   bool valid = true;
 
-  if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) ||
+  if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV)) ||
       !(gps = gpf->strokes.first)) {
     return false;
   }
@@ -1469,7 +1467,6 @@ static bool gp_convert_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
-  int cfra_eval = CFRA;
 
   if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
     return false;
@@ -1484,7 +1481,7 @@ static bool gp_convert_poll(bContext *C)
    * and if we are not in edit mode!
    */
   return ((sa && sa->spacetype == SPACE_VIEW3D) && (gpl = BKE_gpencil_layer_getactive(gpd)) &&
-          (gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) &&
+          (gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV)) &&
           (gpf->strokes.first) && (!GPENCIL_ANY_EDIT_MODE(gpd)));
 }
 
