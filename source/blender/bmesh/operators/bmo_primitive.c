@@ -807,6 +807,7 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
 
   const float dx = 1.0f / (float)(x_segments - 1);
   const float dy = 1.0f / (float)(y_segments - 1);
+  const float dx_wrap = 1.0 - (dx / 2.0f);
   float x = 0.0f;
   float y = dy;
 
@@ -844,7 +845,7 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
     }
 
     x += dx;
-    if (x >= 1.0f) {
+    if (x >= dx_wrap) {
       x = 0.0f;
       y += dy;
     }
