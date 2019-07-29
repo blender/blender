@@ -611,16 +611,19 @@ static bool average_track_contributions(StabContext *ctx,
         float rotation, scale, quality;
         quality = rotation_contribution(
             stabilization_base, marker, aspect, r_pivot, &rotation, &scale);
-        weight *= quality;
-        weight_sum += weight;
-        *r_angle += rotation * weight;
+        const float quality_weight = weight * quality;
+        weight_sum += quality_weight;
+        *r_angle += rotation * quality_weight;
         if (stab->flag & TRACKING_STABILIZE_SCALE) {
-          *r_scale_step += logf(scale) * weight;
+          *r_scale_step += logf(scale) * quality_weight;
         }
         else {
           *r_scale_step = 0;
         }
-        ok |= (weight_sum > EPSILON_WEIGHT);
+        /* NOTE: Use original marker weight and not the scaled one with the proximity here to allow
+         * simple stabilization setups when there is a single track in a close proximity of the
+         * center. */
+        ok |= (weight > EPSILON_WEIGHT);
       }
     }
   }
