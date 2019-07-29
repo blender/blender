@@ -1098,7 +1098,7 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
     const MVert *coarse_mvert = coarse_mesh->mvert;
     const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
     const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
-    interp_v2_v2v2(subdiv_vertex->co, vert_1->co, vert_2->co, u);
+    interp_v3_v3v3(subdiv_vertex->co, vert_1->co, vert_2->co, u);
   }
   else {
     float points[4][3];
