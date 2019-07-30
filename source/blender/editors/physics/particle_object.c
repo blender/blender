@@ -1090,7 +1090,6 @@ static bool copy_particle_systems_to_object(const bContext *C,
   ModifierData *md;
   ParticleSystem *psys_start = NULL, *psys, *psys_from;
   ParticleSystem **tmp_psys;
-  Mesh *final_mesh;
   CustomData_MeshMasks cdmask = {0};
   int i, totpsys;
 
@@ -1132,9 +1131,6 @@ static bool copy_particle_systems_to_object(const bContext *C,
    */
   psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
 
-  /* Get the evaluated mesh (psys and their modifiers have not been appended yet) */
-  final_mesh = mesh_get_eval_final(depsgraph, scene, ob_to, &cdmask);
-
   /* now append psys to the object and make modifiers */
   for (i = 0, psys_from = PSYS_FROM_FIRST; i < totpsys;
        ++i, psys_from = PSYS_FROM_NEXT(psys_from)) {
@@ -1155,10 +1151,6 @@ static bool copy_particle_systems_to_object(const bContext *C,
     modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
     psmd->psys = psys;
-    BKE_id_copy_ex(NULL, &final_mesh->id, (ID **)&psmd->mesh_final, LIB_ID_COPY_LOCALIZE);
-
-    BKE_mesh_calc_normals(psmd->mesh_final);
-    BKE_mesh_tessface_ensure(psmd->mesh_final);
 
     if (psys_from->edit) {
       copy_particle_edit(depsgraph, scene, ob_to, psys, psys_from);
