@@ -27,7 +27,7 @@ apps:
         command: ./blender
         desktop: ./blender.desktop
 
-version: @VERSION@
+version: '@VERSION@'
 grade: @GRADE@
 
 parts:
