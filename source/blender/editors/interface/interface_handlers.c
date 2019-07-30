@@ -10124,7 +10124,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 
       ui_region_winrct_get_no_margin(ar_temp, &winrct);
 
-      if (BLI_rcti_isect_pt_v(&winrct, &event->x)) {
+      if (BLI_rcti_isect_pt_v(&winrct, &event->x) || ui_region_find_active_but(ar_temp)) {
         BLI_assert(ar_temp->type->regionid == RGN_TYPE_TEMPORARY);
 
         is_inside_menu = true;
