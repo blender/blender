@@ -407,8 +407,8 @@ int BKE_blendfile_read(bContext *C,
   BlendFileData *bfd;
   bool success = false;
 
-  /* don't print user-pref loading */
-  if (strstr(filepath, BLENDER_STARTUP_FILE) == NULL) {
+  /* Don't print startup file loading. */
+  if (params->is_startup == false) {
     printf("Read blend: %s\n", filepath);
   }
 
