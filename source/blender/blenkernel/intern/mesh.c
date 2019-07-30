@@ -40,6 +40,7 @@
 #include "BKE_idcode.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_library.h"
@@ -479,20 +480,38 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
 /** Free (or release) any data used by this mesh (does not free the mesh itself). */
 void BKE_mesh_free(Mesh *me)
 {
-  BKE_animdata_free(&me->id, false);
-
-  BKE_mesh_runtime_clear_cache(me);
-
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->fdata, me->totface);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
-
+  BKE_mesh_clear_geometry(me);
   MEM_SAFE_FREE(me->mat);
-  MEM_SAFE_FREE(me->bb);
-  MEM_SAFE_FREE(me->mselect);
-  MEM_SAFE_FREE(me->edit_mesh);
+}
+
+void BKE_mesh_clear_geometry(Mesh *mesh)
+{
+  BKE_animdata_free(&mesh->id, false);
+  BKE_mesh_runtime_clear_cache(mesh);
+
+  CustomData_free(&mesh->vdata, mesh->totvert);
+  CustomData_free(&mesh->edata, mesh->totedge);
+  CustomData_free(&mesh->fdata, mesh->totface);
+  CustomData_free(&mesh->ldata, mesh->totloop);
+  CustomData_free(&mesh->pdata, mesh->totpoly);
+
+  MEM_SAFE_FREE(mesh->bb);
+  MEM_SAFE_FREE(mesh->mselect);
+  MEM_SAFE_FREE(mesh->edit_mesh);
+
+  /* Note that materials and shape keys are not freed here. This is intentional, as freeing
+   * shape keys requires tagging the depsgraph for updated relations, which is expensive.
+   * Material slots should be kept in sync with the object.*/
+
+  mesh->totvert = 0;
+  mesh->totedge = 0;
+  mesh->totface = 0;
+  mesh->totloop = 0;
+  mesh->totpoly = 0;
+  mesh->act_face = -1;
+  mesh->totselect = 0;
+
+  BKE_mesh_update_customdata_pointers(mesh, false);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)

@@ -202,6 +202,14 @@ static void rna_Mesh_count_selected_items(Mesh *mesh, int r_count[3])
   BKE_mesh_count_selected_items(mesh, r_count);
 }
 
+static void rna_Mesh_clear_geometry(Mesh *mesh)
+{
+  BKE_mesh_clear_geometry(mesh);
+
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -318,6 +326,11 @@ void RNA_api_mesh(StructRNA *srna)
   parm = RNA_def_string(
       func, "result", "nothing", 64, "Return value", "String description of result of comparison");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "clear_geometry", "rna_Mesh_clear_geometry");
+  RNA_def_function_ui_description(
+      func,
+      "Remove all geometry from the mesh. Note that this does not free shape keys or materials");
 
   func = RNA_def_function(srna, "validate", "BKE_mesh_validate");
   RNA_def_function_ui_description(func,

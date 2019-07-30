@@ -105,6 +105,7 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
 
 void BKE_mesh_free(struct Mesh *me);
 void BKE_mesh_init(struct Mesh *me);
+void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 void BKE_mesh_copy_data(struct Main *bmain,
                         struct Mesh *me_dst,
