@@ -58,11 +58,15 @@ typedef struct TrackMotionCurveUserData {
 static void tracking_segment_point_cb(void *userdata,
                                       MovieTrackingTrack *UNUSED(track),
                                       MovieTrackingMarker *UNUSED(marker),
-                                      eClipCurveValueSource UNUSED(value_source),
+                                      eClipCurveValueSource value_source,
                                       int scene_framenr,
                                       float val)
 {
   TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+
+  if (!clip_graph_value_visible(data->sc, value_source)) {
+    return;
+  }
 
   immVertex2f(data->pos, scene_framenr, val);
 }
