@@ -196,7 +196,6 @@ static void draw_select_id_object(void *vedata,
         if (use_faceselect && draw_facedot) {
           geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(me);
         }
-        DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
 
         DRWShadingGroup *face_shgrp;
         if (use_faceselect) {
@@ -244,14 +243,12 @@ static void draw_select_id_object(void *vedata,
         Mesh *me_orig = DEG_get_original_object(ob)->data;
         Mesh *me_eval = ob->data;
 
-        DRW_mesh_batch_cache_validate(me_eval);
         struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me_eval);
         if ((me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) &&
             /* Currently vertex select supports weight paint and vertex paint. */
             ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT))) {
 
           struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me_eval);
-          DRW_mesh_batch_cache_create_requested(ob, me_eval, NULL, false, true);
 
           /* Only draw faces to mask out verts, we don't want their selection ID's. */
           DRWShadingGroup *face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_unif);
@@ -266,9 +263,6 @@ static void draw_select_id_object(void *vedata,
           *r_vert_offset = me_eval->totvert + 1;
         }
         else {
-          const bool use_hide = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL);
-          DRW_mesh_batch_cache_create_requested(ob, me_eval, NULL, false, use_hide);
-
           DRWShadingGroup *face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
           DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
           DRW_shgroup_call(face_shgrp, geom_faces, ob);
