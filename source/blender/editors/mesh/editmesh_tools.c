@@ -8616,7 +8616,7 @@ static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
 
     switch (mode) {
       case EDBM_CLNOR_TOOLS_COPY:
-        if (bm->totfacesel == 0 || bm->totvertsel == 0) {
+        if (bm->totfacesel == 0 && bm->totvertsel == 0) {
           BM_loop_normal_editdata_array_free(lnors_ed_arr);
           continue;
         }
