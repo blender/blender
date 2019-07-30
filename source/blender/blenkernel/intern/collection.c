@@ -1100,7 +1100,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
 static void collection_parents_rebuild_recursive(Collection *collection)
 {
   BKE_collection_parent_relations_rebuild(collection);
-  collection->id.tag &= ~LIB_TAG_DOIT;
+  collection->tag &= ~COLLECTION_TAG_RELATION_REBUILD;
 
   for (CollectionChild *child = collection->children.first; child != NULL; child = child->next) {
     collection_parents_rebuild_recursive(child->collection);
@@ -1109,8 +1109,6 @@ static void collection_parents_rebuild_recursive(Collection *collection)
 
 /**
  * Rebuild parent relationships from child ones, for all collections in given \a bmain.
- *
- * \note Uses LIB_TAG_DOIT internally...
  */
 void BKE_main_collections_parent_relations_rebuild(Main *bmain)
 {
@@ -1119,7 +1117,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
        collection = collection->id.next) {
     BLI_freelistN(&collection->parents);
 
-    collection->id.tag |= LIB_TAG_DOIT;
+    collection->tag |= COLLECTION_TAG_RELATION_REBUILD;
   }
 
   /* Scene's master collections will be 'root' parent of most of our collections, so start with
@@ -1132,7 +1130,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
    * lib_link_collection_data() seems to assume that, so do the same here. */
   for (Collection *collection = bmain->collections.first; collection != NULL;
        collection = collection->id.next) {
-    if (collection->id.tag & LIB_TAG_DOIT) {
+    if (collection->tag & COLLECTION_TAG_RELATION_REBUILD) {
       /* Note: we do not have easy access to 'which collections is root' info in that case, which
        * means test for cycles in collection relationships may fail here. I don't think that is an
        * issue in practice here, but worth keeping in mind... */

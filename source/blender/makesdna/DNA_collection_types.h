@@ -57,7 +57,9 @@ typedef struct Collection {
   float instance_offset[3];
 
   short flag;
-  char _pad[6];
+  /* Runtime-only, always cleared on file load. */
+  short tag;
+  char _pad[4];
 
   /* Runtime. Cache of objects in this collection and all its
    * children. This is created on demand when e.g. some physics
@@ -82,6 +84,14 @@ enum {
   COLLECTION_RESTRICT_RENDER = (1 << 3),     /* Disable in renders. */
   COLLECTION_HAS_OBJECT_CACHE = (1 << 4),    /* Runtime: object_cache is populated. */
   COLLECTION_IS_MASTER = (1 << 5),           /* Is master collection embedded in the scene. */
+};
+
+/* Collection->tag */
+enum {
+  /* That code (BKE_main_collections_parent_relations_rebuild and the like)
+   * is called from very low-level places, like e.g ID remapping...
+   * Using a generic tag like LIB_TAG_DOIT for this is just impossible, we need our very own. */
+  COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
 };
 
 #endif /* __DNA_COLLECTION_TYPES_H__ */
