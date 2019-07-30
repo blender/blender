@@ -1050,10 +1050,8 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
   tGPSB_CloneBrushData *data = gso->customdata;
 
   Object *ob = CTX_data_active_object(C);
-  bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
+  bGPdata *gpd = (bGPdata *)ob->data;
   Scene *scene = CTX_data_scene(C);
-
-  bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
   bGPDstroke *gps;
 
   float delta[3];
@@ -1072,6 +1070,18 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
       bGPDspoint *pt;
       int i;
 
+      bGPDlayer *gpl = NULL;
+      /* Try to use original layer. */
+      if (gps->runtime.tmp_layerinfo != NULL) {
+        gpl = BLI_findstring(&gpd->layers, gps->runtime.tmp_layerinfo, offsetof(bGPDlayer, info));
+      }
+
+      /* if not available, use active layer. */
+      if (gpl == NULL) {
+        gpl = CTX_data_active_gpencil_layer(C);
+      }
+      bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+
       /* Make a new stroke */
       new_stroke = MEM_dupallocN(gps);
 
@@ -1086,10 +1096,10 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
       BLI_addtail(&gpf->strokes, new_stroke);
 
       /* Fix color references */
-      Material *ma = BLI_ghash_lookup(data->new_colors, &new_stroke->mat_nr);
-      gps->mat_nr = BKE_gpencil_object_material_get_index(ob, ma);
-      if (!ma || gps->mat_nr) {
-        gps->mat_nr = 0;
+      Material *ma = BLI_ghash_lookup(data->new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
+      new_stroke->mat_nr = BKE_gpencil_object_material_get_index(ob, ma);
+      if (!ma || new_stroke->mat_nr < 0) {
+        new_stroke->mat_nr = 0;
       }
       /* Adjust all the stroke's points, so that the strokes
        * get pasted relative to where the cursor is now
