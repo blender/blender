@@ -216,11 +216,8 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(ParallelRangeSettings *sett
   memset(settings, 0, sizeof(*settings));
   settings->use_threading = true;
   settings->scheduling_mode = TASK_SCHEDULING_STATIC;
-  /* NOTE: Current value mimics old behavior, but it's not ideal by any
-   * means. Would be cool to find a common value which will work good enough
-   * for both static and dynamic scheduling.
-   */
-  settings->min_iter_per_thread = 1;
+  /* Use default heuristic to define actual chunk size. */
+  settings->min_iter_per_thread = 0;
 }
 
 #ifdef __cplusplus

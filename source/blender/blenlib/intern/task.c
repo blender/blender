@@ -1054,6 +1054,49 @@ typedef struct ParallelRangeState {
   int chunk_size;
 } ParallelRangeState;
 
+BLI_INLINE void task_parallel_range_calc_chunk_size(const ParallelRangeSettings *settings,
+                                                    const int num_tasks,
+                                                    ParallelRangeState *state)
+{
+  const int tot_items = state->stop - state->start;
+  int chunk_size = 0;
+
+  if (settings->min_iter_per_thread > 0) {
+    /* Already set by user, no need to do anything here. */
+    chunk_size = settings->min_iter_per_thread;
+  }
+  else {
+    /* Basic heuristic to avoid threading on low amount of items. We could make that limit
+     * configurable in settings too... */
+    if (tot_items > 0 && tot_items < 256) {
+      chunk_size = tot_items;
+    }
+    /* NOTE: The idea here is to compensate for rather measurable threading
+     * overhead caused by fetching tasks. With too many CPU threads we are starting
+     * to spend too much time in those overheads. */
+    else if (num_tasks > 32) {
+      chunk_size = 128;
+    }
+    else if (num_tasks > 16) {
+      chunk_size = 64;
+    }
+    else {
+      chunk_size = 32;
+    }
+  }
+
+  BLI_assert(chunk_size > 0);
+
+  switch (settings->scheduling_mode) {
+    case TASK_SCHEDULING_STATIC:
+      state->chunk_size = max_ii(chunk_size, tot_items / (num_tasks));
+      break;
+    case TASK_SCHEDULING_DYNAMIC:
+      state->chunk_size = chunk_size;
+      break;
+  }
+}
+
 BLI_INLINE bool parallel_range_next_iter_get(ParallelRangeState *__restrict state,
                                              int *__restrict iter,
                                              int *__restrict count)
@@ -1162,16 +1205,8 @@ void BLI_task_parallel_range(const int start,
   state.userdata = userdata;
   state.func = func;
   state.iter = start;
-  switch (settings->scheduling_mode) {
-    case TASK_SCHEDULING_STATIC:
-      state.chunk_size = max_ii(settings->min_iter_per_thread, (stop - start) / (num_tasks));
-      break;
-    case TASK_SCHEDULING_DYNAMIC:
-      /* TODO(sergey): Make it configurable from min_iter_per_thread. */
-      state.chunk_size = 32;
-      break;
-  }
 
+  task_parallel_range_calc_chunk_size(settings, num_tasks, &state);
   num_tasks = min_ii(num_tasks, max_ii(1, (stop - start) / state.chunk_size));
 
   if (num_tasks == 1) {
