@@ -72,6 +72,7 @@ struct uiPopover {
   uiBlock *block;
   uiLayout *layout;
   uiBut *but;
+  ARegion *butregion;
 
   /* Needed for keymap removal. */
   wmWindow *window;
@@ -325,7 +326,7 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
     block = pup->block;
   }
   else {
-    uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x);
+    uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x, false);
     layout = UI_popover_layout(pup);
     UI_paneltype_draw(C, pt, layout);
     UI_popover_end(C, pup, NULL);
@@ -346,14 +347,31 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
 
 /**
  * Only return handler, and set optional title.
+ *
+ * \param from_active_button: Use the active button for positioning,
+ * use when the popover is activated from an operator instead of directly from the button.
  */
-uiPopover *UI_popover_begin(bContext *C, int ui_size_x)
+uiPopover *UI_popover_begin(bContext *C, int ui_size_x, bool from_active_button)
 {
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
   if (ui_size_x == 0) {
     ui_size_x = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
   }
   pup->ui_size_x = ui_size_x;
+
+  ARegion *butregion = NULL;
+  uiBut *but = NULL;
+
+  if (from_active_button) {
+    butregion = CTX_wm_region(C);
+    but = UI_region_active_but_get(butregion);
+    if (but == NULL) {
+      butregion = NULL;
+    }
+  }
+
+  pup->but = but;
+  pup->butregion = butregion;
 
   /* Operator context default same as menus, change if needed. */
   ui_popover_create_block(C, pup, WM_OP_EXEC_REGION_WIN);
@@ -387,7 +405,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   }
 
   handle = ui_popup_block_create(
-      C, NULL, NULL, NULL, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
+      C, pup->butregion, pup->but, NULL, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER);
 
   /* Add handlers. */
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);

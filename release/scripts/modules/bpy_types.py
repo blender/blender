@@ -151,10 +151,12 @@ class WindowManager(bpy_types.ID):
             self, draw_func, *,
             ui_units_x=0,
             keymap=None,
+            from_active_button=False,
     ):
         import bpy
         popup = self.popover_begin__internal(
             ui_units_x=ui_units_x,
+            from_active_button=from_active_button,
         )
 
         try:

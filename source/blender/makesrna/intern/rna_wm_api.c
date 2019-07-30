@@ -471,12 +471,12 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 }
 
 /* popover wrapper */
-static PointerRNA rna_PopoverBegin(bContext *C, int ui_units_x)
+static PointerRNA rna_PopoverBegin(bContext *C, int ui_units_x, bool from_active_button)
 {
   PointerRNA r_ptr;
   void *data;
 
-  data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x);
+  data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x, from_active_button);
 
   RNA_pointer_create(NULL, &RNA_UIPopover, data, &r_ptr);
 
@@ -821,6 +821,8 @@ void RNA_api_wm(StructRNA *srna)
   parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
+  RNA_def_boolean(
+      func, "from_active_button", 0, "Use Button", "Use the active button for positioning");
 
   /* wrap UI_popover_end */
   func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");

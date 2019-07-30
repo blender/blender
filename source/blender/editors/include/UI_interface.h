@@ -562,7 +562,8 @@ int UI_popover_panel_invoke(struct bContext *C,
                             bool keep_open,
                             struct ReportList *reports);
 
-uiPopover *UI_popover_begin(struct bContext *C, int menu_width) ATTR_NONNULL(1);
+uiPopover *UI_popover_begin(struct bContext *C, int menu_width, bool from_active_button)
+    ATTR_NONNULL(1);
 void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
 struct uiLayout *UI_popover_layout(uiPopover *head);
 void UI_popover_once_clear(uiPopover *pup);
