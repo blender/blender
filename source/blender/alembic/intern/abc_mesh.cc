@@ -205,17 +205,14 @@ static void get_loop_normals(struct Mesh *mesh, std::vector<Imath::V3f> &normals
   normals.clear();
   normals.resize(mesh->totloop);
 
-  unsigned loop_index = 0;
-
   /* NOTE: data needs to be written in the reverse order. */
+  int abc_index = 0;
 
   if (lnors) {
     for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mp) {
-      ml = mloop + mp->loopstart + (mp->totloop - 1);
-
-      for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
-        const int index = ml->v;
-        copy_yup_from_zup(normals[loop_index].getValue(), lnors[index]);
+      for (int j = mp->totloop - 1; j >= 0; --j, ++abc_index) {
+        int blender_index = mp->loopstart + j;
+        copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);
       }
     }
   }
@@ -229,15 +226,15 @@ static void get_loop_normals(struct Mesh *mesh, std::vector<Imath::V3f> &normals
       if ((mp->flag & ME_SMOOTH) == 0) {
         BKE_mesh_calc_poly_normal(mp, ml - (mp->totloop - 1), verts, no);
 
-        for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
-          copy_yup_from_zup(normals[loop_index].getValue(), no);
+        for (int j = 0; j < mp->totloop; --ml, ++j, ++abc_index) {
+          copy_yup_from_zup(normals[abc_index].getValue(), no);
         }
       }
       else {
         /* Smooth shaded, use individual vert normals. */
-        for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
+        for (int j = 0; j < mp->totloop; --ml, ++j, ++abc_index) {
           normal_short_to_float_v3(no, verts[ml->v].no);
-          copy_yup_from_zup(normals[loop_index].getValue(), no);
+          copy_yup_from_zup(normals[abc_index].getValue(), no);
         }
       }
     }
@@ -413,7 +410,7 @@ void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
   std::vector<int32_t> poly_verts, loop_counts;
   std::vector<Imath::V3f> velocities;
 
-  bool export_loop_normals = false;
+  bool export_loop_normals = (mesh->flag & ME_AUTOSMOOTH) != 0;
 
   get_vertices(mesh, points);
   get_topology(mesh, poly_verts, loop_counts, export_loop_normals);
