@@ -68,6 +68,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "DRW_engine.h"
+
 #include "mesh_intern.h" /* own include */
 
 /* use bmesh operator flags for a few operators */
@@ -197,15 +199,11 @@ void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
 /** \name Back-Buffer OpenGL Selection
  * \{ */
 
-static BMElem *EDBM_select_id_bm_elem_get(struct EDSelectID_Context *sel_id_ctx,
-                                          Base **bases,
-                                          const uint sel_id,
-                                          uint *r_base_index)
+static BMElem *edbm_select_id_bm_elem_get(Base **bases, const uint sel_id, uint *r_base_index)
 {
   uint elem_id;
   char elem_type = 0;
-  bool success = ED_view3d_select_id_elem_get(
-      sel_id_ctx, sel_id, &elem_id, r_base_index, &elem_type);
+  bool success = DRW_select_elem_get(sel_id, &elem_id, r_base_index, &elem_type);
 
   if (success) {
     Object *obedit = bases[*r_base_index]->object;
@@ -335,19 +333,16 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
     {
       FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX);
 
-      struct EDSelectID_Context *sel_id_ctx = ED_view3d_select_id_context_create(
-          vc, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
 
       index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
-        eve = (BMVert *)EDBM_select_id_bm_elem_get(sel_id_ctx, bases, index, &base_index);
+        eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, &base_index);
       }
       else {
         eve = NULL;
       }
-
-      ED_view3d_select_id_context_destroy(sel_id_ctx);
 
       FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }
@@ -564,19 +559,16 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
     {
       FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
 
-      struct EDSelectID_Context *sel_id_ctx = ED_view3d_select_id_context_create(
-          vc, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
 
       index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
       if (index) {
-        eed = (BMEdge *)EDBM_select_id_bm_elem_get(sel_id_ctx, bases, index, &base_index);
+        eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, &base_index);
       }
       else {
         eed = NULL;
       }
-
-      ED_view3d_select_id_context_destroy(sel_id_ctx);
 
       FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }
@@ -777,19 +769,16 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     {
       FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_FACE);
 
-      struct EDSelectID_Context *sel_id_ctx = ED_view3d_select_id_context_create(
-          vc, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
 
       index = ED_select_buffer_sample_point(vc->mval);
 
       if (index) {
-        efa = (BMFace *)EDBM_select_id_bm_elem_get(sel_id_ctx, bases, index, &base_index);
+        efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
       }
       else {
         efa = NULL;
       }
-
-      ED_view3d_select_id_context_destroy(sel_id_ctx);
 
       FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }

@@ -155,11 +155,13 @@ void ED_view3d_clipping_enable(void)
 /**
  * \note Only use in object mode.
  */
-static void validate_object_select_id(
-    struct Depsgraph *depsgraph, Scene *scene, ARegion *ar, View3D *v3d, Object *obact)
+static void validate_object_select_id(struct Depsgraph *depsgraph,
+                                      Scene *scene,
+                                      ViewLayer *view_layer,
+                                      ARegion *ar,
+                                      View3D *v3d,
+                                      Object *obact)
 {
-  RegionView3D *rv3d = ar->regiondata;
-  Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
   Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
 
   BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
@@ -186,19 +188,8 @@ static void validate_object_select_id(
   }
 
   if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
-    uint dummy_vert_ofs, dummy_edge_ofs, dummy_face_ofs;
-    DRW_framebuffer_select_id_setup(ar, true);
-    DRW_draw_select_id_object(scene_eval,
-                              rv3d,
-                              obact_eval,
-                              scene->toolsettings->selectmode,
-                              false,
-                              1,
-                              &dummy_vert_ofs,
-                              &dummy_edge_ofs,
-                              &dummy_face_ofs);
-
-    DRW_framebuffer_select_id_release(ar);
+    DRW_draw_select_id_object(
+        depsgraph, view_layer, ar, v3d, obact, scene->toolsettings->selectmode);
   }
 
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer
@@ -233,7 +224,8 @@ void ED_view3d_select_id_validate(ViewContext *vc)
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer
    *       made on the backbuffer in this case. */
   if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
-    validate_object_select_id(vc->depsgraph, vc->scene, vc->ar, vc->v3d, vc->obact);
+    validate_object_select_id(
+        vc->depsgraph, vc->scene, vc->view_layer, vc->ar, vc->v3d, vc->obact);
   }
 }
 

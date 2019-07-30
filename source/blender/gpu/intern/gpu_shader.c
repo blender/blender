@@ -139,9 +139,6 @@ extern char datatoc_gpu_shader_2D_edituvs_edges_vert_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_faces_vert_glsl[];
 extern char datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl[];
 
-extern char datatoc_gpu_shader_3D_selection_id_vert_glsl[];
-extern char datatoc_gpu_shader_selection_id_frag_glsl[];
-
 extern char datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_geom_glsl[];
@@ -1312,18 +1309,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .defs = "#define STRETCH_ANGLE\n",
         },
 
-    [GPU_SHADER_3D_FLAT_SELECT_ID] =
-        {
-            .vert = datatoc_gpu_shader_3D_selection_id_vert_glsl,
-            .frag = datatoc_gpu_shader_selection_id_frag_glsl,
-        },
-    [GPU_SHADER_3D_UNIFORM_SELECT_ID] =
-        {
-            .vert = datatoc_gpu_shader_3D_selection_id_vert_glsl,
-            .frag = datatoc_gpu_shader_selection_id_frag_glsl,
-            .defs = "#define UNIFORM_ID\n",
-        },
-
     [GPU_SHADER_GPENCIL_STROKE] =
         {
             .vert = datatoc_gpu_shader_gpencil_stroke_vert_glsl,
@@ -1370,9 +1355,7 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                       GPU_SHADER_3D_GROUNDLINE,
                       GPU_SHADER_3D_GROUNDPOINT,
                       GPU_SHADER_DISTANCE_LINES,
-                      GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR,
-                      GPU_SHADER_3D_FLAT_SELECT_ID,
-                      GPU_SHADER_3D_UNIFORM_SELECT_ID) ||
+                      GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR) ||
                  ELEM(shader,
                       GPU_SHADER_3D_FLAT_COLOR,
                       GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,

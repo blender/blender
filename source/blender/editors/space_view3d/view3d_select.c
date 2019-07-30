@@ -111,192 +111,6 @@
 // #include "PIL_time_utildefines.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Selection Utilities
- * \{ */
-
-struct EDBaseOffset {
-  /* For convenience only. */
-  union {
-    uint offset;
-    uint face_start;
-  };
-  union {
-    uint face;
-    uint edge_start;
-  };
-  union {
-    uint edge;
-    uint vert_start;
-  };
-  uint vert;
-};
-
-struct EDSelectID_Context {
-  struct EDBaseOffset *base_array_index_offsets;
-  /** Borrow from caller (not freed). */
-  struct Base **bases;
-  uint bases_len;
-  /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
-  uint base_array_index_len;
-  /** Used to check for changes. (Use depsgraph instead?). */
-  float persmat[4][4];
-  short select_mode;
-};
-
-static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, char dt)
-{
-  if (select_mode & SCE_SELECT_FACE) {
-    if ((dt < OB_SOLID) || XRAY_FLAG_ENABLED(v3d)) {
-      return true;
-    }
-    if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) {
-      return true;
-    }
-    if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
-      /* Since we can't deduce face selection when edges aren't visible - show dots. */
-      return true;
-    }
-  }
-  return false;
-}
-
-static void ed_select_id_draw_bases(struct EDSelectID_Context *sel_id_ctx,
-                                    ViewContext *vc,
-                                    short select_mode)
-{
-  Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc->depsgraph, &vc->scene->id);
-  DRW_framebuffer_select_id_setup(vc->ar, true);
-
-  uint offset = 1;
-  for (uint base_index = 0; base_index < sel_id_ctx->bases_len; base_index++) {
-    Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
-                                               sel_id_ctx->bases[base_index]->object);
-
-    struct EDBaseOffset *base_ofs = &sel_id_ctx->base_array_index_offsets[base_index];
-    bool draw_facedot = check_ob_drawface_dot(select_mode, vc->v3d, ob_eval->dt);
-
-    DRW_draw_select_id_object(scene_eval,
-                              vc->rv3d,
-                              ob_eval,
-                              select_mode,
-                              draw_facedot,
-                              offset,
-                              &base_ofs->vert,
-                              &base_ofs->edge,
-                              &base_ofs->face);
-
-    base_ofs->offset = offset;
-    offset = base_ofs->vert;
-  }
-
-  sel_id_ctx->base_array_index_len = offset;
-
-  DRW_framebuffer_select_id_release(vc->ar);
-}
-
-void ED_view3d_select_id_validate_view_matrices(struct EDSelectID_Context *sel_id_ctx,
-                                                ViewContext *vc)
-{
-  if (!compare_m4m4(sel_id_ctx->persmat, vc->rv3d->persmat, FLT_EPSILON)) {
-    ed_select_id_draw_bases(sel_id_ctx, vc, sel_id_ctx->select_mode);
-  }
-}
-
-uint ED_view3d_select_id_context_offset_for_object_elem(
-    const struct EDSelectID_Context *sel_id_ctx, int base_index, char elem_type)
-{
-  struct EDBaseOffset *base_ofs = &sel_id_ctx->base_array_index_offsets[base_index];
-  if (elem_type == SCE_SELECT_VERTEX) {
-    return base_ofs->vert_start - 1;
-  }
-  if (elem_type == SCE_SELECT_EDGE) {
-    return base_ofs->edge_start - 1;
-  }
-  if (elem_type == SCE_SELECT_FACE) {
-    return base_ofs->face_start - 1;
-  }
-  BLI_assert(0);
-  return 0;
-}
-
-uint ED_view3d_select_id_context_elem_len(const struct EDSelectID_Context *sel_id_ctx)
-{
-  return sel_id_ctx->base_array_index_len;
-}
-
-struct EDSelectID_Context *ED_view3d_select_id_context_create(ViewContext *vc,
-                                                              Base **bases,
-                                                              const uint bases_len,
-                                                              short select_mode)
-{
-  struct EDSelectID_Context *sel_id_ctx = MEM_mallocN(sizeof(*sel_id_ctx), __func__);
-  sel_id_ctx->base_array_index_offsets = MEM_mallocN(sizeof(struct EDBaseOffset) * bases_len,
-                                                     __func__);
-  sel_id_ctx->bases = bases;
-  sel_id_ctx->bases_len = bases_len;
-  copy_m4_m4(sel_id_ctx->persmat, vc->rv3d->persmat);
-  sel_id_ctx->select_mode = select_mode;
-  ed_select_id_draw_bases(sel_id_ctx, vc, select_mode);
-
-  return sel_id_ctx;
-}
-
-void ED_view3d_select_id_context_destroy(struct EDSelectID_Context *sel_id_ctx)
-{
-  MEM_freeN(sel_id_ctx->base_array_index_offsets);
-  MEM_freeN(sel_id_ctx);
-}
-
-bool ED_view3d_select_id_elem_get(struct EDSelectID_Context *sel_id_ctx,
-                                  const uint sel_id,
-                                  uint *r_elem,
-                                  uint *r_base_index,
-                                  char *r_elem_type)
-{
-  char elem_type = 0;
-  uint elem_id;
-  uint base_index = 0;
-
-  while (true) {
-    struct EDBaseOffset *base_ofs = &sel_id_ctx->base_array_index_offsets[base_index];
-    if (base_ofs->face > sel_id) {
-      elem_id = sel_id - base_ofs->face_start;
-      elem_type = SCE_SELECT_FACE;
-      break;
-    }
-    if (base_ofs->edge > sel_id) {
-      elem_id = sel_id - base_ofs->edge_start;
-      elem_type = SCE_SELECT_EDGE;
-      break;
-    }
-    if (base_ofs->vert > sel_id) {
-      elem_id = sel_id - base_ofs->vert_start;
-      elem_type = SCE_SELECT_VERTEX;
-      break;
-    }
-
-    base_index++;
-    if (base_index >= sel_id_ctx->bases_len) {
-      return false;
-    }
-  }
-
-  *r_elem = elem_id;
-
-  if (r_base_index) {
-    *r_base_index = base_index;
-  }
-
-  if (r_elem_type) {
-    *r_elem_type = elem_type;
-  }
-
-  return true;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public Utilities
  * \{ */
 
@@ -385,7 +199,6 @@ static bool object_deselect_all_except(ViewLayer *view_layer, Base *b)
 struct EditSelectBuf_Cache {
   Base **bases;
   uint bases_len;
-  struct EDSelectID_Context *sel_id_ctx;
   BLI_bitmap *select_bitmap;
 };
 
@@ -407,8 +220,12 @@ static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewCont
       esel->bases_len = 0;
     }
   }
-  esel->sel_id_ctx = ED_view3d_select_id_context_create(
-      vc, esel->bases, esel->bases_len, vc->scene->toolsettings->selectmode);
+  DRW_draw_select_id(vc->depsgraph,
+                     vc->ar,
+                     vc->v3d,
+                     esel->bases,
+                     esel->bases_len,
+                     vc->scene->toolsettings->selectmode);
   for (int i = 0; i < esel->bases_len; i++) {
     esel->bases[i]->object->runtime.select_id = i;
   }
@@ -416,9 +233,6 @@ static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewCont
 
 static void editselect_buf_cache_free(struct EditSelectBuf_Cache *esel)
 {
-  if (esel->sel_id_ctx) {
-    ED_view3d_select_id_context_destroy(esel->sel_id_ctx);
-  }
   MEM_SAFE_FREE(esel->select_bitmap);
   MEM_SAFE_FREE(esel->bases);
 }
@@ -455,8 +269,7 @@ static bool edbm_backbuf_check_and_select_verts(struct EditSelectBuf_Cache *esel
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
-  uint index = ED_view3d_select_id_context_offset_for_object_elem(
-      esel->sel_id_ctx, ob->runtime.select_id, SCE_SELECT_VERTEX);
+  uint index = DRW_select_context_offset_for_object_elem(ob->runtime.select_id, SCE_SELECT_VERTEX);
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -483,8 +296,7 @@ static bool edbm_backbuf_check_and_select_edges(struct EditSelectBuf_Cache *esel
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
-  uint index = ED_view3d_select_id_context_offset_for_object_elem(
-      esel->sel_id_ctx, ob->runtime.select_id, SCE_SELECT_EDGE);
+  uint index = DRW_select_context_offset_for_object_elem(ob->runtime.select_id, SCE_SELECT_EDGE);
 
   BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
     if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -511,8 +323,7 @@ static bool edbm_backbuf_check_and_select_faces(struct EditSelectBuf_Cache *esel
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
-  uint index = ED_view3d_select_id_context_offset_for_object_elem(
-      esel->sel_id_ctx, ob->runtime.select_id, SCE_SELECT_FACE);
+  uint index = DRW_select_context_offset_for_object_elem(ob->runtime.select_id, SCE_SELECT_FACE);
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
@@ -1017,7 +828,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
     if (wm_userdata->data == NULL) {
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
       esel = wm_userdata->data;
-      const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+      const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
     }
   }
@@ -1036,10 +847,8 @@ static bool do_lasso_select_mesh(ViewContext *vc,
     struct LassoSelectUserData_ForMeshEdge data_for_edge = {
         .data = &data,
         .esel = use_zbuf ? esel : NULL,
-        .backbuf_offset = use_zbuf ? ED_view3d_select_id_context_offset_for_object_elem(
-                                         esel->sel_id_ctx,
-                                         vc->obedit->runtime.select_id,
-                                         SCE_SELECT_EDGE) :
+        .backbuf_offset = use_zbuf ? DRW_select_context_offset_for_object_elem(
+                                         vc->obedit->runtime.select_id, SCE_SELECT_EDGE) :
                                      0,
     };
     mesh_foreachScreenEdge(
@@ -1327,7 +1136,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
     if (wm_userdata->data == NULL) {
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
       esel = wm_userdata->data;
-      const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+      const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
     }
   }
@@ -1386,7 +1195,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
   if (esel == NULL) {
     editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
     esel = wm_userdata->data;
-    const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+    const uint buffer_len = DRW_select_context_elem_len();
     esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
   }
 
@@ -2742,7 +2551,7 @@ static bool do_paintvert_box_select(ViewContext *vc,
     if (wm_userdata->data == NULL) {
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
       esel = wm_userdata->data;
-      const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+      const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
     }
     if (esel->select_bitmap != NULL) {
@@ -2797,7 +2606,7 @@ static bool do_paintface_box_select(ViewContext *vc,
     if (wm_userdata->data == NULL) {
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
       esel = wm_userdata->data;
-      const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+      const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
     }
     if (esel->select_bitmap != NULL) {
@@ -2995,7 +2804,7 @@ static bool do_mesh_box_select(ViewContext *vc,
     if (wm_userdata->data == NULL) {
       editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
       esel = wm_userdata->data;
-      const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+      const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
     }
   }
@@ -3014,10 +2823,8 @@ static bool do_mesh_box_select(ViewContext *vc,
     struct BoxSelectUserData_ForMeshEdge cb_data = {
         .data = &data,
         .esel = use_zbuf ? esel : NULL,
-        .backbuf_offset = use_zbuf ? ED_view3d_select_id_context_offset_for_object_elem(
-                                         esel->sel_id_ctx,
-                                         vc->obedit->runtime.select_id,
-                                         SCE_SELECT_EDGE) :
+        .backbuf_offset = use_zbuf ? DRW_select_context_offset_for_object_elem(
+                                         vc->obedit->runtime.select_id, SCE_SELECT_EDGE) :
                                      0,
     };
     mesh_foreachScreenEdge(
@@ -3582,8 +3389,7 @@ static bool mesh_circle_select(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
 
   if (use_zbuf) {
-    ED_view3d_select_id_validate_view_matrices(esel->sel_id_ctx, vc);
-    const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+    const uint buffer_len = DRW_select_context_elem_len();
     esel->select_bitmap = ED_select_buffer_bitmap_from_circle(buffer_len, mval, (int)(rad + 1.0f));
   }
 
@@ -3660,7 +3466,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
 
   {
     struct EditSelectBuf_Cache *esel = wm_userdata->data;
-    const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+    const uint buffer_len = DRW_select_context_elem_len();
     esel->select_bitmap = ED_select_buffer_bitmap_from_circle(buffer_len, mval, (int)(rad + 1.0f));
     if (esel->select_bitmap != NULL) {
       changed |= edbm_backbuf_check_and_select_faces_obmode(me, esel, sel_op);
@@ -3715,7 +3521,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
 
   if (use_zbuf) {
     struct EditSelectBuf_Cache *esel = wm_userdata->data;
-    const uint buffer_len = ED_view3d_select_id_context_elem_len(esel->sel_id_ctx);
+    const uint buffer_len = DRW_select_context_elem_len();
     esel->select_bitmap = ED_select_buffer_bitmap_from_circle(buffer_len, mval, (int)(rad + 1.0f));
     if (esel->select_bitmap != NULL) {
       changed |= edbm_backbuf_check_and_select_verts_obmode(me, esel, sel_op);
