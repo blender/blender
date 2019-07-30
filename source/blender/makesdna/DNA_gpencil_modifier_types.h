@@ -92,7 +92,7 @@ typedef struct NoiseGpencilModifierData {
   int step;
   /** Last gp frame used. */
   int gp_frame;
-  /** Last scene frame used. */
+  /** First scene frame used. */
   int scene_frame;
   /** Random values. */
   float vrand1, vrand2;

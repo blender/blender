@@ -85,6 +85,21 @@ static bool dependsOnTime(GpencilModifierData *md)
   return (mmd->flag & GP_NOISE_USE_RANDOM) != 0;
 }
 
+/* Get the lower number of frame for all layers. */
+static int get_lower_frame(bGPdata *gpd)
+{
+  int init = 99999;
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    if (gpl->frames.first) {
+      bGPDframe *gpf = gpl->frames.first;
+      if (gpf->framenum < init) {
+        init = gpf->framenum;
+      }
+    }
+  }
+  return init;
+}
+
 /* aply noise effect based on stroke direction */
 static void deformStroke(
     GpencilModifierData *md, Depsgraph *depsgraph, Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
@@ -103,6 +118,7 @@ static void deformStroke(
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
   NoiseGpencilModifierData *mmd_eval = (NoiseGpencilModifierData *)md_eval;
+  bGPdata *gpd = (bGPdata *)ob->data;
 
   /* Random generator, only init once. (it uses eval to get same value in render) */
   if (mmd_eval->rng == NULL) {
@@ -110,6 +126,9 @@ static void deformStroke(
     rng_seed ^= POINTER_AS_UINT(mmd);
     mmd_eval->rng = BLI_rng_new(rng_seed);
     mmd->rng = mmd_eval->rng;
+    /* Get lower frame number */
+    mmd_eval->scene_frame = get_lower_frame(gpd);
+    mmd->scene_frame = mmd_eval->scene_frame;
   }
 
   if (!is_stroke_affected_by_modifier(ob,
@@ -176,19 +195,17 @@ static void deformStroke(
       sub_v3_v3v3(vec1, &pt1->x, &pt0->x);
     }
     vran = len_v3(vec1);
-    /* vector orthogonal to normal */
+    /* Vector orthogonal to normal. */
     cross_v3_v3v3(vec2, vec1, normal);
     normalize_v3(vec2);
-    /* use random noise */
+    /* Use random noise */
     if (mmd->flag & GP_NOISE_USE_RANDOM) {
-      sc_diff = abs(mmd->scene_frame - sc_frame);
-      /* only recalc if the gp frame change or the number of scene frames is bigger than step */
-      if ((!gpl->actframe) || (mmd->gp_frame != gpl->actframe->framenum) ||
-          (sc_diff >= mmd->step)) {
+      sc_diff = abs(sc_frame - mmd->scene_frame) % mmd->step;
+      /* Only recalc if the gp frame change or is a step. */
+      if ((mmd->gp_frame != sc_frame) && (sc_diff == 0)) {
         vran = mmd->vrand1 = BLI_rng_get_float(mmd->rng);
         vdir = mmd->vrand2 = BLI_rng_get_float(mmd->rng);
-        mmd->gp_frame = gpl->actframe->framenum;
-        mmd->scene_frame = sc_frame;
+        mmd->gp_frame = sc_frame;
       }
       else {
         vran = mmd->vrand1;
