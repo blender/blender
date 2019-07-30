@@ -851,7 +851,7 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
 static void cloth_collision(void *__restrict userdata,
                             const int index,
-                            const ParallelRangeTLS *__restrict UNUSED(tls))
+                            const TaskParallelTLS *__restrict UNUSED(tls))
 {
   ColDetectData *data = (ColDetectData *)userdata;
 
@@ -908,7 +908,7 @@ static void cloth_collision(void *__restrict userdata,
 
 static void cloth_selfcollision(void *__restrict userdata,
                                 const int index,
-                                const ParallelRangeTLS *__restrict UNUSED(tls))
+                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SelfColDetectData *data = (SelfColDetectData *)userdata;
 
@@ -1154,7 +1154,7 @@ static bool cloth_bvh_objcollisions_nearcheck(ClothModifierData *clmd,
       .collided = false,
   };
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = true;
   BLI_task_parallel_range(0, numresult, &data, cloth_collision, &settings);
@@ -1174,7 +1174,7 @@ static bool cloth_bvh_selfcollisions_nearcheck(ClothModifierData *clmd,
       .collided = false,
   };
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = true;
   BLI_task_parallel_range(0, numresult, &data, cloth_selfcollision, &settings);

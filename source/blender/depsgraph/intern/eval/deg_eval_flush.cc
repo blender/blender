@@ -88,7 +88,7 @@ namespace {
 
 void flush_init_operation_node_func(void *__restrict data_v,
                                     const int i,
-                                    const ParallelRangeTLS *__restrict /*tls*/)
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
   Depsgraph *graph = (Depsgraph *)data_v;
   OperationNode *node = graph->operations[i];
@@ -97,7 +97,7 @@ void flush_init_operation_node_func(void *__restrict data_v,
 
 void flush_init_id_node_func(void *__restrict data_v,
                              const int i,
-                             const ParallelRangeTLS *__restrict /*tls*/)
+                             const TaskParallelTLS *__restrict /*tls*/)
 {
   Depsgraph *graph = (Depsgraph *)data_v;
   IDNode *id_node = graph->id_nodes[i];
@@ -111,14 +111,14 @@ BLI_INLINE void flush_prepare(Depsgraph *graph)
 {
   {
     const int num_operations = graph->operations.size();
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = 1024;
     BLI_task_parallel_range(0, num_operations, graph, flush_init_operation_node_func, &settings);
   }
   {
     const int num_id_nodes = graph->id_nodes.size();
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = 1024;
     BLI_task_parallel_range(0, num_id_nodes, graph, flush_init_id_node_func, &settings);
@@ -396,7 +396,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 
 static void graph_clear_operation_func(void *__restrict data_v,
                                        const int i,
-                                       const ParallelRangeTLS *__restrict /*tls*/)
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   Depsgraph *graph = (Depsgraph *)data_v;
   OperationNode *node = graph->operations[i];
@@ -411,7 +411,7 @@ void deg_graph_clear_tags(Depsgraph *graph)
   /* Go over all operation nodes, clearing tags. */
   {
     const int num_operations = graph->operations.size();
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = 1024;
     BLI_task_parallel_range(0, num_operations, graph, graph_clear_operation_func, &settings);

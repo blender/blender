@@ -135,7 +135,7 @@ typedef struct CCGSubSurfCalcSubdivData {
 } CCGSubSurfCalcSubdivData;
 
 static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -234,7 +234,7 @@ static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
 }
 
 static void ccgSubSurf__calcVertNormals_faces_finalize_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -273,7 +273,7 @@ static void ccgSubSurf__calcVertNormals_faces_finalize_cb(
 }
 
 static void ccgSubSurf__calcVertNormals_edges_accumulate_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -347,7 +347,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
   };
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(
@@ -379,7 +379,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
   }
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(
@@ -387,7 +387,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
   }
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(
@@ -425,7 +425,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 }
 
 static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -513,7 +513,7 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(
 }
 
 static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -619,7 +619,7 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_
 }
 
 static void ccgSubSurf__calcSubdivLevel_verts_copydata_cb(
-    void *__restrict userdata, const int ptrIdx, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ptrIdx, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -691,7 +691,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
   };
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(0,
@@ -991,7 +991,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
   }
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(0,
@@ -1012,7 +1012,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
   }
 
   {
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.min_iter_per_thread = CCG_TASK_LIMIT;
     BLI_task_parallel_range(

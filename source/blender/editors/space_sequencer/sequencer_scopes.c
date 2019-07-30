@@ -452,7 +452,7 @@ typedef struct MakeHistogramViewData {
 
 static void make_histogram_view_from_ibuf_byte_cb_ex(void *__restrict userdata,
                                                      const int y,
-                                                     const ParallelRangeTLS *__restrict tls)
+                                                     const TaskParallelTLS *__restrict tls)
 {
   MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
@@ -498,7 +498,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
       .ibuf = ibuf,
       .bins = bins,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
   settings.userdata_chunk = bins;
@@ -553,7 +553,7 @@ BLI_INLINE int get_bin_float(float f)
 
 static void make_histogram_view_from_ibuf_float_cb_ex(void *__restrict userdata,
                                                       const int y,
-                                                      const ParallelRangeTLS *__restrict tls)
+                                                      const TaskParallelTLS *__restrict tls)
 {
   const MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
@@ -584,7 +584,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
       .ibuf = ibuf,
       .bins = bins,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
   settings.userdata_chunk = bins;

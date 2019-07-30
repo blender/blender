@@ -1385,7 +1385,7 @@ typedef struct ScopesUpdateDataChunk {
 
 static void scopes_update_cb(void *__restrict userdata,
                              const int y,
-                             const ParallelRangeTLS *__restrict tls)
+                             const TaskParallelTLS *__restrict tls)
 {
   const ScopesUpdateData *data = userdata;
 
@@ -1634,7 +1634,7 @@ void scopes_update(Scopes *scopes,
   ScopesUpdateDataChunk data_chunk = {{0}};
   INIT_MINMAX(data_chunk.min, data_chunk.max);
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y > 256);
   settings.userdata_chunk = &data_chunk;

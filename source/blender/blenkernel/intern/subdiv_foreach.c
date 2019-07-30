@@ -1681,7 +1681,7 @@ static void subdiv_foreach_polys(SubdivForeachTaskContext *ctx, void *tls, int p
 
 static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
                                                const int coarse_vertex_index,
-                                               const ParallelRangeTLS *__restrict tls)
+                                               const TaskParallelTLS *__restrict tls)
 {
   SubdivForeachTaskContext *ctx = userdata;
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_vertices_used_map, coarse_vertex_index)) {
@@ -1695,7 +1695,7 @@ static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
 
 static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdata,
                                                         const int coarse_edge_index,
-                                                        const ParallelRangeTLS *__restrict tls)
+                                                        const TaskParallelTLS *__restrict tls)
 {
   SubdivForeachTaskContext *ctx = userdata;
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index)) {
@@ -1767,7 +1767,7 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
 
 static void subdiv_foreach_task(void *__restrict userdata,
                                 const int poly_index,
-                                const ParallelRangeTLS *__restrict tls)
+                                const TaskParallelTLS *__restrict tls)
 {
   SubdivForeachTaskContext *ctx = userdata;
   /* Traverse hi-poly vertex coordinates and normals. */
@@ -1786,7 +1786,7 @@ static void subdiv_foreach_task(void *__restrict userdata,
 
 static void subdiv_foreach_boundary_edges_task(void *__restrict userdata,
                                                const int edge_index,
-                                               const ParallelRangeTLS *__restrict tls)
+                                               const TaskParallelTLS *__restrict tls)
 {
   SubdivForeachTaskContext *ctx = userdata;
   subdiv_foreach_boundary_edges(ctx, tls->userdata_chunk, edge_index);
@@ -1821,7 +1821,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
   /* Run all the code which is not supposed to be run from threads. */
   subdiv_foreach_single_thread_tasks(&ctx);
   /* Threaded traversal of the rest of topology. */
-  ParallelRangeSettings parallel_range_settings;
+  TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   parallel_range_settings.userdata_chunk = context->user_data_tls;
   parallel_range_settings.userdata_chunk_size = context->user_data_tls_size;

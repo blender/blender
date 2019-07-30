@@ -169,7 +169,7 @@ typedef struct DisplaceUserdata {
 
 static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
-                                     const ParallelRangeTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   DisplaceUserdata *data = (DisplaceUserdata *)userdata;
   DisplaceModifierData *dmd = data->dmd;
@@ -348,7 +348,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     data.pool = BKE_image_pool_new();
     BKE_texture_fetch_images_for_pool(tex_target, data.pool);
   }
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (numVerts > 512);
   BLI_task_parallel_range(0, numVerts, &data, displaceModifier_do_task, &settings);

@@ -142,22 +142,23 @@ typedef enum eTaskSchedulingMode {
 } eTaskSchedulingMode;
 
 /* Per-thread specific data passed to the callback. */
-typedef struct ParallelRangeTLS {
+typedef struct TaskParallelTLS {
   /* Identifier of the thread who this data belongs to. */
   int thread_id;
   /* Copy of user-specifier chunk, which is copied from original chunk to all
    * worker threads. This is similar to OpenMP's firstprivate.
    */
   void *userdata_chunk;
-} ParallelRangeTLS;
+} TaskParallelTLS;
+
+typedef void (*TaskParallelFinalizeFunc)(void *__restrict userdata,
+                                         void *__restrict userdata_chunk);
 
 typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
                                       const int iter,
-                                      const ParallelRangeTLS *__restrict tls);
-typedef void (*TaskParallelRangeFuncFinalize)(void *__restrict userdata,
-                                              void *__restrict userdata_chunk);
+                                      const TaskParallelTLS *__restrict tls);
 
-typedef struct ParallelRangeSettings {
+typedef struct TaskParallelSettings {
   /* Whether caller allows to do threading of the particular range.
    * Usually set by some equation, which forces threading off when threading
    * overhead becomes higher than speed benefit.
@@ -175,7 +176,7 @@ typedef struct ParallelRangeSettings {
   /* Function called from calling thread once whole range have been
    * processed.
    */
-  TaskParallelRangeFuncFinalize func_finalize;
+  TaskParallelFinalizeFunc func_finalize;
   /* Minimum allowed number of range iterators to be handled by a single
    * thread. This allows to achieve following:
    * - Reduce amount of threading overhead.
@@ -187,15 +188,15 @@ typedef struct ParallelRangeSettings {
    * having a global use_threading switch based on just range size.
    */
   int min_iter_per_thread;
-} ParallelRangeSettings;
+} TaskParallelSettings;
 
-BLI_INLINE void BLI_parallel_range_settings_defaults(ParallelRangeSettings *settings);
+BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings);
 
 void BLI_task_parallel_range(const int start,
                              const int stop,
                              void *userdata,
                              TaskParallelRangeFunc func,
-                             const ParallelRangeSettings *settings);
+                             const TaskParallelSettings *settings);
 
 typedef void (*TaskParallelListbaseFunc)(void *userdata, struct Link *iter, int index);
 void BLI_task_parallel_listbase(struct ListBase *listbase,
@@ -211,7 +212,7 @@ void BLI_task_parallel_mempool(struct BLI_mempool *mempool,
                                const bool use_threading);
 
 /* TODO(sergey): Think of a better place for this. */
-BLI_INLINE void BLI_parallel_range_settings_defaults(ParallelRangeSettings *settings)
+BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings)
 {
   memset(settings, 0, sizeof(*settings));
   settings->use_threading = true;

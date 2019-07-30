@@ -108,7 +108,7 @@ static bool check_operation_node_visible(OperationNode *op_node)
 
 static void calculate_pending_func(void *__restrict data_v,
                                    const int i,
-                                   const ParallelRangeTLS *__restrict /*tls*/)
+                                   const TaskParallelTLS *__restrict /*tls*/)
 {
   CalculatePendingData *data = (CalculatePendingData *)data_v;
   Depsgraph *graph = data->graph;
@@ -148,7 +148,7 @@ static void calculate_pending_parents(Depsgraph *graph)
   const int num_operations = graph->operations.size();
   CalculatePendingData data;
   data.graph = graph;
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 1024;
   BLI_task_parallel_range(0, num_operations, &data, calculate_pending_func, &settings);

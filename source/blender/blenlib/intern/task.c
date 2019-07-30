@@ -1054,7 +1054,7 @@ typedef struct ParallelRangeState {
   int chunk_size;
 } ParallelRangeState;
 
-BLI_INLINE void task_parallel_range_calc_chunk_size(const ParallelRangeSettings *settings,
+BLI_INLINE void task_parallel_range_calc_chunk_size(const TaskParallelSettings *settings,
                                                     const int num_tasks,
                                                     ParallelRangeState *state)
 {
@@ -1112,7 +1112,7 @@ BLI_INLINE bool parallel_range_next_iter_get(ParallelRangeState *__restrict stat
 static void parallel_range_func(TaskPool *__restrict pool, void *userdata_chunk, int thread_id)
 {
   ParallelRangeState *__restrict state = BLI_task_pool_userdata(pool);
-  ParallelRangeTLS tls = {
+  TaskParallelTLS tls = {
       .thread_id = thread_id,
       .userdata_chunk = userdata_chunk,
   };
@@ -1128,7 +1128,7 @@ static void parallel_range_single_thread(const int start,
                                          int const stop,
                                          void *userdata,
                                          TaskParallelRangeFunc func,
-                                         const ParallelRangeSettings *settings)
+                                         const TaskParallelSettings *settings)
 {
   void *userdata_chunk = settings->userdata_chunk;
   const size_t userdata_chunk_size = settings->userdata_chunk_size;
@@ -1138,7 +1138,7 @@ static void parallel_range_single_thread(const int start,
     userdata_chunk_local = MALLOCA(userdata_chunk_size);
     memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
   }
-  ParallelRangeTLS tls = {
+  TaskParallelTLS tls = {
       .thread_id = 0,
       .userdata_chunk = userdata_chunk_local,
   };
@@ -1161,7 +1161,7 @@ void BLI_task_parallel_range(const int start,
                              const int stop,
                              void *userdata,
                              TaskParallelRangeFunc func,
-                             const ParallelRangeSettings *settings)
+                             const TaskParallelSettings *settings)
 {
   TaskScheduler *task_scheduler;
   TaskPool *task_pool;

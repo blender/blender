@@ -220,7 +220,7 @@ typedef struct MeshCalcNormalsData {
 
 static void mesh_calc_normals_poly_cb(void *__restrict userdata,
                                       const int pidx,
-                                      const ParallelRangeTLS *__restrict UNUSED(tls))
+                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
   MeshCalcNormalsData *data = userdata;
   const MPoly *mp = &data->mpolys[pidx];
@@ -230,7 +230,7 @@ static void mesh_calc_normals_poly_cb(void *__restrict userdata,
 
 static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
                                               const int pidx,
-                                              const ParallelRangeTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict UNUSED(tls))
 {
   MeshCalcNormalsData *data = userdata;
   const MPoly *mp = &data->mpolys[pidx];
@@ -294,7 +294,7 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
 
 static void mesh_calc_normals_poly_finalize_cb(void *__restrict userdata,
                                                const int vidx,
-                                               const ParallelRangeTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   MeshCalcNormalsData *data = userdata;
 
@@ -321,7 +321,7 @@ void BKE_mesh_calc_normals_poly(MVert *mverts,
 {
   float(*pnors)[3] = r_polynors;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 1024;
 

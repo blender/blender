@@ -1078,7 +1078,7 @@ typedef struct MultiresThreadedData {
 
 static void multires_disp_run_cb(void *__restrict userdata,
                                  const int pidx,
-                                 const ParallelRangeTLS *__restrict UNUSED(tls))
+                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   MultiresThreadedData *tdata = userdata;
 
@@ -1230,7 +1230,7 @@ static void multiresModifier_disp_run(
     }
   }
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = CCG_TASK_LIMIT;
 

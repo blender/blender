@@ -148,7 +148,7 @@ typedef struct LoadTexData {
 
 static void load_tex_task_cb_ex(void *__restrict userdata,
                                 const int j,
-                                const ParallelRangeTLS *__restrict tls)
+                                const TaskParallelTLS *__restrict tls)
 {
   LoadTexData *data = userdata;
   Brush *br = data->br;
@@ -328,7 +328,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
         .radius = radius,
     };
 
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     BLI_task_parallel_range(0, size, &data, load_tex_task_cb_ex, &settings);
 
@@ -385,7 +385,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 static void load_tex_cursor_task_cb(void *__restrict userdata,
                                     const int j,
-                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   LoadTexData *data = userdata;
   Brush *br = data->br;
@@ -468,7 +468,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
         .size = size,
     };
 
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 

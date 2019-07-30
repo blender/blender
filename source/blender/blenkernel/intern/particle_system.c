@@ -3685,7 +3685,7 @@ typedef struct DynamicStepSolverTaskData {
 
 static void dynamics_step_sph_ddr_task_cb_ex(void *__restrict userdata,
                                              const int p,
-                                             const ParallelRangeTLS *__restrict tls)
+                                             const TaskParallelTLS *__restrict tls)
 {
   DynamicStepSolverTaskData *data = userdata;
   ParticleSimulationData *sim = data->sim;
@@ -3720,7 +3720,7 @@ static void dynamics_step_sph_ddr_task_cb_ex(void *__restrict userdata,
 }
 
 static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
-    void *__restrict userdata, const int p, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int p, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   DynamicStepSolverTaskData *data = userdata;
   ParticleSimulationData *sim = data->sim;
@@ -3736,7 +3736,7 @@ static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_calc_density_task_cb_ex(
-    void *__restrict userdata, const int p, const ParallelRangeTLS *__restrict tls)
+    void *__restrict userdata, const int p, const TaskParallelTLS *__restrict tls)
 {
   DynamicStepSolverTaskData *data = userdata;
   ParticleSimulationData *sim = data->sim;
@@ -3754,7 +3754,7 @@ static void dynamics_step_sph_classical_calc_density_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_integrate_task_cb_ex(
-    void *__restrict userdata, const int p, const ParallelRangeTLS *__restrict tls)
+    void *__restrict userdata, const int p, const TaskParallelTLS *__restrict tls)
 {
   DynamicStepSolverTaskData *data = userdata;
   ParticleSimulationData *sim = data->sim;
@@ -3963,7 +3963,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
         /* Apply SPH forces using double-density relaxation algorithm
          * (Clavat et. al.) */
 
-        ParallelRangeSettings settings;
+        TaskParallelSettings settings;
         BLI_parallel_range_settings_defaults(&settings);
         settings.use_threading = (psys->totpart > 100);
         settings.userdata_chunk = &sphdata;
@@ -3980,7 +3980,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
          * this algorithm is separated into distinct loops. */
 
         {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (psys->totpart > 100);
           BLI_task_parallel_range(0,
@@ -3994,7 +3994,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
         /* Note that we could avoid copying sphdata for each thread here (it's only read here),
          * but doubt this would gain us anything except confusion... */
         {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;
@@ -4008,7 +4008,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
         /* do global forces & effectors */
         {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (psys->totpart > 100);
           settings.userdata_chunk = &sphdata;

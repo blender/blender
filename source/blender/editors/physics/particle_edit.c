@@ -785,7 +785,7 @@ typedef struct KeyIterData {
 
 static void foreach_mouse_hit_key_iter(void *__restrict iter_data_v,
                                        const int iter,
-                                       const ParallelRangeTLS *__restrict UNUSED(tls))
+                                       const TaskParallelTLS *__restrict UNUSED(tls))
 {
   KeyIterData *iter_data = (KeyIterData *)iter_data_v;
   PEData *data = iter_data->data;
@@ -855,7 +855,7 @@ static void foreach_mouse_hit_key(PEData *data, ForHitKeyMatFunc func, int selec
   iter_data.selected = selected;
   iter_data.func = func;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, foreach_mouse_hit_key_iter, &settings);
@@ -1152,7 +1152,7 @@ typedef struct DeflectEmitterIter {
 
 static void deflect_emitter_iter(void *__restrict iter_data_v,
                                  const int iter,
-                                 const ParallelRangeTLS *__restrict UNUSED(tls))
+                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   DeflectEmitterIter *iter_data = (DeflectEmitterIter *)iter_data_v;
   PTCacheEdit *edit = iter_data->edit;
@@ -1246,7 +1246,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
   iter_data.dist = dist;
   iter_data.emitterdist = pset->emitterdist;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, deflect_emitter_iter, &settings);
@@ -1258,7 +1258,7 @@ typedef struct ApplyLengthsIterData {
 
 static void apply_lengths_iter(void *__restrict iter_data_v,
                                const int iter,
-                               const ParallelRangeTLS *__restrict UNUSED(tls))
+                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   ApplyLengthsIterData *iter_data = (ApplyLengthsIterData *)iter_data_v;
   PTCacheEdit *edit = iter_data->edit;
@@ -1296,7 +1296,7 @@ static void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
   ApplyLengthsIterData iter_data;
   iter_data.edit = edit;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, apply_lengths_iter, &settings);
@@ -1309,7 +1309,7 @@ typedef struct IterateLengthsIterData {
 
 static void iterate_lengths_iter(void *__restrict iter_data_v,
                                  const int iter,
-                                 const ParallelRangeTLS *__restrict UNUSED(tls))
+                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   IterateLengthsIterData *iter_data = (IterateLengthsIterData *)iter_data_v;
   PTCacheEdit *edit = iter_data->edit;
@@ -1371,7 +1371,7 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
   iter_data.edit = edit;
   iter_data.pset = pset;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   BLI_task_parallel_range(0, edit->totpoint, &iter_data, iterate_lengths_iter, &settings);
@@ -4116,7 +4116,7 @@ typedef struct BrushAddCountIterTLSData {
 
 static void brush_add_count_iter(void *__restrict iter_data_v,
                                  const int iter,
-                                 const ParallelRangeTLS *__restrict tls_v)
+                                 const TaskParallelTLS *__restrict tls_v)
 {
   BrushAddCountIterData *iter_data = (BrushAddCountIterData *)iter_data_v;
   Depsgraph *depsgraph = iter_data->depsgraph;
@@ -4272,7 +4272,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
   BrushAddCountIterTLSData tls = {NULL};
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
   settings.userdata_chunk = &tls;

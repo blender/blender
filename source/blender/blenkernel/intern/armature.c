@@ -1379,7 +1379,7 @@ typedef struct ArmatureUserdata {
 
 static void armature_vert_task(void *__restrict userdata,
                                const int i,
-                               const ParallelRangeTLS *__restrict UNUSED(tls))
+                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const ArmatureUserdata *data = userdata;
   float(*const vertexCos)[3] = data->vertexCos;
@@ -1677,7 +1677,7 @@ void armature_deform_verts(Object *armOb,
   mul_m4_m4m4(data.postmat, obinv, armOb->obmat);
   invert_m4_m4(data.premat, data.postmat);
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 32;
   BLI_task_parallel_range(0, numVerts, &data, armature_vert_task, &settings);

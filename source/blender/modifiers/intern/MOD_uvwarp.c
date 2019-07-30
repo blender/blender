@@ -98,7 +98,7 @@ typedef struct UVWarpData {
 
 static void uv_warp_compute(void *__restrict userdata,
                             const int i,
-                            const ParallelRangeTLS *__restrict UNUSED(tls))
+                            const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const UVWarpData *data = userdata;
 
@@ -202,7 +202,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
       .axis_u = axis_u,
       .axis_v = axis_v,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (numPolys > 1000);
   BLI_task_parallel_range(0, numPolys, &data, uv_warp_compute, &settings);

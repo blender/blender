@@ -955,7 +955,7 @@ typedef struct ReshapeFromCCGTaskData {
 
 static void reshape_from_ccg_task(void *__restrict userdata,
                                   const int coarse_poly_index,
-                                  const ParallelRangeTLS *__restrict UNUSED(tls))
+                                  const TaskParallelTLS *__restrict UNUSED(tls))
 {
   ReshapeFromCCGTaskData *data = userdata;
   const CCGKey *key = data->key;
@@ -1045,7 +1045,7 @@ bool multiresModifier_reshapeFromCCG(const int tot_level, Mesh *coarse_mesh, Sub
   MultiresPropagateData propagate_data;
   multires_reshape_propagate_prepare(&propagate_data, coarse_mesh, key.level, top_level);
   /* Threaded grids iteration. */
-  ParallelRangeSettings parallel_range_settings;
+  TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   BLI_task_parallel_range(
       0, coarse_mesh->totpoly, &data, reshape_from_ccg_task, &parallel_range_settings);

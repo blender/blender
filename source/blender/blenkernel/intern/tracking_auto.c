@@ -377,7 +377,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 
 static void autotrack_context_step_cb(void *__restrict userdata,
                                       const int track,
-                                      const ParallelRangeTLS *__restrict UNUSED(tls))
+                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
   AutoTrackContext *context = userdata;
   const int frame_delta = context->backwards ? -1 : 1;
@@ -446,7 +446,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
   const int frame_delta = context->backwards ? -1 : 1;
   context->step_ok = false;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (context->num_tracks > 1);
   BLI_task_parallel_range(0, context->num_tracks, context, autotrack_context_step_cb, &settings);

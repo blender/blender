@@ -700,7 +700,7 @@ typedef struct BVHDivNodesData {
 
 static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
                                                 const int j,
-                                                const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BVHDivNodesData *data = userdata;
 
@@ -841,14 +841,14 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
     cb_data.depth = depth;
 
     if (true) {
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD);
       BLI_task_parallel_range(i, i_stop, &cb_data, non_recursive_bvh_div_nodes_task_cb, &settings);
     }
     else {
       /* Less hassle for debugging. */
-      ParallelRangeTLS tls = {0};
+      TaskParallelTLS tls = {0};
       for (int i_task = i; i_task < i_stop; i_task++) {
         non_recursive_bvh_div_nodes_task_cb(&cb_data, i_task, &tls);
       }
@@ -1195,7 +1195,7 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
 
 static void bvhtree_overlap_task_cb(void *__restrict userdata,
                                     const int j,
-                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
   BVHOverlapData_Shared *data_shared = data->shared;
@@ -1262,7 +1262,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
     data[j].thread = j;
   }
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD);
   BLI_task_parallel_range(0, thread_num, data, bvhtree_overlap_task_cb, &settings);

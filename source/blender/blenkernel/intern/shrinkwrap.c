@@ -344,7 +344,7 @@ void BKE_shrinkwrap_compute_boundary_data(struct Mesh *mesh)
  */
 static void shrinkwrap_calc_nearest_vertex_cb_ex(void *__restrict userdata,
                                                  const int i,
-                                                 const ParallelRangeTLS *__restrict tls)
+                                                 const TaskParallelTLS *__restrict tls)
 {
   ShrinkwrapCalcCBData *data = userdata;
 
@@ -416,7 +416,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
       .calc = calc,
       .tree = calc->tree,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
   settings.userdata_chunk = &nearest;
@@ -510,7 +510,7 @@ bool BKE_shrinkwrap_project_normal(char options,
 
 static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
                                                     const int i,
-                                                    const ParallelRangeTLS *__restrict tls)
+                                                    const TaskParallelTLS *__restrict tls)
 {
   ShrinkwrapCalcCBData *data = userdata;
 
@@ -703,7 +703,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
       .proj_axis = proj_axis,
       .local2aux = &local2aux,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
   settings.userdata_chunk = &hit;
@@ -1115,7 +1115,7 @@ void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
  */
 static void shrinkwrap_calc_nearest_surface_point_cb_ex(void *__restrict userdata,
                                                         const int i,
-                                                        const ParallelRangeTLS *__restrict tls)
+                                                        const TaskParallelTLS *__restrict tls)
 {
   ShrinkwrapCalcCBData *data = userdata;
 
@@ -1363,7 +1363,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
       .calc = calc,
       .tree = calc->tree,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
   settings.userdata_chunk = &nearest;

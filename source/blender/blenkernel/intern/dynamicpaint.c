@@ -645,7 +645,7 @@ static void freeGrid(PaintSurfaceData *data)
 
 static void grid_bound_insert_cb_ex(void *__restrict userdata,
                                     const int i,
-                                    const ParallelRangeTLS *__restrict tls)
+                                    const TaskParallelTLS *__restrict tls)
 {
   PaintBakeData *bData = userdata;
 
@@ -667,7 +667,7 @@ static void grid_bound_insert_finalize(void *__restrict userdata, void *__restri
 
 static void grid_cell_points_cb_ex(void *__restrict userdata,
                                    const int i,
-                                   const ParallelRangeTLS *__restrict tls)
+                                   const TaskParallelTLS *__restrict tls)
 {
   PaintBakeData *bData = userdata;
   VolumeGrid *grid = bData->grid;
@@ -702,7 +702,7 @@ static void grid_cell_points_finalize(void *__restrict userdata, void *__restric
 
 static void grid_cell_bounds_cb(void *__restrict userdata,
                                 const int x,
-                                const ParallelRangeTLS *__restrict UNUSED(tls))
+                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   PaintBakeData *bData = userdata;
   VolumeGrid *grid = bData->grid;
@@ -749,7 +749,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     /* Important to init correctly our ref grid_bound... */
     boundInsert(&grid->grid_bounds, bData->realCoord[bData->s_pos[0]].v);
     {
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (sData->total_points > 1000);
       settings.userdata_chunk = &grid->grid_bounds;
@@ -810,7 +810,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
     if (!error) {
       /* calculate number of points within each cell */
       {
-        ParallelRangeSettings settings;
+        TaskParallelSettings settings;
         BLI_parallel_range_settings_defaults(&settings);
         settings.use_threading = (sData->total_points > 1000);
         settings.userdata_chunk = grid->s_num;
@@ -834,7 +834,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 
       /* calculate cell bounds */
       {
-        ParallelRangeSettings settings;
+        TaskParallelSettings settings;
         BLI_parallel_range_settings_defaults(&settings);
         settings.use_threading = (grid_cells > 1000);
         BLI_task_parallel_range(0, grid->dim[0], bData, grid_cell_bounds_cb, &settings);
@@ -1508,7 +1508,7 @@ typedef struct DynamicPaintSetInitColorData {
 } DynamicPaintSetInitColorData;
 
 static void dynamic_paint_set_init_color_tex_to_vcol_cb(
-    void *__restrict userdata, const int i, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1543,7 +1543,7 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(
 }
 
 static void dynamic_paint_set_init_color_tex_to_imseq_cb(
-    void *__restrict userdata, const int i, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1582,7 +1582,7 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(
 }
 
 static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
-    void *__restrict userdata, const int i, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1667,7 +1667,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
           .pool = pool,
           .scene_color_manage = scene_color_manage,
       };
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (tottri > 1000);
       BLI_task_parallel_range(
@@ -1681,7 +1681,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
           .mloopuv = mloopuv,
           .scene_color_manage = scene_color_manage,
       };
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (sData->total_points > 1000);
       BLI_task_parallel_range(
@@ -1718,7 +1718,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
           .mlooptri = mlooptri,
           .mloopcol = col,
       };
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (sData->total_points > 1000);
       BLI_task_parallel_range(
@@ -1820,7 +1820,7 @@ typedef struct DynamicPaintModifierApplyData {
 
 static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
                                                     const int i,
-                                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1854,7 +1854,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
         .surface = surface,
         .mvert = mvert,
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 10000);
     BLI_task_parallel_range(
@@ -1863,7 +1863,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
 }
 
 static void dynamic_paint_apply_surface_vpaint_blend_cb(
-    void *__restrict userdata, const int i, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1877,7 +1877,7 @@ static void dynamic_paint_apply_surface_vpaint_blend_cb(
 
 static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
                                                   const int p_index,
-                                                  const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                  const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1913,7 +1913,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
 
 static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
                                                 const int i,
-                                                const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1966,7 +1966,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 .fcolor = fcolor,
             };
             {
-              ParallelRangeSettings settings;
+              TaskParallelSettings settings;
               BLI_parallel_range_settings_defaults(&settings);
               settings.use_threading = (sData->total_points > 1000);
               BLI_task_parallel_range(0,
@@ -2001,7 +2001,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             data.mloopcol_wet = mloopcol_wet;
 
             {
-              ParallelRangeSettings settings;
+              TaskParallelSettings settings;
               BLI_parallel_range_settings_defaults(&settings);
               settings.use_threading = (totpoly > 1000);
               BLI_task_parallel_range(
@@ -2053,7 +2053,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 .surface = surface,
                 .mvert = mvert,
             };
-            ParallelRangeSettings settings;
+            TaskParallelSettings settings;
             BLI_parallel_range_settings_defaults(&settings);
             settings.use_threading = (sData->total_points > 1000);
             BLI_task_parallel_range(
@@ -2236,7 +2236,7 @@ typedef struct DynamicPaintCreateUVSurfaceData {
 } DynamicPaintCreateUVSurfaceData;
 
 static void dynamic_paint_create_uv_surface_direct_cb(
-    void *__restrict userdata, const int ty, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ty, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintCreateUVSurfaceData *data = userdata;
 
@@ -2330,7 +2330,7 @@ static void dynamic_paint_create_uv_surface_direct_cb(
 }
 
 static void dynamic_paint_create_uv_surface_neighbor_cb(
-    void *__restrict userdata, const int ty, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int ty, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintCreateUVSurfaceData *data = userdata;
 
@@ -2948,7 +2948,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
         .faceBB = faceBB,
     };
     {
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (h > 64 || tottri > 1000);
       BLI_task_parallel_range(0, h, &data, dynamic_paint_create_uv_surface_direct_cb, &settings);
@@ -2965,7 +2965,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
      */
     data.active_points = &active_points;
     {
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (h > 64);
       BLI_task_parallel_range(0, h, &data, dynamic_paint_create_uv_surface_neighbor_cb, &settings);
@@ -3216,7 +3216,7 @@ typedef struct DynamicPaintOutputSurfaceImageData {
 } DynamicPaintOutputSurfaceImageData;
 
 static void dynamic_paint_output_surface_image_paint_cb(
-    void *__restrict userdata, const int index, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int index, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3238,7 +3238,7 @@ static void dynamic_paint_output_surface_image_paint_cb(
 }
 
 static void dynamic_paint_output_surface_image_displace_cb(
-    void *__restrict userdata, const int index, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int index, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3264,7 +3264,7 @@ static void dynamic_paint_output_surface_image_displace_cb(
 }
 
 static void dynamic_paint_output_surface_image_wave_cb(
-    void *__restrict userdata, const int index, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int index, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3288,7 +3288,7 @@ static void dynamic_paint_output_surface_image_wave_cb(
 }
 
 static void dynamic_paint_output_surface_image_wetmap_cb(
-    void *__restrict userdata, const int index, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int index, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3346,7 +3346,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
     case MOD_DPAINT_SURFACE_T_PAINT:
       switch (output_layer) {
         case 0: {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (sData->total_points > 10000);
           BLI_task_parallel_range(0,
@@ -3357,7 +3357,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
           break;
         }
         case 1: {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (sData->total_points > 10000);
           BLI_task_parallel_range(0,
@@ -3375,7 +3375,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
     case MOD_DPAINT_SURFACE_T_DISPLACE:
       switch (output_layer) {
         case 0: {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (sData->total_points > 10000);
           BLI_task_parallel_range(0,
@@ -3395,7 +3395,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
     case MOD_DPAINT_SURFACE_T_WAVE:
       switch (output_layer) {
         case 0: {
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (sData->total_points > 10000);
           BLI_task_parallel_range(0,
@@ -3758,7 +3758,7 @@ typedef struct DynamicPaintBrushVelocityData {
 
 static void dynamic_paint_brush_velocity_compute_cb(void *__restrict userdata,
                                                     const int i,
-                                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintBrushVelocityData *data = userdata;
 
@@ -3857,7 +3857,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
       .prev_obmat = prev_obmat,
       .timescale = timescale,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (numOfVerts_c > 10000);
   BLI_task_parallel_range(
@@ -3942,7 +3942,7 @@ typedef struct DynamicPaintPaintData {
  * Paint a brush object mesh to the surface
  */
 static void dynamic_paint_paint_mesh_cell_point_cb_ex(
-    void *__restrict userdata, const int id, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int id, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintPaintData *data = userdata;
 
@@ -4365,7 +4365,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph,
               .brushVelocity = brushVelocity,
               .treeData = &treeData,
           };
-          ParallelRangeSettings settings;
+          TaskParallelSettings settings;
           BLI_parallel_range_settings_defaults(&settings);
           settings.use_threading = (grid->s_num[c_index] > 250);
           BLI_task_parallel_range(0,
@@ -4393,7 +4393,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph,
  * Paint a particle system to the surface
  */
 static void dynamic_paint_paint_particle_cell_point_cb_ex(
-    void *__restrict userdata, const int id, const ParallelRangeTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int id, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintPaintData *data = userdata;
 
@@ -4666,7 +4666,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
           .c_index = c_index,
           .treeData = tree,
       };
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (grid->s_num[c_index] > 250);
       BLI_task_parallel_range(0,
@@ -4685,7 +4685,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 /* paint a single point of defined proximity radius to the surface */
 static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
                                                    const int index,
-                                                   const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                   const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintPaintData *data = userdata;
 
@@ -4808,7 +4808,7 @@ static int dynamicPaint_paintSinglePoint(Depsgraph *depsgraph,
       .brushVelocity = &brushVel,
       .pointCoord = pointCoord,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (sData->total_points > 1000);
   BLI_task_parallel_range(
@@ -4825,7 +4825,7 @@ static int dynamicPaint_paintSinglePoint(Depsgraph *depsgraph,
 
 static void dynamic_paint_prepare_adjacency_cb(void *__restrict userdata,
                                                const int index,
-                                               const ParallelRangeTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   PaintSurfaceData *sData = userdata;
   PaintBakeData *bData = sData->bData;
@@ -4870,7 +4870,7 @@ static void dynamicPaint_prepareAdjacencyData(DynamicPaintSurface *surface, cons
     return;
   }
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (sData->total_points > 1000);
   BLI_task_parallel_range(
@@ -5085,7 +5085,7 @@ typedef struct DynamicPaintEffectData {
  */
 static void dynamic_paint_prepare_effect_cb(void *__restrict userdata,
                                             const int index,
-                                            const ParallelRangeTLS *__restrict UNUSED(tls))
+                                            const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5167,7 +5167,7 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
           .force = *force,
           .effectors = effectors,
       };
-      ParallelRangeSettings settings;
+      TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       settings.use_threading = (sData->total_points > 1000);
       BLI_task_parallel_range(
@@ -5207,7 +5207,7 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
  */
 static void dynamic_paint_effect_spread_cb(void *__restrict userdata,
                                            const int index,
-                                           const ParallelRangeTLS *__restrict UNUSED(tls))
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5266,7 +5266,7 @@ static void dynamic_paint_effect_spread_cb(void *__restrict userdata,
 
 static void dynamic_paint_effect_shrink_cb(void *__restrict userdata,
                                            const int index,
-                                           const ParallelRangeTLS *__restrict UNUSED(tls))
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5327,7 +5327,7 @@ static void dynamic_paint_effect_shrink_cb(void *__restrict userdata,
 
 static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
                                          const int index,
-                                         const ParallelRangeTLS *__restrict UNUSED(tls))
+                                         const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5481,7 +5481,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface,
         .prevPoint = prevPoint,
         .eff_scale = eff_scale,
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 1000);
     BLI_task_parallel_range(
@@ -5503,7 +5503,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface,
         .prevPoint = prevPoint,
         .eff_scale = eff_scale,
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 1000);
     BLI_task_parallel_range(
@@ -5530,7 +5530,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface,
         .force = force,
         .point_locks = point_locks,
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 1000);
     BLI_task_parallel_range(
@@ -5542,7 +5542,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface,
 
 static void dynamic_paint_border_cb(void *__restrict userdata,
                                     const int b_index,
-                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5613,7 +5613,7 @@ static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
       .surface = surface,
   };
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (sData->adj_data->total_border > 1000);
   BLI_task_parallel_range(
@@ -5622,7 +5622,7 @@ static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
 
 static void dynamic_paint_wave_step_cb(void *__restrict userdata,
                                        const int index,
-                                       const ParallelRangeTLS *__restrict UNUSED(tls))
+                                       const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintEffectData *data = userdata;
 
@@ -5777,7 +5777,7 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
         .damp_factor = damp_factor,
         .reset_wave = (ss == steps - 1),
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 1000);
     BLI_task_parallel_range(0, sData->total_points, &data, dynamic_paint_wave_step_cb, &settings);
@@ -5802,7 +5802,7 @@ typedef struct DynamicPaintDissolveDryData {
 
 static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
                                               const int index,
-                                              const ParallelRangeTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintDissolveDryData *data = userdata;
 
@@ -5938,7 +5938,7 @@ typedef struct DynamicPaintGenerateBakeData {
 
 static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
                                                 const int index,
-                                                const ParallelRangeTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const DynamicPaintGenerateBakeData *data = userdata;
 
@@ -6170,7 +6170,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
       .do_velocity_data = do_velocity_data,
       .new_bdata = new_bdata,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (sData->total_points > 1000);
   BLI_task_parallel_range(
@@ -6217,7 +6217,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
         .surface = surface,
         .timescale = timescale,
     };
-    ParallelRangeSettings settings;
+    TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
     settings.use_threading = (sData->total_points > 1000);
     BLI_task_parallel_range(

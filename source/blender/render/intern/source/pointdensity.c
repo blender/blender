@@ -895,7 +895,7 @@ typedef struct SampleCallbackData {
 
 static void point_density_sample_func(void *__restrict data_v,
                                       const int iter,
-                                      const ParallelRangeTLS *__restrict UNUSED(tls))
+                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SampleCallbackData *data = (SampleCallbackData *)data_v;
 
@@ -966,7 +966,7 @@ void RE_point_density_sample(Depsgraph *depsgraph,
   data.min = min;
   data.dim = dim;
   data.values = values;
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (resolution > 32);
   BLI_task_parallel_range(0, resolution, &data, point_density_sample_func, &settings);

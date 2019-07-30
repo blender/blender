@@ -196,7 +196,7 @@ typedef struct GenerateOceanGeometryData {
 
 static void generate_ocean_geometry_vertices(void *__restrict userdata,
                                              const int y,
-                                             const ParallelRangeTLS *__restrict UNUSED(tls))
+                                             const TaskParallelTLS *__restrict UNUSED(tls))
 {
   GenerateOceanGeometryData *gogd = userdata;
   int x;
@@ -212,7 +212,7 @@ static void generate_ocean_geometry_vertices(void *__restrict userdata,
 
 static void generate_ocean_geometry_polygons(void *__restrict userdata,
                                              const int y,
-                                             const ParallelRangeTLS *__restrict UNUSED(tls))
+                                             const TaskParallelTLS *__restrict UNUSED(tls))
 {
   GenerateOceanGeometryData *gogd = userdata;
   int x;
@@ -241,7 +241,7 @@ static void generate_ocean_geometry_polygons(void *__restrict userdata,
 
 static void generate_ocean_geometry_uvs(void *__restrict userdata,
                                         const int y,
-                                        const ParallelRangeTLS *__restrict UNUSED(tls))
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
   GenerateOceanGeometryData *gogd = userdata;
   int x;
@@ -301,7 +301,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd)
   gogd.mpolys = result->mpoly;
   gogd.mloops = result->mloop;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = use_threading;
 

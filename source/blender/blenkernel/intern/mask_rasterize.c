@@ -1462,7 +1462,7 @@ typedef struct MaskRasterizeBufferData {
 
 static void maskrasterize_buffer_cb(void *__restrict userdata,
                                     const int y,
-                                    const ParallelRangeTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   MaskRasterizeBufferData *data = userdata;
 
@@ -1503,7 +1503,7 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
       .width = width,
       .buffer = buffer,
   };
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = ((size_t)height * width > 10000);
   BLI_task_parallel_range(0, (int)height, &data, maskrasterize_buffer_cb, &settings);

@@ -92,7 +92,7 @@ typedef struct Vert2GeomDataChunk {
  */
 static void vert2geom_task_cb_ex(void *__restrict userdata,
                                  const int iter,
-                                 const ParallelRangeTLS *__restrict tls)
+                                 const TaskParallelTLS *__restrict tls)
 {
   Vert2GeomData *data = userdata;
   Vert2GeomDataChunk *data_chunk = tls->userdata_chunk;
@@ -188,7 +188,7 @@ static void get_vert2geom_distance(int numVerts,
   data.dist[1] = dist_e;
   data.dist[2] = dist_f;
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (numVerts > 10000);
   settings.userdata_chunk = &data_chunk;

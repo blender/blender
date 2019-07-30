@@ -889,7 +889,7 @@ typedef struct LatticeDeformUserdata {
 
 static void lattice_deform_vert_task(void *__restrict userdata,
                                      const int index,
-                                     const ParallelRangeTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const LatticeDeformUserdata *data = userdata;
 
@@ -948,7 +948,7 @@ void lattice_deform_verts(Object *laOb,
                                 .defgrp_index = defgrp_index,
                                 .fac = fac};
 
-  ParallelRangeSettings settings;
+  TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 32;
   BLI_task_parallel_range(0, numVerts, &data, lattice_deform_vert_task, &settings);

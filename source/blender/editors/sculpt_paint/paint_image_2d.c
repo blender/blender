@@ -1251,7 +1251,7 @@ typedef struct Paint2DForeachData {
 
 static void paint_2d_op_foreach_do(void *__restrict data_v,
                                    const int iter,
-                                   const ParallelRangeTLS *__restrict UNUSED(tls))
+                                   const TaskParallelTLS *__restrict UNUSED(tls))
 {
   Paint2DForeachData *data = (Paint2DForeachData *)data_v;
   paint_2d_do_making_brush(data->s,
@@ -1360,7 +1360,7 @@ static int paint_2d_op(void *state,
         data.tilex = tilex;
         data.tilew = tilew;
 
-        ParallelRangeSettings settings;
+        TaskParallelSettings settings;
         BLI_parallel_range_settings_defaults(&settings);
         BLI_task_parallel_range(tiley, tileh + 1, &data, paint_2d_op_foreach_do, &settings);
       }
