@@ -4583,17 +4583,42 @@ static void ElementRotation(
   ElementRotation_ex(t, tc, td, mat, center);
 }
 
-static void applyRotationValue(TransInfo *t, float angle, float axis[3])
+static float large_rotation_limit(float angle)
+{
+  /* Limit rotation to 1001 turns max
+   * (otherwise iterative handling of 'large' rotations would become too slow). */
+  const float angle_max = (float)(M_PI * 2000.0);
+  if (fabsf(angle) > angle_max) {
+    const float angle_sign = angle < 0.0f ? -1.0f : 1.0f;
+    angle = angle_sign * (fmodf(fabsf(angle), (float)(M_PI * 2.0)) + angle_max);
+  }
+  return angle;
+}
+
+static void applyRotationValue(TransInfo *t,
+                               float angle,
+                               float axis[3],
+                               const bool is_large_rotation)
 {
   float mat[3][3];
   int i;
+
+  const float angle_sign = angle < 0.0f ? -1.0f : 1.0f;
+  /* We cannot use something too close to 180°, or 'continuous' rotation may fail
+   * due to computing error... */
+  const float angle_step = angle_sign * (float)(0.9 * M_PI);
+
+  if (is_large_rotation) {
+    /* Just in case, calling code should have already done that in practice
+     * (for UI feedback reasons). */
+    angle = large_rotation_limit(angle);
+  }
 
   axis_angle_normalized_to_mat3(mat, axis, angle);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
-
       if (td->flag & TD_NOACTION) {
         break;
       }
@@ -4602,14 +4627,32 @@ static void applyRotationValue(TransInfo *t, float angle, float axis[3])
         continue;
       }
 
+      float angle_final = angle;
       if (t->con.applyRot) {
         t->con.applyRot(t, tc, td, axis, NULL);
-        axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
+        angle_final = angle * td->factor;
       }
       else if (t->flag & T_PROP_EDIT) {
-        axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
+        angle_final = angle * td->factor;
       }
 
+      /* Rotation is very likely to be above 180°, we need to do rotation by steps.
+       * Note that this is only needed when doing 'absolute' rotation
+       * (i.e. from initial rotation again, typically when using numinput).
+       * regular incremental rotation (from mouse/widget/...) will be called often enough,
+       * hence steps are small enough to be properly handled without that complicated trick. */
+      if (is_large_rotation) {
+        copy_v3_v3(td->ext->rot, td->ext->irot);
+        for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
+             angle_progress += angle_step) {
+          axis_angle_normalized_to_mat3(mat, axis, angle_progress);
+          ElementRotation(t, tc, td, mat, t->around);
+        }
+        axis_angle_normalized_to_mat3(mat, axis, angle_final);
+      }
+      else if (angle_final != angle) {
+        axis_angle_normalized_to_mat3(mat, axis, angle_final);
+      }
       ElementRotation(t, tc, td, mat, t->around);
     }
   }
@@ -4634,15 +4677,18 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
   applySnapping(t, &final);
 
-  /* Used to clamp final result in [-PI, PI[ range, no idea why,
-   * inheritance from 2.4x area, see T48998. */
-  applyNumInput(&t->num, &final);
+  if (applyNumInput(&t->num, &final)) {
+    /* We have to limit the amount of turns to a reasonable number here,
+     * to avoid things getting *very* slow, see how applyRotationValue() handles those... */
+    final = large_rotation_limit(final);
+  }
 
   t->values[0] = final;
 
   headerRotation(t, str, final);
 
-  applyRotationValue(t, final, axis_final);
+  const bool is_large_rotation = hasNumInput(&t->num);
+  applyRotationValue(t, final, axis_final, is_large_rotation);
 
   recalcData(t);
 
