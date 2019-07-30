@@ -2746,7 +2746,7 @@ class VIEW3D_MT_hook(Menu):
         layout.operator("object.hook_add_selob").use_bone = False
         layout.operator("object.hook_add_selob", text="Hook to Selected Object Bone").use_bone = True
 
-        if [mod.type == 'HOOK' for mod in context.active_object.modifiers]:
+        if any([mod.type == 'HOOK' for mod in context.active_object.modifiers]):
             layout.separator()
 
             layout.operator_menu_enum("object.hook_assign", "modifier")
