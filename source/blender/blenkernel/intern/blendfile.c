@@ -37,6 +37,7 @@
 
 #include "IMB_colormanagement.h"
 
+#include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_blender_version.h"
@@ -547,6 +548,35 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
+  }
+
+  return userdef;
+}
+
+UserDef *BKE_blendfile_userdef_from_defaults(void)
+{
+  UserDef *userdef = MEM_mallocN(sizeof(*userdef), __func__);
+
+  memcpy(userdef, &U_default, sizeof(UserDef));
+
+  /* Add-ons. */
+  {
+    const char *addons[] = {
+        "io_anim_bvh",
+        "io_curve_svg",
+        "io_mesh_ply",
+        "io_mesh_stl",
+        "io_mesh_uv_layout",
+        "io_scene_fbx",
+        "io_scene_gltf2",
+        "io_scene_obj",
+        "io_scene_x3d",
+    };
+    for (int i; i < ARRAY_SIZE(addons); i++) {
+      bAddon *addon = BKE_addon_new();
+      STRNCPY(addon->module, addons[i]);
+      BLI_addtail(&userdef->addons, addon);
+    }
   }
 
   return userdef;

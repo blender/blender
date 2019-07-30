@@ -936,7 +936,7 @@ void wm_homefile_read(bContext *C,
                                    filepath_startup,
                                    &(const struct BlendFileReadParams){
                                        .is_startup = true,
-                                       .skip_flags = skip_flags,
+                                       .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
                                    },
                                    NULL);
     }
@@ -963,6 +963,15 @@ void wm_homefile_read(bContext *C,
   }
 
   if (success == false) {
+    if (use_userdef) {
+      if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
+        UserDef *userdef_default = BKE_blendfile_userdef_from_defaults();
+        BKE_blender_userdef_app_template_data_set_and_free(userdef_default);
+        skip_flags &= ~BLO_READ_SKIP_USERDEF;
+        read_userdef_from_memory = true;
+      }
+    }
+
     success = BKE_blendfile_read_from_memory(C,
                                              datatoc_startup_blend,
                                              datatoc_startup_blend_size,
@@ -972,13 +981,7 @@ void wm_homefile_read(bContext *C,
                                                  .skip_flags = skip_flags,
                                              },
                                              NULL);
-    if (success) {
-      if (use_userdef) {
-        if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
-          read_userdef_from_memory = true;
-        }
-      }
-    }
+
     if (use_data && BLI_listbase_is_empty(&wmbase)) {
       wm_clear_default_size(C);
     }
@@ -1015,8 +1018,7 @@ void wm_homefile_read(bContext *C,
       }
       if (userdef_template == NULL) {
         /* we need to have preferences load to overwrite preferences from previous template */
-        userdef_template = BKE_blendfile_userdef_read_from_memory(
-            datatoc_startup_blend, datatoc_startup_blend_size, NULL);
+        userdef_template = BKE_blendfile_userdef_from_defaults();
         read_userdef_from_memory = true;
       }
       if (userdef_template) {
@@ -1650,7 +1652,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /*  force save as regular blend file */
   fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
-  if (BLO_write_file(bmain, filepath, fileflags | G_FILE_USERPREFS, op->reports, NULL) == 0) {
+  if (BLO_write_file(bmain, filepath, fileflags, op->reports, NULL) == 0) {
     printf("fail\n");
     return OPERATOR_CANCELLED;
   }
@@ -1734,7 +1736,7 @@ void WM_OT_save_userpref(wmOperatorType *ot)
 {
   ot->name = "Save Preferences";
   ot->idname = "WM_OT_save_userpref";
-  ot->description = "Save preferences separately, overrides startup file preferences";
+  ot->description = "Make the current preferences default";
 
   ot->invoke = WM_operator_confirm;
   ot->exec = wm_userpref_write_exec;

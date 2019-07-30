@@ -176,6 +176,7 @@ struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
 /* datafiles (generated theme) */
 extern const struct bTheme U_theme_default;
+extern const struct UserDef U_default;
 
 #ifdef __cplusplus
 }
