@@ -741,6 +741,10 @@ void *WM_draw_cb_activate(struct wmWindow *win,
 void WM_draw_cb_exit(struct wmWindow *win, void *handle);
 void WM_redraw_windows(struct bContext *C);
 
+void WM_draw_region_viewport_ensure(struct ARegion *ar, short space_type);
+void WM_draw_region_viewport_bind(struct ARegion *ar);
+void WM_draw_region_viewport_unbind(struct ARegion *ar);
+
 /* Region drawing */
 void WM_draw_region_free(struct ARegion *ar);
 struct GPUViewport *WM_draw_region_get_viewport(struct ARegion *ar, int view);

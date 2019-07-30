@@ -2452,14 +2452,17 @@ static void drw_draw_depth_loop_imp(void)
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
                          ARegion *ar,
                          View3D *v3d,
-                         GPUViewport *viewport)
+                         GPUViewport *viewport,
+                         bool use_opengl_context)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RegionView3D *rv3d = ar->regiondata;
 
-  DRW_opengl_context_enable();
+  if (use_opengl_context) {
+    DRW_opengl_context_enable();
+  }
 
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
@@ -2498,7 +2501,9 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 #endif
 
   /* Changin context */
-  DRW_opengl_context_disable();
+  if (use_opengl_context) {
+    DRW_opengl_context_disable();
+  }
 }
 
 /**

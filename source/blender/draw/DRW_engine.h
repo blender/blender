@@ -129,7 +129,8 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
                          struct ARegion *ar,
                          struct View3D *v3d,
-                         struct GPUViewport *viewport);
+                         struct GPUViewport *viewport,
+                         bool use_opengl_context);
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
                                  struct ARegion *ar,
                                  struct View3D *v3d,

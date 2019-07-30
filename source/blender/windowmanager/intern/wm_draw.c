@@ -239,9 +239,14 @@ static void wm_region_test_render_do_draw(const Scene *scene,
   }
 }
 
+static bool wm_region_use_viewport_by_type(short space_type, short region_type)
+{
+  return (ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE) && region_type == RGN_TYPE_WINDOW);
+}
+
 static bool wm_region_use_viewport(ScrArea *sa, ARegion *ar)
 {
-  return (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && ar->regiontype == RGN_TYPE_WINDOW);
+  return wm_region_use_viewport_by_type(sa->spacetype, ar->regiontype);
 }
 
 /********************** draw all **************************/
@@ -976,3 +981,31 @@ void WM_redraw_windows(bContext *C)
   CTX_wm_area_set(C, area_prev);
   CTX_wm_region_set(C, ar_prev);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Region Viewport Drawing
+ *
+ * This is needed for viewport drawing for operator use
+ * (where the viewport may not have drawn yet).
+ *
+ * Otherwise avoid using these sine they're exposing low level logic externally.
+ *
+ * \{ */
+
+void WM_draw_region_viewport_ensure(ARegion *ar, short space_type)
+{
+  bool use_viewport = wm_region_use_viewport_by_type(space_type, ar->regiontype);
+  wm_draw_region_buffer_create(ar, false, use_viewport);
+}
+
+void WM_draw_region_viewport_bind(ARegion *ar)
+{
+  wm_draw_region_bind(ar, 0);
+}
+
+void WM_draw_region_viewport_unbind(ARegion *ar)
+{
+  wm_draw_region_unbind(ar, 0);
+}
+
+/** \} */
