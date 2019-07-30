@@ -44,6 +44,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "atomic_ops.h"
+
 #include "BLT_translation.h"
 
 #include "IMB_imbuf.h"
@@ -366,7 +368,7 @@ typedef struct ProjPaintState {
   int bucketMin[2];
   int bucketMax[2];
   /** must lock threads while accessing these. */
-  int context_bucket_x, context_bucket_y;
+  int context_bucket_index;
 
   struct CurveMapping *cavity_curve;
   BlurKernel *blurkernel;
@@ -4712,11 +4714,8 @@ static bool project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 
     /* mouse outside the model areas? */
     if (ps->bucketMin[0] == ps->bucketMax[0] || ps->bucketMin[1] == ps->bucketMax[1]) {
-      return 0;
+      return false;
     }
-
-    ps->context_bucket_x = ps->bucketMin[0];
-    ps->context_bucket_y = ps->bucketMin[1];
   }
   else { /* reproject: PROJ_SRC_* */
     ps->bucketMin[0] = 0;
@@ -4724,11 +4723,10 @@ static bool project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 
     ps->bucketMax[0] = ps->buckets_x;
     ps->bucketMax[1] = ps->buckets_y;
-
-    ps->context_bucket_x = 0;
-    ps->context_bucket_y = 0;
   }
-  return 1;
+
+  ps->context_bucket_index = ps->bucketMin[0] + ps->bucketMin[1] * ps->buckets_x;
+  return true;
 }
 
 static bool project_bucket_iter_next(ProjPaintState *ps,
@@ -4738,37 +4736,28 @@ static bool project_bucket_iter_next(ProjPaintState *ps,
 {
   const int diameter = 2 * ps->brush_size;
 
-  if (ps->thread_tot > 1) {
-    BLI_thread_lock(LOCK_CUSTOM1);
-  }
+  const int max_bucket_idx = ps->bucketMax[0] + (ps->bucketMax[1] - 1) * ps->buckets_x;
 
-  // printf("%d %d\n", ps->context_bucket_x, ps->context_bucket_y);
+  for (int bidx = atomic_fetch_and_add_int32(&ps->context_bucket_index, 1); bidx < max_bucket_idx;
+       bidx = atomic_fetch_and_add_int32(&ps->context_bucket_index, 1)) {
+    const int bucket_y = bidx / ps->buckets_x;
+    const int bucket_x = bidx - (bucket_y * ps->buckets_x);
 
-  for (; ps->context_bucket_y < ps->bucketMax[1]; ps->context_bucket_y++) {
-    for (; ps->context_bucket_x < ps->bucketMax[0]; ps->context_bucket_x++) {
-
+    BLI_assert(bucket_y >= ps->bucketMin[1] && bucket_y < ps->bucketMax[1]);
+    if (bucket_x >= ps->bucketMin[0] && bucket_x < ps->bucketMax[0]) {
       /* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
-      project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
+      project_bucket_bounds(ps, bucket_x, bucket_y, bucket_bounds);
 
       if ((ps->source != PROJ_SRC_VIEW) ||
           project_bucket_isect_circle(mval, (float)(diameter * diameter), bucket_bounds)) {
-        *bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
-        ps->context_bucket_x++;
+        *bucket_index = bidx;
 
-        if (ps->thread_tot > 1) {
-          BLI_thread_unlock(LOCK_CUSTOM1);
-        }
-
-        return 1;
+        return true;
       }
     }
-    ps->context_bucket_x = ps->bucketMin[0];
   }
 
-  if (ps->thread_tot > 1) {
-    BLI_thread_unlock(LOCK_CUSTOM1);
-  }
-  return 0;
+  return false;
 }
 
 /* Each thread gets one of these, also used as an argument to pass to project_paint_op */
