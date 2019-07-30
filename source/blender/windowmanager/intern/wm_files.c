@@ -605,7 +605,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   /* assume automated tasks with background, don't write recent file list */
   const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
   bool success = false;
-  int retval;
 
   /* so we can get the error message */
   errno = 0;
@@ -619,7 +618,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   /* first try to append data from exotic file formats... */
   /* it throws error box when file doesn't exist and returns -1 */
   /* note; it should set some error message somewhere... (ton) */
-  retval = wm_read_exotic(filepath);
+  const int retval = wm_read_exotic(filepath);
 
   /* we didn't succeed, now try to read Blender file */
   if (retval == BKE_READ_EXOTIC_OK_BLEND) {
@@ -632,7 +631,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
     /* confusing this global... */
     G.relbase_valid = 1;
-    retval = BKE_blendfile_read(
+    success = BKE_blendfile_read(
         C,
         filepath,
         /* Loading preferences when the user intended to load a regular file is a security risk,
@@ -668,7 +667,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
     WM_check(C); /* opens window(s), checks keymaps */
 
-    if (retval != BKE_BLENDFILE_READ_FAIL) {
+    if (success) {
       if (do_history) {
         wm_history_file_update();
       }
@@ -677,8 +676,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     const bool use_data = true;
     const bool use_userdef = false;
     wm_file_read_post(C, false, false, use_data, use_userdef, false);
-
-    success = true;
   }
 #if 0
   else if (retval == BKE_READ_EXOTIC_OK_OTHER) {
@@ -941,7 +938,7 @@ void wm_homefile_read(bContext *C,
                                        .is_startup = true,
                                        .skip_flags = skip_flags,
                                    },
-                                   NULL) != BKE_BLENDFILE_READ_FAIL;
+                                   NULL);
     }
     if (BLI_listbase_is_empty(&U.themes)) {
       if (G.debug & G_DEBUG) {

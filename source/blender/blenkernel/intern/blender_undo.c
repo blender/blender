@@ -73,7 +73,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
   G.fileflags |= G_FILE_NO_UI;
 
   if (UNDO_DISK) {
-    success = (BKE_blendfile_read(C, mfu->filename, NULL, 0) != BKE_BLENDFILE_READ_FAIL);
+    success = BKE_blendfile_read(C, mfu->filename, NULL, 0);
   }
   else {
     success = BKE_blendfile_read_from_memfile(

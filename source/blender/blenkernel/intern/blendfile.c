@@ -405,7 +405,7 @@ int BKE_blendfile_read(bContext *C,
                        ReportList *reports)
 {
   BlendFileData *bfd;
-  int retval = BKE_BLENDFILE_READ_OK;
+  bool success = false;
 
   /* don't print user-pref loading */
   if (strstr(filepath, BLENDER_STARTUP_FILE) == NULL) {
@@ -414,26 +414,22 @@ int BKE_blendfile_read(bContext *C,
 
   bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
   if (bfd) {
-    if (bfd->user) {
-      retval = BKE_BLENDFILE_READ_OK_USERPREFS;
-    }
-
     if (0 == handle_subversion_warning(bfd->main, reports)) {
       BKE_main_free(bfd->main);
       MEM_freeN(bfd);
       bfd = NULL;
-      retval = BKE_BLENDFILE_READ_FAIL;
     }
     else {
       setup_app_blend_file_data(C, bfd, filepath, params, reports);
       BLO_blendfiledata_free(bfd);
+      success = true;
     }
   }
   else {
     BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
   }
 
-  return (bfd ? retval : BKE_BLENDFILE_READ_FAIL);
+  return success;
 }
 
 bool BKE_blendfile_read_from_memory(bContext *C,
