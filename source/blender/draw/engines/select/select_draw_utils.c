@@ -68,30 +68,17 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
 {
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
-  const bool use_faceselect = (select_mode & SCE_SELECT_FACE) != 0;
-
-  DRW_mesh_batch_cache_validate(me);
 
   BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  struct GPUBatch *geom_faces, *geom_edges, *geom_verts, *geom_facedots;
-  geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
-  if (select_mode & SCE_SELECT_EDGE) {
-    geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
-  }
-  if (select_mode & SCE_SELECT_VERTEX) {
-    geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
-  }
-  if (use_faceselect && draw_facedot) {
-    geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(me);
-  }
-
+  struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
   DRWShadingGroup *face_shgrp;
-  if (use_faceselect) {
+  if (select_mode & SCE_SELECT_FACE) {
     face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
     DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
 
     if (draw_facedot) {
+      struct GPUBatch *geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(me);
       DRW_shgroup_call(face_shgrp, geom_facedots, ob);
     }
     *r_face_offset = initial_offset + em->bm->totface;
@@ -106,6 +93,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
 
   /* Unlike faces, only draw edges if edge select mode. */
   if (select_mode & SCE_SELECT_EDGE) {
+    struct GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
     DRWShadingGroup *edge_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_edge);
     DRW_shgroup_uniform_int_copy(edge_shgrp, "offset", *(int *)r_face_offset);
     DRW_shgroup_call(edge_shgrp, geom_edges, ob);
@@ -119,6 +107,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
 
   /* Unlike faces, only verts if vert select mode. */
   if (select_mode & SCE_SELECT_VERTEX) {
+    struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
     DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
     DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", *(int *)r_edge_offset);
     DRW_shgroup_call(vert_shgrp, geom_verts, ob);
@@ -129,42 +118,48 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
   }
 }
 
-static void draw_select_id_paint_mesh(SELECTID_StorageList *stl,
-                                      Object *ob,
-                                      uint initial_offset,
-                                      uint *r_vert_offset,
-                                      uint *r_edge_offset,
-                                      uint *r_face_offset)
+static void draw_select_id_mesh(SELECTID_StorageList *stl,
+                                Object *ob,
+                                short select_mode,
+                                uint initial_offset,
+                                uint *r_vert_offset,
+                                uint *r_edge_offset,
+                                uint *r_face_offset)
 {
-  Mesh *me_orig = DEG_get_original_object(ob)->data;
-  Mesh *me_eval = ob->data;
+  Mesh *me = ob->data;
 
-  struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me_eval);
-  if ((me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) &&
-      /* Currently vertex select supports weight paint and vertex paint. */
-      ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT))) {
-
-    struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me_eval);
-
+  struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+  DRWShadingGroup *face_shgrp;
+  if (select_mode & SCE_SELECT_FACE) {
+    face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
+    DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
+    *r_face_offset = initial_offset + me->totpoly;
+  }
+  else {
     /* Only draw faces to mask out verts, we don't want their selection ID's. */
-    DRWShadingGroup *face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_unif);
+    face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_unif);
     DRW_shgroup_uniform_int_copy(face_shgrp, "id", 0);
-    DRW_shgroup_call(face_shgrp, geom_faces, ob);
+    *r_face_offset = initial_offset;
+  }
+  DRW_shgroup_call(face_shgrp, geom_faces, ob);
 
+  if (select_mode & SCE_SELECT_EDGE) {
+    struct GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
+    DRWShadingGroup *edge_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_edge);
+    DRW_shgroup_uniform_int_copy(edge_shgrp, "offset", *(int *)r_face_offset);
+    DRW_shgroup_call(edge_shgrp, geom_edges, ob);
+    *r_edge_offset = *r_face_offset + me->totedge;
+  }
+  else {
+    *r_edge_offset = *r_face_offset;
+  }
+
+  if (select_mode & SCE_SELECT_VERTEX) {
+    struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
     DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
     DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", 1);
     DRW_shgroup_call(vert_shgrp, geom_verts, ob);
-
-    *r_face_offset = *r_edge_offset = initial_offset;
-    *r_vert_offset = me_eval->totvert + 1;
-  }
-  else {
-    DRWShadingGroup *face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
-    DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
-    DRW_shgroup_call(face_shgrp, geom_faces, ob);
-
-    *r_face_offset = initial_offset + me_eval->totpoly;
-    *r_edge_offset = *r_vert_offset = *r_face_offset;
+    *r_vert_offset = *r_edge_offset + me->totvert;
   }
 }
 
@@ -195,8 +190,18 @@ void select_id_draw_object(void *vedata,
                                  r_face_offset);
       }
       else {
-        draw_select_id_paint_mesh(
-            stl, ob, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
+        if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
+          Mesh *me_orig = DEG_get_original_object(ob)->data;
+          select_mode = 0;
+          if (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) {
+            select_mode = SCE_SELECT_FACE;
+          }
+          if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
+            select_mode |= SCE_SELECT_VERTEX;
+          }
+        }
+        draw_select_id_mesh(
+            stl, ob, select_mode, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
       }
       break;
     case OB_CURVE:
