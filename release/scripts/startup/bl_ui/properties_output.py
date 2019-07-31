@@ -376,7 +376,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         layout = self.layout
         ffmpeg = context.scene.render.ffmpeg
 
-        needs_codec = ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4'}
+        needs_codec = ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4', 'WEBM'}
         if needs_codec:
             layout.prop(ffmpeg, "codec")
 

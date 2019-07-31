@@ -43,6 +43,7 @@ enum {
   FFMPEG_MKV = 9,
   FFMPEG_OGG = 10,
   FFMPEG_INVALID = 11,
+  FFMPEG_WEBM = 12,
 };
 
 enum {

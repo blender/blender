@@ -319,6 +319,10 @@ static const char **get_file_extensions(int format)
       static const char *rv[] = {".ogv", ".ogg", NULL};
       return rv;
     }
+    case FFMPEG_WEBM: {
+      static const char *rv[] = {".webm", NULL};
+      return rv;
+    }
     default:
       return NULL;
   }
