@@ -28,6 +28,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
+#include "GPU_extensions.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 
@@ -599,7 +600,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     i_count = (batch->inst) ? batch->inst->vertex_len : 1;
   }
 
-  if (!GLEW_ARB_base_instance) {
+  if (!GPU_arb_base_instance_is_supported()) {
     if (i_first > 0 && i_count > 0) {
       /* If using offset drawing with instancing, we must
        * use the default VAO and redo bindings. */
@@ -624,7 +625,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
 #endif
     void *v_first_ofs = elem_offset(el, v_first);
 
-    if (GLEW_ARB_base_instance) {
+    if (GPU_arb_base_instance_is_supported()) {
       glDrawElementsInstancedBaseVertexBaseInstance(
           batch->gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
     }
@@ -637,7 +638,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
 #ifdef __APPLE__
     glDisable(GL_PRIMITIVE_RESTART);
 #endif
-    if (GLEW_ARB_base_instance) {
+    if (GPU_arb_base_instance_is_supported()) {
       glDrawArraysInstancedBaseInstance(batch->gl_prim_type, v_first, v_count, i_count, i_first);
     }
     else {

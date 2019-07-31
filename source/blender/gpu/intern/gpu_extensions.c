@@ -77,6 +77,9 @@ static struct GPUGlobal {
    * number is factor on screen and second is off-screen */
   float dfdyfactors[2];
   float max_anisotropy;
+  /* Some Intel drivers have limited support for `GLEW_ARB_base_instance` so in
+   * these cases it is best to indicate that it is not supported. See T67951 */
+  bool glew_arb_base_instance_is_supported;
   /* Some Intel drivers have issues with using mips as framebuffer targets if
    * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
    * We need a workaround in this cases. */
@@ -195,6 +198,11 @@ float GPU_max_line_width(void)
 void GPU_get_dfdy_factors(float fac[2])
 {
   copy_v2_v2(fac, GG.dfdyfactors);
+}
+
+bool GPU_arb_base_instance_is_supported(void)
+{
+  return GG.glew_arb_base_instance_is_supported;
 }
 
 bool GPU_mip_render_workaround(void)
@@ -343,6 +351,7 @@ void gpu_extensions_init(void)
   GG.os = GPU_OS_UNIX;
 #endif
 
+  GG.glew_arb_base_instance_is_supported = GLEW_ARB_base_instance;
   gpu_detect_mip_render_workaround();
 
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
@@ -383,6 +392,9 @@ void gpu_extensions_init(void)
         strstr(version, "Build 10.18.10.4653") || strstr(version, "Build 10.18.10.5069") ||
         strstr(version, "Build 10.18.14.4264") || strstr(version, "Build 10.18.14.4432") ||
         strstr(version, "Build 10.18.14.5067")) {
+      /* Maybe not all of these drivers have problems with `GLEW_ARB_base_instance`.
+       * But it's hard to test each case. */
+      GG.glew_arb_base_instance_is_supported = false;
       GG.context_local_shaders_workaround = true;
     }
   }
