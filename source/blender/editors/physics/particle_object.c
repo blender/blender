@@ -1037,7 +1037,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
 
     pa++;
   }
-  update_world_cos(depsgraph, ob, edit);
+  update_world_cos(ob, edit);
 
   UI_GetThemeColor3ubv(TH_EDGE_SELECT, edit->sel_col);
   UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);

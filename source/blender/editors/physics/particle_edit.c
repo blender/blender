@@ -1499,7 +1499,7 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
   DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 }
 
-void update_world_cos(Depsgraph *UNUSED(depsgraph), Object *ob, PTCacheEdit *edit)
+void update_world_cos(Object *ob, PTCacheEdit *edit)
 {
   ParticleSystem *psys = edit->psys;
   ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
@@ -1619,7 +1619,7 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
     PE_apply_mirror(ob, edit->psys);
   }
   if (edit->psys) {
-    update_world_cos(depsgraph, ob, edit);
+    update_world_cos(ob, edit);
   }
   if (pset->flag & PE_AUTO_VELOCITY) {
     update_velocities(edit);
@@ -3519,7 +3519,7 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 
   PE_mirror_x(scene, ob, 0);
 
-  update_world_cos(CTX_data_depsgraph(C), ob, edit);
+  update_world_cos(ob, edit);
   WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
@@ -4747,7 +4747,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
           PE_mirror_x(scene, ob, 1);
         }
 
-        update_world_cos(depsgraph, ob, edit);
+        update_world_cos(ob, edit);
         psys_free_path_cache(NULL, edit);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
@@ -4993,7 +4993,6 @@ static void shape_cut(PEData *data, int pa_index)
 
 static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   ParticleEditSettings *pset = PE_settings(scene);
@@ -5032,7 +5031,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
     recalc_lengths(edit);
 
     if (removed) {
-      update_world_cos(depsgraph, ob, edit);
+      update_world_cos(ob, edit);
       psys_free_path_cache(NULL, edit);
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
@@ -5203,7 +5202,7 @@ void PE_create_particle_edit(
         }
         pa++;
       }
-      update_world_cos(depsgraph, ob, edit);
+      update_world_cos(ob, edit);
     }
     else {
       PTCacheMem *pm;
