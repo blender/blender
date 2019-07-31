@@ -1835,26 +1835,13 @@ void BKE_ffmpeg_codec_settings_verify(RenderData *rd)
 bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 {
   int codec = rd->ffcodecdata.codec;
-
-  if (codec == AV_CODEC_ID_QTRLE) {
-    return true;
-  }
-
-  if (codec == AV_CODEC_ID_PNG) {
-    return true;
-  }
-
-  if (codec == AV_CODEC_ID_HUFFYUV) {
-    return true;
-  }
-
+  return ELEM(codec,
+              AV_CODEC_ID_QTRLE,
+              AV_CODEC_ID_PNG,
 #  ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
-  if (codec == AV_CODEC_ID_FFV1) {
-    return true;
-  }
+              AV_CODEC_ID_FFV1,
 #  endif
-
-  return false;
+              AV_CODEC_ID_HUFFYUV);
 }
 
 void *BKE_ffmpeg_context_create(void)
