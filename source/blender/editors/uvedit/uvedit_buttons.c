@@ -40,8 +40,9 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_screen.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
@@ -57,7 +58,8 @@
 
 /* UV Utilities */
 
-static int uvedit_center(Scene *scene, Object *obedit, BMEditMesh *em, Image *ima, float center[2])
+static int uvedit_center(
+    Scene *scene, Object **objects, uint objects_len, Image *ima, float center[2])
 {
   BMFace *f;
   BMLoop *l;
@@ -65,19 +67,24 @@ static int uvedit_center(Scene *scene, Object *obedit, BMEditMesh *em, Image *im
   MLoopUV *luv;
   int tot = 0;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
   zero_v2(center);
-  BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
-      continue;
-    }
 
-    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        add_v2_v2(center, luv->uv);
-        tot++;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
+        continue;
+      }
+
+      BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          add_v2_v2(center, luv->uv);
+          tot++;
+        }
       }
     }
   }
@@ -91,24 +98,29 @@ static int uvedit_center(Scene *scene, Object *obedit, BMEditMesh *em, Image *im
 }
 
 static void uvedit_translate(
-    Scene *scene, Object *obedit, BMEditMesh *em, Image *ima, float delta[2])
+    Scene *scene, Object **objects, uint objects_len, Image *ima, float delta[2])
 {
   BMFace *f;
   BMLoop *l;
   BMIter iter, liter;
   MLoopUV *luv;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-  BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
-      continue;
-    }
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        add_v2_v2(luv->uv, delta);
+    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, obedit, ima, f)) {
+        continue;
+      }
+
+      BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+          add_v2_v2(luv->uv, delta);
+        }
       }
     }
   }
@@ -122,18 +134,17 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
-  Object *obedit = CTX_data_edit_object(C);
   Image *ima = sima->image;
-  BMEditMesh *em;
   float center[2];
   int imx, imy, step, digits;
   float width = 8 * UI_UNIT_X;
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
 
   ED_space_image_get_size(sima, &imx, &imy);
 
-  em = BKE_editmesh_from_object(obedit);
-
-  if (uvedit_center(scene, obedit, em, ima, center)) {
+  if (uvedit_center(scene, objects, objects_len, ima, center)) {
     float range_xy[2][2] = {
         {-10.0f, 10.0f},
         {-10.0f, 10.0f},
@@ -193,15 +204,15 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
               "");
     UI_block_align_end(block);
   }
+
+  MEM_freeN(objects);
 }
 
 static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
-  Object *obedit = CTX_data_edit_object(C);
   Image *ima = sima->image;
-  BMEditMesh *em;
   float center[2], delta[2];
   int imx, imy;
 
@@ -209,10 +220,12 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
     return;
   }
 
-  em = BKE_editmesh_from_object(obedit);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
 
   ED_space_image_get_size(sima, &imx, &imy);
-  uvedit_center(scene, obedit, em, ima, center);
+  uvedit_center(scene, objects, objects_len, ima, center);
 
   if (sima->flag & SI_COORDFLOATS) {
     delta[0] = uvedit_old_center[0] - center[0];
@@ -223,10 +236,15 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
     delta[1] = uvedit_old_center[1] / imy - center[1];
   }
 
-  uvedit_translate(scene, obedit, em, ima, delta);
+  uvedit_translate(scene, objects, objects_len, ima, delta);
 
   WM_event_add_notifier(C, NC_IMAGE, sima->image);
-  DEG_id_tag_update((ID *)obedit->data, ID_RECALC_GEOMETRY);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    DEG_id_tag_update((ID *)obedit->data, ID_RECALC_GEOMETRY);
+  }
+
+  MEM_freeN(objects);
 }
 
 /* Panels */
