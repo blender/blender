@@ -50,13 +50,10 @@ class SVMShaderManager : public ShaderManager {
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
  protected:
-  /* Lock used to synchronize threaded nodes compilation. */
-  thread_spin_lock nodes_lock_;
-
   void device_update_shader(Scene *scene,
                             Shader *shader,
                             Progress *progress,
-                            array<int4> *global_svm_nodes);
+                            array<int4> *svm_nodes);
 };
 
 /* Graph Compiler */

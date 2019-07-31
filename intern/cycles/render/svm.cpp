@@ -47,46 +47,23 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 void SVMShaderManager::device_update_shader(Scene *scene,
                                             Shader *shader,
                                             Progress *progress,
-                                            array<int4> *global_svm_nodes)
+                                            array<int4> *svm_nodes)
 {
   if (progress->get_cancel()) {
     return;
   }
   assert(shader->graph);
 
-  array<int4> svm_nodes;
-  svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
+  svm_nodes->push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 
   SVMCompiler::Summary summary;
   SVMCompiler compiler(scene->shader_manager, scene->image_manager, scene->light_manager);
   compiler.background = (shader == scene->default_background);
-  compiler.compile(scene, shader, svm_nodes, 0, &summary);
+  compiler.compile(scene, shader, *svm_nodes, 0, &summary);
 
   VLOG(2) << "Compilation summary:\n"
           << "Shader name: " << shader->name << "\n"
           << summary.full_report();
-
-  nodes_lock_.lock();
-  if (shader->use_mis && shader->has_surface_emission) {
-    scene->light_manager->need_update = true;
-  }
-
-  /* The copy needs to be done inside the lock, if another thread resizes the array
-   * while memcpy is running, it'll be copying into possibly invalid/freed ram.
-   */
-  size_t global_nodes_size = global_svm_nodes->size();
-  global_svm_nodes->resize(global_nodes_size + svm_nodes.size());
-
-  /* Offset local SVM nodes to a global address space. */
-  int4 &jump_node = (*global_svm_nodes)[shader->id];
-  jump_node.y = svm_nodes[0].y + global_nodes_size - 1;
-  jump_node.z = svm_nodes[0].z + global_nodes_size - 1;
-  jump_node.w = svm_nodes[0].w + global_nodes_size - 1;
-  /* Copy new nodes to global storage. */
-  memcpy(&(*global_svm_nodes)[global_nodes_size],
-         &svm_nodes[1],
-         sizeof(int4) * (svm_nodes.size() - 1));
-  nodes_lock_.unlock();
 }
 
 void SVMShaderManager::device_update(Device *device,
@@ -97,7 +74,9 @@ void SVMShaderManager::device_update(Device *device,
   if (!need_update)
     return;
 
-  VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+  const int num_shaders = scene->shaders.size();
+
+  VLOG(1) << "Total " << num_shaders << " shaders.";
 
   double start_time = time_dt();
 
@@ -107,20 +86,17 @@ void SVMShaderManager::device_update(Device *device,
   /* determine which shaders are in use */
   device_update_shaders_used(scene);
 
-  /* svm_nodes */
-  array<int4> svm_nodes;
-  size_t i;
-
-  for (i = 0; i < scene->shaders.size(); i++) {
-    svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
-  }
-
+  /* Build all shaders. */
   TaskPool task_pool;
-  foreach (Shader *shader, scene->shaders) {
-    task_pool.push(
-        function_bind(
-            &SVMShaderManager::device_update_shader, this, scene, shader, &progress, &svm_nodes),
-        false);
+  vector<array<int4>> shader_svm_nodes(num_shaders);
+  for (int i = 0; i < num_shaders; i++) {
+    task_pool.push(function_bind(&SVMShaderManager::device_update_shader,
+                                 this,
+                                 scene,
+                                 scene->shaders[i],
+                                 &progress,
+                                 &shader_svm_nodes[i]),
+                   false);
   }
   task_pool.wait_work();
 
@@ -128,20 +104,60 @@ void SVMShaderManager::device_update(Device *device,
     return;
   }
 
-  dscene->svm_nodes.steal_data(svm_nodes);
-  dscene->svm_nodes.copy_to_device();
-
-  for (i = 0; i < scene->shaders.size(); i++) {
-    Shader *shader = scene->shaders[i];
-    shader->need_update = false;
+  /* The global node list contains a jump table (one node per shader)
+   * followed by the nodes of all shaders. */
+  int svm_nodes_size = num_shaders;
+  for (int i = 0; i < num_shaders; i++) {
+    /* Since we're not copying the local jump node, the size ends up being one node lower. */
+    svm_nodes_size += shader_svm_nodes[i].size() - 1;
   }
+
+  int4 *svm_nodes = dscene->svm_nodes.alloc(svm_nodes_size);
+
+  int node_offset = num_shaders;
+  for (int i = 0; i < num_shaders; i++) {
+    Shader *shader = scene->shaders[i];
+
+    shader->need_update = false;
+    if (shader->use_mis && shader->has_surface_emission) {
+      scene->light_manager->need_update = true;
+    }
+
+    /* Update the global jump table.
+     * Each compiled shader starts with a jump node that has offsets local
+     * to the shader, so copy those and add the offset into the global node list. */
+    int4 &global_jump_node = svm_nodes[shader->id];
+    int4 &local_jump_node = shader_svm_nodes[i][0];
+
+    global_jump_node.x = NODE_SHADER_JUMP;
+    global_jump_node.y = local_jump_node.y - 1 + node_offset;
+    global_jump_node.z = local_jump_node.z - 1 + node_offset;
+    global_jump_node.w = local_jump_node.w - 1 + node_offset;
+
+    node_offset += shader_svm_nodes[i].size() - 1;
+  }
+
+  /* Copy the nodes of each shader into the correct location. */
+  svm_nodes += num_shaders;
+  for (int i = 0; i < num_shaders; i++) {
+    int shader_size = shader_svm_nodes[i].size() - 1;
+
+    memcpy(svm_nodes, &shader_svm_nodes[i][1], sizeof(int4) * shader_size);
+    svm_nodes += shader_size;
+  }
+
+  if (progress.get_cancel()) {
+    return;
+  }
+
+  dscene->svm_nodes.copy_to_device();
 
   device_update_common(device, dscene, scene, progress);
 
   need_update = false;
 
-  VLOG(1) << "Shader manager updated " << scene->shaders.size() << " shaders in "
-          << time_dt() - start_time << " seconds.";
+  VLOG(1) << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
+          << " seconds.";
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
