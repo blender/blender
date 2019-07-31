@@ -2687,7 +2687,7 @@ class VIEW3D_MT_brush(Menu):
             sculpt_tool = brush.sculpt_tool
 
             layout.separator()
-            layout.operator_menu_enum("brush.curve_preset", "shape", text="Curve Preset")
+            layout.prop_menu_enum(brush, "curve_preset")
             layout.separator()
 
             if sculpt_tool != 'GRAB':

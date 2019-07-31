@@ -1262,7 +1262,6 @@ float tex_strength(SculptSession *ss,
 
   /* Falloff curve */
   avg *= BKE_brush_curve_strength(br, len, cache->radius);
-
   avg *= frontface(br, cache->view_normal, vno, fno);
 
   /* Paint mask */
