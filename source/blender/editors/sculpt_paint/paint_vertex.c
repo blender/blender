@@ -1171,29 +1171,10 @@ void ED_object_vpaintmode_enter_ex(
 {
   ed_vwpaintmode_enter_generic(bmain, depsgraph, wm, scene, ob, OB_MODE_VERTEX_PAINT);
 }
-void ED_object_vpaintmode_enter(struct bContext *C)
-{
-  Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
-  ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
-}
-
 void ED_object_wpaintmode_enter_ex(
     Main *bmain, Depsgraph *depsgraph, wmWindowManager *wm, Scene *scene, Object *ob)
 {
   ed_vwpaintmode_enter_generic(bmain, depsgraph, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
-}
-void ED_object_wpaintmode_enter(struct bContext *C)
-{
-  Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
-  ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 }
 
 /** \} */
@@ -2705,8 +2686,9 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
   return 1;
 }
 
-static void do_vpaint_brush_calc_average_color_cb_ex(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void do_vpaint_brush_calc_average_color_cb_ex(void *__restrict userdata,
+                                                     const int n,
+                                                     const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

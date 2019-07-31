@@ -194,20 +194,6 @@ void ED_object_mode_set(bContext *C, eObjectMode mode)
   wm->op_undo_depth--;
 }
 
-void ED_object_mode_exit(bContext *C)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
-  struct Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  FOREACH_OBJECT_BEGIN (view_layer, ob) {
-    if (ob->mode & OB_MODE_ALL_MODE_DATA) {
-      ED_object_mode_generic_exit(bmain, depsgraph, scene, ob);
-    }
-  }
-  FOREACH_OBJECT_END;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
