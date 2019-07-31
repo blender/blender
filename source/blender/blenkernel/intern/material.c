@@ -496,6 +496,7 @@ void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
       MEM_freeN(*matar);
       *matar = NULL;
     }
+    test_all_objects_materials(bmain, id);
 
     if (update_data) {
       /* decrease mat_nr index */
