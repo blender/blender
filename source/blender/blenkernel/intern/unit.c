@@ -112,6 +112,8 @@ enum {
   B_UNIT_DEF_TENTH = 2,
   /** Short unit name is case sensitive, for example to distinguish mW and MW */
   B_UNIT_DEF_CASE_SENSITIVE = 4,
+  /** Short unit name does not have space between it and preceding number */
+  B_UNIT_DEF_NO_SPACE = 8,
 };
 
 /* define a single unit */
@@ -161,8 +163,8 @@ static struct bUnitDef buImperialLenDef[] = {
   {"furlong", "furlongs", "fur",  NULL, "Furlongs", "FURLONGS", UN_SC_FUR, 0.0, B_UNIT_DEF_SUPPRESS},
   {"chain",   "chains",   "ch",   NULL, "Chains",   "CHAINS",   UN_SC_CH,  0.0, B_UNIT_DEF_SUPPRESS},
   {"yard",    "yards",    "yd",   NULL, "Yards",    "YARDS",    UN_SC_YD,  0.0, B_UNIT_DEF_SUPPRESS},
-  {"foot",    "feet",     "'",    "ft", "Feet",     "FEET",     UN_SC_FT,  0.0, B_UNIT_DEF_NONE}, /* base unit */
-  {"inch",    "inches",   "\"",   "in", "Inches",   "INCHES",   UN_SC_IN,  0.0, B_UNIT_DEF_NONE},
+  {"foot",    "feet",     "'",    "ft", "Feet",     "FEET",     UN_SC_FT,  0.0, B_UNIT_DEF_NONE | B_UNIT_DEF_NO_SPACE}, /* base unit */
+  {"inch",    "inches",   "\"",   "in", "Inches",   "INCHES",   UN_SC_IN,  0.0, B_UNIT_DEF_NONE | B_UNIT_DEF_NO_SPACE},
   {"thou",    "thou",     "thou", "mil", "Thou",    "THOU",     UN_SC_MIL, 0.0, B_UNIT_DEF_NONE}, /* plural for thou has no 's' */
   NULL_UNIT,
 };
@@ -289,10 +291,10 @@ static struct bUnitCollection buNaturalTimeCollection = {buNaturalTimeDef, 3, 0,
 
 
 static struct bUnitDef buNaturalRotDef[] = {
-  {"degree",    "degrees",     "°",  "d",   "Degrees",    "DEGREES",    M_PI / 180.0,             0.0,  B_UNIT_DEF_NONE},
+  {"degree",    "degrees",     "°",  "d",   "Degrees",    "DEGREES",    M_PI / 180.0,             0.0,  B_UNIT_DEF_NONE | B_UNIT_DEF_NO_SPACE},
   /* arcminutes/arcseconds are used in Astronomy/Navigation areas... */
-  {"arcminute", "arcminutes",  "'",  NULL,  "Arcminutes", "ARCMINUTES", (M_PI / 180.0) / 60.0,    0.0,  B_UNIT_DEF_SUPPRESS},
-  {"arcsecond", "arcseconds",  "\"", NULL,  "Arcseconds", "ARCSECONDS", (M_PI / 180.0) / 3600.0,  0.0,  B_UNIT_DEF_SUPPRESS},
+  {"arcminute", "arcminutes",  "'",  NULL,  "Arcminutes", "ARCMINUTES", (M_PI / 180.0) / 60.0,    0.0,  B_UNIT_DEF_SUPPRESS | B_UNIT_DEF_NO_SPACE},
+  {"arcsecond", "arcseconds",  "\"", NULL,  "Arcseconds", "ARCSECONDS", (M_PI / 180.0) / 3600.0,  0.0,  B_UNIT_DEF_SUPPRESS | B_UNIT_DEF_NO_SPACE},
   {"radian",    "radians",     "r",  NULL,  "Radians",    "RADIANS",    1.0,                      0.0,  B_UNIT_DEF_NONE},
 //  {"turn",      "turns",       "t",  NULL,  "Turns",      NULL, 1.0 / (M_PI * 2.0),       0.0,  B_UNIT_DEF_NONE},
   NULL_UNIT,
@@ -449,6 +451,11 @@ static size_t unit_as_string(char *str,
     if (i > 0 && str[i] == '.') { /* 10. -> 10 */
       str[i--] = pad;
     }
+  }
+
+  /* Now add a space for all units except foot, inch, degree, arcminute, arcsecond */
+  if (!(unit->flag & B_UNIT_DEF_NO_SPACE)) {
+    str[++i] = ' ';
   }
 
   /* Now add the suffix */
