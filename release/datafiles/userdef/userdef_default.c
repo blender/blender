@@ -79,20 +79,20 @@ const UserDef U_default = {
     .app_template = "",
 
     /** Initialized by #UI_theme_init_default. */
-    .themes = (ListBase){NULL},
+    .themes = {NULL},
 
     /** Initialized by #uiStyleInit. */
-    .uifonts = (ListBase){NULL},
-    .uistyles = (ListBase){NULL},
+    .uifonts = {NULL},
+    .uistyles = {NULL},
 
-    .user_keymaps = (ListBase){NULL},
-    .user_keyconfig_prefs = (ListBase){NULL},
+    .user_keymaps = {NULL},
+    .user_keyconfig_prefs = {NULL},
 
     /** Initialized by #BKE_blendfile_userdef_from_defaults. */
-    .addons = (ListBase){NULL},
+    .addons = {NULL},
 
-    .autoexec_paths = (ListBase){NULL},
-    .user_menus = (ListBase){NULL},
+    .autoexec_paths = {NULL},
+    .user_menus = {NULL},
 
     .keyconfigstr = "blender",
     .undosteps = 32,
