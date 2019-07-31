@@ -6414,16 +6414,21 @@ static void lib_link_scene(FileData *fd, Main *main)
       sce->gpd = newlibadr_us(fd, sce->id.lib, sce->gpd);
 
       link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
-      if (sce->toolsettings->sculpt)
+      if (sce->toolsettings->sculpt) {
         link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
-      if (sce->toolsettings->vpaint)
+      }
+      if (sce->toolsettings->vpaint) {
         link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
-      if (sce->toolsettings->wpaint)
+      }
+      if (sce->toolsettings->wpaint) {
         link_paint(fd, sce, &sce->toolsettings->wpaint->paint);
-      if (sce->toolsettings->uvsculpt)
+      }
+      if (sce->toolsettings->uvsculpt) {
         link_paint(fd, sce, &sce->toolsettings->uvsculpt->paint);
-      if (sce->toolsettings->gp_paint)
+      }
+      if (sce->toolsettings->gp_paint) {
         link_paint(fd, sce, &sce->toolsettings->gp_paint->paint);
+      }
 
       if (sce->toolsettings->sculpt) {
         sce->toolsettings->sculpt->gravity_object = newlibadr(

@@ -148,8 +148,7 @@ typedef struct bGPDpalette {
 /* bGPDpalette->flag */
 typedef enum eGPDpalette_Flag {
   /* palette is active */
-  A,
-  PL_PALETTE_ACTIVE = (1 << 0)
+  PL_PALETTE_ACTIVE = (1 << 0),
 } eGPDpalette_Flag;
 
 /* ***************************************** */

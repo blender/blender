@@ -1128,7 +1128,7 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
   return true;
 }
 
-static bool count_texture_nodes_cb(bNode *node, void *userdata)
+static bool count_texture_nodes_cb(bNode *UNUSED(node), void *userdata)
 {
   (*((int *)userdata))++;
   return true;
