@@ -985,7 +985,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
       substatus += string_printf(", Prefiltered %d tiles", progress.get_denoised_tiles());
     }
   }
-  else if (tile_manager.num_samples == INT_MAX)
+  else if (tile_manager.num_samples == Integrator::MAX_SAMPLES)
     substatus = string_printf("Path Tracing Sample %d", progressive_sample + 1);
   else
     substatus = string_printf("Path Tracing Sample %d/%d", progressive_sample + 1, num_samples);
