@@ -1845,14 +1845,15 @@ void BKE_ffmpeg_codec_settings_verify(RenderData *rd)
 bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 {
   int codec = rd->ffcodecdata.codec;
-  return ELEM(codec,
-              AV_CODEC_ID_QTRLE,
-              AV_CODEC_ID_PNG,
-              AV_CODEC_ID_VP9,
+
 #  ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
-              AV_CODEC_ID_FFV1,
+  /* Visual Studio 2019 doesn't like #ifdef within ELEM(). */
+  if (codec == AV_CODEC_ID_FFV1) {
+    return true;
+  }
 #  endif
-              AV_CODEC_ID_HUFFYUV);
+
+  return ELEM(codec, AV_CODEC_ID_QTRLE, AV_CODEC_ID_PNG, AV_CODEC_ID_VP9, AV_CODEC_ID_HUFFYUV);
 }
 
 void *BKE_ffmpeg_context_create(void)
