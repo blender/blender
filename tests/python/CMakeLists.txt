@@ -136,7 +136,7 @@ add_test(
   NAME object_modifier_array
   COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
   ${TEST_SRC_DIR}/modifier_stack/array_test.blend
-  --python-text run_tests
+  --python-text run_tests.py
 )
 
 # ------------------------------------------------------------------------------
