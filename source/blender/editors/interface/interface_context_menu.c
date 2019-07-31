@@ -899,6 +899,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
             ICON_NONE,
             "UI_OT_copy_data_path_button");
 
+    if (ptr->id.data && ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM)) {
+      uiItemO(layout,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy As New Driver"),
+              ICON_NONE,
+              "UI_OT_copy_as_driver_button");
+    }
+
     uiItemS(layout);
 
     if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {

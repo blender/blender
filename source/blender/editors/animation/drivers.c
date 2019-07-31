@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -95,56 +96,65 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 
   if ((fcu == NULL) && (add)) {
     /* use default settings to make a F-Curve */
-    fcu = MEM_callocN(sizeof(FCurve), "FCurve");
-
-    fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-    fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
-
-    /* store path - make copy, and store that */
-    fcu->rna_path = BLI_strdup(rna_path);
-    fcu->array_index = array_index;
-
-    /* If add is negative, don't init this data yet,
-     * since it will be filled in by the pasted driver. */
-    if (add > 0) {
-      BezTriple *bezt;
-      size_t i;
-
-      /* add some new driver data */
-      fcu->driver = MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
-
-      /* F-Modifier or Keyframes? */
-      // FIXME: replace these magic numbers with defines
-      if (add == 2) {
-        /* Python API Backwards compatibility hack:
-         * Create FModifier so that old scripts won't break
-         * for now before 2.7 series -- (September 4, 2013)
-         */
-        add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
-      }
-      else {
-        /* add 2 keyframes so that user has something to work with
-         * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
-         *   which can be easily tweaked from there.
-         */
-        insert_vert_fcurve(fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
-        insert_vert_fcurve(fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
-
-        /* configure this curve to extrapolate */
-        for (i = 0, bezt = fcu->bezt; (i < fcu->totvert) && bezt; i++, bezt++) {
-          bezt->h1 = bezt->h2 = HD_VECT;
-        }
-
-        fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-        calchandles_fcurve(fcu);
-      }
-    }
+    fcu = alloc_driver_fcurve(rna_path, array_index, add);
 
     /* just add F-Curve to end of driver list */
     BLI_addtail(&adt->drivers, fcu);
   }
 
   /* return the F-Curve */
+  return fcu;
+}
+
+struct FCurve *alloc_driver_fcurve(const char rna_path[], const int array_index, short add)
+{
+  FCurve *fcu = MEM_callocN(sizeof(FCurve), "FCurve");
+
+  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+  fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
+
+  /* store path - make copy, and store that */
+  if (rna_path) {
+    fcu->rna_path = BLI_strdup(rna_path);
+  }
+  fcu->array_index = array_index;
+
+  /* If add is negative, don't init this data yet,
+   * since it will be filled in by the pasted driver. */
+  if (add > 0) {
+    BezTriple *bezt;
+    size_t i;
+
+    /* add some new driver data */
+    fcu->driver = MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
+
+    /* F-Modifier or Keyframes? */
+    // FIXME: replace these magic numbers with defines
+    if (add == 2) {
+      /* Python API Backwards compatibility hack:
+       * Create FModifier so that old scripts won't break
+       * for now before 2.7 series -- (September 4, 2013)
+       */
+      add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
+    }
+    else {
+      /* add 2 keyframes so that user has something to work with
+       * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
+       *   which can be easily tweaked from there.
+       */
+      insert_vert_fcurve(fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+      insert_vert_fcurve(fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+
+      /* configure this curve to extrapolate */
+      for (i = 0, bezt = fcu->bezt; (i < fcu->totvert) && bezt; i++, bezt++) {
+        bezt->h1 = bezt->h2 = HD_VECT;
+      }
+
+      fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
+      calchandles_fcurve(fcu);
+    }
+  }
+
   return fcu;
 }
 
@@ -832,6 +842,48 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
   BKE_driver_invalidate_expression(driver, false, true);
 
   return true;
+}
+
+/* -------------------------------------------------- */
+
+/* Create a driver & variable that reads the specified property,
+ * and store it in the buffers for Paste Driver and Paste Variables. */
+void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const char *var_name)
+{
+  /* Clear copy/paste buffer first (for consistency with other copy/paste buffers). */
+  ANIM_drivers_copybuf_free();
+  ANIM_driver_vars_copybuf_free();
+
+  /* Create a dummy driver F-Curve. */
+  FCurve *fcu = alloc_driver_fcurve(NULL, 0, 1);
+  ChannelDriver *driver = fcu->driver;
+
+  /* Create a variable. */
+  DriverVar *var = driver_add_new_variable(driver);
+  DriverTarget *target = &var->targets[0];
+
+  target->idtype = GS(target_id->name);
+  target->id = target_id;
+  target->rna_path = MEM_dupallocN(target_path);
+
+  /* Set the variable name. */
+  if (var_name) {
+    BLI_strncpy(var->name, var_name, sizeof(var->name));
+
+    /* Sanitize the name. */
+    for (int i = 0; var->name[i]; i++) {
+      if (!(i > 0 ? isalnum(var->name[i]) : isalpha(var->name[i]))) {
+        var->name[i] = '_';
+      }
+    }
+  }
+
+  BLI_strncpy(driver->expression, var->name, sizeof(driver->expression));
+
+  /* Store the driver into the copy/paste buffers. */
+  channeldriver_copypaste_buf = fcu;
+
+  driver_variables_copy(&driver_vars_copybuf, &driver->variables);
 }
 
 /* ************************************************** */
