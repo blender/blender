@@ -756,8 +756,9 @@ typedef struct UserDef {
   char font_path_ui[1024];
   char font_path_ui_mono[1024];
 
+  /** Legacy, for backwards compatibility only. */
   int compute_device_type;
-  int compute_device_id;
+  char _pad6[4];
 
   /** Opacity of inactive F-Curves in F-Curve Editor. */
   float fcu_inactive_alpha;

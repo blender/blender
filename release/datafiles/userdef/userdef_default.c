@@ -159,7 +159,6 @@ const UserDef U_default = {
     .font_path_ui = "",
     .font_path_ui_mono = "",
     .compute_device_type = 0,
-    .compute_device_id = 0,
     .fcu_inactive_alpha = 0.25,
     .pie_tap_timeout = 20,
     .pie_initial_timeout = 0,
