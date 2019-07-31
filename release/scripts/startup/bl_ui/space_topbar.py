@@ -157,7 +157,10 @@ class TOPBAR_MT_editor_menus(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
+        if _context.area.show_menus:
+            layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
+        else:
+            layout.menu("TOPBAR_MT_app", text="Blender")
 
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
