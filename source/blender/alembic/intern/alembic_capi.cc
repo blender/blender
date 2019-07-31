@@ -19,7 +19,6 @@
  */
 
 #include "../ABC_alembic.h"
-#include <boost/foreach.hpp>
 
 #include <Alembic/AbcMaterial/IMaterial.h>
 
