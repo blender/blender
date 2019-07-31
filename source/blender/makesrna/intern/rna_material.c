@@ -147,16 +147,8 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
   Material *ma = ptr->id.data;
 
   if (ma->use_nodes && ma->nodetree) {
-    struct bNode *node;
-    int index = 0;
-    for (node = ma->nodetree->nodes.first; node; node = node->next) {
-      if (node->typeinfo->nclass == NODE_CLASS_TEXTURE &&
-          node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
-        if (index++ == ma->paint_active_slot) {
-          break;
-        }
-      }
-    }
+    struct bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
+
     if (node) {
       nodeSetActive(ma->nodetree, node);
     }
