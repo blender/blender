@@ -566,11 +566,10 @@ static std::pair<bool, AbcObjectReader *> visit_object(
 
     /* We can now assign this reader as parent for our children. */
     if (nonclaiming_child_readers.size() + assign_as_parent.size() > 0) {
-      /* TODO: When we only support C++11, use for (a: b) instead. */
-      BOOST_FOREACH (AbcObjectReader *child_reader, nonclaiming_child_readers) {
+      for (AbcObjectReader *child_reader : nonclaiming_child_readers) {
         child_reader->parent_reader = reader;
       }
-      BOOST_FOREACH (AbcObjectReader *child_reader, assign_as_parent) {
+      for (AbcObjectReader *child_reader : assign_as_parent) {
         child_reader->parent_reader = reader;
       }
     }
@@ -581,14 +580,14 @@ static std::pair<bool, AbcObjectReader *> visit_object(
        * our non-claiming children. Since all claiming children share
        * the same XForm, it doesn't really matter which one we pick. */
       AbcObjectReader *claiming_child = claiming_child_readers[0];
-      BOOST_FOREACH (AbcObjectReader *child_reader, nonclaiming_child_readers) {
+      for (AbcObjectReader *child_reader : nonclaiming_child_readers) {
         child_reader->parent_reader = claiming_child;
       }
-      BOOST_FOREACH (AbcObjectReader *child_reader, assign_as_parent) {
+      for (AbcObjectReader *child_reader : assign_as_parent) {
         child_reader->parent_reader = claiming_child;
       }
       /* Claiming children should have our parent set as their parent. */
-      BOOST_FOREACH (AbcObjectReader *child_reader, claiming_child_readers) {
+      for (AbcObjectReader *child_reader : claiming_child_readers) {
         r_assign_as_parent.push_back(child_reader);
       }
     }
@@ -596,13 +595,13 @@ static std::pair<bool, AbcObjectReader *> visit_object(
       /* This object isn't claimed by any child, and didn't produce
        * a reader. Odd situation, could be the top Alembic object, or
        * an unsupported Alembic schema. Delegate to our parent. */
-      BOOST_FOREACH (AbcObjectReader *child_reader, claiming_child_readers) {
+      for (AbcObjectReader *child_reader : claiming_child_readers) {
         r_assign_as_parent.push_back(child_reader);
       }
-      BOOST_FOREACH (AbcObjectReader *child_reader, nonclaiming_child_readers) {
+      for (AbcObjectReader *child_reader : nonclaiming_child_readers) {
         r_assign_as_parent.push_back(child_reader);
       }
-      BOOST_FOREACH (AbcObjectReader *child_reader, assign_as_parent) {
+      for (AbcObjectReader *child_reader : assign_as_parent) {
         r_assign_as_parent.push_back(child_reader);
       }
     }
