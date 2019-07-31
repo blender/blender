@@ -337,7 +337,6 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
      */
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(BPy_GetContext());
     ReportList reports;
     short result = 0;
 
@@ -357,8 +356,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
       NlaStrip *strip = (NlaStrip *)ptr.data;
       FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
-      result = insert_keyframe_direct(
-          depsgraph, &reports, ptr, prop, fcu, cfra, keytype, NULL, options);
+      result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, NULL, options);
     }
     else {
       BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);

@@ -4373,7 +4373,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 
     /* insert a keyframe for this F-Curve */
     done = insert_keyframe_direct(
-        depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
+        reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
 
     if (done) {
       if (adt->action != NULL) {
@@ -4433,7 +4433,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 
     /* insert a keyframe for this F-Curve */
     done = insert_keyframe_direct(
-        depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
+        reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -4460,7 +4460,6 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   PropertyRNA *prop;
   int index;
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -4485,8 +4484,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
     }
 
     /* insert a keyframe for this F-Curve */
-    done = insert_keyframe_direct(
-        depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, flag);
+    done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, flag);
 
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);

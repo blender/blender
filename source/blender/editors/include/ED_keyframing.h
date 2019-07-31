@@ -113,8 +113,7 @@ int insert_vert_fcurve(
  * Use this to insert a keyframe using the current value being keyframed, in the
  * nominated F-Curve (no creation of animation data performed). Returns success.
  */
-bool insert_keyframe_direct(struct Depsgraph *depsgraph,
-                            struct ReportList *reports,
+bool insert_keyframe_direct(struct ReportList *reports,
                             struct PointerRNA ptr,
                             struct PropertyRNA *prop,
                             struct FCurve *fcu,

@@ -721,23 +721,12 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 /* ------------------ RNA Data-Access Functions ------------------ */
 
 /* Try to read value using RNA-properties obtained already */
-static float *setting_get_rna_values(Depsgraph *depsgraph,
-                                     PointerRNA *ptr,
-                                     PropertyRNA *prop,
-                                     const bool get_evaluated,
-                                     float *buffer,
-                                     int buffer_size,
-                                     int *r_count)
+static float *setting_get_rna_values(
+    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
 {
   BLI_assert(buffer_size >= 1);
 
   float *values = buffer;
-  PointerRNA ptr_eval;
-
-  if (get_evaluated) {
-    DEG_get_evaluated_rna_pointer(depsgraph, ptr, &ptr_eval);
-    ptr = &ptr_eval;
-  }
 
   if (RNA_property_array_check(prop)) {
     int length = *r_count = RNA_property_array_length(ptr, prop);
@@ -977,12 +966,8 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
  * In the event that it is not possible to perform visual keying, try to fall-back
  * to using the default method. Assumes that all data it has been passed is valid.
  */
-static float *visualkey_get_values(Depsgraph *depsgraph,
-                                   PointerRNA *ptr,
-                                   PropertyRNA *prop,
-                                   float *buffer,
-                                   int buffer_size,
-                                   int *r_count)
+static float *visualkey_get_values(
+    PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
 {
   BLI_assert(buffer_size >= 4);
 
@@ -999,27 +984,21 @@ static float *visualkey_get_values(Depsgraph *depsgraph,
    */
   if (ptr->type == &RNA_Object) {
     Object *ob = (Object *)ptr->data;
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      copy_v3_v3(buffer, ob_eval->obmat[3]);
+      copy_v3_v3(buffer, ob->obmat[3]);
       *r_count = 3;
       return buffer;
     }
 
-    copy_m4_m4(tmat, ob_eval->obmat);
-    rotmode = ob_eval->rotmode;
+    copy_m4_m4(tmat, ob->obmat);
+    rotmode = ob->rotmode;
   }
   else if (ptr->type == &RNA_PoseBone) {
-    Object *ob = (Object *)ptr->id.data;
     bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
-
-    BKE_armature_mat_pose_to_bone(pchan_eval, pchan_eval->pose_mat, tmat);
-    rotmode = pchan_eval->rotmode;
+    BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, tmat);
+    rotmode = pchan->rotmode;
 
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
@@ -1032,7 +1011,7 @@ static float *visualkey_get_values(Depsgraph *depsgraph,
     }
   }
   else {
-    return setting_get_rna_values(depsgraph, ptr, prop, true, buffer, buffer_size, r_count);
+    return setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
   }
 
   /* Rot/Scale code are common! */
@@ -1066,7 +1045,7 @@ static float *visualkey_get_values(Depsgraph *depsgraph,
   }
 
   /* as the function hasn't returned yet, read value from system in the default way */
-  return setting_get_rna_values(depsgraph, ptr, prop, true, buffer, buffer_size, r_count);
+  return setting_get_rna_values(ptr, prop, buffer, buffer_size, r_count);
 }
 
 /* ------------------------- Insert Key API ------------------------- */
@@ -1075,8 +1054,7 @@ static float *visualkey_get_values(Depsgraph *depsgraph,
  * Retrieve current property values to keyframe,
  * possibly applying NLA correction when necessary.
  */
-static float *get_keyframe_values(Depsgraph *depsgraph,
-                                  ReportList *reports,
+static float *get_keyframe_values(ReportList *reports,
                                   PointerRNA ptr,
                                   PropertyRNA *prop,
                                   int index,
@@ -1094,11 +1072,11 @@ static float *get_keyframe_values(Depsgraph *depsgraph,
      * it works by keyframing using a value extracted from the final matrix
      * instead of using the kt system to extract a value.
      */
-    values = visualkey_get_values(depsgraph, &ptr, prop, buffer, buffer_size, r_count);
+    values = visualkey_get_values(&ptr, prop, buffer, buffer_size, r_count);
   }
   else {
     /* read value from system */
-    values = setting_get_rna_values(depsgraph, &ptr, prop, false, buffer, buffer_size, r_count);
+    values = setting_get_rna_values(&ptr, prop, buffer, buffer_size, r_count);
   }
 
   /* adjust the value for NLA factors */
@@ -1207,8 +1185,7 @@ static bool insert_keyframe_value(ReportList *reports,
  * the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  * and extra keyframe filtering.
  */
-bool insert_keyframe_direct(Depsgraph *depsgraph,
-                            ReportList *reports,
+bool insert_keyframe_direct(ReportList *reports,
                             PointerRNA ptr,
                             PropertyRNA *prop,
                             FCurve *fcu,
@@ -1261,8 +1238,7 @@ bool insert_keyframe_direct(Depsgraph *depsgraph,
   int value_count;
   int index = fcu->array_index;
 
-  float *values = get_keyframe_values(depsgraph,
-                                      reports,
+  float *values = get_keyframe_values(reports,
                                       ptr,
                                       prop,
                                       index,
@@ -1416,8 +1392,7 @@ short insert_keyframe(Main *bmain,
   int value_count;
   bool force_all;
 
-  float *values = get_keyframe_values(depsgraph,
-                                      reports,
+  float *values = get_keyframe_values(reports,
                                       ptr,
                                       prop,
                                       array_index,
@@ -2407,7 +2382,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 
       if (fcu) {
         success = insert_keyframe_direct(
-            depsgraph, op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, 0);
+            op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, 0);
       }
       else {
         BKE_report(op->reports,
@@ -2423,15 +2398,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
       fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
 
       if (fcu && driven) {
-        success = insert_keyframe_direct(depsgraph,
-                                         op->reports,
-                                         ptr,
-                                         prop,
-                                         fcu,
-                                         cfra,
-                                         ts->keyframe_type,
-                                         NULL,
-                                         INSERTKEY_DRIVER);
+        success = insert_keyframe_direct(
+            op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, INSERTKEY_DRIVER);
       }
     }
     else {
@@ -2794,8 +2762,7 @@ bool fcurve_is_changed(PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float fra
 
   float buffer[RNA_MAX_ARRAY_LENGTH];
   int count, index = fcu->array_index;
-  float *values = setting_get_rna_values(
-      NULL, &ptr, prop, false, buffer, RNA_MAX_ARRAY_LENGTH, &count);
+  float *values = setting_get_rna_values(&ptr, prop, buffer, RNA_MAX_ARRAY_LENGTH, &count);
 
   float fcurve_val = calculate_fcurve(&anim_rna, fcu, frame);
   float cur_val = (index >= 0 && index < count) ? values[index] : 0.0f;
