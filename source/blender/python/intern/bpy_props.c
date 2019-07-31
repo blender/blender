@@ -2566,8 +2566,8 @@ PyDoc_STRVAR(BPy_FloatProperty_doc,
              ".. function:: FloatProperty(name=\"\", "
              "description=\"\", "
              "default=0.0, "
-             "min=sys.float_info.min, max=sys.float_info.max, "
-             "soft_min=sys.float_info.min, soft_max=sys.float_info.max, "
+             "min=-3.402823e+38, max=3.402823e+38, "
+             "soft_min=-3.402823e+38, soft_max=3.402823e+38, "
              "step=3, "
              "precision=2, "
              "options={'ANIMATABLE'}, "
@@ -2578,7 +2578,7 @@ PyDoc_STRVAR(BPy_FloatProperty_doc,
              "get=None, "
              "set=None)\n"
              "\n"
-             "   Returns a new float property definition.\n"
+             "   Returns a new float (single precision) property definition.\n"
              "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_NUM_MIN_DOC
              "   :type min: float\n" BPY_PROPDEF_NUM_MAX_DOC
              "   :type max: float\n" BPY_PROPDEF_NUM_SOFTMIN_DOC
