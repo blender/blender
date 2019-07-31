@@ -37,7 +37,7 @@ void ViewEdgeXBuilder::Init(ViewShape *oVShape)
     return;
   }
 
-  // for design conveniance, we store the current SShape.
+  // for design convenience, we store the current SShape.
   _pCurrentSShape = oVShape->sshape();
   if (0 == _pCurrentSShape) {
     return;
@@ -627,12 +627,12 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
     }
 
     if (wxe->GetaVertex() == v) {
-      // That means that the face necesarily lies on the edge left.
+      // That means that the face necessarily lies on the edge left.
       // So the vertex order is OK.
       return OWXEdge(wxe, true);
     }
     else {
-      // That means that the face necesarily lies on the edge left.
+      // That means that the face necessarily lies on the edge left.
       // So the vertex order is OK.
       return OWXEdge(wxe, false);
     }

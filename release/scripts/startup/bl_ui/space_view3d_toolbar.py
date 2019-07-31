@@ -707,7 +707,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         colsub.label(text="UV Layer")
         split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
-        # todo this should be combinded into a single row
+        # todo this should be combined into a single row
         split = col.split(factor=0.5)
         colsub = split.column()
         colsub.alignment = 'RIGHT'
@@ -2062,7 +2062,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
             brush_basic_gpencil_weight_settings(col, context, brush)
 
 
-# Grease Pencil Brush Appeareance (one for each mode)
+# Grease Pencil Brush Appearance (one for each mode)
 class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Display"

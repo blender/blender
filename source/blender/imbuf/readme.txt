@@ -8,7 +8,7 @@ creating an openexr read/writer  use openexr.c
 It should contain functions to match the following prototypes:
 
 struct ImBuf *imb_loadopenexr(unsigned char *mem,int size,int flags);
-/* Use one of the following depending on whats easyer for your file format */
+/* Use one of the following depending on what's easier for your file format */
 short imb_saveopenexr(struct ImBuf *ibuf, FILE myfile, int flags);
 short imb_saveopenexr(struct ImBuf *ibuf, char *myfile, int flags);
 

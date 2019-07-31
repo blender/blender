@@ -5273,7 +5273,7 @@ static void constraint_copy_data_ex(bConstraint *dst,
   }
 }
 
-/** Allocate and duplicate a single constraint, ouside of any object/pose context. */
+/** Allocate and duplicate a single constraint, outside of any object/pose context. */
 bConstraint *BKE_constraint_duplicate_ex(bConstraint *src, const int flag, const bool do_extern)
 {
   bConstraint *dst = MEM_dupallocN(src);

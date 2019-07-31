@@ -177,7 +177,7 @@ font:
 With the new truetype option in Blender, this is used for all font families
 
 When a uiBlock is created, each uiButton that is defined gets the uiBlock properties.
-Changing Block properties in between will affact uiButtons defined thereafter.
+Changing Block properties in between will effect uiButtons defined thereafter.
 
 
 

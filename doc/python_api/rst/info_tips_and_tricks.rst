@@ -239,7 +239,7 @@ Drop Into a Python Interpreter in Your Script
 =============================================
 
 In the middle of a script you may want to inspect some variables,
-run some function and generally dig about to see whats going on.
+run some function and generally dig about to see what's going on.
 
 .. code-block:: python
 

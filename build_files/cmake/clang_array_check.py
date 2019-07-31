@@ -130,7 +130,7 @@ def function_parm_wash_tokens(parm):
                          )
 
     """
-    Return tolens without trailing commands and 'const'
+    Return tokens without trailing commands and 'const'
     """
 
     tokens = [t for t in parm.get_tokens()]

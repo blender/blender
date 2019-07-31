@@ -59,7 +59,7 @@ static void bm_bridge_splice_loops(BMesh *bm,
 
 /* get the 2 loops matching 2 verts.
  * first attempt to get the face corners that use the edge defined by v1 & v2,
- * if that fails just get any loop thats on the vert (the first one) */
+ * if that fails just get any loop that's on the vert (the first one) */
 static void bm_vert_loop_pair(BMesh *bm, BMVert *v1, BMVert *v2, BMLoop **l1, BMLoop **l2)
 {
   BMEdge *e = BM_edge_exists(v1, v2);

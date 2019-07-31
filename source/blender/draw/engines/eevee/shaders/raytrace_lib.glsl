@@ -83,7 +83,7 @@ void prepare_raycast(vec3 ray_origin,
   ss_start.w = project_point(ProjectionMatrix, ray_origin).z;
   ss_end.w = project_point(ProjectionMatrix, ray_end).z;
 
-  /* XXX This is a hack a better method is welcome ! */
+  /* XXX This is a hack. A better method is welcome! */
   /* We take the delta between the offseted depth and the depth and substract it from the ray
    * depth. This will change the world space thickness appearance a bit but we can have negative
    * values without worries. We cannot do this in viewspace because of the perspective division. */

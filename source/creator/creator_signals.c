@@ -311,7 +311,7 @@ void main_signal_setup(void)
 
 void main_signal_setup_background(void)
 {
-  /* for all platforms, even windos has it! */
+  /* for all platforms, even windows has it! */
   BLI_assert(G.background);
 
 #  if !defined(WITH_HEADLESS)

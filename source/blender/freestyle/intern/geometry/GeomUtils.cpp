@@ -488,7 +488,7 @@ bool intersectRayTriangle(const Vec3r &orig,
     }
   }
   else {
-    return false;  // ray is parallell to the plane of the triangle
+    return false;  // ray is parallel to the plane of the triangle
   }
 
   u *= inv_det;

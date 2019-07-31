@@ -1340,7 +1340,7 @@ class I18n:
     def parse_from_py(self, src, langs=set()):
         """
         src must be a valid path, either a py file or a module directory (in which case all py files inside it
-        will be checked, first file macthing will win!).
+        will be checked, first file matching will win!).
         if langs set is void, all languages found are loaded.
         """
         default_context = self.settings.DEFAULT_CONTEXT

@@ -28,7 +28,7 @@
 #undef DUMP_FAILURE
 
 /* define this to generate PNG images with content of search areas
-   on every itteration of tracking */
+   on every iteration of tracking */
 #undef DUMP_ALWAYS
 
 using libmv::FloatImage;

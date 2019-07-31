@@ -3810,7 +3810,7 @@ void BKE_ptcache_remove(void)
     closedir(dir);
   }
   else {
-    rmdir = 0; /* path dosnt exist  */
+    rmdir = 0; /* path doesn't exist  */
   }
 
   if (rmdir) {

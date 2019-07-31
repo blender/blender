@@ -60,7 +60,7 @@ class FastGrid : public Grid {
    */
   virtual void configure(const Vec3r &orig, const Vec3r &size, unsigned nb);
 
-  /*! returns the cell whose coordinates are pased as argument */
+  /*! returns the cell whose coordinates are passed as argument */
   Cell *getCell(const Vec3u &p);
 
   /*! Fills the case p with the cell iCell */

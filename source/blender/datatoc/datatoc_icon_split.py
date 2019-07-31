@@ -268,7 +268,7 @@ def main():
     parser.add_argument(
         "--name_style", dest="name_style", metavar='ENUM', type=str,
         choices=('', 'UI_ICONS'),
-        help="The metod used for naming output data",
+        help="The method used for naming output data",
     )
 
     # Options for dicing up the image

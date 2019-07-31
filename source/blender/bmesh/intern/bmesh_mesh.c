@@ -1345,7 +1345,7 @@ void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
 }
 
 /**
- * Auxillary function only used by rebuild to detect if any spaces were not marked as invalid.
+ * Auxiliary function only used by rebuild to detect if any spaces were not marked as invalid.
  * Reports error if any of the lnor spaces change after rebuilding, meaning that all the possible
  * lnor spaces to be rebuilt were not correctly marked.
  */

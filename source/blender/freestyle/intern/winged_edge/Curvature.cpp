@@ -546,7 +546,7 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
   e1[2] = eig[0] * basis1[2] + eig[1] * basis2[2];
   e1.normalize();
 
-  /* make N,e1,e2 a right handed coordinate sytem */
+  /* make N,e1,e2 a right handed coordinate system */
   e2 = N ^ e1;
   e2.normalize();
 }

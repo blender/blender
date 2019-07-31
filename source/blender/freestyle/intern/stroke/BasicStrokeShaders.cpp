@@ -57,7 +57,7 @@ int ConstantThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // XXX What's the use of i here? And is not the thickness always overridden by the last line of
     // the loop?
     if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(_thickness / 4.0, _thickness / 4.0);
@@ -77,7 +77,7 @@ int ConstantExternThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // XXX What's the use of i here? And is not the thickness always overridden by the last line of
     // the loop?
     if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(_thickness / 2.0, 0);
@@ -156,7 +156,7 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   int i = 0;
   int size = stroke.strokeVerticesSize();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-    // XXX What's the use of i here? And is not the thickness always overriden by the last line of
+    // XXX What's the use of i here? And is not the thickness always overridden by the last line of
     // the loop?
     if ((1 == i) || (size - 2 == i)) {
       v->attribute().setThickness(thickness / 4.0, thickness / 4.0);
@@ -427,7 +427,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
   int newsize = stroke.strokeVerticesSize();
   int nExtraVertex = 0;
   if (newsize < originalSize) {
-    cerr << "Warning: unsufficient resampling" << endl;
+    cerr << "Warning: insufficient resampling" << endl;
   }
   else {
     nExtraVertex = newsize - originalSize;

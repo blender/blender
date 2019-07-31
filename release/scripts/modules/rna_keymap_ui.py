@@ -270,7 +270,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 filter_text_split.remove(kk)
                 kmi_test_dict[kv] = {True}
 
-        # whats left should be the event type
+        # what's left should be the event type
         def kmi_type_set_from_string(kmi_type):
             kmi_type = kmi_type.upper()
             kmi_type_set = set()

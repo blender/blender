@@ -278,7 +278,7 @@ void ED_mesh_mirrtopo_init(Mesh *me,
     }
 
     if ((tot_unique <= tot_unique_prev) && (tot_unique_edges <= tot_unique_edges_prev)) {
-      /* Finish searching for unique values when 1 loop dosn't give a
+      /* Finish searching for unique values when 1 loop doesn't give a
        * higher number of unique values compared to the previous loop. */
       break;
     }

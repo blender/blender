@@ -335,7 +335,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
     MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl);
   }
 
-  /* Thoses passes don't write to depth and are AA'ed using other tricks. */
+  /* These passes don't write to depth and are AA'ed using other tricks. */
   DRW_draw_pass(psl->overlay_edge_pass);
   DRW_draw_pass(psl->overlay_vert_pass);
 }

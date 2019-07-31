@@ -132,7 +132,7 @@ void FEdgeXDetector::preProcessShape(WXShape *iWShape)
 
   vector<WFace *> &wfaces = iWShape->GetFaceList();
   vector<WFace *>::iterator f, fend;
-  // view dependant stuff
+  // view dependent stuff
   for (f = wfaces.begin(), fend = wfaces.end(); f != fend; ++f) {
     preProcessFace((WXFace *)(*f));
   }
@@ -226,7 +226,7 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
       _minK1 = absK1;
     }
   }
-  // view dependant
+  // view dependent
   C = vertex->curvatures();
   if (C == 0) {
     return;

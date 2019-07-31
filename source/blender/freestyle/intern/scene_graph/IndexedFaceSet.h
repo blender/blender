@@ -42,7 +42,7 @@ class IndexedFaceSet : public Rep {
   };
 
   /*! User-specified face and edge marks for feature edge detection */
-  /* XXX Why in hel not use an enum here too? */
+  /* XXX Why in hell not use an enum here too? */
   typedef unsigned char FaceEdgeMark;
   static const FaceEdgeMark FACE_MARK = 1 << 0;
   static const FaceEdgeMark EDGE_MARK_V1V2 = 1 << 1;
@@ -167,8 +167,8 @@ class IndexedFaceSet : public Rep {
     return *this;
   }
 
-  /*! Desctructor
-   *  desallocates all the resources
+  /*! Destructor
+   *  deallocates all the resources
    */
   virtual ~IndexedFaceSet();
 

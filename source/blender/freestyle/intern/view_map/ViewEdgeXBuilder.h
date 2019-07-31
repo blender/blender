@@ -272,11 +272,11 @@ class ViewEdgeXBuilder {
   FEdge *BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe);
 
   // GENERAL //
-  /*! Instanciate a SVertex */
+  /*! Instantiate a SVertex */
   SVertex *MakeSVertex(Vec3r &iPoint);
-  /*! Instanciate a SVertex if it hasn't been already created */
+  /*! Instantiate a SVertex if it hasn't been already created */
   SVertex *MakeSVertex(Vec3r &iPoint, bool shared);
-  /*! instanciate a ViewVertex from a SVertex, if it doesn't exist yet */
+  /*! instantiate a ViewVertex from a SVertex, if it doesn't exist yet */
   ViewVertex *MakeViewVertex(SVertex *iSVertex);
 
   // oldtmp values

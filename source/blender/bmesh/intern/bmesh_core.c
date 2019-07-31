@@ -209,7 +209,7 @@ BMEdge *BM_edge_create(
 
 /**
  * \note In most cases a \a l_example should be NULL,
- * since this is a low level API and we shouldn't attempt to be clever and guess whats intended.
+ * since this is a low level API and we shouldn't attempt to be clever and guess what's intended.
  * In cases where copying adjacent loop-data is useful, see #BM_face_copy_shared.
  */
 static BMLoop *bm_loop_create(BMesh *bm,

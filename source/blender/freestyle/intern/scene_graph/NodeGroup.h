@@ -54,7 +54,7 @@ class NodeGroup : public Node {
   /*! Detaches all the children */
   virtual void DetachChildren();
 
-  /*! Detached the sepcified child */
+  /*! Detached the specified child */
   virtual void DetachChild(Node *iChild);
 
   /*! Retrieve children */

@@ -224,7 +224,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 #endif /* USE_EDGE_CHAIN */
 
     /* Keep walking over connected geometry until we find all the vertices in
-     * `ele_verts[side_other]`, or exit the loop when theres no connection. */
+     * `ele_verts[side_other]`, or exit the loop when there's no connection. */
     found_all = false;
     for (pass = 1; (STACK_SIZE(stack) != 0); pass++) {
       while (STACK_SIZE(stack) != 0) {
@@ -268,7 +268,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
         } while ((e = BM_DISK_EDGE_NEXT(e, v_a)) != v_a->e);
       }
 
-      /* Stop searching once theres none left.
+      /* Stop searching once there's none left.
        * Note that this looks in-efficient, however until the target elements reached,
        * it will exit immediately.
        * After that, it takes as many passes as the element has edges to finish off. */

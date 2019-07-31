@@ -129,7 +129,7 @@ def _kmi_attrs_or_none(level, kmi):
 
 
 def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
-    # Alternate foramt
+    # Alternate format
 
     # Generate a list of keymaps to export:
     #

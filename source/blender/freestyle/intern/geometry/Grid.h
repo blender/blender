@@ -243,7 +243,7 @@ class Grid {
   /*! Fills the case corresponding to coord with the cell */
   virtual void fillCell(const Vec3u &coord, Cell &cell) = 0;
 
-  /*! returns the cell whose coordinates are pased as argument */
+  /*! returns the cell whose coordinates are passed as argument */
   virtual Cell *getCell(const Vec3u &coord) = 0;
 
   /*! returns the cell containing the point passed as argument.

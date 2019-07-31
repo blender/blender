@@ -40,7 +40,7 @@ In most cases you can figure out what context an operator needs
 simply be seeing how it's used in Blender and thinking about what it does.
 
 Unfortunately if you're still stuck - the only way to **really** know
-whats going on is to read the source code for the poll function and see what its checking.
+what's going on is to read the source code for the poll function and see what its checking.
 
 For Python operators it's not so hard to find the source
 since it's included with Blender and the source file/line is included in the operator reference docs.
@@ -125,7 +125,7 @@ While a script executes Blender waits for it to finish and is effectively locked
 while in this state Blender won't redraw or respond to user input.
 Normally this is not such a problem because scripts distributed with Blender
 tend not to run for an extended period of time,
-nevertheless scripts *can* take ages to execute and its nice to see whats going on in the view port.
+nevertheless scripts *can* take ages to execute and its nice to see what's going on in the view port.
 
 Tools that lock Blender in a loop and redraw are highly discouraged
 since they conflict with Blenders ability to run multiple operators

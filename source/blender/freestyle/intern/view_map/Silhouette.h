@@ -168,7 +168,7 @@ class SVertex : public Interface0D {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
@@ -535,7 +535,7 @@ class FEdge : public Interface1D {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 

@@ -81,7 +81,7 @@ class ViewMap {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
@@ -292,7 +292,7 @@ class ViewVertex : public Interface0D {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
@@ -962,7 +962,7 @@ class ViewEdge : public Interface1D {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
@@ -1414,7 +1414,7 @@ class ViewShape {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 

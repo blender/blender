@@ -2566,7 +2566,7 @@ void RE_RenderAnim(Render *re,
     for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
       char name[FILE_MAX];
 
-      /* Here is a feedback loop exists -- render initialization requires updated
+      /* A feedback loop exists here -- render initialization requires updated
        * render layers settings which could be animated, but scene evaluation for
        * the frame happens later because it depends on what layers are visible to
        * render engine.
@@ -2582,8 +2582,8 @@ void RE_RenderAnim(Render *re,
         AnimData *adt = BKE_animdata_from_id(&scene->id);
         /* TODO(sergey): Currently depsgraph is only used to check whether it is an active
          * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
-         * but we also dont' deal with unkeyed changes. But still nice to get proper depsgraph
-         * within tjhe render pipeline, somehow.
+         * but we also don't deal with unkeyed changes. But still nice to get proper depsgraph
+         * within the render pipeline, somehow.
          */
         BKE_animsys_evaluate_animdata(NULL, scene, &scene->id, adt, ctime, ADT_RECALC_ALL);
       }

@@ -132,7 +132,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* we don't have valid edge layouts, retur */
+  /* we don't have valid edge layouts, return */
   if (!ok) {
     return;
   }

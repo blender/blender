@@ -205,7 +205,7 @@ class CurvePoint : public Interface0D {
   Vec3r _Point3d;
 
  public:
-  /*! Defult Constructor. */
+  /*! Default Constructor. */
   CurvePoint();
 
   /*! Builds a CurvePoint from two SVertex and an interpolation parameter.

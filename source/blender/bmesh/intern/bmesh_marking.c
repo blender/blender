@@ -884,8 +884,8 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
       sub_v3_v3v3(r_plane, vec, eve->co);
     }
     else {
-      /* make a fake  plane thats at rightangles to the normal
-       * we cant make a crossvec from a vec thats the same as the vec
+      /* make a fake plane thats at rightangles to the normal
+       * we can't make a crossvec from a vec that's the same as the vec
        * unlikely but possible, so make sure if the normal is (0, 0, 1)
        * that vec isn't the same or in the same direction even. */
       if (eve->no[0] < 0.5f) {

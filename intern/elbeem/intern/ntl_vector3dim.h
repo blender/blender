@@ -14,7 +14,7 @@
 
 // this serves as the main include file
 // for all kinds of stuff that might be required
-// under windos there seem to be strange 
+// under windows there seem to be strange
 // errors when including the STL header too
 // late...
 
@@ -87,7 +87,7 @@ using std::string;
 #endif // WIN32
 #endif // __APPLE_CC__
 
-// windos, hardcoded limits for now...
+// windows, hardcoded limits for now...
 // for e.g. MSVC compiler...
 // some of these defines can be needed
 // for linux systems as well (e.g. FLT_MAX)

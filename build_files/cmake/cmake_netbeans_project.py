@@ -238,7 +238,7 @@ def create_nb_project_main():
 
         f.write('        </makeTool>\n')
         f.write('      </makefileType>\n')
-        # finishe makefle info
+        # finished makefile info
 
         f.write('    \n')
 

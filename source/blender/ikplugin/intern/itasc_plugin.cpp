@@ -303,7 +303,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
   /* create a target */
   target = (PoseTarget *)MEM_callocN(sizeof(PoseTarget), "posetarget");
   target->con = con;
-  // by contruction there can be only one tree per channel
+  // by construction there can be only one tree per channel
   // and each channel can be part of at most one tree.
   tree = (PoseTree *)pchan_root->iktree.first;
 

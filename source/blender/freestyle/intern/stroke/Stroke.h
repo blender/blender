@@ -653,7 +653,7 @@ class Stroke : public Interface1D {
     return _textureId;
   }
 
-  /*! Returns the spacing of texture coordinates along the stroke lenght */
+  /*! Returns the spacing of texture coordinates along the stroke length */
   inline float getTextureStep()
   {
     return _textureStep;

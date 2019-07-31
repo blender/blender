@@ -698,7 +698,7 @@ static void bm_edge_collapse_loop_customdata(
   const bool is_manifold = BM_edge_is_manifold(l->e);
   int side;
 
-  /* first find the loop of 'v_other' thats attached to the face of 'l' */
+  /* first find the loop of 'v_other' that's attached to the face of 'l' */
   if (l->v == v_clear) {
     l_clear = l;
     l_other = l->next;
@@ -882,7 +882,7 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
     bm_edge_tag_enable(e_iter);
   } while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v1)) != e_first);
 
-  /* ... except for the edge we will collapse, we know thats shared,
+  /* ... except for the edge we will collapse, we know that's shared,
    * disable this to avoid false positive. We could be smart and never enable these
    * face/edge tags in the first place but easier to do this */
   // bm_edge_tag_disable(e_first);

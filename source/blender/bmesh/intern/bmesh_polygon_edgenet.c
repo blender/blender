@@ -765,7 +765,7 @@ struct EdgeGroupIsland {
 
   /* Set the following vars once we have >1 groups */
 
-  /* when when an edge in a previous group connects to this one,
+  /* when an edge in a previous group connects to this one,
    * so theres no need to create one pointing back. */
   uint has_prev_edge : 1;
 
@@ -1481,7 +1481,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
           if (!BM_elem_flag_test(v_iter, VERT_IN_ARRAY)) {
             BM_elem_flag_enable(v_iter, VERT_IN_ARRAY);
 
-            /* not nice, but alternatives arent much better :S */
+            /* not nice, but alternatives aren't much better :S */
             {
               copy_v3_v3(vert_coords_backup[v_index], v_iter->co);
 

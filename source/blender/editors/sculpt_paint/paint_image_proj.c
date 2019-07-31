@@ -1771,7 +1771,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
     }
     else if (angle_cos < ps->normal_angle_inner__cos) {
       mask *= (ps->normal_angle - acosf(angle_cos)) / ps->normal_angle_range;
-    } /* otherwise no mask normal is needed, were within the limit */
+    } /* otherwise no mask normal is needed, we're within the limit */
   }
 
   /* This only works when the opacity doesn't change while painting, stylus pressure messes with
@@ -3159,7 +3159,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
           //#endif
         }
 
-#if 0 /* TODO - investigate why this dosnt work sometimes! it should! */
+#if 0 /* TODO - investigate why this doesn't work sometimes! it should! */
         /* no intersection for this entire row,
          * after some intersection above means we can quit now */
         if (has_x_isect == 0 && has_isect) {
@@ -3395,12 +3395,12 @@ static void project_paint_face_init(const ProjPaintState *ps,
                   }
                   else if (has_x_isect) {
                     /* assuming the face is not a bow-tie - we know
-                     * we cant intersect again on the X */
+                     * we can't intersect again on the X */
                     break;
                   }
                 }
 
-#  if 0 /* TODO - investigate why this dosnt work sometimes! it should! */
+#  if 0 /* TODO - investigate why this doesn't work sometimes! it should! */
                 /* no intersection for this entire row,
                  * after some intersection above means we can quit now */
                 if (has_x_isect == 0 && has_isect) {
@@ -4388,7 +4388,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
         image_index = BLI_linklist_index(image_LinkList.list, tpage);
 
         if (image_index == -1 && BKE_image_has_ibuf(tpage, NULL)) {
-          /* MemArena dosnt have an append func */
+          /* MemArena doesn't have an append func */
           BLI_linklist_append(&image_LinkList, tpage);
           image_index = ps->image_tot;
           ps->image_tot++;

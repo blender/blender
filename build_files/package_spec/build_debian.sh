@@ -1,7 +1,7 @@
 #!/bin/sh
 # Builds a debian package from SVN source.
 #
-# For paralelle builds use:
+# For parallel builds use:
 #  DEB_BUILD_OPTIONS="parallel=5" sh build_files/package_spec/build_debian.sh
 
 # this needs to run in the root dir.

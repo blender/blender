@@ -1545,7 +1545,7 @@ static BMOpDefine bmo_split_edges_def = {
   "split_edges",
   /* slots_in */
   {{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
-   /* needed for vertex rip so we can rip only half an edge at a boundary wich would otherwise split off */
+   /* needed for vertex rip so we can rip only half an edge at a boundary which would otherwise split off */
    {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* optional tag verts, use to have greater control of splits */
    {"use_verts",        BMO_OP_SLOT_BOOL}, /* use 'verts' for splitting, else just find verts to split from edges */
    {{'\0'}},

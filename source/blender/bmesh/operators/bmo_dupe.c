@@ -449,7 +449,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* connect outputs of dupe to delete, exluding keep geometry */
+  /* connect outputs of dupe to delete, excluding keep geometry */
   BMO_mesh_delete_oflag_context(bm, SPLIT_INPUT, DEL_FACES);
 
   /* now we make our outputs by copying the dupe output */

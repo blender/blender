@@ -4645,7 +4645,7 @@ void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
         BKE_sequence_tx_set_final_left(seq, seq_tx_get_end(seq) - 1);
       }
 
-      /* dosnt work now - TODO */
+      /* doesn't work now - TODO */
 #if 0
       if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
         int ofs;

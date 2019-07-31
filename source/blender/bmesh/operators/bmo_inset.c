@@ -549,7 +549,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
   SplitEdgeInfo *es;
 
   /* Interpolation Vars */
-  /* an array alligned with faces but only fill items which are used. */
+  /* an array aligned with faces but only fill items which are used. */
   InterpFace **iface_array = NULL;
   int iface_array_len;
   MemArena *interp_arena = NULL;

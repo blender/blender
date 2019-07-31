@@ -252,7 +252,7 @@ static void pe_update_hair_particle_edit_pointers(PTCacheEdit *edit)
 
 /* always gets at least the first particlesystem even if PSYS_CURRENT flag is not set
  *
- * note: this function runs on poll, therefor it can runs many times a second
+ * note: this function runs on poll, therefore it can runs many times a second
  * keep it fast! */
 static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob, int create)
 {

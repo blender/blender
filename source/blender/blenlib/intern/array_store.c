@@ -82,7 +82,7 @@
  * matching chunks from this state are re-used in the new state.
  *
  * First matches at either end of the array are detected.
- * For identical arrays this is all thats needed.
+ * For identical arrays this is all that's needed.
  *
  * De-duplication is performed on any remaining chunks, by hashing the first few bytes of the chunk
  * (see: BCHUNK_HASH_TABLE_ACCUMULATE_STEPS).
@@ -301,7 +301,7 @@ typedef struct BChunkRef {
  * used for lookups.
  *
  * Point to the #BChunkRef, not the #BChunk,
- * to allow talking down the chunks in-order until a mis-match is found,
+ * to allow talking down the chunks in-order until a mismatch is found,
  * this avoids having to do so many table lookups.
  */
 typedef struct BTableRef {

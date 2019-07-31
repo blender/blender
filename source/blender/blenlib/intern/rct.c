@@ -285,12 +285,12 @@ bool BLI_rcti_isect_segment(const rcti *rect, const int s1[2], const int s2[2])
     return false;
   }
 
-  /* if either points intersect then we definetly intersect */
+  /* if either points intersect then we definitely intersect */
   if (BLI_rcti_isect_pt_v(rect, s1) || BLI_rcti_isect_pt_v(rect, s2)) {
     return true;
   }
   else {
-    /* both points are outside but may insersect the rect */
+    /* both points are outside but may intersect the rect */
     int tvec1[2];
     int tvec2[2];
     /* diagonal: [/] */
@@ -332,12 +332,12 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
     return false;
   }
 
-  /* if either points intersect then we definetly intersect */
+  /* if either points intersect then we definitely intersect */
   if (BLI_rctf_isect_pt_v(rect, s1) || BLI_rctf_isect_pt_v(rect, s2)) {
     return true;
   }
   else {
-    /* both points are outside but may insersect the rect */
+    /* both points are outside but may intersect the rect */
     float tvec1[2];
     float tvec2[2];
     /* diagonal: [/] */

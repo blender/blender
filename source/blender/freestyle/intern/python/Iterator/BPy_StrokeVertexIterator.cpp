@@ -254,7 +254,7 @@ static PyObject *StrokeVertexIterator_u_get(BPy_StrokeVertexIterator *self, void
 }
 
 PyDoc_STRVAR(StrokeVertexIterator_at_last_doc,
-             "True if the interator points to the last valid element.\n"
+             "True if the iterator points to the last valid element.\n"
              "For its counterpart (pointing to the first valid element), use it.is_begin.\n"
              "\n"
              ":type: bool");

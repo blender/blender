@@ -805,7 +805,7 @@ static void *bmw_IslandWalker_step_ex(BMWalker *walker, bool only_manifold)
         continue;
       }
 
-      /* saves checking BLI_gset_haskey below (manifold edges theres a 50% chance) */
+      /* saves checking BLI_gset_haskey below (manifold edges there's a 50% chance) */
       if (f == iwalk->cur) {
         continue;
       }

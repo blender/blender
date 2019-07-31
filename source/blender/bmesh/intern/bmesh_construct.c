@@ -487,7 +487,7 @@ static void bm_vert_attrs_copy(BMesh *source_mesh,
                                uint64_t cd_mask)
 {
   if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
-    BLI_assert(!"BMVert: source and targer match");
+    BLI_assert(!"BMVert: source and target match");
     return;
   }
   if ((cd_mask & CD_MASK_NORMAL) == 0) {
@@ -507,7 +507,7 @@ static void bm_edge_attrs_copy(BMesh *source_mesh,
                                uint64_t UNUSED(cd_mask))
 {
   if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
-    BLI_assert(!"BMEdge: source and targer match");
+    BLI_assert(!"BMEdge: source and target match");
     return;
   }
   CustomData_bmesh_free_block_data(&target_mesh->edata, target_edge->head.data);
@@ -522,7 +522,7 @@ static void bm_loop_attrs_copy(BMesh *source_mesh,
                                uint64_t UNUSED(cd_mask))
 {
   if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
-    BLI_assert(!"BMLoop: source and targer match");
+    BLI_assert(!"BMLoop: source and target match");
     return;
   }
   CustomData_bmesh_free_block_data(&target_mesh->ldata, target_loop->head.data);
@@ -537,7 +537,7 @@ static void bm_face_attrs_copy(BMesh *source_mesh,
                                uint64_t cd_mask)
 {
   if ((source_mesh == target_mesh) && (source_face == target_face)) {
-    BLI_assert(!"BMFace: source and targer match");
+    BLI_assert(!"BMFace: source and target match");
     return;
   }
   if ((cd_mask & CD_MASK_NORMAL) == 0) {

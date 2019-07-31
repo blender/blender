@@ -30,7 +30,7 @@ namespace Freestyle {
 namespace CurveInternal {
 
 /*! iterator on a curve. Allows an iterating outside
- *  initial vertices. A CurvePoint is instanciated an returned
+ *  initial vertices. A CurvePoint is instantiated an returned
  *  when the iterator is dereferenced.
  */
 

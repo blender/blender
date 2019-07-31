@@ -1,8 +1,8 @@
 /**
  * Library to create hairs dynamically from control points.
  * This is less bandwidth intensive than fetching the vertex attributes
- * but does more ALU work per vertex. This also reduce the number
- * of data the CPU has to precompute and transfert for each update.
+ * but does more ALU work per vertex. This also reduces the amount
+ * of data the CPU has to precompute and transfer for each update.
  */
 
 /**

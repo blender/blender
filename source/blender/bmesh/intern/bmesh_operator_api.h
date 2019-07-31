@@ -100,7 +100,7 @@ BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
   _bmo_elem_flag_toggle( \
       bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 
-/* take care not to instansiate args multiple times */
+/* take care not to instantiate args multiple times */
 #ifdef __GNUC___
 #  define _BMO_CAST_V_CONST(e) \
     ({ \

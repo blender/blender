@@ -30,7 +30,7 @@
 
 namespace Freestyle {
 
-// use for iterators defintions
+// use for iterators definitions
 template<class Element> class Nonconst_traits;
 
 template<class Element> class Const_traits {

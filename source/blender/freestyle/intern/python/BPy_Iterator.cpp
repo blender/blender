@@ -197,7 +197,7 @@ static PyObject *Iterator_name_get(BPy_Iterator *self, void *UNUSED(closure))
 }
 
 PyDoc_STRVAR(Iterator_is_begin_doc,
-             "True if the interator points the first element.\n"
+             "True if the iterator points to the first element.\n"
              "\n"
              ":type: bool");
 
@@ -207,7 +207,7 @@ static PyObject *Iterator_is_begin_get(BPy_Iterator *self, void *UNUSED(closure)
 }
 
 PyDoc_STRVAR(Iterator_is_end_doc,
-             "True if the interator points the last element.\n"
+             "True if the iterator points to the last element.\n"
              "\n"
              ":type: bool");
 

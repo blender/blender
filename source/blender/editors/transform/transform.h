@@ -102,7 +102,7 @@ typedef struct TransSnap {
    * Get the transform distance between two points (used by Closest snap)
    *
    * \note Return value can be anything,
-   * where the smallest absolute value defines whats closest.
+   * where the smallest absolute value defines what's closest.
    */
   float (*distance)(struct TransInfo *t, const float p1[3], const float p2[3]);
 

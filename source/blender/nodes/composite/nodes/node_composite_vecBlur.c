@@ -39,7 +39,7 @@ static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
   nbd->fac = 1.0f;
 }
 
-/* custom1: itterations, custom2: maxspeed (0 = nolimit) */
+/* custom1: iterations, custom2: maxspeed (0 = nolimit) */
 void register_node_type_cmp_vecblur(void)
 {
   static bNodeType ntype;

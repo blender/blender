@@ -376,7 +376,7 @@ static void library_foreach_ID_link(Main *bmain,
   int i;
 
   if (flag & IDWALK_RECURSE) {
-    /* For now, recusion implies read-only. */
+	/* For now, recursion implies read-only. */
     flag |= IDWALK_READONLY;
 
     data.ids_handled = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);

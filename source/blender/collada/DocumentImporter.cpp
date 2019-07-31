@@ -917,7 +917,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double yfov = camera->getYFov().getValue();
           double aspect = camera->getAspectRatio().getValue();
 
-          /* NOTE: Needs more testing (As we curretnly have no official test data for this) */
+          /* NOTE: Needs more testing (As we currently have no official test data for this) */
 
           double xfov = 2.0f * atanf(aspect * tanf(DEG2RADF(yfov) * 0.5f));
           cam->lens = fov_to_focallength(xfov, cam->sensor_x);

@@ -474,7 +474,7 @@ template<class T> class HVec3 : public Vec<T, 4> {
     return this->_coord[3];
   }
 
-  // Acces to non-homogeneous coordinates in 3D
+  // Access to non-homogeneous coordinates in 3D
   inline value_type x() const
   {
     return this->_coord[0] / this->_coord[3];

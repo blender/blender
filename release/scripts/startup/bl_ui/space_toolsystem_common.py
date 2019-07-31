@@ -84,7 +84,7 @@ ToolDef = namedtuple(
         # so internally we can swap the keymap function for the keymap it's self.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
-        # Optional data-block assosiated with this tool.
+        # Optional data-block associated with this tool.
         # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
         "data_block",
         # Optional primary operator (for introspection only).
@@ -434,7 +434,7 @@ class ToolSelectPanelHelper:
     # -------------------------------------------------------------------------
     # Layout Generators
     #
-    # Meaning of recieved values:
+    # Meaning of received values:
     # - Bool: True for a separator, otherwise False for regular tools.
     # - None: Signal to finish (complete any final operations, e.g. add padding).
 

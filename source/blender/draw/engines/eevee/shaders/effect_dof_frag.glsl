@@ -121,7 +121,7 @@ void main(void)
   /* Circle Dof */
   float dist = length(particlecoord);
 
-  /* Ouside of bokeh shape */
+  /* Outside of bokeh shape */
   if (dist > 1.0) {
     discard;
   }
@@ -141,7 +141,7 @@ void main(void)
      * Giving us the new linear radius to the shape edge. */
     dist /= r;
 
-    /* Ouside of bokeh shape */
+    /* Outside of bokeh shape */
     if (dist > 1.0) {
       discard;
     }

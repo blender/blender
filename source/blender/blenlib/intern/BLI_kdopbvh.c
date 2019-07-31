@@ -561,7 +561,7 @@ static void bvhtree_verify(BVHTree *tree)
 
 /* Helper data and structures to build a min-leaf generalized implicit tree
  * This code can be easily reduced
- * (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that) */
+ * (basically this is only method to calculate pow(k, n) in O(1).. and stuff like that) */
 typedef struct BVHBuildHelper {
   int tree_type;
   int totleafs;
@@ -626,7 +626,7 @@ static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, con
  *
  * An implicit tree is a tree where its structure is implied,
  * thus there is no need to store child pointers or indexes.
- * Its possible to find the position of the child or the parent with simple maths
+ * It's possible to find the position of the child or the parent with simple maths
  * (multiplication and addition).
  * This type of tree is for example used on heaps..
  * where node N has its child at indices N*2 and N*2+1.

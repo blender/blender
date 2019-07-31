@@ -751,7 +751,7 @@ float AnimationImporter::convert_to_focal_length(float in_xfov,
                                                  float aspect,
                                                  float sensorx)
 {
-  /* NOTE: Needs more testing (As we curretnly have no official test data for this) */
+  /* NOTE: Needs more testing (As we currently have no official test data for this) */
   float xfov = (fov_type == CAMERA_YFOV) ?
                    (2.0f * atanf(aspect * tanf(DEG2RADF(in_xfov) * 0.5f))) :
                    DEG2RADF(in_xfov);

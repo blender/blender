@@ -39,7 +39,7 @@ namespace Freestyle {
 
 class GaussianFilter {
  protected:
-  /* The mask is a symetrical 2d array (with respect to the middle point).
+  /* The mask is a symmetrical 2d array (with respect to the middle point).
    * Thus, M(i,j) = M(-i,j) = M(i,-j) = M(-i,-j).
    * For this reason, to represent a NxN array (N odd), we only store a ((N+1)/2)x((N+1)/2) array.
    */
