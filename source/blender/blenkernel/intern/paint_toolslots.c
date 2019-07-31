@@ -67,11 +67,16 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain)
   for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
     ToolSettings *ts = scene->toolsettings;
     paint_toolslots_init(bmain, &ts->imapaint.paint);
-    paint_toolslots_init(bmain, &ts->sculpt->paint);
-    paint_toolslots_init(bmain, &ts->vpaint->paint);
-    paint_toolslots_init(bmain, &ts->wpaint->paint);
-    paint_toolslots_init(bmain, &ts->uvsculpt->paint);
-    paint_toolslots_init(bmain, &ts->gp_paint->paint);
+    if (ts->sculpt)
+      paint_toolslots_init(bmain, &ts->sculpt->paint);
+    if (ts->vpaint)
+      paint_toolslots_init(bmain, &ts->vpaint->paint);
+    if (ts->wpaint)
+      paint_toolslots_init(bmain, &ts->wpaint->paint);
+    if (ts->uvsculpt)
+      paint_toolslots_init(bmain, &ts->uvsculpt->paint);
+    if (ts->gp_paint)
+      paint_toolslots_init(bmain, &ts->gp_paint->paint);
   }
 }
 

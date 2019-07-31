@@ -325,25 +325,31 @@ void deg_graph_id_tag_legacy_compat(
        * tagging here. */
       case ID_ME: {
         Mesh *mesh = (Mesh *)id;
-        ID *key_id = &mesh->key->id;
-        if (key_id != NULL) {
-          graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+        if (mesh->key != NULL) {
+          ID *key_id = &mesh->key->id;
+          if (key_id != NULL) {
+            graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+          }
         }
         break;
       }
       case ID_LT: {
         Lattice *lattice = (Lattice *)id;
-        ID *key_id = &lattice->key->id;
-        if (key_id != NULL) {
-          graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+        if (lattice->key != NULL) {
+          ID *key_id = &lattice->key->id;
+          if (key_id != NULL) {
+            graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+          }
         }
         break;
       }
       case ID_CU: {
         Curve *curve = (Curve *)id;
-        ID *key_id = &curve->key->id;
-        if (key_id != NULL) {
-          graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+        if (curve->key != NULL) {
+          ID *key_id = &curve->key->id;
+          if (key_id != NULL) {
+            graph_id_tag_update(bmain, depsgraph, key_id, 0, update_source);
+          }
         }
         break;
       }

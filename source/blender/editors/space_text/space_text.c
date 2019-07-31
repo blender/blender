@@ -254,7 +254,8 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
     return 1;
   }
   else if (CTX_data_equals(member, "edit_text")) {
-    CTX_data_id_pointer_set(result, &st->text->id);
+    if (st->text)
+      CTX_data_id_pointer_set(result, &st->text->id);
     return 1;
   }
 
