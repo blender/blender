@@ -470,7 +470,7 @@ static void draw_marker_line_if_necessary(TimeMarker *marker, int flag, int xpos
 }
 
 static void draw_marker(
-    const uiFontStyle *fstyle, TimeMarker *marker, int xpos, int flag, int region_height)
+    const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int xpos, int flag, int region_height)
 {
   GPU_blend(true);
   GPU_blend_set_func_separate(
@@ -484,7 +484,9 @@ static void draw_marker(
   GPU_blend(false);
 
   float name_y = UI_DPI_FAC * 18;
-  if (marker->flag & SELECT) {
+  /* Give an offset to the marker name when selected,
+   * or when near the current frame (5 frames range, starting from the current one). */
+  if ((marker->flag & SELECT) || (IN_RANGE_INCL(marker->frame, cfra, cfra - 4))) {
     name_y += UI_DPI_FAC * 10;
   }
   draw_marker_name(fstyle, marker, xpos, name_y);
@@ -547,6 +549,7 @@ void ED_markers_draw(const bContext *C, int flag)
 
   ARegion *ar = CTX_wm_region(C);
   View2D *v2d = UI_view2d_fromcontext(C);
+  int cfra = CTX_data_scene(C)->r.cfra;
 
   rctf markers_region_rect;
   get_marker_region_rect(v2d, &markers_region_rect);
@@ -564,17 +567,18 @@ void ED_markers_draw(const bContext *C, int flag)
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
+  /* Separate loops in order to draw selected markers on top */
   for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
     if ((marker->flag & SELECT) == 0) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, marker->frame * xscale, flag, ar->winy);
+        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, ar->winy);
       }
     }
   }
   for (TimeMarker *marker = markers->first; marker; marker = marker->next) {
     if (marker->flag & SELECT) {
       if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, marker->frame * xscale, flag, ar->winy);
+        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, ar->winy);
       }
     }
   }
