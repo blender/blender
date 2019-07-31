@@ -852,7 +852,8 @@ if(WITH_X11)
     if(X11_Xinput_LIB)
       list(APPEND PLATFORM_LINKLIBS ${X11_Xinput_LIB})
     else()
-      set(WITH_X11_XINPUT OFF)
+      message(FATAL_ERROR "LibXi not found. Disable WITH_X11_XINPUT if you
+      want to build without tablet support")
     endif()
   endif()
 
@@ -863,7 +864,8 @@ if(WITH_X11)
     if(X11_Xxf86vmode_LIB)
       list(APPEND PLATFORM_LINKLIBS ${X11_Xxf86vmode_LIB})
     else()
-      set(WITH_X11_XF86VMODE OFF)
+      message(FATAL_ERROR "libXxf86vm not found. Disable WITH_X11_XF86VMODE if you
+      want to build without")
     endif()
   endif()
 
@@ -871,7 +873,8 @@ if(WITH_X11)
     if(X11_Xfixes_LIB)
       list(APPEND PLATFORM_LINKLIBS ${X11_Xfixes_LIB})
     else()
-      set(WITH_X11_XFIXES OFF)
+      message(FATAL_ERROR "libXfixes not found. Disable WITH_X11_XFIXES if you
+      want to build without")
     endif()
   endif()
 
@@ -881,7 +884,8 @@ if(WITH_X11)
     if(X11_Xrender_LIB)
       list(APPEND PLATFORM_LINKLIBS ${X11_Xrender_LIB})
     else()
-      set(WITH_X11_ALPHA OFF)
+      message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
+      want to build without")
     endif()
   endif()
 
