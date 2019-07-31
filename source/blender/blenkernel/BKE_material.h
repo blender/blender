@@ -90,6 +90,7 @@ void assign_matarar(struct Main *bmain, struct Object *ob, struct Material ***ma
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
 bool BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
+bool BKE_object_material_slot_used(struct ID *id, short actcol);
 
 struct MaterialGPencilStyle *BKE_material_gpencil_settings_get(struct Object *ob, short act);
 

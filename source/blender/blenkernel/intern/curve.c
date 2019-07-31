@@ -5313,6 +5313,32 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
   }
 }
 
+bool BKE_curve_material_index_used(Curve *cu, int index)
+{
+  const int curvetype = BKE_curve_type_get(cu);
+
+  if (curvetype == OB_FONT) {
+    struct CharInfo *info = cu->strinfo;
+    int i;
+    for (i = cu->len_wchar - 1; i >= 0; i--, info++) {
+      if (info->mat_nr == index) {
+        return true;
+      }
+    }
+  }
+  else {
+    Nurb *nu;
+
+    for (nu = cu->nurb.first; nu; nu = nu->next) {
+      if (nu->mat_nr == index) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 void BKE_curve_material_index_clear(Curve *cu)
 {
   const int curvetype = BKE_curve_type_get(cu);

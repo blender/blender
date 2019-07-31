@@ -1206,6 +1206,27 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
   }
 }
 
+bool BKE_mesh_material_index_used(Mesh *me, short index)
+{
+  MPoly *mp;
+  MFace *mf;
+  int i;
+
+  for (mp = me->mpoly, i = 0; i < me->totpoly; i++, mp++) {
+    if (mp->mat_nr == index) {
+      return true;
+    }
+  }
+
+  for (mf = me->mface, i = 0; i < me->totface; i++, mf++) {
+    if (mf->mat_nr == index) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void BKE_mesh_material_index_clear(Mesh *me)
 {
   MPoly *mp;

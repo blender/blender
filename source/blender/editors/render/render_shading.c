@@ -549,6 +549,73 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
                "Direction to move the active material towards");
 }
 
+static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  if (!ob) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Removing material slots in edit mode screws things up, see bug #21822.*/
+  if (ob == CTX_data_edit_object(C)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
+    return OPERATOR_CANCELLED;
+  }
+
+  int actcol = ob->actcol;
+
+  int removed = 0;
+  for (int slot = 1; slot <= ob->totcol; slot++) {
+    while (slot <= ob->totcol && !BKE_object_material_slot_used(ob->data, slot)) {
+      ob->actcol = slot;
+      BKE_object_material_slot_remove(CTX_data_main(C), ob);
+
+      if (actcol >= slot) {
+        actcol--;
+      }
+
+      removed++;
+    }
+  }
+
+  ob->actcol = actcol;
+
+  if (!removed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, "Removed %d slots", removed);
+
+  if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+    Scene *scene = CTX_data_scene(C);
+    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
+  WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Unused Slots";
+  ot->idname = "OBJECT_OT_material_slot_remove_unused";
+  ot->description = "Remove unused material slots";
+
+  /* api callbacks */
+  ot->exec = material_slot_remove_unused_exec;
+  ot->poll = ED_operator_object_active_editable;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /********************** new material operator *********************/
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))

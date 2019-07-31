@@ -42,6 +42,7 @@ void ED_operatortypes_render(void)
   WM_operatortype_append(OBJECT_OT_material_slot_deselect);
   WM_operatortype_append(OBJECT_OT_material_slot_copy);
   WM_operatortype_append(OBJECT_OT_material_slot_move);
+  WM_operatortype_append(OBJECT_OT_material_slot_remove_unused);
 
   WM_operatortype_append(MATERIAL_OT_new);
   WM_operatortype_append(TEXTURE_OT_new);

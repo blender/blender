@@ -1662,6 +1662,22 @@ void BKE_gpencil_material_index_reassign(bGPdata *gpd, int totcol, int index)
   }
 }
 
+/* remove strokes using a material */
+bool BKE_gpencil_material_index_used(bGPdata *gpd, int index)
+{
+  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+    for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+      for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+        if (gps->mat_nr == index) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 void BKE_gpencil_material_remap(struct bGPdata *gpd,
                                 const unsigned int *remap,
                                 unsigned int remap_len)

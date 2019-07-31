@@ -182,6 +182,7 @@ void BKE_mesh_to_curve(struct Main *bmain,
                        struct Scene *scene,
                        struct Object *ob);
 void BKE_mesh_material_index_remove(struct Mesh *me, short index);
+bool BKE_mesh_material_index_used(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
