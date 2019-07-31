@@ -5230,6 +5230,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {AV_CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
       {AV_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
       {AV_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
+      {AV_CODEC_ID_OPUS, "OPUS", 0, "Opus", ""},
       {AV_CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
       {AV_CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
       {0, NULL, 0, NULL, NULL},
