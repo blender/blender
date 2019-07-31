@@ -10113,31 +10113,18 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 
   if (but) {
     bScreen *screen = CTX_wm_screen(C);
-    ARegion *ar_temp;
     uiBut *but_other;
     uiHandleButtonData *data;
-    bool is_inside_menu = false;
-
-    /* look for a popup menu containing the mouse */
-    for (ar_temp = screen->regionbase.first; ar_temp; ar_temp = ar_temp->next) {
-      rcti winrct;
-
-      ui_region_winrct_get_no_margin(ar_temp, &winrct);
-
-      if (BLI_rcti_isect_pt_v(&winrct, &event->x) || ui_region_find_active_but(ar_temp)) {
-        BLI_assert(ar_temp->type->regionid == RGN_TYPE_TEMPORARY);
-
-        is_inside_menu = true;
-        break;
-      }
-    }
 
     /* handle activated button events */
     data = but->active;
 
     if ((data->state == BUTTON_STATE_MENU_OPEN) &&
+        /* Make sure this popup isn't dragging a button.
+         * can happen with popovers (see T67882). */
+        (ui_region_find_active_but(data->menu->region) == NULL) &&
         /* make sure mouse isn't inside another menu (see T43247) */
-        (is_inside_menu == false) &&
+        (ui_screen_region_find_mouse_over(screen, event) == NULL) &&
         (ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
         (but_other = ui_but_find_mouse_over(ar, event)) && (but != but_other) &&
         (ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU))) {
