@@ -30,6 +30,7 @@
 #include <cmath>
 
 #include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
@@ -355,7 +356,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
   }
   if (graph->need_update_time) {
     const Scene *scene_orig = graph->scene;
-    const float ctime = scene_orig->r.cfra + scene_orig->r.subframe;
+    const float ctime = BKE_scene_frame_get(scene_orig);
     DEG::TimeSourceNode *time_source = graph->find_time_source();
     graph->ctime = ctime;
     time_source->tag_update(graph, DEG::DEG_UPDATE_SOURCE_TIME);
