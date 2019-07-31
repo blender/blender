@@ -10112,6 +10112,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
   but = ui_region_find_active_but(ar);
 
   if (but) {
+    bScreen *screen = CTX_wm_screen(C);
     uiBut *but_other;
     uiHandleButtonData *data;
 
@@ -10122,6 +10123,8 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
         /* Make sure this popup isn't dragging a button.
          * can happen with popovers (see T67882). */
         (ui_region_find_active_but(data->menu->region) == NULL) &&
+        /* make sure mouse isn't inside another menu (see T43247) */
+        (ui_screen_region_find_mouse_over(screen, event) == NULL) &&
         (ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) &&
         (but_other = ui_but_find_mouse_over(ar, event)) && (but != but_other) &&
         (ELEM(but_other->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER, UI_BTYPE_MENU))) {
