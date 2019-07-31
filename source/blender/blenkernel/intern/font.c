@@ -1408,7 +1408,9 @@ static bool vfont_to_curve(Object *ob,
         cha = towupper(cha);
       }
 
-      if (ob == NULL || info->mat_nr > (ob->totcol)) {
+      /* Only do that check in case we do have an object, otherwise all materials get erased every
+       * time that code is called without an object... */
+      if (ob != NULL && (info->mat_nr > (ob->totcol))) {
         // CLOG_ERROR(
         //     &LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr);
         info->mat_nr = 0;
