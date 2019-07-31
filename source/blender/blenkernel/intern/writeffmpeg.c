@@ -701,6 +701,12 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->pix_fmt = AV_PIX_FMT_ARGB;
   }
 
+  if (codec_id == AV_CODEC_ID_VP9) {
+    if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+      c->pix_fmt = AV_PIX_FMT_YUVA420P;
+    }
+  }
+
   if (codec_id == AV_CODEC_ID_PNG) {
     if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_RGBA;
@@ -1838,6 +1844,7 @@ bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
   return ELEM(codec,
               AV_CODEC_ID_QTRLE,
               AV_CODEC_ID_PNG,
+              AV_CODEC_ID_VP9,
 #  ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
               AV_CODEC_ID_FFV1,
 #  endif
