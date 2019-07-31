@@ -3920,7 +3920,7 @@ void BKE_animsys_evaluate_all_animation(Main *main,
     printf("Evaluate all animation - %f\n", ctime);
   }
 
-  const bool flush_to_original = -DEG_is_active(depsgraph);
+  const bool flush_to_original = DEG_is_active(depsgraph);
 
   /* macros for less typing
    * - only evaluate animation data for id if it has users (and not just fake ones)
