@@ -27,6 +27,7 @@
 struct AnimData;
 struct ID;
 struct ListBase;
+struct Depsgraph;
 
 struct ARegion;
 struct Main;
