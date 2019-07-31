@@ -556,39 +556,36 @@ static void image_zoom_apply(ViewZoomData *vpd,
                              const bool zoom_to_pos)
 {
   float factor;
+  float delta;
+
+  if (viewzoom != USER_ZOOM_SCALE) {
+    if (U.uiflag & USER_ZOOM_HORIZ) {
+      delta = (float)(x - vpd->origx);
+    }
+    else {
+      delta = (float)(y - vpd->origy);
+    }
+  }
+  else {
+    delta = x - vpd->origx + y - vpd->origy;
+  }
+
+  if (zoom_invert) {
+    delta = -delta;
+  }
 
   if (viewzoom == USER_ZOOM_CONT) {
     double time = PIL_check_seconds_timer();
     float time_step = (float)(time - vpd->timer_lastdraw);
-    float fac;
     float zfac;
 
-    if (U.uiflag & USER_ZOOM_HORIZ) {
-      fac = (float)(x - vpd->origx);
-    }
-    else {
-      fac = (float)(y - vpd->origy);
-    }
-
-    if (zoom_invert) {
-      fac = -fac;
-    }
-
     /* oldstyle zoom */
-    zfac = 1.0f + ((fac / 20.0f) * time_step);
+    zfac = 1.0f + ((delta / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
     /* this is the final zoom, but instead make it into a factor */
-    // zoom = vpd->sima->zoom * zfac;
     factor = (vpd->sima->zoom * zfac) / vpd->zoom;
   }
   else {
-    /* for now do the same things for scale and dolly */
-    float delta = x - vpd->origx + y - vpd->origy;
-
-    if (zoom_invert) {
-      delta *= -1.0f;
-    }
-
     factor = 1.0f + delta / 300.0f;
   }
 

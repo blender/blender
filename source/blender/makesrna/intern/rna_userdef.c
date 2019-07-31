@@ -5112,13 +5112,18 @@ static void rna_def_userdef_input(BlenderRNA *brna)
        "CONTINUE",
        0,
        "Continue",
-       "Old style zoom, continues while moving mouse up or down"},
-      {USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zoom in and out based on vertical mouse movement"},
+       "Continuous zooming. The zoom direction and speed depends on how far along the set Zoom "
+       "Axis the mouse has moved"},
+      {USER_ZOOM_DOLLY,
+       "DOLLY",
+       0,
+       "Dolly",
+       "Zoom in and out based on mouse movement along the set Zoom Axis"},
       {USER_ZOOM_SCALE,
        "SCALE",
        0,
        "Scale",
-       "Zoom in and out like scaling the view, mouse movements relative to center"},
+       "Zoom in and out as if you are scaling the view, mouse movements relative to center"},
       {0, NULL, 0, NULL, NULL},
   };
 

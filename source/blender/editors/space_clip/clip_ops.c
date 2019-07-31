@@ -626,36 +626,35 @@ static void view_zoom_apply(
     bContext *C, ViewZoomData *vpd, wmOperator *op, const wmEvent *event, const bool zoom_to_pos)
 {
   float factor;
+  float delta;
+
+  if (U.viewzoom != USER_ZOOM_SCALE) {
+    if (U.uiflag & USER_ZOOM_HORIZ) {
+      delta = (float)(event->x - vpd->x);
+    }
+    else {
+      delta = (float)(event->y - vpd->y);
+    }
+  }
+  else {
+    delta = event->x - vpd->x + event->y - vpd->y;
+  }
+
+  if (U.uiflag & USER_ZOOM_INVERT) {
+    delta = -delta;
+  }
 
   if (U.viewzoom == USER_ZOOM_CONT) {
     SpaceClip *sclip = CTX_wm_space_clip(C);
     double time = PIL_check_seconds_timer();
     float time_step = (float)(time - vpd->timer_lastdraw);
-    float fac;
     float zfac;
 
-    if (U.uiflag & USER_ZOOM_HORIZ) {
-      fac = (float)(event->x - vpd->x);
-    }
-    else {
-      fac = (float)(event->y - vpd->y);
-    }
-
-    if (U.uiflag & USER_ZOOM_INVERT) {
-      fac = -fac;
-    }
-
-    zfac = 1.0f + ((fac / 20.0f) * time_step);
+    zfac = 1.0f + ((delta / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
     factor = (sclip->zoom * zfac) / vpd->zoom;
   }
   else {
-    float delta = event->x - vpd->x + event->y - vpd->y;
-
-    if (U.uiflag & USER_ZOOM_INVERT) {
-      delta *= -1;
-    }
-
     factor = 1.0f + delta / 300.0f;
   }
 
