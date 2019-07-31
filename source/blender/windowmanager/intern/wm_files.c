@@ -353,7 +353,7 @@ static void wm_window_match_do(bContext *C,
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
+static void wm_init_userdef(Main *bmain)
 {
   /* versioning is here */
   UI_init_userdef(bmain);
@@ -365,11 +365,6 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
   /* enabled by default, unless explicitly enabled in the command line which overrides */
   if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
-  }
-
-  /* avoid re-saving for every small change to our prefs, allow overrides */
-  if (read_userdef_from_memory) {
-    BLO_update_defaults_userpref_blend();
   }
 
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
@@ -787,16 +782,6 @@ void wm_homefile_read(bContext *C,
    * '{BLENDER_SYSTEM_SCRIPTS}/startup/bl_app_templates_system/{app_template}' */
   char app_template_config[FILE_MAX];
 
-  /* Indicates whether user preferences were really load from memory.
-   *
-   * This is used for versioning code, and for this we can not rely on use_factory_settings
-   * passed via argument. This is because there might be configuration folder
-   * exists but it might not have userpref.blend and in this case we fallback to
-   * reading home file from memory.
-   *
-   * And in this case versioning code is to be run.
-   */
-  bool read_userdef_from_memory = false;
   eBLOReadSkip skip_flags = 0;
 
   if (use_data == false) {
@@ -968,7 +953,6 @@ void wm_homefile_read(bContext *C,
         UserDef *userdef_default = BKE_blendfile_userdef_from_defaults();
         BKE_blender_userdef_app_template_data_set_and_free(userdef_default);
         skip_flags &= ~BLO_READ_SKIP_USERDEF;
-        read_userdef_from_memory = true;
       }
     }
 
@@ -1019,7 +1003,6 @@ void wm_homefile_read(bContext *C,
       if (userdef_template == NULL) {
         /* we need to have preferences load to overwrite preferences from previous template */
         userdef_template = BKE_blendfile_userdef_from_defaults();
-        read_userdef_from_memory = true;
       }
       if (userdef_template) {
         BKE_blender_userdef_app_template_data_set_and_free(userdef_template);
@@ -1043,7 +1026,7 @@ void wm_homefile_read(bContext *C,
 
   if (use_userdef) {
     /* check userdef before open window, keymaps etc */
-    wm_init_userdef(bmain, read_userdef_from_memory);
+    wm_init_userdef(bmain);
     reset_app_template = true;
   }
 
