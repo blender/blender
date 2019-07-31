@@ -32,6 +32,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
@@ -575,7 +576,7 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
         "io_scene_obj",
         "io_scene_x3d",
     };
-    for (int i; i < ARRAY_SIZE(addons); i++) {
+    for (int i = 0; i < ARRAY_SIZE(addons); i++) {
       bAddon *addon = BKE_addon_new();
       STRNCPY(addon->module, addons[i]);
       BLI_addtail(&userdef->addons, addon);
