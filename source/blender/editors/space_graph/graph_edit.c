@@ -604,7 +604,6 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 
   ReportList *reports = ac->reports;
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  struct Depsgraph *depsgraph = ac->depsgraph;
   Scene *scene = ac->scene;
   ToolSettings *ts = scene->toolsettings;
   short flag = 0;
@@ -696,7 +695,6 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
        */
       if (ale->id && !ale->owner && !fcu->driver) {
         insert_keyframe(ac->bmain,
-                        depsgraph,
                         reports,
                         ale->id,
                         NULL,

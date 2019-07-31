@@ -129,7 +129,6 @@ bool insert_keyframe_direct(struct ReportList *reports,
  * using the current value being keyframed, in the relevant place. Returns success.
  */
 short insert_keyframe(struct Main *bmain,
-                      struct Depsgraph *depsgraph,
                       struct ReportList *reports,
                       struct ID *id,
                       struct bAction *act,

@@ -371,25 +371,14 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   }
   else {
     ID *id = self->ptr.id.data;
-    struct Depsgraph *depsgraph = CTX_data_depsgraph(BPy_GetContext());
     ReportList reports;
     short result;
 
     BKE_reports_init(&reports, RPT_STORE);
 
     BLI_assert(BKE_id_is_in_global_main(id));
-    result = insert_keyframe(G_MAIN,
-                             depsgraph,
-                             &reports,
-                             id,
-                             NULL,
-                             group_name,
-                             path_full,
-                             index,
-                             cfra,
-                             keytype,
-                             NULL,
-                             options);
+    result = insert_keyframe(
+        G_MAIN, &reports, id, NULL, group_name, path_full, index, cfra, keytype, NULL, options);
     MEM_freeN((void *)path_full);
 
     if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {

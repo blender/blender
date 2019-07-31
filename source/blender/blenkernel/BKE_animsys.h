@@ -217,10 +217,10 @@ void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_d
 typedef struct NlaKeyframingContext NlaKeyframingContext;
 
 struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(struct ListBase *cache,
-                                                                    struct Depsgraph *depsgraph,
                                                                     struct PointerRNA *ptr,
                                                                     struct AnimData *adt,
-                                                                    float ctime);
+                                                                    float ctime,
+                                                                    const bool flush_to_original);
 bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
@@ -244,12 +244,12 @@ typedef enum eAnimData_Recalc {
 } eAnimData_Recalc;
 
 /* Evaluation loop for evaluating animation data  */
-void BKE_animsys_evaluate_animdata(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
+void BKE_animsys_evaluate_animdata(struct Scene *scene,
                                    struct ID *id,
                                    struct AnimData *adt,
                                    float ctime,
-                                   short recalc);
+                                   short recalc,
+                                   const bool flush_to_original);
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
 void BKE_animsys_evaluate_all_animation(struct Main *main,
@@ -269,10 +269,10 @@ bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct FCurve *fcu, floa
  */
 
 /* Evaluate Action (F-Curve Bag) */
-void animsys_evaluate_action(struct Depsgraph *depsgraph,
-                             struct PointerRNA *ptr,
+void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,
-                             float ctime);
+                             float ctime,
+                             const bool flush_to_original);
 
 /* Evaluate Action Group */
 void animsys_evaluate_action_group(struct PointerRNA *ptr,

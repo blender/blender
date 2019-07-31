@@ -1612,6 +1612,6 @@ void what_does_obaction(
     adt.action = act;
 
     /* execute effects of Action on to workob (or it's PoseChannels) */
-    BKE_animsys_evaluate_animdata(NULL, NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
+    BKE_animsys_evaluate_animdata(NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM, false);
   }
 }

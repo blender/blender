@@ -1323,7 +1323,6 @@ static bool insert_keyframe_fcurve_value(Main *bmain,
  * index of -1 keys all array indices
  */
 short insert_keyframe(Main *bmain,
-                      Depsgraph *depsgraph,
                       ReportList *reports,
                       ID *id,
                       bAction *act,
@@ -1381,7 +1380,7 @@ short insert_keyframe(Main *bmain,
   if (adt && adt->action == act) {
     /* Get NLA context for value remapping. */
     nla_context = BKE_animsys_get_nla_keyframing_context(
-        nla_cache ? nla_cache : &tmp_nla_cache, depsgraph, &id_ptr, adt, cfra);
+        nla_cache ? nla_cache : &tmp_nla_cache, &id_ptr, adt, cfra, false);
 
     /* Apply NLA-mapping to frame. */
     cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
@@ -2348,7 +2347,6 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 
 static int insert_key_button_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -2436,7 +2434,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
         }
 
         success = insert_keyframe(bmain,
-                                  depsgraph,
                                   op->reports,
                                   ptr.id.data,
                                   NULL,

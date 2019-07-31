@@ -6631,7 +6631,6 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
 
   // TODO: this should probably be done per channel instead...
   if (autokeyframe_cfra_can_key(scene, id)) {
-    Depsgraph *depsgraph = CTX_data_depsgraph(C);
     ReportList *reports = CTX_wm_reports(C);
     ToolSettings *ts = scene->toolsettings;
     KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -6662,7 +6661,6 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
         for (fcu = adt->action->curves.first; fcu; fcu = fcu->next) {
           fcu->flag &= ~FCURVE_SELECTED;
           insert_keyframe(bmain,
-                          depsgraph,
                           reports,
                           id,
                           adt->action,
@@ -6777,7 +6775,6 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
 
   // TODO: this should probably be done per channel instead...
   if (autokeyframe_cfra_can_key(scene, id)) {
-    Depsgraph *depsgraph = CTX_data_depsgraph(C);
     ReportList *reports = CTX_wm_reports(C);
     ToolSettings *ts = scene->toolsettings;
     KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
@@ -6825,7 +6822,6 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
                  */
                 if (pchanName && STREQ(pchanName, pchan->name)) {
                   insert_keyframe(bmain,
-                                  depsgraph,
                                   reports,
                                   id,
                                   act,

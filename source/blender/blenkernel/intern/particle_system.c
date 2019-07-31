@@ -3753,8 +3753,9 @@ static void dynamics_step_sph_classical_calc_density_task_cb_ex(
   sphclassical_calc_dens(pa, pa->state.time, sphdata);
 }
 
-static void dynamics_step_sph_classical_integrate_task_cb_ex(
-    void *__restrict userdata, const int p, const TaskParallelTLS *__restrict tls)
+static void dynamics_step_sph_classical_integrate_task_cb_ex(void *__restrict userdata,
+                                                             const int p,
+                                                             const TaskParallelTLS *__restrict tls)
 {
   DynamicStepSolverTaskData *data = userdata;
   ParticleSimulationData *sim = data->sim;
@@ -4662,7 +4663,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
           hcfra = 100.0f * (float)i / (float)psys->part->hair_step;
           if ((part->flag & PART_HAIR_REGROW) == 0) {
             BKE_animsys_evaluate_animdata(
-                depsgraph, scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM);
+                scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM, false);
           }
           system_step(&sim, hcfra, use_render_params);
           psys->cfra = hcfra;

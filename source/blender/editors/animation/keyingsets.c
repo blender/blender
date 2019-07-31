@@ -1030,7 +1030,6 @@ static short keyingset_apply_keying_flags(const short base_flags,
 int ANIM_apply_keyingset(
     bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ReportList *reports = CTX_wm_reports(C);
@@ -1125,7 +1124,6 @@ int ANIM_apply_keyingset(
       /* action to take depends on mode */
       if (mode == MODIFYKEY_MODE_INSERT) {
         success += insert_keyframe(bmain,
-                                   depsgraph,
                                    reports,
                                    ksp->id,
                                    act,

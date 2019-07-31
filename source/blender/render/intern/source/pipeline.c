@@ -2580,12 +2580,7 @@ void RE_RenderAnim(Render *re,
       {
         float ctime = BKE_scene_frame_get(scene);
         AnimData *adt = BKE_animdata_from_id(&scene->id);
-        /* TODO(sergey): Currently depsgraph is only used to check whether it is an active
-         * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
-         * but we also don't deal with unkeyed changes. But still nice to get proper depsgraph
-         * within the render pipeline, somehow.
-         */
-        BKE_animsys_evaluate_animdata(NULL, scene, &scene->id, adt, ctime, ADT_RECALC_ALL);
+        BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, ADT_RECALC_ALL, false);
       }
 
       render_update_depsgraph(re);

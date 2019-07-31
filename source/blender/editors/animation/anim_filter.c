@@ -412,7 +412,6 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   if (scene) {
     ac->markers = ED_context_get_markers(C);
   }
-  ac->depsgraph = CTX_data_depsgraph(C);
   ac->view_layer = CTX_data_view_layer(C);
   ac->obact = (ac->view_layer->basact) ? ac->view_layer->basact->object : NULL;
   ac->sa = sa;

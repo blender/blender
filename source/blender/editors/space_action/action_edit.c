@@ -704,7 +704,6 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   bAnimListElem *ale;
   int filter;
 
-  struct Depsgraph *depsgraph = ac->depsgraph;
   ReportList *reports = ac->reports;
   Scene *scene = ac->scene;
   ToolSettings *ts = scene->toolsettings;
@@ -741,7 +740,6 @@ static void insert_action_keys(bAnimContext *ac, short mode)
      */
     if (ale->id && !ale->owner) {
       insert_keyframe(ac->bmain,
-                      depsgraph,
                       reports,
                       ale->id,
                       NULL,

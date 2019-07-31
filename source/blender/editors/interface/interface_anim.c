@@ -318,7 +318,6 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 
     /* TODO: this should probably respect the keyingset only option for anim */
     if (autokeyframe_cfra_can_key(scene, id)) {
-      Depsgraph *depsgraph = CTX_data_depsgraph(C);
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
       short flag = ANIM_get_keyframing_flags(scene, 1);
@@ -330,7 +329,6 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
        *       E.g., color wheels (see T42567). */
       BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
       insert_keyframe(bmain,
-                      depsgraph,
                       reports,
                       id,
                       action,

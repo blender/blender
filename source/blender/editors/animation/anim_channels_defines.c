@@ -4340,7 +4340,6 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   AnimData *adt = BKE_animdata_from_id(id);
   FCurve *fcu = (FCurve *)fcu_poin;
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -4356,7 +4355,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 
   /* Get NLA context for value remapping */
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, depsgraph, &id_ptr, adt, (float)CFRA);
+      &nla_cache, &id_ptr, adt, (float)CFRA, false);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
   cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
@@ -4395,7 +4394,6 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   KeyBlock *kb = (KeyBlock *)kb_poin;
   char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 
-  Depsgraph *depsgraph = CTX_data_depsgraph(C);
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -4411,7 +4409,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 
   /* Get NLA context for value remapping */
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
-      &nla_cache, depsgraph, &id_ptr, key->adt, (float)CFRA);
+      &nla_cache, &id_ptr, key->adt, (float)CFRA, false);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
   cfra = BKE_nla_tweakedit_remap(key->adt, (float)CFRA, NLATIME_CONVERT_UNMAP);

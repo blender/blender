@@ -2316,8 +2316,9 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
   for (f = omd->bakestart; f <= omd->bakeend; f++) {
     /* For now only simple animation of time value is supported, nothing else.
      * No drivers or other modifier parameters. */
-    BKE_animsys_evaluate_animdata(
-        CTX_data_depsgraph(C), scene, (ID *)ob, ob->adt, f, ADT_RECALC_ANIM);
+    /* TODO(sergey): This operates on an original data, so no flush is needed. However, baking
+     * usually should happen on an evaluated objects, so this seems to be deeper issue here. */
+    BKE_animsys_evaluate_animdata(scene, (ID *)ob, ob->adt, f, ADT_RECALC_ANIM, false);
 
     och->time[i] = omd->time;
     i++;
