@@ -56,19 +56,19 @@ void BrightnessOperation::executePixelSampled(float output[4],
   float contrast = inputContrast[0];
   brightness /= 100.0f;
   float delta = contrast / 200.0f;
-  a = 1.0f - delta * 2.0f;
   /*
    * The algorithm is by Werner D. Streidt
    * (http://visca.com/ffactory/archives/5-99/msg00021.html)
    * Extracted of OpenCV demhist.c
    */
   if (contrast > 0) {
-    a = 1.0f / a;
+    a = 1.0f / (1.0f - delta * 2.0f);
     b = a * (brightness - delta);
   }
   else {
     delta *= -1;
-    b = a * (brightness + delta);
+    a = 1.0f - delta * 2.0f;
+    b = a * brightness + delta;
   }
   if (this->m_use_premultiply) {
     premul_to_straight_v4(inputValue);
