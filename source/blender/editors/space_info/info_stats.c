@@ -158,7 +158,7 @@ static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
       if (stats_mesheval(me_eval, is_selected, stats)) {
         break;
       }
-      ATTR_FALLTHROUGH; /* Falltrough to displist. */
+      ATTR_FALLTHROUGH; /* Fallthrough to displist. */
     }
     case OB_MBALL: {
       int totv = 0, totf = 0, tottri = 0;

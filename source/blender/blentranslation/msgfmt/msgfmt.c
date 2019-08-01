@@ -362,7 +362,7 @@ static int make(const char *input_file_name, const char *output_file_name)
     else if (strstr(l, msgid_plural_kw) == l) {
       /* This is a message with plural forms. */
       if (section != SECTION_ID) {
-        printf("msgid_plural not preceeded by msgid on %s:%d\n", input_file_name, lno);
+        printf("msgid_plural not preceded by msgid on %s:%d\n", input_file_name, lno);
         return EXIT_FAILURE;
       }
       l = l + msgid_plural_len;

@@ -1093,7 +1093,7 @@ void ED_gp_project_point_to_plane(const Scene *scene,
   /* get a vector from the point with the current view direction of the viewport */
   ED_view3d_global_to_vector(rv3d, &pt->x, vn);
 
-  /* calculate line extrem point to create a ray that cross the plane */
+  /* calculate line extreme point to create a ray that cross the plane */
   mul_v3_fl(vn, -50.0f);
   add_v3_v3v3(ray, &pt->x, vn);
 

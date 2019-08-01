@@ -149,7 +149,7 @@ typedef struct bPythonConstraint {
    */
   struct Object *tar;
   /**
-   * Subtarger from previous implementation
+   * Subtarget from previous implementation
    * (version-patch sets this to "" on file-load), MAX_ID_NAME-2.
    */
   char subtarget[64];

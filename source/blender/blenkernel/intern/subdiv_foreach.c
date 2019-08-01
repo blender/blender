@@ -172,7 +172,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
   const MPoly *coarse_mpoly = coarse_mesh->mpoly;
   ctx->num_subdiv_vertices = coarse_mesh->totvert;
   ctx->num_subdiv_edges = coarse_mesh->totedge * (num_subdiv_vertices_per_coarse_edge + 1);
-  /* Calculate extra vertices and edges createdd by non-loose geometry. */
+  /* Calculate extra vertices and edges created by non-loose geometry. */
   for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
     const MPoly *coarse_poly = &coarse_mpoly[poly_index];
     const int num_ptex_faces_per_poly = num_ptex_faces_per_poly_get(coarse_poly);
@@ -206,7 +206,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
                                   num_polys_per_ptex_get(no_quad_patch_resolution);
     }
   }
-  /* Calculate extra vertices createdd by loose edges. */
+  /* Calculate extra vertices created by loose edges. */
   for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
     if (!BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, edge_index)) {
       ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge;

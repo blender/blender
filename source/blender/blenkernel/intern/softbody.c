@@ -751,7 +751,7 @@ static void build_bps_springlist(Object *ob)
   int a, b;
 
   if (sb == NULL) {
-    return; /* paranoya check */
+    return; /* paranoia check */
   }
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
@@ -781,7 +781,7 @@ static void calculate_collision_balls(Object *ob)
   float min, max, akku;
 
   if (sb == NULL) {
-    return; /* paranoya check */
+    return; /* paranoia check */
   }
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
@@ -3322,7 +3322,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
     copy_v3_v3(bp->prevdv, bp->vec);
   }
 
-  /* make a nice clean scratch struc */
+  /* make a nice clean scratch struct */
   free_scratch(sb);   /* clear if any */
   sb_new_scratch(sb); /* make a new */
   sb->scratch->needstobuildcollider = 1;

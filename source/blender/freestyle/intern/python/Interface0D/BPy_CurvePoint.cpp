@@ -45,7 +45,7 @@ PyDoc_STRVAR(CurvePoint_doc,
              "\n"
              ".. method:: __init__()\n"
              "\n"
-             "   Defult constructor.\n"
+             "   Default constructor.\n"
              "\n"
              ".. method:: __init__(brother)\n"
              "\n"

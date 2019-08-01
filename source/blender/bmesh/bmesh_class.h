@@ -23,7 +23,7 @@
 
 /* bmesh data structures */
 
-/* dissable holes for now,
+/* disable holes for now,
  * these are ifdef'd because they use more memory and cant be saved in DNA currently */
 // #define USE_BMESH_HOLES
 

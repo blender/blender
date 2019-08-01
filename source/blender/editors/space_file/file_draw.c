@@ -536,7 +536,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
         WM_report_banner_show();
       }
       else {
-        /* If rename is sucessfull, scroll to newly renamed entry. */
+        /* If rename is successful, scroll to newly renamed entry. */
         BLI_strncpy(sfile->params->renamefile, filename, sizeof(sfile->params->renamefile));
         sfile->params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
 

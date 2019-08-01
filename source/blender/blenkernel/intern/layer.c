@@ -797,7 +797,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
                         parent_restrict,
                         parent_layer_restrict);
 
-  /* Any remaning object bases are to be removed. */
+  /* Any remaining object bases are to be removed. */
   for (Base *base = view_layer->object_bases.first; base; base = base->next) {
     if (view_layer->basact == base) {
       view_layer->basact = NULL;

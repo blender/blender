@@ -71,7 +71,7 @@ GPUFrameBuffer *GPU_framebuffer_active_get(void);
     } \
   } while (0)
 
-/* Framebuffer setup : You need to call GPU_framebuffer_bind for theses
+/* Framebuffer setup : You need to call GPU_framebuffer_bind for these
  * to be effective. */
 
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);

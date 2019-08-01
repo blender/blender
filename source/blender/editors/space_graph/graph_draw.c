@@ -721,7 +721,7 @@ static void draw_fcurve_curve_bezts(
       v1[1] = prevbezt->vec[1][1];
     }
     else if (prevbezt->ipo == BEZT_IPO_LIN) {
-      /* extrapolate linear dosnt use the handle, use the next points center instead */
+      /* extrapolate linear doesn't use the handle, use the next points center instead */
       fac = (prevbezt->vec[1][0] - bezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
       if (fac) {
         fac = 1.0f / fac;

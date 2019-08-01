@@ -249,7 +249,7 @@ void DRW_hair_update(void)
 {
 #ifndef USE_TRANSFORM_FEEDBACK
   /**
-   * Workaround to tranform feedback not working on mac.
+   * Workaround to transform feedback not working on mac.
    * On some system it crashes (see T58489) and on some other it renders garbage (see T60171).
    *
    * So instead of using transform feedback we render to a texture,

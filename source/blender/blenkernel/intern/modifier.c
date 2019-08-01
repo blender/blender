@@ -802,7 +802,7 @@ bool modifiers_usesSubsurfFacedots(struct Scene *scene, Object *ob)
       }
     }
     else if (mti->type == eModifierTypeType_OnlyDeform) {
-      /* Theses modifiers do not reset the subdiv flag nor change the topology.
+      /* These modifiers do not reset the subdiv flag nor change the topology.
        * We can still search for a subsurf modifier. */
     }
     else {

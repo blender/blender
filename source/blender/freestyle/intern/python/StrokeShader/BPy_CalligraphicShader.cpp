@@ -57,8 +57,8 @@ static char CalligraphicShader___doc__[] =
     "\n"
     "   Assigns thicknesses to the stroke vertices so that the stroke looks\n"
     "   like made with a calligraphic tool, i.e. the stroke will be the\n"
-    "   thickest in a main direction, and the thinest in the direction\n"
-    "   perpendicular to this one, and an interpolation inbetween.\n"
+    "   thickest in a main direction, and the thinnest in the direction\n"
+    "   perpendicular to this one, and an interpolation in between.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n";

@@ -187,7 +187,7 @@ class ConstrainedIncreasingThicknessShader : public StrokeShader {
 };
 
 /*  [ Thickness Shader ].
- *  Modifys the thickness in a relative way depending on its length.
+ *  Modifies the thickness in a relative way depending on its length.
  */
 class LengthDependingThicknessShader : public StrokeShader {
  private:

@@ -58,7 +58,7 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
       return "DIRECTLY";
   }
   BLI_assert(!"Unhandled linked state, should never happen.");
-  return "UNKNOW";
+  return "UNKNOWN";
 }
 
 IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name)

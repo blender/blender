@@ -127,7 +127,7 @@ typedef enum eKeyframeExtremeDrawOpts {
   KEYFRAME_EXTREME_MAX = (1 << 1),
   /* Grouped keys have different states. */
   KEYFRAME_EXTREME_MIXED = (1 << 2),
-  /* Both neigbors are equal to this key. */
+  /* Both neighbors are equal to this key. */
   KEYFRAME_EXTREME_FLAT = (1 << 3),
 } eKeyframeExtremeDrawOpts;
 

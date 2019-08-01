@@ -25,7 +25,7 @@ ccl_device_inline float interpolate_ies_vertical(
    * of v (corresponding to the north pole) would result in artifacts. The proper way of dealing
    * with this would be to lookup the corresponding value on the other side of the pole, but since
    * the horizontal coordinates might be nonuniform, this would require yet another interpolation.
-   * Therefore, the assumtion is made that the light is going to be symmetrical, which means that
+   * Therefore, the assumption is made that the light is going to be symmetrical, which means that
    * we can just take the corresponding value at the current horizontal coordinate. */
 
 #define IES_LOOKUP(v) kernel_tex_fetch(__ies, ofs + h * v_num + (v))

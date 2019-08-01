@@ -1140,7 +1140,7 @@ static void view3d_header_region_listener(wmWindow *UNUSED(win),
   }
 
     /* From topbar, which ones are needed? split per header? */
-    /* Disable for now, re-enable if neede, or remove - campbell. */
+    /* Disable for now, re-enable if needed, or remove - campbell. */
 #if 0
   /* context changes */
   switch (wmn->category) {

@@ -463,7 +463,7 @@ static void curve_batch_cache_init(Curve *cu)
                                          __func__);
   cache->surf_per_mat = MEM_mallocN(sizeof(*cache->surf_per_mat) * cache->mat_len, __func__);
 
-  /* TODO Might be wiser to alloc in one chunck. */
+  /* TODO Might be wiser to alloc in one chunk. */
   for (int i = 0; i < cache->mat_len; ++i) {
     cache->surf_per_mat_tris[i] = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
     cache->surf_per_mat[i] = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
@@ -679,7 +679,7 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata, GPUVertBuf *vbo
       GPU_vertbuf_attr_set(vbo_curves_nor, attr_id.tan, vbo_len_used, &ptan);
       vbo_len_used++;
 
-      /* Skip the other vertex (it does not need to be offseted). */
+      /* Skip the other vertex (it does not need to be offsetted). */
       GPU_vertbuf_attr_set(vbo_curves_nor, attr_id.pos, vbo_len_used, bevp->vec);
       vbo_len_used++;
 

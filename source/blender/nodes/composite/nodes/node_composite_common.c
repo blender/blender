@@ -60,7 +60,7 @@ void register_node_type_cmp_group(void)
 
 void register_node_type_cmp_custom_group(bNodeType *ntype)
 {
-  /* These methods can be overriden but need a default implementation otherwise. */
+  /* These methods can be overridden but need a default implementation otherwise. */
   if (ntype->poll == NULL) {
     ntype->poll = cmp_node_poll_default;
   }

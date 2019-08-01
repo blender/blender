@@ -158,7 +158,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
   Mesh *result = me_mod;
   ReportList reports;
 
-  /* Only used to check wehther we are operating on org data or not... */
+  /* Only used to check whether we are operating on org data or not... */
   Mesh *me = ctx->object->data;
 
   Object *ob_source = dtmd->ob_source;

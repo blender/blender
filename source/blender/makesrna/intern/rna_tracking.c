@@ -1066,7 +1066,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
       prop, "Normalize", "Normalize light intensities while tracking (slower)");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
-  /* default minmal correlation */
+  /* default minimal correlation */
   prop = RNA_def_property(srna, "default_correlation_min", PROP_FLOAT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

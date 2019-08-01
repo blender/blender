@@ -114,7 +114,7 @@ static int bpygpu_ParseVertCompType(PyObject *o, void *p)
 
   int comp_type = bpygpu_parse_component_type(str, length);
   if (comp_type == -1) {
-    PyErr_Format(PyExc_ValueError, "unkown component type: '%s", str);
+    PyErr_Format(PyExc_ValueError, "unknown component type: '%s", str);
     return 0;
   }
 
@@ -188,7 +188,7 @@ static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *ar
   } params;
 
   if (self->fmt.attr_len == GPU_VERT_ATTR_MAX_LEN) {
-    PyErr_SetString(PyExc_ValueError, "Maxumum attr reached " STRINGIFY(GPU_VERT_ATTR_MAX_LEN));
+    PyErr_SetString(PyExc_ValueError, "Maximum attr reached " STRINGIFY(GPU_VERT_ATTR_MAX_LEN));
     return NULL;
   }
 

@@ -290,7 +290,7 @@ static void set_preview_visibility(Scene *scene,
                                    char pr_type,
                                    int pr_method)
 {
-  /* Set appropriate layer as visibile. */
+  /* Set appropriate layer as visible. */
   LayerCollection *lc = view_layer->layer_collections.first;
   const char *collection_name = preview_collection_name(pr_type);
 

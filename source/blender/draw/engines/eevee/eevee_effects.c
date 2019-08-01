@@ -47,7 +47,7 @@ static struct {
   struct GPUShader *downsample_sh;
   struct GPUShader *downsample_cube_sh;
 
-  /* Theses are just references, not actually allocated */
+  /* These are just references, not actually allocated */
   struct GPUTexture *depth_src;
   struct GPUTexture *color_src;
 

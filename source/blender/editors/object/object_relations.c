@@ -1727,7 +1727,7 @@ static Collection *single_object_users_collection(Main *bmain,
                                                   const bool is_master_collection)
 {
   /* Generate new copies for objects in given collection and all its children,
-   * and optionnaly also copy collections themselves. */
+   * and optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
     collection = ID_NEW_SET(collection, BKE_collection_copy(bmain, NULL, collection));
   }

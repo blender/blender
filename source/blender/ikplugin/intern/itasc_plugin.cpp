@@ -1729,7 +1729,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
   IK_Channel *ikchan;
   if (ikparam->flag & ITASC_SIMULATION) {
     for (i = 0, ikchan = ikscene->channels; i < ikscene->numchan; i++, ++ikchan) {
-      // In simulation mode we don't allow external contraint to change our bones, mark the channel
+      // In simulation mode we don't allow external constraint to change our bones, mark the channel
       // done also tell Blender that this channel is part of IK tree
       // (cleared on each BKE_pose_where_is()
       ikchan->pchan->flag |= (POSE_DONE | POSE_CHAIN);

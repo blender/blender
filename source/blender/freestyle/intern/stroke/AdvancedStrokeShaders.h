@@ -28,8 +28,8 @@ namespace Freestyle {
 
 /*! [ Thickness Shader ].
  *  Assigns thicknesses to the stroke vertices so that the stroke looks like made with a
- * calligraphic tool. i.e. The stroke will be the thickest in a main direction, the thinest in the
- * direction perpendicular to this one, and an interpolation inbetween.
+ * calligraphic tool. i.e. The stroke will be the thickest in a main direction, the thinnest in the
+ * direction perpendicular to this one, and an interpolation in between.
  */
 class CalligraphicShader : public StrokeShader {
  public:

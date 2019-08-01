@@ -651,7 +651,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
               }
             }
             /* The Box verts are only used internally
-             * Update the box x and y since thats what external
+             * Update the box x and y since that's what external
              * functions will see */
             box->x = box_xmin_get(box);
             box->y = box_ymin_get(box);

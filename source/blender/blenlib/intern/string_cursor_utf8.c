@@ -104,7 +104,7 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
 static eStrCursorDelimType cursor_delim_type_utf8(const char *ch_utf8)
 {
   /* for full unicode support we really need to have large lookup tables to figure
-   * out whats what in every possible char set - and python, glib both have these. */
+   * out what's what in every possible char set - and python, glib both have these. */
   uint uch = BLI_str_utf8_as_unicode(ch_utf8);
   return cursor_delim_type_unicode(uch);
 }

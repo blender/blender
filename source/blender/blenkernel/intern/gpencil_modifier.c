@@ -361,7 +361,7 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph,
 
       if (mti && mti->deformStroke) {
         mti->deformStroke(md, depsgraph, ob, gpl, gps);
-        /* subdivide allways requires update */
+        /* subdivide always requires update */
         if (md->type == eGpencilModifierType_Subdiv) {
           gps->flag |= GP_STROKE_RECALC_GEOMETRY;
         }

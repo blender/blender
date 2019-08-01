@@ -91,7 +91,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
     copy_v4_fl4(camtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
   }
 
-  /* XXX overiding viewport size. Simplify things but is not really 100% safe. */
+  /* XXX overriding viewport size. Simplify things but is not really 100% safe. */
   DRW_render_viewport_size_set((int[2]){size_orig[0] + g_data->overscan_pixels * 2.0f,
                                         size_orig[1] + g_data->overscan_pixels * 2.0f});
 

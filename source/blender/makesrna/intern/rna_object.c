@@ -2537,7 +2537,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "dimensions", PROP_FLOAT, PROP_XYZ_LENGTH);
   RNA_def_property_array(prop, 3);
-  /* Only as convinient helper for py API, and conflicts with animating scale. */
+  /* Only as convenient helper for py API, and conflicts with animating scale. */
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_float_funcs(
       prop, "rna_Object_dimensions_get", "rna_Object_dimensions_set", NULL);
@@ -2546,7 +2546,7 @@ static void rna_def_object(BlenderRNA *brna)
       prop,
       "Dimensions",
       "Absolute bounding box dimensions of the object (WARNING: assigning to it or "
-      "its members mutiple consecutive times will not work correctly, "
+      "its members multiple consecutive times will not work correctly, "
       "as this needs up-to-date evaluated data)");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 

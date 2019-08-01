@@ -1145,7 +1145,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   }
   else if (count == 2) {
     /* this case could be removed,
-     * but simple to avoid 'bm_edgering_pair_calc' in this case since theres only one. */
+     * but simple to avoid 'bm_edgering_pair_calc' in this case since there's only one. */
     struct BMEdgeLoopStore *el_store_a = eloops_rim.first;
     struct BMEdgeLoopStore *el_store_b = eloops_rim.last;
     LoopPairStore *lpair;

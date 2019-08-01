@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-/* path/file handeling stuff */
+/* path/file handling stuff */
 #ifdef WIN32
 #  include <io.h>
 #  include <direct.h>

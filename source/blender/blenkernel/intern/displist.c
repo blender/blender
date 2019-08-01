@@ -477,7 +477,7 @@ static void curve_to_displist(Curve *cu,
 }
 
 /**
- * \param normal_proj: Optional normal thats used to project the scanfill verts into 2d coords.
+ * \param normal_proj: Optional normal that's used to project the scanfill verts into 2d coords.
  * Pass this along if known since it saves time calculating the normal.
  * \param flipnormal: Flip the normal (same as passing \a normal_proj negated)
  */
@@ -1857,7 +1857,7 @@ void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
   }
 }
 
-/* this is confusing, there's also min_max_object, appplying the obmat... */
+/* this is confusing, there's also min_max_object, applying the obmat... */
 static void boundbox_displist_object(Object *ob)
 {
   if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {

@@ -375,7 +375,7 @@ void BKE_camera_view_frame_ex(const Scene *scene,
   float facx, facy;
   float depth;
 
-  /* aspect correcton */
+  /* aspect correction */
   if (scene) {
     float aspx = (float)scene->r.xsch * scene->r.xasp;
     float aspy = (float)scene->r.ysch * scene->r.yasp;

@@ -780,7 +780,7 @@ static void import_endjob(void *user_data)
 
   std::vector<AbcObjectReader *>::iterator iter;
 
-  /* Delete objects on cancelation. */
+  /* Delete objects on cancellation. */
   if (data->was_cancelled) {
     for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
       Object *ob = (*iter)->object();

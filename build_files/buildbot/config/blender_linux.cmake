@@ -6,7 +6,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 # There we can not use CPU bitness check since it is always 64bit. So instead
 # we check for a specific libraries.
 #
-# Other builders we are runnign in a bare virtual machine, and the libraries
+# Other builders we are running in a bare virtual machine, and the libraries
 # are installed to /opt/.
 # We assume that only 64bit builders exists in such configuration.
 if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")

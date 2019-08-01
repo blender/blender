@@ -523,7 +523,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
     MEM_SAFE_FREE(csmd->delta_cache);
   }
 
-  /* allocate deltas if they have not yet been allocated, otheriwse we will just write over them */
+  /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
   if (!csmd->delta_cache) {
     csmd->delta_cache_num = numVerts;
     csmd->delta_cache = MEM_malloc_arrayN(numVerts, sizeof(float[3]), __func__);

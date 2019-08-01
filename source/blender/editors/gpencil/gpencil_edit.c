@@ -3519,7 +3519,7 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
        "CURSOR",
        0,
        "Cursor",
-       "Reproject the strokes using the orienation of 3D cursor"},
+       "Reproject the strokes using the orientation of 3D cursor"},
       {0, NULL, 0, NULL, NULL},
   };
 

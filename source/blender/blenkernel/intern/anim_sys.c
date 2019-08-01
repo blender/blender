@@ -330,7 +330,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 /**
  * \param flag: Control ID pointers management,
  * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
- * \return true is succesfully copied.
+ * \return true is successfully copied.
  */
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 {

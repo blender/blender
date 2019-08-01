@@ -47,7 +47,7 @@
 
 BLI_INLINE GPUBatch *DRW_batch_request(GPUBatch **batch)
 {
-  /* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+  /* XXX TODO(fclem): We are writing to batch cache here. Need to make this thread safe. */
   if (*batch == NULL) {
     *batch = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
   }

@@ -3956,7 +3956,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   const int radius = RNA_int_get(op->ptr, "radius");
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
 
-  /* Allow each selection type to allocate their own data thats used between executions. */
+  /* Allow each selection type to allocate their own data that's used between executions. */
   wmGesture *gesture = op->customdata; /* NULL when non-modal. */
   wmGenericUserData wm_userdata_buf = {0};
   wmGenericUserData *wm_userdata = gesture ? &gesture->user_data : &wm_userdata_buf;

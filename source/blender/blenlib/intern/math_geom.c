@@ -4914,7 +4914,7 @@ void vcloud_estimate_transform_v3(const int list_size,
     unit_m3(lscale);
   }
   /* do com for both clouds */
-  if (pos && rpos && (list_size > 0)) { /* paranoya check */
+  if (pos && rpos && (list_size > 0)) { /* paranoia check */
     /* do com for both clouds */
     for (a = 0; a < list_size; a++) {
       if (weight) {

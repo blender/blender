@@ -556,17 +556,17 @@ static void clip_operatortypes(void)
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
 {
-  /* ******** Global hotkeys avalaible for all regions ******** */
+  /* ******** Global hotkeys available for all regions ******** */
   WM_keymap_ensure(keyconf, "Clip", SPACE_CLIP, 0);
 
-  /* ******** Hotkeys avalaible for main region only ******** */
+  /* ******** Hotkeys available for main region only ******** */
   WM_keymap_ensure(keyconf, "Clip Editor", SPACE_CLIP, 0);
   //  keymap->poll = ED_space_clip_tracking_poll;
 
-  /* ******** Hotkeys avalaible for preview region only ******** */
+  /* ******** Hotkeys available for preview region only ******** */
   WM_keymap_ensure(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
 
-  /* ******** Hotkeys avalaible for channels region only ******** */
+  /* ******** Hotkeys available for channels region only ******** */
   WM_keymap_ensure(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
 }
 
@@ -1224,7 +1224,7 @@ static void clip_header_region_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         /* for proportional editmode only */
         case ND_TOOLSETTINGS:
-          /* TODO - should do this when in mask mode only but no datas available */
+          /* TODO - should do this when in mask mode only but no data available */
           // if (sc->mode == SC_MODE_MASKEDIT)
           {
             ED_region_tag_redraw(ar);

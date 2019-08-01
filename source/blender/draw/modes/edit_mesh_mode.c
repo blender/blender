@@ -371,7 +371,7 @@ static void edit_mesh_create_overlay_passes(float face_alpha,
     DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
   }
 
-  /* Cage geom needs to be offseted to avoid Z-fighting. */
+  /* Cage geom needs to be offsetted to avoid Z-fighting. */
   passes->faces_cage = DRW_pass_create("Edit Mesh Faces Cage", DRW_STATE_WRITE_COLOR | statemod);
   grp = shgrps->faces_cage = DRW_shgroup_create(face_sh, passes->faces_cage);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);

@@ -203,7 +203,7 @@ typedef enum eBMOpSlotType {
 
   /* normally store pointers to object, scene,
    * _never_ store arrays corresponding to mesh elements with this */
-  BMO_OP_SLOT_PTR = 4, /* requres subtype BMO_OP_SLOT_SUBTYPE_PTR_xxx */
+  BMO_OP_SLOT_PTR = 4, /* requires subtype BMO_OP_SLOT_SUBTYPE_PTR_xxx */
   BMO_OP_SLOT_MAT = 5,
   BMO_OP_SLOT_VEC = 8,
 
@@ -212,7 +212,7 @@ typedef enum eBMOpSlotType {
    *
    * it's very important this remain a power of two */
   BMO_OP_SLOT_ELEMENT_BUF = 9, /* list of verts/edges/faces */
-  BMO_OP_SLOT_MAPPING = 10     /* simple hash map, requres subtype BMO_OP_SLOT_SUBTYPE_MAP_xxx */
+  BMO_OP_SLOT_MAPPING = 10     /* simple hash map, requires subtype BMO_OP_SLOT_SUBTYPE_MAP_xxx */
 } eBMOpSlotType;
 #define BMO_OP_SLOT_TOTAL_TYPES 11
 

@@ -152,7 +152,7 @@ void OSLShaderManager::device_update(Device *device,
   {
     /* Perform greedyjit optimization.
      *
-     * This might waste time on optimizing gorups which are never actually
+     * This might waste time on optimizing groups which are never actually
      * used, but this prevents OSL from allocating data on TLS at render
      * time.
      *

@@ -11,7 +11,7 @@ uniform vec3 volumeOrcoSize;
 
 flat in int slice;
 
-/* Warning: theses are not attributes, theses are global vars. */
+/* Warning: these are not attributes, these are global vars. */
 vec3 worldPosition = vec3(0.0);
 vec3 viewPosition = vec3(0.0);
 vec3 viewNormal = vec3(0.0);

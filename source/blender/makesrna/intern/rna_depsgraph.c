@@ -346,7 +346,7 @@ static void rna_Depsgraph_object_instances_next(CollectionPropertyIterator *iter
   RNA_Depsgraph_Instances_Iterator *di_it = (RNA_Depsgraph_Instances_Iterator *)
                                                 iter->internal.custom;
 
-  /* We need to copy current iterator status to next one beeing worked on. */
+  /* We need to copy current iterator status to next one being worked on. */
   di_it->iterators[(di_it->counter + 1) % 2] = di_it->iterators[di_it->counter % 2];
   di_it->deg_data[(di_it->counter + 1) % 2] = di_it->deg_data[di_it->counter % 2];
   di_it->counter++;

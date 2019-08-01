@@ -1,7 +1,7 @@
 
 layout(std140) uniform shadow_render_block
 {
-  /* Use vectors to avoid alignement padding. */
+  /* Use vectors to avoid alignment padding. */
   ivec4 shadowSampleCount;
   vec4 shadowInvSampleCount;
   vec4 filterSize;

@@ -716,7 +716,7 @@ static bool fluid_init_filepaths(Main *bmain,
   /* .tmp: don't overwrite/delete original file */
   BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
 
-  /* Ensure whole path exists and is wirtable. */
+  /* Ensure whole path exists and is writeable. */
   const bool dir_exists = BLI_dir_create_recursive(targetDir);
   const bool is_writable = BLI_file_is_writable(targetFile);
 
@@ -749,7 +749,7 @@ static bool fluid_init_filepaths(Main *bmain,
     /* .tmp: don't overwrite/delete original file */
     BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
 
-    /* Ensure whole path exists and is wirtable. */
+    /* Ensure whole path exists and is writeable. */
     if (!BLI_dir_create_recursive(targetDir) || !BLI_file_is_writable(targetFile)) {
       BKE_reportf(reports,
                   RPT_ERROR,

@@ -84,7 +84,7 @@ void ColorBlock::init(uint w, uint h, const uint *data, uint x, uint y)
   const uint bh = MIN(h - y, 4U);
 
   // Blocks that are smaller than 4x4 are handled by repeating the pixels.
-  // @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
+  // @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
   // @@ Ideally we should zero the weights of the pixels out of range.
 
   for (uint i = 0; i < 4; i++) {
@@ -105,7 +105,7 @@ void ColorBlock::init(uint w, uint h, const float *data, uint x, uint y)
   const uint bh = MIN(h - y, 4U);
 
   // Blocks that are smaller than 4x4 are handled by repeating the pixels.
-  // @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
+  // @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
   // @@ Ideally we should zero the weights of the pixels out of range.
 
   uint srcPlane = w * h;

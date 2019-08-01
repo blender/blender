@@ -782,7 +782,7 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
     return;
   }
 
-  /* Copy the whole displacement branch to avoid cyclic dependancy
+  /* Copy the whole displacement branch to avoid cyclic dependency
    * and issue when bypassing bump nodes. */
   ntree_shader_copy_branch_displacement(
       ntree, displacement_node, displacement_socket, displacement_link);

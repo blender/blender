@@ -700,7 +700,7 @@ static void rna_def_image(BlenderRNA *brna)
        "PREMUL",
        0,
        "Premultiplied",
-       "Store RGB channels with alpha multipled in, also known as associated alpha. The natural "
+       "Store RGB channels with alpha multiplied in, also known as associated alpha. The natural "
        "format for renders and used by file formats like OpenEXR"},
       {IMA_ALPHA_CHANNEL_PACKED,
        "CHANNEL_PACKED",

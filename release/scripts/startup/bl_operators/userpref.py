@@ -93,7 +93,7 @@ class PREFERENCES_OT_copy_prev(Operator):
         old = cls._old_path()
         new = cls._new_path()
 
-        # Disable operator in case config path is overriden with environment
+        # Disable operator in case config path is overridden with environment
         # variable. That case has no automatic per-version configuration.
         userconfig_path = os.path.normpath(bpy.utils.user_resource('CONFIG'))
         new_userconfig_path = os.path.normpath(os.path.join(new, "config"))

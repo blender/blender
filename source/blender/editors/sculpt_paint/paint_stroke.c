@@ -1329,7 +1329,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     redraw = true;
   }
 
-  /* do updates for redraw. if event is inbetween mousemove there are more
+  /* do updates for redraw. if event is in between mouse-move there are more
    * coming, so postpone potentially slow redraw updates until all are done */
   if (event->type != INBETWEEN_MOUSEMOVE) {
     wmWindow *window = CTX_wm_window(C);

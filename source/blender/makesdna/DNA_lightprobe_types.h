@@ -142,7 +142,7 @@ typedef struct LightGridCache {
   float visibility_bias, visibility_bleed, visibility_range, _pad5;
 } LightGridCache;
 
-/* Theses are used as ubo data. They need to be aligned to size of vec4. */
+/* These are used as ubo data. They need to be aligned to size of vec4. */
 BLI_STATIC_ASSERT_ALIGN(LightProbeCache, 16)
 BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 

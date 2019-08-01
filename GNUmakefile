@@ -44,7 +44,7 @@ Convenience Targets
 
 
 Project Files
-   Generate poject files for development environments.
+   Generate project files for development environments.
 
    * project_qtcreator:     QtCreator Project Files.
    * project_netbeans:      NetBeans Project Files.

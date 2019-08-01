@@ -2696,7 +2696,7 @@ void ED_region_header_init(ARegion *ar)
 
 int ED_area_headersize(void)
 {
-  /* Accomodate widget and padding. */
+  /* Accommodate widget and padding. */
   return U.widget_unit + (int)(UI_DPI_FAC * HEADER_PADDING_Y);
 }
 

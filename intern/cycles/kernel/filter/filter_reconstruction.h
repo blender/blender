@@ -108,7 +108,7 @@ ccl_device_inline void kernel_filter_finalize(int x,
 
   /* The weighted average of pixel colors (essentially, the NLM-filtered image).
    * In case the solution of the linear model fails due to numerical issues or
-   * returns non-sensical negative values, fall back to this value. */
+   * returns nonsensical negative values, fall back to this value. */
   float3 mean_color = XtWY[0] / XtWX[0];
 
   math_trimatrix_vec3_solve(XtWX, XtWY, (*rank) + 1, stride);

@@ -27,7 +27,7 @@ struct Stream {
   unsigned char *mem;  // location in memory
   unsigned int size;   // size
   unsigned int pos;    // current position
-  bool failed;         // error occured when seeking
+  bool failed;         // error occurred when seeking
   Stream(unsigned char *m, unsigned int s) : mem(m), size(s), pos(0), failed(false)
   {
   }

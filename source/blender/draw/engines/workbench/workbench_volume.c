@@ -161,7 +161,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
                          sds->slice_axis - 1;
     float dim[3];
     BKE_object_dimensions_get(ob, dim);
-    /* 0.05f to acheive somewhat the same opacity as the full view.  */
+    /* 0.05f to achieve somewhat the same opacity as the full view.  */
     float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);

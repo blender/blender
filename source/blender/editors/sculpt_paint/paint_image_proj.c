@@ -3215,7 +3215,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
        * clipped by the bucket's screen aligned rectangle. */
       float bucket_clip_edges[2][2];
       float edge_verts_inset_clip[2][3];
-      /* face edge pairs - loop throuh these:
+      /* face edge pairs - loop through these:
        * ((0,1), (1,2), (2,3), (3,0)) or ((0,1), (1,2), (2,0)) for a tri */
       int fidx1, fidx2;
 

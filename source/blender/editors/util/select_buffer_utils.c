@@ -216,7 +216,7 @@ uint ED_select_buffer_sample_point(const int center[2])
 /**
  * Find the selection id closest to \a center.
  * \param dist[in,out]: Use to initialize the distance,
- * when found, this value is set to the distance of the selection thats returned.
+ * when found, this value is set to the distance of the selection that's returned.
  */
 uint ED_select_buffer_find_nearest_to_point(const int center[2],
                                             const uint id_min,

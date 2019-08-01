@@ -96,7 +96,7 @@ void main()
 
   FragColor = safe_color(color_history);
   /* There is some ghost issue if we use the alpha
-   * in the viewport. Overwritting alpha fixes it. */
+   * in the viewport. Overwriting alpha fixes it. */
   FragColor.a = color.a;
 }
 

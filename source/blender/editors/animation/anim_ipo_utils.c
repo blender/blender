@@ -238,6 +238,6 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
   /* value is fixed at 1.0f, otherwise we cannot clearly see the curves... */
   hsv[2] = 1.0f;
 
-  /* finally, conver this to RGB colors */
+  /* finally, convert this to RGB colors */
   hsv_to_rgb_v(hsv, out);
 }

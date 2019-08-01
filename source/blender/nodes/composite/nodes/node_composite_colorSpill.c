@@ -23,7 +23,7 @@
 
 #include "node_composite_util.h"
 
-/* ******************* Color Spill Supression ********************************* */
+/* ******************* Color Spill Suppression ********************************* */
 static bNodeSocketTemplate cmp_node_color_spill_in[] = {
     {SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
     {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},

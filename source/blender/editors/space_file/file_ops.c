@@ -1757,7 +1757,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
                               (middle_offset - min_middle_offset < items_block_size));
   /* OR edited item must be towards the end, and we are scrolled fully to the end.
    * This one is crucial (unlike the one for the beginning), because without it we won't scroll
-   * fully to the end, and last column or row wil end up only partially drawn. */
+   * fully to the end, and last column or row will end up only partially drawn. */
   const bool is_full_end = ((sfile->scroll_offset > max_middle_offset) &&
                             (max_tot_scroll - max_curr_scroll < 1.0f) &&
                             (max_middle_offset - middle_offset < items_block_size));

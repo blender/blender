@@ -792,7 +792,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
 
   INIT_MINMAX(min, max);
   if (part->type == PART_HAIR) {
-    /* TOOD(sergey): Not supported currently. */
+    /* TODO(sergey): Not supported currently. */
     return;
   }
 

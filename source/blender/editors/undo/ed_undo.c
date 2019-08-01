@@ -739,7 +739,7 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint bases_len = 0;
-  /* Don't request unique data because we wan't to de-select objects when exiting edit-mode
+  /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
   for (uint i = 0; i < bases_len; i++) {

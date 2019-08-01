@@ -554,7 +554,7 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
       /* Final integration: We compute for each froxel the
        * amount of scattered light and extinction coef at this
-       * given depth. We use theses textures as double buffer
+       * given depth. We use these textures as double buffer
        * for the volumetric history. */
       txl->volume_scatter_history = DRW_texture_create_3d(
           tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);

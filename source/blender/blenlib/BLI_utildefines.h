@@ -788,7 +788,7 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 /** Useful for debugging. */
 #define AT __FILE__ ":" STRINGIFY(__LINE__)
 
-/** No-op for expressions we don't want to instansiate, but must remian valid. */
+/** No-op for expressions we don't want to instantiate, but must remain valid. */
 #define EXPR_NOP(expr) (void)(0 ? ((void)(expr), 1) : 0)
 
 /** \} */

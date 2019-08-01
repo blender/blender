@@ -519,7 +519,7 @@ enum {
   /* operation requested not to perform recursive digging for current path */
   RecursiveOp_Callback_StopRecurs = 1,
 
-  /* error occured in callback and recursive walking should stop immediately */
+  /* error occurred in callback and recursive walking should stop immediately */
   RecursiveOp_Callback_Error = 2,
 };
 

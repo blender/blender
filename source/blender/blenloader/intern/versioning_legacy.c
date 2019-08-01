@@ -1181,7 +1181,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     /* new variable blockscale, for panels in any area, do again because new
-     * areas didnt initialize it to 0.7 yet
+     * areas didn't initialize it to 0.7 yet
      */
     for (sc = bmain->screens.first; sc; sc = sc->id.next) {
       ScrArea *sa;
@@ -1782,7 +1782,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      /* copy old object level track settings to curve modifers */
+      /* copy old object level track settings to curve modifiers */
       for (md = ob->modifiers.first; md; md = md->next) {
         if (md->type == eModifierType_Curve) {
           CurveModifierData *cmd = (CurveModifierData *)md;

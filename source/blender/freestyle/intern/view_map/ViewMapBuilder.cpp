@@ -1123,7 +1123,7 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
   GridHelpers::getDefaultViewProscenium(occluderProscenium);
 
   // N.B. Freestyle is inconsistent in its use of ViewMap::viewedges_container and
-  // vector<ViewEdge*>::iterator. Probably all occurences of vector<ViewEdge*>::iterator should be
+  // vector<ViewEdge*>::iterator. Probably all occurrences of vector<ViewEdge*>::iterator should be
   // replaced ViewMap::viewedges_container throughout the code. For each view edge
   ViewMap::viewedges_container::iterator ve, veend;
 

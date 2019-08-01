@@ -1132,7 +1132,7 @@ static void drw_engines_cache_populate(Object *ob)
     drw_batch_cache_generate_requested(ob);
   }
 
-  /* ... and clearing it here too because theses draw data are
+  /* ... and clearing it here too because this draw data is
    * from a mempool and must not be free individually by depsgraph. */
   drw_drawdata_unlink_dupli((ID *)ob);
 }

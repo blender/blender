@@ -1357,7 +1357,7 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
     copy_v3_v3(pro->plane_co, co1);
   }
   else if (bndv->is_arc_start) {
-    /* assume pro->midco was alredy set */
+    /* assume pro->midco was already set */
     copy_v3_v3(pro->coa, co1);
     copy_v3_v3(pro->cob, co2);
     pro->super_r = PRO_CIRCLE_R;
@@ -2295,7 +2295,7 @@ static void build_boundary_terminal_edge(BevelParams *bp,
     else {
       adjust_bound_vert(e->rightv, co);
     }
-    /* make artifical extra point along unbeveled edge, and form triangle */
+    /* make artificial extra point along unbeveled edge, and form triangle */
     slide_dist(e->next, bv->v, e->offset_l, co);
     if (construct) {
       v = add_new_bound_vert(mem_arena, vm, co);

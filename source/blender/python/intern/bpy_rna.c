@@ -1857,7 +1857,7 @@ static int pyrna_py_to_prop(
           else {
             /* Same as bytes. */
             /* XXX, this is suspect, but needed for function calls,
-             * need to see if theres a better way. */
+             * need to see if there's a better way. */
             if (data) {
               *((char **)data) = (char *)param;
             }

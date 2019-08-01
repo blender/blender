@@ -55,12 +55,12 @@ class IndexedFaceSet : public Rep {
   /*! Builds an indexed face set
    *    iVertices
    *      The array of object vertices 3D coordinates (for all faces).
-   *      If iCopy != 0, the array is copied; you must desallocate iVertices. Else you must not.
+   *      If iCopy != 0, the array is copied; you must deallocate iVertices. Else you must not.
    *    iVSize
    *      The size of iVertices (must be a multiple of 3)
    *    iNormals
    *      The array of object normals 3D coordinates.
-   *      If iCopy != 0, the array is copied; you must desallocate iNormals. Else you must not.
+   *      If iCopy != 0, the array is copied; you must deallocate iNormals. Else you must not.
    *    iNSize
    *      The size of iNormals
    *    iMaterials
@@ -81,17 +81,17 @@ class IndexedFaceSet : public Rep {
    *        - TRIANGLE_STRIP: the face indices describe a triangle strip
    *        - TRIANGLE_FAN  : the face indices describe a triangle fan
    *        - TRIANGLES     : the face indices describe single triangles
-   *      If iCopy != 0, the array is copied; you must desallocate iFaceStyle. Else you must not.
+   *      If iCopy != 0, the array is copied; you must deallocate iFaceStyle. Else you must not.
    *    iVIndices,
    *      Array of vertices indices.
    *      The integers contained in this array must be multiple of 3.
-   *      If iCopy != 0, the array is copied; you must desallocate iVIndices. Else you must not.
+   *      If iCopy != 0, the array is copied; you must deallocate iVIndices. Else you must not.
    *    iVISize
    *      The size of iVIndices.
    *    iNIndices
    *      Array of normals indices.
    *      The integers contained in this array must be multiple of 3.
-   *      If iCopy != 0, the array is copied; you must desallocate iNIndices. Else you must not.
+   *      If iCopy != 0, the array is copied; you must deallocate iNIndices. Else you must not.
    *    iNISize
    *      The size of iNIndices
    *    iMIndices

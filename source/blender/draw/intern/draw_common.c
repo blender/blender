@@ -939,7 +939,7 @@ struct DRWCallBuffer *buffer_instance_bone_stick(DRWPass *pass, eGPUShaderConfig
       {
           {"boneStart", DRW_ATTR_FLOAT, 3},
           {"boneEnd", DRW_ATTR_FLOAT, 3},
-          {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO port theses to uchar color */
+          {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO port these to uchar color */
           {"boneColor", DRW_ATTR_FLOAT, 4},
           {"headColor", DRW_ATTR_FLOAT, 4},
           {"tailColor", DRW_ATTR_FLOAT, 4},

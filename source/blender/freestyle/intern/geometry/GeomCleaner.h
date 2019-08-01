@@ -72,7 +72,7 @@ class GeomCleaner {
                                      unsigned **oIndices);
 
   /*! Compress a SORTED indexed vertex array by eliminating multiple
-   *  appearing occurences of a single vertex.
+   *  appearing occurrences of a single vertex.
    *    iVertices
    *      The SORTED vertex array to compress.
    *      It is organized as a float series of vertex coordinates: XYZXYZXYZ...

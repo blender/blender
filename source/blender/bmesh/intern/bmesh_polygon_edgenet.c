@@ -496,7 +496,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   }
 
   /* These arrays used to be stack memory, however they can be
-   * large for singe faces with complex edgenets, see: T65980. */
+   * large for single faces with complex edgenets, see: T65980. */
 
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
   edge_order = MEM_mallocN(sizeof(*edge_order) * edge_order_len, __func__);
@@ -766,7 +766,7 @@ struct EdgeGroupIsland {
   /* Set the following vars once we have >1 groups */
 
   /* when an edge in a previous group connects to this one,
-   * so theres no need to create one pointing back. */
+   * so there's no need to create one pointing back. */
   uint has_prev_edge : 1;
 
   /* verts in the group which has the lowest & highest values,
@@ -1000,7 +1000,7 @@ static int bm_face_split_edgenet_find_connection(const struct EdgeGroup_FindConn
    *   until a vertex is found which isn't blocked by an edge.
    *
    * \note It's possible none of the verts can be accessed (with self-intersecting lines).
-   * In that case theres no right answer (without subdividing edges),
+   * In that case there's no right answer (without subdividing edges),
    * so return a fall-back vertex in that case.
    */
 

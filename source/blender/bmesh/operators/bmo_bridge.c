@@ -515,7 +515,7 @@ static void bridge_loop_pair(BMesh *bm,
     }
 
     BMO_op_exec(bm, &op_sub);
-    /* there may also be tagged faces that didnt rotate, mark input */
+    /* there may also be tagged faces that didn't rotate, mark input */
 
     if (use_edgeout) {
       BMOIter siter;

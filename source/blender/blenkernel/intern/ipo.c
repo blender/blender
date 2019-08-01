@@ -1097,7 +1097,7 @@ static char *get_rna_access(ID *id,
 
   BLI_dynstr_append(path, buf);
 
-  /* need to add dot before property if there was anything precceding this */
+  /* need to add dot before property if there was anything preceding this */
   if (buf[0]) {
     BLI_dynstr_append(path, ".");
   }

@@ -55,9 +55,9 @@ struct BLI_memblock {
   int chunk_max_ofs;
   /** Id of the chunk used for the next allocation. */
   int chunk_next;
-  /** Chunck size in bytes. */
+  /** Chunk size in bytes. */
   int chunk_size;
-  /** Number of allocated chunck. */
+  /** Number of allocated chunk. */
   int chunk_len;
 };
 
@@ -123,7 +123,7 @@ void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP free_callback)
 
 void *BLI_memblock_alloc(BLI_memblock *mblk)
 {
-  /* Bookeeping. */
+  /* Bookkeeping. */
   if (mblk->elem_last < mblk->elem_next) {
     mblk->elem_last = mblk->elem_next;
   }

@@ -194,13 +194,13 @@ class StrokeAttribute {
    */
   Vec3f getAttributeVec3f(const char *iName) const;
 
-  /*! Checks whether the attribute iName is availbale */
+  /*! Checks whether the attribute iName is available */
   bool isAttributeAvailableReal(const char *iName) const;
 
-  /*! Checks whether the attribute iName is availbale */
+  /*! Checks whether the attribute iName is available */
   bool isAttributeAvailableVec2f(const char *iName) const;
 
-  /*! Checks whether the attribute iName is availbale */
+  /*! Checks whether the attribute iName is available */
   bool isAttributeAvailableVec3f(const char *iName) const;
 
   /* modifiers */
@@ -766,7 +766,7 @@ class Stroke : public Interface1D {
     _textureId = id;
   }
 
-  /*! sets the spacing of texture coordinates along the stroke lenght. */
+  /*! sets the spacing of texture coordinates along the stroke length. */
   inline void setTextureStep(float step)
   {
     _textureStep = step;

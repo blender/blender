@@ -47,8 +47,8 @@ typedef struct {
 /* Keep alignment for readability. */
 /* clang-format off */
 /**
- * When editing enusre that:
- * - Plural need to match rna_main.c's #MainCollectionDef.
+ * When editing ensure that:
+ * - Plural needs to match rna_main.c's #MainCollectionDef.
  * - Keep it in sync with i18n contexts in BLT_translation.h
  */
 static IDType idtypes[] = {

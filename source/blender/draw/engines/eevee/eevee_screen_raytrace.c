@@ -44,7 +44,7 @@ static struct {
   /* Screen Space Reflection */
   struct GPUShader *ssr_sh[SSR_MAX_SHADER];
 
-  /* Theses are just references, not actually allocated */
+  /* These are just references, not actually allocated */
   struct GPUTexture *depth_src;
   struct GPUTexture *color_src;
 } e_data = {{NULL}}; /* Engine data */

@@ -241,7 +241,7 @@ ForEachMacros:
   - SEQ_BEGIN
   - foreach
 
-# Use once we bump the minimum verison to version 8.
+# Use once we bump the minimum version to version 8.
 # # Without this string literals that in-line 'STRINGIFY' behave strangely (a bug?).
 # StatementMacros:
 #   - PyObject_VAR_HEAD

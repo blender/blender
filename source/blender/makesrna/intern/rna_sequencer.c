@@ -161,7 +161,7 @@ static void rna_Sequence_use_sequence(Main *bmain, Scene *scene, PointerRNA *ptr
 {
   /* General update callback. */
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
-  /* Chaning recursion changes set of IDs which needs to be remapped by the copy-on-write.
+  /* Changing recursion changes set of IDs which needs to be remapped by the copy-on-write.
    * the only way for this currently is to tag the ID for ID_RECALC_COPY_ON_WRITE. */
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   if (ed) {

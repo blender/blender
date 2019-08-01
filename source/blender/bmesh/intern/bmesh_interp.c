@@ -39,7 +39,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-/* edge and vertex share, currently theres no need to have different logic */
+/* edge and vertex share, currently there's no need to have different logic */
 static void bm_data_interp_from_elem(CustomData *data_layer,
                                      const BMElem *ele_src_1,
                                      const BMElem *ele_src_2,

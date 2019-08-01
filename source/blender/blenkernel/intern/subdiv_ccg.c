@@ -973,7 +973,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
     prev_grid = grid;
   }
   /* Average all grids centers into a single accumulator, and share it.
-   * Guarantees corrent and smooth averaging in the center. */
+   * Guarantees correct and smooth averaging in the center. */
   GridElementAccumulator center_accumulator;
   element_accumulator_init(&center_accumulator);
   for (int corner = 0; corner < num_face_grids; corner++) {

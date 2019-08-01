@@ -46,7 +46,7 @@ vec3 get_view_space_from_depth(in vec2 uvcoords, in float depth)
   }
 }
 
-/* forward declartion */
+/* forward declaration */
 void ssao_factors(in float depth,
                   in vec3 normal,
                   in vec3 position,

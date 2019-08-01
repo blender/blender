@@ -1122,7 +1122,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
 
-    /* Percentage Chane... */
+    /* Percentage Change... */
     case MOUSEMOVE: /* calculate new position */
     {
       /* only handle mousemove if not doing numinput */

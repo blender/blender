@@ -165,7 +165,7 @@ void Grid::insertOccluder(Polygon3r *occluder)
   Vec3r min, max;
   occluder->getBBox(min, max);
 
-  // Retrieve the cell x, y, z cordinates associated with these min and max
+  // Retrieve the cell x, y, z coordinates associated with these min and max
   Vec3u imax, imin;
   getCellCoordinates(max, imax);
   getCellCoordinates(min, imin);
@@ -245,7 +245,7 @@ bool Grid::nextRayCell(Vec3u &current_cell, Vec3u &next_cell)
   unsigned coord = 0;  // predominant coord(0=x, 1=y, 2=z)
 
   // using a parametric equation of a line : B = A + t u, we find the tx, ty and tz respectively
-  // coresponding to the intersections with the plans:
+  // corresponding to the intersections with the plans:
   //     x = _cell_size[0], y = _cell_size[1], z = _cell_size[2]
   for (i = 0; i < 3; i++) {
     if (_ray_dir[i] == 0) {

@@ -1275,7 +1275,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   /* Rendering happens here! */
   eevee_lightbake_render_scene_to_planars(sldata, vedata);
 
-  /* Make sure no aditionnal visibility check runs after this. */
+  /* Make sure no additional visibility check runs after this. */
   pinfo->vis_data.collection = NULL;
 
   DRW_uniformbuffer_update(sldata->planar_ubo, &sldata->probes->planar_data);

@@ -3710,7 +3710,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
     case SEQ_TYPE_SCENE: {
       if (seq->flag & SEQ_SCENE_STRIPS) {
         if (seq->scene && (context->scene != seq->scene)) {
-          /* recusrive check */
+          /* recursive check */
           if (BLI_linklist_index(state->scene_parents, seq->scene) != -1) {
             break;
           }
@@ -5835,7 +5835,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   /* When using SEQ_DUPE_UNIQUE_NAME, it is mandatory to add new sequences in relevant container
    * (scene or meta's one), *before* checking for unique names. Otherwise the meta's list is empty
    * and hence we miss all seqs in that meta that have already been duplicated (see T55668).
-   * Note that unique name check itslef could be done at a later step in calling code, once all
+   * Note that unique name check itself could be done at a later step in calling code, once all
    * seqs have bee duplicated (that was first, simpler solution), but then handling of animation
    * data will be broken (see T60194). */
   if (new_seq_list != NULL) {

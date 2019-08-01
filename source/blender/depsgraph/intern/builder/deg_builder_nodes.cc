@@ -623,7 +623,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     is_parent_collection_visible_ = is_current_parent_collection_visible;
     add_operation_node(&object->id, NodeType::DUPLI, OperationCode::DUPLI);
   }
-  /* Syncronization back to original object. */
+  /* Synchronization back to original object. */
   add_operation_node(&object->id,
                      NodeType::SYNCHRONIZATION,
                      OperationCode::SYNCHRONIZE_TO_ORIGINAL,

@@ -2739,7 +2739,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
   int *new_n_num = MEM_callocN(sizeof(int) * active_points, "Surface Adj Counts");
 
   if (new_n_num && new_n_index) {
-    /* Count symmetrized neigbors */
+    /* Count symmetrized neighbors */
     int total_targets = 0;
 
     for (int index = 0; index < active_points; index++) {

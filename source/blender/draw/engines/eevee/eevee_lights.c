@@ -1347,7 +1347,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 
   int saved_ray_type = sldata->common_data.ray_type;
 
-  /* TODO: make it optionnal if we don't draw shadows. */
+  /* TODO: make it optional if we don't draw shadows. */
   sldata->common_data.ray_type = EEVEE_RAY_SHADOW;
   DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 

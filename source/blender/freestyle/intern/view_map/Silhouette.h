@@ -620,7 +620,7 @@ class FEdge : public Interface1D {
     return _VertexB;
   }
 
-  /*! Returns the first SVertex if i=0, the seccond SVertex if i=1. */
+  /*! Returns the first SVertex if i=0, the second SVertex if i=1. */
   inline SVertex *operator[](const unsigned short int &i) const
   {
     return (i % 2 == 0) ? _VertexA : _VertexB;
@@ -1433,7 +1433,7 @@ class SShape {
 
  public:
   /*! A field that can be used by the user to store any data.
-   *  This field must be reseted afterwards using ResetUserData().
+   *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;  // added by E.T.
 

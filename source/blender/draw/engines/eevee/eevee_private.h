@@ -633,7 +633,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *source_buffer;     /* latest updated texture */
   struct GPUFrameBuffer *target_buffer; /* next target to render to */
   struct GPUTexture *final_tx;          /* Final color to transform to display color space. */
-  struct GPUFrameBuffer *final_fb;      /* Framebuffer with final_tx as attachement. */
+  struct GPUFrameBuffer *final_fb;      /* Framebuffer with final_tx as attachment. */
 } EEVEE_EffectsInfo;
 
 /* ***************** COMMON DATA **************** */
@@ -761,8 +761,8 @@ typedef struct EEVEE_ShadowCascadeData {
   float radius[MAX_CASCADE_NUM];
 } EEVEE_ShadowCascadeData;
 
-/* Theses are the structs stored inside Objects.
- * It works with even if the object is in multiple layers
+/* These are the structs stored inside Objects.
+ * It works even if the object is in multiple layers
  * because we don't get the same "Object *" for each layer. */
 typedef struct EEVEE_LightEngineData {
   DrawData dd;

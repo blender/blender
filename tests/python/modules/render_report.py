@@ -447,7 +447,7 @@ class Report:
                 remaining_filepaths.pop(0)
 
                 if crash:
-                    # In case of crash, stop after missing files and re-render remaing
+                    # In case of crash, stop after missing files and re-render remaining
                     if not os.path.exists(output_filepath):
                         errors.append("CRASH")
                         print_message("Crash running Blender")

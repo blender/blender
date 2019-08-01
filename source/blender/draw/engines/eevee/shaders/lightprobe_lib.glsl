@@ -261,7 +261,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
   float weight_accum = 0.0;
   vec3 irradiance_accum = vec3(0.0);
 
-  /* For each neighboor cells */
+  /* For each neighbor cells */
   for (int i = 0; i < 8; ++i) {
     ivec3 offset = ivec3(i, i >> 1, i >> 2) & ivec3(1);
     vec3 cell_cos = clamp(localpos_floored + vec3(offset), vec3(0.0), vec3(gd.g_resolution) - 1.0);

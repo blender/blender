@@ -310,7 +310,7 @@ static int material_slot_de_select(bContext *C, bool select)
     }
     else {
       /* Find the first matching material.
-       * Note: there may be multiple but thats not a common use case. */
+       * Note: there may be multiple but that's not a common use case. */
       for (short i = 0; i < ob->totcol; i++) {
         const Material *mat = give_current_material(ob, i + 1);
         if (mat_active == mat) {

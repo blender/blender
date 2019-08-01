@@ -1092,7 +1092,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
     float z = l->v->co[2];
     float len = len_v3(l->v->co);
 
-    /* Use neigboring point to compute angle for poles. */
+    /* Use neighboring point to compute angle for poles. */
     float theta;
     if (f->len == 3 && fabsf(x) < 0.0001f && fabsf(y) < 0.0001f) {
       theta = atan2f(avgy, avgx);

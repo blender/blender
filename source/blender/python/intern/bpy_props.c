@@ -2968,7 +2968,7 @@ PyDoc_STRVAR(
     "      The first three elements of the tuples are mandatory.\n"
     "\n"
     "      :identifier: The identifier is used for Python access.\n"
-    "      :name: Name for the interace.\n"
+    "      :name: Name for the interface.\n"
     "      :description: Used for documentation and tooltips.\n"
     "      :icon: An icon string identifier or integer icon value\n"
     "         (e.g. returned by :class:`bpy.types.UILayout.icon`)\n"

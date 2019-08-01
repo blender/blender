@@ -254,7 +254,7 @@ void register_node_type_sh_group(void)
 
 void register_node_type_sh_custom_group(bNodeType *ntype)
 {
-  /* These methods can be overriden but need a default implementation otherwise. */
+  /* These methods can be overridden but need a default implementation otherwise. */
   if (ntype->poll == NULL) {
     ntype->poll = sh_node_poll_default;
   }

@@ -70,7 +70,7 @@ static bool last_redo_poll(const bContext *C, short region_type)
 
   bool success = false;
   {
-    /* Make sure that we are using the same region type as the originial
+    /* Make sure that we are using the same region type as the original
      * operator call. Otherwise we would be polling the operator with the
      * wrong context.
      */
