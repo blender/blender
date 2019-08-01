@@ -1093,10 +1093,11 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, NULL);
   if (read_mesh != mesh) {
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
-
     /* XXX fixme after 2.80; mesh->flag isn't copied by BKE_mesh_nomain_to_mesh() */
-    mesh->flag |= (read_mesh->flag & ME_AUTOSMOOTH);
+    /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
+    short autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
+    mesh->flag |= autosmooth;
   }
 
   if (m_settings->validate_meshes) {
