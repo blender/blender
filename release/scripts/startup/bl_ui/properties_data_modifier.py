@@ -1685,6 +1685,9 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row = col.row()
         row.enabled = md.random
         row.prop(md, "step")
+        row = col.row()
+        row.enabled = md.random
+        row.prop(md, "seed")
         col.prop(md, "full_stroke")
         col.prop(md, "move_extreme")
 

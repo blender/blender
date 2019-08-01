@@ -26,9 +26,8 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_math_vector.h"
+#include "BLI_hash.h"
 #include "BLI_rand.h"
-
-#include "PIL_time.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -58,20 +57,7 @@ static void initData(GpencilModifierData *md)
   gpmd->layername[0] = '\0';
   gpmd->vgname[0] = '\0';
   gpmd->step = 1;
-  gpmd->scene_frame = -999999;
-  gpmd->gp_frame = -999999;
-
-  gpmd->vrand1 = 1.0;
-  gpmd->vrand2 = 1.0;
-}
-
-static void freeData(GpencilModifierData *md)
-{
-  NoiseGpencilModifierData *mmd = (NoiseGpencilModifierData *)md;
-
-  if (mmd->rng != NULL) {
-    BLI_rng_free(mmd->rng);
-  }
+  gpmd->seed = 0;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -85,21 +71,6 @@ static bool dependsOnTime(GpencilModifierData *md)
   return (mmd->flag & GP_NOISE_USE_RANDOM) != 0;
 }
 
-/* Get the lower number of frame for all layers. */
-static int get_lower_frame(bGPdata *gpd)
-{
-  int init = 99999;
-  for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-    if (gpl->frames.first) {
-      bGPDframe *gpf = gpl->frames.first;
-      if (gpf->framenum < init) {
-        init = gpf->framenum;
-      }
-    }
-  }
-  return init;
-}
-
 /* aply noise effect based on stroke direction */
 static void deformStroke(
     GpencilModifierData *md, Depsgraph *depsgraph, Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
@@ -111,25 +82,9 @@ static void deformStroke(
   float normal[3];
   float vec1[3], vec2[3];
   int sc_frame = 0;
-  int sc_diff = 0;
+  int stroke_seed = 0;
   const int def_nr = defgroup_name_index(ob, mmd->vgname);
   const float unit_v3[3] = {1.0f, 1.0f, 1.0f};
-
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-  GpencilModifierData *md_eval = BKE_gpencil_modifiers_findByName(object_eval, md->name);
-  NoiseGpencilModifierData *mmd_eval = (NoiseGpencilModifierData *)md_eval;
-  bGPdata *gpd = (bGPdata *)ob->data;
-
-  /* Random generator, only init once. (it uses eval to get same value in render) */
-  if (mmd_eval->rng == NULL) {
-    uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-    rng_seed ^= POINTER_AS_UINT(mmd);
-    mmd_eval->rng = BLI_rng_new(rng_seed);
-    mmd->rng = mmd_eval->rng;
-    /* Get lower frame number */
-    mmd_eval->scene_frame = get_lower_frame(gpd);
-    mmd->scene_frame = mmd_eval->scene_frame;
-  }
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -200,22 +155,14 @@ static void deformStroke(
     normalize_v3(vec2);
     /* Use random noise */
     if (mmd->flag & GP_NOISE_USE_RANDOM) {
-      sc_diff = abs(sc_frame - mmd->scene_frame) % mmd->step;
-      /* Only recalc if the gp frame change or is a step. */
-      if ((mmd->gp_frame != sc_frame) && (sc_diff == 0)) {
-        vran = mmd->vrand1 = BLI_rng_get_float(mmd->rng);
-        vdir = mmd->vrand2 = BLI_rng_get_float(mmd->rng);
-        mmd->gp_frame = sc_frame;
+      stroke_seed = BLI_hash_int_2d((sc_frame / mmd->step) + gps->totpoints, mmd->seed + 1);
+      vran = BLI_hash_frand(stroke_seed);
+      if (mmd->flag & GP_NOISE_FULL_STROKE) {
+        vdir = BLI_hash_frand(stroke_seed + 3);
       }
       else {
-        vran = mmd->vrand1;
-        if (mmd->flag & GP_NOISE_FULL_STROKE) {
-          vdir = mmd->vrand2;
-        }
-        else {
-          int f = (mmd->vrand2 * 10.0f) + i;
-          vdir = f % 2;
-        }
+        int f = (BLI_hash_frand(stroke_seed + 3) * 10.0f) + i;
+        vdir = f % 2;
       }
     }
     else {
@@ -226,7 +173,6 @@ static void deformStroke(
       else {
         vdir = i % 2;
       }
-      mmd->gp_frame = -999999;
     }
 
     /* if vec2 is zero, set to something */
@@ -314,7 +260,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Noise = {
     /* remapTime */ NULL,
 
     /* initData */ initData,
-    /* freeData */ freeData,
+    /* freeData */ NULL,
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ dependsOnTime,

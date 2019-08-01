@@ -90,16 +90,10 @@ typedef struct NoiseGpencilModifierData {
   float factor;
   /** How many frames before recalculate randoms. */
   int step;
-  /** Last gp frame used. */
-  int gp_frame;
-  /** First scene frame used. */
-  int scene_frame;
-  /** Random values. */
-  float vrand1, vrand2;
-  struct RNG *rng;
   /** Custom index for passes. */
   int layer_pass;
-  char _pad[4];
+  /** Random seed */
+  int seed;
 } NoiseGpencilModifierData;
 
 typedef enum eNoiseGpencil_Flag {
