@@ -1469,15 +1469,6 @@ void BKE_mask_evaluate(Mask *mask, const float ctime, const bool do_newframe)
   }
 }
 
-void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const bool do_newframe)
-{
-  Mask *mask;
-
-  for (mask = bmain->masks.first; mask; mask = mask->id.next) {
-    BKE_mask_evaluate(mask, ctime, do_newframe);
-  }
-}
-
 void BKE_mask_parent_init(MaskParent *parent)
 {
   parent->id_type = ID_MC;

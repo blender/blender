@@ -1680,7 +1680,6 @@ static void do_render_all_options(Render *re)
 {
   Object *camera;
   bool render_seq = false;
-  int cfra = re->r.cfra;
 
   re->current_scene_update(re->suh, re->scene);
 
@@ -1691,16 +1690,6 @@ static void do_render_all_options(Render *re)
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
   BKE_sequencer_all_free_anim_ibufs(re->scene, re->r.cfra);
-
-  /* Update for sequencer and compositing animation.
-   * TODO: ideally we would create a depsgraph with a copy of the scene
-   * like the render engine, but sequencer and compositing do not (yet?)
-   * work with copy-on-write. */
-  BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra);
-
-  /* Update for masks
-   * (these do not use animsys but own lighter weight structure to define animation). */
-  BKE_mask_evaluate_all_masks(re->main, (float)cfra, true);
 
   if (RE_engine_render(re, 1)) {
     /* in this case external render overrides all */
