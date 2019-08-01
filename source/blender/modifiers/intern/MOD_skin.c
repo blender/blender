@@ -864,7 +864,7 @@ static Mesh *subdivide_base(Mesh *orig)
   }
 
   /* Per edge, store how many subdivisions are needed */
-  edge_subd = MEM_calloc_arrayN(totorigedge, sizeof(int), "edge_subd");
+  edge_subd = MEM_calloc_arrayN((uint)totorigedge, sizeof(int), "edge_subd");
   for (i = 0, totsubd = 0; i < totorigedge; i++) {
     edge_subd[i] += calc_edge_subdivisions(origvert, orignode, &origedge[i], degree);
     BLI_assert(edge_subd[i] >= 0);
