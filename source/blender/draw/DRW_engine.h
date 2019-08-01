@@ -177,8 +177,7 @@ struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
 
 /* select_engine.c */
-void DRW_select_context_create(struct Depsgraph *depsgraph,
-                               struct Base **bases,
+void DRW_select_context_create(struct Base **bases,
                                const uint bases_len,
                                short select_mode);
 bool DRW_select_elem_get(const uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);

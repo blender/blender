@@ -55,7 +55,6 @@ static struct {
     /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
     uint last_index_drawn;
 
-    struct Depsgraph *depsgraph;
     short select_mode;
   } context;
 } e_data = {{{NULL}}}; /* Engine data */
@@ -360,12 +359,8 @@ void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
   }
 }
 
-void DRW_select_context_create(Depsgraph *depsgraph,
-                               Base **UNUSED(bases),
-                               const uint bases_len,
-                               short select_mode)
+void DRW_select_context_create(Base **UNUSED(bases), const uint bases_len, short select_mode)
 {
-  e_data.context.depsgraph = depsgraph;
   e_data.context.select_mode = select_mode;
   e_data.context.bases_len = bases_len;
 
