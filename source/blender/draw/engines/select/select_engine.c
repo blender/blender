@@ -86,10 +86,12 @@ static void draw_select_framebuffer_select_id_setup(void)
     e_data.texture_u32 = NULL;
   }
 
+  /* Make sure the depth texture is attached.
+   * It may disappear when loading another Blender session. */
+  GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, dtxl->depth, 0, 0);
+
   if (e_data.texture_u32 == NULL) {
     e_data.texture_u32 = GPU_texture_create_2d(size[0], size[1], GPU_R32UI, NULL, NULL);
-
-    GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, dtxl->depth, 0, 0);
     GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, e_data.texture_u32, 0, 0);
     GPU_framebuffer_check_valid(e_data.framebuffer_select_id, NULL);
   }
