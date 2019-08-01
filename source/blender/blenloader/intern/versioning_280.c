@@ -3533,6 +3533,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 281, 1)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+        if (md->type == eModifierType_DataTransfer) {
+          /* Now datatransfer's mix factor is multiplied with weights when any,
+           * instead of being ignored,
+           * we need to take care of that to keep 'old' files compatible. */
+          DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+          if (dtmd->defgrp_name[0] != '\0') {
+            dtmd->mix_factor = 1.0f;
+          }
+        }
+      }
+    }
+  }
+
   {
     /* Versioning code until next subversion bump goes here. */
   }

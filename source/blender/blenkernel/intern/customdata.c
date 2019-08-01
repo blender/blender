@@ -4756,7 +4756,8 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
 
   for (i = 0; i < totelem; i++, data_dst = POINTER_OFFSET(data_dst, data_step), mapit++) {
     const int sources_num = mapit->sources_num;
-    const float mix_factor = laymap->mix_weights ? laymap->mix_weights[i] : laymap->mix_factor;
+    const float mix_factor = laymap->mix_factor *
+                             (laymap->mix_weights ? laymap->mix_weights[i] : 1.0f);
     int j;
 
     if (!sources_num) {

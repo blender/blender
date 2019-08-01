@@ -5668,7 +5668,8 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
       0.0f,
       1.0f,
       "Mix Factor",
-      "Factor to use when applying data to destination (exact behavior depends on mix mode)",
+      "Factor to use when applying data to destination (exact behavior depends on mix mode, "
+      "multiplied with weights from vertex group when defined)",
       0.0f,
       1.0f);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
