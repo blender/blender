@@ -733,7 +733,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
 
 void GPU_material_compile(GPUMaterial *mat)
 {
-  bool sucess;
+  bool success;
 
   BLI_assert(mat->status == GPU_MAT_QUEUED);
   BLI_assert(mat->pass);
@@ -741,12 +741,12 @@ void GPU_material_compile(GPUMaterial *mat)
   /* NOTE: The shader may have already been compiled here since we are
    * sharing GPUShader across GPUMaterials. In this case it's a no-op. */
 #ifndef NDEBUG
-  sucess = GPU_pass_compile(mat->pass, mat->name);
+  success = GPU_pass_compile(mat->pass, mat->name);
 #else
-  sucess = GPU_pass_compile(mat->pass, __func__);
+  success = GPU_pass_compile(mat->pass, __func__);
 #endif
 
-  if (sucess) {
+  if (success) {
     GPUShader *sh = GPU_pass_shader_get(mat->pass);
     if (sh != NULL) {
       mat->status = GPU_MAT_SUCCESS;

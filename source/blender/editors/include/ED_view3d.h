@@ -568,7 +568,7 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               bool do_sky,
                               bool is_persp,
                               const char *viewname,
-                              const bool do_color_managment,
+                              const bool do_color_management,
                               struct GPUOffScreen *ofs,
                               struct GPUViewport *viewport);
 void ED_view3d_draw_setup_view(struct wmWindow *win,

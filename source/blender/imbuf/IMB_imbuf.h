@@ -324,7 +324,7 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use,
                                                          int quality,
-                                                         const bool overwite,
+                                                         const bool overwrite,
                                                          struct GSet *file_list);
 
 /* will rebuild all used indices and proxies at once */

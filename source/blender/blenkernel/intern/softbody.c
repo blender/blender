@@ -258,7 +258,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
 /* just an ID here to reduce the prob for killing objects
  * ob->sumohandle points to we should not kill :)
  */
-static const int CCD_SAVETY = 190561;
+static const int CCD_SAFETY = 190561;
 
 typedef struct ccdf_minmax {
   float minx, miny, minz, maxx, maxy, maxz;
@@ -269,7 +269,7 @@ typedef struct ccd_Mesh {
   const MVert *mvert;
   const MVert *mprevvert;
   const MVertTri *tri;
-  int savety;
+  int safety;
   ccdf_minmax *mima;
   /* Axis Aligned Bounding Box AABB */
   float bbmin[3];
@@ -298,7 +298,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   pccd_M = MEM_mallocN(sizeof(ccd_Mesh), "ccd_Mesh");
   pccd_M->mvert_num = cmd->mvert_num;
   pccd_M->tri_num = cmd->tri_num;
-  pccd_M->savety = CCD_SAVETY;
+  pccd_M->safety = CCD_SAFETY;
   pccd_M->bbmin[0] = pccd_M->bbmin[1] = pccd_M->bbmin[2] = 1e30f;
   pccd_M->bbmax[0] = pccd_M->bbmax[1] = pccd_M->bbmax[2] = -1e30f;
   pccd_M->mprevvert = NULL;
@@ -486,7 +486,8 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 
 static void ccd_mesh_free(ccd_Mesh *ccdm)
 {
-  if (ccdm && (ccdm->savety == CCD_SAVETY)) { /*make sure we're not nuking objects we don't know*/
+  /* Make sure we're not nuking objects we don't know. */
+  if (ccdm && (ccdm->safety == CCD_SAFETY)) {
     MEM_freeN((void *)ccdm->mvert);
     MEM_freeN((void *)ccdm->tri);
     if (ccdm->mprevvert) {
