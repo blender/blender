@@ -93,7 +93,7 @@ void WM_init_native_pixels(bool do_it);
 void WM_init_tablet_api(void);
 
 void WM_init(struct bContext *C, int argc, const char **argv);
-void WM_exit_ext(struct bContext *C, const bool do_python);
+void WM_exit_ex(struct bContext *C, const bool do_python);
 
 void WM_exit(struct bContext *C) ATTR_NORETURN;
 

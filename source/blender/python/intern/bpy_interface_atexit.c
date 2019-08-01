@@ -36,7 +36,7 @@ static PyObject *bpy_atexit(PyObject *UNUSED(self), PyObject *UNUSED(args), PyOb
   /* close down enough of blender at least not to crash */
   struct bContext *C = BPy_GetContext();
 
-  WM_exit_ext(C, 0);
+  WM_exit_ex(C, false);
 
   Py_RETURN_NONE;
 }

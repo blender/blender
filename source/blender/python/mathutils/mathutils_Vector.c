@@ -47,7 +47,7 @@
 
 static PyObject *Vector_copy(VectorObject *self);
 static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args);
-static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits);
+static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits);
 static int row_vector_multiplication(float rvec[MAX_DIMENSIONS],
                                      VectorObject *vec,
                                      MatrixObject *mat);
@@ -630,7 +630,7 @@ PyDoc_STRVAR(Vector_to_tuple_doc,
              "   :return: the values of the vector rounded by *precision*\n"
              "   :rtype: tuple\n");
 /* note: BaseMath_ReadCallback must be called beforehand */
-static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits)
+static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits)
 {
   PyObject *ret;
   int i;
@@ -674,7 +674,7 @@ static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  return Vector_to_tuple_ext(self, ndigits);
+  return Vector_to_tuple_ex(self, ndigits);
 }
 
 PyDoc_STRVAR(Vector_to_track_quat_doc,
@@ -1338,7 +1338,7 @@ static PyObject *Vector_repr(VectorObject *self)
     return NULL;
   }
 
-  tuple = Vector_to_tuple_ext(self, -1);
+  tuple = Vector_to_tuple_ex(self, -1);
   ret = PyUnicode_FromFormat("Vector(%R)", tuple);
   Py_DECREF(tuple);
   return ret;
