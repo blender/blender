@@ -360,7 +360,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
   FILE *fp = BLI_fopen(filepath, "r");
   void *mem = NULL;
   if (fp) {
-    mem = file_read_data_as_mem_impl(fp, true, pad_bytes, r_size);
+    mem = file_read_data_as_mem_impl(fp, false, pad_bytes, r_size);
     fclose(fp);
   }
   return mem;
@@ -371,7 +371,7 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
   FILE *fp = BLI_fopen(filepath, "rb");
   void *mem = NULL;
   if (fp) {
-    mem = file_read_data_as_mem_impl(fp, false, pad_bytes, r_size);
+    mem = file_read_data_as_mem_impl(fp, true, pad_bytes, r_size);
     fclose(fp);
   }
   return mem;
