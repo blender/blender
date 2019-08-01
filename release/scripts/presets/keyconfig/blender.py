@@ -28,7 +28,6 @@ class Prefs(bpy.types.KeyConfigPreferences):
         description=(
             "Mouse button used for selection"
         ),
-        default='LEFT',
         update=update_fn,
     )
     spacebar_action: EnumProperty(

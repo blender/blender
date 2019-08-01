@@ -607,9 +607,6 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
   /* Init weight paint range. */
   BKE_colorband_init(&userdef->coba_weight, true);
 
-  /* Default to left click select. */
-  BKE_keyconfig_pref_set_select_mouse(userdef, 0, true);
-
   /* Default studio light. */
   BKE_studiolight_default(userdef->light_param, userdef->light_ambient);
 
