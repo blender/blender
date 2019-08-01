@@ -174,8 +174,9 @@ def print_info(reports, pot):
                 _print("\tThe following operators are undocumented!")
             else:
                 _print("\t“{}”|“{}”:".format(*key))
-                if multi_lines and key in multi_lines:
-                    _print("\t\t-> newline in this message!")
+                # We support multi-lines tooltips now...
+                # ~ if multi_lines and key in multi_lines:
+                    # ~ _print("\t\t-> newline in this message!")
                 if not_capitalized and key in not_capitalized:
                     _print("\t\t-> message not capitalized!")
                 if end_point and key in end_point:
