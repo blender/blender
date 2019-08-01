@@ -64,13 +64,17 @@ const UserDef U_default = {
     .audiorate = 48000,
     .audioformat = 0x24,
     .audiochannels = 2,
-    .ui_scale = 1,
+
+    .ui_scale = 1.0,
     .ui_line_width = 0,
-    .dpi = 75,
-    .dpi_fac = 0.0,     /* run-time. */
+
+    /** Default so DPI is detected automatically. */
+    .dpi = 0,
+    .dpi_fac = 0.0,
     .inv_dpi_fac = 0.0, /* run-time. */
     .pixelsize = 1,
     .virtual_pixel = 0,
+
     .scrollback = 256,
     .node_margin = 80,
     .transopts = USER_TR_TOOLTIPS,
@@ -115,7 +119,10 @@ const UserDef U_default = {
     .vbocollectrate = 60,
     .textimeout = 120,
     .texcollectrate = 60,
+
+    /** Clamped by half the systems memory. */
     .memcachelimit = 4096,
+
     .prefetchframes = 0,
     .pad_rot_angle = 15,
     .rvisize = 25,

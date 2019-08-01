@@ -583,10 +583,6 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
     }
   }
 
-  /* default so DPI is detected automatically */
-  userdef->dpi = 0;
-  userdef->ui_scale = 1.0f;
-
 #ifdef WITH_PYTHON_SECURITY
   /* use alternative setting for security nuts
    * otherwise we'd need to patch the binary blob - startup.blend.c */
@@ -598,7 +594,8 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
   /* System-specific fonts directory. */
   BKE_appdir_font_folder_default(userdef->fontdir);
 
-  userdef->memcachelimit = min_ii(BLI_system_memory_max_in_megabytes_int() / 2, 4096);
+  userdef->memcachelimit = min_ii(BLI_system_memory_max_in_megabytes_int() / 2,
+                                  userdef->memcachelimit);
 
   /* Init weight paint range. */
   BKE_colorband_init(&userdef->coba_weight, true);
