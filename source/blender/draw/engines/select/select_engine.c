@@ -29,8 +29,6 @@
 #include "GPU_shader.h"
 #include "GPU_select.h"
 
-#include "DEG_depsgraph.h"
-
 #include "UI_resources.h"
 
 #include "DRW_engine.h"
