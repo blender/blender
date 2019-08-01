@@ -180,8 +180,6 @@ class CLIP_HT_header(Header):
             active_object = tracking.objects.active
 
             if sc.view == 'CLIP':
-                layout.template_running_jobs()
-
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':

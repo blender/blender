@@ -6057,13 +6057,13 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
       WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);
       break;
     case B_STOPSEQ:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);
       break;
     case B_STOPCLIP:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);
       break;
     case B_STOPFILE:
-      WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+      WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);
       break;
     case B_STOPOTHER:
       G.is_break = true;
@@ -6116,80 +6116,96 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
   UI_block_func_handle_set(block, do_running_jobs, NULL);
 
-  if (sa->spacetype == SPACE_SEQ) {
-    if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY)) {
-      owner = sa;
+  Scene *scene;
+  /* another scene can be rendering too, for example via compositor */
+  for (scene = CTX_data_main(C)->scenes.first; scene; scene = scene->id.next) {
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
+      handle_event = B_STOPOTHER;
+      icon = ICON_NONE;
+      owner = scene;
     }
-    handle_event = B_STOPSEQ;
-    icon = ICON_SEQUENCE;
-  }
-  else if (sa->spacetype == SPACE_CLIP) {
-    if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY)) {
-      owner = sa;
+    else {
+      continue;
     }
-    handle_event = B_STOPCLIP;
-    icon = ICON_TRACKER;
-  }
-  else if (sa->spacetype == SPACE_FILE) {
-    if (WM_jobs_test(wm, sa, WM_JOB_TYPE_FILESEL_READDIR)) {
-      owner = sa;
+
+    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PROXY)) {
+      handle_event = B_STOPSEQ;
+      icon = ICON_SEQUENCE;
+      owner = scene;
+      break;
     }
-    handle_event = B_STOPFILE;
-    icon = ICON_FILEBROWSER;
-  }
-  else {
-    Scene *scene;
-    /* another scene can be rendering too, for example via compositor */
-    for (scene = CTX_data_main(C)->scenes.first; scene; scene = scene->id.next) {
-      if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
-        handle_event = B_STOPRENDER;
-        icon = ICON_SCENE;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
-        handle_event = B_STOPCOMPO;
-        icon = ICON_RENDERLAYERS;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
-               WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE)) {
-        /* Skip bake jobs in compositor to avoid compo header displaying
-         * progress bar which is not being updated (bake jobs only need
-         * to update NC_IMAGE context.
-         */
-        if (sa->spacetype != SPACE_NODE) {
-          handle_event = B_STOPOTHER;
-          icon = ICON_IMAGE;
-          break;
-        }
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SEQ_BUILD_PREVIEW)) {
+      handle_event = B_STOPSEQ;
+      icon = ICON_SEQUENCE;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_BUILD_PROXY)) {
+      handle_event = B_STOPCLIP;
+      icon = ICON_TRACKER;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_PREFETCH)) {
+      handle_event = B_STOPCLIP;
+      icon = ICON_TRACKER;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_TRACK_MARKERS)) {
+      handle_event = B_STOPCLIP;
+      icon = ICON_TRACKER;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_CLIP_SOLVE_CAMERA)) {
+      handle_event = B_STOPCLIP;
+      icon = ICON_TRACKER;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_FILESEL_READDIR)) {
+      handle_event = B_STOPFILE;
+      icon = ICON_FILEBROWSER;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
+      handle_event = B_STOPRENDER;
+      icon = ICON_SCENE;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
+      handle_event = B_STOPCOMPO;
+      icon = ICON_RENDERLAYERS;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
+             WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE)) {
+      /* Skip bake jobs in compositor to avoid compo header displaying
+       * progress bar which is not being updated (bake jobs only need
+       * to update NC_IMAGE context.
+       */
+      if (sa->spacetype != SPACE_NODE) {
         handle_event = B_STOPOTHER;
-        icon = ICON_MOD_DYNAMICPAINT;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
-        handle_event = B_STOPOTHER;
-        icon = ICON_PHYSICS;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
-        handle_event = B_STOPOTHER;
-        icon = ICON_MOD_FLUIDSIM;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
-        handle_event = B_STOPOTHER;
-        icon = ICON_MOD_OCEAN;
-        break;
-      }
-      else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
-        handle_event = B_STOPOTHER;
-        icon = ICON_NONE;
+        icon = ICON_IMAGE;
         break;
       }
     }
-    owner = scene;
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+      handle_event = B_STOPOTHER;
+      icon = ICON_MOD_DYNAMICPAINT;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
+      handle_event = B_STOPOTHER;
+      icon = ICON_PHYSICS;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+      handle_event = B_STOPOTHER;
+      icon = ICON_MOD_FLUIDSIM;
+      break;
+    }
+    else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
+      handle_event = B_STOPOTHER;
+      icon = ICON_MOD_OCEAN;
+      break;
+    }
   }
 
   if (owner) {

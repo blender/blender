@@ -2917,7 +2917,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
   /* setup job */
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
-                       CTX_wm_area(C),
+                       CTX_data_scene(C),
                        "Listing Dirs...",
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_FILESEL_READDIR);

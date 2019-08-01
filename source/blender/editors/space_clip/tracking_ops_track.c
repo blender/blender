@@ -288,7 +288,6 @@ static void track_markers_freejob(void *tmv)
 static int track_markers(bContext *C, wmOperator *op, bool use_job)
 {
   TrackMarkersJob *tmj;
-  ScrArea *sa = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   wmJob *wm_job;
@@ -296,7 +295,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
   bool sequence = RNA_boolean_get(op->ptr, "sequence");
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  if (WM_jobs_test(CTX_wm_manager(C), sa, WM_JOB_TYPE_ANY)) {
+  if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
     /* Only one tracking is allowed at a time. */
     return OPERATOR_CANCELLED;
   }
@@ -319,7 +318,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
   if (use_job && sequence) {
     wm_job = WM_jobs_get(CTX_wm_manager(C),
                          CTX_wm_window(C),
-                         sa,
+                         CTX_data_scene(C),
                          "Track Markers",
                          WM_JOB_PROGRESS,
                          WM_JOB_TYPE_CLIP_TRACK_MARKERS);
@@ -372,7 +371,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* No running tracking, remove handler and pass through. */
-  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C), WM_JOB_TYPE_ANY)) {
+  if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 

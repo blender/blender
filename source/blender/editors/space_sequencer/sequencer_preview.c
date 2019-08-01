@@ -134,7 +134,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
   PreviewJobAudio *audiojob = MEM_callocN(sizeof(PreviewJobAudio), "preview_audio");
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
-                       sa,
+                       CTX_data_scene(C),
                        "Strip Previews",
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
