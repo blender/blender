@@ -31,9 +31,6 @@
 #  endif
 
 #  ifdef WIN32
-#    if defined(_MSC_VER) && defined(_M_X64)
-#      include <math.h> /* needed for _set_FMA3_enable */
-#    endif
 #    include <windows.h>
 #    include <float.h>
 #  endif
