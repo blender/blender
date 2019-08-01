@@ -387,11 +387,8 @@ void gpu_extensions_init(void)
       GG.dfdyfactors[1] = 1.0;
     }
 
-    if (strstr(version, "Build 10.18.10.3379") || strstr(version, "Build 10.18.10.3574") ||
-        strstr(version, "Build 10.18.10.4252") || strstr(version, "Build 10.18.10.4358") ||
-        strstr(version, "Build 10.18.10.4653") || strstr(version, "Build 10.18.10.5069") ||
-        strstr(version, "Build 10.18.14.4264") || strstr(version, "Build 10.18.14.4432") ||
-        strstr(version, "Build 10.18.14.5067")) {
+    if (strstr(version, "Build 10.18.10.3") || strstr(version, "Build 10.18.10.4") ||
+        strstr(version, "Build 10.18.14.4") || strstr(version, "Build 10.18.14.5")) {
       /* Maybe not all of these drivers have problems with `GLEW_ARB_base_instance`.
        * But it's hard to test each case. */
       GG.glew_arb_base_instance_is_supported = false;
