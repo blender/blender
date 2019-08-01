@@ -560,8 +560,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
 UserDef *BKE_blendfile_userdef_from_defaults(void)
 {
   UserDef *userdef = MEM_mallocN(sizeof(*userdef), __func__);
-
-  memcpy(userdef, &U_default, sizeof(UserDef));
+  memcpy(userdef, &U_default, sizeof(*userdef));
 
   /* Add-ons. */
   {
@@ -581,6 +580,14 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
       STRNCPY(addon->module, addons[i]);
       BLI_addtail(&userdef->addons, addon);
     }
+  }
+
+  /* Theme. */
+  {
+    bTheme *btheme = MEM_mallocN(sizeof(*btheme), __func__);
+    memcpy(btheme, &U_theme_default, sizeof(*btheme));
+
+    BLI_addtail(&userdef->themes, btheme);
   }
 
 #ifdef WITH_PYTHON_SECURITY

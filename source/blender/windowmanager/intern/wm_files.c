@@ -951,8 +951,8 @@ void wm_homefile_read(bContext *C,
     if (use_userdef) {
       if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
         UserDef *userdef_default = BKE_blendfile_userdef_from_defaults();
-        BKE_blender_userdef_app_template_data_set_and_free(userdef_default);
-        skip_flags &= ~BLO_READ_SKIP_USERDEF;
+        BKE_blender_userdef_data_set_and_free(userdef_default);
+        skip_flags |= BLO_READ_SKIP_USERDEF;
       }
     }
 
