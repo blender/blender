@@ -180,9 +180,8 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
 
     prefs = bpy.context.preferences
     used_ext = {ext.module for ext in prefs.addons}
-    # XXX TEMP WORKAROUND
-    black_list = {"space_view3d_math_vis",
-                  "object_scatter"}
+    # In case we need to blacklist some add-ons...
+    black_list = {}
 
     ret = [
         mod for mod in addon_utils.modules()
