@@ -1294,6 +1294,50 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Toggle-Comment Operator
+ * \{ */
+
+static int text_toggle_comment_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Text *text = CTX_data_edit_text(C);
+
+  if (txt_has_sel(text)) {
+    text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
+    ED_text_undo_push_init(C);
+
+    txt_order_cursors(text, false);
+    if (txt_uncomment(text) == false) {
+      txt_comment(text);
+    }
+    text_update_edited(text);
+
+    text_update_cursor_moved(C);
+    WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+void TEXT_OT_toggle_comment(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Comment";
+  ot->idname = "TEXT_OT_toggle_comment";
+
+  /* api callbacks */
+  ot->exec = text_toggle_comment_exec;
+  ot->poll = text_edit_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Convert Whitespace Operator
  * \{ */
 
