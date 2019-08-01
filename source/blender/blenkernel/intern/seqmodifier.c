@@ -545,20 +545,20 @@ static void brightcontrast_apply_threaded(int width,
   float brightness = data->bright / 100.0f;
   float contrast = data->contrast;
   float delta = contrast / 200.0f;
-
-  a = 1.0f - delta * 2.0f;
   /*
    * The algorithm is by Werner D. Streidt
    * (http://visca.com/ffactory/archives/5-99/msg00021.html)
    * Extracted of OpenCV demhist.c
    */
   if (contrast > 0) {
-    a = 1.0f / a;
+    a = 1.0f - delta * 2.0f;
+    a = 1.0f / max_ff(a, FLT_EPSILON);
     b = a * (brightness - delta);
   }
   else {
     delta *= -1;
-    b = a * (brightness + delta);
+    a = max_ff(1.0f - delta * 2.0f, 0.0f);
+    b = a * brightness + delta;
   }
 
   for (y = 0; y < height; y++) {

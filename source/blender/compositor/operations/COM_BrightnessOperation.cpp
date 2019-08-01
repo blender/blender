@@ -62,12 +62,13 @@ void BrightnessOperation::executePixelSampled(float output[4],
    * Extracted of OpenCV demhist.c
    */
   if (contrast > 0) {
-    a = 1.0f / (1.0f - delta * 2.0f);
+    a = 1.0f - delta * 2.0f;
+    a = 1.0f / max_ff(a, FLT_EPSILON);
     b = a * (brightness - delta);
   }
   else {
     delta *= -1;
-    a = 1.0f - delta * 2.0f;
+    a = max_ff(1.0f - delta * 2.0f, 0.0f);
     b = a * brightness + delta;
   }
   if (this->m_use_premultiply) {

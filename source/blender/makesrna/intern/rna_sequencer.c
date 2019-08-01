@@ -3066,7 +3066,7 @@ static void rna_def_brightcontrast_modifier(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "contrast");
-  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_range(prop, -100.0f, 100.0f);
   RNA_def_property_ui_text(prop, "Contrast", "Adjust the difference in luminosity between pixels");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 }

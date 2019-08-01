@@ -372,19 +372,20 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     float contrast = RNA_float_get(op->ptr, "contrast");
     brightness /= 100.0f;
     float delta = contrast / 200.0f;
-    gain = 1.0f - delta * 2.0f;
     /*
      * The algorithm is by Werner D. Streidt
      * (http://visca.com/ffactory/archives/5-99/msg00021.html)
      * Extracted of OpenCV demhist.c
      */
     if (contrast > 0) {
-      gain = 1.0f / ((gain != 0.0f) ? gain : FLT_EPSILON);
+      gain = 1.0f - delta * 2.0f;
+      gain = 1.0f / max_ff(gain, FLT_EPSILON);
       offset = gain * (brightness - delta);
     }
     else {
       delta *= -1;
-      offset = gain * (brightness + delta);
+      gain = max_ff(1.0f - delta * 2.0f, 0.0f);
+      offset = gain * brightness + delta;
     }
   }
 
