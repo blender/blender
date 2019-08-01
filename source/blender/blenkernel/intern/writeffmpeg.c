@@ -54,6 +54,7 @@
  * like M_SQRT1_2 leading to warnings with MSVC */
 #  include <libavformat/avformat.h>
 #  include <libavcodec/avcodec.h>
+#  include <libavutil/imgutils.h>
 #  include <libavutil/rational.h>
 #  include <libavutil/samplefmt.h>
 #  include <libswscale/swscale.h>
@@ -80,7 +81,10 @@ typedef struct FFMpegContext {
   AVFormatContext *outfile;
   AVStream *video_stream;
   AVStream *audio_stream;
-  AVFrame *current_frame;
+  AVFrame *current_frame; /* Image frame in output pixel format. */
+
+  /* Image frame in Blender's own pixel format, may need conversion to the output pixel format. */
+  AVFrame *img_convert_frame;
   struct SwsContext *img_convert_ctx;
 
   uint8_t *audio_input_buffer;
@@ -264,6 +268,10 @@ static AVFrame *alloc_picture(int pix_fmt, int width, int height)
     return NULL;
   }
   avpicture_fill((AVPicture *)f, buf, pix_fmt, width, height);
+  f->format = pix_fmt;
+  f->width = width;
+  f->height = height;
+
   return f;
 }
 
@@ -375,67 +383,52 @@ static int write_video_frame(
 }
 
 /* read and encode a frame of audio from the buffer */
-static AVFrame *generate_video_frame(FFMpegContext *context, uint8_t *pixels, ReportList *reports)
+static AVFrame *generate_video_frame(FFMpegContext *context,
+                                     const uint8_t *pixels,
+                                     ReportList *reports)
 {
-  uint8_t *rendered_frame;
-
   AVCodecContext *c = context->video_stream->codec;
-  int width = c->width;
   int height = c->height;
   AVFrame *rgb_frame;
 
-  if (c->pix_fmt != AV_PIX_FMT_BGR32) {
-    rgb_frame = alloc_picture(AV_PIX_FMT_BGR32, width, height);
-    if (!rgb_frame) {
-      BKE_report(reports, RPT_ERROR, "Could not allocate temporary frame");
-      return NULL;
-    }
+  if (context->img_convert_frame != NULL) {
+    /* Pixel format conversion is needed. */
+    rgb_frame = context->img_convert_frame;
   }
   else {
+    /* The output pixel format is Blender's internal pixel format. */
     rgb_frame = context->current_frame;
   }
 
-  rendered_frame = pixels;
+  /* Copy the Blender pixels into the FFmpeg datastructure, taking care of endianness and flipping
+   * the image vertically. */
+  int linesize = rgb_frame->linesize[0];
+  for (int y = 0; y < height; y++) {
+    uint8_t *target = rgb_frame->data[0] + linesize * (height - y - 1);
+    const uint8_t *src = pixels + linesize * y;
 
-  /* Do RGBA-conversion and flipping in one step depending
-   * on CPU-Endianess */
+#  if ENDIAN_ORDER == L_ENDIAN
+    memcpy(target, src, linesize);
 
-  if (ENDIAN_ORDER == L_ENDIAN) {
-    int y;
-    for (y = 0; y < height; y++) {
-      uint8_t *target = rgb_frame->data[0] + width * 4 * (height - y - 1);
-      uint8_t *src = rendered_frame + width * 4 * y;
-      uint8_t *end = src + width * 4;
-      while (src != end) {
-        target[3] = src[3];
-        target[2] = src[2];
-        target[1] = src[1];
-        target[0] = src[0];
+#  elif ENDIAN_ORDER == B_ENDIAN
+    const uint8_t *end = src + linesize;
+    while (src != end) {
+      target[3] = src[0];
+      target[2] = src[1];
+      target[1] = src[2];
+      target[0] = src[3];
 
-        target += 4;
-        src += 4;
-      }
+      target += 4;
+      src += 4;
     }
-  }
-  else {
-    int y;
-    for (y = 0; y < height; y++) {
-      uint8_t *target = rgb_frame->data[0] + width * 4 * (height - y - 1);
-      uint8_t *src = rendered_frame + width * 4 * y;
-      uint8_t *end = src + width * 4;
-      while (src != end) {
-        target[3] = src[0];
-        target[2] = src[1];
-        target[1] = src[2];
-        target[0] = src[3];
-
-        target += 4;
-        src += 4;
-      }
-    }
+#  else
+#    error ENDIAN_ORDER should either be L_ENDIAN or B_ENDIAN.
+#  endif
   }
 
-  if (c->pix_fmt != AV_PIX_FMT_BGR32) {
+  /* Convert to the output pixel format, if it's different that Blender's internal one. */
+  if (context->img_convert_frame != NULL) {
+    BLI_assert(context->img_convert_ctx != NULL);
     sws_scale(context->img_convert_ctx,
               (const uint8_t *const *)rgb_frame->data,
               rgb_frame->linesize,
@@ -443,12 +436,7 @@ static AVFrame *generate_video_frame(FFMpegContext *context, uint8_t *pixels, Re
               c->height,
               context->current_frame->data,
               context->current_frame->linesize);
-    delete_picture(rgb_frame);
   }
-
-  context->current_frame->format = AV_PIX_FMT_BGR32;
-  context->current_frame->width = width;
-  context->current_frame->height = height;
 
   return context->current_frame;
 }
@@ -700,9 +688,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   if (codec_id == AV_CODEC_ID_QTRLE) {
-    /* Always write to ARGB. The default pixel format of QTRLE is RGB24, which uses 3 bytes per
-     * pixels, which breaks the export. */
-    c->pix_fmt = AV_PIX_FMT_ARGB;
+    if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+      c->pix_fmt = AV_PIX_FMT_ARGB;
+    }
   }
 
   if (codec_id == AV_CODEC_ID_VP9) {
@@ -737,18 +725,29 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
   av_dict_free(&opts);
 
+  /* FFmpeg expects its data in the output pixel format. */
   context->current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
-  context->img_convert_ctx = sws_getContext(c->width,
-                                            c->height,
-                                            AV_PIX_FMT_BGR32,
-                                            c->width,
-                                            c->height,
-                                            c->pix_fmt,
-                                            SWS_BICUBIC,
-                                            NULL,
-                                            NULL,
-                                            NULL);
+  if (c->pix_fmt == AV_PIX_FMT_RGBA) {
+    /* Output pixel format is the same we use internally, no conversion necessary. */
+    context->img_convert_frame = NULL;
+    context->img_convert_ctx = NULL;
+  }
+  else {
+    /* Output pixel format is different, allocate frame for conversion. */
+    context->img_convert_frame = alloc_picture(AV_PIX_FMT_RGBA, c->width, c->height);
+    context->img_convert_ctx = sws_getContext(c->width,
+                                              c->height,
+                                              AV_PIX_FMT_RGBA,
+                                              c->width,
+                                              c->height,
+                                              c->pix_fmt,
+                                              SWS_BICUBIC,
+                                              NULL,
+                                              NULL,
+                                              NULL);
+  }
+
   return st;
 }
 
@@ -1437,6 +1436,11 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
     delete_picture(context->current_frame);
     context->current_frame = NULL;
   }
+  if (context->img_convert_frame != NULL) {
+    delete_picture(context->img_convert_frame);
+    context->img_convert_frame = NULL;
+  }
+
   if (context->outfile != NULL && context->outfile->oformat) {
     if (!(context->outfile->oformat->flags & AVFMT_NOFILE)) {
       avio_close(context->outfile->pb);
