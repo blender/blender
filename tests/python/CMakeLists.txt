@@ -51,6 +51,10 @@ function(add_blender_test name)
     NAME ${name}
     COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${ARGN}
   )
+
+  # Don't fail tests on leaks since these often happen in external libraries
+  # that we can't fix.
+  set_tests_properties(${name} PROPERTIES ENVIRONMENT LSAN_OPTIONS="exitcode=0")
 endfunction()
 
 # Run Python script outside Blender.
