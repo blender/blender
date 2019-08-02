@@ -2056,3 +2056,85 @@ bool BKE_gpencil_close_stroke(bGPDstroke *gps)
 
   return true;
 }
+
+/* Dissolve points in stroke */
+void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short tag)
+{
+  bGPDspoint *pt;
+  MDeformVert *dvert = NULL;
+  int i;
+
+  int tot = gps->totpoints; /* number of points in new buffer */
+  /* first pass: count points to remove */
+  /* Count how many points are selected (i.e. how many to remove) */
+  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+    if (pt->flag & tag) {
+      /* selected point - one of the points to remove */
+      tot--;
+    }
+  }
+
+  /* if no points are left, we simply delete the entire stroke */
+  if (tot <= 0) {
+    /* remove the entire stroke */
+    if (gps->points) {
+      MEM_freeN(gps->points);
+    }
+    if (gps->dvert) {
+      BKE_gpencil_free_stroke_weights(gps);
+      MEM_freeN(gps->dvert);
+    }
+    if (gps->triangles) {
+      MEM_freeN(gps->triangles);
+    }
+    BLI_freelinkN(&gpf->strokes, gps);
+  }
+  else {
+    /* just copy all points to keep into a smaller buffer */
+    bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * tot, "new gp stroke points copy");
+    bGPDspoint *npt = new_points;
+
+    MDeformVert *new_dvert = NULL;
+    MDeformVert *ndvert = NULL;
+
+    if (gps->dvert != NULL) {
+      new_dvert = MEM_callocN(sizeof(MDeformVert) * tot, "new gp stroke weights copy");
+      ndvert = new_dvert;
+    }
+
+    (gps->dvert != NULL) ? dvert = gps->dvert : NULL;
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      if ((pt->flag & tag) == 0) {
+        *npt = *pt;
+        npt++;
+
+        if (gps->dvert != NULL) {
+          *ndvert = *dvert;
+          ndvert->dw = MEM_dupallocN(dvert->dw);
+          ndvert++;
+        }
+      }
+      if (gps->dvert != NULL) {
+        dvert++;
+      }
+    }
+
+    /* free the old buffer */
+    if (gps->points) {
+      MEM_freeN(gps->points);
+    }
+    if (gps->dvert) {
+      BKE_gpencil_free_stroke_weights(gps);
+      MEM_freeN(gps->dvert);
+    }
+
+    /* save the new buffer */
+    gps->points = new_points;
+    gps->dvert = new_dvert;
+    gps->totpoints = tot;
+
+    /* triangles cache needs to be recalculated */
+    gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+    gps->tot_triangles = 0;
+  }
+}

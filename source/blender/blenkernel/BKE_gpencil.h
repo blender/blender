@@ -217,6 +217,7 @@ bool BKE_gpencil_smooth_stroke_strength(struct bGPDstroke *gps, int point_index,
 bool BKE_gpencil_smooth_stroke_thickness(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_smooth_stroke_uv(struct bGPDstroke *gps, int point_index, float influence);
 bool BKE_gpencil_close_stroke(struct bGPDstroke *gps);
+void BKE_gpencil_dissolve_points(struct bGPDframe *gpf, struct bGPDstroke *gps, const short tag);
 
 void BKE_gpencil_get_range_selected(struct bGPDlayer *gpl, int *r_initframe, int *r_endframe);
 float BKE_gpencil_multiframe_falloff_calc(
