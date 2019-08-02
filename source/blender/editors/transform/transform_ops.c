@@ -1140,8 +1140,12 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
   ot->cancel = transform_cancel;
   ot->poll = ED_operator_sequencer_active;
 
-  RNA_def_float_vector_xyz(
+  /* properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_float_vector(
       ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 0);
 
   WM_operatortype_props_advanced_begin(ot);
 
