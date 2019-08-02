@@ -82,19 +82,19 @@ class TEXT_HT_footer(Header):
             if text.filepath:
                 if text.is_dirty:
                     row.label(
-                        text=iface_(f"File: *{text.filepath:s} (unsaved)"),
+                        text=iface_("File: *%s (unsaved)" % text.filepath),
                         translate=False,
                     )
                 else:
                     row.label(
-                        text=iface_(f"File: {text.filepath:s}"),
+                        text=iface_("File: %s" % text.filepath),
                         translate=False,
                     )
             else:
                 row.label(
-                    text="Text: External"
+                    text=iface_("Text: External")
                     if text.library
-                    else "Text: Internal",
+                    else iface_("Text: Internal"),
                 )
 
 
