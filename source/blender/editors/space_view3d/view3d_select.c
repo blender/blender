@@ -202,7 +202,9 @@ struct EditSelectBuf_Cache {
   BLI_bitmap *select_bitmap;
 };
 
-static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewContext *vc, short select_mode)
+static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel,
+                                      ViewContext *vc,
+                                      short select_mode)
 {
   if (vc->obedit) {
     esel->bases = BKE_view_layer_array_from_bases_in_edit_mode(
@@ -241,7 +243,8 @@ static void editselect_buf_cache_free_voidp(void *esel_voidp)
 }
 
 static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *wm_userdata,
-                                                            ViewContext *vc, short select_mode)
+                                                            ViewContext *vc,
+                                                            short select_mode)
 {
   struct EditSelectBuf_Cache *esel = MEM_callocN(sizeof(*esel), __func__);
   wm_userdata->data = esel;
