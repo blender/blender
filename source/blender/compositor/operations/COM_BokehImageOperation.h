@@ -85,7 +85,7 @@ class BokehImageOperation : public NodeOperation {
   bool m_deleteData;
 
   /**
-   * \brief determine the coordinate of a flap cornder
+   * \brief determine the coordinate of a flap corner.
    *
    * \param r: result in bokehimage space are stored [x,y]
    * \param flapNumber: the flap number to calculate

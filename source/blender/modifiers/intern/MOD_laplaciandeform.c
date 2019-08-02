@@ -233,7 +233,7 @@ static void createVertRingMap(const int mvert_tot,
  *
  * This Laplacian Matrix is described in the paper:
  * Desbrun M. et.al, Implicit fairing of irregular meshes using diffusion and curvature flow,
- * SIGGRAPH '99, pag 317-324, New York, USA
+ * SIGGRAPH '99, page 317-324, New York, USA
  *
  * The computation of Laplace Beltrami operator on Hybrid Triangle/Quad Meshes is described in the
  * paper: Pinzon A., Romero E., Shape Inflation With an Adapted Laplacian Operator For

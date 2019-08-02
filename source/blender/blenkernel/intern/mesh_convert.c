@@ -1233,14 +1233,14 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   BKE_library_foreach_ID_link(
       NULL, &mesh->id, foreach_libblock_make_original_callback, NULL, IDWALK_NOP);
 
-  /* Append the mesh to bmain.
-   * We do it a bit longer way since there is no simple and clear way of adding existing datablock
-   * to the bmain. So we allocate new empty mesh in the bmain (which guarantess all the naming and
-   * orders and flags) and move the temporary mesh in place there. */
+  /* Append the mesh to 'bmain'.
+   * We do it a bit longer way since there is no simple and clear way of adding existing data-block
+   * to the 'bmain'. So we allocate new empty mesh in the 'bmain' (which guarantees all the naming
+   * and orders and flags) and move the temporary mesh in place there. */
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
 
   /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
-   * destinaion mesh. So we "steal" all related fields before calling it.
+   * destination mesh. So we "steal" all related fields before calling it.
    *
    * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
    */

@@ -33,7 +33,7 @@ class ExecutionGroup;
  * In order to get to an efficient model for execution, several steps are being done. these steps
  * are explained below.
  *
- * \section EM_Step1 Step 1: translating blender node system to the new compsitor system
+ * \section EM_Step1 Step 1: translating blender node system to the new compositor system
  * Blenders node structure is based on C structs (DNA). These structs are not efficient in the new
  * architecture. We want to use classes in order to simplify the system. during this step the
  * blender node_tree is evaluated and converted to a CPP node system.

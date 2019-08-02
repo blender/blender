@@ -527,7 +527,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     builtin_images_load();
 
     /* Attempt to free all data which is held by Blender side, since at this
-     * point we knwo that we've got everything to render current view layer.
+     * point we know that we've got everything to render current view layer.
      */
     /* At the moment we only free if we are not doing multi-view
      * (or if we are rendering the last view). See T58142/D4239 for discussion.

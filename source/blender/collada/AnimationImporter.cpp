@@ -966,7 +966,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
 }
 
 /*
- * This function returns the aspet ration from the Collada camera.
+ * This function returns the aspect ration from the Collada camera.
  *
  * Note:COLLADA allows to specify either XFov, or YFov alone.
  * In that case the aspect ratio can be determined from

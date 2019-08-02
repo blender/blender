@@ -491,7 +491,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
      * extra space by abusing the vert array before its filled with new verts.
      * The new array for vert_connect must be at least sizeof(ScrewVertConnect) * totvert
      * and the size of our resulting meshes array is sizeof(MVert) * totvert * 3
-     * so its safe to use the second 2 thrids of MVert the array for vert_connect,
+     * so its safe to use the second 2 thirds of MVert the array for vert_connect,
      * just make sure ScrewVertConnect struct is no more than twice as big as MVert,
      * at the moment there is no chance of that being a problem,
      * unless MVert becomes half its current size.

@@ -195,7 +195,7 @@ class ExecutionGroup {
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
-   * \note Only gives useful results ater the determination of the chunksize
+   * \note Only gives useful results after the determination of the chunksize
    * \see determineChunkSize()
    */
   void determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const;
@@ -406,7 +406,7 @@ class ExecutionGroup {
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
-   * \note Only gives useful results ater the determination of the chunksize
+   * \note Only gives useful results after the determination of the chunksize
    * \see determineChunkSize()
    */
   void determineChunkRect(rcti *rect, const unsigned int chunkNumber) const;

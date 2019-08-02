@@ -1607,7 +1607,7 @@ static void rigidbody_update_sim_ob(
 
       /* create dummy 'point' which represents last known position of object as result of sim */
       /* XXX: this can create some inaccuracies with sim position,
-       * but is probably better than using unsimulated vals? */
+       * but is probably better than using un-simulated values? */
       RB_body_get_position(rbo->shared->physics_object, eff_loc);
       RB_body_get_linear_velocity(rbo->shared->physics_object, eff_vel);
 
