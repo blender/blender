@@ -84,9 +84,8 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
     *r_face_offset = initial_offset + em->bm->totface;
   }
   else {
-    face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_unif);
+    face_shgrp = stl->g_data->shgrp_face_unif;
     DRW_shgroup_uniform_int_copy(face_shgrp, "id", 0);
-
     *r_face_offset = initial_offset;
   }
   DRW_shgroup_call(face_shgrp, geom_faces, ob);
@@ -137,7 +136,7 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
   }
   else {
     /* Only draw faces to mask out verts, we don't want their selection ID's. */
-    face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_unif);
+    face_shgrp = stl->g_data->shgrp_face_unif;
     DRW_shgroup_uniform_int_copy(face_shgrp, "id", 0);
     *r_face_offset = initial_offset;
   }
