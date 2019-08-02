@@ -209,6 +209,16 @@ void mesh_foreachScreenEdge(struct ViewContext *vc,
                                          int index),
                             void *userData,
                             const eV3DProjTest clip_flag);
+
+void mesh_foreachScreenEdge_clip_bb_segment(struct ViewContext *vc,
+                                            void (*func)(void *userData,
+                                                         struct BMEdge *eed,
+                                                         const float screen_co_a[2],
+                                                         const float screen_co_b[2],
+                                                         int index),
+                                            void *userData,
+                                            const eV3DProjTest clip_flag);
+
 void mesh_foreachScreenFace(
     struct ViewContext *vc,
     void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index),

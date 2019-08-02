@@ -29,6 +29,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_math_geom.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -255,6 +256,98 @@ void mesh_foreachScreenEdge(ViewContext *vc,
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_EDGE);
   BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge__mapFunc, &data);
+}
+
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Only call for bound-box clipping.
+ * Otherwise call #mesh_foreachScreenEdge__mapFunc
+ */
+static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *userData,
+                                                            int index,
+                                                            const float v0co[3],
+                                                            const float v1co[3])
+{
+  foreachScreenEdge_userData *data = userData;
+  BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
+
+  BLI_assert(data->clip_flag & V3D_PROJ_TEST_CLIP_BB);
+
+  if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+    float v0co_clip[3];
+    float v1co_clip[3];
+
+    if (!clip_segment_v3_plane_n(v0co, v1co, data->vc.rv3d->clip_local, 4, v0co_clip, v1co_clip)) {
+      return;
+    }
+
+    float screen_co_a[2];
+    float screen_co_b[2];
+
+    /* Clipping already handled, no need to check in projection. */
+    eV3DProjTest clip_flag_nowin = data->clip_flag &
+                                   ~(V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_BB);
+
+    if (ED_view3d_project_float_object(data->vc.ar, v0co_clip, screen_co_a, clip_flag_nowin) !=
+        V3D_PROJ_RET_OK) {
+      return;
+    }
+    if (ED_view3d_project_float_object(data->vc.ar, v1co_clip, screen_co_b, clip_flag_nowin) !=
+        V3D_PROJ_RET_OK) {
+      return;
+    }
+
+    if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
+      if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
+        return;
+      }
+    }
+
+    data->func(data->userData, eed, screen_co_a, screen_co_b, index);
+  }
+}
+
+/**
+ * A version of #mesh_foreachScreenEdge that clips the segment when
+ * there is a clipping bounding box.
+ */
+void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
+                                            void (*func)(void *userData,
+                                                         BMEdge *eed,
+                                                         const float screen_co_a[2],
+                                                         const float screen_co_b[2],
+                                                         int index),
+                                            void *userData,
+                                            eV3DProjTest clip_flag)
+{
+  foreachScreenEdge_userData data;
+
+  Mesh *me = editbmesh_get_eval_cage_from_orig(
+      vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+
+  ED_view3d_check_mats_rv3d(vc->rv3d);
+
+  data.vc = *vc;
+
+  data.win_rect.xmin = 0;
+  data.win_rect.ymin = 0;
+  data.win_rect.xmax = vc->ar->winx;
+  data.win_rect.ymax = vc->ar->winy;
+
+  data.func = func;
+  data.userData = userData;
+  data.clip_flag = clip_flag;
+
+  BM_mesh_elem_table_ensure(vc->em->bm, BM_EDGE);
+
+  if ((clip_flag & V3D_PROJ_TEST_CLIP_BB) && (vc->rv3d->clipbb != NULL)) {
+    ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups. */
+    BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge_clip_bb_segment__mapFunc, &data);
+  }
+  else {
+    BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge__mapFunc, &data);
+  }
 }
 
 /* ------------------------------------------------------------------------ */

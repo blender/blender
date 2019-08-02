@@ -848,11 +848,14 @@ static bool do_lasso_select_mesh(ViewContext *vc,
                                          vc->obedit->runtime.select_id, SCE_SELECT_EDGE) :
                                      0,
     };
-    mesh_foreachScreenEdge(
-        vc, do_lasso_select_mesh__doSelectEdge_pass0, &data_for_edge, V3D_PROJ_TEST_CLIP_NEAR);
+
+    const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_NEAR |
+                                   (use_zbuf ? 0 : V3D_PROJ_TEST_CLIP_BB);
+    mesh_foreachScreenEdge_clip_bb_segment(
+        vc, do_lasso_select_mesh__doSelectEdge_pass0, &data_for_edge, clip_flag);
     if (data.is_done == false) {
-      mesh_foreachScreenEdge(
-          vc, do_lasso_select_mesh__doSelectEdge_pass1, &data_for_edge, V3D_PROJ_TEST_CLIP_NEAR);
+      mesh_foreachScreenEdge_clip_bb_segment(
+          vc, do_lasso_select_mesh__doSelectEdge_pass1, &data_for_edge, clip_flag);
     }
   }
 
@@ -2824,11 +2827,14 @@ static bool do_mesh_box_select(ViewContext *vc,
                                          vc->obedit->runtime.select_id, SCE_SELECT_EDGE) :
                                      0,
     };
-    mesh_foreachScreenEdge(
-        vc, do_mesh_box_select__doSelectEdge_pass0, &cb_data, V3D_PROJ_TEST_CLIP_NEAR);
+
+    const eV3DProjTest clip_flag = V3D_PROJ_TEST_CLIP_NEAR |
+                                   (use_zbuf ? 0 : V3D_PROJ_TEST_CLIP_BB);
+    mesh_foreachScreenEdge_clip_bb_segment(
+        vc, do_mesh_box_select__doSelectEdge_pass0, &cb_data, clip_flag);
     if (data.is_done == false) {
-      mesh_foreachScreenEdge(
-          vc, do_mesh_box_select__doSelectEdge_pass1, &cb_data, V3D_PROJ_TEST_CLIP_NEAR);
+      mesh_foreachScreenEdge_clip_bb_segment(
+          vc, do_mesh_box_select__doSelectEdge_pass1, &cb_data, clip_flag);
     }
   }
 
@@ -3410,7 +3416,8 @@ static bool mesh_circle_select(ViewContext *vc,
       }
     }
     else {
-      mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
+      mesh_foreachScreenEdge_clip_bb_segment(
+          vc, mesh_circle_doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_BB);
     }
   }
 
