@@ -238,20 +238,6 @@ static BMElem *edbm_select_id_bm_elem_get(Base **bases, const uint sel_id, uint 
  * to avoid the bias interfering with distance comparisons when mixing types.
  * \{ */
 
-#define FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, select_mode_required) \
-  short select_mode = select_mode_required; \
-  bool fake_select_mode = (select_mode & (vc)->scene->toolsettings->selectmode) == 0; \
-  if (fake_select_mode) { \
-    (vc)->v3d->flag |= V3D_INVALID_BACKBUF; \
-  } \
-  ((void)0)
-
-#define FAKE_SELECT_MODE_END(vc, fake_select_mode) \
-  if (fake_select_mode) { \
-    (vc)->v3d->flag |= V3D_INVALID_BACKBUF; \
-  } \
-  ((void)0)
-
 #define FIND_NEAR_SELECT_BIAS 5
 #define FIND_NEAR_CYCLE_THRESHOLD_MIN 3
 
@@ -331,9 +317,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_VERTEX);
-
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_VERTEX);
 
       index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
@@ -343,8 +327,6 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
       else {
         eve = NULL;
       }
-
-      FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }
 
     if (eve) {
@@ -557,9 +539,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_EDGE);
-
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_EDGE);
 
       index = ED_select_buffer_find_nearest_to_point(vc->mval, 1, UINT_MAX, &dist_px);
 
@@ -569,8 +549,6 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
       else {
         eed = NULL;
       }
-
-      FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }
 
     if (r_eed_zbuf) {
@@ -767,9 +745,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     BMFace *efa;
 
     {
-      FAKE_SELECT_MODE_BEGIN(vc, fake_select_mode, select_mode, SCE_SELECT_FACE);
-
-      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, select_mode);
+      DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, bases, bases_len, SCE_SELECT_FACE);
 
       index = ED_select_buffer_sample_point(vc->mval);
 
@@ -779,8 +755,6 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
       else {
         efa = NULL;
       }
-
-      FAKE_SELECT_MODE_END(vc, fake_select_mode);
     }
 
     if (r_efa_zbuf) {
