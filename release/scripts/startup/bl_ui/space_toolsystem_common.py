@@ -22,6 +22,8 @@ from bpy.types import (
     Menu,
 )
 
+from bpy.app.translations import pgettext_tip as tip_
+
 __all__ = (
     "ToolDef",
     "ToolSelectPanelHelper",
@@ -782,7 +784,7 @@ def description_from_id(context, space_type, idname, *, use_operator=True):
         if callable(description):
             km = _keymap_from_item(context, item)
             return description(context, item, km)
-        return description
+        return tip_(description)
 
     # Extract from the operator.
     if use_operator:
@@ -798,7 +800,7 @@ def description_from_id(context, space_type, idname, *, use_operator=True):
 
         if operator is not None:
             import _bpy
-            return _bpy.ops.get_rna_type(operator).description
+            return tip_(_bpy.ops.get_rna_type(operator).description)
     return ""
 
 
