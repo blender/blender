@@ -188,8 +188,7 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
   }
 
   if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE) != 0)) {
-    DRW_draw_select_id_object(
-        depsgraph, view_layer, ar, v3d, obact, scene->toolsettings->selectmode);
+    DRW_draw_select_id_object(depsgraph, view_layer, ar, v3d, obact, -1);
   }
 
   /* TODO: Create a flag in `DRW_manager` because the drawing is no longer

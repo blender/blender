@@ -79,6 +79,8 @@ struct BaseOffset {
   uint vert;
 };
 
+short select_id_get_object_select_mode(Scene *scene, Object *ob);
+
 void select_id_draw_object(void *vedata,
                            View3D *v3d,
                            Object *ob,

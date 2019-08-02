@@ -191,8 +191,7 @@ static void select_cache_populate(void *vedata, Object *ob)
   short select_mode = e_data.context.select_mode;
 
   if (select_mode == -1) {
-    ToolSettings *ts = draw_ctx->scene->toolsettings;
-    select_mode = ts->selectmode;
+    select_mode = select_id_get_object_select_mode(draw_ctx->scene, ob);
   }
 
   struct BaseOffset *base_ofs =

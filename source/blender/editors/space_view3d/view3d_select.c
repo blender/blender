@@ -220,12 +220,9 @@ static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewCont
       esel->bases_len = 0;
     }
   }
-  DRW_draw_select_id(vc->depsgraph,
-                     vc->ar,
-                     vc->v3d,
-                     esel->bases,
-                     esel->bases_len,
-                     vc->scene->toolsettings->selectmode);
+
+  DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, esel->bases, esel->bases_len, -1);
+
   for (int i = 0; i < esel->bases_len; i++) {
     esel->bases[i]->object->runtime.select_id = i;
   }
