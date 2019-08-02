@@ -590,16 +590,6 @@ class GPENCIL_MT_snap(Menu):
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
 
 
-class GPENCIL_MT_separate(Menu):
-    bl_label = "Separate"
-
-    def draw(self, _context):
-        layout = self.layout
-        layout.operator("gpencil.stroke_separate", text="Selected Points").mode = 'POINT'
-        layout.operator("gpencil.stroke_separate", text="Selected Strokes").mode = 'STROKE'
-        layout.operator("gpencil.stroke_separate", text="Active Layer").mode = 'LAYER'
-
-
 class GPENCIL_MT_gpencil_draw_delete(Menu):
     bl_label = "GPencil Draw Delete"
 
@@ -931,7 +921,6 @@ classes = (
     GPENCIL_MT_pie_sculpt,
 
     GPENCIL_MT_snap,
-    GPENCIL_MT_separate,
     GPENCIL_MT_cleanup,
 
     GPENCIL_MT_gpencil_draw_delete,
