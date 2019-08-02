@@ -171,7 +171,7 @@ void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 typedef void (*BKE_scene_objects_Cb)(struct Object *ob, void *data);
 typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 
-/* Iteratorion over objects in collection. */
+/* Iteration over objects in collection. */
 
 #define FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(_collection, _object, _mode) \
   { \

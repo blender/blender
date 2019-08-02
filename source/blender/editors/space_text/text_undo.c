@@ -201,7 +201,6 @@ static void text_undosys_step_decode(
   TextUndoStep *us = (TextUndoStep *)us_p;
   Text *text = us->text_ref.ptr;
 
-  (void)is_final;
   TextState *state;
   if ((us->states[0].buf_array_state != NULL) && (dir == -1) && !is_final) {
     state = &us->states[0];
