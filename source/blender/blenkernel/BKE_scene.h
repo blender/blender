@@ -135,7 +135,7 @@ int BKE_scene_frame_snap_by_seconds(struct Scene *scene, double interval_in_seco
 bool BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
 
 float BKE_scene_frame_get(const struct Scene *scene);
-float BKE_scene_frame_get_from_ctime(const struct Scene *scene, const float frame);
+float BKE_scene_frame_to_ctime(const struct Scene *scene, const float frame);
 void BKE_scene_frame_set(struct Scene *scene, double cfra);
 
 struct TransformOrientationSlot *BKE_scene_orientation_slot_get_from_flag(struct Scene *scene,

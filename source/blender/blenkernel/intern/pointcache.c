@@ -3559,7 +3559,7 @@ void BKE_ptcache_id_time(
 
   if (timescale) {
     time = BKE_scene_frame_get(scene);
-    nexttime = BKE_scene_frame_get_from_ctime(scene, CFRA + 1.0f);
+    nexttime = BKE_scene_frame_to_ctime(scene, CFRA + 1.0f);
 
     *timescale = MAX2(nexttime - time, 0.0f);
   }

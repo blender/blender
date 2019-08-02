@@ -1347,11 +1347,11 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
  */
 float BKE_scene_frame_get(const Scene *scene)
 {
-  return BKE_scene_frame_get_from_ctime(scene, scene->r.cfra);
+  return BKE_scene_frame_to_ctime(scene, scene->r.cfra);
 }
 
 /* This function is used to obtain arbitrary fractional frames */
-float BKE_scene_frame_get_from_ctime(const Scene *scene, const float frame)
+float BKE_scene_frame_to_ctime(const Scene *scene, const float frame)
 {
   float ctime = frame;
   ctime += scene->r.subframe;

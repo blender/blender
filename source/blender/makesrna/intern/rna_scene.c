@@ -877,7 +877,7 @@ static float rna_Scene_frame_current_final_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
 
-  return BKE_scene_frame_get_from_ctime(scene, (float)scene->r.cfra);
+  return BKE_scene_frame_to_ctime(scene, (float)scene->r.cfra);
 }
 
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
