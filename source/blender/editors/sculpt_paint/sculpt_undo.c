@@ -1012,6 +1012,7 @@ void sculpt_undo_push_end(void)
   if (wm->op_undo_depth == 0) {
     UndoStack *ustack = ED_undo_stack_get();
     BKE_undosys_step_push(ustack, NULL, NULL);
+    WM_file_tag_modified();
   }
 }
 

@@ -168,6 +168,7 @@ void ED_paintcurve_undo_push_end(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
   BKE_undosys_step_push(ustack, NULL, NULL);
+  WM_file_tag_modified();
 }
 
 /** \} */

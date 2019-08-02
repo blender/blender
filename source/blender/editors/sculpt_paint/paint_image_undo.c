@@ -48,6 +48,8 @@
 
 #include "GPU_draw.h"
 
+#include "WM_api.h"
+
 #include "paint_intern.h"
 
 /* -------------------------------------------------------------------- */
@@ -617,6 +619,7 @@ void ED_image_undo_push_end(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
   BKE_undosys_step_push(ustack, NULL, NULL);
+  WM_file_tag_modified();
 }
 
 /** \} */
