@@ -45,7 +45,9 @@ typedef struct BMEdgeLoopStore {
 } BMEdgeLoopStore;
 
 #define BM_EDGELOOP_IS_CLOSED (1 << 0)
-#define EDGELOOP_EPS 0.00001f
+
+/* Use a small value since we need normals even for very small loops. */
+#define EDGELOOP_EPS 1e-10f
 
 /* -------------------------------------------------------------------- */
 /* BM_mesh_edgeloops_find & Util Functions  */
