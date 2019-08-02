@@ -50,6 +50,10 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
                           INCLUDE_DIRECTORIES              "${TEST_INC}")
     if(${DO_ADD_TEST})
       add_test(NAME ${NAME}_test COMMAND ${TESTS_OUTPUT_DIR}/${NAME}_test WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
+
+      # Don't fail tests on leaks since these often happen in external libraries
+      # that we can't fix.
+      set_tests_properties(${NAME}_test PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
     endif()
   endif()
 endmacro()
