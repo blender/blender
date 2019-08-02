@@ -1824,7 +1824,8 @@ static const char *wm_call_menu_get_name(wmOperatorType *ot, PointerRNA *ptr)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(ptr, "name", idname);
   MenuType *mt = WM_menutype_find(idname, true);
-  return (mt) ? mt->label : ot->name;
+  return (mt) ? CTX_IFACE_(mt->translation_context, mt->label) :
+                CTX_IFACE_(ot->translation_context, ot->name);
 }
 
 static void WM_OT_call_menu(wmOperatorType *ot)
@@ -1888,7 +1889,8 @@ static const char *wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(ptr, "name", idname);
   PanelType *pt = WM_paneltype_find(idname, true);
-  return (pt) ? pt->label : ot->name;
+  return (pt) ? CTX_IFACE_(pt->translation_context, pt->label) :
+                CTX_IFACE_(ot->translation_context, ot->name);
 }
 
 static void WM_OT_call_panel(wmOperatorType *ot)

@@ -5228,7 +5228,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
       pt->draw_header(C, panel);
       panel->layout = NULL;
     }
-    uiItemL(row, pt->label, ICON_NONE);
+    uiItemL(row, CTX_IFACE_(pt->translation_context, pt->label), ICON_NONE);
   }
 
   panel->layout = layout;
