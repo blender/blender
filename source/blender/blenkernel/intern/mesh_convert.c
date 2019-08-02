@@ -1216,10 +1216,14 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
                                         Object *object,
                                         bool preserve_all_data_layers)
 {
+  BLI_assert(ELEM(object->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_MESH));
+
   Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers);
   if (mesh == NULL) {
-    /* Unable to convert the object to a mesh. */
-    return NULL;
+    /* Unable to convert the object to a mesh, return an empty one. */
+    Mesh *mesh_in_bmain = BKE_mesh_add(bmain, ((ID *)object->data)->name + 2);
+    id_us_min(&mesh_in_bmain->id);
+    return mesh_in_bmain;
   }
 
   /* Make sure mesh only points original datablocks, also increase users of materials and other

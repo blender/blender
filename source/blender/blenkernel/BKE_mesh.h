@@ -224,7 +224,9 @@ struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
                                       struct Object *object,
                                       bool preserve_all_data_layers);
 
-/* This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database. */
+/* This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database.
+ * However, that function enforces object type to be a geometry one, and ensures a mesh is always
+ * generated, be it empty. */
 struct Mesh *BKE_mesh_new_from_object_to_bmain(struct Main *bmain,
                                                struct Depsgraph *depsgraph,
                                                struct Object *object,
