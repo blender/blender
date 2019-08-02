@@ -606,7 +606,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
   base = view_layer->basact;
 
   /* seems to assume view align ? TODO - look into this, could be an operator option */
-  ED_object_base_init_transform(C, base, NULL, rot);
+  ED_object_base_init_transform_on_add(base->object, NULL, rot);
 
   BKE_object_where_is_calc(depsgraph, scene, obedit);
 
