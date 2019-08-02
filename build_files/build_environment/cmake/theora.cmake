@@ -16,7 +16,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV} && export HAVE_PDFLATEX=no)
+if (UNIX)
+  set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV} && export HAVE_PDFLATEX=no)
+else()
+  set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV})
+endif()
 
 ExternalProject_Add(external_theora
   URL ${THEORA_URI}
