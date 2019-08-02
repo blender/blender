@@ -2194,23 +2194,28 @@ int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 
 #ifdef WITH_X11_XINPUT
 
+static bool is_filler_char(char c)
+{
+  return isspace(c) || c == '_' || c == '-' || c == ';' || c == ':';
+}
+
 /* These C functions are copied from Wine 3.12's wintab.c */
 static bool match_token(const char *haystack, const char *needle)
 {
-  const char *p, *q;
-  for (p = haystack; *p;) {
-    while (*p && isspace(*p))
-      p++;
-    if (!*p)
+  const char *h, *n;
+  for (h = haystack; *h;) {
+    while (*h && is_filler_char(*h))
+      h++;
+    if (!*h)
       break;
 
-    for (q = needle; *q && *p && tolower(*p) == tolower(*q); q++)
-      p++;
-    if (!*q && (isspace(*p) || !*p))
+    for (n = needle; *n && *h && tolower(*h) == tolower(*n); n++)
+      h++;
+    if (!*n && (is_filler_char(*h) || !*h))
       return true;
 
-    while (*p && !isspace(*p))
-      p++;
+    while (*h && !is_filler_char(*h))
+      h++;
   }
   return false;
 }
