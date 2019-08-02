@@ -1127,7 +1127,12 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   if ((paint->brush == NULL) || (paint->brush->gpencil_settings == NULL)) {
     BKE_brush_gpencil_presets(C);
   }
-  tgpi->brush = paint->brush;
+
+  /* Set Draw brush. */
+  Brush *brush = BKE_paint_toolslots_brush_get(paint, 0);
+  BKE_brush_tool_set(brush, paint, 0);
+  BKE_paint_brush_set(paint, brush);
+  tgpi->brush = brush;
 
   /* control points */
   tgpi->gpd->runtime.cp_points = MEM_callocN(sizeof(bGPDcontrolpoint) * MAX_CP,
