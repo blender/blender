@@ -153,33 +153,56 @@ static void select_cache_init(void *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   SELECTID_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+
+  if (e_data.context.select_mode == -1) {
+    e_data.context.select_mode = select_id_get_object_select_mode(draw_ctx->scene,
+                                                                  OBACT(draw_ctx->view_layer));
+    BLI_assert(e_data.context.select_mode != 0);
+  }
+
   {
     psl->select_id_face_pass = DRW_pass_create("Face Pass", DRW_STATE_DEFAULT);
-    stl->g_data->shgrp_face_unif = DRW_shgroup_create(sh_data->select_id_uniform,
-                                                      psl->select_id_face_pass);
 
-    DRW_shgroup_uniform_int_copy(stl->g_data->shgrp_face_unif, "id", 0);
+    if (e_data.context.select_mode & SCE_SELECT_FACE) {
+      stl->g_data->shgrp_face_flat = DRW_shgroup_create(sh_data->select_id_flat,
+                                                        psl->select_id_face_pass);
 
-    stl->g_data->shgrp_face_flat = DRW_shgroup_create(sh_data->select_id_flat,
-                                                      psl->select_id_face_pass);
+      if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+        DRW_shgroup_state_enable(stl->g_data->shgrp_face_flat, DRW_STATE_CLIP_PLANES);
+      }
+    }
+    else {
+      stl->g_data->shgrp_face_unif = DRW_shgroup_create(sh_data->select_id_uniform,
+                                                        psl->select_id_face_pass);
+      DRW_shgroup_uniform_int_copy(stl->g_data->shgrp_face_unif, "id", 0);
 
-    psl->select_id_edge_pass = DRW_pass_create(
-        "Edge Pass", DRW_STATE_DEFAULT | DRW_STATE_FIRST_VERTEX_CONVENTION);
+      if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+        DRW_shgroup_state_enable(stl->g_data->shgrp_face_unif, DRW_STATE_CLIP_PLANES);
+      }
+    }
 
-    stl->g_data->shgrp_edge = DRW_shgroup_create(sh_data->select_id_flat,
-                                                 psl->select_id_edge_pass);
+    if (e_data.context.select_mode & SCE_SELECT_EDGE) {
+      psl->select_id_edge_pass = DRW_pass_create(
+          "Edge Pass", DRW_STATE_DEFAULT | DRW_STATE_FIRST_VERTEX_CONVENTION);
 
-    psl->select_id_vert_pass = DRW_pass_create("Vert Pass", DRW_STATE_DEFAULT);
-    stl->g_data->shgrp_vert = DRW_shgroup_create(sh_data->select_id_flat,
-                                                 psl->select_id_vert_pass);
+      stl->g_data->shgrp_edge = DRW_shgroup_create(sh_data->select_id_flat,
+                                                   psl->select_id_edge_pass);
 
-    DRW_shgroup_uniform_float_copy(stl->g_data->shgrp_vert, "sizeVertex", G_draw.block.sizeVertex);
+      if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+        DRW_shgroup_state_enable(stl->g_data->shgrp_edge, DRW_STATE_CLIP_PLANES);
+      }
+    }
 
-    if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
-      DRW_shgroup_state_enable(stl->g_data->shgrp_face_unif, DRW_STATE_CLIP_PLANES);
-      DRW_shgroup_state_enable(stl->g_data->shgrp_face_flat, DRW_STATE_CLIP_PLANES);
-      DRW_shgroup_state_enable(stl->g_data->shgrp_edge, DRW_STATE_CLIP_PLANES);
-      DRW_shgroup_state_enable(stl->g_data->shgrp_vert, DRW_STATE_CLIP_PLANES);
+    if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
+      psl->select_id_vert_pass = DRW_pass_create("Vert Pass", DRW_STATE_DEFAULT);
+      stl->g_data->shgrp_vert = DRW_shgroup_create(sh_data->select_id_flat,
+                                                   psl->select_id_vert_pass);
+      DRW_shgroup_uniform_float_copy(
+          stl->g_data->shgrp_vert, "sizeVertex", G_draw.block.sizeVertex);
+
+      if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
+        DRW_shgroup_state_enable(stl->g_data->shgrp_vert, DRW_STATE_CLIP_PLANES);
+      }
     }
   }
 
@@ -190,12 +213,6 @@ static void select_cache_init(void *vedata)
 static void select_cache_populate(void *vedata, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  short select_mode = e_data.context.select_mode;
-
-  if (select_mode == -1) {
-    select_mode = select_id_get_object_select_mode(draw_ctx->scene, ob);
-  }
-
   struct BaseOffset *base_ofs =
       &e_data.context.base_array_index_offsets[e_data.context.last_base_drawn++];
 
@@ -204,7 +221,7 @@ static void select_cache_populate(void *vedata, Object *ob)
   select_id_draw_object(vedata,
                         draw_ctx->v3d,
                         ob,
-                        select_mode,
+                        e_data.context.select_mode,
                         offset,
                         &base_ofs->vert,
                         &base_ofs->edge,
@@ -231,11 +248,15 @@ static void select_draw_scene(void *vedata)
   DRW_view_set_active(stl->g_data->view_faces);
   DRW_draw_pass(psl->select_id_face_pass);
 
-  DRW_view_set_active(stl->g_data->view_edges);
-  DRW_draw_pass(psl->select_id_edge_pass);
+  if (e_data.context.select_mode & SCE_SELECT_EDGE) {
+    DRW_view_set_active(stl->g_data->view_edges);
+    DRW_draw_pass(psl->select_id_edge_pass);
+  }
 
-  DRW_view_set_active(stl->g_data->view_verts);
-  DRW_draw_pass(psl->select_id_vert_pass);
+  if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
+    DRW_view_set_active(stl->g_data->view_verts);
+    DRW_draw_pass(psl->select_id_vert_pass);
+  }
 }
 
 static void select_engine_free(void)
