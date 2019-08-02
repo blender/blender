@@ -29,7 +29,6 @@
 #include "gpu_py_types.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-
 /** \name GPU Types Module
  * \{ */
 

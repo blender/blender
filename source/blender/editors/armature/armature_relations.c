@@ -64,8 +64,11 @@
 
 #include "armature_intern.h"
 
-/* *************************************** Join *************************************** */
-/* NOTE: no operator define here as this is exported to the Object-level operator */
+/* -------------------------------------------------------------------- */
+/** \name Edit Armature Join
+ *
+ * \note No operator define here as this is exported to the Object-level operator.
+ * \{ */
 
 static void joined_armature_fix_links_constraints(Main *bmain,
                                                   Object *ob,
@@ -434,7 +437,11 @@ int join_armature_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* *********************************** Separate *********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Armature Separate
+ * \{ */
 
 /* Helper function for armature separating - link fixing */
 static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *newArm)
@@ -712,7 +719,11 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************* Parenting ************************************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Armature Parenting
+ * \{ */
 
 /* armature parenting options */
 #define ARM_PAR_CONNECT 1
@@ -1007,3 +1018,5 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
                           "ClearType",
                           "What way to clear parenting");
 }
+
+/** \} */

@@ -1061,6 +1061,7 @@ void wm_homefile_read(bContext *C,
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name WM History File API
  * \{ */
 
@@ -1188,6 +1189,10 @@ static void wm_history_file_update(void)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Main .blend File (internal)
+ * \{ */
 
 /* screen can be NULL */
 static ImBuf *blend_file_thumb(const bContext *C,
@@ -1422,7 +1427,11 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
   return ok;
 }
 
-/************************ autosave ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Auto-Save API
+ * \{ */
 
 void wm_autosave_location(char *filepath)
 {
@@ -1550,6 +1559,9 @@ void wm_autosave_read(bContext *C, ReportList *reports)
   WM_file_read(C, filename, reports);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Initialize WM_OT_open_xxx properties
  *
  * Check if load_ui was set by the caller.
@@ -1593,8 +1605,8 @@ void WM_file_tag_modified(void)
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Preferences/startup save & load.
- *
  * \{ */
 
 /**
@@ -2035,8 +2047,8 @@ void WM_OT_read_factory_settings(wmOperatorType *ot)
 
 /** \} */
 
-/** \name Open main .blend file.
- *
+/* -------------------------------------------------------------------- */
+/** \name Open Main .blend File Utilities
  * \{ */
 
 /**
@@ -2062,8 +2074,7 @@ static bool wm_file_read_opwrap(bContext *C,
   return success;
 }
 
-/* Generic operator state utilities
- *********************************************/
+/* Generic operator state utilities */
 
 static void create_operator_state(wmOperatorType *ot, int first_state)
 {
@@ -2101,8 +2112,11 @@ static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatch
   return OPERATOR_CANCELLED;
 }
 
-/* Open Mainfile operator
- ********************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Open Main .blend File Operator
+ * \{ */
 
 enum {
   OPEN_MAINFILE_STATE_DISCARD_CHANGES,
@@ -2326,8 +2340,8 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 
 /** \} */
 
-/** \name Reload (revert) main .blend file.
- *
+/* -------------------------------------------------------------------- */
+/** \name Reload (revert) Main .blend File Operator
  * \{ */
 
 static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
@@ -2381,8 +2395,8 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Recover last session & auto-save.
- *
  * \{ */
 
 void WM_recover_last_session(bContext *C, ReportList *reports)
@@ -2478,8 +2492,8 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 
 /** \} */
 
-/** \name Save main .blend file.
- *
+/* -------------------------------------------------------------------- */
+/** \name Save Main .blend File Operator
  * \{ */
 
 static void wm_filepath_default(char *filepath)
@@ -2707,8 +2721,8 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Auto-execution of scripts warning popup
- *
  * \{ */
 
 static void wm_block_autorun_warning_ignore(bContext *C, void *arg_block, void *UNUSED(arg))

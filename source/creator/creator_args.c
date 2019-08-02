@@ -383,11 +383,11 @@ fail:
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Utilities Python Context Macro (#BPY_CTX_SETUP)
+ * \{ */
 
 #  ifdef WITH_PYTHON
 
-/** \name Utilities Python Context Macro (#BPY_CTX_SETUP)
- * \{ */
 struct BlendePyContextStore {
   wmWindowManager *wm;
   Scene *scene;

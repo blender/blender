@@ -896,8 +896,6 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
 
 /* ------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------------------------- */
-
 static void do_2d_mapping(
     const MTex *mtex, float texvec[3], const float n[3], float dxt[3], float dyt[3])
 {
