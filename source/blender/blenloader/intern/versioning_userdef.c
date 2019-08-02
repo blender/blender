@@ -370,9 +370,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     if (userdef->keyhandles_new == HD_AUTO) {
       userdef->keyhandles_new = HD_AUTO_ANIM;
     }
-
-    /* enable (Cycles) addon by default */
-    BKE_addon_ensure(&userdef->addons, "cycles");
   }
 
   if (!USER_VERSION_ATLEAST(267, 0)) {
