@@ -16,20 +16,22 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV} && export HAVE_PDFLATEX=no)
+
 ExternalProject_Add(external_theora
   URL ${THEORA_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH SHA256=${THEORA_HASH}
   PREFIX ${BUILD_DIR}/theora
-  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/theora
+  CONFIGURE_COMMAND ${THEORA_CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/theora
     --disable-shared
     --enable-static
     --with-pic
     --with-ogg=${LIBDIR}/ogg
     --with-vorbis=${LIBDIR}/vorbis
     --disable-examples
-  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && make -j${MAKE_THREADS}
-  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && make install
+  BUILD_COMMAND ${THEORA_CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${THEORA_CONFIGURE_ENV} && cd ${BUILD_DIR}/theora/src/external_theora/ && make install
   INSTALL_DIR ${LIBDIR}/theora
 )
 
