@@ -1171,10 +1171,27 @@ void ED_object_vpaintmode_enter_ex(
 {
   ed_vwpaintmode_enter_generic(bmain, depsgraph, wm, scene, ob, OB_MODE_VERTEX_PAINT);
 }
+void ED_object_vpaintmode_enter(struct bContext *C, Depsgraph *depsgraph)
+{
+  Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
+}
+
 void ED_object_wpaintmode_enter_ex(
     Main *bmain, Depsgraph *depsgraph, wmWindowManager *wm, Scene *scene, Object *ob)
 {
   ed_vwpaintmode_enter_generic(bmain, depsgraph, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
+}
+void ED_object_wpaintmode_enter(struct bContext *C, Depsgraph *depsgraph)
+{
+  Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 }
 
 /** \} */

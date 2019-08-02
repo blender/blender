@@ -166,11 +166,13 @@ void ED_object_vpaintmode_enter_ex(struct Main *bmain,
                                    struct wmWindowManager *wm,
                                    struct Scene *scene,
                                    struct Object *ob);
+void ED_object_vpaintmode_enter(struct bContext *C, struct Depsgraph *depsgraph);
 void ED_object_wpaintmode_enter_ex(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
                                    struct wmWindowManager *wm,
                                    struct Scene *scene,
                                    struct Object *ob);
+void ED_object_wpaintmode_enter(struct bContext *C, struct Depsgraph *depsgraph);
 
 void ED_object_vpaintmode_exit_ex(struct Object *ob);
 void ED_object_vpaintmode_exit(struct bContext *C);
@@ -183,10 +185,14 @@ void ED_object_sculptmode_enter_ex(struct Main *bmain,
                                    struct Object *ob,
                                    const bool force_dyntopo,
                                    struct ReportList *reports);
+void ED_object_sculptmode_enter(struct bContext *C,
+                                struct Depsgraph *depsgraph,
+                                struct ReportList *reports);
 void ED_object_sculptmode_exit_ex(struct Main *bmain,
                                   struct Depsgraph *depsgraph,
                                   struct Scene *scene,
                                   struct Object *ob);
+void ED_object_sculptmode_exit(struct bContext *C, struct Depsgraph *depsgraph);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_quat(float rot[3], const float quat[4], const char align_axis);
@@ -267,6 +273,7 @@ bool ED_object_mode_compat_set(struct bContext *C,
                                struct ReportList *reports);
 void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
 void ED_object_mode_set(struct bContext *C, eObjectMode mode);
+void ED_object_mode_exit(struct bContext *C, struct Depsgraph *depsgraph);
 
 bool ED_object_mode_generic_enter(struct bContext *C, eObjectMode object_mode);
 void ED_object_mode_generic_exit(struct Main *bmain,
