@@ -158,6 +158,8 @@ static void select_cache_init(void *vedata)
     stl->g_data->shgrp_face_unif = DRW_shgroup_create(sh_data->select_id_uniform,
                                                       psl->select_id_face_pass);
 
+    DRW_shgroup_uniform_int_copy(stl->g_data->shgrp_face_unif, "id", 0);
+
     stl->g_data->shgrp_face_flat = DRW_shgroup_create(sh_data->select_id_flat,
                                                       psl->select_id_face_pass);
 
