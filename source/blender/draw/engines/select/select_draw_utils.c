@@ -156,7 +156,7 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
   if (select_mode & SCE_SELECT_VERTEX) {
     struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
     DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
-    DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", 1);
+    DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", *r_edge_offset);
     DRW_shgroup_call(vert_shgrp, geom_verts, ob);
     *r_vert_offset = *r_edge_offset + me->totvert;
   }
