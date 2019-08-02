@@ -114,6 +114,10 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
     case MAN2D_AXIS_TRANS_Y:
       col_id = TH_AXIS_Y;
       break;
+    default:
+      BLI_assert(0);
+      col_id = TH_AXIS_Y;
+      break;
   }
 
   UI_GetThemeColor4fv(col_id, r_col);
