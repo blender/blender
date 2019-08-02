@@ -662,10 +662,16 @@ typedef struct TransInfo {
 
   short prop_mode;
 
+  /** Value taken as input, either through mouse coordinates or entered as a parameter. */
   float values[4];
+
   /** Offset applied ontop of modal input. */
   float values_modal_offset[4];
-  float auto_values[4];
+
+  /** Final value of the transformation (displayed in the redo panel).
+   * If the operator is executed directly (not modal), this value is usually the
+   * value of the input parameter, except when a constrain is entered. */
+  float values_final[4];
 
   /* Axis members for modes that use an axis separate from the orientation (rotate & shear). */
 
@@ -764,7 +770,9 @@ enum {
   /** Don't use mirror even if the data-block option is set. */
   T_NO_MIRROR = 1 << 19,
 
-  T_AUTOVALUES = 1 << 20,
+  /** To indicate that the value set in the `value` parameter is the final
+   * value of the transformation, modified only by the constrain. */
+  T_INPUT_IS_VALUES_FINAL = 1 << 20,
 
   /** To specify if we save back settings at the end. */
   T_MODAL = 1 << 21,

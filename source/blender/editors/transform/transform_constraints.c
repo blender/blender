@@ -57,7 +57,7 @@
 static void drawObjectConstraint(TransInfo *t);
 
 /* ************************** CONSTRAINTS ************************* */
-static void constraintAutoValues(TransInfo *t, float vec[3])
+static void constraintValuesFinal(TransInfo *t, float vec[3])
 {
   int mode = t->con.mode;
   if (mode & CON_APPLY) {
@@ -147,10 +147,10 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
     removeAspectRatio(t, vec);
   }
 
-  /* autovalues is operator param, use that directly but not if snapping is forced */
-  if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0) {
-    copy_v3_v3(vec, t->auto_values);
-    constraintAutoValues(t, vec);
+  /* If `t->values` is operator param, use that directly but not if snapping is forced */
+  if (t->flag & T_INPUT_IS_VALUES_FINAL && (t->tsnap.status & SNAP_FORCED) == 0) {
+    copy_v3_v3(vec, t->values);
+    constraintValuesFinal(t, vec);
     /* inverse transformation at the end */
   }
 

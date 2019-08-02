@@ -2093,15 +2093,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
-    float values[4];
-
-    copy_v4_v4(values, (t->flag & T_AUTOVALUES) ? t->auto_values : t->values);
-
     if (RNA_property_array_check(prop)) {
-      RNA_property_float_set_array(op->ptr, prop, values);
+      RNA_property_float_set_array(op->ptr, prop, t->values_final);
     }
     else {
-      RNA_property_float_set(op->ptr, prop, values[0]);
+      RNA_property_float_set(op->ptr, prop, t->values_final[0]);
     }
   }
 
@@ -2488,8 +2484,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->redraw = TREDRAW_HARD;
     }
     else {
-      copy_v4_v4(t->auto_values, values);
-      t->flag |= T_AUTOVALUES;
+      copy_v4_v4(t->values, values);
+      t->flag |= T_INPUT_IS_VALUES_FINAL;
     }
   }
 
@@ -3374,7 +3370,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
     values.scale = values.scale / data->warp_init_dist;
   }
 
-  copy_v2_v2(t->values, values.vector);
+  copy_v2_v2(t->values_final, values.vector);
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -3615,7 +3611,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &value);
 
-  t->values[0] = value;
+  t->values_final[0] = value;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -3946,10 +3942,10 @@ static void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, f
 
     /* scale stroke thickness */
     if (td->val) {
-      snapGridIncrement(t, t->values);
-      applyNumInput(&t->num, t->values);
+      snapGridIncrement(t, t->values_final);
+      applyNumInput(&t->num, t->values_final);
 
-      float ratio = t->values[0];
+      float ratio = t->values_final[0];
       *td->val = td->ival * ratio * gps->runtime.multi_frame_falloff;
       CLAMP_MIN(*td->val, 0.001f);
     }
@@ -3976,24 +3972,24 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  if (t->flag & T_AUTOVALUES) {
-    copy_v3_v3(t->values, t->auto_values);
+  if (t->flag & T_INPUT_IS_VALUES_FINAL) {
+    copy_v3_v3(t->values_final, t->values);
   }
   else {
     float ratio = t->values[0];
 
-    copy_v3_fl(t->values, ratio);
+    copy_v3_fl(t->values_final, ratio);
 
-    snapGridIncrement(t, t->values);
+    snapGridIncrement(t, t->values_final);
 
-    if (applyNumInput(&t->num, t->values)) {
-      constraintNumInput(t, t->values);
+    if (applyNumInput(&t->num, t->values_final)) {
+      constraintNumInput(t, t->values_final);
     }
 
-    applySnapping(t, t->values);
+    applySnapping(t, t->values_final);
   }
 
-  size_to_mat3(mat, t->values);
+  size_to_mat3(mat, t->values_final);
   if (t->con.mode & CON_APPLY) {
     t->con.applySize(t, NULL, NULL, mat);
 
@@ -4002,16 +3998,16 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
     int j = 0;
     for (i = 0; i < 3; i++) {
       if (!(t->con.mode & (CON_AXIS0 << i))) {
-        t->values[i] = 1.0f;
+        t->values_final[i] = 1.0f;
       }
       else {
-        pvec[j++] = t->values[i];
+        pvec[j++] = t->values_final[i];
       }
     }
     headerResize(t, pvec, str);
   }
   else {
-    headerResize(t, t->values, str);
+    headerResize(t, t->values_final, str);
   }
 
   copy_m3_m3(t->mat, mat);  // used in gizmo
@@ -4032,8 +4028,8 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   }
 
   /* evil hack - redo resize if cliping needed */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 1)) {
-    size_to_mat3(mat, t->values);
+  if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values_final, 1)) {
+    size_to_mat3(mat, t->values_final);
 
     if (t->con.mode & CON_APPLY) {
       t->con.applySize(t, NULL, NULL, mat);
@@ -4103,29 +4099,28 @@ static void initSkinResize(TransInfo *t)
 
 static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float size[3], mat[3][3];
+  float mat[3][3];
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  copy_v3_fl(size, t->values[0]);
+  if (t->flag & T_INPUT_IS_VALUES_FINAL) {
+    copy_v3_v3(t->values_final, t->values);
+  }
+  else {
+    copy_v3_fl(t->values_final, t->values[0]);
 
-  snapGridIncrement(t, size);
+    snapGridIncrement(t, t->values_final);
 
-  if (applyNumInput(&t->num, size)) {
-    constraintNumInput(t, size);
+    if (applyNumInput(&t->num, t->values_final)) {
+      constraintNumInput(t, t->values_final);
+    }
+
+    applySnapping(t, t->values_final);
   }
 
-  applySnapping(t, size);
+  size_to_mat3(mat, t->values_final);
 
-  if (t->flag & T_AUTOVALUES) {
-    copy_v3_v3(size, t->auto_values);
-  }
-
-  copy_v3_v3(t->values, size);
-
-  size_to_mat3(mat, size);
-
-  headerResize(t, size, str);
+  headerResize(t, t->values_final, str);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -4219,7 +4214,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 
   CLAMP(ratio, 0.0f, 1.0f);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -4685,7 +4680,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
     final = large_rotation_limit(final);
   }
 
-  t->values[0] = final;
+  t->values_final[0] = final;
 
   headerRotation(t, str, final);
 
@@ -4782,7 +4777,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, phi);
 
-  copy_v2_v2(t->values, phi);
+  copy_v2_v2(t->values_final, phi);
 
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN * 2];
@@ -4935,6 +4930,8 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
       BKE_lnor_space_custom_normal_to_data(
           bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
     }
+
+    t->values_final[0] = angle;
   }
 
   recalcData(t);
@@ -5291,43 +5288,45 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
-  float value_final[3];
+  float values_final[3];
 
-  if (t->flag & T_AUTOVALUES) {
-    copy_v3_v3(t->values, t->auto_values);
+  if (t->flag & T_INPUT_IS_VALUES_FINAL) {
+    copy_v3_v3(t->values_final, t->values);
   }
   else {
+    copy_v3_v3(t->values_final, t->values);
     if ((t->con.mode & CON_APPLY) == 0) {
-      snapGridIncrement(t, t->values);
+      snapGridIncrement(t, t->values_final);
     }
 
-    if (applyNumInput(&t->num, t->values)) {
-      removeAspectRatio(t, t->values);
+    if (applyNumInput(&t->num, t->values_final)) {
+      removeAspectRatio(t, t->values_final);
     }
 
-    applySnapping(t, t->values);
+    applySnapping(t, t->values_final);
   }
+  copy_v3_v3(values_final, t->values_final);
 
   if (t->con.mode & CON_APPLY) {
     float pvec[3] = {0.0f, 0.0f, 0.0f};
-    t->con.applyVec(t, NULL, NULL, t->values, value_final, pvec);
+    t->con.applyVec(t, NULL, NULL, t->values_final, values_final, pvec);
     headerTranslation(t, pvec, str);
 
     /* only so we have re-usable value with redo, see T46741. */
-    mul_v3_m3v3(t->values, t->con.imtx, value_final);
+    mul_v3_m3v3(t->values_final, t->con.imtx, values_final);
   }
   else {
-    headerTranslation(t, t->values, str);
-    copy_v3_v3(value_final, t->values);
+    headerTranslation(t, t->values_final, str);
+    copy_v3_v3(values_final, t->values_final);
   }
 
   /* don't use 't->values' now on */
 
-  applyTranslationValue(t, value_final);
+  applyTranslationValue(t, values_final);
 
   /* evil hack - redo translation if clipping needed */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, value_final, 0)) {
-    applyTranslationValue(t, value_final);
+  if (t->flag & T_CLIP_UV && clipUVTransform(t, values_final, 0)) {
+    applyTranslationValue(t, values_final);
 
     /* In proportional edit it can happen that */
     /* vertices in the radius of the brush end */
@@ -5389,7 +5388,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &distance);
 
-  t->values[0] = -distance;
+  t->values_final[0] = -distance;
 
   /* header print for NumInput */
   ofs += BLI_strncpy_rlen(str + ofs, TIP_("Shrink/Fatten:"), sizeof(str) - ofs);
@@ -5488,7 +5487,7 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &final);
 
-  t->values[0] = final;
+  t->values_final[0] = final;
 
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
@@ -5498,7 +5497,7 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
     BLI_snprintf(str, sizeof(str), TIP_("Tilt: %s° %s"), &c[0], t->proptext);
 
     /* XXX For some reason, this seems needed for this op, else RNA prop is not updated... :/ */
-    t->values[0] = final;
+    t->values_final[0] = final;
   }
   else {
     BLI_snprintf(str, sizeof(str), TIP_("Tilt: %.2f° %s"), RAD2DEGF(final), t->proptext);
@@ -5570,7 +5569,7 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &ratio);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -5655,7 +5654,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &ratio);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -5768,7 +5767,7 @@ static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &ratio);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -5850,7 +5849,7 @@ static void applyGPOpacity(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &ratio);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -5924,7 +5923,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &distance);
 
-  t->values[0] = distance;
+  t->values_final[0] = distance;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -6023,7 +6022,7 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &weight);
 
-  t->values[0] = weight;
+  t->values_final[0] = weight;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -6113,7 +6112,7 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &crease);
 
-  t->values[0] = crease;
+  t->values_final[0] = crease;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -6273,7 +6272,7 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
     constraintNumInput(t, size);
   }
 
-  copy_v3_v3(t->values, size);
+  copy_v3_v3(t->values_final, size);
 
   size_to_mat3(mat, size);
 
@@ -6344,7 +6343,7 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &ratio);
 
-  t->values[0] = ratio;
+  t->values_final[0] = ratio;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -8158,7 +8157,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &final);
 
-  t->values[0] = final;
+  t->values_final[0] = final;
 
   /* header string */
   ofs += BLI_strncpy_rlen(str + ofs, TIP_("Edge Slide: "), sizeof(str) - ofs);
@@ -8769,7 +8768,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &final);
 
-  t->values[0] = final;
+  t->values_final[0] = final;
 
   /* header string */
   ofs += BLI_strncpy_rlen(str + ofs, TIP_("Vert Slide: "), sizeof(str) - ofs);
@@ -8840,7 +8839,7 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
   applyNumInput(&t->num, &final);
 
-  t->values[0] = final;
+  t->values_final[0] = final;
 
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
@@ -8997,6 +8996,7 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
   float size[3], mat[3][3];
   int i;
   char str[UI_MAX_DRAW_STR];
+  copy_v3_v3(t->values_final, t->values);
 
   /*
    * OPTIMIZATION:
@@ -9213,18 +9213,19 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
     float pvec[3] = {0.0f, 0.0f, 0.0f};
     float tvec[3];
     t->con.applyVec(t, NULL, NULL, t->values, tvec, pvec);
-    copy_v3_v3(t->values, tvec);
+    copy_v3_v3(t->values_final, tvec);
   }
   else {
     // snapGridIncrement(t, t->values);
     applyNumInput(&t->num, t->values);
+    copy_v3_v3(t->values_final, t->values);
   }
 
-  t->values[0] = floorf(t->values[0] + 0.5f);
-  t->values[1] = floorf(t->values[1] + 0.5f);
+  t->values_final[0] = floorf(t->values_final[0] + 0.5f);
+  t->values_final[1] = floorf(t->values_final[1] + 0.5f);
 
-  headerSeqSlide(t, t->values, str);
-  applySeqSlideValue(t, t->values);
+  headerSeqSlide(t, t->values_final, str);
+  applySeqSlideValue(t, t->values_final);
 
   recalcData(t);
 
@@ -9410,7 +9411,7 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     const Scene *scene = t->scene;
     const short autosnap = getAnimEdit_SnapMode(t);
     const double secf = FPS;
-    float val = t->values[0];
+    float val = t->values_final[0];
 
     /* apply snapping + frame->seconds conversions */
     if (autosnap == SACTSNAP_STEP) {
@@ -9457,6 +9458,7 @@ static void applyTimeTranslateValue(TransInfo *t)
   const double secf = FPS;
 
   float deltax, val /* , valprev */;
+  t->values_final[0] = t->values[0];
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -9474,7 +9476,7 @@ static void applyTimeTranslateValue(TransInfo *t)
 
       /* check if any need to apply nla-mapping */
       if (adt && (t->spacetype != SPACE_SEQ)) {
-        deltax = t->values[0];
+        deltax = t->values_final[0];
 
         if (autosnap == SACTSNAP_TSTEP) {
           deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
@@ -9488,7 +9490,7 @@ static void applyTimeTranslateValue(TransInfo *t)
         *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
       }
       else {
-        deltax = val = t->values[0];
+        deltax = val = t->values_final[0];
 
         if (autosnap == SACTSNAP_TSTEP) {
           val = (float)(floor(((double)deltax / secf) + 0.5) * secf);
@@ -9524,7 +9526,7 @@ static void applyTimeTranslate(TransInfo *t, const int mval[2])
   /* handle numeric-input stuff */
   t->vec[0] = t->values[0];
   applyNumInput(&t->num, &t->vec[0]);
-  t->values[0] = t->vec[0];
+  t->values_final[0] = t->vec[0];
   headerTimeTranslate(t, str);
 
   applyTimeTranslateValue(t);
@@ -9623,7 +9625,7 @@ static void headerTimeSlide(TransInfo *t, const float sval, char str[UI_MAX_DRAW
     const float *range = t->custom.mode.data;
     float minx = range[0];
     float maxx = range[1];
-    float cval = t->values[0];
+    float cval = t->values_final[0];
     float val;
 
     val = 2.0f * (cval - sval) / (maxx - minx);
@@ -9641,11 +9643,12 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
   const float *range = t->custom.mode.data;
   float minx = range[0];
   float maxx = range[1];
+  t->values_final[0] = t->values[0];
 
   /* set value for drawing black line */
   if (t->spacetype == SPACE_ACTION) {
     SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
-    float cvalf = t->values[0];
+    float cvalf = t->values_final[0];
 
     saction->timeslide = cvalf;
   }
@@ -9660,7 +9663,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
        * (this is only valid when not in NLA)
        */
       AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-      float cval = t->values[0];
+      float cval = t->values_final[0];
 
       /* only apply to data if in range */
       if ((sval > minx) && (sval < maxx)) {
@@ -9711,14 +9714,14 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
   UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &sval[0], &sval[1]);
 
-  /* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
+  /* t->values_final[0] stores cval[0], which is the current mouse-pointer location (in frames) */
   // XXX Need to be able to repeat this
-  /* t->values[0] = cval[0]; */ /* UNUSED (reset again later). */
+  /* t->values_final[0] = cval[0]; */ /* UNUSED (reset again later). */
 
   /* handle numeric-input stuff */
   t->vec[0] = 2.0f * (cval[0] - sval[0]) / (maxx - minx);
   applyNumInput(&t->num, &t->vec[0]);
-  t->values[0] = (maxx - minx) * t->vec[0] / 2.0f + sval[0];
+  t->values_final[0] = (maxx - minx) * t->vec[0] / 2.0f + sval[0];
 
   headerTimeSlide(t, sval[0], str);
   applyTimeSlideValue(t, sval[0]);
@@ -9787,7 +9790,7 @@ static void headerTimeScale(TransInfo *t, char str[UI_MAX_DRAW_STR])
     outputNumInput(&(t->num), tvec, &t->scene->unit);
   }
   else {
-    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", t->values[0]);
+    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", t->values_final[0]);
   }
 
   BLI_snprintf(str, UI_MAX_DRAW_STR, TIP_("ScaleX: %s"), &tvec[0]);
@@ -9800,6 +9803,7 @@ static void applyTimeScaleValue(TransInfo *t)
 
   const short autosnap = getAnimEdit_SnapMode(t);
   const double secf = FPS;
+  t->values_final[0] = t->values[0];
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -9811,7 +9815,7 @@ static void applyTimeScaleValue(TransInfo *t)
        */
       AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
       float startx = CFRA;
-      float fac = t->values[0];
+      float fac = t->values_final[0];
 
       if (autosnap == SACTSNAP_TSTEP) {
         fac = (float)(floor((double)fac / secf + 0.5) * secf);
@@ -9844,7 +9848,7 @@ static void applyTimeScale(TransInfo *t, const int UNUSED(mval[2]))
   /* handle numeric-input stuff */
   t->vec[0] = t->values[0];
   applyNumInput(&t->num, &t->vec[0]);
-  t->values[0] = t->vec[0];
+  t->values_final[0] = t->vec[0];
   headerTimeScale(t, str);
 
   applyTimeScaleValue(t);
