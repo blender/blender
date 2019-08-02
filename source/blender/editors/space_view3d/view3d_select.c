@@ -202,7 +202,7 @@ struct EditSelectBuf_Cache {
   BLI_bitmap *select_bitmap;
 };
 
-static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewContext *vc)
+static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewContext *vc, short select_mode)
 {
   if (vc->obedit) {
     esel->bases = BKE_view_layer_array_from_bases_in_edit_mode(
@@ -221,7 +221,7 @@ static void editselect_buf_cache_init(struct EditSelectBuf_Cache *esel, ViewCont
     }
   }
 
-  DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, esel->bases, esel->bases_len, -1);
+  DRW_draw_select_id(vc->depsgraph, vc->ar, vc->v3d, esel->bases, esel->bases_len, select_mode);
 
   for (int i = 0; i < esel->bases_len; i++) {
     esel->bases[i]->object->runtime.select_id = i;
@@ -241,13 +241,13 @@ static void editselect_buf_cache_free_voidp(void *esel_voidp)
 }
 
 static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *wm_userdata,
-                                                            ViewContext *vc)
+                                                            ViewContext *vc, short select_mode)
 {
   struct EditSelectBuf_Cache *esel = MEM_callocN(sizeof(*esel), __func__);
   wm_userdata->data = esel;
   wm_userdata->free_fn = editselect_buf_cache_free_voidp;
   wm_userdata->use_free = true;
-  editselect_buf_cache_init(esel, vc);
+  editselect_buf_cache_init(esel, vc, select_mode);
 }
 
 /** \} */
@@ -823,7 +823,7 @@ static bool do_lasso_select_mesh(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (use_zbuf) {
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, ts->selectmode);
       esel = wm_userdata->data;
       const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
@@ -1134,7 +1134,7 @@ static bool do_lasso_select_paintvert(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (use_zbuf) {
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_VERTEX);
       esel = wm_userdata->data;
       const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
@@ -1193,7 +1193,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
 
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (esel == NULL) {
-    editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+    editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_FACE);
     esel = wm_userdata->data;
     const uint buffer_len = DRW_select_context_elem_len();
     esel->select_bitmap = ED_select_buffer_bitmap_from_poly(buffer_len, mcords, moves, &rect);
@@ -2549,7 +2549,7 @@ static bool do_paintvert_box_select(ViewContext *vc,
   else if (use_zbuf) {
     struct EditSelectBuf_Cache *esel = wm_userdata->data;
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_VERTEX);
       esel = wm_userdata->data;
       const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
@@ -2604,7 +2604,7 @@ static bool do_paintface_box_select(ViewContext *vc,
   else {
     struct EditSelectBuf_Cache *esel = wm_userdata->data;
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_FACE);
       esel = wm_userdata->data;
       const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
@@ -2802,7 +2802,7 @@ static bool do_mesh_box_select(ViewContext *vc,
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
   if (use_zbuf) {
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, ts->selectmode);
       esel = wm_userdata->data;
       const uint buffer_len = DRW_select_context_elem_len();
       esel->select_bitmap = ED_select_buffer_bitmap_from_rect(buffer_len, rect);
@@ -3386,7 +3386,7 @@ static bool mesh_circle_select(ViewContext *vc,
 
   if (use_zbuf) {
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, ts->selectmode);
     }
   }
   struct EditSelectBuf_Cache *esel = wm_userdata->data;
@@ -3465,7 +3465,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
   }
 
   if (wm_userdata->data == NULL) {
-    editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+    editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_FACE);
   }
 
   {
@@ -3519,7 +3519,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
 
   if (use_zbuf) {
     if (wm_userdata->data == NULL) {
-      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc);
+      editselect_buf_cache_init_with_generic_userdata(wm_userdata, vc, SCE_SELECT_VERTEX);
     }
   }
 
