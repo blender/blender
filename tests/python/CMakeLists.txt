@@ -46,30 +46,34 @@ endif()
 # set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} ${TEST_BLENDER_EXE_PARAMS} )
 
 # Run Blender command with parameters.
-function(add_blender_test name)
+function(add_blender_test testname)
   add_test(
-    NAME ${name}
+    NAME ${testname}
     COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${ARGN}
   )
 
   # Don't fail tests on leaks since these often happen in external libraries
   # that we can't fix.
-  set_tests_properties(${name} PROPERTIES ENVIRONMENT LSAN_OPTIONS="exitcode=0")
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT LSAN_OPTIONS="exitcode=0")
 endfunction()
 
 # Run Python script outside Blender.
 function(add_python_test testname testscript)
   if(MSVC)
-    add_blender_test(
-      ${testname}
+    add_test(
+      NAME ${testname}
+      COMMAND
         "$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
         ${testscript} ${ARGN}
     )
   else()
-    add_blender_test(
-      ${testname}
+    add_test(
+      NAME ${testname}
+      COMMAND ${testscript} ${ARGN}
     )
   endif()
+
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT LSAN_OPTIONS="exitcode=0")
 endfunction()
 
 # ------------------------------------------------------------------------------
