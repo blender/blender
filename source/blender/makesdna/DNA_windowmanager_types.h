@@ -174,7 +174,7 @@ typedef struct wmWindowManager {
 
   /** Indicates whether interface is locked for user interaction. */
   char is_interface_locked;
-  char par[7];
+  char _pad[7];
 
   struct wmMsgBus *message_bus;
 
