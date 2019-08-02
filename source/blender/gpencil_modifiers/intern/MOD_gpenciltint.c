@@ -65,6 +65,7 @@ static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
                          bGPDlayer *gpl,
+                         bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
   TintGpencilModifierData *mmd = (TintGpencilModifierData *)md;
@@ -134,7 +135,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
         copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
         copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
 
-        deformStroke(md, depsgraph, ob, gpl, gps);
+        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
 
         gpencil_apply_modifier_material(
             bmain, ob, mat, gh_color, gps, (bool)(mmd->flag & GP_TINT_CREATE_COLORS));

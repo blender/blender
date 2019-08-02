@@ -107,6 +107,7 @@ static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
                          bGPDlayer *UNUSED(gpl),
+                         bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
@@ -140,7 +141,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
 
       /* compute armature effects on this frame */
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-        deformStroke(md_eval, depsgraph, object_eval, gpl, gps);
+        deformStroke(md_eval, depsgraph, object_eval, gpl, gpf, gps);
       }
     }
   }

@@ -59,6 +59,7 @@ static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
                          bGPDlayer *gpl,
+                         bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
   SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
@@ -89,7 +90,7 @@ static void bakeModifier(struct Main *UNUSED(bmain),
   for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
     for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-        deformStroke(md, depsgraph, ob, gpl, gps);
+        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
       }
     }
   }

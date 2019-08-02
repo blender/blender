@@ -343,7 +343,7 @@ bool BKE_gpencil_has_time_modifiers(Object *ob)
 void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph,
                                   Object *ob,
                                   bGPDlayer *gpl,
-                                  bGPDframe *UNUSED(gpf),
+                                  bGPDframe *gpf,
                                   bGPDstroke *gps,
                                   bool is_render)
 {
@@ -360,7 +360,7 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph,
       }
 
       if (mti && mti->deformStroke) {
-        mti->deformStroke(md, depsgraph, ob, gpl, gps);
+        mti->deformStroke(md, depsgraph, ob, gpl, gpf, gps);
         /* subdivide always requires update */
         if (md->type == eGpencilModifierType_Subdiv) {
           gps->flag |= GP_STROKE_RECALC_GEOMETRY;

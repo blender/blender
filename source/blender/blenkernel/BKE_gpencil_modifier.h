@@ -140,6 +140,7 @@ typedef struct GpencilModifierTypeInfo {
                        struct Depsgraph *depsgraph,
                        struct Object *ob,
                        struct bGPDlayer *gpl,
+                       struct bGPDframe *gpf,
                        struct bGPDstroke *gps);
 
   /**

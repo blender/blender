@@ -190,6 +190,7 @@ static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
                          bGPDlayer *gpl,
+                         bGPDframe *UNUSED(gpf),
                          bGPDstroke *gps)
 {
   HookGpencilModifierData *mmd = (HookGpencilModifierData *)md;
@@ -285,7 +286,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
 
       /* compute hook effects on this frame */
       for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-        deformStroke(md, depsgraph, ob, gpl, gps);
+        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
       }
     }
   }
