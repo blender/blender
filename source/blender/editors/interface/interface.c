@@ -932,12 +932,7 @@ static bool ui_but_is_rna_undo(const uiBut *but)
  * (underline key in menu) */
 static void ui_menu_block_set_keyaccels(uiBlock *block)
 {
-  uiBut *but;
-
   uint menu_key_mask = 0;
-  uchar menu_key;
-  const char *str_pt;
-  int pass;
   int tot_missing = 0;
 
   /* only do it before bounding */
@@ -945,11 +940,11 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
     return;
   }
 
-  for (pass = 0; pass < 2; pass++) {
+  for (int pass = 0; pass < 2; pass++) {
     /* 2 Passes, on for first letter only, second for any letter if first fails
      * fun first pass on all buttons so first word chars always get first priority */
 
-    for (but = block->buttons.first; but; but = but->next) {
+    for (uiBut *but = block->buttons.first; but; but = but->next) {
       if (!ELEM(but->type,
                 UI_BTYPE_BUT,
                 UI_BTYPE_BUT_MENU,
@@ -960,8 +955,10 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
         /* pass */
       }
       else if (but->menu_key == '\0') {
-        if (but->str) {
-          for (str_pt = but->str; *str_pt;) {
+        if (but->str && but->str[0]) {
+          const char *str_pt = but->str;
+          uchar menu_key;
+          do {
             menu_key = tolower(*str_pt);
             if ((menu_key >= 'a' && menu_key <= 'z') && !(menu_key_mask & 1 << (menu_key - 'a'))) {
               menu_key_mask |= 1 << (menu_key - 'a');
@@ -982,7 +979,7 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
               /* just step over every char second pass and find first usable key */
               str_pt++;
             }
-          }
+          } while (*str_pt);
 
           if (*str_pt) {
             but->menu_key = menu_key;
