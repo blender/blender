@@ -1459,6 +1459,11 @@ class USERPREF_PT_navigation_orbit(PreferencePanel, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.row().prop(inputs, "view_rotate_method", expand=True)
+        if inputs.view_rotate_method == 'TURNTABLE':
+            flow.prop(inputs, "view_rotate_sensitivity_turntable")
+        else:
+            flow.prop(inputs, "view_rotate_sensitivity_trackball")
+
         flow.prop(inputs, "use_rotate_around_active")
         flow.prop(inputs, "use_auto_perspective")
         flow.prop(inputs, "use_mouse_depth_navigate")

@@ -735,10 +735,15 @@ typedef struct UserDef {
   short autokey_flag;
 
   /** Options for text rendering. */
-  short text_render;
-  char _pad9;
-
+  char text_render;
   char navigation_mode;
+
+  char _pad9[2];
+
+  /** Turn-table rotation amount per-pixel in radians. Scaled with DPI. */
+  float view_rotate_sensitivity_turntable;
+  /** Track-ball rotation scale. */
+  float view_rotate_sensitivity_trackball;
 
   /** From texture.h. */
   struct ColorBand coba_weight;

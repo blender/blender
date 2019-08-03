@@ -30,6 +30,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 
@@ -5229,6 +5230,20 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "WalkNavigation");
   RNA_def_property_ui_text(prop, "Walk Navigation", "Settings for walk navigation mode");
+
+  prop = RNA_def_property(srna, "view_rotate_sensitivity_turntable", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, DEG2RADF(0.001f), DEG2RADF(15.0f));
+  RNA_def_property_float_default(prop, DEG2RADF(0.4f));
+  RNA_def_property_ui_range(prop, DEG2RADF(0.001f), DEG2RADF(15.0f), 1.0f, 2);
+  RNA_def_property_ui_text(prop,
+                           "Rotate Sensitivity",
+                           "Rotation amount per-pixel to control how fast the viewport rotates");
+
+  prop = RNA_def_property(srna, "view_rotate_sensitivity_trackball", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.1f, 10.0f);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_ui_range(prop, 0.1f, 2.0f, 0.01f, 2);
+  RNA_def_property_ui_text(prop, "Rotate Sensitivity", "Scale trackball rotation sensitivity");
 
   /* tweak tablet & mouse preset */
   prop = RNA_def_property(srna, "drag_threshold_mouse", PROP_INT, PROP_PIXEL);

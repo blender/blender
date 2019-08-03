@@ -16,8 +16,13 @@
 
 /* Preferences Data File 'U_default'. */
 
+/* For constants. */
+#include <math.h>
+
 #include "DNA_userdef_types.h"
 #include "DNA_curve_types.h"
+
+#include "BLI_math_rotation.h"
 
 #include "BKE_blender_version.h"
 
@@ -153,6 +158,8 @@ const UserDef U_default = {
     .autokey_flag = AUTOKEY_FLAG_XYZ2RGB,
     .text_render = 0,
     .navigation_mode = VIEW_NAVIGATION_WALK,
+    .view_rotate_sensitivity_turntable = DEG2RAD(0.4),
+    .view_rotate_sensitivity_trackball = 1.0f,
 
     /** Initialized by #BKE_colorband_init. */
     .coba_weight = {0},

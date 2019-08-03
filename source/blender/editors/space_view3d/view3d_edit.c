@@ -729,6 +729,10 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
 
     angle = (len_v3(dvec) / (2.0f * TRACKBALLSIZE)) * (float)M_PI;
 
+    /* Before applying the sensitivity this is rotating 1:1,
+     * where the cursor would match the surface of a sphere in the view. */
+    angle *= U.view_rotate_sensitivity_trackball;
+
     /* Allow for rotation beyond the interval [-pi, pi] */
     angle = angle_wrap_rad(angle);
 
@@ -751,11 +755,8 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
     const float zvec_global[3] = {0.0f, 0.0f, 1.0f};
     float xaxis[3];
 
-    /* Sensitivity will control how fast the viewport rotates.  0.007 was
-     * obtained experimentally by looking at viewport rotation sensitivities
-     * on other modeling programs. */
-    /* Perhaps this should be a configurable user parameter. */
-    const float sensitivity = 0.007f;
+    /* Radians per-pixel. */
+    const float sensitivity = U.view_rotate_sensitivity_turntable / U.pixelsize;
 
     /* Get the 3x3 matrix and its inverse from the quaternion */
     quat_to_mat3(m, vod->curr.viewquat);
