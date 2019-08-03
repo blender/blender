@@ -17,7 +17,7 @@
 /* Preferences Data File 'U_default'. */
 
 /* For constants. */
-#include <math.h>
+#include "BLI_math_base.h"
 
 #include "DNA_userdef_types.h"
 #include "DNA_curve_types.h"
