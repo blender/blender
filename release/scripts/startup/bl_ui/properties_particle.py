@@ -315,7 +315,7 @@ class PARTICLE_PT_emission_source(ParticleButtonsPanel, Panel):
             col.prop(part, "invert_grid")
             col.prop(part, "hexagonal_grid")
         else:
-            col.prop(part, "use_emit_random")
+            col.prop(part, "use_emit_random", text="Random Order")
             col.prop(part, "use_even_distribution")
 
         if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
