@@ -185,28 +185,23 @@ typedef struct ViewOpsData {
 
 #define TRACKBALLSIZE (1.1f)
 
-static void calctrackballvec(const rcti *rect, const int event_xy[2], float vec[3])
+static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3])
 {
   const float radius = TRACKBALLSIZE;
   const float t = radius / (float)M_SQRT2;
-  float x, y, z, d;
 
-  /* normalize x and y */
-  x = BLI_rcti_cent_x(rect) - event_xy[0];
-  x /= (float)(BLI_rcti_size_x(rect) / 4);
-  y = BLI_rcti_cent_y(rect) - event_xy[1];
-  y /= (float)(BLI_rcti_size_y(rect) / 2);
-  d = sqrtf(x * x + y * y);
-  if (d < t) { /* Inside sphere */
-    z = sqrtf(radius * radius - d * d);
+  /* Normalize x and y. */
+  r_dir[0] = (event_xy[0] - BLI_rcti_cent_x(rect)) / ((float)BLI_rcti_size_x(rect) / 4.0);
+  r_dir[1] = (event_xy[1] - BLI_rcti_cent_x(rect)) / ((float)BLI_rcti_size_y(rect) / 2.0);
+  const float d = len_v2(r_dir);
+  if (d < t) {
+    /* Inside sphere. */
+    r_dir[2] = sqrtf(SQUARE(radius) - SQUARE(d));
   }
-  else { /* On hyperbola */
-    z = t * t / d;
+  else {
+    /* On hyperbola. */
+    r_dir[2] = SQUARE(t) / d;
   }
-
-  vec[0] = x;
-  vec[1] = y;
-  vec[2] = -z; /* yah yah! */
 }
 
 /**
