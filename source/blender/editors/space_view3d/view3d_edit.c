@@ -189,10 +189,15 @@ static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_di
 {
   const float radius = TRACKBALLSIZE;
   const float t = radius / (float)M_SQRT2;
+  const float size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
+  /* Aspect correct so dragging in a non-square view doesn't squash the,
+   * so diagonal motion rotates diagonally too. */
+  const float size_min = min_ff(size[0], size[1]);
+  const float aspect[2] = {size_min / size[0], size_min / size[1]};
 
   /* Normalize x and y. */
-  r_dir[0] = (event_xy[0] - BLI_rcti_cent_x(rect)) / ((float)BLI_rcti_size_x(rect) / 4.0);
-  r_dir[1] = (event_xy[1] - BLI_rcti_cent_x(rect)) / ((float)BLI_rcti_size_y(rect) / 2.0);
+  r_dir[0] = (event_xy[0] - BLI_rcti_cent_x(rect)) / ((size[0] * aspect[0]) / 2.0);
+  r_dir[1] = (event_xy[1] - BLI_rcti_cent_x(rect)) / ((size[1] * aspect[1]) / 2.0);
   const float d = len_v2(r_dir);
   if (d < t) {
     /* Inside sphere. */
