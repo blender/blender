@@ -263,30 +263,6 @@ int ED_view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
   return (int)min_ff(ceilf(dist), (float)max_ii(ar->winx, ar->winx));
 }
 
-/* reads full rect, converts indices */
-uint *ED_view3d_select_id_read(int xmin, int ymin, int xmax, int ymax, uint *r_buf_len)
-{
-  if (UNLIKELY((xmin > xmax) || (ymin > ymax))) {
-    return NULL;
-  }
-
-  const rcti rect = {
-      .xmin = xmin,
-      .xmax = xmax + 1,
-      .ymin = ymin,
-      .ymax = ymax + 1,
-  };
-
-  uint buf_len;
-  uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
-
-  if (r_buf_len) {
-    *r_buf_len = buf_len;
-  }
-
-  return buf;
-}
-
 /* *********************** */
 
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)

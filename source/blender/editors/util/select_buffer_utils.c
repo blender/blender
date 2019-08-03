@@ -55,9 +55,12 @@
  */
 uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const rcti *rect)
 {
+  rcti rect_px = *rect;
+  rect_px.xmax += 1;
+  rect_px.ymax += 1;
+
   uint buf_len;
-  const uint *buf = ED_view3d_select_id_read(
-      rect->xmin, rect->ymin, rect->xmax, rect->ymax, &buf_len);
+  const uint *buf = ED_view3d_select_id_read_rect(&rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
@@ -91,12 +94,14 @@ uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
     return NULL;
   }
 
-  const int xmin = center[0] - radius;
-  const int xmax = center[0] + radius;
-  const int ymin = center[1] - radius;
-  const int ymax = center[1] + radius;
+  const rcti rect = {
+      .xmin = center[0] - radius,
+      .xmax = center[0] + radius + 1,
+      .ymin = center[1] - radius,
+      .ymax = center[1] + radius + 1,
+  };
 
-  const uint *buf = ED_view3d_select_id_read(xmin, ymin, xmax, ymax, NULL);
+  const uint *buf = ED_view3d_select_id_read_rect(&rect, NULL);
   if (buf == NULL) {
     return NULL;
   }
@@ -152,10 +157,13 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
     return NULL;
   }
 
+  rcti rect_px = *rect;
+  rect_px.xmax += 1;
+  rect_px.ymax += 1;
+
   struct PolyMaskData poly_mask_data;
   uint buf_len;
-  const uint *buf = ED_view3d_select_id_read(
-      rect->xmin, rect->ymin, rect->xmax, rect->ymax, &buf_len);
+  const uint *buf = ED_view3d_select_id_read_rect(&rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
@@ -164,10 +172,10 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
   poly_mask_data.px = buf_mask;
   poly_mask_data.width = (rect->xmax - rect->xmin) + 1;
 
-  BLI_bitmap_draw_2d_poly_v2i_n(rect->xmin,
-                                rect->ymin,
-                                rect->xmax + 1,
-                                rect->ymax + 1,
+  BLI_bitmap_draw_2d_poly_v2i_n(rect_px.xmin,
+                                rect_px.ymin,
+                                rect_px.xmax,
+                                rect_px.ymax,
                                 poly,
                                 poly_len,
                                 ed_select_buffer_mask_px_cb,
@@ -205,8 +213,15 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
  */
 uint ED_select_buffer_sample_point(const int center[2])
 {
+  const rcti rect = {
+      .xmin = center[0],
+      .xmax = center[0] + 1,
+      .ymin = center[1],
+      .ymax = center[1] + 1,
+  };
+
   uint buf_len;
-  uint *buf = ED_view3d_select_id_read(center[0], center[1], center[0], center[1], &buf_len);
+  uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
   BLI_assert(0 != buf_len);
   uint ret = buf[0];
   MEM_freeN(buf);

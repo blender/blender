@@ -465,7 +465,6 @@ int ED_view3d_backbuf_sample_size_clamp(struct ARegion *ar, const float dist);
 
 void ED_view3d_select_id_validate(struct ViewContext *vc);
 
-uint *ED_view3d_select_id_read(int xmin, int ymin, int xmax, int ymax, uint *r_buf_len);
 uint *ED_view3d_select_id_read_rect(const struct rcti *rect, uint *r_buf_len);
 
 bool ED_view3d_autodist(struct Depsgraph *depsgraph,
