@@ -1337,12 +1337,13 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                 }
               }
             }
-            DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-
             tot_change++;
             if (centermode == ORIGIN_TO_GEOMETRY) {
               copy_v3_v3(ob->loc, gpcenter);
             }
+            DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+            DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
             ob->id.tag |= LIB_TAG_DOIT;
             do_inverse_offset = true;
           }
