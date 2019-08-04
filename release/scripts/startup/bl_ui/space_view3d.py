@@ -2862,7 +2862,6 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
-        layout.prop(sculpt, "show_diffuse_color")
         layout.prop(sculpt, "show_mask")
 
 
@@ -5759,8 +5758,6 @@ class VIEW3D_PT_overlay_sculpt(Panel):
 
         view = context.space_data
         overlay = view.overlay
-
-        layout.prop(sculpt, "show_diffuse_color")
 
         row = layout.row(align=True)
         row.prop(sculpt, "show_mask", text="")

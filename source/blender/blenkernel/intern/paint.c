@@ -1158,7 +1158,6 @@ static void sculpt_update_object(
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
   ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
-  ss->show_diffuse_color = (sd->flags & SCULPT_SHOW_DIFFUSE) != 0;
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
 
   ss->building_vp_handle = false;
@@ -1213,7 +1212,6 @@ static void sculpt_update_object(
         &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
   }
 
-  pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
 
   if (ss->modifiers_active) {
@@ -1449,7 +1447,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->bm_log,
                        ob->sculpt->cd_vert_node_offset,
                        ob->sculpt->cd_face_node_offset);
-  pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   return pbvh;
 }
@@ -1474,7 +1471,6 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
                       looptri,
                       looptris_num);
 
-  pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
@@ -1500,7 +1496,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        (void **)subdiv_ccg->grid_faces,
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden);
-  pbvh_show_diffuse_color_set(pbvh, ob->sculpt->show_diffuse_color);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   return pbvh;
 }

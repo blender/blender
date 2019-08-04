@@ -2501,11 +2501,6 @@ bool pbvh_has_mask(PBVH *bvh)
   return false;
 }
 
-void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color)
-{
-  bvh->show_diffuse_color = !pbvh_has_mask(bvh) || show_diffuse_color;
-}
-
 void pbvh_show_mask_set(PBVH *bvh, bool show_mask)
 {
   bvh->show_mask = show_mask;

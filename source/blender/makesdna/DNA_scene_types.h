@@ -2170,7 +2170,7 @@ typedef enum eSculptFlags {
 
   SCULPT_USE_OPENMP = (1 << 7),
   SCULPT_ONLY_DEFORM = (1 << 8),
-  SCULPT_SHOW_DIFFUSE = (1 << 9),
+  // SCULPT_SHOW_DIFFUSE = (1 << 9), // deprecated
 
   /* If set, the mesh will be drawn with smooth-shading in
    * dynamic-topology mode */

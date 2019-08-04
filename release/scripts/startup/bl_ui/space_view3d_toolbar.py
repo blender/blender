@@ -431,7 +431,7 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
 
         if context.vertex_paint_object:
             brush_texpaint_common_color(self, context, layout, brush, settings, True)
-        
+
         else:
             layout.prop(brush, "color_type", expand=True)
 
@@ -1117,8 +1117,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_low_resolution")
         col = flow.column()
         col.prop(sculpt, "use_deform_only")
-        col = flow.column()
-        col.prop(sculpt, "show_diffuse_color")
         col = flow.column()
         col.prop(sculpt, "show_mask")
 
