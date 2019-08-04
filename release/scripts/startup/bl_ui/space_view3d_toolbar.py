@@ -429,9 +429,16 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        layout.active = not brush.use_gradient
+        if context.vertex_paint_object:
+            brush_texpaint_common_color(self, context, layout, brush, settings, True)
+        
+        else:
+            layout.prop(brush, "color_type", expand=True)
 
-        brush_texpaint_common_color(self, context, layout, brush, settings, True)
+            if brush.color_type == 'COLOR':
+                brush_texpaint_common_color(self, context, layout, brush, settings, True)
+            elif brush.color_type == 'GRADIENT':
+                brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
 
 
 class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
@@ -459,37 +466,6 @@ class VIEW3D_PT_tools_brush_swatches(Panel, View3DPaintPanel):
         layout.template_ID(settings, "palette", new="palette.new")
         if settings.palette:
             layout.template_palette(settings, "palette", color=True)
-
-
-class VIEW3D_PT_tools_brush_gradient(Panel, View3DPaintPanel):
-    bl_context = ".paint_common"  # dot on purpose (access from topbar)
-    bl_parent_id = "VIEW3D_PT_tools_brush"
-    bl_label = "Gradient"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        settings = cls.paint_settings(context)
-        brush = settings.brush
-        capabilities = brush.image_paint_capabilities
-
-        return capabilities.has_color and context.image_paint_object
-
-    def draw_header(self, context):
-        settings = self.paint_settings(context)
-        brush = settings.brush
-        self.layout.prop(brush, "use_gradient", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = False
-        layout.use_property_decorate = False  # No animation.
-        settings = self.paint_settings(context)
-        brush = settings.brush
-
-        layout.active = brush.use_gradient
-
-        brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
 
 
 class VIEW3D_PT_tools_brush_clone(Panel, View3DPaintPanel):
@@ -2106,7 +2082,6 @@ classes = (
     VIEW3D_PT_tools_brush,
     VIEW3D_PT_tools_brush_color,
     VIEW3D_PT_tools_brush_swatches,
-    VIEW3D_PT_tools_brush_gradient,
     VIEW3D_PT_tools_brush_clone,
     VIEW3D_PT_tools_brush_options,
     TEXTURE_UL_texpaintslots,

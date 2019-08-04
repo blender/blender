@@ -1565,6 +1565,12 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+static const EnumPropertyItem color_gradient_items[] = {
+      {0, "COLOR", 0, "Color", "Paint with a single color"},
+      {BRUSH_USE_GRADIENT, "GRADIENT", 0, "Gradient", "Paint with a gradient"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_curve_preset_items[] = {
       {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
       {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
@@ -1934,12 +1940,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_gradient", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_USE_GRADIENT);
-  RNA_def_property_boolean_funcs(prop, NULL, "rna_Brush_use_gradient_set");
-  RNA_def_property_ui_text(prop, "Use Gradient", "Use Gradient by utilizing a sampling method");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
   prop = RNA_def_property(srna, "use_pressure_jitter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_JITTER_PRESSURE);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
@@ -2053,6 +2053,13 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, brush_size_unit_items);
   RNA_def_property_ui_text(
       prop, "Radius Unit", "Measure brush size relative to the view or the scene");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE); /* as an enum */
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, color_gradient_items);
+  RNA_def_property_enum_funcs(prop, NULL, "rna_Brush_use_gradient_set", NULL);
+  RNA_def_property_ui_text(prop, "Color Type", "Use single color or gradient when painting");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_edge_to_edge", PROP_BOOLEAN, PROP_NONE);

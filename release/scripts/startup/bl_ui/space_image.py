@@ -1077,9 +1077,12 @@ class IMAGE_PT_paint_color(Panel, ImagePaintPanel):
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
-        layout.active = not brush.use_gradient
+        layout.prop(brush, "color_type", expand=True)
 
-        brush_texpaint_common_color(self, context, layout, brush, settings, True)
+        if brush.color_type == 'COLOR':
+            brush_texpaint_common_color(self, context, layout, brush, settings, True)
+        elif brush.color_type == 'GRADIENT':
+            brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
 
 
 class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
@@ -1104,38 +1107,6 @@ class IMAGE_PT_paint_swatches(Panel, ImagePaintPanel):
         layout.template_ID(settings, "palette", new="palette.new")
         if settings.palette:
             layout.template_palette(settings, "palette", color=True)
-
-
-class IMAGE_PT_paint_gradient(Panel, ImagePaintPanel):
-    bl_category = "Tool"
-    bl_context = ".paint_common_2d"
-    bl_parent_id = "IMAGE_PT_paint"
-    bl_label = "Gradient"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
-        capabilities = brush.image_paint_capabilities
-
-        return capabilities.has_color
-
-    def draw_header(self, context):
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
-        self.layout.prop(brush, "use_gradient", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = False
-        layout.use_property_decorate = False  # No animation.
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
-
-        layout.active = brush.use_gradient
-
-        brush_texpaint_common_gradient(self, context, layout, brush, settings, True)
 
 
 class IMAGE_PT_paint_clone(Panel, ImagePaintPanel):
@@ -1740,7 +1711,6 @@ classes = (
     IMAGE_PT_paint,
     IMAGE_PT_paint_color,
     IMAGE_PT_paint_swatches,
-    IMAGE_PT_paint_gradient,
     IMAGE_PT_paint_clone,
     IMAGE_PT_paint_options,
     IMAGE_PT_tools_brush_texture,
