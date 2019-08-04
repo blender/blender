@@ -515,8 +515,8 @@ class PolygonalizationShader : public StrokeShader {
   /*! Builds the shader.
    *  \param iError:
    *    The error we want our polygonal approximation to have with respect to the original
-   * geometry. The smaller, the closer the new stroke to the orinal one. This error corresponds to
-   * the maximum distance between the new stroke and the old one.
+   * geometry. The smaller, the closer the new stroke to the original one.
+   * This error corresponds * to the maximum distance between the new stroke and the old one.
    */
   PolygonalizationShader(float iError) : StrokeShader()
   {

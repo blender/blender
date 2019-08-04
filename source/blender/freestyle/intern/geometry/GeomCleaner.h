@@ -59,7 +59,7 @@ class GeomCleaner {
    *      Output of sorted vertices.
    *      A vertex v1 precedes another one v2 in this array
    *      if v1.x<v2.x, or v1.x=v2.x && v1.y < v2.y or v1.x=v2.y && v1.y=v2.y && v1.z < v2.z.
-   *      The array is organized as a 3-float serie giving the vertices coordinates: XYZXYZXYZ...
+   *      The array is organized as a 3-float series giving the vertices coordinates: XYZXYZXYZ...
    *    oIndices
    *      Output corresponding to the iIndices array but reorganized in
    *      order to match the sorted vertex array.
@@ -86,7 +86,7 @@ class GeomCleaner {
    *      The size of iIndices array
    *    oVertices
    *      The vertex array, result of the compression.
-   *      The array is organized as a 3-float serie giving the vertices coordinates: XYZXYZXYZ...
+   *      The array is organized as a 3-float series giving the vertices coordinates: XYZXYZXYZ...
    *    oVSize
    *      The size of oVertices.
    *    oIndices
@@ -114,7 +114,7 @@ class GeomCleaner {
    *      The size of iIndices array
    *    oVertices
    *      The vertex array, result of the sorting-compression.
-   *      The array is organized as a 3-float serie giving the vertices coordinates: XYZXYZXYZ...
+   *      The array is organized as a 3-float series giving the vertices coordinates: XYZXYZXYZ...
    *    oVSize
    *      The size of oVertices.
    *    oIndices
@@ -143,7 +143,7 @@ class GeomCleaner {
    *      The size of iIndices array
    *    oVertices
    *      The vertex array, result of the sorting-compression.
-   *      The array is organized as a 3-float serie giving the vertices coordinates: XYZXYZXYZ...
+   *      The array is organized as a 3-float series giving the vertices coordinates: XYZXYZXYZ...
    *    oVSize
    *      The size of oVertices.
    *    oIndices

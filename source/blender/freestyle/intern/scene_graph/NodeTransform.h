@@ -45,10 +45,10 @@ class NodeTransform : public NodeGroup {
   {
   }
 
-  /*! multiplys the current matrix by the x, y, z translation matrix. */
+  /*! multiplies the current matrix by the x, y, z translation matrix. */
   void Translate(real x, real y, real z);
 
-  /*! multiplys the current matrix by a rotation matrix
+  /*! multiplis the current matrix by a rotation matrix
    *    iAngle
    *      The rotation angle
    *    x, y, z

@@ -166,8 +166,8 @@ static inline Eigen::Vector3d SphericalRangeParameters(const Eigen::Matrix3d &R)
   // singularity at pi
   if (fabs(num) < IK_EPSILON)
     // TODO: this does now rotation of size pi over z axis, but could
-    // be any axis, how to deal with this i'm not sure, maybe don't
-    // enforce limits at all then
+    // be any axis, how to deal with this I'm not sure, maybe don't
+    // enforce limits at all then.
     return Eigen::Vector3d(0.0, tau, 1.0);
 
   num = 1.0 / sqrt(num);

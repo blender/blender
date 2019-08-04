@@ -2534,7 +2534,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
   return NULL;
 }
 /*------------------------obj *= obj------------------------------
- * Inplace element-wise multiplication */
+ * In place element-wise multiplication */
 static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
 {
   float scalar;
@@ -2567,7 +2567,7 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
     mul_vn_vn(mat1->matrix, mat2->matrix, mat1->num_col * mat1->num_row);
 #else
     PyErr_Format(PyExc_TypeError,
-                 "Inplace element-wise multiplication: "
+                 "In place element-wise multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(m1)->tp_name,
                  Py_TYPE(m2)->tp_name);
@@ -2580,7 +2580,7 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "Inplace element-wise multiplication: "
+                 "In place element-wise multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(m1)->tp_name,
                  Py_TYPE(m2)->tp_name);
@@ -2668,7 +2668,7 @@ static PyObject *Matrix_matmul(PyObject *m1, PyObject *m2)
   return NULL;
 }
 /*------------------------obj @= obj------------------------------
- * inplace matrix multiplication */
+ * In place matrix multiplication */
 static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
 {
   MatrixObject *mat1 = NULL, *mat2 = NULL;
@@ -2715,7 +2715,7 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "Inplace matrix multiplication: "
+                 "In place matrix multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(m1)->tp_name,
                  Py_TYPE(m2)->tp_name);

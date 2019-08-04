@@ -3962,7 +3962,7 @@ static float p_smooth_median_edge_length(PChart *chart)
   float median;
   int i;
 
-  /* ok, so i'm lazy */
+  /* ok, so I'm lazy */
   for (i = 0, e = chart->edges; e; e = e->nextlink, i++) {
     lengths[i] = p_edge_length(e);
   }

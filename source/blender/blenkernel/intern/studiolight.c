@@ -69,7 +69,7 @@ static int last_studiolight_id = 0;
 
 /*
  * Disable this option so caches are not loaded from disk
- * Do not checkin with this commented out
+ * Do not checking with this commented out.
  */
 #define STUDIOLIGHT_LOAD_CACHED_FILES
 

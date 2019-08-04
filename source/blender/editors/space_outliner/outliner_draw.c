@@ -442,14 +442,14 @@ static bool outliner_collection_is_isolated(Scene *scene,
   else if (BKE_collection_has_collection(collection_ensure, (Collection *)collection_ensure_cmp) ||
            BKE_collection_has_collection((Collection *)collection_ensure_cmp, collection_ensure)) {
     /* This collection is either a parent or a child of the collection.
-     * We expect it to be set "visble" already. */
+     * We expect it to be set "visible" already. */
     if (value != value_cmp) {
       return false;
     }
   }
   else {
     /* This collection is neither a parent nor a child of the collection.
-     * We expect it to be "invisble". */
+     * We expect it to be "invisible". */
     if (value == value_cmp) {
       return false;
     }

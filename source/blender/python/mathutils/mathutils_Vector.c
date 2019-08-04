@@ -1834,7 +1834,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
     mul_vn_vn(vec1->vec, vec2->vec, vec1->size);
 #else
     PyErr_Format(PyExc_TypeError,
-                 "Inplace element-wise multiplication: "
+                 "In place element-wise multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(v1)->tp_name,
                  Py_TYPE(v2)->tp_name);
@@ -1847,7 +1847,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "Inplace element-wise multiplication: "
+                 "In place element-wise multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(v1)->tp_name,
                  Py_TYPE(v2)->tp_name);
@@ -1925,7 +1925,7 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
 static PyObject *Vector_imatmul(PyObject *v1, PyObject *v2)
 {
   PyErr_Format(PyExc_TypeError,
-               "Inplace vector multiplication: "
+               "In place vector multiplication: "
                "not supported between '%.200s' and '%.200s' types",
                Py_TYPE(v1)->tp_name,
                Py_TYPE(v2)->tp_name);

@@ -746,7 +746,7 @@ bool OpenCLInfo::device_supported(const string &platform_name, const cl_device_i
   }
   VLOG(3) << "OpenCL driver version " << driver_major << "." << driver_minor;
 
-  /* It is possible tyo have Iris GPU on AMD/Apple OpenCL framework
+  /* It is possible to have Iris GPU on AMD/Apple OpenCL framework
    * (aka, it will not be on Intel framework). This isn't supported
    * and needs an explicit blacklist.
    */

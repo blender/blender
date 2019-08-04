@@ -338,7 +338,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
   }
 
   /* Don't consider inactive or render dependency graphs, since they might be evaluated for a
-   * different number of childrem. or have different pointer to evaluated particle system or
+   * different number of children. or have different pointer to evaluated particle system or
    * modifier which will also cause troubles. */
   if (edit && DEG_is_active(depsgraph)) {
     edit->pid = *pid;

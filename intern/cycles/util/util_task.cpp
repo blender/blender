@@ -283,8 +283,8 @@ vector<int> distribute_threads_on_nodes(const int num_threads)
     }
     ++current_node_index;
   }
-  /* Second pass: keep scheduling threads to each node one by one, uniformly
-   * fillign them in.
+  /* Second pass: keep scheduling threads to each node one by one,
+   * uniformly filling them in.
    * This is where things becomes tricky to predict for the maximum
    * performance: on the one hand this avoids too much threading overhead on
    * few nodes, but for the final performance having all the overhead on one

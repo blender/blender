@@ -194,7 +194,7 @@ string OpenCLDevice::get_build_options(const DeviceRequestedFeatures &requested_
     DeviceRequestedFeatures features(requested_features);
     enable_default_features(features);
 
-    /* Always turn off baking at this point. Baking is only usefull when building the bake kernel.
+    /* Always turn off baking at this point. Baking is only useful when building the bake kernel.
      * this also makes sure that the kernels that are build during baking can be reused
      * when not doing any baking. */
     features.use_baking = false;

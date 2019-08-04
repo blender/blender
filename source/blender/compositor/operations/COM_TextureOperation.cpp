@@ -111,9 +111,9 @@ void TextureBaseOperation::executePixelSampled(float output[4],
   float u = (x - cx) / this->getWidth() * 2;
   float v = (y - cy) / this->getHeight() * 2;
 
-  /* When no interpolation/filtering happens in multitex() foce nearest interpolation.
+  /* When no interpolation/filtering happens in multitex() force nearest interpolation.
    * We do it here because (a) we can't easily say multitex() that we want nearest
-   * interpolation and (b) in such configuration multitex() sinply floor's the value
+   * interpolation and (b) in such configuration multitex() simply floor's the value
    * which often produces artifacts.
    */
   if (m_texture != NULL && (m_texture->imaflag & TEX_INTERPOL) == 0) {

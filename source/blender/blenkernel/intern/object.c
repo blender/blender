@@ -2226,7 +2226,7 @@ static bool ob_parcurve(Object *ob, Object *par, float mat[4][4])
    * dependency cycles. We can't correct anything from here, since that would
    * cause a threading conflicts.
    *
-   * TODO(sergey): Somce of the legit looking cases like T56619 need to be
+   * TODO(sergey): Some of the legit looking cases like T56619 need to be
    * looked into, and maybe curve cache (and other dependencies) are to be
    * evaluated prior to conversion. */
   if (par->runtime.curve_cache == NULL) {

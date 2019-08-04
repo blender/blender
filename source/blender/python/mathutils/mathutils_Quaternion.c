@@ -935,7 +935,7 @@ static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
     mul_vn_vn(quat1->quat, quat2->quat, QUAT_SIZE);
 #else
     PyErr_Format(PyExc_TypeError,
-                 "Inplace element-wise multiplication: "
+                 "In place element-wise multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(q1)->tp_name,
                  Py_TYPE(q2)->tp_name);
@@ -1040,7 +1040,7 @@ static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "Inplace quaternion multiplication: "
+                 "In place quaternion multiplication: "
                  "not supported between '%.200s' and '%.200s' types",
                  Py_TYPE(q1)->tp_name,
                  Py_TYPE(q2)->tp_name);
