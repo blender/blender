@@ -4064,8 +4064,11 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
   rna_update_cb(C, cb_v, NULL);
 }
 
-/* still unsure how this call evolves...
- * we use labeltype for defining what curve-channels to show */
+/**
+ * \note Still unsure how this call evolves.
+ *
+ * \param labeltype: Used for defining which curve-channels to show.
+ */
 static void curvemap_buttons_layout(uiLayout *layout,
                                     PointerRNA *ptr,
                                     char labeltype,

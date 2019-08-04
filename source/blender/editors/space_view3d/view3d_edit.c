@@ -183,6 +183,10 @@ typedef struct ViewOpsData {
   bool use_dyn_ofs;
 } ViewOpsData;
 
+/**
+ * Size of the sphere being dragged for trackball rotation withing the view bounds.
+ * also affects speed (smaller is faster).
+ */
 #define TRACKBALLSIZE (1.1f)
 
 static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3])
@@ -190,8 +194,8 @@ static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_di
   const float radius = TRACKBALLSIZE;
   const float t = radius / (float)M_SQRT2;
   const float size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
-  /* Aspect correct so dragging in a non-square view doesn't squash the,
-   * so diagonal motion rotates diagonally too. */
+  /* Aspect correct so dragging in a non-square view doesn't squash the direction.
+   * So diagonal motion rotates the same direction the cursor is moving. */
   const float size_min = min_ff(size[0], size[1]);
   const float aspect[2] = {size_min / size[0], size_min / size[1]};
 
