@@ -62,7 +62,7 @@ typedef struct SobolDirectionNumbers {
 
 /* Keep simple alignment. */
 /* clang-format off */
-static SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS - 1] = {
+static const SobolDirectionNumbers SOBOL_NUMBERS[SOBOL_MAX_DIMENSIONS - 1] = {
 {2, 1, 0, {1}},
 {3, 2, 1, {1, 3}},
 {4, 3, 1, {1, 3, 1}},
@@ -21279,10 +21279,10 @@ void sobol_generate_direction_vectors(uint vectors[][SOBOL_BITS], int dimensions
     v[i] = 1 << (31 - i);  // all m's = 1
 
   for (int dim = 1; dim < dimensions; dim++) {
-    SobolDirectionNumbers *numbers = &SOBOL_NUMBERS[dim - 1];
-    uint s = numbers->s;
-    uint a = numbers->a;
-    uint *m = numbers->m;
+    const SobolDirectionNumbers *numbers = &SOBOL_NUMBERS[dim - 1];
+    const uint s = numbers->s;
+    const uint a = numbers->a;
+    const uint *m = numbers->m;
 
     v = vectors[dim];
 
