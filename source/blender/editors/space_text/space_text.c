@@ -82,7 +82,7 @@ static SpaceLink *text_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 
   BLI_addtail(&stext->regionbase, ar);
   ar->regiontype = RGN_TYPE_UI;
-  ar->alignment = RGN_ALIGN_LEFT;
+  ar->alignment = RGN_ALIGN_RIGHT;
   ar->flag = RGN_FLAG_HIDDEN;
 
   /* main region */

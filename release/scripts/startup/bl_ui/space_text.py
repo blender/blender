@@ -47,11 +47,6 @@ class TEXT_HT_header(Header):
 
         layout.separator_spacer()
 
-        row = layout.row(align=True)
-        row.prop(st, "show_line_numbers", text="")
-        row.prop(st, "show_word_wrap", text="")
-        row.prop(st, "show_syntax_highlight", text="")
-
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
 
@@ -125,60 +120,63 @@ class TEXT_PT_properties(Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        layout.use_property_split = True
+        layout.use_property_decorate = False
         st = context.space_data
 
         flow = layout.column_flow()
-        flow.prop(st, "show_line_numbers")
-        flow.prop(st, "show_word_wrap")
-        flow.prop(st, "show_syntax_highlight")
-        flow.prop(st, "show_line_highlight")
-        flow.prop(st, "use_live_edit")
+        if not st.text:
+            flow.active = False
+        row = flow.row(align=True)
+        st = context.space_data
+        row.prop(st, "show_margin", text = "Margin")
+        rowsub = row.row()
+        rowsub.active = st.show_margin
+        rowsub.prop(st, "margin_column", text = "")
 
-        flow = layout.column_flow()
         flow.prop(st, "font_size")
         flow.prop(st, "tab_width")
 
         text = st.text
         if text:
-            flow.prop(text, "use_tabs_as_spaces")
-
-        flow.prop(st, "show_margin")
-        col = flow.column()
-        col.active = st.show_margin
-        col.prop(st, "margin_column")
+            layout.prop(text, "indentation")
 
 
 class TEXT_PT_find(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Text"
-    bl_label = "Find"
+    bl_label = "Find & Replace"
 
     def draw(self, context):
         layout = self.layout
-
         st = context.space_data
 
         # find
-        col = layout.column(align=True)
+        col = layout.column()
         row = col.row(align=True)
-        row.prop(st, "find_text", text="")
-        row.operator("text.find_set_selected", text="", icon='TEXT')
+        row.prop(st, "find_text", icon='VIEWZOOM', text="")
+        row.operator("text.find_set_selected", text="", icon='EYEDROPPER')
         col.operator("text.find")
 
+        layout.separator()
+
         # replace
-        col = layout.column(align=True)
+        col = layout.column()
         row = col.row(align=True)
-        row.prop(st, "replace_text", text="")
-        row.operator("text.replace_set_selected", text="", icon='TEXT')
+        row.prop(st, "replace_text", icon='DECORATE_OVERRIDE', text="")
+        row.operator("text.replace_set_selected", text="", icon='EYEDROPPER')
         col.operator("text.replace")
 
+        layout.separator()
+
         # settings
-        layout.prop(st, "use_match_case")
         row = layout.row(align=True)
-        row.prop(st, "use_find_wrap", text="Wrap")
-        row.prop(st, "use_find_all", text="All")
+        if not st.text:
+            row.active = False
+        row.prop(st, "use_match_case", text="Case", toggle=True)
+        row.prop(st, "use_find_wrap", text="Wrap", toggle=True)
+        row.prop(st, "use_find_all", text="All", toggle=True)
 
 
 class TEXT_MT_view(Menu):
@@ -190,6 +188,13 @@ class TEXT_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_region_ui")
+
+        layout.separator()
+
+        layout.prop(st, "show_line_numbers")
+        layout.prop(st, "show_word_wrap")
+        layout.prop(st, "show_syntax_highlight")
+        layout.prop(st, "show_line_highlight")
 
         layout.separator()
 
@@ -280,6 +285,8 @@ class TEXT_MT_format(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        st = _context.space_data
+        text = st.text
 
         layout.operator("text.indent")
         layout.operator("text.unindent")
@@ -318,6 +325,8 @@ class TEXT_MT_edit(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        st = _context.space_data
+        text = st.text
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -328,6 +337,10 @@ class TEXT_MT_edit(Menu):
         layout.operator("text.copy", icon='COPYDOWN')
         layout.operator("text.paste", icon='PASTEDOWN')
         layout.operator("text.duplicate_line")
+
+        layout.separator()
+
+        layout.prop(st, "use_live_edit")
 
         layout.separator()
 
@@ -356,16 +369,36 @@ class TEXT_MT_toolbox(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        st = _context.space_data
+        text = st.text
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("text.cut")
-        layout.operator("text.copy")
-        layout.operator("text.paste")
+        layout.operator("text.copy", icon='COPYDOWN')
+        layout.operator("text.paste", icon='PASTEDOWN')
 
         layout.separator()
 
-        layout.operator("text.run_script")
+        layout.operator("text.duplicate_line")
+        layout.operator("text.move_lines",
+                        text="Move Lines Up").direction = 'UP'
+        layout.operator("text.move_lines",
+                        text="Move Lines Down").direction = 'DOWN'
+
+        layout.separator()
+
+        layout.operator("text.indent")
+        layout.operator("text.unindent")
+
+        layout.separator()
+
+        layout.operator("text.comment", text="Comment")
+        layout.operator("text.uncomment", text="Uncomment")
+
+        layout.separator()
+
+        layout.operator("text.autocomplete")
 
 
 classes = (
@@ -373,8 +406,8 @@ classes = (
     TEXT_HT_footer,
     TEXT_MT_edit,
     TEXT_MT_editor_menus,
-    TEXT_PT_properties,
     TEXT_PT_find,
+    TEXT_PT_properties,
     TEXT_MT_view,
     TEXT_MT_text,
     TEXT_MT_templates,
