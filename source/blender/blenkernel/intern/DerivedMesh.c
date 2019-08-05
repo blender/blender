@@ -1046,24 +1046,25 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
    * since they are needed by drawing code. */
   const bool do_poly_normals = ((final_datamask->pmask & CD_MASK_NORMAL) != 0);
 
-  if (do_loop_normals) {
-    /* In case we also need poly normals, add the layer and compute them here
-     * (BKE_mesh_calc_normals_split() assumes that if that data exists, it is always valid). */
-    if (do_poly_normals) {
-      if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
-        float(*polynors)[3] = CustomData_add_layer(
-            &mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
-        BKE_mesh_calc_normals_poly(mesh_final->mvert,
-                                   NULL,
-                                   mesh_final->totvert,
-                                   mesh_final->mloop,
-                                   mesh_final->mpoly,
-                                   mesh_final->totloop,
-                                   mesh_final->totpoly,
-                                   polynors,
-                                   false);
-      }
+  /* In case we also need poly normals, add the layer and compute them here
+   * (BKE_mesh_calc_normals_split() assumes that if that data exists, it is always valid). */
+  if (do_poly_normals) {
+    if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
+      float(*polynors)[3] = CustomData_add_layer(
+          &mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
+      BKE_mesh_calc_normals_poly(mesh_final->mvert,
+                                 NULL,
+                                 mesh_final->totvert,
+                                 mesh_final->mloop,
+                                 mesh_final->mpoly,
+                                 mesh_final->totloop,
+                                 mesh_final->totpoly,
+                                 polynors,
+                                 false);
     }
+  }
+
+  if (do_loop_normals) {
     /* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
     BKE_mesh_calc_normals_split(mesh_final);
     BKE_mesh_tessface_clear(mesh_final);
@@ -1536,11 +1537,16 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     modifier_freeTemporaryData(md);
   }
 
-  /* Yay, we are done. If we have a Mesh and deformed vertices
-   * need to apply these back onto the Mesh. If we have no
+  /* Yay, we are done. If we have a Mesh and deformed vertices,
+   * we need to apply these back onto the Mesh. If we have no
    * Mesh then we need to build one. */
   if (mesh_final == NULL) {
-    if (deformed_verts == NULL && allow_shared_mesh) {
+    /* Note: this check on cdmask is a bit dodgy, it handles the issue at stake here (see T68211),
+     * but other cases might require similar handling?
+     * Could be a good idea to define a proper CustomData_MeshMask for that then. */
+    if (deformed_verts == NULL && allow_shared_mesh &&
+        (final_datamask.lmask & CD_MASK_NORMAL) == 0 &&
+        (final_datamask.pmask & CD_MASK_NORMAL) == 0) {
       mesh_final = mesh_input;
     }
     else {
@@ -1653,14 +1659,25 @@ static void editbmesh_calc_modifier_final_normals(const Mesh *mesh_input,
    * simpler to generate it here as well. */
   const bool do_poly_normals = ((final_datamask->pmask & CD_MASK_NORMAL) != 0);
 
-  if (do_loop_normals) {
-    /* In case we also need poly normals, add the layer here,
-     * then BKE_mesh_calc_normals_split() will fill it. */
-    if (do_poly_normals) {
-      if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
-        CustomData_add_layer(&mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
-      }
+  /* In case we also need poly normals, add the layer and compute them here
+   * (BKE_mesh_calc_normals_split() assumes that if that data exists, it is always valid). */
+  if (do_poly_normals) {
+    if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
+      float(*polynors)[3] = CustomData_add_layer(
+          &mesh_final->pdata, CD_NORMAL, CD_CALLOC, NULL, mesh_final->totpoly);
+      BKE_mesh_calc_normals_poly(mesh_final->mvert,
+                                 NULL,
+                                 mesh_final->totvert,
+                                 mesh_final->mloop,
+                                 mesh_final->mpoly,
+                                 mesh_final->totloop,
+                                 mesh_final->totpoly,
+                                 polynors,
+                                 false);
     }
+  }
+
+  if (do_loop_normals) {
     /* Compute loop normals */
     BKE_mesh_calc_normals_split(mesh_final);
     BKE_mesh_tessface_clear(mesh_final);
