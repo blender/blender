@@ -45,7 +45,7 @@
 
 #  endif
 
-#  if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
+#  if defined(__x86_64__) || defined(_M_X64)
 #    define SIMD_SET_FLUSH_TO_ZERO \
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
