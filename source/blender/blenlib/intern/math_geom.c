@@ -4481,6 +4481,49 @@ void projmat_dimensions(const float projmat[4][4],
   }
 }
 
+/* Creates a projection matrix for a small region of the viewport.
+ *
+ * \param projmat: Projection Matrix.
+ * \param win_size: Viewport Size.
+ * \param x_min, x_max, y_min, y_max: Coordinates of the subregion.
+ * \return r_projmat: Resulting Projection Matrix.
+ */
+void projmat_from_subregion(const float projmat[4][4],
+                            const int win_size[2],
+                            const int x_min,
+                            const int x_max,
+                            const int y_min,
+                            const int y_max,
+                            float r_projmat[4][4])
+{
+  float rect_width = (float)(x_max - x_min);
+  float rect_height = (float)(y_max - y_min);
+
+  float x_fac = ((x_min + x_max) - win_size[0]) / rect_width;
+  float y_fac = ((y_min + y_max) - win_size[1]) / rect_height;
+
+  copy_m4_m4(r_projmat, projmat);
+  r_projmat[0][0] *= (win_size[0] / rect_width);
+  r_projmat[1][1] *= (win_size[1] / rect_height);
+
+#if 0 /* TODO: check if this is more efficient. */
+  r_projmat[2][0] -= x_fac * r_projmat[2][3];
+  r_projmat[2][1] -= y_fac * r_projmat[2][3];
+
+  r_projmat[3][0] -= x_fac * r_projmat[3][3];
+  r_projmat[3][1] -= y_fac * r_projmat[3][3];
+#else
+  if (projmat[3][3] == 0.0f) {
+    r_projmat[2][0] += x_fac;
+    r_projmat[2][1] += y_fac;
+  }
+  else {
+    r_projmat[3][0] -= x_fac;
+    r_projmat[3][1] -= y_fac;
+  }
+#endif
+}
+
 static void i_multmatrix(float icand[4][4], float Vm[4][4])
 {
   int row, col;

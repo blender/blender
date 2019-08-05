@@ -635,6 +635,14 @@ void projmat_dimensions(const float projmat[4][4],
                         float *r_near,
                         float *r_far);
 
+void projmat_from_subregion(const float projmat[4][4],
+                            const int win_size[2],
+                            const int x_min,
+                            const int x_max,
+                            const int y_min,
+                            const int y_max,
+                            float r_projmat[4][4]);
+
 int box_clip_bounds_m4(float boundbox[2][3], const float bounds[4], float winmat[4][4]);
 void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], float mat[4][4]);
 
