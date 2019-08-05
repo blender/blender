@@ -697,3 +697,58 @@ TEST(polyfill2d, IssueT52834_axis_align_co_linear)
 
   TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
+
+/* Blender bug T67109 (version a). */
+/* Multiple versions are offset & rotated, this fails in cases where others works. */
+TEST(polyfill2d, IssueT67109_axis_align_co_linear_a)
+{
+  const float poly[][2] = {
+      {3.2060661, -11.438997},
+      {2.8720665, -5.796999},
+      {-2.8659325, -5.796999},
+      {-2.8659325, -8.307999},
+      {-3.2549324, -11.438997},
+      {-2.8659325, -5.4869995},
+      {2.8720665, -5.4869995},
+      {2.8720665, -2.9759989},
+      {2.8720665, -2.6659985},
+      {2.8720665, -0.15499878},
+  };
+  TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
+}
+
+/* Blender bug T67109, (version b). */
+TEST(polyfill2d, IssueT67109_axis_align_co_linear_b)
+{
+  const float poly[][2] = {
+      {32.41416, -12.122593},
+      {28.094929, -8.477332},
+      {24.141455, -12.636018},
+      {25.96133, -14.366093},
+      {27.96254, -16.805279},
+      {23.916779, -12.422427},
+      {27.870255, -8.263744},
+      {26.050375, -6.533667},
+      {25.825695, -6.320076},
+      {24.00582, -4.5899982},
+  };
+  TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
+}
+
+/* Blender bug T67109 (version c). */
+TEST(polyfill2d, IssueT67109_axis_align_co_linear_c)
+{
+  const float poly[][2] = {
+      {-67.10034, 43.677097},
+      {-63.253956, 61.399143},
+      {-80.98382, 66.36057},
+      {-83.15499, 58.601795},
+      {-87.06422, 49.263668},
+      {-80.71576, 67.31843},
+      {-62.985912, 62.35701},
+      {-60.81475, 70.11576},
+      {-60.546703, 71.07365},
+      {-58.37554, 78.83239},
+  };
+  TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
+}
