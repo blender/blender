@@ -4607,6 +4607,10 @@ static void applyRotationValue(TransInfo *t,
   }
 
   axis_angle_normalized_to_mat3(mat, axis, angle);
+  /* Counter for needed updates (when we need to update to non-default matrix,
+   * we also need another update on next iteration to go back to default matrix,
+   * hence the '2' value used here, instead of a mere boolean). */
+  short do_update_matrix = 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -4623,6 +4627,9 @@ static void applyRotationValue(TransInfo *t,
       if (t->con.applyRot) {
         t->con.applyRot(t, tc, td, axis, NULL);
         angle_final = angle * td->factor;
+        /* Even though final angle might be identical to orig value,
+         * we have to update the rotation matrix in that case... */
+        do_update_matrix = 2;
       }
       else if (t->flag & T_PROP_EDIT) {
         angle_final = angle * td->factor;
@@ -4645,11 +4652,17 @@ static void applyRotationValue(TransInfo *t,
           axis_angle_normalized_to_mat3(mat, axis, angle_progress);
           ElementRotation(t, tc, td, mat, t->around);
         }
-        axis_angle_normalized_to_mat3(mat, axis, angle_final);
+        do_update_matrix = 2;
       }
       else if (angle_final != angle) {
-        axis_angle_normalized_to_mat3(mat, axis, angle_final);
+        do_update_matrix = 2;
       }
+
+      if (do_update_matrix > 0) {
+        axis_angle_normalized_to_mat3(mat, axis, angle_final);
+        do_update_matrix--;
+      }
+
       ElementRotation(t, tc, td, mat, t->around);
     }
   }
