@@ -291,9 +291,7 @@ class TEXT_MT_format(Menu):
 
         layout.separator()
 
-        layout.operator("text.comment")
-        layout.operator("text.uncomment")
-        layout.operator("text.toggle_comment")
+        layout.operator("text.comment_toggle")
 
         layout.separator()
 

@@ -1209,12 +1209,13 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Comment Operator
+/** \name Toggle-Comment Operator
  * \{ */
 
-static int text_comment_exec(bContext *C, wmOperator *UNUSED(op))
+static int text_comment_exec(bContext *C, wmOperator *op)
 {
   Text *text = CTX_data_edit_text(C);
+  int type = RNA_enum_get(op->ptr, "type");
 
   if (txt_has_sel(text)) {
     text_drawcache_tag_update(CTX_wm_space_text(C), 0);
@@ -1222,23 +1223,44 @@ static int text_comment_exec(bContext *C, wmOperator *UNUSED(op))
     ED_text_undo_push_init(C);
 
     txt_order_cursors(text, false);
-    txt_comment(text);
+
+    switch (type) {
+      case 1:
+        txt_comment(text);
+        break;
+      case -1:
+        txt_uncomment(text);
+        break;
+      default:
+        if (txt_uncomment(text) == false) {
+          txt_comment(text);
+        }
+        break;
+    }
+
     text_update_edited(text);
 
     text_update_cursor_moved(C);
     WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+
     return OPERATOR_FINISHED;
   }
 
   return OPERATOR_CANCELLED;
 }
 
-void TEXT_OT_comment(wmOperatorType *ot)
+void TEXT_OT_comment_toggle(wmOperatorType *ot)
 {
+  static const EnumPropertyItem comment_items[] = {
+      {0, "TOGGLE", 0, "Toggle Comments", NULL},
+      {1, "COMMENT", 0, "Comment", NULL},
+      {-1, "UNCOMMENT", 0, "Un-Comment", NULL},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
-  ot->name = "Comment";
-  ot->idname = "TEXT_OT_comment";
-  ot->description = "Convert selected text to comment";
+  ot->name = "Toggle Comments";
+  ot->idname = "TEXT_OT_comment_toggle";
 
   /* api callbacks */
   ot->exec = text_comment_exec;
@@ -1246,93 +1268,11 @@ void TEXT_OT_comment(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
-}
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Uncomment Operator
- * \{ */
-
-static int text_uncomment_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Text *text = CTX_data_edit_text(C);
-
-  if (txt_has_sel(text)) {
-    text_drawcache_tag_update(CTX_wm_space_text(C), 0);
-
-    ED_text_undo_push_init(C);
-
-    txt_order_cursors(text, false);
-    txt_uncomment(text);
-    text_update_edited(text);
-
-    text_update_cursor_moved(C);
-    WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-    return OPERATOR_FINISHED;
-  }
-
-  return OPERATOR_CANCELLED;
-}
-
-void TEXT_OT_uncomment(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Uncomment";
-  ot->idname = "TEXT_OT_uncomment";
-  ot->description = "Convert selected comment to text";
-
-  /* api callbacks */
-  ot->exec = text_uncomment_exec;
-  ot->poll = text_edit_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Toggle-Comment Operator
- * \{ */
-
-static int text_toggle_comment_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Text *text = CTX_data_edit_text(C);
-
-  if (txt_has_sel(text)) {
-    text_drawcache_tag_update(CTX_wm_space_text(C), 0);
-
-    ED_text_undo_push_init(C);
-
-    txt_order_cursors(text, false);
-    if (txt_uncomment(text) == false) {
-      txt_comment(text);
-    }
-    text_update_edited(text);
-
-    text_update_cursor_moved(C);
-    WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-    return OPERATOR_FINISHED;
-  }
-
-  return OPERATOR_CANCELLED;
-}
-
-void TEXT_OT_toggle_comment(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Toggle Comment";
-  ot->idname = "TEXT_OT_toggle_comment";
-
-  /* api callbacks */
-  ot->exec = text_toggle_comment_exec;
-  ot->poll = text_edit_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
+  /* properties */
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna, "type", comment_items, 0, "Type", "Add or remove comments");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

@@ -197,9 +197,7 @@ static void text_operatortypes(void)
   WM_operatortype_append(TEXT_OT_duplicate_line);
 
   WM_operatortype_append(TEXT_OT_convert_whitespace);
-  WM_operatortype_append(TEXT_OT_uncomment);
-  WM_operatortype_append(TEXT_OT_comment);
-  WM_operatortype_append(TEXT_OT_toggle_comment);
+  WM_operatortype_append(TEXT_OT_comment_toggle);
   WM_operatortype_append(TEXT_OT_unindent);
   WM_operatortype_append(TEXT_OT_indent);
 

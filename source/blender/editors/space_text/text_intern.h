@@ -119,9 +119,7 @@ void TEXT_OT_cut(struct wmOperatorType *ot);
 void TEXT_OT_duplicate_line(struct wmOperatorType *ot);
 
 void TEXT_OT_convert_whitespace(struct wmOperatorType *ot);
-void TEXT_OT_uncomment(struct wmOperatorType *ot);
-void TEXT_OT_comment(struct wmOperatorType *ot);
-void TEXT_OT_toggle_comment(struct wmOperatorType *ot);
+void TEXT_OT_comment_toggle(struct wmOperatorType *ot);
 void TEXT_OT_unindent(struct wmOperatorType *ot);
 void TEXT_OT_indent(struct wmOperatorType *ot);
 
