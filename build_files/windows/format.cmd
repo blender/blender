@@ -2,10 +2,6 @@ if EXIST %BLENDER_DIR%\..\lib\win64_vc14\llvm\bin\clang-format.exe (
     set CF_PATH=..\lib\win64_vc14\llvm\bin
     goto detect_done
 )
-if EXIST %BLENDER_DIR%\..\lib\windows_vc14\llvm\bin\clang-format.exe (
-    set CF_PATH=..\lib\windows_vc14\llvm\bin
-    goto detect_done
-)
 
 echo clang-format not found
 exit /b 1

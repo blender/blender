@@ -45,8 +45,9 @@ if NOT "%1" == "" (
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -C"%BLENDER_DIR%\build_files\cmake\config\blender_developer.cmake"
 	) else if "%1" == "asan" (
 		set WITH_ASAN=1
-	) else if "%1" == "x86" (
-		set BUILD_ARCH=x86
+	) else if "%1" == "x86" ( 
+		echo Error: 32 bit builds of blender are no longer supported.
+		goto ERR
 	) else if "%1" == "x64" (
 		set BUILD_ARCH=x64
 	) else if "%1" == "2017" (
@@ -99,10 +100,12 @@ if NOT "%1" == "" (
 		goto EOF
 	) else (
 		echo Command "%1" unknown, aborting!
-		exit /b 1
+		goto ERR
 	)
 	shift /1
 	goto argv_loop
 )
 :EOF
 exit /b 0
+:ERR
+exit /b 1

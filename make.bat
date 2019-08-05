@@ -38,6 +38,7 @@ if "%FORMAT%" == "1" (
 )
 
 call "%BLENDER_DIR%\build_files\windows\detect_architecture.cmd"
+if errorlevel 1 goto EOF
 
 if "%BUILD_VS_YEAR%" == "" (
 	call "%BLENDER_DIR%\build_files\windows\autodetect_msvc.cmd"
