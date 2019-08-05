@@ -193,22 +193,22 @@ bool numaAPI_IsNodeAvailable(int node) {
   //
   // This is needed because numaApiGetNumNodes() is not guaranteed to
   // give total amount of nodes and some nodes might be unavailable.
-  ULONGLONG processor_mask;
-  if (!_GetNumaNodeProcessorMask(node, &processor_mask)) {
+  GROUP_AFFINITY processor_mask = { 0 };
+  if (!_GetNumaNodeProcessorMaskEx(node, &processor_mask)) {
     return false;
   }
-  if (processor_mask == 0) {
+  if (processor_mask.Mask == 0) {
     return false;
   }
   return true;
 }
 
 int numaAPI_GetNumNodeProcessors(int node) {
-  ULONGLONG processor_mask;
-  if (!_GetNumaNodeProcessorMask(node, &processor_mask)) {
+  GROUP_AFFINITY processor_mask = { 0 };
+  if (!_GetNumaNodeProcessorMaskEx(node, &processor_mask)) {
     return 0;
   }
-  return countNumSetBits(processor_mask);
+  return countNumSetBits(processor_mask.Mask);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -239,11 +239,12 @@ bool numaAPI_RunProcessOnNode(int node) {
   // TODO(sergey): Make sure requested node is within active CPU group.
   // Change affinity of the proces to make it to run on a given node.
   HANDLE process_handle = GetCurrentProcess();
-  ULONGLONG processor_mask;
-  if (_GetNumaNodeProcessorMask(node, &processor_mask) == 0) {
+  GROUP_AFFINITY processor_mask = { 0 };
+  if (_GetNumaNodeProcessorMaskEx(node, &processor_mask) == 0) {
     return false;
   }
-  if (_SetProcessAffinityMask(process_handle, processor_mask) == 0) {
+  // TODO: Affinity should respect processor group.
+  if (_SetProcessAffinityMask(process_handle, processor_mask.Mask) == 0) {
     return false;
   }
   return true;
