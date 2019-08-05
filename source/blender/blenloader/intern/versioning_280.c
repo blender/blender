@@ -3407,11 +3407,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ARegion *ar = NULL;
             if (sl->spacetype == SPACE_CLIP) {
               if (((SpaceClip *)sl)->view == SC_VIEW_GRAPH) {
-                ar = do_versions_find_region(regionbase, RGN_TYPE_PREVIEW);
+                ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_PREVIEW);
               }
             }
             else {
-              ar = do_versions_find_region(regionbase, RGN_TYPE_WINDOW);
+              ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_WINDOW);
             }
 
             if (ar != NULL) {
@@ -3560,7 +3560,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_TEXT) {
             ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
-            ARegion *ar = do_versions_find_region(regionbase, RGN_TYPE_UI);
+            ARegion *ar = do_versions_find_region_or_null(regionbase, RGN_TYPE_UI);
             if (ar) {
               ar->alignment = RGN_ALIGN_RIGHT;
             }
