@@ -39,6 +39,7 @@ Convenience Targets
 
    * developer:     Enable faster builds, error checking and tests, recommended for developers.
    * config:        Run cmake configuration tool to set build options.
+   * ninja:         Use ninja build tool for faster builds.
 
    Note: passing the argument 'BUILD_DIR=path' when calling make will override the default build dir.
    Note: passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments.
@@ -226,6 +227,15 @@ ifneq "$(findstring developer, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C"$(BLENDER_DIR)/build_files/cmake/config/blender_developer.cmake"
 endif
 
+# -----------------------------------------------------------------------------
+# build tool
+
+ifneq "$(findstring ninja, $(MAKECMDGOALS))" ""
+	BUILD_COMMAND:=ninja
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -G Ninja
+else
+	BUILD_COMMAND:=make -s
+endif
 
 # -----------------------------------------------------------------------------
 # Blender binary path
@@ -287,7 +297,7 @@ all: .FORCE
 
 	@echo
 	@echo Building Blender ...
-	$(MAKE) -C "$(BUILD_DIR)" -s -j $(NPROCS) install
+	$(BUILD_COMMAND) -C "$(BUILD_DIR)" -j $(NPROCS) install
 	@echo
 	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
 	@echo Blender successfully built, run from: $(BLENDER_BIN)
@@ -300,6 +310,7 @@ cycles: all
 headless: all
 bpy: all
 developer: all
+ninja: all
 
 # -----------------------------------------------------------------------------
 # Build dependencies
@@ -318,7 +329,7 @@ deps: .FORCE
 
 	@echo
 	@echo Building dependencies ...
-	$(MAKE) -C "$(DEPS_BUILD_DIR)" -s -j $(NPROCS) $(DEPS_TARGET)
+	$(BUILD_COMMAND) -C "$(DEPS_BUILD_DIR)" -j $(NPROCS) $(DEPS_TARGET)
 	@echo
 	@echo Dependencies successfully built and installed to $(DEPS_INSTALL_DIR).
 	@echo
@@ -554,7 +565,7 @@ help_features: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_print_build_options.py" $(BLENDER_DIR)"/CMakeLists.txt"
 
 clean: .FORCE
-	$(MAKE) -C "$(BUILD_DIR)" clean
+	$(BUILD_COMMAND) -C "$(BUILD_DIR)" clean
 
 .PHONY: all
 
