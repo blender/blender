@@ -116,37 +116,37 @@ typedef struct uiStyle {
 } uiStyle;
 
 typedef struct uiWidgetColors {
-  char outline[4];
-  char inner[4];
-  char inner_sel[4];
-  char item[4];
-  char text[4];
-  char text_sel[4];
-  char shaded;
+  unsigned char outline[4];
+  unsigned char inner[4];
+  unsigned char inner_sel[4];
+  unsigned char item[4];
+  unsigned char text[4];
+  unsigned char text_sel[4];
+  unsigned char shaded;
   char _pad0[7];
   short shadetop, shadedown;
   float roundness;
 } uiWidgetColors;
 
 typedef struct uiWidgetStateColors {
-  char inner_anim[4];
-  char inner_anim_sel[4];
-  char inner_key[4];
-  char inner_key_sel[4];
-  char inner_driven[4];
-  char inner_driven_sel[4];
-  char inner_overridden[4];
-  char inner_overridden_sel[4];
-  char inner_changed[4];
-  char inner_changed_sel[4];
+  unsigned char inner_anim[4];
+  unsigned char inner_anim_sel[4];
+  unsigned char inner_key[4];
+  unsigned char inner_key_sel[4];
+  unsigned char inner_driven[4];
+  unsigned char inner_driven_sel[4];
+  unsigned char inner_overridden[4];
+  unsigned char inner_overridden_sel[4];
+  unsigned char inner_changed[4];
+  unsigned char inner_changed_sel[4];
   float blend;
   char _pad0[4];
 } uiWidgetStateColors;
 
 typedef struct uiPanelColors {
-  char header[4];
-  char back[4];
-  char sub_back[4];
+  unsigned char header[4];
+  unsigned char back[4];
+  unsigned char sub_back[4];
   char _pad0[4];
 } uiPanelColors;
 
@@ -160,13 +160,13 @@ typedef struct ThemeUI {
 
   uiWidgetStateColors wcol_state;
 
-  char widget_emboss[4];
+  unsigned char widget_emboss[4];
 
   /* fac: 0 - 1 for blend factor, width in pixels */
   float menu_shadow_fac;
   short menu_shadow_width;
 
-  char editor_outline[4];
+  unsigned char editor_outline[4];
   char _pad0[2];
 
   float icon_alpha;
@@ -174,28 +174,28 @@ typedef struct ThemeUI {
   char _pad[4];
 
   /* Axis Colors */
-  char xaxis[4], yaxis[4], zaxis[4];
+  unsigned char xaxis[4], yaxis[4], zaxis[4];
 
   /* Gizmo Colors. */
-  char gizmo_hi[4];
-  char gizmo_primary[4];
-  char gizmo_secondary[4];
-  char gizmo_a[4];
-  char gizmo_b[4];
+  unsigned char gizmo_hi[4];
+  unsigned char gizmo_primary[4];
+  unsigned char gizmo_secondary[4];
+  unsigned char gizmo_a[4];
+  unsigned char gizmo_b[4];
 
   /* Icon Colors. */
   /** Scene items. */
-  char icon_scene[4];
+  unsigned char icon_scene[4];
   /** Collection items. */
-  char icon_collection[4];
+  unsigned char icon_collection[4];
   /** Object items. */
-  char icon_object[4];
+  unsigned char icon_object[4];
   /** Object data items. */
-  char icon_object_data[4];
+  unsigned char icon_object_data[4];
   /** Modifier and constraint items. */
-  char icon_modifier[4];
+  unsigned char icon_modifier[4];
   /** Shading related items. */
-  char icon_shading[4];
+  unsigned char icon_shading[4];
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
@@ -206,216 +206,218 @@ typedef struct ThemeUI {
  */
 typedef struct ThemeSpace {
   /* main window colors */
-  char back[4];
-  char back_grad[4];
+  unsigned char back[4];
+  unsigned char back_grad[4];
 
   char show_back_grad;
   char _pad0[3];
 
   /** Panel title. */
-  char title[4];
-  char text[4];
-  char text_hi[4];
+  unsigned char title[4];
+  unsigned char text[4];
+  unsigned char text_hi[4];
 
   /* header colors */
   /** Region background. */
-  char header[4];
+  unsigned char header[4];
   /** Unused. */
-  char header_title[4];
-  char header_text[4];
-  char header_text_hi[4];
+  unsigned char header_title[4];
+  unsigned char header_text[4];
+  unsigned char header_text_hi[4];
 
   /* region tabs */
-  char tab_active[4];
-  char tab_inactive[4];
-  char tab_back[4];
-  char tab_outline[4];
+  unsigned char tab_active[4];
+  unsigned char tab_inactive[4];
+  unsigned char tab_back[4];
+  unsigned char tab_outline[4];
 
   /* button/tool regions */
   /** Region background. */
-  char button[4];
+  unsigned char button[4];
   /** Panel title. */
-  char button_title[4];
-  char button_text[4];
-  char button_text_hi[4];
+  unsigned char button_title[4];
+  unsigned char button_text[4];
+  unsigned char button_text_hi[4];
 
   /* listview regions */
   /** Region background. */
-  char list[4];
+  unsigned char list[4];
   /** Panel title. */
-  char list_title[4];
-  char list_text[4];
-  char list_text_hi[4];
+  unsigned char list_title[4];
+  unsigned char list_text[4];
+  unsigned char list_text_hi[4];
 
   /* navigation bar regions */
   /** Region background. */
-  char navigation_bar[4];
+  unsigned char navigation_bar[4];
   /** Region background. */
-  char execution_buts[4];
+  unsigned char execution_buts[4];
 
   /* note, cannot use name 'panel' because of DNA mapping old files */
   uiPanelColors panelcolors;
 
-  char shade1[4];
-  char shade2[4];
+  unsigned char shade1[4];
+  unsigned char shade2[4];
 
-  char hilite[4];
-  char grid[4];
+  unsigned char hilite[4];
+  unsigned char grid[4];
 
-  char view_overlay[4];
+  unsigned char view_overlay[4];
 
-  char wire[4], wire_edit[4], select[4];
-  char lamp[4], speaker[4], empty[4], camera[4];
-  char active[4], group[4], group_active[4], transform[4];
-  char vertex[4], vertex_select[4], vertex_bevel[4], vertex_unreferenced[4];
-  char edge[4], edge_select[4];
-  char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4], edge_bevel[4];
+  unsigned char wire[4], wire_edit[4], select[4];
+  unsigned char lamp[4], speaker[4], empty[4], camera[4];
+  unsigned char active[4], group[4], group_active[4], transform[4];
+  unsigned char vertex[4], vertex_select[4], vertex_bevel[4], vertex_unreferenced[4];
+  unsigned char edge[4], edge_select[4];
+  unsigned char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4], edge_bevel[4];
   /** Solid faces. */
-  char face[4], face_select[4];
+  unsigned char face[4], face_select[4];
   /**  selected color. */
-  char face_dot[4];
-  char extra_edge_len[4], extra_edge_angle[4], extra_face_angle[4], extra_face_area[4];
-  char normal[4];
-  char vertex_normal[4];
-  char loop_normal[4];
-  char bone_solid[4], bone_pose[4], bone_pose_active[4];
-  char strip[4], strip_select[4];
-  char cframe[4];
-  char time_keyframe[4], time_gp_keyframe[4];
-  char freestyle_edge_mark[4], freestyle_face_mark[4];
-  char time_scrub_background[4];
+  unsigned char face_dot[4];
+  unsigned char extra_edge_len[4], extra_edge_angle[4], extra_face_angle[4], extra_face_area[4];
+  unsigned char normal[4];
+  unsigned char vertex_normal[4];
+  unsigned char loop_normal[4];
+  unsigned char bone_solid[4], bone_pose[4], bone_pose_active[4];
+  unsigned char strip[4], strip_select[4];
+  unsigned char cframe[4];
+  unsigned char time_keyframe[4], time_gp_keyframe[4];
+  unsigned char freestyle_edge_mark[4], freestyle_face_mark[4];
+  unsigned char time_scrub_background[4];
   char _pad5[4];
 
-  char nurb_uline[4], nurb_vline[4];
-  char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
+  unsigned char nurb_uline[4], nurb_vline[4];
+  unsigned char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
 
-  char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4], handle_auto_clamped[4];
-  char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4],
+  unsigned char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4],
+      handle_auto_clamped[4];
+  unsigned char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4],
       handle_sel_auto_clamped[4];
 
   /** Dopesheet. */
-  char ds_channel[4], ds_subchannel[4], ds_ipoline[4];
+  unsigned char ds_channel[4], ds_subchannel[4], ds_ipoline[4];
   /** Keytypes. */
-  char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4],
+  unsigned char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4],
       keytype_movehold[4];
   /** Keytypes. */
-  char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4],
+  unsigned char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4],
       keytype_jitter_select[4], keytype_movehold_select[4];
-  char keyborder[4], keyborder_select[4];
+  unsigned char keyborder[4], keyborder_select[4];
   char _pad4[3];
 
-  char console_output[4], console_input[4], console_info[4], console_error[4];
-  char console_cursor[4], console_select[4];
+  unsigned char console_output[4], console_input[4], console_info[4], console_error[4];
+  unsigned char console_cursor[4], console_select[4];
 
-  char vertex_size, outline_width, obcenter_dia, facedot_size;
-  char noodle_curving;
+  unsigned char vertex_size, outline_width, obcenter_dia, facedot_size;
+  unsigned char noodle_curving;
 
   /* syntax for textwindow and nodes */
-  char syntaxl[4], syntaxs[4];  // in nodespace used for backdrop matte
-  char syntaxb[4], syntaxn[4];  // in nodespace used for color input
-  char syntaxv[4], syntaxc[4];  // in nodespace used for converter group
-  char syntaxd[4], syntaxr[4];  // in nodespace used for distort
+  unsigned char syntaxl[4], syntaxs[4];  // in nodespace used for backdrop matte
+  unsigned char syntaxb[4], syntaxn[4];  // in nodespace used for color input
+  unsigned char syntaxv[4], syntaxc[4];  // in nodespace used for converter group
+  unsigned char syntaxd[4], syntaxr[4];  // in nodespace used for distort
 
-  char nodeclass_output[4], nodeclass_filter[4];
-  char nodeclass_vector[4], nodeclass_texture[4];
-  char nodeclass_shader[4], nodeclass_script[4];
-  char nodeclass_pattern[4], nodeclass_layout[4];
+  unsigned char nodeclass_output[4], nodeclass_filter[4];
+  unsigned char nodeclass_vector[4], nodeclass_texture[4];
+  unsigned char nodeclass_shader[4], nodeclass_script[4];
+  unsigned char nodeclass_pattern[4], nodeclass_layout[4];
 
   /** For sequence editor. */
-  char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];
-  char effect[4], transition[4], meta[4], text_strip[4];
+  unsigned char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];
+  unsigned char effect[4], transition[4], meta[4], text_strip[4];
 
   /** For dopesheet - scale factor for size of keyframes (i.e. height of channels). */
   float keyframe_scale_fac;
 
-  char editmesh_active[4];
+  unsigned char editmesh_active[4];
 
-  char handle_vertex[4];
-  char handle_vertex_select[4];
+  unsigned char handle_vertex[4];
+  unsigned char handle_vertex_select[4];
 
-  char handle_vertex_size;
+  unsigned char handle_vertex_size;
 
-  char clipping_border_3d[4];
+  unsigned char clipping_border_3d[4];
 
-  char marker_outline[4], marker[4], act_marker[4], sel_marker[4], dis_marker[4], lock_marker[4];
-  char bundle_solid[4];
-  char path_before[4], path_after[4];
-  char camera_path[4];
-  char _pad1[2];
+  unsigned char marker_outline[4], marker[4], act_marker[4], sel_marker[4], dis_marker[4],
+      lock_marker[4];
+  unsigned char bundle_solid[4];
+  unsigned char path_before[4], path_after[4];
+  unsigned char camera_path[4];
+  unsigned char _pad1[2];
 
-  char gp_vertex_size;
-  char gp_vertex[4], gp_vertex_select[4];
+  unsigned char gp_vertex_size;
+  unsigned char gp_vertex[4], gp_vertex_select[4];
 
-  char preview_back[4];
-  char preview_stitch_face[4];
-  char preview_stitch_edge[4];
-  char preview_stitch_vert[4];
-  char preview_stitch_stitchable[4];
-  char preview_stitch_unstitchable[4];
-  char preview_stitch_active[4];
+  unsigned char preview_back[4];
+  unsigned char preview_stitch_face[4];
+  unsigned char preview_stitch_edge[4];
+  unsigned char preview_stitch_vert[4];
+  unsigned char preview_stitch_stitchable[4];
+  unsigned char preview_stitch_unstitchable[4];
+  unsigned char preview_stitch_active[4];
 
   /** Two uses, for uvs with modifier applied on mesh and uvs during painting. */
-  char uv_shadow[4];
+  unsigned char uv_shadow[4];
   /** Uvs of other objects. */
-  char uv_others[4];
+  unsigned char uv_others[4];
 
   /** Outliner - filter match. */
-  char match[4];
+  unsigned char match[4];
   /** Outliner - selected item. */
-  char selected_highlight[4];
+  unsigned char selected_highlight[4];
   /** Outliner - selected object. */
-  char selected_object[4];
+  unsigned char selected_object[4];
   /** Outliner - active object. */
-  char active_object[4];
+  unsigned char active_object[4];
   /** Outliner - edited object. */
-  char edited_object[4];
+  unsigned char edited_object[4];
   /** Outliner - row color difference. */
-  char row_alternate[4];
+  unsigned char row_alternate[4];
 
   /** Skin modifier root color. */
-  char skin_root[4];
+  unsigned char skin_root[4];
 
   /* NLA */
   /** Active Action + Summary Channel. */
-  char anim_active[4];
+  unsigned char anim_active[4];
   /** Active Action = NULL. */
-  char anim_non_active[4];
+  unsigned char anim_non_active[4];
   /** Preview range overlay. */
-  char anim_preview_range[4];
+  unsigned char anim_preview_range[4];
 
   /** NLA 'Tweaking' action/strip. */
-  char nla_tweaking[4];
+  unsigned char nla_tweaking[4];
   /** NLA - warning color for duplicate instances of tweaking strip. */
-  char nla_tweakdupli[4];
+  unsigned char nla_tweakdupli[4];
 
   /** NLA "Transition" strips. */
-  char nla_transition[4], nla_transition_sel[4];
+  unsigned char nla_transition[4], nla_transition_sel[4];
   /** NLA "Meta" strips. */
-  char nla_meta[4], nla_meta_sel[4];
+  unsigned char nla_meta[4], nla_meta_sel[4];
   /** NLA "Sound" strips. */
-  char nla_sound[4], nla_sound_sel[4];
+  unsigned char nla_sound[4], nla_sound_sel[4];
 
   /* info */
-  char info_selected[4], info_selected_text[4];
-  char info_error[4], info_error_text[4];
-  char info_warning[4], info_warning_text[4];
-  char info_info[4], info_info_text[4];
-  char info_debug[4], info_debug_text[4];
+  unsigned char info_selected[4], info_selected_text[4];
+  unsigned char info_error[4], info_error_text[4];
+  unsigned char info_warning[4], info_warning_text[4];
+  unsigned char info_info[4], info_info_text[4];
+  unsigned char info_debug[4], info_debug_text[4];
 
-  char paint_curve_pivot[4];
-  char paint_curve_handle[4];
+  unsigned char paint_curve_pivot[4];
+  unsigned char paint_curve_handle[4];
 
-  char metadatabg[4];
-  char metadatatext[4];
+  unsigned char metadatabg[4];
+  unsigned char metadatatext[4];
 
   char _pad2[4];
 } ThemeSpace;
 
 /* set of colors for use as a custom color set for Objects/Bones wire drawing */
 typedef struct ThemeWireColor {
-  char solid[4];
-  char select[4];
-  char active[4];
+  unsigned char solid[4];
+  unsigned char select[4];
+  unsigned char active[4];
 
   /** #eWireColor_Flags. */
   short flag;

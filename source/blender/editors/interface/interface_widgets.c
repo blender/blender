@@ -1135,7 +1135,7 @@ static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rc
 
 /* prepares shade colors */
 static void shadecolors4(
-    char coltop[4], char coldown[4], const char *color, short shadetop, short shadedown)
+    uchar coltop[4], uchar coldown[4], const uchar *color, short shadetop, short shadedown)
 {
   coltop[0] = CLAMPIS(color[0] + shadetop, 0, 255);
   coltop[1] = CLAMPIS(color[1] + shadetop, 0, 255);
@@ -1149,8 +1149,8 @@ static void shadecolors4(
 }
 
 static void round_box_shade_col4_r(uchar r_col[4],
-                                   const char col1[4],
-                                   const char col2[4],
+                                   const uchar col1[4],
+                                   const uchar col2[4],
                                    const float fac)
 {
   const int faci = unit_float_to_uchar_clamp(fac);
@@ -1352,15 +1352,14 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
   if (wtb->draw_inner) {
     if (wcol->shaded == 0) {
       /* simple fill */
-      inner_col1[0] = inner_col2[0] = (uchar)wcol->inner[0];
-      inner_col1[1] = inner_col2[1] = (uchar)wcol->inner[1];
-      inner_col1[2] = inner_col2[2] = (uchar)wcol->inner[2];
-      inner_col1[3] = inner_col2[3] = (uchar)wcol->inner[3];
+      inner_col1[0] = inner_col2[0] = wcol->inner[0];
+      inner_col1[1] = inner_col2[1] = wcol->inner[1];
+      inner_col1[2] = inner_col2[2] = wcol->inner[2];
+      inner_col1[3] = inner_col2[3] = wcol->inner[3];
     }
     else {
       /* gradient fill */
-      shadecolors4(
-          (char *)inner_col1, (char *)inner_col2, wcol->inner, wcol->shadetop, wcol->shadedown);
+      shadecolors4(inner_col1, inner_col2, wcol->inner, wcol->shadetop, wcol->shadedown);
     }
   }
 
@@ -1436,7 +1435,7 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(
-    const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const char mono_color[4])
+    const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
   float xs = 0.0f, ys = 0.0f;
   float aspect, height;
@@ -1510,8 +1509,8 @@ static void widget_draw_icon(
     }
 
     /* Get theme color. */
-    char color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
-    bool has_theme = UI_icon_get_theme_color(icon, (uchar *)color);
+    uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
+    bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
     if (but->dragpoin && (but->flag & UI_ACTIVE)) {
@@ -1548,7 +1547,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
   float col[4];
   rctf tria_rect;
 
-  rgba_uchar_to_float(col, (const uchar *)wcol->text);
+  rgba_uchar_to_float(col, wcol->text);
   col[3] *= 0.8f;
 
   BLI_rctf_init(&tria_rect, xs, xs + tria_width, ys, ys + tria_height);
@@ -2099,7 +2098,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
             immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
         immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-        immUniformColor4ubv((uchar *)wcol->item);
+        immUniformColor4ubv(wcol->item);
         immRecti(pos,
                  rect->xmin + selsta_draw,
                  rect->ymin + 2,
@@ -2214,7 +2213,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       UI_fontstyle_draw_ex(fstyle,
                            rect,
                            drawstr + but->ofs,
-                           (uchar *)wcol->text,
+                           wcol->text,
                            &(struct uiFontStyleDraw_Params){
                                .align = align,
                            },
@@ -2250,7 +2249,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                        rect->xmin + font_xofs + ul_advance,
                        rect->ymin + font_yofs,
                        0.0f);
-          BLF_color4ubv(fstyle->uifont_id, (uchar *)wcol->text);
+          BLF_color4ubv(fstyle->uifont_id, wcol->text);
           BLF_draw(fstyle->uifont_id, "_", 2);
 
           if (fstyle->kerning == 1) {
@@ -2263,8 +2262,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
   /* part text right aligned */
   if (drawstr_right) {
-    char col[4];
-    copy_v4_v4_char(col, wcol->text);
+    uchar col[4];
+    copy_v4_v4_uchar(col, wcol->text);
     if (but->drawflag & UI_BUT_HAS_SHORTCUT) {
       col[3] *= 0.5f;
     }
@@ -2273,7 +2272,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     UI_fontstyle_draw(fstyle,
                       rect,
                       drawstr_right,
-                      (const uchar *)col,
+                      col,
                       &(struct uiFontStyleDraw_Params){
                           .align = UI_STYLE_TEXT_RIGHT,
                       });
@@ -2476,7 +2475,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
 /* ************ button callbacks, state ***************** */
 
-static void widget_state_blend(char cp[3], const char cpstate[3], const float fac)
+static void widget_state_blend(uchar cp[3], const uchar cpstate[3], const float fac)
 {
   if (fac != 0.0f) {
     cp[0] = (int)((1.0f - fac) * cp[0] + fac * cpstate[0]);
@@ -2502,18 +2501,18 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
   wt->wcol_theme = &wcol_theme_s;
 }
 
-static void rgb_tint(char cp[3], int tint)
+static void rgb_tint(uchar cp[3], int tint)
 {
   cp[0] = clamp_i(cp[0] + tint, 0, 255);
   cp[1] = clamp_i(cp[1] + tint, 0, 255);
   cp[2] = clamp_i(cp[2] + tint, 0, 255);
 }
 
-static void rgb_ensure_contrast(char cp[3], const char cp_other[3], int contrast)
+static void rgb_ensure_contrast(uchar cp[3], const uchar cp_other[3], int contrast)
 {
   BLI_assert(contrast > 0);
-  const int item_value = rgb_to_grayscale_byte((const uchar *)cp);
-  const int inner_value = rgb_to_grayscale_byte((const uchar *)cp_other);
+  const int item_value = rgb_to_grayscale_byte(cp);
+  const int inner_value = rgb_to_grayscale_byte(cp_other);
   const int delta = item_value - inner_value;
   if (delta >= 0) {
     if (contrast > delta) {
@@ -2527,16 +2526,16 @@ static void rgb_ensure_contrast(char cp[3], const char cp_other[3], int contrast
   }
 }
 
-static void widget_active_color(char cp[3])
+static void widget_active_color(uchar cp[3])
 {
   cp[0] = cp[0] >= 240 ? 255 : cp[0] + 15;
   cp[1] = cp[1] >= 240 ? 255 : cp[1] + 15;
   cp[2] = cp[2] >= 240 ? 255 : cp[2] + 15;
 }
 
-static const char *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
-                                                 int state,
-                                                 int drawflag)
+static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
+                                                  int state,
+                                                  int drawflag)
 {
   if (drawflag & UI_BUT_ANIMATED_CHANGED) {
     return wcol_state->inner_changed_sel;
@@ -2573,15 +2572,15 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 
   wt->wcol = *(wt->wcol_theme);
 
-  const char *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
 
   if (state & UI_SELECT) {
-    copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     if (color_blend != NULL) {
       widget_state_blend(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
-    copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+    copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
 
     if (state & UI_SELECT) {
       SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
@@ -2598,7 +2597,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   }
 
   if (state & UI_BUT_REDALERT) {
-    char red[4] = {255, 0, 0};
+    uchar red[4] = {255, 0, 0};
     if (wt->draw) {
       widget_state_blend(wt->wcol.inner, red, 0.4f);
     }
@@ -2609,13 +2608,13 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 
   if (state & UI_BUT_DRAG_MULTI) {
     /* the button isn't SELECT but we're editing this so draw with sel color */
-    copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
     widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.85f);
   }
 
   if (state & UI_BUT_NODE_ACTIVE) {
-    char blue[4] = {86, 128, 194};
+    uchar blue[4] = {86, 128, 194};
     widget_state_blend(wt->wcol.inner, blue, 0.3f);
   }
 }
@@ -2628,13 +2627,12 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
   /* call this for option button */
   widget_state(wt, state, drawflag);
 
-  const char *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag);
   if (color_blend != NULL) {
     /* Set the slider 'item' so that it reflects state settings too.
      * De-saturate so the color of the slider doesn't conflict with the blend color,
      * which can make the color hard to see when the slider is set to full (see T66102). */
-    wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(
-        (const uchar *)wt->wcol.item);
+    wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = rgb_to_grayscale_byte(wt->wcol.item);
     widget_state_blend(wt->wcol.item, color_blend, wcol_state->blend);
     rgb_ensure_contrast(wt->wcol.item, wt->wcol.inner, 30);
   }
@@ -2654,10 +2652,10 @@ static void widget_state_option_menu(uiWidgetType *wt, int state, int drawflag)
 
   /* if not selected we get theme from menu back */
   if (state & UI_SELECT) {
-    copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text_sel);
+    copy_v3_v3_uchar(wt->wcol.text, btheme->tui.wcol_menu_back.text_sel);
   }
   else {
-    copy_v3_v3_char(wt->wcol.text, btheme->tui.wcol_menu_back.text);
+    copy_v3_v3_uchar(wt->wcol.text, btheme->tui.wcol_menu_back.text);
   }
 }
 
@@ -2682,13 +2680,13 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state, int UNUSED(d
     widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
-    copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
     wt->wcol.inner[3] = 64;
   }
   else {
     /* regular active */
     if (state & (UI_SELECT | UI_ACTIVE)) {
-      copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+      copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
@@ -2696,10 +2694,10 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state, int UNUSED(d
     }
 
     if (state & UI_SELECT) {
-      copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
     else if (state & UI_ACTIVE) {
-      copy_v4_v4_char(wt->wcol.inner, wt->wcol.item);
+      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
     }
   }
 }
@@ -2714,13 +2712,13 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
     widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
-    copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     wt->wcol.inner[3] = 64;
   }
   else {
     /* regular active */
     if (state & UI_ACTIVE) {
-      copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
+      copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
@@ -2728,7 +2726,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawf
     }
 
     if (state & UI_ACTIVE) {
-      copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
   }
 }
@@ -2965,7 +2963,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   GPU_blend(true);
   GPU_line_smooth(true);
 
-  immUniformColor3ubv((uchar *)wcol->outline);
+  immUniformColor3ubv(wcol->outline);
   imm_draw_circle_wire_2d(pos, centx, centy, radius, tot);
 
   immUnbindProgram();
@@ -3347,7 +3345,7 @@ static void widget_numbut_draw(
     wtb_zone.draw_emboss = false;
 
     wcol_zone = *wcol;
-    copy_v3_v3_char(wcol_zone.item, wcol->text);
+    copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (state & UI_STATE_ACTIVE_LEFT) {
       widget_active_color(wcol_zone.inner);
     }
@@ -3367,7 +3365,7 @@ static void widget_numbut_draw(
     wtb_zone.tria1.type = ROUNDBOX_TRIA_ARROWS;
 
     wcol_zone = *wcol;
-    copy_v3_v3_char(wcol_zone.item, wcol->text);
+    copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (state & UI_STATE_ACTIVE_RIGHT) {
       widget_active_color(wcol_zone.inner);
     }
@@ -3386,7 +3384,7 @@ static void widget_numbut_draw(
     wtb_zone.draw_emboss = false;
 
     wcol_zone = *wcol;
-    copy_v3_v3_char(wcol_zone.item, wcol->text);
+    copy_v3_v3_uchar(wcol_zone.item, wcol->text);
     if (!(state & (UI_STATE_ACTIVE_LEFT | UI_STATE_ACTIVE_RIGHT))) {
       widget_active_color(wcol_zone.inner);
     }
@@ -3466,7 +3464,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
   else {
     SWAP(short, wcol->shadetop, wcol->shadedown);
 
-    copy_v4_v4_char(wcol->inner, wcol->item);
+    copy_v4_v4_uchar(wcol->inner, wcol->item);
 
     if (wcol->shadetop > wcol->shadedown) {
       wcol->shadetop += 20; /* XXX violates themes... */
@@ -3613,7 +3611,7 @@ static void widget_progressbar(
   widgetbase_draw(&wtb, wcol);
 
   /* "slider" bar color */
-  copy_v3_v3_char(wcol->inner, wcol->item);
+  copy_v3_v3_uchar(wcol->inner, wcol->item);
   widgetbase_draw(&wtb_bar, wcol);
 
   /* raise text a bit */
@@ -3626,12 +3624,12 @@ static void widget_nodesocket(
 {
   uiWidgetBase wtb;
   int radi = 5;
-  char old_inner[3], old_outline[3];
+  uchar old_inner[3], old_outline[3];
 
   widget_init(&wtb);
 
-  copy_v3_v3_char(old_inner, wcol->inner);
-  copy_v3_v3_char(old_outline, wcol->outline);
+  copy_v3_v3_uchar(old_inner, wcol->inner);
+  copy_v3_v3_uchar(old_outline, wcol->outline);
 
   wcol->inner[0] = but->col[0];
   wcol->inner[1] = but->col[1];
@@ -3652,8 +3650,8 @@ static void widget_nodesocket(
   round_box_edges(&wtb, UI_CNR_ALL, rect, (float)radi);
   widgetbase_draw(&wtb, wcol);
 
-  copy_v3_v3_char(wcol->inner, old_inner);
-  copy_v3_v3_char(wcol->outline, old_outline);
+  copy_v3_v3_uchar(wcol->inner, old_inner);
+  copy_v3_v3_uchar(wcol->outline, old_outline);
 }
 
 static void widget_numslider(
@@ -3662,7 +3660,7 @@ static void widget_numslider(
   uiWidgetBase wtb, wtb1;
   rcti rect1;
   float offs, toffs;
-  char outline[3];
+  uchar outline[3];
 
   widget_init(&wtb);
   widget_init(&wtb1);
@@ -3679,9 +3677,9 @@ static void widget_numslider(
   if (!(state & UI_STATE_TEXT_INPUT)) {
     int roundboxalign_slider = roundboxalign;
 
-    copy_v3_v3_char(outline, wcol->outline);
-    copy_v3_v3_char(wcol->outline, wcol->item);
-    copy_v3_v3_char(wcol->inner, wcol->item);
+    copy_v3_v3_uchar(outline, wcol->outline);
+    copy_v3_v3_uchar(wcol->outline, wcol->item);
+    copy_v3_v3_uchar(wcol->inner, wcol->item);
 
     if (!(state & UI_SELECT)) {
       SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -3723,7 +3721,7 @@ static void widget_numslider(
     widgetbase_set_uniform_discard_factor(&wtb1, factor_discard);
     widgetbase_draw(&wtb1, wcol);
 
-    copy_v3_v3_char(wcol->outline, outline);
+    copy_v3_v3_uchar(wcol->outline, outline);
 
     if (!(state & UI_SELECT)) {
       SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -3788,7 +3786,7 @@ static void widget_swatch(
     ui_block_cm_to_display_space_v3(but->block, col);
   }
 
-  rgba_float_to_uchar((uchar *)wcol->inner, col);
+  rgba_float_to_uchar(wcol->inner, col);
   const bool show_alpha_checkers = (wcol->inner[3] < 255);
 
   wcol->shaded = 0;
@@ -3923,9 +3921,9 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
     const float rad = wcol->roundness * U.widget_unit;
 
     if (state & UI_ACTIVE) {
-      copy_v4_v4_char(wcol->inner, wcol->inner_sel);
-      copy_v3_v3_char(wcol->text, wcol->text_sel);
-      copy_v3_v3_char(wcol->outline, wcol->inner);
+      copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
+      copy_v3_v3_uchar(wcol->text, wcol->text_sel);
+      copy_v3_v3_uchar(wcol->outline, wcol->inner);
     }
     else {
       wcol->inner[3] *= 1.0f - back[3];
@@ -4061,15 +4059,15 @@ static void widget_state_label(uiWidgetType *wt, int state, int drawflag)
     /* call this for option button */
     widget_state(wt, state, drawflag);
     if (state & UI_SELECT) {
-      UI_GetThemeColor3ubv(TH_TEXT_HI, (uchar *)wt->wcol.text);
+      UI_GetThemeColor3ubv(TH_TEXT_HI, wt->wcol.text);
     }
     else {
-      UI_GetThemeColor3ubv(TH_TEXT, (uchar *)wt->wcol.text);
+      UI_GetThemeColor3ubv(TH_TEXT, wt->wcol.text);
     }
   }
 
   if (state & UI_BUT_REDALERT) {
-    char red[4] = {255, 0, 0};
+    uchar red[4] = {255, 0, 0};
     widget_state_blend(wt->wcol.text, red, 0.4f);
   }
 }
@@ -4092,11 +4090,11 @@ static void widget_box(
 {
   uiWidgetBase wtb;
   float rad;
-  char old_col[3];
+  uchar old_col[3];
 
   widget_init(&wtb);
 
-  copy_v3_v3_char(old_col, wcol->inner);
+  copy_v3_v3_uchar(old_col, wcol->inner);
 
   /* abuse but->hsv - if it's non-zero, use this color as the box's background */
   if (but->col[3]) {
@@ -4111,7 +4109,7 @@ static void widget_box(
 
   widgetbase_draw(&wtb, wcol);
 
-  copy_v3_v3_char(wcol->inner, old_col);
+  copy_v3_v3_uchar(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
@@ -4175,12 +4173,10 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 #ifdef USE_TAB_SHADED_HIGHLIGHT
   /* create outline highlight colors */
   if (is_active) {
-    interp_v3_v3v3_uchar(
-        theme_col_tab_highlight, (uchar *)wcol->inner_sel, (uchar *)wcol->outline, 0.2f);
+    interp_v3_v3v3_uchar(theme_col_tab_highlight, wcol->inner_sel, wcol->outline, 0.2f);
   }
   else {
-    interp_v3_v3v3_uchar(
-        theme_col_tab_highlight, (uchar *)wcol->inner, (uchar *)wcol->outline, 0.12f);
+    interp_v3_v3v3_uchar(theme_col_tab_highlight, wcol->inner, wcol->outline, 0.12f);
   }
 #endif
 
@@ -4202,7 +4198,7 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 
 #ifdef USE_TAB_SHADED_HIGHLIGHT
   /* draw outline (3d look) */
-  ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (uchar *)wcol->inner);
+  ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, wcol->inner);
 #endif
 
 #ifndef USE_TAB_SHADED_HIGHLIGHT
@@ -4819,7 +4815,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
       uiWidgetType wt_back = *wt;
       uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
       wt_temp->state(wt_temp, state, drawflag);
-      copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
       wt->wcol.inner[3] = 128;
       wt->wcol.roundness = 0.5f;
       ui_draw_roundbox(&rect_orig,
@@ -4845,7 +4841,7 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
 {
   if (block) {
     float draw_color[4];
-    uchar *color = (uchar *)wt->wcol.text;
+    const uchar *color = wt->wcol.text;
 
     draw_color[0] = ((float)color[0]) / 255.0f;
     draw_color[1] = ((float)color[1]) / 255.0f;
@@ -4913,7 +4909,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor4ubv((uchar *)wcol->inner);
+    immUniformColor4ubv(wcol->inner);
     GPU_blend(true);
     immBegin(GPU_PRIM_TRIS, 3);
     if (direction == UI_DIR_DOWN) {
@@ -4958,8 +4954,8 @@ static void draw_disk_shaded(float start,
                              float radius_int,
                              float radius_ext,
                              int subd,
-                             const char col1[4],
-                             const char col2[4],
+                             const uchar col1[4],
+                             const uchar col2[4],
                              bool shaded)
 {
   const float radius_ext_scale = (0.5f / radius_ext); /* 1 / (2 * radius_ext) */
@@ -4979,7 +4975,7 @@ static void draw_disk_shaded(float start,
   }
   else {
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformColor4ubv((uchar *)col1);
+    immUniformColor4ubv(col1);
   }
 
   immBegin(GPU_PRIM_TRI_STRIP, subd * 2);
@@ -5032,7 +5028,7 @@ void ui_draw_pie_center(uiBlock *block)
 
   GPU_blend(true);
   if (btheme->tui.wcol_pie_menu.shaded) {
-    char col1[4], col2[4];
+    uchar col1[4], col2[4];
     shadecolors4(col1,
                  col2,
                  btheme->tui.wcol_pie_menu.inner,
@@ -5060,7 +5056,7 @@ void ui_draw_pie_center(uiBlock *block)
 
   if (!(block->pie_data.flags & UI_PIE_INVALID_DIR)) {
     if (btheme->tui.wcol_pie_menu.shaded) {
-      char col1[4], col2[4];
+      uchar col1[4], col2[4];
       shadecolors4(col1,
                    col2,
                    btheme->tui.wcol_pie_menu.inner_sel,
@@ -5090,7 +5086,7 @@ void ui_draw_pie_center(uiBlock *block)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformColor4ubv((uchar *)btheme->tui.wcol_pie_menu.outline);
+  immUniformColor4ubv(btheme->tui.wcol_pie_menu.outline);
 
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_internal, subd);
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_external, subd);
@@ -5102,7 +5098,7 @@ void ui_draw_pie_center(uiBlock *block)
     float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
     float pie_confirm_external = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm + 7.0f);
 
-    const char col[4] = {UNPACK3(btheme->tui.wcol_pie_menu.text_sel), 64};
+    const uchar col[4] = {UNPACK3(btheme->tui.wcol_pie_menu.text_sel), 64};
     draw_disk_shaded(angle - range / 2.0f,
                      range,
                      pie_confirm_radius,
@@ -5144,7 +5140,7 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
   rcti rect_copy = *rect;
   wt->state(wt, 0, 0);
   if (color) {
-    rgba_float_to_uchar((uchar *)wt->wcol.inner, color);
+    rgba_float_to_uchar(wt->wcol.inner, color);
   }
   wt->draw(&wt->wcol, &rect_copy, 0, UI_CNR_ALL);
 }
@@ -5222,7 +5218,7 @@ void ui_draw_menu_item(
     UI_fontstyle_draw(fstyle,
                       rect,
                       drawstr,
-                      (uchar *)wt->wcol.text,
+                      wt->wcol.text,
                       &(struct uiFontStyleDraw_Params){
                           .align = UI_STYLE_TEXT_LEFT,
                       });
@@ -5235,7 +5231,7 @@ void ui_draw_menu_item(
       UI_fontstyle_draw(fstyle,
                         rect,
                         cpoin + 1,
-                        (uchar *)wt->wcol.text,
+                        wt->wcol.text,
                         &(struct uiFontStyleDraw_Params){
                             .align = UI_STYLE_TEXT_RIGHT,
                         });
@@ -5303,7 +5299,7 @@ void ui_draw_preview_item(
     UI_fontstyle_draw(fstyle,
                       &trect,
                       drawstr,
-                      (uchar *)wt->wcol.text,
+                      wt->wcol.text,
                       &(struct uiFontStyleDraw_Params){
                           .align = UI_STYLE_TEXT_CENTER,
                       });

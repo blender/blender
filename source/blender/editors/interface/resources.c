@@ -83,12 +83,12 @@ void ui_resources_free(void)
 const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
   ThemeSpace *ts = NULL;
-  static char error[4] = {240, 0, 240, 255};
-  static char alert[4] = {240, 60, 60, 255};
-  static char headerdesel[4] = {0, 0, 0, 255};
-  static char back[4] = {0, 0, 0, 255};
-  static char setting = 0;
-  const char *cp = error;
+  static uchar error[4] = {240, 0, 240, 255};
+  static uchar alert[4] = {240, 60, 60, 255};
+  static uchar headerdesel[4] = {0, 0, 0, 255};
+  static uchar back[4] = {0, 0, 0, 255};
+  static uchar setting = 0;
+  const uchar *cp = error;
 
   /* ensure we're not getting a color after running BKE_blender_userdef_free */
   BLI_assert(BLI_findindex(&U.themes, theme_active) != -1);
@@ -186,7 +186,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
             cp = ts->button;
           }
 
-          copy_v4_v4_char(back, cp);
+          copy_v4_v4_uchar(back, cp);
           if (!ED_region_is_overlap(spacetype, theme_regionid)) {
             back[3] = 255;
           }
@@ -903,7 +903,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_ICON_FUND: {
           /* Development fund icon color is not part of theme. */
-          static const char red[4] = {204, 48, 72, 255};
+          static const uchar red[4] = {204, 48, 72, 255};
           cp = red;
           break;
         }

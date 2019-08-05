@@ -1736,7 +1736,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   /* backdrop */
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_3ubAlpha(
-      true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, (uchar *)wcol->inner, 255);
+      true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, wcol->inner, 255);
 
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);
@@ -1771,7 +1771,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformColor3ubv((uchar *)wcol->inner);
+  immUniformColor3ubv(wcol->inner);
 
   GPU_blend(true);
   GPU_line_smooth(true);
@@ -1831,7 +1831,7 @@ static void gl_shaded_color_get_fl(const uchar *color, int shade, float r_color[
   rgb_uchar_to_float(r_color, color_shaded);
 }
 
-static void gl_shaded_color(uchar *color, int shade)
+static void gl_shaded_color(const uchar *color, int shade)
 {
   uchar color_shaded[3];
   gl_shaded_color_get(color, shade, color_shaded);
@@ -1914,10 +1914,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
   }
   else {
     if (cumap->flag & CUMA_DO_CLIP) {
-      gl_shaded_color_get_fl((uchar *)wcol->inner, -20, color_backdrop);
+      gl_shaded_color_get_fl(wcol->inner, -20, color_backdrop);
       immUniformColor3fv(color_backdrop);
       immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-      immUniformColor3ubv((uchar *)wcol->inner);
+      immUniformColor3ubv(wcol->inner);
       immRectf(pos,
                rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
                rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
@@ -1925,19 +1925,19 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
                rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
     }
     else {
-      rgb_uchar_to_float(color_backdrop, (const uchar *)wcol->inner);
+      rgb_uchar_to_float(color_backdrop, wcol->inner);
       immUniformColor3fv(color_backdrop);
       immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
     }
 
     /* grid, every 0.25 step */
-    gl_shaded_color((uchar *)wcol->inner, -16);
+    gl_shaded_color(wcol->inner, -16);
     ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
     /* grid, every 1.0 step */
-    gl_shaded_color((uchar *)wcol->inner, -24);
+    gl_shaded_color(wcol->inner, -24);
     ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
     /* axes */
-    gl_shaded_color((uchar *)wcol->inner, -50);
+    gl_shaded_color(wcol->inner, -50);
     immBegin(GPU_PRIM_LINES, 4);
     immVertex2f(pos, rect->xmin, rect->ymin + zoomy * (-offsy));
     immVertex2f(pos, rect->xmax, rect->ymin + zoomy * (-offsy));
@@ -2026,7 +2026,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
   GPU_blend(true);
 
   /* Curve filled. */
-  immUniformColor3ubvAlpha((uchar *)wcol->item, 128);
+  immUniformColor3ubvAlpha(wcol->item, 128);
   GPU_polygon_smooth(true);
   immBegin(GPU_PRIM_TRI_STRIP, (CM_TABLE * 2 + 2) + 4);
   immVertex2f(pos, line_range.xmin, rect->ymin);
@@ -2044,7 +2044,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 
   /* Curve line. */
   GPU_line_width(1.0f);
-  immUniformColor3ubvAlpha((uchar *)wcol->item, 255);
+  immUniformColor3ubvAlpha(wcol->item, 255);
   GPU_line_smooth(true);
   immBegin(GPU_PRIM_LINE_STRIP, (CM_TABLE + 1) + 2);
   immVertex2f(pos, line_range.xmin, line_range.ymin);
@@ -2099,7 +2099,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  immUniformColor3ubv((uchar *)wcol->outline);
+  immUniformColor3ubv(wcol->outline);
   imm_draw_box_wire_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
   immUnbindProgram();

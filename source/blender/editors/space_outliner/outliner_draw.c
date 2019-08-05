@@ -2407,9 +2407,9 @@ static void tselem_draw_layer_collection_enable_icon(
 
     /* restrict column clip... it has been coded by simply overdrawing,
      * doesn't work for buttons */
-    char color[4];
+    uchar color[4];
     int icon = RNA_property_ui_icon(exclude_prop);
-    if (UI_icon_get_theme_color(icon, (uchar *)color)) {
+    if (UI_icon_get_theme_color(icon, color)) {
       UI_icon_draw_ex(x, y, icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
     }
     else {
@@ -2467,8 +2467,8 @@ static void tselem_draw_icon(uiBlock *block,
 
     /* restrict column clip... it has been coded by simply overdrawing,
      * doesn't work for buttons */
-    char color[4];
-    if (UI_icon_get_theme_color(data.icon, (uchar *)color)) {
+    uchar color[4];
+    if (UI_icon_get_theme_color(data.icon, color)) {
       UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
     }
     else {

@@ -51,12 +51,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
-#define FROM_DEFAULT_V4_UCHAR(member) copy_v4_v4_char(btheme->member, U_theme_default.member)
+#define FROM_DEFAULT_V4_UCHAR(member) copy_v4_v4_uchar(btheme->member, U_theme_default.member)
 
   if (!USER_VERSION_ATLEAST(280, 25)) {
-    copy_v4_v4_char(btheme->space_action.anim_preview_range, btheme->space_action.anim_active);
-    copy_v4_v4_char(btheme->space_nla.anim_preview_range, btheme->space_nla.anim_active);
-    copy_v4_v4_char(btheme->space_graph.anim_preview_range, btheme->space_action.anim_active);
+    copy_v4_v4_uchar(btheme->space_action.anim_preview_range, btheme->space_action.anim_active);
+    copy_v4_v4_uchar(btheme->space_nla.anim_preview_range, btheme->space_nla.anim_active);
+    copy_v4_v4_uchar(btheme->space_graph.anim_preview_range, btheme->space_action.anim_active);
   }
 
   if (!USER_VERSION_ATLEAST(280, 26)) {
@@ -102,8 +102,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(280, 40)) {
     FROM_DEFAULT_V4_UCHAR(space_preferences.navigation_bar);
-    copy_v4_v4_char(btheme->space_preferences.execution_buts,
-                    btheme->space_preferences.navigation_bar);
+    copy_v4_v4_uchar(btheme->space_preferences.execution_buts,
+                     btheme->space_preferences.navigation_bar);
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {

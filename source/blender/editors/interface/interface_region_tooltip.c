@@ -174,10 +174,10 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
   ui_draw_tooltip_background(UI_style_get(), NULL, &bbox);
 
   /* set background_color */
-  rgb_uchar_to_float(background_color, (const uchar *)theme->inner);
+  rgb_uchar_to_float(background_color, theme->inner);
 
   /* calculate normal_color */
-  rgb_uchar_to_float(main_color, (const uchar *)theme->text);
+  rgb_uchar_to_float(main_color, theme->text);
   copy_v3_v3(active_color, main_color);
   copy_v3_v3(normal_color, main_color);
   copy_v3_v3(python_color, main_color);

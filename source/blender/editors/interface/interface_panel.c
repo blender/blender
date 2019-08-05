@@ -721,7 +721,7 @@ void ui_draw_aligned_panel(uiStyle *style,
                     (block->aspect * U.inv_dpi_fac),
                     1.0f,
                     0.0f,
-                    (const char *)col_title,
+                    col_title,
                     false);
     GPU_blend(false);
   }

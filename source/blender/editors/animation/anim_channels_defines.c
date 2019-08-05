@@ -206,16 +206,16 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
    * - only use group colors if allowed to, and if actually feasible
    */
   if (showGroupColors && (grp) && (grp->customCol)) {
-    unsigned char cp[3];
+    uchar cp[3];
 
     if (indent == 2) {
-      copy_v3_v3_char((char *)cp, grp->cs.solid);
+      copy_v3_v3_uchar(cp, grp->cs.solid);
     }
     else if (indent == 1) {
-      copy_v3_v3_char((char *)cp, grp->cs.select);
+      copy_v3_v3_uchar(cp, grp->cs.select);
     }
     else {
-      copy_v3_v3_char((char *)cp, grp->cs.active);
+      copy_v3_v3_uchar(cp, grp->cs.active);
     }
 
     /* copy the colors over, transforming from bytes to floats */
@@ -850,10 +850,10 @@ static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[
 
     /* highlight only for active */
     if (ale->flag & AGRP_ACTIVE) {
-      copy_v3_v3_char((char *)cp, agrp->cs.select);
+      copy_v3_v3_uchar(cp, agrp->cs.select);
     }
     else {
-      copy_v3_v3_char((char *)cp, agrp->cs.solid);
+      copy_v3_v3_uchar(cp, agrp->cs.solid);
     }
 
     /* copy the colors over, transforming from bytes to floats */

@@ -694,17 +694,17 @@ static bool set_pchan_color(short colCode,
         uchar cp[4] = {255};
 
         if (boneflag & BONE_DRAW_ACTIVE) {
-          copy_v3_v3_char((char *)cp, bcolor->active);
+          copy_v3_v3_uchar(cp, bcolor->active);
           if (!(boneflag & BONE_SELECTED)) {
             cp_shade_color3ub(cp, -80);
           }
         }
         else if (boneflag & BONE_SELECTED) {
-          copy_v3_v3_char((char *)cp, bcolor->select);
+          copy_v3_v3_uchar(cp, bcolor->select);
         }
         else {
           /* a bit darker than solid */
-          copy_v3_v3_char((char *)cp, bcolor->solid);
+          copy_v3_v3_uchar(cp, bcolor->solid);
           cp_shade_color3ub(cp, -50);
         }
 
@@ -742,16 +742,16 @@ static bool set_pchan_color(short colCode,
       if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
         uchar cp[4];
         if (constflag & PCHAN_HAS_TARGET) {
-          rgba_char_args_set((char *)cp, 255, 150, 0, 80);
+          rgba_uchar_args_set(cp, 255, 150, 0, 80);
         }
         else if (constflag & PCHAN_HAS_IK) {
-          rgba_char_args_set((char *)cp, 255, 255, 0, 80);
+          rgba_uchar_args_set(cp, 255, 255, 0, 80);
         }
         else if (constflag & PCHAN_HAS_SPLINEIK) {
-          rgba_char_args_set((char *)cp, 200, 255, 0, 80);
+          rgba_uchar_args_set(cp, 200, 255, 0, 80);
         }
         else if (constflag & PCHAN_HAS_CONST) {
-          rgba_char_args_set((char *)cp, 0, 255, 120, 80);
+          rgba_uchar_args_set(cp, 0, 255, 120, 80);
         }
         else {
           return false;
@@ -768,13 +768,13 @@ static bool set_pchan_color(short colCode,
         uchar cp[4] = {255};
 
         if (boneflag & BONE_DRAW_ACTIVE) {
-          copy_v3_v3_char((char *)cp, bcolor->active);
+          copy_v3_v3_uchar(cp, bcolor->active);
         }
         else if (boneflag & BONE_SELECTED) {
-          copy_v3_v3_char((char *)cp, bcolor->select);
+          copy_v3_v3_uchar(cp, bcolor->select);
         }
         else {
-          copy_v3_v3_char((char *)cp, bcolor->solid);
+          copy_v3_v3_uchar(cp, bcolor->solid);
         }
 
         rgb_uchar_to_float(fcolor, cp);
@@ -798,15 +798,15 @@ static bool set_pchan_color(short colCode,
         uchar cp[4] = {255};
 
         if (boneflag & BONE_DRAW_ACTIVE) {
-          copy_v3_v3_char((char *)cp, bcolor->active);
+          copy_v3_v3_uchar(cp, bcolor->active);
           cp_shade_color3ub(cp, 10);
         }
         else if (boneflag & BONE_SELECTED) {
-          copy_v3_v3_char((char *)cp, bcolor->select);
+          copy_v3_v3_uchar(cp, bcolor->select);
           cp_shade_color3ub(cp, -30);
         }
         else {
-          copy_v3_v3_char((char *)cp, bcolor->solid);
+          copy_v3_v3_uchar(cp, bcolor->solid);
           cp_shade_color3ub(cp, -30);
         }
 
@@ -830,16 +830,16 @@ static bool set_pchan_color(short colCode,
       if ((constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS))) {
         uchar cp[4];
         if (constflag & PCHAN_HAS_TARGET) {
-          rgba_char_args_set((char *)cp, 255, 150, 0, 255);
+          rgba_uchar_args_set(cp, 255, 150, 0, 255);
         }
         else if (constflag & PCHAN_HAS_IK) {
-          rgba_char_args_set((char *)cp, 255, 255, 0, 255);
+          rgba_uchar_args_set(cp, 255, 255, 0, 255);
         }
         else if (constflag & PCHAN_HAS_SPLINEIK) {
-          rgba_char_args_set((char *)cp, 200, 255, 0, 255);
+          rgba_uchar_args_set(cp, 200, 255, 0, 255);
         }
         else if (constflag & PCHAN_HAS_CONST) {
-          rgba_char_args_set((char *)cp, 0, 255, 120, 255);
+          rgba_uchar_args_set(cp, 0, 255, 120, 255);
         }
         else if (constflag) {
           UI_GetThemeColor4ubv(TH_BONE_POSE, cp);
@@ -849,7 +849,7 @@ static bool set_pchan_color(short colCode,
       }
       else {
         if (bcolor) {
-          const char *cp = bcolor->solid;
+          const uchar *cp = bcolor->solid;
           rgb_uchar_to_float(fcolor, (uchar *)cp);
           fcolor[3] = 204.f / 255.f;
         }

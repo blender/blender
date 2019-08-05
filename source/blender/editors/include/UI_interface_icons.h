@@ -75,7 +75,7 @@ void UI_icon_draw_ex(float x,
                      float aspect,
                      float alpha,
                      float desaturate,
-                     const char mono_color[4],
+                     const uchar mono_color[4],
                      const bool mono_border);
 
 void UI_icon_draw_desaturate(float x,

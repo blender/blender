@@ -225,8 +225,8 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
   srgb_to_linearrgb_predivide_v4(linear, fsrgb);
 }
 
-MINLINE void rgba_char_args_set(
-    char col[4], const char r, const char g, const char b, const char a)
+MINLINE void rgba_uchar_args_set(
+    uchar col[4], const uchar r, const uchar g, const uchar b, const uchar a)
 {
   col[0] = r;
   col[1] = g;
@@ -243,8 +243,8 @@ MINLINE void rgba_float_args_set(
   col[3] = a;
 }
 
-MINLINE void rgba_char_args_test_set(
-    char col[4], const char r, const char g, const char b, const char a)
+MINLINE void rgba_uchar_args_test_set(
+    uchar col[4], const uchar r, const uchar g, const uchar b, const uchar a)
 {
   if (col[3] == 0) {
     col[0] = r;
