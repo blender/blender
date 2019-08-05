@@ -33,12 +33,9 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "ED_select_buffer_utils.h"
+#include "DRW_engine.h"
 
-/* Only for #ED_view3d_select_id_read,
- * note that this file shouldn't have 3D view specific logic in it, we could have a more general
- * way to read from selection buffers that doesn't depend on the view3d API. */
-#include "ED_view3d.h"
+#include "ED_select_buffer_utils.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Select Bitmap from ID's
@@ -53,14 +50,20 @@
  * \param rect: The rectangle to sample indices from (min/max inclusive).
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
-uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const rcti *rect)
+uint *ED_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
 {
+  const uint bitmap_len = DRW_select_context_elem_len();
+  if (bitmap_len == 0) {
+    return NULL;
+  }
+
   rcti rect_px = *rect;
   rect_px.xmax += 1;
   rect_px.ymax += 1;
 
   uint buf_len;
-  const uint *buf = ED_view3d_select_id_read_rect(&rect_px, &buf_len);
+  const uint *buf = DRW_framebuffer_select_id_read(&rect_px, &buf_len);
+
   if (buf == NULL) {
     return NULL;
   }
@@ -77,6 +80,11 @@ uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const rcti *rect)
     buf_iter++;
   }
   MEM_freeN((void *)buf);
+
+  if (r_bitmap_len) {
+    *r_bitmap_len = bitmap_len;
+  }
+
   return bitmap_buf;
 }
 
@@ -86,10 +94,11 @@ uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const rcti *rect)
  * \param radius: Circle radius.
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
-uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
-                                          const int center[2],
-                                          const int radius)
+uint *ED_select_buffer_bitmap_from_circle(const int center[2],
+                                          const int radius,
+                                          uint *r_bitmap_len)
 {
+  const uint bitmap_len = DRW_select_context_elem_len();
   if (bitmap_len == 0) {
     return NULL;
   }
@@ -101,7 +110,8 @@ uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
       .ymax = center[1] + radius + 1,
   };
 
-  const uint *buf = ED_view3d_select_id_read_rect(&rect, NULL);
+  const uint *buf = DRW_framebuffer_select_id_read(&rect, NULL);
+
   if (buf == NULL) {
     return NULL;
   }
@@ -122,6 +132,11 @@ uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
     }
   }
   MEM_freeN((void *)buf);
+
+  if (r_bitmap_len) {
+    *r_bitmap_len = bitmap_len;
+  }
+
   return bitmap_buf;
 }
 
@@ -147,12 +162,13 @@ static void ed_select_buffer_mask_px_cb(int x, int x_end, int y, void *user_data
  * \param radius: Circle radius.
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
-uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
-                                        const int poly[][2],
+uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
                                         const int poly_len,
-                                        const rcti *rect)
+                                        const rcti *rect,
+                                        uint *r_bitmap_len)
 
 {
+  const uint bitmap_len = DRW_select_context_elem_len();
   if (bitmap_len == 0) {
     return NULL;
   }
@@ -163,7 +179,8 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
 
   struct PolyMaskData poly_mask_data;
   uint buf_len;
-  const uint *buf = ED_view3d_select_id_read_rect(&rect_px, &buf_len);
+  const uint *buf = DRW_framebuffer_select_id_read(&rect_px, &buf_len);
+
   if (buf == NULL) {
     return NULL;
   }
@@ -196,6 +213,10 @@ uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
   MEM_freeN((void *)buf);
   MEM_freeN(buf_mask);
 
+  if (r_bitmap_len) {
+    *r_bitmap_len = bitmap_len;
+  }
+
   return bitmap_buf;
 }
 
@@ -221,7 +242,7 @@ uint ED_select_buffer_sample_point(const int center[2])
   };
 
   uint buf_len;
-  uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
+  uint *buf = DRW_framebuffer_select_id_read(&rect, &buf_len);
   BLI_assert(0 != buf_len);
   uint ret = buf[0];
   MEM_freeN(buf);
@@ -243,6 +264,9 @@ uint ED_select_buffer_find_nearest_to_point(const int center[2],
   /* Create region around center (typically the mouse cursor).
    * This must be square and have an odd width,
    * the spiraling algorithm does not work with arbitrary rectangles. */
+
+  uint index = 0;
+
   rcti rect;
   BLI_rcti_init_pt_radius(&rect, center, *dist);
   rect.xmax += 1;
@@ -255,14 +279,17 @@ uint ED_select_buffer_find_nearest_to_point(const int center[2],
   /* Read from selection framebuffer. */
 
   uint buf_len;
-  const uint *buf = ED_view3d_select_id_read_rect(&rect, &buf_len);
+  const uint *buf = DRW_framebuffer_select_id_read(&rect, &buf_len);
+
+  if (buf == NULL) {
+    return index;
+  }
+
   BLI_assert(width * height == buf_len);
 
   /* Spiral, starting from center of buffer. */
   int spiral_offset = height * (int)(width / 2) + (height / 2);
   int spiral_direction = 0;
-
-  uint index = 0;
 
   for (int nr = 1; nr <= height; nr++) {
     for (int a = 0; a < 2; a++) {

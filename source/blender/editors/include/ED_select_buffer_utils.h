@@ -24,14 +24,14 @@
 struct rcti;
 
 /* Boolean array from selection ID's. */
-uint *ED_select_buffer_bitmap_from_rect(const uint bitmap_len, const struct rcti *rect);
-uint *ED_select_buffer_bitmap_from_circle(const uint bitmap_len,
-                                          const int center[2],
-                                          const int radius);
-uint *ED_select_buffer_bitmap_from_poly(const uint bitmap_len,
-                                        const int poly[][2],
+uint *ED_select_buffer_bitmap_from_rect(const struct rcti *rect, uint *r_bitmap_len);
+uint *ED_select_buffer_bitmap_from_circle(const int center[2],
+                                          const int radius,
+                                          uint *r_bitmap_len);
+uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
                                         const int poly_len,
-                                        const rcti *rect);
+                                        const rcti *rect,
+                                        uint *r_bitmap_len);
 
 /* Single result from selection ID's. */
 uint ED_select_buffer_sample_point(const int center[2]);

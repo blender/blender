@@ -344,7 +344,7 @@ uint DRW_select_context_elem_len(void)
 }
 
 /* Read a block of pixels from the select frame buffer. */
-void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
+uint *DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf_len)
 {
   /* clamp rect by texture */
   rcti r = {
@@ -356,6 +356,9 @@ void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
 
   rcti rect_clamp = *rect;
   if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
+    size_t buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
+    uint *r_buf = MEM_mallocN(buf_len * sizeof(*r_buf), __func__);
+
     DRW_opengl_context_enable();
     GPU_framebuffer_bind(e_data.framebuffer_select_id);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -373,12 +376,14 @@ void DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf)
     if (!BLI_rcti_compare(rect, &rect_clamp)) {
       GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
     }
-  }
-  else {
-    size_t buf_size = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect) * sizeof(*r_buf);
 
-    memset(r_buf, 0, buf_size);
+    if (r_buf_len) {
+      *r_buf_len = buf_len;
+    }
+
+    return r_buf;
   }
+  return NULL;
 }
 
 void DRW_select_context_create(Base **UNUSED(bases), const uint bases_len, short select_mode)

@@ -181,7 +181,7 @@ void DRW_select_context_create(struct Base **bases, const uint bases_len, short 
 bool DRW_select_elem_get(const uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
 uint DRW_select_context_offset_for_object_elem(const uint base_index, char elem_type);
 uint DRW_select_context_elem_len(void);
-void DRW_framebuffer_select_id_read(const struct rcti *rect, uint *r_buf);
+uint *DRW_framebuffer_select_id_read(const struct rcti *rect, uint *r_buf_len);
 void DRW_draw_select_id_object(struct Depsgraph *depsgraph,
                                struct ViewLayer *view_layer,
                                struct ARegion *ar,
