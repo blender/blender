@@ -154,10 +154,10 @@ class TOPBAR_MT_editor_menus(Menu):
     bl_idname = "TOPBAR_MT_editor_menus"
     bl_label = ""
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
-        if _context.area.show_menus:
+        if context.area.show_menus:
             layout.menu("TOPBAR_MT_app", text="", icon='BLENDER')
         else:
             layout.menu("TOPBAR_MT_app", text="Blender")

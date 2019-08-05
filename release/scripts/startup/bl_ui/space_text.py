@@ -129,10 +129,10 @@ class TEXT_PT_properties(Panel):
             flow.active = False
         row = flow.row(align=True)
         st = context.space_data
-        row.prop(st, "show_margin", text = "Margin")
+        row.prop(st, "show_margin", text="Margin")
         rowsub = row.row()
         rowsub.active = st.show_margin
-        rowsub.prop(st, "margin_column", text = "")
+        rowsub.prop(st, "margin_column", text="")
 
         flow.prop(st, "font_size")
         flow.prop(st, "tab_width")
@@ -285,8 +285,6 @@ class TEXT_MT_format(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        st = _context.space_data
-        text = st.text
 
         layout.operator("text.indent")
         layout.operator("text.unindent")
@@ -321,12 +319,11 @@ class TEXT_MT_edit(Menu):
 
     @classmethod
     def poll(cls, context):
-        return (context.space_data.text)
+        return context.space_data.text is not None
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
-        st = _context.space_data
-        text = st.text
+        st = context.space_data
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
@@ -369,8 +366,6 @@ class TEXT_MT_toolbox(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        st = _context.space_data
-        text = st.text
 
         layout.operator_context = 'INVOKE_DEFAULT'
 

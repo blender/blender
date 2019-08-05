@@ -1442,10 +1442,10 @@ class CLIP_MT_tracking_context_menu(Menu):
     def poll(cls, context):
         return context.space_data.clip
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
-        mode = _context.space_data.mode
+        mode = context.space_data.mode
 
         if mode == 'TRACKING':
 
