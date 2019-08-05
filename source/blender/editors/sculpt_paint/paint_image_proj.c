@@ -5092,6 +5092,22 @@ static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
   cell->y2 = max_ii(cell->y2, (int)projPixel->y_px + 1);
 }
 
+static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)
+{
+  /* Use the original alpha channel data instead of the modified one */
+  if (is_floatbuf) {
+    /* slightly more involved case since floats are in premultiplied space we need
+     * to make sure alpha is consistent, see T44627 */
+    float rgb_straight[4];
+    premul_to_straight_v4_v4(rgb_straight, pixel->pixel.f_pt);
+    rgb_straight[3] = pixel->origColor.f_pt[3];
+    straight_to_premul_v4_v4(pixel->pixel.f_pt, rgb_straight);
+  }
+  else {
+    pixel->pixel.ch_pt[3] = pixel->origColor.ch_pt[3];
+  }
+}
+
 /* Run this for single and multi-threaded painting. */
 static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
                                    void *ph_v,
@@ -5263,17 +5279,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
           }
 
           if (lock_alpha) {
-            if (is_floatbuf) {
-              /* slightly more involved case since floats are in premultiplied space we need
-               * to make sure alpha is consistent, see T44627 */
-              float rgb_straight[4];
-              premul_to_straight_v4_v4(rgb_straight, projPixel->pixel.f_pt);
-              rgb_straight[3] = projPixel->origColor.f_pt[3];
-              straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
-            }
-            else {
-              projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
-            }
+            copy_original_alpha_channel(projPixel, is_floatbuf);
           }
 
           last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
@@ -5478,17 +5484,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
               }
 
               if (lock_alpha) {
-                if (is_floatbuf) {
-                  /* slightly more involved case since floats are in premultiplied space we need
-                   * to make sure alpha is consistent, see T44627 */
-                  float rgb_straight[4];
-                  premul_to_straight_v4_v4(rgb_straight, projPixel->pixel.f_pt);
-                  rgb_straight[3] = projPixel->origColor.f_pt[3];
-                  straight_to_premul_v4_v4(projPixel->pixel.f_pt, rgb_straight);
-                }
-                else {
-                  projPixel->pixel.ch_pt[3] = projPixel->origColor.ch_pt[3];
-                }
+                copy_original_alpha_channel(projPixel, is_floatbuf);
               }
             }
 
@@ -5504,11 +5500,17 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
     for (node = smearPixels; node; node = node->next) { /* this wont run for a float image */
       projPixel = node->link;
       *projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint;
+      if (lock_alpha) {
+        copy_original_alpha_channel(projPixel, false);
+      }
     }
 
     for (node = smearPixels_f; node; node = node->next) {
       projPixel = node->link;
       copy_v4_v4(projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f);
+      if (lock_alpha) {
+        copy_original_alpha_channel(projPixel, true);
+      }
     }
 
     BLI_memarena_free(smearArena);
@@ -5518,11 +5520,17 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool),
     for (node = softenPixels; node; node = node->next) { /* this wont run for a float image */
       projPixel = node->link;
       *projPixel->pixel.uint_pt = projPixel->newColor.uint;
+      if (lock_alpha) {
+        copy_original_alpha_channel(projPixel, false);
+      }
     }
 
     for (node = softenPixels_f; node; node = node->next) {
       projPixel = node->link;
       copy_v4_v4(projPixel->pixel.f_pt, projPixel->newColor.f);
+      if (lock_alpha) {
+        copy_original_alpha_channel(projPixel, true);
+      }
     }
 
     BLI_memarena_free(softenArena);
