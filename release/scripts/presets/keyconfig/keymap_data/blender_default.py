@@ -2407,6 +2407,10 @@ def km_sequencer(params):
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
+        ("sequencer.select",{"type": 'LEFT_BRACKET', "value": 'PRESS'},
+        {"properties": [("left_right", 'LEFT'), ("linked_time", True)]}),
+        ("sequencer.select",{"type": 'RIGHT_BRACKET', "value": 'PRESS'},
+        {"properties": [("left_right", 'RIGHT'), ("linked_time", True)]}),
     ])
 
     return keymap
