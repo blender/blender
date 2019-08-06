@@ -759,8 +759,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
   }
 
   /* Simplify stroke */
-  if ((U.gp_settings & GP_PAINT_DOSIMPLIFY) || (p->paintmode != GP_PAINTMODE_DRAW_STRAIGHT)) {
-    BKE_gpencil_simplify_stroke(gps, 0.15f);
+  if ((p->sa->spacetype == SPACE_VIEW3D) && (U.gp_settings & GP_PAINT_DOSIMPLIFY) &&
+      (p->paintmode != GP_PAINTMODE_DRAW_STRAIGHT)) {
+    BKE_gpencil_simplify_stroke(gps, 0.05f);
   }
 
   /* add stroke to frame */
