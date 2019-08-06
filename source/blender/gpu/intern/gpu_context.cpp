@@ -88,12 +88,7 @@ struct GPUContext {
   }
 };
 
-#if defined(_MSC_VER) && (_MSC_VER == 1800)
-#  define thread_local __declspec(thread)
-thread_local GPUContext *active_ctx = NULL;
-#else
 static thread_local GPUContext *active_ctx = NULL;
-#endif
 
 static void orphans_add(GPUContext *ctx, std::vector<GLuint> *orphan_list, GLuint id)
 {
