@@ -9462,7 +9462,7 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
   }
 }
 
-static void applyTimeTranslateValue(TransInfo *t)
+static void applyTimeTranslateValue(TransInfo *t, float value)
 {
   Scene *scene = t->scene;
   int i;
@@ -9471,7 +9471,6 @@ static void applyTimeTranslateValue(TransInfo *t)
   const double secf = FPS;
 
   float deltax, val /* , valprev */;
-  t->values_final[0] = t->values[0];
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -9489,7 +9488,7 @@ static void applyTimeTranslateValue(TransInfo *t)
 
       /* check if any need to apply nla-mapping */
       if (adt && (t->spacetype != SPACE_SEQ)) {
-        deltax = t->values_final[0];
+        deltax = value;
 
         if (autosnap == SACTSNAP_TSTEP) {
           deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
@@ -9542,7 +9541,7 @@ static void applyTimeTranslate(TransInfo *t, const int mval[2])
   t->values_final[0] = t->vec[0];
   headerTimeTranslate(t, str);
 
-  applyTimeTranslateValue(t);
+  applyTimeTranslateValue(t, t->values_final[0]);
 
   recalcData(t);
 
