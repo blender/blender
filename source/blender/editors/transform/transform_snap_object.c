@@ -1382,6 +1382,13 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
   };
 
   SnapObjectData *sod = BLI_ghash_lookup(sctx->cache.object_map, ob);
+  if (sod == NULL) {
+    /* The object is in edit mode, and the key used
+     * was the object referenced in BMEditMesh */
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    sod = BLI_ghash_lookup(sctx->cache.object_map, em->ob);
+  }
+
   BLI_assert(sod != NULL);
 
   if (sod->type == SNAP_MESH) {
