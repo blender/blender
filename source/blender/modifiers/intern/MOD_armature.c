@@ -79,7 +79,12 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  return !amd->object;
+  /* The object type check is only needed here in case we have a placeholder
+   * object assigned (because the library containing the armature is missing).
+   *
+   * In other cases it should be impossible.
+   */
+  return !amd->object || amd->object->type != OB_ARMATURE;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
