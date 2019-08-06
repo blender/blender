@@ -233,6 +233,23 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
   return true;
 }
 
+static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
+{
+  switch (mode) {
+    case PAINT_MODE_SCULPT:
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB)) {
+        return false;
+      }
+      else {
+        return true;
+      }
+    default:
+      break;
+  }
+
+  return true;
+}
+
 /* Initialize the stroke cache variants from operator properties */
 static bool paint_brush_update(bContext *C,
                                Brush *brush,
@@ -1187,6 +1204,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool first_modal = false;
   bool redraw = false;
   float pressure;
+
+  if (event->type == INBETWEEN_MOUSEMOVE && !paint_tool_require_inbetween_mouse_events(br, mode)) {
+    return OPERATOR_RUNNING_MODAL;
+  }
 
   /* see if tablet affects event. Line, anchored and drag dot strokes do not support pressure */
   pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ?
