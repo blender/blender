@@ -179,6 +179,9 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
     DRW_shgroup_call(vert_shgrp, geom_verts, ob);
     *r_vert_offset = *r_edge_offset + me->totvert;
   }
+  else {
+    *r_vert_offset = *r_edge_offset;
+  }
 }
 
 void select_id_draw_object(void *vedata,
