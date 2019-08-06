@@ -169,10 +169,10 @@ class GRAPH_MT_select(Menu):
         props = layout.operator("graph.select_box")
         props.axis_range = False
         props.include_handles = False
-        props = layout.operator("graph.select_box", text="Border Axis Range")
+        props = layout.operator("graph.select_box", text="Box Select (Axis Range)")
         props.axis_range = True
         props.include_handles = False
-        props = layout.operator("graph.select_box", text="Border (Include Handles)")
+        props = layout.operator("graph.select_box", text="Box Select (Include Handles)")
         props.axis_range = False
         props.include_handles = True
 

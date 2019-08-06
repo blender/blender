@@ -361,7 +361,7 @@ class DOPESHEET_MT_select(Menu):
 
         layout.separator()
         layout.operator("action.select_box").axis_range = False
-        layout.operator("action.select_box", text="Border Axis Range").axis_range = True
+        layout.operator("action.select_box", text="Box Select (Axis Range)").axis_range = True
 
         layout.operator("action.select_circle")
 
