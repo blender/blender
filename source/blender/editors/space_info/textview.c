@@ -35,8 +35,6 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BKE_text.h"
-
 #include "textview.h"
 
 static void console_font_begin(const int font_id, const int lheight)
@@ -78,8 +76,8 @@ static void console_draw_sel(const char *str,
                              const unsigned char bg_sel[4])
 {
   if (sel[0] <= str_len_draw && sel[1] >= 0) {
-    const int sta = txt_utf8_offset_to_column(str, max_ii(sel[0], 0));
-    const int end = txt_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
+    const int sta = BLI_str_utf8_offset_to_column(str, max_ii(sel[0], 0));
+    const int end = BLI_str_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
 
     GPU_blend(true);
     GPU_blend_set_func_separate(
@@ -156,7 +154,8 @@ static int console_draw_string(ConsoleDrawContext *cdc,
         }
 
         /* last part */
-        ofs += txt_utf8_column_to_offset(str + ofs, (int)floor((float)cdc->mval[0] / cdc->cwidth));
+        ofs += BLI_str_utf8_offset_from_column(str + ofs,
+                                               (int)floor((float)cdc->mval[0] / cdc->cwidth));
 
         CLAMP(ofs, 0, str_len);
         *cdc->pos_pick += str_len - ofs;

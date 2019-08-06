@@ -1827,7 +1827,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
 
         if (j >= oldc) {
           if (ch == '\0') {
-            *charp = txt_utf8_column_to_offset((*linep)->line, start);
+            *charp = BLI_str_utf8_offset_from_column((*linep)->line, start);
           }
           loop = 0;
           break;
@@ -1843,7 +1843,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, const bool sel)
       }
       else if (ch == ' ' || ch == '-' || ch == '\0') {
         if (j >= oldc) {
-          *charp = txt_utf8_column_to_offset((*linep)->line, start);
+          *charp = BLI_str_utf8_offset_from_column((*linep)->line, start);
           loop = 0;
           break;
         }

@@ -89,6 +89,11 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **suf,
                                  const bool from_right) ATTR_NONNULL(1, 3, 4, 5);
 
+int BLI_str_utf8_offset_to_index(const char *str, int offset);
+int BLI_str_utf8_offset_from_index(const char *str, int index);
+int BLI_str_utf8_offset_to_column(const char *str, int offset);
+int BLI_str_utf8_offset_from_column(const char *str, int column);
+
 #define BLI_UTF8_MAX 6       /* mem */
 #define BLI_UTF8_WIDTH_MAX 2 /* columns */
 #define BLI_UTF8_ERR ((unsigned int)-1)

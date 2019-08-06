@@ -240,7 +240,7 @@ void wrap_offset(
   }
 
   max = wrap_width(st, ar);
-  cursin = txt_utf8_offset_to_column(linein->line, cursin);
+  cursin = BLI_str_utf8_offset_to_column(linein->line, cursin);
 
   while (linep) {
     start = 0;
@@ -323,7 +323,7 @@ void wrap_offset_in_line(
   end = max;
   chop = 1;
   *offc = 0;
-  cursin = txt_utf8_offset_to_column(linein->line, cursin);
+  cursin = BLI_str_utf8_offset_to_column(linein->line, cursin);
 
   for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
     int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
@@ -1400,7 +1400,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   linep = startl;
   c = startc;
-  fc = txt_utf8_offset_to_index(linep->line, startc);
+  fc = BLI_str_utf8_offset_to_index(linep->line, startc);
   endl = NULL;
   endc = -1;
   find = -b;

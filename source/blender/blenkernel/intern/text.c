@@ -703,50 +703,6 @@ bool txt_cursor_is_line_end(Text *text)
 /* Cursor movement functions */
 /*****************************/
 
-int txt_utf8_offset_to_index(const char *str, int offset)
-{
-  int index = 0, pos = 0;
-  while (pos != offset) {
-    pos += BLI_str_utf8_size(str + pos);
-    index++;
-  }
-  return index;
-}
-
-int txt_utf8_index_to_offset(const char *str, int index)
-{
-  int offset = 0, pos = 0;
-  while (pos != index) {
-    offset += BLI_str_utf8_size(str + offset);
-    pos++;
-  }
-  return offset;
-}
-
-int txt_utf8_offset_to_column(const char *str, int offset)
-{
-  int column = 0, pos = 0;
-  while (pos < offset) {
-    column += BLI_str_utf8_char_width_safe(str + pos);
-    pos += BLI_str_utf8_size_safe(str + pos);
-  }
-  return column;
-}
-
-int txt_utf8_column_to_offset(const char *str, int column)
-{
-  int offset = 0, pos = 0, col;
-  while (*(str + offset) && pos < column) {
-    col = BLI_str_utf8_char_width_safe(str + offset);
-    if (pos + col > column) {
-      break;
-    }
-    offset += BLI_str_utf8_size_safe(str + offset);
-    pos += col;
-  }
-  return offset;
-}
-
 void txt_move_up(Text *text, const bool sel)
 {
   TextLine **linep;
@@ -764,9 +720,9 @@ void txt_move_up(Text *text, const bool sel)
   }
 
   if ((*linep)->prev) {
-    int column = txt_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
     *linep = (*linep)->prev;
-    *charp = txt_utf8_column_to_offset((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
   }
   else {
     txt_move_bol(text, sel);
@@ -794,9 +750,9 @@ void txt_move_down(Text *text, const bool sel)
   }
 
   if ((*linep)->next) {
-    int column = txt_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
     *linep = (*linep)->next;
-    *charp = txt_utf8_column_to_offset((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
   }
   else {
     txt_move_eol(text, sel);

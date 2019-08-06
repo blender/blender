@@ -868,3 +868,53 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   *suf = *sep = NULL;
   return str_len;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Offset Conversion in Strings
+ * \{ */
+
+int BLI_str_utf8_offset_to_index(const char *str, int offset)
+{
+  int index = 0, pos = 0;
+  while (pos != offset) {
+    pos += BLI_str_utf8_size(str + pos);
+    index++;
+  }
+  return index;
+}
+
+int BLI_str_utf8_offset_from_index(const char *str, int index)
+{
+  int offset = 0, pos = 0;
+  while (pos != index) {
+    offset += BLI_str_utf8_size(str + offset);
+    pos++;
+  }
+  return offset;
+}
+
+int BLI_str_utf8_offset_to_column(const char *str, int offset)
+{
+  int column = 0, pos = 0;
+  while (pos < offset) {
+    column += BLI_str_utf8_char_width_safe(str + pos);
+    pos += BLI_str_utf8_size_safe(str + pos);
+  }
+  return column;
+}
+
+int BLI_str_utf8_offset_from_column(const char *str, int column)
+{
+  int offset = 0, pos = 0, col;
+  while (*(str + offset) && pos < column) {
+    col = BLI_str_utf8_char_width_safe(str + offset);
+    if (pos + col > column) {
+      break;
+    }
+    offset += BLI_str_utf8_size_safe(str + offset);
+    pos += col;
+  }
+  return offset;
+}
+
+/** \} */
