@@ -243,13 +243,6 @@ class SEQUENCER_MT_view(Menu):
                     translate=False,
                 ).ratio = a / b
 
-            layout.separator()
-
-            layout.operator_context = 'INVOKE_DEFAULT'
-
-            # # XXX, invokes in the header view
-            # layout.operator("sequencer.view_ghost_border", text="Overlay Border")
-
         if is_sequencer_view:
             layout.prop(st, "show_seconds")
             layout.prop(st, "show_frame_indicator")
@@ -1843,6 +1836,11 @@ class SEQUENCER_PT_frame_overlay(SequencerButtonsPanel_Output, Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        layout.operator("sequencer.view_ghost_border", text="Set Overlay Region")
+        layout.operator_context = 'INVOKE_DEFAULT'
+
         layout.use_property_split = True
         layout.use_property_decorate = False
 

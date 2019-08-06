@@ -1853,7 +1853,8 @@ static void rna_def_editor(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
-  RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay on top of the sequencer");
+  RNA_def_property_ui_text(
+      prop, "Show Overlay", "Partial overlay on top of the sequencer with a frame offset");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "use_overlay_lock", PROP_BOOLEAN, PROP_NONE);
@@ -1864,7 +1865,7 @@ static void rna_def_editor(BlenderRNA *brna)
 
   /* access to fixed and relative frame */
   prop = RNA_def_property(srna, "overlay_frame", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Overlay Offset", "");
+  RNA_def_property_ui_text(prop, "Overlay Offset", "Number of frames to offset");
   RNA_def_property_int_funcs(
       prop, "rna_SequenceEditor_overlay_frame_get", "rna_SequenceEditor_overlay_frame_set", NULL);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
