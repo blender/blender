@@ -563,13 +563,13 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
   BLI_kdtree_3d_free(ctx->tree);
 
   if (ctx->clumpcurve != NULL) {
-    curvemapping_free(ctx->clumpcurve);
+    BKE_curvemapping_free(ctx->clumpcurve);
   }
   if (ctx->roughcurve != NULL) {
-    curvemapping_free(ctx->roughcurve);
+    BKE_curvemapping_free(ctx->roughcurve);
   }
   if (ctx->twistcurve != NULL) {
-    curvemapping_free(ctx->twistcurve);
+    BKE_curvemapping_free(ctx->twistcurve);
   }
 }
 

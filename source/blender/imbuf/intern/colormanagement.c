@@ -716,7 +716,7 @@ void colormanagement_exit(void)
   }
 
   if (global_glsl_state.curve_mapping) {
-    curvemapping_free(global_glsl_state.curve_mapping);
+    BKE_curvemapping_free(global_glsl_state.curve_mapping);
   }
 
   if (global_glsl_state.curve_mapping_settings.lut) {
@@ -1029,14 +1029,14 @@ void IMB_colormanagement_init_default_view_settings(
 static void curve_mapping_apply_pixel(CurveMapping *curve_mapping, float *pixel, int channels)
 {
   if (channels == 1) {
-    pixel[0] = curvemap_evaluateF(curve_mapping->cm, pixel[0]);
+    pixel[0] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[0]);
   }
   else if (channels == 2) {
-    pixel[0] = curvemap_evaluateF(curve_mapping->cm, pixel[0]);
-    pixel[1] = curvemap_evaluateF(curve_mapping->cm, pixel[1]);
+    pixel[0] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[0]);
+    pixel[1] = BKE_curvemap_evaluateF(curve_mapping->cm, pixel[1]);
   }
   else {
-    curvemapping_evaluate_premulRGBF(curve_mapping, pixel, pixel);
+    BKE_curvemapping_evaluate_premulRGBF(curve_mapping, pixel, pixel);
   }
 }
 
@@ -3728,8 +3728,8 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
                                                             global_role_scene_linear);
 
   if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
-    cm_processor->curve_mapping = curvemapping_copy(applied_view_settings->curve_mapping);
-    curvemapping_premultiply(cm_processor->curve_mapping, false);
+    cm_processor->curve_mapping = BKE_curvemapping_copy(applied_view_settings->curve_mapping);
+    BKE_curvemapping_premultiply(cm_processor->curve_mapping, false);
   }
 
   return cm_processor;
@@ -3754,7 +3754,7 @@ ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *f
 void IMB_colormanagement_processor_apply_v4(ColormanageProcessor *cm_processor, float pixel[4])
 {
   if (cm_processor->curve_mapping) {
-    curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
+    BKE_curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
   }
 
   if (cm_processor->processor) {
@@ -3766,7 +3766,7 @@ void IMB_colormanagement_processor_apply_v4_predivide(ColormanageProcessor *cm_p
                                                       float pixel[4])
 {
   if (cm_processor->curve_mapping) {
-    curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
+    BKE_curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
   }
 
   if (cm_processor->processor) {
@@ -3777,7 +3777,7 @@ void IMB_colormanagement_processor_apply_v4_predivide(ColormanageProcessor *cm_p
 void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, float pixel[3])
 {
   if (cm_processor->curve_mapping) {
-    curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
+    BKE_curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
   }
 
   if (cm_processor->processor) {
@@ -3870,7 +3870,7 @@ void IMB_colormanagement_processor_apply_byte(
 void IMB_colormanagement_processor_free(ColormanageProcessor *cm_processor)
 {
   if (cm_processor->curve_mapping) {
-    curvemapping_free(cm_processor->curve_mapping);
+    BKE_curvemapping_free(cm_processor->curve_mapping);
   }
   if (cm_processor->processor) {
     OCIO_processorRelease(cm_processor->processor);
@@ -3899,9 +3899,9 @@ static void curve_mapping_to_ocio_settings(CurveMapping *curve_mapping,
 {
   int i;
 
-  curvemapping_initialize(curve_mapping);
-  curvemapping_premultiply(curve_mapping, false);
-  curvemapping_table_RGBA(
+  BKE_curvemapping_initialize(curve_mapping);
+  BKE_curvemapping_premultiply(curve_mapping, false);
+  BKE_curvemapping_table_RGBA(
       curve_mapping, &curve_mapping_settings->lut, &curve_mapping_settings->lut_size);
 
   for (i = 0; i < 4; i++) {
@@ -3964,11 +3964,11 @@ static void update_glsl_display_processor(const ColorManagedViewSettings *view_s
      * We do this by allocating new curve mapping before freeing ol one.
      */
     if (use_curve_mapping) {
-      new_curve_mapping = curvemapping_copy(view_settings->curve_mapping);
+      new_curve_mapping = BKE_curvemapping_copy(view_settings->curve_mapping);
     }
 
     if (global_glsl_state.curve_mapping) {
-      curvemapping_free(global_glsl_state.curve_mapping);
+      BKE_curvemapping_free(global_glsl_state.curve_mapping);
       MEM_freeN(curve_mapping_settings->lut);
       global_glsl_state.curve_mapping = NULL;
       curve_mapping_settings->lut = NULL;

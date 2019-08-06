@@ -658,15 +658,16 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
   CurveMap *cm = NULL;
 
   if (!p->cavity_curve) {
-    p->cavity_curve = curvemapping_add(1, 0, 0, 1, 1);
+    p->cavity_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
   }
 
   cm = p->cavity_curve->cm;
   cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
   p->cavity_curve->preset = preset;
-  curvemap_reset(cm, &p->cavity_curve->clipr, p->cavity_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-  curvemapping_changed(p->cavity_curve, false);
+  BKE_curvemap_reset(
+      cm, &p->cavity_curve->clipr, p->cavity_curve->preset, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_changed(p->cavity_curve, false);
 }
 
 eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
@@ -778,7 +779,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 
 void BKE_paint_free(Paint *paint)
 {
-  curvemapping_free(paint->cavity_curve);
+  BKE_curvemapping_free(paint->cavity_curve);
   MEM_SAFE_FREE(paint->tool_slots);
 }
 
@@ -789,7 +790,7 @@ void BKE_paint_free(Paint *paint)
 void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
 {
   tar->brush = src->brush;
-  tar->cavity_curve = curvemapping_copy(src->cavity_curve);
+  tar->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
   tar->tool_slots = MEM_dupallocN(src->tool_slots);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {

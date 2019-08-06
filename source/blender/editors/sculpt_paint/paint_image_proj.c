@@ -1695,7 +1695,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
     ca3 = ps->cavities[lt_vtri[2]];
 
     ca_mask = w[0] * ca1 + w[1] * ca2 + w[2] * ca3;
-    ca_mask = curvemapping_evaluateF(ps->cavity_curve, 0, ca_mask);
+    ca_mask = BKE_curvemapping_evaluateF(ps->cavity_curve, 0, ca_mask);
     CLAMP(ca_mask, 0.0f, 1.0f);
     mask *= ca_mask;
   }

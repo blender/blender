@@ -704,13 +704,13 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   gp_session_validatebuffer(tgpi);
   gp_init_colors(tgpi);
   if (gset->flag & GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE) {
-    curvemapping_initialize(ts->gp_sculpt.cur_primitive);
+    BKE_curvemapping_initialize(ts->gp_sculpt.cur_primitive);
   }
   if (tgpi->brush->gpencil_settings->flag & GP_BRUSH_USE_JITTER_PRESSURE) {
-    curvemapping_initialize(tgpi->brush->gpencil_settings->curve_jitter);
+    BKE_curvemapping_initialize(tgpi->brush->gpencil_settings->curve_jitter);
   }
   if (tgpi->brush->gpencil_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
-    curvemapping_initialize(tgpi->brush->gpencil_settings->curve_strength);
+    BKE_curvemapping_initialize(tgpi->brush->gpencil_settings->curve_strength);
   }
 
   /* get an array of depths, far depths are blended */
@@ -834,7 +834,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     /* normalize value to evaluate curve */
     if (gset->flag & GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE) {
       float value = (float)i / (gps->totpoints - 1);
-      curve_pressure = curvemapping_evaluateF(gset->cur_primitive, 0, value);
+      curve_pressure = BKE_curvemapping_evaluateF(gset->cur_primitive, 0, value);
       pressure = curve_pressure;
     }
 
@@ -844,7 +844,8 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       float jitter;
 
       if (brush->gpencil_settings->flag & GP_BRUSH_USE_JITTER_PRESSURE) {
-        jitter = curvemapping_evaluateF(brush->gpencil_settings->curve_jitter, 0, curve_pressure);
+        jitter = BKE_curvemapping_evaluateF(
+            brush->gpencil_settings->curve_jitter, 0, curve_pressure);
         jitter *= brush->gpencil_settings->draw_sensitivity;
       }
       else {
@@ -890,7 +891,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     /* color strength */
     if (brush->gpencil_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
-      float curvef = curvemapping_evaluateF(
+      float curvef = BKE_curvemapping_evaluateF(
           brush->gpencil_settings->curve_strength, 0, curve_pressure);
       strength *= curvef * brush->gpencil_settings->draw_sensitivity;
       strength *= brush->gpencil_settings->draw_strength;

@@ -476,7 +476,7 @@ static void gp_brush_jitter(bGPdata *gpd,
 {
   float tmp_pressure = pressure;
   if (brush->gpencil_settings->draw_jitter > 0.0f) {
-    float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_jitter, 0, pressure);
+    float curvef = BKE_curvemapping_evaluateF(brush->gpencil_settings->curve_jitter, 0, pressure);
     tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
   }
   /* exponential value */
@@ -671,7 +671,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
     /* store settings */
     /* pressure */
     if (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) {
-      float curvef = curvemapping_evaluateF(
+      float curvef = BKE_curvemapping_evaluateF(
           brush->gpencil_settings->curve_sensitivity, 0, pressure);
       pt->pressure = curvef * brush->gpencil_settings->draw_sensitivity;
     }
@@ -695,7 +695,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
     /* apply randomness to pressure */
     if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
         (brush->gpencil_settings->draw_random_press > 0.0f)) {
-      float curvef = curvemapping_evaluateF(
+      float curvef = BKE_curvemapping_evaluateF(
           brush->gpencil_settings->curve_sensitivity, 0, pressure);
       float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
       if (BLI_rng_get_float(p->rng) > 0.5f) {
@@ -731,7 +731,8 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
 
     /* color strength */
     if (brush->gpencil_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
-      float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_strength, 0, pressure);
+      float curvef = BKE_curvemapping_evaluateF(
+          brush->gpencil_settings->curve_strength, 0, pressure);
       float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
 
       pt->strength = tmp_pressure * brush->gpencil_settings->draw_strength;
@@ -1809,9 +1810,9 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
     changed = true;
   }
   /* be sure curves are initializated */
-  curvemapping_initialize(paint->brush->gpencil_settings->curve_sensitivity);
-  curvemapping_initialize(paint->brush->gpencil_settings->curve_strength);
-  curvemapping_initialize(paint->brush->gpencil_settings->curve_jitter);
+  BKE_curvemapping_initialize(paint->brush->gpencil_settings->curve_sensitivity);
+  BKE_curvemapping_initialize(paint->brush->gpencil_settings->curve_strength);
+  BKE_curvemapping_initialize(paint->brush->gpencil_settings->curve_jitter);
 
   /* assign to temp tGPsdata */
   p->brush = paint->brush;

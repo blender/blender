@@ -72,7 +72,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
   }
 
   if (cmap && falloff_type == MOD_WVG_MAPPING_CURVE) {
-    curvemapping_initialize(cmap);
+    BKE_curvemapping_initialize(cmap);
   }
 
   /* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
@@ -83,7 +83,7 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
     /* Closely matches PROP_SMOOTH and similar. */
     switch (falloff_type) {
       case MOD_WVG_MAPPING_CURVE:
-        fac = curvemapping_evaluateF(cmap, 0, fac);
+        fac = BKE_curvemapping_evaluateF(cmap, 0, fac);
         break;
       case MOD_WVG_MAPPING_SHARP:
         fac = fac * fac;

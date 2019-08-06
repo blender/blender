@@ -57,8 +57,8 @@ static void initData(ModifierData *md)
   wmd->falloff_type = MOD_WVG_MAPPING_NONE;
   wmd->default_weight = 0.0f;
 
-  wmd->cmap_curve = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
-  curvemapping_initialize(wmd->cmap_curve);
+  wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
+  BKE_curvemapping_initialize(wmd->cmap_curve);
 
   wmd->rem_threshold = 0.01f;
   wmd->add_threshold = 0.01f;
@@ -71,7 +71,7 @@ static void initData(ModifierData *md)
 static void freeData(ModifierData *md)
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
-  curvemapping_free(wmd->cmap_curve);
+  BKE_curvemapping_free(wmd->cmap_curve);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -81,7 +81,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   modifier_copyData_generic(md, target, flag);
 
-  twmd->cmap_curve = curvemapping_copy(wmd->cmap_curve);
+  twmd->cmap_curve = BKE_curvemapping_copy(wmd->cmap_curve);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

@@ -176,10 +176,10 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   ts->particle.object = NULL;
 
   /* duplicate Grease Pencil interpolation curve */
-  ts->gp_interpolate.custom_ipo = curvemapping_copy(ts->gp_interpolate.custom_ipo);
+  ts->gp_interpolate.custom_ipo = BKE_curvemapping_copy(ts->gp_interpolate.custom_ipo);
   /* duplicate Grease Pencil multiframe fallof */
-  ts->gp_sculpt.cur_falloff = curvemapping_copy(ts->gp_sculpt.cur_falloff);
-  ts->gp_sculpt.cur_primitive = curvemapping_copy(ts->gp_sculpt.cur_primitive);
+  ts->gp_sculpt.cur_falloff = BKE_curvemapping_copy(ts->gp_sculpt.cur_falloff);
+  ts->gp_sculpt.cur_primitive = BKE_curvemapping_copy(ts->gp_sculpt.cur_primitive);
   return ts;
 }
 
@@ -212,14 +212,14 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 
   /* free Grease Pencil interpolation curve */
   if (toolsettings->gp_interpolate.custom_ipo) {
-    curvemapping_free(toolsettings->gp_interpolate.custom_ipo);
+    BKE_curvemapping_free(toolsettings->gp_interpolate.custom_ipo);
   }
   /* free Grease Pencil multiframe falloff curve */
   if (toolsettings->gp_sculpt.cur_falloff) {
-    curvemapping_free(toolsettings->gp_sculpt.cur_falloff);
+    BKE_curvemapping_free(toolsettings->gp_sculpt.cur_falloff);
   }
   if (toolsettings->gp_sculpt.cur_primitive) {
-    curvemapping_free(toolsettings->gp_sculpt.cur_primitive);
+    BKE_curvemapping_free(toolsettings->gp_sculpt.cur_primitive);
   }
 
   MEM_freeN(toolsettings);
@@ -291,7 +291,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
   BKE_color_managed_view_settings_copy(&sce_dst->r.bake.im_format.view_settings,
                                        &sce_src->r.bake.im_format.view_settings);
 
-  curvemapping_copy_data(&sce_dst->r.mblur_shutter_curve, &sce_src->r.mblur_shutter_curve);
+  BKE_curvemapping_copy_data(&sce_dst->r.mblur_shutter_curve, &sce_src->r.mblur_shutter_curve);
 
   /* tool settings */
   sce_dst->toolsettings = BKE_toolsettings_copy(sce_dst->toolsettings, flag_subdata);
@@ -347,7 +347,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
     sce_copy = BKE_scene_add(bmain, sce->id.name + 2);
 
     rv = sce_copy->r.views;
-    curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
+    BKE_curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
     sce_copy->r = sce->r;
     sce_copy->r.views = rv;
     sce_copy->unit = sce->unit;
@@ -380,7 +380,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
     BKE_color_managed_view_settings_copy(&sce_copy->r.bake.im_format.view_settings,
                                          &sce->r.bake.im_format.view_settings);
 
-    curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+    BKE_curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
 
     /* viewport display settings */
     sce_copy->display = sce->display;
@@ -515,7 +515,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
   BKE_color_managed_view_settings_free(&sce->view_settings);
 
   BKE_previewimg_free(&sce->preview);
-  curvemapping_free_data(&sce->r.mblur_shutter_curve);
+  BKE_curvemapping_free_data(&sce->r.mblur_shutter_curve);
 
   for (ViewLayer *view_layer = sce->view_layers.first, *view_layer_next; view_layer;
        view_layer = view_layer_next) {
@@ -653,12 +653,12 @@ void BKE_scene_init(Scene *sce)
   sce->r.unit_line_thickness = 1.0f;
 
   mblur_shutter_curve = &sce->r.mblur_shutter_curve;
-  curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
-  curvemapping_initialize(mblur_shutter_curve);
-  curvemap_reset(mblur_shutter_curve->cm,
-                 &mblur_shutter_curve->clipr,
-                 CURVE_PRESET_MAX,
-                 CURVEMAP_SLOPE_POS_NEG);
+  BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_initialize(mblur_shutter_curve);
+  BKE_curvemap_reset(mblur_shutter_curve->cm,
+                     &mblur_shutter_curve->clipr,
+                     CURVE_PRESET_MAX,
+                     CURVEMAP_SLOPE_POS_NEG);
 
   sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 
@@ -704,19 +704,19 @@ void BKE_scene_init(Scene *sce)
   sce->toolsettings->imapaint.seam_bleed = 2;
 
   /* grease pencil multiframe falloff curve */
-  sce->toolsettings->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  sce->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   CurveMapping *gp_falloff_curve = sce->toolsettings->gp_sculpt.cur_falloff;
-  curvemapping_initialize(gp_falloff_curve);
-  curvemap_reset(
+  BKE_curvemapping_initialize(gp_falloff_curve);
+  BKE_curvemap_reset(
       gp_falloff_curve->cm, &gp_falloff_curve->clipr, CURVE_PRESET_GAUSS, CURVEMAP_SLOPE_POSITIVE);
 
-  sce->toolsettings->gp_sculpt.cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  sce->toolsettings->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   CurveMapping *gp_primitive_curve = sce->toolsettings->gp_sculpt.cur_primitive;
-  curvemapping_initialize(gp_primitive_curve);
-  curvemap_reset(gp_primitive_curve->cm,
-                 &gp_primitive_curve->clipr,
-                 CURVE_PRESET_BELL,
-                 CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_initialize(gp_primitive_curve);
+  BKE_curvemap_reset(gp_primitive_curve->cm,
+                     &gp_primitive_curve->clipr,
+                     CURVE_PRESET_BELL,
+                     CURVEMAP_SLOPE_POSITIVE);
 
   sce->toolsettings->gp_sculpt.guide.spacing = 20.0f;
 

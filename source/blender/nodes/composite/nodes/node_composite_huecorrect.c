@@ -36,14 +36,14 @@ static bNodeSocketTemplate cmp_node_huecorrect_out[] = {
 
 static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  CurveMapping *cumapping = node->storage = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *cumapping = node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   int c;
 
   cumapping->preset = CURVE_PRESET_MID9;
 
   for (c = 0; c < 3; c++) {
     CurveMap *cuma = &cumapping->cm[c];
-    curvemap_reset(cuma, &cumapping->clipr, cumapping->preset, CURVEMAP_SLOPE_POSITIVE);
+    BKE_curvemap_reset(cuma, &cumapping->clipr, cumapping->preset, CURVEMAP_SLOPE_POSITIVE);
   }
 
   /* default to showing Saturation */

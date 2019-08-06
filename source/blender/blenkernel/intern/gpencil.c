@@ -1632,13 +1632,13 @@ float BKE_gpencil_multiframe_falloff_calc(
   if (gpf->framenum < actnum) {
     fnum = (float)(gpf->framenum - f_init) / (actnum - f_init);
     fnum *= 0.5f;
-    value = curvemapping_evaluateF(cur_falloff, 0, fnum);
+    value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum);
   }
   /* frames to the left of the active frame */
   else if (gpf->framenum > actnum) {
     fnum = (float)(gpf->framenum - actnum) / (f_end - actnum);
     fnum *= 0.5f;
-    value = curvemapping_evaluateF(cur_falloff, 0, fnum + 0.5f);
+    value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum + 0.5f);
   }
   else {
     value = 1.0f;

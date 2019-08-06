@@ -385,10 +385,10 @@ void ED_space_image_scopes_update(const struct bContext *C,
     }
   }
 
-  scopes_update(&sima->scopes,
-                ibuf,
-                use_view_settings ? &scene->view_settings : NULL,
-                &scene->display_settings);
+  BKE_scopes_update(&sima->scopes,
+                    ibuf,
+                    use_view_settings ? &scene->view_settings : NULL,
+                    &scene->display_settings);
 }
 
 bool ED_space_image_show_render(SpaceImage *sima)

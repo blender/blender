@@ -69,7 +69,7 @@ void BKE_light_init(Light *la)
   la->coeff_const = 1.0f;
   la->coeff_lin = 0.0f;
   la->coeff_quad = 0.0f;
-  la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+  la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
   la->cascade_max_dist = 200.0f;
   la->cascade_count = 4;
   la->cascade_exponent = 0.8f;
@@ -82,7 +82,7 @@ void BKE_light_init(Light *la)
   la->att_dist = 40.0f;
   la->sun_angle = DEG2RADF(0.526f);
 
-  curvemapping_initialize(la->curfalloff);
+  BKE_curvemapping_initialize(la->curfalloff);
 }
 
 Light *BKE_light_add(Main *bmain, const char *name)
@@ -108,7 +108,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
  */
 void BKE_light_copy_data(Main *bmain, Light *la_dst, const Light *la_src, const int flag)
 {
-  la_dst->curfalloff = curvemapping_copy(la_src->curfalloff);
+  la_dst->curfalloff = BKE_curvemapping_copy(la_src->curfalloff);
 
   if (la_src->nodetree) {
     /* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
@@ -145,7 +145,7 @@ Light *BKE_light_localize(Light *la)
 
   Light *lan = BKE_libblock_copy_for_localize(&la->id);
 
-  lan->curfalloff = curvemapping_copy(la->curfalloff);
+  lan->curfalloff = BKE_curvemapping_copy(la->curfalloff);
 
   if (la->nodetree) {
     lan->nodetree = ntreeLocalize(la->nodetree);
@@ -167,7 +167,7 @@ void BKE_light_free(Light *la)
 {
   BKE_animdata_free((ID *)la, false);
 
-  curvemapping_free(la->curfalloff);
+  BKE_curvemapping_free(la->curfalloff);
 
   /* is no lib link block, but light extension */
   if (la->nodetree) {

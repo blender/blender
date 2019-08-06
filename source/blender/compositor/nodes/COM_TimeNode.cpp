@@ -49,8 +49,8 @@ void TimeNode::convertToOperations(NodeConverter &converter,
     fac = (context.getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
   }
 
-  curvemapping_initialize((CurveMapping *)node->storage);
-  fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
+  BKE_curvemapping_initialize((CurveMapping *)node->storage);
+  fac = BKE_curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
   operation->setValue(clamp_f(fac, 0.0f, 1.0f));
   converter.addOperation(operation);
 

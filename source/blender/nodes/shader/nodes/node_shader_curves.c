@@ -47,12 +47,12 @@ static void node_shader_exec_curve_vec(void *UNUSED(data),
   /* stack order input:  vec */
   /* stack order output: vec */
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
 }
 
 static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  node->storage = curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+  node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_vec(GPUMaterial *mat,
@@ -64,7 +64,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
   float *array, layer;
   int size;
 
-  curvemapping_table_RGBA(node->storage, &array, &size);
+  BKE_curvemapping_table_RGBA(node->storage, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
   return GPU_stack_link(mat, node, "curves_vec", in, out, tex, GPU_constant(&layer));
@@ -111,7 +111,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data),
   /* stack order output: vec */
   nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
   if (fac != 1.0f) {
     interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, fac);
   }
@@ -119,7 +119,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data),
 
 static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  node->storage = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+  node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static int gpu_shader_curve_rgb(GPUMaterial *mat,
@@ -134,8 +134,8 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
 
   CurveMapping *cumap = node->storage;
 
-  curvemapping_initialize(cumap);
-  curvemapping_table_RGBA(cumap, &array, &size);
+  BKE_curvemapping_initialize(cumap);
+  BKE_curvemapping_table_RGBA(cumap, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
   float ext_rgba[4][4];

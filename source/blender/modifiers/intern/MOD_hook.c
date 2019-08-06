@@ -49,7 +49,7 @@ static void initData(ModifierData *md)
   HookModifierData *hmd = (HookModifierData *)md;
 
   hmd->force = 1.0;
-  hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   hmd->falloff_type = eHook_Falloff_Smooth;
   hmd->flag = 0;
 }
@@ -61,7 +61,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   modifier_copyData_generic(md, target, flag);
 
-  thmd->curfalloff = curvemapping_copy(hmd->curfalloff);
+  thmd->curfalloff = BKE_curvemapping_copy(hmd->curfalloff);
 
   thmd->indexar = MEM_dupallocN(hmd->indexar);
 }
@@ -88,7 +88,7 @@ static void freeData(ModifierData *md)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 
-  curvemapping_free(hmd->curfalloff);
+  BKE_curvemapping_free(hmd->curfalloff);
 
   MEM_SAFE_FREE(hmd->indexar);
 }
@@ -174,7 +174,7 @@ static float hook_falloff(const struct HookData_cb *hd, const float len_sq)
         break;
 #endif
       case eHook_Falloff_Curve:
-        fac = curvemapping_evaluateF(hd->curfalloff, 0, fac);
+        fac = BKE_curvemapping_evaluateF(hd->curfalloff, 0, fac);
         break;
       case eHook_Falloff_Sharp:
         fac = fac * fac;
@@ -262,11 +262,11 @@ static void deformVerts_do(HookModifierData *hmd,
 
   if (hmd->curfalloff == NULL) {
     /* should never happen, but bad lib linking could cause it */
-    hmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+    hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   }
 
   if (hmd->curfalloff) {
-    curvemapping_initialize(hmd->curfalloff);
+    BKE_curvemapping_initialize(hmd->curfalloff);
   }
 
   /* Generic data needed for applying per-vertex calculations (initialize all members) */

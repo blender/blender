@@ -1177,9 +1177,9 @@ static int render_shutter_curve_preset_exec(bContext *C, wmOperator *op)
 
   cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   mblur_shutter_curve->preset = preset;
-  curvemap_reset(
+  BKE_curvemap_reset(
       cm, &mblur_shutter_curve->clipr, mblur_shutter_curve->preset, CURVEMAP_SLOPE_POS_NEG);
-  curvemapping_changed(mblur_shutter_curve, false);
+  BKE_curvemapping_changed(mblur_shutter_curve, false);
 
   return OPERATOR_FINISHED;
 }

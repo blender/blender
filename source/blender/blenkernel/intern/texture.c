@@ -659,15 +659,15 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   pd->object = NULL;
   pd->psys = 0;
   pd->psys_cache_space = TEX_PD_WORLDSPACE;
-  pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
+  pd->falloff_curve = BKE_curvemapping_add(1, 0, 0, 1, 1);
 
   pd->falloff_curve->preset = CURVE_PRESET_LINE;
   pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-  curvemap_reset(pd->falloff_curve->cm,
-                 &pd->falloff_curve->clipr,
-                 pd->falloff_curve->preset,
-                 CURVEMAP_SLOPE_POSITIVE);
-  curvemapping_changed(pd->falloff_curve, false);
+  BKE_curvemap_reset(pd->falloff_curve->cm,
+                     &pd->falloff_curve->clipr,
+                     pd->falloff_curve->preset,
+                     CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_changed(pd->falloff_curve, false);
 }
 
 PointDensity *BKE_texture_pointdensity_add(void)
@@ -687,7 +687,7 @@ PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int UN
   if (pdn->coba) {
     pdn->coba = MEM_dupallocN(pdn->coba);
   }
-  pdn->falloff_curve = curvemapping_copy(pdn->falloff_curve); /* can be NULL */
+  pdn->falloff_curve = BKE_curvemapping_copy(pdn->falloff_curve); /* can be NULL */
   return pdn;
 }
 
@@ -706,7 +706,7 @@ void BKE_texture_pointdensity_free_data(PointDensity *pd)
     pd->coba = NULL;
   }
 
-  curvemapping_free(pd->falloff_curve); /* can be NULL */
+  BKE_curvemapping_free(pd->falloff_curve); /* can be NULL */
 }
 
 void BKE_texture_pointdensity_free(PointDensity *pd)

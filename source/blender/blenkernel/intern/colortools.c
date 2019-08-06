@@ -48,7 +48,7 @@
 
 /* ***************** operations on full struct ************* */
 
-void curvemapping_set_defaults(
+void BKE_curvemapping_set_defaults(
     CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy)
 {
   int a;
@@ -84,18 +84,18 @@ void curvemapping_set_defaults(
   cumap->changed_timestamp = 0;
 }
 
-CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
+CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy)
 {
   CurveMapping *cumap;
 
   cumap = MEM_callocN(sizeof(CurveMapping), "new curvemap");
 
-  curvemapping_set_defaults(cumap, tot, minx, miny, maxx, maxy);
+  BKE_curvemapping_set_defaults(cumap, tot, minx, miny, maxx, maxy);
 
   return cumap;
 }
 
-void curvemapping_free_data(CurveMapping *cumap)
+void BKE_curvemapping_free_data(CurveMapping *cumap)
 {
   int a;
 
@@ -115,15 +115,15 @@ void curvemapping_free_data(CurveMapping *cumap)
   }
 }
 
-void curvemapping_free(CurveMapping *cumap)
+void BKE_curvemapping_free(CurveMapping *cumap)
 {
   if (cumap) {
-    curvemapping_free_data(cumap);
+    BKE_curvemapping_free_data(cumap);
     MEM_freeN(cumap);
   }
 }
 
-void curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
+void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
 
@@ -142,17 +142,19 @@ void curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
   }
 }
 
-CurveMapping *curvemapping_copy(const CurveMapping *cumap)
+CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
 {
   if (cumap) {
     CurveMapping *cumapn = MEM_dupallocN(cumap);
-    curvemapping_copy_data(cumapn, cumap);
+    BKE_curvemapping_copy_data(cumapn, cumap);
     return cumapn;
   }
   return NULL;
 }
 
-void curvemapping_set_black_white_ex(const float black[3], const float white[3], float r_bwmul[3])
+void BKE_curvemapping_set_black_white_ex(const float black[3],
+                                         const float white[3],
+                                         float r_bwmul[3])
 {
   int a;
 
@@ -162,7 +164,9 @@ void curvemapping_set_black_white_ex(const float black[3], const float white[3],
   }
 }
 
-void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], const float white[3])
+void BKE_curvemapping_set_black_white(CurveMapping *cumap,
+                                      const float black[3],
+                                      const float white[3])
 {
   if (white) {
     copy_v3_v3(cumap->white, white);
@@ -171,15 +175,15 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
     copy_v3_v3(cumap->black, black);
   }
 
-  curvemapping_set_black_white_ex(cumap->black, cumap->white, cumap->bwmul);
+  BKE_curvemapping_set_black_white_ex(cumap->black, cumap->white, cumap->bwmul);
   cumap->changed_timestamp++;
 }
 
 /* ***************** operations on single curve ************* */
-/* ********** NOTE: requires curvemapping_changed() call after ******** */
+/* ********** NOTE: requires BKE_curvemapping_changed() call after ******** */
 
 /* remove specified point */
-bool curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
+bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 {
   CurveMapPoint *cmp;
   int a, b, removed = 0;
@@ -209,7 +213,7 @@ bool curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 }
 
 /* removes with flag set */
-void curvemap_remove(CurveMap *cuma, const short flag)
+void BKE_curvemap_remove(CurveMap *cuma, const short flag)
 {
   CurveMapPoint *cmp = MEM_mallocN((cuma->totpoint) * sizeof(CurveMapPoint), "curve points");
   int a, b, removed = 0;
@@ -232,7 +236,7 @@ void curvemap_remove(CurveMap *cuma, const short flag)
   cuma->totpoint -= removed;
 }
 
-CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
+CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y)
 {
   CurveMapPoint *cmp = MEM_callocN((cuma->totpoint + 1) * sizeof(CurveMapPoint), "curve points");
   CurveMapPoint *newcmp = NULL;
@@ -266,7 +270,7 @@ CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
   return newcmp;
 }
 
-void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
+void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 {
   if (cuma->curve) {
     MEM_freeN(cuma->curve);
@@ -439,7 +443,7 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 /**
  * \param type: eBezTriple_Handle
  */
-void curvemap_handle_set(CurveMap *cuma, int type)
+void BKE_curvemap_handle_set(CurveMap *cuma, int type)
 {
   int a;
 
@@ -800,7 +804,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 
 /* call when you do images etc, needs restore too. also verifies tables */
 /* it uses a flag to prevent premul or free to happen twice */
-void curvemapping_premultiply(CurveMapping *cumap, int restore)
+void BKE_curvemapping_premultiply(CurveMapping *cumap, int restore)
 {
   int a;
 
@@ -841,7 +845,7 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
       for (a = 0; a < 3; a++) {
         int b;
         for (b = 0; b <= CM_TABLE; b++) {
-          cumap->cm[a].table[b].y = curvemap_evaluateF(cumap->cm + 3, cumap->cm[a].table[b].y);
+          cumap->cm[a].table[b].y = BKE_curvemap_evaluateF(cumap->cm + 3, cumap->cm[a].table[b].y);
         }
 
         copy_v2_v2(cumap->cm[a].premul_ext_in, cumap->cm[a].ext_in);
@@ -871,7 +875,7 @@ static int sort_curvepoints(const void *a1, const void *a2)
 /* ************************ more CurveMapping calls *************** */
 
 /* note; only does current curvemap! */
-void curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
+void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 {
   CurveMap *cuma = cumap->cm + cumap->cur;
   CurveMapPoint *cmp = cuma->curve;
@@ -942,20 +946,20 @@ void curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
       }
     }
     if (a != cuma->totpoint - 1) {
-      curvemap_remove(cuma, 2);
+      BKE_curvemap_remove(cuma, 2);
     }
   }
   curvemap_make_table(cuma, clipr);
 }
 
-void curvemapping_changed_all(CurveMapping *cumap)
+void BKE_curvemapping_changed_all(CurveMapping *cumap)
 {
   int a, cur = cumap->cur;
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
       cumap->cur = a;
-      curvemapping_changed(cumap, false);
+      BKE_curvemapping_changed(cumap, false);
     }
   }
 
@@ -963,7 +967,7 @@ void curvemapping_changed_all(CurveMapping *cumap)
 }
 
 /* table should be verified */
-float curvemap_evaluateF(const CurveMap *cuma, float value)
+float BKE_curvemap_evaluateF(const CurveMap *cuma, float value)
 {
   float fi;
   int i;
@@ -990,10 +994,10 @@ float curvemap_evaluateF(const CurveMap *cuma, float value)
 }
 
 /* works with curve 'cur' */
-float curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
+float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
 {
   const CurveMap *cuma = cumap->cm + cur;
-  float val = curvemap_evaluateF(cuma, value);
+  float val = BKE_curvemap_evaluateF(cuma, value);
 
   /* account for clipping */
   if (cumap->flag & CUMA_DO_CLIP) {
@@ -1009,19 +1013,24 @@ float curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value)
 }
 
 /* vector case */
-void curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], const float vecin[3])
+void BKE_curvemapping_evaluate3F(const CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-  vecout[0] = curvemap_evaluateF(&cumap->cm[0], vecin[0]);
-  vecout[1] = curvemap_evaluateF(&cumap->cm[1], vecin[1]);
-  vecout[2] = curvemap_evaluateF(&cumap->cm[2], vecin[2]);
+  vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0], vecin[0]);
+  vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1], vecin[1]);
+  vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2], vecin[2]);
 }
 
 /* RGB case, no black/white points, no premult */
-void curvemapping_evaluateRGBF(const CurveMapping *cumap, float vecout[3], const float vecin[3])
+void BKE_curvemapping_evaluateRGBF(const CurveMapping *cumap,
+                                   float vecout[3],
+                                   const float vecin[3])
 {
-  vecout[0] = curvemap_evaluateF(&cumap->cm[0], curvemap_evaluateF(&cumap->cm[3], vecin[0]));
-  vecout[1] = curvemap_evaluateF(&cumap->cm[1], curvemap_evaluateF(&cumap->cm[3], vecin[1]));
-  vecout[2] = curvemap_evaluateF(&cumap->cm[2], curvemap_evaluateF(&cumap->cm[3], vecin[2]));
+  vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0],
+                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[0]));
+  vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1],
+                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[1]));
+  vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2],
+                                     BKE_curvemap_evaluateF(&cumap->cm[3], vecin[2]));
 }
 
 static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
@@ -1033,8 +1042,8 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
   const float v1in = vecin[channel_offset[1]];
   const float v2in = vecin[channel_offset[2]];
 
-  const float v0 = curvemap_evaluateF(&cumap->cm[channel_offset[0]], v0in);
-  const float v2 = curvemap_evaluateF(&cumap->cm[channel_offset[2]], v2in);
+  const float v0 = BKE_curvemap_evaluateF(&cumap->cm[channel_offset[0]], v0in);
+  const float v2 = BKE_curvemap_evaluateF(&cumap->cm[channel_offset[2]], v2in);
   const float v1 = v2 + ((v0 - v2) * (v1in - v2in) / (v0in - v2in));
 
   vecout[channel_offset[0]] = v0;
@@ -1042,20 +1051,20 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap,
   vecout[channel_offset[2]] = v2;
 }
 
-/** same as #curvemapping_evaluate_premulRGBF
+/** same as #BKE_curvemapping_evaluate_premulRGBF
  * but black/bwmul are passed as args for the compositor
  * where they can change per pixel.
  *
- * Use in conjunction with #curvemapping_set_black_white_ex
+ * Use in conjunction with #BKE_curvemapping_set_black_white_ex
  *
  * \param black: Use instead of cumap->black
  * \param bwmul: Use instead of cumap->bwmul
  */
-void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
-                                         float vecout[3],
-                                         const float vecin[3],
-                                         const float black[3],
-                                         const float bwmul[3])
+void BKE_curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
+                                             float vecout[3],
+                                             const float vecin[3],
+                                             const float black[3],
+                                             const float bwmul[3])
 {
   const float r = (vecin[0] - black[0]) * bwmul[0];
   const float g = (vecin[1] - black[1]) * bwmul[1];
@@ -1064,9 +1073,9 @@ void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
   switch (cumap->tone) {
     default:
     case CURVE_TONE_STANDARD: {
-      vecout[0] = curvemap_evaluateF(&cumap->cm[0], r);
-      vecout[1] = curvemap_evaluateF(&cumap->cm[1], g);
-      vecout[2] = curvemap_evaluateF(&cumap->cm[2], b);
+      vecout[0] = BKE_curvemap_evaluateF(&cumap->cm[0], r);
+      vecout[1] = BKE_curvemap_evaluateF(&cumap->cm[1], g);
+      vecout[2] = BKE_curvemap_evaluateF(&cumap->cm[2], b);
       break;
     }
     case CURVE_TONE_FILMLIKE: {
@@ -1088,8 +1097,9 @@ void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
         }
         else {
           /* Case 4: r >= g == b */
-          copy_v2_fl2(
-              vecout, curvemap_evaluateF(&cumap->cm[0], r), curvemap_evaluateF(&cumap->cm[1], g));
+          copy_v2_fl2(vecout,
+                      BKE_curvemap_evaluateF(&cumap->cm[0], r),
+                      BKE_curvemap_evaluateF(&cumap->cm[1], g));
           vecout[2] = vecout[1];
         }
       }
@@ -1116,17 +1126,17 @@ void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap,
 }
 
 /* RGB with black/white points and premult. tables are checked */
-void curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
-                                      float vecout[3],
-                                      const float vecin[3])
+void BKE_curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
+                                          float vecout[3],
+                                          const float vecin[3])
 {
-  curvemapping_evaluate_premulRGBF_ex(cumap, vecout, vecin, cumap->black, cumap->bwmul);
+  BKE_curvemapping_evaluate_premulRGBF_ex(cumap, vecout, vecin, cumap->black, cumap->bwmul);
 }
 
 /* same as above, byte version */
-void curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
-                                     unsigned char vecout_byte[3],
-                                     const unsigned char vecin_byte[3])
+void BKE_curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
+                                         unsigned char vecout_byte[3],
+                                         const unsigned char vecin_byte[3])
 {
   float vecin[3], vecout[3];
 
@@ -1134,14 +1144,14 @@ void curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
   vecin[1] = (float)vecin_byte[1] / 255.0f;
   vecin[2] = (float)vecin_byte[2] / 255.0f;
 
-  curvemapping_evaluate_premulRGBF(cumap, vecout, vecin);
+  BKE_curvemapping_evaluate_premulRGBF(cumap, vecout, vecin);
 
   vecout_byte[0] = unit_float_to_uchar_clamp(vecout[0]);
   vecout_byte[1] = unit_float_to_uchar_clamp(vecout[1]);
   vecout_byte[2] = unit_float_to_uchar_clamp(vecout[2]);
 }
 
-int curvemapping_RGBA_does_something(const CurveMapping *cumap)
+int BKE_curvemapping_RGBA_does_something(const CurveMapping *cumap)
 {
   int a;
 
@@ -1187,7 +1197,7 @@ int curvemapping_RGBA_does_something(const CurveMapping *cumap)
   return 0;
 }
 
-void curvemapping_initialize(CurveMapping *cumap)
+void BKE_curvemapping_initialize(CurveMapping *cumap)
 {
   int a;
 
@@ -1202,7 +1212,7 @@ void curvemapping_initialize(CurveMapping *cumap)
   }
 }
 
-void curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size)
+void BKE_curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size)
 {
   int a;
 
@@ -1520,10 +1530,10 @@ static void scopes_update_finalize(void *__restrict userdata, void *__restrict u
   }
 }
 
-void scopes_update(Scopes *scopes,
-                   ImBuf *ibuf,
-                   const ColorManagedViewSettings *view_settings,
-                   const ColorManagedDisplaySettings *display_settings)
+void BKE_scopes_update(Scopes *scopes,
+                       ImBuf *ibuf,
+                       const ColorManagedViewSettings *view_settings,
+                       const ColorManagedDisplaySettings *display_settings)
 {
   int a;
   unsigned int nl, na, nr, ng, nb;
@@ -1685,7 +1695,7 @@ void scopes_update(Scopes *scopes,
   scopes->ok = 1;
 }
 
-void scopes_free(Scopes *scopes)
+void BKE_scopes_free(Scopes *scopes)
 {
   if (scopes->waveform_1) {
     MEM_freeN(scopes->waveform_1);
@@ -1705,7 +1715,7 @@ void scopes_free(Scopes *scopes)
   }
 }
 
-void scopes_new(Scopes *scopes)
+void BKE_scopes_new(Scopes *scopes)
 {
   scopes->accuracy = 30.0;
   scopes->hist.mode = HISTO_MODE_RGB;
@@ -1781,7 +1791,7 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
   new_settings->gamma = settings->gamma;
 
   if (settings->curve_mapping) {
-    new_settings->curve_mapping = curvemapping_copy(settings->curve_mapping);
+    new_settings->curve_mapping = BKE_curvemapping_copy(settings->curve_mapping);
   }
   else {
     new_settings->curve_mapping = NULL;
@@ -1791,7 +1801,7 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
 void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)
 {
   if (settings->curve_mapping) {
-    curvemapping_free(settings->curve_mapping);
+    BKE_curvemapping_free(settings->curve_mapping);
   }
 }
 

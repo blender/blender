@@ -494,13 +494,13 @@ void BKE_particlesettings_free(ParticleSettings *part)
   }
 
   if (part->clumpcurve) {
-    curvemapping_free(part->clumpcurve);
+    BKE_curvemapping_free(part->clumpcurve);
   }
   if (part->roughcurve) {
-    curvemapping_free(part->roughcurve);
+    BKE_curvemapping_free(part->roughcurve);
   }
   if (part->twistcurve) {
-    curvemapping_free(part->twistcurve);
+    BKE_curvemapping_free(part->twistcurve);
   }
 
   BKE_partdeflect_free(part->pd);
@@ -2060,10 +2060,10 @@ int do_guides(Depsgraph *depsgraph,
       }
 
       if (clumpcurve) {
-        curvemapping_changed_all(clumpcurve);
+        BKE_curvemapping_changed_all(clumpcurve);
       }
       if (roughcurve) {
-        curvemapping_changed_all(roughcurve);
+        BKE_curvemapping_changed_all(roughcurve);
       }
 
       {
@@ -2368,22 +2368,22 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
 
   /* prepare curvemapping tables */
   if ((part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && part->clumpcurve) {
-    ctx->clumpcurve = curvemapping_copy(part->clumpcurve);
-    curvemapping_changed_all(ctx->clumpcurve);
+    ctx->clumpcurve = BKE_curvemapping_copy(part->clumpcurve);
+    BKE_curvemapping_changed_all(ctx->clumpcurve);
   }
   else {
     ctx->clumpcurve = NULL;
   }
   if ((part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && part->roughcurve) {
-    ctx->roughcurve = curvemapping_copy(part->roughcurve);
-    curvemapping_changed_all(ctx->roughcurve);
+    ctx->roughcurve = BKE_curvemapping_copy(part->roughcurve);
+    BKE_curvemapping_changed_all(ctx->roughcurve);
   }
   else {
     ctx->roughcurve = NULL;
   }
   if ((part->child_flag & PART_CHILD_USE_TWIST_CURVE) && part->twistcurve) {
-    ctx->twistcurve = curvemapping_copy(part->twistcurve);
-    curvemapping_changed_all(ctx->twistcurve);
+    ctx->twistcurve = BKE_curvemapping_copy(part->twistcurve);
+    BKE_curvemapping_changed_all(ctx->twistcurve);
   }
   else {
     ctx->twistcurve = NULL;
@@ -3719,42 +3719,42 @@ ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 
 void BKE_particlesettings_clump_curve_init(ParticleSettings *part)
 {
-  CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
   cumap->cm[0].curve[0].x = 0.0f;
   cumap->cm[0].curve[0].y = 1.0f;
   cumap->cm[0].curve[1].x = 1.0f;
   cumap->cm[0].curve[1].y = 1.0f;
 
-  curvemapping_initialize(cumap);
+  BKE_curvemapping_initialize(cumap);
 
   part->clumpcurve = cumap;
 }
 
 void BKE_particlesettings_rough_curve_init(ParticleSettings *part)
 {
-  CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
   cumap->cm[0].curve[0].x = 0.0f;
   cumap->cm[0].curve[0].y = 1.0f;
   cumap->cm[0].curve[1].x = 1.0f;
   cumap->cm[0].curve[1].y = 1.0f;
 
-  curvemapping_initialize(cumap);
+  BKE_curvemapping_initialize(cumap);
 
   part->roughcurve = cumap;
 }
 
 void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
 {
-  CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 
   cumap->cm[0].curve[0].x = 0.0f;
   cumap->cm[0].curve[0].y = 1.0f;
   cumap->cm[0].curve[1].x = 1.0f;
   cumap->cm[0].curve[1].y = 1.0f;
 
-  curvemapping_initialize(cumap);
+  BKE_curvemapping_initialize(cumap);
 
   part->twistcurve = cumap;
 }
@@ -3780,13 +3780,13 @@ void BKE_particlesettings_copy_data(Main *UNUSED(bmain),
   part_dst->fluid = MEM_dupallocN(part_src->fluid);
 
   if (part_src->clumpcurve) {
-    part_dst->clumpcurve = curvemapping_copy(part_src->clumpcurve);
+    part_dst->clumpcurve = BKE_curvemapping_copy(part_src->clumpcurve);
   }
   if (part_src->roughcurve) {
-    part_dst->roughcurve = curvemapping_copy(part_src->roughcurve);
+    part_dst->roughcurve = BKE_curvemapping_copy(part_src->roughcurve);
   }
   if (part_src->twistcurve) {
-    part_dst->twistcurve = curvemapping_copy(part_src->twistcurve);
+    part_dst->twistcurve = BKE_curvemapping_copy(part_src->twistcurve);
   }
 
   part_dst->boids = boid_copy_settings(part_src->boids);

@@ -1428,13 +1428,13 @@ static void emit_from_particles(Object *flow_ob,
 
     /* prepare curvemapping tables */
     if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve) {
-      curvemapping_changed_all(psys->part->clumpcurve);
+      BKE_curvemapping_changed_all(psys->part->clumpcurve);
     }
     if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve) {
-      curvemapping_changed_all(psys->part->roughcurve);
+      BKE_curvemapping_changed_all(psys->part->roughcurve);
     }
     if ((psys->part->child_flag & PART_CHILD_USE_TWIST_CURVE) && psys->part->twistcurve) {
-      curvemapping_changed_all(psys->part->twistcurve);
+      BKE_curvemapping_changed_all(psys->part->twistcurve);
     }
 
     /* initialize particle cache */

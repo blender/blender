@@ -597,7 +597,8 @@ static float do_clump_level(float result[3],
   float clump = 0.0f;
 
   if (clumpcurve) {
-    clump = pa_clump * (1.0f - clamp_f(curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
+    clump = pa_clump *
+            (1.0f - clamp_f(BKE_curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
 
     interp_v3_v3v3(result, co, par_co, clump);
   }
@@ -714,7 +715,7 @@ static void do_rough_curve(const float loc[3],
     return;
   }
 
-  fac *= clamp_f(curvemapping_evaluateF(roughcurve, 0, time), 0.0f, 1.0f);
+  fac *= clamp_f(BKE_curvemapping_evaluateF(roughcurve, 0, time), 0.0f, 1.0f);
 
   copy_v3_v3(rco, loc);
   mul_v3_fl(rco, time);
@@ -749,15 +750,15 @@ static void twist_get_axis(const ParticleChildModifierContext *modifier_ctx,
   }
 }
 
-static float curvemapping_integrate_clamped(CurveMapping *curve,
-                                            float start,
-                                            float end,
-                                            float step)
+static float BKE_curvemapping_integrate_clamped(CurveMapping *curve,
+                                                float start,
+                                                float end,
+                                                float step)
 {
   float integral = 0.0f;
   float x = start;
   while (x < end) {
-    float y = curvemapping_evaluateF(curve, 0, x);
+    float y = BKE_curvemapping_evaluateF(curve, 0, x);
     y = clamp_f(y, 0.0f, 1.0f);
     /* TODO(sergey): Clamp last step to end. */
     integral += y * step;
@@ -804,7 +805,7 @@ static void do_twist(const ParticleChildModifierContext *modifier_ctx,
   }
   if (twist_curve != NULL) {
     const int num_segments = twist_num_segments(modifier_ctx);
-    angle *= curvemapping_integrate_clamped(twist_curve, 0.0f, time, 1.0f / num_segments);
+    angle *= BKE_curvemapping_integrate_clamped(twist_curve, 0.0f, time, 1.0f / num_segments);
   }
   else {
     angle *= time;

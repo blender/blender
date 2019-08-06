@@ -48,9 +48,9 @@ static void initData(GpencilModifierData *md)
   gpmd->thickness = 2;
   gpmd->layername[0] = '\0';
   gpmd->vgname[0] = '\0';
-  gpmd->curve_thickness = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  gpmd->curve_thickness = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   if (gpmd->curve_thickness) {
-    curvemapping_initialize(gpmd->curve_thickness);
+    BKE_curvemapping_initialize(gpmd->curve_thickness);
   }
 }
 
@@ -59,7 +59,7 @@ static void freeData(GpencilModifierData *md)
   ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 
   if (gpmd->curve_thickness) {
-    curvemapping_free(gpmd->curve_thickness);
+    BKE_curvemapping_free(gpmd->curve_thickness);
   }
 }
 
@@ -69,13 +69,13 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   ThickGpencilModifierData *tgmd = (ThickGpencilModifierData *)target;
 
   if (tgmd->curve_thickness != NULL) {
-    curvemapping_free(tgmd->curve_thickness);
+    BKE_curvemapping_free(tgmd->curve_thickness);
     tgmd->curve_thickness = NULL;
   }
 
   BKE_gpencil_modifier_copyData_generic(md, target);
 
-  tgmd->curve_thickness = curvemapping_copy(gmd->curve_thickness);
+  tgmd->curve_thickness = BKE_curvemapping_copy(gmd->curve_thickness);
 }
 
 /* change stroke thickness */
@@ -125,7 +125,7 @@ static void deformStroke(GpencilModifierData *md,
       if ((mmd->flag & GP_THICK_CUSTOM_CURVE) && (mmd->curve_thickness)) {
         /* normalize value to evaluate curve */
         float value = (float)i / (gps->totpoints - 1);
-        curvef = curvemapping_evaluateF(mmd->curve_thickness, 0, value);
+        curvef = BKE_curvemapping_evaluateF(mmd->curve_thickness, 0, value);
       }
 
       pt->pressure += mmd->thickness * weight * curvef;

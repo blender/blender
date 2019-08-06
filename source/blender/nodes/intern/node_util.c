@@ -47,7 +47,7 @@
 
 void node_free_curves(bNode *node)
 {
-  curvemapping_free(node->storage);
+  BKE_curvemapping_free(node->storage);
 }
 
 void node_free_standard_storage(bNode *node)
@@ -59,7 +59,7 @@ void node_free_standard_storage(bNode *node)
 
 void node_copy_curves(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
 {
-  dest_node->storage = curvemapping_copy(src_node->storage);
+  dest_node->storage = BKE_curvemapping_copy(src_node->storage);
 }
 
 void node_copy_standard_storage(bNodeTree *UNUSED(dest_ntree),
@@ -73,7 +73,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
                            bNode *node,
                            bNodeInstanceKey UNUSED(key))
 {
-  curvemapping_initialize(node->storage);
+  BKE_curvemapping_initialize(node->storage);
   return NULL; /* unused return */
 }
 

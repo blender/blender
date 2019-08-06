@@ -50,7 +50,7 @@ static void initData(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
-  wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+  wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   wmd->texture = NULL;
   wmd->strength = 1.0f;
   wmd->falloff_radius = 1.0f;
@@ -65,7 +65,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   modifier_copyData_generic(md, target, flag);
 
-  twmd->curfalloff = curvemapping_copy(wmd->curfalloff);
+  twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -100,7 +100,7 @@ static bool dependsOnTime(ModifierData *md)
 static void freeData(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  curvemapping_free(wmd->curfalloff);
+  BKE_curvemapping_free(wmd->curfalloff);
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -188,11 +188,11 @@ static void warpModifier_do(WarpModifierData *wmd,
   }
 
   if (wmd->curfalloff == NULL) { /* should never happen, but bad lib linking could cause it */
-    wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+    wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   }
 
   if (wmd->curfalloff) {
-    curvemapping_initialize(wmd->curfalloff);
+    BKE_curvemapping_initialize(wmd->curfalloff);
   }
 
   invert_m4_m4(obinv, ob->obmat);
@@ -247,7 +247,7 @@ static void warpModifier_do(WarpModifierData *wmd,
           fac = 1.0f;
           break;
         case eWarp_Falloff_Curve:
-          fac = curvemapping_evaluateF(wmd->curfalloff, 0, fac);
+          fac = BKE_curvemapping_evaluateF(wmd->curfalloff, 0, fac);
           break;
         case eWarp_Falloff_Sharp:
           fac = fac * fac;

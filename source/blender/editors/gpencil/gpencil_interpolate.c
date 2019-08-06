@@ -1003,7 +1003,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       if (ipo_settings->type == GP_IPO_CURVEMAP) {
         /* custom curvemap */
         if (ipo_settings->custom_ipo) {
-          factor = curvemapping_evaluateF(ipo_settings->custom_ipo, 0, factor);
+          factor = BKE_curvemapping_evaluateF(ipo_settings->custom_ipo, 0, factor);
         }
         else {
           BKE_report(op->reports, RPT_ERROR, "Custom interpolation curve does not exist");

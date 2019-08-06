@@ -1997,7 +1997,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
   immUnbindProgram();
 
   if (cuma->table == NULL) {
-    curvemapping_changed(cumap, false);
+    BKE_curvemapping_changed(cumap, false);
   }
 
   CurveMapPoint *cmp = cuma->table;

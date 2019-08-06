@@ -1555,7 +1555,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         for (sl = sa->spacedata.first; sl; sl = sl->next) {
           if (sl->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = (SpaceImage *)sl;
-            scopes_new(&sima->scopes);
+            BKE_scopes_new(&sima->scopes);
           }
         }
       }

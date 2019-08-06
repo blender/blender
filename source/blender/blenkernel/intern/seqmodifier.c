@@ -293,14 +293,14 @@ static void curves_init_data(SequenceModifierData *smd)
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-  curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static void curves_free_data(SequenceModifierData *smd)
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-  curvemapping_free_data(&cmd->curve_mapping);
+  BKE_curvemapping_free_data(&cmd->curve_mapping);
 }
 
 static void curves_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
@@ -308,7 +308,7 @@ static void curves_copy_data(SequenceModifierData *target, SequenceModifierData 
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
   CurvesModifierData *cmd_target = (CurvesModifierData *)target;
 
-  curvemapping_copy_data(&cmd_target->curve_mapping, &cmd->curve_mapping);
+  BKE_curvemapping_copy_data(&cmd_target->curve_mapping, &cmd->curve_mapping);
 }
 
 static void curves_apply_threaded(int width,
@@ -330,7 +330,7 @@ static void curves_apply_threaded(int width,
         float *pixel = rect_float + pixel_index;
         float result[3];
 
-        curvemapping_evaluate_premulRGBF(curve_mapping, result, pixel);
+        BKE_curvemapping_evaluate_premulRGBF(curve_mapping, result, pixel);
 
         if (mask_rect_float) {
           const float *m = mask_rect_float + pixel_index;
@@ -351,7 +351,7 @@ static void curves_apply_threaded(int width,
 
         straight_uchar_to_premul_float(tempc, pixel);
 
-        curvemapping_evaluate_premulRGBF(curve_mapping, result, tempc);
+        BKE_curvemapping_evaluate_premulRGBF(curve_mapping, result, tempc);
 
         if (mask_rect) {
           float t[3];
@@ -381,14 +381,14 @@ static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *m
   float black[3] = {0.0f, 0.0f, 0.0f};
   float white[3] = {1.0f, 1.0f, 1.0f};
 
-  curvemapping_initialize(&cmd->curve_mapping);
+  BKE_curvemapping_initialize(&cmd->curve_mapping);
 
-  curvemapping_premultiply(&cmd->curve_mapping, 0);
-  curvemapping_set_black_white(&cmd->curve_mapping, black, white);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, 0);
+  BKE_curvemapping_set_black_white(&cmd->curve_mapping, black, white);
 
   modifier_apply_threaded(ibuf, mask, curves_apply_threaded, &cmd->curve_mapping);
 
-  curvemapping_premultiply(&cmd->curve_mapping, 1);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, 1);
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {
@@ -408,13 +408,13 @@ static void hue_correct_init_data(SequenceModifierData *smd)
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
   int c;
 
-  curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f);
   hcmd->curve_mapping.preset = CURVE_PRESET_MID9;
 
   for (c = 0; c < 3; c++) {
     CurveMap *cuma = &hcmd->curve_mapping.cm[c];
 
-    curvemap_reset(
+    BKE_curvemap_reset(
         cuma, &hcmd->curve_mapping.clipr, hcmd->curve_mapping.preset, CURVEMAP_SLOPE_POSITIVE);
   }
 
@@ -426,7 +426,7 @@ static void hue_correct_free_data(SequenceModifierData *smd)
 {
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
-  curvemapping_free_data(&hcmd->curve_mapping);
+  BKE_curvemapping_free_data(&hcmd->curve_mapping);
 }
 
 static void hue_correct_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
@@ -434,7 +434,7 @@ static void hue_correct_copy_data(SequenceModifierData *target, SequenceModifier
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
   HueCorrectModifierData *hcmd_target = (HueCorrectModifierData *)target;
 
-  curvemapping_copy_data(&hcmd_target->curve_mapping, &hcmd->curve_mapping);
+  BKE_curvemapping_copy_data(&hcmd_target->curve_mapping, &hcmd->curve_mapping);
 }
 
 static void hue_correct_apply_threaded(int width,
@@ -464,15 +464,15 @@ static void hue_correct_apply_threaded(int width,
       rgb_to_hsv(pixel[0], pixel[1], pixel[2], hsv, hsv + 1, hsv + 2);
 
       /* adjust hue, scaling returned default 0.5 up to 1 */
-      f = curvemapping_evaluateF(curve_mapping, 0, hsv[0]);
+      f = BKE_curvemapping_evaluateF(curve_mapping, 0, hsv[0]);
       hsv[0] += f - 0.5f;
 
       /* adjust saturation, scaling returned default 0.5 up to 1 */
-      f = curvemapping_evaluateF(curve_mapping, 1, hsv[0]);
+      f = BKE_curvemapping_evaluateF(curve_mapping, 1, hsv[0]);
       hsv[1] *= (f * 2.0f);
 
       /* adjust value, scaling returned default 0.5 up to 1 */
-      f = curvemapping_evaluateF(curve_mapping, 2, hsv[0]);
+      f = BKE_curvemapping_evaluateF(curve_mapping, 2, hsv[0]);
       hsv[2] *= (f * 2.f);
 
       hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
@@ -506,7 +506,7 @@ static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImB
 {
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
-  curvemapping_initialize(&hcmd->curve_mapping);
+  BKE_curvemapping_initialize(&hcmd->curve_mapping);
 
   modifier_apply_threaded(ibuf, mask, hue_correct_apply_threaded, &hcmd->curve_mapping);
 }

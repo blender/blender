@@ -784,9 +784,9 @@ PaintStroke *paint_stroke_new(bContext *C,
   ups->average_stroke_counter = 0;
 
   /* initialize here to avoid initialization conflict with threaded strokes */
-  curvemapping_initialize(br->curve);
+  BKE_curvemapping_initialize(br->curve);
   if (p->flags & PAINT_USE_CAVITY_MASK) {
-    curvemapping_initialize(p->cavity_curve);
+    BKE_curvemapping_initialize(p->cavity_curve);
   }
 
   BKE_paint_set_overlay_override(br->overlay_flags);

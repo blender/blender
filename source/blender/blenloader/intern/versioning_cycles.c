@@ -231,7 +231,7 @@ static void vector_curve_node_remap(bNode *node)
       }
     }
 
-    curvemapping_changed_all(mapping);
+    BKE_curvemapping_changed_all(mapping);
   }
 }
 

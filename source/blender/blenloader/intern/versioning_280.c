@@ -1347,12 +1347,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           /* sculpt brushes */
           GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
           if ((gset) && (gset->cur_falloff == NULL)) {
-            gset->cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-            curvemapping_initialize(gset->cur_falloff);
-            curvemap_reset(gset->cur_falloff->cm,
-                           &gset->cur_falloff->clipr,
-                           CURVE_PRESET_GAUSS,
-                           CURVEMAP_SLOPE_POSITIVE);
+            gset->cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+            BKE_curvemapping_initialize(gset->cur_falloff);
+            BKE_curvemap_reset(gset->cur_falloff->cm,
+                               &gset->cur_falloff->clipr,
+                               CURVE_PRESET_GAUSS,
+                               CURVEMAP_SLOPE_POSITIVE);
           }
         }
       }
@@ -2748,12 +2748,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
         if ((gset) && (gset->cur_primitive == NULL)) {
-          gset->cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-          curvemapping_initialize(gset->cur_primitive);
-          curvemap_reset(gset->cur_primitive->cm,
-                         &gset->cur_primitive->clipr,
-                         CURVE_PRESET_BELL,
-                         CURVEMAP_SLOPE_POSITIVE);
+          gset->cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+          BKE_curvemapping_initialize(gset->cur_primitive);
+          BKE_curvemap_reset(gset->cur_primitive->cm,
+                             &gset->cur_primitive->clipr,
+                             CURVE_PRESET_BELL,
+                             CURVEMAP_SLOPE_POSITIVE);
         }
       }
     }

@@ -51,15 +51,15 @@ void HueSaturationValueCorrectOperation::executePixelSampled(float output[4],
   this->m_inputProgram->readSampled(hsv, x, y, sampler);
 
   /* adjust hue, scaling returned default 0.5 up to 1 */
-  f = curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
+  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
   hsv[0] += f - 0.5f;
 
   /* adjust saturation, scaling returned default 0.5 up to 1 */
-  f = curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
+  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
   hsv[1] *= (f * 2.0f);
 
   /* adjust value, scaling returned default 0.5 up to 1 */
-  f = curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
+  f = BKE_curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
   hsv[2] *= (f * 2.0f);
 
   hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */

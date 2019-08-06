@@ -268,22 +268,22 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Be sure curfalloff and primitive are initializated */
   ToolSettings *ts = scene->toolsettings;
   if (ts->gp_sculpt.cur_falloff == NULL) {
-    ts->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+    ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
-    curvemapping_initialize(gp_falloff_curve);
-    curvemap_reset(gp_falloff_curve->cm,
-                   &gp_falloff_curve->clipr,
-                   CURVE_PRESET_GAUSS,
-                   CURVEMAP_SLOPE_POSITIVE);
+    BKE_curvemapping_initialize(gp_falloff_curve);
+    BKE_curvemap_reset(gp_falloff_curve->cm,
+                       &gp_falloff_curve->clipr,
+                       CURVE_PRESET_GAUSS,
+                       CURVEMAP_SLOPE_POSITIVE);
   }
   if (ts->gp_sculpt.cur_primitive == NULL) {
-    ts->gp_sculpt.cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+    ts->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_primitive_curve = ts->gp_sculpt.cur_primitive;
-    curvemapping_initialize(gp_primitive_curve);
-    curvemap_reset(gp_primitive_curve->cm,
-                   &gp_primitive_curve->clipr,
-                   CURVE_PRESET_BELL,
-                   CURVEMAP_SLOPE_POSITIVE);
+    BKE_curvemapping_initialize(gp_primitive_curve);
+    BKE_curvemap_reset(gp_primitive_curve->cm,
+                       &gp_primitive_curve->clipr,
+                       CURVE_PRESET_BELL,
+                       CURVEMAP_SLOPE_POSITIVE);
   }
 
   /* Correct default startup UV's. */

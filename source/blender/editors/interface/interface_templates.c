@@ -3723,15 +3723,15 @@ static void curvemap_buttons_setclip(bContext *UNUSED(C), void *cumap_v, void *U
 {
   CurveMapping *cumap = cumap_v;
 
-  curvemapping_changed(cumap, false);
+  BKE_curvemapping_changed(cumap, false);
 }
 
 static void curvemap_buttons_delete(bContext *C, void *cb_v, void *cumap_v)
 {
   CurveMapping *cumap = cumap_v;
 
-  curvemap_remove(cumap->cm + cumap->cur, SELECT);
-  curvemapping_changed(cumap, false);
+  BKE_curvemap_remove(cumap->cm + cumap->cur, SELECT);
+  BKE_curvemapping_changed(cumap, false);
 
   rna_update_cb(C, cb_v, NULL);
 }
@@ -3829,7 +3829,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
   return block;
 }
 
-/* only for curvemap_tools_dofunc */
+/* only for BKE_curvemap_tools_dofunc */
 enum {
   UICURVE_FUNC_RESET_NEG,
   UICURVE_FUNC_RESET_POS,
@@ -3849,35 +3849,35 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
   switch (event) {
     case UICURVE_FUNC_RESET_NEG:
     case UICURVE_FUNC_RESET_POS: /* reset */
-      curvemap_reset(cuma,
-                     &cumap->clipr,
-                     cumap->preset,
-                     (event == UICURVE_FUNC_RESET_NEG) ? CURVEMAP_SLOPE_NEGATIVE :
-                                                         CURVEMAP_SLOPE_POSITIVE);
-      curvemapping_changed(cumap, false);
+      BKE_curvemap_reset(cuma,
+                         &cumap->clipr,
+                         cumap->preset,
+                         (event == UICURVE_FUNC_RESET_NEG) ? CURVEMAP_SLOPE_NEGATIVE :
+                                                             CURVEMAP_SLOPE_POSITIVE);
+      BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_RESET_VIEW:
       cumap->curr = cumap->clipr;
       break;
     case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
-      curvemap_handle_set(cuma, HD_VECT);
-      curvemapping_changed(cumap, false);
+      BKE_curvemap_handle_set(cuma, HD_VECT);
+      BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_HANDLE_AUTO: /* set auto */
-      curvemap_handle_set(cuma, HD_AUTO);
-      curvemapping_changed(cumap, false);
+      BKE_curvemap_handle_set(cuma, HD_AUTO);
+      BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* set auto-clamped */
-      curvemap_handle_set(cuma, HD_AUTO_ANIM);
-      curvemapping_changed(cumap, false);
+      BKE_curvemap_handle_set(cuma, HD_AUTO_ANIM);
+      BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
       cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-      curvemapping_changed(cumap, false);
+      BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_EXTEND_EXP: /* extend extrapolate */
       cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
-      curvemapping_changed(cumap, false);
+      BKE_curvemapping_changed(cumap, false);
       break;
   }
   ED_undo_push(C, "CurveMap tools");
@@ -4041,7 +4041,7 @@ static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSE
 static void curvemap_buttons_update(bContext *C, void *arg1_v, void *cumap_v)
 {
   CurveMapping *cumap = cumap_v;
-  curvemapping_changed(cumap, true);
+  BKE_curvemapping_changed(cumap, true);
   rna_update_cb(C, arg1_v, NULL);
 }
 
@@ -4052,14 +4052,14 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 
   cumap->preset = CURVE_PRESET_LINE;
   for (a = 0; a < CM_TOT; a++) {
-    curvemap_reset(cumap->cm + a, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
+    BKE_curvemap_reset(cumap->cm + a, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
   }
 
   cumap->black[0] = cumap->black[1] = cumap->black[2] = 0.0f;
   cumap->white[0] = cumap->white[1] = cumap->white[2] = 1.0f;
-  curvemapping_set_black_white(cumap, NULL, NULL);
+  BKE_curvemapping_set_black_white(cumap, NULL, NULL);
 
-  curvemapping_changed(cumap, false);
+  BKE_curvemapping_changed(cumap, false);
 
   rna_update_cb(C, cb_v, NULL);
 }

@@ -2094,8 +2094,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         la->falloff_type = LA_FALLOFF_INVLINEAR;
 
         if (la->curfalloff == NULL) {
-          la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-          curvemapping_initialize(la->curfalloff);
+          la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+          BKE_curvemapping_initialize(la->curfalloff);
         }
       }
     }
