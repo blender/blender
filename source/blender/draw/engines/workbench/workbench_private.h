@@ -389,7 +389,7 @@ BLI_INLINE bool workbench_is_matdata_pass_enabled(WORKBENCH_PrivateData *wpd)
  * color banding issues (T66100). All other modes use GPU_RGBA8 to reduce
  * bandwidth and gpu memory.
  */
-BLI_INLINE const eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_PrivateData *wpd)
+BLI_INLINE eGPUTextureFormat workbench_color_texture_format(const WORKBENCH_PrivateData *wpd)
 {
   eGPUTextureFormat result;
   if (DRW_state_is_image_render() || workbench_is_in_texture_paint_mode() ||
