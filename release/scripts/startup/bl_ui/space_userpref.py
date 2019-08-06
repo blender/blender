@@ -427,7 +427,6 @@ class USERPREF_PT_edit_annotations(PreferencePanel, Panel):
 
         flow.prop(edit, "grease_pencil_default_color", text="Default Color")
         flow.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
-        flow.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
 
 
 class USERPREF_PT_edit_weight_paint(PreferencePanel, Panel):
