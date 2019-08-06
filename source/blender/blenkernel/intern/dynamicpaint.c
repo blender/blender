@@ -117,7 +117,7 @@ static int neighStraightY[8] = {0, 1, 0, -1, 1, 1, -1, -1};
 /* brush mesh raycast status */
 #define HIT_VOLUME 1
 #define HIT_PROXIMITY 2
-/* dynamicPaint_findNeighbourPixel() return codes */
+/* dynamicPaint_findNeighborPixel() return codes */
 #define NOT_FOUND -1
 #define ON_MESH_EDGE -2
 #define OUT_OF_TEXTURE -3
@@ -233,7 +233,7 @@ typedef struct PaintUVPoint {
   unsigned int v1, v2, v3;
 
   /** If this pixel isn't uv mapped to any face, but it's neighboring pixel is. */
-  unsigned int neighbour_pixel;
+  unsigned int neighbor_pixel;
 } PaintUVPoint;
 
 typedef struct ImgSeqFormatData {
@@ -2263,7 +2263,7 @@ static void dynamic_paint_create_uv_surface_direct_cb(
 
     /* Init per pixel settings */
     tPoint->tri_index = -1;
-    tPoint->neighbour_pixel = -1;
+    tPoint->neighbor_pixel = -1;
     tPoint->pixel_index = index;
 
     /* Actual pixel center, used when collision is found */
@@ -2377,7 +2377,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(
             const int ind = (tx + u) + w * (ty + v);
 
             /* if neighbor has index */
-            if (tempPoints[ind].neighbour_pixel == -1 && tempPoints[ind].tri_index != -1) {
+            if (tempPoints[ind].neighbor_pixel == -1 && tempPoints[ind].tri_index != -1) {
               float uv[2];
               const int i = tempPoints[ind].tri_index;
               const float *uv1 = mloopuv[mlooptri[i].tri[0]].uv;
@@ -2387,13 +2387,13 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(
               /* tri index */
               /* There is a low possibility of actually having a neighbor point which tri is
                * already set from another neighbor in a separate thread here.
-               * Checking for both tri_index and neighbour_pixel above reduces that probability
+               * Checking for both tri_index and neighbor_pixel above reduces that probability
                * but it remains possible.
-               * That atomic op (and its memory fence) ensures tPoint->neighbour_pixel is set
-               * to non--1 *before* its tri_index is set (i.e. that it cannot be used a neighbour).
+               * That atomic op (and its memory fence) ensures tPoint->neighbor_pixel is set
+               * to non--1 *before* its tri_index is set (i.e. that it cannot be used a neighbor).
                */
-              tPoint->neighbour_pixel = ind - 1;
-              atomic_add_and_fetch_uint32(&tPoint->neighbour_pixel, 1);
+              tPoint->neighbor_pixel = ind - 1;
+              atomic_add_and_fetch_uint32(&tPoint->neighbor_pixel, 1);
               tPoint->tri_index = i;
 
               /* Now calculate pixel data for this pixel as it was on polygon surface */
@@ -2467,13 +2467,13 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
  * px, py : origin pixel x and y
  * n_index : lookup direction index (use neighX, neighY to get final index)
  */
-static int dynamic_paint_find_neighbour_pixel(const DynamicPaintCreateUVSurfaceData *data,
-                                              const MeshElemMap *vert_to_looptri_map,
-                                              const int w,
-                                              const int h,
-                                              const int px,
-                                              const int py,
-                                              const int n_index)
+static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceData *data,
+                                             const MeshElemMap *vert_to_looptri_map,
+                                             const int w,
+                                             const int h,
+                                             const int px,
+                                             const int py,
+                                             const int n_index)
 {
   /* Note: Current method only uses polygon edges to detect neighboring pixels.
    *       -> It doesn't always lead to the optimum pixel but is accurate enough
@@ -2494,7 +2494,7 @@ static int dynamic_paint_find_neighbour_pixel(const DynamicPaintCreateUVSurfaceD
 
   /* Check if shifted point is on same face -> it's a correct neighbor
    * (and if it isn't marked as an "edge pixel") */
-  if ((tPoint->tri_index == cPoint->tri_index) && (tPoint->neighbour_pixel == -1)) {
+  if ((tPoint->tri_index == cPoint->tri_index) && (tPoint->neighbor_pixel == -1)) {
     return (x + w * y);
   }
 
@@ -2504,7 +2504,7 @@ static int dynamic_paint_find_neighbour_pixel(const DynamicPaintCreateUVSurfaceD
    * !! Replace with "is uv faces linked" check !!
    * This should work fine as long as uv island margin is > 1 pixel.
    */
-  if ((tPoint->tri_index != -1) && (tPoint->neighbour_pixel == -1)) {
+  if ((tPoint->tri_index != -1) && (tPoint->neighbor_pixel == -1)) {
     return (x + w * y);
   }
 
@@ -2691,8 +2691,8 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
     }
 
     /* If final point is an "edge pixel", use it's "real" neighbor instead */
-    if (tempPoints[final_index].neighbour_pixel != -1) {
-      final_index = tempPoints[final_index].neighbour_pixel;
+    if (tempPoints[final_index].neighbor_pixel != -1) {
+      final_index = tempPoints[final_index].neighbor_pixel;
 
       /* If we ended up to our origin point */
       if (final_index == (px + w * py)) {
@@ -3016,7 +3016,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
               ed->n_index[final_index[index]] = n_pos;
               ed->n_num[final_index[index]] = 0;
 
-              if (tempPoints[index].neighbour_pixel != -1) {
+              if (tempPoints[index].neighbor_pixel != -1) {
                 ed->flags[final_index[index]] |= ADJ_BORDER_PIXEL;
                 total_border++;
               }
@@ -3024,7 +3024,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
               for (int i = 0; i < 8; i++) {
                 /* Try to find a neighboring pixel in defined direction.
                  * If not found, -1 is returned */
-                const int n_target = dynamic_paint_find_neighbour_pixel(
+                const int n_target = dynamic_paint_find_neighbor_pixel(
                     &data, vert_to_looptri_map, w, h, tx, ty, i);
 
                 if (n_target >= 0 && n_target != index) {
@@ -3084,7 +3084,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
             const int fidx = final_index[index];
 
             if (tempPoints[index].tri_index != -1) {
-              int nidx = tempPoints[index].neighbour_pixel;
+              int nidx = tempPoints[index].neighbor_pixel;
               fprintf(dump_file,
                       "%d\t%d,%d\t%u\t%d,%d\t%d\t",
                       fidx,
@@ -3186,7 +3186,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
       pPoint->alpha = 1.0f;
 
       /* Every pixel that is assigned as "edge pixel" gets blue color */
-      if (uvPoint->neighbour_pixel != -1) {
+      if (uvPoint->neighbor_pixel != -1) {
         pPoint->color[2] = 1.0f;
       }
       /* and every pixel that finally got an polygon gets red color */

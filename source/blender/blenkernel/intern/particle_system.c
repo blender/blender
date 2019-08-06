@@ -1958,10 +1958,10 @@ static void sphclassical_density_accum_cb(void *userdata,
   pfr->data[1] += q / npa->sphdensity;
 }
 
-static void sphclassical_neighbour_accum_cb(void *userdata,
-                                            int index,
-                                            const float co[3],
-                                            float UNUSED(squared_dist))
+static void sphclassical_neighbor_accum_cb(void *userdata,
+                                           int index,
+                                           const float co[3],
+                                           float UNUSED(squared_dist))
 {
   SPHRangeData *pfr = (SPHRangeData *)userdata;
   ParticleData *npa = pfr->npsys->particles + index;
@@ -2031,7 +2031,7 @@ static void sphclassical_force_cb(void *sphdata_v,
   pfr.pa = pa;
 
   sph_evaluate_func(
-      NULL, psys, state->co, &pfr, interaction_radius, sphclassical_neighbour_accum_cb);
+      NULL, psys, state->co, &pfr, interaction_radius, sphclassical_neighbor_accum_cb);
   pressure = stiffness * (pow7f(pa->sphdensity / rest_density) - 1.0f);
 
   /* multiply by mass so that we return a force, not accel */

@@ -960,13 +960,13 @@ void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *
   }
 }
 
-void ccgSubSurf__effectedFaceNeighbours(CCGSubSurf *ss,
-                                        CCGFace **faces,
-                                        int numFaces,
-                                        CCGVert ***verts,
-                                        int *numVerts,
-                                        CCGEdge ***edges,
-                                        int *numEdges)
+void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
+                                       CCGFace **faces,
+                                       int numFaces,
+                                       CCGVert ***verts,
+                                       int *numVerts,
+                                       CCGEdge ***edges,
+                                       int *numEdges)
 {
   CCGVert **arrayV;
   CCGEdge **arrayE;
@@ -1134,7 +1134,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
   cornerIdx = gridSize - 1;
 
   ccgSubSurf__allFaces(ss, &effectedF, &numEffectedF, &freeF);
-  ccgSubSurf__effectedFaceNeighbours(
+  ccgSubSurf__effectedFaceNeighbors(
       ss, effectedF, numEffectedF, &effectedV, &numEffectedV, &effectedE, &numEffectedE);
 
   /* zero */

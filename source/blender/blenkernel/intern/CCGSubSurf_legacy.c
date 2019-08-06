@@ -1323,7 +1323,7 @@ CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEf
   int i, numEffectedV, numEffectedE, freeF;
 
   ccgSubSurf__allFaces(ss, &effectedF, &numEffectedF, &freeF);
-  ccgSubSurf__effectedFaceNeighbours(
+  ccgSubSurf__effectedFaceNeighbors(
       ss, effectedF, numEffectedF, &effectedV, &numEffectedV, &effectedE, &numEffectedE);
 
   if (ss->calcVertNormals) {
@@ -1361,7 +1361,7 @@ CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, i
   int curLvl, subdivLevels = ss->subdivLevels;
 
   ccgSubSurf__allFaces(ss, &effectedF, &numEffectedF, &freeF);
-  ccgSubSurf__effectedFaceNeighbours(
+  ccgSubSurf__effectedFaceNeighbors(
       ss, effectedF, numEffectedF, &effectedV, &numEffectedV, &effectedE, &numEffectedE);
 
   for (curLvl = lvl; curLvl < subdivLevels; curLvl++) {

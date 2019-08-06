@@ -306,13 +306,13 @@ struct CCGSubSurf {
 /* * CCGSubSurf.c * */
 
 void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *freeFaces);
-void ccgSubSurf__effectedFaceNeighbours(CCGSubSurf *ss,
-                                        CCGFace **faces,
-                                        int numFaces,
-                                        CCGVert ***verts,
-                                        int *numVerts,
-                                        CCGEdge ***edges,
-                                        int *numEdges);
+void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
+                                       CCGFace **faces,
+                                       int numFaces,
+                                       CCGVert ***verts,
+                                       int *numVerts,
+                                       CCGEdge ***edges,
+                                       int *numEdges);
 
 /* * CCGSubSurf_legacy.c * */
 
