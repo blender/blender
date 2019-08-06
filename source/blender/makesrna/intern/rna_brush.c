@@ -1565,7 +1565,7 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-static const EnumPropertyItem color_gradient_items[] = {
+  static const EnumPropertyItem color_gradient_items[] = {
       {0, "COLOR", 0, "Color", "Paint with a single color"},
       {BRUSH_USE_GRADIENT, "GRADIENT", 0, "Gradient", "Paint with a gradient"},
       {0, NULL, 0, NULL, NULL},

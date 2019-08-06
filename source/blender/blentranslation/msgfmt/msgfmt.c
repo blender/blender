@@ -82,12 +82,12 @@ static char *trim(char *str)
     return str;
   }
 
-  for (i = 0; i < len && ELEM(str[0], ' ', '\t', '\r','\n'); str++, i++) {
+  for (i = 0; i < len && ELEM(str[0], ' ', '\t', '\r', '\n'); str++, i++) {
     /* pass */
   }
 
   char *end = &str[len - 1 - i];
-  for (i = len; i > 0 && ELEM(end[0], ' ', '\t', '\r','\n'); end--, i--) {
+  for (i = len; i > 0 && ELEM(end[0], ' ', '\t', '\r', '\n'); end--, i--) {
     /* pass */
   }
 
