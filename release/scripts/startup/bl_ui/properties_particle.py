@@ -272,7 +272,9 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
         col = layout.column()
         col.active = part.emit_from == 'VERT' or part.distribution != 'GRID'
         col.prop(part, "count")
-        col.prop(psys, "seed")
+
+        if psys is not None:
+            col.prop(psys, "seed")
 
         if part.type == 'HAIR':
             col.prop(part, "hair_length")
