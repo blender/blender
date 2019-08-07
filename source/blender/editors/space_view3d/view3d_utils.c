@@ -1261,6 +1261,36 @@ void ED_view3d_distance_set(RegionView3D *rv3d, const float dist)
   rv3d->dist = dist;
 }
 
+/**
+ * Change the distance & offset to match the depth of \a dist_co along the view axis.
+ *
+ * \param dist_co: A world-space location to use for the new depth.
+ * \param dist_min: Resulting distances below this will be ignored.
+ * \return Success if the distance was set.
+ */
+bool ED_view3d_distance_set_from_location(RegionView3D *rv3d,
+                                          const float dist_co[3],
+                                          const float dist_min)
+{
+  float viewinv[4];
+  invert_qt_qt_normalized(viewinv, rv3d->viewquat);
+
+  float tvec[3] = {0.0f, 0.0f, -1.0f};
+  mul_qt_v3(viewinv, tvec);
+
+  float dist_co_local[3];
+  negate_v3_v3(dist_co_local, rv3d->ofs);
+  sub_v3_v3v3(dist_co_local, dist_co, dist_co_local);
+  const float delta = dot_v3v3(tvec, dist_co_local);
+  const float dist_new = rv3d->dist + delta;
+  if (dist_new >= dist_min) {
+    madd_v3_v3fl(rv3d->ofs, tvec, -delta);
+    rv3d->dist = dist_new;
+    return true;
+  }
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
