@@ -2691,6 +2691,12 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
         wmKeyMap *keymap = WM_event_get_keymap_from_handler(wm, handler);
         action |= wm_handlers_do_keymap_with_keymap_handler(
             C, event, handlers, handler, keymap, do_debug_handler);
+
+        /* Clear the tool-tip whenever a key binding is handled, without this tool-tips
+         * are kept when a modal operators starts (annoying but otherwise harmless). */
+        if (action & WM_HANDLER_BREAK) {
+          WM_tooltip_clear(C, CTX_wm_window(C));
+        }
       }
       else if (handler_base->type == WM_HANDLER_TYPE_UI) {
         wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
