@@ -176,6 +176,7 @@ class IMAGE_MT_select(Menu):
         layout.separator()
 
         layout.operator("uv.select_split")
+        layout.operator("uv.select_overlap")
 
 
 class IMAGE_MT_brush(Menu):

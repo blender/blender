@@ -43,7 +43,10 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
+#include "BLI_hash.h"
 #include "BLI_kdtree.h"
+#include "BLI_kdopbvh.h"
+#include "BLI_polyfill_2d.h"
 
 #include "BLT_translation.h"
 
@@ -4339,6 +4342,246 @@ static void UV_OT_select_pinned(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Select Overlap Operator
+ * \{ */
+
+BLI_INLINE uint overlap_hash(const void *overlap_v)
+{
+  const BVHTreeOverlap *overlap = overlap_v;
+
+  /* Designed to treat (A,B) and (B,A) as the same. */
+  int x = overlap->indexA;
+  int y = overlap->indexB;
+  if (x > y) {
+    SWAP(int, x, y);
+  }
+  return BLI_hash_int_2d(x, y);
+}
+
+BLI_INLINE bool overlap_cmp(const void *a_v, const void *b_v)
+{
+  const BVHTreeOverlap *a = a_v;
+  const BVHTreeOverlap *b = b_v;
+  return !((a->indexA == b->indexA && a->indexB == b->indexB) ||
+           (a->indexA == b->indexB && a->indexB == b->indexA));
+}
+
+struct UVOverlapData {
+  int ob_index;
+  int face_index;
+  float tri[3][2];
+};
+
+static int uv_select_overlap(bContext *C, const bool extend)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Image *ima = CTX_data_edit_image(C);
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      view_layer, ((View3D *)NULL), &objects_len);
+
+  /* Calculate maximum number of tree nodes and prepare initial selection. */
+  uint uv_tri_len = 0;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    BM_mesh_elem_table_ensure(em->bm, BM_FACE);
+    BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
+    BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+    if (!extend) {
+      uv_select_all_perform(scene, ima, obedit, SEL_DESELECT);
+    }
+
+    BMIter iter;
+    BMFace *efa;
+    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test_ex(scene->toolsettings, obedit, ima, efa)) {
+        continue;
+      }
+      uv_tri_len += efa->len - 2;
+    }
+  }
+
+  struct UVOverlapData *overlap_data = MEM_mallocN(sizeof(struct UVOverlapData) * uv_tri_len,
+                                                   "UvOverlapData");
+  BVHTree *uv_tree = BLI_bvhtree_new(uv_tri_len, 0.0f, 4, 6);
+
+  /* Use a global data index when inserting into the BVH. */
+  int data_index = 0;
+
+  int face_len_alloc = 3;
+  float(*uv_verts)[2] = MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords");
+  uint(*indices)[3] = MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris");
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMIter iter, liter;
+    BMFace *efa;
+    BMLoop *l;
+
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+    /* Triangulate each UV face and store it inside the BVH. */
+    int face_index;
+    BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, face_index) {
+
+      if (!uvedit_face_visible_test_ex(scene->toolsettings, obedit, ima, efa)) {
+        continue;
+      }
+
+      const uint face_len = efa->len;
+      const uint tri_len = face_len - 2;
+
+      if (face_len_alloc < face_len) {
+        MEM_freeN(uv_verts);
+        MEM_freeN(indices);
+        uv_verts = MEM_mallocN(sizeof(*uv_verts) * face_len, "UvOverlapCoords");
+        indices = MEM_mallocN(sizeof(*indices) * tri_len, "UvOverlapTris");
+        face_len_alloc = face_len;
+      }
+
+      int vert_index;
+      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, vert_index) {
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        copy_v2_v2(uv_verts[vert_index], luv->uv);
+      }
+
+      BLI_polyfill_calc(uv_verts, face_len, 0, indices);
+
+      for (int t = 0; t < tri_len; t++) {
+        overlap_data[data_index].ob_index = ob_index;
+        overlap_data[data_index].face_index = face_index;
+
+        /* BVH needs 3D, overlap data uses 2D. */
+        float tri[3][3] = {
+            {UNPACK2(uv_verts[indices[t][0]]), 0.0f},
+            {UNPACK2(uv_verts[indices[t][1]]), 0.0f},
+            {UNPACK2(uv_verts[indices[t][2]]), 0.0f},
+        };
+
+        copy_v2_v2(overlap_data[data_index].tri[0], tri[0]);
+        copy_v2_v2(overlap_data[data_index].tri[1], tri[1]);
+        copy_v2_v2(overlap_data[data_index].tri[2], tri[2]);
+
+        BLI_bvhtree_insert(uv_tree, data_index, &tri[0][0], 3);
+        data_index++;
+      }
+    }
+  }
+  BLI_assert(data_index == uv_tri_len);
+
+  MEM_freeN(uv_verts);
+  MEM_freeN(indices);
+
+  BLI_bvhtree_balance(uv_tree);
+
+  uint tree_overlap_len;
+  BVHTreeOverlap *overlap = BLI_bvhtree_overlap(uv_tree, uv_tree, &tree_overlap_len, NULL, NULL);
+
+  if (overlap != NULL) {
+    GSet *overlap_set = BLI_gset_new_ex(overlap_hash, overlap_cmp, __func__, tree_overlap_len);
+
+    for (int i = 0; i < tree_overlap_len; i++) {
+      /* Skip overlaps against yourself. */
+      if (overlap[i].indexA == overlap[i].indexB) {
+        continue;
+      }
+
+      /* Skip overlaps that have already been tested. */
+      if (!BLI_gset_add(overlap_set, &overlap[i])) {
+        continue;
+      }
+
+      const struct UVOverlapData *o_a = &overlap_data[overlap[i].indexA];
+      const struct UVOverlapData *o_b = &overlap_data[overlap[i].indexB];
+      Object *obedit_a = objects[o_a->ob_index];
+      Object *obedit_b = objects[o_b->ob_index];
+      BMEditMesh *em_a = BKE_editmesh_from_object(obedit_a);
+      BMEditMesh *em_b = BKE_editmesh_from_object(obedit_b);
+      BMFace *face_a = em_a->bm->ftable[o_a->face_index];
+      BMFace *face_b = em_b->bm->ftable[o_b->face_index];
+      const int cd_loop_uv_offset_a = CustomData_get_offset(&em_a->bm->ldata, CD_MLOOPUV);
+      const int cd_loop_uv_offset_b = CustomData_get_offset(&em_b->bm->ldata, CD_MLOOPUV);
+
+      /* Skip if both faces are already selected. */
+      if (uvedit_face_select_test(scene, face_a, cd_loop_uv_offset_a) &&
+          uvedit_face_select_test(scene, face_b, cd_loop_uv_offset_b)) {
+        continue;
+      }
+
+      /* Main tri-tri overlap test. */
+      const float endpoint_bias = -1e-4f;
+      const float(*t1)[2] = o_a->tri;
+      const float(*t2)[2] = o_b->tri;
+      float vi[2];
+      bool result =
+          isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[0], t2[1], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[1], t2[2], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[0], t1[1], t2[2], t2[0], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[1], t1[2], t2[0], t2[1], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[1], t1[2], t2[1], t2[2], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[1], t1[2], t2[2], t2[0], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[2], t1[0], t2[0], t2[1], endpoint_bias, vi) == 1 ||
+          isect_seg_seg_v2_point_ex(t1[2], t1[0], t2[1], t2[2], endpoint_bias, vi) == 1 ||
+          isect_point_tri_v2(t1[0], t2[0], t2[1], t2[2]) != 0 ||
+          isect_point_tri_v2(t2[0], t1[0], t1[1], t1[2]) != 0;
+
+      if (result) {
+        uvedit_face_select_enable(scene, em_a, face_a, false, cd_loop_uv_offset_a);
+        uvedit_face_select_enable(scene, em_b, face_b, false, cd_loop_uv_offset_b);
+      }
+    }
+
+    BLI_gset_free(overlap_set, NULL);
+    MEM_freeN(overlap);
+  }
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    uv_select_tag_update_for_object(depsgraph, scene->toolsettings, objects[ob_index]);
+  }
+
+  BLI_bvhtree_free(uv_tree);
+
+  MEM_freeN(overlap_data);
+  MEM_freeN(objects);
+
+  return OPERATOR_FINISHED;
+}
+
+static int uv_select_overlap_exec(bContext *C, wmOperator *op)
+{
+  bool extend = RNA_boolean_get(op->ptr, "extend");
+  return uv_select_overlap(C, extend);
+}
+
+static void UV_OT_select_overlap(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Overlap";
+  ot->description = "Select all UV faces which overlap each other";
+  ot->idname = "UV_OT_select_overlap";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* api callbacks */
+  ot->exec = uv_select_overlap_exec;
+  ot->poll = ED_operator_uvedit;
+
+  /* properties */
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  0,
+                  "Extend",
+                  "Extend selection rather than clearing the existing selection");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hide Operator
  * \{ */
 
@@ -4971,6 +5214,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_select_circle);
   WM_operatortype_append(UV_OT_select_more);
   WM_operatortype_append(UV_OT_select_less);
+  WM_operatortype_append(UV_OT_select_overlap);
 
   WM_operatortype_append(UV_OT_snap_cursor);
   WM_operatortype_append(UV_OT_snap_selected);
