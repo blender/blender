@@ -1254,9 +1254,9 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
       float camera_aspect_y = 1.0;
       float camera_offset_x = 0.0;
       float camera_offset_y = 0.0;
-      float camera_aspect = 1.0;
       float camera_width = size[0];
       float camera_height = size[1];
+      float camera_aspect = camera_width / camera_height;
 
       if (!DRW_state_is_image_render()) {
         rctf render_border;
@@ -1284,48 +1284,52 @@ static void DRW_shgroup_camera_background_images(OBJECT_Shaders *sh_data,
       uv2img_space[0][0] = image_width;
       uv2img_space[1][1] = image_height;
 
-      img2cam_space[0][0] = (1.0 / image_width);
-      img2cam_space[1][1] = (1.0 / image_height);
+      const float fit_scale = image_aspect / camera_aspect;
+      img2cam_space[0][0] = 1.0 / image_width;
+      img2cam_space[1][1] = 1.0 / fit_scale / image_height;
 
       /* Update scaling based on image and camera framing */
       float scale_x = bgpic->scale;
       float scale_y = bgpic->scale;
 
       if (bgpic->flag & CAM_BGIMG_FLAG_CAMERA_ASPECT) {
-        float fit_scale = image_aspect / camera_aspect;
         if (bgpic->flag & CAM_BGIMG_FLAG_CAMERA_CROP) {
           if (image_aspect > camera_aspect) {
             scale_x *= fit_scale;
-          }
-          else {
-            scale_y /= fit_scale;
+            scale_y *= fit_scale;
           }
         }
         else {
           if (image_aspect > camera_aspect) {
+            scale_x /= fit_scale;
             scale_y /= fit_scale;
           }
           else {
             scale_x *= fit_scale;
+            scale_y *= fit_scale;
           }
         }
+      }
+      else {
+        /* Stretch image to camera aspect */
+        scale_y /= 1.0 / fit_scale;
       }
 
       // scale image to match the desired aspect ratio
       scale_m4[0][0] = scale_x;
       scale_m4[1][1] = scale_y;
 
-      /* Translate, using coordinates that aren't squashed by the aspect. */
-      translate_m4[3][0] = bgpic->offset[0] * 2.0f * max_ff(1.0f, 1.0f / camera_aspect);
-      translate_m4[3][1] = bgpic->offset[1] * 2.0f * max_ff(1.0f, camera_aspect);
+      /* Translate */
+      translate_m4[3][0] = image_width * bgpic->offset[0] * 2.0f;
+      translate_m4[3][1] = image_height * bgpic->offset[1] * 2.0f;
 
       mul_m4_series(bg_data->transform_mat,
                     win_m4_translate,
                     win_m4_scale,
-                    translate_m4,
                     img2cam_space,
-                    scale_m4,
+                    translate_m4,
                     rot_m4,
+                    scale_m4,
                     uv2img_space);
 
       DRWPass *pass = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) ? psl->camera_images_front :
