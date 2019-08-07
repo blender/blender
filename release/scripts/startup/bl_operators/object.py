@@ -914,7 +914,8 @@ class LoadImageAsEmpty:
             align=('VIEW' if self.view_align else 'WORLD'),
         )
 
-        obj = context.active_object
+        view_layer = context.view_layer
+        obj = view_layer.objects.active
         obj.data = image
         obj.empty_display_size = 5.0
         self.set_settings(context, obj)
