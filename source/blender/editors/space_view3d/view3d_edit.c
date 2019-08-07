@@ -201,7 +201,7 @@ static void calctrackballvec(const rcti *rect, const int event_xy[2], float r_di
 
   /* Normalize x and y. */
   r_dir[0] = (event_xy[0] - BLI_rcti_cent_x(rect)) / ((size[0] * aspect[0]) / 2.0);
-  r_dir[1] = (event_xy[1] - BLI_rcti_cent_x(rect)) / ((size[1] * aspect[1]) / 2.0);
+  r_dir[1] = (event_xy[1] - BLI_rcti_cent_y(rect)) / ((size[1] * aspect[1]) / 2.0);
   const float d = len_v2(r_dir);
   if (d < t) {
     /* Inside sphere. */
