@@ -1299,6 +1299,9 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   }
   else {
     Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
+    if (depsgraph) {
+      depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    }
     wmWindowManager *wm = CTX_wm_manager(C);
     ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
     BKE_paint_toolslots_brush_validate(bmain, &ts->wpaint->paint);

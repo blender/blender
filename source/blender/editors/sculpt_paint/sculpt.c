@@ -6238,6 +6238,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
   }
   else {
+    if (depsgraph) {
+      depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    }
     ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports);
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
   }
