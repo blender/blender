@@ -130,8 +130,12 @@ uint *DRW_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
     }
     buf_iter++;
   }
-
   MEM_freeN((void *)buf);
+
+  if (r_bitmap_len) {
+    *r_bitmap_len = bitmap_len;
+  }
+
   return bitmap_buf;
 }
 
