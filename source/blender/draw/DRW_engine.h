@@ -176,17 +176,4 @@ void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
 void DRW_drawdata_free(struct ID *id);
 
-/* select_engine.c */
-void DRW_select_context_create(struct Base **bases, const uint bases_len, short select_mode);
-bool DRW_select_elem_get(const uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
-uint DRW_select_context_offset_for_object_elem(const uint base_index, char elem_type);
-uint DRW_select_context_elem_len(void);
-uint *DRW_framebuffer_select_id_read(const struct rcti *rect, uint *r_buf_len);
-void DRW_draw_select_id_object(struct Depsgraph *depsgraph,
-                               struct ViewLayer *view_layer,
-                               struct ARegion *ar,
-                               struct View3D *v3d,
-                               struct Object *ob,
-                               short select_mode);
-
 #endif /* __DRW_ENGINE_H__ */

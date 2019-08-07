@@ -102,6 +102,7 @@
 #include "RE_engine.h"
 
 #include "DRW_engine.h"
+#include "DRW_select_buffer.h"
 
 #include "view3d_intern.h" /* own include */
 

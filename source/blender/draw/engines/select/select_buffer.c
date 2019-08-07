@@ -13,17 +13,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
+ * Copyright 2019, Blender Foundation.
  */
 
 /** \file
- * \ingroup edutil
+ * \ingroup draw_engine
  *
- * Generic utilities for handling buffer selection where selection ID's are drawn onto
- * an off screen buffer.
- *
- * All coordinates are relative to the current region.
+ * Utilities to read id buffer created in select_engine.
  */
 
 #include "MEM_guardedalloc.h"
@@ -31,11 +27,67 @@
 #include "BLI_bitmap.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
+
+#include "DNA_screen_types.h"
+
+#include "GPU_select.h"
 
 #include "DRW_engine.h"
+#include "DRW_select_buffer.h"
 
-#include "ED_select_buffer_utils.h"
+#include "select_private.h"
+#include "select_engine.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Buffer of select ID's
+ * \{ */
+
+/* Read a block of pixels from the select frame buffer. */
+uint *DRW_select_buffer_read(const rcti *rect, uint *r_buf_len)
+{
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  /* clamp rect by texture */
+  rcti r = {
+      .xmin = 0,
+      .xmax = GPU_texture_width(select_ctx->texture_u32),
+      .ymin = 0,
+      .ymax = GPU_texture_height(select_ctx->texture_u32),
+  };
+
+  rcti rect_clamp = *rect;
+  if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
+    uint buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
+    uint *r_buf = MEM_mallocN(buf_len * sizeof(*r_buf), __func__);
+
+    DRW_opengl_context_enable();
+    GPU_framebuffer_bind(select_ctx->framebuffer_select_id);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadPixels(rect_clamp.xmin,
+                 rect_clamp.ymin,
+                 BLI_rcti_size_x(&rect_clamp),
+                 BLI_rcti_size_y(&rect_clamp),
+                 GL_RED_INTEGER,
+                 GL_UNSIGNED_INT,
+                 r_buf);
+
+    GPU_framebuffer_restore();
+    DRW_opengl_context_disable();
+
+    if (!BLI_rcti_compare(rect, &rect_clamp)) {
+      GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
+    }
+
+    if (r_buf_len) {
+      *r_buf_len = buf_len;
+    }
+
+    return r_buf;
+  }
+  return NULL;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Select Bitmap from ID's
@@ -46,13 +98,15 @@
  * \{ */
 
 /**
- * \param bitmap_len: Number of indices in the selection id buffer.
  * \param rect: The rectangle to sample indices from (min/max inclusive).
+ * \param mask: Specifies the rect pixels (optional).
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
-uint *ED_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
+uint *DRW_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
 {
-  const uint bitmap_len = DRW_select_context_elem_len();
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
     return NULL;
   }
@@ -62,16 +116,13 @@ uint *ED_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
   rect_px.ymax += 1;
 
   uint buf_len;
-  const uint *buf = DRW_framebuffer_select_id_read(&rect_px, &buf_len);
-
+  uint *buf = DRW_select_buffer_read(&rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
 
-  const uint *buf_iter = buf;
-
   BLI_bitmap *bitmap_buf = BLI_BITMAP_NEW(bitmap_len, __func__);
-
+  const uint *buf_iter = buf;
   while (buf_len--) {
     const uint index = *buf_iter - 1;
     if (index < bitmap_len) {
@@ -79,12 +130,8 @@ uint *ED_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
     }
     buf_iter++;
   }
+
   MEM_freeN((void *)buf);
-
-  if (r_bitmap_len) {
-    *r_bitmap_len = bitmap_len;
-  }
-
   return bitmap_buf;
 }
 
@@ -94,11 +141,13 @@ uint *ED_select_buffer_bitmap_from_rect(const rcti *rect, uint *r_bitmap_len)
  * \param radius: Circle radius.
  * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
  */
-uint *ED_select_buffer_bitmap_from_circle(const int center[2],
-                                          const int radius,
-                                          uint *r_bitmap_len)
+uint *DRW_select_buffer_bitmap_from_circle(const int center[2],
+                                           const int radius,
+                                           uint *r_bitmap_len)
 {
-  const uint bitmap_len = DRW_select_context_elem_len();
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
     return NULL;
   }
@@ -110,7 +159,7 @@ uint *ED_select_buffer_bitmap_from_circle(const int center[2],
       .ymax = center[1] + radius + 1,
   };
 
-  const uint *buf = DRW_framebuffer_select_id_read(&rect, NULL);
+  const uint *buf = DRW_select_buffer_read(&rect, NULL);
 
   if (buf == NULL) {
     return NULL;
@@ -145,7 +194,7 @@ struct PolyMaskData {
   int width;
 };
 
-static void ed_select_buffer_mask_px_cb(int x, int x_end, int y, void *user_data)
+static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
 {
   struct PolyMaskData *data = user_data;
   BLI_bitmap *px = data->px;
@@ -157,18 +206,16 @@ static void ed_select_buffer_mask_px_cb(int x, int x_end, int y, void *user_data
 }
 
 /**
- * \param bitmap_len: Number of indices in the selection id buffer.
- * \param center: Circle center.
- * \param radius: Circle radius.
- * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
+ * \param poly: The polygon coordinates.
+ * \param poly_len: Length of the polygon.
+ * \param rect: Polygon boundaries.
+ * \returns a #BLI_bitmap.
  */
-uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
-                                        const int poly_len,
-                                        const rcti *rect,
-                                        uint *r_bitmap_len)
-
+uint *DRW_select_buffer_bitmap_from_poly(const int poly[][2], const int poly_len, const rcti *rect)
 {
-  const uint bitmap_len = DRW_select_context_elem_len();
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  const uint bitmap_len = select_ctx->last_index_drawn;
   if (bitmap_len == 0) {
     return NULL;
   }
@@ -177,15 +224,15 @@ uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
   rect_px.xmax += 1;
   rect_px.ymax += 1;
 
-  struct PolyMaskData poly_mask_data;
   uint buf_len;
-  const uint *buf = DRW_framebuffer_select_id_read(&rect_px, &buf_len);
-
+  uint *buf = DRW_select_buffer_read(&rect_px, &buf_len);
   if (buf == NULL) {
     return NULL;
   }
 
   BLI_bitmap *buf_mask = BLI_BITMAP_NEW(buf_len, __func__);
+
+  struct PolyMaskData poly_mask_data;
   poly_mask_data.px = buf_mask;
   poly_mask_data.width = (rect->xmax - rect->xmin) + 1;
 
@@ -195,12 +242,11 @@ uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
                                 rect_px.ymax,
                                 poly,
                                 poly_len,
-                                ed_select_buffer_mask_px_cb,
+                                drw_select_mask_px_cb,
                                 &poly_mask_data);
 
-  /* Build selection lookup. */
-  const uint *buf_iter = buf;
   BLI_bitmap *bitmap_buf = BLI_BITMAP_NEW(bitmap_len, __func__);
+  const uint *buf_iter = buf;
   int i = 0;
   while (buf_len--) {
     const uint index = *buf_iter - 1;
@@ -212,10 +258,6 @@ uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
   }
   MEM_freeN((void *)buf);
   MEM_freeN(buf_mask);
-
-  if (r_bitmap_len) {
-    *r_bitmap_len = bitmap_len;
-  }
 
   return bitmap_buf;
 }
@@ -232,7 +274,7 @@ uint *ED_select_buffer_bitmap_from_poly(const int poly[][2],
 /**
  * Samples a single pixel.
  */
-uint ED_select_buffer_sample_point(const int center[2])
+uint DRW_select_buffer_sample_point(const int center[2])
 {
   const rcti rect = {
       .xmin = center[0],
@@ -242,7 +284,7 @@ uint ED_select_buffer_sample_point(const int center[2])
   };
 
   uint buf_len;
-  uint *buf = DRW_framebuffer_select_id_read(&rect, &buf_len);
+  uint *buf = DRW_select_buffer_read(&rect, &buf_len);
   BLI_assert(0 != buf_len);
   uint ret = buf[0];
   MEM_freeN(buf);
@@ -254,10 +296,10 @@ uint ED_select_buffer_sample_point(const int center[2])
  * \param dist[in,out]: Use to initialize the distance,
  * when found, this value is set to the distance of the selection that's returned.
  */
-uint ED_select_buffer_find_nearest_to_point(const int center[2],
-                                            const uint id_min,
-                                            const uint id_max,
-                                            uint *dist)
+uint DRW_select_buffer_find_nearest_to_point(const int center[2],
+                                             const uint id_min,
+                                             const uint id_max,
+                                             uint *dist)
 {
   /* Smart function to sample a rect spiraling outside, nice for selection ID. */
 
@@ -279,7 +321,7 @@ uint ED_select_buffer_find_nearest_to_point(const int center[2],
   /* Read from selection framebuffer. */
 
   uint buf_len;
-  const uint *buf = DRW_framebuffer_select_id_read(&rect, &buf_len);
+  const uint *buf = DRW_select_buffer_read(&rect, &buf_len);
 
   if (buf == NULL) {
     return index;
@@ -340,6 +382,115 @@ uint ED_select_buffer_find_nearest_to_point(const int center[2],
 exit:
   MEM_freeN((void *)buf);
   return index;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Utils
+ * \{ */
+
+bool DRW_select_buffer_elem_get(const uint sel_id,
+                                uint *r_elem,
+                                uint *r_base_index,
+                                char *r_elem_type)
+{
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  char elem_type = 0;
+  uint elem_id;
+  uint base_index = 0;
+
+  for (; base_index < select_ctx->objects_len; base_index++) {
+    struct BaseOffset *base_ofs = &select_ctx->index_offsets[base_index];
+
+    if (base_ofs->face > sel_id) {
+      elem_id = sel_id - base_ofs->face_start;
+      elem_type = SCE_SELECT_FACE;
+      break;
+    }
+    if (base_ofs->edge > sel_id) {
+      elem_id = sel_id - base_ofs->edge_start;
+      elem_type = SCE_SELECT_EDGE;
+      break;
+    }
+    if (base_ofs->vert > sel_id) {
+      elem_id = sel_id - base_ofs->vert_start;
+      elem_type = SCE_SELECT_VERTEX;
+      break;
+    }
+  }
+
+  if (base_index == select_ctx->objects_len) {
+    return false;
+  }
+
+  *r_elem = elem_id;
+
+  if (r_base_index) {
+    *r_base_index = base_index;
+  }
+
+  if (r_elem_type) {
+    *r_elem_type = elem_type;
+  }
+
+  return true;
+}
+
+uint DRW_select_buffer_context_offset_for_object_elem(const uint base_index, char elem_type)
+{
+  struct SELECTID_Context *select_ctx = select_context_get();
+  struct BaseOffset *base_ofs = &select_ctx->index_offsets[base_index];
+
+  if (elem_type == SCE_SELECT_VERTEX) {
+    return base_ofs->vert_start - 1;
+  }
+  if (elem_type == SCE_SELECT_EDGE) {
+    return base_ofs->edge_start - 1;
+  }
+  if (elem_type == SCE_SELECT_FACE) {
+    return base_ofs->face_start - 1;
+  }
+  BLI_assert(0);
+  return 0;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Context
+ * \{ */
+
+void DRW_select_buffer_context_create(Base **UNUSED(bases),
+                                      const uint bases_len,
+                                      short select_mode)
+{
+  struct SELECTID_Context *select_ctx = select_context_get();
+
+  select_ctx->select_mode = select_mode;
+  select_ctx->objects_len = bases_len;
+
+  MEM_SAFE_FREE(select_ctx->index_offsets);
+  select_ctx->index_offsets = MEM_mallocN(sizeof(*select_ctx->index_offsets) * bases_len,
+                                          __func__);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Legacy
+ * \{ */
+
+void DRW_draw_select_id_object(Depsgraph *depsgraph,
+                               ViewLayer *view_layer,
+                               ARegion *ar,
+                               View3D *v3d,
+                               Object *ob,
+                               short select_mode)
+{
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
+  DRW_draw_select_id(depsgraph, ar, v3d, &base, 1, select_mode);
 }
 
 /** \} */

@@ -22,12 +22,9 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
-#include "BLI_rect.h"
-
 #include "DNA_screen_types.h"
 
 #include "GPU_shader.h"
-#include "GPU_select.h"
 
 #include "UI_resources.h"
 
@@ -42,60 +39,13 @@
 
 static struct {
   SELECTID_Shaders sh_data[GPU_SHADER_CFG_LEN];
-
-  struct GPUFrameBuffer *framebuffer_select_id;
-  struct GPUTexture *texture_u32;
-
-  struct {
-    struct BaseOffset *base_array_index_offsets;
-    uint bases_len;
-    uint last_base_drawn;
-    /** Total number of items `base_array_index_offsets[bases_len - 1].vert`. */
-    uint last_index_drawn;
-
-    short select_mode;
-  } context;
+  struct SELECTID_Context context;
 } e_data = {{{NULL}}}; /* Engine data */
 
 /* Shaders */
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_selection_id_3D_vert_glsl[];
 extern char datatoc_selection_id_frag_glsl[];
-
-/* -------------------------------------------------------------------- */
-/** \name Selection Utilities
- * \{ */
-
-static void draw_select_framebuffer_select_id_setup(void)
-{
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  int size[2];
-  size[0] = GPU_texture_width(dtxl->depth);
-  size[1] = GPU_texture_height(dtxl->depth);
-
-  if (e_data.framebuffer_select_id == NULL) {
-    e_data.framebuffer_select_id = GPU_framebuffer_create();
-  }
-
-  if ((e_data.texture_u32 != NULL) && ((GPU_texture_width(e_data.texture_u32) != size[0]) ||
-                                       (GPU_texture_height(e_data.texture_u32) != size[1]))) {
-
-    GPU_texture_free(e_data.texture_u32);
-    e_data.texture_u32 = NULL;
-  }
-
-  /* Make sure the depth texture is attached.
-   * It may disappear when loading another Blender session. */
-  GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, dtxl->depth, 0, 0);
-
-  if (e_data.texture_u32 == NULL) {
-    e_data.texture_u32 = GPU_texture_create_2d(size[0], size[1], GPU_R32UI, NULL, NULL);
-    GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, e_data.texture_u32, 0, 0);
-    GPU_framebuffer_check_valid(e_data.framebuffer_select_id, NULL);
-  }
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Functions
@@ -206,15 +156,14 @@ static void select_cache_init(void *vedata)
     }
   }
 
-  e_data.context.last_base_drawn = 0;
+  e_data.context.last_object_drawn = 0;
   e_data.context.last_index_drawn = 1;
 }
 
 static void select_cache_populate(void *vedata, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  struct BaseOffset *base_ofs =
-      &e_data.context.base_array_index_offsets[e_data.context.last_base_drawn++];
+  struct BaseOffset *base_ofs = &e_data.context.index_offsets[e_data.context.last_object_drawn++];
 
   uint offset = e_data.context.last_index_drawn;
 
@@ -237,13 +186,14 @@ static void select_draw_scene(void *vedata)
   SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
 
   /* Setup framebuffer */
-  draw_select_framebuffer_select_id_setup();
-  GPU_framebuffer_bind(e_data.framebuffer_select_id);
+  draw_select_framebuffer_select_id_setup(&e_data.context);
+  GPU_framebuffer_bind(e_data.context.framebuffer_select_id);
 
   /* dithering and AA break color coding, so disable */
   glDisable(GL_DITHER);
 
-  GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, (const float[4]){0.0f}, 1.0f);
+  GPU_framebuffer_clear_color_depth(
+      e_data.context.framebuffer_select_id, (const float[4]){0.0f}, 1.0f);
 
   DRW_view_set_active(stl->g_data->view_faces);
   DRW_draw_pass(psl->select_id_face_pass);
@@ -267,150 +217,9 @@ static void select_engine_free(void)
     DRW_SHADER_FREE_SAFE(sh_data->select_id_uniform);
   }
 
-  DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
-  GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
-  MEM_SAFE_FREE(e_data.context.base_array_index_offsets);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Exposed `DRW_engine.h` functions
- * \{ */
-
-bool DRW_select_elem_get(const uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type)
-{
-  char elem_type = 0;
-  uint elem_id;
-  uint base_index = 0;
-
-  for (; base_index < e_data.context.bases_len; base_index++) {
-    struct BaseOffset *base_ofs = &e_data.context.base_array_index_offsets[base_index];
-
-    if (base_ofs->face > sel_id) {
-      elem_id = sel_id - base_ofs->face_start;
-      elem_type = SCE_SELECT_FACE;
-      break;
-    }
-    if (base_ofs->edge > sel_id) {
-      elem_id = sel_id - base_ofs->edge_start;
-      elem_type = SCE_SELECT_EDGE;
-      break;
-    }
-    if (base_ofs->vert > sel_id) {
-      elem_id = sel_id - base_ofs->vert_start;
-      elem_type = SCE_SELECT_VERTEX;
-      break;
-    }
-  }
-
-  if (base_index == e_data.context.bases_len) {
-    return false;
-  }
-
-  *r_elem = elem_id;
-
-  if (r_base_index) {
-    *r_base_index = base_index;
-  }
-
-  if (r_elem_type) {
-    *r_elem_type = elem_type;
-  }
-
-  return true;
-}
-
-uint DRW_select_context_offset_for_object_elem(const uint base_index, char elem_type)
-{
-  struct BaseOffset *base_ofs = &e_data.context.base_array_index_offsets[base_index];
-
-  if (elem_type == SCE_SELECT_VERTEX) {
-    return base_ofs->vert_start - 1;
-  }
-  if (elem_type == SCE_SELECT_EDGE) {
-    return base_ofs->edge_start - 1;
-  }
-  if (elem_type == SCE_SELECT_FACE) {
-    return base_ofs->face_start - 1;
-  }
-  BLI_assert(0);
-  return 0;
-}
-
-uint DRW_select_context_elem_len(void)
-{
-  return e_data.context.last_index_drawn;
-}
-
-/* Read a block of pixels from the select frame buffer. */
-uint *DRW_framebuffer_select_id_read(const rcti *rect, uint *r_buf_len)
-{
-  /* clamp rect by texture */
-  rcti r = {
-      .xmin = 0,
-      .xmax = GPU_texture_width(e_data.texture_u32),
-      .ymin = 0,
-      .ymax = GPU_texture_height(e_data.texture_u32),
-  };
-
-  rcti rect_clamp = *rect;
-  if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
-    size_t buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
-    uint *r_buf = MEM_mallocN(buf_len * sizeof(*r_buf), __func__);
-
-    DRW_opengl_context_enable();
-    GPU_framebuffer_bind(e_data.framebuffer_select_id);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
-    glReadPixels(rect_clamp.xmin,
-                 rect_clamp.ymin,
-                 BLI_rcti_size_x(&rect_clamp),
-                 BLI_rcti_size_y(&rect_clamp),
-                 GL_RED_INTEGER,
-                 GL_UNSIGNED_INT,
-                 r_buf);
-
-    GPU_framebuffer_restore();
-    DRW_opengl_context_disable();
-
-    if (!BLI_rcti_compare(rect, &rect_clamp)) {
-      GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
-    }
-
-    if (r_buf_len) {
-      *r_buf_len = buf_len;
-    }
-
-    return r_buf;
-  }
-  return NULL;
-}
-
-void DRW_select_context_create(Base **UNUSED(bases), const uint bases_len, short select_mode)
-{
-  e_data.context.select_mode = select_mode;
-  e_data.context.bases_len = bases_len;
-
-  MEM_SAFE_FREE(e_data.context.base_array_index_offsets);
-  e_data.context.base_array_index_offsets = MEM_mallocN(
-      sizeof(*e_data.context.base_array_index_offsets) * bases_len, __func__);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Legacy
- * \{ */
-
-void DRW_draw_select_id_object(Depsgraph *depsgraph,
-                               ViewLayer *view_layer,
-                               ARegion *ar,
-                               View3D *v3d,
-                               Object *ob,
-                               short select_mode)
-{
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-  DRW_draw_select_id(depsgraph, ar, v3d, &base, 1, select_mode);
+  DRW_TEXTURE_FREE_SAFE(e_data.context.texture_u32);
+  GPU_FRAMEBUFFER_FREE_SAFE(e_data.context.framebuffer_select_id);
+  MEM_SAFE_FREE(e_data.context.index_offsets);
 }
 
 /** \} */
@@ -456,6 +265,17 @@ RenderEngineType DRW_engine_viewport_select_type = {
     &draw_engine_select_type,
     {NULL, NULL, NULL},
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Exposed `select_private.h` functions
+ * \{ */
+
+struct SELECTID_Context *select_context_get(void)
+{
+  return &e_data.context;
+}
 
 /** \} */
 

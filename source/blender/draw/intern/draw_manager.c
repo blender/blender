@@ -96,6 +96,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "DRW_select_buffer.h"
+
 #ifdef USE_GPU_SELECT
 #  include "GPU_select.h"
 #endif
@@ -2563,7 +2565,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph,
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
-  DRW_select_context_create(bases, bases_len, select_mode);
+  DRW_select_buffer_context_create(bases, bases_len, select_mode);
 
   DRW_opengl_context_enable();
 

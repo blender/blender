@@ -129,8 +129,10 @@ set(SRC
   engines/gpencil/gpencil_shader_fx.c
   engines/select/select_engine.c
   engines/select/select_draw_utils.c
+  engines/select/select_buffer.c
 
   DRW_engine.h
+  DRW_select_buffer.h
   intern/DRW_render.h
   intern/draw_cache.h
   intern/draw_cache_impl.h

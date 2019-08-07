@@ -71,7 +71,8 @@
 
 #include "BLI_sys_types.h"
 #include "ED_mesh.h" /* for face mask functions */
-#include "ED_select_buffer_utils.h"
+
+#include "DRW_select_buffer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -391,7 +392,7 @@ static int imapaint_pick_face(ViewContext *vc,
 
   /* sample only on the exact position */
   ED_view3d_select_id_validate(vc);
-  *r_index = ED_select_buffer_sample_point(mval);
+  *r_index = DRW_select_buffer_sample_point(mval);
 
   if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
     return 0;
