@@ -4784,7 +4784,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
           BKE_nurb_handles_calc(nu1);
           ok = true;
         }
-        else if (nu1->type == CU_NURBS && nu1->bp->f1 & SELECT &&
+        else if (ELEM(nu1->type, CU_NURBS, CU_POLY) && nu1->bp->f1 & SELECT &&
                  (nu1->bp[nu1->pntsu - 1].f1 & SELECT)) {
           nu1->flagu |= CU_NURB_CYCLIC;
           BKE_nurb_knot_calc_u(nu1);
