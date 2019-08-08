@@ -7578,7 +7578,9 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 
 #endif /* WITH_FREESTYLE */
 
-/********************** Loop normals editing tools modal map. **********************/
+/* -------------------------------------------------------------------- */
+/** \name Loop Normals Editing Tools Modal Map
+ * \{ */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 /* NOTE: We could add more here, like e.g. a switch between local or global coordinates of target,
@@ -8126,7 +8128,11 @@ void MESH_OT_point_normals(struct wmOperatorType *ot)
                 1.0f);
 }
 
-/********************** Split/Merge Loop Normals **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split/Merge Loop Normals
+ * \{ */
 
 static void normals_merge(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 {
@@ -8333,7 +8339,11 @@ void MESH_OT_split_normals(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** Average Loop Normals **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Average Loop Normals
+ * \{ */
 
 enum {
   EDBM_CLNOR_AVERAGE_LOOP = 1,
@@ -8561,7 +8571,11 @@ void MESH_OT_average_normals(struct wmOperatorType *ot)
                 5);
 }
 
-/********************** Custom Normal Interface Tools **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Normal Interface Tools
+ * \{ */
 
 enum {
   EDBM_CLNOR_TOOLS_COPY = 1,
@@ -9013,7 +9027,11 @@ void MESH_OT_smoothen_normals(struct wmOperatorType *ot)
                 1.0f);
 }
 
-/********************** Weighted Normal Modifier Face Strength **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Weighted Normal Modifier Face Strength
+ * \{ */
 
 static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
 {
@@ -9104,3 +9122,5 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
       "Face Strength",
       "Strength to use for assigning or selecting face influence for weighted normal modifier");
 }
+
+/** \} */
