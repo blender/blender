@@ -37,6 +37,53 @@ from bl_ui.properties_paint_common import (
 from bl_ui.utils import PresetPanel
 
 
+class VIEW3D_MT_brush_context_menu(Menu):
+    bl_label = "Material Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = getattr(settings, "brush", None)
+
+        # skip if no active brush
+        if not brush:
+            layout.label(text="No Brushes currently available", icon='INFO')
+            return
+
+        # brush paint modes
+        layout.menu("VIEW3D_MT_brush_paint_modes")
+
+        # brush tool
+
+        if context.image_paint_object:
+            layout.prop_menu_enum(brush, "image_tool")
+        elif context.vertex_paint_object:
+            layout.prop_menu_enum(brush, "vertex_tool")
+        elif context.weight_paint_object:
+            layout.prop_menu_enum(brush, "weight_tool")
+        elif context.sculpt_object:
+            layout.prop_menu_enum(brush, "sculpt_tool")
+            layout.operator("brush.reset")
+
+
+class VIEW3D_MT_brush_context_menu_paint_modes(Menu):
+    bl_label = "Enabled Modes"
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        layout.prop(brush, "use_paint_sculpt", text="Sculpt")
+        layout.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
+        layout.prop(brush, "use_paint_vertex", text="Vertex Paint")
+        layout.prop(brush, "use_paint_weight", text="Weight Paint")
+        layout.prop(brush, "use_paint_image", text="Texture Paint")
+
+
 class View3DPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -299,8 +346,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         brush = settings.brush
 
         if not self.is_popover:
-            col = layout.split().column()
-            col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
+            row = layout.row()
+            row.column().template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
+            row.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
 
         # Sculpt Mode #
         if context.sculpt_object and brush:
@@ -1117,8 +1165,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "show_low_resolution")
         col = flow.column()
         col.prop(sculpt, "use_deform_only")
-        col = flow.column()
-        col.prop(sculpt, "show_mask")
 
 
 class VIEW3D_PT_sculpt_options_unified(Panel, View3DPaintPanel):
@@ -2071,6 +2117,8 @@ class VIEW3D_PT_gpencil_brush_presets(PresetPanel, Panel):
 
 
 classes = (
+    VIEW3D_MT_brush_context_menu,
+    VIEW3D_MT_brush_context_menu_paint_modes,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_meshedit_options_automerge,
     VIEW3D_PT_tools_curveedit_options_stroke,

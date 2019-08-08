@@ -779,10 +779,7 @@ class VIEW3D_MT_editor_menus(Menu):
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
                 layout.menu("VIEW3D_MT_%s" % mode_string.lower())
-            if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
-                layout.menu("VIEW3D_MT_brush")
-            if mode_string == 'SCULPT':
-                layout.menu("VIEW3D_MT_hide_mask")
+
         else:
             layout.menu("VIEW3D_MT_object")
 
@@ -2643,63 +2640,6 @@ class VIEW3D_MT_make_links(Menu):
         layout.operator("object.join_uvs")  # stupid place to add this!
 
 
-class VIEW3D_MT_brush(Menu):
-    bl_label = "Brush"
-
-    def draw(self, context):
-        layout = self.layout
-
-        tool_settings = context.tool_settings
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = getattr(settings, "brush", None)
-
-        ups = tool_settings.unified_paint_settings
-        layout.prop(ups, "use_unified_size", text="Unified Size")
-        layout.prop(ups, "use_unified_strength", text="Unified Strength")
-        if context.image_paint_object or context.vertex_paint_object:
-            layout.prop(ups, "use_unified_color", text="Unified Color")
-        layout.separator()
-
-        # skip if no active brush
-        if not brush:
-            layout.label(text="No Brushes currently available", icon='INFO')
-            return
-
-        # brush paint modes
-        layout.menu("VIEW3D_MT_brush_paint_modes")
-
-        # brush tool
-        if context.sculpt_object:
-            layout.operator("brush.reset")
-            layout.prop_menu_enum(brush, "sculpt_tool")
-        elif context.image_paint_object:
-            layout.prop_menu_enum(brush, "image_tool")
-        elif context.vertex_paint_object:
-            layout.prop_menu_enum(brush, "vertex_tool")
-        elif context.weight_paint_object:
-            layout.prop_menu_enum(brush, "weight_tool")
-
-        # TODO: still missing a lot of brush options here
-
-        # sculpt options
-        if context.sculpt_object:
-
-            sculpt_tool = brush.sculpt_tool
-
-            layout.separator()
-            layout.prop_menu_enum(brush, "curve_preset")
-            layout.separator()
-
-            if sculpt_tool != 'GRAB':
-                layout.prop_menu_enum(brush, "stroke_method")
-
-                if sculpt_tool in {'DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'}:
-                    layout.prop_menu_enum(brush, "direction")
-
-                if sculpt_tool == 'LAYER':
-                    layout.prop(brush, "use_persistent")
-                    layout.operator("sculpt.set_persistent_base")
-
 
 class VIEW3D_MT_brush_paint_modes(Menu):
     bl_label = "Enabled Modes"
@@ -2839,38 +2779,6 @@ class VIEW3D_MT_sculpt(Menu):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
-
-        layout.operator("sculpt.dynamic_topology_toggle", text="Toggle Dynamic Topology")
-
-        layout.separator()
-
-        layout.prop(sculpt, "use_symmetry_x")
-        layout.prop(sculpt, "use_symmetry_y")
-        layout.prop(sculpt, "use_symmetry_z")
-
-        layout.separator()
-
-        layout.prop(sculpt, "lock_x")
-        layout.prop(sculpt, "lock_y")
-        layout.prop(sculpt, "lock_z")
-
-        layout.separator()
-
-        layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
-        layout.prop(sculpt, "show_low_resolution")
-        layout.prop(sculpt, "show_brush")
-        layout.prop(sculpt, "use_deform_only")
-        layout.prop(sculpt, "show_mask")
-
-
-class VIEW3D_MT_hide_mask(Menu):
-    bl_label = "Hide/Mask"
-
-    def draw(self, _context):
-        layout = self.layout
-
         props = layout.operator("paint.hide_show", text="Show All")
         props.action = 'SHOW'
         props.area = 'ALL'
@@ -2885,7 +2793,6 @@ class VIEW3D_MT_hide_mask(Menu):
 
         props = layout.operator("paint.hide_show", text="Hide Masked")
         props.area = 'MASKED'
-        props.action = 'HIDE'
 
         layout.separator()
 
@@ -6568,14 +6475,12 @@ classes = (
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
-    VIEW3D_MT_brush,
     VIEW3D_MT_brush_paint_modes,
     VIEW3D_MT_paint_vertex,
     VIEW3D_MT_hook,
     VIEW3D_MT_vertex_group,
     VIEW3D_MT_paint_weight,
     VIEW3D_MT_sculpt,
-    VIEW3D_MT_hide_mask,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_context_menu,
     VIEW3D_MT_particle_showhide,
