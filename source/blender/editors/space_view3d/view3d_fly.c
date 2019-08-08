@@ -188,6 +188,9 @@ typedef struct FlyInfo {
 } FlyInfo;
 
 /* prototypes */
+#ifdef WITH_INPUT_NDOF
+static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
+#endif /* WITH_INPUT_NDOF */
 static int flyApply(bContext *C, struct FlyInfo *fly, bool force_autokey);
 
 static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
@@ -989,7 +992,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 }
 
 #ifdef WITH_INPUT_NDOF
-static void flyApply_ndof(bContext *C, FlyInfo *fly)
+static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
 {
   Object *lock_ob = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
   bool has_translate, has_rotate;
@@ -1006,7 +1009,7 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly)
     fly->redraw = true;
 
     if (fly->rv3d->persp == RV3D_CAMOB) {
-      flyMoveCamera(C, fly, has_rotate, has_translate, true);
+      flyMoveCamera(C, fly, has_rotate, has_translate, is_confirm);
     }
   }
 }

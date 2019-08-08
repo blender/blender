@@ -264,6 +264,9 @@ typedef struct WalkInfo {
 } WalkInfo;
 
 /* prototypes */
+#ifdef WITH_INPUT_NDOF
+static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
+#endif /* WITH_INPUT_NDOF */
 static int walkApply(bContext *C, struct WalkInfo *walk, bool force_autokey);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
@@ -1284,7 +1287,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 }
 
 #ifdef WITH_INPUT_NDOF
-static void walkApply_ndof(bContext *C, WalkInfo *walk)
+static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
 {
   Object *lock_ob = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
   bool has_translate, has_rotate;
@@ -1301,7 +1304,7 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk)
     walk->redraw = true;
 
     if (walk->rv3d->persp == RV3D_CAMOB) {
-      walkMoveCamera(C, walk, has_rotate, has_translate, true);
+      walkMoveCamera(C, walk, has_rotate, has_translate, is_confirm);
     }
   }
 }
