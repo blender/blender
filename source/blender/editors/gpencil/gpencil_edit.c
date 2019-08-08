@@ -4524,7 +4524,7 @@ bool ED_object_gpencil_exit(struct Main *bmain, Object *ob)
 }
 
 /* ** merge by distance *** */
-bool gp_merge_by_distance_poll(bContext *C)
+static bool gp_merge_by_distance_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == NULL) {
