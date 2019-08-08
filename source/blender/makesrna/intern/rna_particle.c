@@ -3050,7 +3050,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "child_radius", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "childrad");
-  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_range(prop, 0.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
   RNA_def_property_ui_text(prop, "Child Radius", "Radius of children around parent");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
