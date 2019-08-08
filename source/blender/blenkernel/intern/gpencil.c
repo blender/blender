@@ -2138,3 +2138,81 @@ void BKE_gpencil_dissolve_points(bGPDframe *gpf, bGPDstroke *gps, const short ta
     gps->tot_triangles = 0;
   }
 }
+
+/* Merge by distance ------------------------------------- */
+/* Reduce a series of points when the distance is below a threshold.
+ * Special case for first and last points (both are keeped) for other points,
+ * the merge point always is at first point.
+ * \param gpf: Grease Pencil frame
+ * \param gps: Grease Pencil stroke
+ * \param threshold: Distance between points
+ * \param use_unselected: Set to true to analyze all stroke and not only selected points
+ */
+void BKE_gpencil_merge_distance_stroke(bGPDframe *gpf,
+                                       bGPDstroke *gps,
+                                       const float threshold,
+                                       const bool use_unselected)
+{
+  bGPDspoint *pt = NULL;
+  bGPDspoint *pt_next = NULL;
+  float tagged = false;
+  /* Use square distance to speed up loop */
+  const float th_square = threshold * threshold;
+  /* Need to have something to merge. */
+  if (gps->totpoints < 2) {
+    return;
+  }
+  int i = 0;
+  int step = 1;
+  while ((i < gps->totpoints - 1) && (i + step < gps->totpoints)) {
+    pt = &gps->points[i];
+    if (pt->flag & GP_SPOINT_TAG) {
+      i++;
+      step = 1;
+      continue;
+    }
+    pt_next = &gps->points[i + step];
+    /* Do not recalc tagged points. */
+    if (pt_next->flag & GP_SPOINT_TAG) {
+      step++;
+      continue;
+    }
+    /* Check if contiguous points are selected. */
+    if (!use_unselected) {
+      if (((pt->flag & GP_SPOINT_SELECT) == 0) || ((pt_next->flag & GP_SPOINT_SELECT) == 0)) {
+        i++;
+        step = 1;
+        continue;
+      }
+    }
+    float len_square = len_squared_v3v3(&pt->x, &pt_next->x);
+    if (len_square <= th_square) {
+      tagged = true;
+      if (i != gps->totpoints - 1) {
+        /* Tag second point for delete. */
+        pt_next->flag |= GP_SPOINT_TAG;
+      }
+      else {
+        pt->flag |= GP_SPOINT_TAG;
+      }
+      /* Jump to next pair of points, keeping first point segment equals.*/
+      step++;
+    }
+    else {
+      /* Analyze next point. */
+      i++;
+      step = 1;
+    }
+  }
+
+  /* Always untag extremes. */
+  pt = &gps->points[0];
+  pt->flag &= ~GP_SPOINT_TAG;
+  pt = &gps->points[gps->totpoints - 1];
+  pt->flag &= ~GP_SPOINT_TAG;
+
+  /* Dissolve tagged points */
+  if (tagged) {
+    BKE_gpencil_dissolve_points(gpf, gps, GP_SPOINT_TAG);
+  }
+}
