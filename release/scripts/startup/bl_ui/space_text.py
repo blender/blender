@@ -406,7 +406,7 @@ class TEXT_MT_edit(Menu):
         layout.menu("TEXT_MT_edit_to3d")
 
 
-class TEXT_MT_toolbox(Menu):
+class TEXT_MT_context_menu(Menu):
     bl_label = ""
 
     def draw(self, _context):
@@ -454,7 +454,7 @@ classes = (
     TEXT_MT_select,
     TEXT_MT_format,
     TEXT_MT_edit_to3d,
-    TEXT_MT_toolbox,
+    TEXT_MT_context_menu,
 )
 
 if __name__ == "__main__":  # only for live edit.

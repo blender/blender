@@ -1637,7 +1637,7 @@ def km_text(params):
          {"properties": [("lines", 1)]}),
         ("text.line_break", {"type": 'RET', "value": 'PRESS'}, None),
         ("text.line_break", {"type": 'NUMPAD_ENTER', "value": 'PRESS'}, None),
-        op_menu("TEXT_MT_toolbox", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}),
+        op_menu("TEXT_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}),
         ("text.autocomplete", {"type": 'SPACE', "value": 'PRESS', "ctrl": True}, None),
         ("text.line_number", {"type": 'TEXTINPUT', "value": 'ANY', "any": True}, None),
         ("text.insert", {"type": 'TEXTINPUT', "value": 'ANY', "any": True}, None),
