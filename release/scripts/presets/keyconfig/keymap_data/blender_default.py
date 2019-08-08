@@ -2144,10 +2144,6 @@ def km_text(params):
     )
 
     items.extend([
-        ("text.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True},
-         {"properties": [("type", 'PREVIOUS_WORD')]}),
-        ("text.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True},
-         {"properties": [("type", 'NEXT_WORD')]}),
         ("wm.context_cycle_int", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.font_size'), ("reverse", False)]}),
         ("wm.context_cycle_int", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
@@ -2165,6 +2161,11 @@ def km_text(params):
     else:
         items.extend([
             ("text.new", {"type": 'N', "value": 'PRESS', "ctrl": True}, None),
+
+            ("text.move", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True},
+             {"properties": [("type", 'PREVIOUS_WORD')]}),
+            ("text.move", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True},
+             {"properties": [("type", 'NEXT_WORD')]}),
         ])
 
     items.extend([
