@@ -46,6 +46,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_physics.h"
 #include "ED_screen.h"
 
@@ -56,12 +57,37 @@
 
 static bool ED_operator_rigidbody_con_active_poll(bContext *C)
 {
+  Scene *scene = CTX_data_scene(C);
+  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->constraints != NULL &&
+       ID_IS_LINKED(&scene->rigidbody_world->constraints->id))) {
+    return false;
+  }
+
   if (ED_operator_object_active_editable(C)) {
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_constraint);
   }
   else {
-    return 0;
+    return false;
+  }
+}
+
+static bool ED_operator_rigidbody_con_add_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->constraints != NULL &&
+       ID_IS_LINKED(&scene->rigidbody_world->constraints->id))) {
+    return false;
+  }
+
+  if (ED_operator_object_active_editable(C)) {
+    Object *ob = ED_object_active_context(C);
+    return (ob && ob->type == OB_MESH);
+  }
+  else {
+    return false;
   }
 }
 
@@ -152,7 +178,7 @@ void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_con_add_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_rigidbody_con_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -62,6 +62,13 @@
 
 static bool ED_operator_rigidbody_active_poll(bContext *C)
 {
+  Scene *scene = CTX_data_scene(C);
+  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
+       ID_IS_LINKED(&scene->rigidbody_world->group->id))) {
+    return false;
+  }
+
   if (ED_operator_object_active_editable(C)) {
     Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_object);
@@ -73,12 +80,19 @@ static bool ED_operator_rigidbody_active_poll(bContext *C)
 
 static bool ED_operator_rigidbody_add_poll(bContext *C)
 {
+  Scene *scene = CTX_data_scene(C);
+  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
+       ID_IS_LINKED(&scene->rigidbody_world->group->id))) {
+    return false;
+  }
+
   if (ED_operator_object_active_editable(C)) {
     Object *ob = ED_object_active_context(C);
     return (ob && ob->type == OB_MESH);
   }
   else {
-    return 0;
+    return false;
   }
 }
 
@@ -286,7 +300,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_objects_remove_exec;
-  ot->poll = ED_operator_scene_editable;
+  ot->poll = ED_operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -341,7 +355,7 @@ void RIGIDBODY_OT_shape_change(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = rigidbody_objects_shape_change_exec;
-  ot->poll = ED_operator_scene_editable;
+  ot->poll = ED_operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -534,7 +548,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;  // XXX
   ot->exec = rigidbody_objects_calc_mass_exec;
-  ot->poll = ED_operator_scene_editable;
+  ot->poll = ED_operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

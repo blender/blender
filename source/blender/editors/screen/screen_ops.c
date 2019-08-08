@@ -186,9 +186,9 @@ bool ED_operator_scene_editable(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   if (scene && !ID_IS_LINKED(scene)) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 bool ED_operator_objectmode(bContext *C)
