@@ -63,6 +63,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
@@ -477,6 +478,127 @@ void OUTLINER_OT_scene_operation(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_scene_op_types, 0, "Scene Operation", "");
 }
 /* ******************************************** */
+
+/* Stores the parent and a child element of a merged iconrow icon for
+ * the merged select popup menu. The subtree of the parent is searched and
+ * the child is needed to only show elements of the same type in the popup. */
+typedef struct MergedSearchData {
+  TreeElement *parent_element;
+  TreeElement *select_element;
+} MergedSearchData;
+
+static void merged_element_search_cb_recursive(
+    const ListBase *tree, short tselem_type, short type, const char *str, uiSearchItems *items)
+{
+  char name[64];
+  int iconid;
+
+  for (TreeElement *te = tree->first; te; te = te->next) {
+    TreeStoreElem *tselem = TREESTORE(te);
+
+    if (tree_element_id_type_to_index(te) == type && tselem_type == tselem->type) {
+      if (BLI_strcasestr(te->name, str)) {
+        BLI_strncpy(name, te->name, 64);
+
+        iconid = tree_element_get_icon(tselem, te).icon;
+
+        /* Don't allow duplicate named items */
+        if (UI_search_items_find_index(items, name) == -1) {
+          if (!UI_search_item_add(items, name, te, iconid)) {
+            break;
+          }
+        }
+      }
+    }
+
+    merged_element_search_cb_recursive(&te->subtree, tselem_type, type, str, items);
+  }
+}
+
+/* Get a list of elements that match the search string */
+static void merged_element_search_cb(const bContext *UNUSED(C),
+                                     void *data,
+                                     const char *str,
+                                     uiSearchItems *items)
+{
+  MergedSearchData *search_data = (MergedSearchData *)data;
+  TreeElement *parent = search_data->parent_element;
+  TreeElement *te = search_data->select_element;
+
+  int type = tree_element_id_type_to_index(te);
+
+  merged_element_search_cb_recursive(&parent->subtree, TREESTORE(te)->type, type, str, items);
+}
+
+/* Activate an element from the merged element search menu */
+static void merged_element_search_call_cb(struct bContext *C, void *UNUSED(arg1), void *element)
+{
+  SpaceOutliner *soops = CTX_wm_space_outliner(C);
+  TreeElement *te = (TreeElement *)element;
+
+  outliner_item_select(soops, te, false, false);
+  outliner_item_do_activate_from_tree_element(C, te, te->store_elem, false, false);
+
+  if (soops->flag & SO_SYNC_SELECT) {
+    ED_outliner_select_sync_from_outliner(C, soops);
+  }
+}
+
+/** Merged element search menu
+ * Created on activation of a merged or aggregated iconrow icon.
+ */
+static uiBlock *merged_element_search_menu(bContext *C, ARegion *ar, void *data)
+{
+  static char search[64] = "";
+  uiBlock *block;
+  uiBut *but;
+
+  /* Clear search on each menu creation */
+  *search = '\0';
+
+  block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+  UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+
+  short menu_width = 10 * UI_UNIT_X;
+  but = uiDefSearchBut(
+      block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, menu_width, UI_UNIT_Y, 0, 0, "");
+  UI_but_func_search_set(
+      but, NULL, merged_element_search_cb, data, false, merged_element_search_call_cb, NULL);
+  UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
+
+  /* Fake button to hold space for search items */
+  uiDefBut(block,
+           UI_BTYPE_LABEL,
+           0,
+           "",
+           10,
+           10 - UI_searchbox_size_y(),
+           menu_width,
+           UI_searchbox_size_y(),
+           NULL,
+           0,
+           0,
+           0,
+           0,
+           NULL);
+
+  /* Center the menu on the cursor */
+  UI_block_bounds_set_popup(block, 6, (const int[2]){-(menu_width / 2), 0});
+
+  return block;
+}
+
+void merged_element_search_menu_invoke(bContext *C,
+                                       TreeElement *parent_te,
+                                       TreeElement *activate_te)
+{
+  MergedSearchData *select_data = MEM_callocN(sizeof(MergedSearchData), "merge_search_data");
+  select_data->parent_element = parent_te;
+  select_data->select_element = activate_te;
+
+  UI_popup_block_invoke(C, merged_element_search_menu, select_data, MEM_freeN);
+}
 
 static void object_select_cb(bContext *C,
                              ReportList *UNUSED(reports),

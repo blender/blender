@@ -2590,7 +2590,11 @@ static void tselem_draw_icon(uiBlock *block,
     return;
   }
 
+  /* Icon is covered by restrict buttons */
   if (!is_clickable || x >= xmax) {
+    /* Reduce alpha to match icon buttons */
+    alpha *= 0.8f;
+
     /* placement of icons, copied from interface_widgets.c */
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
@@ -2698,7 +2702,6 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
     float ufac = UI_UNIT_X / 20.0f;
     float icon_color[4], icon_border[4];
     outliner_icon_background_colors(icon_color, icon_border);
-    icon_color[3] *= alpha_fac;
     if (active == OL_DRAWSEL_ACTIVE) {
       UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_color);
       icon_border[3] = 0.3f;
@@ -2723,6 +2726,9 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
     GPU_blend(true); /* Roundbox disables. */
   }
 
+  if (tselem->flag & TSE_HIGHLIGHTED) {
+    alpha_fac += 0.5;
+  }
   tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, alpha_fac, false);
   te->xs = *offsx;
   te->ys = ys;
@@ -2730,7 +2736,12 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
 
   if (num_elements > 1) {
     outliner_draw_iconrow_number(fstyle, *offsx, ys, num_elements);
+    te->flag |= TE_ICONROW_MERGED;
   }
+  else {
+    te->flag |= TE_ICONROW;
+  }
+
   (*offsx) += UI_UNIT_X;
 }
 
@@ -2740,7 +2751,7 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
  * We use a continuum of indices until we get to the object data-blocks
  * and we then make room for the object types.
  */
-static int tree_element_id_type_to_index(TreeElement *te)
+int tree_element_id_type_to_index(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
@@ -2870,7 +2881,7 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
   TreeElement *ten;
 
   /* closed items may be displayed in row of parent, don't change their coordinate! */
-  if ((te->flag & TE_ICONROW) == 0) {
+  if ((te->flag & TE_ICONROW) == 0 && (te->flag & TE_ICONROW_MERGED) == 0) {
     /* store coord and continue, we need coordinates for elements outside view too */
     te->xs = startx;
     te->ys = starty;

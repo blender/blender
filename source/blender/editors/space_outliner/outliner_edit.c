@@ -101,9 +101,15 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 
   ARegion *ar = CTX_wm_region(C);
   SpaceOutliner *soops = CTX_wm_space_outliner(C);
-  const float my = UI_view2d_region_to_view_y(&ar->v2d, event->mval[1]);
 
-  TreeElement *hovered_te = outliner_find_item_at_y(soops, &soops->tree, my);
+  float view_mval[2];
+  UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+
+  TreeElement *hovered_te = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+
+  if (hovered_te) {
+    hovered_te = outliner_find_item_at_x_in_row(soops, hovered_te, view_mval[0], NULL);
+  }
   bool changed = false;
 
   if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {

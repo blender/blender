@@ -1246,12 +1246,6 @@ static void outliner_item_toggle_closed(TreeElement *te, const bool toggle_child
   }
 }
 
-static bool outliner_item_is_co_within_close_toggle(TreeElement *te, float view_co_x)
-{
-  return ((te->flag & TE_ICONROW) == 0) && (view_co_x > te->xs) &&
-         (view_co_x < te->xs + UI_UNIT_X);
-}
-
 static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *soops,
                                                    const ARegion *ar,
                                                    float view_co_x)
@@ -1313,8 +1307,18 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   else {
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    /* the row may also contain children, if one is hovered we want this instead of current te */
-    TreeElement *activate_te = outliner_find_item_at_x_in_row(soops, te, view_mval[0]);
+
+    /* The row may also contain children, if one is hovered we want this instead of current te */
+    bool merged_elements = false;
+    TreeElement *activate_te = outliner_find_item_at_x_in_row(
+        soops, te, view_mval[0], &merged_elements);
+
+    /* If the selected icon was an aggregate of multiple elements, run the search popup */
+    if (merged_elements) {
+      merged_element_search_menu_invoke(C, te, activate_te);
+      return OPERATOR_CANCELLED;
+    }
+
     TreeStoreElem *activate_tselem = TREESTORE(activate_te);
 
     outliner_item_select(soops, activate_te, extend, extend);

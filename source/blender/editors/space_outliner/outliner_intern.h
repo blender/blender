@@ -131,6 +131,9 @@ enum {
   TE_DISABLED = (1 << 4),
   TE_DRAGGING = (1 << 5),
   TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
+  /* Child elements of the same type in the iconrow are drawn merged as one icon.
+   * TE_ICONROW_MERGED is set for an element that is part of these merged child icons. */
+  TE_ICONROW_MERGED = (1 << 7),
 };
 
 /* button events */
@@ -223,6 +226,8 @@ void outliner_collection_isolate_flag(struct Scene *scene,
                                       const char *propname,
                                       const bool value);
 
+int tree_element_id_type_to_index(TreeElement *te);
+
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(struct bContext *C,
                                       struct Scene *scene,
@@ -254,6 +259,8 @@ void outliner_object_mode_toggle(struct bContext *C,
                                  Base *base);
 
 void outliner_element_activate(struct SpaceOutliner *soops, struct TreeStoreElem *tselem);
+
+bool outliner_item_is_co_within_close_toggle(TreeElement *te, float view_co_x);
 
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_cb)(struct bContext *C,
@@ -382,6 +389,10 @@ void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
 
 /* outliner_tools.c ---------------------------------------------- */
 
+void merged_element_search_menu_invoke(struct bContext *C,
+                                       TreeElement *parent_te,
+                                       TreeElement *activate_te);
+
 void OUTLINER_OT_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_scene_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
@@ -441,7 +452,8 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *soops,
                                      float view_co_y);
 TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *soops,
                                             const TreeElement *parent_te,
-                                            float view_co_x);
+                                            float view_co_x,
+                                            bool *multiple_objects);
 TreeElement *outliner_find_tse(struct SpaceOutliner *soops, const TreeStoreElem *tse);
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
 TreeElement *outliner_find_parent_element(ListBase *lb,
