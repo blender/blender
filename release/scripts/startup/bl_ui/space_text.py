@@ -107,6 +107,7 @@ class TEXT_MT_editor_menus(Menu):
 
         if text:
             layout.menu("TEXT_MT_edit")
+            layout.menu("TEXT_MT_select")
             layout.menu("TEXT_MT_format")
 
         layout.menu("TEXT_MT_templates")
@@ -179,6 +180,33 @@ class TEXT_PT_find(Panel):
         row.prop(st, "use_find_all", text="All", toggle=True)
 
 
+class TEXT_MT_view_navigation(Menu):
+    bl_label = "Navigation"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.operator("text.move", text="Top").type = 'FILE_TOP'
+        layout.operator("text.move", text="Bottom").type = 'FILE_BOTTOM'
+
+        layout.separator()
+
+        layout.operator("text.move", text="Line Begin").type = 'LINE_BEGIN'
+        layout.operator("text.move", text="Line End").type = 'LINE_END'
+
+        layout.separator()
+
+        layout.operator("text.move", text="Previous Line").type = 'PREVIOUS_LINE'
+        layout.operator("text.move", text="Next Line").type = 'NEXT_LINE'
+
+        layout.separator()
+
+        layout.operator("text.move", text="Previous Word").type = 'PREVIOUS_WORD'
+        layout.operator("text.move", text="Next Word").type = 'NEXT_WORD'
+
+
 class TEXT_MT_view(Menu):
     bl_label = "View"
 
@@ -198,12 +226,7 @@ class TEXT_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("text.move",
-                        text="Top of File",
-                        ).type = 'FILE_TOP'
-        layout.operator("text.move",
-                        text="Bottom of File",
-                        ).type = 'FILE_BOTTOM'
+        layout.menu("TEXT_MT_view_navigation")
 
         layout.separator()
 
@@ -219,7 +242,7 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.operator("text.new", text="New")
+        layout.operator("text.new", text="New", icon='FILE_NEW')
         layout.operator("text.open", text="Open...", icon='FILE_FOLDER')
 
         if text:
@@ -231,7 +254,16 @@ class TEXT_MT_text(Menu):
             layout.operator("text.save_as", text="Save As...")
 
             if text.filepath:
+                layout.separator()
                 layout.operator("text.make_internal")
+
+            layout.separator()
+            row = layout.row()
+            row.active = text.name.endswith(".py")
+            row.prop(text, "use_module")
+            row = layout.row()
+
+            layout.prop(st, "use_live_edit")
 
             layout.separator()
             layout.operator("text.run_script")
@@ -270,14 +302,35 @@ class TEXT_MT_templates(Menu):
         layout.menu("TEXT_MT_templates_osl")
 
 
-class TEXT_MT_edit_select(Menu):
+class TEXT_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("text.select_all")
-        layout.operator("text.select_line")
+        layout.operator("text.select_all", text="All")
+        layout.operator("text.select_line", text="Line")
+        layout.operator("text.select_word", text="Word")
+
+        layout.separator()
+
+        layout.operator("text.move_select", text="Top").type = 'FILE_TOP'
+        layout.operator("text.move_select", text="Bottom").type = 'FILE_BOTTOM'
+
+        layout.separator()
+
+        layout.operator("text.move_select", text="Line Begin").type = 'LINE_BEGIN'
+        layout.operator("text.move_select", text="Line End").type = 'LINE_END'
+
+        layout.separator()
+
+        layout.operator("text.move_select", text="Previous Line").type = 'PREVIOUS_LINE'
+        layout.operator("text.move_select", text="Next Line").type = 'NEXT_LINE'
+
+        layout.separator()
+
+        layout.operator("text.move_select", text="Previous Word").type = 'PREVIOUS_WORD'
+        layout.operator("text.move_select", text="Next Word").type = 'NEXT_WORD'
 
 
 class TEXT_MT_format(Menu):
@@ -335,23 +388,17 @@ class TEXT_MT_edit(Menu):
 
         layout.separator()
 
-        layout.prop(st, "use_live_edit")
+        layout.operator("text.move_lines", text="Move Line(s) Up").direction = 'UP'
+        layout.operator("text.move_lines", text="Move Line(s) Down").direction = 'DOWN'
 
         layout.separator()
 
-        layout.operator("text.move_lines",
-                        text="Move line(s) up").direction = 'UP'
-        layout.operator("text.move_lines",
-                        text="Move line(s) down").direction = 'DOWN'
+        layout.operator("text.start_find", text="Find & Replace...")
+        layout.operator("text.find_set_selected", text="Find Next")
+        layout.operator("text.jump", text="Jump To...")
 
         layout.separator()
 
-        layout.menu("TEXT_MT_edit_select")
-
-        layout.separator()
-
-        layout.operator("text.jump")
-        layout.operator("text.start_find", text="Find...")
         layout.operator("text.autocomplete")
 
         layout.separator()
@@ -370,14 +417,12 @@ class TEXT_MT_toolbox(Menu):
         layout.operator("text.cut")
         layout.operator("text.copy", icon='COPYDOWN')
         layout.operator("text.paste", icon='PASTEDOWN')
+        layout.operator("text.duplicate_line")
 
         layout.separator()
 
-        layout.operator("text.duplicate_line")
-        layout.operator("text.move_lines",
-                        text="Move Lines Up").direction = 'UP'
-        layout.operator("text.move_lines",
-                        text="Move Lines Down").direction = 'DOWN'
+        layout.operator("text.move_lines", text="Move Line(s) Up").direction = 'UP'
+        layout.operator("text.move_lines", text="Move Line(s) Down").direction = 'DOWN'
 
         layout.separator()
 
@@ -386,8 +431,7 @@ class TEXT_MT_toolbox(Menu):
 
         layout.separator()
 
-        layout.operator("text.comment", text="Comment")
-        layout.operator("text.uncomment", text="Uncomment")
+        layout.operator("text.comment_toggle")
 
         layout.separator()
 
@@ -402,11 +446,12 @@ classes = (
     TEXT_PT_find,
     TEXT_PT_properties,
     TEXT_MT_view,
+    TEXT_MT_view_navigation,
     TEXT_MT_text,
     TEXT_MT_templates,
     TEXT_MT_templates_py,
     TEXT_MT_templates_osl,
-    TEXT_MT_edit_select,
+    TEXT_MT_select,
     TEXT_MT_format,
     TEXT_MT_edit_to3d,
     TEXT_MT_toolbox,
