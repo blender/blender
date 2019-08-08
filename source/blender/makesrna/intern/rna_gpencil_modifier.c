@@ -622,6 +622,11 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
        ICON_IPO_EASE_IN_OUT,
        "Sample",
        "Sample a curve using a fixed length"},
+      {GP_SIMPLIFY_MERGE,
+       "MERGE",
+       ICON_IPO_EASE_IN_OUT,
+       "Merge",
+       "Sample a curve using doing merge of vertex"},
       {0, NULL, 0, NULL, NULL},
   };
 

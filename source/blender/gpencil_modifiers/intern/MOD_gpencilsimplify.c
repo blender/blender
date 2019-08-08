@@ -45,6 +45,7 @@ static void initData(GpencilModifierData *md)
   gpmd->pass_index = 0;
   gpmd->step = 1;
   gpmd->factor = 0.0f;
+  gpmd->length = 0.1f;
   gpmd->layername[0] = '\0';
 }
 
@@ -57,7 +58,7 @@ static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,
                          bGPDlayer *gpl,
-                         bGPDframe *UNUSED(gpf),
+                         bGPDframe *gpf,
                          bGPDstroke *gps)
 {
   SimplifyGpencilModifierData *mmd = (SimplifyGpencilModifierData *)md;
@@ -90,6 +91,10 @@ static void deformStroke(GpencilModifierData *md,
     }
     case GP_SIMPLIFY_SAMPLE: {
       BKE_gpencil_sample_stroke(gps, mmd->length, false);
+      break;
+    }
+    case GP_SIMPLIFY_MERGE: {
+      BKE_gpencil_merge_distance_stroke(gpf, gps, mmd->length, true);
       break;
     }
     default:

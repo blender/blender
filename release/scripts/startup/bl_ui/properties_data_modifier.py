@@ -1792,6 +1792,8 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
             col.prop(md, "factor")
         elif md.mode == 'SAMPLE':
             col.prop(md, "length")
+        elif md.mode == 'MERGE':
+            col.prop(md, "length", text="Threshold")
 
         col = layout.column()
         col.separator()

@@ -519,6 +519,8 @@ typedef enum eSimplifyGpencil_Mode {
   GP_SIMPLIFY_ADAPTIVE = 1,
   /* Sample the stroke using a fixed length */
   GP_SIMPLIFY_SAMPLE = 2,
+  /* Sample the stroke doing vertex merge */
+  GP_SIMPLIFY_MERGE = 3,
 } eSimplifyGpencil_Mode;
 
 typedef struct OffsetGpencilModifierData {
